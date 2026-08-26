@@ -1,0 +1,71 @@
+{
+  "name": "Frozen Corpse",
+  "actions": "examine,take,use,drop",
+  "contents": [
+    "leather_bound_journal"
+  ],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "The body of a hunter, frozen solid. ",
+  "insulation": 0,
+  "light_level": "dim",
+  "tags": [
+    "corpse"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "The corpse is frozen stiff, its skin pale and cracked. The journal in its grip seems to be the only thing of value."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "item": "Leather-bound Journal",
+            "position": "here"
+          },
+          "type": "spawn_item"
+        },
+        {
+          "params": {
+            "message": "You pry the frozen journal from the corpse's grip. The body crumbles into dust."
+          },
+          "type": "message"
+        },
+        {
+          "params": {},
+          "type": "destroy_self"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {
+        "operator": "and",
+        "conditions": [
+          {
+            "type": "state_equals",
+            "value": "frozen"
+          }
+        ]
+      },
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "uses": 1,
+  "weight": 50
+}

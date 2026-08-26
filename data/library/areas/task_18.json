@@ -1,0 +1,27 @@
+{
+  "description": "A stark, mathematically perfect cube of seamless pale-gray material. The walls, floor, and ceiling are utterly featureless, windows, or adornments. Yet the ceiling glows with a soft, even, warm light that fills every corner with gentle illumination. The air is fresh and pleasantly warm, carrying a faint scent of clean linen. The silence is absolute, so thick you can hear your own heartbeat.",
+  "environment": {
+    "air": "fresh",
+    "light": "bright",
+    "noise": "silent",
+    "smell": "clean linen; urine",
+    "temperature": 24
+  },
+  "exits": [],
+  "items": [
+    {
+      "name": "Panel 18",
+      "description": "PANEL: Welcome to Task 18!\n\nThis area has many diffrent doors. and you task is simple, walk through each door.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 0.1,
+      "current_state": "normal",
+      "tags": []
+    }
+  ],
+  "name": "Task 18",
+  "tags": [],
+  "triggers": []
+}

@@ -1,0 +1,39 @@
+{
+  "name": "stained work shirt",
+  "description": "a once-white cotton work shirt, now permanently brown and red from old blood. the sleeves are rolled to the elbows, revealing scarred forearms. the collar is torn.",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "uses": 0,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "clothing",
+    "top"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "the shirt is beyond cleaning. the fabric has absorbed so much blood it has stiffened into a permanent shape. it reeks of iron and rot."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": [],
+  "library_id": "stained_work_shirt",
+  "equip_slots": [
+    "torso"
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "name": "black crop top",
+  "description": "a thin black cotton crop top that stops above the navel, showing off a flat stomach. the fabric is thin enough that the faint shadows of your breasts are visible beneath it. no bra — you don't need the hassle.",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "uses": 0,
+  "weight": 0.15,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "clothing",
+    "top"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "a simple black crop top. thin, comfortable, and you look good in it. that's the only criteria that matters."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": [],
+  "library_id": "black_crop_top",
+  "equip_slots": [
+    "torso"
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "name": "Gromm",
+  "personality": "Gromm is a massive brute from the northern wastes, all muscle and barely contained rage. He fights with a heavy club that's splintered and regrown a dozen times over. Tactics are not his strength — he swings until something breaks, and he's strong enough that this approach works more often than it should. He grunts more than he speaks, but his eyes are mean and aware; he's not as stupid as he looks. The crowd loves him because he makes fights ugly and short.",
+  "description": "Towering and broad-shouldered, with a thick neck and arms like tree limbs. His face is a ruin of old breaks — a crooked nose, a ridge of scar tissue over one eyebrow, teeth missing on the left side. His skin is dark and weathered, corded with scar tissue across the knuckles and shoulders. Wears a patchwork of furs and boiled leather, none of it fitted properly. The heavy club in his grip looks like a toy until he swings it.",
+  "state": "awake",
+  "current_area": "Fighting Pit",
+  "stats": {
+    "STR": 18,
+    "DEX": 8,
+    "CON": 16,
+    "INT": 6,
+    "WIS": 10,
+    "CHA": 6
+  },
+  "vitals": {
+    "HP": 120,
+    "Max_HP": 120,
+    "Energy": 100,
+    "Hunger": 90,
+    "Thirst": 90,
+    "Hygiene": 40,
+    "Social": 30,
+    "Bladder": 50,
+    "Sanity": 100,
+    "Entertainment": 20,
+    "Temperature": 37
+  },
+  "skills": {
+    "Athletics": 5,
+    "Fighting": 4,
+    "Intimidation": 3
+  },
+  "traits": {},
+  "emotion": {
+    "current": "aggressive",
+    "description": "eager for a fight, rolling his shoulders, hefting the club",
+    "intensity": 0.9
+  },
+  "relationships": {},
+  "inventory": [
+    "heavy_club"
+  ],
+  "interest_tags": [
+    "weapon",
+    "melee",
+    "meat",
+    "bone",
+    "fire",
+    "drink",
+    "wooden",
+    "heavy"
+  ]
+}

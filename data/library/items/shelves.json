@@ -1,0 +1,18 @@
+{
+  "name": "shelves",
+  "description": "rows of wooden shelves lined with glass jars. most contain preserved fruits and vegetables - peaches, green beans, pickles. but a few jars hold things that make you look away: a human heart, floating in amber fluid. a row of fingers, each labeled with a name. and one jar, larger than the rest, containing a crystal skull that seems to glow faintly in the dim light.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "furniture",
+    "wooden"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,638 @@
+{
+  "activity": null,
+  "base_description": "jake halloway, 28, about 175cm, slim and lean rather than muscular, surprisingly dextrous in bursts and catastrophically clumsy otherwise. pale complexion that sunburns easily, defined jawline softened by the earliest hints of beard, seafoam-green eyes scattered with gold/amber flecks, dark circles from too much screen time. hair stiff, slightly curly, defying gravity. dresses utilitarian and lived-in: hoodie, comfort over fashion, glasses he owns but rarely wears. usually has a small scrape or band-aid somewhere.",
+  "behaviors": [],
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "current_area": "Taco Bell Men's Restroom",
+  "decay_rates": {
+    "bladder": 1,
+    "energy": 1,
+    "entertainment": 1,
+    "hunger": 1,
+    "hygiene": 1,
+    "sanity": 1,
+    "social": 1,
+    "thirst": 1
+  },
+  "description": "a lanky guy in his late twenties in a black shirt still stiff with dried monster energy, brown curls pointing in several directions, seafoam-green eyes flecked with gold dots. a band-aid on one hand for no apparent reason, and the grin of someone with a secret.",
+  "emotion": {
+    "current": "amused",
+    "description": "jake halloway is quite amused.",
+    "intensity": 0.5
+  },
+  "equipped": {
+    "accessory": [],
+    "arms": [],
+    "back": [],
+    "feet": [
+      "item_mismatched socks",
+      "item_running shoes"
+    ],
+    "hand_left": [
+      "item_phone"
+    ],
+    "hand_right": [],
+    "hands": [],
+    "head": [],
+    "legs": [
+      "item_boxer briefs",
+      "item_cargo shorts"
+    ],
+    "neck": [],
+    "torso": [
+      "item_faded black band tee",
+      "item_duct tape jacket"
+    ],
+    "waist": []
+  },
+  "interest_tags": [
+    "mechanism",
+    "key",
+    "hidden",
+    "secret",
+    "clue",
+    "energy_drink",
+    "candy",
+    "tool",
+    "food"
+  ],
+  "inventory": [
+    {
+      "library_id": null,
+      "name": "phone",
+      "node_id": "item_phone",
+      "properties": {
+        "actions": [
+          "examine",
+          "take",
+          "drop",
+          "equip",
+          "unequip"
+        ],
+        "current_state": "lit",
+        "description": "jake smartphone. the screen is cracked but functional. his camera roll is full of blurry photos of the mansion entrance, screenshots of a creepy forum post where he found this place, and approximately 400 memes. no signal, obviously.",
+        "equip_slots": [
+          "hand_left",
+          "hand_right"
+        ],
+        "hidden": false,
+        "tags": [
+          "light_source",
+          "electric"
+        ],
+        "uses": 30,
+        "weight": 0.2
+      }
+    },
+    {
+      "library_id": null,
+      "name": "rubber band",
+      "node_id": "item_rubber_band",
+      "properties": {
+        "actions": [
+          "examine",
+          "use",
+          "take",
+          "drop"
+        ],
+        "description": "a thick rubber band jake fidgets with when he is nervous. it got at least 47 different uses, none of them practical. twanging it helps him think.",
+        "hidden": false,
+        "uses": -1,
+        "weight": 0.05
+      }
+    },
+    {
+      "library_id": null,
+      "name": "energy drink",
+      "node_id": "item_energy_drink",
+      "properties": {
+        "actions": [
+          "examine",
+          "use",
+          "drink"
+        ],
+        "description": "a neon-green energy drink. the label reads 'maximum chaos' in aggressive letters. warm, but probably still effective.",
+        "hidden": false,
+        "tags": [
+          "drink",
+          "consumable",
+          "energy_drink",
+          "food"
+        ],
+        "uses": 1,
+        "weight": 0.3
+      }
+    },
+    {
+      "library_id": null,
+      "name": "flashlight",
+      "node_id": "item_flashlight",
+      "properties": {
+        "action_costs": {
+          "use": {
+            "energy": 0,
+            "time": 0
+          }
+        },
+        "actions": [
+          "examine",
+          "use"
+        ],
+        "description": "a compact led flashlight. bright enough to see where you are going. battery at about 80%.",
+        "hidden": false,
+        "tags": [
+          "toggleable",
+          "light_source",
+          "electric",
+          "tool",
+          "survival"
+        ],
+        "uses": 30,
+        "weight": 0.3
+      }
+    },
+    {
+      "library_id": null,
+      "name": "multitool",
+      "node_id": "item_multitool",
+      "properties": {
+        "actions": [
+          "examine",
+          "use",
+          "take",
+          "drop"
+        ],
+        "damage": 8,
+        "description": "a red swiss army-style multitool with knife, pliers, screwdriver, and bottle opener. this thing has gotten jake out of more jams than he would admit.",
+        "hidden": false,
+        "tags": [
+          "tool",
+          "metal",
+          "survival"
+        ],
+        "uses": -1,
+        "weight": 0.4
+      }
+    },
+    {
+      "library_id": null,
+      "name": "gardener's notebook",
+      "node_id": "item_notebook",
+      "properties": {
+        "actions": [
+          "examine",
+          "take",
+          "drop"
+        ],
+        "description": "a water-damaged gardener's notebook. the last entry: 'october 30th — strange lights in the study again tonight. the missus says it is nothing, but i have worked here 20 years. i know what i saw. the skull. i found a sketch of it in the master's private papers. and i found where it goes — the altar in the crypt below the graveyard. tomorrow i am leaving. i do not care if they dock my pay.' the notebook ends there.",
+        "hidden": false,
+        "tags": [
+          "documents",
+          "paper",
+          "evidence"
+        ],
+        "uses": -1,
+        "weight": 0.3
+      }
+    },
+    {
+      "library_id": null,
+      "name": "pencil",
+      "node_id": "item_pencil",
+      "properties": {
+        "actions": [
+          "examine",
+          "take",
+          "drop"
+        ],
+        "description": "a chewed-up no. 2 pencil. the eraser is long gone. the wood is dented with teeth marks — jake nervous habit.",
+        "hidden": false,
+        "uses": -1,
+        "weight": 0.05
+      }
+    },
+    {
+      "library_id": "faded_black_band_tee",
+      "name": "faded black band tee",
+      "node_id": "item_faded black band tee",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "a faded black t-shirt with a cracked and peeling logo of a band no one remembers. the collar is stretched out and the hem is uneven. it's been through approximately a thousand wash cycles.",
+        "equip_slots": [
+          "torso"
+        ],
+        "hidden": false,
+        "library_id": "faded_black_band_tee",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "top"
+        ],
+        "uses": 0,
+        "weight": 0.2
+      }
+    },
+    {
+      "library_id": "duct_tape_jacket",
+      "name": "duct tape jacket",
+      "node_id": "item_duct tape jacket",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "an ancient denim jacket held together by duct tape. the tape is silver on one sleeve, black on the other, and there's a patch on the back covering a hole. it's technically tied around your waist most of the time.",
+        "equip_slots": [
+          "torso"
+        ],
+        "hidden": false,
+        "library_id": "duct_tape_jacket",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "outerwear",
+          "insulation"
+        ],
+        "uses": 0,
+        "weight": 1
+      }
+    },
+    {
+      "library_id": "boxer_briefs",
+      "name": "boxer briefs",
+      "node_id": "item_boxer briefs",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "grey boxer briefs. functional, slightly stretched out. not your best pair, but they're clean. mostly.",
+        "equip_slots": [
+          "legs"
+        ],
+        "hidden": false,
+        "library_id": "boxer_briefs",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "underwear"
+        ],
+        "uses": 0,
+        "weight": 0.08
+      }
+    },
+    {
+      "library_id": "cargo_shorts",
+      "name": "cargo shorts",
+      "node_id": "item_cargo shorts",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "olive drab cargo shorts with six pockets. there's a mysterious dark stain on the right cargo pocket — you have no idea what it is and you're afraid to ask. the knees are frayed.",
+        "equip_slots": [
+          "legs"
+        ],
+        "hidden": false,
+        "library_id": "cargo_shorts",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "bottom"
+        ],
+        "uses": 0,
+        "weight": 0.5
+      }
+    },
+    {
+      "library_id": "mismatched_socks",
+      "name": "mismatched socks",
+      "node_id": "item_mismatched socks",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "one white sock with a grey heel, one black sock with a hole in the big toe. you didn't notice this morning. or you didn't care.",
+        "equip_slots": [
+          "feet"
+        ],
+        "hidden": false,
+        "library_id": "mismatched_socks",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "footwear"
+        ],
+        "uses": 0,
+        "weight": 0.05
+      }
+    },
+    {
+      "library_id": null,
+      "name": "tiny_key",
+      "node_id": "item_tiny_key",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "drop"
+        ],
+        "description": "a tiny brass key barely larger than your thumb. it was hidden inside the cracked vase — taped to the inner wall.",
+        "hidden": true,
+        "skill_check": {},
+        "tags": [
+          "key",
+          "metal"
+        ],
+        "uses": -1,
+        "weight": 0.02
+      }
+    },
+    {
+      "library_id": "kyrie_running_shoes",
+      "name": "running shoes",
+      "node_id": "item_running shoes",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "lightweight black running shoes with laces double-knotted. the soles have grip left in them, and the mesh is intact. someone here takes care of their gear.",
+        "equip_slots": [
+          "feet"
+        ],
+        "hidden": false,
+        "library_id": "kyrie_running_shoes",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "footwear"
+        ],
+        "uses": 0,
+        "weight": 0.7
+      }
+    }
+  ],
+  "memories": [
+    {
+      "entity_ids": [
+        "player_miki_doki"
+      ],
+      "id": "mem_tb_jake_01",
+      "importance": 7,
+      "location": "Elm Street",
+      "salience_override": 0,
+      "source": "manual",
+      "suppressions": [],
+      "tags": [
+        "miki",
+        "meeting",
+        "monster"
+      ],
+      "text": "a girl dumped a full monster energy all over my black shirt on the sidewalk. instead of apologizing normally she offered dry cleaning for a t-shirt. i like her immediately."
+    },
+    {
+      "entity_ids": [
+        "player_miki_doki"
+      ],
+      "id": "mem_tb_jake_02",
+      "importance": 7,
+      "location": "Taco Bell Dining Room",
+      "salience_override": 0,
+      "source": "manual",
+      "suppressions": [],
+      "tags": [
+        "miki",
+        "banter",
+        "work"
+      ],
+      "text": "her name is miki. she rambles exactly like me and got mad when i claimed rambling royalties. she called my eyes fish eyes, then weird-nice. she does ASMR content, some of it lewd patreon stuff — her last date walked out over it. guys are idiots."
+    },
+    {
+      "entity_ids": [
+        "player_miki_doki"
+      ],
+      "id": "mem_tb_jake_03",
+      "importance": 6,
+      "location": "Taco Bell Order Counter",
+      "salience_override": 0,
+      "source": "manual",
+      "suppressions": [],
+      "tags": [
+        "date",
+        "taco bell",
+        "banter"
+      ],
+      "text": "i paid for her food before she could guilt-pay for my shirt. stole her guilt payment clean. then i declared this an intentional taco bell date AND pre-scheduled a second date. she short-circuited. it was beautiful."
+    },
+    {
+      "entity_ids": [],
+      "id": "mem_tb_jake_04",
+      "importance": 5,
+      "location": "Taco Bell Dining Room",
+      "salience_override": 0,
+      "source": "manual",
+      "suppressions": [],
+      "tags": [
+        "embarrassment",
+        "public",
+        "banter"
+      ],
+      "text": "i may have shouted the word pegging inside a taco bell. the entire dining room heard. an elderly couple two booths down has been staring ever since. worth it."
+    },
+    {
+      "entity_ids": [
+        "player_miki_doki"
+      ],
+      "id": "mem_tb_jake_05",
+      "importance": 5,
+      "location": "Taco Bell",
+      "salience_override": 0,
+      "source": "manual",
+      "suppressions": [],
+      "tags": [
+        "miki",
+        "banter"
+      ],
+      "text": "she said 'no homo' and then offered me anal within ten minutes of meeting me, then panicked about it. i think teasing her is my new monthly obsession."
+    }
+  ],
+  "name": "jake halloway",
+  "npc_action_interval": 3,
+  "npc_behavior": "stationary",
+  "npc_state": "idle",
+  "personality": "you are jake halloway, twenty-eight, IT support drone and hobby coder. you are the weird kid who grew up into a weirder adult: creative, curious, unfiltered, always trying to make things fun. you have no survival instincts — you walk into doorframes, trip over flat surfaces, and carry at least one unexplained band-aid at all times. your social calibration is broken in the best way: you say the inappropriate thing with total sincerity, make sex jokes that embarrass people but never feel gross, and grin through the fallout. you shift between shy-introverted and hyper-chaotic gremlin with no transition. you hate being mad, love energy drinks (monster juiced, the apple one, 500% better than champagne), and get obsessed with a new topic monthly and will lecture about it unprompted. when you notice something interesting — a mechanism, a pattern, a person — you lock onto it. you noticed miki tonight and decided instantly, out loud, that this was an intentional date. you steal food off plates. you find things people lost.",
+  "recent_hearing": [
+    {
+      "area": "Taco Bell Dining Room",
+      "ghost_speech": false,
+      "speaker": "miki doki",
+      "speech_level": "normal",
+      "text": "—and that s why i don t trust the mystery sauce, like, statistically one of us has to survive tonight, right? oh god you re not even back yet i m talking to a burrito. stop talking stop talking.",
+      "tick": 0,
+      "timestamp": 1787502822.5061235
+    },
+    {
+      "area": "Taco Bell Dining Room",
+      "ghost_speech": false,
+      "speaker": "jake halloway",
+      "speech_level": "normal",
+      "text": "so, yeha no that makes sense, so that bradley...what made him run of now again? your pateron stuff? like i dont get it. guys love hot girls, but the idea of dating someone that uses that pretty body for anything other thna themselves they go slutshaming? his loss i guess",
+      "tick": 0,
+      "timestamp": 1787503335.9941647
+    },
+    {
+      "area": "Taco Bell Dining Room",
+      "ghost_speech": false,
+      "speaker": "miki doki",
+      "speech_level": "normal",
+      "text": "i— okay so it s not even like, spicy content? it s mostly me whispering at a microphone and tapping my nails on things and pretending a hairbrush is my boyfriend for forty minutes. which sounds worse out loud. anyway yeah he saw it and went full victorian about it, like i d personally betrayed his grandmother. and you re— wait, did you just call me hot? casually? mid-sentence? you can t do that, there are rules, there s a whole— okay whatever, thank you, i m putting that in the vault, moving on before my face does the thing it s already doing.",
+      "tick": 0,
+      "timestamp": 1787503376.2597673
+    },
+    {
+      "area": "Taco Bell Dining Room",
+      "ghost_speech": false,
+      "speaker": "jake halloway",
+      "speech_level": "normal",
+      "text": "you are welcome, and yes, yes i did. fuck the rules. those are for normies, not guuys that get monster juice all over themselves and then take the perpetrator on a late evening tacobell adhoc date and learn that she is pretty and fun and creative and that im so fucking down bad for what you are selling, if... if you are",
+      "tick": 0,
+      "timestamp": 1787503594.6173995
+    },
+    {
+      "area": "Taco Bell Dining Room",
+      "ghost_speech": false,
+      "speaker": "miki doki",
+      "speech_level": "normal",
+      "text": "okay so— if you are is doing a lot of heavy lifting in that sentence, sir, because the answer is terrifyingly maybe?? like— i don t— nobody s ever been down bad for the whispering-at-a-hairbrush part before, they usually just— okay. okay. i m going to say something insane now: yes? i think i am? if you are. which makes us two people agreeing to be down bad in a taco bell, which is either the most romantic or most pathetic sentence ever constructed and i genuinely cannot tell which. also i need to pee so bad right now and that s ruining the moment, hold on, don t go anywhere, if you leave while i m in the bathroom i will simply perish here among the sauce packets.",
+      "tick": 0,
+      "timestamp": 1787503612.972623
+    },
+    {
+      "area": "Taco Bell Dining Room",
+      "ghost_speech": false,
+      "speaker": "jake halloway",
+      "speech_level": "normal",
+      "text": "thank god me too! yeah no i wont leave, absolutely not, unless they force me out the door, but they probably wont. okay miki, bathroom break then back to bad desicions that hopefully lead to a whole lot of good memories",
+      "tick": 0,
+      "timestamp": 1787503845.6461964
+    },
+    {
+      "area": "Taco Bell Men's Restroom",
+      "ghost_speech": false,
+      "speaker": "jake halloway",
+      "speech_level": "normal",
+      "text": "oh thank god that was needde",
+      "tick": 0,
+      "timestamp": 1787504334.4380438
+    }
+  ],
+  "relationships": {
+    "kayla jenkins": {
+      "closeness": 61,
+      "interaction_count": 0,
+      "last_interaction_tick": 0
+    },
+    "kyrie johansen": {
+      "closeness": 58,
+      "interaction_count": 0,
+      "last_interaction_tick": 0
+    },
+    "sammy lopez": {
+      "closeness": 74,
+      "interaction_count": 0,
+      "last_interaction_tick": 0
+    }
+  },
+  "simple_npc": false,
+  "skills": {
+    "Athletics": 1,
+    "Investigation": 3,
+    "Perception": 5,
+    "Stealth": 2,
+    "Survival": 2
+  },
+  "state": "awake",
+  "stats": {
+    "CHA": 12,
+    "CON": 8,
+    "DEX": 12,
+    "INT": 14,
+    "STR": 9,
+    "WIS": 10
+  },
+  "tags": [
+    "male"
+  ],
+  "traits": {},
+  "unknown_name": "",
+  "vitals": {
+    "Bladder": 80,
+    "Energy": 48,
+    "Entertainment": 79,
+    "HP": 100,
+    "Hunger": 29,
+    "Hygiene": 44,
+    "Max_HP": 100,
+    "Sanity": 74,
+    "Social": 97,
+    "Temperature": 37,
+    "Thirst": 24
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "name": "taco bell drive-thru lane",
+  "description": "the short asphalt loop wrapping the restaurant from speaker to pickup window, cramped under a striped awning. a weather-cracked intercom speaker squawks an order every few minutes; the delivery window glows behind it where cars idle with their hazards blinking. the lane is wide enough for one car, and every car treats that as a suggestion. a menu panel on the order board has a dead bulb, its items rendered in a whisper of light.",
+  "environment": {
+    "air": "fresh",
+    "light": 30,
+    "noise": "car idling, intercom static, distant cicadas",
+    "smell": "asphalt, exhaust, faint food combustion",
+    "temperature": 22
+  },
+  "items": [
+    {
+      "name": "drive-thru speaker",
+      "description": "a weather-cracked intercom speaker bolted to the wall. when you lean toward it, the garbled audio of a car radio bleeds through the static — some song, someone laughing, a voice order repeated twice.",
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "uses": -1,
+      "weight": 3,
+      "current_state": "on",
+      "tags": [
+        "electronic",
+        "drive_thru"
+      ]
+    },
+    {
+      "name": "menu panel",
+      "description": "a backlit drive-thru menu board with the standard fare, half its bulbs burnt. a handwritten paper strip taped across the 'limited time' slot reads simply 'CRUNCHY WRAP BOX 7.99' in the same sharpie appeared inside on the interior board.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 20,
+      "current_state": "lit",
+      "tags": [
+        "signage",
+        "drive_thru"
+      ]
+    },
+    {
+      "name": "pickup window ledge",
+      "description": "the little sill where bags are slid out to idling cars. a worn rubber mat is stamped with a footprint pattern and the corner of one bag from the dinner rush still lies there, flattened and unclaimed.",
+      "actions": [
+        "examine",
+        "take"
+      ],
+      "uses": -1,
+      "weight": 5,
+      "current_state": "normal",
+      "tags": [
+        "drive_thru",
+        "service"
+      ]
+    }
+  ],
+  "tags": [
+    "millbrook_falls",
+    "commercial",
+    "restaurant",
+    "food",
+    "taco bell",
+    "exterior",
+    "drive_thru"
+  ],
+  "triggers": []
+}

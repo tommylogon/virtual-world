@@ -1,0 +1,22 @@
+{
+  "name": "black cotton panties",
+  "description": "simple black cotton panties. no frills, no lace. practical.",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "uses": 0,
+  "weight": 0.03,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "clothing",
+    "underwear"
+  ],
+  "triggers": [],
+  "contents": [],
+  "library_id": "black_cotton_panties",
+  "equip_slots": [
+    "legs"
+  ]
+}

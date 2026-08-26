@@ -1,0 +1,19 @@
+{
+  "name": "Cotton Panties",
+  "description": "Simple white cotton panties with a small pink bow at the waistband. Clean and unremarkable.",
+  "actions": "examine,take,use,equip,unequip",
+  "uses": 0,
+  "weight": 0.03,
+  "current_state": "normal",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "clothing",
+    "underwear"
+  ],
+  "equip_slots": [
+    "legs"
+  ],
+  "triggers": []
+}

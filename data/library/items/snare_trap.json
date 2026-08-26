@@ -1,0 +1,36 @@
+{
+  "name": "Snare Trap",
+  "description": "A coiled spring-trap with steel jaws and a rusted chain. Set it and step back — it grabs whatever trips it.",
+  "actions": "examine,take,use,drop",
+  "uses": 1,
+  "weight": 2.0,
+  "tags": [
+    "trap",
+    "metal",
+    "heavy"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "type": "apply_condition",
+          "params": {
+            "condition": "grappled",
+            "target": "self",
+            "source": "snare trap",
+            "message": "The trap snaps shut around your leg with a sickening clank. You're caught fast."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

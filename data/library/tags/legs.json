@@ -1,0 +1,15 @@
+{
+  "id": "legs",
+  "name": "Legs",
+  "description": "Lower-body clothing worn over the legs.",
+  "category": "physical",
+  "color": "#5dade2",
+  "icon": "👖",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "cargo pants",
+    "trousers"
+  ]
+}

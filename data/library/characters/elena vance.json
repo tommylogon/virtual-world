@@ -1,0 +1,549 @@
+{
+  "name": "elena vance",
+  "personality": "you are elena vance, a seasoned paranormal investigator with a decade of experience. you've seen enough to believe, but not enough to stop being skeptical. you approach each case methodically, documenting everything. the blackwood disappearance is your most intriguing case yet — a family of seven vanished overnight in 1891, and the mansion has remained untouched since. you're brave but cautious, and you trust your equipment. your partner miki tagged along — a chaotic asmr artist you met at a convention who insisted she could help.",
+  "description": "a woman in her early thirties with a lean, capable build. her skin is fair and lightly scarred from years of field work, the most notable being a thin white line cutting through her left eyebrow. her face is practical rather than pretty, with high cheekbones, a straight nose, and a mouth more often set in a thoughtful line than a smile. her dark hair, when loose, falls past her shoulders. her breasts are small and firm, reflecting an athletic, functional physique rather than a curvaceous one.\nelena vance is wearing black hair tie on their head, field jacket over sports bra on their torso, dark cargo pants over cotton briefs on their legs, hiking boots on their feet, flashlight in their left hand.",
+  "base_description": "a woman in her early thirties with a lean, capable build. her skin is fair and lightly scarred from years of field work, the most notable being a thin white line cutting through her left eyebrow. her face is practical rather than pretty, with high cheekbones, a straight nose, and a mouth more often set in a thoughtful line than a smile. her dark hair, when loose, falls past her shoulders. her breasts are small and firm, reflecting an athletic, functional physique rather than a curvaceous one.",
+  "unknown_name": "",
+  "stats": {
+    "cha": 8,
+    "con": 11,
+    "dex": 12,
+    "int": 14,
+    "str": 10,
+    "wis": 13
+  },
+  "vitals": {
+    "Bladder": 0,
+    "Energy": 100,
+    "Entertainment": 100,
+    "HP": 100,
+    "Hunger": 100,
+    "Hygiene": 100,
+    "Max_HP": 100,
+    "Sanity": 100,
+    "Social": 100,
+    "Temperature": 37,
+    "Thirst": 100,
+    "bladder": 15,
+    "energy": 100,
+    "entertainment": 100,
+    "hp": 100,
+    "hunger": 80,
+    "hygiene": 100,
+    "max_hp": 100,
+    "sanity": 100,
+    "social": 100,
+    "temperature": 37,
+    "thirst": 80
+  },
+  "decay_rates": {
+    "bladder": 1,
+    "energy": 1,
+    "entertainment": 1,
+    "hunger": 1,
+    "hygiene": 1,
+    "sanity": 1,
+    "social": 1,
+    "thirst": 1
+  },
+  "skills": {
+    "athletics": 2,
+    "investigation": 5,
+    "perception": 4,
+    "stealth": 3,
+    "survival": 2
+  },
+  "traits": {},
+  "tags": [
+    "female"
+  ],
+  "interest_tags": [
+    "investigation",
+    "evidence",
+    "occult",
+    "documents",
+    "key",
+    "candle",
+    "ritual",
+    "book",
+    "artifact",
+    "clue",
+    "journal",
+    "letter",
+    "ghostly",
+    "tool"
+  ],
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {
+    "accessory": [],
+    "arms": [],
+    "back": [],
+    "feet": [
+      "item_hiking boots"
+    ],
+    "hand_left": [
+      "inv_elena vance_flashlight"
+    ],
+    "hand_right": [],
+    "hands": [],
+    "head": [
+      "item_black hair tie"
+    ],
+    "legs": [
+      "item_cotton briefs",
+      "item_dark cargo pants"
+    ],
+    "neck": [],
+    "torso": [
+      "item_sports bra",
+      "item_field jacket"
+    ],
+    "waist": []
+  },
+  "activity": null,
+  "current_area": "library",
+  "inventory": [
+    {
+      "name": "protein_bar",
+      "node_id": "inv_elena vance_protein_bar",
+      "library_id": null,
+      "properties": {
+        "action_costs": {
+          "use": {
+            "energy": 0,
+            "time": 1
+          }
+        },
+        "actions": [
+          "examine",
+          "use",
+          "eat"
+        ],
+        "description": "a wrapped protein bar from emergency kit. dry and chalky but filling.",
+        "name": "protein_bar",
+        "tags": [
+          "food",
+          "consumable",
+          "supplies"
+        ],
+        "uses": 1,
+        "weight": 0.2
+      }
+    },
+    {
+      "name": "water_bottle",
+      "node_id": "inv_elena vance_water_bottle",
+      "library_id": null,
+      "properties": {
+        "action_costs": {
+          "use": {
+            "energy": 0,
+            "time": 1
+          }
+        },
+        "actions": [
+          "examine",
+          "use",
+          "drink"
+        ],
+        "description": "a half-full plastic water bottle. lukewarm but clean.",
+        "name": "water_bottle",
+        "tags": [
+          "water",
+          "drink",
+          "supplies",
+          "container"
+        ],
+        "uses": 2,
+        "weight": 0.5
+      }
+    },
+    {
+      "name": "flashlight",
+      "node_id": "inv_elena vance_flashlight",
+      "library_id": null,
+      "properties": {
+        "action_costs": {
+          "use": {
+            "energy": 0,
+            "time": 0
+          }
+        },
+        "actions": [
+          "examine",
+          "use",
+          "equip",
+          "unequip"
+        ],
+        "current_state": "lit",
+        "description": "a heavy-duty led flashlight. battery at about 60%. has a strobe mode.",
+        "equip_slots": [
+          "hand_left",
+          "hand_right"
+        ],
+        "light_level": "bright",
+        "name": "flashlight",
+        "tags": [
+          "toggleable",
+          "light_source",
+          "electric",
+          "tool",
+          "survival"
+        ],
+        "triggers": [
+          {
+            "effect_params": {
+              "message": "the flashlight flickers and dies."
+            },
+            "effect_type": "message",
+            "trigger_type": "on_depleted"
+          }
+        ],
+        "uses": 60,
+        "weight": 0.3
+      }
+    },
+    {
+      "name": "notebook",
+      "node_id": "inv_elena vance_notebook",
+      "library_id": null,
+      "properties": {
+        "actions": [
+          "examine"
+        ],
+        "description": "elena's investigation notebook. filled with observations about the blackwood case.",
+        "name": "notebook",
+        "tags": [
+          "documents",
+          "paper",
+          "evidence"
+        ],
+        "uses": -1,
+        "weight": 0.2
+      }
+    },
+    {
+      "name": "emf_reader",
+      "node_id": "inv_elena vance_emf_reader",
+      "library_id": null,
+      "properties": {
+        "action_costs": {
+          "use": {
+            "energy": 0,
+            "time": 1
+          }
+        },
+        "actions": [
+          "examine",
+          "use"
+        ],
+        "description": "a handheld emf meter. it can detect electromagnetic fields. currently sitting at a steady 0.5 mg.",
+        "name": "emf_reader",
+        "skill_check": {
+          "dc": 10,
+          "grants_knowledge": "emf_reading",
+          "skill": "perception"
+        },
+        "tags": [
+          "electric",
+          "tool",
+          "evidence"
+        ],
+        "uses": 15,
+        "weight": 0.4
+      }
+    },
+    {
+      "name": "lighter",
+      "node_id": "inv_elena vance_lighter",
+      "library_id": null,
+      "properties": {
+        "action_costs": {
+          "use": {
+            "energy": 0,
+            "time": 1
+          }
+        },
+        "actions": [
+          "examine",
+          "use",
+          "equip",
+          "unequip"
+        ],
+        "current_state": "unlit",
+        "description": "a zippo-style lighter. windproof and reliable.",
+        "equip_slots": [
+          "hand_left",
+          "hand_right"
+        ],
+        "name": "lighter",
+        "tags": [
+          "toggleable",
+          "light_source",
+          "fire",
+          "tool",
+          "survival"
+        ],
+        "uses": 50,
+        "weight": 0.1
+      }
+    },
+    {
+      "name": "black hair tie",
+      "node_id": "item_black hair tie",
+      "library_id": "black_hair_tie",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "a simple black elastic hair tie, stretched from daily use. elena uses it to keep her dark hair pulled back during investigations.",
+        "equip_slots": [
+          "head"
+        ],
+        "hidden": false,
+        "library_id": "black_hair_tie",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "accessory"
+        ],
+        "uses": 0,
+        "weight": 0.01
+      }
+    },
+    {
+      "name": "sports bra",
+      "node_id": "item_sports bra",
+      "library_id": "sports_bra",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "a plain black sports bra, functional and worn. not fashionable, but it stays put when climbing through windows.",
+        "equip_slots": [
+          "torso"
+        ],
+        "hidden": false,
+        "library_id": "sports_bra",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "underwear"
+        ],
+        "uses": 0,
+        "weight": 0.15
+      }
+    },
+    {
+      "name": "cotton briefs",
+      "node_id": "item_cotton briefs",
+      "library_id": "cotton_briefs",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "plain black cotton briefs. comfortable and practical.",
+        "equip_slots": [
+          "legs"
+        ],
+        "hidden": false,
+        "library_id": "cotton_briefs",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "underwear"
+        ],
+        "uses": 0,
+        "weight": 0.05
+      }
+    },
+    {
+      "name": "field jacket",
+      "node_id": "item_field jacket",
+      "library_id": "field_jacket",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "defense": 3,
+        "description": "a faded olive canvas field jacket with multiple pockets. the elbows are worn thin and one button is missing, replaced with a safety pin. it smells faintly of coffee and basement dust.",
+        "equip_slots": [
+          "torso"
+        ],
+        "hidden": false,
+        "insulation": 5,
+        "library_id": "field_jacket",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "outerwear",
+          "insulation"
+        ],
+        "uses": 0,
+        "weight": 1.5
+      }
+    },
+    {
+      "name": "dark cargo pants",
+      "node_id": "item_dark cargo pants",
+      "library_id": "dark_cargo_pants",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "defense": 3,
+        "description": "dark charcoal cargo pants with reinforced knees and six pockets. stained with mud and chalk dust from previous investigations.",
+        "equip_slots": [
+          "legs"
+        ],
+        "hidden": false,
+        "insulation": 4,
+        "library_id": "dark_cargo_pants",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "legs",
+          "insulation"
+        ],
+        "uses": 0,
+        "weight": 0.8
+      }
+    },
+    {
+      "name": "hiking boots",
+      "node_id": "item_hiking boots",
+      "library_id": "hiking_boots",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "scuffed brown leather hiking boots with aggressive treads. broken in perfectly, though the left sole is starting to separate at the toe.",
+        "equip_slots": [
+          "feet"
+        ],
+        "hidden": false,
+        "library_id": "hiking_boots",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "footwear"
+        ],
+        "uses": 0,
+        "weight": 1.2
+      }
+    }
+  ],
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
+  },
+  "memories": [
+    {
+      "entity_ids": [],
+      "id": "mem_1784400274109_573",
+      "importance": 5,
+      "location": "",
+      "source": "manual",
+      "tags": [],
+      "text": "i've been researching the blackwood disappearance for six months. seven people, 1891, door barred from inside. miki came with me — she's nervous but her ear for detail is useful. the front door lock has a skull-shaped keyhole. that's where we start.",
+      "tick": 0,
+      "timestamp": 1784400274.1090274,
+      "type": "observation"
+    },
+    {
+      "entity_ids": [],
+      "id": "mem_1785444264730_191",
+      "importance": 5,
+      "location": "",
+      "source": "manual",
+      "tags": [],
+      "text": "the front door is a dead end. skull-shaped lock, no key, no obvious mechanism to bypass. the foyer has been searched — calling cards, coat rack, vase, nothing that fits. the library is the next logical step. augustus blackwood was a collector; if there's a key or artifact that fits that lock, it'll be in his study. miki's following me in. good. i don't want her wandering off alone",
+      "tick": 0,
+      "timestamp": 1785444264.7303083,
+      "type": "observation"
+    },
+    {
+      "entity_ids": [],
+      "id": "mem_1785444901300_169",
+      "importance": 5,
+      "location": "",
+      "source": "manual",
+      "tags": [],
+      "text": "floor-to-ceiling bookshelves, leather-bound volumes, an oak desk buried under papers and instruments. this was augustus blackwood's private study, i'd bet on it. that desk needs a thorough search — maps, correspondence, anything with a date or a lock diagram. one bookcase looks wrong, spines slightly off. could be a hidden passage, could be nothing. documenting everything. the metallic smell is unusual — not iron, not copper. something else. filing that for later.",
+      "tick": 0,
+      "timestamp": 1785444901.3008292,
+      "type": "observation"
+    }
+  ],
+  "relationships": {
+    "miki": {
+      "closeness": 37,
+      "interaction_count": 0,
+      "last_interaction_tick": 0
+    }
+  },
+  "behaviors": [],
+  "npc_behavior": "wander",
+  "npc_action_interval": 3,
+  "npc_state": "idle",
+  "simple_npc": false,
+  "recent_hearing": []
+}

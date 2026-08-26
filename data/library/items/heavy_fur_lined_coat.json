@@ -1,0 +1,31 @@
+{
+  "name": "Heavy Fur-Lined Coat",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "contents": [
+    "runt_mouseling_companion",
+    "memorandum_leather_notebook",
+    "tinderbox",
+    "ink_pen"
+  ],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 3,
+  "description": "Thick, hooded coat of weathered grey-brown wool, lined with matted animal fur. Hem brushes mid-thigh. Left sleeve tear repaired with crude stitches. Left chest pocket lined with softer fabric—currently occupied by a small mouseling named Runt. Smells of woodsmoke, damp wool, and clockwork oil.",
+  "insulation": 14,
+  "library_id": "heavy_fur_lined_coat",
+  "light_level": "dim",
+  "tags": [
+    "clothing",
+    "coat",
+    "fur-lined",
+    "hooded",
+    "container",
+    "insulation"
+  ],
+  "triggers": [],
+  "uses": -1,
+  "weight": 3.5,
+  "equip_slots": [
+    "torso"
+  ]
+}

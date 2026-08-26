@@ -1,0 +1,39 @@
+{
+  "name": "protein_bar",
+  "description": "a dry, chalky protein bar. tastes like cardboard and determination.",
+  "actions": "examine,use,eat,take,drop",
+  "uses": 1,
+  "weight": 0.15,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "food",
+    "consumable",
+    "supplies"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "amount": -35,
+            "stat": "hunger",
+            "success_message": "you choke down the protein bar. it tastes like nothing, which is almost worse than tasting bad.",
+            "target": "self"
+          },
+          "type": "adjust_vital"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

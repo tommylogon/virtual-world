@@ -1,0 +1,35 @@
+{
+  "name": "letter",
+  "description": "A yellowed, handwritten letter, the ink faded with age.",
+  "actions": "examine,take,use,drop",
+  "uses": -1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "flammable"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "success_message": "A worn letter with the new dawn logo, inside it says 'Brother, The twins arrive as the frost recedes. We must perform the greater summoning now to ensure Armita is marked by the Abyss. This ritual seeds the shadow required for our eventual plan to kill the King and break this cycle. For the New Dawn!'"
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

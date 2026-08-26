@@ -1,0 +1,55 @@
+{
+  "description": "A small clearing cradled by the gnarled roots of an ancient weeping willow. Its branches hang low, creating a curtain of living wood that shelters this space from the relentless snow. Inside, the ground is dry and carpeted with fallen leaves and soft moss. The air is still and noticeably warmer than the surrounding forest. A faint, earthy scent of damp wood and decayed leaves mingles with the whispering rustle of the willow's trailing twigs.",
+  "environment": {
+    "air": "",
+    "light": "bright",
+    "noise": "quiet",
+    "smell": "damp earth and dry leaves",
+    "temperature": 3
+  },
+  "exits": [
+    {
+      "direction": "root tunnel",
+      "target_room_hint": "Snowbound Hollow",
+      "description": "A low, narrow opening between the weeping willow's trailing branches, where the roots have worn a smooth tunnel through the earth. The passage is just wide enough to duck through, and the floor is padded with dry leaves.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "south"
+    },
+    {
+      "direction": "willow gap",
+      "target_room_hint": "Frozen Thicket",
+      "description": "A gap in the weeping willow's curtain of branches, where the warm air meets the biting cold of the frozen thicket.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "east"
+    }
+  ],
+  "items": [
+    {
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "current_state": "lit",
+      "description": "A tiny, flickering flame that hovers in your palm, radiating warmth and a soft golden light. It is sustained by magic and will burn for about 15 minutes.",
+      "name": "Everflame Ember_edb78c95",
+      "tags": [
+        "magic",
+        "fire",
+        "light_source",
+        "heat_source",
+        "toggleable"
+      ],
+      "uses": 2,
+      "weight": 0.1
+    }
+  ],
+  "name": "Weeping Willow Hollow",
+  "tags": [
+    "exterior"
+  ],
+  "triggers": []
+}

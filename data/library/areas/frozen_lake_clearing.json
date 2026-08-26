@@ -1,0 +1,42 @@
+{
+  "name": "Frozen Lake Clearing",
+  "description": "A wide clearing where the forest gives way to the shore of a vast, frozen lake. The wind roars across the ice, driving sheets of snow before it. The ice is thick and translucent, showing dark blue depths below. Bent willows and pines fringe the shore, their branches coated in rime.  The cold is relentless, biting at any exposed skin.",
+  "tags": [
+    "exterior"
+  ],
+  "environment": {
+    "air": "",
+    "light": "bright",
+    "noise": "howling wind, creaking ice",
+    "smell": "pine and clean ice",
+    "temperature": -12
+  },
+  "items": [],
+  "exits": [
+    {
+      "direction": "cabin door",
+      "target_room_hint": "Abandoned Hunter's Cabin",
+      "description": "The cabin's heavy door hangs askew on broken hinges, leaning outward into the snow. Through the gap, the frozen lake and glittering white clearing are visible.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "southwest"
+    },
+    {
+      "direction": "stream bank",
+      "target_room_hint": "Frozen Stream Crossing",
+      "description": "A narrow gap between snow-laden pines opens onto the windswept shore of the frozen lake. The air smells of ice and pine.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "south"
+    },
+    {
+      "direction": "willow arch",
+      "target_room_hint": "Frozen Thicket",
+      "description": "A narrow gap in the frozen willows, their branches bent and frozen into a frosted archway that leads into the dense thicket beyond",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "north"
+    }
+  ],
+  "triggers": []
+}

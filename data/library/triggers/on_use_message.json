@@ -1,0 +1,42 @@
+{
+  "name": "On Use → Message",
+  "description": "Shows a message when the item is used.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "n0",
+        "type": "trigger",
+        "x": 60,
+        "y": 60,
+        "w": 260,
+        "props": {
+          "trigger_type": "on_use"
+        }
+      },
+      {
+        "id": "n1",
+        "type": "effect",
+        "x": 380,
+        "y": 60,
+        "w": 260,
+        "props": {
+          "effect_type": "message",
+          "message": "You activate the item."
+        }
+      }
+    ],
+    "wires": [
+      {
+        "id": "w0",
+        "from": [
+          "n0",
+          "output"
+        ],
+        "to": [
+          "n1",
+          "input"
+        ]
+      }
+    ]
+  }
+}

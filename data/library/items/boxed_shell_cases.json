@@ -1,0 +1,15 @@
+{
+  "name": "boxed_shell_cases",
+  "description": "sealed cardboard cases of hard taco shells on the storage shelf, stamped with a January best-by date that management recycles out of rotation every inventory.",
+  "actions": "examine,take,use,drop",
+  "uses": -1,
+  "weight": 8,
+  "current_state": "normal",
+  "tags": [
+    "food",
+    "taco",
+    "storage"
+  ],
+  "triggers": [],
+  "contents": []
+}

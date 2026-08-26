@@ -1,0 +1,63 @@
+{
+  "name": "Stone tablet with Rune",
+  "description": "A sturdy stone table with a glowing rune carved into its surface. It radiates a pleasant warmth, making the outhouse comfortable despite the cold outside.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.5,
+  "current_state": "lit",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "magic",
+    "heat_source"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "fail_message": "Looks like a expensive magical item of some sort, its hot when it glows though.",
+            "message": "",
+            "success_message": "It is a stone plate carved with a Rune of heating, it will activate when placed on a wall in a room and start to heat it up to a comfortable temperature."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {
+        "operator": "and",
+        "conditions": [
+          {
+            "dc": 14,
+            "skill": "Investigation",
+            "type": "skill_check"
+          }
+        ]
+      },
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_take",
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "success_message": "The rune stops glowing when you take it."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

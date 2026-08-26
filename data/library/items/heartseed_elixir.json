@@ -1,0 +1,36 @@
+{
+  "name": "Heartseed Elixir",
+  "description": "A blood-red phial that warms in the hand. One drop on the lips of the fallen and the heart remembers how to beat. Use it on the fallen — they can't reach for it themselves.",
+  "actions": "examine,take,use,drop",
+  "uses": 1,
+  "weight": 0.3,
+  "tags": [
+    "alchemical",
+    "liquid",
+    "medicine",
+    "magic"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use_on"
+      ],
+      "effects": [
+        {
+          "type": "remove_condition",
+          "params": {
+            "condition": "dead",
+            "target": "target",
+            "message": "You press the phial to {target_name}'s lips. Warmth floods their chest — their heart stutters, then beats, slow and strong."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

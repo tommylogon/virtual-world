@@ -1,0 +1,38 @@
+{
+  "name": "Blue Butterfly Earring",
+  "actions": "examine,take,equip,unequip,drop",
+  "contents": [],
+  "current_state": "hidden",
+  "damage": 0,
+  "defense": 0,
+  "description": "a tiny dangling blue butterfly on a fine hook, its clasp bent from wherever it spent the last few hours. cheap metal gone dull, but kept like something priceless. it belongs to somebody's mom.",
+  "equip_slots": [
+    "accessory"
+  ],
+  "insulation": 0,
+  "library_id": "blue_butterfly_earring",
+  "light_level": "dim",
+  "tags": [
+    "jewelry"
+  ],
+  "triggers": [
+    {
+      "conditions": {},
+      "effects": [
+        {
+          "params": {
+            "message": "the blue butterfly sways gently. it catches light beautifully — one of your favorite pieces."
+          },
+          "type": "message"
+        }
+      ],
+      "fail_message": "",
+      "success_message": "",
+      "target_name": "",
+      "target_state": "",
+      "trigger_type": "on_examine"
+    }
+  ],
+  "uses": -1,
+  "weight": 0.01
+}

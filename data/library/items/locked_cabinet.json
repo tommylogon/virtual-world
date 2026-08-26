@@ -1,0 +1,17 @@
+{
+  "name": "locked_cabinet",
+  "actions": "examine",
+  "contents": [
+    "canned_food"
+  ],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "A wall-mounted pantry cabinet with a sturdy brass lock. The keyhole suggests a small cabinet key would fit.",
+  "insulation": 0,
+  "light_level": "dim",
+  "tags": [],
+  "triggers": [],
+  "uses": -1,
+  "weight": 15
+}

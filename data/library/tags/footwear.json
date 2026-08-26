@@ -1,0 +1,15 @@
+{
+  "id": "footwear",
+  "name": "Footwear",
+  "description": "Shoes, boots, sandals.",
+  "category": "physical",
+  "color": "#839192",
+  "icon": "👟",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "hiking boots",
+    "running shoes"
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "name": "Cauldron",
+  "description": "A heavy iron cauldron sits on the stove, filled with cold, thick soup.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 0.1,
+  "tags": [
+    "metal",
+    "container",
+    "food"
+  ],
+  "aliases": [
+    "culdron",
+    "soup pot",
+    "pot"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "The soup inside is cold but looks edible."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "The soup inside is cold but looks edible.",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_eat",
+      "effects": [
+        {
+          "type": "adjust_vital",
+          "params": {
+            "amount": -20,
+            "message": "",
+            "stat": "Hunger",
+            "success_message": "The soup is cold but filling",
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "The soup is cold but filling",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

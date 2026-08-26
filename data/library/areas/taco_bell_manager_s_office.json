@@ -1,0 +1,79 @@
+{
+  "name": "taco bell manager's office",
+  "description": "a cramped back office behind the kitchen, reachable only through the manager's keypad-locked door. fluorescent light flickers over a steel desk, a worn office chair, and a wall of clipboards and schedules. a desktop computer glows with a slow inventory spreadsheet. the security camera in the corner is pointed at the floor, as it has been since someone tried to make it right and gave up. the air is stale with old coffee and the low hum of the hard drive.",
+  "environment": {
+    "air": "stale",
+    "light": 50,
+    "noise": "hard drive hum, fluorescent buzz",
+    "smell": "old coffee, stale air",
+    "temperature": 21
+  },
+  "items": [
+    {
+      "name": "manager's desk",
+      "contents": [
+        {
+          "id": "schedule_clipboard",
+          "relation": "on"
+        },
+        {
+          "id": "deposit_wallet",
+          "relation": "in"
+        }
+      ],
+      "description": "a steel desk covered in a schedule clipboard, a keyboard with dust-fuzzed keys, and a cash deposit wallet half-stuffed with bills and a rubber band.",
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "uses": -1,
+      "weight": 60,
+      "current_state": "normal",
+      "tags": [
+        "office",
+        "furniture"
+      ]
+    },
+    {
+      "name": "office computer",
+      "description": "a desktop PC showing a perpetually half-loaded inventory spreadsheet, a cursor blinking in a field no one is typing in. the screen saver is a slideshow of the franchise's mascot and a logo from 1999.",
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "uses": -1,
+      "weight": 12,
+      "current_state": "on",
+      "tags": [
+        "computer",
+        "electronic",
+        "office"
+      ]
+    },
+    {
+      "name": "locker",
+      "description": "a grey employee locker against the wall with a combination lock. on top sits a folded 'manager jacket' from three closures ago and a cup of cold coffee with a lip print.",
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "uses": -1,
+      "weight": 40,
+      "current_state": "closed",
+      "tags": [
+        "storage",
+        "office"
+      ]
+    }
+  ],
+  "tags": [
+    "millbrook_falls",
+    "commercial",
+    "restaurant",
+    "food",
+    "taco bell",
+    "interior",
+    "office"
+  ],
+  "triggers": []
+}

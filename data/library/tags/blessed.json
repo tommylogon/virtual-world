@@ -1,0 +1,18 @@
+{
+  "id": "blessed",
+  "name": "Blessed",
+  "description": "Holy or blessed by divine power",
+  "category": "essence",
+  "color": "#ffdd00",
+  "icon": "⛪",
+  "applies_to": [
+    "items",
+    "characters",
+    "areas"
+  ],
+  "examples": [
+    "blessed water",
+    "holy symbol",
+    "temple"
+  ]
+}

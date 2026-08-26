@@ -1,0 +1,20 @@
+{
+  "name": "iron_shortsword",
+  "description": "A battered but serviceable shortsword. Good edge, solid grip. The leather wrapping on the handle is dark with sweat and age.",
+  "actions": "examine,take,use,equip,unequip",
+  "uses": -1,
+  "weight": 1.5,
+  "current_state": "normal",
+  "defense": 0,
+  "damage": "1d6",
+  "damage_type": "slashing",
+  "equip_slots": [
+    "hand_right"
+  ],
+  "tags": [
+    "weapon",
+    "melee"
+  ],
+  "triggers": [],
+  "contents": []
+}

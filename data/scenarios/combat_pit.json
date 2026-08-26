@@ -1,0 +1,151 @@
+{
+  "current_area": "Fighting Pit",
+  "current_environment": {
+    "light": 80,
+    "temperature": 18,
+    "air": "dry",
+    "smell": "dust and blood",
+    "noise": "silent"
+  },
+  "player": {
+    "name": "Viktor",
+    "stats": {
+      "STR": 16,
+      "DEX": 14,
+      "CON": 14,
+      "INT": 10,
+      "WIS": 12,
+      "CHA": 8
+    },
+    "skills": {
+      "Athletics": 4,
+      "Fighting": 5,
+      "Perception": 3
+    },
+    "vitals": {
+      "HP": 100,
+      "Max_HP": 100,
+      "Energy": 100,
+      "Hunger": 80,
+      "Thirst": 80,
+      "Hygiene": 80,
+      "Social": 50
+    },
+    "personality": "Viktor is a weathered pit fighter, scarred from years of brawling in underground fighting rings. He's not cruel, but he's practical — in the pit, hesitation costs blood. He respects strength and disdains cowardice. Cracks his neck before every fight.",
+    "inventory": [
+      {
+        "name": "iron_shortsword",
+        "description": "A battered but serviceable shortsword. Good edge, solid grip.",
+        "actions": [
+          "examine",
+          "take",
+          "drop",
+          "use",
+          "equip"
+        ],
+        "damage": "1d6",
+        "damage_type": "slashing",
+        "tags": [
+          "weapon",
+          "melee"
+        ],
+        "equip_slot": "hand_right",
+        "uses": -1,
+        "weight": 1.5
+      }
+    ]
+  },
+  "players": {
+    "Gromm": {
+      "name": "Gromm",
+      "current_area": "Fighting Pit",
+      "stats": {
+        "STR": 18,
+        "DEX": 8,
+        "CON": 16,
+        "INT": 6,
+        "WIS": 10,
+        "CHA": 6
+      },
+      "skills": {
+        "Athletics": 5,
+        "Fighting": 4,
+        "Intimidation": 3
+      },
+      "vitals": {
+        "HP": 120,
+        "Max_HP": 120,
+        "Energy": 100,
+        "Hunger": 10,
+        "Thirst": 10,
+        "Hygiene": 60,
+        "Social": 40
+      },
+      "state": "awake",
+      "personality": "Gromm is a massive brute, all muscle and rage. He fights with a heavy wooden club and doesn't bother with tactics — he just swings until something breaks. He grunts more than he speaks, but he understands the crowd's roar well enough.",
+      "inventory": [
+        {
+          "name": "heavy_club",
+          "description": "A thick wooden club wrapped in leather at the grip. Heavy, crude, and effective.",
+          "actions": [
+            "examine",
+            "take",
+            "drop",
+            "use",
+            "equip"
+          ],
+          "damage": "1d8",
+          "damage_type": "bludgeoning",
+          "tags": [
+            "weapon",
+            "melee",
+            "two_handed"
+          ],
+          "equip_slot": "hand_right",
+          "uses": -1,
+          "weight": 3.0
+        }
+      ],
+      "equipped": {
+        "hand_right": [
+          "heavy_club"
+        ]
+      }
+    }
+  },
+  "areas": {
+    "Fighting Pit": {
+      "name": "Fighting Pit",
+      "description": "A circular stone pit carved into the earth, the walls rising ten feet high with rough-hewn edges. The packed dirt floor is stained dark with old blood in patches. A single iron gate at ground level opens to the cells below. Torches flicker along the rim, casting dancing shadows across the scarred stone. The air is thick with dust and the metallic tang of old blood. A crowd watches from above, their silhouettes black against the torchlight.",
+      "environment": {
+        "light": 80,
+        "temperature": 18,
+        "air": "dry",
+        "smell": "dust and blood",
+        "noise": "silent"
+      },
+      "items": [
+        {
+          "name": "iron_shortsword",
+          "description": "A battered but serviceable shortsword. Good edge, solid grip.",
+          "actions": [
+            "examine",
+            "take",
+            "drop",
+            "use",
+            "equip"
+          ],
+          "damage": "1d6",
+          "damage_type": "slashing",
+          "tags": [
+            "weapon",
+            "melee"
+          ],
+          "equip_slot": "hand_right",
+          "uses": -1,
+          "weight": 1.5
+        }
+      ]
+    }
+  }
+}

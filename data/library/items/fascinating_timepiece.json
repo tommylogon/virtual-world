@@ -1,0 +1,37 @@
+{
+  "name": "Fascinating Timepiece",
+  "description": "A gleaming brass pocket watch with whirling cogs and a hypnotic ticking. Stare too long and you forget the world.",
+  "actions": "examine,take,use,drop",
+  "uses": 5,
+  "weight": 0.2,
+  "tags": [
+    "metal",
+    "small",
+    "valuable"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "type": "apply_condition",
+          "params": {
+            "condition": "busy",
+            "target": "self",
+            "duration": 3,
+            "source": "fascinating timepiece",
+            "message": "The cogs spin and the ticking swallows your attention. Everything else can wait."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

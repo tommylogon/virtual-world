@@ -1,0 +1,16 @@
+{
+  "id": "quiet",
+  "name": "Quiet",
+  "description": "Silent or hushed area, good for stealth or concentration",
+  "category": "environment",
+  "color": "#aaddaa",
+  "icon": "🤫",
+  "applies_to": [
+    "areas"
+  ],
+  "examples": [
+    "library",
+    "temple",
+    "abandoned cellar"
+  ]
+}

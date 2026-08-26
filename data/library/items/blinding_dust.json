@@ -1,0 +1,37 @@
+{
+  "name": "Blinding Dust",
+  "description": "A fine chalky powder, almost white. A handful in the face and the world goes dark.",
+  "actions": "examine,take,use,drop",
+  "uses": 2,
+  "weight": 0.1,
+  "tags": [
+    "alchemical",
+    "small",
+    "throwable"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "type": "apply_condition",
+          "params": {
+            "condition": "blind",
+            "target": "self",
+            "duration": 5,
+            "source": "blinding dust",
+            "message": "The dust grits into your eyes and everything goes black. You blink furiously."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

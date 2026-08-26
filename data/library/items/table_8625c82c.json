@@ -1,0 +1,18 @@
+{
+  "name": "table_8625c82c",
+  "description": "a wrought-iron table with a cracked glass top. a water-damaged notebook lies on it, pages bloated with moisture.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 15,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "furniture",
+    "wooden"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,35 @@
+{
+  "name": "Lockpick Set",
+  "description": "A small leather roll of fine steel picks and tension wrenches. Built to open whatever holds you.",
+  "actions": "examine,take,use,drop",
+  "uses": 5,
+  "weight": 0.2,
+  "tags": [
+    "metal",
+    "small",
+    "tool"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "type": "remove_condition",
+          "params": {
+            "condition": "restrained",
+            "target": "self",
+            "message": "A few deft twists of the pick and the lock clicks open. The restraints fall away."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

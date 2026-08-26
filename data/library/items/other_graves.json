@@ -1,0 +1,21 @@
+{
+  "name": "other_graves",
+  "description": "the other headstones mark the graves of servants and distant relatives. the most recent is dated 1889. one grave catches your eye — a small, simple stone with no name, only a date: 'october 31st, 1891.' the same day the family vanished.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "stone",
+    "outdoor",
+    "corpse",
+    "evidence",
+    "occult"
+  ],
+  "triggers": [],
+  "contents": []
+}

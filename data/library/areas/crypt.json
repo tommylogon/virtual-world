@@ -1,0 +1,147 @@
+{
+  "name": "crypt",
+  "description": "a cold, stone chamber beneath the mausoleum. the air is heavy and chill, tasting of dry bones and ancient dust. several stone sarcophagi line the walls, their lids carved with effigies of the blackwood dead. an altar stands at the far end, draped in dusty black cloth. the faintest green glow emanates from beneath the cloth. the temperature drops noticeably with each step toward the altar.",
+  "tags": [],
+  "environment": {
+    "air": "cold",
+    "light": 10,
+    "noise": "silent",
+    "smell": "dry bones and incense",
+    "temperature": 8
+  },
+  "items": [
+    {
+      "name": "altar",
+      "description": "a stone altar draped in dusty black cloth. a shallow depression in the shape of a skull sits at its center, lined with faded runes. this is where the crystal skull belongs — the altar in the crypt, just as the journal said. when placed here, it might break the curse... or seal it forever.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 200,
+      "current_state": "normal",
+      "tags": [
+        "altar",
+        "ritual",
+        "occult",
+        "stone"
+      ]
+    },
+    {
+      "name": "sarcophagus",
+      "description": "a stone sarcophagus bearing the name 'augustus blackwood (1835-1891)'. the lid is heavy but slightly ajar. scratch marks — long, desperate scratch marks — cover the inside of the lid. he was buried alive.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 500,
+      "current_state": "normal",
+      "tags": [
+        "sarcophagus",
+        "stone",
+        "occult",
+        "container"
+      ]
+    },
+    {
+      "name": "augustus_letter",
+      "description": "a folded letter from inside the sarcophagus: 'if you're reading this, the curse has taken me as it took the others. i write this in the dark, trapped in my own tomb, waiting for the end. i should never have brought the skull here. it whispers constantly now. it wants eleanor — the real eleanor, my little girl. it wants to use her body. i thought i was protecting my family. i've doomed us all. if you carry the skull, know this: placing it on the altar will free eleanor's spirit. but something else will be released too. choose wisely. — augustus blackwood, october 31st, 1891, 3:17 am'",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.02,
+      "current_state": "normal",
+      "tags": [
+        "letter",
+        "documents",
+        "paper",
+        "evidence",
+        "clue"
+      ]
+    },
+    {
+      "name": "bone",
+      "description": "a human femur bone lying on the floor near a shattered sarcophagus lid. it's old and brittle.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 1.5,
+      "current_state": "normal",
+      "tags": [
+        "bone",
+        "corpse",
+        "organic",
+        "occult",
+        "evidence"
+      ]
+    },
+    {
+      "name": "silver_ring",
+      "description": "a tarnished silver ring on the altar. inscription: 'for my beloved eleanor, forever in death as in life. — a.b.' it's identical to the garnet ring found in the conservatory, except this one holds a small diamond.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.05,
+      "current_state": "normal",
+      "tags": [
+        "jewelry",
+        "artifact",
+        "metal",
+        "silver",
+        "occult"
+      ]
+    },
+    {
+      "name": "incense_burner",
+      "description": "a brass incense burner on a small shelf. the ashes inside are cold but smell of frankincense and something unfamiliar — something acrid.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 2,
+      "current_state": "normal",
+      "tags": [
+        "incense",
+        "occult",
+        "ritual",
+        "fire",
+        "container"
+      ]
+    },
+    {
+      "name": "wall_carvings",
+      "description": "the walls of the crypt are carved with scenes of angels and demons in battle. one panel shows a figure holding a skull aloft while a family cowers. the message beneath: 'the firstborn's spirit guards the threshold. take her, and the door closes forever.'",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 0,
+      "current_state": "normal",
+      "tags": [
+        "occult",
+        "stone",
+        "art",
+        "ritual"
+      ]
+    }
+  ],
+  "exits": [
+    {
+      "direction": "mausoleum_door_back",
+      "target_room_hint": "graveyard",
+      "description": "the heavy stone door of the mausoleum, slightly ajar. cold air seeps from the darkness within.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "mausoleum_door_back"
+    }
+  ],
+  "triggers": []
+}

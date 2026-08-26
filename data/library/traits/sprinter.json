@@ -1,0 +1,8 @@
+{
+  "id": "sprinter",
+  "name": "Sprinter",
+  "description": "Movement costs 1 less energy.",
+  "category": "physical",
+  "params": null,
+  "effects": {"move_cost_mod": {"energy": -1}}
+}

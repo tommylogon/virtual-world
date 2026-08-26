@@ -1,0 +1,21 @@
+{
+  "name": "Brass Spyglass",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "contents": [],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "Old brass telescope, tarnished with age. Hairline crack in the lens but still functional. Acquired from a dead soldier near the Galtian border. Worn on a leather cord around the neck or tucked into a pocket.",
+  "insulation": 0,
+  "library_id": "brass_spyglass",
+  "light_level": "dim",
+  "tags": [
+    "tool",
+    "spyglass",
+    "brass",
+    "damaged"
+  ],
+  "triggers": [],
+  "uses": -1,
+  "weight": 0.4
+}

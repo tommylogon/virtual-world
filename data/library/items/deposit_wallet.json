@@ -1,0 +1,14 @@
+{
+  "name": "deposit_wallet",
+  "description": "a brown canvas deposit wallet stuffed with small bills and a rubber band, its clasp half-broken. the receipt tape pokes out showing a running total that ends abruptly.",
+  "actions": "examine,take,use,drop",
+  "uses": -1,
+  "weight": 0.5,
+  "current_state": "open",
+  "tags": [
+    "money",
+    "office"
+  ],
+  "triggers": [],
+  "contents": []
+}

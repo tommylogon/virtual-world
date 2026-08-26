@@ -1,0 +1,19 @@
+{
+  "name": "Brass Desk Lamp",
+  "description": "A brass desk lamp with a green glass shade.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 2,
+  "action_costs": {},
+  "skill_check": {},
+  "current_state": "unlit",
+  "light_level": "normal",
+  "tags": [
+    "metal",
+    "glass",
+    "light_source",
+    "toggleable"
+  ],
+  "triggers": [],
+  "contents": []
+}

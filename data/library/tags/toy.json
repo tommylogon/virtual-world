@@ -1,0 +1,17 @@
+{
+  "id": "toy",
+  "name": "Toy",
+  "description": "Plaything for amusement or distraction",
+  "category": "custom",
+  "color": "#ff88aa",
+  "icon": "🧸",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "doll",
+    "wooden soldier",
+    "puzzle box",
+    "rubber ball"
+  ]
+}

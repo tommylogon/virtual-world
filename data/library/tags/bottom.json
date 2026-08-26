@@ -1,0 +1,15 @@
+{
+  "id": "bottom",
+  "name": "Bottom",
+  "description": "Lower-body garment: pants, skirts, shorts.",
+  "category": "physical",
+  "color": "#5dade2",
+  "icon": "👖",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "cargo shorts",
+    "trousers"
+  ]
+}

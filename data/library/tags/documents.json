@@ -1,0 +1,15 @@
+{
+  "id": "documents",
+  "name": "Documents",
+  "description": "Written records: letters, notes, papers.",
+  "category": "physical",
+  "color": "#aab7b8",
+  "icon": "📄",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "old newspaper",
+    "letters"
+  ]
+}

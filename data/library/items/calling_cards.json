@@ -1,0 +1,39 @@
+{
+  "name": "calling_cards",
+  "description": "a small silver tray on the entrance table. several yellowed calling cards sit on it: ",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "paper",
+    "documents",
+    "evidence",
+    "clue"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_examine"
+      ],
+      "effects": [
+        {
+          "params": {
+            "success_message": "'augustus blackwood, esq.', 'mrs. cordelia blackwood', and three smaller ones for the children. a family frozen in time."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "'augustus blackwood, esq.', 'mrs. cordelia blackwood', and three smaller ones for the children. a family frozen in time.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

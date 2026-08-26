@@ -1,0 +1,35 @@
+{
+  "name": "Helping Hand Brace",
+  "description": "A firm leather strap with a grip — brace yourself against it and haul yourself upright in a heartbeat.",
+  "actions": "examine,take,use,drop",
+  "uses": 5,
+  "weight": 0.5,
+  "tags": [
+    "leather",
+    "small",
+    "tool"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "type": "remove_condition",
+          "params": {
+            "condition": "prone",
+            "target": "self",
+            "message": "You plant the brace and push. Your feet find the floor and you're up in one clean motion."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

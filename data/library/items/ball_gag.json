@@ -1,0 +1,58 @@
+{
+  "name": "Ball Gag",
+  "description": "A leather strap with a hard rubber ball secured between the jaws. Fastened behind the head, it prevents speech.",
+  "actions": "examine,take,use,equip,unequip",
+  "uses": -1,
+  "weight": 0.2,
+  "tags": [
+    "clothing",
+    "accessory",
+    "restraint",
+    "wearable"
+  ],
+  "equip_slots": [
+    "head"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_equip",
+      "effects": [
+        {
+          "type": "apply_condition",
+          "params": {
+            "condition": "mute",
+            "target": "self",
+            "source": "ball gag",
+            "source_type": "item",
+            "duration": 0,
+            "message": "You fasten the ball gag. Your jaw is forced open and your tongue is pinned. No sound can get out."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_unequip",
+      "effects": [
+        {
+          "type": "remove_condition",
+          "params": {
+            "condition": "mute",
+            "target": "self",
+            "message": "You unbuckle the ball gag. Your jaw is free again."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

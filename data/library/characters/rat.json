@@ -1,0 +1,531 @@
+{
+  "activity": null,
+  "base_description": "A scruffy brown rat with bright, clever eyes and twitching whiskers.",
+  "behaviors": [
+    {
+      "actions": [
+        {
+          "text": "The rat twitches its whiskers and watches you with bright, unblinking eyes.",
+          "type": "message"
+        },
+        {
+          "text": "Eep?",
+          "type": "speak"
+        }
+      ],
+      "conditions": {},
+      "interval": 1,
+      "priority": 10,
+      "trigger": "on_player_enter_area"
+    },
+    {
+      "actions": [
+        {
+          "state": "fleeing",
+          "type": "set_npc_state"
+        },
+        {
+          "text": "Squeak!",
+          "type": "speak"
+        },
+        {
+          "text": "The rat squeaks in alarm and darts for cover.",
+          "type": "message"
+        }
+      ],
+      "conditions": {
+        "conditions": [
+          {
+            "max_areas": 0,
+            "type": "proximity"
+          },
+          {
+            "chance": 0.55,
+            "type": "random_chance"
+          }
+        ],
+        "operator": "and"
+      },
+      "interval": 2,
+      "priority": 9,
+      "trigger": "on_tick"
+    },
+    {
+      "actions": [
+        {
+          "area": "Kitchen",
+          "type": "go"
+        },
+        {
+          "state": "hiding",
+          "type": "set_npc_state"
+        },
+        {
+          "text": "The rat vanishes under the kitchen cabinets with a final indignant squeak.",
+          "type": "message"
+        }
+      ],
+      "conditions": {
+        "conditions": [
+          {
+            "target": "npc_state",
+            "type": "eq",
+            "value": "fleeing"
+          },
+          {
+            "chance": 0.65,
+            "type": "random_chance"
+          }
+        ],
+        "operator": "and"
+      },
+      "interval": 2,
+      "priority": 8,
+      "trigger": "on_tick"
+    },
+    {
+      "actions": [
+        {
+          "state": "foraging",
+          "type": "set_npc_state"
+        },
+        {
+          "text": "After a long silence, the rat pokes its nose out and sniffs the air cautiously.",
+          "type": "message"
+        }
+      ],
+      "conditions": {
+        "conditions": [
+          {
+            "target": "npc_state",
+            "type": "eq",
+            "value": "hiding"
+          },
+          {
+            "min_ticks": 4,
+            "type": "tick_since_state"
+          },
+          {
+            "chance": 0.45,
+            "type": "random_chance"
+          }
+        ],
+        "operator": "and"
+      },
+      "interval": 4,
+      "priority": 7,
+      "trigger": "on_tick"
+    },
+    {
+      "actions": [
+        {
+          "state": "eating",
+          "type": "set_npc_state"
+        },
+        {
+          "amount": 18,
+          "stat": "Hunger",
+          "target": "rat",
+          "type": "heal"
+        },
+        {
+          "text": "The rat gnaws at a crust of bread beneath the table, crumbs scattering across the floorboards.",
+          "type": "message"
+        },
+        {
+          "text": "Nibble nibble.",
+          "type": "speak"
+        }
+      ],
+      "conditions": {
+        "conditions": [
+          {
+            "stat": "Hunger",
+            "target": "rat",
+            "type": "vital_below",
+            "value": 80
+          },
+          {
+            "area": "Kitchen",
+            "target": "npc",
+            "type": "in_area"
+          },
+          {
+            "conditions": [
+              {
+                "target": "npc_state",
+                "type": "eq",
+                "value": "foraging"
+              },
+              {
+                "target": "npc_state",
+                "type": "eq",
+                "value": "idle"
+              }
+            ],
+            "operator": "or"
+          },
+          {
+            "chance": 0.5,
+            "type": "random_chance"
+          }
+        ],
+        "operator": "and"
+      },
+      "interval": 6,
+      "priority": 6,
+      "trigger": "on_tick"
+    },
+    {
+      "actions": [
+        {
+          "state": "eating",
+          "type": "set_npc_state"
+        },
+        {
+          "amount": 15,
+          "stat": "Hunger",
+          "target": "rat",
+          "type": "heal"
+        },
+        {
+          "text": "The rat chews on something dry and preserved from the cellar shelves.",
+          "type": "message"
+        }
+      ],
+      "conditions": {
+        "conditions": [
+          {
+            "stat": "Hunger",
+            "target": "rat",
+            "type": "vital_below",
+            "value": 80
+          },
+          {
+            "area": "Cellar",
+            "target": "npc",
+            "type": "in_area"
+          },
+          {
+            "target": "npc_state",
+            "type": "eq",
+            "value": "foraging"
+          },
+          {
+            "chance": 0.45,
+            "type": "random_chance"
+          }
+        ],
+        "operator": "and"
+      },
+      "interval": 8,
+      "priority": 6,
+      "trigger": "on_tick"
+    },
+    {
+      "actions": [
+        {
+          "state": "foraging",
+          "type": "set_npc_state"
+        },
+        {
+          "text": "The rat licks its whiskers and resumes patrolling the floor.",
+          "type": "message"
+        }
+      ],
+      "conditions": {
+        "conditions": [
+          {
+            "target": "npc_state",
+            "type": "eq",
+            "value": "eating"
+          },
+          {
+            "chance": 0.55,
+            "type": "random_chance"
+          }
+        ],
+        "operator": "and"
+      },
+      "interval": 4,
+      "priority": 5,
+      "trigger": "on_tick"
+    },
+    {
+      "actions": [
+        {
+          "area": "Cellar",
+          "type": "go"
+        },
+        {
+          "text": "The rat scurries toward the trapdoor and disappears into the cellar.",
+          "type": "message"
+        }
+      ],
+      "conditions": {
+        "conditions": [
+          {
+            "target": "npc_state",
+            "type": "eq",
+            "value": "foraging"
+          },
+          {
+            "area": "Kitchen",
+            "target": "npc",
+            "type": "in_area"
+          },
+          {
+            "chance": 0.3,
+            "type": "random_chance"
+          }
+        ],
+        "operator": "and"
+      },
+      "interval": 5,
+      "priority": 4,
+      "trigger": "on_tick"
+    },
+    {
+      "actions": [
+        {
+          "area": "Kitchen",
+          "type": "go"
+        },
+        {
+          "text": "The rat climbs the ladder and scuttles back into the warmer kitchen.",
+          "type": "message"
+        }
+      ],
+      "conditions": {
+        "conditions": [
+          {
+            "target": "npc_state",
+            "type": "eq",
+            "value": "foraging"
+          },
+          {
+            "area": "Cellar",
+            "target": "npc",
+            "type": "in_area"
+          },
+          {
+            "chance": 0.35,
+            "type": "random_chance"
+          }
+        ],
+        "operator": "and"
+      },
+      "interval": 5,
+      "priority": 4,
+      "trigger": "on_tick"
+    },
+    {
+      "actions": [
+        {
+          "state": "foraging",
+          "type": "set_npc_state"
+        },
+        {
+          "text": "The rat skitters in a tight circle, nose to the floorboards.",
+          "type": "message"
+        }
+      ],
+      "conditions": {
+        "conditions": [
+          {
+            "target": "npc_state",
+            "type": "eq",
+            "value": "idle"
+          },
+          {
+            "chance": 0.35,
+            "type": "random_chance"
+          }
+        ],
+        "operator": "and"
+      },
+      "interval": 6,
+      "priority": 3,
+      "trigger": "on_tick"
+    },
+    {
+      "actions": [
+        {
+          "text": "Eeek!",
+          "type": "speak"
+        },
+        {
+          "text": "A rat squeaks somewhere nearby.",
+          "type": "message"
+        }
+      ],
+      "conditions": {
+        "conditions": [
+          {
+            "conditions": [
+              {
+                "target": "npc_state",
+                "type": "eq",
+                "value": "foraging"
+              },
+              {
+                "target": "npc_state",
+                "type": "eq",
+                "value": "idle"
+              },
+              {
+                "target": "npc_state",
+                "type": "eq",
+                "value": "eating"
+              }
+            ],
+            "operator": "or"
+          },
+          {
+            "chance": 0.12,
+            "type": "random_chance"
+          }
+        ],
+        "operator": "and"
+      },
+      "interval": 4,
+      "priority": 2,
+      "trigger": "on_tick"
+    }
+  ],
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "current_area": "Kitchen",
+  "decay_rates": {
+    "Bladder": 1,
+    "Energy": 1,
+    "Entertainment": 1,
+    "Hunger": 1,
+    "Hygiene": 1,
+    "Sanity": 1,
+    "Social": 1,
+    "Thirst": 1
+  },
+  "description": "",
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
+  },
+  "equipped": {
+    "accessory": [],
+    "arms": [],
+    "back": [],
+    "feet": [],
+    "hand_left": [],
+    "hand_right": [],
+    "hands": [],
+    "head": [],
+    "legs": [],
+    "neck": [],
+    "torso": [],
+    "waist": []
+  },
+  "interest_tags": [
+    "food",
+    "cheese",
+    "warmth"
+  ],
+  "inventory": [],
+  "memories": [],
+  "name": "rat",
+  "npc_action_interval": 1,
+  "npc_behavior": "stationary",
+  "npc_state": "foraging",
+  "personality": "A scruffy brown rat with bright, clever eyes and twitching whiskers. It seems more curious than afraid, sniffing at the gap beneath the kitchen door.",
+  "recent_hearing": [
+    {
+      "area": "Kitchen",
+      "ghost_speech": false,
+      "speaker": "rat",
+      "speech_level": "normal",
+      "text": "Squeak!",
+      "tick": 0,
+      "timestamp": 1787168744.992353
+    },
+    {
+      "area": "Kitchen",
+      "ghost_speech": false,
+      "speaker": "rat",
+      "speech_level": "normal",
+      "text": "Squeak!",
+      "tick": 0,
+      "timestamp": 1787168856.3681178
+    },
+    {
+      "area": "Kitchen",
+      "ghost_speech": false,
+      "speaker": "rat",
+      "speech_level": "normal",
+      "text": "Eep?",
+      "tick": 0,
+      "timestamp": 1787169194.9684494
+    },
+    {
+      "area": "Kitchen",
+      "ghost_speech": false,
+      "speaker": "rat",
+      "speech_level": "normal",
+      "text": "Squeak!",
+      "tick": 0,
+      "timestamp": 1787169296.48315
+    },
+    {
+      "area": "Kitchen",
+      "ghost_speech": false,
+      "speaker": "Kaelen Voss",
+      "speech_level": "normal",
+      "text": "easy now, little one. just a mouseling s chatter, eh?",
+      "tick": 0,
+      "timestamp": 1787169470.4991379
+    }
+  ],
+  "relationships": {},
+  "simple_npc": true,
+  "skills": {
+    "Acrobatics": 3,
+    "Athletics": 1,
+    "Perception": 3,
+    "Stealth": 4,
+    "Survival": 2
+  },
+  "state": "awake",
+  "stats": {
+    "CHA": 4,
+    "CON": 8,
+    "DEX": 14,
+    "INT": 3,
+    "STR": 2,
+    "WIS": 10
+  },
+  "tags": [
+    "animal"
+  ],
+  "traits": {},
+  "unknown_name": "",
+  "vitals": {
+    "Bladder": 87,
+    "Energy": 68,
+    "Entertainment": 92,
+    "HP": 10,
+    "Hunger": 55,
+    "Hygiene": 43,
+    "Max_HP": 10,
+    "Sanity": 80,
+    "Social": 12,
+    "Temperature": 35.29999999999999,
+    "Thirst": 53
+  }
+}

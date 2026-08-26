@@ -1,0 +1,24 @@
+{
+  "name": "Grappled",
+  "description": "Held by someone. Speed 0 until you escape.",
+  "blocks_actions": true,
+  "blocks_movement": true,
+  "blocks_speech": false,
+  "auto_fail_checks": [],
+  "auto_fail_saves": [],
+  "attack_mod": -2,
+  "defense_mod": 0,
+  "speed_mult": 0.0,
+  "movement_mode": null,
+  "drops_held_items": false,
+  "periodic": {},
+  "ends_on": [
+    "escape",
+    "grappler_incapacitated"
+  ],
+  "known": true,
+  "symptoms": {},
+  "stack": "noop",
+  "default_duration": null,
+  "excludes": []
+}

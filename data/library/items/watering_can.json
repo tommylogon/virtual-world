@@ -1,0 +1,41 @@
+{
+  "name": "watering_can",
+  "description": "a rusty watering can. empty. when you pick it up, something rattles inside — a small object.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 1.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "tool",
+    "container",
+    "outdoor",
+    "water"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_take"
+      ],
+      "effects": [
+        {
+          "params": {
+            "description": "half of a broken brass key, snapped cleanly in two. the teeth are intricate — this was a finely made key. without the other half, it's useless.",
+            "item_id": "item_key_fragment",
+            "name": "key_fragment"
+          },
+          "type": "spawn_item"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

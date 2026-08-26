@@ -1,0 +1,37 @@
+{
+  "name": "Rotten Meat",
+  "description": "A slab of meat crawling with flies, grey-green and rancid. The smell alone turns the stomach.",
+  "actions": "examine,take,eat,drop",
+  "uses": 1,
+  "weight": 0.3,
+  "tags": [
+    "food",
+    "organic",
+    "rotten"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "apply_condition",
+          "params": {
+            "condition": "sick",
+            "target": "self",
+            "duration": 8,
+            "source": "rotten meat",
+            "message": "You force it down. Almost immediately your gut lurches and a cold sweat breaks out."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

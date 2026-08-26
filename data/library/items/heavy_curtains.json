@@ -1,0 +1,15 @@
+{
+  "id": "heavy_curtains",
+  "name": "heavy curtains",
+  "type": "item",
+  "description": "Thick, heavy curtains that absorb sound.",
+  "tags": [
+    "sound_absorbing",
+    "furniture"
+  ],
+  "properties": {
+    "sound_absorption": 2,
+    "weight": 5.0,
+    "hidden": false
+  }
+}

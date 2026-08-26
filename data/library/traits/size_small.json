@@ -1,0 +1,7 @@
+{
+  "id": "size_small",
+  "name": "Small Size",
+  "description": "About 90 cm tall — roughly half a normal human. Can crawl through gaps a normal person can't.",
+  "category": "physical",
+  "params": { "size": "small" }
+}

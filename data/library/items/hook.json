@@ -1,0 +1,21 @@
+{
+  "name": "hook",
+  "description": "a meat hook, rusted and sharp. it swings slowly even in still air.",
+  "actions": "examine,use,take,drop,equip,unequip",
+  "uses": -1,
+  "weight": 1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 15,
+  "damage_type": "piercing",
+  "insulation": 0,
+  "tags": [
+    "weapon",
+    "hook",
+    "meat",
+    "metal"
+  ],
+  "triggers": [],
+  "contents": []
+}

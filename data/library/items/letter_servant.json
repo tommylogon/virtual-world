@@ -1,0 +1,21 @@
+{
+  "name": "letter_servant",
+  "description": "a crumpled but legible letter: 'to whoever finds this — i, james blackwood, head of staff at blackwood manor, write this in desperation. the skull in the study whispers to me at night. it knows my name. it calls me when no one else is around. i saw it move of its own accord. the master is obsessed. the missus weeps constantly. the children are afraid. something terrible is going to happen. i'm leaving tonight. god have mercy on whoever reads this. — j. blackwood, october 30th, 1891'",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.02,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "letter",
+    "documents",
+    "paper",
+    "evidence",
+    "clue"
+  ],
+  "triggers": [],
+  "contents": []
+}

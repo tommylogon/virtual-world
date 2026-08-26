@@ -1,0 +1,17 @@
+{
+  "id": "hidden",
+  "name": "Hidden",
+  "description": "Concealed or not easily noticed",
+  "category": "state",
+  "color": "#666688",
+  "icon": "👁️",
+  "applies_to": [
+    "items",
+    "characters",
+    "areas"
+  ],
+  "examples": [
+    "hidden compartment",
+    "secret passage"
+  ]
+}

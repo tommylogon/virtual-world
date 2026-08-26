@@ -1,0 +1,11 @@
+{
+  "name": "Is Slasher (Alternate)",
+  "description": "Horror monster flag. Alternate spelling of slasher.",
+  "category": "physical",
+  "params": null,
+  "effects": {
+    "is_slasher": true,
+    "dark_vision": true
+  },
+  "id": "is_slasher"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "broken",
+  "name": "Broken",
+  "description": "Damaged or non-functional",
+  "category": "state",
+  "color": "#cc0000",
+  "icon": "💔",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "cracked vase",
+    "shattered glass",
+    "rusted sword"
+  ]
+}

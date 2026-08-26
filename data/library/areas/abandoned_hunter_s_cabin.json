@@ -1,0 +1,41 @@
+{
+  "description": "The cabin slumps under the weight of snow, its roof caved in on one side. The door hangs askew, and the windows are shattered. Inside, the cold is bone-deep. ",
+  "environment": {
+    "air": "stale",
+    "light": "normal",
+    "noise": "silent except for an occasional creak of straining timbers",
+    "smell": "musty decay",
+    "temperature": -10.452438125
+  },
+  "exits": [
+    {
+      "direction": "cabin door",
+      "target_room_hint": "Frozen Lake Clearing",
+      "description": "The cabin's heavy door hangs askew on broken hinges, leaning outward into the snow. Through the gap, the frozen lake and glittering white clearing are visible.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "northeast"
+    }
+  ],
+  "items": [
+    {
+      "name": "Frozen Corpse",
+      "description": "The body of a hunter, frozen solid. ",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 1,
+      "weight": 50,
+      "current_state": "normal",
+      "tags": [
+        "corpse"
+      ]
+    }
+  ],
+  "name": "Abandoned Hunter's Cabin",
+  "tags": [],
+  "triggers": []
+}

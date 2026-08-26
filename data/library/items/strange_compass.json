@@ -1,0 +1,40 @@
+{
+  "name": "strange_compass",
+  "description": "a brass compass in the desk drawer. the needle doesn't point north — it points toward the fireplace, no matter where you stand. there must be something magnetic behind it.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "artifact",
+    "mechanism",
+    "tool",
+    "occult"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_examine"
+      ],
+      "effects": [
+        {
+          "params": {
+            "fail_message": "",
+            "success_message": "the needle spins erratically for a moment, then settles pointing directly at the fireplace. when you hold it near the mantel, it vibrates."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

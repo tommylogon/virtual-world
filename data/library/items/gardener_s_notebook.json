@@ -1,0 +1,19 @@
+{
+  "name": "gardener's notebook",
+  "description": "a water-damaged gardener's notebook. the last entry: 'october 30th — strange lights in the study again tonight. the missus says it is nothing, but i have worked here 20 years. i know what i saw. the skull. i found a sketch of it in the master's private papers. and i found where it goes — the altar in the crypt below the graveyard. tomorrow i am leaving. i do not care if they dock my pay.' the notebook ends there.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "documents",
+    "paper",
+    "evidence"
+  ],
+  "triggers": [],
+  "contents": []
+}

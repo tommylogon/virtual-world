@@ -1,0 +1,10 @@
+{
+  "id": "paranoid",
+  "name": "Paranoid",
+  "description": "Permanently frightened — trusts no one and watches everything for threats.",
+  "category": "mental",
+  "params": null,
+  "effects": {},
+  "behavior_prompt": "You trust no one. Watch everyone and everything for threats — assume hidden motives.",
+  "grants_conditions": [{"condition": "frightened"}]
+}

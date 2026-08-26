@@ -1,0 +1,52 @@
+{
+  "name": "bread",
+  "actions": "examine,take,eat,drop",
+  "contents": [],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "A fresh loaf of crusty bread wrapped in a cloth. cold",
+  "insulation": 0,
+  "light_level": "dim",
+  "tags": [
+    "food"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_eat",
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "success_message": "It tastes good"
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "success_message": "its still mosrtly soft, i can *EAT* this."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "uses": 2,
+  "weight": 0.5
+}

@@ -1,0 +1,10 @@
+{
+  "name": "Immortal",
+  "description": "Cannot die. HP stops at 1.",
+  "category": "physical",
+  "params": null,
+  "effects": {
+    "immune_to_condition": "dead"
+  },
+  "id": "immortal"
+}

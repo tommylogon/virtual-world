@@ -1,0 +1,16 @@
+{
+  "id": "glass",
+  "name": "Glass",
+  "description": "Made of glass, fragile",
+  "category": "physical",
+  "color": "#66ccff",
+  "icon": "🫙",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "wine glass",
+    "window pane",
+    "lantern"
+  ]
+}

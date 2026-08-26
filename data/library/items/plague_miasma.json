@@ -1,0 +1,68 @@
+{
+  "name": "Plague Miasma",
+  "description": "A clinging, invisible sickness carried on your clothes and breath. It spreads to everyone nearby.",
+  "actions": "examine,take,use",
+  "uses": -1,
+  "weight": 0,
+  "hidden": true,
+  "tags": [
+    "disease",
+    "hidden"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_tick"
+      ],
+      "effects": [
+        {
+          "type": "apply_condition",
+          "params": {
+            "condition": "sick",
+            "target_by": "all_in_area",
+            "duration": 8,
+            "source": "plague miasma"
+          }
+        },
+        {
+          "type": "message",
+          "params": {
+            "message": "A sour breath of rot escapes your lungs and hangs in the air."
+          }
+        }
+      ],
+      "conditions": {
+        "operator": "and",
+        "conditions": [
+          {
+            "type": "random_chance",
+            "value": 30
+          }
+        ]
+      },
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": [
+        "on_examine"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "You feel a dull ache behind your ribs and a faint, foul smell on your own breath."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

@@ -1,0 +1,8 @@
+{
+  "name": "Labs door",
+  "description": "A circular door that stands open. under the number is a {param:light} light glows.",
+  "current_state": "locked",
+  "see_through": false,
+  "auto_close": true,
+  "tags": []
+}

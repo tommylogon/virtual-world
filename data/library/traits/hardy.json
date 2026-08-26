@@ -1,0 +1,12 @@
+{
+  "name": "Hardy",
+  "description": "Tough and resilient. Action costs are reduced.",
+  "category": "physical",
+  "params": null,
+  "effects": {
+    "action_cost_mod": {
+      "energy": -1
+    }
+  },
+  "id": "hardy"
+}

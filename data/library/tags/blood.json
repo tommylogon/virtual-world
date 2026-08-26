@@ -1,0 +1,14 @@
+{
+  "id": "blood",
+  "name": "Blood",
+  "description": "Dried or fresh blood.",
+  "category": "essence",
+  "color": "#c0392b",
+  "icon": "🩸",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "blood stains"
+  ]
+}

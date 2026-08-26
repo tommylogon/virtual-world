@@ -1,0 +1,18 @@
+{
+  "name": "soap",
+  "description": "a dried-out bar of soap on the edge of the tub. it still smells faintly of lavender.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "supplies",
+    "medical"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,36 @@
+{
+  "name": "Dusty Bookshelf",
+  "actions": "examine",
+  "contents": [
+    "ritual_book",
+    "ritual_book"
+  ],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "A large oak bookshelf overflowing with ancient texts. One book appears slightly crooked.",
+  "insulation": 0,
+  "light_level": "dim",
+  "tags": [],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "success_message": "You scan the shelves. several books pick your attention"
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "uses": 1,
+  "weight": 15
+}

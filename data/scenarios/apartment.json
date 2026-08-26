@@ -1,0 +1,250 @@
+{
+  "current_area": "Hallway",
+  "current_environment": {
+    "air": "fresh",
+    "light": 80,
+    "noise": "humming",
+    "smell": "neutral",
+    "temperature": 21
+  },
+  "player": {
+    "name": "Traveler",
+    "skills": {
+      "Acrobatics": 1,
+      "Athletics": 1,
+      "Perception": 1,
+      "Persuasion": 1,
+      "Stealth": 1,
+      "Survival": 1
+    },
+    "stats": {
+      "CHA": 10,
+      "CON": 10,
+      "DEX": 10,
+      "INT": 10,
+      "STR": 10,
+      "WIS": 10
+    },
+    "vitals": {
+      "Energy": 50,
+      "HP": 80,
+      "Hunger": 40,
+      "Hygiene": 10,
+      "Max_HP": 100,
+      "Social": 100,
+      "Thirst": 100
+    }
+  },
+  "areas": {
+    "Hallway": {
+      "name": "Hallway",
+      "description": "A narrow central hallway connecting the various areas of the apartment.",
+      "environment": {
+        "air": "stuffy",
+        "light": 80,
+        "noise": "humming of a fridge",
+        "smell": "dust",
+        "temperature": 22
+      },
+      "exits": {
+        "east": {
+          "target": "Kitchen",
+          "state": "open",
+          "description": "A simple doorway.",
+          "cost": {
+            "time": 1,
+            "energy": 1
+          }
+        },
+        "north": {
+          "target": "Bedroom",
+          "state": "open",
+          "description": "A door to the bedroom.",
+          "cost": {
+            "time": 1
+          }
+        },
+        "south": "Bathroom",
+        "west": "Living Area"
+      },
+      "items": []
+    },
+    "Living Area": {
+      "name": "Living Area",
+      "description": "A comfortable lounge area with a worn-out couch and a TV.",
+      "environment": {
+        "air": "fresh",
+        "light": 90,
+        "noise": "quiet",
+        "smell": "old fabric",
+        "temperature": 21
+      },
+      "exits": {
+        "east": {
+          "target": "Hallway",
+          "state": "open",
+          "description": "Way to the hallway",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "items": [
+        {
+          "actions": [
+            "examine",
+            "use",
+            "take"
+          ],
+          "description": "A heavy-duty flashlight.",
+          "effect_amount": 50,
+          "effect_stat": "light",
+          "effect_target": "room",
+          "name": "flashlight",
+          "uses": 5
+        }
+      ]
+    },
+    "Kitchen": {
+      "name": "Kitchen",
+      "description": "A modern kitchen with marble countertops. It looks like someone left groceries here.",
+      "environment": {
+        "air": "warm",
+        "light": 100,
+        "noise": "fridge buzzing",
+        "smell": "cinnamon",
+        "temperature": 24
+      },
+      "exits": {
+        "west": {
+          "target": "Hallway",
+          "state": "open",
+          "description": "Passage to the hallway",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "items": [
+        {
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "description": "A crisp, red apple.",
+          "effect_amount": 25,
+          "effect_stat": "Hunger",
+          "effect_target": "player",
+          "name": "apple",
+          "uses": 1
+        },
+        {
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "description": "A cold can of blue energy drink.",
+          "effect_amount": 40,
+          "effect_stat": "Energy",
+          "effect_target": "player",
+          "name": "energy_drink",
+          "uses": 1
+        }
+      ]
+    },
+    "Bedroom": {
+      "name": "Bedroom",
+      "description": "Your cozy sleeping quarters. There is a large bed taking up most of the space.",
+      "environment": {
+        "air": "fresh",
+        "light": 0,
+        "noise": "silent",
+        "smell": "lavender",
+        "temperature": 18
+      },
+      "exits": {
+        "south": {
+          "target": "Hallway",
+          "state": "open",
+          "description": "Way to the hallway",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "items": [
+        {
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "description": "A comfortable bed. Taking a nap will restore energy.",
+          "effect_amount": 50,
+          "effect_stat": "Energy",
+          "effect_target": "player",
+          "name": "bed",
+          "uses": -1
+        },
+        {
+          "actions": [
+            "use"
+          ],
+          "description": "A bedside lamp.",
+          "effect_amount": 80,
+          "effect_stat": "light",
+          "effect_target": "room",
+          "name": "lamp",
+          "uses": -1
+        }
+      ]
+    },
+    "Bathroom": {
+      "name": "Bathroom",
+      "description": "A small tiled bathroom with a shower and a medicine cabinet.",
+      "environment": {
+        "air": "humid",
+        "light": 80,
+        "noise": "dripping faucet",
+        "smell": "bleach",
+        "temperature": 23
+      },
+      "exits": {
+        "north": {
+          "target": "Hallway",
+          "state": "open",
+          "description": "Way to the hallway",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "items": [
+        {
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "description": "A bar of floral-scented soap.",
+          "effect_amount": 60,
+          "effect_stat": "Hygiene",
+          "effect_target": "player",
+          "name": "soap",
+          "uses": 3
+        },
+        {
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "description": "A minor healing potion left in the cabinet.",
+          "effect_amount": 50,
+          "effect_stat": "HP",
+          "effect_target": "player",
+          "name": "medicine",
+          "uses": 1
+        }
+      ]
+    }
+  },
+  "_scenario_name": "apartment"
+}

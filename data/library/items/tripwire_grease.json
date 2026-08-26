@@ -1,0 +1,36 @@
+{
+  "name": "Tripwire Grease",
+  "description": "A tin of slick, dark grease. Spread it on the floor and watch whoever steps on it go flying.",
+  "actions": "examine,take,use,drop",
+  "uses": 3,
+  "weight": 0.4,
+  "tags": [
+    "alchemical",
+    "small",
+    "trap"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "type": "apply_condition",
+          "params": {
+            "condition": "prone",
+            "target": "self",
+            "source": "tripwire grease",
+            "message": "Your foot skids on the slick patch and you hit the floor hard. The wind leaves your lungs."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

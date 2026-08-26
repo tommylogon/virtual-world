@@ -1,0 +1,15 @@
+{
+  "name": "Clean Bandages",
+  "description": "your average bandage",
+  "actions": "examine,take,use,drop",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [],
+  "triggers": [],
+  "contents": []
+}

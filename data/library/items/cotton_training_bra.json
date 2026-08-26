@@ -1,0 +1,22 @@
+{
+  "name": "cotton training bra",
+  "description": "a simple white cotton training bra. barely needed, but you wear it out of habit. the elastic is slightly stretched.",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "uses": 0,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "clothing",
+    "underwear"
+  ],
+  "triggers": [],
+  "contents": [],
+  "library_id": "cotton_training_bra",
+  "equip_slots": [
+    "torso"
+  ]
+}

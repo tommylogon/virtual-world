@@ -1,0 +1,162 @@
+{
+  "name": "pantry",
+  "description": "a small, narrow room lined with sagging shelves holding canned goods, jars of preserves, sacks of flour, and dried herbs hanging from the ceiling. the air is dry and smells of ancient spices. a few jars have broken, leaving a sticky residue on the floorboards. something scurries in the corner when you enter.",
+  "tags": [],
+  "environment": {
+    "air": "dry",
+    "light": 30,
+    "noise": "quiet",
+    "smell": "spices and rot",
+    "temperature": 18
+  },
+  "items": [
+    {
+      "name": "canned_peaches",
+      "description": "a jar of preserved peaches. the seal looks intact. the liquid inside is cloudy but the peaches themselves look surprisingly edible.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 1,
+      "weight": 0.8,
+      "current_state": "normal",
+      "tags": [
+        "food",
+        "supplies",
+        "consumable"
+      ]
+    },
+    {
+      "name": "flour",
+      "description": "a burlap sack of flour, half full. tiny holes suggest mice have been at it. the flour has clumped but is still usable.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 5,
+      "current_state": "normal",
+      "tags": [
+        "food",
+        "supplies",
+        "organic"
+      ]
+    },
+    {
+      "name": "spice_rack",
+      "description": "a rack of dried herbs and spices. most are faded and useless. but a jar labeled 'rosemary' still has a faint, pleasant scent.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 3,
+      "current_state": "normal",
+      "tags": [
+        "food",
+        "supplies"
+      ]
+    },
+    {
+      "name": "water_jug",
+      "description": "a ceramic jug filled with stale but drinkable water. the clay keeps it cool.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 3,
+      "weight": 2,
+      "current_state": "normal",
+      "tags": [
+        "water",
+        "drink",
+        "glass",
+        "container",
+        "supplies"
+      ]
+    },
+    {
+      "name": "crackers",
+      "description": "a tin of stale crackers, now soft from humidity. disgusting, but technically edible and filling.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 2,
+      "weight": 0.3,
+      "current_state": "normal",
+      "tags": [
+        "food",
+        "supplies",
+        "consumable"
+      ]
+    },
+    {
+      "name": "jar_of_honey",
+      "description": "a glass jar of crystallized honey. honey never spoils. it's still perfectly edible, though you'll need to scrape it out.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 1,
+      "weight": 0.6,
+      "current_state": "normal",
+      "tags": [
+        "food",
+        "honey",
+        "glass",
+        "supplies"
+      ]
+    },
+    {
+      "name": "mouse_nest",
+      "description": "a small nest of shredded cloth and dried grass in the corner of a shelf. tiny bones are scattered around it — mouse bones, thankfully.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 0.1,
+      "current_state": "normal",
+      "tags": [
+        "mouse",
+        "organic",
+        "evidence"
+      ]
+    },
+    {
+      "name": "locket",
+      "description": "a tarnished silver locket containing a miniature portrait of a young woman and a lock of dark hair. the initials 'e.b.' are engraved on the inside. not eleanor blackwood the elder — eleanor the younger.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.05,
+      "current_state": "normal",
+      "tags": [
+        "jewelry",
+        "artifact",
+        "metal",
+        "portrait"
+      ]
+    }
+  ],
+  "exits": [
+    {
+      "direction": "pantry_door_back",
+      "target_room_hint": "kitchen",
+      "description": "a narrow door to the pantry. cold air seeps from beneath it.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "pantry_door_back"
+    }
+  ],
+  "triggers": []
+}

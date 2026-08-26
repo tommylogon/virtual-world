@@ -1,0 +1,34 @@
+{
+  "name": "Snowbound Hollow",
+  "description": "A shallow depression beneath a dense tangle of snow-laden branches, forming a natural shelter. The blizzard howls beyond the woven walls of ice and bark, but inside, the wind is muted. The ground is carpeted with dry pine needles and a thin layer of frost. A faint glow filters through the icy canopy.",
+  "tags": [
+    "exterior"
+  ],
+  "environment": {
+    "air": "",
+    "light": "bright",
+    "noise": "muffled howl of wind",
+    "smell": "pine and frost",
+    "temperature": -5
+  },
+  "items": [],
+  "exits": [
+    {
+      "direction": "icy arch",
+      "target_room_hint": "Frozen Thicket",
+      "description": "A low arch formed by two ancient pines, their branches fused together by ice and frost. The passage is narrow, requiring a crouch to pass through.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "south"
+    },
+    {
+      "direction": "root tunnel",
+      "target_room_hint": "Weeping Willow Hollow",
+      "description": "A low, narrow opening between the weeping willow's trailing branches, where the roots have worn a smooth tunnel through the earth. The passage is just wide enough to duck through, and the floor is padded with dry leaves.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "north"
+    }
+  ],
+  "triggers": []
+}

@@ -1,0 +1,72 @@
+{
+  "actions": "examine,take,use,equip,unequip",
+  "description": "A sleek, form-fitting jumpsuit made of a stretchy, breathable fabric. It has several utility pockets and a sturdy zipper. It looks comfortable and practical.",
+  "equip_slots": [
+    "torso",
+    "arms",
+    "legs"
+  ],
+  "name": "Jumpsuit",
+  "tags": [
+    "clothing",
+    "insulation",
+    "equips_all_slots"
+  ],
+  "uses": 1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "defense": 2,
+  "damage": 0,
+  "insulation": 2,
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "The jumpsuit is made of a sleek, matte fabric that seems to repel dust. The pockets are deep and reinforced. A small label inside reads: 'Property of Task Facility 5'. It looks like it would fit you perfectly."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_equip",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "You zip up the jumpsuit. It fits like a second skin, and the fabric seems to regulate your temperature comfortably."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_unequip",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "You unzip and step out of the jumpsuit, folding it neatly."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

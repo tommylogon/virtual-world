@@ -1,0 +1,81 @@
+{
+  "name": "Bundle of Candles",
+  "description": "Three beeswax candles, tightly bound with a thin string. They exude a faint honey scent.",
+  "actions": "examine,take,use,drop",
+  "uses": 3,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "flammable"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "The candles are made of pure beeswax. They seem well-crafted and should burn slowly."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_light",
+      "effects": [
+        {
+          "params": {
+            "node_id": "self",
+            "state": "lit",
+            "value": true
+          },
+          "type": "set_state"
+        },
+        {
+          "params": {
+            "light": "dim",
+            "smell": "honey and wax"
+          },
+          "type": "set_environment"
+        },
+        {
+          "params": {
+            "amount": 1
+          },
+          "type": "drain"
+        },
+        {
+          "params": {
+            "message": "You light a candle. A warm, honey-scented glow fills the room."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {
+        "operator": "and",
+        "conditions": [
+          {
+            "node_id": "self",
+            "state": "lit",
+            "type": "state_equals",
+            "value": false
+          }
+        ]
+      },
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

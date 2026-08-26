@@ -1,0 +1,24 @@
+{
+  "name": "Reinforced Wool Trousers",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "contents": [],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "Dark grey wool trousers, reinforced with leather patches on both knees. Right leg standard fit; left leg sewn wider and reinforced to accommodate clockwork prosthetic. Worn leather belt with brass buckle, buckle engraved with faded Galser Office of Justice symbol.",
+  "insulation": 0,
+  "library_id": "reinforced_wool_trousers",
+  "light_level": "dim",
+  "tags": [
+    "clothing",
+    "trousers",
+    "wool",
+    "reinforced"
+  ],
+  "triggers": [],
+  "uses": -1,
+  "weight": 1.5,
+  "equip_slots": [
+    "legs"
+  ]
+}

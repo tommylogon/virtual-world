@@ -1,0 +1,184 @@
+{
+  "name": "garden",
+  "description": "an overgrown garden where nature has reclaimed what was once carefully manicured. a cracked stone path winds through tangled weeds and brambles. a crumbling fountain stands in the centre, its basin filled with dark, stagnant water. to the north, a rusted wrought-iron gate leads to a graveyard. to the south, the conservatory's glass panels glint. the air is fresh but cold. a single rose bush, impossibly, still blooms — red flowers against the decay.",
+  "tags": [],
+  "environment": {
+    "air": "fresh",
+    "light": 80,
+    "noise": "birds and wind",
+    "smell": "wet earth and roses",
+    "temperature": 15
+  },
+  "items": [
+    {
+      "name": "fountain",
+      "description": "a stone fountain with a weeping angel statue, its face worn smooth by time and weather. the basin holds dark water, leaves, and a surprising amount of moss. something glints at the bottom.",
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "uses": -1,
+      "weight": 200,
+      "current_state": "normal",
+      "tags": [
+        "water",
+        "stone",
+        "outdoor"
+      ]
+    },
+    {
+      "name": "silver_crucifix",
+      "description": "a small silver crucifix, tarnished by years underwater. it's still intact. the back is engraved: 'sanctuary — 1889.'",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.2,
+      "current_state": "normal",
+      "tags": [
+        "occult",
+        "artifact",
+        "metal",
+        "silver"
+      ]
+    },
+    {
+      "name": "shovel",
+      "description": "a rusty shovel leaning against a gnarled, ancient oak tree. the blade is caked with dried earth that crumbles when you touch it.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 3,
+      "current_state": "normal",
+      "tags": [
+        "tool",
+        "metal",
+        "outdoor",
+        "survival"
+      ]
+    },
+    {
+      "name": "flowers",
+      "description": "a patch of wilted roses, their petals brown and curling. but one bush defies the decay — a single red rose bush blooms vibrantly, as if it's june instead of october.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 0.5,
+      "current_state": "normal",
+      "tags": [
+        "plant",
+        "organic",
+        "outdoor",
+        "evidence"
+      ]
+    },
+    {
+      "name": "apple_tree",
+      "description": "a small apple tree with a few shriveled but edible apples on the lower branches. the tree looks ancient but stubbornly clings to life.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": 3,
+      "weight": 1,
+      "current_state": "normal",
+      "tags": [
+        "plant",
+        "organic",
+        "outdoor",
+        "food"
+      ]
+    },
+    {
+      "name": "garden_bench",
+      "description": "a stone bench under a gnarled oak, overlooking the garden. someone left a thermos here long ago. the oak's roots have grown around the bench's legs.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 100,
+      "current_state": "normal",
+      "tags": [
+        "furniture",
+        "stone",
+        "outdoor"
+      ]
+    },
+    {
+      "name": "thermos",
+      "description": "an old thermos on the bench wedged between the roots. inside: cold but still drinkable tea, though it tastes of oak and earth now.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 2,
+      "weight": 0.8,
+      "current_state": "normal",
+      "tags": [
+        "water",
+        "drink",
+        "container",
+        "supplies"
+      ]
+    },
+    {
+      "name": "oak_tree",
+      "description": "a massive, ancient oak tree, its branches spreading like protective arms over the garden. the bark is gnarled and covered in moss. at eye level, someone has carved a small heart with the initials 'a.b.' and 'm.'",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 0,
+      "current_state": "normal",
+      "tags": [
+        "plant",
+        "organic",
+        "outdoor",
+        "wooden"
+      ]
+    },
+    {
+      "name": "statue",
+      "description": "a small stone statue of a cherub hidden among the overgrown bushes, its face chipped away. someone deliberately defaced it.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 30,
+      "current_state": "normal",
+      "tags": [
+        "statue",
+        "stone",
+        "art"
+      ]
+    }
+  ],
+  "exits": [
+    {
+      "direction": "garden_door_back",
+      "target_room_hint": "conservatory",
+      "description": "a glass-paneled door leading to the garden. the garden beyond looks overgrown but peaceful.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "garden_door_back"
+    },
+    {
+      "direction": "graveyard_gate",
+      "target_room_hint": "graveyard",
+      "description": "a rusty iron gate covered in climbing ivy. it creaks as it swings.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "graveyard_gate"
+    }
+  ],
+  "triggers": []
+}

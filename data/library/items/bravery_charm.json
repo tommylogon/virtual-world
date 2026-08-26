@@ -1,0 +1,35 @@
+{
+  "name": "Bravery Charm",
+  "description": "A small iron charm shaped like a sunburst, warm against the palm. It steadies the heart against fear.",
+  "actions": "examine,take,use,drop",
+  "uses": 5,
+  "weight": 0.1,
+  "tags": [
+    "metal",
+    "small",
+    "charm"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "type": "remove_condition",
+          "params": {
+            "condition": "frightened",
+            "target": "self",
+            "message": "You clutch the sunburst charm. The cold dread loosens its grip on your thoughts."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

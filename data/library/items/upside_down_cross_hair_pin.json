@@ -1,0 +1,40 @@
+{
+  "name": "upside-down cross hair pin",
+  "description": "a small silver upside-down cross bobby pin, worn on the right side of blunt bangs.",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "uses": 0,
+  "weight": 0.01,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "clothing",
+    "accessory",
+    "hair_accessory"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "a tiny silver cross, inverted, pinned into dirty-blonde bangs. edgy."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": [],
+  "library_id": "upside_down_cross_hair_pin",
+  "equip_slots": [
+    "accessory"
+  ]
+}

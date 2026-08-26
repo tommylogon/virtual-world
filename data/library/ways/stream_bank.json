@@ -1,0 +1,23 @@
+{
+  "auto_close": false,
+  "current_state": "open",
+  "description": "A narrow gap between snow-laden pines opens onto the windswept shore of the frozen lake. The air smells of ice and pine.",
+  "edge_length": "",
+  "library_id": "",
+  "max_size": "",
+  "name": "stream bank",
+  "needs_open": {},
+  "one_way": false,
+  "parameters": {},
+  "pass_message": "You push through the gap, snow brushing your shoulders as the wind picks up from the open lake.",
+  "prevent_close": false,
+  "requires": "",
+  "see_through": false,
+  "tags": [
+    "outdoor",
+    "snow",
+    "ice",
+    "gap"
+  ],
+  "triggers": []
+}

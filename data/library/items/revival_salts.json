@@ -1,0 +1,35 @@
+{
+  "name": "Revival Salts",
+  "description": "A tin of sharp, pungent salts that cut through any fog of unconsciousness like a blade. Press them under a fallen companion's nose.",
+  "actions": "examine,take,use,drop",
+  "uses": 3,
+  "weight": 0.05,
+  "tags": [
+    "alchemical",
+    "medicine",
+    "small"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use_on"
+      ],
+      "effects": [
+        {
+          "type": "remove_condition",
+          "params": {
+            "condition": "unconscious",
+            "target": "target",
+            "message": "You wave the salts under {target_name}'s nose. They splutter and their eyes snap open."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

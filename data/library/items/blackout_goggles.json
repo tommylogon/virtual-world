@@ -1,0 +1,58 @@
+{
+  "name": "Blackout Goggles",
+  "description": "Tight-fitting goggles with thick, opaque black lenses. The rubber strap is stretched but still holds. When you pull them on, the world goes dark.",
+  "actions": "examine,take,use,equip,unequip",
+  "uses": -1,
+  "weight": 0.2,
+  "tags": [
+    "clothing",
+    "accessory",
+    "eyewear",
+    "wearable"
+  ],
+  "equip_slots": [
+    "head"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_equip",
+      "effects": [
+        {
+          "type": "apply_condition",
+          "params": {
+            "condition": "blind",
+            "target": "self",
+            "source": "blackout goggles",
+            "source_type": "item",
+            "duration": 0,
+            "message": "You strap the blackout goggles over your eyes. The world goes completely dark."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_unequip",
+      "effects": [
+        {
+          "type": "remove_condition",
+          "params": {
+            "condition": "blind",
+            "target": "self",
+            "message": "You pull off the blackout goggles. Light floods back in."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

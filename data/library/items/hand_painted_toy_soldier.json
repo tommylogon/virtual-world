@@ -1,0 +1,73 @@
+{
+  "name": "Hand-Painted Toy Soldier",
+  "description": "A small wooden soldier with chipped paint, a faded red coat, and a tiny musket. His eyes are still bright.",
+  "actions": "examine,take,use,drop",
+  "uses": 0,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "toy"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "The soldier's uniform is faded, but he stands resolute. There's a tiny inscription on the base: 'For my brave boy.'"
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "message": "You wind the toy soldier and it marches forward, clicking its wooden heels."
+          },
+          "type": "message"
+        },
+        {
+          "params": {
+            "node_id": "toy_soldier",
+            "state": "activated"
+          },
+          "type": "set_state"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "message": "You try to wind the toy soldier, but it's stuck. Maybe it needs a bit of oil."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

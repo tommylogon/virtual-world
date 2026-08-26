@@ -1,0 +1,15 @@
+{
+  "id": "photo",
+  "name": "Photo",
+  "description": "Photograph or image.",
+  "category": "essence",
+  "color": "#aeb6bf",
+  "icon": "🖼️",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "family photo",
+    "photo album"
+  ]
+}

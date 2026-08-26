@@ -1,0 +1,9 @@
+{
+  "id": "heavy_sleeper",
+  "name": "Heavy Sleeper",
+  "description": "Hard to wake from noise.",
+  "category": "physical",
+  "params": null,
+  "effects": {"wake_threshold": 1},
+  "conflicts": ["light_sleeper"]
+}

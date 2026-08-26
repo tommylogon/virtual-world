@@ -1,0 +1,55 @@
+{
+  "name": "Wash Basin",
+  "actions": "examine,use",
+  "contents": [],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "A simple wooden wash basin filled with warm water.",
+  "insulation": 0,
+  "library_id": "wash_basin",
+  "light_level": "dim",
+  "tags": [
+    "wet"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "A simple wooden wash basin filled with warm water."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "amount": 20,
+            "message": "",
+            "stat": "Hygiene",
+            "success_message": "You wash yourself using the basin",
+            "target": "self"
+          },
+          "type": "adjust_vital"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "uses": -1,
+  "weight": 15
+}

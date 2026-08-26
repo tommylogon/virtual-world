@@ -1,0 +1,15 @@
+{
+  "id": "knife",
+  "name": "Knife",
+  "description": "Bladed cutting tool.",
+  "category": "physical",
+  "color": "#95a5a6",
+  "icon": "🗡️",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "butcher knife",
+    "pocket knife"
+  ]
+}

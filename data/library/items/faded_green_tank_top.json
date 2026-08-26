@@ -1,0 +1,57 @@
+{
+  "name": "faded green tank top",
+  "description": "a faded olive-green tank top that's seen better days. the left strap is slightly twisted, and the fabric clings to the definition in your arms and shoulders. built for movement, not fashion.",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "uses": 0,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 1,
+  "damage": 0,
+  "insulation": 2,
+  "tags": [
+    "clothing",
+    "top",
+    "insulation"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_equip",
+      "effects": [
+        {
+          "params": {
+            "message": "you pull on the green tank top. the left strap twists — you leave it. not worth fixing."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "olive green, faded from wash and sun. the straps are thick enough for training. the left one is twisted again."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": [],
+  "image": "/static/images/nodes/item_faded_green_tank_top-1787061019344.png",
+  "library_id": "faded_green_tank_top",
+  "equip_slots": [
+    "torso"
+  ]
+}

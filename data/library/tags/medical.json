@@ -1,0 +1,15 @@
+{
+  "id": "medical",
+  "name": "Medical",
+  "description": "Health and first-aid related.",
+  "category": "physical",
+  "color": "#e74c3c",
+  "icon": "🏥",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "bandage",
+    "medicine cabinet"
+  ]
+}

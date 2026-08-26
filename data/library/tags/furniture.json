@@ -1,0 +1,19 @@
+{
+  "id": "furniture",
+  "name": "Furniture",
+  "description": "Functional or decorative furnishing for a room",
+  "category": "custom",
+  "color": "#996633",
+  "icon": "🪑",
+  "applies_to": [
+    "items",
+    "areas"
+  ],
+  "examples": [
+    "table",
+    "chair",
+    "bookshelf",
+    "bed",
+    "cabinet"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "id": "vegetation",
+  "name": "Vegetation",
+  "description": "Dense plant growth covering an area",
+  "category": "custom",
+  "color": "#338833",
+  "icon": "🌳",
+  "applies_to": [
+    "items",
+    "areas"
+  ],
+  "examples": [
+    "thicket",
+    "undergrowth",
+    "ivy",
+    "moss-covered wall",
+    "overgrown path"
+  ]
+}

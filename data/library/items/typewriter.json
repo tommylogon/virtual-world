@@ -1,0 +1,32 @@
+{
+  "name": "typewriter",
+  "description": "An old Remington typewriter. A half-finished page is still rolled in: 'The old house keeps its secrets well. Only those who look closely will find what lies beneath...'",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [],
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "You press a key. The typewriter clacks satisfyingly. The ribbon is dry — this machine hasn't been used in decades."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

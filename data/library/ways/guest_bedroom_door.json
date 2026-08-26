@@ -1,0 +1,18 @@
+{
+  "auto_close": false,
+  "current_state": "closed",
+  "description": "A modest door with a simple porcelain knob. Dust has gathered in the corners of the frame.",
+  "edge_length": "",
+  "library_id": "",
+  "max_size": "",
+  "name": "Guest Bedroom Door",
+  "needs_open": {},
+  "one_way": false,
+  "parameters": {},
+  "pass_message": "You push open the door to the guest bedroom. Dust motes dance in the dim light.",
+  "prevent_close": false,
+  "requires": "",
+  "see_through": false,
+  "tags": [],
+  "triggers": []
+}

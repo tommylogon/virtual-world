@@ -1,0 +1,15 @@
+{
+  "id": "music",
+  "name": "Music",
+  "description": "Music, musical object, or sound.",
+  "category": "essence",
+  "color": "#bb8fce",
+  "icon": "🎶",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "music box",
+    "earbuds"
+  ]
+}

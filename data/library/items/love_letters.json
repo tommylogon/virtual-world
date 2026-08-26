@@ -1,0 +1,21 @@
+{
+  "name": "love_letters",
+  "description": "a bundle of letters tied with a faded silk ribbon. the handwriting is elegant and desperate. 'my dearest augustus, i cannot bear another night in that cold house while she lies in the next room. the child we made deserves more than this secret. — m.'",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "letter",
+    "documents",
+    "paper",
+    "evidence",
+    "clue"
+  ],
+  "triggers": [],
+  "contents": []
+}

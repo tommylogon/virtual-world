@@ -1,0 +1,15 @@
+{
+  "id": "tea",
+  "name": "Tea",
+  "description": "Tea or tea-drinking equipment.",
+  "category": "physical",
+  "color": "#a04000",
+  "icon": "🍵",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "teacup",
+    "kettle"
+  ]
+}

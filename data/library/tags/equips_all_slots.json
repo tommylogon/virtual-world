@@ -1,0 +1,17 @@
+{
+  "id": "equips_all_slots",
+  "name": "Equips All Slots",
+  "description": "Occupies every slot declared in equip_slots when equipped (full-body suits, hardsuits, jumpsuits)",
+  "category": "state",
+  "color": "#4a90d9",
+  "icon": "🧑‍🚀",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "EVA Suit",
+    "hardsuit",
+    "hazmat suit",
+    "full-body jumpsuit"
+  ]
+}

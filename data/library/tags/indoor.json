@@ -1,0 +1,16 @@
+{
+  "id": "indoor",
+  "name": "Indoor",
+  "description": "Located inside a building or structure",
+  "category": "environment",
+  "color": "#cc8844",
+  "icon": "🏠",
+  "applies_to": [
+    "areas"
+  ],
+  "examples": [
+    "tavern",
+    "library",
+    "bedchamber"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "name": "book of cryptograph",
+  "description": "A academic book of cryptography",
+  "actions": "examine,take",
+  "uses": -1,
+  "weight": 1.2,
+  "tags": [
+    "book",
+    "paper"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {}
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": [],
+  "current_state": "hidden"
+}

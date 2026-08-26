@@ -1,0 +1,18 @@
+{
+  "id": "faction_merchant",
+  "name": "Merchant",
+  "description": "Associated with trade or commerce",
+  "category": "faction",
+  "color": "#44aa44",
+  "icon": "💰",
+  "applies_to": [
+    "characters",
+    "items",
+    "areas"
+  ],
+  "examples": [
+    "merchant guild",
+    "trade goods",
+    "shop"
+  ]
+}

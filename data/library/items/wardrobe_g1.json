@@ -1,0 +1,19 @@
+{
+  "name": "wardrobe_g1",
+  "description": "a tall wooden wardrobe containing moth-eaten coats and a single man's suit. in the pocket of the suit: a train ticket stub, dated october 31st, 1891. the return portion is unused.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 25,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "furniture",
+    "wooden",
+    "container"
+  ],
+  "triggers": [],
+  "contents": []
+}

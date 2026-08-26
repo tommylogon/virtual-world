@@ -1,0 +1,10 @@
+{
+  "id": "curious",
+  "name": "Curious",
+  "description": "+50% Entertainment from new places and things. More likely to examine items and explore exits.",
+  "category": "exploration",
+  "params": null,
+  "effects": {
+    "curious": true
+  }
+}

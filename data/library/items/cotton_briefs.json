@@ -1,0 +1,22 @@
+{
+  "name": "cotton briefs",
+  "description": "plain black cotton briefs. comfortable and practical.",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "uses": 0,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "clothing",
+    "underwear"
+  ],
+  "triggers": [],
+  "contents": [],
+  "library_id": "cotton_briefs",
+  "equip_slots": [
+    "legs"
+  ]
+}

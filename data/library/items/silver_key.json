@@ -1,0 +1,19 @@
+{
+  "name": "silver_key",
+  "description": "a small silver key hidden under the pillow. it's cold to the touch and hums faintly.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "key",
+    "metal",
+    "silver"
+  ],
+  "triggers": [],
+  "contents": []
+}

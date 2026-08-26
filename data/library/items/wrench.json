@@ -1,0 +1,20 @@
+{
+  "name": "wrench",
+  "description": "a heavy adjustable wrench. kyrie knows how to use it — both for fixing things and, if necessary, for other purposes.",
+  "actions": "examine,use,take,drop",
+  "uses": -1,
+  "weight": 1.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 12,
+  "insulation": 0,
+  "tags": [
+    "weapon",
+    "tool",
+    "metal",
+    "mechanism"
+  ],
+  "triggers": [],
+  "contents": []
+}

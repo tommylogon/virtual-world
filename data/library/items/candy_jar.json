@@ -1,0 +1,19 @@
+{
+  "name": "candy_jar",
+  "description": "a dusty jar of old hard candies on the dresser. they've crystallized over the decades but are still technically edible. the jar is shaped like a teddy bear.",
+  "actions": "examine,take,use,drop",
+  "uses": 3,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "candy",
+    "food",
+    "glass"
+  ],
+  "triggers": [],
+  "contents": []
+}

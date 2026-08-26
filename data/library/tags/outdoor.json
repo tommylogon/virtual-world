@@ -1,0 +1,16 @@
+{
+  "id": "outdoor",
+  "name": "Outdoor",
+  "description": "Located outside, exposed to elements",
+  "category": "environment",
+  "color": "#44aa44",
+  "icon": "🌳",
+  "applies_to": [
+    "areas"
+  ],
+  "examples": [
+    "garden",
+    "courtyard",
+    "forest clearing"
+  ]
+}

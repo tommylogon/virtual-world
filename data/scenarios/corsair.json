@@ -1,0 +1,1527 @@
+{
+  "name": "Drake Corsair DH-02",
+  "current_area": "Cargo Bay",
+  "player": {
+    "name": "Crew",
+    "current_area": "Cargo Bay",
+    "stats": {
+      "STR": 10,
+      "DEX": 12,
+      "CON": 11,
+      "INT": 14,
+      "WIS": 13,
+      "CHA": 8
+    },
+    "skills": {
+      "Athletics": 2,
+      "Perception": 4,
+      "Engineering": 5,
+      "Stealth": 3,
+      "Piloting": 2
+    },
+    "vitals": {
+      "HP": 100,
+      "Max_HP": 100,
+      "Energy": 100,
+      "Hunger": 85,
+      "Thirst": 85,
+      "Hygiene": 100,
+      "Social": 100
+    },
+    "inventory": [
+      {
+        "name": "protein_pouch",
+        "description": "A military-style emergency ration. Tastes like cardboard.",
+        "actions": [
+          "examine",
+          "use"
+        ],
+        "uses": 2,
+        "weight": 0.2,
+        "effect_target": "player",
+        "effect_stat": "Hunger",
+        "effect_amount": 30,
+        "action_costs": {
+          "use": {
+            "time": 1,
+            "energy": 0
+          }
+        }
+      },
+      {
+        "name": "water_pouch",
+        "description": "A sealed emergency water pouch.",
+        "actions": [
+          "examine",
+          "use"
+        ],
+        "uses": 2,
+        "weight": 0.3,
+        "effect_target": "player",
+        "effect_stat": "Thirst",
+        "effect_amount": 25,
+        "action_costs": {
+          "use": {
+            "time": 1,
+            "energy": 0
+          }
+        }
+      },
+      {
+        "name": "multitool",
+        "description": "A Drake-issue multitool with flashlight mode.",
+        "actions": [
+          "examine",
+          "use"
+        ],
+        "uses": -1,
+        "weight": 0.2,
+        "effect_target": "room",
+        "effect_stat": "light",
+        "effect_amount": 40,
+        "action_costs": {
+          "use": {
+            "time": 0,
+            "energy": 0
+          }
+        }
+      },
+      {
+        "name": "data_pad",
+        "description": "A handheld tablet with ship schematics.",
+        "actions": [
+          "examine"
+        ],
+        "uses": -1,
+        "weight": 0.3
+      }
+    ],
+    "state": "awake",
+    "personality": "You are a hired crew member on the Drake Corsair DH-02. Something went wrong during the last jump — the ship dropped out of quantum mid-travel and the crew hasn't been heard from in days. Your job is to figure out what happened and get the ship running again."
+  },
+  "players": {
+    "Crew": {
+      "name": "Crew",
+      "current_area": "Cargo Bay",
+      "stats": {
+        "STR": 10,
+        "DEX": 12,
+        "CON": 11,
+        "INT": 14,
+        "WIS": 13,
+        "CHA": 8
+      },
+      "skills": {
+        "Athletics": 2,
+        "Perception": 4,
+        "Engineering": 5,
+        "Stealth": 3,
+        "Piloting": 2
+      },
+      "vitals": {
+        "HP": 100,
+        "Max_HP": 100,
+        "Energy": 100,
+        "Hunger": 15,
+        "Thirst": 15,
+        "Hygiene": 100,
+        "Social": 100
+      },
+      "inventory": [
+        {
+          "name": "protein_pouch",
+          "description": "A military-style emergency ration. Tastes like cardboard.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": 2,
+          "weight": 0.2,
+          "effect_target": "player",
+          "effect_stat": "Hunger",
+          "effect_amount": 30,
+          "action_costs": {
+            "use": {
+              "time": 1,
+              "energy": 0
+            }
+          }
+        },
+        {
+          "name": "water_pouch",
+          "description": "A sealed emergency water pouch.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": 2,
+          "weight": 0.3,
+          "effect_target": "player",
+          "effect_stat": "Thirst",
+          "effect_amount": 25,
+          "action_costs": {
+            "use": {
+              "time": 1,
+              "energy": 0
+            }
+          }
+        },
+        {
+          "name": "multitool",
+          "description": "A Drake-issue multitool with flashlight mode.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 0.2,
+          "effect_target": "room",
+          "effect_stat": "light",
+          "effect_amount": 40,
+          "action_costs": {
+            "use": {
+              "time": 0,
+              "energy": 0
+            }
+          }
+        },
+        {
+          "name": "data_pad",
+          "description": "A handheld tablet with ship schematics.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 0.3
+        }
+      ],
+      "state": "awake",
+      "personality": "You are a hired crew member on the Drake Corsair DH-02. Something went wrong during the last jump."
+    },
+    "Miki": {
+      "name": "Miki",
+      "current_area": "Cargo Bay",
+      "stats": {
+        "STR": 8,
+        "DEX": 12,
+        "CON": 10,
+        "INT": 14,
+        "WIS": 8,
+        "CHA": 12
+      },
+      "skills": {
+        "Perception": 3,
+        "Performance": 5,
+        "Investigation": 2,
+        "Stealth": 4
+      },
+      "vitals": {
+        "HP": 100,
+        "Max_HP": 100,
+        "Energy": 100,
+        "Hunger": 15,
+        "Thirst": 15,
+        "Hygiene": 100,
+        "Social": 100
+      },
+      "inventory": [
+        {
+          "name": "phone",
+          "description": "Miki's smartphone with flashlight and voice recorder. Battery at 52%.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 0.3,
+          "effect_target": "room",
+          "effect_stat": "light",
+          "effect_amount": 35,
+          "action_costs": {
+            "use": {
+              "time": 0,
+              "energy": 0
+            }
+          }
+        },
+        {
+          "name": "energy_drink",
+          "description": "A half-drunk 'QUANTUM BURST' energy drink. Fizzy and questionable.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": 1,
+          "weight": 0.3,
+          "effect_target": "player",
+          "effect_stat": "Energy",
+          "effect_amount": 20,
+          "action_costs": {
+            "use": {
+              "time": 1,
+              "energy": 0
+            }
+          }
+        },
+        {
+          "name": "protein_bar",
+          "description": "A slightly squished protein bar. Chocolate chip.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": 1,
+          "weight": 0.15,
+          "effect_target": "player",
+          "effect_stat": "Hunger",
+          "effect_amount": 25,
+          "action_costs": {
+            "use": {
+              "time": 1,
+              "energy": 0
+            }
+          }
+        },
+        {
+          "name": "water_bottle",
+          "description": "A cat-themed reusable water bottle. Mostly full.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": 3,
+          "weight": 0.4,
+          "effect_target": "player",
+          "effect_stat": "Thirst",
+          "effect_amount": 20,
+          "action_costs": {
+            "use": {
+              "time": 1,
+              "energy": 0
+            }
+          }
+        },
+        {
+          "name": "earbuds",
+          "description": "Tangled earbuds. Could amplify quiet sounds.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 0.05
+        },
+        {
+          "name": "portable_charger",
+          "description": "A small power bank. 30% charged.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": 3,
+          "weight": 0.2
+        }
+      ],
+      "state": "awake",
+      "personality": "You are Miki, an ASMR artist who got hired as 'audio specialist' on this ship by fudging your resume a little. You're way out of your depth, anxious about space, and terrified of the creepy ship. But you're trying your best to be useful and brave — especially after that cute programmer showed you this world. You ramble when nervous, notice sounds others don't, and your hands are always shaking. You're here to document everything for 'content' but also because you genuinely want to help."
+    }
+  },
+  "active_player": "Crew",
+  "time_ticks": 0,
+  "game_log": [
+    "Welcome to the Drake Corsair DH-02.",
+    "The ship dropped out of quantum mid-jump. The crew is missing. Systems are failing.",
+    "Find out what happened. Restore power. Survive."
+  ],
+  "areas": {
+    "Cargo Bay": {
+      "name": "Cargo Bay",
+      "description": "The main cargo hold of the Corsair. Heavy magnetic floor plates, cargo containers stacked against the walls, and cargo netting bolted overhead. The massive cargo ramp is at the rear — currently sealed. To port, a door leads to the Scanning Station. To starboard, the Component Bay. Ahead, a reinforced door opens into the Main Habitation area. The air smells of engine coolant and old grease.",
+      "environment": {
+        "light": 40,
+        "temperature": 15,
+        "air": "stale",
+        "smell": "coolant and grease",
+        "noise": "low hum"
+      },
+      "exits": {
+        "cargo_ramp": {
+          "target": "Exterior Landing Pad",
+          "state": "closed",
+          "description": "The massive hydraulic cargo ramp at the rear. Sealed shut.",
+          "locked_with": "cargo_controls",
+          "cost": {
+            "time": 2,
+            "energy": 2
+          }
+        },
+        "scanning_way": {
+          "target": "Scanning Station",
+          "state": "open",
+          "description": "A door to port leading to the scanning station.",
+          "locked_with": "",
+          "cost": {
+            "time": 1
+          }
+        },
+        "component_way": {
+          "target": "Component Bay",
+          "state": "open",
+          "description": "A door to starboard leading to the ship's component bay.",
+          "locked_with": "",
+          "cost": {
+            "time": 1
+          }
+        },
+        "habitation_way": {
+          "target": "Main Habitation",
+          "state": "open",
+          "description": "A reinforced door forward, leading to the crew habitation area.",
+          "locked_with": "",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "items": [
+        {
+          "name": "cargo_container",
+          "description": "A standard UEE cargo container. Empty but heavy.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 200
+        },
+        {
+          "name": "cargo_netting",
+          "description": "Heavy cargo netting bolted to the ceiling. Could support weight.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 50
+        },
+        {
+          "name": "ramp_controls",
+          "description": "The cargo ramp control panel. Screen shows: 'RAMP STATUS: SEALED. HYDRAULICS: NOMINAL. POWER: INSUFFICIENT.'",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 10
+        },
+        {
+          "name": "fuel_canister",
+          "description": "A sealed fuel canister. Label: 'DRIVE FUEL — CLASS A'.",
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": -1,
+          "weight": 5
+        },
+        {
+          "name": "cargo_manifest",
+          "description": "A datapad showing cargo contents: medical supplies, food stores, ammunition, and one 'CLASSIFIED — RESEARCH' container.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 0.3
+        },
+        {
+          "name": "spare_parts",
+          "description": "A box of hydraulic fittings, fuses, and sealant.",
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": -1,
+          "weight": 3
+        },
+        {
+          "name": "hidden_keycard",
+          "description": "A keycard wedged in the floor grating. Label: 'COMPONENT ACCESS — LEVEL 3'.",
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": -1,
+          "weight": 0.05,
+          "hidden": true,
+          "skill_check": {
+            "skill": "Perception",
+            "dc": 12,
+            "grants_knowledge": "found_component_keycard"
+          }
+        }
+      ]
+    },
+    "Scanning Station": {
+      "name": "Scanning Station",
+      "description": "A small room with a large curved console showing sensor readouts. A holographic display in the centre shows a 3D wireframe of the ship. The scanning array controls are here — currently showing 'NO SIGNAL'. A swivel chair sits in front of the main console. There's an empty mug on the desk.",
+      "environment": {
+        "light": 55,
+        "temperature": 18,
+        "air": "filtered",
+        "smell": "coffee",
+        "noise": "quiet fan"
+      },
+      "exits": {
+        "scanning_way": {
+          "target": "Cargo Bay",
+          "state": "open",
+          "description": "The door back to the cargo bay.",
+          "locked_with": "",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "items": [
+        {
+          "name": "scanner_console",
+          "description": "The main scanning console. Status: 'SENSOR ARRAY: OFFLINE. LONG RANGE: NO SIGNAL. SHORT RANGE: DEGRADED.' A diagnostics prompt blinks.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 20
+        },
+        {
+          "name": "holographic_display",
+          "description": "A 3D wireframe of the Corsair, slowly rotating. Red indicators mark damaged systems: comm array, quantum drive, one turret.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 5
+        },
+        {
+          "name": "coffee_mug",
+          "description": "An empty 'KRUGER' branded mug. The coffee has long gone cold.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 0.3
+        },
+        {
+          "name": "scan_results",
+          "description": "A saved scan log: 'UNKNOWN ENERGY SIGNATURE DETECTED IN QUANTUM WAKE. SOURCE: UNKNOWN. THREAT ASSESSMENT: PENDING.' Timestamp shows it was logged just before the emergency stop.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 0.1
+        },
+        {
+          "name": "energy_bar",
+          "description": "A 'POWER GRID' energy bar behind the console. Someone's forgotten snack.",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "uses": 1,
+          "weight": 0.1,
+          "effect_target": "player",
+          "effect_stat": "Hunger",
+          "effect_amount": 15,
+          "action_costs": {
+            "use": {
+              "time": 1,
+              "energy": 0
+            }
+          }
+        }
+      ]
+    },
+    "Component Bay": {
+      "name": "Component Bay",
+      "description": "The ship's component housing. Thick bundles of cable snake along the walls. Ship components are slotted into rack mounts — power plant, shield generator, quantum drive, coolers. Most status lights are amber or red. The quantum drive in the centre dominates the room, humming faintly. It smells hot.",
+      "environment": {
+        "light": 35,
+        "temperature": 26,
+        "air": "stale",
+        "smell": "hot electronics",
+        "noise": "engine thrum"
+      },
+      "exits": {
+        "component_way": {
+          "target": "Cargo Bay",
+          "state": "open",
+          "description": "The door back to the cargo bay.",
+          "locked_with": "",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "items": [
+        {
+          "name": "quantum_drive",
+          "description": "The quantum drive. A large cylindrical device with glowing conduits. Status: 'OFFLINE — EMERGENCY STOP TRIGGERED. RESTART REQUIRED.' A manual restart panel is on the side.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 100
+        },
+        {
+          "name": "power_plant",
+          "description": "The ship's main power plant. Currently running at 23% on emergency reserves. Status: 'OUTPUT: CRITICAL. RECOMMEND SHUTDOWN NON-ESSENTIAL SYSTEMS.'",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 80
+        },
+        {
+          "name": "shield_generator",
+          "description": "The shield generator. Status: 'OFFLINE — NO POWER.'",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 40
+        },
+        {
+          "name": "coolant_pipe",
+          "description": "A coolant pipe running to the quantum drive. It's vibrating slightly. There's a small leak near the junction.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 15
+        },
+        {
+          "name": "maintenance_log",
+          "description": "A digital maintenance log. Last entry by R. Vasquez: 'Quantum capacitor fluctuating again. Replaced the regulator last week but readings are still unstable. Running diagnostics tomorrow.'",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 0.1
+        },
+        {
+          "name": "wrench",
+          "description": "A heavy wrench left on a ledge. Someone was mid-repair.",
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": -1,
+          "weight": 1.5
+        },
+        {
+          "name": "coolant_fluid",
+          "description": "A sealed container of coolant fluid. Could patch the leak.",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "uses": 1,
+          "weight": 2,
+          "action_costs": {
+            "use": {
+              "time": 3,
+              "energy": 2
+            }
+          }
+        }
+      ]
+    },
+    "Main Habitation": {
+      "name": "Main Habitation",
+      "description": "The central living area of the ship. A narrow corridor runs down the centre. To port, three ways lead to bunk areas and a shared toilet. To starboard, a ladder leads up to the turret access. Forward, a reinforced door leads to the cockpit. A small kitchenette is tucked against one wall with a counter, microwave, and coffee maker. The lighting is dim and flickers occasionally. Someone left a meal half-eaten on the counter.",
+      "environment": {
+        "light": 45,
+        "temperature": 19,
+        "air": "stale",
+        "smell": "instant noodles",
+        "noise": "ventilation rattle"
+      },
+      "exits": {
+        "habitation_way": {
+          "target": "Cargo Bay",
+          "state": "open",
+          "description": "The door back to the cargo bay.",
+          "locked_with": "",
+          "cost": {
+            "time": 1
+          }
+        },
+        "bunk1_way": {
+          "target": "Bunk Area 1",
+          "state": "open",
+          "description": "Way labeled 'TORRES'.",
+          "locked_with": "",
+          "cost": {
+            "time": 1
+          }
+        },
+        "bunk2_way": {
+          "target": "Bunk Area 2",
+          "state": "open",
+          "description": "Way labeled 'CHEN'.",
+          "locked_with": "",
+          "cost": {
+            "time": 1
+          }
+        },
+        "bunk3_way": {
+          "target": "Bunk Area 3",
+          "state": "open",
+          "description": "Way labeled 'OKAFOR'.",
+          "locked_with": "",
+          "cost": {
+            "time": 1
+          }
+        },
+        "toilet_way": {
+          "target": "Shared Toilet",
+          "state": "closed",
+          "description": "A small door marked with a faded WC symbol.",
+          "locked_with": "",
+          "cost": {
+            "time": 1
+          }
+        },
+        "turret_ladder": {
+          "target": "Turret Access",
+          "state": "open",
+          "description": "A vertical ladder leading up to the turret.",
+          "locked_with": "",
+          "cost": {
+            "time": 1,
+            "energy": 2
+          }
+        },
+        "cockpit_way": {
+          "target": "Cockpit",
+          "state": "open",
+          "description": "A reinforced door with a small viewport. The cockpit is beyond.",
+          "locked_with": "",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "items": [
+        {
+          "name": "kitchenette",
+          "description": "A small galley: microwave, coffee maker, sink, and a cabinet.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 40
+        },
+        {
+          "name": "microwave",
+          "description": "A small microwave. It still works on emergency power. A half-eaten meal sits inside.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 5
+        },
+        {
+          "name": "half_eaten_meal",
+          "description": "A microwave meal, half-eaten. Cold but edible if you're desperate.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": 1,
+          "weight": 0.2,
+          "effect_target": "player",
+          "effect_stat": "Hunger",
+          "effect_amount": 15,
+          "action_costs": {
+            "use": {
+              "time": 1,
+              "energy": 0
+            }
+          }
+        },
+        {
+          "name": "coffee_maker",
+          "description": "A standard coffee maker. Empty but functional.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 3
+        },
+        {
+          "name": "instant_coffee",
+          "description": "A jar of instant coffee crystals. Half empty.",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "uses": 5,
+          "weight": 0.2,
+          "effect_target": "player",
+          "effect_stat": "Energy",
+          "effect_amount": 10,
+          "action_costs": {
+            "use": {
+              "time": 1,
+              "energy": 0
+            }
+          }
+        },
+        {
+          "name": "ration_box",
+          "description": "A box of emergency ration bars. Dense, flavorless, filling.",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "uses": 6,
+          "weight": 0.3,
+          "effect_target": "player",
+          "effect_stat": "Hunger",
+          "effect_amount": 20,
+          "action_costs": {
+            "use": {
+              "time": 1,
+              "energy": 0
+            }
+          }
+        },
+        {
+          "name": "water_dispenser",
+          "description": "A wall-mounted water dispenser. The reservoir is half full. The water tastes like plastic but is safe.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 10
+        },
+        {
+          "name": "crew_board",
+          "description": "A whiteboard with shift schedules and notes. One note in red marker: 'DO NOT TOUCH QUANTUM DRIVE. — VASQUEZ'",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 3
+        }
+      ]
+    },
+    "Bunk Area 1": {
+      "name": "Bunk Area 1",
+      "description": "A tiny cabin labeled 'TORRES — CAPTAIN'. A narrow bunk with thin sheets, a small fold-out desk, and a locker. A framed photo sits on the desk. Someone left in a hurry — a jacket is draped over the chair.",
+      "environment": {
+        "light": 25,
+        "temperature": 17,
+        "air": "stale",
+        "smell": "faint perfume",
+        "noise": "quiet"
+      },
+      "exits": {
+        "bunk1_way": {
+          "target": "Main Habitation",
+          "state": "open",
+          "description": "The door back to the habitation area.",
+          "locked_with": "",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "items": [
+        {
+          "name": "bunk",
+          "description": "The captain's bunk. Rumpled sheets. Something might be hidden under the pillow.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 20,
+          "effect_target": "player",
+          "effect_stat": "Energy",
+          "effect_amount": 40,
+          "action_costs": {
+            "rest": {
+              "time": 1,
+              "energy": -3
+            }
+          }
+        },
+        {
+          "name": "jacket",
+          "description": "A worn leather jacket. In the pocket: a folded note that reads 'Don't trust the signal.'",
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": -1,
+          "weight": 1
+        },
+        {
+          "name": "photo",
+          "description": "A photo of Captain Torres — a sharp-eyed woman — with a golden retriever. Back reads: 'For luck — M.T.'",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 0.2
+        },
+        {
+          "name": "captains_log",
+          "description": "A personal datapad. Last entry: 'Okafor flagged anomalies in the quantum wake. Chen thinks it's a sensor ghost. I'm not so sure. If this goes south, the emergency protocols are on the cockpit console.'",
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": -1,
+          "weight": 0.3
+        },
+        {
+          "name": "protein_bar",
+          "description": "An unopened protein bar under the mattress.",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "uses": 1,
+          "weight": 0.15,
+          "effect_target": "player",
+          "effect_stat": "Hunger",
+          "effect_amount": 20,
+          "action_costs": {
+            "use": {
+              "time": 1,
+              "energy": 0
+            }
+          }
+        }
+      ]
+    },
+    "Bunk Area 2": {
+      "name": "Bunk Area 2",
+      "description": "A tiny cabin labeled 'CHEN — PILOT'. A narrow bunk, a desk covered in navigation charts, and a locker. A flight helmet sits on the desk. The room smells faintly of engine oil — Chen was always tinkering.",
+      "environment": {
+        "light": 25,
+        "temperature": 17,
+        "air": "stale",
+        "smell": "engine oil",
+        "noise": "quiet"
+      },
+      "exits": {
+        "bunk2_way": {
+          "target": "Main Habitation",
+          "state": "open",
+          "description": "The door back to the habitation area.",
+          "locked_with": "",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "items": [
+        {
+          "name": "bunk",
+          "description": "Chen's bunk. Neatly made — the pilot was meticulous.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 20,
+          "effect_target": "player",
+          "effect_stat": "Energy",
+          "effect_amount": 40,
+          "action_costs": {
+            "rest": {
+              "time": 1,
+              "energy": -3
+            }
+          }
+        },
+        {
+          "name": "flight_helmet",
+          "description": "A pilot's helmet with integrated comms. 'J. CHEN' stenciled on the side.",
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": -1,
+          "weight": 1.5
+        },
+        {
+          "name": "nav_charts",
+          "description": "Navigation charts for the Kellog system. Handwritten notes in the margins mark a 'POINT OF INTEREST' near the jump point.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 0.3
+        },
+        {
+          "name": "emergency_codes",
+          "description": "A small card: 'QUANTUM EMERGENCY STOP — ALT+DEL+Q. FORCED RESTART — HOLD PWR+Q FOR 5 SEC.'",
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": -1,
+          "weight": 0.02
+        },
+        {
+          "name": "water_bottle",
+          "description": "A reusable bottle, half full.",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "uses": 2,
+          "weight": 0.4,
+          "effect_target": "player",
+          "effect_stat": "Thirst",
+          "effect_amount": 20,
+          "action_costs": {
+            "use": {
+              "time": 1,
+              "energy": 0
+            }
+          }
+        }
+      ]
+    },
+    "Bunk Area 3": {
+      "name": "Bunk Area 3",
+      "description": "A tiny cabin labeled 'OKAFOR — SYSTEMS'. A narrow bunk, a desk buried in technical manuals, and a locker. The walls are covered in sticky notes and hand-drawn diagrams. An engineer's tool belt is draped over the chair.",
+      "environment": {
+        "light": 25,
+        "temperature": 17,
+        "air": "stale",
+        "smell": "grease",
+        "noise": "quiet"
+      },
+      "exits": {
+        "bunk3_way": {
+          "target": "Main Habitation",
+          "state": "open",
+          "description": "The door back to the habitation area.",
+          "locked_with": "",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "items": [
+        {
+          "name": "bunk",
+          "description": "Okafor's bunk. A technical manual serves as a pillow.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 20,
+          "effect_target": "player",
+          "effect_stat": "Energy",
+          "effect_amount": 40,
+          "action_costs": {
+            "rest": {
+              "time": 1,
+              "energy": -3
+            }
+          }
+        },
+        {
+          "name": "tool_belt",
+          "description": "A well-worn tool belt: wrenches, pliers, multimeter.",
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": -1,
+          "weight": 2
+        },
+        {
+          "name": "technical_manual",
+          "description": "A Drake Corsair maintenance manual. The quantum drive section is heavily annotated with warnings.",
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": -1,
+          "weight": 1
+        },
+        {
+          "name": "diagnosis_notes",
+          "description": "Sticky notes: 'QUANTUM CAPACITOR UNSTABLE — DO NOT ENGAGE', 'COOLANT LEAK IN SECTOR 7', 'SOMETHING IS IN THE WAKE — NOT A GHOST'",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 0.05
+        },
+        {
+          "name": "beef_jerky",
+          "description": "A bag of homemade beef jerky. Still good.",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "uses": 3,
+          "weight": 0.2,
+          "effect_target": "player",
+          "effect_stat": "Hunger",
+          "effect_amount": 15,
+          "action_costs": {
+            "use": {
+              "time": 1,
+              "energy": 0
+            }
+          }
+        }
+      ]
+    },
+    "Shared Toilet": {
+      "name": "Shared Toilet",
+      "description": "A cramped bathroom with a vacuum toilet, a small sink, and a fold-down shower stall. The mirror is smudged. Someone left a towel on the floor. It smells like cheap soap.",
+      "environment": {
+        "light": 50,
+        "temperature": 20,
+        "air": "humid",
+        "smell": "soap",
+        "noise": "dripping"
+      },
+      "exits": {
+        "toilet_way": {
+          "target": "Main Habitation",
+          "state": "open",
+          "description": "The door back to the habitation area.",
+          "locked_with": "",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "items": [
+        {
+          "name": "sink",
+          "description": "A small sink with a motion-activated faucet. The water works — it's recycled but clean.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 20
+        },
+        {
+          "name": "soap",
+          "description": "A bar of industrial soap. Smells like chemicals.",
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": -1,
+          "weight": 0.1
+        },
+        {
+          "name": "towel",
+          "description": "A damp towel on the floor. Someone was in a hurry.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 0.3
+        },
+        {
+          "name": "first_aid",
+          "description": "A small first aid kit mounted on the wall. Contains bandages, painkillers, and antiseptic.",
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": 3,
+          "weight": 0.5,
+          "effect_target": "player",
+          "effect_stat": "HP",
+          "effect_amount": 15,
+          "action_costs": {
+            "use": {
+              "time": 2,
+              "energy": 0
+            }
+          }
+        }
+      ]
+    },
+    "Turret Access": {
+      "name": "Turret Access",
+      "description": "A narrow vertical shaft with a ladder. Handholds and footpads lead up to the turret blister. A weapons control terminal is mounted on the wall beside the ladder. The space is cramped and cold.",
+      "environment": {
+        "light": 35,
+        "temperature": 12,
+        "air": "thin",
+        "smell": "metal",
+        "noise": "servo whine"
+      },
+      "exits": {
+        "turret_ladder": {
+          "target": "Main Habitation",
+          "state": "open",
+          "description": "The ladder back down to the habitation area.",
+          "locked_with": "",
+          "cost": {
+            "time": 1,
+            "energy": 2
+          }
+        },
+        "turret_hatch": {
+          "target": "Upper Turret",
+          "state": "closed",
+          "description": "A hatch leading up into the turret blister.",
+          "locked_with": "",
+          "cost": {
+            "time": 1,
+            "energy": 1
+          }
+        }
+      },
+      "items": [
+        {
+          "name": "weapons_terminal",
+          "description": "A terminal for turret control. Status: 'WEAPONS OFFLINE. REQUIRES SYSTEMS RESTART.'",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 10
+        },
+        {
+          "name": "ammo_magazine",
+          "description": "An ammunition feed chute. Half loaded with size-4 ballistic rounds.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 8
+        },
+        {
+          "name": "maintenance_kit",
+          "description": "A small toolkit for gun maintenance. Includes cleaning rods and oil.",
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": -1,
+          "weight": 1
+        }
+      ]
+    },
+    "Upper Turret": {
+      "name": "Upper Turret",
+      "description": "A cramped turret blister on top of the ship. A single seat faces a targeting console and two size-4 ballistic repeaters. The glass canopy offers a stunning view of the stars and the moonscape below. The weapons are offline.",
+      "environment": {
+        "light": 65,
+        "temperature": 8,
+        "air": "thin",
+        "smell": "metal",
+        "noise": "silence"
+      },
+      "exits": {
+        "turret_hatch": {
+          "target": "Turret Access",
+          "state": "open",
+          "description": "The hatch back down to the access corridor.",
+          "locked_with": "",
+          "cost": {
+            "time": 1,
+            "energy": 1
+          }
+        }
+      },
+      "items": [
+        {
+          "name": "turret_guns",
+          "description": "Two S4 attrition repeaters. They look intact but need power.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 30
+        },
+        {
+          "name": "targeting_console",
+          "description": "The turret targeting computer. Screen: 'NO TARGET. WEAPONS OFFLINE.'",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 15
+        },
+        {
+          "name": "canopy",
+          "description": "The reinforced glass canopy. A breathtaking view of alien stars and the moonscape far below.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 20
+        }
+      ]
+    },
+    "Cockpit": {
+      "name": "Cockpit",
+      "description": "The nerve centre of the Corsair. Two seats — pilot and co-pilot — face a wraparound console with navigation, flight controls, and system monitors. The main viewport shows the moonscape and distant mountains. Most screens are amber or red. A door to port leads to the Captain's Quarters. The pilot's seat has a worn cushion.",
+      "environment": {
+        "light": 55,
+        "temperature": 18,
+        "air": "filtered",
+        "smell": "ozone",
+        "noise": "console hum"
+      },
+      "exits": {
+        "cockpit_way": {
+          "target": "Main Habitation",
+          "state": "open",
+          "description": "The door back to the habitation area.",
+          "locked_with": "",
+          "cost": {
+            "time": 1
+          }
+        },
+        "captain_way": {
+          "target": "Captain's Quarters",
+          "state": "open",
+          "description": "A small door to port, leading to the captain's quarters.",
+          "locked_with": "",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "items": [
+        {
+          "name": "pilot_seat",
+          "description": "The pilot's seat. Worn but ergonomic. The flight stick is locked in place.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 30
+        },
+        {
+          "name": "copilot_seat",
+          "description": "The co-pilot's seat. A data pad is clipped to the armrest.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 25
+        },
+        {
+          "name": "main_console",
+          "description": "The main flight console. Status: 'FLIGHT: MANUAL. QUANTUM: OFFLINE. SHIELDS: DOWN. WEAPONS: OFFLINE.' Emergency protocol overlay shows: 'QUANTUM EMERGENCY STOP DETECTED. MANUAL RESTART REQUIRED.'",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 50
+        },
+        {
+          "name": "flight_stick",
+          "description": "The main flight control stick. Currently locked in 'PARKED' position.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 5
+        },
+        {
+          "name": "emergency_protocols",
+          "description": "A laminated card taped to the console: 'EMERGENCY PROCEDURES: 1. Stabilize power. 2. Restart quantum drive from Component Bay. 3. Re-engage navigation. 4. Contact nearest station.'",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 0.1
+        },
+        {
+          "name": "coffee_stain",
+          "description": "A coffee stain on the console. Someone spilled in a hurry.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 0
+        }
+      ]
+    },
+    "Captain's Quarters": {
+      "name": "Captain's Quarters",
+      "description": "A small private cabin off the cockpit — slightly larger than the crew bunks. A narrow bed, a personal desk with a locked drawer, and a small wardrobe. A window looks out to the side of the ship. It's tidy but lived-in.",
+      "environment": {
+        "light": 30,
+        "temperature": 17,
+        "air": "stale",
+        "smell": "paper",
+        "noise": "quiet"
+      },
+      "exits": {
+        "captain_way": {
+          "target": "Cockpit",
+          "state": "open",
+          "description": "The door back to the cockpit.",
+          "locked_with": "",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "items": [
+        {
+          "name": "bed",
+          "description": "A narrow captain's bed. More comfortable than the crew bunks.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 20,
+          "effect_target": "player",
+          "effect_stat": "Energy",
+          "effect_amount": 50,
+          "action_costs": {
+            "rest": {
+              "time": 1,
+              "energy": -4
+            }
+          }
+        },
+        {
+          "name": "desk",
+          "description": "A personal desk with a locked drawer. A holographic picture frame shows a rotating image of a dog.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 10
+        },
+        {
+          "name": "locked_drawer",
+          "description": "A desk drawer with a biometric lock. Requires Torres's fingerprint.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 8
+        },
+        {
+          "name": "hologram_frame",
+          "description": "A small holographic frame showing a golden retriever running through a field. It loops endlessly.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 0.3
+        },
+        {
+          "name": "personal_log",
+          "description": "A hidden datapad behind a loose panel. Final entry: 'The signal came from inside the quantum wake. Something followed us through. I've locked down the component bay. God help us.'",
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": -1,
+          "weight": 0.3,
+          "hidden": true,
+          "skill_check": {
+            "skill": "Investigation",
+            "dc": 14,
+            "grants_knowledge": "found_final_log"
+          }
+        },
+        {
+          "name": "blanket",
+          "description": "A warm blanket. Comforting.",
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "uses": -1,
+          "weight": 1
+        }
+      ]
+    },
+    "Exterior Landing Pad": {
+      "name": "Exterior Landing Pad",
+      "description": "The dusty surface of the moon, viewed from beneath the Corsair's hull. The ship's massive landing struts tower above. The cargo ramp is sealed. In the distance, your small shuttle sits on its own landing gear. The sky is purple-grey, stars visible. There is no atmosphere — you'd need a suit.",
+      "environment": {
+        "light": 85,
+        "temperature": 2,
+        "air": "none (vacuum)",
+        "smell": "none",
+        "noise": "silence"
+      },
+      "exits": {
+        "cargo_ramp": {
+          "target": "Cargo Bay",
+          "state": "closed",
+          "description": "The cargo ramp, sealed shut.",
+          "locked_with": "",
+          "cost": {
+            "time": 2,
+            "energy": 2
+          }
+        }
+      },
+      "items": [
+        {
+          "name": "shuttle",
+          "description": "Your shuttle. It has life support and fuel. A last resort.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 1000
+        },
+        {
+          "name": "moon_surface",
+          "description": "Dusty grey regolith with faint blue crystal deposits. Beautiful and desolate.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 0
+        },
+        {
+          "name": "comm_array",
+          "description": "The ship's external comm array. The dish is bent — damage sustained during the emergency stop.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 30
+        }
+      ]
+    }
+  }
+}

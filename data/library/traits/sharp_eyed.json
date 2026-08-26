@@ -1,0 +1,8 @@
+{
+  "id": "sharp_eyed",
+  "name": "Sharp-Eyed",
+  "description": "+2 on Perception checks.",
+  "category": "mental",
+  "params": null,
+  "effects": {"skill_check_mod": {"Perception": 2}}
+}

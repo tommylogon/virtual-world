@@ -1,0 +1,35 @@
+{
+  "name": "Slick Oil",
+  "description": "A greasy bottle of near-black oil. A coat of this on the skin and nothing holds you for long.",
+  "actions": "examine,take,use,drop",
+  "uses": 2,
+  "weight": 0.4,
+  "tags": [
+    "alchemical",
+    "liquid",
+    "small"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "type": "remove_condition",
+          "params": {
+            "condition": "grappled",
+            "target": "self",
+            "message": "The oil is cold and slippery. Whatever has hold of you finds it cannot keep its grip."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

@@ -1,0 +1,47 @@
+{
+  "name": "energy drink",
+  "description": "a neon-green energy drink. the label reads 'maximum chaos' in aggressive letters. warm, but probably still effective.",
+  "actions": "examine,use,drink",
+  "uses": 1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "drink",
+    "consumable",
+    "energy_drink",
+    "food"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "amount": 30,
+            "stat": "energy",
+            "success_message": "you chug the energy drink. it tastes like battery acid and regret, but you feel a jolt of energy.",
+            "target": "self"
+          },
+          "type": "adjust_vital"
+        },
+        {
+          "params": {
+            "node_id": "self",
+            "state": "consumed"
+          },
+          "type": "set_state"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

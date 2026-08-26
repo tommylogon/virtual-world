@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+venv/
+env/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Playwright artifacts
+playwright-report/
+test-results/
+playwright/.cache/
+*-playwright-screenshot*.png
+*screenshot*.png
+downloads/
+
+# Node / npm (Playwright MCP server dependencies)
+node_modules/
+npm-debug.log*
+
+# IDE
+.idea/
+# .vscode/ — intentionally NOT ignored; shared launch configs for tests
+*.bak
+saves/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/

@@ -1,0 +1,9 @@
+{
+  "id": "extrovert",
+  "name": "Extrovert",
+  "description": "Gains energy from socialising.",
+  "category": "mental",
+  "params": null,
+  "effects": {"group_energy_drain": 0, "social_gain": 2},
+  "conflicts": ["introvert"]
+}

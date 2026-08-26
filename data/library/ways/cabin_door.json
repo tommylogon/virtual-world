@@ -1,0 +1,23 @@
+{
+  "auto_close": false,
+  "current_state": "open",
+  "description": "The cabin's heavy door hangs askew on broken hinges, leaning outward into the snow. Through the gap, the frozen lake and glittering white clearing are visible.",
+  "edge_length": "",
+  "library_id": "",
+  "max_size": "",
+  "name": "cabin door",
+  "needs_open": {},
+  "one_way": false,
+  "parameters": {},
+  "pass_message": "You step through the sagging doorway, the broken frame scraping against your shoulder.",
+  "prevent_close": false,
+  "requires": "",
+  "see_through": false,
+  "tags": [
+    "door",
+    "cabin",
+    "outdoor",
+    "broken"
+  ],
+  "triggers": []
+}

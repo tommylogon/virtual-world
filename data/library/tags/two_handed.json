@@ -1,0 +1,16 @@
+{
+  "applies_to": [
+    "items"
+  ],
+  "category": "mechanical",
+  "color": "#cc6633",
+  "description": "Requires both hands to wield or use effectively",
+  "examples": [
+    "greatsword",
+    "longbow",
+    "warhammer",
+    "two-handed axe"
+  ],
+  "icon": "🪓",
+  "name": "Two-Handed"
+}

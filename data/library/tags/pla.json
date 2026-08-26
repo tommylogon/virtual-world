@@ -1,0 +1,16 @@
+{
+  "id": "pla",
+  "name": "Pla",
+  "description": "Shortened reference for plant-like or grown material",
+  "category": "custom",
+  "color": "#669944",
+  "icon": "🌿",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "woven basket",
+    "straw hat",
+    "reed mat"
+  ]
+}

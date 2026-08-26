@@ -1,0 +1,8 @@
+{
+  "id": "jittery",
+  "name": "Jittery",
+  "description": "-1 on all skill checks — nervous hands.",
+  "category": "mental",
+  "params": null,
+  "effects": {"skill_check_mod": -1}
+}

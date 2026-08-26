@@ -1,0 +1,20 @@
+{
+  "name": "Ink",
+  "description": "Ink comes in a 1-ounce bottle, which provides enough ink to write about 500 pages.",
+  "actions": "examine,take,use,drop",
+  "uses": 500,
+  "weight": 0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "communication",
+    "social",
+    "utility",
+    "consumable"
+  ],
+  "triggers": [],
+  "contents": []
+}

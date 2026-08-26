@@ -1,0 +1,17 @@
+{
+  "id": "spell",
+  "name": "Spell",
+  "description": "Arcane or magical written formula that can be cast",
+  "category": "custom",
+  "color": "#aa44ff",
+  "icon": "🔮",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "scroll of fireball",
+    "ancient incantation",
+    "rune-etched talisman",
+    "spellbook page"
+  ]
+}

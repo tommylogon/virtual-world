@@ -1,0 +1,153 @@
+{
+  "name": "foyer",
+  "description": "a grand entrance hall with a black-and-white marble floor. a dusty crystal chandelier hangs precariously overhead, cobwebs draping from its arms. a sweeping staircase curves upward into darkness. to the east, a heavy oak door leads to the library; to the west, a door opens into the dining room. the massive oak front door is directly ahead, barred by an intricate locking mechanism with a skull-shaped indentation at its center. the air is stale and bitingly cold.",
+  "tags": [],
+  "environment": {
+    "air": "stale",
+    "light": "dim",
+    "noise": "quiet",
+    "smell": "musty",
+    "temperature": 16
+  },
+  "items": [
+    {
+      "name": "chandelier",
+      "description": "a crystal chandelier thick with cobwebs. it creaks ominously above you, swaying slightly despite no draft.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 50,
+      "current_state": "normal",
+      "tags": [
+        "light_source",
+        "crystal",
+        "glass",
+        "furniture"
+      ]
+    },
+    {
+      "name": "rug",
+      "description": "a faded persian rug covering most of the floor. ",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 10,
+      "current_state": "normal",
+      "tags": [
+        "cloth",
+        "furniture"
+      ]
+    },
+    {
+      "name": "coat_rack",
+      "description": "a tall mahogany coat rack",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 15,
+      "current_state": "normal",
+      "tags": [
+        "furniture",
+        "wooden"
+      ]
+    },
+    {
+      "name": "matches",
+      "description": "a small box of matches has fallen from the coat pocket — a matchbox with a faded illustration of a raven. it rattles — there are several inside.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "equip",
+        "unequip",
+        "drop"
+      ],
+      "uses": 8,
+      "weight": 0.1,
+      "current_state": "normal",
+      "tags": [
+        "light_source",
+        "fire",
+        "tool",
+        "flammable",
+        "survival"
+      ]
+    },
+    {
+      "name": "dust",
+      "description": "a thick layer of dust covers everything. no one has been here in months",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 0,
+      "current_state": "normal",
+      "tags": []
+    },
+    {
+      "name": "vase",
+      "description": "a cracked porcelain vase on a side table. it's empty and smells faintly of old flowers. a hairline fracture runs down its side.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 3,
+      "current_state": "normal",
+      "tags": []
+    },
+    {
+      "name": "calling_cards",
+      "description": "a small silver tray on the entrance table. several yellowed calling cards sit on it: ",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 0.1,
+      "current_state": "normal",
+      "tags": [
+        "paper",
+        "documents",
+        "evidence",
+        "clue"
+      ]
+    }
+  ],
+  "exits": [
+    {
+      "direction": "dining_room_door",
+      "target_room_hint": "dining area",
+      "description": "a door with a tarnished brass knob that feels cold to the touch.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "dining_room_door"
+    },
+    {
+      "direction": "front_door",
+      "target_room_hint": "outside",
+      "description": "the massive oak front door, reinforced with iron bands. it is barred from the inside with a strange mechanism. a skull-shaped indentation suggests something must be placed here to unlock it.",
+      "state": "locked",
+      "hidden": false,
+      "cardinal": "front_door"
+    },
+    {
+      "direction": "grand_stairs",
+      "target_room_hint": "upstairs hall",
+      "description": "a grand staircase leading up into impenetrable darkness. the steps creak under the slightest weight.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "grand_stairs"
+    },
+    {
+      "direction": "library_door",
+      "target_room_hint": "library",
+      "description": "a heavy oak door with a brass handle tarnished to a sickly green.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "library_door"
+    }
+  ],
+  "triggers": []
+}

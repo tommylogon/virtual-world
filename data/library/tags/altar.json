@@ -1,0 +1,15 @@
+{
+  "id": "altar",
+  "name": "Altar",
+  "description": "A ritual surface used for offerings or ceremonies.",
+  "category": "environment",
+  "color": "#9b59b6",
+  "icon": "🕯️",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "stone altar",
+    "ritual table"
+  ]
+}

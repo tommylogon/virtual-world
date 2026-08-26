@@ -1,0 +1,17 @@
+{
+  "id": "book",
+  "name": "Book",
+  "description": "Contains writing, can be read for information or skill",
+  "category": "custom",
+  "color": "#aa8855",
+  "icon": "📖",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "journal",
+    "tome",
+    "scroll",
+    "field guide"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "id": "top",
+  "name": "Top",
+  "description": "Upper-body garment: shirts, tops.",
+  "category": "physical",
+  "color": "#5dade2",
+  "icon": "👕",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "tank top",
+    "band tee"
+  ]
+}

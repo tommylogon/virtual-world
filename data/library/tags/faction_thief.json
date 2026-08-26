@@ -1,0 +1,16 @@
+{
+  "id": "faction_thief",
+  "name": "Thief",
+  "description": "Associated with thieves or rogues",
+  "category": "faction",
+  "color": "#444444",
+  "icon": "🗡️",
+  "applies_to": [
+    "characters",
+    "items"
+  ],
+  "examples": [
+    "lockpick set",
+    "thieve guild badge"
+  ]
+}

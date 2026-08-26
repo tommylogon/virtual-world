@@ -1,0 +1,69 @@
+{
+  "description": "the main seating area of the store — eight laminate flex tables and six wall booths, bolted down and scuffed. a wall of windows runs along the street, the parking lot and drainage ditch beyond. the vinyl on the booth nearest the door is split open to the foam, and someone wrote a phone number and a threat under the napkin dispenser. an elderly couple occupies the corner booth, eating slowly and staring openly at the loud table by the window. the air is warm with the faint sweet burn of cinnamon sugar from the pastry case across the aisle.",
+  "environment": {
+    "air": "warm",
+    "light": 75,
+    "noise": "kiosk beeps, soda machine hiss, murmured gossip from the corner booth",
+    "smell": "seasoned beef, cinnamon sugar, floor cleaner",
+    "temperature": 20.935606477382283
+  },
+  "items": [
+    {
+      "name": "Booth Table",
+      "description": "a laminate booth table by the window, bolted to the bench on one side. crumbs, a wad of napkins, and two trays of tacos arranged like a peace summit.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 40,
+      "current_state": "normal",
+      "tags": [
+        "furniture"
+      ]
+    }
+  ],
+  "name": "Taco Bell Dining Room",
+  "tags": [
+    "millbrook_falls",
+    "commercial",
+    "restaurant",
+    "food"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_search",
+      "effects": [],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "exits": [
+    {
+      "direction": "lobby",
+      "target_room_hint": "Taco Bell",
+      "description": "a wide open archway between lobby and seating, framed by the soda fountain island. traffic flows through it constantly during dinner rush; tonight it's just you and the hum.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "east"
+    },
+    {
+      "direction": "men's restroom",
+      "target_room_hint": "Taco Bell Men's Restroom",
+      "description": "a beige hollow-core door with the universal stick-figure, paint chipped at the push plate.",
+      "state": "closed",
+      "hidden": false,
+      "cardinal": "north"
+    },
+    {
+      "direction": "women's restroom",
+      "target_room_hint": "Taco Bell Women's Restroom",
+      "description": "same beige door, same chipped paint, opposite stick figure. the lock is one of those twist knobs that never fully believes it's locked.",
+      "state": "closed",
+      "hidden": false,
+      "cardinal": "north"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "spice_rack",
+  "description": "a rack of dried herbs and spices. most are faded and useless. but a jar labeled 'rosemary' still has a faint, pleasant scent.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "food",
+    "supplies"
+  ],
+  "triggers": [],
+  "contents": []
+}

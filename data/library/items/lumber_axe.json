@@ -1,0 +1,138 @@
+{
+  "name": "Lumber Axe",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "contents": [],
+  "current_state": "normal",
+  "damage": 0,
+  "damage_type": "slashing",
+  "defense": 0,
+  "description": "A sturdy axe. It can cut through wood or ice, ",
+  "insulation": 0,
+  "tags": [
+    "weapon"
+  ],
+  "triggers": [
+    {
+      "conditions": {},
+      "effects": [
+        {
+          "params": {
+            "success_message": "A sturdy axe, can be used as a tool or weapon"
+          },
+          "type": "message"
+        }
+      ],
+      "fail_message": "",
+      "success_message": "A sturdy axe, can be used as a tool or weapon",
+      "target_name": "",
+      "target_state": "",
+      "trigger_type": [
+        "on_examine"
+      ]
+    },
+    {
+      "conditions": {
+        "conditions": [
+          {
+            "dc": 12,
+            "skill": "Athletics",
+            "type": "skill_check"
+          }
+        ],
+        "operator": "and"
+      },
+      "effects": [
+        {
+          "params": {
+            "fail_message": "the axe wont budge, its stuck in the stump",
+            "success_message": "you pull the axe free from the frozen stump"
+          },
+          "type": "message"
+        }
+      ],
+      "fail_message": "the axe wont budge, its stuck in the stump",
+      "success_message": "you pull the axe free from the frozen stump",
+      "target_name": "",
+      "target_state": "",
+      "trigger_type": [
+        "on_take"
+      ]
+    },
+    {
+      "conditions": {},
+      "effects": [
+        {
+          "params": {
+            "success_message": "You put the axe away"
+          },
+          "type": "message"
+        }
+      ],
+      "fail_message": "",
+      "success_message": "You put the axe away",
+      "target_name": "",
+      "target_state": "",
+      "trigger_type": [
+        "on_drop"
+      ]
+    },
+    {
+      "conditions": {},
+      "effects": [
+        {
+          "params": {
+            "success_message": "You swing the age around, but dont see a use for it right now"
+          },
+          "type": "message"
+        }
+      ],
+      "fail_message": "",
+      "success_message": "You swing the age around, but dont see a use for it right now",
+      "target_name": "",
+      "target_state": "",
+      "trigger_type": [
+        "on_use"
+      ]
+    },
+    {
+      "conditions": {},
+      "effects": [
+        {
+          "params": {
+            "success_message": "you hold the axe in yuor hands, ready to swing"
+          },
+          "type": "message"
+        }
+      ],
+      "fail_message": "",
+      "success_message": "you hold the axe in yuor hands, ready to swing",
+      "target_name": "",
+      "target_state": "",
+      "trigger_type": [
+        "on_equip"
+      ]
+    },
+    {
+      "conditions": {},
+      "effects": [
+        {
+          "params": {
+            "success_message": "You stow the axe"
+          },
+          "type": "message"
+        }
+      ],
+      "fail_message": "",
+      "success_message": "You stow the axe",
+      "target_name": "",
+      "target_state": "",
+      "trigger_type": [
+        "on_unequip"
+      ]
+    }
+  ],
+  "uses": -1,
+  "weight": 7,
+  "light_level": "dim",
+  "library_id": "lumer_axe"
+}

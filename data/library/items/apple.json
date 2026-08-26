@@ -1,0 +1,62 @@
+{
+  "name": "apple",
+  "description": "A crisp red apple, still cool from the cellar. Juicy and fresh.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "food"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_eat",
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "success_message": "Cruncy and delicious"
+          },
+          "type": "message"
+        },
+        {
+          "params": {
+            "amount": -2,
+            "message": "",
+            "stat": "hunger",
+            "success_message": "Cruncy and delicious",
+            "target": "self"
+          },
+          "type": "adjust_vital"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "success_message": "A read apple, teh cold has kept it fresh. lucky me! i can *EAT* this."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

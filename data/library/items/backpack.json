@@ -1,0 +1,17 @@
+{
+  "name": "Backpack",
+  "description": "A Backpack holds up to 30 kilos within 1 cubic foot. It can also serve as a saddlebag.",
+  "actions": "examine,take,open,close,unequip,equip,drop",
+  "uses": -1,
+  "weight": 5,
+  "current_state": "closed",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "container"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,267 @@
+{
+  "name": "library",
+  "description": "floor-to-ceiling bookshelves line every wall, filled with ancient leather-bound volumes. a large oak desk sits in the centre, buried under papers, maps, and scientific instruments from another era. a cold fireplace with a marble mantel dominates the north wall. the room smells of old paper, dust, and something else — something metallic. one bookcase looks subtly different from the others, its spine alignment just slightly off.",
+  "tags": [],
+  "environment": {
+    "air": "stale",
+    "light": 30,
+    "noise": "quiet",
+    "smell": "old paper and copper",
+    "temperature": 15
+  },
+  "items": [
+    {
+      "name": "desk",
+      "description": "an old oak desk with several drawers. one drawer is slightly open, as if left in haste. papers and maps are scattered across the surface.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 40,
+      "current_state": "normal",
+      "tags": [
+        "furniture",
+        "wooden",
+        "container"
+      ]
+    },
+    {
+      "name": "drawer",
+      "description": "a small drawer containing a diary, a silver letter opener, and a strange compass that doesn't point north.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 8,
+      "current_state": "normal",
+      "tags": [
+        "furniture",
+        "wooden",
+        "container"
+      ]
+    },
+    {
+      "name": "diary",
+      "description": "a leather diary with the initials 'c.b.' — cordelia blackwood's diary. the final entry reads: 'the skull must never be moved. it holds the spirit of the firstborn, little eleanor. augustus refuses to listen. the spirit in the study grows stronger each night. tonight it spoke to me — it said we would all be together forever. i'm so frightened.'",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.5,
+      "current_state": "normal",
+      "tags": [
+        "diary",
+        "documents",
+        "paper",
+        "evidence",
+        "clue",
+        "secret"
+      ]
+    },
+    {
+      "name": "letter_opener",
+      "description": "a silver letter opener with an ornate serpent handle. it's surprisingly sharp. the serpent's eyes are tiny rubies.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.3,
+      "current_state": "normal",
+      "tags": [
+        "weapon",
+        "tool",
+        "metal",
+        "letter",
+        "artifact"
+      ]
+    },
+    {
+      "name": "strange_compass",
+      "description": "a brass compass in the desk drawer. the needle doesn't point north — it points toward the fireplace, no matter where you stand. there must be something magnetic behind it.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.2,
+      "current_state": "normal",
+      "tags": [
+        "artifact",
+        "mechanism",
+        "tool",
+        "occult"
+      ]
+    },
+    {
+      "name": "fireplace",
+      "description": "a cold marble fireplace with a soot-stained interior. the ash has been disturbed — something was hidden here and recently removed. the strange compass points here for a reason.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 100,
+      "current_state": "normal",
+      "tags": [
+        "fireplace",
+        "heat_source",
+        "warmth",
+        "fire",
+        "furniture"
+      ]
+    },
+    {
+      "name": "love_letters",
+      "description": "a bundle of letters tied with a faded silk ribbon. the handwriting is elegant and desperate. 'my dearest augustus, i cannot bear another night in that cold house while she lies in the next room. the child we made deserves more than this secret. — m.'",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.2,
+      "current_state": "normal",
+      "tags": [
+        "letter",
+        "documents",
+        "paper",
+        "evidence",
+        "clue"
+      ]
+    },
+    {
+      "name": "portrait",
+      "description": "above the mantel hangs a portrait of augustus blackwood — a stern man with cold, calculating eyes. the nameplate reads 'augustus blackwood, 1835-1891'. but the paint seems... fresher than 130 years old.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 50,
+      "current_state": "normal",
+      "tags": [
+        "portrait",
+        "art",
+        "evidence",
+        "clue"
+      ]
+    },
+    {
+      "name": "iron_key",
+      "description": "a heavy iron key with a skull-shaped bow. hidden behind some papers on the desk under a map of the mansion grounds.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.5,
+      "current_state": "normal",
+      "tags": [
+        "key",
+        "metal"
+      ]
+    },
+    {
+      "name": "teacup",
+      "description": "a cold cup of tea, long abandoned. the liquid inside has turned black with age, and a dark ring stains the porcelain. there's lipstick on the rim.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 0.3,
+      "current_state": "normal",
+      "tags": [
+        "drink",
+        "tea",
+        "glass",
+        "container"
+      ]
+    },
+    {
+      "name": "water_pitcher",
+      "description": "a dusty crystal water pitcher on the mantelpiece. about a quarter full of stale but drinkable water. a dead moth floats on the surface.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 4,
+      "weight": 1.5,
+      "current_state": "normal",
+      "tags": [
+        "water",
+        "drink",
+        "glass",
+        "container",
+        "supplies"
+      ]
+    },
+    {
+      "name": "tainted_wine",
+      "description": "a dusty bottle of wine hidden behind the fireplace. the label reads 'blackwood reserve 1887'. the liquid inside is dark and smells vinegary — but also metallic, like blood.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 1,
+      "weight": 1,
+      "current_state": "normal",
+      "tags": [
+        "drink",
+        "wine",
+        "glass",
+        "occult",
+        "cursed"
+      ]
+    },
+    {
+      "name": "glasses_case",
+      "description": "a leather case containing reading glasses. the prescription might still work. a small brass plate reads: 'property of professor aldridge — university of london, occult studies department.'",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.2,
+      "current_state": "normal",
+      "tags": [
+        "container",
+        "glass"
+      ]
+    },
+    {
+      "name": "bookshelf_item",
+      "description": "one shelf contains a series of identical books: 'arcane heraldry: volumes i through xiv.' they're all the same book republished with different covers. the shelf behind them is hollow — it's a door.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 30,
+      "current_state": "normal",
+      "tags": [
+        "book",
+        "paper",
+        "furniture"
+      ]
+    }
+  ],
+  "exits": [
+    {
+      "direction": "library_door_back",
+      "target_room_hint": "foyer",
+      "description": "a heavy oak door with a brass handle tarnished to a sickly green.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "library_door_back"
+    }
+  ],
+  "triggers": []
+}

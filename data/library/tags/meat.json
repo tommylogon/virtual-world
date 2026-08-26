@@ -1,0 +1,15 @@
+{
+  "id": "meat",
+  "name": "Meat",
+  "description": "Animal flesh used as food.",
+  "category": "physical",
+  "color": "#c0392b",
+  "icon": "🥩",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "dried jerky",
+    "cleaver"
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "name": "medicine_cabinet",
+  "actions": "examine,use",
+  "contents": [
+    "clean_bandages",
+    "antiseptic_vial"
+  ],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "A small wooden cabinet mounted on the wall near the stove. Inside: a vial of antiseptic and some bandages.",
+  "insulation": 0,
+  "light_level": "dim",
+  "tags": [
+    "container"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "A small wooden cabinet with a creaky hinge. Inside you can see some medical supplies."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "type": "spawn_item",
+          "params": {
+            "item_id": "antiseptic",
+            "message": "A small vial of antiseptic tumbles out of the cabinet!",
+            "name": "Antiseptic Vial"
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "type": "rename",
+          "params": {
+            "message": "The cabinet is now empty.",
+            "new_name": "Empty Medicine Cabinet"
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "uses": 1,
+  "weight": 3
+}

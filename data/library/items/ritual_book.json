@@ -1,0 +1,36 @@
+{
+  "name": "book of curses and history",
+  "actions": "examine,take,use,drop",
+  "contents": [],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "A academic book of the history and curses of the world",
+  "insulation": 0,
+  "library_id": "ritual_book",
+  "light_level": "dim",
+  "tags": [
+    "book"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "success_message": "The Nature of the Cycle Scholars have identified that catastrophes strike approximately every 105 to 120 years. This pattern has been documented for over a thousand years, revealing that whenever peace begins to prosper, a new \"horror\" manifests to reset the progress of mortal nations. The Recorded Catastrophes An academic text would provide the following detailed timeline of events:      793 – The Burning Rain: Yellow-green clouds rained concentrated acid over the Kingdom of Galt for five years. Historical records note that forests blackened and collapsed, and the toxic remnants, now known as \"the Witch’s Spit,\" still blister the skin of travelers today.     869 – The Catastrophic Experiment: This era marks the rise and fall of Petr Zeman, a founding member of the Ulus of Galser. Academics record the march of the Warforged Titan toward Dawwal and its subsequent fall, which triggered a death pulse that killed 10,000 Warforged instantly and left the survivors in a \"feebleminded,\" droid-like state.     976 – The Draconic Plague: Also known as The Petrification, this magical sickness caused dragons to turn into grey granite while still aware. The academic record focuses on the loss of the Whadowian Empire’s power and the preservation of Tormy the Eternal in a magical field.     1084 – The Fey Surge: A two-year eruption of wild magic from the Feywild transformed the Kingdom of Vald into a dangerous \"fairy tale\" landscape. Scholars note that cities were crushed by walking forests and carnivorous plants reached massive sizes.     1189 – Hells Gate: Portals to the Boundless Expanse opened across Kethaino, leading to a year of slaughter. The academic interest here often lies in the \"red sigil\" that appeared on the ears of the royal bloodline following the closing of the gates.     1296 – The Elrethian Flood: Gigantic watery serpents swam up the Fetheas River, drowning the city of Symmardorta and fracturing the elven royal line.     1393 – The Symlalonese Fault: A ten-year earthquake where massive burrowing worms consumed the dwarven capital of Sellaladress. Academics document the eventual collapse of the mountain peak that buried both the worms and the city.     1502 – The Elemental Conjunction: Four years where the planes aligned and elements went mad—spawn of hellfire in summer and freezing deaths in winter. This is a pivotal chapter in academic texts because it highlights the triumph of Galser magi-tech, as artificers built arcane machines to stabilize the elemental frequencies.  Ancient Historical Evidence You would also find references to The Book of the Old World, a literary text describing a highly advanced magical city that existed over 4,000 years ago. This suggests that the cycle of growth and destruction has been resetting the world's progress since long before current recorded history began."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "uses": -1,
+  "weight": 1.2
+}

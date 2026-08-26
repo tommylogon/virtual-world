@@ -1,0 +1,19 @@
+{
+  "name": "Ink Pen",
+  "description": "Using Ink, an Ink Pen is used to write or draw.",
+  "actions": "examine,take,use,drop",
+  "uses": -1,
+  "weight": 0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "communication",
+    "social",
+    "utility"
+  ],
+  "triggers": [],
+  "contents": []
+}

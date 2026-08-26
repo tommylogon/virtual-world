@@ -1,0 +1,14 @@
+{
+  "id": "claustrophobic",
+  "name": "Claustrophobic",
+  "description": "Tight, enclosed spaces make you panic.",
+  "category": "mental",
+  "params": null,
+  "effects": {},
+  "behavior_prompt": "You feel your chest tighten in small, enclosed spaces. You need open air and an escape route nearby.",
+  "save_on": [
+    {"event": "crawl_tight_way", "source_type": "way", "stat": "WIS", "dc": 12,
+     "on_fail": [{"condition": "frightened", "duration": 3}, {"vital": "Sanity", "amount": -10}],
+     "fail_message": "The walls close in around you. Your heart pounds."}
+  ]
+}

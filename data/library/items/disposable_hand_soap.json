@@ -1,0 +1,14 @@
+{
+  "name": "disposable_hand_soap",
+  "description": "an off-brand pump bottle of hand soap on the women's sink counter, its label half-peeled, topped with a smeared cap no one replaces.",
+  "actions": "examine,take,use,drop",
+  "uses": -1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "tags": [
+    "bathroom",
+    "soap"
+  ],
+  "triggers": [],
+  "contents": []
+}

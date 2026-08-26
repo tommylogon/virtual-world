@@ -1,0 +1,19 @@
+{
+  "name": "cleaver_rack",
+  "description": "an empty rack that once held butcher's tools. only one remains — and it's in the butcher's hand.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 10,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "meat",
+    "tool",
+    "metal"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,148 @@
+{
+  "name": "wine cellar",
+  "description": "a cool, dark room lined with racks of wine bottles, many caked with dust and cobwebs. a few have broken, their contents long since evaporated, leaving only dark stains on the stone floor. in the corner, a small table holds a single, unlit candle. the air is cool and smells of wine and ancient mold.",
+  "tags": [],
+  "environment": {
+    "air": "cool",
+    "light": 5,
+    "noise": "quiet",
+    "smell": "wine and mold",
+    "temperature": 12
+  },
+  "items": [
+    {
+      "name": "wine_bottle",
+      "description": "a dusty bottle of vintage wine. the label reads 'blackwood reserve 1882'. it might still be drinkable. the cork is intact.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 1.2,
+      "current_state": "normal",
+      "tags": [
+        "drink",
+        "wine",
+        "glass",
+        "consumable"
+      ]
+    },
+    {
+      "name": "candle_21efe917",
+      "description": "a short, unused tallow candle on the table. it has never been lit.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 8,
+      "weight": 0.2,
+      "current_state": "normal",
+      "tags": [
+        "candle",
+        "light_source",
+        "fire",
+        "toggleable"
+      ]
+    },
+    {
+      "name": "brass_key_2",
+      "description": "a small brass key on the floor near the table, half-hidden in shadow. it's identical to the one from the graveyard.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.1,
+      "current_state": "normal",
+      "tags": [
+        "key",
+        "metal"
+      ]
+    },
+    {
+      "name": "wine_case",
+      "description": "a wooden case containing six bottles of rare port, all intact. worth a fortune to a collector.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 8,
+      "current_state": "normal",
+      "tags": [
+        "drink",
+        "wine",
+        "glass",
+        "consumable"
+      ]
+    },
+    {
+      "name": "water_carboy",
+      "description": "a large glass carboy of drinking water, half full. the glass stopper is still sealed with wax. the water inside is perfectly clear.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 5,
+      "weight": 5,
+      "current_state": "normal",
+      "tags": [
+        "water",
+        "drink",
+        "glass",
+        "container",
+        "supplies"
+      ]
+    },
+    {
+      "name": "hidden_shelf",
+      "description": "one of the wine racks is shallower than the others. behind it, a small recess holds a single leather-bound book. the title: 'rituals of binding and release.'",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 0,
+      "current_state": "normal",
+      "tags": [
+        "hidden",
+        "secret",
+        "furniture"
+      ]
+    },
+    {
+      "name": "ritual_book",
+      "description": "a leather-bound grimoire titled 'rituals of binding and release'. the marked page describes how to release a spirit bound to a crystal skull: return the skull to the place of death (the altar in the crypt), speak the name of the bound spirit at midnight, and break the skull. 'but be warned — the spirit released may not be the one you intended to free.'",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 1.2,
+      "current_state": "normal",
+      "tags": [
+        "book",
+        "ritual",
+        "occult",
+        "documents",
+        "magic"
+      ]
+    }
+  ],
+  "exits": [
+    {
+      "direction": "wine_cellar_door_back",
+      "target_room_hint": "cellar",
+      "description": "a heavy door with a rusted brass lock. the wood is warped with age and damp.",
+      "state": "locked",
+      "hidden": false,
+      "cardinal": "wine_cellar_door_back"
+    }
+  ],
+  "triggers": []
+}

@@ -1,0 +1,16 @@
+{
+  "id": "enchanted",
+  "name": "Enchanted",
+  "description": "Enhanced by minor magic",
+  "category": "essence",
+  "color": "#cc66ff",
+  "icon": "🔮",
+  "applies_to": [
+    "items",
+    "characters"
+  ],
+  "examples": [
+    "enchanted ring",
+    "spellbook"
+  ]
+}

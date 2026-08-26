@@ -1,0 +1,19 @@
+{
+  "name": "locker",
+  "description": "a small metal locker. inside: a neatly folded servant's uniform and a crumpled letter. a silver crucifix hangs from a nail inside — identical to the one from the garden fountain.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 10,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "furniture",
+    "metal",
+    "container"
+  ],
+  "triggers": [],
+  "contents": []
+}

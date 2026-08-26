@@ -1,0 +1,15 @@
+{
+  "name": "blue_ribbon",
+  "description": "a faded blue silk ribbon tied in a lover's knot. it has been here for over a century, yet the silk is still soft and untorn.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.01,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [],
+  "triggers": [],
+  "contents": []
+}

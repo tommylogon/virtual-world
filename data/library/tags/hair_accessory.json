@@ -1,0 +1,15 @@
+{
+  "id": "hair_accessory",
+  "name": "Hair Accessory",
+  "description": "Hair ties, pins, bands.",
+  "category": "physical",
+  "color": "#f1948a",
+  "icon": "🎀",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "bobby pin",
+    "hair tie"
+  ]
+}

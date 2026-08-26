@@ -1,0 +1,19 @@
+{
+  "name": "maple avenue",
+  "description": "the wider cross street that cuts through downtown, more traffic than main street. the sidewalks are broad and patched, lined with young maples that rustle in the breeze. a few cars pass, headlights sweeping the brick storefronts. there's a bus shelter at the corner and a faded mural on one wall. the air smells like damp pavement and faint exhaust, just a hint of coffee from the daily grind up the way.",
+  "environment": {
+    "air": "fresh",
+    "light": 55,
+    "noise": "passing cars, distant music",
+    "smell": "pavement, car exhaust, faint coffee",
+    "temperature": 11
+  },
+  "items": [],
+  "tags": [
+    "millbrook_falls",
+    "exterior",
+    "commercial",
+    "downtown"
+  ],
+  "triggers": []
+}

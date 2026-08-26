@@ -1,0 +1,39 @@
+{
+  "name": "railing",
+  "description": "a rusted iron railing that creaks ominously when you lean on it. it's not safe, but it's held for 130 years. one section is wrapped with a faded ribbon — a woman's hair ribbon, blue silk.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 200,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "furniture",
+    "metal",
+    "outdoor"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_examine"
+      ],
+      "effects": [
+        {
+          "params": {
+            "fail_message": "",
+            "success_message": "the blue silk ribbon tied to the railing is old but well-preserved. it's tied in a complex knot — a lover's knot. someone stood here, looking out at the garden, waiting for someone who never came."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

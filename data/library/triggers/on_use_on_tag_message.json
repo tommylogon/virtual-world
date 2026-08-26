@@ -1,0 +1,43 @@
+{
+  "name": "On Use On Tag → Message",
+  "description": "Using this item on any item tagged 'door' shows a message.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "n0",
+        "type": "trigger",
+        "x": 60,
+        "y": 60,
+        "w": 260,
+        "props": {
+          "trigger_type": "on_use_on",
+          "target_tag": "door"
+        }
+      },
+      {
+        "id": "n1",
+        "type": "effect",
+        "x": 380,
+        "y": 60,
+        "w": 260,
+        "props": {
+          "effect_type": "message",
+          "message": "You try it on the door. Nothing happens."
+        }
+      }
+    ],
+    "wires": [
+      {
+        "id": "w0",
+        "from": [
+          "n0",
+          "output"
+        ],
+        "to": [
+          "n1",
+          "input"
+        ]
+      }
+    ]
+  }
+}

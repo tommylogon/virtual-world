@@ -1,0 +1,8 @@
+{
+  "id": "strong_backed",
+  "name": "Strong-Backed",
+  "description": "Carries twice the weight.",
+  "category": "physical",
+  "params": null,
+  "effects": {"carry_capacity_mod": 2.0}
+}

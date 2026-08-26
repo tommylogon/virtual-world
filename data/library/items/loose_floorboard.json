@@ -1,0 +1,34 @@
+{
+  "name": "Loose Floorboard",
+  "description": "A floorboard that protrudes slightly from the rest, as if it can be pressed down or pried up.",
+  "actions": "examine,use",
+  "uses": 1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "set_state",
+          "params": {
+            "message": "When you step on the board a click is heard and a hidden door opens up",
+            "node_id": "way_Upstairs Hallway_",
+            "state": "open"
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

@@ -1,0 +1,35 @@
+{
+  "name": "Letter to the King",
+  "description": "A sealed letter addressed to King Nicolas . It appears to detail a nefarious plot involving the princesses' sixteenth birthday.",
+  "actions": "examine,take,use,drop",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "flammable"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "success_message": "Your Majesty, I have uncovered a terrifying plot. A group known as the New Dawn plans to kidnap your daughters on their 16th birthday to enact the new dawn"
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

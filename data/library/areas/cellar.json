@@ -1,0 +1,73 @@
+{
+  "description": "A cold, damp cellar with low stone walls. The only light filters through cracks in the foundation, casting long shadows across earthen floor. Shelves line the walls, stocked with preserved goods and dusty bottles. In the corner, a mound of coal looms. Above, the trapdoor's outline is just visible against the dim light.",
+  "environment": {
+    "air": "musty",
+    "light": 5,
+    "noise": "dripping water",
+    "smell": "earth and mildew",
+    "temperature": 4
+  },
+  "exits": [
+    {
+      "direction": "ladder",
+      "target_room_hint": "Kitchen",
+      "description": "A heavy wooden trapdoor set into the kitchen floor, its iron ring cold against the floorboards. A sturdy ladder disappears into darkness below.",
+      "state": "closed",
+      "hidden": false,
+      "cardinal": "up"
+    }
+  ],
+  "items": [
+    {
+      "name": "Wine Cask",
+      "description": "A large oak cask filled with a deep red wine. The wood is stained dark with age, and a faint, sweet aroma wafts from the bunghole.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 50,
+      "weight": 50,
+      "current_state": "normal",
+      "tags": [
+        "food"
+      ]
+    },
+    {
+      "name": "Hanging Dried Meats",
+      "description": "Strips of dried, salted meat hanging from hooks. They look preserved and edible.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 3,
+      "weight": 0.2,
+      "current_state": "normal",
+      "tags": [
+        "food"
+      ]
+    },
+    {
+      "name": "Wheel of Cheese",
+      "description": "A large wheel of aged cheese, wrapped in a coarse cloth. It smells pungent and earthy, promising a rich flavor.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 3,
+      "weight": 2,
+      "current_state": "normal",
+      "tags": [
+        "food"
+      ]
+    }
+  ],
+  "name": "Cellar",
+  "tags": [],
+  "triggers": []
+}

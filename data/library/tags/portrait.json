@@ -1,0 +1,14 @@
+{
+  "id": "portrait",
+  "name": "Portrait",
+  "description": "Painting or image of a person.",
+  "category": "essence",
+  "color": "#d35400",
+  "icon": "🖼️",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "portrait of Augustus"
+  ]
+}

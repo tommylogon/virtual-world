@@ -1,0 +1,17 @@
+{
+  "id": "art",
+  "name": "Art",
+  "description": "Decorative or creative work, often valuable or culturally significant",
+  "category": "custom",
+  "color": "#cc66aa",
+  "icon": "🎨",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "painting",
+    "sculpture",
+    "tapestry",
+    "carving"
+  ]
+}

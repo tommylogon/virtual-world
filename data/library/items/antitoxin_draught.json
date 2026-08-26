@@ -1,0 +1,36 @@
+{
+  "name": "Antitoxin Draught",
+  "description": "A cloudy yellow draught with a bitter, astringent bite. It flushes every poison from the system.",
+  "actions": "examine,take,drink,drop",
+  "uses": 2,
+  "weight": 0.3,
+  "tags": [
+    "alchemical",
+    "drink",
+    "liquid",
+    "medicine"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_drink"
+      ],
+      "effects": [
+        {
+          "type": "remove_condition",
+          "params": {
+            "condition": "paralysed",
+            "target": "self",
+            "message": "The bitter draught burns through you. The stiffness in your muscles melts away and you can move again."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

@@ -1,0 +1,99 @@
+{
+  "description": "A spacious bedroom with a high ceiling. A four-poster bed dominates the room, its curtains threadbare and dusty. An armoire stands against the far wall, its doors slightly ajar. Frost has crept across the windowpanes, obscuring the view of the forest below.",
+  "environment": {
+    "air": "cold",
+    "light": "dim",
+    "noise": "silence",
+    "smell": "mothballs and lavender",
+    "temperature": 0
+  },
+  "exits": [
+    {
+      "direction": "hallway",
+      "target_room_hint": "Upstairs Hallway",
+      "description": "A tall wooden door with an ornate brass handle. Faint traces of lavender scent the air around it.",
+      "state": "closed",
+      "hidden": false,
+      "cardinal": "west"
+    }
+  ],
+  "items": [
+    {
+      "name": "Expensive Vanity",
+      "description": "An ornate vanity table with a large mirror, its surface inlaid with mother-of-pearl. The drawers are carved with intricate patterns, but one seems slightly different.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 1,
+      "weight": 20,
+      "current_state": "normal",
+      "tags": []
+    },
+    {
+      "name": "Letters to the Wife's Family",
+      "description": "A bundle of sealed letters addressed to the wife's family.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 0,
+      "weight": 0.2,
+      "current_state": "normal",
+      "tags": [
+        "flammable"
+      ]
+    },
+    {
+      "name": "candle",
+      "description": "A short, unused tallow candle on the table. It has never been lit.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 8,
+      "weight": 0.2,
+      "current_state": "normal",
+      "tags": [
+        "flammable"
+      ]
+    },
+    {
+      "name": "Religious book",
+      "description": "sacred text dedicated to Elistra, the Goddess of Care",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 1.2,
+      "current_state": "normal",
+      "tags": [
+        "book"
+      ]
+    },
+    {
+      "name": "locked_chest",
+      "description": "A sturdy iron-bound chest with a heavy padlock. The lock looks like it would accept a brass key.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 20,
+      "current_state": "normal",
+      "tags": [
+        "container"
+      ]
+    }
+  ],
+  "name": "Master Bedroom",
+  "tags": [],
+  "triggers": []
+}

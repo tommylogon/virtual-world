@@ -1,0 +1,38 @@
+{
+  "name": "coat_rack",
+  "description": "a tall mahogany coat rack",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 15,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "furniture",
+    "wooden"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_examine"
+      ],
+      "effects": [
+        {
+          "params": {
+            "fail_message": "",
+            "success_message": "you search the coat pockets and find an old train ticket stub for a journey from london, dated october 31st, 1891. the last train out of blackwood station. whoever wore this coat never made it home."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

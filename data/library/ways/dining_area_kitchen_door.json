@@ -1,0 +1,18 @@
+{
+  "library_id": "",
+  "name": "dining area-kitchen_door",
+  "description": "a door leading to the kitchen. a sliver of light glows from beneath it — impossible, since there's no electricity.",
+  "current_state": "open",
+  "pass_message": "",
+  "edge_length": "",
+  "needs_open": {},
+  "auto_close": false,
+  "see_through": false,
+  "one_way": false,
+  "requires": "",
+  "max_size": "",
+  "prevent_close": false,
+  "tags": [],
+  "parameters": {},
+  "triggers": []
+}

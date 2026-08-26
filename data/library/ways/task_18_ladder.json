@@ -1,0 +1,38 @@
+{
+  "name": "Task 18 - ladder",
+  "description": "A steel ladder bolted to the wall with heavy brackets. The rungs are cold and slightly greasy. It descends about twenty feet through a narrow shaft to the service level below. ",
+  "current_state": "open",
+  "pass_message": "",
+  "edge_length": "",
+  "needs_open": {},
+  "auto_close": false,
+  "see_through": false,
+  "one_way": false,
+  "requires": "climb",
+  "max_size": "",
+  "prevent_close": false,
+  "tags": [
+    "clearance"
+  ],
+  "parameters": {},
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_examine"
+      ],
+      "effects": [
+        {
+          "params": {
+            "success_message": "the ladder lets you climb up or down the dark hole, the floor down there seems to be soft, jelly like"
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "the ladder lets you climb up or down the dark hole, the floor down there seems to be soft, jelly like",
+      "fail_message": ""
+    }
+  ]
+}

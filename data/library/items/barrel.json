@@ -1,0 +1,19 @@
+{
+  "name": "barrel",
+  "description": "a large oak barrel. it smells strongly of vinegar — whatever wine was in here has long since turned. but the barrel itself is solid, and the iron bands are intact.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 50,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "furniture",
+    "wooden",
+    "container"
+  ],
+  "triggers": [],
+  "contents": []
+}

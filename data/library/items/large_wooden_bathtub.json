@@ -1,0 +1,56 @@
+{
+  "name": "Large Wooden Bathtub",
+  "description": "A large wooden bathtub, its surface damp and worn. The water inside is still and cold.",
+  "actions": "examine,take,use,drop",
+  "uses": -1,
+  "weight": 50,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "The bathtub looks sturdy, though the wood is darkened with age. The water is clear and cold."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "message": "You climb into the bathtub and sink into the cold water. It's bracing, but you feel your fatigue wash away."
+          },
+          "type": "message"
+        },
+        {
+          "params": {
+            "amount": 10,
+            "message": "You feel refreshed.",
+            "stat": "Health"
+          },
+          "type": "adjust_vital"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

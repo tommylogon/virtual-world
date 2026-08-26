@@ -1,0 +1,18 @@
+{
+  "library_id": "",
+  "name": "crypt-hidden_passage",
+  "description": "a hidden passage behind a sliding sarcophagus bearing the name 'augustus blackwood'. a hidden catch on the side slides it open.",
+  "current_state": "hidden",
+  "pass_message": "",
+  "edge_length": "",
+  "needs_open": {},
+  "auto_close": false,
+  "see_through": false,
+  "one_way": false,
+  "requires": "",
+  "max_size": "",
+  "prevent_close": false,
+  "tags": [],
+  "parameters": {},
+  "triggers": []
+}

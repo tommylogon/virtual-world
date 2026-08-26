@@ -1,0 +1,18 @@
+{
+  "id": "faction_noble",
+  "name": "Noble",
+  "description": "Associated with nobility or royalty",
+  "category": "faction",
+  "color": "#ffcc00",
+  "icon": "👑",
+  "applies_to": [
+    "characters",
+    "items",
+    "areas"
+  ],
+  "examples": [
+    "noble attire",
+    "manor house",
+    "courtier"
+  ]
+}

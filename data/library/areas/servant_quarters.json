@@ -1,0 +1,135 @@
+{
+  "name": "servant quarters",
+  "description": "a narrow, cramped room with two simple iron cots and wooden lockers. the ceiling slopes with the roofline. the air smells of unwashed linen and stale sweat, as if someone still sleeps here. a single window, small and grimy, lets in a sliver of moonlight. the room feels lived-in despite being abandoned for over a century.",
+  "tags": [],
+  "environment": {
+    "air": "stale",
+    "light": 15,
+    "noise": "quiet",
+    "smell": "old linen and candle wax",
+    "temperature": 12
+  },
+  "items": [
+    {
+      "name": "cot",
+      "description": "a narrow cot with a thin, stained mattress. a rough wool blanket is folded at the foot. the pillow has a deep impression, as if someone slept here very recently.",
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "uses": -1,
+      "weight": 15,
+      "current_state": "normal",
+      "tags": [
+        "furniture",
+        "wooden"
+      ]
+    },
+    {
+      "name": "locker",
+      "description": "a small metal locker. inside: a neatly folded servant's uniform and a crumpled letter. a silver crucifix hangs from a nail inside — identical to the one from the garden fountain.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 10,
+      "current_state": "normal",
+      "tags": [
+        "furniture",
+        "metal",
+        "container"
+      ]
+    },
+    {
+      "name": "letter_servant",
+      "description": "a crumpled but legible letter: 'to whoever finds this — i, james blackwood, head of staff at blackwood manor, write this in desperation. the skull in the study whispers to me at night. it knows my name. it calls me when no one else is around. i saw it move of its own accord. the master is obsessed. the missus weeps constantly. the children are afraid. something terrible is going to happen. i'm leaving tonight. god have mercy on whoever reads this. — j. blackwood, october 30th, 1891'",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.02,
+      "current_state": "normal",
+      "tags": [
+        "letter",
+        "documents",
+        "paper",
+        "evidence",
+        "clue"
+      ]
+    },
+    {
+      "name": "stale_crackers",
+      "description": "a half-eaten pack of crackers on the bedside table. stale but still edible. a bite has been taken from one.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 1,
+      "weight": 0.15,
+      "current_state": "normal",
+      "tags": [
+        "food",
+        "supplies",
+        "consumable"
+      ]
+    },
+    {
+      "name": "candle_stub",
+      "description": "a candle stub on the bedside table, burned down to almost nothing. the wax is still slightly warm.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": 1,
+      "weight": 0.05,
+      "current_state": "normal",
+      "tags": [
+        "candle",
+        "light_source",
+        "fire"
+      ]
+    },
+    {
+      "name": "secret_drawer",
+      "description": "beneath the cot, a floorboard is loose. lifting it reveals a small hollow containing a bundle of letters tied with string, a small pouch of coins, and a faded photograph of a woman.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 0,
+      "current_state": "normal",
+      "tags": [
+        "secret",
+        "furniture",
+        "container",
+        "documents"
+      ]
+    },
+    {
+      "name": "margaret_letters",
+      "description": "a bundle of love letters between margaret holloway and james blackwood (the head of staff, not the patriarch). their story was forbidden — a servant and a woman who was augustus's mistress. the letters tell a tragic story of love, fear, and a plan to escape together that never came to pass.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.1,
+      "current_state": "normal",
+      "tags": [
+        "letter",
+        "documents",
+        "paper",
+        "evidence",
+        "clue"
+      ]
+    }
+  ],
+  "exits": [],
+  "triggers": []
+}

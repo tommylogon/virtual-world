@@ -1,0 +1,42 @@
+{
+  "description": "A stark, mathematically perfect cube of seamless pale-gray material. The walls, floor, and ceiling are utterly featureless, with no doors, windows, or adornments. Yet the ceiling glows with a soft, even, warm light that fills every corner with gentle illumination. The air is fresh and pleasantly warm, carrying a faint scent of clean linen. The silence is absolute, so thick you can hear your own heartbeat.",
+  "environment": {
+    "air": "fresh",
+    "light": "bright",
+    "noise": "silent",
+    "smell": "clean linen",
+    "temperature": 24
+  },
+  "exits": [],
+  "items": [
+    {
+      "name": "Panel 4",
+      "description": "PANEL. Welcome to Task 4. Remain in this room.\n\nA table holds several items. For each item, state its position relative to the table out loud.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 0.1,
+      "current_state": "normal",
+      "tags": []
+    },
+    {
+      "name": "table",
+      "description": "A long table set for a meal that never came. Seven place settings — one for each family member. One place setting at the head of the table is disturbed, the chair pushed back as if someone left in a hurry. The plate is cracked.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 80,
+      "current_state": "normal",
+      "tags": [
+        "furniture",
+        "wooden",
+        "heavy"
+      ]
+    }
+  ],
+  "name": "Task 4",
+  "tags": [],
+  "triggers": []
+}

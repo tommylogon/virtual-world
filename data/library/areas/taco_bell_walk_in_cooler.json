@@ -1,0 +1,60 @@
+{
+  "name": "taco bell walk-in cooler",
+  "description": "the refrigerated room behind the kitchen, cold enough to raise a shiver on contact. steel shelving runs floor to ceiling holding dairy, eggs, bulk cheese, and the dented buckets of door sauce. the door seal is missing along a foot of rubber, so every time it swings the light of the kitchen washes in. the floor drain reeks faintly of bleach and old produce. a clipboard by the door tracks a delivery nobody signed.",
+  "environment": {
+    "air": "cold",
+    "light": 20,
+    "noise": "cooler compressor hum, condensate drip",
+    "smell": "cold dairy, bleach, old produce",
+    "temperature": 3
+  },
+  "items": [
+    {
+      "name": "cooler shelves",
+      "contents": [
+        {
+          "id": "dairy_case",
+          "relation": "on"
+        }
+      ],
+      "description": "steel shelving in the cooler loaded with boxes of shredded cheese, tortillas still sealed, and a stack of busing buckets. a lone unwashed tray holds a jar of who-knows-what with a paper date sticker the management is pretending not to see.",
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "uses": -1,
+      "weight": 80,
+      "current_state": "on",
+      "tags": [
+        "furniture",
+        "storage",
+        "kitchen"
+      ]
+    },
+    {
+      "name": "floor drain",
+      "description": "a metal drain grate in the corner of the cooler welded to a bleach-grey piped line. something too small for the grate rattles beneath it when you walk past.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 2,
+      "current_state": "normal",
+      "tags": [
+        "drain",
+        "kitchen"
+      ]
+    }
+  ],
+  "tags": [
+    "millbrook_falls",
+    "commercial",
+    "restaurant",
+    "food",
+    "taco bell",
+    "interior",
+    "kitchen",
+    "cooler"
+  ],
+  "triggers": []
+}

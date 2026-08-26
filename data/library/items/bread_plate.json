@@ -1,0 +1,18 @@
+{
+  "name": "bread_plate",
+  "description": "a dusty plate with the dried remains of bread rolls, now rock-hard. not appetizing, but technically edible if you're desperate enough.",
+  "actions": "examine,take,use,drop",
+  "uses": 1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "food",
+    "supplies"
+  ],
+  "triggers": [],
+  "contents": []
+}

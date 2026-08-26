@@ -1,0 +1,15 @@
+{
+  "id": "candle",
+  "name": "Candle",
+  "description": "Wax candle that can be lit for light.",
+  "category": "physical",
+  "color": "#f39c12",
+  "icon": "🕯️",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "candle stub",
+    "silver candle"
+  ]
+}

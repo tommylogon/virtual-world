@@ -1,0 +1,19 @@
+{
+  "name": "flour",
+  "description": "a burlap sack of flour, half full. tiny holes suggest mice have been at it. the flour has clumped but is still usable.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "food",
+    "supplies",
+    "organic"
+  ],
+  "triggers": [],
+  "contents": []
+}

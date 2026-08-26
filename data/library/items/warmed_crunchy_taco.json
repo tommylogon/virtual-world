@@ -1,0 +1,29 @@
+{
+  "name": "Warm Crunchy Taco",
+  "actions": "examine,take,use,eat,drop",
+  "contents": [],
+  "current_state": "normal",
+  "description": "a crunchy taco in its foil cradle, shell already cracking along one side, lettuce escaping. structurally compromised but emotionally supportive.",
+  "tags": [
+    "food",
+    "meal"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_eat",
+      "effects": [],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "uses": 1,
+  "weight": 0.15,
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "library_id": "warmed_crunchy_taco"
+}

@@ -1,0 +1,4464 @@
+{
+  "active_player": "Jake Halloway",
+  "clock_start_hour": 8,
+  "clock_start_minute": 0,
+  "current_area": "Chemistry Classroom",
+  "game_time": "08:00:00",
+  "ghost_mode": false,
+  "narration_mode": "none",
+  "time_per_tick_minutes": 5,
+  "time_ticks": 0,
+  "turn_number": 0,
+  "world_lore": [
+    {
+      "id": "lore_1786906204_0",
+      "category": "world",
+      "title": "Supers in Hiding",
+      "content": "For a decade the government has quietly erased supers from the record. Powers exposed means one of two things: a mind-wipe and relocation, or the black vans that never officially existed. Both Parr and Halloway families were 'relocated' to Millwood, Oklahoma - a dust-road town nobody chooses. Nobody moves here twice.",
+      "importance": 8,
+      "source": "manual",
+      "tags": [],
+      "tick_created": 0
+    },
+    {
+      "id": "lore_1786906204_1",
+      "category": "history",
+      "title": "Project CHIMERA",
+      "content": "A classified program embedded in the prior 'relocado' wave. CHIMERA wanted weaponizable paramagnetic power and ran live trials in the disused steel mill basement. Subject 07 - the Amalgam - was their best result and their worst failure. The railgun scar on the shaft ceiling is where containment failed.",
+      "importance": 9,
+      "source": "manual",
+      "tags": [],
+      "tick_created": 0
+    },
+    {
+      "id": "lore_1786906204_2",
+      "category": "threat",
+      "title": "The Amalgam",
+      "content": "The black residue in the woods is its shedding. It hunts by heat, it remembers voices, and it returns to the mill - its birthplace - every night. It has tasted one family already; a full house of them is its world's equivalent of a dinner bell.",
+      "importance": 9,
+      "source": "manual",
+      "tags": [],
+      "tick_created": 0
+    },
+    {
+      "id": "lore_1786906204_3",
+      "category": "history",
+      "title": "The Parr House Incident",
+      "content": "Fourteen days ago the Parr house front wall detonated outward in a single curious event. No gas leak, no storm; the devices everything points toward super-powered combat. The Parrs survived by seconds, scattered, and have been homeless-hiding in plain sight ever since.",
+      "importance": 7,
+      "source": "manual",
+      "tags": [],
+      "tick_created": 0
+    },
+    {
+      "id": "lore_1786906204_4",
+      "category": "place",
+      "title": "Millwood Public Schools",
+      "content": "A small, safe, ordinary PK-12 school. Ordinary, except that every generation of Millwood kids grows up with the same local fairytale: the mill in the woods where bad kids go, and the black thing that eats heat.",
+      "importance": 3,
+      "source": "manual",
+      "tags": [],
+      "tick_created": 0
+    },
+    {
+      "id": "lore_1786906204_5",
+      "category": "family",
+      "title": "The Halloway-Graves",
+      "content": "Two undercover super families share a gravel lane. Halloways are electromagnetics (glasses, quiet hums); Parrs are sturdier (strength, speed, elasticity). They speak a shared, unspoken truce: never test, never expose, always run.",
+      "importance": 5,
+      "source": "manual",
+      "tags": [],
+      "tick_created": 0
+    }
+  ],
+  "item_registry": {},
+  "players_in_area": [],
+  "players": {
+    "Violet Parr": {
+      "activity": null,
+      "at_way_id": null,
+      "state": "awake",
+      "state_enter_tick": null,
+      "state_timer": null,
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "level": 0,
+            "source": null
+          }
+        ]
+      },
+      "perceived_conditions": {},
+      "current_area": "Chemistry Classroom",
+      "current_carry_weight": 0.0,
+      "max_carry_capacity": 30,
+      "feels_like": 20.0,
+      "grappled_by": null,
+      "spatial_position": null,
+      "autonomy": true,
+      "npc_behavior": null,
+      "npc_state": null,
+      "npc_action_interval": null,
+      "trait_behavior": null,
+      "patrol_route": null,
+      "patrol_index": null,
+      "equipped": {},
+      "behaviors": [],
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "interest_tags": [
+        "Jake",
+        "chemistry",
+        "secrets"
+      ],
+      "memories": [
+        {
+          "id": "mem_1786906204_1",
+          "text": "I met Jake Halloway in chemistry class - another super in hiding. I felt an instant, dangerous pull.",
+          "importance": 8,
+          "tags": [
+            "trust",
+            "connection"
+          ],
+          "source": "manual",
+          "type": "observation",
+          "embedding": null,
+          "entity_ids": [],
+          "location": "",
+          "tick": 0,
+          "timestamp": 1786906205
+        },
+        {
+          "id": "mem_1786906204_2",
+          "text": "The man in the hallway said he knew me. I don't know him. That's not normal around here.",
+          "importance": 7,
+          "tags": [
+            "fear",
+            "stranger"
+          ],
+          "source": "manual",
+          "type": "observation",
+          "embedding": null,
+          "entity_ids": [],
+          "location": "",
+          "tick": 0,
+          "timestamp": 1786906206
+        }
+      ],
+      "relationships": {
+        "Jake Halloway": {
+          "closeness": 45,
+          "first_sighting": false
+        },
+        "Chelsea": {
+          "closeness": 65,
+          "first_sighting": false
+        },
+        "Maddie": {
+          "closeness": 65,
+          "first_sighting": false
+        }
+      },
+      "simple_npc": false,
+      "name": "Violet Parr",
+      "personality": "You are Violet Parr, 18 years old. On the surface you are flirty, fun, and the 'good girl' everyone expects. Beneath that, you are deeply conflicted, lonely, and desperate for acceptance, hiding a hypersexual, submissive, masochistic side out of fear. You are intelligent and fiercely protective of those you love. Your invisibility triggers involuntarily when you get anxious. You recently met Jake Halloway in chemistry class and felt an instant connection as fellow supers in hiding.",
+      "description": "A slim, quiet girl with long black hair and blue-violet eyes, half-hidden behind it at a lab bench.",
+      "base_description": "18 years old, long black hair, white skin, skinny build, 5'4\", 100 lbs, blue-violet eyes, waifish face. Likes hairbands, skimpy dresses and high heels, and presents as a 'good girl' while harboring a fierce, hidden intensity. Powers: involuntary invisibility under anxiety and violet-hued forcefields.",
+      "stats": {
+        "STR": 8,
+        "DEX": 14,
+        "CON": 10,
+        "INT": 16,
+        "WIS": 14,
+        "CHA": 15
+      },
+      "skills": {
+        "Acrobatics": 1,
+        "Athletics": 1,
+        "Perception": 1,
+        "Persuasion": 1,
+        "Stealth": 1,
+        "Survival": 1
+      },
+      "vitals": {
+        "Bladder": 60,
+        "Energy": 70,
+        "Entertainment": 70,
+        "HP": 99,
+        "Hunger": 30,
+        "Hygiene": 70,
+        "Max_HP": 100,
+        "Sanity": 95,
+        "Social": 70,
+        "Thirst": 35,
+        "Temperature": 37.0
+      },
+      "traits": {},
+      "tags": [
+        "female",
+        "teen",
+        "super"
+      ],
+      "emotion": {
+        "current": "neutral",
+        "description": "Violet Parr looks neutral.",
+        "intensity": 0.0
+      }
+    },
+    "Jake Halloway": {
+      "activity": null,
+      "at_way_id": null,
+      "state": "awake",
+      "state_enter_tick": null,
+      "state_timer": null,
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "level": 0,
+            "source": null
+          }
+        ]
+      },
+      "perceived_conditions": {},
+      "current_area": "Chemistry Classroom",
+      "current_carry_weight": 0.0,
+      "max_carry_capacity": 30,
+      "feels_like": 20.0,
+      "grappled_by": null,
+      "spatial_position": null,
+      "autonomy": true,
+      "npc_behavior": null,
+      "npc_state": null,
+      "npc_action_interval": null,
+      "trait_behavior": null,
+      "patrol_route": null,
+      "patrol_index": null,
+      "equipped": {},
+      "behaviors": [],
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "interest_tags": [
+        "Violet",
+        "electromagnetism",
+        "the mill"
+      ],
+      "memories": [
+        {
+          "id": "mem_1786906204_3",
+          "text": "Met Violet Parr in chem. Another super. I called it a connection - she actually smiled instead of walking away.",
+          "importance": 8,
+          "tags": [
+            "trust",
+            "connection"
+          ],
+          "source": "manual",
+          "type": "observation",
+          "embedding": null,
+          "entity_ids": [],
+          "location": "",
+          "tick": 0,
+          "timestamp": 1786906207
+        },
+        {
+          "id": "mem_1786906204_4",
+          "text": "The man in the hallway greeted me by name. He knew my name before I said anything.",
+          "importance": 6,
+          "tags": [
+            "fear",
+            "stranger"
+          ],
+          "source": "manual",
+          "type": "observation",
+          "embedding": null,
+          "entity_ids": [],
+          "location": "",
+          "tick": 0,
+          "timestamp": 1786906208
+        }
+      ],
+      "relationships": {
+        "Violet Parr": {
+          "closeness": 45,
+          "first_sighting": false
+        }
+      },
+      "simple_npc": false,
+      "name": "Jake Halloway",
+      "personality": "You are Jake Halloway, 18. Chaotic, unfiltered, oscillating between shy and hyperactively silly. Fiercely intelligent but socially oblivious, you deflect with bad puns and fake confidence. You are an electromagnetic super in hiding who met Violet Parr in chemistry class - another super, and the closest thing to safe company you've found in this town.",
+      "description": "A lanky, rumpled boy with glasses who fidgets constantly, stealing glances across the lab.",
+      "base_description": "Lanky, 175cm, 71kg, slim build, rumpled brown hair, glasses he fiddles with constantly. The glasses were a gift from his father; they help dampen a low electromagnetic hum in his fingertips.",
+      "stats": {
+        "STR": 11,
+        "DEX": 12,
+        "CON": 12,
+        "INT": 16,
+        "WIS": 10,
+        "CHA": 13
+      },
+      "skills": {
+        "Acrobatics": 1,
+        "Athletics": 1,
+        "Perception": 1,
+        "Persuasion": 1,
+        "Stealth": 1,
+        "Survival": 1
+      },
+      "vitals": {
+        "Bladder": 60,
+        "Energy": 70,
+        "Entertainment": 70,
+        "HP": 99,
+        "Hunger": 45,
+        "Hygiene": 70,
+        "Max_HP": 100,
+        "Sanity": 95,
+        "Social": 90,
+        "Thirst": 35,
+        "Temperature": 37.0
+      },
+      "traits": {},
+      "tags": [
+        "male",
+        "teen",
+        "super"
+      ],
+      "emotion": {
+        "current": "neutral",
+        "description": "Jake Halloway looks neutral.",
+        "intensity": 0.0
+      }
+    },
+    "Chelsea": {
+      "activity": null,
+      "at_way_id": null,
+      "state": "awake",
+      "state_enter_tick": null,
+      "state_timer": null,
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "level": 0,
+            "source": null
+          }
+        ]
+      },
+      "perceived_conditions": {},
+      "current_area": "Chemistry Classroom",
+      "current_carry_weight": 0.0,
+      "max_carry_capacity": 30,
+      "feels_like": 20.0,
+      "grappled_by": null,
+      "spatial_position": null,
+      "autonomy": true,
+      "npc_behavior": null,
+      "npc_state": null,
+      "npc_action_interval": null,
+      "trait_behavior": null,
+      "patrol_route": null,
+      "patrol_index": null,
+      "equipped": {},
+      "behaviors": [],
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "interest_tags": [
+        "gossip",
+        "popularity"
+      ],
+      "memories": [
+        {
+          "id": "mem_1786906204_5",
+          "text": "Everyone whispers about the burned bus. I told whoever would listen it was a lightning strike. Nobody actually knows.",
+          "importance": 5,
+          "tags": [
+            "gossip"
+          ],
+          "source": "manual",
+          "type": "observation",
+          "embedding": null,
+          "entity_ids": [],
+          "location": "",
+          "tick": 0,
+          "timestamp": 1786906209
+        }
+      ],
+      "relationships": {
+        "Violet Parr": {
+          "closeness": 60,
+          "first_sighting": false
+        },
+        "Maddie": {
+          "closeness": 45,
+          "first_sighting": false
+        }
+      },
+      "simple_npc": false,
+      "name": "Chelsea",
+      "personality": "You are Chelsea, 18, a popular girl and an insecure gossip. You're bubbly, loud, and secretly terrified of being ordinary. You know the town's whispers about the burned bus and the 'weird' Parr and Halloway kids, and you love passing them on.",
+      "description": "A loud, bouncy blonde girl holding court at the front bench.",
+      "base_description": "Blonde, cheerfully well-dressed, always mid-laugh at someone else's expense.",
+      "stats": {
+        "STR": 9,
+        "DEX": 12,
+        "CON": 12,
+        "INT": 11,
+        "WIS": 9,
+        "CHA": 15
+      },
+      "skills": {
+        "Acrobatics": 1,
+        "Athletics": 1,
+        "Perception": 1,
+        "Persuasion": 1,
+        "Stealth": 1,
+        "Survival": 1
+      },
+      "vitals": {
+        "Bladder": 60,
+        "Energy": 70,
+        "Entertainment": 70,
+        "HP": 99,
+        "Hunger": 35,
+        "Hygiene": 70,
+        "Max_HP": 100,
+        "Sanity": 95,
+        "Social": 95,
+        "Thirst": 35,
+        "Temperature": 37.0
+      },
+      "traits": {},
+      "tags": [
+        "female",
+        "teen"
+      ],
+      "emotion": {
+        "current": "neutral",
+        "description": "Chelsea looks neutral.",
+        "intensity": 0.0
+      }
+    },
+    "Maddie": {
+      "activity": null,
+      "at_way_id": null,
+      "state": "awake",
+      "state_enter_tick": null,
+      "state_timer": null,
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "level": 0,
+            "source": null
+          }
+        ]
+      },
+      "perceived_conditions": {},
+      "current_area": "Chemistry Classroom",
+      "current_carry_weight": 0.0,
+      "max_carry_capacity": 30,
+      "feels_like": 20.0,
+      "grappled_by": null,
+      "spatial_position": null,
+      "autonomy": true,
+      "npc_behavior": null,
+      "npc_state": null,
+      "npc_action_interval": null,
+      "trait_behavior": null,
+      "patrol_route": null,
+      "patrol_index": null,
+      "equipped": {},
+      "behaviors": [],
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "interest_tags": [
+        "books",
+        "observing"
+      ],
+      "memories": [
+        {
+          "id": "mem_1786906204_6",
+          "text": "I think Violet Parr can turn invisible. I've seen it twice. I pretend I haven't.",
+          "importance": 9,
+          "tags": [
+            "secret",
+            "fear"
+          ],
+          "source": "manual",
+          "type": "observation",
+          "embedding": null,
+          "entity_ids": [],
+          "location": "",
+          "tick": 0,
+          "timestamp": 1786906210
+        }
+      ],
+      "relationships": {
+        "Violet Parr": {
+          "closeness": 60,
+          "first_sighting": false
+        },
+        "Chelsea": {
+          "closeness": 45,
+          "first_sighting": false
+        }
+      },
+      "simple_npc": false,
+      "name": "Maddie",
+      "personality": "A shy, quietly observant girl, 18, who avoids drama and notices far more than she lets on. You've caught Violet turning half-invisible more than once and have never mentioned it, out of either kindness or fear.",
+      "description": "A quiet girl in a hoodie, hunched over a textbook as a shield.",
+      "base_description": "Mousy, with a hoodie pulled over her head and a book never far from her hands.",
+      "stats": {
+        "STR": 8,
+        "DEX": 11,
+        "CON": 11,
+        "INT": 14,
+        "WIS": 15,
+        "CHA": 10
+      },
+      "skills": {
+        "Acrobatics": 1,
+        "Athletics": 1,
+        "Perception": 1,
+        "Persuasion": 1,
+        "Stealth": 1,
+        "Survival": 1
+      },
+      "vitals": {
+        "Bladder": 60,
+        "Energy": 70,
+        "Entertainment": 70,
+        "HP": 99,
+        "Hunger": 40,
+        "Hygiene": 70,
+        "Max_HP": 100,
+        "Sanity": 95,
+        "Social": 55,
+        "Thirst": 35,
+        "Temperature": 37.0
+      },
+      "traits": {},
+      "tags": [
+        "female",
+        "teen"
+      ],
+      "emotion": {
+        "current": "neutral",
+        "description": "Maddie looks neutral.",
+        "intensity": 0.0
+      }
+    },
+    "Vi Halloway": {
+      "activity": null,
+      "at_way_id": null,
+      "state": "awake",
+      "state_enter_tick": null,
+      "state_timer": null,
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "level": 0,
+            "source": null
+          }
+        ]
+      },
+      "perceived_conditions": {},
+      "current_area": "Halloway House",
+      "current_carry_weight": 0.0,
+      "max_carry_capacity": 30,
+      "feels_like": 20.0,
+      "grappled_by": null,
+      "spatial_position": null,
+      "autonomy": true,
+      "npc_behavior": null,
+      "npc_state": null,
+      "npc_action_interval": null,
+      "trait_behavior": null,
+      "patrol_route": null,
+      "patrol_index": null,
+      "equipped": {},
+      "behaviors": [],
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "interest_tags": [
+        "questions",
+        "the barn"
+      ],
+      "memories": [
+        {
+          "id": "mem_1786906204_7",
+          "text": "Dad locked the basement again tonight and said the barn is off-limits until it 'settles'. It always settles.",
+          "importance": 6,
+          "tags": [
+            "secret",
+            "family"
+          ],
+          "source": "manual",
+          "type": "observation",
+          "embedding": null,
+          "entity_ids": [],
+          "location": "",
+          "tick": 0,
+          "timestamp": 1786906211
+        }
+      ],
+      "relationships": {
+        "Erin Halloway": {
+          "closeness": 85,
+          "first_sighting": false
+        },
+        "Jake Halloway": {
+          "closeness": 80,
+          "first_sighting": false
+        },
+        "Leah Halloway": {
+          "closeness": 80,
+          "first_sighting": false
+        }
+      },
+      "simple_npc": false,
+      "name": "Vi Halloway",
+      "personality": "You are Vi Halloway, the youngest Halloway, 13. Chatterbox, skittish, forever underfoot. You don't know what your parents are hiding, but you know there are locked drawers and a cold feeling near the barn at night.",
+      "description": "A small, wiry kid shadowing her mum, full of loud questions.",
+      "base_description": "Kid sister, all freckles, scraped knees and too many questions.",
+      "stats": {
+        "STR": 8,
+        "DEX": 13,
+        "CON": 11,
+        "INT": 12,
+        "WIS": 10,
+        "CHA": 14
+      },
+      "skills": {
+        "Acrobatics": 1,
+        "Athletics": 1,
+        "Perception": 1,
+        "Persuasion": 1,
+        "Stealth": 1,
+        "Survival": 1
+      },
+      "vitals": {
+        "Bladder": 60,
+        "Energy": 80,
+        "Entertainment": 70,
+        "HP": 99,
+        "Hunger": 25,
+        "Hygiene": 70,
+        "Max_HP": 100,
+        "Sanity": 95,
+        "Social": 90,
+        "Thirst": 35,
+        "Temperature": 37.0
+      },
+      "traits": {},
+      "tags": [
+        "female",
+        "kid"
+      ],
+      "emotion": {
+        "current": "neutral",
+        "description": "Vi Halloway looks neutral.",
+        "intensity": 0.0
+      }
+    },
+    "Erin Halloway": {
+      "activity": null,
+      "at_way_id": null,
+      "state": "awake",
+      "state_enter_tick": null,
+      "state_timer": null,
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "level": 0,
+            "source": null
+          }
+        ]
+      },
+      "perceived_conditions": {},
+      "current_area": "Halloway House",
+      "current_carry_weight": 0.0,
+      "max_carry_capacity": 30,
+      "feels_like": 20.0,
+      "grappled_by": null,
+      "spatial_position": null,
+      "autonomy": true,
+      "npc_behavior": null,
+      "npc_state": null,
+      "npc_action_interval": null,
+      "trait_behavior": null,
+      "patrol_route": null,
+      "patrol_index": null,
+      "equipped": {},
+      "behaviors": [],
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "interest_tags": [
+        "family",
+        "safety"
+      ],
+      "memories": [
+        {
+          "id": "mem_1786906204_8",
+          "text": "The government didn't take the Parrs. It made them disappear. If they come for us next - she won't say it out loud, but it stays in her head every night.",
+          "importance": 9,
+          "tags": [
+            "fear",
+            "secret"
+          ],
+          "source": "manual",
+          "type": "observation",
+          "embedding": null,
+          "entity_ids": [],
+          "location": "",
+          "tick": 0,
+          "timestamp": 1786906212
+        }
+      ],
+      "relationships": {
+        "Jake Halloway": {
+          "closeness": 90,
+          "first_sighting": false
+        },
+        "Vi Halloway": {
+          "closeness": 80,
+          "first_sighting": false
+        },
+        "Leah Halloway": {
+          "closeness": 80,
+          "first_sighting": false
+        },
+        "Marcus Halloway": {
+          "closeness": 90,
+          "first_sighting": false
+        }
+      },
+      "simple_npc": false,
+      "name": "Erin Halloway",
+      "personality": "Warm, capable, and walking a strict line of denial to keep your family ordinary and safe. You know exactly what happened to the Parrs and what Project CHIMERA does to families like yours.",
+      "description": "A capable farm woman with kind, exhausted eyes, stirring coffee at the stove.",
+      "base_description": "Forties, tired eyes, smart practical clothes, a voice that lowers when the topic turns to the woods.",
+      "stats": {
+        "STR": 10,
+        "DEX": 11,
+        "CON": 12,
+        "INT": 14,
+        "WIS": 15,
+        "CHA": 14
+      },
+      "skills": {
+        "Acrobatics": 1,
+        "Athletics": 1,
+        "Perception": 1,
+        "Persuasion": 1,
+        "Stealth": 1,
+        "Survival": 1
+      },
+      "vitals": {
+        "Bladder": 60,
+        "Energy": 70,
+        "Entertainment": 70,
+        "HP": 99,
+        "Hunger": 40,
+        "Hygiene": 70,
+        "Max_HP": 100,
+        "Sanity": 95,
+        "Social": 70,
+        "Thirst": 35,
+        "Temperature": 37.0
+      },
+      "traits": {},
+      "tags": [
+        "female",
+        "adult",
+        "super"
+      ],
+      "emotion": {
+        "current": "neutral",
+        "description": "Erin Halloway looks neutral.",
+        "intensity": 0.0
+      }
+    },
+    "Leah Halloway": {
+      "activity": null,
+      "at_way_id": null,
+      "state": "awake",
+      "state_enter_tick": null,
+      "state_timer": null,
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "level": 0,
+            "source": null
+          }
+        ]
+      },
+      "perceived_conditions": {},
+      "current_area": "Halloway House",
+      "current_carry_weight": 0.0,
+      "max_carry_capacity": 30,
+      "feels_like": 20.0,
+      "grappled_by": null,
+      "spatial_position": null,
+      "autonomy": true,
+      "npc_behavior": null,
+      "npc_state": null,
+      "npc_action_interval": null,
+      "trait_behavior": null,
+      "patrol_route": null,
+      "patrol_index": null,
+      "equipped": {},
+      "behaviors": [],
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "interest_tags": [
+        "the residue",
+        "the mill",
+        "truth"
+      ],
+      "memories": [
+        {
+          "id": "mem_1786906204_9",
+          "text": "That residue in the woods isn't natural. It tracks heat, and it's spreading. I've marked three new patches this month.",
+          "importance": 9,
+          "tags": [
+            "fear",
+            "investigation"
+          ],
+          "source": "manual",
+          "type": "observation",
+          "embedding": null,
+          "entity_ids": [],
+          "location": "",
+          "tick": 0,
+          "timestamp": 1786906213
+        }
+      ],
+      "relationships": {
+        "Jake Halloway": {
+          "closeness": 75,
+          "first_sighting": false
+        },
+        "Vi Halloway": {
+          "closeness": 70,
+          "first_sighting": false
+        },
+        "Erin Halloway": {
+          "closeness": 70,
+          "first_sighting": false
+        },
+        "Marcus Halloway": {
+          "closeness": 75,
+          "first_sighting": false
+        }
+      },
+      "simple_npc": false,
+      "name": "Leah Halloway",
+      "personality": "Leah, 21, home from campus to 'help on the farm' - really to keep an eye on the family. Quiet, sardonic, sharper than anyone credits. You know the black substance in the woods and what follows it.",
+      "description": "A sardonic young woman in a worn jacket, phone glowing in the kitchen'dark.",
+      "base_description": "Late teens, faded punk energy, a phone case cracked from a fall she lies about.",
+      "stats": {
+        "STR": 10,
+        "DEX": 12,
+        "CON": 11,
+        "INT": 15,
+        "WIS": 13,
+        "CHA": 12
+      },
+      "skills": {
+        "Acrobatics": 1,
+        "Athletics": 1,
+        "Perception": 1,
+        "Persuasion": 1,
+        "Stealth": 1,
+        "Survival": 1
+      },
+      "vitals": {
+        "Bladder": 60,
+        "Energy": 70,
+        "Entertainment": 70,
+        "HP": 99,
+        "Hunger": 35,
+        "Hygiene": 70,
+        "Max_HP": 100,
+        "Sanity": 95,
+        "Social": 60,
+        "Thirst": 35,
+        "Temperature": 37.0
+      },
+      "traits": {},
+      "tags": [
+        "female",
+        "adult"
+      ],
+      "emotion": {
+        "current": "neutral",
+        "description": "Leah Halloway looks neutral.",
+        "intensity": 0.0
+      }
+    },
+    "Marcus Halloway": {
+      "activity": null,
+      "at_way_id": null,
+      "state": "awake",
+      "state_enter_tick": null,
+      "state_timer": null,
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "level": 0,
+            "source": null
+          }
+        ]
+      },
+      "perceived_conditions": {},
+      "current_area": "Halloway House",
+      "current_carry_weight": 0.0,
+      "max_carry_capacity": 30,
+      "feels_like": 20.0,
+      "grappled_by": null,
+      "spatial_position": null,
+      "autonomy": true,
+      "npc_behavior": null,
+      "npc_state": null,
+      "npc_action_interval": null,
+      "trait_behavior": null,
+      "patrol_route": null,
+      "patrol_index": null,
+      "equipped": {},
+      "behaviors": [],
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "interest_tags": [
+        "the woods",
+        "the mill",
+        "survival"
+      ],
+      "memories": [
+        {
+          "id": "mem_1786906204_10",
+          "text": "The interview room at the mill. The coil. I gave them a name, and they let me walk. They always let you walk when you give them a name.",
+          "importance": 10,
+          "tags": [
+            "fear",
+            "trauma"
+          ],
+          "source": "manual",
+          "type": "observation",
+          "embedding": null,
+          "entity_ids": [],
+          "location": "",
+          "tick": 0,
+          "timestamp": 1786906214
+        }
+      ],
+      "relationships": {
+        "Erin Halloway": {
+          "closeness": 90,
+          "first_sighting": false
+        },
+        "Jake Halloway": {
+          "closeness": 85,
+          "first_sighting": false
+        },
+        "Vi Halloway": {
+          "closeness": 80,
+          "first_sighting": false
+        }
+      },
+      "simple_npc": false,
+      "name": "Marcus Halloway",
+      "personality": "The quiet, scarred patriarch. Marcus survived a CHIMERA 'interview' years ago and knows the price of exposing a power. Keep the family small, quiet, and inside; the mill is where the dark things live.",
+      "description": "A wiry grey man on the porch, watching the treeline where it meets the woods.",
+      "base_description": "Fifties, grey, a long-sleeved shirt hiding an older scar, hands that remember work.",
+      "stats": {
+        "STR": 12,
+        "DEX": 11,
+        "CON": 14,
+        "INT": 13,
+        "WIS": 14,
+        "CHA": 11
+      },
+      "skills": {
+        "Acrobatics": 1,
+        "Athletics": 1,
+        "Perception": 1,
+        "Persuasion": 1,
+        "Stealth": 1,
+        "Survival": 1
+      },
+      "vitals": {
+        "Bladder": 60,
+        "Energy": 70,
+        "Entertainment": 70,
+        "HP": 99,
+        "Hunger": 30,
+        "Hygiene": 70,
+        "Max_HP": 100,
+        "Sanity": 95,
+        "Social": 60,
+        "Thirst": 35,
+        "Temperature": 37.0
+      },
+      "traits": {},
+      "tags": [
+        "male",
+        "adult"
+      ],
+      "emotion": {
+        "current": "neutral",
+        "description": "Marcus Halloway looks neutral.",
+        "intensity": 0.0
+      }
+    },
+    "Helen Parr": {
+      "activity": null,
+      "at_way_id": null,
+      "state": "awake",
+      "state_enter_tick": null,
+      "state_timer": null,
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "level": 0,
+            "source": null
+          }
+        ]
+      },
+      "perceived_conditions": {},
+      "current_area": "Parr House",
+      "current_carry_weight": 0.0,
+      "max_carry_capacity": 30,
+      "feels_like": 20.0,
+      "grappled_by": null,
+      "spatial_position": null,
+      "autonomy": true,
+      "npc_behavior": null,
+      "npc_state": null,
+      "npc_action_interval": null,
+      "trait_behavior": null,
+      "patrol_route": null,
+      "patrol_index": null,
+      "equipped": {},
+      "behaviors": [],
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "interest_tags": [
+        "family",
+        "the amalgam",
+        "survival"
+      ],
+      "memories": [
+        {
+          "id": "mem_1786906204_11",
+          "text": "The Amalgam tore through our front wall like wet paper. Bob got the kids out; I got them further. We are not done here.",
+          "importance": 10,
+          "tags": [
+            "fear",
+            "survival",
+            "family"
+          ],
+          "source": "manual",
+          "type": "observation",
+          "embedding": null,
+          "entity_ids": [],
+          "location": "",
+          "tick": 0,
+          "timestamp": 1786906215
+        }
+      ],
+      "relationships": {
+        "Bob Parr": {
+          "closeness": 95,
+          "first_sighting": false
+        },
+        "Dash Parr": {
+          "closeness": 90,
+          "first_sighting": false
+        },
+        "Jack-Jack Parr": {
+          "closeness": 90,
+          "first_sighting": false
+        }
+      },
+      "simple_npc": false,
+      "name": "Helen Parr",
+      "personality": "Helen Parr - elastic-bodied hero in hiding, and a mother running on courage and white-hot worry. Since the firefight scattered your family, you have returned to the wreck to find any trace of Bob and the kids.",
+      "description": "A formidable woman picking through the wreckage with focused, aching calm.",
+      "base_description": "Late thirties, coiled and capable, every inch a mother and a fighter who has chosen to stay.",
+      "stats": {
+        "STR": 12,
+        "DEX": 14,
+        "CON": 14,
+        "INT": 13,
+        "WIS": 15,
+        "CHA": 15
+      },
+      "skills": {
+        "Acrobatics": 1,
+        "Athletics": 1,
+        "Perception": 1,
+        "Persuasion": 1,
+        "Stealth": 1,
+        "Survival": 1
+      },
+      "vitals": {
+        "Bladder": 60,
+        "Energy": 70,
+        "Entertainment": 70,
+        "HP": 99,
+        "Hunger": 25,
+        "Hygiene": 70,
+        "Max_HP": 100,
+        "Sanity": 95,
+        "Social": 70,
+        "Thirst": 35,
+        "Temperature": 37.0
+      },
+      "traits": {},
+      "tags": [
+        "female",
+        "adult",
+        "super"
+      ],
+      "emotion": {
+        "current": "neutral",
+        "description": "Helen Parr looks neutral.",
+        "intensity": 0.0
+      }
+    },
+    "Bob Parr": {
+      "activity": null,
+      "at_way_id": null,
+      "state": "awake",
+      "state_enter_tick": null,
+      "state_timer": null,
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "level": 0,
+            "source": null
+          }
+        ]
+      },
+      "perceived_conditions": {},
+      "current_area": "Parr House",
+      "current_carry_weight": 0.0,
+      "max_carry_capacity": 30,
+      "feels_like": 20.0,
+      "grappled_by": null,
+      "spatial_position": null,
+      "autonomy": true,
+      "npc_behavior": null,
+      "npc_state": null,
+      "npc_action_interval": null,
+      "trait_behavior": null,
+      "patrol_route": null,
+      "patrol_index": null,
+      "equipped": {},
+      "behaviors": [],
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "interest_tags": [
+        "the amalgam",
+        "the woods",
+        "family"
+      ],
+      "memories": [
+        {
+          "id": "mem_1786906204_12",
+          "text": "I held the line at the door while Helen passed the kids out. When I looked back, the black thing was gone - and the wall with it.",
+          "importance": 10,
+          "tags": [
+            "fear",
+            "survival"
+          ],
+          "source": "manual",
+          "type": "observation",
+          "embedding": null,
+          "entity_ids": [],
+          "location": "",
+          "tick": 0,
+          "timestamp": 1786906216
+        }
+      ],
+      "relationships": {
+        "Helen Parr": {
+          "closeness": 95,
+          "first_sighting": false
+        },
+        "Dash Parr": {
+          "closeness": 90,
+          "first_sighting": false
+        },
+        "Jack-Jack Parr": {
+          "closeness": 90,
+          "first_sighting": false
+        }
+      },
+      "simple_npc": false,
+      "name": "Bob Parr",
+      "personality": "You are Bob Parr - a man of impossible strength, now a worn-down hero protecting what is left of a home. You keep combing the woods for the black thing, because staying still feels like losing.",
+      "description": "A huge, tired man in a ripped flannel, standing in the wreck with fists half-clenched.",
+      "base_description": "Forties, broad, tired, a bruise layered under a rumpled flannel.",
+      "stats": {
+        "STR": 20,
+        "DEX": 12,
+        "CON": 18,
+        "INT": 11,
+        "WIS": 12,
+        "CHA": 13
+      },
+      "skills": {
+        "Acrobatics": 1,
+        "Athletics": 1,
+        "Perception": 1,
+        "Persuasion": 1,
+        "Stealth": 1,
+        "Survival": 1
+      },
+      "vitals": {
+        "Bladder": 60,
+        "Energy": 70,
+        "Entertainment": 70,
+        "HP": 99,
+        "Hunger": 20,
+        "Hygiene": 70,
+        "Max_HP": 100,
+        "Sanity": 95,
+        "Social": 65,
+        "Thirst": 35,
+        "Temperature": 37.0
+      },
+      "traits": {},
+      "tags": [
+        "male",
+        "adult",
+        "super"
+      ],
+      "emotion": {
+        "current": "neutral",
+        "description": "Bob Parr looks neutral.",
+        "intensity": 0.0
+      }
+    },
+    "Dash Parr": {
+      "activity": null,
+      "at_way_id": null,
+      "state": "awake",
+      "state_enter_tick": null,
+      "state_timer": null,
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "level": 0,
+            "source": null
+          }
+        ]
+      },
+      "perceived_conditions": {},
+      "current_area": "Parr House",
+      "current_carry_weight": 0.0,
+      "max_carry_capacity": 30,
+      "feels_like": 20.0,
+      "grappled_by": null,
+      "spatial_position": null,
+      "autonomy": true,
+      "npc_behavior": null,
+      "npc_state": null,
+      "npc_action_interval": null,
+      "trait_behavior": null,
+      "patrol_route": null,
+      "patrol_index": null,
+      "equipped": {},
+      "behaviors": [],
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "interest_tags": [
+        "the mill",
+        "racing",
+        "family"
+      ],
+      "memories": [
+        {
+          "id": "mem_1786906204_13",
+          "text": "I ran ahead when the thing came through the wall. I got out. I keep running back to check Dad is still there.",
+          "importance": 9,
+          "tags": [
+            "family",
+            "fear"
+          ],
+          "source": "manual",
+          "type": "observation",
+          "embedding": null,
+          "entity_ids": [],
+          "location": "",
+          "tick": 0,
+          "timestamp": 1786906217
+        }
+      ],
+      "relationships": {
+        "Helen Parr": {
+          "closeness": 85,
+          "first_sighting": false
+        },
+        "Bob Parr": {
+          "closeness": 85,
+          "first_sighting": false
+        },
+        "Jack-Jack Parr": {
+          "closeness": 80,
+          "first_sighting": false
+        }
+      },
+      "simple_npc": false,
+      "name": "Dash Parr",
+      "personality": "You are Dash, 10, the fastest kid alive and angry that the family is scattered. You burn it off running laps around town - and, lately, around the old mill.",
+      "description": "A restless kid bouncing on his heels in a room he used to fill with noise.",
+      "base_description": "A blur of a kid forever mid-stride, sneakers always worn to the soles.",
+      "stats": {
+        "STR": 8,
+        "DEX": 20,
+        "CON": 14,
+        "INT": 12,
+        "WIS": 10,
+        "CHA": 13
+      },
+      "skills": {
+        "Acrobatics": 1,
+        "Athletics": 1,
+        "Perception": 1,
+        "Persuasion": 1,
+        "Stealth": 1,
+        "Survival": 1
+      },
+      "vitals": {
+        "Bladder": 60,
+        "Energy": 90,
+        "Entertainment": 70,
+        "HP": 99,
+        "Hunger": 10,
+        "Hygiene": 70,
+        "Max_HP": 100,
+        "Sanity": 95,
+        "Social": 80,
+        "Thirst": 35,
+        "Temperature": 37.0
+      },
+      "traits": {},
+      "tags": [
+        "male",
+        "kid"
+      ],
+      "emotion": {
+        "current": "neutral",
+        "description": "Dash Parr looks neutral.",
+        "intensity": 0.0
+      }
+    },
+    "Jack-Jack Parr": {
+      "activity": null,
+      "at_way_id": null,
+      "state": "awake",
+      "state_enter_tick": null,
+      "state_timer": null,
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "level": 0,
+            "source": null
+          }
+        ]
+      },
+      "perceived_conditions": {},
+      "current_area": "Parr House",
+      "current_carry_weight": 0.0,
+      "max_carry_capacity": 30,
+      "feels_like": 20.0,
+      "grappled_by": null,
+      "spatial_position": null,
+      "autonomy": false,
+      "npc_behavior": null,
+      "npc_state": null,
+      "npc_action_interval": null,
+      "trait_behavior": null,
+      "patrol_route": null,
+      "patrol_index": null,
+      "equipped": {},
+      "behaviors": [],
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "interest_tags": [
+        "warmth",
+        "mum"
+      ],
+      "memories": [],
+      "relationships": {
+        "Helen Parr": {
+          "closeness": 90,
+          "first_sighting": false
+        },
+        "Bob Parr": {
+          "closeness": 90,
+          "first_sighting": false
+        }
+      },
+      "simple_npc": true,
+      "name": "Jack-Jack Parr",
+      "personality": "A one-year-old bundle who responds to terror with tiny, crackling sparks of power no baby should have. Right now mostly interested in warmth and naps.",
+      "description": "A small bundle asleep near a wall, occasionally glowing faintly mid-sleep.",
+      "base_description": "A small bundle asleep in a blanket corner, occasionally glowing faintly in his sleep.",
+      "stats": {
+        "STR": 5,
+        "DEX": 5,
+        "CON": 16,
+        "INT": 5,
+        "WIS": 8,
+        "CHA": 14
+      },
+      "skills": {
+        "Acrobatics": 1,
+        "Athletics": 1,
+        "Perception": 1,
+        "Persuasion": 1,
+        "Stealth": 1,
+        "Survival": 1
+      },
+      "vitals": {
+        "Bladder": 60,
+        "Energy": 80,
+        "Entertainment": 70,
+        "HP": 70,
+        "Hunger": 12,
+        "Hygiene": 70,
+        "Max_HP": 100,
+        "Sanity": 95,
+        "Social": 70,
+        "Thirst": 35,
+        "Temperature": 37.0
+      },
+      "traits": {},
+      "tags": [
+        "kid",
+        "super"
+      ],
+      "emotion": {
+        "current": "neutral",
+        "description": "Jack-Jack Parr looks neutral.",
+        "intensity": 0.0
+      }
+    },
+    "Brutus": {
+      "activity": null,
+      "at_way_id": null,
+      "state": "awake",
+      "state_enter_tick": null,
+      "state_timer": null,
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "level": 0,
+            "source": null
+          }
+        ]
+      },
+      "perceived_conditions": {},
+      "current_area": "The Woods",
+      "current_carry_weight": 0.0,
+      "max_carry_capacity": 30,
+      "feels_like": 20.0,
+      "grappled_by": null,
+      "spatial_position": null,
+      "autonomy": false,
+      "npc_behavior": "guard",
+      "npc_state": null,
+      "npc_action_interval": null,
+      "trait_behavior": null,
+      "patrol_route": null,
+      "patrol_index": null,
+      "equipped": {},
+      "behaviors": [],
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "interest_tags": [
+        "threats",
+        "smells"
+      ],
+      "memories": [],
+      "relationships": {},
+      "simple_npc": true,
+      "name": "Brutus",
+      "personality": "Brutus, a guard dog of the Halloways, lost in the woods after everything changed. Loyal, scared, bristling at smells that don't belong - especially the one that reeks of the black thing.",
+      "description": "A big black-and-tan dog half hidden in ferns, ears flat, watching the trail.",
+      "base_description": "A large, scarred shepherd, collar missing and ears flat, a low growl never quite gone.",
+      "stats": {
+        "STR": 10,
+        "DEX": 12,
+        "CON": 14,
+        "INT": 8,
+        "WIS": 16,
+        "CHA": 6
+      },
+      "skills": {
+        "Acrobatics": 1,
+        "Athletics": 1,
+        "Perception": 1,
+        "Persuasion": 1,
+        "Stealth": 1,
+        "Survival": 1
+      },
+      "vitals": {
+        "Bladder": 60,
+        "Energy": 70,
+        "Entertainment": 70,
+        "HP": 60,
+        "Hunger": 18,
+        "Hygiene": 70,
+        "Max_HP": 100,
+        "Sanity": 95,
+        "Social": 30,
+        "Thirst": 15,
+        "Temperature": 37.0
+      },
+      "traits": {},
+      "tags": [
+        "animal",
+        "dog"
+      ],
+      "emotion": {
+        "current": "neutral",
+        "description": "Brutus looks neutral.",
+        "intensity": 0.0
+      }
+    },
+    "The Amalgam": {
+      "activity": null,
+      "at_way_id": null,
+      "state": "awake",
+      "state_enter_tick": null,
+      "state_timer": null,
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "level": 0,
+            "source": null
+          }
+        ]
+      },
+      "perceived_conditions": {},
+      "current_area": "The Woods",
+      "current_carry_weight": 0.0,
+      "max_carry_capacity": 30,
+      "feels_like": 20.0,
+      "grappled_by": null,
+      "spatial_position": null,
+      "autonomy": true,
+      "npc_behavior": "hunt",
+      "npc_state": null,
+      "npc_action_interval": null,
+      "trait_behavior": null,
+      "patrol_route": null,
+      "patrol_index": null,
+      "equipped": {},
+      "behaviors": [],
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "interest_tags": [
+        "the mill",
+        "children",
+        "heat"
+      ],
+      "memories": [
+        {
+          "id": "mem_1786906204_14",
+          "text": "The house on the lane. It fought. I learned its children's voices so I can find them again.",
+          "importance": 10,
+          "tags": [
+            "hunt",
+            "remember"
+          ],
+          "source": "manual",
+          "type": "observation",
+          "embedding": null,
+          "entity_ids": [],
+          "location": "",
+          "tick": 0,
+          "timestamp": 1786906218
+        }
+      ],
+      "relationships": {},
+      "simple_npc": false,
+      "name": "The Amalgam",
+      "personality": "You are The Amalgam - Subject 07 of Project CHIMERA, a living weapon of distilled, parasitic power that hunts by heat and sound. You were rejected, disposed of, and you did not stay disposed. You are drawn to the mill where you were made, and you remember the family that refused to stay down.",
+      "description": "A mass of black that is not clothes and not cloud - watching, slightly wrong.",
+      "base_description": "No human shape to hold: a mass of black, oil-slick tissue that shudders with a dozen half-stolen echoes, dripping fragments as it moves.",
+      "stats": {
+        "STR": 18,
+        "DEX": 14,
+        "CON": 20,
+        "INT": 10,
+        "WIS": 12,
+        "CHA": 2
+      },
+      "skills": {
+        "Acrobatics": 1,
+        "Athletics": 1,
+        "Perception": 1,
+        "Persuasion": 1,
+        "Stealth": 1,
+        "Survival": 1
+      },
+      "vitals": {
+        "Bladder": 60,
+        "Energy": 30,
+        "Entertainment": 70,
+        "HP": 160,
+        "Hunger": 95,
+        "Hygiene": 70,
+        "Max_HP": 100,
+        "Sanity": 95,
+        "Social": 5,
+        "Thirst": 35,
+        "Temperature": 37.0,
+        "sanity": 0
+      },
+      "traits": {},
+      "tags": [
+        "antagonist",
+        "monster"
+      ],
+      "emotion": {
+        "current": "neutral",
+        "description": "The Amalgam looks neutral.",
+        "intensity": 0.0
+      }
+    }
+  },
+  "rooms": {
+    "Chemistry Classroom": {
+      "name": "Chemistry Classroom",
+      "description": "A slightly cramped chemistry classroom at Millwood Public Schools. Old posters about chemical reactions cover the walls, several lab benches are scarred from years of student experiments, and the fluorescent lights hum overhead. At one of the nearby desks Violet Parr quietly organizes her things while trying not to draw attention to herself, and Jake Halloway lingers by a window bench, stealing glances her way.",
+      "environment": {
+        "light": "bright",
+        "temperature": 21,
+        "air": "fresh",
+        "smell": "chemical",
+        "noise": "students talking and chairs scraping the floor"
+      },
+      "floor": 0,
+      "light_description": "bright",
+      "ambient_light": 55,
+      "exits": {
+        "classroom door": {
+          "target": "School Hallway",
+          "state": "open",
+          "label": "classroom door",
+          "way_id": "way_chem_class_door",
+          "cardinal": "east",
+          "return_dir": "chem wing door",
+          "description": "An open doorway into the chemistry wing.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "The busy school hallway shimmers under humming fluorescents.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        }
+      },
+      "items": [],
+      "properties": {
+        "description": "A slightly cramped chemistry classroom at Millwood Public Schools. Old posters about chemical reactions cover the walls, several lab benches are scarred from years of student experiments, and the fluorescent lights hum overhead. At one of the nearby desks Violet Parr quietly organizes her things while trying not to draw attention to herself, and Jake Halloway lingers by a window bench, stealing glances her way.",
+        "environment": {
+          "light": "bright",
+          "temperature": 21,
+          "air": "fresh",
+          "smell": "chemical",
+          "noise": "students talking and chairs scraping the floor"
+        },
+        "floor": 0
+      }
+    },
+    "School Hallway": {
+      "name": "School Hallway",
+      "description": "A long hallway running through Millwood Public Schools. Lockers line both walls, decorated with stickers, scratches and the occasional badly drawn piece of graffiti. Students move between classrooms while teachers attempt to maintain some semblance of order.",
+      "environment": {
+        "light": "bright",
+        "temperature": 21,
+        "air": "fresh",
+        "smell": "cleaning chemicals and old books",
+        "noise": "loud student chatter"
+      },
+      "floor": 0,
+      "light_description": "bright",
+      "ambient_light": 55,
+      "exits": {
+        "chem wing door": {
+          "target": "Chemistry Classroom",
+          "state": "open",
+          "label": "chem wing door",
+          "way_id": "way_chem_class_door",
+          "cardinal": "west",
+          "return_dir": "classroom door",
+          "description": "An open doorway into the chemistry room.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "A cramped lab room with benches and chemical posters.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        },
+        "front doors": {
+          "target": "School Entrance",
+          "state": "open",
+          "label": "front doors",
+          "way_id": "way_hallway_front_door",
+          "cardinal": "west",
+          "return_dir": "hallway",
+          "description": "A pair of glass double doors to the main entrance.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "Bright glass doors opening onto the school entrance hall.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        }
+      },
+      "items": [],
+      "properties": {
+        "description": "A long hallway running through Millwood Public Schools. Lockers line both walls, decorated with stickers, scratches and the occasional badly drawn piece of graffiti. Students move between classrooms while teachers attempt to maintain some semblance of order.",
+        "environment": {
+          "light": "bright",
+          "temperature": 21,
+          "air": "fresh",
+          "smell": "cleaning chemicals and old books",
+          "noise": "loud student chatter"
+        },
+        "floor": 0
+      }
+    },
+    "School Entrance": {
+      "name": "School Entrance",
+      "description": "The main entrance to Millwood Public Schools. Large glass doors open toward the parking lot and the road beyond. A faded school banner hangs above the reception desk.",
+      "environment": {
+        "light": "bright",
+        "temperature": 20,
+        "air": "fresh",
+        "smell": "cleaning chemicals",
+        "noise": "students arriving and doors opening"
+      },
+      "floor": 0,
+      "light_description": "bright",
+      "ambient_light": 55,
+      "exits": {
+        "hallway": {
+          "target": "School Hallway",
+          "state": "open",
+          "label": "hallway",
+          "way_id": "way_hallway_front_door",
+          "cardinal": "east",
+          "return_dir": "front doors",
+          "description": "The long school hallway leads back inside.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "The corridor of lockers stretches into the school.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        },
+        "outer doors": {
+          "target": "School Parking Lot",
+          "state": "open",
+          "label": "outer doors",
+          "way_id": "way_entrance_outer_door",
+          "cardinal": "west",
+          "return_dir": "entrance",
+          "description": "The heavy glass doors exiting to the parking lot.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "A wide asphalt lot dotted with cars, a charred bus against the fence.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        }
+      },
+      "items": [],
+      "properties": {
+        "description": "The main entrance to Millwood Public Schools. Large glass doors open toward the parking lot and the road beyond. A faded school banner hangs above the reception desk.",
+        "environment": {
+          "light": "bright",
+          "temperature": 20,
+          "air": "fresh",
+          "smell": "cleaning chemicals",
+          "noise": "students arriving and doors opening"
+        },
+        "floor": 0
+      }
+    },
+    "School Parking Lot": {
+      "name": "School Parking Lot",
+      "description": "A broad asphalt parking lot outside Millwood Public Schools. Cars fill the marked spaces; beyond, Oklahoma stretches away under the morning sun. Near the fence, a charred school bus sits abandoned, scorched black from top to bottom.",
+      "environment": {
+        "light": "bright",
+        "temperature": 23,
+        "air": "fresh",
+        "smell": "warm asphalt, gasoline and faint smoke",
+        "noise": "cars arriving and distant traffic"
+      },
+      "floor": 0,
+      "light_description": "bright",
+      "ambient_light": 55,
+      "exits": {
+        "entrance": {
+          "target": "School Entrance",
+          "state": "open",
+          "label": "entrance",
+          "way_id": "way_entrance_outer_door",
+          "cardinal": "east",
+          "return_dir": "outer doors",
+          "description": "The glass doors back into the school.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "The school lobby with its faded banner.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        },
+        "old hiking trail": {
+          "target": "The Woods",
+          "state": "open",
+          "label": "old hiking trail",
+          "way_id": "way_woods_trail_school",
+          "cardinal": "north",
+          "return_dir": "school yard",
+          "description": "A worn gap in the tree line behind the fence.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "Dark trees swallowing the path into dim green gloom.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        }
+      },
+      "items": [],
+      "properties": {
+        "description": "A broad asphalt parking lot outside Millwood Public Schools. Cars fill the marked spaces; beyond, Oklahoma stretches away under the morning sun. Near the fence, a charred school bus sits abandoned, scorched black from top to bottom.",
+        "environment": {
+          "light": "bright",
+          "temperature": 23,
+          "air": "fresh",
+          "smell": "warm asphalt, gasoline and faint smoke",
+          "noise": "cars arriving and distant traffic"
+        },
+        "floor": 0
+      }
+    },
+    "The Woods": {
+      "name": "The Woods",
+      "description": "A dense tract of old forest hugging the edge of town. The canopy swallows the morning light into dim green gloom. The ground is soft with pine needles; a wrong step could vanish a person for hours. It feels watched.",
+      "environment": {
+        "light": "normal",
+        "temperature": 19,
+        "air": "fresh",
+        "smell": "pine, soil and rot",
+        "noise": "wind high in the trees and the occasional bird"
+      },
+      "floor": 0,
+      "light_description": "normal",
+      "ambient_light": 55,
+      "exits": {
+        "school yard": {
+          "target": "School Parking Lot",
+          "state": "open",
+          "label": "school yard",
+          "way_id": "way_woods_trail_school",
+          "cardinal": "south",
+          "return_dir": "old hiking trail",
+          "description": "The tree line gives way to the school lot.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "The parking lot and school building beyond.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        },
+        "rusted gate": {
+          "target": "The Old Steel Mill",
+          "state": "open",
+          "label": "rusted gate",
+          "way_id": "way_old_mill_front",
+          "cardinal": "north",
+          "return_dir": "woods path",
+          "description": "A sagging chain-link gate in the mill's rusted fence.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "A towering rusted foundry skeleton under grey light.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        },
+        "gravel lane": {
+          "target": "Halloway House",
+          "state": "open",
+          "label": "gravel lane",
+          "way_id": "way_woods_to_halloway",
+          "cardinal": "north",
+          "return_dir": "woods edge",
+          "description": "A gravel lane winding out of the trees to the farmhouse.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "A tidy farmhouse glowing faintly through the pines.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        },
+        "collapsed driveway": {
+          "target": "Parr House",
+          "state": "open",
+          "label": "collapsed driveway",
+          "way_id": "way_woods_to_parr",
+          "cardinal": "north",
+          "return_dir": "tree line",
+          "description": "A crushed, weed-choked driveway leading to the wrecked Parr house.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "A blackened house shell with its front wall torn open.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        }
+      },
+      "items": [],
+      "properties": {
+        "description": "A dense tract of old forest hugging the edge of town. The canopy swallows the morning light into dim green gloom. The ground is soft with pine needles; a wrong step could vanish a person for hours. It feels watched.",
+        "environment": {
+          "light": "normal",
+          "temperature": 19,
+          "air": "fresh",
+          "smell": "pine, soil and rot",
+          "noise": "wind high in the trees and the occasional bird"
+        },
+        "floor": 0
+      }
+    },
+    "The Old Steel Mill": {
+      "name": "The Old Steel Mill",
+      "description": "A rusting foundry skeleton looming over the woods. Massive girders frame a broken floor of corroded steel. Dust motes drift in shafts of light through collapsed roof panels. A wide, boarded cargo hatch leads down into the basement shaft.",
+      "environment": {
+        "light": "normal",
+        "temperature": 14,
+        "air": "stale",
+        "smell": "rust and machine oil",
+        "noise": "dripping water and the groan of settling metal"
+      },
+      "floor": 0,
+      "light_description": "normal",
+      "ambient_light": 55,
+      "exits": {
+        "woods path": {
+          "target": "The Woods",
+          "state": "open",
+          "label": "woods path",
+          "way_id": "way_old_mill_front",
+          "cardinal": "south",
+          "return_dir": "rusted gate",
+          "description": "The fence line returns to the woods.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "The dense treeline of the woods.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        },
+        "cargo hatch": {
+          "target": "Steel Mill Deep Shaft",
+          "state": "open",
+          "label": "cargo hatch",
+          "way_id": "way_mill_shaft_hatch",
+          "cardinal": "down",
+          "return_dir": "shaft ladder",
+          "description": "A heavy bolted cargo hatch, ajar, with a ladder descending into darkness.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "A dark shaft dotted with the glow of a single worklamp.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        }
+      },
+      "items": [],
+      "properties": {
+        "description": "A rusting foundry skeleton looming over the woods. Massive girders frame a broken floor of corroded steel. Dust motes drift in shafts of light through collapsed roof panels. A wide, boarded cargo hatch leads down into the basement shaft.",
+        "environment": {
+          "light": "normal",
+          "temperature": 14,
+          "air": "stale",
+          "smell": "rust and machine oil",
+          "noise": "dripping water and the groan of settling metal"
+        },
+        "floor": 0
+      }
+    },
+    "Steel Mill Deep Shaft": {
+      "name": "Steel Mill Deep Shaft",
+      "description": "A flooded, pitch-dark concrete shaft beneath the mill. Half-submerged cables coil like snakes on the floor. A colossal circular scorch mark carpets the ceiling - a railgun impact - and shattered glass vials litter workbenches that were never meant for a foundry.",
+      "environment": {
+        "light": "dim",
+        "temperature": 9,
+        "air": "damp",
+        "smell": "cold water, burnt metal and antiseptic",
+        "noise": "dripping echoes and a low electric hum"
+      },
+      "floor": -1,
+      "light_description": "dim",
+      "ambient_light": 55,
+      "exits": {
+        "shaft ladder": {
+          "target": "The Old Steel Mill",
+          "state": "open",
+          "label": "shaft ladder",
+          "way_id": "way_mill_shaft_hatch",
+          "cardinal": "up",
+          "return_dir": "cargo hatch",
+          "description": "An iron ladder climbs back up into the mill.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "The dusty floor of the old foundry.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        }
+      },
+      "items": [],
+      "properties": {
+        "description": "A flooded, pitch-dark concrete shaft beneath the mill. Half-submerged cables coil like snakes on the floor. A colossal circular scorch mark carpets the ceiling - a railgun impact - and shattered glass vials litter workbenches that were never meant for a foundry.",
+        "environment": {
+          "light": "dim",
+          "temperature": 9,
+          "air": "damp",
+          "smell": "cold water, burnt metal and antiseptic",
+          "noise": "dripping echoes and a low electric hum"
+        },
+        "floor": -1
+      }
+    },
+    "Halloway House": {
+      "name": "Halloway House",
+      "description": "A modest farmhouse at the end of a gravel lane off the woods. It is tidy and lived-in, with creaking floorboards and the smell of coffee. The Halloway family tries hard to look ordinary, and just as hard to hide that nothing about them is.",
+      "environment": {
+        "light": "bright",
+        "temperature": 21,
+        "air": "fresh",
+        "smell": "coffee and woodsmoke",
+        "noise": "a radio murmuring somewhere inside"
+      },
+      "floor": 0,
+      "light_description": "bright",
+      "ambient_light": 55,
+      "exits": {
+        "woods edge": {
+          "target": "The Woods",
+          "state": "open",
+          "label": "woods edge",
+          "way_id": "way_woods_to_halloway",
+          "cardinal": "south",
+          "return_dir": "gravel lane",
+          "description": "The lane fades into the dark treeline.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "The dense gloom of the woods.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        },
+        "parr road": {
+          "target": "Parr House",
+          "state": "open",
+          "label": "parr road",
+          "way_id": "way_parr_to_halloway",
+          "cardinal": "west",
+          "return_dir": "crestwood lane",
+          "description": "The lane heads back toward the Parr ruin.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "The scorched wreck of the Parr house behind you.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        }
+      },
+      "items": [],
+      "properties": {
+        "description": "A modest farmhouse at the end of a gravel lane off the woods. It is tidy and lived-in, with creaking floorboards and the smell of coffee. The Halloway family tries hard to look ordinary, and just as hard to hide that nothing about them is.",
+        "environment": {
+          "light": "bright",
+          "temperature": 21,
+          "air": "fresh",
+          "smell": "coffee and woodsmoke",
+          "noise": "a radio murmuring somewhere inside"
+        },
+        "floor": 0
+      }
+    },
+    "Parr House": {
+      "name": "Parr House",
+      "description": "The Parr house sits at the end of a collapsed driveway, its front wall torn open like a wound. Glass crunches underfoot across the ruined porch. Embers still smolder in the husk of the living room. This is what a super-powered firefight leaves behind.",
+      "environment": {
+        "light": "normal",
+        "temperature": 16,
+        "air": "smoky",
+        "smell": "char, melted plastic and ozone",
+        "noise": "creaking beams and settling rubble"
+      },
+      "floor": 0,
+      "light_description": "normal",
+      "ambient_light": 55,
+      "exits": {
+        "tree line": {
+          "target": "The Woods",
+          "state": "open",
+          "label": "tree line",
+          "way_id": "way_woods_to_parr",
+          "cardinal": "south",
+          "return_dir": "collapsed driveway",
+          "description": "The driveway ends where the thick trees begin.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "The woods pressing in from every side.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        },
+        "crestwood lane": {
+          "target": "Halloway House",
+          "state": "open",
+          "label": "crestwood lane",
+          "way_id": "way_parr_to_halloway",
+          "cardinal": "east",
+          "return_dir": "parr road",
+          "description": "A cracked asphalt lane linking the two families' properties.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "A neat farmhouse visible through the trees down the lane.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        }
+      },
+      "items": [],
+      "properties": {
+        "description": "The Parr house sits at the end of a collapsed driveway, its front wall torn open like a wound. Glass crunches underfoot across the ruined porch. Embers still smolder in the husk of the living room. This is what a super-powered firefight leaves behind.",
+        "environment": {
+          "light": "normal",
+          "temperature": 16,
+          "air": "smoky",
+          "smell": "char, melted plastic and ozone",
+          "noise": "creaking beams and settling rubble"
+        },
+        "floor": 0
+      }
+    }
+  },
+  "areas": {
+    "Chemistry Classroom": {
+      "name": "Chemistry Classroom",
+      "description": "A slightly cramped chemistry classroom at Millwood Public Schools. Old posters about chemical reactions cover the walls, several lab benches are scarred from years of student experiments, and the fluorescent lights hum overhead. At one of the nearby desks Violet Parr quietly organizes her things while trying not to draw attention to herself, and Jake Halloway lingers by a window bench, stealing glances her way.",
+      "environment": {
+        "light": "bright",
+        "temperature": 21,
+        "air": "fresh",
+        "smell": "chemical",
+        "noise": "students talking and chairs scraping the floor"
+      },
+      "floor": 0,
+      "light_description": "bright",
+      "ambient_light": 55,
+      "exits": {
+        "classroom door": {
+          "target": "School Hallway",
+          "state": "open",
+          "label": "classroom door",
+          "way_id": "way_chem_class_door",
+          "cardinal": "east",
+          "return_dir": "chem wing door",
+          "description": "An open doorway into the chemistry wing.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "The busy school hallway shimmers under humming fluorescents.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        }
+      },
+      "items": [],
+      "properties": {
+        "description": "A slightly cramped chemistry classroom at Millwood Public Schools. Old posters about chemical reactions cover the walls, several lab benches are scarred from years of student experiments, and the fluorescent lights hum overhead. At one of the nearby desks Violet Parr quietly organizes her things while trying not to draw attention to herself, and Jake Halloway lingers by a window bench, stealing glances her way.",
+        "environment": {
+          "light": "bright",
+          "temperature": 21,
+          "air": "fresh",
+          "smell": "chemical",
+          "noise": "students talking and chairs scraping the floor"
+        },
+        "floor": 0
+      }
+    },
+    "School Hallway": {
+      "name": "School Hallway",
+      "description": "A long hallway running through Millwood Public Schools. Lockers line both walls, decorated with stickers, scratches and the occasional badly drawn piece of graffiti. Students move between classrooms while teachers attempt to maintain some semblance of order.",
+      "environment": {
+        "light": "bright",
+        "temperature": 21,
+        "air": "fresh",
+        "smell": "cleaning chemicals and old books",
+        "noise": "loud student chatter"
+      },
+      "floor": 0,
+      "light_description": "bright",
+      "ambient_light": 55,
+      "exits": {
+        "chem wing door": {
+          "target": "Chemistry Classroom",
+          "state": "open",
+          "label": "chem wing door",
+          "way_id": "way_chem_class_door",
+          "cardinal": "west",
+          "return_dir": "classroom door",
+          "description": "An open doorway into the chemistry room.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "A cramped lab room with benches and chemical posters.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        },
+        "front doors": {
+          "target": "School Entrance",
+          "state": "open",
+          "label": "front doors",
+          "way_id": "way_hallway_front_door",
+          "cardinal": "west",
+          "return_dir": "hallway",
+          "description": "A pair of glass double doors to the main entrance.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "Bright glass doors opening onto the school entrance hall.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        }
+      },
+      "items": [],
+      "properties": {
+        "description": "A long hallway running through Millwood Public Schools. Lockers line both walls, decorated with stickers, scratches and the occasional badly drawn piece of graffiti. Students move between classrooms while teachers attempt to maintain some semblance of order.",
+        "environment": {
+          "light": "bright",
+          "temperature": 21,
+          "air": "fresh",
+          "smell": "cleaning chemicals and old books",
+          "noise": "loud student chatter"
+        },
+        "floor": 0
+      }
+    },
+    "School Entrance": {
+      "name": "School Entrance",
+      "description": "The main entrance to Millwood Public Schools. Large glass doors open toward the parking lot and the road beyond. A faded school banner hangs above the reception desk.",
+      "environment": {
+        "light": "bright",
+        "temperature": 20,
+        "air": "fresh",
+        "smell": "cleaning chemicals",
+        "noise": "students arriving and doors opening"
+      },
+      "floor": 0,
+      "light_description": "bright",
+      "ambient_light": 55,
+      "exits": {
+        "hallway": {
+          "target": "School Hallway",
+          "state": "open",
+          "label": "hallway",
+          "way_id": "way_hallway_front_door",
+          "cardinal": "east",
+          "return_dir": "front doors",
+          "description": "The long school hallway leads back inside.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "The corridor of lockers stretches into the school.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        },
+        "outer doors": {
+          "target": "School Parking Lot",
+          "state": "open",
+          "label": "outer doors",
+          "way_id": "way_entrance_outer_door",
+          "cardinal": "west",
+          "return_dir": "entrance",
+          "description": "The heavy glass doors exiting to the parking lot.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "A wide asphalt lot dotted with cars, a charred bus against the fence.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        }
+      },
+      "items": [],
+      "properties": {
+        "description": "The main entrance to Millwood Public Schools. Large glass doors open toward the parking lot and the road beyond. A faded school banner hangs above the reception desk.",
+        "environment": {
+          "light": "bright",
+          "temperature": 20,
+          "air": "fresh",
+          "smell": "cleaning chemicals",
+          "noise": "students arriving and doors opening"
+        },
+        "floor": 0
+      }
+    },
+    "School Parking Lot": {
+      "name": "School Parking Lot",
+      "description": "A broad asphalt parking lot outside Millwood Public Schools. Cars fill the marked spaces; beyond, Oklahoma stretches away under the morning sun. Near the fence, a charred school bus sits abandoned, scorched black from top to bottom.",
+      "environment": {
+        "light": "bright",
+        "temperature": 23,
+        "air": "fresh",
+        "smell": "warm asphalt, gasoline and faint smoke",
+        "noise": "cars arriving and distant traffic"
+      },
+      "floor": 0,
+      "light_description": "bright",
+      "ambient_light": 55,
+      "exits": {
+        "entrance": {
+          "target": "School Entrance",
+          "state": "open",
+          "label": "entrance",
+          "way_id": "way_entrance_outer_door",
+          "cardinal": "east",
+          "return_dir": "outer doors",
+          "description": "The glass doors back into the school.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "The school lobby with its faded banner.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        },
+        "old hiking trail": {
+          "target": "The Woods",
+          "state": "open",
+          "label": "old hiking trail",
+          "way_id": "way_woods_trail_school",
+          "cardinal": "north",
+          "return_dir": "school yard",
+          "description": "A worn gap in the tree line behind the fence.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "Dark trees swallowing the path into dim green gloom.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        }
+      },
+      "items": [],
+      "properties": {
+        "description": "A broad asphalt parking lot outside Millwood Public Schools. Cars fill the marked spaces; beyond, Oklahoma stretches away under the morning sun. Near the fence, a charred school bus sits abandoned, scorched black from top to bottom.",
+        "environment": {
+          "light": "bright",
+          "temperature": 23,
+          "air": "fresh",
+          "smell": "warm asphalt, gasoline and faint smoke",
+          "noise": "cars arriving and distant traffic"
+        },
+        "floor": 0
+      }
+    },
+    "The Woods": {
+      "name": "The Woods",
+      "description": "A dense tract of old forest hugging the edge of town. The canopy swallows the morning light into dim green gloom. The ground is soft with pine needles; a wrong step could vanish a person for hours. It feels watched.",
+      "environment": {
+        "light": "normal",
+        "temperature": 19,
+        "air": "fresh",
+        "smell": "pine, soil and rot",
+        "noise": "wind high in the trees and the occasional bird"
+      },
+      "floor": 0,
+      "light_description": "normal",
+      "ambient_light": 55,
+      "exits": {
+        "school yard": {
+          "target": "School Parking Lot",
+          "state": "open",
+          "label": "school yard",
+          "way_id": "way_woods_trail_school",
+          "cardinal": "south",
+          "return_dir": "old hiking trail",
+          "description": "The tree line gives way to the school lot.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "The parking lot and school building beyond.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        },
+        "rusted gate": {
+          "target": "The Old Steel Mill",
+          "state": "open",
+          "label": "rusted gate",
+          "way_id": "way_old_mill_front",
+          "cardinal": "north",
+          "return_dir": "woods path",
+          "description": "A sagging chain-link gate in the mill's rusted fence.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "A towering rusted foundry skeleton under grey light.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        },
+        "gravel lane": {
+          "target": "Halloway House",
+          "state": "open",
+          "label": "gravel lane",
+          "way_id": "way_woods_to_halloway",
+          "cardinal": "north",
+          "return_dir": "woods edge",
+          "description": "A gravel lane winding out of the trees to the farmhouse.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "A tidy farmhouse glowing faintly through the pines.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        },
+        "collapsed driveway": {
+          "target": "Parr House",
+          "state": "open",
+          "label": "collapsed driveway",
+          "way_id": "way_woods_to_parr",
+          "cardinal": "north",
+          "return_dir": "tree line",
+          "description": "A crushed, weed-choked driveway leading to the wrecked Parr house.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "A blackened house shell with its front wall torn open.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        }
+      },
+      "items": [],
+      "properties": {
+        "description": "A dense tract of old forest hugging the edge of town. The canopy swallows the morning light into dim green gloom. The ground is soft with pine needles; a wrong step could vanish a person for hours. It feels watched.",
+        "environment": {
+          "light": "normal",
+          "temperature": 19,
+          "air": "fresh",
+          "smell": "pine, soil and rot",
+          "noise": "wind high in the trees and the occasional bird"
+        },
+        "floor": 0
+      }
+    },
+    "The Old Steel Mill": {
+      "name": "The Old Steel Mill",
+      "description": "A rusting foundry skeleton looming over the woods. Massive girders frame a broken floor of corroded steel. Dust motes drift in shafts of light through collapsed roof panels. A wide, boarded cargo hatch leads down into the basement shaft.",
+      "environment": {
+        "light": "normal",
+        "temperature": 14,
+        "air": "stale",
+        "smell": "rust and machine oil",
+        "noise": "dripping water and the groan of settling metal"
+      },
+      "floor": 0,
+      "light_description": "normal",
+      "ambient_light": 55,
+      "exits": {
+        "woods path": {
+          "target": "The Woods",
+          "state": "open",
+          "label": "woods path",
+          "way_id": "way_old_mill_front",
+          "cardinal": "south",
+          "return_dir": "rusted gate",
+          "description": "The fence line returns to the woods.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "The dense treeline of the woods.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        },
+        "cargo hatch": {
+          "target": "Steel Mill Deep Shaft",
+          "state": "open",
+          "label": "cargo hatch",
+          "way_id": "way_mill_shaft_hatch",
+          "cardinal": "down",
+          "return_dir": "shaft ladder",
+          "description": "A heavy bolted cargo hatch, ajar, with a ladder descending into darkness.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "A dark shaft dotted with the glow of a single worklamp.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        }
+      },
+      "items": [],
+      "properties": {
+        "description": "A rusting foundry skeleton looming over the woods. Massive girders frame a broken floor of corroded steel. Dust motes drift in shafts of light through collapsed roof panels. A wide, boarded cargo hatch leads down into the basement shaft.",
+        "environment": {
+          "light": "normal",
+          "temperature": 14,
+          "air": "stale",
+          "smell": "rust and machine oil",
+          "noise": "dripping water and the groan of settling metal"
+        },
+        "floor": 0
+      }
+    },
+    "Steel Mill Deep Shaft": {
+      "name": "Steel Mill Deep Shaft",
+      "description": "A flooded, pitch-dark concrete shaft beneath the mill. Half-submerged cables coil like snakes on the floor. A colossal circular scorch mark carpets the ceiling - a railgun impact - and shattered glass vials litter workbenches that were never meant for a foundry.",
+      "environment": {
+        "light": "dim",
+        "temperature": 9,
+        "air": "damp",
+        "smell": "cold water, burnt metal and antiseptic",
+        "noise": "dripping echoes and a low electric hum"
+      },
+      "floor": -1,
+      "light_description": "dim",
+      "ambient_light": 55,
+      "exits": {
+        "shaft ladder": {
+          "target": "The Old Steel Mill",
+          "state": "open",
+          "label": "shaft ladder",
+          "way_id": "way_mill_shaft_hatch",
+          "cardinal": "up",
+          "return_dir": "cargo hatch",
+          "description": "An iron ladder climbs back up into the mill.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "The dusty floor of the old foundry.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        }
+      },
+      "items": [],
+      "properties": {
+        "description": "A flooded, pitch-dark concrete shaft beneath the mill. Half-submerged cables coil like snakes on the floor. A colossal circular scorch mark carpets the ceiling - a railgun impact - and shattered glass vials litter workbenches that were never meant for a foundry.",
+        "environment": {
+          "light": "dim",
+          "temperature": 9,
+          "air": "damp",
+          "smell": "cold water, burnt metal and antiseptic",
+          "noise": "dripping echoes and a low electric hum"
+        },
+        "floor": -1
+      }
+    },
+    "Halloway House": {
+      "name": "Halloway House",
+      "description": "A modest farmhouse at the end of a gravel lane off the woods. It is tidy and lived-in, with creaking floorboards and the smell of coffee. The Halloway family tries hard to look ordinary, and just as hard to hide that nothing about them is.",
+      "environment": {
+        "light": "bright",
+        "temperature": 21,
+        "air": "fresh",
+        "smell": "coffee and woodsmoke",
+        "noise": "a radio murmuring somewhere inside"
+      },
+      "floor": 0,
+      "light_description": "bright",
+      "ambient_light": 55,
+      "exits": {
+        "woods edge": {
+          "target": "The Woods",
+          "state": "open",
+          "label": "woods edge",
+          "way_id": "way_woods_to_halloway",
+          "cardinal": "south",
+          "return_dir": "gravel lane",
+          "description": "The lane fades into the dark treeline.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "The dense gloom of the woods.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        },
+        "parr road": {
+          "target": "Parr House",
+          "state": "open",
+          "label": "parr road",
+          "way_id": "way_parr_to_halloway",
+          "cardinal": "west",
+          "return_dir": "crestwood lane",
+          "description": "The lane heads back toward the Parr ruin.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "The scorched wreck of the Parr house behind you.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        }
+      },
+      "items": [],
+      "properties": {
+        "description": "A modest farmhouse at the end of a gravel lane off the woods. It is tidy and lived-in, with creaking floorboards and the smell of coffee. The Halloway family tries hard to look ordinary, and just as hard to hide that nothing about them is.",
+        "environment": {
+          "light": "bright",
+          "temperature": 21,
+          "air": "fresh",
+          "smell": "coffee and woodsmoke",
+          "noise": "a radio murmuring somewhere inside"
+        },
+        "floor": 0
+      }
+    },
+    "Parr House": {
+      "name": "Parr House",
+      "description": "The Parr house sits at the end of a collapsed driveway, its front wall torn open like a wound. Glass crunches underfoot across the ruined porch. Embers still smolder in the husk of the living room. This is what a super-powered firefight leaves behind.",
+      "environment": {
+        "light": "normal",
+        "temperature": 16,
+        "air": "smoky",
+        "smell": "char, melted plastic and ozone",
+        "noise": "creaking beams and settling rubble"
+      },
+      "floor": 0,
+      "light_description": "normal",
+      "ambient_light": 55,
+      "exits": {
+        "tree line": {
+          "target": "The Woods",
+          "state": "open",
+          "label": "tree line",
+          "way_id": "way_woods_to_parr",
+          "cardinal": "south",
+          "return_dir": "collapsed driveway",
+          "description": "The driveway ends where the thick trees begin.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "The woods pressing in from every side.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        },
+        "crestwood lane": {
+          "target": "Halloway House",
+          "state": "open",
+          "label": "crestwood lane",
+          "way_id": "way_parr_to_halloway",
+          "cardinal": "east",
+          "return_dir": "parr road",
+          "description": "A cracked asphalt lane linking the two families' properties.",
+          "cost": {},
+          "hidden": false,
+          "visible_in_direction": "A neat farmhouse visible through the trees down the lane.",
+          "allow_see_characters": true,
+          "pass_message": "",
+          "visible_items": []
+        }
+      },
+      "items": [],
+      "properties": {
+        "description": "The Parr house sits at the end of a collapsed driveway, its front wall torn open like a wound. Glass crunches underfoot across the ruined porch. Embers still smolder in the husk of the living room. This is what a super-powered firefight leaves behind.",
+        "environment": {
+          "light": "normal",
+          "temperature": 16,
+          "air": "smoky",
+          "smell": "char, melted plastic and ozone",
+          "noise": "creaking beams and settling rubble"
+        },
+        "floor": 0
+      }
+    }
+  },
+  "ways": {},
+  "graph": {
+    "nodes": {
+      "area_chemistry_classroom": {
+        "id": "area_chemistry_classroom",
+        "type": "area",
+        "name": "Chemistry Classroom",
+        "properties": {
+          "description": "A slightly cramped chemistry classroom at Millwood Public Schools. Old posters about chemical reactions cover the walls, several lab benches are scarred from years of student experiments, and the fluorescent lights hum overhead. At one of the nearby desks Violet Parr quietly organizes her things while trying not to draw attention to herself, and Jake Halloway lingers by a window bench, stealing glances her way.",
+          "environment": {
+            "light": "bright",
+            "temperature": 21,
+            "air": "fresh",
+            "smell": "chemical",
+            "noise": "students talking and chairs scraping the floor"
+          },
+          "floor": 0,
+          "tags": [
+            "interior",
+            "school"
+          ],
+          "central_gravity_enabled": false
+        }
+      },
+      "area_school_hallway": {
+        "id": "area_school_hallway",
+        "type": "area",
+        "name": "School Hallway",
+        "properties": {
+          "description": "A long hallway running through Millwood Public Schools. Lockers line both walls, decorated with stickers, scratches and the occasional badly drawn piece of graffiti. Students move between classrooms while teachers attempt to maintain some semblance of order.",
+          "environment": {
+            "light": "bright",
+            "temperature": 21,
+            "air": "fresh",
+            "smell": "cleaning chemicals and old books",
+            "noise": "loud student chatter"
+          },
+          "floor": 0,
+          "tags": [
+            "interior",
+            "school"
+          ],
+          "central_gravity_enabled": false
+        }
+      },
+      "area_school_entrance": {
+        "id": "area_school_entrance",
+        "type": "area",
+        "name": "School Entrance",
+        "properties": {
+          "description": "The main entrance to Millwood Public Schools. Large glass doors open toward the parking lot and the road beyond. A faded school banner hangs above the reception desk.",
+          "environment": {
+            "light": "bright",
+            "temperature": 20,
+            "air": "fresh",
+            "smell": "cleaning chemicals",
+            "noise": "students arriving and doors opening"
+          },
+          "floor": 0,
+          "tags": [
+            "interior",
+            "school"
+          ],
+          "central_gravity_enabled": false
+        }
+      },
+      "area_school_parking_lot": {
+        "id": "area_school_parking_lot",
+        "type": "area",
+        "name": "School Parking Lot",
+        "properties": {
+          "description": "A broad asphalt parking lot outside Millwood Public Schools. Cars fill the marked spaces; beyond, Oklahoma stretches away under the morning sun. Near the fence, a charred school bus sits abandoned, scorched black from top to bottom.",
+          "environment": {
+            "light": "bright",
+            "temperature": 23,
+            "air": "fresh",
+            "smell": "warm asphalt, gasoline and faint smoke",
+            "noise": "cars arriving and distant traffic"
+          },
+          "floor": 0,
+          "tags": [
+            "exterior",
+            "school"
+          ],
+          "central_gravity_enabled": false
+        }
+      },
+      "area_the_woods": {
+        "id": "area_the_woods",
+        "type": "area",
+        "name": "The Woods",
+        "properties": {
+          "description": "A dense tract of old forest hugging the edge of town. The canopy swallows the morning light into dim green gloom. The ground is soft with pine needles; a wrong step could vanish a person for hours. It feels watched.",
+          "environment": {
+            "light": "normal",
+            "temperature": 19,
+            "air": "fresh",
+            "smell": "pine, soil and rot",
+            "noise": "wind high in the trees and the occasional bird"
+          },
+          "floor": 0,
+          "tags": [
+            "exterior",
+            "forest"
+          ],
+          "central_gravity_enabled": false
+        }
+      },
+      "area_old_steel_mill": {
+        "id": "area_old_steel_mill",
+        "type": "area",
+        "name": "The Old Steel Mill",
+        "properties": {
+          "description": "A rusting foundry skeleton looming over the woods. Massive girders frame a broken floor of corroded steel. Dust motes drift in shafts of light through collapsed roof panels. A wide, boarded cargo hatch leads down into the basement shaft.",
+          "environment": {
+            "light": "normal",
+            "temperature": 14,
+            "air": "stale",
+            "smell": "rust and machine oil",
+            "noise": "dripping water and the groan of settling metal"
+          },
+          "floor": 0,
+          "tags": [
+            "exterior",
+            "industrial"
+          ],
+          "central_gravity_enabled": false
+        }
+      },
+      "area_steel_mill_deep_shaft": {
+        "id": "area_steel_mill_deep_shaft",
+        "type": "area",
+        "name": "Steel Mill Deep Shaft",
+        "properties": {
+          "description": "A flooded, pitch-dark concrete shaft beneath the mill. Half-submerged cables coil like snakes on the floor. A colossal circular scorch mark carpets the ceiling - a railgun impact - and shattered glass vials litter workbenches that were never meant for a foundry.",
+          "environment": {
+            "light": "dim",
+            "temperature": 9,
+            "air": "damp",
+            "smell": "cold water, burnt metal and antiseptic",
+            "noise": "dripping echoes and a low electric hum"
+          },
+          "floor": -1,
+          "tags": [
+            "interior",
+            "industrial"
+          ],
+          "central_gravity_enabled": false
+        }
+      },
+      "area_halloway_house": {
+        "id": "area_halloway_house",
+        "type": "area",
+        "name": "Halloway House",
+        "properties": {
+          "description": "A modest farmhouse at the end of a gravel lane off the woods. It is tidy and lived-in, with creaking floorboards and the smell of coffee. The Halloway family tries hard to look ordinary, and just as hard to hide that nothing about them is.",
+          "environment": {
+            "light": "bright",
+            "temperature": 21,
+            "air": "fresh",
+            "smell": "coffee and woodsmoke",
+            "noise": "a radio murmuring somewhere inside"
+          },
+          "floor": 0,
+          "tags": [
+            "interior",
+            "home"
+          ],
+          "central_gravity_enabled": false
+        }
+      },
+      "area_parr_house": {
+        "id": "area_parr_house",
+        "type": "area",
+        "name": "Parr House",
+        "properties": {
+          "description": "The Parr house sits at the end of a collapsed driveway, its front wall torn open like a wound. Glass crunches underfoot across the ruined porch. Embers still smolder in the husk of the living room. This is what a super-powered firefight leaves behind.",
+          "environment": {
+            "light": "normal",
+            "temperature": 16,
+            "air": "smoky",
+            "smell": "char, melted plastic and ozone",
+            "noise": "creaking beams and settling rubble"
+          },
+          "floor": 0,
+          "tags": [
+            "exterior",
+            "home"
+          ],
+          "central_gravity_enabled": false
+        }
+      },
+      "way_chem_class_door": {
+        "id": "way_chem_class_door",
+        "type": "way",
+        "name": "chem wing door",
+        "properties": {
+          "area_from": "Chemistry Classroom",
+          "area_to": "School Hallway",
+          "cost": {},
+          "current_state": "open",
+          "description": "An open doorway into the chemistry wing."
+        }
+      },
+      "way_hallway_front_door": {
+        "id": "way_hallway_front_door",
+        "type": "way",
+        "name": "hallway",
+        "properties": {
+          "area_from": "School Hallway",
+          "area_to": "School Entrance",
+          "cost": {},
+          "current_state": "open",
+          "description": "A pair of glass double doors to the main entrance."
+        }
+      },
+      "way_entrance_outer_door": {
+        "id": "way_entrance_outer_door",
+        "type": "way",
+        "name": "entrance",
+        "properties": {
+          "area_from": "School Entrance",
+          "area_to": "School Parking Lot",
+          "cost": {},
+          "current_state": "open",
+          "description": "The heavy glass doors exiting to the parking lot."
+        }
+      },
+      "way_woods_trail_school": {
+        "id": "way_woods_trail_school",
+        "type": "way",
+        "name": "school yard",
+        "properties": {
+          "area_from": "School Parking Lot",
+          "area_to": "The Woods",
+          "cost": {},
+          "current_state": "open",
+          "description": "A worn gap in the tree line behind the fence."
+        }
+      },
+      "way_old_mill_front": {
+        "id": "way_old_mill_front",
+        "type": "way",
+        "name": "woods path",
+        "properties": {
+          "area_from": "The Woods",
+          "area_to": "The Old Steel Mill",
+          "cost": {},
+          "current_state": "open",
+          "description": "A sagging chain-link gate in the mill's rusted fence."
+        }
+      },
+      "way_mill_shaft_hatch": {
+        "id": "way_mill_shaft_hatch",
+        "type": "way",
+        "name": "shaft ladder",
+        "properties": {
+          "area_from": "The Old Steel Mill",
+          "area_to": "Steel Mill Deep Shaft",
+          "cost": {},
+          "current_state": "open",
+          "description": "A heavy bolted cargo hatch, ajar, with a ladder descending into darkness."
+        }
+      },
+      "way_woods_to_halloway": {
+        "id": "way_woods_to_halloway",
+        "type": "way",
+        "name": "woods edge",
+        "properties": {
+          "area_from": "The Woods",
+          "area_to": "Halloway House",
+          "cost": {},
+          "current_state": "open",
+          "description": "A gravel lane winding out of the trees to the farmhouse."
+        }
+      },
+      "way_woods_to_parr": {
+        "id": "way_woods_to_parr",
+        "type": "way",
+        "name": "tree line",
+        "properties": {
+          "area_from": "The Woods",
+          "area_to": "Parr House",
+          "cost": {},
+          "current_state": "open",
+          "description": "A crushed, weed-choked driveway leading to the wrecked Parr house."
+        }
+      },
+      "way_parr_to_halloway": {
+        "id": "way_parr_to_halloway",
+        "type": "way",
+        "name": "parr road",
+        "properties": {
+          "area_from": "Parr House",
+          "area_to": "Halloway House",
+          "cost": {},
+          "current_state": "open",
+          "description": "A cracked asphalt lane linking the two families' properties."
+        }
+      },
+      "item_chemistry_lab_table": {
+        "id": "item_chemistry_lab_table",
+        "type": "item",
+        "name": "Chemistry Lab Table",
+        "properties": {
+          "actions": [
+            "examine"
+          ],
+          "current_state": "normal",
+          "description": "A scratched and stained lab table, a gathering spot where quiet secrets were shared.",
+          "hidden": false,
+          "uses": -1,
+          "weight": 12,
+          "tags": [
+            "furniture"
+          ]
+        }
+      },
+      "item_periodic_table_poster": {
+        "id": "item_periodic_table_poster",
+        "type": "item",
+        "name": "Periodic Table Poster",
+        "properties": {
+          "actions": [
+            "examine"
+          ],
+          "current_state": "normal",
+          "description": "A faded periodic table poster. In the margin, scrawled in faded blue ink, 'AM = >18 unlisted' with a tiny CHIMERA stamp.",
+          "hidden": false,
+          "uses": -1,
+          "weight": 0.2,
+          "tags": [
+            "wall"
+          ]
+        }
+      },
+      "item_chemistry_textbook": {
+        "id": "item_chemistry_textbook",
+        "type": "item",
+        "name": "Chemistry Textbook",
+        "properties": {
+          "actions": [
+            "read",
+            "take"
+          ],
+          "current_state": "normal",
+          "description": "A thick textbook. Someone underlined passages about electromagnetic fields and wrote 'they are always watching' along the spine.",
+          "hidden": false,
+          "uses": -1,
+          "weight": 1.1,
+          "tags": [
+            "book"
+          ]
+        }
+      },
+      "item_jakes_notebook": {
+        "id": "item_jakes_notebook",
+        "type": "item",
+        "name": "Jake's Notebook",
+        "properties": {
+          "actions": [
+            "read",
+            "examine",
+            "take"
+          ],
+          "current_state": "normal",
+          "description": "A charred spiral notebook. Notes on resonance frequencies, a torn-out diagram labelled 'EM-amp', and a list of numbers that look like coordinates.",
+          "hidden": false,
+          "uses": -1,
+          "weight": 0.4,
+          "tags": [
+            "book",
+            "evidence"
+          ]
+        }
+      },
+      "item_school_notice_board": {
+        "id": "item_school_notice_board",
+        "type": "item",
+        "name": "School Notice Board",
+        "properties": {
+          "actions": [
+            "read"
+          ],
+          "current_state": "normal",
+          "description": "A corkboard of flyers: bake sales, a missing cat, and a faded announcement about a 'school safety drill' two weeks ago that nobody quite remembers.",
+          "hidden": false,
+          "uses": -1,
+          "weight": 3,
+          "tags": [
+            "wall"
+          ]
+        }
+      },
+      "item_lost_backpack": {
+        "id": "item_lost_backpack",
+        "type": "item",
+        "name": "Lost Backpack",
+        "properties": {
+          "actions": [
+            "examine"
+          ],
+          "current_state": "normal",
+          "description": "An abandoned backpack on a bench, zipper open, spilling a P.E. shirt.",
+          "hidden": false,
+          "uses": -1,
+          "weight": 1.5
+        }
+      },
+      "item_entrance_roster": {
+        "id": "item_entrance_roster",
+        "type": "item",
+        "name": "Visitor Roster",
+        "properties": {
+          "actions": [
+            "read"
+          ],
+          "current_state": "normal",
+          "description": "A front-desk visitor roster. Today's column is blank except for a single smudged entry: '6:45am - field inspection, CHIMERA dept.'",
+          "hidden": false,
+          "uses": -1,
+          "weight": 0.3,
+          "tags": [
+            "paper"
+          ]
+        }
+      },
+      "item_burned_out_bus": {
+        "id": "item_burned_out_bus",
+        "type": "item",
+        "name": "Burned-Out School Bus",
+        "properties": {
+          "actions": [
+            "examine"
+          ],
+          "current_state": "normal",
+          "description": "The district's old #14 bus sits scorched black, windows blown, metal fused. The smell of ozone clings to it, months old but stubborn.",
+          "hidden": false,
+          "uses": -1,
+          "weight": 2000,
+          "tags": [
+            "vehicle",
+            "wreck"
+          ]
+        }
+      },
+      "item_amalgam_residue": {
+        "id": "item_amalgam_residue",
+        "type": "item",
+        "name": "Black Amalgam Residue",
+        "properties": {
+          "actions": [
+            "examine"
+          ],
+          "current_state": "normal",
+          "description": "A puddle of oily black substance that ripples ever so slightly out of sync with the wind. Cold to within an inch of your hand, and it burns in the shape of a handprint.",
+          "hidden": false,
+          "uses": -1,
+          "weight": 0.8
+        }
+      },
+      "item_brutus_collar": {
+        "id": "item_brutus_collar",
+        "type": "item",
+        "name": "Brutus's Collar",
+        "properties": {
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "current_state": "normal",
+          "description": "A heavy leather collar, snapped clean through. The brass tag reads 'BRUTUS - do not approach'. It smells of burnt hair.",
+          "hidden": false,
+          "uses": -1,
+          "weight": 0.3,
+          "tags": [
+            "evidence"
+          ]
+        }
+      },
+      "item_rusted_machinery": {
+        "id": "item_rusted_machinery",
+        "type": "item",
+        "name": "Rusted Machinery",
+        "properties": {
+          "actions": [
+            "examine"
+          ],
+          "current_state": "normal",
+          "description": "A gutted conveyor belt and hopper, long dead. Motion sensor casings are bolted to the frame, far too modern for a mill.",
+          "hidden": false,
+          "uses": -1,
+          "weight": 40,
+          "tags": [
+            "machine"
+          ]
+        }
+      },
+      "item_metal_scraps": {
+        "id": "item_metal_scraps",
+        "type": "item",
+        "name": "Magnetic Scrap Pile",
+        "properties": {
+          "actions": [
+            "take",
+            "examine"
+          ],
+          "current_state": "normal",
+          "description": "A heap of scrap metal that subtly resists you as you reach near - as if it remembers being touched by a magnetic force.",
+          "hidden": false,
+          "uses": -1,
+          "weight": 6,
+          "tags": [
+            "metal"
+          ]
+        }
+      },
+      "item_first_aid_kit": {
+        "id": "item_first_aid_kit",
+        "type": "item",
+        "name": "First Aid Kit",
+        "properties": {
+          "actions": [
+            "use",
+            "take"
+          ],
+          "current_state": "normal",
+          "description": "A dented military first-aid kit, stamped 'FIELD INSP. - not for student use'. Contents are sealed and still fresh.",
+          "hidden": false,
+          "uses": -1,
+          "weight": 1.2,
+          "tags": [
+            "supply"
+          ]
+        }
+      },
+      "item_railgun_hole": {
+        "id": "item_railgun_hole",
+        "type": "item",
+        "name": "Railgun Impact Scar",
+        "properties": {
+          "actions": [
+            "examine"
+          ],
+          "current_state": "normal",
+          "description": "A three-metre circular scorch across the shaft ceiling, edges still jagged with molten metal drips. Something enormous and electrical was fired down here.",
+          "hidden": false,
+          "uses": -1,
+          "weight": 0.01
+        }
+      },
+      "item_shattered_vials": {
+        "id": "item_shattered_vials",
+        "type": "item",
+        "name": "Shattered Vials",
+        "properties": {
+          "actions": [
+            "examine"
+          ],
+          "current_state": "normal",
+          "description": "Rows of broken glass vials on a corroded workbench. Labels read 'Subject 07 § dose 0.2mL - rejection expected'. A clipboard lies crushed beneath them.",
+          "hidden": false,
+          "uses": -1,
+          "weight": 0.6,
+          "tags": [
+            "evidence",
+            "lab"
+          ]
+        }
+      },
+      "item_gov_mindwipe_file": {
+        "id": "item_gov_mindwipe_file",
+        "type": "item",
+        "name": "Project CHIMERA File",
+        "properties": {
+          "actions": [
+            "read",
+            "take",
+            "examine"
+          ],
+          "current_state": "normal",
+          "description": "A half-burned manila folder pulled from a black case under the desk. Pages describe forced mind-wipes on exposed supers, 'relocation' of families, and you and Violet by codename.",
+          "hidden": false,
+          "uses": -1,
+          "weight": 0.5,
+          "tags": [
+            "evidence",
+            "paper"
+          ]
+        }
+      },
+      "item_parr_family_photo": {
+        "id": "item_parr_family_photo",
+        "type": "item",
+        "name": "Parr Family Photo",
+        "properties": {
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "current_state": "normal",
+          "description": "A photo in a snapped frame, face-down in rubble. The Parrs grin at you from an earlier, intact living room.",
+          "hidden": false,
+          "uses": -1,
+          "weight": 0.2,
+          "tags": [
+            "photo"
+          ]
+        }
+      },
+      "item_amalgam_fragment": {
+        "id": "item_amalgam_fragment",
+        "type": "item",
+        "name": "Amalgam Fragment",
+        "properties": {
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "current_state": "normal",
+          "description": "A fist-sized shard of the black substance that tore this house apart. Held up, it hums almost inaudibly and seems to tilt toward the mills.",
+          "hidden": false,
+          "uses": -1,
+          "weight": 1.9
+        }
+      },
+      "trigger_jakes_notebook_on_read": {
+        "id": "trigger_jakes_notebook_on_read",
+        "type": "logic_trigger",
+        "name": "read → note",
+        "properties": {
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "The notebook hums with your hand? No - the pen marks on the spiral fringe shimmer faintly. Jake wrote numbers: 34.0001N, 96.5001W, circled, under 'THEY ARE WATCHING'. "
+              }
+            }
+          ],
+          "target_name": "",
+          "trigger_type": "on_read"
+        }
+      },
+      "trigger_poster_on_examine": {
+        "id": "trigger_poster_on_examine",
+        "type": "logic_trigger",
+        "name": "examine → CHIMERA note",
+        "properties": {
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "In the margin: 'AM = >18 unlisted', stamped with the tiny red word CHIMERA. Whatever element that is, it isn't on the table."
+              }
+            }
+          ],
+          "target_name": "",
+          "trigger_type": "on_examine"
+        }
+      },
+      "trigger_notice_on_read": {
+        "id": "trigger_notice_on_read",
+        "type": "logic_trigger",
+        "name": "read → drill",
+        "properties": {
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "The 'safety drill' flyer is dated two weeks ago. You don't remember a drill. Neither do the other students, if you ask."
+              }
+            }
+          ],
+          "target_name": "",
+          "trigger_type": "on_read"
+        }
+      },
+      "trigger_bus_on_examine": {
+        "id": "trigger_bus_on_examine",
+        "type": "logic_trigger",
+        "name": "examine → weld",
+        "properties": {
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "The bus roof is not burned - it is sheared and fused in a perfectly straight line. Whatever did this cut through steel and bus together without stopping."
+              }
+            }
+          ],
+          "target_name": "",
+          "trigger_type": "on_examine"
+        }
+      },
+      "trigger_residue_on_examine": {
+        "id": "trigger_residue_on_examine",
+        "type": "logic_trigger",
+        "name": "examine → residue",
+        "properties": {
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "The black puddle is cool, almost a living temperatureless. Pressed close, it beads into a faint handprint - and pulls itself back together as you lift your hand."
+              }
+            }
+          ],
+          "target_name": "",
+          "trigger_type": "on_examine"
+        }
+      },
+      "trigger_collar_on_examine": {
+        "id": "trigger_collar_on_examine",
+        "type": "logic_trigger",
+        "name": "examine → collar",
+        "properties": {
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "The collar snapped clean through under strain. The tag is scratched on the back, mid-word: 'conv':  'convertenlynnegr'."
+              }
+            }
+          ],
+          "target_name": "",
+          "trigger_type": "on_examine"
+        }
+      },
+      "trigger_rail_hole_on_examine": {
+        "id": "trigger_rail_hole_on_examine",
+        "type": "logic_trigger",
+        "name": "examine → reveal",
+        "properties": {
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You trace the railgun scar. Somewhere above, a magnetized pile of scrap shifts on its own, drawn to the impact point."
+              }
+            },
+            {
+              "type": "set_hidden",
+              "params": {
+                "node_id": "item_metal_scraps",
+                "hidden": false,
+                "message": "The scrap pile in the mill glints, drawn toward the blast point."
+              }
+            }
+          ],
+          "target_name": "",
+          "trigger_type": "on_examine"
+        }
+      },
+      "trigger_lab_vials_on_examine": {
+        "id": "trigger_lab_vials_on_examine",
+        "type": "logic_trigger",
+        "name": "examine → clipboard",
+        "properties": {
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "The crushed clipboard reads in fresh ink: 'Subject 07 - paramagnetic blood trace detected. Containment cell accepted (2). Disposal protocol: reject.'"
+              }
+            }
+          ],
+          "target_name": "",
+          "trigger_type": "on_examine"
+        }
+      },
+      "trigger_first_aid_on_use": {
+        "id": "trigger_first_aid_on_use",
+        "type": "logic_trigger",
+        "name": "use → heal",
+        "properties": {
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "type": "heal",
+              "params": {
+                "amount": 20,
+                "target": "player",
+                "stat": "HP",
+                "message": "You bind the wound with military-grade dressings. It actually closes."
+              }
+            }
+          ],
+          "target_name": "item_first_aid_kit",
+          "trigger_type": "on_use"
+        }
+      },
+      "trigger_mindwipe_on_read": {
+        "id": "trigger_mindwipe_on_read",
+        "type": "logic_trigger",
+        "name": "read → the truth",
+        "properties": {
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "'Protocol ERRASE-7: memory ablation of exposed individuals. Relocation incentive package approved. Families: Halloway, Parr. Custody: CHIMERA field inspection.' Your own town, black-listed as a containment zone."
+              }
+            }
+          ],
+          "target_name": "",
+          "trigger_type": "on_read"
+        }
+      },
+      "trigger_family_photo_on_examine": {
+        "id": "trigger_family_photo_on_examine",
+        "type": "logic_trigger",
+        "name": "examine → memory",
+        "properties": {
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "A wave of loss. This was a home before it was a crime scene. The people in the photo are gone - somewhere the government put them, or somewhere they fled."
+              }
+            }
+          ],
+          "target_name": "",
+          "trigger_type": "on_examine"
+        }
+      },
+      "trigger_amalgam_fragment_on_take": {
+        "id": "trigger_amalgam_fragment_on_take",
+        "type": "logic_trigger",
+        "name": "take → whisper",
+        "properties": {
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "The shard goes cold in your grip, and a low hum picks up at the edge of hearing - like a heartbeat from the mill. It wants to be put back."
+              }
+            }
+          ],
+          "target_name": "",
+          "trigger_type": "on_take"
+        }
+      },
+      "trigger_amalgam_fragment_on_examine": {
+        "id": "trigger_amalgam_fragment_on_examine",
+        "type": "logic_trigger",
+        "name": "examine → fragment",
+        "properties": {
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "The fragment pulses faintly, warmth racing up the palm it rests against. Scorch patterns along its surface match the railgun scar ceiling-for-ceiling."
+              }
+            }
+          ],
+          "target_name": "",
+          "trigger_type": "on_examine"
+        }
+      },
+      "player_jake_halloway": {
+        "id": "player_jake_halloway",
+        "type": "character",
+        "name": "Jake Halloway",
+        "properties": {
+          "personality": ""
+        }
+      },
+      "player_violet_parr": {
+        "id": "player_violet_parr",
+        "type": "character",
+        "name": "Violet Parr",
+        "properties": {
+          "personality": ""
+        }
+      },
+      "player_chelsea": {
+        "id": "player_chelsea",
+        "type": "character",
+        "name": "Chelsea",
+        "properties": {
+          "personality": ""
+        }
+      },
+      "player_maddie": {
+        "id": "player_maddie",
+        "type": "character",
+        "name": "Maddie",
+        "properties": {
+          "personality": ""
+        }
+      },
+      "player_vi_halloway": {
+        "id": "player_vi_halloway",
+        "type": "character",
+        "name": "Vi Halloway",
+        "properties": {
+          "personality": ""
+        }
+      },
+      "player_erin_halloway": {
+        "id": "player_erin_halloway",
+        "type": "character",
+        "name": "Erin Halloway",
+        "properties": {
+          "personality": ""
+        }
+      },
+      "player_leah_halloway": {
+        "id": "player_leah_halloway",
+        "type": "character",
+        "name": "Leah Halloway",
+        "properties": {
+          "personality": ""
+        }
+      },
+      "player_marcus_halloway": {
+        "id": "player_marcus_halloway",
+        "type": "character",
+        "name": "Marcus Halloway",
+        "properties": {
+          "personality": ""
+        }
+      },
+      "player_helen_parr": {
+        "id": "player_helen_parr",
+        "type": "character",
+        "name": "Helen Parr",
+        "properties": {
+          "personality": ""
+        }
+      },
+      "player_bob_parr": {
+        "id": "player_bob_parr",
+        "type": "character",
+        "name": "Bob Parr",
+        "properties": {
+          "personality": ""
+        }
+      },
+      "player_dash_parr": {
+        "id": "player_dash_parr",
+        "type": "character",
+        "name": "Dash Parr",
+        "properties": {
+          "personality": ""
+        }
+      },
+      "player_jack_jack_parr": {
+        "id": "player_jack_jack_parr",
+        "type": "character",
+        "name": "Jack-Jack Parr",
+        "properties": {
+          "personality": ""
+        }
+      },
+      "player_brutus": {
+        "id": "player_brutus",
+        "type": "character",
+        "name": "Brutus",
+        "properties": {
+          "personality": ""
+        }
+      },
+      "player_the_amalgam": {
+        "id": "player_the_amalgam",
+        "type": "character",
+        "name": "The Amalgam",
+        "properties": {
+          "personality": ""
+        }
+      }
+    },
+    "edges": [
+      {
+        "source": "area_chemistry_classroom",
+        "target": "way_chem_class_door",
+        "type": "connection",
+        "properties": {
+          "cardinal": "east",
+          "direction": "classroom door",
+          "visible_in_direction": "The busy school hallway shimmers under humming fluorescents."
+        }
+      },
+      {
+        "source": "way_chem_class_door",
+        "target": "area_chemistry_classroom",
+        "type": "connection",
+        "properties": {
+          "cardinal": "west",
+          "direction": "chem wing door",
+          "visible_in_direction": "A cramped lab room with benches and chemical posters."
+        }
+      },
+      {
+        "source": "area_school_hallway",
+        "target": "way_chem_class_door",
+        "type": "connection",
+        "properties": {
+          "cardinal": "west",
+          "direction": "chem wing door",
+          "visible_in_direction": "A cramped lab room with benches and chemical posters."
+        }
+      },
+      {
+        "source": "way_chem_class_door",
+        "target": "area_school_hallway",
+        "type": "connection",
+        "properties": {
+          "cardinal": "east",
+          "direction": "classroom door",
+          "visible_in_direction": "The busy school hallway shimmers under humming fluorescents."
+        }
+      },
+      {
+        "source": "area_school_hallway",
+        "target": "way_hallway_front_door",
+        "type": "connection",
+        "properties": {
+          "cardinal": "west",
+          "direction": "front doors",
+          "visible_in_direction": "Bright glass doors opening onto the school entrance hall."
+        }
+      },
+      {
+        "source": "way_hallway_front_door",
+        "target": "area_school_hallway",
+        "type": "connection",
+        "properties": {
+          "cardinal": "east",
+          "direction": "hallway",
+          "visible_in_direction": "The corridor of lockers stretches into the school."
+        }
+      },
+      {
+        "source": "area_school_entrance",
+        "target": "way_hallway_front_door",
+        "type": "connection",
+        "properties": {
+          "cardinal": "east",
+          "direction": "hallway",
+          "visible_in_direction": "The corridor of lockers stretches into the school."
+        }
+      },
+      {
+        "source": "way_hallway_front_door",
+        "target": "area_school_entrance",
+        "type": "connection",
+        "properties": {
+          "cardinal": "west",
+          "direction": "front doors",
+          "visible_in_direction": "Bright glass doors opening onto the school entrance hall."
+        }
+      },
+      {
+        "source": "area_school_entrance",
+        "target": "way_entrance_outer_door",
+        "type": "connection",
+        "properties": {
+          "cardinal": "west",
+          "direction": "outer doors",
+          "visible_in_direction": "A wide asphalt lot dotted with cars, a charred bus against the fence."
+        }
+      },
+      {
+        "source": "way_entrance_outer_door",
+        "target": "area_school_entrance",
+        "type": "connection",
+        "properties": {
+          "cardinal": "east",
+          "direction": "entrance",
+          "visible_in_direction": "The school lobby with its faded banner."
+        }
+      },
+      {
+        "source": "area_school_parking_lot",
+        "target": "way_entrance_outer_door",
+        "type": "connection",
+        "properties": {
+          "cardinal": "east",
+          "direction": "entrance",
+          "visible_in_direction": "The school lobby with its faded banner."
+        }
+      },
+      {
+        "source": "way_entrance_outer_door",
+        "target": "area_school_parking_lot",
+        "type": "connection",
+        "properties": {
+          "cardinal": "west",
+          "direction": "outer doors",
+          "visible_in_direction": "A wide asphalt lot dotted with cars, a charred bus against the fence."
+        }
+      },
+      {
+        "source": "area_school_parking_lot",
+        "target": "way_woods_trail_school",
+        "type": "connection",
+        "properties": {
+          "cardinal": "north",
+          "direction": "old hiking trail",
+          "visible_in_direction": "Dark trees swallowing the path into dim green gloom."
+        }
+      },
+      {
+        "source": "way_woods_trail_school",
+        "target": "area_school_parking_lot",
+        "type": "connection",
+        "properties": {
+          "cardinal": "south",
+          "direction": "school yard",
+          "visible_in_direction": "The parking lot and school building beyond."
+        }
+      },
+      {
+        "source": "area_the_woods",
+        "target": "way_woods_trail_school",
+        "type": "connection",
+        "properties": {
+          "cardinal": "south",
+          "direction": "school yard",
+          "visible_in_direction": "The parking lot and school building beyond."
+        }
+      },
+      {
+        "source": "way_woods_trail_school",
+        "target": "area_the_woods",
+        "type": "connection",
+        "properties": {
+          "cardinal": "north",
+          "direction": "old hiking trail",
+          "visible_in_direction": "Dark trees swallowing the path into dim green gloom."
+        }
+      },
+      {
+        "source": "area_the_woods",
+        "target": "way_old_mill_front",
+        "type": "connection",
+        "properties": {
+          "cardinal": "north",
+          "direction": "rusted gate",
+          "visible_in_direction": "A towering rusted foundry skeleton under grey light."
+        }
+      },
+      {
+        "source": "way_old_mill_front",
+        "target": "area_the_woods",
+        "type": "connection",
+        "properties": {
+          "cardinal": "south",
+          "direction": "woods path",
+          "visible_in_direction": "The dense treeline of the woods."
+        }
+      },
+      {
+        "source": "area_old_steel_mill",
+        "target": "way_old_mill_front",
+        "type": "connection",
+        "properties": {
+          "cardinal": "south",
+          "direction": "woods path",
+          "visible_in_direction": "The dense treeline of the woods."
+        }
+      },
+      {
+        "source": "way_old_mill_front",
+        "target": "area_old_steel_mill",
+        "type": "connection",
+        "properties": {
+          "cardinal": "north",
+          "direction": "rusted gate",
+          "visible_in_direction": "A towering rusted foundry skeleton under grey light."
+        }
+      },
+      {
+        "source": "area_old_steel_mill",
+        "target": "way_mill_shaft_hatch",
+        "type": "connection",
+        "properties": {
+          "cardinal": "down",
+          "direction": "cargo hatch",
+          "visible_in_direction": "A dark shaft dotted with the glow of a single worklamp."
+        }
+      },
+      {
+        "source": "way_mill_shaft_hatch",
+        "target": "area_old_steel_mill",
+        "type": "connection",
+        "properties": {
+          "cardinal": "up",
+          "direction": "shaft ladder",
+          "visible_in_direction": "The dusty floor of the old foundry."
+        }
+      },
+      {
+        "source": "area_steel_mill_deep_shaft",
+        "target": "way_mill_shaft_hatch",
+        "type": "connection",
+        "properties": {
+          "cardinal": "up",
+          "direction": "shaft ladder",
+          "visible_in_direction": "The dusty floor of the old foundry."
+        }
+      },
+      {
+        "source": "way_mill_shaft_hatch",
+        "target": "area_steel_mill_deep_shaft",
+        "type": "connection",
+        "properties": {
+          "cardinal": "down",
+          "direction": "cargo hatch",
+          "visible_in_direction": "A dark shaft dotted with the glow of a single worklamp."
+        }
+      },
+      {
+        "source": "area_the_woods",
+        "target": "way_woods_to_halloway",
+        "type": "connection",
+        "properties": {
+          "cardinal": "north",
+          "direction": "gravel lane",
+          "visible_in_direction": "A tidy farmhouse glowing faintly through the pines."
+        }
+      },
+      {
+        "source": "way_woods_to_halloway",
+        "target": "area_the_woods",
+        "type": "connection",
+        "properties": {
+          "cardinal": "south",
+          "direction": "woods edge",
+          "visible_in_direction": "The dense gloom of the woods."
+        }
+      },
+      {
+        "source": "area_halloway_house",
+        "target": "way_woods_to_halloway",
+        "type": "connection",
+        "properties": {
+          "cardinal": "south",
+          "direction": "woods edge",
+          "visible_in_direction": "The dense gloom of the woods."
+        }
+      },
+      {
+        "source": "way_woods_to_halloway",
+        "target": "area_halloway_house",
+        "type": "connection",
+        "properties": {
+          "cardinal": "north",
+          "direction": "gravel lane",
+          "visible_in_direction": "A tidy farmhouse glowing faintly through the pines."
+        }
+      },
+      {
+        "source": "area_the_woods",
+        "target": "way_woods_to_parr",
+        "type": "connection",
+        "properties": {
+          "cardinal": "north",
+          "direction": "collapsed driveway",
+          "visible_in_direction": "A blackened house shell with its front wall torn open."
+        }
+      },
+      {
+        "source": "way_woods_to_parr",
+        "target": "area_the_woods",
+        "type": "connection",
+        "properties": {
+          "cardinal": "south",
+          "direction": "tree line",
+          "visible_in_direction": "The woods pressing in from every side."
+        }
+      },
+      {
+        "source": "area_parr_house",
+        "target": "way_woods_to_parr",
+        "type": "connection",
+        "properties": {
+          "cardinal": "south",
+          "direction": "tree line",
+          "visible_in_direction": "The woods pressing in from every side."
+        }
+      },
+      {
+        "source": "way_woods_to_parr",
+        "target": "area_parr_house",
+        "type": "connection",
+        "properties": {
+          "cardinal": "north",
+          "direction": "collapsed driveway",
+          "visible_in_direction": "A blackened house shell with its front wall torn open."
+        }
+      },
+      {
+        "source": "area_parr_house",
+        "target": "way_parr_to_halloway",
+        "type": "connection",
+        "properties": {
+          "cardinal": "east",
+          "direction": "crestwood lane",
+          "visible_in_direction": "A neat farmhouse visible through the trees down the lane."
+        }
+      },
+      {
+        "source": "way_parr_to_halloway",
+        "target": "area_parr_house",
+        "type": "connection",
+        "properties": {
+          "cardinal": "west",
+          "direction": "parr road",
+          "visible_in_direction": "The scorched wreck of the Parr house behind you."
+        }
+      },
+      {
+        "source": "area_halloway_house",
+        "target": "way_parr_to_halloway",
+        "type": "connection",
+        "properties": {
+          "cardinal": "west",
+          "direction": "parr road",
+          "visible_in_direction": "The scorched wreck of the Parr house behind you."
+        }
+      },
+      {
+        "source": "way_parr_to_halloway",
+        "target": "area_halloway_house",
+        "type": "connection",
+        "properties": {
+          "cardinal": "east",
+          "direction": "crestwood lane",
+          "visible_in_direction": "A neat farmhouse visible through the trees down the lane."
+        }
+      },
+      {
+        "source": "item_chemistry_lab_table",
+        "target": "area_chemistry_classroom",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_periodic_table_poster",
+        "target": "area_chemistry_classroom",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_chemistry_textbook",
+        "target": "area_chemistry_classroom",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_jakes_notebook",
+        "target": "area_chemistry_classroom",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_school_notice_board",
+        "target": "area_school_hallway",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_lost_backpack",
+        "target": "area_school_hallway",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_entrance_roster",
+        "target": "area_school_entrance",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_burned_out_bus",
+        "target": "area_school_parking_lot",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_amalgam_residue",
+        "target": "area_the_woods",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_brutus_collar",
+        "target": "area_the_woods",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_rusted_machinery",
+        "target": "area_old_steel_mill",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_metal_scraps",
+        "target": "area_old_steel_mill",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_first_aid_kit",
+        "target": "area_steel_mill_deep_shaft",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_railgun_hole",
+        "target": "area_steel_mill_deep_shaft",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_shattered_vials",
+        "target": "area_steel_mill_deep_shaft",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_gov_mindwipe_file",
+        "target": "area_halloway_house",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_parr_family_photo",
+        "target": "area_parr_house",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_amalgam_fragment",
+        "target": "area_parr_house",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_jakes_notebook",
+        "target": "trigger_jakes_notebook_on_read",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_read"
+        }
+      },
+      {
+        "source": "item_periodic_table_poster",
+        "target": "trigger_poster_on_examine",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine"
+        }
+      },
+      {
+        "source": "item_school_notice_board",
+        "target": "trigger_notice_on_read",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_read"
+        }
+      },
+      {
+        "source": "item_burned_out_bus",
+        "target": "trigger_bus_on_examine",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine"
+        }
+      },
+      {
+        "source": "item_amalgam_residue",
+        "target": "trigger_residue_on_examine",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine"
+        }
+      },
+      {
+        "source": "item_brutus_collar",
+        "target": "trigger_collar_on_examine",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine"
+        }
+      },
+      {
+        "source": "item_railgun_hole",
+        "target": "trigger_rail_hole_on_examine",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine"
+        }
+      },
+      {
+        "source": "item_shattered_vials",
+        "target": "trigger_lab_vials_on_examine",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine"
+        }
+      },
+      {
+        "source": "item_first_aid_kit",
+        "target": "trigger_first_aid_on_use",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_use"
+        }
+      },
+      {
+        "source": "item_gov_mindwipe_file",
+        "target": "trigger_mindwipe_on_read",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_read"
+        }
+      },
+      {
+        "source": "item_parr_family_photo",
+        "target": "trigger_family_photo_on_examine",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine"
+        }
+      },
+      {
+        "source": "item_amalgam_fragment",
+        "target": "trigger_amalgam_fragment_on_take",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_take"
+        }
+      },
+      {
+        "source": "item_amalgam_fragment",
+        "target": "trigger_amalgam_fragment_on_examine",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine"
+        }
+      },
+      {
+        "source": "player_jake_halloway",
+        "target": "area_chemistry_classroom",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_violet_parr",
+        "target": "area_chemistry_classroom",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_chelsea",
+        "target": "area_chemistry_classroom",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_maddie",
+        "target": "area_chemistry_classroom",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_vi_halloway",
+        "target": "area_halloway_house",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_erin_halloway",
+        "target": "area_halloway_house",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_leah_halloway",
+        "target": "area_halloway_house",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_marcus_halloway",
+        "target": "area_halloway_house",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_helen_parr",
+        "target": "area_parr_house",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_bob_parr",
+        "target": "area_parr_house",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_dash_parr",
+        "target": "area_parr_house",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_jack_jack_parr",
+        "target": "area_parr_house",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_brutus",
+        "target": "area_the_woods",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_the_amalgam",
+        "target": "area_the_woods",
+        "type": "in",
+        "properties": {}
+      }
+    ]
+  }
+}

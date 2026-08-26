@@ -1,0 +1,67 @@
+{
+  "name": "my_trigger",
+  "description": "fooood",
+  "graph": {
+    "nodes": [
+      {
+        "id": "n0",
+        "type": "trigger",
+        "x": 157,
+        "y": 71,
+        "props": {
+          "trigger_type": "on_eat",
+          "target_tag": ""
+        }
+      },
+      {
+        "id": "n1",
+        "type": "effect",
+        "x": 550,
+        "y": 169,
+        "props": {
+          "effect_type": "message",
+          "message": "",
+          "success_message": "Cruncy and delicious"
+        }
+      },
+      {
+        "id": "n2",
+        "type": "effect",
+        "x": 838,
+        "y": 253,
+        "props": {
+          "effect_type": "adjust_vital",
+          "amount": 2,
+          "message": "",
+          "stat": "hunger",
+          "success_message": "Cruncy and delicious",
+          "target": "self"
+        }
+      }
+    ],
+    "wires": [
+      {
+        "id": "w0",
+        "from": [
+          "n0",
+          "output"
+        ],
+        "to": [
+          "n1",
+          "input"
+        ]
+      },
+      {
+        "id": "w1",
+        "from": [
+          "n1",
+          "output"
+        ],
+        "to": [
+          "n2",
+          "input"
+        ]
+      }
+    ]
+  }
+}

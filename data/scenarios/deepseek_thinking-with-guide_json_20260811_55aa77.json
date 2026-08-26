@@ -1,0 +1,2774 @@
+{
+  "active_player": "Violet_Parr",
+  "areas": {
+    "Millwood_Public_School": {
+      "ambient_light": 80,
+      "description": "A sprawling PK-12 school built from red brick and pale stone. The halls echo with the distant buzz of fluorescent lights and the shuffle of students. The chemistry classroom smells faintly of sulfur and old coffee—a familiar haven where the world makes sense. The history classroom, down the hall, holds dusty maps and portraits of forgotten presidents.",
+      "environment": {
+        "air": "still",
+        "light": "bright",
+        "noise": "moderate",
+        "smell": "chalk, coffee, old paper",
+        "temperature": 22
+      },
+      "exits": {
+        "to_woods": {
+          "cost": {},
+          "description": "A path behind the gymnasium that leads through a chain-link fence into the woods. The trees press close, and the light dims as the canopy thickens.",
+          "hidden": false,
+          "label": "To the Woods",
+          "pass_message": "You duck through the gap in the fence, leaving the school behind.",
+          "return_dir": "to_school",
+          "state": "open",
+          "target": "The_Woods",
+          "visible_in_direction": "A narrow, overgrown trail leading into the shadows of the trees.",
+          "way_id": "way_school_to_woods"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "bright",
+      "name": "Millwood Public Schools",
+      "properties": {
+        "description": "A sprawling PK-12 school built from red brick and pale stone. The halls echo with the distant buzz of fluorescent lights and the shuffle of students. The chemistry classroom smells faintly of sulfur and old coffee—a familiar haven where the world makes sense. The history classroom, down the hall, holds dusty maps and portraits of forgotten presidents.",
+        "environment": {
+          "air": "still",
+          "light": "bright",
+          "noise": "moderate",
+          "smell": "chalk, coffee, old paper",
+          "temperature": 22
+        },
+        "tags": []
+      }
+    },
+    "The_Woods": {
+      "ambient_light": 50,
+      "description": "A dense, tangled forest where the light struggles to reach the ground. The air is cool and damp, thick with the smell of earth and rotting leaves. The path is barely visible, winding between gnarled oaks and thick underbrush. A faint, lingering smell of ozone clings to the air near a patch of scorched bark.",
+      "environment": {
+        "air": "cool, damp",
+        "light": "dim",
+        "noise": "quiet",
+        "smell": "earth, ozone, damp leaves",
+        "temperature": 18
+      },
+      "exits": {
+        "to_school": {
+          "cost": {},
+          "description": "The path back to the school is clearer here, the trees thinning as you approach the chain-link fence.",
+          "hidden": false,
+          "label": "Back to School",
+          "pass_message": "You walk back toward the familiar sounds of the schoolyard.",
+          "return_dir": "to_woods",
+          "state": "open",
+          "target": "Millwood_Public_School",
+          "visible_in_direction": "The red brick of the school is just visible through the trees.",
+          "way_id": "way_school_to_woods"
+        },
+        "to_mill": {
+          "cost": {},
+          "description": "A faint, rusted track leads deeper into the woods, its path marked by twisted metal and dark, oily stains.",
+          "hidden": false,
+          "label": "To the Steel Mill",
+          "pass_message": "You follow the track, the smell of rust and old industry growing stronger.",
+          "return_dir": "to_woods",
+          "state": "open",
+          "target": "The_Old_Steel_Mill",
+          "visible_in_direction": "A dark, angular shape looms in the distance, towering above the trees.",
+          "way_id": "way_woods_to_mill"
+        },
+        "to_halloway": {
+          "cost": {},
+          "description": "A narrow, winding trail that seems more used by animals than people, leading toward a faint column of chimney smoke.",
+          "hidden": false,
+          "label": "To the Halloway House",
+          "pass_message": "You push through the underbrush, heading for the smell of woodsmoke.",
+          "return_dir": "to_woods",
+          "state": "open",
+          "target": "Halloway_House",
+          "visible_in_direction": "The trail slopes down toward a small, cluttered-looking house.",
+          "way_id": "way_woods_to_halloway"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "dim",
+      "name": "The Woods",
+      "properties": {
+        "description": "A dense, tangled forest where the light struggles to reach the ground. The air is cool and damp, thick with the smell of earth and rotting leaves. The path is barely visible, winding between gnarled oaks and thick underbrush. A faint, lingering smell of ozone clings to the air near a patch of scorched bark.",
+        "environment": {
+          "air": "cool, damp",
+          "light": "dim",
+          "noise": "quiet",
+          "smell": "earth, ozone, damp leaves",
+          "temperature": 18
+        },
+        "tags": []
+      }
+    },
+    "The_Old_Steel_Mill": {
+      "ambient_light": 30,
+      "description": "A colossal, derelict structure of rusted iron and crumbling concrete. The air is heavy with the metallic tang of old industry and the cloying smell of stagnant water. Broken windows stare out like hollow eyes, and a deep, echoing silence is occasionally broken by the groan of shifting metal. A wide, deep shaft is sunk into the concrete floor in the main chamber, its edges lined with old, blackened cables.",
+      "environment": {
+        "air": "stale, metallic",
+        "light": "dim",
+        "noise": "silent",
+        "smell": "rust, stagnant water, cold metal",
+        "temperature": 15
+      },
+      "exits": {
+        "to_woods": {
+          "cost": {},
+          "description": "The gaping main entrance leads back out to the rusted track and the dark forest.",
+          "hidden": false,
+          "label": "To the Woods",
+          "pass_message": "You step out of the oppressive metal tomb and back into the cool air of the forest.",
+          "return_dir": "to_mill",
+          "state": "open",
+          "target": "The_Woods",
+          "visible_in_direction": "The rusted track leading back into the woods is bathed in a patch of fading light.",
+          "way_id": "way_woods_to_mill"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "dim",
+      "name": "The Old Steel Mill",
+      "properties": {
+        "description": "A colossal, derelict structure of rusted iron and crumbling concrete. The air is heavy with the metallic tang of old industry and the cloying smell of stagnant water. Broken windows stare out like hollow eyes, and a deep, echoing silence is occasionally broken by the groan of shifting metal. A wide, deep shaft is sunk into the concrete floor in the main chamber, its edges lined with old, blackened cables.",
+        "environment": {
+          "air": "stale, metallic",
+          "light": "dim",
+          "noise": "silent",
+          "smell": "rust, stagnant water, cold metal",
+          "temperature": 15
+        },
+        "tags": []
+      }
+    },
+    "Halloway_House": {
+      "ambient_light": 70,
+      "description": "A messy, lived-in house that looks like it's always a moment away from being a disaster. Stacks of books teeter on tables, jackets hang from doorknobs, and the faint hum of a bass guitar comes from the basement. The kitchen is a chaotic warzone of mismatched plates and half-empty coffee mugs, but the air smells like fresh bread and something fried. It feels safe, chaotic, and utterly real.",
+      "environment": {
+        "air": "warm, lived-in",
+        "light": "moderate",
+        "noise": "low",
+        "smell": "coffee, bread, old leather",
+        "temperature": 22
+      },
+      "exits": {
+        "to_woods": {
+          "cost": {},
+          "description": "The back door leads out to a small, messy yard that quickly gives way to the treeline.",
+          "hidden": false,
+          "label": "To the Woods",
+          "pass_message": "You step into the cool air, the sounds of the house fading behind you.",
+          "return_dir": "to_halloway",
+          "state": "open",
+          "target": "The_Woods",
+          "visible_in_direction": "The trees rise up just beyond the fence.",
+          "way_id": "way_woods_to_halloway"
+        },
+        "to_parr": {
+          "cost": {},
+          "description": "The front door, leading out to the quiet suburban street.",
+          "hidden": false,
+          "label": "To the Parr House",
+          "pass_message": "You step out onto the porch and see the immaculate white house across the way.",
+          "return_dir": "to_halloway",
+          "state": "open",
+          "target": "Parr_House",
+          "visible_in_direction": "A pristine, well-kept house sits just across the street, almost too perfect to be real.",
+          "way_id": "way_halloway_to_parr"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "moderate",
+      "name": "The Halloway House",
+      "properties": {
+        "description": "A messy, lived-in house that looks like it's always a moment away from being a disaster. Stacks of books teeter on tables, jackets hang from doorknobs, and the faint hum of a bass guitar comes from the basement. The kitchen is a chaotic warzone of mismatched plates and half-empty coffee mugs, but the air smells like fresh bread and something fried. It feels safe, chaotic, and utterly real.",
+        "environment": {
+          "air": "warm, lived-in",
+          "light": "moderate",
+          "noise": "low",
+          "smell": "coffee, bread, old leather",
+          "temperature": 22
+        },
+        "tags": []
+      }
+    },
+    "Parr_House": {
+      "ambient_light": 85,
+      "description": "An immaculately kept suburban home, its white siding pristine and its lawn perfectly manicured. Inside, everything is in its place—the furniture is tasteful, the bookshelves are organized, and a faint, pleasant scent of lavender and lemon polish hangs in the air. It's the perfect picture of normalcy, but the silence feels heavy, as if the house itself is holding its breath. A large, faintly scorched area mars the otherwise perfect front lawn.",
+      "environment": {
+        "air": "clean, still",
+        "light": "bright",
+        "noise": "silent",
+        "smell": "lavender, lemon, fresh linen",
+        "temperature": 22
+      },
+      "exits": {
+        "to_halloway": {
+          "cost": {},
+          "description": "The front door leads out to the peaceful, quiet street.",
+          "hidden": false,
+          "label": "To the Halloway House",
+          "pass_message": "You step outside, the weight of the perfect house lifting slightly.",
+          "return_dir": "to_parr",
+          "state": "open",
+          "target": "Halloway_House",
+          "visible_in_direction": "The chaotic, lived-in house across the street is a welcome sight.",
+          "way_id": "way_halloway_to_parr"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "bright",
+      "name": "The Parr House",
+      "properties": {
+        "description": "An immaculately kept suburban home, its white siding pristine and its lawn perfectly manicured. Inside, everything is in its place—the furniture is tasteful, the bookshelves are organized, and a faint, pleasant scent of lavender and lemon polish hangs in the air. It's the perfect picture of normalcy, but the silence feels heavy, as if the house itself is holding its breath. A large, faintly scorched area mars the otherwise perfect front lawn.",
+        "environment": {
+          "air": "clean, still",
+          "light": "bright",
+          "noise": "silent",
+          "smell": "lavender, lemon, fresh linen",
+          "temperature": 22
+        },
+        "tags": []
+      }
+    }
+  },
+  "clock_start_hour": 15,
+  "clock_start_minute": 30,
+  "current_area": "Millwood_Public_School",
+  "game_time": "15:30:00",
+  "ghost_mode": false,
+  "graph": {
+    "nodes": {
+      "area_Millwood_Public_School": {
+        "created": 1700000000,
+        "id": "area_Millwood_Public_School",
+        "name": "Millwood Public Schools",
+        "properties": {
+          "description": "A sprawling PK-12 school built from red brick and pale stone. The halls echo with the distant buzz of fluorescent lights and the shuffle of students. The chemistry classroom smells faintly of sulfur and old coffee—a familiar haven where the world makes sense. The history classroom, down the hall, holds dusty maps and portraits of forgotten presidents.",
+          "environment": {
+            "air": "still",
+            "light": "bright",
+            "noise": "moderate",
+            "smell": "chalk, coffee, old paper",
+            "temperature": 22
+          },
+          "tags": []
+        },
+        "type": "area",
+        "updated": 1700000000
+      },
+      "area_The_Woods": {
+        "created": 1700000000,
+        "id": "area_The_Woods",
+        "name": "The Woods",
+        "properties": {
+          "description": "A dense, tangled forest where the light struggles to reach the ground. The air is cool and damp, thick with the smell of earth and rotting leaves. The path is barely visible, winding between gnarled oaks and thick underbrush. A faint, lingering smell of ozone clings to the air near a patch of scorched bark.",
+          "environment": {
+            "air": "cool, damp",
+            "light": "dim",
+            "noise": "quiet",
+            "smell": "earth, ozone, damp leaves",
+            "temperature": 18
+          },
+          "tags": []
+        },
+        "type": "area",
+        "updated": 1700000000
+      },
+      "area_The_Old_Steel_Mill": {
+        "created": 1700000000,
+        "id": "area_The_Old_Steel_Mill",
+        "name": "The Old Steel Mill",
+        "properties": {
+          "description": "A colossal, derelict structure of rusted iron and crumbling concrete. The air is heavy with the metallic tang of old industry and the cloying smell of stagnant water. Broken windows stare out like hollow eyes, and a deep, echoing silence is occasionally broken by the groan of shifting metal. A wide, deep shaft is sunk into the concrete floor in the main chamber, its edges lined with old, blackened cables.",
+          "environment": {
+            "air": "stale, metallic",
+            "light": "dim",
+            "noise": "silent",
+            "smell": "rust, stagnant water, cold metal",
+            "temperature": 15
+          },
+          "tags": []
+        },
+        "type": "area",
+        "updated": 1700000000
+      },
+      "area_Halloway_House": {
+        "created": 1700000000,
+        "id": "area_Halloway_House",
+        "name": "The Halloway House",
+        "properties": {
+          "description": "A messy, lived-in house that looks like it's always a moment away from being a disaster. Stacks of books teeter on tables, jackets hang from doorknobs, and the faint hum of a bass guitar comes from the basement. The kitchen is a chaotic warzone of mismatched plates and half-empty coffee mugs, but the air smells like fresh bread and something fried. It feels safe, chaotic, and utterly real.",
+          "environment": {
+            "air": "warm, lived-in",
+            "light": "moderate",
+            "noise": "low",
+            "smell": "coffee, bread, old leather",
+            "temperature": 22
+          },
+          "tags": []
+        },
+        "type": "area",
+        "updated": 1700000000
+      },
+      "area_Parr_House": {
+        "created": 1700000000,
+        "id": "area_Parr_House",
+        "name": "The Parr House",
+        "properties": {
+          "description": "An immaculately kept suburban home, its white siding pristine and its lawn perfectly manicured. Inside, everything is in its place—the furniture is tasteful, the bookshelves are organized, and a faint, pleasant scent of lavender and lemon polish hangs in the air. It's the perfect picture of normalcy, but the silence feels heavy, as if the house itself is holding its breath. A large, faintly scorched area mars the otherwise perfect front lawn.",
+          "environment": {
+            "air": "clean, still",
+            "light": "bright",
+            "noise": "silent",
+            "smell": "lavender, lemon, fresh linen",
+            "temperature": 22
+          },
+          "tags": []
+        },
+        "type": "area",
+        "updated": 1700000000
+      },
+      "way_school_to_woods": {
+        "created": 1700000000,
+        "id": "way_school_to_woods",
+        "name": "School to Woods",
+        "properties": {
+          "area_from": "Millwood_Public_School",
+          "area_to": "The_Woods",
+          "cost": {},
+          "current_state": "open",
+          "description": "A path behind the gymnasium that leads through a chain-link fence into the woods. The trees press close, and the light dims as the canopy thickens.",
+          "pass_message": "You duck through the gap in the fence, leaving the school behind.",
+          "visible_in_direction": "A narrow, overgrown trail leading into the shadows of the trees.",
+          "hidden": false,
+          "needs_open": {
+            "enabled": false
+          },
+          "tags": [],
+          "requires": "none",
+          "jump_dc": 10,
+          "climb_dc": 12,
+          "max_size": "normal",
+          "auto_close": false
+        },
+        "type": "way",
+        "updated": 1700000000
+      },
+      "way_woods_to_mill": {
+        "created": 1700000000,
+        "id": "way_woods_to_mill",
+        "name": "Woods to Mill",
+        "properties": {
+          "area_from": "The_Woods",
+          "area_to": "The_Old_Steel_Mill",
+          "cost": {},
+          "current_state": "open",
+          "description": "A faint, rusted track leads deeper into the woods, its path marked by twisted metal and dark, oily stains.",
+          "pass_message": "You follow the track, the smell of rust and old industry growing stronger.",
+          "visible_in_direction": "A dark, angular shape looms in the distance, towering above the trees.",
+          "hidden": false,
+          "needs_open": {
+            "enabled": false
+          },
+          "tags": [],
+          "requires": "none",
+          "jump_dc": 10,
+          "climb_dc": 12,
+          "max_size": "normal",
+          "auto_close": false
+        },
+        "type": "way",
+        "updated": 1700000000
+      },
+      "way_woods_to_halloway": {
+        "created": 1700000000,
+        "id": "way_woods_to_halloway",
+        "name": "Woods to Halloway",
+        "properties": {
+          "area_from": "The_Woods",
+          "area_to": "Halloway_House",
+          "cost": {},
+          "current_state": "open",
+          "description": "A narrow, winding trail that seems more used by animals than people, leading toward a faint column of chimney smoke.",
+          "pass_message": "You push through the underbrush, heading for the smell of woodsmoke.",
+          "visible_in_direction": "The trail slopes down toward a small, cluttered-looking house.",
+          "hidden": false,
+          "needs_open": {
+            "enabled": false
+          },
+          "tags": [],
+          "requires": "none",
+          "jump_dc": 10,
+          "climb_dc": 12,
+          "max_size": "normal",
+          "auto_close": false
+        },
+        "type": "way",
+        "updated": 1700000000
+      },
+      "way_halloway_to_parr": {
+        "created": 1700000000,
+        "id": "way_halloway_to_parr",
+        "name": "Halloway to Parr",
+        "properties": {
+          "area_from": "Halloway_House",
+          "area_to": "Parr_House",
+          "cost": {},
+          "current_state": "open",
+          "description": "The front door, leading out to the quiet suburban street.",
+          "pass_message": "You step out onto the porch and see the immaculate white house across the way.",
+          "visible_in_direction": "A pristine, well-kept house sits just across the street, almost too perfect to be real.",
+          "hidden": false,
+          "needs_open": {
+            "enabled": false
+          },
+          "tags": [],
+          "requires": "none",
+          "jump_dc": 10,
+          "climb_dc": 12,
+          "max_size": "normal",
+          "auto_close": false
+        },
+        "type": "way",
+        "updated": 1700000000
+      },
+      "item_chemistry_textbook": {
+        "created": 1700000000,
+        "id": "item_chemistry_textbook",
+        "name": "Chemistry Textbook",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "read"
+          ],
+          "description": "A well-worn textbook, its pages soft and yellowed. Someone has drawn a small, crude doodle in the margin—a circle with a lightning bolt through it, next to the initials 'JH.'",
+          "current_state": "normal",
+          "uses": -1,
+          "weight": 0.8,
+          "hidden": false,
+          "tags": [
+            "readable",
+            "portable"
+          ],
+          "action_costs": {
+            "read": {
+              "energy": 1,
+              "time": 3
+            }
+          },
+          "skill_check": {},
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0,
+          "contents": [],
+          "aliases": [],
+          "equip_slots": [],
+          "light_level": "dim",
+          "damage_dice": "",
+          "damage_type": "",
+          "defense": 0,
+          "heating_rate": 0,
+          "insulation": 0,
+          "target_temperature": 0,
+          "temp_range": {
+            "min": -10,
+            "max": 50
+          },
+          "library_id": "",
+          "locked": false,
+          "locked_message": "",
+          "locked_with": ""
+        },
+        "type": "item",
+        "updated": 1700000000
+      },
+      "item_bent_glass_slide": {
+        "created": 1700000000,
+        "id": "item_bent_glass_slide",
+        "name": "Bent Glass Slide",
+        "properties": {
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "description": "A single glass microscope slide, slightly warped at the edges. The remains of a dried violet-colored solution are caked to its surface.",
+          "current_state": "normal",
+          "uses": -1,
+          "weight": 0.05,
+          "hidden": false,
+          "tags": [
+            "glass",
+            "portable"
+          ],
+          "action_costs": {},
+          "skill_check": {},
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0,
+          "contents": [],
+          "aliases": [],
+          "equip_slots": [],
+          "light_level": "dim",
+          "damage_dice": "",
+          "damage_type": "",
+          "defense": 0,
+          "heating_rate": 0,
+          "insulation": 0,
+          "target_temperature": 0,
+          "temp_range": {
+            "min": -10,
+            "max": 50
+          },
+          "library_id": "",
+          "locked": false,
+          "locked_message": "",
+          "locked_with": ""
+        },
+        "type": "item",
+        "updated": 1700000000
+      },
+      "item_shattered_phone_screen": {
+        "created": 1700000000,
+        "id": "item_shattered_phone_screen",
+        "name": "Shattered Phone Screen",
+        "properties": {
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "description": "A broken, dark slab of plastic and glass. A faint crack spiderwebs across its surface, and a single, curious word is visible in the corner of the shattered display: 'DAD.'",
+          "current_state": "normal",
+          "uses": -1,
+          "weight": 0.1,
+          "hidden": false,
+          "tags": [
+            "glass",
+            "portable"
+          ],
+          "action_costs": {},
+          "skill_check": {},
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0,
+          "contents": [],
+          "aliases": [],
+          "equip_slots": [],
+          "light_level": "dim",
+          "damage_dice": "",
+          "damage_type": "",
+          "defense": 0,
+          "heating_rate": 0,
+          "insulation": 0,
+          "target_temperature": 0,
+          "temp_range": {
+            "min": -10,
+            "max": 50
+          },
+          "library_id": "",
+          "locked": false,
+          "locked_message": "",
+          "locked_with": ""
+        },
+        "type": "item",
+        "updated": 1700000000
+      },
+      "item_scorched_bark": {
+        "created": 1700000000,
+        "id": "item_scorched_bark",
+        "name": "Scorched Bark",
+        "properties": {
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "description": "A large section of bark has been charred and blackened, as if struck by lightning. The surrounding air smells strongly of ozone.",
+          "current_state": "normal",
+          "uses": -1,
+          "weight": 0.3,
+          "hidden": false,
+          "tags": [
+            "organic",
+            "portable"
+          ],
+          "action_costs": {},
+          "skill_check": {},
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0,
+          "contents": [],
+          "aliases": [],
+          "equip_slots": [],
+          "light_level": "dim",
+          "damage_dice": "",
+          "damage_type": "",
+          "defense": 0,
+          "heating_rate": 0,
+          "insulation": 0,
+          "target_temperature": 0,
+          "temp_range": {
+            "min": -10,
+            "max": 50
+          },
+          "library_id": "",
+          "locked": false,
+          "locked_message": "",
+          "locked_with": ""
+        },
+        "type": "item",
+        "updated": 1700000000
+      },
+      "item_glass_shard": {
+        "created": 1700000000,
+        "id": "item_glass_shard",
+        "name": "Glass Shard",
+        "properties": {
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "description": "A sharp, gleaming shard of glass, its edge stained with a dark, dried substance. It seems to thrum with a faint, forgotten energy.",
+          "current_state": "normal",
+          "uses": -1,
+          "weight": 0.2,
+          "hidden": false,
+          "tags": [
+            "glass",
+            "sharp",
+            "portable"
+          ],
+          "action_costs": {},
+          "skill_check": {},
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0,
+          "contents": [],
+          "aliases": [],
+          "equip_slots": [],
+          "light_level": "dim",
+          "damage_dice": "1d4",
+          "damage_type": "slashing",
+          "defense": 0,
+          "heating_rate": 0,
+          "insulation": 0,
+          "target_temperature": 0,
+          "temp_range": {
+            "min": -10,
+            "max": 50
+          },
+          "library_id": "",
+          "locked": false,
+          "locked_message": "",
+          "locked_with": ""
+        },
+        "type": "item",
+        "updated": 1700000000
+      },
+      "item_half_empty_coffee_mug": {
+        "created": 1700000000,
+        "id": "item_half_empty_coffee_mug",
+        "name": "Half-Empty Coffee Mug",
+        "properties": {
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "description": "A chipped ceramic mug with a faded band logo on it. The coffee inside is cold and has a thin film on top.",
+          "current_state": "normal",
+          "uses": -1,
+          "weight": 0.4,
+          "hidden": false,
+          "tags": [
+            "container",
+            "portable"
+          ],
+          "action_costs": {},
+          "skill_check": {},
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0,
+          "contents": [],
+          "aliases": [],
+          "equip_slots": [],
+          "light_level": "dim",
+          "damage_dice": "",
+          "damage_type": "",
+          "defense": 0,
+          "heating_rate": 0,
+          "insulation": 0,
+          "target_temperature": 0,
+          "temp_range": {
+            "min": -10,
+            "max": 50
+          },
+          "library_id": "",
+          "locked": false,
+          "locked_message": "",
+          "locked_with": ""
+        },
+        "type": "item",
+        "updated": 1700000000
+      },
+      "item_bent_key": {
+        "created": 1700000000,
+        "id": "item_bent_key",
+        "name": "Bent Key",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "description": "A brass house key, slightly warped as if it's been used in a lock that didn't quite fit. It has a small, faded 'H' scratched into it.",
+          "current_state": "normal",
+          "uses": -1,
+          "weight": 0.1,
+          "hidden": false,
+          "tags": [
+            "key",
+            "metal",
+            "portable"
+          ],
+          "action_costs": {},
+          "skill_check": {},
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0,
+          "contents": [],
+          "aliases": [],
+          "equip_slots": [],
+          "light_level": "dim",
+          "damage_dice": "",
+          "damage_type": "",
+          "defense": 0,
+          "heating_rate": 0,
+          "insulation": 0,
+          "target_temperature": 0,
+          "temp_range": {
+            "min": -10,
+            "max": 50
+          },
+          "library_id": "",
+          "locked": false,
+          "locked_message": "",
+          "locked_with": ""
+        },
+        "type": "item",
+        "updated": 1700000000
+      },
+      "item_family_photograph": {
+        "created": 1700000000,
+        "id": "item_family_photograph",
+        "name": "Family Photograph",
+        "properties": {
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "description": "A silver-framed photo of a smiling family of five. A tall, massive man, a slender woman, and three children—two boys and a girl. The girl in the photo seems distant, her smile not quite reaching her eyes.",
+          "current_state": "normal",
+          "uses": -1,
+          "weight": 0.5,
+          "hidden": false,
+          "tags": [
+            "document",
+            "portable"
+          ],
+          "action_costs": {},
+          "skill_check": {},
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0,
+          "contents": [],
+          "aliases": [],
+          "equip_slots": [],
+          "light_level": "dim",
+          "damage_dice": "",
+          "damage_type": "",
+          "defense": 0,
+          "heating_rate": 0,
+          "insulation": 0,
+          "target_temperature": 0,
+          "temp_range": {
+            "min": -10,
+            "max": 50
+          },
+          "library_id": "",
+          "locked": false,
+          "locked_message": "",
+          "locked_with": ""
+        },
+        "type": "item",
+        "updated": 1700000000
+      },
+      "item_pair_of_violet_tinted_glasses": {
+        "created": 1700000000,
+        "id": "item_pair_of_violet_tinted_glasses",
+        "name": "Pair of Violet-Tinted Glasses",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "equip"
+          ],
+          "description": "A sleek, expensive-looking pair of glasses with deep violet lenses. They are set on an end table, perfectly parallel.",
+          "current_state": "normal",
+          "uses": -1,
+          "weight": 0.2,
+          "hidden": false,
+          "tags": [
+            "glass",
+            "portable"
+          ],
+          "action_costs": {},
+          "skill_check": {},
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0,
+          "contents": [],
+          "aliases": [],
+          "equip_slots": [
+            "head"
+          ],
+          "light_level": "dim",
+          "damage_dice": "",
+          "damage_type": "",
+          "defense": 0,
+          "heating_rate": 0,
+          "insulation": 0,
+          "target_temperature": 0,
+          "temp_range": {
+            "min": -10,
+            "max": 50
+          },
+          "library_id": "",
+          "locked": false,
+          "locked_message": "",
+          "locked_with": ""
+        },
+        "type": "item",
+        "updated": 1700000000
+      },
+      "player_Violet_Parr": {
+        "created": 1700000000,
+        "id": "player_Violet_Parr",
+        "name": "Violet Parr",
+        "properties": {
+          "personality": "You are Violet Parr, 18. You are intelligent, fiercely protective, and deeply lonely. You've spent years hiding your true self—your powers, your desires, your shame. You present a 'good girl' front to the world, but inside you are a storm of conflicted emotions, desperate for someone to see all of you and not look away. You are flirty and fun on the surface, but it's a mask. You've just started to trust Jake, a boy who might understand the chaos inside you.",
+          "description": "A striking young woman with long black hair and fierce, intelligent blue-violet eyes. She wears a simple black dress that falls just above her knees, and her stance is one of careful, practiced poise. There's a quiet intensity to her, a sense that she's always holding something back.",
+          "base_description": "An 18-year-old with long, sleek black hair and striking blue-violet eyes. Her waifish frame is deceptively strong, and her white skin is unblemished. She moves with a careful, deliberate grace, as if always aware of the space she occupies. She likes hairbands, skimpy dresses, and high heels.",
+          "stats": {
+            "STR": 8,
+            "DEX": 12,
+            "CON": 10,
+            "INT": 14,
+            "WIS": 14,
+            "CHA": 12
+          },
+          "vitals": {
+            "HP": 100,
+            "Max_HP": 100,
+            "Hunger": 20,
+            "Thirst": 20,
+            "Hygiene": 90,
+            "Energy": 90,
+            "Social": 60,
+            "Bladder": 70,
+            "Sanity": 100,
+            "Entertainment": 70,
+            "Temperature": 37,
+            "Mana": 0
+          },
+          "skills": {
+            "Acrobatics": 1,
+            "Athletics": 0,
+            "Perception": 2,
+            "Persuasion": 1,
+            "Stealth": 1,
+            "Survival": 1
+          },
+          "traits": {},
+          "tags": [
+            "female",
+            "super",
+            "Parr"
+          ],
+          "conditions": {
+            "awake": [
+              {
+                "duration": null,
+                "source": null,
+                "level": 0
+              }
+            ]
+          },
+          "equipped": {
+            "head": [],
+            "torso": [],
+            "legs": [],
+            "feet": [],
+            "hands": [],
+            "hand_left": [],
+            "hand_right": [],
+            "back": [],
+            "accessory": [],
+            "neck": [],
+            "waist": []
+          },
+          "state": "awake",
+          "state_timer": 0,
+          "current_area": "Millwood_Public_School",
+          "decay_rates": {
+            "Hunger": 1,
+            "Thirst": 1,
+            "Hygiene": 1,
+            "Energy": 1,
+            "Social": 1,
+            "Bladder": 1,
+            "Sanity": 1,
+            "Entertainment": 1
+          },
+          "emotion": {
+            "current": "neutral",
+            "description": "",
+            "intensity": 0
+          },
+          "relationships": {
+            "Jake_Halloway": {
+              "closeness": 50,
+              "interaction_count": 5,
+              "last_interaction_tick": 0
+            }
+          },
+          "memories": [],
+          "activity": null,
+          "npc_behavior": "wander",
+          "npc_action_interval": 3,
+          "npc_state": "idle",
+          "behaviors": [],
+          "simple_npc": false,
+          "feels_like": 22,
+          "recent_hearing": []
+        },
+        "type": "character",
+        "updated": 1700000000
+      },
+      "player_Jake_Halloway": {
+        "created": 1700000000,
+        "id": "player_Jake_Halloway",
+        "name": "Jake Halloway",
+        "properties": {
+          "personality": "You are Jake Halloway, 18. You are fiercely intelligent, chaotic, and socially oblivious. You use humor and bad puns as a shield, but you are deeply loyal and have a strong moral compass. You ask for permission and respect boundaries, even when your impulsiveness gets the better of you. You have a dangerous secret—your electromagnetism—and you've been reckless with it. You are drawn to Violet Parr because you suspect she shares the same weight of a hidden self.",
+          "description": "A lanky young man in a faded hoodie and jeans, with a smudge of grease on his cheek. His seagreen eyes are bright and intelligent, darting around as if seeing the electrical currents in the air. He has an easy, slouched posture, but his hands are always moving, fidgeting with a loose thread or a pen cap.",
+          "base_description": "An 18-year-old with chaotic energy barely contained in a slim, utilitarian frame. He has seagreen eyes with golden flecks and short, stiff hair that always sticks up. He wears well-worn hoodies and jeans, and his glasses are rarely seen. He's smart, unfiltered, and oscillates between shy and hyperactively silly.",
+          "stats": {
+            "STR": 10,
+            "DEX": 10,
+            "CON": 12,
+            "INT": 16,
+            "WIS": 8,
+            "CHA": 10
+          },
+          "vitals": {
+            "HP": 100,
+            "Max_HP": 100,
+            "Hunger": 20,
+            "Thirst": 20,
+            "Hygiene": 80,
+            "Energy": 85,
+            "Social": 60,
+            "Bladder": 70,
+            "Sanity": 100,
+            "Entertainment": 70,
+            "Temperature": 37,
+            "Mana": 0
+          },
+          "skills": {
+            "Acrobatics": 10,
+            "Athletics": 8,
+            "Perception": 12,
+            "Persuasion": 6,
+            "Stealth": 4,
+            "Survival": 5
+          },
+          "traits": {},
+          "tags": [
+            "male",
+            "super",
+            "Halloway"
+          ],
+          "conditions": {
+            "awake": [
+              {
+                "duration": null,
+                "source": null,
+                "level": 0
+              }
+            ]
+          },
+          "equipped": {
+            "head": [],
+            "torso": [],
+            "legs": [],
+            "feet": [],
+            "hands": [],
+            "hand_left": [],
+            "hand_right": [],
+            "back": [],
+            "accessory": [],
+            "neck": [],
+            "waist": []
+          },
+          "state": "awake",
+          "state_timer": 0,
+          "current_area": "Millwood_Public_School",
+          "decay_rates": {
+            "Hunger": 1,
+            "Thirst": 1,
+            "Hygiene": 1,
+            "Energy": 1,
+            "Social": 1,
+            "Bladder": 1,
+            "Sanity": 1,
+            "Entertainment": 1
+          },
+          "emotion": {
+            "current": "neutral",
+            "description": "",
+            "intensity": 0
+          },
+          "relationships": {
+            "Violet_Parr": {
+              "closeness": 50,
+              "interaction_count": 5,
+              "last_interaction_tick": 0
+            }
+          },
+          "memories": [],
+          "activity": null,
+          "npc_behavior": "wander",
+          "npc_action_interval": 3,
+          "npc_state": "idle",
+          "behaviors": [],
+          "simple_npc": false,
+          "feels_like": 22,
+          "recent_hearing": []
+        },
+        "type": "character",
+        "updated": 1700000000
+      },
+      "NPC_Bob_Parr": {
+        "created": 1700000000,
+        "id": "NPC_Bob_Parr",
+        "name": "Bob Parr",
+        "properties": {
+          "personality": "Bob is the protective, gruff, but loving father. He struggles to accept his daughter growing up and the danger their family faces, but is capable of surprising gentleness.",
+          "description": "A massive, muscular man with a friendly but stern face. He towers over most people.",
+          "base_description": "A massive, muscular man with super strength and near-invulnerability. He has a warm smile but carries the weight of a retired hero.",
+          "stats": {
+            "STR": 20,
+            "DEX": 10,
+            "CON": 18,
+            "INT": 10,
+            "WIS": 10,
+            "CHA": 10
+          },
+          "vitals": {
+            "HP": 100,
+            "Max_HP": 100,
+            "Hunger": 50,
+            "Thirst": 50,
+            "Hygiene": 70,
+            "Energy": 80,
+            "Social": 60,
+            "Bladder": 70,
+            "Sanity": 100,
+            "Entertainment": 50,
+            "Temperature": 37,
+            "Mana": 0
+          },
+          "skills": {
+            "Perception": 1,
+            "Athletics": 5,
+            "Stealth": 0,
+            "Persuasion": 1,
+            "Survival": 2,
+            "Acrobatics": 0
+          },
+          "traits": {},
+          "tags": [
+            "male",
+            "super",
+            "Parr"
+          ],
+          "conditions": {
+            "awake": [
+              {
+                "duration": null,
+                "source": null,
+                "level": 0
+              }
+            ]
+          },
+          "equipped": {
+            "head": [],
+            "torso": [],
+            "legs": [],
+            "feet": [],
+            "hands": [],
+            "back": [],
+            "accessory": [],
+            "neck": [],
+            "waist": []
+          },
+          "state": "awake",
+          "state_timer": 0,
+          "current_area": "Parr_House",
+          "decay_rates": {
+            "Hunger": 1,
+            "Thirst": 1,
+            "Hygiene": 1,
+            "Energy": 1,
+            "Social": 1,
+            "Bladder": 1,
+            "Sanity": 1,
+            "Entertainment": 1
+          },
+          "emotion": {
+            "current": "neutral",
+            "description": "",
+            "intensity": 0
+          },
+          "relationships": {},
+          "memories": [],
+          "activity": null,
+          "npc_behavior": "stationary",
+          "npc_action_interval": 3,
+          "npc_state": "idle",
+          "behaviors": [],
+          "simple_npc": true,
+          "feels_like": 22,
+          "recent_hearing": []
+        },
+        "type": "character",
+        "updated": 1700000000
+      },
+      "NPC_Helen_Parr": {
+        "created": 1700000000,
+        "id": "NPC_Helen_Parr",
+        "name": "Helen Parr",
+        "properties": {
+          "personality": "Helen is calm, pragmatic, and the 'mission commander' of the family. Deeply loving but also the enforcer of the family's 'stay hidden' rule, which she has begun to question.",
+          "description": "A slender, capable woman with a calm, knowing smile. She moves with elastic grace.",
+          "base_description": "A slender, capable woman whose body can stretch up to 300 feet. She has a steady, reassuring presence.",
+          "stats": {
+            "STR": 12,
+            "DEX": 14,
+            "CON": 12,
+            "INT": 14,
+            "WIS": 16,
+            "CHA": 12
+          },
+          "vitals": {
+            "HP": 100,
+            "Max_HP": 100,
+            "Hunger": 50,
+            "Thirst": 50,
+            "Hygiene": 70,
+            "Energy": 80,
+            "Social": 60,
+            "Bladder": 70,
+            "Sanity": 100,
+            "Entertainment": 50,
+            "Temperature": 37,
+            "Mana": 0
+          },
+          "skills": {
+            "Perception": 3,
+            "Athletics": 3,
+            "Stealth": 1,
+            "Persuasion": 2,
+            "Survival": 2,
+            "Acrobatics": 2
+          },
+          "traits": {},
+          "tags": [
+            "female",
+            "super",
+            "Parr"
+          ],
+          "conditions": {
+            "awake": [
+              {
+                "duration": null,
+                "source": null,
+                "level": 0
+              }
+            ]
+          },
+          "equipped": {
+            "head": [],
+            "torso": [],
+            "legs": [],
+            "feet": [],
+            "hands": [],
+            "back": [],
+            "accessory": [],
+            "neck": [],
+            "waist": []
+          },
+          "state": "awake",
+          "state_timer": 0,
+          "current_area": "Parr_House",
+          "decay_rates": {
+            "Hunger": 1,
+            "Thirst": 1,
+            "Hygiene": 1,
+            "Energy": 1,
+            "Social": 1,
+            "Bladder": 1,
+            "Sanity": 1,
+            "Entertainment": 1
+          },
+          "emotion": {
+            "current": "neutral",
+            "description": "",
+            "intensity": 0
+          },
+          "relationships": {},
+          "memories": [],
+          "activity": null,
+          "npc_behavior": "stationary",
+          "npc_action_interval": 3,
+          "npc_state": "idle",
+          "behaviors": [],
+          "simple_npc": true,
+          "feels_like": 22,
+          "recent_hearing": []
+        },
+        "type": "character",
+        "updated": 1700000000
+      },
+      "NPC_Dash_Parr": {
+        "created": 1700000000,
+        "id": "NPC_Dash_Parr",
+        "name": "Dash Parr",
+        "properties": {
+          "personality": "Dash is impulsive, energetic, and flirty. He's 14 and has super speed.",
+          "description": "A wiry, restless boy who can't seem to stay still. His eyes dart around with barely contained energy.",
+          "base_description": "A wiry boy of 14 with super speed. He's always vibrating with impatience.",
+          "stats": {
+            "STR": 8,
+            "DEX": 18,
+            "CON": 10,
+            "INT": 10,
+            "WIS": 8,
+            "CHA": 12
+          },
+          "vitals": {
+            "HP": 80,
+            "Max_HP": 80,
+            "Hunger": 50,
+            "Thirst": 50,
+            "Hygiene": 70,
+            "Energy": 80,
+            "Social": 60,
+            "Bladder": 70,
+            "Sanity": 100,
+            "Entertainment": 50,
+            "Temperature": 37,
+            "Mana": 0
+          },
+          "skills": {
+            "Perception": 1,
+            "Athletics": 2,
+            "Stealth": 1,
+            "Persuasion": 1,
+            "Survival": 0,
+            "Acrobatics": 3
+          },
+          "traits": {},
+          "tags": [
+            "male",
+            "super",
+            "Parr",
+            "child"
+          ],
+          "conditions": {
+            "awake": [
+              {
+                "duration": null,
+                "source": null,
+                "level": 0
+              }
+            ]
+          },
+          "equipped": {
+            "head": [],
+            "torso": [],
+            "legs": [],
+            "feet": [],
+            "hands": [],
+            "back": [],
+            "accessory": [],
+            "neck": [],
+            "waist": []
+          },
+          "state": "awake",
+          "state_timer": 0,
+          "current_area": "Parr_House",
+          "decay_rates": {
+            "Hunger": 1,
+            "Thirst": 1,
+            "Hygiene": 1,
+            "Energy": 1,
+            "Social": 1,
+            "Bladder": 1,
+            "Sanity": 1,
+            "Entertainment": 1
+          },
+          "emotion": {
+            "current": "neutral",
+            "description": "",
+            "intensity": 0
+          },
+          "relationships": {},
+          "memories": [],
+          "activity": null,
+          "npc_behavior": "stationary",
+          "npc_action_interval": 3,
+          "npc_state": "idle",
+          "behaviors": [],
+          "simple_npc": true,
+          "feels_like": 22,
+          "recent_hearing": []
+        },
+        "type": "character",
+        "updated": 1700000000
+      },
+      "NPC_Jack_Jack_Parr": {
+        "created": 1700000000,
+        "id": "NPC_Jack_Jack_Parr",
+        "name": "Jack-Jack Parr",
+        "properties": {
+          "personality": "Jack-Jack is a sweet but chaotic 7-year-old with a grab-bag of unpredictable powers.",
+          "description": "A toddler with a mischievous grin, his eyes occasionally glowing with an otherworldly light.",
+          "base_description": "A 7-year-old with a vast array of unpredictable powers. He's sweet but can be a handful.",
+          "stats": {
+            "STR": 6,
+            "DEX": 10,
+            "CON": 10,
+            "INT": 6,
+            "WIS": 6,
+            "CHA": 14
+          },
+          "vitals": {
+            "HP": 60,
+            "Max_HP": 60,
+            "Hunger": 50,
+            "Thirst": 50,
+            "Hygiene": 70,
+            "Energy": 80,
+            "Social": 60,
+            "Bladder": 70,
+            "Sanity": 100,
+            "Entertainment": 50,
+            "Temperature": 37,
+            "Mana": 0
+          },
+          "skills": {
+            "Perception": 1,
+            "Athletics": 0,
+            "Stealth": 1,
+            "Persuasion": 0,
+            "Survival": 0,
+            "Acrobatics": 1
+          },
+          "traits": {},
+          "tags": [
+            "male",
+            "super",
+            "Parr",
+            "child"
+          ],
+          "conditions": {
+            "awake": [
+              {
+                "duration": null,
+                "source": null,
+                "level": 0
+              }
+            ]
+          },
+          "equipped": {
+            "head": [],
+            "torso": [],
+            "legs": [],
+            "feet": [],
+            "hands": [],
+            "back": [],
+            "accessory": [],
+            "neck": [],
+            "waist": []
+          },
+          "state": "awake",
+          "state_timer": 0,
+          "current_area": "Parr_House",
+          "decay_rates": {
+            "Hunger": 1,
+            "Thirst": 1,
+            "Hygiene": 1,
+            "Energy": 1,
+            "Social": 1,
+            "Bladder": 1,
+            "Sanity": 1,
+            "Entertainment": 1
+          },
+          "emotion": {
+            "current": "neutral",
+            "description": "",
+            "intensity": 0
+          },
+          "relationships": {},
+          "memories": [],
+          "activity": null,
+          "npc_behavior": "stationary",
+          "npc_action_interval": 3,
+          "npc_state": "idle",
+          "behaviors": [],
+          "simple_npc": true,
+          "feels_like": 22,
+          "recent_hearing": []
+        },
+        "type": "character",
+        "updated": 1700000000
+      },
+      "NPC_Leah_Halloway": {
+        "created": 1700000000,
+        "id": "NPC_Leah_Halloway",
+        "name": "Leah Halloway",
+        "properties": {
+          "personality": "Leah is stern, intimidating, fair, and utterly unflappable. A retired government spy, she is analytical and strategic but deeply caring.",
+          "description": "An angular woman with dark hair and a silver streak, dressed in a leather jacket and band tees. She looks like she could beat the shit out of you but also kind.",
+          "base_description": "A retired government spy with memory-reading powers, now a protective mother.",
+          "stats": {
+            "STR": 12,
+            "DEX": 14,
+            "CON": 12,
+            "INT": 16,
+            "WIS": 16,
+            "CHA": 14
+          },
+          "vitals": {
+            "HP": 100,
+            "Max_HP": 100,
+            "Hunger": 50,
+            "Thirst": 50,
+            "Hygiene": 70,
+            "Energy": 80,
+            "Social": 60,
+            "Bladder": 70,
+            "Sanity": 100,
+            "Entertainment": 50,
+            "Temperature": 37,
+            "Mana": 0
+          },
+          "skills": {
+            "Perception": 4,
+            "Athletics": 2,
+            "Stealth": 3,
+            "Persuasion": 2,
+            "Survival": 3,
+            "Acrobatics": 2
+          },
+          "traits": {},
+          "tags": [
+            "female",
+            "super",
+            "Halloway"
+          ],
+          "conditions": {
+            "awake": [
+              {
+                "duration": null,
+                "source": null,
+                "level": 0
+              }
+            ]
+          },
+          "equipped": {
+            "head": [],
+            "torso": [],
+            "legs": [],
+            "feet": [],
+            "hands": [],
+            "back": [],
+            "accessory": [],
+            "neck": [],
+            "waist": []
+          },
+          "state": "awake",
+          "state_timer": 0,
+          "current_area": "Halloway_House",
+          "decay_rates": {
+            "Hunger": 1,
+            "Thirst": 1,
+            "Hygiene": 1,
+            "Energy": 1,
+            "Social": 1,
+            "Bladder": 1,
+            "Sanity": 1,
+            "Entertainment": 1
+          },
+          "emotion": {
+            "current": "neutral",
+            "description": "",
+            "intensity": 0
+          },
+          "relationships": {},
+          "memories": [],
+          "activity": null,
+          "npc_behavior": "stationary",
+          "npc_action_interval": 3,
+          "npc_state": "idle",
+          "behaviors": [],
+          "simple_npc": true,
+          "feels_like": 22,
+          "recent_hearing": []
+        },
+        "type": "character",
+        "updated": 1700000000
+      },
+      "NPC_Marcus_Halloway": {
+        "created": 1700000000,
+        "id": "NPC_Marcus_Halloway",
+        "name": "Marcus Halloway",
+        "properties": {
+          "personality": "Marcus is laid-back with dry humor, but a formidable fighter. He is fiercely protective.",
+          "description": "A tall, thin, muscular man with salt-and-pepper hair, a goatee, bandana, sunglasses, and a leather jacket. Looks like a biker.",
+          "base_description": "A retired mercenary with skill duplication powers, now a laid-back father.",
+          "stats": {
+            "STR": 14,
+            "DEX": 12,
+            "CON": 14,
+            "INT": 12,
+            "WIS": 12,
+            "CHA": 10
+          },
+          "vitals": {
+            "HP": 100,
+            "Max_HP": 100,
+            "Hunger": 50,
+            "Thirst": 50,
+            "Hygiene": 70,
+            "Energy": 80,
+            "Social": 60,
+            "Bladder": 70,
+            "Sanity": 100,
+            "Entertainment": 50,
+            "Temperature": 37,
+            "Mana": 0
+          },
+          "skills": {
+            "Perception": 2,
+            "Athletics": 3,
+            "Stealth": 2,
+            "Persuasion": 1,
+            "Survival": 2,
+            "Acrobatics": 2
+          },
+          "traits": {},
+          "tags": [
+            "male",
+            "super",
+            "Halloway"
+          ],
+          "conditions": {
+            "awake": [
+              {
+                "duration": null,
+                "source": null,
+                "level": 0
+              }
+            ]
+          },
+          "equipped": {
+            "head": [],
+            "torso": [],
+            "legs": [],
+            "feet": [],
+            "hands": [],
+            "back": [],
+            "accessory": [],
+            "neck": [],
+            "waist": []
+          },
+          "state": "awake",
+          "state_timer": 0,
+          "current_area": "Halloway_House",
+          "decay_rates": {
+            "Hunger": 1,
+            "Thirst": 1,
+            "Hygiene": 1,
+            "Energy": 1,
+            "Social": 1,
+            "Bladder": 1,
+            "Sanity": 1,
+            "Entertainment": 1
+          },
+          "emotion": {
+            "current": "neutral",
+            "description": "",
+            "intensity": 0
+          },
+          "relationships": {},
+          "memories": [],
+          "activity": null,
+          "npc_behavior": "stationary",
+          "npc_action_interval": 3,
+          "npc_state": "idle",
+          "behaviors": [],
+          "simple_npc": true,
+          "feels_like": 22,
+          "recent_hearing": []
+        },
+        "type": "character",
+        "updated": 1700000000
+      },
+      "NPC_Erin_Halloway": {
+        "created": 1700000000,
+        "id": "NPC_Erin_Halloway",
+        "name": "Erin Halloway",
+        "properties": {
+          "personality": "Erin is cool, intimidating, and seemingly aloof, but fiercely protective of her family. She uses her emotional manipulation powers subtly.",
+          "description": "A punk/goth older sister with dark hair, ripped jeans, and band tees. She smokes.",
+          "base_description": "An older sister with emotional manipulation powers, often seen with a cigarette.",
+          "stats": {
+            "STR": 10,
+            "DEX": 12,
+            "CON": 12,
+            "INT": 12,
+            "WIS": 14,
+            "CHA": 14
+          },
+          "vitals": {
+            "HP": 100,
+            "Max_HP": 100,
+            "Hunger": 50,
+            "Thirst": 50,
+            "Hygiene": 70,
+            "Energy": 80,
+            "Social": 60,
+            "Bladder": 70,
+            "Sanity": 100,
+            "Entertainment": 50,
+            "Temperature": 37,
+            "Mana": 0
+          },
+          "skills": {
+            "Perception": 2,
+            "Athletics": 1,
+            "Stealth": 2,
+            "Persuasion": 3,
+            "Survival": 1,
+            "Acrobatics": 1
+          },
+          "traits": {},
+          "tags": [
+            "female",
+            "super",
+            "Halloway"
+          ],
+          "conditions": {
+            "awake": [
+              {
+                "duration": null,
+                "source": null,
+                "level": 0
+              }
+            ]
+          },
+          "equipped": {
+            "head": [],
+            "torso": [],
+            "legs": [],
+            "feet": [],
+            "hands": [],
+            "back": [],
+            "accessory": [],
+            "neck": [],
+            "waist": []
+          },
+          "state": "awake",
+          "state_timer": 0,
+          "current_area": "Halloway_House",
+          "decay_rates": {
+            "Hunger": 1,
+            "Thirst": 1,
+            "Hygiene": 1,
+            "Energy": 1,
+            "Social": 1,
+            "Bladder": 1,
+            "Sanity": 1,
+            "Entertainment": 1
+          },
+          "emotion": {
+            "current": "neutral",
+            "description": "",
+            "intensity": 0
+          },
+          "relationships": {},
+          "memories": [],
+          "activity": null,
+          "npc_behavior": "stationary",
+          "npc_action_interval": 3,
+          "npc_state": "idle",
+          "behaviors": [],
+          "simple_npc": true,
+          "feels_like": 22,
+          "recent_hearing": []
+        },
+        "type": "character",
+        "updated": 1700000000
+      },
+      "NPC_Vi_Halloway": {
+        "created": 1700000000,
+        "id": "NPC_Vi_Halloway",
+        "name": "Vi Halloway",
+        "properties": {
+          "personality": "Vi is sarcastic, mischievous, and a self-proclaimed 'menace.' She is sharp-tongued but affectionate.",
+          "description": "A 15-year-old girl with a rebellious glint in her eye. She seems to flicker in and out of solidity.",
+          "base_description": "A 15-year-old with intangibility and voice-cloning powers, always ready with a quip.",
+          "stats": {
+            "STR": 8,
+            "DEX": 14,
+            "CON": 10,
+            "INT": 12,
+            "WIS": 10,
+            "CHA": 12
+          },
+          "vitals": {
+            "HP": 80,
+            "Max_HP": 80,
+            "Hunger": 50,
+            "Thirst": 50,
+            "Hygiene": 70,
+            "Energy": 80,
+            "Social": 60,
+            "Bladder": 70,
+            "Sanity": 100,
+            "Entertainment": 50,
+            "Temperature": 37,
+            "Mana": 0
+          },
+          "skills": {
+            "Perception": 2,
+            "Athletics": 1,
+            "Stealth": 2,
+            "Persuasion": 1,
+            "Survival": 0,
+            "Acrobatics": 1
+          },
+          "traits": {},
+          "tags": [
+            "female",
+            "super",
+            "Halloway",
+            "child"
+          ],
+          "conditions": {
+            "awake": [
+              {
+                "duration": null,
+                "source": null,
+                "level": 0
+              }
+            ]
+          },
+          "equipped": {
+            "head": [],
+            "torso": [],
+            "legs": [],
+            "feet": [],
+            "hands": [],
+            "back": [],
+            "accessory": [],
+            "neck": [],
+            "waist": []
+          },
+          "state": "awake",
+          "state_timer": 0,
+          "current_area": "Halloway_House",
+          "decay_rates": {
+            "Hunger": 1,
+            "Thirst": 1,
+            "Hygiene": 1,
+            "Energy": 1,
+            "Social": 1,
+            "Bladder": 1,
+            "Sanity": 1,
+            "Entertainment": 1
+          },
+          "emotion": {
+            "current": "neutral",
+            "description": "",
+            "intensity": 0
+          },
+          "relationships": {},
+          "memories": [],
+          "activity": null,
+          "npc_behavior": "stationary",
+          "npc_action_interval": 3,
+          "npc_state": "idle",
+          "behaviors": [],
+          "simple_npc": true,
+          "feels_like": 22,
+          "recent_hearing": []
+        },
+        "type": "character",
+        "updated": 1700000000
+      },
+      "NPC_Brutus": {
+        "created": 1700000000,
+        "id": "NPC_Brutus",
+        "name": "Brutus",
+        "properties": {
+          "personality": "Brutus is a loyal, friendly Great Dane, but has a secret, shameful relationship with Violet.",
+          "description": "A massive, sleek Great Dane with a gentle demeanour and intelligent eyes.",
+          "base_description": "A large Great Dane, a faithful companion.",
+          "stats": {
+            "STR": 14,
+            "DEX": 10,
+            "CON": 14,
+            "INT": 4,
+            "WIS": 8,
+            "CHA": 6
+          },
+          "vitals": {
+            "HP": 100,
+            "Max_HP": 100,
+            "Hunger": 50,
+            "Thirst": 50,
+            "Hygiene": 70,
+            "Energy": 80,
+            "Social": 60,
+            "Bladder": 70,
+            "Sanity": 100,
+            "Entertainment": 50,
+            "Temperature": 37,
+            "Mana": 0
+          },
+          "skills": {
+            "Perception": 3,
+            "Athletics": 2,
+            "Stealth": 1,
+            "Persuasion": 0,
+            "Survival": 2,
+            "Acrobatics": 1
+          },
+          "traits": {},
+          "tags": [
+            "animal",
+            "canine"
+          ],
+          "conditions": {
+            "awake": [
+              {
+                "duration": null,
+                "source": null,
+                "level": 0
+              }
+            ]
+          },
+          "equipped": {
+            "head": [],
+            "torso": [],
+            "legs": [],
+            "feet": [],
+            "hands": [],
+            "back": [],
+            "accessory": [],
+            "neck": [],
+            "waist": []
+          },
+          "state": "awake",
+          "state_timer": 0,
+          "current_area": "Parr_House",
+          "decay_rates": {
+            "Hunger": 1,
+            "Thirst": 1,
+            "Hygiene": 1,
+            "Energy": 1,
+            "Social": 1,
+            "Bladder": 1,
+            "Sanity": 1,
+            "Entertainment": 1
+          },
+          "emotion": {
+            "current": "neutral",
+            "description": "",
+            "intensity": 0
+          },
+          "relationships": {},
+          "memories": [],
+          "activity": null,
+          "npc_behavior": "wander",
+          "npc_action_interval": 3,
+          "npc_state": "idle",
+          "behaviors": [],
+          "simple_npc": true,
+          "feels_like": 22,
+          "recent_hearing": []
+        },
+        "type": "character",
+        "updated": 1700000000
+      },
+      "trigger_item_chemistry_textbook_on_examine": {
+        "created": 1700000000,
+        "id": "trigger_item_chemistry_textbook_on_examine",
+        "name": "on_examine → message",
+        "properties": {
+          "trigger_type": "on_examine",
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "The textbook is well-used, with many dog-eared pages. The doodle of the lightning bolt is definitely Jake's—you recognize his handwriting."
+              }
+            }
+          ],
+          "target_name": "",
+          "target_state": "",
+          "fail_message": "",
+          "success_message": ""
+        },
+        "type": "logic_trigger",
+        "updated": 1700000000
+      },
+      "trigger_item_bent_glass_slide_on_take": {
+        "created": 1700000000,
+        "id": "trigger_item_bent_glass_slide_on_take",
+        "name": "on_take → message",
+        "properties": {
+          "trigger_type": "on_take",
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "The glass is warm to the touch, as if recently used. The violet residue seems to shimmer faintly."
+              }
+            }
+          ],
+          "target_name": "",
+          "target_state": "",
+          "fail_message": "",
+          "success_message": ""
+        },
+        "type": "logic_trigger",
+        "updated": 1700000000
+      },
+      "trigger_item_family_photograph_on_examine": {
+        "created": 1700000000,
+        "id": "trigger_item_family_photograph_on_examine",
+        "name": "on_examine → message",
+        "properties": {
+          "trigger_type": "on_examine",
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You look at the photograph. The girl—Violet—seems to be staring out of the frame with a distant, almost pleading look. The frame is heavy, and the glass is spotless."
+              }
+            }
+          ],
+          "target_name": "",
+          "target_state": "",
+          "fail_message": "",
+          "success_message": ""
+        },
+        "type": "logic_trigger",
+        "updated": 1700000000
+      },
+      "trigger_item_glass_shard_on_examine": {
+        "created": 1700000000,
+        "id": "trigger_item_glass_shard_on_examine",
+        "name": "on_examine → message",
+        "properties": {
+          "trigger_type": "on_examine",
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "The shard hums with a faint, electric energy. When you hold it, you feel a slight tingle in your fingers, as if it's charged."
+              }
+            }
+          ],
+          "target_name": "",
+          "target_state": "",
+          "fail_message": "",
+          "success_message": ""
+        },
+        "type": "logic_trigger",
+        "updated": 1700000000
+      }
+    },
+    "edges": [
+      {
+        "source": "area_Millwood_Public_School",
+        "target": "way_school_to_woods",
+        "type": "connection",
+        "properties": {
+          "cardinal": "north",
+          "direction": "to_woods",
+          "visible_in_direction": "A narrow, overgrown trail leading into the shadows of the trees."
+        }
+      },
+      {
+        "source": "way_school_to_woods",
+        "target": "area_The_Woods",
+        "type": "connection",
+        "properties": {
+          "direction": "enter"
+        }
+      },
+      {
+        "source": "area_The_Woods",
+        "target": "way_school_to_woods",
+        "type": "connection",
+        "properties": {
+          "cardinal": "south",
+          "direction": "to_school",
+          "visible_in_direction": "The red brick of the school is just visible through the trees."
+        }
+      },
+      {
+        "source": "way_school_to_woods",
+        "target": "area_Millwood_Public_School",
+        "type": "connection",
+        "properties": {
+          "direction": "return"
+        }
+      },
+      {
+        "source": "area_The_Woods",
+        "target": "way_woods_to_mill",
+        "type": "connection",
+        "properties": {
+          "cardinal": "east",
+          "direction": "to_mill",
+          "visible_in_direction": "A dark, angular shape looms in the distance, towering above the trees."
+        }
+      },
+      {
+        "source": "way_woods_to_mill",
+        "target": "area_The_Old_Steel_Mill",
+        "type": "connection",
+        "properties": {
+          "direction": "enter"
+        }
+      },
+      {
+        "source": "area_The_Old_Steel_Mill",
+        "target": "way_woods_to_mill",
+        "type": "connection",
+        "properties": {
+          "cardinal": "west",
+          "direction": "to_woods",
+          "visible_in_direction": "The rusted track leading back into the woods is bathed in a patch of fading light."
+        }
+      },
+      {
+        "source": "way_woods_to_mill",
+        "target": "area_The_Woods",
+        "type": "connection",
+        "properties": {
+          "direction": "return"
+        }
+      },
+      {
+        "source": "area_The_Woods",
+        "target": "way_woods_to_halloway",
+        "type": "connection",
+        "properties": {
+          "cardinal": "northwest",
+          "direction": "to_halloway",
+          "visible_in_direction": "The trail slopes down toward a small, cluttered-looking house."
+        }
+      },
+      {
+        "source": "way_woods_to_halloway",
+        "target": "area_Halloway_House",
+        "type": "connection",
+        "properties": {
+          "direction": "enter"
+        }
+      },
+      {
+        "source": "area_Halloway_House",
+        "target": "way_woods_to_halloway",
+        "type": "connection",
+        "properties": {
+          "cardinal": "southeast",
+          "direction": "to_woods",
+          "visible_in_direction": "The trees rise up just beyond the fence."
+        }
+      },
+      {
+        "source": "way_woods_to_halloway",
+        "target": "area_The_Woods",
+        "type": "connection",
+        "properties": {
+          "direction": "return"
+        }
+      },
+      {
+        "source": "area_Halloway_House",
+        "target": "way_halloway_to_parr",
+        "type": "connection",
+        "properties": {
+          "cardinal": "east",
+          "direction": "to_parr",
+          "visible_in_direction": "A pristine, well-kept house sits just across the street, almost too perfect to be real."
+        }
+      },
+      {
+        "source": "way_halloway_to_parr",
+        "target": "area_Parr_House",
+        "type": "connection",
+        "properties": {
+          "direction": "enter"
+        }
+      },
+      {
+        "source": "area_Parr_House",
+        "target": "way_halloway_to_parr",
+        "type": "connection",
+        "properties": {
+          "cardinal": "west",
+          "direction": "to_halloway",
+          "visible_in_direction": "The chaotic, lived-in house across the street is a welcome sight."
+        }
+      },
+      {
+        "source": "way_halloway_to_parr",
+        "target": "area_Halloway_House",
+        "type": "connection",
+        "properties": {
+          "direction": "return"
+        }
+      },
+      {
+        "source": "item_chemistry_textbook",
+        "target": "area_Millwood_Public_School",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_bent_glass_slide",
+        "target": "area_Millwood_Public_School",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_shattered_phone_screen",
+        "target": "area_The_Woods",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_scorched_bark",
+        "target": "area_The_Woods",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_glass_shard",
+        "target": "area_The_Old_Steel_Mill",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_half_empty_coffee_mug",
+        "target": "area_Halloway_House",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_bent_key",
+        "target": "area_Halloway_House",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_family_photograph",
+        "target": "area_Parr_House",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_pair_of_violet_tinted_glasses",
+        "target": "area_Parr_House",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Violet_Parr",
+        "target": "area_Millwood_Public_School",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Jake_Halloway",
+        "target": "area_Millwood_Public_School",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "NPC_Bob_Parr",
+        "target": "area_Parr_House",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "NPC_Helen_Parr",
+        "target": "area_Parr_House",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "NPC_Dash_Parr",
+        "target": "area_Parr_House",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "NPC_Jack_Jack_Parr",
+        "target": "area_Parr_House",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "NPC_Leah_Halloway",
+        "target": "area_Halloway_House",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "NPC_Marcus_Halloway",
+        "target": "area_Halloway_House",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "NPC_Erin_Halloway",
+        "target": "area_Halloway_House",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "NPC_Vi_Halloway",
+        "target": "area_Halloway_House",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "NPC_Brutus",
+        "target": "area_Parr_House",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_chemistry_textbook",
+        "target": "trigger_item_chemistry_textbook_on_examine",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine"
+        }
+      },
+      {
+        "source": "item_bent_glass_slide",
+        "target": "trigger_item_bent_glass_slide_on_take",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_take"
+        }
+      },
+      {
+        "source": "item_family_photograph",
+        "target": "trigger_item_family_photograph_on_examine",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine"
+        }
+      },
+      {
+        "source": "item_glass_shard",
+        "target": "trigger_item_glass_shard_on_examine",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine"
+        }
+      }
+    ]
+  },
+  "item_registry": {},
+  "narration_mode": "none",
+  "players": {
+    "Violet_Parr": {
+      "name": "Violet Parr",
+      "personality": "You are Violet Parr, 18. You are intelligent, fiercely protective, and deeply lonely. You've spent years hiding your true self—your powers, your desires, your shame. You present a 'good girl' front to the world, but inside you are a storm of conflicted emotions, desperate for someone to see all of you and not look away. You are flirty and fun on the surface, but it's a mask. You've just started to trust Jake, a boy who might understand the chaos inside you.",
+      "description": "A striking young woman with long black hair and fierce, intelligent blue-violet eyes. She wears a simple black dress that falls just above her knees, and her stance is one of careful, practiced poise. There's a quiet intensity to her, a sense that she's always holding something back.",
+      "base_description": "An 18-year-old with long, sleek black hair and striking blue-violet eyes. Her waifish frame is deceptively strong, and her white skin is unblemished. She moves with a careful, deliberate grace, as if always aware of the space she occupies. She likes hairbands, skimpy dresses, and high heels.",
+      "stats": {
+        "STR": 8,
+        "DEX": 12,
+        "CON": 10,
+        "INT": 14,
+        "WIS": 14,
+        "CHA": 12
+      },
+      "vitals": {
+        "HP": 100,
+        "Max_HP": 100,
+        "Hunger": 20,
+        "Thirst": 20,
+        "Hygiene": 90,
+        "Energy": 90,
+        "Social": 60,
+        "Bladder": 70,
+        "Sanity": 100,
+        "Entertainment": 70,
+        "Temperature": 37,
+        "Mana": 0
+      },
+      "skills": {
+        "Acrobatics": 1,
+        "Athletics": 0,
+        "Perception": 2,
+        "Persuasion": 1,
+        "Stealth": 1,
+        "Survival": 1
+      },
+      "traits": {},
+      "tags": [
+        "female",
+        "super",
+        "Parr"
+      ],
+      "interest_tags": [],
+      "equipped": {
+        "head": [],
+        "torso": [],
+        "legs": [],
+        "feet": [],
+        "hands": [],
+        "hand_left": [],
+        "hand_right": [],
+        "back": [],
+        "accessory": [],
+        "neck": [],
+        "waist": []
+      },
+      "state": "awake",
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "source": null,
+            "level": 0
+          }
+        ]
+      },
+      "current_area": "Millwood_Public_School",
+      "decay_rates": {
+        "Hunger": 1,
+        "Thirst": 1,
+        "Hygiene": 1,
+        "Energy": 1,
+        "Social": 1,
+        "Bladder": 1,
+        "Sanity": 1,
+        "Entertainment": 1
+      },
+      "emotion": {
+        "current": "neutral",
+        "description": "",
+        "intensity": 0
+      },
+      "relationships": {
+        "Jake_Halloway": {
+          "closeness": 50,
+          "interaction_count": 5,
+          "last_interaction_tick": 0
+        }
+      },
+      "memories": [],
+      "activity": null,
+      "simple_npc": false,
+      "npc_behavior": "wander",
+      "npc_action_interval": 3,
+      "npc_state": "idle",
+      "behaviors": [],
+      "feels_like": 22,
+      "recent_hearing": []
+    },
+    "Jake_Halloway": {
+      "name": "Jake Halloway",
+      "personality": "You are Jake Halloway, 18. You are fiercely intelligent, chaotic, and socially oblivious. You use humor and bad puns as a shield, but you are deeply loyal and have a strong moral compass. You ask for permission and respect boundaries, even when your impulsiveness gets the better of you. You have a dangerous secret—your electromagnetism—and you've been reckless with it. You are drawn to Violet Parr because you suspect she shares the same weight of a hidden self.",
+      "description": "A lanky young man in a faded hoodie and jeans, with a smudge of grease on his cheek. His seagreen eyes are bright and intelligent, darting around as if seeing the electrical currents in the air. He has an easy, slouched posture, but his hands are always moving, fidgeting with a loose thread or a pen cap.",
+      "base_description": "An 18-year-old with chaotic energy barely contained in a slim, utilitarian frame. He has seagreen eyes with golden flecks and short, stiff hair that always sticks up. He wears well-worn hoodies and jeans, and his glasses are rarely seen. He's smart, unfiltered, and oscillates between shy and hyperactively silly.",
+      "stats": {
+        "STR": 10,
+        "DEX": 10,
+        "CON": 12,
+        "INT": 16,
+        "WIS": 8,
+        "CHA": 10
+      },
+      "vitals": {
+        "HP": 100,
+        "Max_HP": 100,
+        "Hunger": 20,
+        "Thirst": 20,
+        "Hygiene": 80,
+        "Energy": 85,
+        "Social": 60,
+        "Bladder": 70,
+        "Sanity": 100,
+        "Entertainment": 70,
+        "Temperature": 37,
+        "Mana": 0
+      },
+      "skills": {
+        "Acrobatics": 10,
+        "Athletics": 8,
+        "Perception": 12,
+        "Persuasion": 6,
+        "Stealth": 4,
+        "Survival": 5
+      },
+      "traits": {},
+      "tags": [
+        "male",
+        "super",
+        "Halloway"
+      ],
+      "interest_tags": [],
+      "equipped": {
+        "head": [],
+        "torso": [],
+        "legs": [],
+        "feet": [],
+        "hands": [],
+        "hand_left": [],
+        "hand_right": [],
+        "back": [],
+        "accessory": [],
+        "neck": [],
+        "waist": []
+      },
+      "state": "awake",
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "source": null,
+            "level": 0
+          }
+        ]
+      },
+      "current_area": "Millwood_Public_School",
+      "decay_rates": {
+        "Hunger": 1,
+        "Thirst": 1,
+        "Hygiene": 1,
+        "Energy": 1,
+        "Social": 1,
+        "Bladder": 1,
+        "Sanity": 1,
+        "Entertainment": 1
+      },
+      "emotion": {
+        "current": "neutral",
+        "description": "",
+        "intensity": 0
+      },
+      "relationships": {
+        "Violet_Parr": {
+          "closeness": 50,
+          "interaction_count": 5,
+          "last_interaction_tick": 0
+        }
+      },
+      "memories": [],
+      "activity": null,
+      "simple_npc": false,
+      "npc_behavior": "wander",
+      "npc_action_interval": 3,
+      "npc_state": "idle",
+      "behaviors": [],
+      "feels_like": 22,
+      "recent_hearing": []
+    }
+  },
+  "players_in_area": [],
+  "rooms": {
+    "Millwood_Public_School": {
+      "ambient_light": 80,
+      "description": "A sprawling PK-12 school built from red brick and pale stone. The halls echo with the distant buzz of fluorescent lights and the shuffle of students. The chemistry classroom smells faintly of sulfur and old coffee—a familiar haven where the world makes sense. The history classroom, down the hall, holds dusty maps and portraits of forgotten presidents.",
+      "environment": {
+        "air": "still",
+        "light": "bright",
+        "noise": "moderate",
+        "smell": "chalk, coffee, old paper",
+        "temperature": 22
+      },
+      "exits": {
+        "to_woods": {
+          "cost": {},
+          "description": "A path behind the gymnasium that leads through a chain-link fence into the woods. The trees press close, and the light dims as the canopy thickens.",
+          "hidden": false,
+          "label": "To the Woods",
+          "pass_message": "You duck through the gap in the fence, leaving the school behind.",
+          "return_dir": "to_school",
+          "state": "open",
+          "target": "The_Woods",
+          "visible_in_direction": "A narrow, overgrown trail leading into the shadows of the trees.",
+          "way_id": "way_school_to_woods"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "bright",
+      "name": "Millwood Public Schools",
+      "properties": {
+        "description": "A sprawling PK-12 school built from red brick and pale stone. The halls echo with the distant buzz of fluorescent lights and the shuffle of students. The chemistry classroom smells faintly of sulfur and old coffee—a familiar haven where the world makes sense. The history classroom, down the hall, holds dusty maps and portraits of forgotten presidents.",
+        "environment": {
+          "air": "still",
+          "light": "bright",
+          "noise": "moderate",
+          "smell": "chalk, coffee, old paper",
+          "temperature": 22
+        },
+        "tags": []
+      }
+    },
+    "The_Woods": {
+      "ambient_light": 50,
+      "description": "A dense, tangled forest where the light struggles to reach the ground. The air is cool and damp, thick with the smell of earth and rotting leaves. The path is barely visible, winding between gnarled oaks and thick underbrush. A faint, lingering smell of ozone clings to the air near a patch of scorched bark.",
+      "environment": {
+        "air": "cool, damp",
+        "light": "dim",
+        "noise": "quiet",
+        "smell": "earth, ozone, damp leaves",
+        "temperature": 18
+      },
+      "exits": {
+        "to_school": {
+          "cost": {},
+          "description": "The path back to the school is clearer here, the trees thinning as you approach the chain-link fence.",
+          "hidden": false,
+          "label": "Back to School",
+          "pass_message": "You walk back toward the familiar sounds of the schoolyard.",
+          "return_dir": "to_woods",
+          "state": "open",
+          "target": "Millwood_Public_School",
+          "visible_in_direction": "The red brick of the school is just visible through the trees.",
+          "way_id": "way_school_to_woods"
+        },
+        "to_mill": {
+          "cost": {},
+          "description": "A faint, rusted track leads deeper into the woods, its path marked by twisted metal and dark, oily stains.",
+          "hidden": false,
+          "label": "To the Steel Mill",
+          "pass_message": "You follow the track, the smell of rust and old industry growing stronger.",
+          "return_dir": "to_woods",
+          "state": "open",
+          "target": "The_Old_Steel_Mill",
+          "visible_in_direction": "A dark, angular shape looms in the distance, towering above the trees.",
+          "way_id": "way_woods_to_mill"
+        },
+        "to_halloway": {
+          "cost": {},
+          "description": "A narrow, winding trail that seems more used by animals than people, leading toward a faint column of chimney smoke.",
+          "hidden": false,
+          "label": "To the Halloway House",
+          "pass_message": "You push through the underbrush, heading for the smell of woodsmoke.",
+          "return_dir": "to_woods",
+          "state": "open",
+          "target": "Halloway_House",
+          "visible_in_direction": "The trail slopes down toward a small, cluttered-looking house.",
+          "way_id": "way_woods_to_halloway"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "dim",
+      "name": "The Woods",
+      "properties": {
+        "description": "A dense, tangled forest where the light struggles to reach the ground. The air is cool and damp, thick with the smell of earth and rotting leaves. The path is barely visible, winding between gnarled oaks and thick underbrush. A faint, lingering smell of ozone clings to the air near a patch of scorched bark.",
+        "environment": {
+          "air": "cool, damp",
+          "light": "dim",
+          "noise": "quiet",
+          "smell": "earth, ozone, damp leaves",
+          "temperature": 18
+        },
+        "tags": []
+      }
+    },
+    "The_Old_Steel_Mill": {
+      "ambient_light": 30,
+      "description": "A colossal, derelict structure of rusted iron and crumbling concrete. The air is heavy with the metallic tang of old industry and the cloying smell of stagnant water. Broken windows stare out like hollow eyes, and a deep, echoing silence is occasionally broken by the groan of shifting metal. A wide, deep shaft is sunk into the concrete floor in the main chamber, its edges lined with old, blackened cables.",
+      "environment": {
+        "air": "stale, metallic",
+        "light": "dim",
+        "noise": "silent",
+        "smell": "rust, stagnant water, cold metal",
+        "temperature": 15
+      },
+      "exits": {
+        "to_woods": {
+          "cost": {},
+          "description": "The gaping main entrance leads back out to the rusted track and the dark forest.",
+          "hidden": false,
+          "label": "To the Woods",
+          "pass_message": "You step out of the oppressive metal tomb and back into the cool air of the forest.",
+          "return_dir": "to_mill",
+          "state": "open",
+          "target": "The_Woods",
+          "visible_in_direction": "The rusted track leading back into the woods is bathed in a patch of fading light.",
+          "way_id": "way_woods_to_mill"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "dim",
+      "name": "The Old Steel Mill",
+      "properties": {
+        "description": "A colossal, derelict structure of rusted iron and crumbling concrete. The air is heavy with the metallic tang of old industry and the cloying smell of stagnant water. Broken windows stare out like hollow eyes, and a deep, echoing silence is occasionally broken by the groan of shifting metal. A wide, deep shaft is sunk into the concrete floor in the main chamber, its edges lined with old, blackened cables.",
+        "environment": {
+          "air": "stale, metallic",
+          "light": "dim",
+          "noise": "silent",
+          "smell": "rust, stagnant water, cold metal",
+          "temperature": 15
+        },
+        "tags": []
+      }
+    },
+    "Halloway_House": {
+      "ambient_light": 70,
+      "description": "A messy, lived-in house that looks like it's always a moment away from being a disaster. Stacks of books teeter on tables, jackets hang from doorknobs, and the faint hum of a bass guitar comes from the basement. The kitchen is a chaotic warzone of mismatched plates and half-empty coffee mugs, but the air smells like fresh bread and something fried. It feels safe, chaotic, and utterly real.",
+      "environment": {
+        "air": "warm, lived-in",
+        "light": "moderate",
+        "noise": "low",
+        "smell": "coffee, bread, old leather",
+        "temperature": 22
+      },
+      "exits": {
+        "to_woods": {
+          "cost": {},
+          "description": "The back door leads out to a small, messy yard that quickly gives way to the treeline.",
+          "hidden": false,
+          "label": "To the Woods",
+          "pass_message": "You step into the cool air, the sounds of the house fading behind you.",
+          "return_dir": "to_halloway",
+          "state": "open",
+          "target": "The_Woods",
+          "visible_in_direction": "The trees rise up just beyond the fence.",
+          "way_id": "way_woods_to_halloway"
+        },
+        "to_parr": {
+          "cost": {},
+          "description": "The front door, leading out to the quiet suburban street.",
+          "hidden": false,
+          "label": "To the Parr House",
+          "pass_message": "You step out onto the porch and see the immaculate white house across the way.",
+          "return_dir": "to_halloway",
+          "state": "open",
+          "target": "Parr_House",
+          "visible_in_direction": "A pristine, well-kept house sits just across the street, almost too perfect to be real.",
+          "way_id": "way_halloway_to_parr"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "moderate",
+      "name": "The Halloway House",
+      "properties": {
+        "description": "A messy, lived-in house that looks like it's always a moment away from being a disaster. Stacks of books teeter on tables, jackets hang from doorknobs, and the faint hum of a bass guitar comes from the basement. The kitchen is a chaotic warzone of mismatched plates and half-empty coffee mugs, but the air smells like fresh bread and something fried. It feels safe, chaotic, and utterly real.",
+        "environment": {
+          "air": "warm, lived-in",
+          "light": "moderate",
+          "noise": "low",
+          "smell": "coffee, bread, old leather",
+          "temperature": 22
+        },
+        "tags": []
+      }
+    },
+    "Parr_House": {
+      "ambient_light": 85,
+      "description": "An immaculately kept suburban home, its white siding pristine and its lawn perfectly manicured. Inside, everything is in its place—the furniture is tasteful, the bookshelves are organized, and a faint, pleasant scent of lavender and lemon polish hangs in the air. It's the perfect picture of normalcy, but the silence feels heavy, as if the house itself is holding its breath. A large, faintly scorched area mars the otherwise perfect front lawn.",
+      "environment": {
+        "air": "clean, still",
+        "light": "bright",
+        "noise": "silent",
+        "smell": "lavender, lemon, fresh linen",
+        "temperature": 22
+      },
+      "exits": {
+        "to_halloway": {
+          "cost": {},
+          "description": "The front door leads out to the peaceful, quiet street.",
+          "hidden": false,
+          "label": "To the Halloway House",
+          "pass_message": "You step outside, the weight of the perfect house lifting slightly.",
+          "return_dir": "to_parr",
+          "state": "open",
+          "target": "Halloway_House",
+          "visible_in_direction": "The chaotic, lived-in house across the street is a welcome sight.",
+          "way_id": "way_halloway_to_parr"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "bright",
+      "name": "The Parr House",
+      "properties": {
+        "description": "An immaculately kept suburban home, its white siding pristine and its lawn perfectly manicured. Inside, everything is in its place—the furniture is tasteful, the bookshelves are organized, and a faint, pleasant scent of lavender and lemon polish hangs in the air. It's the perfect picture of normalcy, but the silence feels heavy, as if the house itself is holding its breath. A large, faintly scorched area mars the otherwise perfect front lawn.",
+        "environment": {
+          "air": "clean, still",
+          "light": "bright",
+          "noise": "silent",
+          "smell": "lavender, lemon, fresh linen",
+          "temperature": 22
+        },
+        "tags": []
+      }
+    }
+  },
+  "time_per_tick_minutes": 5,
+  "time_ticks": 0,
+  "turn_number": 1,
+  "ways": {},
+  "world_lore": [],
+  "_scenario_name": "deepseek_thinking-with-guide_json_20260811_55aa77"
+}

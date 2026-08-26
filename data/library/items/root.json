@@ -1,0 +1,39 @@
+{
+  "name": "root",
+  "description": "a thick, pale root has pushed through the cellar wall and snakes across the floor. it's warm to the touch, and when you press your ear to it, you can hear a faint, rhythmic pulsing — like a heartbeat far beneath the earth.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "plant",
+    "organic",
+    "outdoor"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_examine"
+      ],
+      "effects": [
+        {
+          "params": {
+            "fail_message": "",
+            "success_message": "you follow the root with your hand. it leads to a corner of the cellar where the earth has been disturbed. something was buried here. the root grows through the mound like a grave marker."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

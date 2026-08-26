@@ -1,0 +1,40 @@
+{
+  "name": "dining area",
+  "description": "a long mahogany table dominates the room, set with tarnished silverware and dusty china as if awaiting guests who never arrived. a grand chandelier hangs above, unlit. portraits of stern ancestors line the walls, their eyes seeming to track movement. a sideboard along the wall holds crystal decanters and serving platters. the faint smell of rotten food clings to the air, decades old.",
+  "tags": [],
+  "environment": {
+    "air": "stale",
+    "light": 30,
+    "noise": "quiet",
+    "smell": "rotting food",
+    "temperature": 17
+  },
+  "items": [],
+  "exits": [
+    {
+      "direction": "conservatory_door",
+      "target_room_hint": "conservatory",
+      "description": "french doors leading to the conservatory, their glass panels fogged with condensation.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "conservatory_door"
+    },
+    {
+      "direction": "dining_room_door_back",
+      "target_room_hint": "foyer",
+      "description": "a door with a tarnished brass knob that feels cold to the touch.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "dining_room_door_back"
+    },
+    {
+      "direction": "kitchen_door",
+      "target_room_hint": "kitchen",
+      "description": "a door leading to the kitchen. a sliver of light glows from beneath it — impossible, since there's no electricity.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "kitchen_door"
+    }
+  ],
+  "triggers": []
+}

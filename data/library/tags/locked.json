@@ -1,0 +1,17 @@
+{
+  "id": "locked",
+  "name": "Locked",
+  "description": "Secured and requires unlocking",
+  "category": "state",
+  "color": "#888800",
+  "icon": "🔒",
+  "applies_to": [
+    "items",
+    "areas"
+  ],
+  "examples": [
+    "locked chest",
+    "locked door",
+    "padlock"
+  ]
+}

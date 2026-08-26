@@ -1,0 +1,58 @@
+{
+  "name": "Matte Black Nail Polish",
+  "description": "A small bottle of matte black nail polish, chipped at the edges from nervous picking. About a third empty.",
+  "actions": "examine,take,use",
+  "uses": 10,
+  "weight": 0.05,
+  "current_state": "normal",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "tool",
+    "cosmetic"
+  ],
+  "equip_slots": [],
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "type": "adjust_vital",
+          "params": {
+            "amount": 3,
+            "stat": "Hygiene",
+            "target": "self"
+          }
+        },
+        {
+          "type": "message",
+          "params": {
+            "message": "You paint your nails matte black. The chipped edges are covered, for now."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "Matte black. The bottle is light — running low. The brush is slightly gloppy."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ]
+}

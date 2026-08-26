@@ -1,0 +1,23 @@
+{
+  "auto_close": false,
+  "current_state": "open",
+  "description": "A narrow cleft in the snow-covered slope, its edges worn smooth by wind and frost. It leads out of the hollow into the tangled thicket beyond.",
+  "edge_length": "",
+  "library_id": "",
+  "max_size": "",
+  "name": "rocky slope",
+  "needs_open": {},
+  "one_way": false,
+  "parameters": {},
+  "pass_message": "The snow crunches softly underfoot as you squeeze through the tight passage, the cold air swirling around you.. there are footsteps towards the hollow entrance",
+  "prevent_close": false,
+  "requires": "",
+  "see_through": false,
+  "tags": [
+    "outdoor",
+    "passage",
+    "snow",
+    "ice"
+  ],
+  "triggers": []
+}

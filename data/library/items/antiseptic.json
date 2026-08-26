@@ -1,0 +1,14 @@
+{
+  "name": "Antiseptic Vial",
+  "description": "",
+  "actions": "examine,take,use",
+  "uses": -1,
+  "weight": 0.1,
+  "tags": [
+    "liquid",
+    "medicine"
+  ],
+  "triggers": [],
+  "contents": [],
+  "current_state": "hidden"
+}

@@ -1,0 +1,22 @@
+{
+  "name": "Small Oil Tin (For Prosthetic)",
+  "actions": "examine,take,use,drop",
+  "contents": [],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "A small, dented tin container holding clockwork oil. Essential for maintaining the prosthetic leg, preventing painful grinding and stiffness. Carried in a coat pocket.",
+  "insulation": 0,
+  "library_id": "small_oil_tin",
+  "light_level": "dim",
+  "tags": [
+    "consumable",
+    "oil",
+    "maintenance",
+    "clockwork",
+    "flammable"
+  ],
+  "triggers": [],
+  "uses": 5,
+  "weight": 0.3
+}

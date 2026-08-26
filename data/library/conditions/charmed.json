@@ -1,0 +1,21 @@
+{
+  "name": "Charmed",
+  "description": "Magically compelled by someone. You can't bring yourself to hurt them.",
+  "blocks_actions": false,
+  "blocks_movement": false,
+  "blocks_speech": false,
+  "auto_fail_checks": [],
+  "auto_fail_saves": [],
+  "attack_mod": 0,
+  "defense_mod": 0,
+  "speed_mult": 1.0,
+  "movement_mode": null,
+  "drops_held_items": false,
+  "periodic": {},
+  "ends_on": [],
+  "known": false,
+  "symptoms": {},
+  "stack": "noop",
+  "default_duration": null,
+  "excludes": []
+}

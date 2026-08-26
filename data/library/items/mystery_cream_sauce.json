@@ -1,0 +1,18 @@
+{
+  "name": "Mystery Cream Sauce",
+  "actions": "examine,take,use,drop",
+  "contents": [],
+  "current_state": "normal",
+  "description": "a small sealed cup of something cream-colored that arrived unrequested. it is either chipotle ranch or a biohazard. there is exactly one way to find out and it involves trust.",
+  "tags": [
+    "food"
+  ],
+  "triggers": [],
+  "uses": 1,
+  "weight": 0.05,
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "library_id": "mystery_cream_sauce"
+}

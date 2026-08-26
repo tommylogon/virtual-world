@@ -1,0 +1,15 @@
+{
+  "name": "Dark Cave",
+  "description": "A natural cave formed by ancient waterways, now dry and silent. Stalactites hang from the ceiling like frozen teeth. The air is still and cold, carrying the faint echo of dripping water from deeper within. The floor is uneven, littered with rocks and patches of damp sand. Bioluminescent fungi glow faintly along the walls, providing the only source of light.\n\nhere are several people, the valerious family chained up, and several cultists wwearing dark robes and the new dawn logo",
+  "tags": [],
+  "environment": {
+    "air": "",
+    "light": "normal",
+    "noise": "quiet",
+    "smell": "earthy",
+    "temperature": 10
+  },
+  "items": [],
+  "exits": [],
+  "triggers": []
+}

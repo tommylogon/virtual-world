@@ -1,0 +1,16 @@
+{
+  "id": "wooden",
+  "name": "Wooden",
+  "description": "Made of wood — natural, burnable, and commonly worked material",
+  "category": "physical",
+  "color": "#8B4513",
+  "icon": "🪵",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "wooden chair",
+    "oak table",
+    "pine shelf"
+  ]
+}

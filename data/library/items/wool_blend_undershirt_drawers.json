@@ -1,0 +1,24 @@
+{
+  "name": "Wool Blend Undershirt & Drawers",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "contents": [],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "Worn soft from years of use, this practical undergarment is a coarse wool and cotton blend. The drawstrings have been replaced twice, once with leather cord, once with twine. Faintly smells of woodsmoke. Frayed but clean hems.",
+  "insulation": 0,
+  "library_id": "wool_blend_undershirt_drawers",
+  "light_level": "dim",
+  "tags": [
+    "clothing",
+    "underwear",
+    "wool"
+  ],
+  "triggers": [],
+  "uses": -1,
+  "weight": 0.5,
+  "equip_slots": [
+    "torso",
+    "legs"
+  ]
+}

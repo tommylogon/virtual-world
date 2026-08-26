@@ -1,0 +1,18 @@
+{
+  "name": "christmas_decorations",
+  "description": "a box of old christmas decorations: tinsel, glass ornaments, and a small wooden angel with chipped paint. the angel's face has been worn smooth, but beneath the base, someone carved: 'save us.'",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "toy",
+    "art"
+  ],
+  "triggers": [],
+  "contents": []
+}

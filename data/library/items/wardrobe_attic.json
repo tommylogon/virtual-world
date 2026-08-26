@@ -1,0 +1,19 @@
+{
+  "name": "wardrobe_attic",
+  "description": "a tall, ornate wardrobe with a cracked mirror. inside: moth-eaten fur coats, a wedding dress yellowed with age, and a small box containing a child's christening gown and a lock of baby hair.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 30,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "furniture",
+    "wooden",
+    "container"
+  ],
+  "triggers": [],
+  "contents": []
+}

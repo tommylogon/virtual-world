@@ -1,0 +1,14 @@
+{
+  "id": "hemophobic",
+  "name": "Hemophobic",
+  "description": "The sight of blood or death makes you queasy.",
+  "category": "mental",
+  "params": null,
+  "effects": {},
+  "save_on": [
+    {"event": "see_item", "source_type": "item", "item_tags": ["blood", "corpse"], "stat": "WIS", "dc": 12,
+     "on_fail": [{"condition": "frightened", "duration": 3, "source_type": "item"},
+                 {"vital": "Sanity", "amount": -5}],
+     "fail_message": "The sight of it makes your stomach turn."}
+  ]
+}

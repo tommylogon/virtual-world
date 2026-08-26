@@ -1,0 +1,20 @@
+{
+  "name": "thermos",
+  "description": "an old thermos on the bench wedged between the roots. inside: cold but still drinkable tea, though it tastes of oak and earth now.",
+  "actions": "examine,take,use,drop",
+  "uses": 2,
+  "weight": 0.8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "water",
+    "drink",
+    "container",
+    "supplies"
+  ],
+  "triggers": [],
+  "contents": []
+}

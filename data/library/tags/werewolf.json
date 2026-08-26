@@ -1,0 +1,15 @@
+{
+  "id": "werewolf",
+  "name": "Werewolf",
+  "description": "Shapeshifter that transforms under the moon",
+  "category": "character",
+  "color": "#444400",
+  "icon": "🐺",
+  "applies_to": [
+    "characters"
+  ],
+  "examples": [
+    "lycanthrope",
+    "wolf-blooded"
+  ]
+}

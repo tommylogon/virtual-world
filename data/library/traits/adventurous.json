@@ -1,0 +1,11 @@
+{
+  "id": "adventurous",
+  "name": "Adventurous",
+  "description": "Entertainment doesn't decay in unfamiliar areas. More willing to take risks and go somewhere unknown.",
+  "category": "exploration",
+  "params": null,
+  "effects": {
+    "adventurous": true,
+    "no_entertainment_decay": true
+  }
+}

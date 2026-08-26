@@ -1,0 +1,24 @@
+{
+  "name": "Stovepipe Leather Boots (Pair)",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "contents": [],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "Dark brown leather boots rising to mid-calf. Right boot is standard issue, worn and scuffed. Left boot has been cut and modified to fit around the clockwork prosthetic, with reinforced sole and oiled leather flap covering the joint. Heels worn unevenly, caked with dried mud.",
+  "insulation": 0,
+  "library_id": "stovepipe_leather_boots",
+  "light_level": "dim",
+  "tags": [
+    "clothing",
+    "boots",
+    "leather",
+    "modified"
+  ],
+  "triggers": [],
+  "uses": -1,
+  "weight": 2,
+  "equip_slots": [
+    "feet"
+  ]
+}

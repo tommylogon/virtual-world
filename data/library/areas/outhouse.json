@@ -1,0 +1,71 @@
+{
+  "name": "Outhouse",
+  "description": "A small, wooden outhouse stands isolated in the snow, ",
+  "tags": [],
+  "environment": {
+    "air": "fresh",
+    "light": "normal",
+    "noise": "surprisingly quiet, the sound of running water deep down the toilet",
+    "smell": "Plesantly lavender",
+    "temperature": 18
+  },
+  "items": [
+    {
+      "name": "Stone tablet with Rune",
+      "description": "A sturdy stone table with a glowing rune carved into its surface. It radiates a pleasant warmth, making the outhouse comfortable despite the cold outside.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.5,
+      "current_state": "lit",
+      "tags": [
+        "magic",
+        "heat_source"
+      ]
+    },
+    {
+      "name": "Wooden Outhouse Seat",
+      "description": "A worn wooden seat with a hole, from which sounds of running water echo deep below.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 1,
+      "weight": 0.5,
+      "current_state": "normal",
+      "tags": [
+        "toilet"
+      ]
+    },
+    {
+      "name": "Wash Basin",
+      "description": "A simple wooden wash basin filled with warm water.",
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "uses": -1,
+      "weight": 15,
+      "current_state": "normal",
+      "tags": [
+        "wet"
+      ]
+    }
+  ],
+  "exits": [
+    {
+      "direction": "Outhouse door",
+      "target_room_hint": "Blizzard Forest Clearing",
+      "description": "A wooden door to the outhouse",
+      "state": "closed",
+      "hidden": false,
+      "cardinal": "southwest"
+    }
+  ],
+  "triggers": []
+}

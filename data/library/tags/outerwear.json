@@ -1,0 +1,15 @@
+{
+  "id": "outerwear",
+  "name": "Outerwear",
+  "description": "Jackets, coats, overgarments.",
+  "category": "physical",
+  "color": "#2e86c1",
+  "icon": "🧥",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "field jacket",
+    "hoodie"
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "name": "Task 18 - jump",
+  "description": "a hole that would need to be jumped over to get to the othe rside.",
+  "current_state": "open",
+  "pass_message": "",
+  "edge_length": "",
+  "needs_open": {},
+  "auto_close": false,
+  "see_through": false,
+  "one_way": false,
+  "requires": "jump",
+  "max_size": "",
+  "prevent_close": false,
+  "tags": [
+    "clearance"
+  ],
+  "parameters": {},
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_fail_jump"
+      ],
+      "effects": [
+        {
+          "params": {
+            "area": "Task 18 - hole",
+            "success_message": "you fall down the hole"
+          },
+          "type": "teleport"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "you fall down the hole",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": [
+        "on_examine"
+      ],
+      "effects": [
+        {
+          "params": {
+            "success_message": "looking down the hole lets you see the platform below,w aht seems to be some kind of soft gel lieksubstance covers the entire bottom"
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "looking down the hole lets you see the platform below,w aht seems to be some kind of soft gel lieksubstance covers the entire bottom",
+      "fail_message": ""
+    }
+  ]
+}

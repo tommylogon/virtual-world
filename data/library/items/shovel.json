@@ -1,0 +1,20 @@
+{
+  "name": "shovel",
+  "description": "a rusty shovel leaning against a gnarled, ancient oak tree. the blade is caked with dried earth that crumbles when you touch it.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "tool",
+    "metal",
+    "outdoor",
+    "survival"
+  ],
+  "triggers": [],
+  "contents": []
+}

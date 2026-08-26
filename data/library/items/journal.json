@@ -1,0 +1,21 @@
+{
+  "name": "journal",
+  "description": "a leather-bound journal. the final entry, written in shaky handwriting: 'the skull is the key. take it to the altar in the crypt beneath the graveyard. but be warned — the doors will seal behind those who dare disturb the firstborn's rest. i have seen what happens to those who try to leave. god forgive me, i cannot stay. — augustus blackwood, october 30th, 1891'",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "journal",
+    "documents",
+    "paper",
+    "evidence",
+    "clue"
+  ],
+  "triggers": [],
+  "contents": []
+}

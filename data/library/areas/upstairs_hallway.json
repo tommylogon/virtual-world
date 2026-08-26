@@ -1,0 +1,73 @@
+{
+  "description": "A narrow hallway on the second floor, the floorboards creaking underfoot. Faded wallpaper peels at the corners. Two doors lead off the hallway: one to a master bedroom, another to a smaller guest room. A draft seeps through the old window at the end of the hall, rattling the glass.",
+  "environment": {
+    "air": "cold",
+    "light": "dim",
+    "noise": "wind rattling a window",
+    "smell": "old wood and dust",
+    "temperature": 0.7788746603906249
+  },
+  "exits": [
+    {
+      "direction": "guest bedroom",
+      "target_room_hint": "sons bedroom",
+      "description": "A modest door with a simple porcelain knob. Dust has gathered in the corners of the frame.",
+      "state": "closed",
+      "hidden": false,
+      "cardinal": "north"
+    },
+    {
+      "direction": "master bedroom",
+      "target_room_hint": "Master Bedroom",
+      "description": "A tall wooden door with an ornate brass handle. Faint traces of lavender scent the air around it.",
+      "state": "closed",
+      "hidden": false,
+      "cardinal": "east"
+    },
+    {
+      "direction": "stairs",
+      "target_room_hint": "Living Room",
+      "description": "A wooden staircase ascends into shadows, the banister worn smooth by years of use. The steps groan under any weight.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "down"
+    }
+  ],
+  "items": [
+    {
+      "name": "Painting of the Wandering Forests of Vald",
+      "description": "A breathtaking painting depicting the ancient, shifting forests of Vald. The trees seem to move ever so slightly when you look away, and the underbrush glows with faint luminescence. The frame is aged oak, intricately carved with leaves and vines.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 0,
+      "weight": 2,
+      "current_state": "normal",
+      "tags": [
+        "art"
+      ]
+    },
+    {
+      "name": "Small Angel Statue (Ramiel's Charge)",
+      "description": "A small, intricately carved stone statue of an angel with outspread wings. The base is inscribed with 'Ramiel's Charge'. The statue feels cool to the touch.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 1,
+      "weight": 0.3,
+      "current_state": "normal",
+      "tags": [
+        "statue"
+      ]
+    }
+  ],
+  "name": "Upstairs Hallway",
+  "tags": [],
+  "triggers": []
+}

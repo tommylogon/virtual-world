@@ -1,0 +1,22 @@
+{
+  "auto_close": true,
+  "current_state": "closed",
+  "description": "A classic double swinging door with a small round window, gently swaying.",
+  "edge_length": "",
+  "library_id": "swinging_door",
+  "max_size": "normal",
+  "name": "swinging door",
+  "needs_open": {
+    "dc": 10,
+    "enabled": false,
+    "skill": "Athletics"
+  },
+  "one_way": false,
+  "parameters": {},
+  "pass_message": "You push through the swinging door into the kitchen.",
+  "prevent_close": false,
+  "requires": "none",
+  "see_through": false,
+  "tags": [],
+  "triggers": []
+}

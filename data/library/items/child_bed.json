@@ -1,0 +1,19 @@
+{
+  "name": "child_bed",
+  "description": "a small wooden bed with a faded quilt patterned with stars and moons. the pillow is dented. the sheets are cold, but they smell faintly of lavender soap.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 20,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "furniture",
+    "wooden",
+    "child"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,36 @@
+{
+  "name": "lamp",
+  "description": "A brass desk lamp with a green glass shade. It casts a warm pool of light across the desk.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 2,
+  "current_state": "unlit",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "flammable",
+    "light_source"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "type": "set_environment",
+          "params": {
+            "light": 70,
+            "message": "You switch on the lamp. The warm light pushes back the shadows."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

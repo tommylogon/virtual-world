@@ -1,0 +1,14 @@
+{
+  "id": "sarcophagus",
+  "name": "Sarcophagus",
+  "description": "Stone coffin.",
+  "category": "environment",
+  "color": "#7f8c8d",
+  "icon": "⚰️",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "stone sarcophagus"
+  ]
+}

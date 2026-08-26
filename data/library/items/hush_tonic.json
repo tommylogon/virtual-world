@@ -1,0 +1,38 @@
+{
+  "name": "Hush Tonic",
+  "description": "A pale violet tonic that eases forced wakefulness. A sip and the relentless alertness finally loosens its grip — sleep follows quickly.",
+  "actions": "examine,take,drink,drop",
+  "uses": 3,
+  "weight": 0.2,
+  "tags": [
+    "alchemical",
+    "drink",
+    "liquid",
+    "medicine"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_drink"
+      ],
+      "effects": [
+        {
+          "type": "apply_condition",
+          "params": {
+            "condition": "unconscious",
+            "target": "self",
+            "duration": 10,
+            "source": "hush tonic",
+            "message": "The tonic is cool and soothing. The jittery alertness drains away and your eyes grow heavy — sleep takes you."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

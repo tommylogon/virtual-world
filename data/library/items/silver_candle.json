@@ -1,0 +1,22 @@
+{
+  "name": "silver_candle",
+  "description": "a thick candle in a silver holder on the sideboard, untouched. the wax is pristine, as if placed here yesterday.",
+  "actions": "examine,take,use,drop",
+  "uses": 15,
+  "weight": 0.8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "toggleable",
+    "candle",
+    "light_source",
+    "fire",
+    "metal",
+    "silver"
+  ],
+  "triggers": [],
+  "contents": []
+}

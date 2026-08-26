@@ -1,0 +1,18 @@
+{
+  "library_id": "",
+  "name": "garden-graveyard_gate",
+  "description": "a rusty iron gate covered in climbing ivy. it creaks as it swings.",
+  "current_state": "open",
+  "pass_message": "",
+  "edge_length": "",
+  "needs_open": {},
+  "auto_close": false,
+  "see_through": false,
+  "one_way": false,
+  "requires": "",
+  "max_size": "",
+  "prevent_close": false,
+  "tags": [],
+  "parameters": {},
+  "triggers": []
+}

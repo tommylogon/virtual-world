@@ -1,0 +1,38 @@
+{
+  "name": "Lab Table",
+  "description": "A heavy stainless-steel worktable",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 80,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "damage_skill": "Athletics",
+  "tags": [
+    "furniture",
+    "metal",
+    "laboratory",
+    "heavy"
+  ],
+  "triggers": [
+    {
+      "conditions": {},
+      "effects": [
+        {
+          "params": {
+            "message": "The stainless-steel surface is cold and scarred. A Bunsen burner sits at the ready, and a coil of rubber tubing runs to a gas tap. Equations are carved into the leg."
+          },
+          "type": "message"
+        }
+      ],
+      "fail_message": "",
+      "success_message": "",
+      "target_name": "",
+      "target_state": "",
+      "trigger_type": "on_examine"
+    }
+  ],
+  "contents": []
+}

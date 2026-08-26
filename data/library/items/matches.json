@@ -1,0 +1,21 @@
+{
+  "name": "matches",
+  "description": "a small box of matches has fallen from the coat pocket — a matchbox with a faded illustration of a raven. it rattles — there are several inside.",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "uses": 8,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "light_source",
+    "fire",
+    "tool",
+    "flammable",
+    "survival"
+  ],
+  "triggers": [],
+  "contents": []
+}

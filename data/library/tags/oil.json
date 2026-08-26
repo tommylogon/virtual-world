@@ -1,0 +1,15 @@
+{
+  "id": "oil",
+  "name": "Oil",
+  "description": "Oil or fuel.",
+  "category": "physical",
+  "color": "#34495e",
+  "icon": "🛢️",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "oil can",
+    "oil lamp"
+  ]
+}

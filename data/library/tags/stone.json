@@ -1,0 +1,16 @@
+{
+  "id": "stone",
+  "name": "Stone",
+  "description": "Made of stone — dense, durable, and often used in construction",
+  "category": "physical",
+  "color": "#666666",
+  "icon": "🪨",
+  "applies_to": [
+    "items",
+    "areas"
+  ],
+  "examples": [
+    "stone floor",
+    "granite statue"
+  ]
+}

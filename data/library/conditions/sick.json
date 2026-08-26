@@ -1,0 +1,31 @@
+{
+  "name": "Sick",
+  "description": "Ill. Hunger and thirst worsen.",
+  "blocks_actions": false,
+  "blocks_movement": false,
+  "blocks_speech": false,
+  "auto_fail_checks": [],
+  "auto_fail_saves": [],
+  "attack_mod": 0,
+  "defense_mod": 0,
+  "speed_mult": 1.0,
+  "movement_mode": null,
+  "drops_held_items": false,
+  "periodic": {
+    "Hunger": 2,
+    "Thirst": 2
+  },
+  "ends_on": [
+    "duration",
+    "cure"
+  ],
+  "known": false,
+  "stack": "accumulate",
+  "default_duration": 8,
+  "symptoms": {
+    "5": "You feel a little off.",
+    "3": "You ache and your stomach churns.",
+    "1": "Feverish and weak. You need to lie down."
+  },
+  "excludes": []
+}

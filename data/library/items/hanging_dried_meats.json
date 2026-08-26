@@ -1,0 +1,68 @@
+{
+  "name": "Hanging Dried Meats",
+  "description": "Strips of dried, salted meat hanging from hooks. They look preserved and edible.",
+  "actions": "examine,take,use,drop",
+  "uses": 3,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "food"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_eat",
+      "effects": [
+        {
+          "type": "adjust_vital",
+          "params": {
+            "amount": -25,
+            "message": "You chew on the dried meat. It's tough but savory, and fills your stomach.",
+            "stat": "Hunger"
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "Several strips of dried meat hang from iron hooks. They've been cured with salt and smoke."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_take",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "You take a strip of dried meat."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

@@ -1,0 +1,17 @@
+{
+  "id": "drink",
+  "name": "Drink",
+  "description": "Can be consumed as a beverage, quenches thirst",
+  "category": "physical",
+  "color": "#44aaff",
+  "icon": "🧪",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "potion",
+    "wine bottle",
+    "water flask",
+    "ale mug"
+  ]
+}

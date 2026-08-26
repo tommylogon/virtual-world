@@ -1,0 +1,18 @@
+{
+  "auto_close": false,
+  "current_state": "open",
+  "description": "A wooden staircase ascends into shadows, the banister worn smooth by years of use. The steps groan under any weight.",
+  "edge_length": "",
+  "library_id": "",
+  "max_size": "",
+  "name": "Stairs",
+  "needs_open": {},
+  "one_way": false,
+  "parameters": {},
+  "pass_message": "You climb the creaking stairs to the upstairs hallway.",
+  "prevent_close": false,
+  "requires": "",
+  "see_through": false,
+  "tags": [],
+  "triggers": []
+}

@@ -1,0 +1,66 @@
+{
+  "name": "fireplace",
+  "actions": "examine,use",
+  "contents": [],
+  "current_state": "off",
+  "damage": 0,
+  "defense": 0,
+  "description": "A stone fireplace, cold and dark. A pile of ash sits in the hearth. A poker rests against the hearth, waiting to stir the embers.",
+  "insulation": 0,
+  "light_level": "dim",
+  "tags": [
+    "fireplace",
+    "heat_source",
+    "warmth",
+    "fire",
+    "furniture"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_use",
+      "effects": [],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_tick",
+      "effects": [],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "success_message": "Just needs some kindling and a spark, likely i can *USE* my tinderbox if i had some kindling."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "uses": -1,
+  "weight": 50
+}

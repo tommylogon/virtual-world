@@ -1,0 +1,97 @@
+{
+  "name": "Study",
+  "description": "A freezing study filled floor-to-ceiling with books. Your breath fogs in the cold air. A large oak desk dominates the center, covered in papers and an old typewriter. A dim lamp offers weak light. One of the desk drawers is locked. A fierce draft seeps through a boarded-up window.",
+  "tags": [],
+  "environment": {
+    "air": "cold",
+    "light": "normal",
+    "noise": "wind whistling through cracks",
+    "smell": "dust, old paper, and frost",
+    "temperature": 2
+  },
+  "items": [
+    {
+      "name": "desk",
+      "description": "A heavy oak desk with a locked drawer on the right side. The lock is small and ornate â€” a brass key might fit it.",
+      "actions": [
+        "examine",
+        "open",
+        "close"
+      ],
+      "uses": -1,
+      "weight": 60,
+      "current_state": "locked",
+      "tags": []
+    },
+    {
+      "name": "letter",
+      "description": "A yellowed, handwritten letter, the ink faded with age.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.05,
+      "current_state": "normal",
+      "tags": [
+        "flammable"
+      ]
+    },
+    {
+      "name": "typewriter",
+      "description": "An old Remington typewriter. A half-finished page is still rolled in: 'The old house keeps its secrets well. Only those who look closely will find what lies beneath...'",
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "uses": -1,
+      "weight": 8,
+      "current_state": "normal",
+      "tags": []
+    },
+    {
+      "name": "lamp",
+      "description": "A brass desk lamp with a green glass shade. It casts a warm pool of light across the desk.",
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "uses": -1,
+      "weight": 2,
+      "current_state": "unlit",
+      "tags": [
+        "flammable",
+        "light_source"
+      ]
+    },
+    {
+      "name": "Letter to the King",
+      "description": "A sealed letter addressed to King Nicolas . It appears to detail a nefarious plot involving the princesses' sixteenth birthday.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.1,
+      "current_state": "normal",
+      "tags": [
+        "flammable"
+      ]
+    }
+  ],
+  "exits": [
+    {
+      "direction": "study door",
+      "target_room_hint": "Living Room",
+      "description": "A heavy oak door leading to the study.",
+      "state": "closed",
+      "hidden": false,
+      "cardinal": "west"
+    }
+  ],
+  "triggers": []
+}

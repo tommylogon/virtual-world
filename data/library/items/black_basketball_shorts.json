@@ -1,0 +1,40 @@
+{
+  "name": "black basketball shorts",
+  "description": "black mesh basketball shorts with the waistband rolled once for a tighter fit. they hit mid-thigh and allow full range of motion. a small logo is barely visible on the left leg, worn smooth.",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "uses": 0,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 1,
+  "tags": [
+    "clothing",
+    "bottom",
+    "insulation"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "lightweight mesh shorts, rolled at the waist. built for the gym. you can move in these without thinking about it."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": [],
+  "library_id": "black_basketball_shorts",
+  "equip_slots": [
+    "legs"
+  ]
+}

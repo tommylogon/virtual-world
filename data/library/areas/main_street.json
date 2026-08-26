@@ -1,0 +1,19 @@
+{
+  "name": "main street",
+  "description": "the heart of downtown millbrook falls. a long stretch of historic brick storefronts — shuttered awnings, hand-painted signs, a few streetlights fighting off the dark. the sidewalk is cracked and buckled in places, worn smooth by decades of shoes. a single car sits parked by the curb, windows fogged. most of the shops are dark, but a couple still glow from inside. the air smells like old brick and cold night air, with a faint thread of coffee from somewhere up the block.",
+  "environment": {
+    "air": "fresh",
+    "light": 60,
+    "noise": "distant traffic, quiet",
+    "smell": "old brick, coffee, night air",
+    "temperature": 11
+  },
+  "items": [],
+  "tags": [
+    "millbrook_falls",
+    "exterior",
+    "commercial",
+    "downtown"
+  ],
+  "triggers": []
+}

@@ -1,0 +1,16 @@
+{
+  "id": "elf",
+  "name": "Elf",
+  "description": "Long-lived fey-descended humanoid",
+  "category": "character",
+  "color": "#44aa44",
+  "icon": "🧝",
+  "applies_to": [
+    "characters"
+  ],
+  "examples": [
+    "high elf",
+    "wood elf",
+    "dark elf"
+  ]
+}

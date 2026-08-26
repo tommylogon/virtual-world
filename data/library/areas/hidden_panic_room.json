@@ -1,0 +1,76 @@
+{
+  "name": "Hidden Panic Room",
+  "description": "A low-ceilinged attic room, clearly retrofitted for emergencies. The walls are lined with padded fabric, and a single dim bulb casts a warm glow. The air is surprisingly fresh, vented from somewhere unseen. The space smells faintly of old wool blankets and melted candle wax. A small cot, a lantern, and a crate of bottled water sit in the corner.",
+  "tags": [],
+  "environment": {
+    "air": "fresh",
+    "light": "normal",
+    "noise": "quiet",
+    "smell": "old blankets and candle wax",
+    "temperature": 22
+  },
+  "items": [
+    {
+      "name": "Crossbow",
+      "description": "A compact crossbow, meticulously maintained and loaded with a single bolt. The wood is darkened with age, but the string is taut and the mechanism is clean. It looks effective, if only you had a clear shot.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 1,
+      "weight": 3,
+      "current_state": "normal",
+      "tags": []
+    },
+    {
+      "name": "Rations of Dried Meat",
+      "description": "A strip of tough, salted meat. It's edible, if not exactly gourmet.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 3,
+      "weight": 0.5,
+      "current_state": "normal",
+      "tags": [
+        "food"
+      ]
+    },
+    {
+      "name": "Bundle of Candles",
+      "description": "Three beeswax candles, tightly bound with a thin string. They exude a faint honey scent.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 3,
+      "weight": 0.2,
+      "current_state": "normal",
+      "tags": [
+        "flammable"
+      ]
+    },
+    {
+      "name": "Half-Full Waterskin",
+      "description": "A leather waterskin, about half full of fresh water.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 1,
+      "weight": 0.5,
+      "current_state": "normal",
+      "tags": []
+    }
+  ],
+  "exits": [],
+  "triggers": []
+}

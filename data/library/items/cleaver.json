@@ -1,0 +1,22 @@
+{
+  "name": "cleaver",
+  "description": "a massive meat cleaver, its blade stained dark with old blood and rust. the weight of it speaks of years of brutal work.",
+  "actions": "examine,use,take,drop,equip,unequip",
+  "uses": -1,
+  "weight": 3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 20,
+  "damage_type": "slashing",
+  "insulation": 0,
+  "tags": [
+    "weapon",
+    "knife",
+    "meat",
+    "cleaver",
+    "metal"
+  ],
+  "triggers": [],
+  "contents": []
+}

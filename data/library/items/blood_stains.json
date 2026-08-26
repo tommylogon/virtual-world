@@ -1,0 +1,19 @@
+{
+  "name": "blood_stains",
+  "description": "dark, ancient blood stains cover the floor and walls. some are recent.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "blood",
+    "occult",
+    "evidence"
+  ],
+  "triggers": [],
+  "contents": []
+}

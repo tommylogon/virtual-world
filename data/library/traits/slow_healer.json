@@ -1,0 +1,9 @@
+{
+  "id": "slow_healer",
+  "name": "Slow Healer",
+  "description": "Natural HP regeneration is halved.",
+  "category": "physical",
+  "params": null,
+  "effects": {"hp_regen_multiplier": 0.5},
+  "conflicts": ["fast_healer"]
+}

@@ -1,0 +1,2798 @@
+{
+  "current_area": "Blizzard Forest Clearing",
+  "players_in_area": [],
+  "players": {
+    "Kaelen Voss": {
+      "name": "Kaelen Voss",
+      "personality": "Identity: Kaelen Voss\nSpecies: Human\nOccupation: Disgraced Investigator for the Galser Office of Justice\nCurrent Status: Independent Truth-Seeker / Weary Traveler\nYear of Birth: 1548 (36 years old)\nRevised Character Description\nYou are a man whose sharp eyes have seen too much of the \"Witch's Spit\" and the \"Elemental Conjunction\" to believe in simple explanations\n. Formerly a rising star in the Ulus of Galser’s bureaucratic machine, you were exiled after you refused to hand over a \"magical item of interest\" to the Department of Education and Research\n.\nYou carry the weight of the world’s 120-year curse in your bones, literally—your left leg clicks with a clockwork prosthetic, a relic of a skirmish near the Galtian border\n. While your humor remains dry as the Sarekyan Desert, it has taken on a bleaker edge as the frost of 1584 refuses to break [42, Conversation History]. Your soft spot for stray animals has manifested as \"Runt,\" a shivering mouseling you found near a Galtian military camp, who now lives in the pocket of your heavy, fur-lined coat",
+      "description": "",
+      "stats": {
+        "CHA": 10,
+        "CON": 10,
+        "DEX": 10,
+        "INT": 10,
+        "STR": 10,
+        "WIS": 10
+      },
+      "vitals": {
+        "HP": 100,
+        "Max_HP": 100,
+        "Hunger": 59,
+        "Thirst": 49,
+        "Hygiene": 79,
+        "Energy": 66,
+        "Social": 98,
+        "Bladder": 100,
+        "Sanity": 98,
+        "Entertainment": 98,
+        "Temperature": 36.46
+      },
+      "skills": {
+        "Acrobatics": 1,
+        "Athletics": 1,
+        "Perception": 1,
+        "Persuasion": 1,
+        "Stealth": 1,
+        "Survival": 1
+      },
+      "state": "awake",
+      "state_timer": 0,
+      "traits": {},
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "inventory": [
+        "Unlit Torch",
+        "Backpack",
+        "Book",
+        "Ink",
+        "Ink Pen",
+        "Lamp",
+        "Oil",
+        "Parchment",
+        "Tinderbox"
+      ],
+      "current_area": "Blizzard Forest Clearing",
+      "memory": {},
+      "emotion": {
+        "current": "neutral",
+        "intensity": 0.19999999999999998,
+        "description": ""
+      },
+      "relationships": {},
+      "memories": [],
+      "world_knowledge": "",
+      "knowledge": {},
+      "simple_npc": false,
+      "npc_behavior": "wander",
+      "npc_action_interval": 3,
+      "npc_state": "idle",
+      "state_enter_tick": 0,
+      "behaviors": []
+    },
+    "rat": {
+      "name": "rat",
+      "personality": "A scruffy brown rat with bright, clever eyes and twitching whiskers. It seems more curious than afraid, sniffing at the gap beneath the kitchen door.",
+      "description": "",
+      "stats": {
+        "CHA": 4,
+        "CON": 8,
+        "DEX": 14,
+        "INT": 3,
+        "STR": 2,
+        "WIS": 10
+      },
+      "vitals": {
+        "HP": 11,
+        "Max_HP": 10,
+        "Hunger": 69,
+        "Thirst": 59,
+        "Hygiene": 49,
+        "Energy": 86,
+        "Social": 18,
+        "Bladder": 99,
+        "Sanity": 98,
+        "Entertainment": 98,
+        "Temperature": 36.74
+      },
+      "skills": {
+        "Acrobatics": 3,
+        "Athletics": 1,
+        "Perception": 3,
+        "Stealth": 4,
+        "Survival": 2
+      },
+      "state": "awake",
+      "state_timer": 0,
+      "traits": {},
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "inventory": [],
+      "current_area": "Kitchen",
+      "memory": {},
+      "emotion": {
+        "current": "neutral",
+        "intensity": 0,
+        "description": ""
+      },
+      "relationships": {},
+      "memories": [],
+      "world_knowledge": "",
+      "knowledge": {},
+      "simple_npc": true,
+      "npc_behavior": "wander",
+      "npc_action_interval": 10,
+      "npc_state": "idle",
+      "state_enter_tick": 0,
+      "behaviors": [
+        {
+          "trigger": "on_player_enter_area",
+          "priority": 5,
+          "interval": 1,
+          "conditions": {},
+          "actions": [
+            {"type": "message", "text": "The rat twitches its whiskers and regards you with bright little eyes, then goes back to whatever it was doing."}
+          ]
+        },
+        {
+          "trigger": "on_tick",
+          "priority": 4,
+          "interval": 6,
+          "conditions": {
+            "operator": "and",
+            "conditions": [
+              {"type": "proximity", "max_areas": 0},
+              {"type": "random_chance", "chance": 0.35}
+            ]
+          },
+          "actions": [
+            {"type": "set_npc_state", "state": "fleeing"},
+            {"type": "message", "text": "The rat squeaks and darts under the nearest furniture, not wanting to be near you."}
+          ]
+        },
+        {
+          "trigger": "on_tick",
+          "priority": 3,
+          "interval": 3,
+          "conditions": {
+            "operator": "and",
+            "conditions": [
+              {"type": "eq", "target": "npc_state", "value": "fleeing"},
+              {"type": "random_chance", "chance": 0.4}
+            ]
+          },
+          "actions": [
+            {"type": "go", "area": "Kitchen"},
+            {"type": "set_npc_state", "state": "hiding"},
+            {"type": "message", "text": "The rat vanishes through a crack beneath the kitchen door."}
+          ]
+        },
+        {
+          "trigger": "on_tick",
+          "priority": 3,
+          "interval": 10,
+          "conditions": {
+            "operator": "and",
+            "conditions": [
+              {"type": "eq", "target": "npc_state", "value": "hiding"},
+              {"type": "tick_since_state", "min_ticks": 5},
+              {"type": "random_chance", "chance": 0.4}
+            ]
+          },
+          "actions": [
+            {"type": "set_npc_state", "state": "scavenging"},
+            {"type": "message", "text": "After a moment of silence, the rat cautiously creeps back out, sniffing the air."}
+          ]
+        },
+        {
+          "trigger": "on_tick",
+          "priority": 2,
+          "interval": 12,
+          "conditions": {
+            "operator": "and",
+            "conditions": [
+              {"type": "eq", "target": "npc_state", "value": "scavenging"},
+              {"type": "random_chance", "chance": 0.35}
+            ]
+          },
+          "actions": [
+            {"type": "set_npc_state", "state": "eating"},
+            {"type": "heal", "amount": 15, "stat": "Hunger"},
+            {"type": "message", "text": "The rat finds a stray crumb and nibbles it quickly, watching the room."}
+          ]
+        },
+        {
+          "trigger": "on_tick",
+          "priority": 2,
+          "interval": 10,
+          "conditions": {
+            "operator": "and",
+            "conditions": [
+              {"type": "eq", "target": "npc_state", "value": "eating"},
+              {"type": "random_chance", "chance": 0.3}
+            ]
+          },
+          "actions": [
+            {"type": "set_npc_state", "state": "scavenging"},
+            {"type": "message", "text": "The rat licks its whiskers clean."}
+          ]
+        },
+        {
+          "trigger": "on_tick",
+          "priority": 1,
+          "interval": 8,
+          "conditions": {
+            "operator": "and",
+            "conditions": [
+              {"type": "eq", "target": "npc_state", "value": "scavenging"},
+              {"type": "random_chance", "chance": 0.3}
+            ]
+          },
+          "actions": [
+            {"type": "go", "area": "Cellar"},
+            {"type": "message", "text": "The rat noses around the cellar, sniffing at jars and crumbs."}
+          ]
+        },
+        {
+          "trigger": "on_tick",
+          "priority": 1,
+          "interval": 8,
+          "conditions": {
+            "operator": "and",
+            "conditions": [
+              {"type": "eq", "target": "npc_state", "value": "scavenging"},
+              {"type": "random_chance", "chance": 0.3}
+            ]
+          },
+          "actions": [
+            {"type": "go", "area": "Kitchen"},
+            {"type": "message", "text": "The rat scurries back to the kitchen."}
+          ]
+        }
+      ]
+    }
+  },
+  "active_player": "Kaelen Voss",
+  "game_time": "08:45:00",
+  "time_ticks": 9,
+  "time_per_tick_minutes": 5,
+  "clock_start_hour": 8,
+  "clock_start_minute": 0,
+  "areas": {
+    "Hidden Panic Area": {
+      "name": "Hidden Panic Area",
+      "description": "A low-ceilinged attic room, clearly retrofitted for emergencies. The walls are lined with padded fabric, and a single dim bulb casts a warm glow. The air is surprisingly fresh, vented from somewhere unseen. The space smells faintly of old wool blankets and melted candle wax. A small cot, a lantern, and a crate of bottled water sit in the corner.",
+      "environment": {
+        "air": "fresh",
+        "light": "normal",
+        "noise": "quiet",
+        "smell": "old blankets and candle wax",
+        "temperature": 22
+      },
+      "exits": {},
+      "items": [],
+      "floor": 0,
+      "properties": {
+        "description": "A low-ceilinged attic room, clearly retrofitted for emergencies. The walls are lined with padded fabric, and a single dim bulb casts a warm glow. The air is surprisingly fresh, vented from somewhere unseen. The space smells faintly of old wool blankets and melted candle wax. A small cot, a lantern, and a crate of bottled water sit in the corner.",
+        "environment": {
+          "air": "fresh",
+          "light": "normal",
+          "noise": "quiet",
+          "smell": "old blankets and candle wax",
+          "temperature": 22
+        }
+      }
+    },
+    "Blizzard Forest Clearing": {
+      "name": "Blizzard Forest Clearing",
+      "description": "You are in the wilderness in the north of the kingdom of Rocheveron, and for the past 4 hours a relentless blizzard has swallows the forest, whiteout obscuring every trail. Snow whips the skeletal trees, their branches heavy with ice. In the distance, a lone house looms like a dark silhouette, its windows barely visible through the storm. The air bites with a freezing chill, and the world feels closed off, as if the woods have sealed you in a frozen tomb. is that the house you are looking for?",
+      "environment": {
+        "air": "fresh",
+        "light": "bright",
+        "noise": "windy",
+        "smell": "Frozen pines and wilderness",
+        "temperature": -12
+      },
+      "exits": {
+        "front door": {
+          "target": "Living Area",
+          "return_dir": "enter",
+          "state": "open",
+          "description": "A heavy wooden front door, weathered by the storm. The iron handle is cold to the touch.",
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "way_id": "way_front",
+          "hidden": false,
+          "pass_message": "You step through the front door into the cold glow of the living room.",
+          "visible_in_direction": "The door is sligtly ajar, snow and wind slowly blowing the door back and forth. inside is the dim ligth and outlines of  furniture"
+        },
+        "Outhouse door": {
+          "target": "Outhouse",
+          "return_dir": "Outhouse door",
+          "state": "closed",
+          "description": "A wooden door to the outhouse",
+          "cost": {},
+          "way_id": "way_Blizzard Forest Clearing_Outhouse door",
+          "hidden": false,
+          "pass_message": "The outhouse door creeks gently as you open and pass inside.",
+          "visible_in_direction": "The inside of the outhouse, warm glow and snow melts as it enters the inside"
+        }
+      },
+      "items": [],
+      "floor": 0,
+      "properties": {
+        "description": "You are in the wilderness in the north of the kingdom of Rocheveron, and for the past 4 hours a relentless blizzard has swallows the forest, whiteout obscuring every trail. Snow whips the skeletal trees, their branches heavy with ice. In the distance, a lone house looms like a dark silhouette, its windows barely visible through the storm. The air bites with a freezing chill, and the world feels closed off, as if the woods have sealed you in a frozen tomb. is that the house you are looking for?",
+        "environment": {
+          "air": "fresh",
+          "light": "bright",
+          "noise": "windy",
+          "smell": "Frozen pines and wilderness",
+          "temperature": -12
+        }
+      }
+    },
+    "Cellar": {
+      "name": "Cellar",
+      "description": "A cold, damp cellar with low stone walls. The only light filters through cracks in the foundation, casting long shadows across earthen floor. Shelves line the walls, stocked with preserved goods and dusty bottles. In the corner, a mound of coal looms. Above, the trapdoor's outline is just visible against the dim light.",
+      "environment": {
+        "air": "musty",
+        "light": 5,
+        "noise": "dripping water",
+        "smell": "earth and mildew",
+        "temperature": 4
+      },
+      "exits": {
+        "ladder": {
+          "target": "Kitchen",
+          "return_dir": "ladder",
+          "state": "closed",
+          "description": "A heavy wooden trapdoor set into the kitchen floor, its iron ring cold against the floorboards. A sturdy ladder disappears into darkness below.",
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "way_id": "way_cellar_trapdoor",
+          "hidden": false,
+          "pass_message": "You lift the trapdoor and climb down the ladder into the cold, damp cellar.",
+          "visible_in_direction": "Above, through the open trapdoor, you see the kitchen ceiling and the light from the room."
+        }
+      },
+      "items": [],
+      "floor": 0,
+      "properties": {
+        "description": "A cold, damp cellar with low stone walls. The only light filters through cracks in the foundation, casting long shadows across earthen floor. Shelves line the walls, stocked with preserved goods and dusty bottles. In the corner, a mound of coal looms. Above, the trapdoor's outline is just visible against the dim light.",
+        "environment": {
+          "air": "musty",
+          "light": 5,
+          "noise": "dripping water",
+          "smell": "earth and mildew",
+          "temperature": 4
+        }
+      }
+    },
+    "Guest Bedroom": {
+      "name": "Guest Bedroom",
+      "description": "A smaller room with a single bed pushed against the wall. A writing desk sits beneath the window, a half-melted candle on its surface. The room has the feel of not having been used in years — a thin layer of dust covers everything.",
+      "environment": {
+        "air": "stale",
+        "light": "dim",
+        "noise": "wind outside",
+        "smell": "dust",
+        "temperature": 1
+      },
+      "exits": {
+        "hallway": {
+          "target": "Upstairs Hallway",
+          "return_dir": "hallway",
+          "state": "closed",
+          "description": "A modest door with a simple porcelain knob. Dust has gathered in the corners of the frame.",
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "way_id": "way_bedroom_guest",
+          "hidden": false,
+          "pass_message": "You push open the door to the guest bedroom. Dust motes dance in the dim light.",
+          "visible_in_direction": "The upstairs hallway beyond, with the master bedroom door to your left and the stairs leading down."
+        }
+      },
+      "items": [],
+      "floor": 0,
+      "properties": {
+        "description": "A smaller room with a single bed pushed against the wall. A writing desk sits beneath the window, a half-melted candle on its surface. The room has the feel of not having been used in years — a thin layer of dust covers everything.",
+        "environment": {
+          "air": "stale",
+          "light": "dim",
+          "noise": "wind outside",
+          "smell": "dust",
+          "temperature": 1
+        }
+      }
+    },
+    "Kitchen": {
+      "name": "Kitchen",
+      "description": "A cold, dark kitchen with exposed wooden beams. The stove is out, and a chill hangs in the air. Dried herbs dangle from the ceiling, their scent faint in the cold. A large oak table sits in the center, covered with a checkered cloth.",
+      "environment": {
+        "air": "cold",
+        "light": "normal",
+        "noise": "silence, occasionally a draft",
+        "smell": "dried herbs and dust",
+        "temperature": 3
+      },
+      "exits": {
+        "swinging door": {
+          "target": "Living Area",
+          "return_dir": "enter",
+          "state": "closed",
+          "description": "A classic double swinging door with a small round window, gently swaying.",
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "way_id": "way_Kitchen_swinging",
+          "hidden": false,
+          "pass_message": "You push through the swinging door into the kitchen.",
+          "visible_in_direction": "The living room beyond, with its bookshelves and the grandfather clock ticking."
+        },
+        "trapdoor": {
+          "target": "Cellar",
+          "return_dir": "enter",
+          "state": "closed",
+          "description": "A heavy wooden trapdoor set into the kitchen floor, its iron ring cold against the floorboards. A sturdy ladder disappears into darkness below.",
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "way_id": "way_cellar_trapdoor",
+          "hidden": false,
+          "pass_message": "You lift the trapdoor and climb down the ladder into the cold, damp cellar.",
+          "visible_in_direction": "Below, a ladder descends into the cold, damp cellar with stone walls and shelves of preserved goods."
+        }
+      },
+      "items": [],
+      "floor": 0,
+      "properties": {
+        "description": "A cold, dark kitchen with exposed wooden beams. The stove is out, and a chill hangs in the air. Dried herbs dangle from the ceiling, their scent faint in the cold. A large oak table sits in the center, covered with a checkered cloth.",
+        "environment": {
+          "air": "cold",
+          "light": "normal",
+          "noise": "silence, occasionally a draft",
+          "smell": "dried herbs and dust",
+          "temperature": 3
+        }
+      }
+    },
+    "Living Area": {
+      "name": "Living Area",
+      "description": "A cold living room with wooden floors.  Bookshelves line the walls. ",
+      "environment": {
+        "air": "cold",
+        "light": "normal",
+        "noise": "clock ticking, wind outside",
+        "smell": "dust and cold ash",
+        "temperature": 2
+      },
+      "exits": {
+        "ornate door": {
+          "target": "Study",
+          "return_dir": "enter",
+          "state": "closed",
+          "description": "A heavy oak door leading to the study.",
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "way_id": "way_Living Room_north",
+          "hidden": false,
+          "pass_message": "",
+          "visible_in_direction": "The study, filled floor-to-ceiling with books, a large oak desk dominating the center."
+        },
+        "swinging door": {
+          "target": "Kitchen",
+          "return_dir": "east",
+          "state": "closed",
+          "description": "A classic double swinging door with a small round window, gently swaying.",
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "way_id": "way_Kitchen_swinging",
+          "hidden": false,
+          "pass_message": "You push through the swinging door into the kitchen.",
+          "visible_in_direction": "The kitchen, with a checkered tablecloth on the table and dried herbs hanging from the ceiling."
+        },
+        "front door": {
+          "target": "Blizzard Forest Clearing",
+          "return_dir": "front door",
+          "state": "open",
+          "description": "A heavy wooden front door, weathered by the storm. The iron handle is cold to the touch.",
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "way_id": "way_front",
+          "hidden": false,
+          "pass_message": "You step through the front door into the cold glow of the living room.",
+          "visible_in_direction": "Through the open front door, the blizzard rages in the forest clearing, white snow swirling in the bitter wind."
+        },
+        "stairs": {
+          "target": "Upstairs Hallway",
+          "return_dir": "enter",
+          "state": "open",
+          "description": "A wooden staircase ascends into shadows, the banister worn smooth by years of use. The steps groan under any weight.",
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "way_id": "way_stairs",
+          "hidden": false,
+          "pass_message": "You climb the creaking stairs to the upstairs hallway.",
+          "visible_in_direction": "A wooden staircase ascends into shadows, the banister worn smooth."
+        }
+      },
+      "items": [],
+      "floor": 0,
+      "properties": {
+        "description": "A cold living room with wooden floors.  Bookshelves line the walls. ",
+        "environment": {
+          "air": "cold",
+          "light": "normal",
+          "noise": "clock ticking, wind outside",
+          "smell": "dust and cold ash",
+          "temperature": 2
+        }
+      }
+    },
+    "Master Bedroom": {
+      "name": "Master Bedroom",
+      "description": "A spacious bedroom with a high ceiling. A four-poster bed dominates the room, its curtains threadbare and dusty. An armoire stands against the far wall, its doors slightly ajar. Frost has crept across the windowpanes, obscuring the view of the forest below.",
+      "environment": {
+        "air": "cold",
+        "light": "dim",
+        "noise": "silence",
+        "smell": "mothballs and lavender",
+        "temperature": 0
+      },
+      "exits": {
+        "hallway": {
+          "target": "Upstairs Hallway",
+          "return_dir": "hallway",
+          "state": "closed",
+          "description": "A tall wooden door with an ornate brass handle. Faint traces of lavender scent the air around it.",
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "way_id": "way_bedroom_master",
+          "hidden": false,
+          "pass_message": "You enter the master bedroom. The air is cold and still.",
+          "visible_in_direction": "The narrow upstairs hallway, with the guest bedroom door opposite and the stairs at the far end."
+        }
+      },
+      "items": [],
+      "floor": 0,
+      "properties": {
+        "description": "A spacious bedroom with a high ceiling. A four-poster bed dominates the room, its curtains threadbare and dusty. An armoire stands against the far wall, its doors slightly ajar. Frost has crept across the windowpanes, obscuring the view of the forest below.",
+        "environment": {
+          "air": "cold",
+          "light": "dim",
+          "noise": "silence",
+          "smell": "mothballs and lavender",
+          "temperature": 0
+        }
+      }
+    },
+    "Study": {
+      "name": "Study",
+      "description": "A freezing study filled floor-to-ceiling with books. Your breath fogs in the cold air. A large oak desk dominates the center, covered in papers and an old typewriter. A dim lamp offers weak light. One of the desk drawers is locked. A fierce draft seeps through a boarded-up window.",
+      "environment": {
+        "air": "cold",
+        "light": "normal",
+        "noise": "wind whistling through cracks",
+        "smell": "dust, old paper, and frost",
+        "temperature": 2
+      },
+      "exits": {
+        "ornate door": {
+          "target": "Living Area",
+          "return_dir": "south",
+          "state": "closed",
+          "description": "A heavy oak door leading to the study.",
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "way_id": "way_Living Room_north",
+          "hidden": false,
+          "pass_message": "",
+          "visible_in_direction": "The living room, with its ticking grandfather clock, cold fireplace, and bookshelves."
+        }
+      },
+      "items": [],
+      "floor": 0,
+      "properties": {
+        "description": "A freezing study filled floor-to-ceiling with books. Your breath fogs in the cold air. A large oak desk dominates the center, covered in papers and an old typewriter. A dim lamp offers weak light. One of the desk drawers is locked. A fierce draft seeps through a boarded-up window.",
+        "environment": {
+          "air": "cold",
+          "light": "normal",
+          "noise": "wind whistling through cracks",
+          "smell": "dust, old paper, and frost",
+          "temperature": 2
+        }
+      }
+    },
+    "Upstairs Hallway": {
+      "name": "Upstairs Hallway",
+      "description": "A narrow hallway on the second floor, the floorboards creaking underfoot. Faded wallpaper peels at the corners. Two doors lead off the hallway: one to a master bedroom, another to a smaller guest room. A draft seeps through the old window at the end of the hall, rattling the glass.",
+      "environment": {
+        "air": "cold",
+        "light": "dim",
+        "noise": "wind rattling a window",
+        "smell": "old wood and dust",
+        "temperature": 1
+      },
+      "exits": {
+        "stairs": {
+          "target": "Living Area",
+          "return_dir": "stairs",
+          "state": "open",
+          "description": "A wooden staircase ascends into shadows, the banister worn smooth by years of use. The steps groan under any weight.",
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "way_id": "way_stairs",
+          "hidden": false,
+          "pass_message": "You climb the creaking stairs to the upstairs hallway.",
+          "visible_in_direction": "The stairs descend into the living room below, where you can glimpse the bookshelves and the fireplace."
+        },
+        "master bedroom": {
+          "target": "Master Bedroom",
+          "return_dir": "enter",
+          "state": "closed",
+          "description": "A tall wooden door with an ornate brass handle. Faint traces of lavender scent the air around it.",
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "way_id": "way_bedroom_master",
+          "hidden": false,
+          "pass_message": "You enter the master bedroom. The air is cold and still.",
+          "visible_in_direction": "The spacious master bedroom, with a four-poster bed and frost-covered windows."
+        },
+        "guest bedroom": {
+          "target": "Guest Bedroom",
+          "return_dir": "enter",
+          "state": "closed",
+          "description": "A modest door with a simple porcelain knob. Dust has gathered in the corners of the frame.",
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "way_id": "way_bedroom_guest",
+          "hidden": false,
+          "pass_message": "You push open the door to the guest bedroom. Dust motes dance in the dim light.",
+          "visible_in_direction": "The small guest bedroom, with a single bed, a writing desk, and dust coating every surface."
+        }
+      },
+      "items": [],
+      "floor": 0,
+      "properties": {
+        "description": "A narrow hallway on the second floor, the floorboards creaking underfoot. Faded wallpaper peels at the corners. Two doors lead off the hallway: one to a master bedroom, another to a smaller guest room. A draft seeps through the old window at the end of the hall, rattling the glass.",
+        "environment": {
+          "air": "cold",
+          "light": "dim",
+          "noise": "wind rattling a window",
+          "smell": "old wood and dust",
+          "temperature": 1
+        }
+      }
+    },
+    "Outhouse": {
+      "name": "Outhouse",
+      "description": "A small, wooden outhouse stands isolated in the snow, ",
+      "environment": {
+        "light": "normal",
+        "temperature": 18,
+        "air": "fresh",
+        "smell": "Plesantly lavender",
+        "noise": "surprisingly quiet, the sound of running water deep down the toilet"
+      },
+      "exits": {},
+      "items": [],
+      "floor": 0,
+      "properties": {
+        "description": "A small, wooden outhouse stands isolated in the snow, ",
+        "environment": {
+          "light": "normal",
+          "temperature": 18,
+          "air": "fresh",
+          "smell": "Plesantly lavender",
+          "noise": "surprisingly quiet, the sound of running water deep down the toilet"
+        }
+      }
+    }
+  },
+  "graph": {
+    "nodes": {
+      "antiseptic": {
+        "id": "antiseptic",
+        "type": "item",
+        "name": "Antiseptic Vial",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "current_state": "normal",
+          "description": "",
+          "hidden": true,
+          "uses": -1,
+          "weight": 0.1
+        },
+        "created": 1784015354.4566934,
+        "updated": 1784189728.72919
+      },
+      "bandages": {
+        "id": "bandages",
+        "type": "item",
+        "name": "Clean Bandages",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "current_state": "normal",
+          "description": "your average bandage",
+          "hidden": true,
+          "uses": -1,
+          "weight": 0.1
+        },
+        "created": 1784015354.4567058,
+        "updated": 1784189726.5570145
+      },
+      "brass_key": {
+        "id": "brass_key",
+        "type": "item",
+        "name": "Brass Key",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "current_state": "normal",
+          "description": "",
+          "hidden": true,
+          "uses": -1,
+          "weight": 0.1
+        },
+        "created": 1784015354.4564826,
+        "updated": 1784189650.243342
+      },
+      "way_Kitchen_swinging": {
+        "id": "way_Kitchen_swinging",
+        "type": "way",
+        "name": "Kitchen-swinging",
+        "properties": {
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "current_state": "closed",
+          "description": "A classic double swinging door with a small round window, gently swaying.",
+          "pass_message": "You push through the swinging door into the kitchen.",
+          "area_from": "Kitchen",
+          "area_to": "Living Area"
+        },
+        "created": 1784015354,
+        "updated": 1784305030.252038
+      },
+      "way_Living Room_north": {
+        "id": "way_Living Room_north",
+        "type": "way",
+        "name": "Living Area-north",
+        "properties": {
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "current_state": "closed",
+          "description": "A heavy oak door leading to the study.",
+          "pass_message": "",
+          "area_from": "Living Area",
+          "area_to": "Study"
+        },
+        "created": 1784015354.4562514,
+        "updated": 1784305023.6334095
+      },
+      "way_Upstairs Hallway_": {
+        "id": "way_Upstairs Hallway_",
+        "type": "way",
+        "name": "Upstairs Hallway-",
+        "properties": {
+          "cost": {},
+          "current_state": "hidden",
+          "description": "",
+          "area_from": "Guest Bedroom",
+          "area_to": "Hidden Panic Area"
+        },
+        "created": 1784126448.9728029,
+        "updated": 1784126448.9728034
+      },
+      "way_bedroom_guest": {
+        "id": "way_bedroom_guest",
+        "type": "way",
+        "name": "Guest Bedroom Way",
+        "properties": {
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "current_state": "closed",
+          "description": "A modest door with a simple porcelain knob. Dust has gathered in the corners of the frame.",
+          "pass_message": "You push open the door to the guest bedroom. Dust motes dance in the dim light.",
+          "area_from": "Upstairs Hallway",
+          "area_to": "Guest Bedroom"
+        },
+        "created": 1784015354,
+        "updated": 1784305036.8980162
+      },
+      "way_bedroom_master": {
+        "id": "way_bedroom_master",
+        "type": "way",
+        "name": "Master Bedroom Way",
+        "properties": {
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "current_state": "closed",
+          "description": "A tall wooden door with an ornate brass handle. Faint traces of lavender scent the air around it.",
+          "pass_message": "You enter the master bedroom. The air is cold and still.",
+          "area_from": "Upstairs Hallway",
+          "area_to": "Master Bedroom"
+        },
+        "created": 1784015354,
+        "updated": 1784305040.450162
+      },
+      "way_cellar_trapdoor": {
+        "id": "way_cellar_trapdoor",
+        "type": "way",
+        "name": "Cellar Trapdoor",
+        "properties": {
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "current_state": "closed",
+          "description": "A heavy wooden trapdoor set into the kitchen floor, its iron ring cold against the floorboards. A sturdy ladder disappears into darkness below.",
+          "pass_message": "You lift the trapdoor and climb down the ladder into the cold, damp cellar.",
+          "area_from": "Kitchen",
+          "area_to": "Cellar"
+        },
+        "created": 1784015354,
+        "updated": 1784305050.0814567
+      },
+      "way_front": {
+        "id": "way_front",
+        "type": "way",
+        "name": "Front Way",
+        "properties": {
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "current_state": "open",
+          "description": "A heavy wooden front door, weathered by the storm. The iron handle is cold to the touch.",
+          "pass_message": "You step through the front door into the cold glow of the living room.",
+          "area_from": "Blizzard Forest Clearing",
+          "area_to": "Living Area"
+        },
+        "created": 1784015354,
+        "updated": 1784312734.2322218
+      },
+      "way_stairs": {
+        "id": "way_stairs",
+        "type": "way",
+        "name": "Stairs",
+        "properties": {
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "current_state": "open",
+          "description": "A wooden staircase ascends into shadows, the banister worn smooth by years of use. The steps groan under any weight.",
+          "pass_message": "You climb the creaking stairs to the upstairs hallway.",
+          "area_from": "Living Area",
+          "area_to": "Upstairs Hallway"
+        },
+        "created": 1784015354,
+        "updated": 1784023504.7964597
+      },
+      "item_Loose Floorboard": {
+        "id": "item_Loose Floorboard",
+        "type": "item",
+        "name": "Loose Floorboard",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "description": "A floorboard that protrudes slightly from the rest, as if it can be pressed down or pried up.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "hidden": false,
+          "skill_check": {},
+          "uses": 1,
+          "weight": 0.5
+        },
+        "created": 1784127538.4998991,
+        "updated": 1784189776.9734151
+      },
+      "item_Unlit Torch": {
+        "id": "item_Unlit Torch",
+        "type": "item",
+        "name": "Unlit Torch",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "contents": [],
+          "description": "A wooden torch wrapped with cloth, ready to be lit but currently unlit.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "hidden": false,
+          "skill_check": {},
+          "uses": 1,
+          "weight": 0.5,
+          "equip_slots": [
+            "hand_left",
+            "hand_right"
+          ],
+          "tags": [
+            "Utility",
+            "Light"
+          ]
+        },
+        "created": 1784189515.620557,
+        "updated": 1784189515.6205573
+      },
+      "item_Worn Leather Armchair": {
+        "id": "item_Worn Leather Armchair",
+        "type": "item",
+        "name": "Worn Leather Armchair",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "description": "A faded leather armchair sits before the cold hearth, its cracked surface bearing the dark stains of countless restless nights. The cushion sinks slightly as if still warm from an absent occupant.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "hidden": false,
+          "skill_check": {},
+          "uses": 1,
+          "weight": 45
+        },
+        "created": 1784101526.1094077,
+        "updated": 1784189634.5549824
+      },
+      "item_apple": {
+        "id": "item_apple",
+        "type": "item",
+        "name": "apple",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "eat"
+          ],
+          "contents": [],
+          "current_state": "normal",
+          "description": "A crisp red apple, still cool from the cellar. Juicy and fresh.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "hidden": false,
+          "skill_check": {},
+          "uses": 1,
+          "weight": 0.2
+        },
+        "created": 1784015354.4565022,
+        "updated": 1784015354.4565024
+      },
+      "item_bread": {
+        "id": "item_bread",
+        "type": "item",
+        "name": "bread",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "eat"
+          ],
+          "contents": [],
+          "current_state": "normal",
+          "description": "A fresh loaf of crusty bread wrapped in a cloth. Still warm.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "hidden": false,
+          "skill_check": {},
+          "uses": 2,
+          "weight": 0.5
+        },
+        "created": 1784015354.4565802,
+        "updated": 1784015354.4565804
+      },
+      "item_desk": {
+        "id": "item_desk",
+        "type": "item",
+        "name": "desk",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "open"
+          ],
+          "contents": [],
+          "current_state": "normal",
+          "description": "A heavy oak desk with a locked drawer on the right side. The lock is small and ornate â€” a brass key might fit it.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "hidden": false,
+          "skill_check": {},
+          "uses": -1,
+          "weight": 60
+        },
+        "created": 1784015354.4567223,
+        "updated": 1784015354.4567223
+      },
+      "item_fireplace": {
+        "id": "item_fireplace",
+        "type": "item",
+        "name": "fireplace",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "contents": [],
+          "current_state": "unlit",
+          "description": "A stone fireplace, cold and dark. A pile of ash sits in the hearth. A poker rests against the hearth, waiting to stir the embers.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "hidden": false,
+          "skill_check": {},
+          "uses": -1,
+          "weight": 50
+        },
+        "created": 1784015354.4563172,
+        "updated": 1784015354.4563174
+      },
+      "item_grandfather_clock": {
+        "id": "item_grandfather_clock",
+        "type": "item",
+        "name": "grandfather_clock",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine"
+          ],
+          "contents": [
+            {
+              "id": "brass_key",
+              "name": "Brass Key"
+            }
+          ],
+          "current_state": "normal",
+          "description": "An old grandfather clock ticks steadily in the corner. It is tall  with an intricately carved wooden face. The pendulum swings steadily. The glass door is slightly ajar.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "hidden": false,
+          "skill_check": {},
+          "uses": -1,
+          "weight": 80
+        },
+        "created": 1784015354.4563887,
+        "updated": 1784202035.1286874
+      },
+      "item_kindling": {
+        "id": "item_kindling",
+        "type": "item",
+        "name": "kindling",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "contents": [],
+          "current_state": "normal",
+          "description": "A small bundle of dry twigs, perfect for starting a fire.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "hidden": false,
+          "skill_check": {},
+          "uses": 1,
+          "weight": 0.3
+        },
+        "created": 1784015354.456555,
+        "updated": 1784015354.4565554
+      },
+      "item_lamp": {
+        "id": "item_lamp",
+        "type": "item",
+        "name": "lamp",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "contents": [],
+          "current_state": "unlit",
+          "description": "A brass desk lamp with a green glass shade. It casts a warm pool of light across the desk.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "hidden": false,
+          "skill_check": {},
+          "uses": -1,
+          "weight": 2
+        },
+        "created": 1784015354.4568114,
+        "updated": 1784015354.4568117
+      },
+      "item_letter": {
+        "id": "item_letter",
+        "type": "item",
+        "name": "letter",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "contents": [],
+          "current_state": "normal",
+          "description": "A yellowed, handwritten letter, the ink faded with age.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "hidden": false,
+          "skill_check": {},
+          "uses": -1,
+          "weight": 0.05
+        },
+        "created": 1784015354.456755,
+        "updated": 1784189746.760418
+      },
+      "item_medicine_cabinet": {
+        "id": "item_medicine_cabinet",
+        "type": "item",
+        "name": "medicine_cabinet",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "contents": [
+            {
+              "id": "antiseptic",
+              "name": "Antiseptic Vial"
+            },
+            {
+              "id": "bandages",
+              "name": "Clean Bandages"
+            }
+          ],
+          "current_state": "normal",
+          "description": "A small wooden cabinet mounted on the wall near the stove. Inside: a vial of antiseptic and some bandages.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "hidden": false,
+          "skill_check": {},
+          "uses": 1,
+          "weight": 3
+        },
+        "created": 1784015354.4566092,
+        "updated": 1784015354.4566095
+      },
+      "item_typewriter": {
+        "id": "item_typewriter",
+        "type": "item",
+        "name": "typewriter",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "contents": [],
+          "current_state": "normal",
+          "description": "An old Remington typewriter. A half-finished page is still rolled in: 'The old house keeps its secrets well. Only those who look closely will find what lies beneath...'",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "hidden": false,
+          "skill_check": {},
+          "uses": -1,
+          "weight": 8
+        },
+        "created": 1784015354.4567847,
+        "updated": 1784015354.456785
+      },
+      "item_water_pitcher": {
+        "id": "item_water_pitcher",
+        "type": "item",
+        "name": "water_pitcher",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "use",
+            "take"
+          ],
+          "contents": [],
+          "current_state": "normal",
+          "description": "A clay pitcher filled with cool, clear water. Condensation beads on the surface.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "hidden": false,
+          "skill_check": {},
+          "uses": 3,
+          "weight": 1
+        },
+        "created": 1784015354.45653,
+        "updated": 1784015354.45653
+      },
+      "player_Kaelen_Voss": {
+        "id": "player_Kaelen_Voss",
+        "type": "character",
+        "name": "Kaelen Voss",
+        "properties": {},
+        "created": 1784015354.4561856,
+        "updated": 1784015354.456186
+      },
+      "player_rat": {
+        "id": "player_rat",
+        "type": "character",
+        "name": "rat",
+        "properties": {},
+        "created": 1784023504.7967215,
+        "updated": 1784023504.796722
+      },
+      "area_Hidden Panic Area": {
+        "id": "area_Hidden Panic Area",
+        "type": "area",
+        "name": "Hidden Panic Area",
+        "properties": {
+          "description": "A low-ceilinged attic room, clearly retrofitted for emergencies. The walls are lined with padded fabric, and a single dim bulb casts a warm glow. The air is surprisingly fresh, vented from somewhere unseen. The space smells faintly of old wool blankets and melted candle wax. A small cot, a lantern, and a crate of bottled water sit in the corner.",
+          "environment": {
+            "air": "fresh",
+            "light": "normal",
+            "noise": "quiet",
+            "smell": "old blankets and candle wax",
+            "temperature": 22
+          }
+        },
+        "created": 1784126422.7989028,
+        "updated": 1784156082.5292294
+      },
+      "area_blizzard_forest_clearing": {
+        "id": "area_blizzard_forest_clearing",
+        "type": "area",
+        "name": "Blizzard Forest Clearing",
+        "properties": {
+          "description": "You are in the wilderness in the north of the kingdom of Rocheveron, and for the past 4 hours a relentless blizzard has swallows the forest, whiteout obscuring every trail. Snow whips the skeletal trees, their branches heavy with ice. In the distance, a lone house looms like a dark silhouette, its windows barely visible through the storm. The air bites with a freezing chill, and the world feels closed off, as if the woods have sealed you in a frozen tomb. is that the house you are looking for?",
+          "environment": {
+            "air": "fresh",
+            "light": "bright",
+            "noise": "windy",
+            "smell": "Frozen pines and wilderness",
+            "temperature": -12
+          }
+        },
+        "created": 1784016449.3521793,
+        "updated": 1784304341.705065
+      },
+      "area_cellar": {
+        "id": "area_cellar",
+        "type": "area",
+        "name": "Cellar",
+        "properties": {
+          "description": "A cold, damp cellar with low stone walls. The only light filters through cracks in the foundation, casting long shadows across earthen floor. Shelves line the walls, stocked with preserved goods and dusty bottles. In the corner, a mound of coal looms. Above, the trapdoor's outline is just visible against the dim light.",
+          "environment": {
+            "air": "musty",
+            "light": 5,
+            "noise": "dripping water",
+            "smell": "earth and mildew",
+            "temperature": 4
+          }
+        },
+        "created": 1784015354,
+        "updated": 1784023504.796478
+      },
+      "area_guest_bedroom": {
+        "id": "area_guest_bedroom",
+        "type": "area",
+        "name": "Guest Bedroom",
+        "properties": {
+          "description": "A smaller room with a single bed pushed against the wall. A writing desk sits beneath the window, a half-melted candle on its surface. The room has the feel of not having been used in years — a thin layer of dust covers everything.",
+          "environment": {
+            "air": "stale",
+            "light": "dim",
+            "noise": "wind outside",
+            "smell": "dust",
+            "temperature": 1
+          }
+        },
+        "created": 1784015354,
+        "updated": 1784156093.5166893
+      },
+      "area_kitchen": {
+        "id": "area_kitchen",
+        "type": "area",
+        "name": "Kitchen",
+        "properties": {
+          "description": "A cold, dark kitchen with exposed wooden beams. The stove is out, and a chill hangs in the air. Dried herbs dangle from the ceiling, their scent faint in the cold. A large oak table sits in the center, covered with a checkered cloth.",
+          "environment": {
+            "air": "cold",
+            "light": "normal",
+            "noise": "silence, occasionally a draft",
+            "smell": "dried herbs and dust",
+            "temperature": 3
+          }
+        },
+        "created": 1784015354.4562035,
+        "updated": 1784156112.8066928
+      },
+      "area_living_room": {
+        "id": "area_living_room",
+        "type": "area",
+        "name": "Living Area",
+        "properties": {
+          "description": "A cold living room with wooden floors.  Bookshelves line the walls. ",
+          "environment": {
+            "air": "cold",
+            "light": "normal",
+            "noise": "clock ticking, wind outside",
+            "smell": "dust and cold ash",
+            "temperature": 2
+          }
+        },
+        "created": 1784015354.4561987,
+        "updated": 1784202114.8404446
+      },
+      "area_master_bedroom": {
+        "id": "area_master_bedroom",
+        "type": "area",
+        "name": "Master Bedroom",
+        "properties": {
+          "description": "A spacious bedroom with a high ceiling. A four-poster bed dominates the room, its curtains threadbare and dusty. An armoire stands against the far wall, its doors slightly ajar. Frost has crept across the windowpanes, obscuring the view of the forest below.",
+          "environment": {
+            "air": "cold",
+            "light": "dim",
+            "noise": "silence",
+            "smell": "mothballs and lavender",
+            "temperature": 0
+          }
+        },
+        "created": 1784015354,
+        "updated": 1784156106.7414544
+      },
+      "area_study": {
+        "id": "area_study",
+        "type": "area",
+        "name": "Study",
+        "properties": {
+          "description": "A freezing study filled floor-to-ceiling with books. Your breath fogs in the cold air. A large oak desk dominates the center, covered in papers and an old typewriter. A dim lamp offers weak light. One of the desk drawers is locked. A fierce draft seeps through a boarded-up window.",
+          "environment": {
+            "air": "cold",
+            "light": "normal",
+            "noise": "wind whistling through cracks",
+            "smell": "dust, old paper, and frost",
+            "temperature": 2
+          }
+        },
+        "created": 1784015354.4562075,
+        "updated": 1784156087.0294483
+      },
+      "area_upstairs_hallway": {
+        "id": "area_upstairs_hallway",
+        "type": "area",
+        "name": "Upstairs Hallway",
+        "properties": {
+          "description": "A narrow hallway on the second floor, the floorboards creaking underfoot. Faded wallpaper peels at the corners. Two doors lead off the hallway: one to a master bedroom, another to a smaller guest room. A draft seeps through the old window at the end of the hall, rattling the glass.",
+          "environment": {
+            "air": "cold",
+            "light": "dim",
+            "noise": "wind rattling a window",
+            "smell": "old wood and dust",
+            "temperature": 1
+          }
+        },
+        "created": 1784015354,
+        "updated": 1784156101.8780777
+      },
+      "trigger_item_Loose Floorboard_on_examine_1784152362907": {
+        "id": "trigger_item_Loose Floorboard_on_examine_1784152362907",
+        "type": "logic_trigger",
+        "name": "on_examine → set_state",
+        "properties": {
+          "effect_params": {
+            "message": "When you step on the board a click is heard and a hidden door opens up",
+            "node_id": "way_Upstairs Hallway_",
+            "state": "open"
+          },
+          "effect_type": "set_state",
+          "target_name": "",
+          "trigger_type": "on_examine"
+        },
+        "created": 1784152362.9109962,
+        "updated": 1784152362.9109962
+      },
+      "trigger_item_apple_on_use_1784015354456_624": {
+        "id": "trigger_item_apple_on_use_1784015354456_624",
+        "type": "logic_trigger",
+        "name": "on_use → heal",
+        "properties": {
+          "effect_params": {
+            "amount": 5,
+            "message": "You bite into the crisp apple. It's sweet and refreshing."
+          },
+          "effect_type": "heal",
+          "target_name": "",
+          "trigger_type": "on_use"
+        },
+        "created": 1784015354.456518,
+        "updated": 1784015354.456518
+      },
+      "trigger_item_bread_on_use_1784015354456_330": {
+        "id": "trigger_item_bread_on_use_1784015354456_330",
+        "type": "logic_trigger",
+        "name": "on_use → heal",
+        "properties": {
+          "effect_params": {
+            "amount": 8,
+            "message": "You tear off a piece of warm bread. It's hearty and filling."
+          },
+          "effect_type": "heal",
+          "target_name": "",
+          "trigger_type": "on_use"
+        },
+        "created": 1784015354.4565978,
+        "updated": 1784015354.456598
+      },
+      "trigger_item_desk_on_examine_1784015354456_16": {
+        "id": "trigger_item_desk_on_examine_1784015354456_16",
+        "type": "logic_trigger",
+        "name": "on_examine → message",
+        "properties": {
+          "effect_params": {
+            "message": "The desk is covered in papers — shopping lists, sketches of mechanical devices, and a half-finished letter. The right drawer is locked with a small brass lock."
+          },
+          "effect_type": "message",
+          "target_name": "",
+          "trigger_type": "on_examine"
+        },
+        "created": 1784015354.456741,
+        "updated": 1784015354.4567413
+      },
+      "trigger_item_fireplace_on_use_1784015354456_306": {
+        "id": "trigger_item_fireplace_on_use_1784015354456_306",
+        "type": "logic_trigger",
+        "name": "on_use → message",
+        "properties": {
+          "condition": {
+            "type": "has_item",
+            "value": "kindling"
+          },
+          "effect_params": {
+            "message": "You light the fireplace. Warmth spreads through the room."
+          },
+          "effect_type": "message",
+          "target_name": "",
+          "trigger_type": "on_use"
+        },
+        "created": 1784015354.4563522,
+        "updated": 1784100942.4685895
+      },
+      "trigger_item_fireplace_on_use_1784015354456_348": {
+        "id": "trigger_item_fireplace_on_use_1784015354456_348",
+        "type": "logic_trigger",
+        "name": "on_use → set_environment",
+        "properties": {
+          "effect_params": {
+            "air": "warm",
+            "light": 80,
+            "noise": "crackling fire",
+            "smell": "woodsmoke",
+            "temperature": 22
+          },
+          "effect_type": "set_environment",
+          "target_name": "",
+          "trigger_type": "on_use"
+        },
+        "created": 1784015354.4563668,
+        "updated": 1784015354.456367
+      },
+      "trigger_item_grandfather_clock_on_examine_1784015354456_975": {
+        "id": "trigger_item_grandfather_clock_on_examine_1784015354456_975",
+        "type": "logic_trigger",
+        "name": "on_examine → message",
+        "properties": {
+          "effect_params": {
+            "message": "The clock reads 08:15. Through the glass you can see a small brass key resting inside, tucked behind the pendulum. Its steady ticking is oddly comforting."
+          },
+          "effect_type": "message",
+          "target_name": "",
+          "trigger_type": "on_examine"
+        },
+        "created": 1784015354.4564621,
+        "updated": 1784015354.4564626
+      },
+      "trigger_item_kindling_on_use_on_1784015354456_141": {
+        "id": "trigger_item_kindling_on_use_on_1784015354456_141",
+        "type": "logic_trigger",
+        "name": "on_use_on → message",
+        "properties": {
+          "effect_params": {
+            "message": "You place the kindling in the fireplace. The dry twigs crackle and catch, ready for larger logs."
+          },
+          "effect_type": "message",
+          "target_name": "fireplace",
+          "trigger_type": "on_use_on"
+        },
+        "created": 1784015354.4565692,
+        "updated": 1784015354.4565694
+      },
+      "trigger_item_lamp_on_use_1784015354456_301": {
+        "id": "trigger_item_lamp_on_use_1784015354456_301",
+        "type": "logic_trigger",
+        "name": "on_use → set_environment",
+        "properties": {
+          "effect_params": {
+            "light": 70,
+            "message": "You switch on the lamp. The warm light pushes back the shadows."
+          },
+          "effect_type": "set_environment",
+          "target_name": "",
+          "trigger_type": "on_use"
+        },
+        "created": 1784015354.4568763,
+        "updated": 1784015354.4568765
+      },
+      "trigger_item_letter_on_examine_1784015354456_794": {
+        "id": "trigger_item_letter_on_examine_1784015354456_794",
+        "type": "logic_trigger",
+        "name": "on_examine → message",
+        "properties": {
+          "effect_params": {
+            "message": "You unfold the delicate paper and read: \"To whoever finds this — I've hidden something valuable in the house. Follow the clues. Start where the pendulum swings. — E.\""
+          },
+          "effect_type": "message",
+          "target_name": "",
+          "trigger_type": "on_examine"
+        },
+        "created": 1784015354.4567726,
+        "updated": 1784015354.4567728
+      },
+      "trigger_item_medicine_cabinet_on_examine_1784015354456_51": {
+        "id": "trigger_item_medicine_cabinet_on_examine_1784015354456_51",
+        "type": "logic_trigger",
+        "name": "on_examine → message",
+        "properties": {
+          "effect_params": {
+            "message": "A small wooden cabinet with a creaky hinge. Inside you can see some medical supplies."
+          },
+          "effect_type": "message",
+          "target_name": "",
+          "trigger_type": "on_examine"
+        },
+        "created": 1784015354.4566226,
+        "updated": 1784015354.4566226
+      },
+      "trigger_item_medicine_cabinet_on_use_1784015354456_827": {
+        "id": "trigger_item_medicine_cabinet_on_use_1784015354456_827",
+        "type": "logic_trigger",
+        "name": "on_use → rename",
+        "properties": {
+          "condition": {
+            "type": "uses_reached",
+            "value": "1"
+          },
+          "effect_params": {
+            "message": "The cabinet is now empty.",
+            "new_name": "Empty Medicine Cabinet"
+          },
+          "effect_type": "rename",
+          "target_name": "",
+          "trigger_type": "on_use"
+        },
+        "created": 1784015354.4566703,
+        "updated": 1784015354.4566705
+      },
+      "trigger_item_medicine_cabinet_on_use_1784015354456_968": {
+        "id": "trigger_item_medicine_cabinet_on_use_1784015354456_968",
+        "type": "logic_trigger",
+        "name": "on_use → spawn_item",
+        "properties": {
+          "condition": {
+            "type": "uses_reached",
+            "value": "1"
+          },
+          "effect_params": {
+            "item_id": "antiseptic",
+            "message": "A small vial of antiseptic tumbles out of the cabinet!",
+            "name": "Antiseptic Vial"
+          },
+          "effect_type": "spawn_item",
+          "target_name": "",
+          "trigger_type": "on_use"
+        },
+        "created": 1784015354.4566417,
+        "updated": 1784015354.4566417
+      },
+      "trigger_item_typewriter_on_use_1784015354456_104": {
+        "id": "trigger_item_typewriter_on_use_1784015354456_104",
+        "type": "logic_trigger",
+        "name": "on_use → message",
+        "properties": {
+          "effect_params": {
+            "message": "You press a key. The typewriter clacks satisfyingly. The ribbon is dry — this machine hasn't been used in decades."
+          },
+          "effect_type": "message",
+          "target_name": "",
+          "trigger_type": "on_use"
+        },
+        "created": 1784015354.456799,
+        "updated": 1784015354.4567993
+      },
+      "trigger_item_water_pitcher_on_use_1784015354456_236": {
+        "id": "trigger_item_water_pitcher_on_use_1784015354456_236",
+        "type": "logic_trigger",
+        "name": "on_use → heal",
+        "properties": {
+          "effect_params": {
+            "amount": 20,
+            "message": "You drink deeply from the pitcher. The water is cold and refreshing. Your thirst eases.",
+            "stat": "Thirst",
+            "target": "self"
+          },
+          "effect_type": "heal",
+          "target_name": "",
+          "trigger_type": "on_use"
+        },
+        "created": 1784015354.4565442,
+        "updated": 1784015354.4565444
+      },
+      "trigger_item_photograph_on_examine_1784201358539": {
+        "id": "trigger_item_photograph_on_examine_1784201358539",
+        "type": "logic_trigger",
+        "name": "on_examine → message",
+        "properties": {
+          "trigger_type": "on_examine",
+          "effect_type": "message",
+          "effect_params": {
+            "message": "The Valerius Family, The date on the back reads 'Autumn 1583'."
+          },
+          "target_name": ""
+        },
+        "created": 1784201358.5454845,
+        "updated": 1784201376.8319879
+      },
+      "item_Spellbook ": {
+        "id": "item_Spellbook ",
+        "type": "item",
+        "name": "Spellbook ",
+        "properties": {
+          "description": "A dusty spellbook bound in cracked leather. The pages are filled with intricate arcane symbols; one spell is circled in red ink.",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "uses": 1,
+          "weight": 0.5,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0,
+          "action_costs": {},
+          "hidden": true,
+          "skill_check": {},
+          "contents": []
+        },
+        "created": 1784201694.765486,
+        "updated": 1784201718.4340568
+      },
+      "item_painting": {
+        "id": "item_painting",
+        "type": "item",
+        "name": "Painting",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "contents": [],
+          "current_state": "normal",
+          "description": "A painting hang above the mantlepiece.   in a silver frame. A family stands in front of this very house, smiling. ",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "hidden": false,
+          "skill_check": {},
+          "uses": -1,
+          "weight": 0.2
+        },
+        "created": 1784202318.9751196,
+        "updated": 1784202318.9751198
+      },
+      "item_Backpack": {
+        "id": "item_Backpack",
+        "type": "item",
+        "name": "Backpack",
+        "properties": {
+          "description": "A Backpack holds up to 30 pounds within 1 cubic foot. It can also serve as a saddlebag.",
+          "actions": [
+            "examine",
+            "take",
+            "open",
+            "close"
+          ],
+          "uses": -1,
+          "weight": 5.0,
+          "hidden": false,
+          "current_state": "closed",
+          "contents": [],
+          "action_costs": {},
+          "skill_check": {},
+          "effect_target": "container",
+          "effect_stat": null,
+          "effect_amount": 0,
+          "tags": [
+            "Container"
+          ],
+          "equip_slots": [
+            "back"
+          ],
+          "container": true
+        },
+        "created": 1784203090.9516723,
+        "updated": 1784203090.9516723
+      },
+      "item_Book": {
+        "id": "item_Book",
+        "type": "item",
+        "name": "Book",
+        "properties": {
+          "description": "A Book contains fiction or nonfiction. If you consult an accurate nonfiction Book about its topic, you gain a +5 bonus to Intelligence (Arcana, History, Nature, or Religion) checks you make about that topic.",
+          "actions": [
+            "examine",
+            "take",
+            "read"
+          ],
+          "uses": -1,
+          "weight": 5.0,
+          "hidden": false,
+          "current_state": "closed",
+          "contents": [],
+          "action_costs": {},
+          "skill_check": {},
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0,
+          "tags": [
+            "Knowledge"
+          ]
+        },
+        "created": 1784203090.9516723,
+        "updated": 1784203090.9516723
+      },
+      "item_Ink": {
+        "id": "item_Ink",
+        "type": "item",
+        "name": "Ink",
+        "properties": {
+          "description": "Ink comes in a 1-ounce bottle, which provides enough ink to write about 500 pages.",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "uses": 500,
+          "weight": 0.0,
+          "hidden": false,
+          "current_state": "normal",
+          "contents": [],
+          "action_costs": {},
+          "skill_check": {},
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0,
+          "tags": [
+            "Communication",
+            "Social",
+            "Utility",
+            "Consumable"
+          ]
+        },
+        "created": 1784203090.9516723,
+        "updated": 1784203090.9516723
+      },
+      "item_Ink Pen": {
+        "id": "item_Ink Pen",
+        "type": "item",
+        "name": "Ink Pen",
+        "properties": {
+          "description": "Using Ink, an Ink Pen is used to write or draw.",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 0.0,
+          "hidden": false,
+          "current_state": "normal",
+          "contents": [],
+          "action_costs": {},
+          "skill_check": {},
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0,
+          "tags": [
+            "Communication",
+            "Social",
+            "Utility"
+          ]
+        },
+        "created": 1784203090.9516723,
+        "updated": 1784203090.9516723
+      },
+      "item_Lamp": {
+        "id": "item_Lamp",
+        "type": "item",
+        "name": "Lamp",
+        "properties": {
+          "description": "A Lamp burns Oil as fuel to cast Bright Light in a 15-foot radius and Dim Light for an additional 30 feet.",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "light",
+            "extinguish"
+          ],
+          "uses": -1,
+          "weight": 1.0,
+          "hidden": false,
+          "current_state": "unlit",
+          "contents": [],
+          "action_costs": {},
+          "skill_check": {},
+          "effect_target": "room",
+          "effect_stat": "light",
+          "effect_amount": 60,
+          "tags": [
+            "Utility",
+            "Light"
+          ],
+          "equip_slots": [
+            "hand_left",
+            "hand_right"
+          ]
+        },
+        "created": 1784203090.9516723,
+        "updated": 1784203090.9516723
+      },
+      "item_Oil": {
+        "id": "item_Oil",
+        "type": "item",
+        "name": "Oil",
+        "properties": {
+          "description": "You can douse a creature, object, or space with Oil or use it as fuel. A flask burns for 6 hours in a Lamp or Lantern.",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "throw"
+          ],
+          "uses": 1,
+          "weight": 1.0,
+          "hidden": false,
+          "current_state": "normal",
+          "contents": [],
+          "action_costs": {},
+          "skill_check": {},
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 5,
+          "tags": [
+            "Damage",
+            "Utility",
+            "Combat"
+          ]
+        },
+        "created": 1784203090.9516723,
+        "updated": 1784203090.9516723
+      },
+      "item_Parchment": {
+        "id": "item_Parchment",
+        "type": "item",
+        "name": "Parchment",
+        "properties": {
+          "description": "One sheet of Parchment can hold about 250 handwritten words.",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "uses": 1,
+          "weight": 0.0,
+          "hidden": false,
+          "current_state": "normal",
+          "contents": [],
+          "action_costs": {},
+          "skill_check": {},
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0,
+          "tags": [
+            "Communication",
+            "Social",
+            "Utility",
+            "Consumable"
+          ]
+        },
+        "created": 1784203090.9516723,
+        "updated": 1784203090.9516723
+      },
+      "item_Tinderbox": {
+        "id": "item_Tinderbox",
+        "type": "item",
+        "name": "Tinderbox",
+        "properties": {
+          "description": "A Tinderbox is a small container holding flint, fire steel, and tinder used to kindle a fire. Using it to light a Candle, Lamp, Lantern, or Torch takes a Bonus Action. Lighting any other fire takes 1 minute.",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 1.0,
+          "hidden": false,
+          "current_state": "normal",
+          "contents": [],
+          "action_costs": {},
+          "skill_check": {},
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0,
+          "tags": [
+            "Utility",
+            "Exploration"
+          ]
+        },
+        "created": 1784203090.9516723,
+        "updated": 1784203090.9516723
+      },
+      "area_Outhouse": {
+        "id": "area_Outhouse",
+        "type": "area",
+        "name": "Outhouse",
+        "properties": {
+          "description": "A small, wooden outhouse stands isolated in the snow, ",
+          "environment": {
+            "light": "normal",
+            "temperature": 18,
+            "air": "fresh",
+            "smell": "Plesantly lavender",
+            "noise": "surprisingly quiet, the sound of running water deep down the toilet"
+          }
+        },
+        "created": 1784380070.7287555,
+        "updated": 1784380070.7287555
+      },
+      "way_Blizzard Forest Clearing_Outhouse door": {
+        "id": "way_Blizzard Forest Clearing_Outhouse door",
+        "type": "way",
+        "name": "Blizzard Forest Clearing-Outhouse door",
+        "properties": {
+          "current_state": "closed",
+          "description": "A wooden door to the outhouse",
+          "cost": {},
+          "area_from": "Blizzard Forest Clearing",
+          "area_to": "Outhouse",
+          "pass_message": "The outhouse door creeks gently as you open and pass inside."
+        },
+        "created": 1784380114.3226826,
+        "updated": 1784380245.3964221
+      }
+    },
+    "edges": [
+      {
+        "source": "area_living_room",
+        "target": "way_Living Room_north",
+        "type": "connection",
+        "properties": {
+          "direction": "ornate door",
+          "visible_in_direction": "The study, filled floor-to-ceiling with books, a large oak desk dominating the center."
+        }
+      },
+      {
+        "source": "way_Living Room_north",
+        "target": "area_study",
+        "type": "connection",
+        "properties": {
+          "direction": "enter"
+        }
+      },
+      {
+        "source": "area_study",
+        "target": "way_Living Room_north",
+        "type": "connection",
+        "properties": {
+          "direction": "ornate door",
+          "visible_in_direction": "The living room, with its ticking grandfather clock, cold fireplace, and bookshelves."
+        }
+      },
+      {
+        "source": "way_Living Room_north",
+        "target": "area_living_room",
+        "type": "connection",
+        "properties": {
+          "direction": "south"
+        }
+      },
+      {
+        "source": "item_fireplace",
+        "target": "area_living_room",
+        "type": "location",
+        "properties": {}
+      },
+      {
+        "source": "item_fireplace",
+        "target": "trigger_item_fireplace_on_use_1784015354456_306",
+        "type": "triggers",
+        "properties": {
+          "effect_params": {
+            "message": "You light the fireplace. Warmth spreads through the room."
+          },
+          "effect_type": "message",
+          "target_name": "",
+          "trigger_type": "on_use"
+        }
+      },
+      {
+        "source": "item_fireplace",
+        "target": "trigger_item_fireplace_on_use_1784015354456_348",
+        "type": "triggers",
+        "properties": {
+          "effect_params": {
+            "air": "warm",
+            "light": 80,
+            "noise": "crackling fire",
+            "smell": "woodsmoke",
+            "temperature": 22
+          },
+          "effect_type": "set_environment",
+          "target_name": "",
+          "trigger_type": "on_use"
+        }
+      },
+      {
+        "source": "item_painting",
+        "target": "area_living_room",
+        "type": "location",
+        "properties": {}
+      },
+      {
+        "source": "item_grandfather_clock",
+        "target": "area_living_room",
+        "type": "location",
+        "properties": {}
+      },
+      {
+        "source": "item_grandfather_clock",
+        "target": "trigger_item_grandfather_clock_on_examine_1784015354456_975",
+        "type": "triggers",
+        "properties": {
+          "effect_params": {
+            "message": "The clock reads 08:15. Through the glass you can see a small brass key resting inside, tucked behind the pendulum. Its steady ticking is oddly comforting."
+          },
+          "effect_type": "message",
+          "target_name": "",
+          "trigger_type": "on_examine"
+        }
+      },
+      {
+        "source": "brass_key",
+        "target": "item_grandfather_clock",
+        "type": "contains",
+        "properties": {}
+      },
+      {
+        "source": "item_apple",
+        "target": "area_kitchen",
+        "type": "location",
+        "properties": {}
+      },
+      {
+        "source": "item_apple",
+        "target": "trigger_item_apple_on_use_1784015354456_624",
+        "type": "triggers",
+        "properties": {
+          "effect_params": {
+            "amount": 5,
+            "message": "You bite into the crisp apple. It's sweet and refreshing."
+          },
+          "effect_type": "heal",
+          "target_name": "",
+          "trigger_type": "on_use"
+        }
+      },
+      {
+        "source": "item_water_pitcher",
+        "target": "area_kitchen",
+        "type": "location",
+        "properties": {}
+      },
+      {
+        "source": "item_water_pitcher",
+        "target": "trigger_item_water_pitcher_on_use_1784015354456_236",
+        "type": "triggers",
+        "properties": {
+          "effect_params": {
+            "amount": 20,
+            "message": "You drink deeply from the pitcher. The water is cold and refreshing. Your thirst eases.",
+            "stat": "Thirst",
+            "target": "self"
+          },
+          "effect_type": "heal",
+          "target_name": "",
+          "trigger_type": "on_use"
+        }
+      },
+      {
+        "source": "item_kindling",
+        "target": "area_kitchen",
+        "type": "location",
+        "properties": {}
+      },
+      {
+        "source": "item_kindling",
+        "target": "trigger_item_kindling_on_use_on_1784015354456_141",
+        "type": "triggers",
+        "properties": {
+          "effect_params": {
+            "message": "You place the kindling in the fireplace. The dry twigs crackle and catch, ready for larger logs."
+          },
+          "effect_type": "message",
+          "target_name": "fireplace",
+          "trigger_type": "on_use_on"
+        }
+      },
+      {
+        "source": "item_bread",
+        "target": "area_kitchen",
+        "type": "location",
+        "properties": {}
+      },
+      {
+        "source": "item_bread",
+        "target": "trigger_item_bread_on_use_1784015354456_330",
+        "type": "triggers",
+        "properties": {
+          "effect_params": {
+            "amount": 8,
+            "message": "You tear off a piece of warm bread. It's hearty and filling."
+          },
+          "effect_type": "heal",
+          "target_name": "",
+          "trigger_type": "on_use"
+        }
+      },
+      {
+        "source": "item_medicine_cabinet",
+        "target": "area_kitchen",
+        "type": "location",
+        "properties": {}
+      },
+      {
+        "source": "item_medicine_cabinet",
+        "target": "trigger_item_medicine_cabinet_on_examine_1784015354456_51",
+        "type": "triggers",
+        "properties": {
+          "effect_params": {
+            "message": "A small wooden cabinet with a creaky hinge. Inside you can see some medical supplies."
+          },
+          "effect_type": "message",
+          "target_name": "",
+          "trigger_type": "on_examine"
+        }
+      },
+      {
+        "source": "item_medicine_cabinet",
+        "target": "trigger_item_medicine_cabinet_on_use_1784015354456_968",
+        "type": "triggers",
+        "properties": {
+          "condition": {
+            "type": "uses_reached",
+            "value": "1"
+          },
+          "effect_params": {
+            "item_id": "antiseptic",
+            "message": "A small vial of antiseptic tumbles out of the cabinet!",
+            "name": "Antiseptic Vial"
+          },
+          "effect_type": "spawn_item",
+          "target_name": "",
+          "trigger_type": "on_use"
+        }
+      },
+      {
+        "source": "item_medicine_cabinet",
+        "target": "trigger_item_medicine_cabinet_on_use_1784015354456_827",
+        "type": "triggers",
+        "properties": {
+          "condition": {
+            "type": "uses_reached",
+            "value": "1"
+          },
+          "effect_params": {
+            "message": "The cabinet is now empty.",
+            "new_name": "Empty Medicine Cabinet"
+          },
+          "effect_type": "rename",
+          "target_name": "",
+          "trigger_type": "on_use"
+        }
+      },
+      {
+        "source": "antiseptic",
+        "target": "item_medicine_cabinet",
+        "type": "contains",
+        "properties": {}
+      },
+      {
+        "source": "bandages",
+        "target": "item_medicine_cabinet",
+        "type": "contains",
+        "properties": {}
+      },
+      {
+        "source": "item_desk",
+        "target": "area_study",
+        "type": "location",
+        "properties": {}
+      },
+      {
+        "source": "item_desk",
+        "target": "trigger_item_desk_on_examine_1784015354456_16",
+        "type": "triggers",
+        "properties": {
+          "effect_params": {
+            "message": "The desk is covered in papers — shopping lists, sketches of mechanical devices, and a half-finished letter. The right drawer is locked with a small brass lock."
+          },
+          "effect_type": "message",
+          "target_name": "",
+          "trigger_type": "on_examine"
+        }
+      },
+      {
+        "source": "item_letter",
+        "target": "area_study",
+        "type": "location",
+        "properties": {}
+      },
+      {
+        "source": "item_letter",
+        "target": "trigger_item_letter_on_examine_1784015354456_794",
+        "type": "triggers",
+        "properties": {
+          "effect_params": {
+            "message": "You unfold the delicate paper and read: \"To whoever finds this — I've hidden something valuable in the house. Follow the clues. Start where the pendulum swings. — E.\""
+          },
+          "effect_type": "message",
+          "target_name": "",
+          "trigger_type": "on_examine"
+        }
+      },
+      {
+        "source": "item_typewriter",
+        "target": "area_study",
+        "type": "location",
+        "properties": {}
+      },
+      {
+        "source": "item_typewriter",
+        "target": "trigger_item_typewriter_on_use_1784015354456_104",
+        "type": "triggers",
+        "properties": {
+          "effect_params": {
+            "message": "You press a key. The typewriter clacks satisfyingly. The ribbon is dry — this machine hasn't been used in decades."
+          },
+          "effect_type": "message",
+          "target_name": "",
+          "trigger_type": "on_use"
+        }
+      },
+      {
+        "source": "item_lamp",
+        "target": "area_study",
+        "type": "location",
+        "properties": {}
+      },
+      {
+        "source": "item_lamp",
+        "target": "trigger_item_lamp_on_use_1784015354456_301",
+        "type": "triggers",
+        "properties": {
+          "effect_params": {
+            "light": 70,
+            "message": "You switch on the lamp. The warm light pushes back the shadows."
+          },
+          "effect_type": "set_environment",
+          "target_name": "",
+          "trigger_type": "on_use"
+        }
+      },
+      {
+        "source": "area_kitchen",
+        "target": "way_Kitchen_swinging",
+        "type": "connection",
+        "properties": {
+          "direction": "swinging door",
+          "visible_in_direction": "The living room beyond, with its bookshelves and the grandfather clock ticking."
+        }
+      },
+      {
+        "source": "way_Kitchen_swinging",
+        "target": "area_living_room",
+        "type": "connection",
+        "properties": {
+          "direction": "enter"
+        }
+      },
+      {
+        "source": "area_living_room",
+        "target": "way_Kitchen_swinging",
+        "type": "connection",
+        "properties": {
+          "direction": "swinging door",
+          "visible_in_direction": "The kitchen, with a checkered tablecloth on the table and dried herbs hanging from the ceiling."
+        }
+      },
+      {
+        "source": "way_Kitchen_swinging",
+        "target": "area_kitchen",
+        "type": "connection",
+        "properties": {
+          "direction": "east"
+        }
+      },
+      {
+        "source": "area_blizzard_forest_clearing",
+        "target": "way_front",
+        "type": "connection",
+        "properties": {
+          "direction": "front door",
+          "visible_in_direction": "The door is sligtly ajar, snow and wind slowly blowing the door back and forth. inside is the dim ligth and outlines of  furniture"
+        }
+      },
+      {
+        "source": "way_front",
+        "target": "area_living_room",
+        "type": "connection",
+        "properties": {
+          "direction": "enter"
+        }
+      },
+      {
+        "source": "area_living_room",
+        "target": "way_front",
+        "type": "connection",
+        "properties": {
+          "direction": "front door",
+          "visible_in_direction": "Through the open front door, the blizzard rages in the forest clearing, white snow swirling in the bitter wind."
+        }
+      },
+      {
+        "source": "way_front",
+        "target": "area_blizzard_forest_clearing",
+        "type": "connection",
+        "properties": {
+          "direction": "front door"
+        }
+      },
+      {
+        "source": "area_kitchen",
+        "target": "way_cellar_trapdoor",
+        "type": "connection",
+        "properties": {
+          "direction": "trapdoor",
+          "visible_in_direction": "Below, a ladder descends into the cold, damp cellar with stone walls and shelves of preserved goods."
+        }
+      },
+      {
+        "source": "way_cellar_trapdoor",
+        "target": "area_cellar",
+        "type": "connection",
+        "properties": {
+          "direction": "enter"
+        }
+      },
+      {
+        "source": "area_cellar",
+        "target": "way_cellar_trapdoor",
+        "type": "connection",
+        "properties": {
+          "direction": "ladder",
+          "visible_in_direction": "Above, through the open trapdoor, you see the kitchen ceiling and the light from the room."
+        }
+      },
+      {
+        "source": "way_cellar_trapdoor",
+        "target": "area_kitchen",
+        "type": "connection",
+        "properties": {
+          "direction": "ladder"
+        }
+      },
+      {
+        "source": "area_living_room",
+        "target": "way_stairs",
+        "type": "connection",
+        "properties": {
+          "direction": "stairs",
+          "visible_in_direction": "A wooden staircase ascends into shadows, the banister worn smooth."
+        }
+      },
+      {
+        "source": "way_stairs",
+        "target": "area_upstairs_hallway",
+        "type": "connection",
+        "properties": {
+          "direction": "enter"
+        }
+      },
+      {
+        "source": "area_upstairs_hallway",
+        "target": "way_stairs",
+        "type": "connection",
+        "properties": {
+          "direction": "stairs",
+          "visible_in_direction": "The stairs descend into the living room below, where you can glimpse the bookshelves and the fireplace."
+        }
+      },
+      {
+        "source": "way_stairs",
+        "target": "area_living_room",
+        "type": "connection",
+        "properties": {
+          "direction": "stairs"
+        }
+      },
+      {
+        "source": "area_upstairs_hallway",
+        "target": "way_bedroom_master",
+        "type": "connection",
+        "properties": {
+          "direction": "master bedroom",
+          "visible_in_direction": "The spacious master bedroom, with a four-poster bed and frost-covered windows."
+        }
+      },
+      {
+        "source": "way_bedroom_master",
+        "target": "area_master_bedroom",
+        "type": "connection",
+        "properties": {
+          "direction": "enter"
+        }
+      },
+      {
+        "source": "area_master_bedroom",
+        "target": "way_bedroom_master",
+        "type": "connection",
+        "properties": {
+          "direction": "hallway",
+          "visible_in_direction": "The narrow upstairs hallway, with the guest bedroom door opposite and the stairs at the far end."
+        }
+      },
+      {
+        "source": "way_bedroom_master",
+        "target": "area_upstairs_hallway",
+        "type": "connection",
+        "properties": {
+          "direction": "hallway"
+        }
+      },
+      {
+        "source": "area_upstairs_hallway",
+        "target": "way_bedroom_guest",
+        "type": "connection",
+        "properties": {
+          "direction": "guest bedroom",
+          "visible_in_direction": "The small guest bedroom, with a single bed, a writing desk, and dust coating every surface."
+        }
+      },
+      {
+        "source": "way_bedroom_guest",
+        "target": "area_guest_bedroom",
+        "type": "connection",
+        "properties": {
+          "direction": "enter"
+        }
+      },
+      {
+        "source": "area_guest_bedroom",
+        "target": "way_bedroom_guest",
+        "type": "connection",
+        "properties": {
+          "direction": "hallway",
+          "visible_in_direction": "The upstairs hallway beyond, with the master bedroom door to your left and the stairs leading down."
+        }
+      },
+      {
+        "source": "way_bedroom_guest",
+        "target": "area_upstairs_hallway",
+        "type": "connection",
+        "properties": {
+          "direction": "hallway"
+        }
+      },
+      {
+        "source": "area_guest_bedroom",
+        "target": "way_Upstairs Hallway_",
+        "type": "connection",
+        "properties": {
+          "direction": "hidden",
+          "visible_in_direction": "Through the hidden opening, a low-ceilinged attic room is visible, padded with fabric and a warm dim glow."
+        }
+      },
+      {
+        "source": "way_Upstairs Hallway_",
+        "target": "area_Hidden Panic Area",
+        "type": "connection",
+        "properties": {
+          "direction": "hidden"
+        }
+      },
+      {
+        "source": "area_Hidden Panic Area",
+        "target": "way_Upstairs Hallway_",
+        "type": "connection",
+        "properties": {
+          "direction": "hidden",
+          "visible_in_direction": "Through the hidden doorway, the guest bedroom is visible, with its single bed and dusty desk."
+        }
+      },
+      {
+        "source": "way_Upstairs Hallway_",
+        "target": "area_guest_bedroom",
+        "type": "connection",
+        "properties": {
+          "direction": "hidden"
+        }
+      },
+      {
+        "source": "item_Loose Floorboard",
+        "target": "area_guest_bedroom",
+        "type": "location",
+        "properties": {}
+      },
+      {
+        "source": "item_Loose Floorboard",
+        "target": "trigger_item_Loose Floorboard_on_examine_1784152362907",
+        "type": "triggers",
+        "properties": {
+          "effect_params": {
+            "message": "When you step on the board a click is heard and a hidden door opens up",
+            "node_id": "way_Upstairs Hallway_",
+            "state": "open"
+          },
+          "effect_type": "set_state",
+          "target_name": "",
+          "trigger_type": "on_examine"
+        }
+      },
+      {
+        "source": "item_Unlit Torch",
+        "target": "player_Kaelen_Voss",
+        "type": "location",
+        "properties": {}
+      },
+      {
+        "source": "item_Worn Leather Armchair",
+        "target": "area_living_room",
+        "type": "location",
+        "properties": {}
+      },
+      {
+        "source": "item_painting",
+        "target": "trigger_item_photograph_on_examine_1784201358539",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine",
+          "effect_type": "message",
+          "effect_params": {
+            "message": "The Valerius Family, dated 1583."
+          },
+          "target_name": ""
+        }
+      },
+      {
+        "source": "item_Spellbook ",
+        "target": "item_desk",
+        "type": "contains",
+        "properties": {}
+      },
+      {
+        "source": "item_Backpack",
+        "target": "player_Kaelen_Voss",
+        "type": "location",
+        "properties": {}
+      },
+      {
+        "source": "item_Book",
+        "target": "player_Kaelen_Voss",
+        "type": "location",
+        "properties": {}
+      },
+      {
+        "source": "item_Ink",
+        "target": "player_Kaelen_Voss",
+        "type": "location",
+        "properties": {}
+      },
+      {
+        "source": "item_Ink Pen",
+        "target": "player_Kaelen_Voss",
+        "type": "location",
+        "properties": {}
+      },
+      {
+        "source": "item_Lamp",
+        "target": "player_Kaelen_Voss",
+        "type": "location",
+        "properties": {}
+      },
+      {
+        "source": "item_Oil",
+        "target": "player_Kaelen_Voss",
+        "type": "location",
+        "properties": {}
+      },
+      {
+        "source": "item_Parchment",
+        "target": "player_Kaelen_Voss",
+        "type": "location",
+        "properties": {}
+      },
+      {
+        "source": "item_Tinderbox",
+        "target": "player_Kaelen_Voss",
+        "type": "location",
+        "properties": {}
+      },
+      {
+        "source": "player_Kaelen_Voss",
+        "target": "area_blizzard_forest_clearing",
+        "type": "location",
+        "properties": {}
+      },
+      {
+        "source": "player_rat",
+        "target": "area_kitchen",
+        "type": "location",
+        "properties": {}
+      },
+      {
+        "source": "area_blizzard_forest_clearing",
+        "target": "way_Blizzard Forest Clearing_Outhouse door",
+        "type": "connection",
+        "properties": {
+          "direction": "Outhouse door",
+          "visible_in_direction": "The inside of the outhouse, warm glow and snow melts as it enters the inside"
+        }
+      },
+      {
+        "source": "way_Blizzard Forest Clearing_Outhouse door",
+        "target": "area_Outhouse",
+        "type": "connection",
+        "properties": {
+          "direction": "Outhouse door"
+        }
+      },
+      {
+        "source": "area_Outhouse",
+        "target": "way_Blizzard Forest Clearing_Outhouse door",
+        "type": "connection",
+        "properties": {
+          "direction": "Outhouse door",
+          "visible_in_direction": "The blistering cold storm outside"
+        }
+      },
+      {
+        "source": "way_Blizzard Forest Clearing_Outhouse door",
+        "target": "area_blizzard_forest_clearing",
+        "type": "connection",
+        "properties": {
+          "direction": "Outhouse door"
+        }
+      }
+    ]
+  },
+  "ways": {},
+  "item_registry": {},
+  "turn_number": 0,
+  "narration_mode": "none",
+  "ghost_mode": false,
+  "world_lore": [
+    {
+      "category": "general",
+      "content": "In the year 1584, the world of Mujeeroth is a cold, unforgiving place. You are currently standing in the heart of the Kingdom of Rocheveron, enduring the height of the \"age of freezing death\"—a localized 14-month winter of chilling death that has gripped the land",
+      "id": "lore_1784192482154_799",
+      "importance": 3,
+      "source": "manual",
+      "tags": [],
+      "tick_created": 8,
+      "title": "Rocheveron"
+    },
+    {
+      "category": "general",
+      "content": "Two months ago, you were hired by a wealthy merchant in Borrim to find the Valerius family—scholars who were reportedly researching the \"Black Book\" and the Lightbringer prophecy\n. They vanished from their homestead in the northern woods just as the \"chilling death\" began to settle in.\nThe journey has been grueling:\nMonth 1: You navigated the Teldorian Range, avoiding a blue dragon sighting and surviving a rockslide triggered by mountain harpies\n.\nMonth 2: You pushed through the encroaching \"walking forests\" near the border of Vald, where the trees seemed to groan in the freezing wind as if they wanted to swing back at the cold",
+      "id": "lore_1784194216610_400",
+      "importance": 3,
+      "source": "manual",
+      "tags": [],
+      "tick_created": 8,
+      "title": "The Investigation: The Valerius Disappearance"
+    }
+  ]
+}

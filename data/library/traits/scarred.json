@@ -1,0 +1,9 @@
+{
+  "id": "scarred",
+  "name": "Scarred",
+  "description": "Bears the marks of a brush with death.",
+  "category": "mental",
+  "params": null,
+  "effects": {"scarred": true},
+  "behavior_prompt": "You've been close to death before. You take dangers seriously — and you know what pain costs."
+}

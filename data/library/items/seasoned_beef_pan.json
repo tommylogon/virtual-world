@@ -1,0 +1,15 @@
+{
+  "name": "seasoned_beef_pan",
+  "description": "a third-pan of seasoned ground beef sitting in the make line, its surface a fine gray lustre. the smell is right; the color is not, and everyone has chosen not to read that text.",
+  "actions": "examine,take,use,drop",
+  "uses": -1,
+  "weight": 3,
+  "current_state": "normal",
+  "tags": [
+    "food",
+    "beef",
+    "ingredient"
+  ],
+  "triggers": [],
+  "contents": []
+}

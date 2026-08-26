@@ -1,0 +1,19 @@
+{
+  "name": "multitool",
+  "description": "a red swiss army-style multitool with knife, pliers, screwdriver, and bottle opener. this thing has gotten jake out of more jams than he would admit.",
+  "actions": "examine,use,take,drop",
+  "uses": -1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 8,
+  "insulation": 0,
+  "tags": [
+    "tool",
+    "metal",
+    "survival"
+  ],
+  "triggers": [],
+  "contents": []
+}

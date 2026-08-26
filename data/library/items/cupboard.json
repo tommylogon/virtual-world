@@ -1,0 +1,19 @@
+{
+  "name": "cupboard",
+  "description": "a wooden cupboard. inside, dusty plates and a few intact glasses. a jar of what looks like pickled vegetables sits on the top shelf — the seal is still intact.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 20,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "furniture",
+    "wooden",
+    "container"
+  ],
+  "triggers": [],
+  "contents": []
+}

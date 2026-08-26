@@ -1,0 +1,19 @@
+{
+  "auto_close": true,
+  "current_state": "closed",
+  "description": "A ventilation shaft door",
+  "edge_length": "",
+  "max_size": "small",
+  "name": "Labs Ventilation door",
+  "needs_open": {},
+  "one_way": false,
+  "parameters": {},
+  "pass_message": "its tight but passable on a crawl",
+  "prevent_close": false,
+  "requires": "crawl",
+  "see_through": false,
+  "tags": [],
+  "triggers": [],
+  "jump_dc": 12,
+  "climb_dc": 12
+}

@@ -1,0 +1,50 @@
+{
+  "name": "Leather-bound Journal",
+  "description": "A frozen journal clutched in the hunter's icy grip. The cover is frosted and the pages are stuck together, but the final entry may be legible.",
+  "actions": "examine,take,use,drop",
+  "uses": -1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "book"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "The journal is cold to the touch. The leather is cracked with frost, and the binding creaks as you try to open it."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_read",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "You carefully thaw the pages with your breath. The hunter's final entry reads: 'The beast came from the frozen lake. I only saw its eyes. If you find this, stay away from the water.'"
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

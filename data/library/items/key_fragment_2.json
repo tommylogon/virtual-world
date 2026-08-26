@@ -1,0 +1,39 @@
+{
+  "name": "key_fragment_2",
+  "description": "the other half of a broken brass key. the break is clean, matching the fragment you found in the watering can. together, they would form a complete key.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "key",
+    "metal",
+    "broken"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_take"
+      ],
+      "effects": [
+        {
+          "params": {
+            "fail_message": "",
+            "success_message": "as you pick up the second fragment, both halves grow warm in your hands, as if drawn to each other. they fit together perfectly — the heat-seal is an occult binding, not a physical break."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

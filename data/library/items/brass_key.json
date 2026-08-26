@@ -1,0 +1,38 @@
+{
+  "name": "Brass Key",
+  "actions": "examine,take,use,drop",
+  "contents": [],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "a small brass key hidden under a loose stone near eleanor's grave. the stone was recently disturbed.",
+  "insulation": 0,
+  "light_level": "dim",
+  "tags": [
+    "key",
+    "metal"
+  ],
+  "triggers": [
+    {
+      "conditions": {},
+      "effects": [
+        {
+          "params": {
+            "fail_message": "",
+            "success_message": "as you take the key, the temperature drops sharply. a whisper, so faint you might have imagined it: 'thank you...'"
+          },
+          "type": "message"
+        }
+      ],
+      "fail_message": "",
+      "success_message": "",
+      "target_name": "",
+      "target_state": "",
+      "trigger_type": [
+        "on_take"
+      ]
+    }
+  ],
+  "uses": -1,
+  "weight": 0.1
+}

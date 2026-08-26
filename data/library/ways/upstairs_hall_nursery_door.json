@@ -1,0 +1,18 @@
+{
+  "library_id": "",
+  "name": "upstairs hall-nursery_door",
+  "description": "a small door with a faded teddy bear painting, its colors long since bled to ghosts of themselves.",
+  "current_state": "open",
+  "pass_message": "",
+  "edge_length": "",
+  "needs_open": {},
+  "auto_close": false,
+  "see_through": false,
+  "one_way": false,
+  "requires": "",
+  "max_size": "",
+  "prevent_close": false,
+  "tags": [],
+  "parameters": {},
+  "triggers": []
+}

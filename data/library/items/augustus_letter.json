@@ -1,0 +1,21 @@
+{
+  "name": "augustus_letter",
+  "description": "a folded letter from inside the sarcophagus: 'if you're reading this, the curse has taken me as it took the others. i write this in the dark, trapped in my own tomb, waiting for the end. i should never have brought the skull here. it whispers constantly now. it wants eleanor — the real eleanor, my little girl. it wants to use her body. i thought i was protecting my family. i've doomed us all. if you carry the skull, know this: placing it on the altar will free eleanor's spirit. but something else will be released too. choose wisely. — augustus blackwood, october 31st, 1891, 3:17 am'",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.02,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "letter",
+    "documents",
+    "paper",
+    "evidence",
+    "clue"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,17 @@
+{
+  "id": "statue",
+  "name": "Statue",
+  "description": "Sculpted or carved figure, often decorative or ceremonial",
+  "category": "custom",
+  "color": "#888899",
+  "icon": "🗿",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "stone idol",
+    "bronze bust",
+    "marble angel",
+    "wooden totem"
+  ]
+}

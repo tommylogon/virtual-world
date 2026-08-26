@@ -1,0 +1,13 @@
+{
+  "id": "cowardly",
+  "name": "Cowardly",
+  "description": "Getting hurt shakes your nerve.",
+  "category": "mental",
+  "params": null,
+  "effects": {},
+  "save_on": [
+    {"event": "takes_damage", "source_type": "character", "stat": "WIS", "dc": 12,
+     "on_fail": [{"condition": "frightened", "duration": 2}],
+     "fail_message": "Pain flashes through you and your courage drains."}
+  ]
+}

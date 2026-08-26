@@ -1,0 +1,22 @@
+{
+  "name": "child_diary",
+  "description": "a child's leather diary, the pages yellowed and crumbly. the recurring phrase, written over and over in different colors of ink: 'the skull watches. the skull waits. eleanor is lonely. she wants me to play with her but she's not real anymore. mother says don't go near the study. but the skull calls me at night.' the final entry: 'tonight she's going to show me how to fly.'",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "diary",
+    "documents",
+    "paper",
+    "evidence",
+    "clue",
+    "secret"
+  ],
+  "triggers": [],
+  "contents": []
+}

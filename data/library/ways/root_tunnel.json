@@ -1,0 +1,22 @@
+{
+  "auto_close": false,
+  "current_state": "open",
+  "description": "A low, narrow opening between the weeping willow's trailing branches, where the roots have worn a smooth tunnel through the earth. The passage is just wide enough to duck through, and the floor is padded with dry leaves.",
+  "edge_length": "",
+  "library_id": "",
+  "max_size": "",
+  "name": "root tunnel",
+  "needs_open": {},
+  "one_way": false,
+  "parameters": {},
+  "pass_message": "You push through the curtain of willow twigs and step from the warm, earthy hollow into a colder space where frost crunches underfoot.",
+  "prevent_close": false,
+  "requires": "",
+  "see_through": false,
+  "tags": [
+    "natural",
+    "tunnel",
+    "shelter"
+  ],
+  "triggers": []
+}

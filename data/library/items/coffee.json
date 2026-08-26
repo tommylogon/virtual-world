@@ -1,0 +1,15 @@
+{
+  "name": "coffee",
+  "description": "black coffee. he drinks it constantly.",
+  "actions": "examine,use",
+  "uses": 1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [],
+  "triggers": [],
+  "contents": []
+}

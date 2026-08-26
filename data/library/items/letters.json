@@ -1,0 +1,33 @@
+{
+  "name": "Letters",
+  "description": "Several letters adressed to sir Valerius",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "success_message": "the letter reads \"i hope this finds you well sir valerius! truly it is no simple task to translate a spellbook, but i hope the book of cryptography comes to use. i do not know what you are doing my friend, but be carefull. spellbooks are knows to be nefariously trapped when handled by anyone but their creator. - Jameson\""
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

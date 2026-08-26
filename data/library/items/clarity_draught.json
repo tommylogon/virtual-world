@@ -1,0 +1,37 @@
+{
+  "name": "Clarity Draught",
+  "description": "A bright, bitter draught that cuts through enchantment like cold water through fog.",
+  "actions": "examine,take,drink,drop",
+  "uses": 2,
+  "weight": 0.3,
+  "tags": [
+    "alchemical",
+    "drink",
+    "liquid",
+    "medicine",
+    "magic"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_drink"
+      ],
+      "effects": [
+        {
+          "type": "remove_condition",
+          "params": {
+            "condition": "charmed",
+            "target": "self",
+            "message": "The draught is sharp and cold. The warm haze over your thoughts shatters — you see clearly again."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

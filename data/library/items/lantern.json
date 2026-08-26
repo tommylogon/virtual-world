@@ -1,0 +1,20 @@
+{
+  "name": "lantern",
+  "description": "an old oil lantern hanging from a nail by the stairs. empty, but the wick is intact. if you had oil, it would work perfectly.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "light_source",
+    "fire",
+    "tool",
+    "container"
+  ],
+  "triggers": [],
+  "contents": []
+}

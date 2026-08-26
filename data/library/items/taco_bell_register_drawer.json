@@ -1,0 +1,18 @@
+{
+  "name": "Register Drawer",
+  "actions": "examine,search,take,drop",
+  "contents": [],
+  "current_state": "closed",
+  "description": "the cash drawer under unit 001. a float of twenties, a roll of quarters, and a post-it that says DO NOT count drawer during rush in aggressive caps.",
+  "tags": [
+    "container"
+  ],
+  "triggers": [],
+  "uses": -1,
+  "weight": 3,
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "library_id": "taco_bell_register_drawer"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "toilet",
+  "name": "Toilet",
+  "description": "Sanitary fixture for relieving oneself, keeps areas clean",
+  "category": "custom",
+  "color": "#88bbcc",
+  "icon": "🚽",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "lavatory",
+    "privy",
+    "commode",
+    "chamber pot"
+  ]
+}

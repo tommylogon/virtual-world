@@ -1,0 +1,61 @@
+{
+  "name": "music_box",
+  "description": "a small, dented music box. when wound, it plays a hauntingly beautiful but sad lullaby. the melody fills you with a strange sense of peace — and loss.",
+  "actions": "examine,take,use,drop",
+  "uses": -1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "music",
+    "sound_source",
+    "mechanism",
+    "toy",
+    "artifact",
+    "child"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "params": {
+            "amount": 10,
+            "target": "self"
+          },
+          "type": "heal"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "params": {
+            "fail_message": "",
+            "success_message": "the music box plays its haunting lullaby. as it plays, the temperature in the room seems to warm slightly. the whispers from the hallway fall silent."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

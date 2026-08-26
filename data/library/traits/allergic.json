@@ -1,0 +1,14 @@
+{
+  "name": "Allergic",
+  "description": "Takes damage or gains a condition when near items/areas with a matching tag.",
+  "category": "physical",
+  "params": {
+    "type": "string",
+    "label": "Allergen tag",
+    "placeholder": "e.g. pollen, dust"
+  },
+  "effects": {
+    "allergic_to": null
+  },
+  "id": "allergic"
+}

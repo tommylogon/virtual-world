@@ -1,0 +1,17 @@
+{
+  "id": "tool",
+  "name": "Tool",
+  "description": "Practical implement for tasks",
+  "category": "state",
+  "color": "#888800",
+  "icon": "🔧",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "hammer",
+    "crowbar",
+    "knife",
+    "shovel"
+  ]
+}

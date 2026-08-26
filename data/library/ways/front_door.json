@@ -1,0 +1,42 @@
+{
+  "auto_close": false,
+  "current_state": "open",
+  "description": "glass double doors with a push bar, streaked with a hundred handprints. a taped paper sign reads COME BACK TOMORROW in marker, already ignored by everyone.",
+  "edge_length": "",
+  "library_id": "",
+  "max_size": "normal",
+  "name": "front door",
+  "needs_open": {
+    "dc": 10,
+    "enabled": false,
+    "skill": "Athletics"
+  },
+  "one_way": false,
+  "parameters": {},
+  "pass_message": "The glass doors sigh shut behind you, sealing in the fryer warmth.",
+  "prevent_close": false,
+  "requires": "none",
+  "see_through": false,
+  "tags": [],
+  "triggers": [
+    {
+      "conditions": {},
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "node_id": "item_fireplace",
+            "state": "unlit",
+            "success_message": "the gust of wind blows out the flame"
+          },
+          "type": "set_state"
+        }
+      ],
+      "fail_message": "",
+      "success_message": "",
+      "target_name": "",
+      "target_state": "",
+      "trigger_type": "on_open"
+    }
+  ]
+}

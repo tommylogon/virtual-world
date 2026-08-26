@@ -1,0 +1,17 @@
+{
+  "id": "corpse",
+  "name": "Corpse",
+  "description": "Dead body of a creature, may contain loot or clues",
+  "category": "custom",
+  "color": "#664444",
+  "icon": "💀",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "dead guard",
+    "skeleton",
+    "animal carcass",
+    "rotting remains"
+  ]
+}

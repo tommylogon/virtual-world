@@ -1,0 +1,11 @@
+{
+  "name": "Slasher",
+  "description": "Horror monster â€” exempt from vital decay and can see in the dark.",
+  "category": "physical",
+  "params": null,
+  "effects": {
+    "is_slasher": true,
+    "dark_vision": true
+  },
+  "id": "slasher"
+}

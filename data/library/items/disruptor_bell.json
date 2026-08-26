@@ -1,0 +1,35 @@
+{
+  "name": "Disruptor Bell",
+  "description": "A small brass bell that rings sharp and discordant. It jars the attention loose from whatever has it.",
+  "actions": "examine,take,use,drop",
+  "uses": 5,
+  "weight": 0.2,
+  "tags": [
+    "metal",
+    "instrument",
+    "small"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "type": "remove_condition",
+          "params": {
+            "condition": "busy",
+            "target": "self",
+            "message": "The bell rings harsh and wrong. Your head snaps up — the spell of the moment shatters."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

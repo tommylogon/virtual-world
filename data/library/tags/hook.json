@@ -1,0 +1,15 @@
+{
+  "id": "hook",
+  "name": "Hook",
+  "description": "Curved metal tool for hanging or catching.",
+  "category": "physical",
+  "color": "#7f8c8d",
+  "icon": "🪝",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "meat hook",
+    "hook"
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "name": "Wine Cask",
+  "description": "A large oak cask filled with a deep red wine. The wood is stained dark with age, and a faint, sweet aroma wafts from the bunghole.",
+  "actions": "examine,take,use,drop",
+  "uses": 50,
+  "weight": 50,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "food"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "The cask is heavy and full of wine. The bunghole is stoppered with a wooden peg."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "message": "The cask is empty."
+          },
+          "type": "message"
+        },
+        {
+          "params": {},
+          "type": "destroy_self"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {
+        "operator": "and",
+        "conditions": [
+          {
+            "type": "uses_reached",
+            "value": 0
+          }
+        ]
+      },
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "amount": -30,
+            "message": "You drink deeply from the wine cask. The rich wine warms you from within.",
+            "stat": "Thirst"
+          },
+          "type": "adjust_vital"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

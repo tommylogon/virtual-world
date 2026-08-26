@@ -1,0 +1,9 @@
+{
+  "id": "deaf",
+  "name": "Deaf",
+  "description": "Cannot hear. Narrate without audio cues.",
+  "category": "physical",
+  "params": null,
+  "effects": {"block_sense": "hearing"},
+  "grants_conditions": ["deaf"]
+}

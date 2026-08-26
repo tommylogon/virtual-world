@@ -1,0 +1,7 @@
+{
+  "id": "size_giant",
+  "name": "Giant Size",
+  "description": "About 7 m tall — four times a normal human. Only the largest passages and doors fit.",
+  "category": "physical",
+  "params": { "size": "giant" }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "One-Armed",
+  "description": "One hand slot is disabled.",
+  "category": "physical",
+  "params": null,
+  "effects": {
+    "disable_slot": "hand_right"
+  },
+  "id": "one_armed"
+}

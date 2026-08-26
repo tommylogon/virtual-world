@@ -1,0 +1,34 @@
+{
+  "name": "Ear Balm",
+  "description": "A waxy balm in a small tin. Massaged into the ears, it soothes the ringing away.",
+  "actions": "examine,take,use,drop",
+  "uses": 3,
+  "weight": 0.1,
+  "tags": [
+    "medicine",
+    "small"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "type": "remove_condition",
+          "params": {
+            "condition": "deaf",
+            "target": "self",
+            "message": "The balm is warm and waxy. The ringing fades, and sounds come back — faint at first, then clear."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

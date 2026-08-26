@@ -1,0 +1,29 @@
+{
+  "name": "EVA Suit",
+  "description": "A full-body environmental vacuum suit. Sealed joints, reinforced visor, integrated climate control. Protects against vacuum exposure and extreme temperatures. The chest plate has a faded NASA-style logo and the name 'Kowalski' stenciled on the collar.",
+  "actions": "examine,take,use,equip,unequip",
+  "uses": -1,
+  "weight": 8.0,
+  "current_state": "normal",
+  "equip_slots": [
+    "torso",
+    "legs",
+    "arms",
+    "head",
+    "feet",
+    "hands"
+  ],
+  "defense": 3,
+  "insulation": 15,
+  "tags": [
+    "armor",
+    "clothing",
+    "vacuum_sealed",
+    "insulation",
+    "wearable",
+    "synthetic",
+    "equips_all_slots"
+  ],
+  "triggers": [],
+  "contents": []
+}

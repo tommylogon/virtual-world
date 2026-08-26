@@ -1,0 +1,15 @@
+{
+  "id": "doll",
+  "name": "Doll",
+  "description": "A toy figure representing a person.",
+  "category": "physical",
+  "color": "#f5b7b1",
+  "icon": "🪆",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "porcelain doll",
+    "stuffed rabbit"
+  ]
+}

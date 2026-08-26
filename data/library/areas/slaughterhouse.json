@@ -1,0 +1,105 @@
+{
+  "name": "slaughterhouse",
+  "description": "a hidden chamber deep beneath the mansion, long forgotten by the living. the walls are lined with butcher hooks and rusted meat racks. bones — human and animal — litter the earthen floor. a single bare bulb flickers with no visible power source. the stench of old blood and decay is overwhelming. chains hang from the ceiling, swaying in currents of air that don't exist. a narrow tunnel leads up into the darkness.",
+  "tags": [],
+  "environment": {
+    "air": "stale",
+    "light": 5,
+    "noise": "dripping",
+    "smell": "blood and decay",
+    "temperature": 8
+  },
+  "items": [
+    {
+      "name": "meat_hooks",
+      "description": "rows of rusted meat hooks hanging from the ceiling. they clink together softly, though there's no breeze.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 30,
+      "current_state": "normal",
+      "tags": [
+        "meat",
+        "hook",
+        "tool",
+        "metal"
+      ]
+    },
+    {
+      "name": "bones",
+      "description": "scattered bones on the floor — some animal, some human. one skull has a neat hole drilled through the crown.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 5,
+      "current_state": "normal",
+      "tags": [
+        "bone",
+        "corpse",
+        "organic",
+        "occult",
+        "evidence"
+      ]
+    },
+    {
+      "name": "cleaver_rack",
+      "description": "an empty rack that once held butcher's tools. only one remains — and it's in the butcher's hand.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 10,
+      "current_state": "normal",
+      "tags": [
+        "meat",
+        "tool",
+        "metal"
+      ]
+    },
+    {
+      "name": "blood_stains",
+      "description": "dark, ancient blood stains cover the floor and walls. some are recent.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 0,
+      "current_state": "normal",
+      "tags": [
+        "blood",
+        "occult",
+        "evidence"
+      ]
+    },
+    {
+      "name": "remains",
+      "description": "tattered clothing and personal effects of previous victims. a faded driver's license from 1978. a child's shoe. a wedding ring.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 1,
+      "current_state": "normal",
+      "tags": [
+        "bone",
+        "corpse",
+        "organic",
+        "occult",
+        "evidence"
+      ]
+    }
+  ],
+  "exits": [
+    {
+      "direction": "hidden_tunnel",
+      "target_room_hint": "cellar",
+      "description": "a narrow tunnel carved through the earth, sloping upward toward the cellar. the walls are slick with moisture.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "hidden_tunnel"
+    }
+  ],
+  "triggers": []
+}

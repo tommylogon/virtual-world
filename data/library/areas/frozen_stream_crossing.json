@@ -1,0 +1,34 @@
+{
+  "name": "Frozen Stream Crossing",
+  "description": "A narrow, winding stream cuts through the forest, its surface a patchwork of ice and open water. The ice near the banks is thin and cracks underfoot, while a fallen log spans the widest part, its bark worn smooth by countless crossings. The air is filled with the soft gurgle of rushing water beneath the ice and the whisper of wind through the pines.",
+  "tags": [
+    "exterior"
+  ],
+  "environment": {
+    "air": "",
+    "light": "bright",
+    "noise": "trickling water and wind",
+    "smell": "frost and wet wood",
+    "temperature": -5
+  },
+  "items": [],
+  "exits": [
+    {
+      "direction": "ice bridge",
+      "target_room_hint": "Frozen Thicket",
+      "description": "A narrow ice bridge spans the stream, its surface slick but sturdy. On the far side, the frozen thicket looms, its branches encased in rime.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "ice bridge"
+    },
+    {
+      "direction": "stream bank",
+      "target_room_hint": "Frozen Lake Clearing",
+      "description": "A narrow gap between snow-laden pines opens onto the windswept shore of the frozen lake. The air smells of ice and pine.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "north"
+    }
+  ],
+  "triggers": []
+}

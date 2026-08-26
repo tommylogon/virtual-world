@@ -1,0 +1,12 @@
+{
+  "name": "Big Bladder",
+  "description": "Bladder decays slower.",
+  "category": "physical",
+  "params": null,
+  "effects": {
+    "vital_multiplier": {
+      "Bladder": 0.5
+    }
+  },
+  "id": "big_bladder"
+}

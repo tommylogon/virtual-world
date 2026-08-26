@@ -1,0 +1,21 @@
+{
+  "name": "icy arch",
+  "description": "A low arch formed by two ancient pines, their branches fused together by ice and frost. The passage is narrow, requiring a crouch to pass through.",
+  "current_state": "open",
+  "pass_message": "You duck through the icy arch, the cold air biting at your cheeks.",
+  "edge_length": "",
+  "needs_open": {},
+  "auto_close": false,
+  "see_through": false,
+  "one_way": false,
+  "requires": "",
+  "max_size": "",
+  "prevent_close": false,
+  "tags": [
+    "outdoor",
+    "passage",
+    "natural"
+  ],
+  "parameters": {},
+  "triggers": []
+}

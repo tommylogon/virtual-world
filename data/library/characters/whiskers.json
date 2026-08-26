@@ -1,0 +1,97 @@
+{
+  "name": "whiskers",
+  "personality": "a gray tabby cat who lives in the mansion.",
+  "description": "",
+  "base_description": "",
+  "unknown_name": "",
+  "stats": {},
+  "vitals": {
+    "Bladder": 0,
+    "Energy": 100,
+    "Entertainment": 100,
+    "HP": 100,
+    "Hunger": 100,
+    "Hygiene": 100,
+    "Max_HP": 100,
+    "Sanity": 100,
+    "Social": 100,
+    "Temperature": 37,
+    "Thirst": 100,
+    "bladder": 100,
+    "energy": 100,
+    "entertainment": 100,
+    "hp": 100,
+    "hunger": 100,
+    "hygiene": 100,
+    "max_hp": 100,
+    "sanity": 100,
+    "social": 100,
+    "temperature": 37,
+    "thirst": 100
+  },
+  "decay_rates": {
+    "bladder": 1,
+    "energy": 1,
+    "entertainment": 1,
+    "hunger": 1,
+    "hygiene": 1,
+    "sanity": 1,
+    "social": 1,
+    "thirst": 1
+  },
+  "skills": {},
+  "traits": {},
+  "tags": [
+    "animal"
+  ],
+  "interest_tags": [
+    "food",
+    "meat",
+    "mouse",
+    "warmth",
+    "fireplace",
+    "toy",
+    "plant",
+    "candle"
+  ],
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {
+    "accessory": [],
+    "arms": [],
+    "back": [],
+    "feet": [],
+    "hand_left": [],
+    "hand_right": [],
+    "hands": [],
+    "head": [],
+    "legs": [],
+    "neck": [],
+    "torso": [],
+    "waist": []
+  },
+  "activity": null,
+  "current_area": "kitchen",
+  "inventory": [],
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
+  },
+  "memories": [],
+  "relationships": {},
+  "behaviors": [],
+  "npc_behavior": "wander",
+  "npc_action_interval": 2,
+  "npc_state": "idle",
+  "simple_npc": true,
+  "recent_hearing": []
+}

@@ -1,0 +1,15 @@
+{
+  "id": "survival",
+  "name": "Survival",
+  "description": "Tools and supplies for survival.",
+  "category": "essence",
+  "color": "#229954",
+  "icon": "🎒",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "multitool",
+    "water bottle"
+  ]
+}

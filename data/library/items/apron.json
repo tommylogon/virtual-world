@@ -1,0 +1,42 @@
+{
+  "name": "apron",
+  "description": "a leather butcher's apron, stiff with dried blood. the stench is overwhelming.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 4,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "clothing",
+    "meat",
+    "blood"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "amount": -5,
+            "stat": "hygiene",
+            "success_message": "you adjust the apron. the blood is dry. it is not coming off.",
+            "target": "self"
+          },
+          "type": "adjust_vital"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": [],
+  "equip_slots": [
+    "torso"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "id": "human",
+  "name": "Human",
+  "description": "Standard mortal human",
+  "category": "character",
+  "color": "#88aa88",
+  "icon": "🧑",
+  "applies_to": [
+    "characters"
+  ],
+  "examples": [
+    "commoner",
+    "adventurer",
+    "villager"
+  ]
+}

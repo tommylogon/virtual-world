@@ -1,0 +1,16 @@
+{
+  "id": "ghost",
+  "name": "Ghost",
+  "description": "Spectral being of the deceased",
+  "category": "character",
+  "color": "#aaaaff",
+  "icon": "👻",
+  "applies_to": [
+    "characters"
+  ],
+  "examples": [
+    "spirit",
+    "wraith",
+    "apparition"
+  ]
+}

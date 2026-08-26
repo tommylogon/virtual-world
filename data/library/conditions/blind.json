@@ -1,0 +1,26 @@
+{
+  "name": "Blind",
+  "description": "Can't see. Sight checks fail; attacks are clumsy.",
+  "blocks_actions": false,
+  "blocks_movement": false,
+  "blocks_speech": false,
+  "auto_fail_checks": [
+    "sight"
+  ],
+  "auto_fail_saves": [],
+  "attack_mod": -2,
+  "defense_mod": -2,
+  "speed_mult": 1.0,
+  "movement_mode": null,
+  "drops_held_items": false,
+  "periodic": {},
+  "ends_on": [
+    "duration",
+    "cure"
+  ],
+  "known": true,
+  "symptoms": {},
+  "stack": "noop",
+  "default_duration": 5,
+  "excludes": []
+}

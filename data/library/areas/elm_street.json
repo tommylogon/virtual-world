@@ -1,0 +1,29 @@
+{
+  "description": "a quieter downtown block that narrows as the buildings crowd closer. the sidewalk buckles in patches, telephone poles leaning at odd angles. a few vacant lots sit dark between storefronts, chain-link fence sagging. one streetlight is out and nobody's fixed it. the air smells of old brick, cold dumpster and a thread of wet earth. the taco bell's buzzing sign is the brightest thing on the block.",
+  "environment": {
+    "air": "cold",
+    "light": 25,
+    "noise": "distant traffic, the taco bell sign buzzing",
+    "smell": "old brick, dumpster, wet earth",
+    "temperature": 9
+  },
+  "items": [],
+  "name": "Elm Street",
+  "tags": [
+    "millbrook_falls",
+    "exterior",
+    "street",
+    "night"
+  ],
+  "triggers": [],
+  "exits": [
+    {
+      "direction": "taco bell",
+      "target_room_hint": "Taco Bell",
+      "description": "glass double doors with a push bar, streaked with a hundred handprints. a taped paper sign reads COME BACK TOMORROW in marker, already ignored by everyone.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "north"
+    }
+  ]
+}

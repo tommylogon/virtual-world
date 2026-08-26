@@ -1,0 +1,15 @@
+{
+  "name": "schedule_clipboard",
+  "description": "a clipboard holding the weekly scheduling sheet, its corners perforated with the outlines of a hundred different pens. one name has been whited-out and re-added three times in two different hands.",
+  "actions": "examine,take,use,drop",
+  "uses": -1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "tags": [
+    "office",
+    "paper",
+    "schedule"
+  ],
+  "triggers": [],
+  "contents": []
+}

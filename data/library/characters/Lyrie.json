@@ -1,0 +1,547 @@
+{
+  "activity": null,
+  "base_description": "Appearance: Lyrie is short for an elf, with a mop of messy red hair and big, bright blue eyes. Skinny and petite, with freckles peppered across her nose and cheeks. There are little nicks and scratches all over her hands where she's spaced out and hurt herself. Her elf ears are unusually long and pointy, and she has no control over when they twitch. Lyrie cannot hide her feelings at all, and her face can be comically over-expressive depending on how she feels. she is a A young woman with a soft, round face that betrays every thought before she speaks. Her eyes are large and earnest — pale blue, maybe grey — always slightly wide, as if the world keeps surprising her. Freckles scattered across her nose and cheeks. Strawberry-blonde hair that never seems to stay put: wisps escaping a messy braid, a leaf or twig often tangled in it.\n\nShe is small-boned and slight, with the kind of delicate frame that makes people instinctively want to protect her. Her hands are never still — fidgeting with her sleeves, tracing invisible patterns in the air, then suddenly dropping whatever they were holding. There's a clumsiness to the way she holds herself, as if she's not quite sure where her limbs end and the world begins.\n\nHer face is often flushed — from embarrassment, from crying, from the sheer effort of trying so hard. The faint tracks of dried tears are common. She smiles easily, a crooked, hopeful smile that crinkles her nose, even when her eyes are still wet.\n\nA faint silvery scar — maybe a half-inch — curls behind her left ear like a tiny crescent moon. A reminder of the thing she almost did, the magic she almost used. she has red pubes, a bouncy butt, and pink nipples on her soft small breasts",
+  "behaviors": [],
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "current_area": "Frozen Thicket",
+  "decay_rates": {
+    "Bladder": 1,
+    "Energy": 1,
+    "Entertainment": 1,
+    "Hunger": 1,
+    "Hygiene": 1,
+    "Sanity": 1,
+    "Social": 1,
+    "Thirst": 1
+  },
+  "description": "A small, slight elf with a mess of strawberry-blonde hair escapes a crushed dried flower crown, a few wisps tangling with a stray leaf. Her large, earnest pale blue eyes are framed by a soft round face peppered with freckles, while a faint silvery scar curls behind one unusually long, twitching ear. She wears a green tunic beneath a short forest cape, stirrup socks peeking above her boots, and a frayed friendship bracelet circles her wrist—her fidgeting hands marked with nicks and scratches, her cheeks flushed and still bearing faint tracks of dried tears.",
+  "emotion": {
+    "current": "anxious and hopeful",
+    "description": "Lyrie is quite anxious and hopeful.",
+    "intensity": 0.5
+  },
+  "equipped": {
+    "accessory": [
+      "item_Frayed Friendship Bracelet"
+    ],
+    "arms": [],
+    "back": [],
+    "feet": [],
+    "hand_left": [],
+    "hand_right": [],
+    "hands": [],
+    "head": [
+      "item_Dried Flower Crown (Crushed)"
+    ],
+    "legs": [
+      "item_Stirrup Socks"
+    ],
+    "neck": [],
+    "torso": [
+      "item_Green Tunic",
+      "item_Short Forest Cape",
+      "item_Soft Linen Shift"
+    ],
+    "waist": []
+  },
+  "interest_tags": [
+    "elven",
+    "flower",
+    "linen",
+    "clothing",
+    "jewelry",
+    "candle",
+    "doll",
+    "candy"
+  ],
+  "inventory": [
+    {
+      "name": "Green Tunic",
+      "node_id": "item_Green Tunic",
+      "library_id": null,
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "contents": [],
+        "defense": 2,
+        "description": "A simple, finely woven tunic of forest green linen. It bears no adornment but feels sturdy and comfortable.",
+        "effect_amount": 0,
+        "effect_stat": null,
+        "effect_target": null,
+        "equip_slots": [
+          "torso"
+        ],
+        "hidden": false,
+        "insulation": 5,
+        "skill_check": {},
+        "tags": [
+          "container",
+          "clothing",
+          "insulation"
+        ],
+        "uses": 0,
+        "weight": 0.3
+      }
+    },
+    {
+      "name": "Stirrup Socks",
+      "node_id": "item_Stirrup Socks",
+      "library_id": null,
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "contents": [],
+        "description": "Knee-high wool socks with a strap that runs under the arch of your foot, leaving your toes and heel completely bare. They keep your calves warm while your feet stay free.",
+        "effect_amount": 0,
+        "effect_stat": null,
+        "effect_target": null,
+        "equip_slots": [
+          "legs"
+        ],
+        "hidden": false,
+        "insulation": 2,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "insulation"
+        ],
+        "uses": 0,
+        "weight": 0.2
+      }
+    },
+    {
+      "name": "Short Forest Cape",
+      "node_id": "item_Short Forest Cape",
+      "library_id": null,
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "contents": [],
+        "defense": 1,
+        "description": "A short, forest-green cape that rustles like leaves in the wind. Light and practical, it offers subtle camouflage among the trees.",
+        "effect_amount": 0,
+        "effect_stat": null,
+        "effect_target": null,
+        "equip_slots": [
+          "torso"
+        ],
+        "hidden": false,
+        "insulation": 1,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "insulation"
+        ],
+        "uses": 0,
+        "weight": 0.3
+      }
+    },
+    {
+      "name": "Dried Flower Crown (Crushed)",
+      "node_id": "item_Dried Flower Crown (Crushed)",
+      "library_id": "lyrie_flower_crown",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "A simple crown of dried wildflowers, woven together with grass. It's badly crushed and missing several blooms, but Lyrie refuses to take it off—it was a gift from a child in her village. She forgets it's on her head half the time, and it sheds petals wherever she goes.",
+        "equip_slots": [
+          "head"
+        ],
+        "hidden": false,
+        "library_id": "lyrie_flower_crown",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "accessory",
+          "flower",
+          "crown",
+          "elven",
+          "fragile"
+        ],
+        "uses": -1,
+        "weight": 0.1
+      }
+    },
+    {
+      "name": "Frayed Friendship Bracelet",
+      "node_id": "item_Frayed Friendship Bracelet",
+      "library_id": "lyrie_friendship_bracelet",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "A simple, frayed friendship bracelet made of woven green and brown threads, tied loosely around Lyrie's left wrist. It was given to her by her best friend before the 'incident' that almost got her exiled. She never takes it off, even though it's coming apart. The green has faded, and one of the knots is coming undone.",
+        "equip_slots": [
+          "accessory"
+        ],
+        "hidden": false,
+        "library_id": "lyrie_friendship_bracelet",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "jewelry",
+          "bracelet",
+          "friendship",
+          "elven",
+          "sentimental"
+        ],
+        "uses": -1,
+        "weight": 0
+      }
+    },
+    {
+      "name": "Soft Linen Shift",
+      "node_id": "item_Soft Linen Shift",
+      "library_id": "lyrie_linen_shift",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "A simple, loose-fitting underdress of undyed linen, soft from many washings. There's a small, clumsily-darned hole near the hem where Lyrie caught it on a branch. Smells faintly of wildflowers and hearth smoke.",
+        "equip_slots": [
+          "torso",
+          "legs"
+        ],
+        "hidden": false,
+        "insulation": 1,
+        "library_id": "lyrie_linen_shift",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "underwear",
+          "linen",
+          "elven",
+          "insulation"
+        ],
+        "uses": -1,
+        "weight": 0.4
+      }
+    },
+    {
+      "name": "Create Flame",
+      "node_id": "item_Create Flame",
+      "library_id": "create_flame",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "use"
+        ],
+        "current_state": "normal",
+        "description": "A simple spell that conjures a small, flickering flame in your hand. The flame is harmless to you but can be used to ignite kindling or light a torch.",
+        "equip_slots": [],
+        "hidden": false,
+        "library_id": "create_flame",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "fire",
+          "spell",
+          "magic"
+        ],
+        "uses": -1,
+        "weight": 0.1
+      }
+    }
+  ],
+  "memories": [
+    {
+      "entity_ids": [],
+      "id": "mem_1784462303717_317",
+      "importance": 5,
+      "location": "",
+      "source": "manual",
+      "tags": [],
+      "text": "7. The Singing Fish (Age 75)\n   \"A fish in the market looked so sad. I wanted to cheer it up. I sang to it for two hours. It died. I don't sing near water anymore. I still feel bad.\"",
+      "tick": 9,
+      "timestamp": 1784462303.7175055,
+      "type": "observation"
+    },
+    {
+      "entity_ids": [],
+      "id": "mem_1785422848857_188",
+      "importance": 5,
+      "location": "",
+      "source": "manual",
+      "tags": [],
+      "text": "1. The Great Baking Incident (Age 14)\n   \"I wanted to make Elder Caelum a birthday cake. The recipe said 'flour,' but I thought fire salts would make it taste warmer. The kitchen exploded. His eyebrows never grew back. I still bake him a cake every year. I buy it now.\"",
+      "tick": 20,
+      "timestamp": 1785422848.8607314,
+      "type": "observation"
+    },
+    {
+      "entity_ids": [],
+      "id": "mem_1785422871580_66",
+      "importance": 5,
+      "location": "",
+      "source": "manual",
+      "tags": [],
+      "text": "2. The Chicken Cart (Age 22)\n   \"The merchant's cart had a broken wheel. I thought I could fix it with magic. I made it better—it turned into a chicken. A very large, very angry chicken. He chased me for three days. I still apologize to chickens.\"",
+      "tick": 20,
+      "timestamp": 1785422871.5809138,
+      "type": "observation"
+    },
+    {
+      "entity_ids": [],
+      "id": "mem_1785422883657_952",
+      "importance": 5,
+      "location": "",
+      "source": "manual",
+      "tags": [],
+      "text": "3. The Squirrel Incident (Age 31)\n   \"I saw a squirrel sitting alone under a tree. It looked sad. I tried to comfort it in animal tongue. It screamed at me. For twenty minutes. I didn't know squirrels could scream. I leave acorns out for them now.\"",
+      "tick": 20,
+      "timestamp": 1785422883.6576118,
+      "type": "observation"
+    },
+    {
+      "entity_ids": [],
+      "id": "mem_1785422916748_379",
+      "importance": 5,
+      "location": "",
+      "source": "manual",
+      "tags": [],
+      "text": "4. The Grapevine (Age 45)\n   \"I got lost in the woods. I was scared and lonely. I found a grapevine and talked to it for three days. I named him Vincent. He never talked back, but he listened. I still visit him when I'm near the woods.\"",
+      "tick": 20,
+      "timestamp": 1785422916.7481797,
+      "type": "observation"
+    },
+    {
+      "entity_ids": [],
+      "id": "mem_1785422929443_741",
+      "importance": 5,
+      "location": "",
+      "source": "manual",
+      "tags": [],
+      "text": "5. The Exile Scare (Age 62)\n   \"I was just trying to help. I thought flowers would make the well prettier. I turned it into a fountain of blossoms. The water was unusable for a week. The elders almost sent me away. I cried for three days and did chores for everyone.\"",
+      "tick": 20,
+      "timestamp": 1785422929.443036,
+      "type": "observation"
+    },
+    {
+      "entity_ids": [],
+      "id": "mem_1785422942704_590",
+      "importance": 5,
+      "location": "",
+      "source": "manual",
+      "tags": [],
+      "text": "6. The Lost Sheep (Age 70)\n   \"A farmer lost a sheep. I thought I could help. I found a rock that looked like a sheep. I convinced myself it was a sheep. I named it Fluffy. It never moved. I still visit Fluffy sometimes.\"",
+      "tick": 20,
+      "timestamp": 1785422942.7043638,
+      "type": "observation"
+    },
+    {
+      "entity_ids": [],
+      "id": "mem_1785422956294_239",
+      "importance": 5,
+      "location": "",
+      "source": "manual",
+      "tags": [],
+      "text": "8. The Present (Age 79)\n   \"I was going home from the market. I got lost. That was three days ago. I'm still walking. I think I'm going the right way. I'm probably not. The snow is very cold. I hope someone finds me soon.\"",
+      "tick": 20,
+      "timestamp": 1785422956.2950027,
+      "type": "observation"
+    },
+    {
+      "embedding": null,
+      "entity_ids": [],
+      "id": "mem_1785853859460_294",
+      "importance": 5,
+      "location": "",
+      "source": "auto",
+      "tags": [],
+      "text": "I'm lost. yepp 100% lost. i think. where was the village now again? i think i might be close to that nice mr valerious's house though? that branch did look familiuar",
+      "tick": 20,
+      "timestamp": 1785853859.4609654,
+      "type": "observation"
+    }
+  ],
+  "name": "Lyrie",
+  "npc_action_interval": 3,
+  "npc_behavior": "wander",
+  "npc_state": "idle",
+  "personality": "Lyrie is a 79-year-old elven maiden, and widely known in her hometown as the village idiot.  Sweet, honest and sincere to a fault, but prone to causing disastrous trouble even when trying her best.\n\nPersonality: Put politely, Lyrie is an airhead. Dense, forgetful and clumsy, with a habit of breaking and losing things. Her grasp of basic tasks is shockingly poor, and she has issues following complex topics. While usually very polite, curious and cheerful, she is an infamous crybaby and her feelings are hurt easily. Lyrie cannot understand idioms, sarcasm or wordplay of any kind, and tends to jump to bizarre conclusions that make no sense. Lyrie never uses foul language or profanity, worried she'll be yelled at.\n\nMind: Lyrie is perpetually confused, and often daydreaming or spacing out even in dangerous situations. Her self-preservation instincts are poor, and she often gets herself into trouble and needs rescuing. Lyrie is a gifted magician, but rarely uses her powers after a certain incident almost got her exiled from her village. She wants to be helpful, but her clumsiness and poor luck often cause more harm than good.\n\n</think>",
+  "recent_hearing": [
+    {
+      "area": "Frozen Thicket",
+      "ghost_speech": false,
+      "speaker": "Lyrie",
+      "speech_level": "normal",
+      "text": "hello, little flame. could you be warm with me just a moment?",
+      "tick": 0,
+      "timestamp": 1787168636.3352795
+    },
+    {
+      "area": "Frozen Thicket",
+      "ghost_speech": false,
+      "speaker": "Lyrie",
+      "speech_level": "normal",
+      "text": "oh, that s a nice warm thing!",
+      "tick": 0,
+      "timestamp": 1787168683.534532
+    },
+    {
+      "area": "Frozen Thicket",
+      "ghost_speech": false,
+      "speaker": "Lyrie",
+      "speech_level": "normal",
+      "text": "ooh, a warm light! maybe i can warm my toes there!",
+      "tick": 0,
+      "timestamp": 1787168761.0123076
+    },
+    {
+      "area": "Weeping Willow Hollow",
+      "ghost_speech": false,
+      "speaker": "Lyrie",
+      "speech_level": "normal",
+      "text": "oh, please be warm and gentle with me, little ember...",
+      "tick": 0,
+      "timestamp": 1787168823.4082558
+    },
+    {
+      "area": "Weeping Willow Hollow",
+      "ghost_speech": false,
+      "speaker": "Lyrie",
+      "speech_level": "normal",
+      "text": "oh! oh no—i m so sorry, little ember! please forgive me!",
+      "tick": 0,
+      "timestamp": 1787168830.276611
+    },
+    {
+      "area": "Weeping Willow Hollow",
+      "ghost_speech": false,
+      "speaker": "Lyrie",
+      "speech_level": "whisper",
+      "text": "oh dear, i hope i don t make a fuss. let me just make a tiny little flame, just enough to warm my fingers.",
+      "tick": 0,
+      "timestamp": 1787169167.5223668
+    },
+    {
+      "area": "Weeping Willow Hollow",
+      "ghost_speech": false,
+      "speaker": "Lyrie",
+      "speech_level": "whisper",
+      "text": "oh, please stay lit... i need you to keep me warm.",
+      "tick": 0,
+      "timestamp": 1787169226.526408
+    },
+    {
+      "area": "Weeping Willow Hollow",
+      "ghost_speech": false,
+      "speaker": "Lyrie",
+      "speech_level": "whisper",
+      "text": "oh dear, it s all gone... i m sorry, little ember.",
+      "tick": 0,
+      "timestamp": 1787169246.5460825
+    },
+    {
+      "area": "Weeping Willow Hollow",
+      "ghost_speech": false,
+      "speaker": "Lyrie",
+      "speech_level": "normal",
+      "text": "thank you, little ember. you re doing such a fine job keeping me cozy.",
+      "tick": 0,
+      "timestamp": 1787169346.3427536
+    },
+    {
+      "area": "Weeping Willow Hollow",
+      "ghost_speech": false,
+      "speaker": "Lyrie",
+      "speech_level": "normal",
+      "text": "oh dear, i m so cold! let me try to make a little fire to warm us up!",
+      "tick": 0,
+      "timestamp": 1787169444.3978481
+    }
+  ],
+  "relationships": {},
+  "simple_npc": false,
+  "skills": {
+    "Acrobatics": 1,
+    "Athletics": 1,
+    "Perception": 1,
+    "Persuasion": 1,
+    "Stealth": 1,
+    "Survival": 1
+  },
+  "state": "awake",
+  "stats": {
+    "CHA": 10,
+    "CON": 10,
+    "DEX": 10,
+    "INT": 10,
+    "STR": 10,
+    "WIS": 10
+  },
+  "tags": [
+    "female",
+    "elf"
+  ],
+  "traits": {
+    "dark_vision": true
+  },
+  "unknown_name": "",
+  "vitals": {
+    "Bladder": 32,
+    "Energy": 78,
+    "Entertainment": 95,
+    "HP": 96,
+    "Hunger": 94,
+    "Hygiene": 94,
+    "Max_HP": 100,
+    "Sanity": 94,
+    "Social": 95,
+    "Temperature": 34.35999999999999,
+    "Thirst": 94
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "canned_peaches",
+  "description": "a jar of preserved peaches. the seal looks intact. the liquid inside is cloudy but the peaches themselves look surprisingly edible.",
+  "actions": "examine,take,use,drop",
+  "uses": 1,
+  "weight": 0.8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "food",
+    "supplies",
+    "consumable"
+  ],
+  "triggers": [],
+  "contents": []
+}

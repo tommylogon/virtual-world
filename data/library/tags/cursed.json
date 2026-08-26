@@ -1,0 +1,16 @@
+{
+  "id": "cursed",
+  "name": "Cursed",
+  "description": "Carries a curse or negative enchantment",
+  "category": "essence",
+  "color": "#660066",
+  "icon": "☠️",
+  "applies_to": [
+    "items",
+    "characters"
+  ],
+  "examples": [
+    "cursed ring",
+    "haunted armor"
+  ]
+}

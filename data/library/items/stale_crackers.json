@@ -1,0 +1,19 @@
+{
+  "name": "stale_crackers",
+  "description": "a half-eaten pack of crackers on the bedside table. stale but still edible. a bite has been taken from one.",
+  "actions": "examine,take,use,drop",
+  "uses": 1,
+  "weight": 0.15,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "food",
+    "supplies",
+    "consumable"
+  ],
+  "triggers": [],
+  "contents": []
+}

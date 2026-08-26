@@ -1,0 +1,14 @@
+{
+  "id": "agoraphobic",
+  "name": "Agoraphobic",
+  "description": "Wide-open spaces set you on edge.",
+  "category": "mental",
+  "params": null,
+  "effects": {},
+  "conflicts": ["claustrophobic"],
+  "save_on": [
+    {"event": "enter_area", "source_type": "area", "area_tags": ["open"], "stat": "WIS", "dc": 12,
+     "on_fail": [{"condition": "frightened", "duration": 3}, {"vital": "Sanity", "amount": -10}],
+     "fail_message": "The open space stretches out too far. You feel exposed."}
+  ]
+}

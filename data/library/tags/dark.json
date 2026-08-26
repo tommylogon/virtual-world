@@ -1,0 +1,17 @@
+{
+  "id": "dark",
+  "name": "Dark",
+  "description": "Poorly lit or completely dark",
+  "category": "environment",
+  "color": "#333333",
+  "icon": "🌑",
+  "applies_to": [
+    "areas",
+    "items"
+  ],
+  "examples": [
+    "cave",
+    "dungeon",
+    "unlit lantern"
+  ]
+}

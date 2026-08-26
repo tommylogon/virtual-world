@@ -1,0 +1,21 @@
+{
+  "name": "margaret_letters",
+  "description": "a bundle of love letters between margaret holloway and james blackwood (the head of staff, not the patriarch). their story was forbidden — a servant and a woman who was augustus's mistress. the letters tell a tragic story of love, fear, and a plan to escape together that never came to pass.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "letter",
+    "documents",
+    "paper",
+    "evidence",
+    "clue"
+  ],
+  "triggers": [],
+  "contents": []
+}

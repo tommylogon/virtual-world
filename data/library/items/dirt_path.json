@@ -1,0 +1,18 @@
+{
+  "name": "dirt_path",
+  "description": "the dirt path leading from the garden gate to the mausoleum is well-worn. despite the overgrown garden, this path has been used recently. footprints in the damp earth — a woman's shoes, narrow heels, size six or seven.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "path",
+    "outdoor"
+  ],
+  "triggers": [],
+  "contents": []
+}
