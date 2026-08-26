@@ -1,7 +1,7 @@
 # Task 314 — Modularize the largest files
 
 **Priority**: Medium
-**Status**: Todo
+**Status**: In Progress (wave 1 landed 2026-08-26: trigger_system, effects, routes quartet. Wave 2 in flight: player/traits redo, facade trim, runner-ups, JS trio, test split.)
 
 ---
 
@@ -17,11 +17,11 @@ Line-count audit of `virtual_world/` (2026-08-19, excluding `node_modules`, `.ki
 
 | File | Lines | Why / suggested split |
 |------|-------|-----------------------|
-| `engine/trigger_system.py` | 1,994 | The biggest engine module. Split trigger *evaluation* vs *execution/effects* vs *scheduling/state*. |
-| `engine/effects.py` | 1,400 | Effect catalogue is huge. Group by effect category (state, memory, lore, spawn, etc.). |
-| `player.py` | 989 | Player class absorbing vitals/conditions/skills. Extract condition-instance handling and skill resolution. |
-| `engine/traits.py` | 842 | Traits + events. Split definition catalog from event dispatch logic. |
-| `routes/action.py` | 835 | Biggest route module. Extract the command handlers it dispatches to. |
+| `engine/trigger_system.py` | DONE 2026-08-26: 2,181 → **73** | Split into `engine/triggers/` package of mixins (constants, effect_resolution, evaluation, condition_tree, execution, behaviors, ui, testing). See Wave 1 below. |
+| `engine/effects.py` | DONE 2026-08-26: 1,655 → **510** | Handler groups live in `engine/effect_handlers/<category>.py`, each exporting a HANDLERS dict; effects.py composes the registry and keeps shared helpers + handle_* wrappers. |
+| `player.py` | 1,147 | Player class absorbing vitals/conditions/skills. Extract condition-instance handling and skill resolution. (First attempt died before touching files; redo queued.) |
+| `engine/traits.py` | 934 | Traits + events. Split definition catalog from event dispatch logic. (Queued with player.py.) |
+| `routes/action.py` | DONE 2026-08-26: 935 → **46** | Bodies moved whole to `routes/action_handlers.py` (838, still over 600, second-pass candidate). |
 
 ### DONE: `engine/item_actions.py` (2026-08-23)
 
@@ -104,6 +104,75 @@ document is not defined` harness issue, unrelated).
 
 Still on the table for a later pass (increasingly entangled with the shell): the
 tag-library panel, legend HTML, and `buildNodeConfig` styling.
+
+## Wave 1 landed (2026-08-26)
+
+Four parallel extractions, verified per step and at the end: **1130 passed, 1 skipped**
+(a rare second skip, `test_body_parts.py:215` "attack missed", is a d20-miss self-skip, not a regression).
+
+| Original | Before → after | Extracted |
+|----------|----------------|-----------|
+| `engine/trigger_system.py` | 2,181 → **73** | `engine/triggers/`: constants (74), effect_resolution (49), evaluation (358), condition_tree (504), execution (491), behaviors (199), ui (138), testing (189). TriggerSystem stays defined in the original, inherits the mixins; tests patch instance attributes so seams survive. |
+| `engine/effects.py` | 1,655 → **510** | `engine/effect_handlers/`: conditions (134), environment (67), equipment (186), memory (107), misc (89), properties (141), spawn (183), state (71), teleport (55), vitals (186). Each exports HANDLERS; effects.py merges dicts in original dispatch order, retains private self-based helpers and public handle_* wrappers. Zero mock.patch targets existed on this module. |
+| `routes/action.py` | 935 → **46** | `routes/action_handlers.py` (838). |
+| `routes/library_routes.py` | 958 → **85** | `routes/library_ops.py` (857). `_content_ref_id`, `_content_relation`, `graph_add_relation_edge`, `RELATION_EDGE_TYPES` re-exported (test_relation_edges imports them). |
+| `routes/graph.py` | 730 → **88** | `routes/graph_ops.py` (655). |
+| `routes/players.py` | 650 → **83** | `routes/player_ops.py` (603). |
+
+Routes: blueprints, URL rules, endpoint names, status codes, response shapes untouched;
+no url_for usage anywhere, no mock.patch against these route modules.
+
+Second-pass candidates created by wave 1: `action_handlers.py` (838), `library_ops.py` (857),
+`graph_ops.py` (655), `condition_tree.py` (504 ok), plus noted duplicates
+(`test_trigger` template-context copy in triggers/testing.py vs execution.py).
+
+## Wave 2 interrupted (2026-08-26, ~01:00)
+
+Session cut short (parallel agents hit output limits mid-run; several died BEFORE editing,
+a few half-landed). Current tree is GREEN: pytest 1130 passed, 1 skipped; node --check
+passes on every touched JS file. State per target:
+
+| Target | State |
+|--------|-------|
+| `player.py` | PARTIAL: condition-instance machinery extracted to `engine/player_conditions.py`, Player methods delegate, suite green. Skill resolution extraction NOT started. |
+| `engine/traits.py` | NOT started (retry agent died pre-edit, twice). |
+| `virtual_world_engine.py` (998, regrown facade) | NOT started. |
+| `engine/trigger_validator.py` (742) | NOT started. |
+| `engine/movement.py`, `serialization.py`, `matching.py` | NOT started. |
+| `engine/equipment.py`, `tick_manager.py` | NOT started. |
+| `static/js/inspector/agent-view.js` (1736) | ORPHAN: `static/js/inspector/agent/agent-header.js` (149 lines) exists but the host was never rewired and there is no script tag. Either finish the split next session or delete the dir. |
+| `static/js/inspector/way-view.js` (1082) | Code split COMPLETE: `way-view-triggers.js` + `way-view-connections.js` expose `window.InspectorWayViewTriggers` / `window.InspectorWayViewConnections`; hosts and modules all pass node --check. BUT see urgent fix below. |
+| `trigger-editor.js`, `trigger-graph.js`, `item-library.js` + `library-browser.js`, `main.js` | NOT started. |
+| `tests/test_trigger_system.py` split | NOT started. |
+
+### URGENT, first action next session (2 lines)
+
+`templates/index.html` loads `way-view.js` (line 995) but not the two new modules, so
+opening the way inspector's triggers/connections sections throws on an undefined
+namespace. Add beside that line:
+
+```
+<script src="/static/js/inspector/way-view-triggers.js"></script>
+<script src="/static/js/inspector/way-view-connections.js"></script>
+```
+
+### Resume notes
+
+- Regression gate unchanged: `python -m pytest tests/ -q -k "not mcp and not emote"`
+  must read exactly 1130 passed, 1 skipped (rare extra skip = `test_body_parts.py:215`
+  d20-miss self-skip; rerun once to confirm if seen). JS gate: `node --check` per touched file.
+- Re-dispatch dead scopes ONE agent per scope with strict short-report instructions;
+  two agents died writing long reports, cap finals around 40 lines.
+- Second-pass splits still owed from wave 1: `routes/action_handlers.py` (838),
+  `routes/library_ops.py` (857), `routes/graph_ops.py` (655). Also `triggers/testing.py`
+  duplicates the template-context block from `execution.py`.
+- Perf smells collected from wave reports, none fixed yet: `_find_item_by_name` /
+  `_find_target_node` full-graph scans inside trigger loops; effects spawn/give/destroy
+  O(n^2) edge-scan patterns; `handle_schedule_trigger` linear node lookup;
+  `graph_ops` multi-pass edge iteration per request; `player_ops` vital GETs recompute
+  equipment aggregation + area temperature walk; `test_trigger` duplicated context block.
+- Endpoint latency profiling still pending: server was down; the flat ~2s curl readings
+  were Windows connect-refused retries, not real numbers. Re-measure after restart.
 
 ## Verification
 
