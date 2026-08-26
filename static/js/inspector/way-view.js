@@ -738,74 +738,11 @@ window.InspectorWayView = (() => {
             </div>`;
     };
 
-    /**
-     * Reconnect a way to different rooms
-     * @param {string} wayId - Way node ID
-     */
-    wayView._reconnectDoor = async function(wayId) {
-        const roomASelect = document.getElementById('way-reconn-a');
-        const roomBSelect = document.getElementById('way-reconn-b');
-        const dir1Input = document.getElementById('way-reconn-dir1');
-        const dir2Input = document.getElementById('way-reconn-dir2');
-        if (!roomASelect || !roomBSelect) return;
 
-        const roomAName = roomASelect.value;
-        const roomBName = roomBSelect.value;
-        if (!roomAName || !roomBName) return;
-        if (roomAName === roomBName) { toastInfo('Cannot connect a way to itself.'); return; }
-
-        // Resolve area names to node IDs
-        const roomNodes = worldState.graph?.nodes || {};
-        let roomAId = '', roomBId = '';
-        Object.entries(roomNodes).forEach(([nodeId, node]) => {
-            if (node.type === 'area') {
-                if (node.name === roomAName) roomAId = nodeId;
-                if (node.name === roomBName) roomBId = nodeId;
-            }
-        });
-        if (!roomAId || !roomBId) { toastError('Could not find area nodes.'); return; }
-
-        const dir1 = dir1Input?.value?.trim() || '';
-        const dir2 = dir2Input?.value?.trim() || '';
-
-        await ApiClient.reconnectDoor(wayId, roomAId, roomBId, dir1, dir2);
-        worldState.fetch().then(() => {
-            if (window.VW?.inspector) window.VW.inspector.showNode(wayId);
-        });
-    };
 
     // ── Library Save ──────────────────────────────────────────────────
 
-    wayView._extractTriggersFromEdges = function(nodeId) {
-        const triggers = [];
-        if (!worldState.graph?.edges) return triggers;
-        for (const edge of worldState.graph.edges) {
-            if (edge.source !== nodeId || edge.type !== 'triggers') continue;
-            const ep = edge.properties || {};
-            const effects = ep.effects?.length > 0
-                ? ep.effects
-                : (ep.effect_type
-                    ? [{ type: ep.effect_type, params: ep.effect_params || {} }]
-                    : []);
-            let conditions = ep.conditions || {};
-            if (Array.isArray(conditions) || !conditions.operator) {
-                const logic = ep.conditions_logic || 'and';
-                conditions = Array.isArray(conditions) && conditions.length > 0
-                    ? { operator: logic, conditions }
-                    : {};
-            }
-            triggers.push({
-                trigger_type: ep.trigger_type || 'on_examine',
-                effects,
-                target_name: ep.target_name || '',
-                target_state: ep.target_state || '',
-                conditions,
-                success_message: ep.success_message || '',
-                fail_message: ep.fail_message || ''
-            });
-        }
-        return triggers;
-    };
+
 
     wayView._saveToLibrary = async function(nodeId) {
         const node = worldState.getNode(nodeId);
