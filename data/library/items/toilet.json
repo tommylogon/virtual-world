@@ -1,0 +1,58 @@
+{
+  "name": "Toilet",
+  "actions": "examine,use",
+  "contents": [],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "A standard white porcelain toilet bolted to the floor, tank against the wall, chrome flush lever worn shiny in the middle. The seat is the cheap open-front commercial kind, and the water level sits suspiciously high, like it's always one flush from making a point.",
+  "insulation": 0,
+  "library_id": "toilet",
+  "light_level": "dim",
+  "tags": [
+    "toilet",
+    "bathroom",
+    "furniture"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "amount": -70,
+            "message": "",
+            "stat": "bladder",
+            "success_message": "You relieve yourself. Ah, much better.",
+            "target": "self"
+          },
+          "type": "adjust_vital"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "success_message": "Porcelain, tank, lever. It has witnessed things no employee is paid enough to scrub, yet it stands ready. A hero, really."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "uses": -1,
+  "weight": 50
+}

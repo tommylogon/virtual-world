@@ -1,0 +1,23 @@
+{
+  "name": "Stuffed Satchel (Overstuffed, Always Open)",
+  "description": "A worn leather satchel, slung over one shoulder and perpetually overstuffed with everything Lyrie might need—and a great deal she doesn't. The strap has been tied and re-tied where it snapped. Contents spill out constantly: pressed flowers, lost buttons, half-eaten apples, crumpled notes, a broken comb, and at least three rocks she thought were 'pretty.' The flap never stays closed.",
+  "actions": "examine,take,use,equip,unequip,rummage",
+  "uses": -1,
+  "weight": 1.5,
+  "current_state": "normal",
+  "equip_slots": [
+    "shoulders"
+  ],
+  "tags": [
+    "bag",
+    "satchel",
+    "storage",
+    "messy",
+    "elven",
+    "wearable",
+    "container",
+    "organic"
+  ],
+  "triggers": [],
+  "contents": []
+}

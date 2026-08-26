@@ -1,0 +1,17 @@
+{
+  "id": "wet",
+  "name": "Wet",
+  "description": "Damp, moist, or submerged",
+  "category": "environment",
+  "color": "#3399ff",
+  "icon": "💦",
+  "applies_to": [
+    "areas",
+    "items"
+  ],
+  "examples": [
+    "swamp",
+    "waterfall cave",
+    "wet cloth"
+  ]
+}

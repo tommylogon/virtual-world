@@ -1,0 +1,19 @@
+{
+  "name": "candle_stub",
+  "description": "a candle stub on the bedside table, burned down to almost nothing. the wax is still slightly warm.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "candle",
+    "light_source",
+    "fire"
+  ],
+  "triggers": [],
+  "contents": []
+}

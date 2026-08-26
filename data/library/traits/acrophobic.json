@@ -1,0 +1,16 @@
+{
+  "id": "acrophobic",
+  "name": "Acrophobic",
+  "description": "Heights terrify you.",
+  "category": "mental",
+  "params": null,
+  "effects": {},
+  "save_on": [
+    {"event": "climb_way", "source_type": "way", "stat": "WIS", "dc": 12,
+     "on_fail": [{"condition": "frightened", "duration": 3}, {"vital": "Sanity", "amount": -8}],
+     "fail_message": "Your stomach lurches at the height. You freeze for a moment."},
+    {"event": "jump_way", "source_type": "way", "stat": "WIS", "dc": 12,
+     "on_fail": [{"condition": "frightened", "duration": 3}, {"vital": "Sanity", "amount": -8}],
+     "fail_message": "The gap below makes your head spin."}
+  ]
+}

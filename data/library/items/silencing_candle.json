@@ -1,0 +1,38 @@
+{
+  "name": "Silencing Candle",
+  "description": "A black candle that burns with no smoke. When lit, sound dies in the room — even your own voice.",
+  "actions": "examine,take,use,light,drop",
+  "uses": 3,
+  "weight": 0.2,
+  "tags": [
+    "candle",
+    "cursed",
+    "small"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_light",
+        "on_use"
+      ],
+      "effects": [
+        {
+          "type": "apply_condition",
+          "params": {
+            "condition": "mute",
+            "target": "self",
+            "duration": 5,
+            "source": "silencing candle",
+            "message": "The black flame flickers. You open your mouth to speak — nothing comes out."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

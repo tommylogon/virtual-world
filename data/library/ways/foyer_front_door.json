@@ -1,0 +1,18 @@
+{
+  "library_id": "",
+  "name": "foyer-front_door",
+  "description": "the massive oak front door, reinforced with iron bands. it is barred from the inside with a strange mechanism. a skull-shaped indentation suggests something must be placed here to unlock it.",
+  "current_state": "locked",
+  "pass_message": "",
+  "edge_length": "",
+  "needs_open": {},
+  "auto_close": false,
+  "see_through": false,
+  "one_way": false,
+  "requires": "",
+  "max_size": "",
+  "prevent_close": false,
+  "tags": [],
+  "parameters": {},
+  "triggers": []
+}

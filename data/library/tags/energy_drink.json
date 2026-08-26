@@ -1,0 +1,14 @@
+{
+  "id": "energy_drink",
+  "name": "Energy Drink",
+  "description": "Caffeinated drink that restores energy.",
+  "category": "physical",
+  "color": "#16a085",
+  "icon": "🥤",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "MAXIMUM CHAOS drink"
+  ]
+}

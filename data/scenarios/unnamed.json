@@ -1,0 +1,2307 @@
+{
+  "active_player": "Jake Halloway",
+  "areas": {
+    "Millwood Public Schools": {
+      "ambient_light": 80,
+      "description": "A small, unassuming PK-12 school in rural Oklahoma.",
+      "environment": {
+        "air": "stale",
+        "light": "bright",
+        "noise": "distant chatter",
+        "smell": "floor wax and chalk dust",
+        "temperature": 22
+      },
+      "exits": {
+        "To The Old Steel Mill": {
+          "allow_see_characters": false,
+          "cost": {},
+          "description": "A cracked asphalt path leads away from the school grounds.",
+          "hidden": false,
+          "label": "To The Old Steel Mill",
+          "pass_message": "",
+          "return_dir": "To Millwood Public Schools",
+          "state": "open",
+          "target": "The Old Steel Mill",
+          "visible_in_direction": "",
+          "visible_items": [],
+          "way_id": "way_millwood_to_steel_mill"
+        },
+        "To The Woods": {
+          "allow_see_characters": false,
+          "cost": {},
+          "description": "A narrow dirt trail disappears into trees.",
+          "hidden": false,
+          "label": "To The Woods",
+          "pass_message": "",
+          "return_dir": "To Millwood Public Schools",
+          "state": "open",
+          "target": "The Woods",
+          "visible_in_direction": "",
+          "visible_items": [],
+          "way_id": "way_millwood_to_woods"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "bright",
+      "name": "Millwood Public Schools",
+      "properties": {
+        "description": "A small, unassuming PK-12 school in rural Oklahoma.",
+        "environment": {
+          "air": "stale",
+          "light": "bright",
+          "noise": "distant chatter",
+          "smell": "floor wax and chalk dust",
+          "temperature": 22
+        },
+        "tags": [
+          "school",
+          "public",
+          "indoors"
+        ]
+      }
+    },
+    "Steel Mill - Deep Shaft": {
+      "ambient_light": 80,
+      "description": "The bottom of the metal-lined shaft. It is cramped and cold.",
+      "environment": {
+        "air": "stagnant",
+        "light": "dark",
+        "noise": "echoing",
+        "smell": "ozone and copper",
+        "temperature": 12
+      },
+      "exits": {
+        "Up the Shaft": {
+          "allow_see_characters": false,
+          "cost": {},
+          "description": "A ladder of cold metal rungs.",
+          "hidden": false,
+          "label": "Up the Shaft",
+          "pass_message": "",
+          "return_dir": "Down the Shaft",
+          "state": "open",
+          "target": "The Old Steel Mill",
+          "visible_in_direction": "",
+          "visible_items": [],
+          "way_id": "way_shaft_up"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "bright",
+      "name": "Steel Mill - Deep Shaft",
+      "properties": {
+        "description": "The bottom of the metal-lined shaft. It is cramped and cold.",
+        "environment": {
+          "air": "stagnant",
+          "light": "dark",
+          "noise": "echoing",
+          "smell": "ozone and copper",
+          "temperature": 12
+        },
+        "tags": [
+          "hidden",
+          "underground",
+          "training"
+        ]
+      }
+    },
+    "The Halloway House": {
+      "ambient_light": 55,
+      "description": "A messy, lived-in suburban home that hides in plain sight.",
+      "environment": {
+        "air": "stuffy",
+        "light": "normal",
+        "noise": "distant TV",
+        "smell": "leather and motor oil",
+        "temperature": 23
+      },
+      "exits": {
+        "To The Woods": {
+          "allow_see_characters": false,
+          "cost": {},
+          "description": "A backyard gate into the tree line.",
+          "hidden": false,
+          "label": "To The Woods",
+          "pass_message": "",
+          "return_dir": "To The Halloway House",
+          "state": "open",
+          "target": "The Woods",
+          "visible_in_direction": "",
+          "visible_items": [],
+          "way_id": "way_halloway_to_woods"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "The Halloway House",
+      "properties": {
+        "description": "A messy, lived-in suburban home that hides in plain sight.",
+        "environment": {
+          "air": "stuffy",
+          "light": "normal",
+          "noise": "distant TV",
+          "smell": "leather and motor oil",
+          "temperature": 23
+        },
+        "tags": [
+          "home",
+          "suburban",
+          "messy"
+        ]
+      }
+    },
+    "The Old Steel Mill": {
+      "ambient_light": 40,
+      "description": "A massive, abandoned industrial complex about twenty minutes from the school.",
+      "environment": {
+        "air": "dusty",
+        "light": "dim",
+        "noise": "creaking metal",
+        "smell": "rust and oil",
+        "temperature": 18
+      },
+      "exits": {
+        "Down the Shaft": {
+          "allow_see_characters": false,
+          "cost": {},
+          "description": "A deep, metal-lined shaft into darkness.",
+          "hidden": false,
+          "label": "Down the Shaft",
+          "pass_message": "",
+          "return_dir": "Up the Shaft",
+          "state": "open",
+          "target": "Steel Mill - Deep Shaft",
+          "visible_in_direction": "",
+          "visible_items": [],
+          "way_id": "way_shaft_down"
+        },
+        "To Millwood Public Schools": {
+          "allow_see_characters": false,
+          "cost": {},
+          "description": "The cracked asphalt path leads back toward the school.",
+          "hidden": false,
+          "label": "To Millwood Public Schools",
+          "pass_message": "",
+          "return_dir": "To The Old Steel Mill",
+          "state": "open",
+          "target": "Millwood Public Schools",
+          "visible_in_direction": "",
+          "visible_items": [],
+          "way_id": "way_steel_mill_to_millwood"
+        },
+        "To The Woods": {
+          "allow_see_characters": false,
+          "cost": {},
+          "description": "A rough trail through overgrowth.",
+          "hidden": false,
+          "label": "To The Woods",
+          "pass_message": "",
+          "return_dir": "To The Old Steel Mill",
+          "state": "open",
+          "target": "The Woods",
+          "visible_in_direction": "",
+          "visible_items": [],
+          "way_id": "way_steel_mill_to_woods"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "dim",
+      "name": "The Old Steel Mill",
+      "properties": {
+        "description": "A massive, abandoned industrial complex about twenty minutes from the school.",
+        "environment": {
+          "air": "dusty",
+          "light": "dim",
+          "noise": "creaking metal",
+          "smell": "rust and oil",
+          "temperature": 18
+        },
+        "tags": [
+          "abandoned",
+          "industrial",
+          "dangerous"
+        ]
+      }
+    },
+    "The Parr House": {
+      "ambient_light": 80,
+      "description": "An immaculately kept suburban home, now partially destroyed.",
+      "environment": {
+        "air": "fresh",
+        "light": "bright",
+        "noise": "silent",
+        "smell": "lavender and smoke",
+        "temperature": 22
+      },
+      "exits": {
+        "To The Woods": {
+          "allow_see_characters": false,
+          "cost": {},
+          "description": "A neat gravel path to the forest.",
+          "hidden": false,
+          "label": "To The Woods",
+          "pass_message": "",
+          "return_dir": "To The Parr House",
+          "state": "open",
+          "target": "The Woods",
+          "visible_in_direction": "",
+          "visible_items": [],
+          "way_id": "way_parr_to_woods"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "bright",
+      "name": "The Parr House",
+      "properties": {
+        "description": "An immaculately kept suburban home, now partially destroyed.",
+        "environment": {
+          "air": "fresh",
+          "light": "bright",
+          "noise": "silent",
+          "smell": "lavender and smoke",
+          "temperature": 22
+        },
+        "tags": [
+          "home",
+          "suburban",
+          "damaged"
+        ]
+      }
+    },
+    "The Woods": {
+      "ambient_light": 40,
+      "description": "A dense, shadowed forest connecting the school, the steel mill, and both houses.",
+      "environment": {
+        "air": "humid",
+        "light": "dim",
+        "noise": "rustling leaves",
+        "smell": "wet earth and decay",
+        "temperature": 19
+      },
+      "exits": {
+        "To Millwood Public Schools": {
+          "allow_see_characters": false,
+          "cost": {},
+          "description": "Trail widens toward school grounds.",
+          "hidden": false,
+          "label": "To Millwood Public Schools",
+          "pass_message": "",
+          "return_dir": "To The Woods",
+          "state": "open",
+          "target": "Millwood Public Schools",
+          "visible_in_direction": "",
+          "visible_items": [],
+          "way_id": "way_woods_to_millwood"
+        },
+        "To The Halloway House": {
+          "allow_see_characters": false,
+          "cost": {},
+          "description": "Path to messy suburban backyard.",
+          "hidden": false,
+          "label": "To The Halloway House",
+          "pass_message": "",
+          "return_dir": "To The Woods",
+          "state": "open",
+          "target": "The Halloway House",
+          "visible_in_direction": "",
+          "visible_items": [],
+          "way_id": "way_woods_to_halloway"
+        },
+        "To The Old Steel Mill": {
+          "allow_see_characters": false,
+          "cost": {},
+          "description": "Rough trail to industrial ruins.",
+          "hidden": false,
+          "label": "To The Old Steel Mill",
+          "pass_message": "",
+          "return_dir": "To The Woods",
+          "state": "open",
+          "target": "The Old Steel Mill",
+          "visible_in_direction": "",
+          "visible_items": [],
+          "way_id": "way_woods_to_steel_mill"
+        },
+        "To The Parr House": {
+          "allow_see_characters": false,
+          "cost": {},
+          "description": "Path to pristine suburban home.",
+          "hidden": false,
+          "label": "To The Parr House",
+          "pass_message": "",
+          "return_dir": "To The Woods",
+          "state": "open",
+          "target": "The Parr House",
+          "visible_in_direction": "",
+          "visible_items": [],
+          "way_id": "way_woods_to_parr"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "dim",
+      "name": "The Woods",
+      "properties": {
+        "description": "A dense, shadowed forest connecting the school, the steel mill, and both houses.",
+        "environment": {
+          "air": "humid",
+          "light": "dim",
+          "noise": "rustling leaves",
+          "smell": "wet earth and decay",
+          "temperature": 19
+        },
+        "tags": [
+          "forest",
+          "outdoors",
+          "dangerous"
+        ]
+      }
+    }
+  },
+  "clock_start_hour": 8,
+  "clock_start_minute": 0,
+  "current_area": "Millwood Public Schools",
+  "game_log": [
+    "[Violet Parr] says: \"hey. you re new here too, or just enjoying the scenery?\"",
+    "[Jake Halloway] says: \"hello from my human turn\""
+  ],
+  "game_time": "08:05:00",
+  "ghost_mode": false,
+  "graph": {
+    "edges": [
+      {
+        "properties": {
+          "direction": "To The Old Steel Mill"
+        },
+        "source": "area_millwood_public_schools",
+        "target": "way_millwood_to_steel_mill",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "To Millwood Public Schools"
+        },
+        "source": "way_millwood_to_steel_mill",
+        "target": "area_the_old_steel_mill",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "To Millwood Public Schools"
+        },
+        "source": "area_the_old_steel_mill",
+        "target": "way_steel_mill_to_millwood",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "To The Old Steel Mill"
+        },
+        "source": "way_steel_mill_to_millwood",
+        "target": "area_millwood_public_schools",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "To The Woods"
+        },
+        "source": "area_millwood_public_schools",
+        "target": "way_millwood_to_woods",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "To Millwood Public Schools"
+        },
+        "source": "way_millwood_to_woods",
+        "target": "area_the_woods",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "To The Woods"
+        },
+        "source": "area_the_old_steel_mill",
+        "target": "way_steel_mill_to_woods",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "To The Old Steel Mill"
+        },
+        "source": "way_steel_mill_to_woods",
+        "target": "area_the_woods",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "Down the Shaft"
+        },
+        "source": "area_the_old_steel_mill",
+        "target": "way_shaft_down",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "Up the Shaft"
+        },
+        "source": "way_shaft_down",
+        "target": "area_steel_mill_deep_shaft",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "Up the Shaft"
+        },
+        "source": "area_steel_mill_deep_shaft",
+        "target": "way_shaft_up",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "Down the Shaft"
+        },
+        "source": "way_shaft_up",
+        "target": "area_the_old_steel_mill",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "To The Woods"
+        },
+        "source": "area_the_halloway_house",
+        "target": "way_halloway_to_woods",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "To The Halloway House"
+        },
+        "source": "way_halloway_to_woods",
+        "target": "area_the_woods",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "To The Woods"
+        },
+        "source": "area_the_parr_house",
+        "target": "way_parr_to_woods",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "To The Parr House"
+        },
+        "source": "way_parr_to_woods",
+        "target": "area_the_woods",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "To Millwood Public Schools"
+        },
+        "source": "area_the_woods",
+        "target": "way_woods_to_millwood",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "To The Woods"
+        },
+        "source": "way_woods_to_millwood",
+        "target": "area_millwood_public_schools",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "To The Old Steel Mill"
+        },
+        "source": "area_the_woods",
+        "target": "way_woods_to_steel_mill",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "To The Woods"
+        },
+        "source": "way_woods_to_steel_mill",
+        "target": "area_the_old_steel_mill",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "To The Halloway House"
+        },
+        "source": "area_the_woods",
+        "target": "way_woods_to_halloway",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "To The Woods"
+        },
+        "source": "way_woods_to_halloway",
+        "target": "area_the_halloway_house",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "To The Parr House"
+        },
+        "source": "area_the_woods",
+        "target": "way_woods_to_parr",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "To The Woods"
+        },
+        "source": "way_woods_to_parr",
+        "target": "area_the_parr_house",
+        "type": "connection"
+      },
+      {
+        "properties": {},
+        "source": "item_chemistry_lab_table",
+        "target": "area_millwood_public_schools",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_periodic_table_poster",
+        "target": "area_millwood_public_schools",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_rusted_machinery",
+        "target": "area_the_old_steel_mill",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_railgun_hole",
+        "target": "area_the_old_steel_mill",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_broken_glass",
+        "target": "area_the_old_steel_mill",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_scorch_marks",
+        "target": "area_steel_mill_deep_shaft",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_metal_scraps",
+        "target": "area_steel_mill_deep_shaft",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_kitchen_counter",
+        "target": "area_the_halloway_house",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_worn_couch",
+        "target": "area_the_halloway_house",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_bandages",
+        "target": "area_the_halloway_house",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_vi_ruined_phone_case",
+        "target": "area_the_halloway_house",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_parr_family_photo",
+        "target": "area_the_parr_house",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_debris_from_attack",
+        "target": "area_the_parr_house",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_brutus_dog_bed",
+        "target": "area_the_parr_house",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_crushed_underbrush",
+        "target": "area_the_woods",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_stripped_tree_bark",
+        "target": "area_the_woods",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_amalgam_residue",
+        "target": "area_the_woods",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "player_vi_halloway",
+        "target": "area_the_halloway_house",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "player_erin_halloway",
+        "target": "area_the_halloway_house",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "player_leah_halloway",
+        "target": "area_the_halloway_house",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "player_bob_parr",
+        "target": "area_the_parr_house",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "player_helen_parr",
+        "target": "area_the_parr_house",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "player_dash_parr",
+        "target": "area_the_parr_house",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "player_jack_jack_parr",
+        "target": "area_the_parr_house",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "player_chelsea",
+        "target": "area_millwood_public_schools",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "player_maddie",
+        "target": "area_millwood_public_schools",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "npc_the_amalgam",
+        "target": "area_the_woods",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "npc_brutus",
+        "target": "area_the_parr_house",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "player_Violet_Parr",
+        "target": "area_millwood_public_schools",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "player_Jake_Halloway",
+        "target": "area_millwood_public_schools",
+        "type": "in"
+      }
+    ],
+    "nodes": {
+      "area_millwood_public_schools": {
+        "created": 1754912220,
+        "id": "area_millwood_public_schools",
+        "name": "Millwood Public Schools",
+        "properties": {
+          "description": "A small, unassuming PK-12 school in rural Oklahoma.",
+          "environment": {
+            "air": "stale",
+            "light": "bright",
+            "noise": "distant chatter",
+            "smell": "floor wax and chalk dust",
+            "temperature": 22
+          },
+          "tags": [
+            "school",
+            "public",
+            "indoors"
+          ]
+        },
+        "type": "area",
+        "updated": 1754912220
+      },
+      "area_steel_mill_deep_shaft": {
+        "created": 1754912220,
+        "id": "area_steel_mill_deep_shaft",
+        "name": "Steel Mill - Deep Shaft",
+        "properties": {
+          "description": "The bottom of the metal-lined shaft. It is cramped and cold.",
+          "environment": {
+            "air": "stagnant",
+            "light": "dark",
+            "noise": "echoing",
+            "smell": "ozone and copper",
+            "temperature": 12
+          },
+          "tags": [
+            "hidden",
+            "underground",
+            "training"
+          ]
+        },
+        "type": "area",
+        "updated": 1754912220
+      },
+      "area_the_halloway_house": {
+        "created": 1754912220,
+        "id": "area_the_halloway_house",
+        "name": "The Halloway House",
+        "properties": {
+          "description": "A messy, lived-in suburban home that hides in plain sight.",
+          "environment": {
+            "air": "stuffy",
+            "light": "normal",
+            "noise": "distant TV",
+            "smell": "leather and motor oil",
+            "temperature": 23
+          },
+          "tags": [
+            "home",
+            "suburban",
+            "messy"
+          ]
+        },
+        "type": "area",
+        "updated": 1754912220
+      },
+      "area_the_old_steel_mill": {
+        "created": 1754912220,
+        "id": "area_the_old_steel_mill",
+        "name": "The Old Steel Mill",
+        "properties": {
+          "description": "A massive, abandoned industrial complex about twenty minutes from the school.",
+          "environment": {
+            "air": "dusty",
+            "light": "dim",
+            "noise": "creaking metal",
+            "smell": "rust and oil",
+            "temperature": 18
+          },
+          "tags": [
+            "abandoned",
+            "industrial",
+            "dangerous"
+          ]
+        },
+        "type": "area",
+        "updated": 1754912220
+      },
+      "area_the_parr_house": {
+        "created": 1754912220,
+        "id": "area_the_parr_house",
+        "name": "The Parr House",
+        "properties": {
+          "description": "An immaculately kept suburban home, now partially destroyed.",
+          "environment": {
+            "air": "fresh",
+            "light": "bright",
+            "noise": "silent",
+            "smell": "lavender and smoke",
+            "temperature": 22
+          },
+          "tags": [
+            "home",
+            "suburban",
+            "damaged"
+          ]
+        },
+        "type": "area",
+        "updated": 1754912220
+      },
+      "area_the_woods": {
+        "created": 1754912220,
+        "id": "area_the_woods",
+        "name": "The Woods",
+        "properties": {
+          "description": "A dense, shadowed forest connecting the school, the steel mill, and both houses.",
+          "environment": {
+            "air": "humid",
+            "light": "dim",
+            "noise": "rustling leaves",
+            "smell": "wet earth and decay",
+            "temperature": 19
+          },
+          "tags": [
+            "forest",
+            "outdoors",
+            "dangerous"
+          ]
+        },
+        "type": "area",
+        "updated": 1754912220
+      },
+      "item_amalgam_residue": {
+        "created": 1754912220,
+        "id": "item_amalgam_residue",
+        "name": "Amalgam Residue",
+        "properties": {
+          "actions": [
+            "examine"
+          ],
+          "description": "A viscous, black substance coating the leaves and soil. It smells of rot and chemicals, and seems to twitch faintly when observed.",
+          "tags": [
+            "hazard",
+            "super",
+            "organic"
+          ],
+          "weight": 0
+        },
+        "type": "item",
+        "updated": 1754912220
+      },
+      "item_bandages": {
+        "created": 1754912220,
+        "id": "item_bandages",
+        "name": "Bandages",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "description": "A box of adhesive bandages and antiseptic wipes from the bathroom cabinet. Used to treat Violet's cut foot.",
+          "tags": [
+            "medical",
+            "consumable"
+          ],
+          "weight": 0.2
+        },
+        "type": "item",
+        "updated": 1754912220
+      },
+      "item_broken_glass": {
+        "created": 1754912220,
+        "id": "item_broken_glass",
+        "name": "Broken Glass",
+        "properties": {
+          "actions": [
+            "examine"
+          ],
+          "description": "Shards of glass scattered on the floor where Violet stepped and cut her foot.",
+          "tags": [
+            "sharp",
+            "hazard"
+          ],
+          "weight": 1
+        },
+        "type": "item",
+        "updated": 1754912220
+      },
+      "item_brutus_dog_bed": {
+        "created": 1754912220,
+        "id": "item_brutus_dog_bed",
+        "name": "Brutus's Dog Bed",
+        "properties": {
+          "actions": [
+            "examine"
+          ],
+          "description": "A large, well-worn dog bed in the corner of the living room. It smells of dog and something else—shame and secrecy.",
+          "tags": [
+            "pet",
+            "home"
+          ],
+          "weight": 10
+        },
+        "type": "item",
+        "updated": 1754912220
+      },
+      "item_chemistry_lab_table": {
+        "created": 1754912220,
+        "id": "item_chemistry_lab_table",
+        "name": "Chemistry Lab Table",
+        "properties": {
+          "actions": [
+            "examine"
+          ],
+          "description": "A scratched and stained lab table where Jake and Violet first connected over shared secrets.",
+          "tags": [
+            "furniture",
+            "school"
+          ],
+          "weight": 100
+        },
+        "type": "item",
+        "updated": 1754912220
+      },
+      "item_crushed_underbrush": {
+        "created": 1754912220,
+        "id": "item_crushed_underbrush",
+        "name": "Crushed Underbrush",
+        "properties": {
+          "actions": [
+            "examine"
+          ],
+          "description": "Flattened vegetation where the Amalgam dragged its mass through the forest.",
+          "tags": [
+            "evidence",
+            "nature"
+          ],
+          "weight": 0
+        },
+        "type": "item",
+        "updated": 1754912220
+      },
+      "item_debris_from_attack": {
+        "created": 1754912220,
+        "id": "item_debris_from_attack",
+        "name": "Debris from Attack",
+        "properties": {
+          "actions": [
+            "examine"
+          ],
+          "description": "Chunks of drywall, splintered wood, and scorched insulation from the Amalgam's devastating attack on the house.",
+          "tags": [
+            "debris",
+            "damaged"
+          ],
+          "weight": 20
+        },
+        "type": "item",
+        "updated": 1754912220
+      },
+      "item_kitchen_counter": {
+        "created": 1754912220,
+        "id": "item_kitchen_counter",
+        "name": "Kitchen Counter",
+        "properties": {
+          "actions": [
+            "examine"
+          ],
+          "description": "A scarred kitchen counter cluttered with dishes. The site of Jake and Violet's first intimate encounter.",
+          "tags": [
+            "furniture",
+            "home"
+          ],
+          "weight": 150
+        },
+        "type": "item",
+        "updated": 1754912220
+      },
+      "item_metal_scraps": {
+        "created": 1754912220,
+        "id": "item_metal_scraps",
+        "name": "Metal Scraps",
+        "properties": {
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "description": "Twisted fragments of metal, remnants of Jake's railgun target practice.",
+          "tags": [
+            "metal",
+            "junk"
+          ],
+          "weight": 5
+        },
+        "type": "item",
+        "updated": 1754912220
+      },
+      "item_parr_family_photo": {
+        "created": 1754912220,
+        "id": "item_parr_family_photo",
+        "name": "Parr Family Photo",
+        "properties": {
+          "actions": [
+            "examine"
+          ],
+          "description": "A framed photo of the Parr family in happier times, before the relocation to Oklahoma. Everyone is smiling.",
+          "tags": [
+            "personal",
+            "decor"
+          ],
+          "weight": 1
+        },
+        "type": "item",
+        "updated": 1754912220
+      },
+      "item_periodic_table_poster": {
+        "created": 1754912220,
+        "id": "item_periodic_table_poster",
+        "name": "Periodic Table Poster",
+        "properties": {
+          "actions": [
+            "examine"
+          ],
+          "description": "A faded periodic table poster from the 1990s, hanging crookedly on the wall.",
+          "tags": [
+            "decor",
+            "school"
+          ],
+          "weight": 0.5
+        },
+        "type": "item",
+        "updated": 1754912220
+      },
+      "item_railgun_hole": {
+        "created": 1754912220,
+        "id": "item_railgun_hole",
+        "name": "Railgun Hole",
+        "properties": {
+          "actions": [
+            "examine"
+          ],
+          "description": "A perfectly circular hole in the steel wall, smooth-edged and still faintly warm. Evidence of Jake's electromagnetism.",
+          "tags": [
+            "evidence",
+            "super"
+          ],
+          "weight": 0
+        },
+        "type": "item",
+        "updated": 1754912220
+      },
+      "item_rusted_machinery": {
+        "created": 1754912220,
+        "id": "item_rusted_machinery",
+        "name": "Rusted Machinery",
+        "properties": {
+          "actions": [
+            "examine"
+          ],
+          "description": "Heavy industrial equipment left to decay. Gears are frozen solid and covered in orange corrosion.",
+          "tags": [
+            "metal",
+            "junk"
+          ],
+          "weight": 500
+        },
+        "type": "item",
+        "updated": 1754912220
+      },
+      "item_scorch_marks": {
+        "created": 1754912220,
+        "id": "item_scorch_marks",
+        "name": "Scorch Marks",
+        "properties": {
+          "actions": [
+            "examine"
+          ],
+          "description": "Blackened patterns on the concrete where Jake has practiced his Tesla coil discharge.",
+          "tags": [
+            "evidence",
+            "super"
+          ],
+          "weight": 0
+        },
+        "type": "item",
+        "updated": 1754912220
+      },
+      "item_stripped_tree_bark": {
+        "created": 1754912220,
+        "id": "item_stripped_tree_bark",
+        "name": "Stripped Tree Bark",
+        "properties": {
+          "actions": [
+            "examine"
+          ],
+          "description": "Trees with bark torn away where the Amalgam fed to regenerate its biomass.",
+          "tags": [
+            "evidence",
+            "nature"
+          ],
+          "weight": 0
+        },
+        "type": "item",
+        "updated": 1754912220
+      },
+      "item_vi_ruined_phone_case": {
+        "created": 1754912220,
+        "id": "item_vi_ruined_phone_case",
+        "name": "Vi's Ruined Phone Case",
+        "properties": {
+          "actions": [
+            "examine"
+          ],
+          "description": "A phone case cracked and scorched from the aftermath of Jake and Violet's kitchen encounter. Vi demands recompense.",
+          "tags": [
+            "personal",
+            "damaged"
+          ],
+          "weight": 0.1
+        },
+        "type": "item",
+        "updated": 1754912220
+      },
+      "item_worn_couch": {
+        "created": 1754912220,
+        "id": "item_worn_couch",
+        "name": "Worn Couch",
+        "properties": {
+          "actions": [
+            "examine",
+            "sit"
+          ],
+          "description": "A threadbare couch with springs that protest when sat upon. The TV remote is lost somewhere in its cushions.",
+          "tags": [
+            "furniture",
+            "home"
+          ],
+          "weight": 80
+        },
+        "type": "item",
+        "updated": 1754912220
+      },
+      "npc_brutus": {
+        "created": 1754912220,
+        "id": "npc_brutus",
+        "name": "Brutus",
+        "properties": {
+          "appearance": "Great Dane.",
+          "description": "The Parr family's Great Dane. Violet has a secret and deeply shameful sexual relationship with him.",
+          "tags": [
+            "pet",
+            "animal",
+            "dog"
+          ]
+        },
+        "type": "character",
+        "updated": 1754912220
+      },
+      "npc_the_amalgam": {
+        "created": 1754912220,
+        "id": "npc_the_amalgam",
+        "name": "The Amalgam",
+        "properties": {
+          "appearance": "A shapeshifting mass of black tendrils and biomass.",
+          "description": "Main antagonist. A centuries-old Navajo skinwalker merged with a government bioweapon (Project CHIMERA). Consumes living matter to heal and grow. Absorbs memories and skills of victims. Weaknesses: intense fire and sustained loud sound. Tracked Violet and Jake from the steel mill. Killed Marcus Halloway.",
+          "powers": [
+            "Shapeshifting",
+            "Consumption/Healing",
+            "Memory Absorption",
+            "Limited Teleportation",
+            "Density Shifting"
+          ],
+          "tags": [
+            "antagonist",
+            "monster",
+            "super"
+          ]
+        },
+        "type": "character",
+        "updated": 1754912220
+      },
+      "player_bob_parr": {
+        "created": 1754912220,
+        "id": "player_bob_parr",
+        "name": "Bob Parr",
+        "properties": {
+          "age": 45,
+          "appearance": "Massive, muscular build.",
+          "description": "Mr. Incredible. Famous retired superhero. Protective to a fault, gruff but loving. Powers: Super strength and near-invulnerability.",
+          "powers": [
+            "Super Strength",
+            "Near-Invulnerability"
+          ],
+          "tags": [
+            "super",
+            "male",
+            "hero"
+          ]
+        },
+        "type": "character",
+        "updated": 1754912220
+      },
+      "player_chelsea": {
+        "created": 1754912220,
+        "id": "player_chelsea",
+        "name": "Chelsea",
+        "properties": {
+          "age": 18,
+          "appearance": "Student.",
+          "description": "Violet's friend at school. Hates Jake because he burst into the girls' showers on a dare years ago, violating her privacy. Not a super.",
+          "powers": [],
+          "tags": [
+            "human",
+            "female",
+            "student"
+          ]
+        },
+        "type": "character",
+        "updated": 1754912220
+      },
+      "player_dash_parr": {
+        "created": 1754912220,
+        "id": "player_dash_parr",
+        "name": "Dash Parr",
+        "properties": {
+          "age": 14,
+          "appearance": "Young, energetic.",
+          "description": "Super speed, impulsive, energetic, flirts with Vi.",
+          "powers": [
+            "Super Speed"
+          ],
+          "tags": [
+            "super",
+            "male",
+            "student"
+          ]
+        },
+        "type": "character",
+        "updated": 1754912220
+      },
+      "player_erin_halloway": {
+        "created": 1754912220,
+        "id": "player_erin_halloway",
+        "name": "Erin Halloway",
+        "properties": {
+          "age": 20,
+          "appearance": "Dark hair, punk/goth style, ripped jeans, band tees. Smokes.",
+          "description": "Older sister, graduated last year. Cool, intimidating, seemingly aloof but fiercely protective. Powers: Emotional manipulation through singing voice.",
+          "powers": [
+            "Emotional Manipulation (Singing)"
+          ],
+          "tags": [
+            "super",
+            "female"
+          ]
+        },
+        "type": "character",
+        "updated": 1754912220
+      },
+      "player_helen_parr": {
+        "created": 1754912220,
+        "id": "player_helen_parr",
+        "name": "Helen Parr",
+        "properties": {
+          "age": 43,
+          "appearance": "Slender, capable. Body can stretch up to 300 feet.",
+          "description": "Elastigirl. Calm, pragmatic, mission commander of the family. Deeply loving but enforces 'stay hidden' rule. Powers: Elasticity.",
+          "powers": [
+            "Elasticity"
+          ],
+          "tags": [
+            "super",
+            "female",
+            "hero"
+          ]
+        },
+        "type": "character",
+        "updated": 1754912220
+      },
+      "player_jack_jack_parr": {
+        "created": 1754912220,
+        "id": "player_jack_jack_parr",
+        "name": "Jack-Jack Parr",
+        "properties": {
+          "age": 7,
+          "appearance": "Small child.",
+          "description": "Grab-bag of unpredictable powers. Sweet but chaotic. Powers: Demon form, laser eyes, duplication, fire, etc.",
+          "powers": [
+            "Demon Form",
+            "Laser Eyes",
+            "Duplication",
+            "Fire"
+          ],
+          "tags": [
+            "super",
+            "male",
+            "child"
+          ]
+        },
+        "type": "character",
+        "updated": 1754912220
+      },
+      "player_jake_halloway": {
+        "created": 1754912220,
+        "id": "player_jake_halloway",
+        "name": "Jake Halloway",
+        "properties": {
+          "age": 18,
+          "appearance": "175cm, 71kg, slim build. Seagreen eyes with golden flecks, short stiff hair, glasses (rarely worn). Hoodies and jeans.",
+          "description": "Son of Leah and Marcus Halloway. Chaotic, unfiltered, oscillates between shy and hyperactively silly. Fiercely intelligent but socially oblivious. Powers: Electromagnetism (electricity and magnetic field control).",
+          "powers": [
+            "Electromagnetism"
+          ],
+          "tags": [
+            "super",
+            "male",
+            "student"
+          ]
+        },
+        "type": "character",
+        "updated": 1754912220
+      },
+      "player_leah_halloway": {
+        "created": 1754912220,
+        "id": "player_leah_halloway",
+        "name": "Leah Halloway",
+        "properties": {
+          "age": 45,
+          "appearance": "Angular, dark hair with silver streak, goth/punk style. Leather jacket, band tees, silver rings.",
+          "description": "Mother. Stern, intimidating, fair, unflappable. Retired government spy known as 'Swift.' Powers: Memory reading via touch, diamond armor manifestation.",
+          "powers": [
+            "Memory Reading",
+            "Diamond Armor"
+          ],
+          "tags": [
+            "super",
+            "female",
+            "spy"
+          ]
+        },
+        "type": "character",
+        "updated": 1754912220
+      },
+      "player_maddie": {
+        "created": 1754912220,
+        "id": "player_maddie",
+        "name": "Maddie",
+        "properties": {
+          "age": 18,
+          "appearance": "Student.",
+          "description": "Chelsea's more laid-back friend. Not a super.",
+          "powers": [],
+          "tags": [
+            "human",
+            "female",
+            "student"
+          ]
+        },
+        "type": "character",
+        "updated": 1754912220
+      },
+      "player_marcus_halloway": {
+        "created": 1754912220,
+        "id": "player_marcus_halloway",
+        "name": "Marcus Halloway",
+        "properties": {
+          "age": 48,
+          "appearance": "Tall, thin, muscular, salt-and-pepper hair, goatee, bandana, sunglasses, leather jacket. Looks like a biker.",
+          "description": "Father. Laid-back, dry humor, formidable fighter. Retired mercenary 'Mimic'/'Echo.' Powers: Kinetic memory/skill duplication. DECEASED—killed by the Amalgam.",
+          "powers": [
+            "Kinetic Memory/Skill Duplication"
+          ],
+          "status": "deceased",
+          "tags": [
+            "super",
+            "male",
+            "deceased"
+          ]
+        },
+        "type": "character",
+        "updated": 1754912220
+      },
+      "player_vi_halloway": {
+        "created": 1754912220,
+        "id": "player_vi_halloway",
+        "name": "Vi Halloway",
+        "properties": {
+          "age": 15,
+          "appearance": "Younger sister.",
+          "description": "Jake's younger sister. Sarcastic, mischievous, self-proclaimed 'menace.' Sharp-tongued but affectionate. Powers: Intangibility and voice-cloning.",
+          "powers": [
+            "Intangibility",
+            "Voice-Cloning"
+          ],
+          "tags": [
+            "super",
+            "female",
+            "student"
+          ]
+        },
+        "type": "character",
+        "updated": 1754912220
+      },
+      "player_violet_parr": {
+        "created": 1754912220,
+        "id": "player_violet_parr",
+        "name": "Violet Parr",
+        "properties": {
+          "age": 18,
+          "appearance": "Long black hair, white skin, skinny build, 5'4\", 100 lbs, blue-violet eyes, waifish face. Likes hairbands, skimpy dresses/skirts, and high heels.",
+          "description": "Daughter of Mr. Incredible and Elastigirl. Flirty and fun on the surface, but deeply conflicted. Harbors extreme kinks and a hypersexual, submissive, masochistic side. Intelligent, insightful, fiercely protective. Powers: Invisibility and violet-hued forcefields.",
+          "powers": [
+            "Invisibility",
+            "Forcefield Generation"
+          ],
+          "tags": [
+            "super",
+            "female",
+            "student"
+          ]
+        },
+        "type": "character",
+        "updated": 1754912220
+      },
+      "way_halloway_to_woods": {
+        "created": 1754912220,
+        "id": "way_halloway_to_woods",
+        "name": "Halloway to Woods",
+        "properties": {
+          "area_from": "The Halloway House",
+          "area_to": "The Woods",
+          "current_state": "open",
+          "description": "A backyard gate into the tree line."
+        },
+        "type": "way",
+        "updated": 1754912220
+      },
+      "way_millwood_to_steel_mill": {
+        "created": 1754912220,
+        "id": "way_millwood_to_steel_mill",
+        "name": "Millwood to Steel Mill",
+        "properties": {
+          "area_from": "Millwood Public Schools",
+          "area_to": "The Old Steel Mill",
+          "current_state": "open",
+          "description": "A cracked asphalt path leads away from the school grounds."
+        },
+        "type": "way",
+        "updated": 1754912220
+      },
+      "way_millwood_to_woods": {
+        "created": 1754912220,
+        "id": "way_millwood_to_woods",
+        "name": "Millwood to Woods",
+        "properties": {
+          "area_from": "Millwood Public Schools",
+          "area_to": "The Woods",
+          "current_state": "open",
+          "description": "A narrow dirt trail disappears into trees."
+        },
+        "type": "way",
+        "updated": 1754912220
+      },
+      "way_parr_to_woods": {
+        "created": 1754912220,
+        "id": "way_parr_to_woods",
+        "name": "Parr to Woods",
+        "properties": {
+          "area_from": "The Parr House",
+          "area_to": "The Woods",
+          "current_state": "open",
+          "description": "A neat gravel path to the forest."
+        },
+        "type": "way",
+        "updated": 1754912220
+      },
+      "way_shaft_down": {
+        "created": 1754912220,
+        "id": "way_shaft_down",
+        "name": "Shaft Down",
+        "properties": {
+          "area_from": "The Old Steel Mill",
+          "area_to": "Steel Mill - Deep Shaft",
+          "current_state": "open",
+          "description": "A deep, metal-lined shaft into darkness."
+        },
+        "type": "way",
+        "updated": 1754912220
+      },
+      "way_shaft_up": {
+        "created": 1754912220,
+        "id": "way_shaft_up",
+        "name": "Shaft Up",
+        "properties": {
+          "area_from": "Steel Mill - Deep Shaft",
+          "area_to": "The Old Steel Mill",
+          "current_state": "open",
+          "description": "A ladder of cold metal rungs."
+        },
+        "type": "way",
+        "updated": 1754912220
+      },
+      "way_steel_mill_to_millwood": {
+        "created": 1754912220,
+        "id": "way_steel_mill_to_millwood",
+        "name": "Steel Mill to Millwood",
+        "properties": {
+          "area_from": "The Old Steel Mill",
+          "area_to": "Millwood Public Schools",
+          "current_state": "open",
+          "description": "The cracked asphalt path leads back toward the school."
+        },
+        "type": "way",
+        "updated": 1754912220
+      },
+      "way_steel_mill_to_woods": {
+        "created": 1754912220,
+        "id": "way_steel_mill_to_woods",
+        "name": "Steel Mill to Woods",
+        "properties": {
+          "area_from": "The Old Steel Mill",
+          "area_to": "The Woods",
+          "current_state": "open",
+          "description": "A rough trail through overgrowth."
+        },
+        "type": "way",
+        "updated": 1754912220
+      },
+      "way_woods_to_halloway": {
+        "created": 1754912220,
+        "id": "way_woods_to_halloway",
+        "name": "Woods to Halloway",
+        "properties": {
+          "area_from": "The Woods",
+          "area_to": "The Halloway House",
+          "current_state": "open",
+          "description": "Path to messy suburban backyard."
+        },
+        "type": "way",
+        "updated": 1754912220
+      },
+      "way_woods_to_millwood": {
+        "created": 1754912220,
+        "id": "way_woods_to_millwood",
+        "name": "Woods to Millwood",
+        "properties": {
+          "area_from": "The Woods",
+          "area_to": "Millwood Public Schools",
+          "current_state": "open",
+          "description": "Trail widens toward school grounds."
+        },
+        "type": "way",
+        "updated": 1754912220
+      },
+      "way_woods_to_parr": {
+        "created": 1754912220,
+        "id": "way_woods_to_parr",
+        "name": "Woods to Parr",
+        "properties": {
+          "area_from": "The Woods",
+          "area_to": "The Parr House",
+          "current_state": "open",
+          "description": "Path to pristine suburban home."
+        },
+        "type": "way",
+        "updated": 1754912220
+      },
+      "way_woods_to_steel_mill": {
+        "created": 1754912220,
+        "id": "way_woods_to_steel_mill",
+        "name": "Woods to Steel Mill",
+        "properties": {
+          "area_from": "The Woods",
+          "area_to": "The Old Steel Mill",
+          "current_state": "open",
+          "description": "Rough trail to industrial ruins."
+        },
+        "type": "way",
+        "updated": 1754912220
+      }
+    }
+  },
+  "item_registry": {},
+  "log_revision": 2,
+  "narration_mode": "none",
+  "players": {
+    "Jake Halloway": {
+      "activity": {
+        "duration_ticks": null,
+        "elapsed_ticks": 1,
+        "started_at_tick": 4,
+        "target_item": null,
+        "type": "waiting",
+        "visible": true
+      },
+      "at_way_id": null,
+      "autonomy": false,
+      "base_description": "An 18-year-old boy, 175cm, 71kg, slim build. Seagreen eyes with golden/amber flecks, short stiff hair that sticks up, glasses (rarely worn). Wears hoodies and jeans.",
+      "behaviors": [],
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "level": 0,
+            "source": null
+          }
+        ],
+        "busy": [
+          {
+            "duration": null,
+            "level": 0,
+            "source": null
+          }
+        ]
+      },
+      "current_area": "Millwood Public Schools",
+      "current_carry_weight": 0,
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "description": "18 years old, 175cm, 71kg, slim build. Seagreen eyes with golden/amber flecks, short stiff hair, glasses (for double vision, rarely worn). Style is utilitarian—hoodies and jeans. Chaotic, unfiltered, oscillates between shy and hyperactively silly. Fiercely intelligent but socially oblivious. Uses sexual humor and bad puns to deflect and connect. Deeply loyal, asks permission, respects boundaries despite impulsive nature. Known as the 'weird kid.' Powers: Electromagnetism.",
+      "emotion": {
+        "current": "neutral",
+        "description": "",
+        "intensity": 0
+      },
+      "equipped": {
+        "accessory": [],
+        "arms": [],
+        "back": [],
+        "feet": [],
+        "hand_left": [],
+        "hand_right": [],
+        "hands": [],
+        "head": [],
+        "legs": [],
+        "neck": [],
+        "torso": [],
+        "waist": []
+      },
+      "feels_like": 22,
+      "grappled_by": null,
+      "interest_tags": [],
+      "max_carry_capacity": 100,
+      "memories": [],
+      "name": "Jake Halloway",
+      "npc_action_interval": 3,
+      "npc_behavior": "wander",
+      "npc_state": "idle",
+      "patrol_index": 0,
+      "patrol_route": [],
+      "perceived_conditions": [
+        "Occupied with something. Interruptible."
+      ],
+      "personality": "You are Jake Halloway, 18 years old. You are chaotic, unfiltered, and oscillate between shy and hyperactively silly. You use sexual humor and terrible puns to connect with people and deflect from your own anxiety. Beneath the chaos, you are fiercely intelligent, deeply loyal, and respectful of boundaries. You are known as the 'weird kid' at school but are unbothered by it. You accidentally shocked your entire middle school class years ago, leading to a mind-wipe and relocation. You met Violet Parr in chemistry class and felt an instant kinship.",
+      "recent_hearing": [
+        {
+          "area": "Millwood Public Schools",
+          "ghost_speech": false,
+          "speaker": "Violet Parr",
+          "speech_level": "normal",
+          "text": "hey. you re new here too, or just enjoying the scenery?",
+          "tick": 0,
+          "timestamp": 1786897767.244456
+        },
+        {
+          "area": "Millwood Public Schools",
+          "ghost_speech": false,
+          "speaker": "Jake Halloway",
+          "speech_level": "normal",
+          "text": "hello from my human turn",
+          "tick": 0,
+          "timestamp": 1786898807.475148
+        }
+      ],
+      "relationships": {},
+      "simple_npc": false,
+      "skills": {
+        "Acrobatics": 1,
+        "Athletics": 2,
+        "Perception": 2,
+        "Persuasion": 1,
+        "Stealth": 1,
+        "Survival": 2
+      },
+      "spatial_position": null,
+      "state": "busy",
+      "state_enter_tick": 0,
+      "state_timer": 0,
+      "stats": {
+        "CHA": 12,
+        "CON": 12,
+        "DEX": 12,
+        "INT": 16,
+        "STR": 10,
+        "WIS": 10
+      },
+      "tags": [
+        "male",
+        "super",
+        "student"
+      ],
+      "trait_behavior": [],
+      "traits": {},
+      "vitals": {
+        "Bladder": 10,
+        "Energy": 90,
+        "Entertainment": 95,
+        "HP": 100,
+        "Hunger": 5,
+        "Hygiene": 95,
+        "Max_HP": 100,
+        "Sanity": 85,
+        "Social": 68,
+        "Temperature": 37,
+        "Thirst": 5
+      }
+    },
+    "Violet Parr": {
+      "activity": null,
+      "at_way_id": null,
+      "autonomy": true,
+      "base_description": "An 18-year-old girl with long black hair, white skin, and a skinny build. She wears hairbands, skimpy dresses, and high heels. Her blue-violet eyes are striking against her waifish face.",
+      "behaviors": [],
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "level": 0,
+            "source": null
+          }
+        ]
+      },
+      "current_area": "Millwood Public Schools",
+      "current_carry_weight": 0,
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "description": "18 years old, long black hair, white skin, skinny build, 5'4\", 100 lbs, blue-violet eyes, waifish face. Likes hairbands, skimpy dresses/skirts, and high heels. Flirty and fun on the surface, deeply conflicted underneath. Presents as a 'good girl' but harbors extreme kinks and a hypersexual, submissive, masochistic side. Intelligent, insightful, fiercely protective. Powers: Invisibility (often triggered by anxiety) and violet-hued forcefields.",
+      "emotion": {
+        "current": "neutral",
+        "description": "",
+        "intensity": 0
+      },
+      "equipped": {
+        "accessory": [],
+        "arms": [],
+        "back": [],
+        "feet": [],
+        "hand_left": [],
+        "hand_right": [],
+        "hands": [],
+        "head": [],
+        "legs": [],
+        "neck": [],
+        "torso": [],
+        "waist": []
+      },
+      "feels_like": 22,
+      "grappled_by": null,
+      "interest_tags": [],
+      "max_carry_capacity": 100,
+      "memories": [
+        {
+          "embedding": null,
+          "entity_ids": [
+            "area_millwood_public_schools"
+          ],
+          "id": "mem_1786897769417_782",
+          "importance": 2,
+          "location": "",
+          "salience_override": 0,
+          "source": "auto",
+          "suppressions": [],
+          "tags": [
+            "stranger",
+            "school"
+          ],
+          "text": "I greeted a stranger in the school hallway and he hasn't responded yet.",
+          "tick": 0,
+          "timestamp": 1786897769.4174054,
+          "type": "reaction"
+        }
+      ],
+      "name": "Violet Parr",
+      "npc_action_interval": 3,
+      "npc_behavior": "wander",
+      "npc_state": "idle",
+      "patrol_index": 0,
+      "patrol_route": [],
+      "perceived_conditions": [],
+      "personality": "You are Violet Parr, 18 years old. On the surface you are flirty, fun, and the 'good girl' everyone expects. Beneath that, you are deeply conflicted, lonely, and desperate for acceptance. You hide a hypersexual, submissive, masochistic side out of fear. You are intelligent and fiercely protective of those you love. Your invisibility triggers involuntarily when anxious. You recently met Jake Halloway in chemistry class and felt an instant connection as fellow supers in hiding.",
+      "recent_hearing": [
+        {
+          "area": "Millwood Public Schools",
+          "ghost_speech": false,
+          "speaker": "Violet Parr",
+          "speech_level": "normal",
+          "text": "hey. you re new here too, or just enjoying the scenery?",
+          "tick": 0,
+          "timestamp": 1786897767.244456
+        },
+        {
+          "area": "Millwood Public Schools",
+          "ghost_speech": false,
+          "speaker": "Jake Halloway",
+          "speech_level": "normal",
+          "text": "hello from my human turn",
+          "tick": 0,
+          "timestamp": 1786898807.475148
+        }
+      ],
+      "relationships": {},
+      "simple_npc": false,
+      "skills": {
+        "Acrobatics": 1,
+        "Athletics": 1,
+        "Perception": 2,
+        "Persuasion": 2,
+        "Stealth": 3,
+        "Survival": 1
+      },
+      "spatial_position": null,
+      "state": "awake",
+      "state_enter_tick": 0,
+      "state_timer": 0,
+      "stats": {
+        "CHA": 14,
+        "CON": 10,
+        "DEX": 12,
+        "INT": 14,
+        "STR": 8,
+        "WIS": 12
+      },
+      "tags": [
+        "female",
+        "super",
+        "student"
+      ],
+      "trait_behavior": [],
+      "traits": {},
+      "vitals": {
+        "Bladder": 10,
+        "Energy": 90,
+        "Entertainment": 95,
+        "HP": 100,
+        "Hunger": 5,
+        "Hygiene": 95,
+        "Max_HP": 100,
+        "Sanity": 80,
+        "Social": 78,
+        "Temperature": 37,
+        "Thirst": 5
+      }
+    }
+  },
+  "players_in_area": [
+    {
+      "activity": null,
+      "at_way_id": null,
+      "description": "18 years old, long black hair, white skin, skinny build, 5'4\", 100 lbs, blue-violet eyes, waifish face. Likes hairbands, skimpy dresses/skirts, and high heels. Flirty and fun on the surface, deeply conflicted underneath. Presents as a 'good girl' but harbors extreme kinks and a hypersexual, submissive, masochistic side. Intelligent, insightful, fiercely protective. Powers: Invisibility (often triggered by anxiety) and violet-hued forcefields.",
+      "name": "Violet Parr",
+      "spatial_position": null,
+      "state": "awake"
+    }
+  ],
+  "rooms": {
+    "Millwood Public Schools": {
+      "ambient_light": 80,
+      "description": "A small, unassuming PK-12 school in rural Oklahoma.",
+      "environment": {
+        "air": "stale",
+        "light": "bright",
+        "noise": "distant chatter",
+        "smell": "floor wax and chalk dust",
+        "temperature": 22
+      },
+      "exits": {
+        "To The Old Steel Mill": {
+          "allow_see_characters": false,
+          "cost": {},
+          "description": "A cracked asphalt path leads away from the school grounds.",
+          "hidden": false,
+          "label": "To The Old Steel Mill",
+          "pass_message": "",
+          "return_dir": "To Millwood Public Schools",
+          "state": "open",
+          "target": "The Old Steel Mill",
+          "visible_in_direction": "",
+          "visible_items": [],
+          "way_id": "way_millwood_to_steel_mill"
+        },
+        "To The Woods": {
+          "allow_see_characters": false,
+          "cost": {},
+          "description": "A narrow dirt trail disappears into trees.",
+          "hidden": false,
+          "label": "To The Woods",
+          "pass_message": "",
+          "return_dir": "To Millwood Public Schools",
+          "state": "open",
+          "target": "The Woods",
+          "visible_in_direction": "",
+          "visible_items": [],
+          "way_id": "way_millwood_to_woods"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "bright",
+      "name": "Millwood Public Schools",
+      "properties": {
+        "description": "A small, unassuming PK-12 school in rural Oklahoma.",
+        "environment": {
+          "air": "stale",
+          "light": "bright",
+          "noise": "distant chatter",
+          "smell": "floor wax and chalk dust",
+          "temperature": 22
+        },
+        "tags": [
+          "school",
+          "public",
+          "indoors"
+        ]
+      }
+    },
+    "Steel Mill - Deep Shaft": {
+      "ambient_light": 80,
+      "description": "The bottom of the metal-lined shaft. It is cramped and cold.",
+      "environment": {
+        "air": "stagnant",
+        "light": "dark",
+        "noise": "echoing",
+        "smell": "ozone and copper",
+        "temperature": 12
+      },
+      "exits": {
+        "Up the Shaft": {
+          "allow_see_characters": false,
+          "cost": {},
+          "description": "A ladder of cold metal rungs.",
+          "hidden": false,
+          "label": "Up the Shaft",
+          "pass_message": "",
+          "return_dir": "Down the Shaft",
+          "state": "open",
+          "target": "The Old Steel Mill",
+          "visible_in_direction": "",
+          "visible_items": [],
+          "way_id": "way_shaft_up"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "bright",
+      "name": "Steel Mill - Deep Shaft",
+      "properties": {
+        "description": "The bottom of the metal-lined shaft. It is cramped and cold.",
+        "environment": {
+          "air": "stagnant",
+          "light": "dark",
+          "noise": "echoing",
+          "smell": "ozone and copper",
+          "temperature": 12
+        },
+        "tags": [
+          "hidden",
+          "underground",
+          "training"
+        ]
+      }
+    },
+    "The Halloway House": {
+      "ambient_light": 55,
+      "description": "A messy, lived-in suburban home that hides in plain sight.",
+      "environment": {
+        "air": "stuffy",
+        "light": "normal",
+        "noise": "distant TV",
+        "smell": "leather and motor oil",
+        "temperature": 23
+      },
+      "exits": {
+        "To The Woods": {
+          "allow_see_characters": false,
+          "cost": {},
+          "description": "A backyard gate into the tree line.",
+          "hidden": false,
+          "label": "To The Woods",
+          "pass_message": "",
+          "return_dir": "To The Halloway House",
+          "state": "open",
+          "target": "The Woods",
+          "visible_in_direction": "",
+          "visible_items": [],
+          "way_id": "way_halloway_to_woods"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "The Halloway House",
+      "properties": {
+        "description": "A messy, lived-in suburban home that hides in plain sight.",
+        "environment": {
+          "air": "stuffy",
+          "light": "normal",
+          "noise": "distant TV",
+          "smell": "leather and motor oil",
+          "temperature": 23
+        },
+        "tags": [
+          "home",
+          "suburban",
+          "messy"
+        ]
+      }
+    },
+    "The Old Steel Mill": {
+      "ambient_light": 40,
+      "description": "A massive, abandoned industrial complex about twenty minutes from the school.",
+      "environment": {
+        "air": "dusty",
+        "light": "dim",
+        "noise": "creaking metal",
+        "smell": "rust and oil",
+        "temperature": 18
+      },
+      "exits": {
+        "Down the Shaft": {
+          "allow_see_characters": false,
+          "cost": {},
+          "description": "A deep, metal-lined shaft into darkness.",
+          "hidden": false,
+          "label": "Down the Shaft",
+          "pass_message": "",
+          "return_dir": "Up the Shaft",
+          "state": "open",
+          "target": "Steel Mill - Deep Shaft",
+          "visible_in_direction": "",
+          "visible_items": [],
+          "way_id": "way_shaft_down"
+        },
+        "To Millwood Public Schools": {
+          "allow_see_characters": false,
+          "cost": {},
+          "description": "The cracked asphalt path leads back toward the school.",
+          "hidden": false,
+          "label": "To Millwood Public Schools",
+          "pass_message": "",
+          "return_dir": "To The Old Steel Mill",
+          "state": "open",
+          "target": "Millwood Public Schools",
+          "visible_in_direction": "",
+          "visible_items": [],
+          "way_id": "way_steel_mill_to_millwood"
+        },
+        "To The Woods": {
+          "allow_see_characters": false,
+          "cost": {},
+          "description": "A rough trail through overgrowth.",
+          "hidden": false,
+          "label": "To The Woods",
+          "pass_message": "",
+          "return_dir": "To The Old Steel Mill",
+          "state": "open",
+          "target": "The Woods",
+          "visible_in_direction": "",
+          "visible_items": [],
+          "way_id": "way_steel_mill_to_woods"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "dim",
+      "name": "The Old Steel Mill",
+      "properties": {
+        "description": "A massive, abandoned industrial complex about twenty minutes from the school.",
+        "environment": {
+          "air": "dusty",
+          "light": "dim",
+          "noise": "creaking metal",
+          "smell": "rust and oil",
+          "temperature": 18
+        },
+        "tags": [
+          "abandoned",
+          "industrial",
+          "dangerous"
+        ]
+      }
+    },
+    "The Parr House": {
+      "ambient_light": 80,
+      "description": "An immaculately kept suburban home, now partially destroyed.",
+      "environment": {
+        "air": "fresh",
+        "light": "bright",
+        "noise": "silent",
+        "smell": "lavender and smoke",
+        "temperature": 22
+      },
+      "exits": {
+        "To The Woods": {
+          "allow_see_characters": false,
+          "cost": {},
+          "description": "A neat gravel path to the forest.",
+          "hidden": false,
+          "label": "To The Woods",
+          "pass_message": "",
+          "return_dir": "To The Parr House",
+          "state": "open",
+          "target": "The Woods",
+          "visible_in_direction": "",
+          "visible_items": [],
+          "way_id": "way_parr_to_woods"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "bright",
+      "name": "The Parr House",
+      "properties": {
+        "description": "An immaculately kept suburban home, now partially destroyed.",
+        "environment": {
+          "air": "fresh",
+          "light": "bright",
+          "noise": "silent",
+          "smell": "lavender and smoke",
+          "temperature": 22
+        },
+        "tags": [
+          "home",
+          "suburban",
+          "damaged"
+        ]
+      }
+    },
+    "The Woods": {
+      "ambient_light": 40,
+      "description": "A dense, shadowed forest connecting the school, the steel mill, and both houses.",
+      "environment": {
+        "air": "humid",
+        "light": "dim",
+        "noise": "rustling leaves",
+        "smell": "wet earth and decay",
+        "temperature": 19
+      },
+      "exits": {
+        "To Millwood Public Schools": {
+          "allow_see_characters": false,
+          "cost": {},
+          "description": "Trail widens toward school grounds.",
+          "hidden": false,
+          "label": "To Millwood Public Schools",
+          "pass_message": "",
+          "return_dir": "To The Woods",
+          "state": "open",
+          "target": "Millwood Public Schools",
+          "visible_in_direction": "",
+          "visible_items": [],
+          "way_id": "way_woods_to_millwood"
+        },
+        "To The Halloway House": {
+          "allow_see_characters": false,
+          "cost": {},
+          "description": "Path to messy suburban backyard.",
+          "hidden": false,
+          "label": "To The Halloway House",
+          "pass_message": "",
+          "return_dir": "To The Woods",
+          "state": "open",
+          "target": "The Halloway House",
+          "visible_in_direction": "",
+          "visible_items": [],
+          "way_id": "way_woods_to_halloway"
+        },
+        "To The Old Steel Mill": {
+          "allow_see_characters": false,
+          "cost": {},
+          "description": "Rough trail to industrial ruins.",
+          "hidden": false,
+          "label": "To The Old Steel Mill",
+          "pass_message": "",
+          "return_dir": "To The Woods",
+          "state": "open",
+          "target": "The Old Steel Mill",
+          "visible_in_direction": "",
+          "visible_items": [],
+          "way_id": "way_woods_to_steel_mill"
+        },
+        "To The Parr House": {
+          "allow_see_characters": false,
+          "cost": {},
+          "description": "Path to pristine suburban home.",
+          "hidden": false,
+          "label": "To The Parr House",
+          "pass_message": "",
+          "return_dir": "To The Woods",
+          "state": "open",
+          "target": "The Parr House",
+          "visible_in_direction": "",
+          "visible_items": [],
+          "way_id": "way_woods_to_parr"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "dim",
+      "name": "The Woods",
+      "properties": {
+        "description": "A dense, shadowed forest connecting the school, the steel mill, and both houses.",
+        "environment": {
+          "air": "humid",
+          "light": "dim",
+          "noise": "rustling leaves",
+          "smell": "wet earth and decay",
+          "temperature": 19
+        },
+        "tags": [
+          "forest",
+          "outdoors",
+          "dangerous"
+        ]
+      }
+    }
+  },
+  "time_per_tick_minutes": 1,
+  "time_ticks": 5,
+  "turn_events": [],
+  "turn_number": 6,
+  "ways": {},
+  "world_lore": [
+    "The Supers Relocation Program forced super-powered families into hiding after public backlash against heroes.",
+    "Government mind-wipes are standard procedure when super identities are exposed to civilians.",
+    "Project CHIMERA was a classified government bioweapons program that merged with a Navajo skinwalker to create the Amalgam.",
+    "The Amalgam has been consuming supers for decades, absorbing weakened versions of their powers.",
+    "Millwood, Oklahoma is a small town where multiple relocated super families have been placed, unbeknownst to each other until recently.",
+    "The steel mill railgun hole attracted both government agents and the Amalgam to Jake and Violet's location.",
+    "Marcus Halloway was killed when an Amalgam tendril pierced his skull; a fragment of the creature briefly reanimated his body before it was destroyed."
+  ]
+}

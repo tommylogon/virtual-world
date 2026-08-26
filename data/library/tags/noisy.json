@@ -1,0 +1,15 @@
+{
+  "id": "noisy",
+  "name": "Noisy",
+  "description": "Loud or full of sound",
+  "category": "environment",
+  "color": "#ffaa00",
+  "icon": "🔊",
+  "applies_to": [
+    "areas"
+  ],
+  "examples": [
+    "tavern common room",
+    "market square"
+  ]
+}

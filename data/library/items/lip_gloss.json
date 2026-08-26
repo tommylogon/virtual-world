@@ -1,0 +1,18 @@
+{
+  "name": "lip_gloss",
+  "description": "cherry-flavored lip gloss. probably not useful for survival, but it makes kayla feel more human.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.02,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "accessory",
+    "consumable"
+  ],
+  "triggers": [],
+  "contents": []
+}

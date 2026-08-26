@@ -1,0 +1,22 @@
+{
+  "name": "boxer briefs",
+  "description": "grey boxer briefs. functional, slightly stretched out. not your best pair, but they're clean. mostly.",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "uses": 0,
+  "weight": 0.08,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "clothing",
+    "underwear"
+  ],
+  "triggers": [],
+  "contents": [],
+  "library_id": "boxer_briefs",
+  "equip_slots": [
+    "legs"
+  ]
+}

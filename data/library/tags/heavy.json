@@ -1,0 +1,17 @@
+{
+  "id": "heavy",
+  "name": "Heavy",
+  "description": "Bulky or weighty item that may slow the carrier or require strength",
+  "category": "custom",
+  "color": "#888888",
+  "icon": "🏋️",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "anvil",
+    "stone block",
+    "iron chest",
+    "barrel of water"
+  ]
+}

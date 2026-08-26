@@ -1,0 +1,14 @@
+{
+  "id": "incense",
+  "name": "Incense",
+  "description": "Incense or burner used for scent and ritual.",
+  "category": "physical",
+  "color": "#a04000",
+  "icon": "🪔",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "brass incense burner"
+  ]
+}

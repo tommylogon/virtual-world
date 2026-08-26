@@ -1,0 +1,35 @@
+{
+  "name": "Eyewash Flask",
+  "description": "A slim flask of cool, clear liquid. Rinse the eyes and the grit of blindness washes away.",
+  "actions": "examine,take,use,drop",
+  "uses": 3,
+  "weight": 0.2,
+  "tags": [
+    "liquid",
+    "medicine",
+    "small"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "type": "remove_condition",
+          "params": {
+            "condition": "blind",
+            "target": "self",
+            "message": "You rinse your eyes with the cool liquid. Blinking, the world swims back into sharp focus."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

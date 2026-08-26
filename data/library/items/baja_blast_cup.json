@@ -1,0 +1,29 @@
+{
+  "name": "Baja Blast Cup",
+  "description": "a large cup of neon-teal Baja Blast sweating a ring onto the laminate, straw bent at a defeatist angle. tastes like carbonated turquoise and bad decisions, and it is delicious.",
+  "actions": "examine,take,use,drink,drop",
+  "uses": 2,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "drink",
+    "cup",
+    "food"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_drink",
+      "effects": [],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

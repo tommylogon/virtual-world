@@ -1,0 +1,17 @@
+{
+  "id": "metal",
+  "name": "Metal",
+  "description": "Made of metal — strong, conductive, and often valuable",
+  "category": "physical",
+  "color": "#888888",
+  "icon": "⚙️",
+  "applies_to": [
+    "items",
+    "areas"
+  ],
+  "examples": [
+    "iron sword",
+    "steel armor",
+    "brass key"
+  ]
+}

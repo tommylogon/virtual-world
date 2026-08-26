@@ -1,0 +1,54 @@
+{
+  "name": "Exhausted",
+  "description": "Bone-tired. Energy drains away. Each fresh bout of exhaustion stacks a level (1–6).",
+  "blocks_actions": false,
+  "blocks_movement": false,
+  "blocks_speech": false,
+  "auto_fail_checks": [],
+  "auto_fail_saves": [],
+  "attack_mod": 0,
+  "defense_mod": 0,
+  "speed_mult": 0.5,
+  "movement_mode": null,
+  "drops_held_items": false,
+  "periodic": {
+    "Energy": -3
+  },
+  "level_periodic": {
+    "1": {
+      "Energy": -1
+    },
+    "2": {
+      "Energy": -2
+    },
+    "3": {
+      "Energy": -3
+    },
+    "4": {
+      "Energy": -4
+    },
+    "5": {
+      "Energy": -4
+    },
+    "6": {
+      "Energy": -4
+    }
+  },
+  "level_speed_mult": {
+    "1": 0.5,
+    "2": 0.5,
+    "3": 0.25,
+    "4": 0.25,
+    "5": 0.1,
+    "6": 0.0
+  },
+  "ends_on": [
+    "rest",
+    "sleep"
+  ],
+  "known": true,
+  "symptoms": {},
+  "stack": "refresh",
+  "default_duration": 5,
+  "excludes": []
+}

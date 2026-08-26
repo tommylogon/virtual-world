@@ -1,0 +1,19 @@
+{
+  "name": "Tinderbox",
+  "description": "A Tinderbox is a small container holding flint, fire steel, and tinder used to kindle a fire. Using it to light a Candle, Lamp, Lantern, or Torch takes a Bonus Action. Lighting any other fire takes 1 minute.",
+  "actions": "examine,take,use,drop",
+  "uses": -1,
+  "weight": 1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "utility",
+    "exploration",
+    "flammable"
+  ],
+  "triggers": [],
+  "contents": []
+}

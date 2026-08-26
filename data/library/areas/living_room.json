@@ -1,0 +1,178 @@
+{
+  "description": "A cold living room with wooden floors.  Bookshelves line the walls. ",
+  "environment": {
+    "air": "cold",
+    "light": "normal",
+    "noise": "clock ticking, wind outside",
+    "smell": "dust and cold ash",
+    "temperature": -0.9545500150781253
+  },
+  "exits": [
+    {
+      "direction": "front door",
+      "target_room_hint": "Blizzard Forest Clearing",
+      "description": "A heavy wooden front door, weathered by the storm. The iron handle is cold to the touch.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "south"
+    },
+    {
+      "direction": "living room",
+      "target_room_hint": "Study",
+      "description": "A heavy oak door leading to the study.",
+      "state": "closed",
+      "hidden": false,
+      "cardinal": "east"
+    },
+    {
+      "direction": "stairs",
+      "target_room_hint": "Upstairs Hallway",
+      "description": "A wooden staircase ascends into shadows, the banister worn smooth by years of use. The steps groan under any weight.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "up"
+    },
+    {
+      "direction": "swinging door",
+      "target_room_hint": "Kitchen",
+      "description": "A classic double swinging door with a small round window, gently swaying.",
+      "state": "closed",
+      "hidden": false,
+      "cardinal": "south"
+    }
+  ],
+  "items": [
+    {
+      "name": "fireplace",
+      "description": "A stone fireplace, cold and dark. A pile of ash sits in the hearth. A poker rests against the hearth, waiting to stir the embers.",
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "uses": -1,
+      "weight": 50,
+      "current_state": "off",
+      "tags": []
+    },
+    {
+      "name": "Painting",
+      "description": "A painting hang above the mantlepiece.   in a silver frame. A family stands in front of this very house, smiling. ",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.2,
+      "current_state": "normal",
+      "tags": [
+        "art"
+      ]
+    },
+    {
+      "name": "grandfather_clock",
+      "description": "An old grandfather clock ticks steadily in the corner. It is tall  with an intricately carved wooden face. The pendulum swings steadily. The glass door is slightly ajar.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 80,
+      "current_state": "normal",
+      "tags": []
+    },
+    {
+      "name": "Worn Leather Armchair",
+      "description": "A faded leather armchair sits before the cold hearth, its cracked surface bearing the dark stains of countless restless nights. The cushion sinks slightly.",
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "uses": 1,
+      "weight": 45,
+      "current_state": "normal",
+      "tags": [
+        "furnitur"
+      ]
+    },
+    {
+      "name": "Dusty Bookshelf",
+      "description": "A large oak bookshelf overflowing with ancient texts. One book appears slightly crooked.",
+      "actions": [
+        "examine"
+      ],
+      "uses": 1,
+      "weight": 15,
+      "current_state": "normal",
+      "tags": []
+    },
+    {
+      "name": "Dining table",
+      "description": "A dinner table with 4 sets of porselain plates and cuttlery, 4 chairs around the table.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 50,
+      "current_state": "normal",
+      "tags": [
+        "furnitur"
+      ]
+    },
+    {
+      "name": "Letters",
+      "description": "Several letters adressed to sir Valerius",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.1,
+      "current_state": "normal",
+      "tags": []
+    },
+    {
+      "name": "Shoes",
+      "description": "3 sets of shooes",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 0.1,
+      "current_state": "normal",
+      "tags": [
+        "clothing"
+      ]
+    },
+    {
+      "name": "cabinet_key",
+      "description": "A small brass key with a faded label: 'PANTRY'. It looks like it would fit the kitchen cabinet lock.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.05,
+      "current_state": "normal",
+      "tags": [
+        "key"
+      ]
+    },
+    {
+      "name": "Coats",
+      "description": "3 sets of winter coats hanging by the entrace door",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 0.1,
+      "current_state": "normal",
+      "tags": []
+    }
+  ],
+  "name": "Living Room",
+  "tags": [],
+  "triggers": []
+}

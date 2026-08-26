@@ -1,0 +1,18 @@
+{
+  "library_id": "",
+  "name": "kitchen-garden_door",
+  "description": "a stout wooden door leading to the garden. it's bolted top and bottom. the bolt is rusted but movable.",
+  "current_state": "locked",
+  "pass_message": "",
+  "edge_length": "",
+  "needs_open": {},
+  "auto_close": false,
+  "see_through": false,
+  "one_way": false,
+  "requires": "",
+  "max_size": "",
+  "prevent_close": false,
+  "tags": [],
+  "parameters": {},
+  "triggers": []
+}

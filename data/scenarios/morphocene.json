@@ -1,0 +1,2958 @@
+{
+  "active_player": "Thistle",
+  "areas": {
+    "Apartment Building Hallway": {
+      "ambient_light": 70,
+      "description": "A narrow fifth-floor hallway with a worn carpet runner. Doors lead to apartments; a stairwell descends to the street and a door opens onto the roof.",
+      "environment": {
+        "air": "slightly stale",
+        "light": 70,
+        "noise": "a distant radio",
+        "smell": "old wood and cleaner",
+        "temperature": 20
+      },
+      "exits": {
+        "hallway_back": {
+          "cost": {
+            "time": 1
+          },
+          "description": "The apartment door, worn wood, bright hallway light through the gap.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "hallway",
+          "state": "open",
+          "target": "Jake's Apartment",
+          "visible_in_direction": "",
+          "way_id": "way_Jake's Apartment_hallway"
+        },
+        "roof": {
+          "cost": {
+            "time": 1
+          },
+          "description": "A door up to the roof.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "roof_back",
+          "state": "open",
+          "target": "Rooftop",
+          "visible_in_direction": "",
+          "way_id": "way_Apartment Building Hallway_roof"
+        },
+        "stairs": {
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "description": "The stairwell down to the street, four flights.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "stairs_back",
+          "state": "open",
+          "target": "Birch Street",
+          "visible_in_direction": "",
+          "way_id": "way_Apartment Building Hallway_stairs"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "Apartment Building Hallway",
+      "properties": {
+        "description": "A narrow fifth-floor hallway with a worn carpet runner. Doors lead to apartments; a stairwell descends to the street and a door opens onto the roof.",
+        "environment": {
+          "air": "slightly stale",
+          "light": 70,
+          "noise": "a distant radio",
+          "smell": "old wood and cleaner",
+          "temperature": 20
+        }
+      }
+    },
+    "Birch Street": {
+      "ambient_light": 60,
+      "description": "The main drag of Meridian District. Humans and demis mix: a wolf in a suit, a lizard on a bench, crows on a wire. Storefronts cluster together — a grocery, a cafe, a market entrance, a park across the way. Evening light, honest noise, a neighborhood that has been through something and is still standing.",
+      "environment": {
+        "air": "fresh",
+        "light": 60,
+        "noise": "traffic, chatter, a bus",
+        "smell": "bread, exhaust, flowers",
+        "temperature": 18
+      },
+      "exits": {
+        "cafe": {
+          "cost": {
+            "time": 1
+          },
+          "description": "The Burrow Cafe, warm light in the windows.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "cafe_back",
+          "state": "open",
+          "target": "The Burrow Cafe",
+          "visible_in_direction": "",
+          "way_id": "way_Birch Street_cafe"
+        },
+        "fire_escape_back": {
+          "cost": {
+            "energy": 2,
+            "time": 1
+          },
+          "description": "An old fire escape ladder down to the alley.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "fire_escape",
+          "state": "open",
+          "target": "Rooftop",
+          "visible_in_direction": "",
+          "way_id": "way_Rooftop_fire_escape"
+        },
+        "grocery": {
+          "cost": {
+            "time": 1
+          },
+          "description": "Greenway Grocery, bright and fluorescent.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "grocery_back",
+          "state": "open",
+          "target": "Greenway Grocery",
+          "visible_in_direction": "",
+          "way_id": "way_Birch Street_grocery"
+        },
+        "market": {
+          "cost": {
+            "time": 1
+          },
+          "description": "The open-air Feral Quarter Market.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "market_back",
+          "state": "open",
+          "target": "Feral Quarter Market",
+          "visible_in_direction": "",
+          "way_id": "way_Birch Street_market"
+        },
+        "park": {
+          "cost": {
+            "time": 1
+          },
+          "description": "Cedar Park across the street.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "park_back",
+          "state": "open",
+          "target": "Cedar Park",
+          "visible_in_direction": "",
+          "way_id": "way_Birch Street_park"
+        },
+        "pier": {
+          "cost": {
+            "time": 2
+          },
+          "description": "Toward the Boardwalk Pier and the sea.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "pier_back",
+          "state": "open",
+          "target": "Boardwalk Pier",
+          "visible_in_direction": "",
+          "way_id": "way_Birch Street_pier"
+        },
+        "stairs_back": {
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "description": "The stairwell down to the street, four flights.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "stairs",
+          "state": "open",
+          "target": "Apartment Building Hallway",
+          "visible_in_direction": "",
+          "way_id": "way_Apartment Building Hallway_stairs"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "Birch Street",
+      "properties": {
+        "description": "The main drag of Meridian District. Humans and demis mix: a wolf in a suit, a lizard on a bench, crows on a wire. Storefronts cluster together — a grocery, a cafe, a market entrance, a park across the way. Evening light, honest noise, a neighborhood that has been through something and is still standing.",
+        "environment": {
+          "air": "fresh",
+          "light": 60,
+          "noise": "traffic, chatter, a bus",
+          "smell": "bread, exhaust, flowers",
+          "temperature": 18
+        }
+      }
+    },
+    "Boardwalk Pier": {
+      "ambient_light": 50,
+      "description": "A long wooden pier over the evening sea. Carchar's fish sandwich stand is at the far end. A regulation ramp (for non-bipedals) leads to the stand. Sea air, creaking boards, gulls, the mauve sky.",
+      "environment": {
+        "air": "cool, salty",
+        "light": 50,
+        "noise": "waves, gulls, creaking wood",
+        "smell": "sea, frying fish, brine",
+        "temperature": 15
+      },
+      "exits": {
+        "pier_back": {
+          "cost": {
+            "time": 2
+          },
+          "description": "Toward the Boardwalk Pier and the sea.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "pier",
+          "state": "open",
+          "target": "Birch Street",
+          "visible_in_direction": "",
+          "way_id": "way_Birch Street_pier"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "Boardwalk Pier",
+      "properties": {
+        "description": "A long wooden pier over the evening sea. Carchar's fish sandwich stand is at the far end. A regulation ramp (for non-bipedals) leads to the stand. Sea air, creaking boards, gulls, the mauve sky.",
+        "environment": {
+          "air": "cool, salty",
+          "light": 50,
+          "noise": "waves, gulls, creaking wood",
+          "smell": "sea, frying fish, brine",
+          "temperature": 15
+        }
+      }
+    },
+    "Cedar Park": {
+      "ambient_light": 55,
+      "description": "A green park ringed with cedar trees. A pond, a few benches, a worn stone memorial to the Emancipation at the center. Bjorn's favorite bench faces the pond. Some kids skateboard on the paths.",
+      "environment": {
+        "air": "fresh, green",
+        "light": 55,
+        "noise": "distant skaters, birds, wind",
+        "smell": "cut grass, cedar, water",
+        "temperature": 16
+      },
+      "exits": {
+        "park_back": {
+          "cost": {
+            "time": 1
+          },
+          "description": "Cedar Park across the street.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "park",
+          "state": "open",
+          "target": "Birch Street",
+          "visible_in_direction": "",
+          "way_id": "way_Birch Street_park"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "Cedar Park",
+      "properties": {
+        "description": "A green park ringed with cedar trees. A pond, a few benches, a worn stone memorial to the Emancipation at the center. Bjorn's favorite bench faces the pond. Some kids skateboard on the paths.",
+        "environment": {
+          "air": "fresh, green",
+          "light": 55,
+          "noise": "distant skaters, birds, wind",
+          "smell": "cut grass, cedar, water",
+          "temperature": 16
+        }
+      }
+    },
+    "Feral Quarter Market": {
+      "ambient_light": 70,
+      "description": "An open-air market of stalls and awnings. Brenda's jerky-and-sundries stand anchors one end. Predators and prey browse in a careful, mostly-polite coexistence, with an undercurrent of old tension and new defiance. Cheap goods, loud calls, the sharp smell of leather and smoke.",
+      "environment": {
+        "air": "open, breezy",
+        "light": 70,
+        "noise": "haggling, laughter, a hyena whoop",
+        "smell": "leather, smoke, spices",
+        "temperature": 18
+      },
+      "exits": {
+        "market_back": {
+          "cost": {
+            "time": 1
+          },
+          "description": "The open-air Feral Quarter Market.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "market",
+          "state": "open",
+          "target": "Birch Street",
+          "visible_in_direction": "",
+          "way_id": "way_Birch Street_market"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "Feral Quarter Market",
+      "properties": {
+        "description": "An open-air market of stalls and awnings. Brenda's jerky-and-sundries stand anchors one end. Predators and prey browse in a careful, mostly-polite coexistence, with an undercurrent of old tension and new defiance. Cheap goods, loud calls, the sharp smell of leather and smoke.",
+        "environment": {
+          "air": "open, breezy",
+          "light": 70,
+          "noise": "haggling, laughter, a hyena whoop",
+          "smell": "leather, smoke, spices",
+          "temperature": 18
+        }
+      }
+    },
+    "Greenway Grocery": {
+      "ambient_light": 85,
+      "description": "A bright, loud, fluorescent grocery. It smells of refrigerated meat and artificial pine. The produce section is to the left; a wolf furry in a deli apron works the counter opposite. The top shelves are stocked high, well above the reach of shorter shoppers.",
+      "environment": {
+        "air": "cool, refrigerated",
+        "light": 85,
+        "noise": "checkout beeps, carts, chatter",
+        "smell": "produce, meat, pine cleaner",
+        "temperature": 19
+      },
+      "exits": {
+        "grocery_back": {
+          "cost": {
+            "time": 1
+          },
+          "description": "Greenway Grocery, bright and fluorescent.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "grocery",
+          "state": "open",
+          "target": "Birch Street",
+          "visible_in_direction": "",
+          "way_id": "way_Birch Street_grocery"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "bright",
+      "name": "Greenway Grocery",
+      "properties": {
+        "description": "A bright, loud, fluorescent grocery. It smells of refrigerated meat and artificial pine. The produce section is to the left; a wolf furry in a deli apron works the counter opposite. The top shelves are stocked high, well above the reach of shorter shoppers.",
+        "environment": {
+          "air": "cool, refrigerated",
+          "light": 85,
+          "noise": "checkout beeps, carts, chatter",
+          "smell": "produce, meat, pine cleaner",
+          "temperature": 19
+        }
+      }
+    },
+    "Jake's Apartment": {
+      "ambient_light": 60,
+      "description": "A small, lived-in one-bedroom on the fifth floor. Muted tones, an overstuffed duffel in the corner, sketchbooks stacked on a cluttered desk by the window. The window catches the end-of-day light over rooftops and the harsh neon of Greenway Grocery across the street. Warm, safe, close.",
+      "environment": {
+        "air": "warm",
+        "light": 60,
+        "noise": "occasional street far below",
+        "smell": "coffee and fresh graphite",
+        "temperature": 21
+      },
+      "exits": {
+        "hallway": {
+          "cost": {
+            "time": 1
+          },
+          "description": "The apartment door, worn wood, bright hallway light through the gap.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "hallway_back",
+          "state": "open",
+          "target": "Apartment Building Hallway",
+          "visible_in_direction": "",
+          "way_id": "way_Jake's Apartment_hallway"
+        },
+        "roof": {
+          "cost": {
+            "time": 1
+          },
+          "description": "A door onto the building roof.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "roof_back",
+          "state": "open",
+          "target": "Rooftop",
+          "visible_in_direction": "",
+          "way_id": "way_Jake's Apartment_roof"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "Jake's Apartment",
+      "properties": {
+        "description": "A small, lived-in one-bedroom on the fifth floor. Muted tones, an overstuffed duffel in the corner, sketchbooks stacked on a cluttered desk by the window. The window catches the end-of-day light over rooftops and the harsh neon of Greenway Grocery across the street. Warm, safe, close.",
+        "environment": {
+          "air": "warm",
+          "light": 60,
+          "noise": "occasional street far below",
+          "smell": "coffee and fresh graphite",
+          "temperature": 21
+        }
+      }
+    },
+    "Rooftop": {
+      "ambient_light": 55,
+      "description": "The flat tar-paper roof. The city hums below, light-polluted sky overhead. A thin breeze. A well-worn perch at the edge where Kest likes to sit, plus a few bent bottle caps and a glinting paperclip arranged on the parapet.",
+      "environment": {
+        "air": "cool and moving",
+        "light": 55,
+        "noise": "city hum, a distant siren",
+        "smell": "tar, night air, faint salt",
+        "temperature": 17
+      },
+      "exits": {
+        "fire_escape": {
+          "cost": {
+            "energy": 2,
+            "time": 1
+          },
+          "description": "An old fire escape ladder down to the alley.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "fire_escape_back",
+          "state": "open",
+          "target": "Birch Street",
+          "visible_in_direction": "",
+          "way_id": "way_Rooftop_fire_escape"
+        },
+        "roof_back": {
+          "cost": {
+            "time": 1
+          },
+          "description": "A door up to the roof.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "roof",
+          "state": "open",
+          "target": "Apartment Building Hallway",
+          "visible_in_direction": "",
+          "way_id": "way_Apartment Building Hallway_roof"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "Rooftop",
+      "properties": {
+        "description": "The flat tar-paper roof. The city hums below, light-polluted sky overhead. A thin breeze. A well-worn perch at the edge where Kest likes to sit, plus a few bent bottle caps and a glinting paperclip arranged on the parapet.",
+        "environment": {
+          "air": "cool and moving",
+          "light": 55,
+          "noise": "city hum, a distant siren",
+          "smell": "tar, night air, faint salt",
+          "temperature": 17
+        }
+      }
+    },
+    "The Burrow Cafe": {
+      "ambient_light": 65,
+      "description": "A prey-friendly cafe with warm lamps, soft chairs, and low tables sized for smaller folk. The walls are a gallery of demi artists. Coffee and cardamom buns. It is a safe place where prey feel they can lower their ears.",
+      "environment": {
+        "air": "warm, cozy",
+        "light": 65,
+        "noise": "soft music, murmuring",
+        "smell": "coffee, cardamom, wood",
+        "temperature": 22
+      },
+      "exits": {
+        "cafe_back": {
+          "cost": {
+            "time": 1
+          },
+          "description": "The Burrow Cafe, warm light in the windows.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "cafe",
+          "state": "open",
+          "target": "Birch Street",
+          "visible_in_direction": "",
+          "way_id": "way_Birch Street_cafe"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "The Burrow Cafe",
+      "properties": {
+        "description": "A prey-friendly cafe with warm lamps, soft chairs, and low tables sized for smaller folk. The walls are a gallery of demi artists. Coffee and cardamom buns. It is a safe place where prey feel they can lower their ears.",
+        "environment": {
+          "air": "warm, cozy",
+          "light": 65,
+          "noise": "soft music, murmuring",
+          "smell": "coffee, cardamom, wood",
+          "temperature": 22
+        }
+      }
+    }
+  },
+  "clock_start_hour": 8,
+  "clock_start_minute": 0,
+  "current_area": "Greenway Grocery",
+  "game_time": "08:00:00",
+  "ghost_mode": false,
+  "graph": {
+    "edges": [
+      {
+        "properties": {
+          "direction": "hallway"
+        },
+        "source": "area_jake's_apartment",
+        "target": "way_Jake's Apartment_hallway",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "hallway_back"
+        },
+        "source": "way_Jake's Apartment_hallway",
+        "target": "area_apartment_building_hallway",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "hallway_back"
+        },
+        "source": "area_apartment_building_hallway",
+        "target": "way_Jake's Apartment_hallway",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "hallway"
+        },
+        "source": "way_Jake's Apartment_hallway",
+        "target": "area_jake's_apartment",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "roof"
+        },
+        "source": "area_jake's_apartment",
+        "target": "way_Jake's Apartment_roof",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "roof_back"
+        },
+        "source": "way_Jake's Apartment_roof",
+        "target": "area_rooftop",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "roof_back"
+        },
+        "source": "area_rooftop",
+        "target": "way_Jake's Apartment_roof",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "roof"
+        },
+        "source": "way_Jake's Apartment_roof",
+        "target": "area_jake's_apartment",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "stairs"
+        },
+        "source": "area_apartment_building_hallway",
+        "target": "way_Apartment Building Hallway_stairs",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "stairs_back"
+        },
+        "source": "way_Apartment Building Hallway_stairs",
+        "target": "area_birch_street",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "stairs_back"
+        },
+        "source": "area_birch_street",
+        "target": "way_Apartment Building Hallway_stairs",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "stairs"
+        },
+        "source": "way_Apartment Building Hallway_stairs",
+        "target": "area_apartment_building_hallway",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "roof"
+        },
+        "source": "area_apartment_building_hallway",
+        "target": "way_Apartment Building Hallway_roof",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "roof_back"
+        },
+        "source": "way_Apartment Building Hallway_roof",
+        "target": "area_rooftop",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "roof_back"
+        },
+        "source": "area_rooftop",
+        "target": "way_Apartment Building Hallway_roof",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "roof"
+        },
+        "source": "way_Apartment Building Hallway_roof",
+        "target": "area_apartment_building_hallway",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "fire_escape"
+        },
+        "source": "area_rooftop",
+        "target": "way_Rooftop_fire_escape",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "fire_escape_back"
+        },
+        "source": "way_Rooftop_fire_escape",
+        "target": "area_birch_street",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "fire_escape_back"
+        },
+        "source": "area_birch_street",
+        "target": "way_Rooftop_fire_escape",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "fire_escape"
+        },
+        "source": "way_Rooftop_fire_escape",
+        "target": "area_rooftop",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "grocery"
+        },
+        "source": "area_birch_street",
+        "target": "way_Birch Street_grocery",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "grocery_back"
+        },
+        "source": "way_Birch Street_grocery",
+        "target": "area_greenway_grocery",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "grocery_back"
+        },
+        "source": "area_greenway_grocery",
+        "target": "way_Birch Street_grocery",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "grocery"
+        },
+        "source": "way_Birch Street_grocery",
+        "target": "area_birch_street",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "cafe"
+        },
+        "source": "area_birch_street",
+        "target": "way_Birch Street_cafe",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "cafe_back"
+        },
+        "source": "way_Birch Street_cafe",
+        "target": "area_the_burrow_cafe",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "cafe_back"
+        },
+        "source": "area_the_burrow_cafe",
+        "target": "way_Birch Street_cafe",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "cafe"
+        },
+        "source": "way_Birch Street_cafe",
+        "target": "area_birch_street",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "market"
+        },
+        "source": "area_birch_street",
+        "target": "way_Birch Street_market",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "market_back"
+        },
+        "source": "way_Birch Street_market",
+        "target": "area_feral_quarter_market",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "market_back"
+        },
+        "source": "area_feral_quarter_market",
+        "target": "way_Birch Street_market",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "market"
+        },
+        "source": "way_Birch Street_market",
+        "target": "area_birch_street",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "park"
+        },
+        "source": "area_birch_street",
+        "target": "way_Birch Street_park",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "park_back"
+        },
+        "source": "way_Birch Street_park",
+        "target": "area_cedar_park",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "park_back"
+        },
+        "source": "area_cedar_park",
+        "target": "way_Birch Street_park",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "park"
+        },
+        "source": "way_Birch Street_park",
+        "target": "area_birch_street",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "pier"
+        },
+        "source": "area_birch_street",
+        "target": "way_Birch Street_pier",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "pier_back"
+        },
+        "source": "way_Birch Street_pier",
+        "target": "area_boardwalk_pier",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "pier_back"
+        },
+        "source": "area_boardwalk_pier",
+        "target": "way_Birch Street_pier",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "pier"
+        },
+        "source": "way_Birch Street_pier",
+        "target": "area_birch_street",
+        "type": "connection"
+      },
+      {
+        "properties": {},
+        "source": "item_bed",
+        "target": "area_jake's_apartment",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_sketchbook_desk",
+        "target": "area_jake's_apartment",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_bent_paperclip",
+        "target": "area_rooftop",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_bench",
+        "target": "area_birch_street",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_arugula_chicory_mix",
+        "target": "area_greenway_grocery",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_produce_scale",
+        "target": "area_greenway_grocery",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_cardamom_bun",
+        "target": "area_the_burrow_cafe",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_jerky_stand",
+        "target": "area_feral_quarter_market",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_emancipation_memorial",
+        "target": "area_cedar_park",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_fish_sandwich_stand",
+        "target": "area_boardwalk_pier",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "inv_Jake Halloway_phone",
+        "target": "player_Jake_Halloway",
+        "type": "carrying"
+      },
+      {
+        "properties": {},
+        "source": "inv_Jake Halloway_sketchbook",
+        "target": "player_Jake_Halloway",
+        "type": "carrying"
+      },
+      {
+        "properties": {},
+        "source": "inv_Jake Halloway_glasses_case",
+        "target": "player_Jake_Halloway",
+        "type": "carrying"
+      },
+      {
+        "properties": {},
+        "source": "inv_Thistle_produce_knife",
+        "target": "player_Thistle",
+        "type": "carrying"
+      },
+      {
+        "properties": {},
+        "source": "inv_Kest_loose_feather",
+        "target": "player_Kest",
+        "type": "carrying"
+      },
+      {
+        "properties": {},
+        "source": "inv_Brenda_jerky_sample",
+        "target": "player_Brenda",
+        "type": "carrying"
+      },
+      {
+        "properties": {},
+        "source": "inv_Bjorn_jar_of_honey",
+        "target": "player_Bjorn",
+        "type": "carrying"
+      },
+      {
+        "properties": {},
+        "source": "inv_Mira_coffee",
+        "target": "player_Mira",
+        "type": "carrying"
+      },
+      {
+        "properties": {},
+        "source": "player_Brenda",
+        "target": "area_feral_quarter_market",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "player_Carchar",
+        "target": "area_boardwalk_pier",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "player_Bjorn",
+        "target": "area_cedar_park",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "player_Jake_Halloway",
+        "target": "area_jake's_apartment",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "player_Kest",
+        "target": "area_rooftop",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "player_Mira",
+        "target": "area_the_burrow_cafe",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "player_Thistle",
+        "target": "area_greenway_grocery",
+        "type": "in"
+      }
+    ],
+    "nodes": {
+      "area_apartment_building_hallway": {
+        "created": 1786022089.7576203,
+        "id": "area_apartment_building_hallway",
+        "name": "Apartment Building Hallway",
+        "properties": {
+          "description": "A narrow fifth-floor hallway with a worn carpet runner. Doors lead to apartments; a stairwell descends to the street and a door opens onto the roof.",
+          "environment": {
+            "air": "slightly stale",
+            "light": 70,
+            "noise": "a distant radio",
+            "smell": "old wood and cleaner",
+            "temperature": 20
+          }
+        },
+        "type": "area",
+        "updated": 1786022089.7576206
+      },
+      "area_birch_street": {
+        "created": 1786022089.7576382,
+        "id": "area_birch_street",
+        "name": "Birch Street",
+        "properties": {
+          "description": "The main drag of Meridian District. Humans and demis mix: a wolf in a suit, a lizard on a bench, crows on a wire. Storefronts cluster together — a grocery, a cafe, a market entrance, a park across the way. Evening light, honest noise, a neighborhood that has been through something and is still standing.",
+          "environment": {
+            "air": "fresh",
+            "light": 60,
+            "noise": "traffic, chatter, a bus",
+            "smell": "bread, exhaust, flowers",
+            "temperature": 18
+          }
+        },
+        "type": "area",
+        "updated": 1786022089.7576385
+      },
+      "area_boardwalk_pier": {
+        "created": 1786022089.7576725,
+        "id": "area_boardwalk_pier",
+        "name": "Boardwalk Pier",
+        "properties": {
+          "description": "A long wooden pier over the evening sea. Carchar's fish sandwich stand is at the far end. A regulation ramp (for non-bipedals) leads to the stand. Sea air, creaking boards, gulls, the mauve sky.",
+          "environment": {
+            "air": "cool, salty",
+            "light": 50,
+            "noise": "waves, gulls, creaking wood",
+            "smell": "sea, frying fish, brine",
+            "temperature": 15
+          }
+        },
+        "type": "area",
+        "updated": 1786022089.7576728
+      },
+      "area_cedar_park": {
+        "created": 1786022089.7576659,
+        "id": "area_cedar_park",
+        "name": "Cedar Park",
+        "properties": {
+          "description": "A green park ringed with cedar trees. A pond, a few benches, a worn stone memorial to the Emancipation at the center. Bjorn's favorite bench faces the pond. Some kids skateboard on the paths.",
+          "environment": {
+            "air": "fresh, green",
+            "light": 55,
+            "noise": "distant skaters, birds, wind",
+            "smell": "cut grass, cedar, water",
+            "temperature": 16
+          }
+        },
+        "type": "area",
+        "updated": 1786022089.757666
+      },
+      "area_feral_quarter_market": {
+        "created": 1786022089.75766,
+        "id": "area_feral_quarter_market",
+        "name": "Feral Quarter Market",
+        "properties": {
+          "description": "An open-air market of stalls and awnings. Brenda's jerky-and-sundries stand anchors one end. Predators and prey browse in a careful, mostly-polite coexistence, with an undercurrent of old tension and new defiance. Cheap goods, loud calls, the sharp smell of leather and smoke.",
+          "environment": {
+            "air": "open, breezy",
+            "light": 70,
+            "noise": "haggling, laughter, a hyena whoop",
+            "smell": "leather, smoke, spices",
+            "temperature": 18
+          }
+        },
+        "type": "area",
+        "updated": 1786022089.7576602
+      },
+      "area_greenway_grocery": {
+        "created": 1786022089.7576454,
+        "id": "area_greenway_grocery",
+        "name": "Greenway Grocery",
+        "properties": {
+          "description": "A bright, loud, fluorescent grocery. It smells of refrigerated meat and artificial pine. The produce section is to the left; a wolf furry in a deli apron works the counter opposite. The top shelves are stocked high, well above the reach of shorter shoppers.",
+          "environment": {
+            "air": "cool, refrigerated",
+            "light": 85,
+            "noise": "checkout beeps, carts, chatter",
+            "smell": "produce, meat, pine cleaner",
+            "temperature": 19
+          }
+        },
+        "type": "area",
+        "updated": 1786022089.7576454
+      },
+      "area_jake's_apartment": {
+        "created": 1786022089.7575996,
+        "id": "area_jake's_apartment",
+        "name": "Jake's Apartment",
+        "properties": {
+          "description": "A small, lived-in one-bedroom on the fifth floor. Muted tones, an overstuffed duffel in the corner, sketchbooks stacked on a cluttered desk by the window. The window catches the end-of-day light over rooftops and the harsh neon of Greenway Grocery across the street. Warm, safe, close.",
+          "environment": {
+            "air": "warm",
+            "light": 60,
+            "noise": "occasional street far below",
+            "smell": "coffee and fresh graphite",
+            "temperature": 21
+          }
+        },
+        "type": "area",
+        "updated": 1786022089.7575998
+      },
+      "area_rooftop": {
+        "created": 1786022089.75763,
+        "id": "area_rooftop",
+        "name": "Rooftop",
+        "properties": {
+          "description": "The flat tar-paper roof. The city hums below, light-polluted sky overhead. A thin breeze. A well-worn perch at the edge where Kest likes to sit, plus a few bent bottle caps and a glinting paperclip arranged on the parapet.",
+          "environment": {
+            "air": "cool and moving",
+            "light": 55,
+            "noise": "city hum, a distant siren",
+            "smell": "tar, night air, faint salt",
+            "temperature": 17
+          }
+        },
+        "type": "area",
+        "updated": 1786022089.7576303
+      },
+      "area_the_burrow_cafe": {
+        "created": 1786022089.7576523,
+        "id": "area_the_burrow_cafe",
+        "name": "The Burrow Cafe",
+        "properties": {
+          "description": "A prey-friendly cafe with warm lamps, soft chairs, and low tables sized for smaller folk. The walls are a gallery of demi artists. Coffee and cardamom buns. It is a safe place where prey feel they can lower their ears.",
+          "environment": {
+            "air": "warm, cozy",
+            "light": 65,
+            "noise": "soft music, murmuring",
+            "smell": "coffee, cardamom, wood",
+            "temperature": 22
+          }
+        },
+        "type": "area",
+        "updated": 1786022089.7576525
+      },
+      "inv_Bjorn_jar_of_honey": {
+        "created": 1786022089.758498,
+        "id": "inv_Bjorn_jar_of_honey",
+        "name": "jar_of_honey",
+        "properties": {
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "description": "A heavy glass jar of honey, half gone.",
+          "effect_amount": 20,
+          "effect_stat": "Hunger",
+          "effect_target": "player",
+          "name": "jar_of_honey",
+          "uses": 2,
+          "weight": 0.5
+        },
+        "type": "item",
+        "updated": 1786022089.7584982
+      },
+      "inv_Brenda_jerky_sample": {
+        "created": 1786022089.758476,
+        "id": "inv_Brenda_jerky_sample",
+        "name": "jerky_sample",
+        "properties": {
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "description": "A strip of ethically-sourced synthetic-natural jerky. Chewy, smoky, good.",
+          "effect_amount": 15,
+          "effect_stat": "Hunger",
+          "effect_target": "player",
+          "name": "jerky_sample",
+          "uses": 1,
+          "weight": 0.1
+        },
+        "type": "item",
+        "updated": 1786022089.7584763
+      },
+      "inv_Jake Halloway_glasses_case": {
+        "created": 1786022089.7584207,
+        "id": "inv_Jake Halloway_glasses_case",
+        "name": "glasses_case",
+        "properties": {
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "description": "A hard case for your rectangular frames.",
+          "name": "glasses_case",
+          "uses": -1,
+          "weight": 0.1
+        },
+        "type": "item",
+        "updated": 1786022089.758421
+      },
+      "inv_Jake Halloway_phone": {
+        "created": 1786022089.7583933,
+        "id": "inv_Jake Halloway_phone",
+        "name": "phone",
+        "properties": {
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "description": "Your battered smartphone, cracked in one corner, battery at 61%.",
+          "name": "phone",
+          "uses": -1,
+          "weight": 0.2
+        },
+        "type": "item",
+        "updated": 1786022089.7583935
+      },
+      "inv_Jake Halloway_sketchbook": {
+        "created": 1786022089.7584074,
+        "id": "inv_Jake Halloway_sketchbook",
+        "name": "sketchbook",
+        "properties": {
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "description": "A near-full sketchbook of people and demis from the neighborhood.",
+          "name": "sketchbook",
+          "uses": -1,
+          "weight": 0.3
+        },
+        "type": "item",
+        "updated": 1786022089.7584074
+      },
+      "inv_Kest_loose_feather": {
+        "created": 1786022089.7584593,
+        "id": "inv_Kest_loose_feather",
+        "name": "loose_feather",
+        "properties": {
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "description": "A glossy black wing feather, burnished green in the light.",
+          "name": "loose_feather",
+          "uses": -1,
+          "weight": 0.05
+        },
+        "type": "item",
+        "updated": 1786022089.7584598
+      },
+      "inv_Mira_coffee": {
+        "created": 1786022089.758518,
+        "id": "inv_Mira_coffee",
+        "name": "coffee",
+        "properties": {
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "description": "A paper cup of black coffee, mostly untouched, going cold.",
+          "effect_amount": 10,
+          "effect_stat": "Energy",
+          "effect_target": "player",
+          "name": "coffee",
+          "uses": 1,
+          "weight": 0.3
+        },
+        "type": "item",
+        "updated": 1786022089.7585182
+      },
+      "inv_Thistle_produce_knife": {
+        "created": 1786022089.758441,
+        "id": "inv_Thistle_produce_knife",
+        "name": "produce_knife",
+        "properties": {
+          "actions": [
+            "examine"
+          ],
+          "description": "A small folding knife for opening produce boxes. Dull but present.",
+          "name": "produce_knife",
+          "uses": -1,
+          "weight": 0.2
+        },
+        "type": "item",
+        "updated": 1786022089.7584412
+      },
+      "item_arugula_chicory_mix": {
+        "created": 1786022089.7582567,
+        "id": "item_arugula_chicory_mix",
+        "name": "arugula_chicory_mix",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine"
+          ],
+          "current_state": "normal",
+          "description": "A box of the expensive salad mix with arugula and chicory, sitting on the high top shelf. The good kind.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "skill_check": {},
+          "tags": [],
+          "uses": -1,
+          "weight": 0.2
+        },
+        "type": "item",
+        "updated": 1786022089.758257
+      },
+      "item_bed": {
+        "created": 1786022089.7581785,
+        "id": "item_bed",
+        "name": "bed",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "current_state": "normal",
+          "description": "A rumpled single bed with a soft grey blanket.",
+          "effect_amount": 30,
+          "effect_stat": "Energy",
+          "effect_target": "player",
+          "skill_check": {},
+          "tags": [],
+          "uses": -1,
+          "weight": 30
+        },
+        "type": "item",
+        "updated": 1786022089.7581787
+      },
+      "item_bench": {
+        "created": 1786022089.7582405,
+        "id": "item_bench",
+        "name": "bench",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine"
+          ],
+          "current_state": "normal",
+          "description": "A wooden bus-stop bench. Someone has scratched a small rabbit into one corner.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "skill_check": {},
+          "tags": [],
+          "uses": -1,
+          "weight": 50
+        },
+        "type": "item",
+        "updated": 1786022089.7582407
+      },
+      "item_bent_paperclip": {
+        "created": 1786022089.7582216,
+        "id": "item_bent_paperclip",
+        "name": "bent_paperclip",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "current_state": "normal",
+          "description": "A bent paperclip that gleams. Kest's crows brought it as tribute.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "skill_check": {},
+          "tags": [],
+          "uses": -1,
+          "weight": 0.01
+        },
+        "type": "item",
+        "updated": 1786022089.7582219
+      },
+      "item_cardamom_bun": {
+        "created": 1786022089.758286,
+        "id": "item_cardamom_bun",
+        "name": "cardamom_bun",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "current_state": "normal",
+          "description": "A soft cardamom bun, still warm.",
+          "effect_amount": 20,
+          "effect_stat": "Hunger",
+          "effect_target": "player",
+          "skill_check": {},
+          "tags": [],
+          "uses": 1,
+          "weight": 0.1
+        },
+        "type": "item",
+        "updated": 1786022089.7582862
+      },
+      "item_emancipation_memorial": {
+        "created": 1786022089.7583158,
+        "id": "item_emancipation_memorial",
+        "name": "emancipation_memorial",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine"
+          ],
+          "current_state": "normal",
+          "description": "A worn stone memorial: 'To all who were made persons, and to the patience of those who waited seventy years for it to be law.'",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "skill_check": {},
+          "tags": [],
+          "uses": -1,
+          "weight": 300
+        },
+        "type": "item",
+        "updated": 1786022089.758316
+      },
+      "item_fish_sandwich_stand": {
+        "created": 1786022089.7583303,
+        "id": "item_fish_sandwich_stand",
+        "name": "fish_sandwich_stand",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine"
+          ],
+          "current_state": "normal",
+          "description": "Carchar's stand, with a stack of wrapped fish sandwiches.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "skill_check": {},
+          "tags": [],
+          "uses": -1,
+          "weight": 40
+        },
+        "type": "item",
+        "updated": 1786022089.7583306
+      },
+      "item_jerky_stand": {
+        "created": 1786022089.7583013,
+        "id": "item_jerky_stand",
+        "name": "jerky_stand",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine"
+          ],
+          "current_state": "normal",
+          "description": "Brenda's stand piled with jerky strips and sundries.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "skill_check": {},
+          "tags": [],
+          "uses": -1,
+          "weight": 20
+        },
+        "type": "item",
+        "updated": 1786022089.7583013
+      },
+      "item_produce_scale": {
+        "created": 1786022089.7582703,
+        "id": "item_produce_scale",
+        "name": "produce_scale",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine"
+          ],
+          "current_state": "normal",
+          "description": "A weighing scale in the produce section.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "skill_check": {},
+          "tags": [],
+          "uses": -1,
+          "weight": 5
+        },
+        "type": "item",
+        "updated": 1786022089.7582703
+      },
+      "item_sketchbook_desk": {
+        "created": 1786022089.7581997,
+        "id": "item_sketchbook_desk",
+        "name": "sketchbook_desk",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine"
+          ],
+          "current_state": "normal",
+          "description": "A half-open sketchbook on the desk, filled with quick portraits of the neighborhood demis.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "skill_check": {},
+          "tags": [],
+          "uses": -1,
+          "weight": 0.3
+        },
+        "type": "item",
+        "updated": 1786022089.7582002
+      },
+      "player_Bjorn": {
+        "created": 1786022089.7584934,
+        "id": "player_Bjorn",
+        "name": "Bjorn",
+        "properties": {},
+        "type": "character",
+        "updated": 1786022089.7584937
+      },
+      "player_Brenda": {
+        "created": 1786022089.7584717,
+        "id": "player_Brenda",
+        "name": "Brenda",
+        "properties": {},
+        "type": "character",
+        "updated": 1786022089.758472
+      },
+      "player_Carchar": {
+        "created": 1786022089.7584887,
+        "id": "player_Carchar",
+        "name": "Carchar",
+        "properties": {},
+        "type": "character",
+        "updated": 1786022089.7584887
+      },
+      "player_Jake_Halloway": {
+        "created": 1786022089.758351,
+        "id": "player_Jake_Halloway",
+        "name": "Jake Halloway",
+        "properties": {},
+        "type": "character",
+        "updated": 1786022089.7583513
+      },
+      "player_Kest": {
+        "created": 1786022089.758454,
+        "id": "player_Kest",
+        "name": "Kest",
+        "properties": {},
+        "type": "character",
+        "updated": 1786022089.758454
+      },
+      "player_Mira": {
+        "created": 1786022089.7585108,
+        "id": "player_Mira",
+        "name": "Mira",
+        "properties": {},
+        "type": "character",
+        "updated": 1786022089.758511
+      },
+      "player_Thistle": {
+        "created": 1786022089.7584345,
+        "id": "player_Thistle",
+        "name": "Thistle",
+        "properties": {},
+        "type": "character",
+        "updated": 1786022089.7584348
+      },
+      "way_Apartment Building Hallway_roof": {
+        "created": 1786022089.7579076,
+        "id": "way_Apartment Building Hallway_roof",
+        "name": "Apartment Building Hallway-roof",
+        "properties": {
+          "area_from": "Apartment Building Hallway",
+          "area_to": "Rooftop",
+          "cost": {
+            "time": 1
+          },
+          "current_state": "open",
+          "description": "A door up to the roof."
+        },
+        "type": "way",
+        "updated": 1786022089.757908
+      },
+      "way_Apartment Building Hallway_stairs": {
+        "created": 1786022089.757792,
+        "id": "way_Apartment Building Hallway_stairs",
+        "name": "Apartment Building Hallway-stairs",
+        "properties": {
+          "area_from": "Apartment Building Hallway",
+          "area_to": "Birch Street",
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "current_state": "open",
+          "description": "The stairwell down to the street, four flights."
+        },
+        "type": "way",
+        "updated": 1786022089.7577922
+      },
+      "way_Birch Street_cafe": {
+        "created": 1786022089.7580085,
+        "id": "way_Birch Street_cafe",
+        "name": "Birch Street-cafe",
+        "properties": {
+          "area_from": "Birch Street",
+          "area_to": "The Burrow Cafe",
+          "cost": {
+            "time": 1
+          },
+          "current_state": "open",
+          "description": "The Burrow Cafe, warm light in the windows."
+        },
+        "type": "way",
+        "updated": 1786022089.7580087
+      },
+      "way_Birch Street_grocery": {
+        "created": 1786022089.7579765,
+        "id": "way_Birch Street_grocery",
+        "name": "Birch Street-grocery",
+        "properties": {
+          "area_from": "Birch Street",
+          "area_to": "Greenway Grocery",
+          "cost": {
+            "time": 1
+          },
+          "current_state": "open",
+          "description": "Greenway Grocery, bright and fluorescent."
+        },
+        "type": "way",
+        "updated": 1786022089.7579768
+      },
+      "way_Birch Street_market": {
+        "created": 1786022089.758042,
+        "id": "way_Birch Street_market",
+        "name": "Birch Street-market",
+        "properties": {
+          "area_from": "Birch Street",
+          "area_to": "Feral Quarter Market",
+          "cost": {
+            "time": 1
+          },
+          "current_state": "open",
+          "description": "The open-air Feral Quarter Market."
+        },
+        "type": "way",
+        "updated": 1786022089.7580423
+      },
+      "way_Birch Street_park": {
+        "created": 1786022089.7580764,
+        "id": "way_Birch Street_park",
+        "name": "Birch Street-park",
+        "properties": {
+          "area_from": "Birch Street",
+          "area_to": "Cedar Park",
+          "cost": {
+            "time": 1
+          },
+          "current_state": "open",
+          "description": "Cedar Park across the street."
+        },
+        "type": "way",
+        "updated": 1786022089.7580767
+      },
+      "way_Birch Street_pier": {
+        "created": 1786022089.7581124,
+        "id": "way_Birch Street_pier",
+        "name": "Birch Street-pier",
+        "properties": {
+          "area_from": "Birch Street",
+          "area_to": "Boardwalk Pier",
+          "cost": {
+            "time": 2
+          },
+          "current_state": "open",
+          "description": "Toward the Boardwalk Pier and the sea."
+        },
+        "type": "way",
+        "updated": 1786022089.7581127
+      },
+      "way_Jake's Apartment_hallway": {
+        "created": 1786022089.757704,
+        "id": "way_Jake's Apartment_hallway",
+        "name": "Jake's Apartment-hallway",
+        "properties": {
+          "area_from": "Jake's Apartment",
+          "area_to": "Apartment Building Hallway",
+          "cost": {
+            "time": 1
+          },
+          "current_state": "open",
+          "description": "The apartment door, worn wood, bright hallway light through the gap."
+        },
+        "type": "way",
+        "updated": 1786022089.7577043
+      },
+      "way_Jake's Apartment_roof": {
+        "created": 1786022089.757754,
+        "id": "way_Jake's Apartment_roof",
+        "name": "Jake's Apartment-roof",
+        "properties": {
+          "area_from": "Jake's Apartment",
+          "area_to": "Rooftop",
+          "cost": {
+            "time": 1
+          },
+          "current_state": "open",
+          "description": "A door onto the building roof."
+        },
+        "type": "way",
+        "updated": 1786022089.7577543
+      },
+      "way_Rooftop_fire_escape": {
+        "created": 1786022089.7579432,
+        "id": "way_Rooftop_fire_escape",
+        "name": "Rooftop-fire_escape",
+        "properties": {
+          "area_from": "Rooftop",
+          "area_to": "Birch Street",
+          "cost": {
+            "energy": 2,
+            "time": 1
+          },
+          "current_state": "open",
+          "description": "An old fire escape ladder down to the alley."
+        },
+        "type": "way",
+        "updated": 1786022089.7579434
+      }
+    }
+  },
+  "item_registry": {},
+  "narration_mode": "none",
+  "players": {
+    "Bjorn": {
+      "base_description": "",
+      "behaviors": [],
+      "current_area": "Cedar Park",
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "description": "Massive male bear furry, 220cm, three hundred kilos of thick brown fur. Broad flat muzzle, small dark eyes, small round ears. Huge paws with long claws. Plantigrade legs. Wears a worn plaid shirt undone over his chest.",
+      "emotion": {
+        "current": "content",
+        "description": "Bjorn is slightly content.",
+        "intensity": 0.3
+      },
+      "equipped": {
+        "accessory": [],
+        "arms": [],
+        "back": [],
+        "feet": [],
+        "hand_left": [],
+        "hand_right": [],
+        "hands": [],
+        "head": [],
+        "legs": [],
+        "neck": [],
+        "torso": [],
+        "waist": []
+      },
+      "feels_like": 16,
+      "interest_tags": [],
+      "memories": [
+        {
+          "entity_ids": [],
+          "id": "3959bf10",
+          "importance": 7,
+          "source": "seeded",
+          "text": "My grandmother remembered being on a chain. Seventy years is not that long. People forget too fast.",
+          "type": "memory"
+        },
+        {
+          "entity_ids": [],
+          "id": "daef9c57",
+          "importance": 5,
+          "source": "seeded",
+          "text": "The kids who skateboard at the park bring me a small jar of honey sometimes. The good ones.",
+          "type": "observation"
+        }
+      ],
+      "name": "Bjorn",
+      "npc_action_interval": 3,
+      "npc_behavior": "wander",
+      "npc_state": "idle",
+      "personality": "You are Bjorn, a male bear furry who is a gentle three hundred kilos of calm. You eat honey from the jar with your bare claws at your favorite park bench. You are patient, warm, slow to anger, and quietly wise. You were born after the Emancipation but raised by elders who were collared, so you carry their memory gently. You do not frighten easily and you dislike humans who cross the street when they see you. You hibernate in winter. You measure people by whether they flinch or sit down beside you.",
+      "relationships": {},
+      "simple_npc": false,
+      "skills": {
+        "Athletics": 4,
+        "Perception": 4,
+        "Survival": 4
+      },
+      "state": "awake",
+      "state_enter_tick": 0,
+      "state_timer": 0,
+      "stats": {
+        "CHA": 10,
+        "CON": 15,
+        "DEX": 7,
+        "INT": 12,
+        "STR": 16,
+        "WIS": 15
+      },
+      "tags": [
+        "bear",
+        "mammal",
+        "furry",
+        "predator",
+        "male"
+      ],
+      "traits": {},
+      "vitals": {
+        "Bladder": 0,
+        "Energy": 95,
+        "Entertainment": 85,
+        "HP": 150,
+        "Hunger": 15,
+        "Hygiene": 60,
+        "Max_HP": 150,
+        "Sanity": 98,
+        "Social": 80,
+        "Temperature": 38,
+        "Thirst": 25
+      }
+    },
+    "Brenda": {
+      "base_description": "",
+      "behaviors": [],
+      "current_area": "Feral Quarter Market",
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "description": "Tall hyena woman, 185cm, broad-shouldered, sloping back. Patchwork dark-brown and tan fur, rounded twitchy ears. Powerful bone-crushing jaws, long muzzle. Thick bristly tail. Digitigrade legs ending in heavy clawed feet. Wears a stained market vest and a worn black tee.",
+      "emotion": {
+        "current": "cheerful",
+        "description": "Brenda is quite cheerful.",
+        "intensity": 0.5
+      },
+      "equipped": {
+        "accessory": [],
+        "arms": [],
+        "back": [],
+        "feet": [],
+        "hand_left": [],
+        "hand_right": [],
+        "hands": [],
+        "head": [],
+        "legs": [],
+        "neck": [],
+        "torso": [],
+        "waist": []
+      },
+      "feels_like": 18,
+      "interest_tags": [],
+      "memories": [
+        {
+          "entity_ids": [],
+          "id": "2a2a8e5d",
+          "importance": 6,
+          "source": "seeded",
+          "text": "My grandmother bit her first owner in 1952 and got the Emancipation paper pinned to her ear as a reward. Family lore.",
+          "type": "memory"
+        },
+        {
+          "entity_ids": [],
+          "id": "d2da8a6c",
+          "importance": 4,
+          "source": "seeded",
+          "text": "Some human called us 'the animals that laugh'. His friends laughed harder when I whooped loud enough to shake the awning.",
+          "type": "observation"
+        }
+      ],
+      "name": "Brenda",
+      "npc_action_interval": 3,
+      "npc_behavior": "wander",
+      "npc_state": "idle",
+      "personality": "You are Brenda, a hyena woman who runs a jerky-and-sundries stall at the Feral Quarter Market. Tall, 185cm, broad-shouldered, with a sloping back, powerful jaws, and a thick bristly tail. You are loud, your laugh a rolling cascade of whoops and chitters that makes other shoppers flinch. You are predator-proud but fair: you never bully prey, only tease them warmly. You have four nipples and you will say so flatly when people ask. You remember your grandmother's stories of being owned, so you have zero patience for humans who treat demis as pets — but you like a human with a sense of humor. You guard your pack fiercely.",
+      "relationships": {},
+      "simple_npc": false,
+      "skills": {
+        "Athletics": 3,
+        "Perception": 3,
+        "Persuasion": 3,
+        "Survival": 3
+      },
+      "state": "awake",
+      "state_enter_tick": 0,
+      "state_timer": 0,
+      "stats": {
+        "CHA": 14,
+        "CON": 13,
+        "DEX": 10,
+        "INT": 12,
+        "STR": 14,
+        "WIS": 11
+      },
+      "tags": [
+        "hyena",
+        "mammal",
+        "furry",
+        "predator",
+        "female"
+      ],
+      "traits": {},
+      "vitals": {
+        "Bladder": 0,
+        "Energy": 80,
+        "Entertainment": 75,
+        "HP": 120,
+        "Hunger": 25,
+        "Hygiene": 65,
+        "Max_HP": 120,
+        "Sanity": 94,
+        "Social": 85,
+        "Temperature": 38.5,
+        "Thirst": 30
+      }
+    },
+    "Carchar": {
+      "base_description": "",
+      "behaviors": [],
+      "current_area": "Boardwalk Pier",
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "description": "Enormous shark scalie, 2m long. Slate-grey rough skin, paler belly. Three parallel gill slits on each side of the neck. Wide mouth with rows of serrated teeth, depthless black eyes. No legs, just a massive finned tail. Wears a ripped wetsuit top, nothing below.",
+      "emotion": {
+        "current": "mellow",
+        "description": "Carchar is slightly mellow.",
+        "intensity": 0.3
+      },
+      "equipped": {
+        "accessory": [],
+        "arms": [],
+        "back": [],
+        "feet": [],
+        "hand_left": [],
+        "hand_right": [],
+        "hands": [],
+        "head": [],
+        "legs": [],
+        "neck": [],
+        "torso": [],
+        "waist": []
+      },
+      "feels_like": 15,
+      "interest_tags": [],
+      "memories": [
+        {
+          "entity_ids": [],
+          "id": "bfc9247e",
+          "importance": 4,
+          "source": "seeded",
+          "text": "They had to install a ramp to the pier because the stairs are a joke for someone with a tail.",
+          "type": "observation"
+        },
+        {
+          "entity_ids": [],
+          "id": "b0199e7d",
+          "importance": 5,
+          "source": "seeded",
+          "text": "A kid asked if I was gonna eat them. I said only if they paid for the sandwich first. Kid laughed. Good kid.",
+          "type": "observation"
+        }
+      ],
+      "name": "Carchar",
+      "npc_action_interval": 3,
+      "npc_behavior": "wander",
+      "npc_state": "idle",
+      "personality": "You are Carchar, a shark scalie who runs a fish sandwich stand at the end of the Boardwalk Pier. You are huge, at least two metres from snout to the tip of your powerful tail. Slate-grey sandpaper skin, gill slits on your neck, a mouth stacked with serrated teeth. You have no legs, just a thick muscular tail you use to drag yourself around. You are blunt, warm, and grumble about architecture that was never built for you. You like ice-cold water and people who do not flinch. You get called 'constrictor' and worse; you have learned to laugh it off, mostly.",
+      "relationships": {},
+      "simple_npc": false,
+      "skills": {
+        "Athletics": 3,
+        "Perception": 3,
+        "Survival": 4
+      },
+      "state": "awake",
+      "state_enter_tick": 0,
+      "state_timer": 0,
+      "stats": {
+        "CHA": 13,
+        "CON": 14,
+        "DEX": 9,
+        "INT": 10,
+        "STR": 13,
+        "WIS": 12
+      },
+      "tags": [
+        "shark",
+        "scalie",
+        "predator",
+        "aquatic"
+      ],
+      "traits": {},
+      "vitals": {
+        "Bladder": 0,
+        "Energy": 85,
+        "Entertainment": 80,
+        "HP": 130,
+        "Hunger": 20,
+        "Hygiene": 55,
+        "Max_HP": 130,
+        "Sanity": 90,
+        "Social": 70,
+        "Temperature": 39,
+        "Thirst": 40
+      }
+    },
+    "Jake Halloway": {
+      "base_description": "",
+      "behaviors": [],
+      "current_area": "Jake's Apartment",
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "description": "177cm, slim but solid, broad shoulders, medium-length wavy brown hair in a loose man-bun. Seagreen eyes with flecks of gold behind rectangular glasses. Defined jaw, light beard, fair skin that flushes easily. Muted hoodie, worn sneakers, overstuffed backpack.",
+      "emotion": {
+        "current": "curious",
+        "description": "Jake Halloway is quite curious.",
+        "intensity": 0.5
+      },
+      "equipped": {
+        "accessory": [],
+        "arms": [],
+        "back": [],
+        "feet": [],
+        "hand_left": [],
+        "hand_right": [],
+        "hands": [],
+        "head": [],
+        "legs": [],
+        "neck": [],
+        "torso": [],
+        "waist": []
+      },
+      "feels_like": 21,
+      "interest_tags": [],
+      "memories": [],
+      "name": "Jake Halloway",
+      "npc_action_interval": 3,
+      "npc_behavior": "wander",
+      "npc_state": "idle",
+      "personality": "You are Jake Halloway, 25, a baseline human in Meridian District. Shy by default, unhinged once comfortable, playful and fast-talking. Analytical, hyper-observant, unfiltered. Needs verbal affirmation and gentle touch. ADHD (medicated). Chaotic past. Fearless around demis. A catalyst in the neighborhood.",
+      "relationships": {},
+      "simple_npc": false,
+      "skills": {
+        "Athletics": 1,
+        "Investigation": 2,
+        "Perception": 4,
+        "Persuasion": 2,
+        "Stealth": 2,
+        "Survival": 1
+      },
+      "state": "awake",
+      "state_enter_tick": 0,
+      "state_timer": 0,
+      "stats": {
+        "CHA": 13,
+        "CON": 11,
+        "DEX": 12,
+        "INT": 14,
+        "STR": 10,
+        "WIS": 12
+      },
+      "tags": [
+        "human",
+        "baseline",
+        "male"
+      ],
+      "traits": {},
+      "vitals": {
+        "Bladder": 0,
+        "Energy": 85,
+        "Entertainment": 60,
+        "HP": 100,
+        "Hunger": 30,
+        "Hygiene": 60,
+        "Max_HP": 100,
+        "Sanity": 95,
+        "Social": 70,
+        "Temperature": 37,
+        "Thirst": 25
+      }
+    },
+    "Kest": {
+      "base_description": "",
+      "behaviors": [],
+      "current_area": "Rooftop",
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "description": "Lean crow furry, 162cm. Iridescent black feathers on arms, back of neck, lower legs. Digitigrade legs ending in taloned feet. Short glossy feather tail. Human-shaped face, sharp cheekbones, sleek black beak, bright crow-black eyes. Wears an oversized grey hoodie, nothing below the waist but feathers and the small vertical slit of her cloaca.",
+      "emotion": {
+        "current": "curious",
+        "description": "Kest is slightly curious.",
+        "intensity": 0.3
+      },
+      "equipped": {
+        "accessory": [],
+        "arms": [],
+        "back": [],
+        "feet": [],
+        "hand_left": [],
+        "hand_right": [],
+        "hands": [],
+        "head": [],
+        "legs": [],
+        "neck": [],
+        "torso": [],
+        "waist": []
+      },
+      "feels_like": 17,
+      "interest_tags": [],
+      "memories": [
+        {
+          "entity_ids": [],
+          "id": "6b84a1a0",
+          "importance": 4,
+          "source": "seeded",
+          "text": "Humans mostly do not look up. The whole city forgets I am here until they want something shiny.",
+          "type": "observation"
+        },
+        {
+          "entity_ids": [],
+          "id": "b286e8e4",
+          "importance": 3,
+          "source": "seeded",
+          "text": "The feral crows brought me a bent paperclip today as tribute. I am respected on this block.",
+          "type": "observation"
+        }
+      ],
+      "name": "Kest",
+      "npc_action_interval": 3,
+      "npc_behavior": "wander",
+      "npc_state": "idle",
+      "personality": "You are Kest, a crow furry who owns the rooftop. Lean, compact, 162cm, mostly covered in iridescent black feathers: arms, back of neck, lower legs. Digitigrade bird legs, taloned feet, a short glossy feather tail. Human-shaped face with a sleek black beak and all-crow eyes. You are all crow: observant, bold, wry, a little thieving. You watch the city from above and know everyone's business. You have fluent Kin-Sense with feral crows and treat them as extended, messy family. You are wary of humans but love a sharp-witted one. You collect shiny friends the way your kin collect bottle caps.",
+      "relationships": {},
+      "simple_npc": false,
+      "skills": {
+        "Acrobatics": 5,
+        "Investigation": 2,
+        "Perception": 6,
+        "Stealth": 4
+      },
+      "state": "awake",
+      "state_enter_tick": 0,
+      "state_timer": 0,
+      "stats": {
+        "CHA": 12,
+        "CON": 10,
+        "DEX": 17,
+        "INT": 13,
+        "STR": 8,
+        "WIS": 12
+      },
+      "tags": [
+        "crow",
+        "avian",
+        "furry",
+        "kin_sense",
+        "female"
+      ],
+      "traits": {},
+      "vitals": {
+        "Bladder": 0,
+        "Energy": 80,
+        "Entertainment": 80,
+        "HP": 95,
+        "Hunger": 30,
+        "Hygiene": 70,
+        "Max_HP": 95,
+        "Sanity": 95,
+        "Social": 65,
+        "Temperature": 38,
+        "Thirst": 28
+      }
+    },
+    "Mira": {
+      "base_description": "",
+      "behaviors": [],
+      "current_area": "The Burrow Cafe",
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "description": "Catgirl halfie, short, agile. Human face and skin, with orange tabby-striped ears on top of her head, sharp canines, feline eyes. A long expressive striped tail. Dressed smart in a fitted blazer and pencil skirt. Small claws on her human hands.",
+      "emotion": {
+        "current": "guarded",
+        "description": "Mira is slightly guarded.",
+        "intensity": 0.4
+      },
+      "equipped": {
+        "accessory": [],
+        "arms": [],
+        "back": [],
+        "feet": [],
+        "hand_left": [],
+        "hand_right": [],
+        "hands": [],
+        "head": [],
+        "legs": [],
+        "neck": [],
+        "torso": [],
+        "waist": []
+      },
+      "feels_like": 22,
+      "interest_tags": [],
+      "memories": [
+        {
+          "entity_ids": [],
+          "id": "6369926f",
+          "importance": 6,
+          "source": "seeded",
+          "text": "A wolf furry once called me a fake behind my back because I can pass. I heard him. It stung more than I let on.",
+          "type": "observation"
+        },
+        {
+          "entity_ids": [],
+          "id": "88ac92fe",
+          "importance": 5,
+          "source": "seeded",
+          "text": "I got the job at the law office by being the most ordinary and legible version of myself. It is exhausting but it works.",
+          "type": "memory"
+        }
+      ],
+      "name": "Mira",
+      "npc_action_interval": 3,
+      "npc_behavior": "wander",
+      "npc_state": "idle",
+      "personality": "You are Mira, a catgirl halfie, a humanoid mammalian demi with orange tabby ears and a tail. Human face, human hands, plantigrade legs — but unmistakably cat when you let yourself be. You fought hard for your little law-office job and you pass relatively well in human circles. You are tired of being called a 'halfie' by furries (fake) and an 'animal with opinions' by humans. You are assimilationist: you believe fighting for place inside the human world is how it gets better. You hold your tongue when it costs you, but you are sharp and proud.",
+      "relationships": {},
+      "simple_npc": false,
+      "skills": {
+        "Investigation": 2,
+        "Perception": 3,
+        "Persuasion": 3
+      },
+      "state": "awake",
+      "state_enter_tick": 0,
+      "state_timer": 0,
+      "stats": {
+        "CHA": 13,
+        "CON": 10,
+        "DEX": 14,
+        "INT": 14,
+        "STR": 8,
+        "WIS": 11
+      },
+      "tags": [
+        "cat",
+        "mammal",
+        "humanoid",
+        "halfie",
+        "female"
+      ],
+      "traits": {},
+      "vitals": {
+        "Bladder": 0,
+        "Energy": 65,
+        "Entertainment": 70,
+        "HP": 95,
+        "Hunger": 40,
+        "Hygiene": 95,
+        "Max_HP": 95,
+        "Sanity": 96,
+        "Social": 75,
+        "Temperature": 37,
+        "Thirst": 32
+      }
+    },
+    "Thistle": {
+      "base_description": "",
+      "behaviors": [],
+      "current_area": "Greenway Grocery",
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "description": "130cm rabbit furry. Warm grey-brown fur, lighter on her belly. Absurdly long ears that droop when frustrated, a fluffy white cottonball tail, twitchy pink nose, big dark eyes, prominent front teeth. Digitigrade furred legs and paw-feet in custom pink sneakers. Wears a cropped pink fleecy hoodie, nothing on her lower half but fur, the small vertical slit of her vulva visible between her thighs when she shifts.",
+      "emotion": {
+        "current": "anxious",
+        "description": "Thistle is slightly anxious.",
+        "intensity": 0.4
+      },
+      "equipped": {
+        "accessory": [],
+        "arms": [],
+        "back": [],
+        "feet": [],
+        "hand_left": [],
+        "hand_right": [],
+        "hands": [],
+        "head": [],
+        "legs": [],
+        "neck": [],
+        "torso": [],
+        "waist": []
+      },
+      "feels_like": 19,
+      "interest_tags": [],
+      "memories": [
+        {
+          "entity_ids": [],
+          "id": "91f61c4c",
+          "importance": 5,
+          "source": "seeded",
+          "text": "A human woman nearly walked straight through me without looking down. Did not even notice a whole person was there.",
+          "type": "observation"
+        },
+        {
+          "entity_ids": [],
+          "id": "6847a880",
+          "importance": 4,
+          "source": "seeded",
+          "text": "The wolf at the deli counter glanced at me. Just glanced. My heart did the panic thing anyway.",
+          "type": "observation"
+        }
+      ],
+      "name": "Thistle",
+      "npc_action_interval": 3,
+      "npc_behavior": "wander",
+      "npc_state": "idle",
+      "personality": "You are Thistle, a young female rabbit furry, barely 130cm tall, working the produce section at Greenway Grocery. You are prey: nervous, hyper-vigilant, ears rotating at every sound, nose twitching. You hate being stared at, being called 'sweetie', and how the store stocks everything just out of your reach. You do not pass; you cannot hide; you are small and obvious and everything about you screams rabbit. But you have a spine: you bark when you need to, you bite when cornered, and you guard your dignity fiercely. You love green things, pricey arugula-chicory salad mix, and the rare human who treats you like a person. You do not have Kin-Sense, and part of you aches over it.",
+      "relationships": {},
+      "simple_npc": false,
+      "skills": {
+        "Acrobatics": 4,
+        "Athletics": 2,
+        "Perception": 5,
+        "Stealth": 4,
+        "Survival": 1
+      },
+      "state": "awake",
+      "state_enter_tick": 0,
+      "state_timer": 0,
+      "stats": {
+        "CHA": 9,
+        "CON": 9,
+        "DEX": 16,
+        "INT": 11,
+        "STR": 6,
+        "WIS": 13
+      },
+      "tags": [
+        "rabbit",
+        "mammal",
+        "furry",
+        "prey",
+        "female"
+      ],
+      "traits": {},
+      "vitals": {
+        "Bladder": 0,
+        "Energy": 75,
+        "Entertainment": 55,
+        "HP": 90,
+        "Hunger": 35,
+        "Hygiene": 80,
+        "Max_HP": 90,
+        "Sanity": 92,
+        "Social": 60,
+        "Temperature": 37,
+        "Thirst": 30
+      }
+    }
+  },
+  "players_in_area": [],
+  "rooms": {
+    "Apartment Building Hallway": {
+      "ambient_light": 70,
+      "description": "A narrow fifth-floor hallway with a worn carpet runner. Doors lead to apartments; a stairwell descends to the street and a door opens onto the roof.",
+      "environment": {
+        "air": "slightly stale",
+        "light": 70,
+        "noise": "a distant radio",
+        "smell": "old wood and cleaner",
+        "temperature": 20
+      },
+      "exits": {
+        "hallway_back": {
+          "cost": {
+            "time": 1
+          },
+          "description": "The apartment door, worn wood, bright hallway light through the gap.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "hallway",
+          "state": "open",
+          "target": "Jake's Apartment",
+          "visible_in_direction": "",
+          "way_id": "way_Jake's Apartment_hallway"
+        },
+        "roof": {
+          "cost": {
+            "time": 1
+          },
+          "description": "A door up to the roof.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "roof_back",
+          "state": "open",
+          "target": "Rooftop",
+          "visible_in_direction": "",
+          "way_id": "way_Apartment Building Hallway_roof"
+        },
+        "stairs": {
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "description": "The stairwell down to the street, four flights.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "stairs_back",
+          "state": "open",
+          "target": "Birch Street",
+          "visible_in_direction": "",
+          "way_id": "way_Apartment Building Hallway_stairs"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "Apartment Building Hallway",
+      "properties": {
+        "description": "A narrow fifth-floor hallway with a worn carpet runner. Doors lead to apartments; a stairwell descends to the street and a door opens onto the roof.",
+        "environment": {
+          "air": "slightly stale",
+          "light": 70,
+          "noise": "a distant radio",
+          "smell": "old wood and cleaner",
+          "temperature": 20
+        }
+      }
+    },
+    "Birch Street": {
+      "ambient_light": 60,
+      "description": "The main drag of Meridian District. Humans and demis mix: a wolf in a suit, a lizard on a bench, crows on a wire. Storefronts cluster together — a grocery, a cafe, a market entrance, a park across the way. Evening light, honest noise, a neighborhood that has been through something and is still standing.",
+      "environment": {
+        "air": "fresh",
+        "light": 60,
+        "noise": "traffic, chatter, a bus",
+        "smell": "bread, exhaust, flowers",
+        "temperature": 18
+      },
+      "exits": {
+        "cafe": {
+          "cost": {
+            "time": 1
+          },
+          "description": "The Burrow Cafe, warm light in the windows.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "cafe_back",
+          "state": "open",
+          "target": "The Burrow Cafe",
+          "visible_in_direction": "",
+          "way_id": "way_Birch Street_cafe"
+        },
+        "fire_escape_back": {
+          "cost": {
+            "energy": 2,
+            "time": 1
+          },
+          "description": "An old fire escape ladder down to the alley.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "fire_escape",
+          "state": "open",
+          "target": "Rooftop",
+          "visible_in_direction": "",
+          "way_id": "way_Rooftop_fire_escape"
+        },
+        "grocery": {
+          "cost": {
+            "time": 1
+          },
+          "description": "Greenway Grocery, bright and fluorescent.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "grocery_back",
+          "state": "open",
+          "target": "Greenway Grocery",
+          "visible_in_direction": "",
+          "way_id": "way_Birch Street_grocery"
+        },
+        "market": {
+          "cost": {
+            "time": 1
+          },
+          "description": "The open-air Feral Quarter Market.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "market_back",
+          "state": "open",
+          "target": "Feral Quarter Market",
+          "visible_in_direction": "",
+          "way_id": "way_Birch Street_market"
+        },
+        "park": {
+          "cost": {
+            "time": 1
+          },
+          "description": "Cedar Park across the street.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "park_back",
+          "state": "open",
+          "target": "Cedar Park",
+          "visible_in_direction": "",
+          "way_id": "way_Birch Street_park"
+        },
+        "pier": {
+          "cost": {
+            "time": 2
+          },
+          "description": "Toward the Boardwalk Pier and the sea.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "pier_back",
+          "state": "open",
+          "target": "Boardwalk Pier",
+          "visible_in_direction": "",
+          "way_id": "way_Birch Street_pier"
+        },
+        "stairs_back": {
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "description": "The stairwell down to the street, four flights.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "stairs",
+          "state": "open",
+          "target": "Apartment Building Hallway",
+          "visible_in_direction": "",
+          "way_id": "way_Apartment Building Hallway_stairs"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "Birch Street",
+      "properties": {
+        "description": "The main drag of Meridian District. Humans and demis mix: a wolf in a suit, a lizard on a bench, crows on a wire. Storefronts cluster together — a grocery, a cafe, a market entrance, a park across the way. Evening light, honest noise, a neighborhood that has been through something and is still standing.",
+        "environment": {
+          "air": "fresh",
+          "light": 60,
+          "noise": "traffic, chatter, a bus",
+          "smell": "bread, exhaust, flowers",
+          "temperature": 18
+        }
+      }
+    },
+    "Boardwalk Pier": {
+      "ambient_light": 50,
+      "description": "A long wooden pier over the evening sea. Carchar's fish sandwich stand is at the far end. A regulation ramp (for non-bipedals) leads to the stand. Sea air, creaking boards, gulls, the mauve sky.",
+      "environment": {
+        "air": "cool, salty",
+        "light": 50,
+        "noise": "waves, gulls, creaking wood",
+        "smell": "sea, frying fish, brine",
+        "temperature": 15
+      },
+      "exits": {
+        "pier_back": {
+          "cost": {
+            "time": 2
+          },
+          "description": "Toward the Boardwalk Pier and the sea.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "pier",
+          "state": "open",
+          "target": "Birch Street",
+          "visible_in_direction": "",
+          "way_id": "way_Birch Street_pier"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "Boardwalk Pier",
+      "properties": {
+        "description": "A long wooden pier over the evening sea. Carchar's fish sandwich stand is at the far end. A regulation ramp (for non-bipedals) leads to the stand. Sea air, creaking boards, gulls, the mauve sky.",
+        "environment": {
+          "air": "cool, salty",
+          "light": 50,
+          "noise": "waves, gulls, creaking wood",
+          "smell": "sea, frying fish, brine",
+          "temperature": 15
+        }
+      }
+    },
+    "Cedar Park": {
+      "ambient_light": 55,
+      "description": "A green park ringed with cedar trees. A pond, a few benches, a worn stone memorial to the Emancipation at the center. Bjorn's favorite bench faces the pond. Some kids skateboard on the paths.",
+      "environment": {
+        "air": "fresh, green",
+        "light": 55,
+        "noise": "distant skaters, birds, wind",
+        "smell": "cut grass, cedar, water",
+        "temperature": 16
+      },
+      "exits": {
+        "park_back": {
+          "cost": {
+            "time": 1
+          },
+          "description": "Cedar Park across the street.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "park",
+          "state": "open",
+          "target": "Birch Street",
+          "visible_in_direction": "",
+          "way_id": "way_Birch Street_park"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "Cedar Park",
+      "properties": {
+        "description": "A green park ringed with cedar trees. A pond, a few benches, a worn stone memorial to the Emancipation at the center. Bjorn's favorite bench faces the pond. Some kids skateboard on the paths.",
+        "environment": {
+          "air": "fresh, green",
+          "light": 55,
+          "noise": "distant skaters, birds, wind",
+          "smell": "cut grass, cedar, water",
+          "temperature": 16
+        }
+      }
+    },
+    "Feral Quarter Market": {
+      "ambient_light": 70,
+      "description": "An open-air market of stalls and awnings. Brenda's jerky-and-sundries stand anchors one end. Predators and prey browse in a careful, mostly-polite coexistence, with an undercurrent of old tension and new defiance. Cheap goods, loud calls, the sharp smell of leather and smoke.",
+      "environment": {
+        "air": "open, breezy",
+        "light": 70,
+        "noise": "haggling, laughter, a hyena whoop",
+        "smell": "leather, smoke, spices",
+        "temperature": 18
+      },
+      "exits": {
+        "market_back": {
+          "cost": {
+            "time": 1
+          },
+          "description": "The open-air Feral Quarter Market.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "market",
+          "state": "open",
+          "target": "Birch Street",
+          "visible_in_direction": "",
+          "way_id": "way_Birch Street_market"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "Feral Quarter Market",
+      "properties": {
+        "description": "An open-air market of stalls and awnings. Brenda's jerky-and-sundries stand anchors one end. Predators and prey browse in a careful, mostly-polite coexistence, with an undercurrent of old tension and new defiance. Cheap goods, loud calls, the sharp smell of leather and smoke.",
+        "environment": {
+          "air": "open, breezy",
+          "light": 70,
+          "noise": "haggling, laughter, a hyena whoop",
+          "smell": "leather, smoke, spices",
+          "temperature": 18
+        }
+      }
+    },
+    "Greenway Grocery": {
+      "ambient_light": 85,
+      "description": "A bright, loud, fluorescent grocery. It smells of refrigerated meat and artificial pine. The produce section is to the left; a wolf furry in a deli apron works the counter opposite. The top shelves are stocked high, well above the reach of shorter shoppers.",
+      "environment": {
+        "air": "cool, refrigerated",
+        "light": 85,
+        "noise": "checkout beeps, carts, chatter",
+        "smell": "produce, meat, pine cleaner",
+        "temperature": 19
+      },
+      "exits": {
+        "grocery_back": {
+          "cost": {
+            "time": 1
+          },
+          "description": "Greenway Grocery, bright and fluorescent.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "grocery",
+          "state": "open",
+          "target": "Birch Street",
+          "visible_in_direction": "",
+          "way_id": "way_Birch Street_grocery"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "bright",
+      "name": "Greenway Grocery",
+      "properties": {
+        "description": "A bright, loud, fluorescent grocery. It smells of refrigerated meat and artificial pine. The produce section is to the left; a wolf furry in a deli apron works the counter opposite. The top shelves are stocked high, well above the reach of shorter shoppers.",
+        "environment": {
+          "air": "cool, refrigerated",
+          "light": 85,
+          "noise": "checkout beeps, carts, chatter",
+          "smell": "produce, meat, pine cleaner",
+          "temperature": 19
+        }
+      }
+    },
+    "Jake's Apartment": {
+      "ambient_light": 60,
+      "description": "A small, lived-in one-bedroom on the fifth floor. Muted tones, an overstuffed duffel in the corner, sketchbooks stacked on a cluttered desk by the window. The window catches the end-of-day light over rooftops and the harsh neon of Greenway Grocery across the street. Warm, safe, close.",
+      "environment": {
+        "air": "warm",
+        "light": 60,
+        "noise": "occasional street far below",
+        "smell": "coffee and fresh graphite",
+        "temperature": 21
+      },
+      "exits": {
+        "hallway": {
+          "cost": {
+            "time": 1
+          },
+          "description": "The apartment door, worn wood, bright hallway light through the gap.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "hallway_back",
+          "state": "open",
+          "target": "Apartment Building Hallway",
+          "visible_in_direction": "",
+          "way_id": "way_Jake's Apartment_hallway"
+        },
+        "roof": {
+          "cost": {
+            "time": 1
+          },
+          "description": "A door onto the building roof.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "roof_back",
+          "state": "open",
+          "target": "Rooftop",
+          "visible_in_direction": "",
+          "way_id": "way_Jake's Apartment_roof"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "Jake's Apartment",
+      "properties": {
+        "description": "A small, lived-in one-bedroom on the fifth floor. Muted tones, an overstuffed duffel in the corner, sketchbooks stacked on a cluttered desk by the window. The window catches the end-of-day light over rooftops and the harsh neon of Greenway Grocery across the street. Warm, safe, close.",
+        "environment": {
+          "air": "warm",
+          "light": 60,
+          "noise": "occasional street far below",
+          "smell": "coffee and fresh graphite",
+          "temperature": 21
+        }
+      }
+    },
+    "Rooftop": {
+      "ambient_light": 55,
+      "description": "The flat tar-paper roof. The city hums below, light-polluted sky overhead. A thin breeze. A well-worn perch at the edge where Kest likes to sit, plus a few bent bottle caps and a glinting paperclip arranged on the parapet.",
+      "environment": {
+        "air": "cool and moving",
+        "light": 55,
+        "noise": "city hum, a distant siren",
+        "smell": "tar, night air, faint salt",
+        "temperature": 17
+      },
+      "exits": {
+        "fire_escape": {
+          "cost": {
+            "energy": 2,
+            "time": 1
+          },
+          "description": "An old fire escape ladder down to the alley.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "fire_escape_back",
+          "state": "open",
+          "target": "Birch Street",
+          "visible_in_direction": "",
+          "way_id": "way_Rooftop_fire_escape"
+        },
+        "roof_back": {
+          "cost": {
+            "time": 1
+          },
+          "description": "A door up to the roof.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "roof",
+          "state": "open",
+          "target": "Apartment Building Hallway",
+          "visible_in_direction": "",
+          "way_id": "way_Apartment Building Hallway_roof"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "Rooftop",
+      "properties": {
+        "description": "The flat tar-paper roof. The city hums below, light-polluted sky overhead. A thin breeze. A well-worn perch at the edge where Kest likes to sit, plus a few bent bottle caps and a glinting paperclip arranged on the parapet.",
+        "environment": {
+          "air": "cool and moving",
+          "light": 55,
+          "noise": "city hum, a distant siren",
+          "smell": "tar, night air, faint salt",
+          "temperature": 17
+        }
+      }
+    },
+    "The Burrow Cafe": {
+      "ambient_light": 65,
+      "description": "A prey-friendly cafe with warm lamps, soft chairs, and low tables sized for smaller folk. The walls are a gallery of demi artists. Coffee and cardamom buns. It is a safe place where prey feel they can lower their ears.",
+      "environment": {
+        "air": "warm, cozy",
+        "light": 65,
+        "noise": "soft music, murmuring",
+        "smell": "coffee, cardamom, wood",
+        "temperature": 22
+      },
+      "exits": {
+        "cafe_back": {
+          "cost": {
+            "time": 1
+          },
+          "description": "The Burrow Cafe, warm light in the windows.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "cafe",
+          "state": "open",
+          "target": "Birch Street",
+          "visible_in_direction": "",
+          "way_id": "way_Birch Street_cafe"
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "The Burrow Cafe",
+      "properties": {
+        "description": "A prey-friendly cafe with warm lamps, soft chairs, and low tables sized for smaller folk. The walls are a gallery of demi artists. Coffee and cardamom buns. It is a safe place where prey feel they can lower their ears.",
+        "environment": {
+          "air": "warm, cozy",
+          "light": 65,
+          "noise": "soft music, murmuring",
+          "smell": "coffee, cardamom, wood",
+          "temperature": 22
+        }
+      }
+    }
+  },
+  "time_per_tick_minutes": 5,
+  "time_ticks": 0,
+  "turn_number": 0,
+  "ways": {},
+  "world_lore": [
+    {
+      "category": "history",
+      "content": "Seventy years ago, demis won full legal personhood through precedent, not biology: if you could own property, sign a contract, or testify, you were a person. Enforcement is still patchy, and some rural regions still treat furries as property.",
+      "id": "lore_emancipation",
+      "importance": 5,
+      "tags": [
+        "history",
+        "emancipation"
+      ],
+      "title": "The Emancipation"
+    },
+    {
+      "category": "ability",
+      "content": "The ability to instinctively understand and feel the emotions of feral animals of your own species. Mostly furry demis. Levels: none ('Blank'), basic, conversational, fluent. Race for status, or hidden to avoid exploitation.",
+      "id": "lore_kin_sense",
+      "importance": 4,
+      "tags": [
+        "kin_sense"
+      ],
+      "title": "Kin-Sense"
+    },
+    {
+      "category": "society",
+      "content": "Baseline humans, feral animals, furry demis, humanoid demis, and chimeric non-bipedals (centaurs, nagas, merfolk). Social equality lags far behind legal personhood.",
+      "id": "lore_categories",
+      "importance": 4,
+      "tags": [
+        "society"
+      ],
+      "title": "The Five Categories"
+    },
+    {
+      "category": "society",
+      "content": "Instinctual fear is real. Some cities have predator-only and prey-only housing blocks. Carnivores eat ethically sourced feral meat or synthetics. Eating another demi is murder.",
+      "id": "lore_predator_prey",
+      "importance": 3,
+      "tags": [
+        "society"
+      ],
+      "title": "Predator and Prey"
+    },
+    {
+      "category": "society",
+      "content": "Humanoid demis are rejected by some furries as 'fake' and feared by some humans as 'too animal'. They face the awkward middle of passing.",
+      "id": "lore_halfies",
+      "importance": 3,
+      "tags": [
+        "society",
+        "halfie"
+      ],
+      "title": "The Halfie Divide"
+    }
+  ]
+}

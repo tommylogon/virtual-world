@@ -1,0 +1,56 @@
+{
+  "name": "Wooden Outhouse Seat",
+  "actions": "examine,take,use,drop",
+  "contents": [],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "A worn wooden seat with a hole, from which sounds of running water echo deep below.",
+  "insulation": 0,
+  "library_id": "wooden_outhouse_seat",
+  "light_level": "dim",
+  "tags": [
+    "toilet"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "amount": -70,
+            "message": "",
+            "stat": "bladder",
+            "success_message": "You relieve yourself",
+            "target": "self"
+          },
+          "type": "adjust_vital"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "success_message": "The lid opens to a deep hole, not much smell inside, but the faint sound of running water can be heard in the deep."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "uses": 1,
+  "weight": 0.5
+}

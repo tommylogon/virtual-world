@@ -1,0 +1,47 @@
+{
+  "name": "Frozen Hollow",
+  "description": "A dead-end clearing surrounded by steep, snow-covered slopes. The wind is muted here, trapped by the natural bowl of the hills. In the center, an old stone well sits half-frozen, its wooden crank creaking slightly. The bucket is broken and lies in pieces at the base. Peering inside reveals only stale, cold air and a single, faded ribbon tied to the crank. ",
+  "tags": [
+    "exterior"
+  ],
+  "environment": {
+    "air": "",
+    "light": "bright",
+    "noise": "quiet, with an occasional creak of frozen wood",
+    "smell": "faint iron and frost",
+    "temperature": -5
+  },
+  "items": [
+    {
+      "name": "Old Stone Well",
+      "description": "A circular stone well, half-frozen and weathered. The wooden crank creaks as if in pain, and the broken bucket lies shattered at its base. Peering into the dark shaft, you see only stale air and a faded ribbon tied to the crank.",
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "uses": -1,
+      "weight": 0,
+      "current_state": "normal",
+      "tags": []
+    }
+  ],
+  "exits": [
+    {
+      "direction": "narrow passage",
+      "target_room_hint": "Blizzard Forest Clearing",
+      "description": "A narrow cleft in the snow-covered hillside, barely wide enough for one person to squeeze through. The wind whistles through the gap, carrying the muffled sounds of the forest beyond.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "north"
+    },
+    {
+      "direction": "rocky slope",
+      "target_room_hint": "Frozen Thicket",
+      "description": "A narrow cleft in the snow-covered slope, its edges worn smooth by wind and frost. It leads out of the hollow into the tangled thicket beyond.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "east"
+    }
+  ],
+  "triggers": []
+}

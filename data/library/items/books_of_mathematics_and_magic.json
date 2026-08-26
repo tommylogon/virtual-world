@@ -1,0 +1,50 @@
+{
+  "name": "Books of Mathematics and Magic",
+  "description": "A stack of three leather-bound textbooks, their covers embossed with geometric patterns and astral symbols. The pages are filled with dense theorems and mystical incantations.",
+  "actions": "examine,take,use,drop",
+  "uses": 1,
+  "weight": 1.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "book"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "The books are surprisingly heavy, as if containing more than just paper and ink."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_read",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "You decipher a passage linking prime numbers to planar geometry. For a moment, the candlelight flickers and the room feels subtly… larger."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

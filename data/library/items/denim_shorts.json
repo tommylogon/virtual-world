@@ -1,0 +1,36 @@
+{
+  "name": "Denim Shorts",
+  "description": "Light blue denim shorts that ride up your thighs. The hem is frayed and the button is slightly loose. They're your favorite pair — broken in perfectly.",
+  "actions": "examine,take,use,equip,unequip",
+  "uses": 0,
+  "weight": 0.4,
+  "current_state": "normal",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 1,
+  "tags": [
+    "clothing",
+    "bottom"
+  ],
+  "equip_slots": [
+    "legs"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "Frayed denim shorts, well-worn and comfortable. They ride up, but you stopped caring about that a long time ago."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "name": "Wooden Hair Pin (With Loose Ribbon)",
+  "description": "A simple, hand-carved wooden hair pin, slightly crooked—Lyrie made it herself after losing her last one. Tied to it is a faded green ribbon that constantly works its way loose, leaving her messy red hair to tumble down around her face. She's always pushing strands out of her eyes.",
+  "actions": "examine,take,use,equip,unequip",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "equip_slots": [
+    "head"
+  ],
+  "tags": [
+    "accessory",
+    "hair",
+    "wooden",
+    "elven",
+    "wearable"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,44 @@
+{
+  "name": "dust",
+  "description": "a thick layer of dust covers everything. no one has been here in months",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_examine"
+      ],
+      "effects": [
+        {
+          "params": {
+            "fail_message": "you dont notice anything but the dust.",
+            "success_message": "you notice 2 pair of  fresh footprints leading from the door toward the library. "
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {
+        "conditions": [
+          {
+            "dc": 10,
+            "skill": "investigation",
+            "type": "skill_check"
+          }
+        ],
+        "operator": "and"
+      },
+      "success_message": "you notice 2 pair of  fresh footprints leading from the door toward the library. ",
+      "fail_message": "you dont notice anything but the dust."
+    }
+  ],
+  "contents": []
+}

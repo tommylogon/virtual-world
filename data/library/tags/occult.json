@@ -1,0 +1,15 @@
+{
+  "id": "occult",
+  "name": "Occult",
+  "description": "Supernatural, mystical, or forbidden knowledge.",
+  "category": "essence",
+  "color": "#4a235a",
+  "icon": "🔮",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "grimoire",
+    "crystal skull"
+  ]
+}

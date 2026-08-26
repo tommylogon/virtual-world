@@ -1,0 +1,68 @@
+{
+  "name": "Expensive Vanity",
+  "description": "An ornate vanity table with a large mirror, its surface inlaid with mother-of-pearl. The drawers are carved with intricate patterns, but one seems slightly different.",
+  "actions": "examine,take,use,drop",
+  "uses": 1,
+  "weight": 20,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "The vanity is elaborate, but you notice one of the drawers has a tiny keyhole hidden in the carving. Perhaps a hairpin could open it."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "message": "You insert the hairpin into the keyhole and twist. A secret drawer pops open!"
+          },
+          "type": "message"
+        },
+        {
+          "params": {
+            "item": "golden locket"
+          },
+          "type": "spawn_item"
+        },
+        {
+          "params": {
+            "item": "silver hairpin"
+          },
+          "type": "remove_item"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {
+        "operator": "and",
+        "conditions": [
+          {
+            "type": "has_item",
+            "value": "silver hairpin"
+          }
+        ]
+      },
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

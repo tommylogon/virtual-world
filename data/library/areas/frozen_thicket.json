@@ -1,0 +1,58 @@
+{
+  "description": "A dense tangle of frozen trees and underbrush, their branches coated in thick rime. The snow here is deep and unbroken, muffling all sound. The only light filters through gaps in the canopy, casting a pale blue glow on the frost-covered bark. The air is still and cold, carrying the sharp scent of pine and frozen earth.",
+  "environment": {
+    "air": "fresh",
+    "light": "normal",
+    "noise": "quiet",
+    "smell": "pine and frost",
+    "temperature": -15
+  },
+  "exits": [
+    {
+      "direction": "ice bridge",
+      "target_room_hint": "Frozen Stream Crossing",
+      "description": "A narrow ice bridge spans the stream, its surface slick but sturdy. On the far side, the frozen thicket looms, its branches encased in rime.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "ice bridge"
+    },
+    {
+      "direction": "icy arch",
+      "target_room_hint": "Snowbound Hollow",
+      "description": "A low arch formed by two ancient pines, their branches fused together by ice and frost. The passage is narrow, requiring a crouch to pass through.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "north"
+    },
+    {
+      "direction": "rocky slope",
+      "target_room_hint": "Frozen Hollow",
+      "description": "A narrow cleft in the snow-covered slope, its edges worn smooth by wind and frost. It leads out of the hollow into the tangled thicket beyond.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "west"
+    },
+    {
+      "direction": "willow arch",
+      "target_room_hint": "Frozen Lake Clearing",
+      "description": "A narrow gap in the frozen willows, their branches bent and frozen into a frosted archway that leads into the dense thicket beyond",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "south"
+    },
+    {
+      "direction": "willow gap",
+      "target_room_hint": "Weeping Willow Hollow",
+      "description": "A gap in the weeping willow's curtain of branches, where the warm air meets the biting cold of the frozen thicket.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "west"
+    }
+  ],
+  "items": [],
+  "name": "Frozen Thicket",
+  "tags": [
+    "exterior"
+  ],
+  "triggers": []
+}

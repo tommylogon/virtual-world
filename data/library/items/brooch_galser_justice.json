@@ -1,0 +1,21 @@
+{
+  "name": "Galser Office of Justice Brooch",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "contents": [],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "Small, simple silver brooch bearing the crest of the Galser Office of Justice—a balanced scale over a shield. Hidden, pinned to the inside of his coat lining. A private reminder of who he was and what he lost.",
+  "insulation": 0,
+  "library_id": "brooch_galser_justice",
+  "light_level": "dim",
+  "tags": [
+    "jewelry",
+    "brooch",
+    "silver",
+    "hidden"
+  ],
+  "triggers": [],
+  "uses": -1,
+  "weight": 0.1
+}

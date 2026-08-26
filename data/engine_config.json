@@ -1,0 +1,20 @@
+{
+  "sound.speech_whisper": 0,
+  "sound.speech_normal": 1,
+  "sound.speech_shout": 2,
+  "sound.speech_scream": 3,
+  "sound.way_open": 0.5,
+  "sound.way_closed": 1,
+  "sound.way_locked": 2,
+  "sound.way_blocked": 2,
+  "sound.way_hidden": 2,
+  "sound.way_see_through": 0.75,
+  "sound.noise_silent": 0,
+  "sound.noise_quiet": 0,
+  "sound.noise_normal": 1,
+  "sound.noise_loud": 2,
+  "sound.noise_chaotic": 2,
+  "heat.base_rate": 0.05,
+  "heat.max_delta": 2.0,
+  "light.spill_factor": 0.5
+}

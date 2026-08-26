@@ -1,0 +1,36 @@
+{
+  "name": "Grounding Cordial",
+  "description": "A clear cordial that tastes of clean water and cold air. One sip steadies the reeling mind.",
+  "actions": "examine,take,drink,drop",
+  "uses": 3,
+  "weight": 0.2,
+  "tags": [
+    "alchemical",
+    "drink",
+    "liquid",
+    "medicine"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_drink"
+      ],
+      "effects": [
+        {
+          "type": "remove_condition",
+          "params": {
+            "condition": "stunned",
+            "target": "self",
+            "message": "The cordial is crisp and cold. The ringing in your head fades and the world steadies around you."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

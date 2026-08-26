@@ -1,0 +1,55 @@
+{
+  "name": "taco bell walk-in freezer",
+  "description": "the sub-zero room beside the cooler, door set with a heavy rubber curtain that snags your sleeve. the interior light is dead, so the freezer is lit only by the spill from the corridor. boxes of frozen beef and bean much stack to the rafters, frost-bearded and labeled in marker. the compressor sounds like it's doing its best, and has been saying so for years. no reason to go past the front shelf.",
+  "environment": {
+    "air": "cold",
+    "light": 5,
+    "noise": "compressor rumble, ice creak",
+    "smell": "frozen cardboard, frost",
+    "temperature": -18
+  },
+  "items": [
+    {
+      "name": "frozen stock pallets",
+      "description": "sealed boxes of seasoned beef, chicken, and beans stacked on pallets, laced with ice. the pallet nearest the door has a hand-scrawled label reading 'DO NOT USE/PROBABLY FINE.'",
+      "actions": [
+        "examine",
+        "take"
+      ],
+      "uses": -1,
+      "weight": 400,
+      "current_state": "frozen",
+      "tags": [
+        "storage",
+        "food",
+        "freezer"
+      ]
+    },
+    {
+      "name": "freezer light pull",
+      "description": "a rope hanging from the dead ceiling fixture. you pull it and nothing happens, then almost immediately it sparks once and the fixture buzzes back to life before dying again.",
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "uses": -1,
+      "weight": 0.1,
+      "current_state": "off",
+      "tags": [
+        "light",
+        "equipment"
+      ]
+    }
+  ],
+  "tags": [
+    "millbrook_falls",
+    "commercial",
+    "restaurant",
+    "food",
+    "taco bell",
+    "interior",
+    "kitchen",
+    "freezer"
+  ],
+  "triggers": []
+}

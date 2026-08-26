@@ -1,0 +1,9 @@
+{
+  "name": "Panel",
+  "description": "Good morning Jon! Welcome to task 1. before we begin. tell me waht you see, who you are, and what you remember?",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 0.1,
+  "equip_slots": [],
+  "tags": []
+}

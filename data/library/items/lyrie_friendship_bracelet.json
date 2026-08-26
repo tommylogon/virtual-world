@@ -1,0 +1,22 @@
+{
+  "name": "Frayed Friendship Bracelet",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "contents": [],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "A simple, frayed friendship bracelet made of woven green and brown threads, tied loosely around Lyrie's left wrist. It was given to her by her best friend before the 'incident' that almost got her exiled. She never takes it off, even though it's coming apart. The green has faded, and one of the knots is coming undone.",
+  "insulation": 0,
+  "library_id": "lyrie_friendship_bracelet",
+  "light_level": "dim",
+  "tags": [
+    "jewelry",
+    "bracelet",
+    "friendship",
+    "elven",
+    "sentimental"
+  ],
+  "triggers": [],
+  "uses": -1,
+  "weight": 0
+}

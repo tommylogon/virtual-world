@@ -1,0 +1,21 @@
+{
+  "name": "oil_lamp",
+  "description": "an old oil lamp under the sink. still has some oil in it, and the wick is intact. it would provide good light.",
+  "actions": "examine,take,use,drop",
+  "uses": 20,
+  "weight": 0.8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "toggleable",
+    "light_source",
+    "fire",
+    "oil",
+    "container"
+  ],
+  "triggers": [],
+  "contents": []
+}

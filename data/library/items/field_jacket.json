@@ -1,0 +1,72 @@
+{
+  "name": "field jacket",
+  "description": "a faded olive canvas field jacket with multiple pockets. the elbows are worn thin and one button is missing, replaced with a safety pin. it smells faintly of coffee and basement dust.",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "uses": 0,
+  "weight": 1.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 3,
+  "damage": 0,
+  "insulation": 5,
+  "tags": [
+    "clothing",
+    "outerwear",
+    "insulation"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_equip",
+      "effects": [
+        {
+          "params": {
+            "message": "you shrug on the field jacket. the weight of the canvas is familiar and reassuring."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_unequip",
+      "effects": [
+        {
+          "params": {
+            "message": "you take off the jacket, feeling the cold air on your arms."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "the jacket has seen better days. pockets bulge with notes, a spare battery, and a half-eaten granola bar wrapper. a safety pin holds the second button closed."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": [],
+  "library_id": "field_jacket",
+  "equip_slots": [
+    "torso"
+  ]
+}

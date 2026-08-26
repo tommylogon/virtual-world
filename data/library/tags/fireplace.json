@@ -1,0 +1,15 @@
+{
+  "id": "fireplace",
+  "name": "Fireplace",
+  "description": "Fireplace or stove providing warmth and fire.",
+  "category": "environment",
+  "color": "#e67e22",
+  "icon": "🔥",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "marble fireplace",
+    "cast-iron stove"
+  ]
+}

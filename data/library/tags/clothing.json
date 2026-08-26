@@ -1,0 +1,17 @@
+﻿{
+  "id": "clothing",
+  "name": "Clothing",
+  "description": "Wearable garment for covering, protection, or fashion",
+  "category": "mechanical",
+  "color": "#cc88cc",
+  "icon": "ðŸ‘•",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "shirt",
+    "coat",
+    "trousers",
+    "dress"
+  ]
+}

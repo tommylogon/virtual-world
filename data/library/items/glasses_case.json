@@ -1,0 +1,39 @@
+{
+  "name": "glasses_case",
+  "description": "a leather case containing reading glasses. the prescription might still work. a small brass plate reads: 'property of professor aldridge — university of london, occult studies department.'",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "container",
+    "glass"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_take"
+      ],
+      "effects": [
+        {
+          "params": {
+            "description": "a crumpled note that was stuck to the glasses case: 'augustus — i've found what you requested. the crystal skull is not a legend. it is in the catacombs beneath prague. i will bring it to the manor on all hallows eve. your servant, prof. aldridge.'",
+            "item_id": "item_professors_note",
+            "name": "professor's_note"
+          },
+          "type": "spawn_item"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

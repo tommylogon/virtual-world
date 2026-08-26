@@ -1,0 +1,22 @@
+{
+  "library_id": "",
+  "name": "men's restroom door",
+  "description": "a beige hollow-core door with the universal stick-figure, paint chipped at the push plate.",
+  "current_state": "closed",
+  "pass_message": "You shoulder through the restroom door.",
+  "edge_length": "",
+  "needs_open": {
+    "dc": 10,
+    "enabled": false,
+    "skill": "Athletics"
+  },
+  "auto_close": true,
+  "see_through": false,
+  "one_way": false,
+  "requires": "none",
+  "max_size": "normal",
+  "prevent_close": false,
+  "tags": [],
+  "parameters": {},
+  "triggers": []
+}

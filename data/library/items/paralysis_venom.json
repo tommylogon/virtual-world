@@ -1,0 +1,38 @@
+{
+  "name": "Paralysis Venom",
+  "description": "A glass syringe filled with milky venom. It locks every muscle rigid within seconds.",
+  "actions": "examine,take,use,drop",
+  "uses": 1,
+  "weight": 0.2,
+  "tags": [
+    "alchemical",
+    "liquid",
+    "poison",
+    "small"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "type": "apply_condition",
+          "params": {
+            "condition": "paralysed",
+            "target": "self",
+            "duration": 3,
+            "source": "paralysis venom",
+            "message": "A cold stiffness races through your body. You freeze mid-motion, muscles locked tight."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

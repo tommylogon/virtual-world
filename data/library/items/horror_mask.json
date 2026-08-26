@@ -1,0 +1,41 @@
+{
+  "name": "Horror Mask",
+  "description": "A bone-white mask with hollow eyes and a too-wide grin. Wearing it, the world seems to loom and whisper.",
+  "actions": "examine,take,use,wear,drop",
+  "uses": 5,
+  "weight": 0.3,
+  "equip_slots": [
+    "head"
+  ],
+  "tags": [
+    "clothing",
+    "cursed",
+    "mask"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use",
+        "on_equip"
+      ],
+      "effects": [
+        {
+          "type": "apply_condition",
+          "params": {
+            "condition": "frightened",
+            "target": "self",
+            "source": "horror mask",
+            "source_type": "item",
+            "message": "The mask settles over your face and something cold presses against your thoughts. Shadows seem to move."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

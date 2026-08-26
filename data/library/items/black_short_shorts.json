@@ -1,0 +1,37 @@
+{
+  "actions": "examine,take,use,equip,unequip",
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "Tight black denim short shorts. They ride up constantly, but they're broken in and comfortable. A small frayed edge at the hem gives them character.",
+  "equip_slots": [
+    "legs"
+  ],
+  "insulation": 0,
+  "name": "Black Short Shorts",
+  "tags": [
+    "clothing",
+    "bottom"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "Black denim, well-fitted and frayed at the edges. They don't leave much to the imagination."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "uses": 0,
+  "weight": 0.3,
+  "contents": []
+}

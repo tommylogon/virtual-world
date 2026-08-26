@@ -1,0 +1,17 @@
+{
+  "id": "organic",
+  "name": "Organic",
+  "description": "Living or once-living material",
+  "category": "physical",
+  "color": "#44aa44",
+  "icon": "🌿",
+  "applies_to": [
+    "items",
+    "areas"
+  ],
+  "examples": [
+    "leather bag",
+    "bone handle",
+    "herbs"
+  ]
+}

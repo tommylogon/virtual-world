@@ -1,0 +1,72 @@
+{
+  "description": "A small, chilly bathroom dominated by a large wooden bathtub, its surface damp and worn. On a nearby shelf, neatly folded towels sit beside a collection of homemade soaps, their scents faint in the cold air. A small, intricately carved wooden boat rests on the windowsill, a whimsical touch against the frost-covered glass. A single candle gutter on the edge of the tub, casting flickering shadows across the tiled floor.",
+  "environment": {
+    "air": "fresh",
+    "light": "dim",
+    "noise": "quiet",
+    "smell": "soap and mildew",
+    "temperature": 8
+  },
+  "exits": [
+    {
+      "direction": "kitchen door",
+      "target_room_hint": "Kitchen",
+      "description": "A wooden door that has a small sigh of Bath on it.",
+      "state": "closed",
+      "hidden": false,
+      "cardinal": "south"
+    }
+  ],
+  "items": [
+    {
+      "name": "Large Wooden Bathtub",
+      "description": "A large wooden bathtub, its surface damp and worn. The water inside is still and cold.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 50,
+      "current_state": "normal",
+      "tags": []
+    },
+    {
+      "name": "Homemade Soap Bar",
+      "description": "A fragrant bar of homemade soap, shaped into a delicate flower. The scent of lavender and chamomile is faint but pleasant.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 5,
+      "weight": 0.3,
+      "current_state": "normal",
+      "tags": []
+    },
+    {
+      "name": "Wooden Toy Boat",
+      "description": "A small, intricately carved wooden boat resting on the windowsill. Its paint is faded but the craftsmanship is evident.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 0,
+      "weight": 0.2,
+      "current_state": "normal",
+      "tags": [
+        "toy"
+      ]
+    }
+  ],
+  "name": "Bathroom",
+  "tags": [
+    "fantasy",
+    "school"
+  ],
+  "triggers": []
+}

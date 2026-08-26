@@ -1,0 +1,15 @@
+﻿{
+  "id": "insulation",
+  "name": "Insulation",
+  "description": "Shifts effective ambient temperature by the item's insulation value. Positive warms, negative cools. Stacks across worn items.",
+  "category": "mechanical",
+  "color": "#e3b341",
+  "icon": "ðŸ§¥",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "heavy_fur_lined_coat",
+    "eva_suit"
+  ]
+}

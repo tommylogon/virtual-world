@@ -1,0 +1,22 @@
+{
+  "library_id": "",
+  "name": "women's restroom door",
+  "description": "same beige door, same chipped paint, opposite stick figure. the lock is one of those twist knobs that never fully believes it's locked.",
+  "current_state": "closed",
+  "pass_message": "You slip through the restroom door.",
+  "edge_length": "",
+  "needs_open": {
+    "dc": 10,
+    "enabled": false,
+    "skill": "Athletics"
+  },
+  "auto_close": true,
+  "see_through": false,
+  "one_way": false,
+  "requires": "none",
+  "max_size": "normal",
+  "prevent_close": false,
+  "tags": [],
+  "parameters": {},
+  "triggers": []
+}

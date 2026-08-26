@@ -1,0 +1,44 @@
+{
+  "name": "On Examine → Reveal Name",
+  "description": "Examining the item reveals its true name (rename effect).",
+  "graph": {
+    "nodes": [
+      {
+        "id": "n0",
+        "type": "trigger",
+        "x": 60,
+        "y": 60,
+        "w": 260,
+        "props": {
+          "trigger_type": "on_examine"
+        }
+      },
+      {
+        "id": "n1",
+        "type": "effect",
+        "x": 380,
+        "y": 60,
+        "w": 260,
+        "props": {
+          "effect_type": "rename",
+          "node_id": "self",
+          "name": "photo of james",
+          "message": "You look closer — it's a photo of James."
+        }
+      }
+    ],
+    "wires": [
+      {
+        "id": "w0",
+        "from": [
+          "n0",
+          "output"
+        ],
+        "to": [
+          "n1",
+          "input"
+        ]
+      }
+    ]
+  }
+}

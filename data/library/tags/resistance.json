@@ -1,0 +1,16 @@
+{
+  "id": "resistance",
+  "name": "Resistance",
+  "description": "Provides damage resistance. Configure damage types and values in the item's resistances property.",
+  "category": "property",
+  "color": "#44aaff",
+  "icon": "🛡️",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "fire coat",
+    "hazmat suit",
+    "magic ward"
+  ]
+}

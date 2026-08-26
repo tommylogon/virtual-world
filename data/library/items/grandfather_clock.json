@@ -1,0 +1,34 @@
+{
+  "name": "grandfather_clock",
+  "actions": "examine",
+  "contents": [
+    "brass_key"
+  ],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "An old grandfather clock ticks steadily in the corner. It is tall  with an intricately carved wooden face. The pendulum swings steadily. The glass door is slightly ajar.",
+  "insulation": 0,
+  "light_level": "dim",
+  "tags": [],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "The clock reads {game_time}. Through the glass you can see a small brass key resting inside, tucked behind the pendulum. Its steady ticking is oddly comforting."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "uses": -1,
+  "weight": 80
+}

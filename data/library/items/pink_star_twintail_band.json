@@ -1,0 +1,40 @@
+{
+  "name": "pink star twintail band",
+  "description": "a black elastic band holding the right twintail in place, adorned with a small pink plastic star.",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "uses": 0,
+  "weight": 0.01,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "clothing",
+    "accessory",
+    "hair_accessory"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "a pink star glints from the band holding your right twintail. cute."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": [],
+  "library_id": "pink_star_twintail_band",
+  "equip_slots": [
+    "accessory"
+  ]
+}

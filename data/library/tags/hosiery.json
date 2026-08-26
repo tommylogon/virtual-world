@@ -1,0 +1,15 @@
+{
+  "id": "hosiery",
+  "name": "Hosiery",
+  "description": "Stockings, socks, tights.",
+  "category": "physical",
+  "color": "#d7dbdd",
+  "icon": "🧦",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "thigh-highs",
+    "socks"
+  ]
+}

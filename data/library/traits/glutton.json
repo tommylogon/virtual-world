@@ -1,0 +1,12 @@
+{
+  "name": "Glutton",
+  "description": "Hunger decays twice as fast.",
+  "category": "physical",
+  "params": null,
+  "effects": {
+    "vital_multiplier": {
+      "Hunger": 2
+    }
+  },
+  "id": "glutton"
+}

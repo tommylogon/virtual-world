@@ -1,0 +1,35 @@
+{
+  "name": "Book",
+  "description": "You book of case information. ",
+  "actions": "examine,take,read,drop",
+  "uses": -1,
+  "weight": 5,
+  "current_state": "closed",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "knowledge"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "success_message": "The valerius case - who are they, where are they? nort of rocheveron, nearest neighbour is far outside earshot. secret task from the king hiimself, somethign about the  new caws. dnew dawn, cult looking for a way to end the muujeroth curse any means nececary. A week ago, you were hired by non other than King Nicolas Enfield Rocheveron in Borrim to check on the Valerius family—scholars who were Investigating something related to the new dawn. they have not been heard from in about 2 weeks."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

@@ -1,0 +1,15 @@
+{
+  "id": "crystal",
+  "name": "Crystal",
+  "description": "Crystal or crystalline object.",
+  "category": "essence",
+  "color": "#5dade2",
+  "icon": "💎",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "crystal skull",
+    "crystal decanter"
+  ]
+}

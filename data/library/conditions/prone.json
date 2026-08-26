@@ -1,0 +1,23 @@
+{
+  "name": "Prone",
+  "description": "On the ground. You can only crawl and fight clumsily.",
+  "blocks_actions": false,
+  "blocks_movement": false,
+  "blocks_speech": false,
+  "auto_fail_checks": [],
+  "auto_fail_saves": [],
+  "attack_mod": -2,
+  "defense_mod": -2,
+  "speed_mult": 0.5,
+  "movement_mode": "crawl",
+  "drops_held_items": false,
+  "periodic": {},
+  "ends_on": [
+    "stand"
+  ],
+  "known": true,
+  "symptoms": {},
+  "stack": "noop",
+  "default_duration": null,
+  "excludes": []
+}

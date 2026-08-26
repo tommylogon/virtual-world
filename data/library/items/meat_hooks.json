@@ -1,0 +1,20 @@
+{
+  "name": "meat_hooks",
+  "description": "rows of rusted meat hooks hanging from the ceiling. they clink together softly, though there's no breeze.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 30,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "meat",
+    "hook",
+    "tool",
+    "metal"
+  ],
+  "triggers": [],
+  "contents": []
+}

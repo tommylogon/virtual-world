@@ -1,0 +1,9 @@
+{
+  "id": "fast_healer",
+  "name": "Fast Healer",
+  "description": "Natural HP regeneration is doubled.",
+  "category": "physical",
+  "params": null,
+  "effects": {"hp_regen_multiplier": 2.0},
+  "conflicts": ["slow_healer"]
+}

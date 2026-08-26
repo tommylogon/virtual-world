@@ -1,0 +1,15 @@
+{
+  "id": "vampire",
+  "name": "Vampire",
+  "description": "Undead blood-drinking creature",
+  "category": "character",
+  "color": "#880000",
+  "icon": "🧛",
+  "applies_to": [
+    "characters"
+  ],
+  "examples": [
+    "count",
+    "vampire spawn"
+  ]
+}

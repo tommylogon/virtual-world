@@ -1,0 +1,48 @@
+{
+  "name": "earbuds",
+  "description": "tangled earbuds. could help amplify quiet sounds if plugged into something.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "sound_source",
+    "music",
+    "electric",
+    "phone"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "amount": 10,
+            "stat": "entertainment",
+            "success_message": "you put in the earbuds. no music plays, but just having them in is strangely calming.",
+            "target": "self"
+          },
+          "type": "adjust_vital"
+        },
+        {
+          "params": {
+            "amount": 5,
+            "stat": "sanity",
+            "target": "self"
+          },
+          "type": "adjust_vital"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

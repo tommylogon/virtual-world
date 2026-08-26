@@ -1,0 +1,22 @@
+{
+  "auto_close": false,
+  "current_state": "open",
+  "description": "A narrow ice bridge spans the stream, its surface slick but sturdy. On the far side, the frozen thicket looms, its branches encased in rime.",
+  "edge_length": "",
+  "library_id": "",
+  "max_size": "",
+  "name": "ice bridge",
+  "needs_open": {},
+  "one_way": false,
+  "parameters": {},
+  "pass_message": "You carefully cross the ice bridge, stepping into the frozen thicket.",
+  "prevent_close": false,
+  "requires": "",
+  "see_through": false,
+  "tags": [
+    "outdoor",
+    "icy",
+    "passage"
+  ],
+  "triggers": []
+}

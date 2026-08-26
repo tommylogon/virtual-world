@@ -1,0 +1,19 @@
+{
+  "name": "candle_holder",
+  "description": "a brass wall sconce with a half-melted candle. the wax has dripped down in frozen rivulets. the candle was extinguished recently — the wick is still slightly warm.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "candle",
+    "container",
+    "metal"
+  ],
+  "triggers": [],
+  "contents": []
+}

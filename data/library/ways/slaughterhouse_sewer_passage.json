@@ -1,0 +1,18 @@
+{
+  "library_id": "",
+  "name": "slaughterhouse-sewer_passage",
+  "description": "a hidden passage behind a false wall panel in the foyer. only the butcher knows it's here.",
+  "current_state": "hidden",
+  "pass_message": "",
+  "edge_length": "",
+  "needs_open": {},
+  "auto_close": false,
+  "see_through": false,
+  "one_way": false,
+  "requires": "",
+  "max_size": "",
+  "prevent_close": false,
+  "tags": [],
+  "parameters": {},
+  "triggers": []
+}

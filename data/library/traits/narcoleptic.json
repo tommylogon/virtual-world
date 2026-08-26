@@ -1,0 +1,9 @@
+{
+  "id": "narcoleptic",
+  "name": "Narcoleptic",
+  "description": "Waves of exhaustion come and go.",
+  "category": "physical",
+  "params": null,
+  "effects": {},
+  "grants_conditions": [{"condition": "exhausted", "duration": 3}]
+}

@@ -1,0 +1,35 @@
+{
+  "name": "Loosening Throat Tonic",
+  "description": "A warm, honeyed tonic that loosens a locked throat. A sip and your voice returns.",
+  "actions": "examine,take,drink,drop",
+  "uses": 3,
+  "weight": 0.2,
+  "tags": [
+    "drink",
+    "liquid",
+    "medicine"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_drink"
+      ],
+      "effects": [
+        {
+          "type": "remove_condition",
+          "params": {
+            "condition": "mute",
+            "target": "self",
+            "message": "The tonic coats your throat, warm and sweet. You cough once, twice — and sound comes out."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

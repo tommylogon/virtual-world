@@ -1,0 +1,3167 @@
+{
+  "active_player": "Jake Halloway",
+  "areas": {
+    "Millwood Chemistry Class": {
+      "name": "Millwood Chemistry Class",
+      "description": "A standard high school chemistry lab with black-topped tables, Bunsen burners, and the faint smell of sulfur and floor wax. Periodic tables line the walls. This is where Jake and Violet first connected over their shared secrets as supers in hiding.",
+      "environment": {
+        "light": "bright",
+        "temperature": 21,
+        "air": "stale",
+        "smell": "chemicals and floor wax",
+        "noise": "muffled hallway chatter"
+      },
+      "exits": {
+        "hallway door": {
+          "target": "Millwood Hallway",
+          "state": "open",
+          "description": "A standard classroom door leading to the main hallway.",
+          "hidden": false,
+          "pass_message": "You step out into the busy hallway.",
+          "return_dir": "chemistry door",
+          "visible_in_direction": "The bustling main hallway of Millwood Public Schools.",
+          "cost": {},
+          "cardinal": "north",
+          "way_id": "way_chem_to_hall"
+        }
+      },
+      "items": [],
+      "floor": 0,
+      "light_description": "bright",
+      "properties": {
+        "description": "A standard high school chemistry lab with black-topped tables, Bunsen burners, and the faint smell of sulfur and floor wax. This is where Jake and Violet first connected.",
+        "environment": {
+          "light": "bright",
+          "temperature": 21,
+          "air": "stale",
+          "smell": "chemicals and floor wax",
+          "noise": "muffled hallway chatter"
+        },
+        "tags": [
+          "school",
+          "interior",
+          "origin_point"
+        ]
+      }
+    },
+    "Millwood Hallway": {
+      "name": "Millwood Hallway",
+      "description": "The main corridor of Millwood Public Schools, a small PK-12 school. Lockers line both walls, and the linoleum floor scuffs under hundreds of shoes. The fluorescent lights buzz overhead. Students cluster in groups between classes.",
+      "environment": {
+        "light": "bright",
+        "temperature": 20,
+        "air": "stale",
+        "smell": "body spray and cafeteria food",
+        "noise": "loud chatter and locker slams"
+      },
+      "exits": {
+        "chemistry door": {
+          "target": "Millwood Chemistry Class",
+          "state": "open",
+          "description": "The door back to the chemistry classroom.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "hallway door",
+          "visible_in_direction": "The chemistry lab with its black-topped tables.",
+          "cost": {},
+          "cardinal": "south",
+          "way_id": "way_chem_to_hall"
+        },
+        "history door": {
+          "target": "Millwood History Class",
+          "state": "open",
+          "description": "The door to the history classroom.",
+          "hidden": false,
+          "pass_message": "You enter the history classroom.",
+          "return_dir": "hallway door",
+          "visible_in_direction": "Rows of desks facing a whiteboard covered in dates.",
+          "cost": {},
+          "cardinal": "east",
+          "way_id": "way_hall_to_history"
+        },
+        "front exit": {
+          "target": "The Woods",
+          "state": "open",
+          "description": "The school's front entrance leading outside to the wooded path.",
+          "hidden": false,
+          "pass_message": "You push through the double doors into the Oklahoma afternoon.",
+          "return_dir": "school entrance",
+          "visible_in_direction": "Sunlight and the tree line of the woods beyond the parking lot.",
+          "cost": {},
+          "cardinal": "west",
+          "way_id": "way_hall_to_woods"
+        }
+      },
+      "items": [],
+      "floor": 0,
+      "light_description": "bright",
+      "properties": {
+        "description": "The main corridor of Millwood Public Schools. Lockers line both walls, and fluorescent lights buzz overhead.",
+        "environment": {
+          "light": "bright",
+          "temperature": 20,
+          "air": "stale",
+          "smell": "body spray and cafeteria food",
+          "noise": "loud chatter and locker slams"
+        },
+        "tags": [
+          "school",
+          "interior",
+          "public"
+        ]
+      }
+    },
+    "Millwood History Class": {
+      "name": "Millwood History Class",
+      "description": "A history classroom where Violet once spoke up about supers during a lesson. Desks face a whiteboard covered in timelines. A world map hangs crookedly on one wall.",
+      "environment": {
+        "light": "bright",
+        "temperature": 21,
+        "air": "stale",
+        "smell": "dry-erase markers",
+        "noise": "quiet murmuring"
+      },
+      "exits": {
+        "hallway door": {
+          "target": "Millwood Hallway",
+          "state": "open",
+          "description": "The door back to the main hallway.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "history door",
+          "visible_in_direction": "The busy main hallway.",
+          "cost": {},
+          "cardinal": "west",
+          "way_id": "way_hall_to_history"
+        }
+      },
+      "items": [],
+      "floor": 0,
+      "light_description": "bright",
+      "properties": {
+        "description": "A history classroom where Violet once spoke up about supers during a lesson.",
+        "environment": {
+          "light": "bright",
+          "temperature": 21,
+          "air": "stale",
+          "smell": "dry-erase markers",
+          "noise": "quiet murmuring"
+        },
+        "tags": [
+          "school",
+          "interior"
+        ]
+      }
+    },
+    "The Old Steel Mill": {
+      "name": "The Old Steel Mill",
+      "description": "An abandoned industrial site about twenty minutes from Millwood, rusting in the Oklahoma weather. Corrugated metal walls are pocked with holes. A deep, metal-lined shaft dominates the center of the main floor — Jake uses it to practice his electromagnetic powers. The railgun hole in the far wall attracted government agents and the Amalgam. The air is thick with dust and the echo of dripping water.",
+      "environment": {
+        "light": "dim",
+        "temperature": 18,
+        "air": "dusty",
+        "smell": "rust and ozone",
+        "noise": "echoing drips and wind through holes"
+      },
+      "exits": {
+        "woods path": {
+          "target": "The Woods",
+          "state": "open",
+          "description": "A rusted side door leading back into the forest.",
+          "hidden": false,
+          "pass_message": "You squeeze through the gap in the rusted door.",
+          "return_dir": "mill entrance",
+          "visible_in_direction": "The dense tree line of the woods.",
+          "cost": {},
+          "cardinal": "south",
+          "way_id": "way_mill_to_woods"
+        },
+        "shaft ladder": {
+          "target": "Steel Mill Shaft",
+          "state": "open",
+          "description": "A bolted steel ladder descending into the deep metal-lined testing shaft.",
+          "hidden": false,
+          "pass_message": "You climb down the cold rungs into the shaft.",
+          "return_dir": "shaft ladder up",
+          "visible_in_direction": "A dark, cylindrical shaft dropping about forty feet. The walls are lined with dented metal plating.",
+          "cost": {
+            "energy": 2,
+            "time": 1
+          },
+          "cardinal": "down",
+          "way_id": "way_mill_to_shaft"
+        }
+      },
+      "items": [],
+      "floor": 0,
+      "light_description": "dim",
+      "properties": {
+        "description": "An abandoned industrial site with a deep metal-lined shaft. Jake uses it to test his powers. The railgun hole in the wall drew unwanted attention.",
+        "environment": {
+          "light": "dim",
+          "temperature": 18,
+          "air": "dusty",
+          "smell": "rust and ozone",
+          "noise": "echoing drips and wind"
+        },
+        "tags": [
+          "abandoned",
+          "industrial",
+          "super_hideout",
+          "exterior"
+        ]
+      }
+    },
+    "Steel Mill Shaft": {
+      "name": "Steel Mill Shaft",
+      "description": "A deep, cylindrical shaft lined with dented metal plating, descending about forty feet below the mill floor. Scorch marks and small craters pock the walls from Jake's railgun tests. The air is cooler here and smells of iron. Faint electromagnetic hums linger in the metal.",
+      "environment": {
+        "light": "dim",
+        "temperature": 14,
+        "air": "cold",
+        "smell": "iron and damp earth",
+        "noise": "deep echoing silence"
+      },
+      "exits": {
+        "shaft ladder up": {
+          "target": "The Old Steel Mill",
+          "state": "open",
+          "description": "The steel ladder leading back up to the main mill floor.",
+          "hidden": false,
+          "pass_message": "You climb back up into the mill.",
+          "return_dir": "shaft ladder",
+          "visible_in_direction": "The dim main floor of the steel mill above.",
+          "cost": {
+            "energy": 2,
+            "time": 1
+          },
+          "cardinal": "up",
+          "way_id": "way_mill_to_shaft"
+        }
+      },
+      "items": [],
+      "floor": -1,
+      "light_description": "dim",
+      "properties": {
+        "description": "A deep metal-lined shaft used by Jake for power testing. Scorch marks and craters cover the walls.",
+        "environment": {
+          "light": "dim",
+          "temperature": 14,
+          "air": "cold",
+          "smell": "iron and damp earth",
+          "noise": "deep echoing silence"
+        },
+        "floor": -1,
+        "tags": [
+          "underground",
+          "testing_ground",
+          "industrial"
+        ]
+      }
+    },
+    "Halloway House Kitchen": {
+      "name": "Halloway House Kitchen",
+      "description": "A messy, lived-in suburban kitchen that hides in plain sight through its sheer lack of curation. Pots are stacked haphazardly, dishes crowd the sink, and the counter bears fresh scuff marks. The Halloways use chaos as camouflage — no government agent would believe a super family lives in this mess.",
+      "environment": {
+        "light": "normal",
+        "temperature": 23,
+        "air": "warm",
+        "smell": "garlic, coffee, and faint ozone",
+        "noise": "humming refrigerator"
+      },
+      "exits": {
+        "bathroom door": {
+          "target": "Halloway House Bathroom",
+          "state": "closed",
+          "description": "A narrow door leading to the downstairs bathroom.",
+          "hidden": false,
+          "pass_message": "You slip into the small bathroom.",
+          "return_dir": "kitchen door",
+          "visible_in_direction": "A cramped bathroom with a single sink and mirror.",
+          "cost": {},
+          "cardinal": "east",
+          "way_id": "way_kitchen_to_bath"
+        },
+        "living room arch": {
+          "target": "Halloway House Living Room",
+          "state": "open",
+          "description": "An open archway leading to the living room.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "kitchen arch",
+          "visible_in_direction": "A cluttered living room with mismatched furniture.",
+          "cost": {},
+          "cardinal": "north",
+          "way_id": "way_kitchen_to_living"
+        },
+        "back door": {
+          "target": "The Woods",
+          "state": "closed",
+          "description": "The back door leading to the wooded path behind the house.",
+          "hidden": false,
+          "pass_message": "You step out into the woods behind the Halloway house.",
+          "return_dir": "halloway back door",
+          "visible_in_direction": "The dense tree line of the woods.",
+          "cost": {},
+          "cardinal": "south",
+          "way_id": "way_kitchen_to_woods"
+        }
+      },
+      "items": [],
+      "floor": 0,
+      "light_description": "normal",
+      "properties": {
+        "description": "A messy kitchen that serves as camouflage for the Halloway family's secret super identities.",
+        "environment": {
+          "light": "normal",
+          "temperature": 23,
+          "air": "warm",
+          "smell": "garlic, coffee, and faint ozone",
+          "noise": "humming refrigerator"
+        },
+        "tags": [
+          "halloway_residence",
+          "interior",
+          "safehouse"
+        ]
+      }
+    },
+    "Halloway House Bathroom": {
+      "name": "Halloway House Bathroom",
+      "description": "A cramped downstairs bathroom with a single sink, a toilet, and a medicine cabinet. The mirror is slightly fogged. This is where Jake carefully treated Violet's injured foot after she stepped on glass at the steel mill.",
+      "environment": {
+        "light": "bright",
+        "temperature": 22,
+        "air": "humid",
+        "smell": "soap and rubbing alcohol",
+        "noise": "dripping faucet"
+      },
+      "exits": {
+        "kitchen door": {
+          "target": "Halloway House Kitchen",
+          "state": "closed",
+          "description": "The door back to the kitchen.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "bathroom door",
+          "visible_in_direction": "The messy Halloway kitchen.",
+          "cost": {},
+          "cardinal": "west",
+          "way_id": "way_kitchen_to_bath"
+        }
+      },
+      "items": [],
+      "floor": 0,
+      "light_description": "bright",
+      "properties": {
+        "description": "A small bathroom where Jake treated Violet's foot injury.",
+        "environment": {
+          "light": "bright",
+          "temperature": 22,
+          "air": "humid",
+          "smell": "soap and rubbing alcohol",
+          "noise": "dripping faucet"
+        },
+        "tags": [
+          "halloway_residence",
+          "interior"
+        ]
+      }
+    },
+    "Halloway House Living Room": {
+      "name": "Halloway House Living Room",
+      "description": "A cluttered living room with mismatched furniture, stacked board games, and a TV playing something nobody is watching. The chaos is deliberate — camouflage for a family of supers hiding from the government. A worn leather jacket hangs over the back of the couch.",
+      "environment": {
+        "light": "normal",
+        "temperature": 22,
+        "air": "warm",
+        "smell": "old books and laundry detergent",
+        "noise": "TV murmur"
+      },
+      "exits": {
+        "kitchen arch": {
+          "target": "Halloway House Kitchen",
+          "state": "open",
+          "description": "The archway back to the kitchen.",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "living room arch",
+          "visible_in_direction": "The messy kitchen.",
+          "cost": {},
+          "cardinal": "south",
+          "way_id": "way_kitchen_to_living"
+        }
+      },
+      "items": [],
+      "floor": 0,
+      "light_description": "normal",
+      "properties": {
+        "description": "A deliberately chaotic living room that camouflages the Halloway family.",
+        "environment": {
+          "light": "normal",
+          "temperature": 22,
+          "air": "warm",
+          "smell": "old books and laundry detergent",
+          "noise": "TV murmur"
+        },
+        "tags": [
+          "halloway_residence",
+          "interior"
+        ]
+      }
+    },
+    "Parr House Living Room": {
+      "name": "Parr House Living Room",
+      "description": "An immaculately kept suburban living room that serves as the Parr family's perfect disguise. Everything is in its place — until now. The front wall has been blown outward, exposing the interior to the night air and the harsh glare of government floodlights. Debris litters the carpet. The site of the joint family meeting and the Amalgam's devastating attack.",
+      "environment": {
+        "light": "bright",
+        "temperature": 15,
+        "air": "smoky",
+        "smell": "ozone, dust, and burnt wood",
+        "noise": "distant sirens and crackling debris"
+      },
+      "exits": {
+        "destroyed front": {
+          "target": "Parr House Front Yard",
+          "state": "open",
+          "description": "The shattered remains of the front wall, now a gaping hole opening to the yard.",
+          "hidden": false,
+          "pass_message": "You step over broken drywall and twisted rebar into the yard.",
+          "return_dir": "living room",
+          "visible_in_direction": "The destroyed front yard, lit by government floodlights.",
+          "cost": {},
+          "cardinal": "east",
+          "way_id": "way_parr_living_to_yard"
+        }
+      },
+      "items": [],
+      "floor": 0,
+      "light_description": "bright",
+      "properties": {
+        "description": "The Parr family living room, now destroyed by the Amalgam's attack. The front wall is gone.",
+        "environment": {
+          "light": "bright",
+          "temperature": 15,
+          "air": "smoky",
+          "smell": "ozone, dust, and burnt wood",
+          "noise": "distant sirens and crackling debris"
+        },
+        "tags": [
+          "parr_residence",
+          "interior",
+          "combat_zone",
+          "destroyed"
+        ]
+      }
+    },
+    "Parr House Front Yard": {
+      "name": "Parr House Front Yard",
+      "description": "The once-perfect Parr family front yard is now a disaster zone. The front of the house is blown out, framing the interior like a stage set. Government floodlights cast harsh white light. Tire tracks from unmarked black SUVs scar the lawn. Agents in dark suits are converging. The night air is thick with tension.",
+      "environment": {
+        "light": "bright",
+        "temperature": 14,
+        "air": "cold",
+        "smell": "exhaust fumes and burnt drywall",
+        "noise": "radio chatter and floodlight hum"
+      },
+      "exits": {
+        "living room": {
+          "target": "Parr House Living Room",
+          "state": "open",
+          "description": "The gaping hole where the front wall used to be.",
+          "hidden": false,
+          "pass_message": "You step back inside through the destroyed wall.",
+          "return_dir": "destroyed front",
+          "visible_in_direction": "The wrecked living room.",
+          "cost": {},
+          "cardinal": "west",
+          "way_id": "way_parr_living_to_yard"
+        },
+        "woods trail": {
+          "target": "The Woods",
+          "state": "open",
+          "description": "A narrow trail at the edge of the yard leading into the woods.",
+          "hidden": false,
+          "pass_message": "You slip into the tree line.",
+          "return_dir": "parr yard trail",
+          "visible_in_direction": "The dark tree line of the woods.",
+          "cost": {},
+          "cardinal": "north",
+          "way_id": "way_parr_yard_to_woods"
+        }
+      },
+      "items": [],
+      "floor": 0,
+      "light_description": "bright",
+      "properties": {
+        "description": "The destroyed Parr front yard, now swarming with government agents and floodlights.",
+        "environment": {
+          "light": "bright",
+          "temperature": 14,
+          "air": "cold",
+          "smell": "exhaust fumes and burnt drywall",
+          "noise": "radio chatter and floodlight hum"
+        },
+        "tags": [
+          "parr_residence",
+          "exterior",
+          "government_zone",
+          "destroyed"
+        ]
+      }
+    },
+    "The Woods": {
+      "name": "The Woods",
+      "description": "A dense, forested path connecting the school, the steel mill, and the neighborhoods. The canopy is thick enough to block most moonlight. The shadows here seem to move on their own, and the ambient sounds of insects occasionally fall dead silent — a sign the Amalgam is near. This was the site of the creature's initial ambush on Jake and Violet.",
+      "environment": {
+        "light": "dim",
+        "temperature": 16,
+        "air": "humid",
+        "smell": "pine, damp earth, and faint decay",
+        "noise": "rustling leaves and distant insects"
+      },
+      "exits": {
+        "school entrance": {
+          "target": "Millwood Hallway",
+          "state": "open",
+          "description": "The path back to Millwood Public Schools.",
+          "hidden": false,
+          "pass_message": "You emerge at the school entrance.",
+          "return_dir": "front exit",
+          "visible_in_direction": "The school building in the distance.",
+          "cost": {},
+          "cardinal": "east",
+          "way_id": "way_hall_to_woods"
+        },
+        "mill entrance": {
+          "target": "The Old Steel Mill",
+          "state": "open",
+          "description": "The trail leading to the abandoned steel mill.",
+          "hidden": false,
+          "pass_message": "You push through the underbrush to the mill.",
+          "return_dir": "woods path",
+          "visible_in_direction": "The rusting silhouette of the steel mill.",
+          "cost": {},
+          "cardinal": "north",
+          "way_id": "way_mill_to_woods"
+        },
+        "halloway back door": {
+          "target": "Halloway House Kitchen",
+          "state": "closed",
+          "description": "The back door of the Halloway house.",
+          "hidden": false,
+          "pass_message": "You let yourself into the Halloway kitchen.",
+          "return_dir": "back door",
+          "visible_in_direction": "The warm glow of the Halloway kitchen through the window.",
+          "cost": {},
+          "cardinal": "west",
+          "way_id": "way_kitchen_to_woods"
+        },
+        "parr yard trail": {
+          "target": "Parr House Front Yard",
+          "state": "open",
+          "description": "A narrow trail leading to the Parr house.",
+          "hidden": false,
+          "pass_message": "You emerge at the edge of the Parr property.",
+          "return_dir": "woods trail",
+          "visible_in_direction": "Floodlights glow through the trees ahead.",
+          "cost": {},
+          "cardinal": "south",
+          "way_id": "way_parr_yard_to_woods"
+        }
+      },
+      "items": [],
+      "floor": 0,
+      "light_description": "dim",
+      "properties": {
+        "description": "A dense forest connecting all major locations. The Amalgam hunts here.",
+        "environment": {
+          "light": "dim",
+          "temperature": 16,
+          "air": "humid",
+          "smell": "pine, damp earth, and faint decay",
+          "noise": "rustling leaves and distant insects"
+        },
+        "tags": [
+          "wilderness",
+          "exterior",
+          "ambush_zone",
+          "amalgam_territory"
+        ]
+      }
+    }
+  },
+  "clock_start_hour": 15,
+  "clock_start_minute": 30,
+  "current_area": "Halloway House Kitchen",
+  "game_time": "15:30:00",
+  "ghost_mode": false,
+  "graph": {
+    "nodes": {
+      "area_millwood_chemistry": {
+        "id": "area_millwood_chemistry",
+        "type": "area",
+        "name": "Millwood Chemistry Class",
+        "properties": {
+          "description": "A standard high school chemistry lab with black-topped tables, Bunsen burners, and the faint smell of sulfur and floor wax. This is where Jake and Violet first connected over their shared secrets.",
+          "environment": {
+            "light": "bright",
+            "temperature": 21,
+            "air": "stale",
+            "smell": "chemicals and floor wax",
+            "noise": "muffled hallway chatter"
+          },
+          "floor": 0,
+          "tags": [
+            "school",
+            "interior",
+            "origin_point"
+          ]
+        }
+      },
+      "area_millwood_hallway": {
+        "id": "area_millwood_hallway",
+        "type": "area",
+        "name": "Millwood Hallway",
+        "properties": {
+          "description": "The main corridor of Millwood Public Schools. Lockers line both walls, and fluorescent lights buzz overhead.",
+          "environment": {
+            "light": "bright",
+            "temperature": 20,
+            "air": "stale",
+            "smell": "body spray and cafeteria food",
+            "noise": "loud chatter and locker slams"
+          },
+          "floor": 0,
+          "tags": [
+            "school",
+            "interior",
+            "public"
+          ]
+        }
+      },
+      "area_millwood_history": {
+        "id": "area_millwood_history",
+        "type": "area",
+        "name": "Millwood History Class",
+        "properties": {
+          "description": "A history classroom where Violet once spoke up about supers during a lesson.",
+          "environment": {
+            "light": "bright",
+            "temperature": 21,
+            "air": "stale",
+            "smell": "dry-erase markers",
+            "noise": "quiet murmuring"
+          },
+          "floor": 0,
+          "tags": [
+            "school",
+            "interior"
+          ]
+        }
+      },
+      "area_old_steel_mill": {
+        "id": "area_old_steel_mill",
+        "type": "area",
+        "name": "The Old Steel Mill",
+        "properties": {
+          "description": "An abandoned industrial site with a deep metal-lined shaft. Jake uses it to test his powers. The railgun hole in the wall drew unwanted attention.",
+          "environment": {
+            "light": "dim",
+            "temperature": 18,
+            "air": "dusty",
+            "smell": "rust and ozone",
+            "noise": "echoing drips and wind"
+          },
+          "floor": 0,
+          "tags": [
+            "abandoned",
+            "industrial",
+            "super_hideout",
+            "exterior"
+          ]
+        }
+      },
+      "area_steel_mill_shaft": {
+        "id": "area_steel_mill_shaft",
+        "type": "area",
+        "name": "Steel Mill Shaft",
+        "properties": {
+          "description": "A deep metal-lined shaft used by Jake for power testing. Scorch marks and craters cover the walls.",
+          "environment": {
+            "light": "dim",
+            "temperature": 14,
+            "air": "cold",
+            "smell": "iron and damp earth",
+            "noise": "deep echoing silence"
+          },
+          "floor": -1,
+          "tags": [
+            "underground",
+            "testing_ground",
+            "industrial"
+          ]
+        }
+      },
+      "area_halloway_kitchen": {
+        "id": "area_halloway_kitchen",
+        "type": "area",
+        "name": "Halloway House Kitchen",
+        "properties": {
+          "description": "A messy kitchen that serves as camouflage for the Halloway family's secret super identities.",
+          "environment": {
+            "light": "normal",
+            "temperature": 23,
+            "air": "warm",
+            "smell": "garlic, coffee, and faint ozone",
+            "noise": "humming refrigerator"
+          },
+          "floor": 0,
+          "tags": [
+            "halloway_residence",
+            "interior",
+            "safehouse"
+          ]
+        }
+      },
+      "area_halloway_bathroom": {
+        "id": "area_halloway_bathroom",
+        "type": "area",
+        "name": "Halloway House Bathroom",
+        "properties": {
+          "description": "A small bathroom where Jake treated Violet's foot injury.",
+          "environment": {
+            "light": "bright",
+            "temperature": 22,
+            "air": "humid",
+            "smell": "soap and rubbing alcohol",
+            "noise": "dripping faucet"
+          },
+          "floor": 0,
+          "tags": [
+            "halloway_residence",
+            "interior"
+          ]
+        }
+      },
+      "area_halloway_living": {
+        "id": "area_halloway_living",
+        "type": "area",
+        "name": "Halloway House Living Room",
+        "properties": {
+          "description": "A deliberately chaotic living room that camouflages the Halloway family.",
+          "environment": {
+            "light": "normal",
+            "temperature": 22,
+            "air": "warm",
+            "smell": "old books and laundry detergent",
+            "noise": "TV murmur"
+          },
+          "floor": 0,
+          "tags": [
+            "halloway_residence",
+            "interior"
+          ]
+        }
+      },
+      "area_parr_living": {
+        "id": "area_parr_living",
+        "type": "area",
+        "name": "Parr House Living Room",
+        "properties": {
+          "description": "The Parr family living room, now destroyed by the Amalgam's attack. The front wall is gone.",
+          "environment": {
+            "light": "bright",
+            "temperature": 15,
+            "air": "smoky",
+            "smell": "ozone, dust, and burnt wood",
+            "noise": "distant sirens and crackling debris"
+          },
+          "floor": 0,
+          "tags": [
+            "parr_residence",
+            "interior",
+            "combat_zone",
+            "destroyed"
+          ]
+        }
+      },
+      "area_parr_front_yard": {
+        "id": "area_parr_front_yard",
+        "type": "area",
+        "name": "Parr House Front Yard",
+        "properties": {
+          "description": "The destroyed Parr front yard, now swarming with government agents and floodlights.",
+          "environment": {
+            "light": "bright",
+            "temperature": 14,
+            "air": "cold",
+            "smell": "exhaust fumes and burnt drywall",
+            "noise": "radio chatter and floodlight hum"
+          },
+          "floor": 0,
+          "tags": [
+            "parr_residence",
+            "exterior",
+            "government_zone",
+            "destroyed"
+          ]
+        }
+      },
+      "area_the_woods": {
+        "id": "area_the_woods",
+        "type": "area",
+        "name": "The Woods",
+        "properties": {
+          "description": "A dense forest connecting all major locations. The Amalgam hunts here.",
+          "environment": {
+            "light": "dim",
+            "temperature": 16,
+            "air": "humid",
+            "smell": "pine, damp earth, and faint decay",
+            "noise": "rustling leaves and distant insects"
+          },
+          "floor": 0,
+          "tags": [
+            "wilderness",
+            "exterior",
+            "ambush_zone",
+            "amalgam_territory"
+          ]
+        }
+      },
+      "way_chem_to_hall": {
+        "id": "way_chem_to_hall",
+        "type": "way",
+        "name": "chemistry door",
+        "properties": {
+          "area_from": "Millwood Chemistry Class",
+          "area_to": "Millwood Hallway",
+          "current_state": "open",
+          "description": "A standard classroom door.",
+          "cost": {},
+          "hidden": false
+        }
+      },
+      "way_hall_to_history": {
+        "id": "way_hall_to_history",
+        "type": "way",
+        "name": "history door",
+        "properties": {
+          "area_from": "Millwood Hallway",
+          "area_to": "Millwood History Class",
+          "current_state": "open",
+          "description": "The door to the history classroom.",
+          "cost": {},
+          "hidden": false
+        }
+      },
+      "way_hall_to_woods": {
+        "id": "way_hall_to_woods",
+        "type": "way",
+        "name": "front exit",
+        "properties": {
+          "area_from": "Millwood Hallway",
+          "area_to": "The Woods",
+          "current_state": "open",
+          "description": "The school's front entrance leading outside.",
+          "cost": {},
+          "hidden": false
+        }
+      },
+      "way_mill_to_woods": {
+        "id": "way_mill_to_woods",
+        "type": "way",
+        "name": "woods path",
+        "properties": {
+          "area_from": "The Old Steel Mill",
+          "area_to": "The Woods",
+          "current_state": "open",
+          "description": "A rusted side door leading into the forest.",
+          "cost": {},
+          "hidden": false
+        }
+      },
+      "way_mill_to_shaft": {
+        "id": "way_mill_to_shaft",
+        "type": "way",
+        "name": "shaft ladder",
+        "properties": {
+          "area_from": "The Old Steel Mill",
+          "area_to": "Steel Mill Shaft",
+          "current_state": "open",
+          "description": "A bolted steel ladder descending into the testing shaft.",
+          "cost": {
+            "energy": 2,
+            "time": 1
+          },
+          "hidden": false,
+          "requires": "climb",
+          "climb_dc": 8
+        }
+      },
+      "way_kitchen_to_bath": {
+        "id": "way_kitchen_to_bath",
+        "type": "way",
+        "name": "bathroom door",
+        "properties": {
+          "area_from": "Halloway House Kitchen",
+          "area_to": "Halloway House Bathroom",
+          "current_state": "closed",
+          "description": "A narrow door leading to the downstairs bathroom.",
+          "cost": {},
+          "hidden": false
+        }
+      },
+      "way_kitchen_to_living": {
+        "id": "way_kitchen_to_living",
+        "type": "way",
+        "name": "living room arch",
+        "properties": {
+          "area_from": "Halloway House Kitchen",
+          "area_to": "Halloway House Living Room",
+          "current_state": "open",
+          "description": "An open archway leading to the living room.",
+          "cost": {},
+          "hidden": false
+        }
+      },
+      "way_kitchen_to_woods": {
+        "id": "way_kitchen_to_woods",
+        "type": "way",
+        "name": "back door",
+        "properties": {
+          "area_from": "Halloway House Kitchen",
+          "area_to": "The Woods",
+          "current_state": "closed",
+          "description": "The back door leading to the wooded path.",
+          "cost": {},
+          "hidden": false
+        }
+      },
+      "way_parr_living_to_yard": {
+        "id": "way_parr_living_to_yard",
+        "type": "way",
+        "name": "destroyed front",
+        "properties": {
+          "area_from": "Parr House Living Room",
+          "area_to": "Parr House Front Yard",
+          "current_state": "open",
+          "description": "The shattered remains of the front wall.",
+          "cost": {},
+          "hidden": false
+        }
+      },
+      "way_parr_yard_to_woods": {
+        "id": "way_parr_yard_to_woods",
+        "type": "way",
+        "name": "woods trail",
+        "properties": {
+          "area_from": "Parr House Front Yard",
+          "area_to": "The Woods",
+          "current_state": "open",
+          "description": "A narrow trail leading into the woods.",
+          "cost": {},
+          "hidden": false
+        }
+      },
+      "item_jake_glasses": {
+        "id": "item_jake_glasses",
+        "type": "item",
+        "name": "Jake's Glasses",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "unequip"
+          ],
+          "description": "Prescription glasses for double vision, rarely worn. Smudged and slightly bent from being sat on. The frames are utilitarian and a little too big for Jake's face.",
+          "current_state": "normal",
+          "uses": -1,
+          "weight": 0.05,
+          "hidden": false,
+          "tags": [
+            "accessory",
+            "portable"
+          ],
+          "equip_slots": [
+            "accessory"
+          ]
+        }
+      },
+      "item_violet_hairband": {
+        "id": "item_violet_hairband",
+        "type": "item",
+        "name": "Violet's Hairband",
+        "properties": {
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "description": "A simple dark hairband used to keep Violet's long black hair out of her face. She fidgets with it when nervous.",
+          "current_state": "normal",
+          "uses": -1,
+          "weight": 0.01,
+          "hidden": false,
+          "tags": [
+            "accessory",
+            "cloth",
+            "portable"
+          ]
+        }
+      },
+      "item_leah_leather_jacket": {
+        "id": "item_leah_leather_jacket",
+        "type": "item",
+        "name": "Leah's Leather Jacket",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "unequip"
+          ],
+          "description": "A worn, vintage leather jacket adorned with subtle silver rings and punk studs. Smells faintly of clove cigarettes and ozone. It looks like armor.",
+          "current_state": "normal",
+          "uses": -1,
+          "weight": 2.5,
+          "hidden": false,
+          "tags": [
+            "clothing",
+            "armor",
+            "portable"
+          ],
+          "equip_slots": [
+            "torso",
+            "arms"
+          ],
+          "defense": 2
+        }
+      },
+      "item_amalgam_fragment": {
+        "id": "item_amalgam_fragment",
+        "type": "item",
+        "name": "Amalgam Biomass Fragment",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "inspect"
+          ],
+          "description": "A severed piece of the Amalgam — a twitching mass of black tendrils and dark biomass. It smells of copper and ancient earth. It slowly attempts to re-knit itself. Touching it directly is extremely dangerous.",
+          "current_state": "normal",
+          "uses": -1,
+          "weight": 1.2,
+          "hidden": false,
+          "tags": [
+            "organic",
+            "hazard",
+            "amalgam",
+            "cursed"
+          ]
+        }
+      },
+      "item_gov_mindwipe": {
+        "id": "item_gov_mindwipe",
+        "type": "item",
+        "name": "NSA Neural Flash",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "inspect"
+          ],
+          "description": "A sleek, silver government device used to wipe the short-term memories of civilians who witness superhero activity. It has a small screen and a single activation button. A government serial number is etched on the back.",
+          "current_state": "normal",
+          "uses": 3,
+          "weight": 0.3,
+          "hidden": false,
+          "tags": [
+            "electronic",
+            "tool",
+            "government"
+          ]
+        }
+      },
+      "item_vi_phone_case": {
+        "id": "item_vi_phone_case",
+        "type": "item",
+        "name": "Vi's Ruined Phone Case",
+        "properties": {
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "description": "A phone case melted and warped by stray electromagnetic sparks and forcefield friction. Vi is demanding recompense for this. It smells of burnt plastic.",
+          "current_state": "broken",
+          "uses": -1,
+          "weight": 0.08,
+          "hidden": false,
+          "tags": [
+            "junk",
+            "portable",
+            "quest_item"
+          ]
+        }
+      },
+      "item_first_aid_kit": {
+        "id": "item_first_aid_kit",
+        "type": "item",
+        "name": "First Aid Kit",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "use_on",
+            "open"
+          ],
+          "description": "A standard white first aid kit stocked with bandages, antiseptic wipes, tweezers, and gauze. Used by Jake to treat Violet's foot after she stepped on glass at the steel mill.",
+          "current_state": "normal",
+          "uses": 5,
+          "weight": 1,
+          "hidden": false,
+          "tags": [
+            "medicine",
+            "container",
+            "portable",
+            "tool"
+          ],
+          "contents": []
+        }
+      },
+      "item_marcus_bandana": {
+        "id": "item_marcus_bandana",
+        "type": "item",
+        "name": "Marcus's Bandana",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "unequip"
+          ],
+          "description": "A faded black bandana that Marcus always wore. It smells of motor oil and leather. It feels heavier than it should.",
+          "current_state": "normal",
+          "uses": -1,
+          "weight": 0.05,
+          "hidden": false,
+          "tags": [
+            "clothing",
+            "portable",
+            "memento"
+          ],
+          "equip_slots": [
+            "head"
+          ]
+        }
+      },
+      "player_Jake_Halloway": {
+        "id": "player_Jake_Halloway",
+        "type": "character",
+        "name": "Jake Halloway",
+        "properties": {
+          "personality": "You are Jake Halloway, 18. Chaotic, unfiltered, oscillating between shy and hyperactively silly. Fiercely intelligent but socially oblivious, you use sexual humor and bad puns to deflect and connect. Deeply loyal, you always ask permission and respect boundaries despite your impulsive nature. Known as the 'weird kid' at school but unbothered by it. Your electromagnetic powers require precision — emotional states cause uncontrolled bursts.",
+          "description": "An 18-year-old with seagreen eyes flecked with gold, short stiff hair that sticks up, and a slim build. He wears a utilitarian hoodie and jeans. Sparks of static electricity occasionally crackle at his fingertips.",
+          "base_description": "Jake Halloway, 18, 175cm, 71kg, slim build. Seagreen eyes with golden/amber flecks, short stiff hair. Style is utilitarian, lived-in — mostly hoodies and jeans. Son of Leah and Marcus Halloway, brother to Erin and Vi. His electromagnetic powers let him fire railgun-like projectiles, levitate metal, manipulate electronics, numb nerves, deliver shocks, and perform Tesla coil discharges.",
+          "stats": {
+            "STR": 9,
+            "DEX": 12,
+            "CON": 10,
+            "INT": 16,
+            "WIS": 10,
+            "CHA": 11
+          },
+          "vitals": {
+            "HP": 90,
+            "Max_HP": 100,
+            "Hunger": 30,
+            "Thirst": 25,
+            "Hygiene": 60,
+            "Energy": 85,
+            "Social": 55,
+            "Bladder": 60,
+            "Sanity": 80,
+            "Entertainment": 45,
+            "Temperature": 36.8,
+            "Mana": 0
+          },
+          "skills": {
+            "Perception": 2,
+            "Athletics": 1,
+            "Stealth": 1,
+            "Persuasion": 2,
+            "Survival": 1,
+            "Acrobatics": 1
+          },
+          "traits": {
+            "electromagnetic": true
+          },
+          "tags": [
+            "male",
+            "super",
+            "halloway_family",
+            "teen"
+          ],
+          "conditions": {
+            "awake": [
+              {
+                "duration": null,
+                "source": null,
+                "level": 0
+              }
+            ]
+          },
+          "equipped": {
+            "head": [],
+            "torso": [],
+            "legs": [],
+            "feet": [],
+            "hands": [],
+            "hand_left": [],
+            "hand_right": [],
+            "back": [],
+            "accessory": [],
+            "neck": [],
+            "waist": []
+          },
+          "state": "awake",
+          "state_timer": 0,
+          "current_area": "Halloway House Kitchen",
+          "decay_rates": {
+            "Hunger": 1,
+            "Thirst": 1,
+            "Hygiene": 1,
+            "Energy": 1,
+            "Social": 1,
+            "Bladder": 1,
+            "Sanity": 1,
+            "Entertainment": 1
+          },
+          "emotion": {
+            "current": "anxious",
+            "description": "Still buzzing from the Amalgam encounter.",
+            "intensity": 0.6
+          },
+          "relationships": {
+            "Violet Parr": {
+              "closeness": 8,
+              "first_sighting": false,
+              "interaction_count": 12,
+              "last_interaction_tick": 0
+            },
+            "Leah Halloway": {
+              "closeness": 9,
+              "first_sighting": false,
+              "interaction_count": 50,
+              "last_interaction_tick": 0
+            },
+            "Marcus Halloway": {
+              "closeness": 9,
+              "first_sighting": false,
+              "interaction_count": 50,
+              "last_interaction_tick": 0
+            }
+          },
+          "memories": [],
+          "activity": null,
+          "npc_behavior": "wander",
+          "npc_action_interval": 3,
+          "npc_state": "idle",
+          "behaviors": [],
+          "simple_npc": false
+        }
+      },
+      "player_Violet_Parr": {
+        "id": "player_Violet_Parr",
+        "type": "character",
+        "name": "Violet Parr",
+        "properties": {
+          "personality": "You are Violet Parr, 18. Flirty and fun on the surface, but deeply conflicted. You present as a 'good girl' at school and home, but harbor secret desires and shame you share with no one. Intelligent, insightful, and fiercely protective of those you care about, you have spent years hiding your true self out of fear. You are lonely and desperate for someone who accepts all of you. Your invisibility is triggered involuntarily by anxiety.",
+          "description": "An 18-year-old with long black hair, blue-violet eyes, and a waifish face. She wears a hairband and a simple outfit. When anxious, her edges shimmer and fade as she begins to turn invisible.",
+          "base_description": "Violet Parr, 18, 5'4\", 100 lbs, skinny build, long black hair, blue-violet eyes. Daughter of Bob (Mr. Incredible) and Helen (Elastigirl). Powers: invisibility (anxiety-triggered) and violet-hued forcefields. At age 10, helped defeat Syndrome. A government mind-wipe incident forced the family to relocate to Oklahoma.",
+          "stats": {
+            "STR": 8,
+            "DEX": 13,
+            "CON": 9,
+            "INT": 15,
+            "WIS": 12,
+            "CHA": 13
+          },
+          "vitals": {
+            "HP": 85,
+            "Max_HP": 100,
+            "Hunger": 35,
+            "Thirst": 30,
+            "Hygiene": 75,
+            "Energy": 80,
+            "Social": 45,
+            "Bladder": 55,
+            "Sanity": 70,
+            "Entertainment": 40,
+            "Temperature": 36.7,
+            "Mana": 0
+          },
+          "skills": {
+            "Perception": 2,
+            "Athletics": 1,
+            "Stealth": 3,
+            "Persuasion": 1,
+            "Survival": 1,
+            "Acrobatics": 2
+          },
+          "traits": {
+            "forcefield": true,
+            "invisibility": true
+          },
+          "tags": [
+            "female",
+            "super",
+            "parr_family",
+            "teen"
+          ],
+          "conditions": {
+            "awake": [
+              {
+                "duration": null,
+                "source": null,
+                "level": 0
+              }
+            ]
+          },
+          "equipped": {
+            "head": [],
+            "torso": [],
+            "legs": [],
+            "feet": [],
+            "hands": [],
+            "hand_left": [],
+            "hand_right": [],
+            "back": [],
+            "accessory": [],
+            "neck": [],
+            "waist": []
+          },
+          "state": "awake",
+          "state_timer": 0,
+          "current_area": "Halloway House Kitchen",
+          "decay_rates": {
+            "Hunger": 1,
+            "Thirst": 1,
+            "Hygiene": 1,
+            "Energy": 1,
+            "Social": 1,
+            "Bladder": 1,
+            "Sanity": 1,
+            "Entertainment": 1
+          },
+          "emotion": {
+            "current": "vulnerable",
+            "description": "Shaken by the Amalgam attack and exposed secrets.",
+            "intensity": 0.7
+          },
+          "relationships": {
+            "Jake Halloway": {
+              "closeness": 8,
+              "first_sighting": false,
+              "interaction_count": 12,
+              "last_interaction_tick": 0
+            },
+            "Bob Parr": {
+              "closeness": 9,
+              "first_sighting": false,
+              "interaction_count": 100,
+              "last_interaction_tick": 0
+            },
+            "Helen Parr": {
+              "closeness": 9,
+              "first_sighting": false,
+              "interaction_count": 100,
+              "last_interaction_tick": 0
+            }
+          },
+          "memories": [],
+          "activity": null,
+          "npc_behavior": "wander",
+          "npc_action_interval": 3,
+          "npc_state": "idle",
+          "behaviors": [],
+          "simple_npc": false
+        }
+      },
+      "player_Vi_Halloway": {
+        "id": "player_Vi_Halloway",
+        "type": "character",
+        "name": "Vi Halloway",
+        "properties": {
+          "personality": "Sarcastic, mischievous, and a self-proclaimed 'menace.' Sharp-tongued but affectionate. Often jealous that Jake does 'cool' things with others but not her.",
+          "description": "A 15-year-old with a sharp grin and restless energy. Jake's younger sister.",
+          "base_description": "Violet 'Vi' Halloway, 15. Powers: intangibility (phase through solid matter) and voice-cloning (perfectly mimic any voice and throw it). Once used her dad's voice to try to get a credit card number.",
+          "stats": {
+            "STR": 8,
+            "DEX": 14,
+            "CON": 9,
+            "INT": 12,
+            "WIS": 10,
+            "CHA": 14
+          },
+          "vitals": {
+            "HP": 100,
+            "Max_HP": 100,
+            "Hunger": 20,
+            "Thirst": 20,
+            "Hygiene": 85,
+            "Energy": 95,
+            "Social": 70,
+            "Bladder": 70,
+            "Sanity": 95,
+            "Entertainment": 60,
+            "Temperature": 36.8,
+            "Mana": 0
+          },
+          "skills": {
+            "Perception": 2,
+            "Athletics": 1,
+            "Stealth": 2,
+            "Persuasion": 2,
+            "Survival": 0,
+            "Acrobatics": 2
+          },
+          "traits": {
+            "intangible": true,
+            "voice_clone": true
+          },
+          "tags": [
+            "female",
+            "super",
+            "halloway_family",
+            "teen"
+          ],
+          "conditions": {
+            "awake": [
+              {
+                "duration": null,
+                "source": null,
+                "level": 0
+              }
+            ]
+          },
+          "equipped": {
+            "head": [],
+            "torso": [],
+            "legs": [],
+            "feet": [],
+            "hands": [],
+            "hand_left": [],
+            "hand_right": [],
+            "back": [],
+            "accessory": [],
+            "neck": [],
+            "waist": []
+          },
+          "state": "awake",
+          "state_timer": 0,
+          "current_area": "Halloway House Living Room",
+          "decay_rates": {
+            "Hunger": 1,
+            "Thirst": 1,
+            "Hygiene": 1,
+            "Energy": 1,
+            "Social": 1,
+            "Bladder": 1,
+            "Sanity": 1,
+            "Entertainment": 1
+          },
+          "emotion": {
+            "current": "annoyed",
+            "description": "Still mad about her ruined phone case.",
+            "intensity": 0.4
+          },
+          "relationships": {},
+          "memories": [],
+          "activity": null,
+          "npc_behavior": "wander",
+          "npc_action_interval": 3,
+          "npc_state": "idle",
+          "behaviors": [],
+          "simple_npc": false
+        }
+      },
+      "player_Erin_Halloway": {
+        "id": "player_Erin_Halloway",
+        "type": "character",
+        "name": "Erin Halloway",
+        "properties": {
+          "personality": "Cool, intimidating, and seemingly aloof, but fiercely protective of her family. Selective about who she interacts with. Uses her power subtly. Smokes.",
+          "description": "An older sister (graduated last year) with dark hair, punk/goth style, ripped jeans, and band tees. A cigarette dangles from her fingers.",
+          "base_description": "Erin Halloway, graduated last year. Powers: emotional manipulation through her voice — her singing can influence feelings (calm, joy, fear). Not mind control, but powerful suggestion. Once calmed a furious Bob Parr with a lullaby in exchange for $200.",
+          "stats": {
+            "STR": 10,
+            "DEX": 11,
+            "CON": 10,
+            "INT": 12,
+            "WIS": 13,
+            "CHA": 16
+          },
+          "vitals": {
+            "HP": 100,
+            "Max_HP": 100,
+            "Hunger": 25,
+            "Thirst": 30,
+            "Hygiene": 80,
+            "Energy": 90,
+            "Social": 50,
+            "Bladder": 65,
+            "Sanity": 90,
+            "Entertainment": 55,
+            "Temperature": 36.7,
+            "Mana": 0
+          },
+          "skills": {
+            "Perception": 2,
+            "Athletics": 1,
+            "Stealth": 1,
+            "Persuasion": 3,
+            "Survival": 1,
+            "Acrobatics": 1
+          },
+          "traits": {
+            "emotional_voice": true
+          },
+          "tags": [
+            "female",
+            "super",
+            "halloway_family",
+            "adult"
+          ],
+          "conditions": {
+            "awake": [
+              {
+                "duration": null,
+                "source": null,
+                "level": 0
+              }
+            ]
+          },
+          "equipped": {
+            "head": [],
+            "torso": [],
+            "legs": [],
+            "feet": [],
+            "hands": [],
+            "hand_left": [],
+            "hand_right": [],
+            "back": [],
+            "accessory": [],
+            "neck": [],
+            "waist": []
+          },
+          "state": "awake",
+          "state_timer": 0,
+          "current_area": "Halloway House Living Room",
+          "decay_rates": {
+            "Hunger": 1,
+            "Thirst": 1,
+            "Hygiene": 1,
+            "Energy": 1,
+            "Social": 1,
+            "Bladder": 1,
+            "Sanity": 1,
+            "Entertainment": 1
+          },
+          "emotion": {
+            "current": "neutral",
+            "description": "",
+            "intensity": 0
+          },
+          "relationships": {},
+          "memories": [],
+          "activity": null,
+          "npc_behavior": "stationary",
+          "npc_action_interval": 5,
+          "npc_state": "idle",
+          "behaviors": [],
+          "simple_npc": false
+        }
+      },
+      "player_Leah_Halloway": {
+        "id": "player_Leah_Halloway",
+        "type": "character",
+        "name": "Leah Halloway",
+        "properties": {
+          "personality": "Stern, intimidating, fair, and utterly unflappable. A retired government spy known as 'Swift.' Analytical and strategic but deeply caring. She twists Jake's ear when he's reckless. Looks like she could beat the shit out of you but also be kind about it.",
+          "description": "Angular, dark hair with a silver streak, goth/punk style — leather jacket, band tees, silver rings. Her eyes miss nothing.",
+          "base_description": "Leah Halloway (née Swift), mother. A legendary ex-government spy. Powers: memory reading via touch (sees recent, prominent memories). Recently unlocked a dormant ability to manifest diamond-like armor over her body, triggered by touching the Amalgam. Knew Bob and Helen Parr from the old days.",
+          "stats": {
+            "STR": 13,
+            "DEX": 14,
+            "CON": 12,
+            "INT": 15,
+            "WIS": 14,
+            "CHA": 12
+          },
+          "vitals": {
+            "HP": 100,
+            "Max_HP": 100,
+            "Hunger": 30,
+            "Thirst": 25,
+            "Hygiene": 85,
+            "Energy": 85,
+            "Social": 60,
+            "Bladder": 70,
+            "Sanity": 90,
+            "Entertainment": 50,
+            "Temperature": 36.7,
+            "Mana": 0
+          },
+          "skills": {
+            "Perception": 3,
+            "Athletics": 2,
+            "Stealth": 3,
+            "Persuasion": 2,
+            "Survival": 2,
+            "Acrobatics": 2
+          },
+          "traits": {
+            "memory_read": true,
+            "diamond_armor": true
+          },
+          "tags": [
+            "female",
+            "super",
+            "halloway_family",
+            "adult",
+            "ex_spy"
+          ],
+          "conditions": {
+            "awake": [
+              {
+                "duration": null,
+                "source": null,
+                "level": 0
+              }
+            ]
+          },
+          "equipped": {
+            "head": [],
+            "torso": [],
+            "legs": [],
+            "feet": [],
+            "hands": [],
+            "hand_left": [],
+            "hand_right": [],
+            "back": [],
+            "accessory": [],
+            "neck": [],
+            "waist": []
+          },
+          "state": "awake",
+          "state_timer": 0,
+          "current_area": "Halloway House Kitchen",
+          "decay_rates": {
+            "Hunger": 1,
+            "Thirst": 1,
+            "Hygiene": 1,
+            "Energy": 1,
+            "Social": 1,
+            "Bladder": 1,
+            "Sanity": 1,
+            "Entertainment": 1
+          },
+          "emotion": {
+            "current": "alert",
+            "description": "Analyzing the Amalgam threat.",
+            "intensity": 0.5
+          },
+          "relationships": {
+            "Bob Parr": {
+              "closeness": 6,
+              "first_sighting": false,
+              "interaction_count": 5,
+              "last_interaction_tick": 0
+            },
+            "Helen Parr": {
+              "closeness": 6,
+              "first_sighting": false,
+              "interaction_count": 5,
+              "last_interaction_tick": 0
+            }
+          },
+          "memories": [],
+          "activity": null,
+          "npc_behavior": "stationary",
+          "npc_action_interval": 4,
+          "npc_state": "idle",
+          "behaviors": [],
+          "simple_npc": false
+        }
+      },
+      "player_Marcus_Halloway": {
+        "id": "player_Marcus_Halloway",
+        "type": "character",
+        "name": "Marcus Halloway",
+        "properties": {
+          "personality": "Laid-back, dry humor, but a formidable fighter. Fiercely protective. Has a 'no pulling metal objects around the house' rule due to a personal piercing incident. Was tragically killed by the Amalgam.",
+          "description": "Tall, thin, muscular, salt-and-pepper hair, goatee, bandana, sunglasses, leather jacket. Looks like a biker. Currently deceased — killed by the Amalgam when a tendril pierced his skull.",
+          "base_description": "Marcus Halloway, father. Retired mercenary (code name 'Mimic'/'Echo'), former military, biker, chef, and stripper. Powers: kinetic memory/skill duplication — perfectly replicates any physical skill he observes. Had a brief fling with Helen Parr 25 years ago. Killed by the Amalgam.",
+          "stats": {
+            "STR": 15,
+            "DEX": 13,
+            "CON": 13,
+            "INT": 11,
+            "WIS": 12,
+            "CHA": 12
+          },
+          "vitals": {
+            "HP": 0,
+            "Max_HP": 100,
+            "Hunger": 100,
+            "Thirst": 100,
+            "Hygiene": 50,
+            "Energy": 0,
+            "Social": 0,
+            "Bladder": 0,
+            "Sanity": 0,
+            "Entertainment": 0,
+            "Temperature": 20,
+            "Mana": 0
+          },
+          "skills": {
+            "Perception": 2,
+            "Athletics": 3,
+            "Stealth": 2,
+            "Persuasion": 1,
+            "Survival": 3,
+            "Acrobatics": 2
+          },
+          "traits": {
+            "kinetic_memory": true
+          },
+          "tags": [
+            "male",
+            "super",
+            "halloway_family",
+            "adult",
+            "deceased"
+          ],
+          "conditions": {
+            "dead": [
+              {
+                "duration": null,
+                "source": "The Amalgam",
+                "level": 0
+              }
+            ]
+          },
+          "equipped": {
+            "head": [],
+            "torso": [],
+            "legs": [],
+            "feet": [],
+            "hands": [],
+            "hand_left": [],
+            "hand_right": [],
+            "back": [],
+            "accessory": [],
+            "neck": [],
+            "waist": []
+          },
+          "state": "dead",
+          "state_timer": 0,
+          "current_area": "Parr House Living Room",
+          "decay_rates": {
+            "Hunger": 0,
+            "Thirst": 0,
+            "Hygiene": 0,
+            "Energy": 0,
+            "Social": 0,
+            "Bladder": 0,
+            "Sanity": 0,
+            "Entertainment": 0
+          },
+          "emotion": {
+            "current": "neutral",
+            "description": "",
+            "intensity": 0
+          },
+          "relationships": {},
+          "memories": [],
+          "activity": null,
+          "npc_behavior": "stationary",
+          "npc_action_interval": 999,
+          "npc_state": "idle",
+          "behaviors": [],
+          "simple_npc": true
+        }
+      },
+      "player_Bob_Parr": {
+        "id": "player_Bob_Parr",
+        "type": "character",
+        "name": "Bob Parr",
+        "properties": {
+          "personality": "Protective to a fault, gruff but loving. Struggles to accept his daughter growing up and the danger their family faces, but is capable of surprising gentleness. Famous retired superhero — Mr. Incredible.",
+          "description": "Massive, muscular build. His jaw is set tight and his fists are clenched. The destruction of his home has him barely containing his rage.",
+          "base_description": "Bob Parr (Mr. Incredible). Massive, muscular build. Powers: super strength and near-invulnerability. Father of Violet, Dash, and Jack-Jack. Husband of Helen.",
+          "stats": {
+            "STR": 20,
+            "DEX": 10,
+            "CON": 18,
+            "INT": 10,
+            "WIS": 11,
+            "CHA": 12
+          },
+          "vitals": {
+            "HP": 100,
+            "Max_HP": 100,
+            "Hunger": 40,
+            "Thirst": 35,
+            "Hygiene": 70,
+            "Energy": 80,
+            "Social": 40,
+            "Bladder": 60,
+            "Sanity": 85,
+            "Entertainment": 30,
+            "Temperature": 37,
+            "Mana": 0
+          },
+          "skills": {
+            "Perception": 1,
+            "Athletics": 3,
+            "Stealth": 0,
+            "Persuasion": 1,
+            "Survival": 2,
+            "Acrobatics": 1
+          },
+          "traits": {
+            "super_strength": true,
+            "invulnerable": true
+          },
+          "tags": [
+            "male",
+            "super",
+            "parr_family",
+            "adult",
+            "legend"
+          ],
+          "conditions": {
+            "awake": [
+              {
+                "duration": null,
+                "source": null,
+                "level": 0
+              }
+            ]
+          },
+          "equipped": {
+            "head": [],
+            "torso": [],
+            "legs": [],
+            "feet": [],
+            "hands": [],
+            "hand_left": [],
+            "hand_right": [],
+            "back": [],
+            "accessory": [],
+            "neck": [],
+            "waist": []
+          },
+          "state": "awake",
+          "state_timer": 0,
+          "current_area": "Parr House Living Room",
+          "decay_rates": {
+            "Hunger": 1,
+            "Thirst": 1,
+            "Hygiene": 1,
+            "Energy": 1,
+            "Social": 1,
+            "Bladder": 1,
+            "Sanity": 1,
+            "Entertainment": 1
+          },
+          "emotion": {
+            "current": "enraged",
+            "description": "Furious about the attack on his family.",
+            "intensity": 0.8
+          },
+          "relationships": {},
+          "memories": [],
+          "activity": null,
+          "npc_behavior": "stationary",
+          "npc_action_interval": 3,
+          "npc_state": "idle",
+          "behaviors": [],
+          "simple_npc": false
+        }
+      },
+      "player_Helen_Parr": {
+        "id": "player_Helen_Parr",
+        "type": "character",
+        "name": "Helen Parr",
+        "properties": {
+          "personality": "Calm, pragmatic, and the 'mission commander' of the family. Deeply loving but also the enforcer of the family's 'stay hidden' rule, which she has begun to question. Learning to trust Violet's judgment.",
+          "description": "Slender, capable. Her body can stretch up to 300 feet. Her expression is controlled but her eyes betray deep worry.",
+          "base_description": "Helen Parr (Elastigirl). Powers: body stretches up to 300 feet. Knew Marcus and Leah from decades ago. Priority is family safety.",
+          "stats": {
+            "STR": 12,
+            "DEX": 16,
+            "CON": 12,
+            "INT": 14,
+            "WIS": 13,
+            "CHA": 13
+          },
+          "vitals": {
+            "HP": 100,
+            "Max_HP": 100,
+            "Hunger": 30,
+            "Thirst": 30,
+            "Hygiene": 80,
+            "Energy": 85,
+            "Social": 55,
+            "Bladder": 65,
+            "Sanity": 88,
+            "Entertainment": 40,
+            "Temperature": 36.8,
+            "Mana": 0
+          },
+          "skills": {
+            "Perception": 3,
+            "Athletics": 2,
+            "Stealth": 2,
+            "Persuasion": 2,
+            "Survival": 2,
+            "Acrobatics": 3
+          },
+          "traits": {
+            "elastic": true
+          },
+          "tags": [
+            "female",
+            "super",
+            "parr_family",
+            "adult",
+            "legend"
+          ],
+          "conditions": {
+            "awake": [
+              {
+                "duration": null,
+                "source": null,
+                "level": 0
+              }
+            ]
+          },
+          "equipped": {
+            "head": [],
+            "torso": [],
+            "legs": [],
+            "feet": [],
+            "hands": [],
+            "hand_left": [],
+            "hand_right": [],
+            "back": [],
+            "accessory": [],
+            "neck": [],
+            "waist": []
+          },
+          "state": "awake",
+          "state_timer": 0,
+          "current_area": "Parr House Living Room",
+          "decay_rates": {
+            "Hunger": 1,
+            "Thirst": 1,
+            "Hygiene": 1,
+            "Energy": 1,
+            "Social": 1,
+            "Bladder": 1,
+            "Sanity": 1,
+            "Entertainment": 1
+          },
+          "emotion": {
+            "current": "worried",
+            "description": "Trying to hold the family together.",
+            "intensity": 0.6
+          },
+          "relationships": {},
+          "memories": [],
+          "activity": null,
+          "npc_behavior": "stationary",
+          "npc_action_interval": 3,
+          "npc_state": "idle",
+          "behaviors": [],
+          "simple_npc": false
+        }
+      },
+      "player_The_Amalgam": {
+        "id": "player_The_Amalgam",
+        "type": "character",
+        "name": "The Amalgam",
+        "properties": {
+          "personality": "Predatory, ancient, and driven by a hunger to absorb memories, skills, and superpowers. It mimics the forms of those it consumes. A centuries-old Navajo skinwalker merged with a government bioweapon (Project CHIMERA). Weaknesses: intense fire and sustained loud sound.",
+          "description": "A shapeshifting mass of black tendrils and dark biomass. It moves like something between liquid and smoke, occasionally mimicking the faces and forms of those it has consumed. The air around it smells of copper and ancient earth.",
+          "base_description": "The Amalgam. A centuries-old Navajo skinwalker merged with Project CHIMERA bioweapon. Consumes living matter to heal and grow. Absorbs memories and skills of victims. Has consumed numerous supers over decades, gaining weakened versions of their abilities (limited teleportation, density shifting). Weaknesses: intense fire, sustained loud sound.",
+          "stats": {
+            "STR": 18,
+            "DEX": 15,
+            "CON": 20,
+            "INT": 12,
+            "WIS": 10,
+            "CHA": 5
+          },
+          "vitals": {
+            "HP": 75,
+            "Max_HP": 150,
+            "Hunger": 90,
+            "Thirst": 90,
+            "Hygiene": 0,
+            "Energy": 70,
+            "Social": 0,
+            "Bladder": 0,
+            "Sanity": 0,
+            "Entertainment": 0,
+            "Temperature": 15,
+            "Mana": 0
+          },
+          "skills": {
+            "Perception": 3,
+            "Athletics": 3,
+            "Stealth": 3,
+            "Persuasion": 0,
+            "Survival": 3,
+            "Acrobatics": 2
+          },
+          "traits": {
+            "shapeshift": true,
+            "memory_absorb": true,
+            "density_shift": true,
+            "limited_teleport": true
+          },
+          "tags": [
+            "antagonist",
+            "bioweapon",
+            "skinwalker",
+            "boss"
+          ],
+          "conditions": {
+            "awake": [
+              {
+                "duration": null,
+                "source": null,
+                "level": 0
+              }
+            ]
+          },
+          "equipped": {
+            "head": [],
+            "torso": [],
+            "legs": [],
+            "feet": [],
+            "hands": [],
+            "hand_left": [],
+            "hand_right": [],
+            "back": [],
+            "accessory": [],
+            "neck": [],
+            "waist": []
+          },
+          "state": "awake",
+          "state_timer": 0,
+          "current_area": "The Woods",
+          "decay_rates": {
+            "Hunger": 2,
+            "Thirst": 0,
+            "Hygiene": 0,
+            "Energy": 1,
+            "Social": 0,
+            "Bladder": 0,
+            "Sanity": 0,
+            "Entertainment": 0
+          },
+          "emotion": {
+            "current": "hunting",
+            "description": "Regenerating after the attack on the Parr house.",
+            "intensity": 0.9
+          },
+          "relationships": {},
+          "memories": [],
+          "activity": null,
+          "npc_behavior": "wander",
+          "npc_action_interval": 2,
+          "npc_state": "idle",
+          "behaviors": [],
+          "simple_npc": false
+        }
+      },
+      "trigger_item_amalgam_fragment_on_examine_0001": {
+        "id": "trigger_item_amalgam_fragment_on_examine_0001",
+        "type": "logic_trigger",
+        "name": "on_examine → message",
+        "properties": {
+          "trigger_type": "on_examine",
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "The fragment writhes in your hand, black tendrils reaching for your skin. You feel a faint pulling sensation, as if something is trying to read your memories. You should not hold this bare for long."
+              }
+            }
+          ]
+        }
+      },
+      "trigger_item_amalgam_fragment_on_take_0002": {
+        "id": "trigger_item_amalgam_fragment_on_take_0002",
+        "type": "logic_trigger",
+        "name": "on_take → apply_condition",
+        "properties": {
+          "trigger_type": "on_take",
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "As your fingers close around the biomass, a cold shock runs up your arm."
+              }
+            },
+            {
+              "type": "apply_condition",
+              "params": {
+                "condition": "frightened",
+                "target": "self",
+                "duration": 3,
+                "source": "Amalgam contact",
+                "source_type": "item",
+                "level": 0
+              }
+            }
+          ]
+        }
+      },
+      "trigger_item_gov_mindwipe_on_use_0003": {
+        "id": "trigger_item_gov_mindwipe_on_use_0003",
+        "type": "logic_trigger",
+        "name": "on_use → message",
+        "properties": {
+          "trigger_type": "on_use",
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "The Neural Flash hums to life, its screen glowing a soft blue. A targeted pulse would wipe the short-term memory of anyone in its cone. You are not sure you want to use this on someone you care about."
+              }
+            },
+            {
+              "type": "adjust_uses",
+              "params": {
+                "amount": -1,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "edges": [
+      {
+        "source": "area_millwood_chemistry",
+        "target": "way_chem_to_hall",
+        "type": "connection",
+        "properties": {
+          "cardinal": "north",
+          "direction": "hallway door",
+          "visible_in_direction": "The bustling main hallway of Millwood."
+        }
+      },
+      {
+        "source": "way_chem_to_hall",
+        "target": "area_millwood_hallway",
+        "type": "connection",
+        "properties": {
+          "direction": "enter"
+        }
+      },
+      {
+        "source": "way_chem_to_hall",
+        "target": "area_millwood_chemistry",
+        "type": "connection",
+        "properties": {
+          "direction": "hallway door"
+        }
+      },
+      {
+        "source": "area_millwood_hallway",
+        "target": "way_chem_to_hall",
+        "type": "connection",
+        "properties": {
+          "cardinal": "south",
+          "direction": "chemistry door",
+          "visible_in_direction": "The chemistry lab."
+        }
+      },
+      {
+        "source": "area_millwood_hallway",
+        "target": "way_hall_to_history",
+        "type": "connection",
+        "properties": {
+          "cardinal": "east",
+          "direction": "history door",
+          "visible_in_direction": "Rows of desks facing a whiteboard."
+        }
+      },
+      {
+        "source": "way_hall_to_history",
+        "target": "area_millwood_history",
+        "type": "connection",
+        "properties": {
+          "direction": "enter"
+        }
+      },
+      {
+        "source": "way_hall_to_history",
+        "target": "area_millwood_hallway",
+        "type": "connection",
+        "properties": {
+          "direction": "history door"
+        }
+      },
+      {
+        "source": "area_millwood_history",
+        "target": "way_hall_to_history",
+        "type": "connection",
+        "properties": {
+          "cardinal": "west",
+          "direction": "hallway door",
+          "visible_in_direction": "The busy hallway."
+        }
+      },
+      {
+        "source": "area_millwood_hallway",
+        "target": "way_hall_to_woods",
+        "type": "connection",
+        "properties": {
+          "cardinal": "west",
+          "direction": "front exit",
+          "visible_in_direction": "Sunlight and the tree line beyond."
+        }
+      },
+      {
+        "source": "way_hall_to_woods",
+        "target": "area_the_woods",
+        "type": "connection",
+        "properties": {
+          "direction": "enter"
+        }
+      },
+      {
+        "source": "way_hall_to_woods",
+        "target": "area_millwood_hallway",
+        "type": "connection",
+        "properties": {
+          "direction": "front exit"
+        }
+      },
+      {
+        "source": "area_the_woods",
+        "target": "way_hall_to_woods",
+        "type": "connection",
+        "properties": {
+          "cardinal": "east",
+          "direction": "school entrance",
+          "visible_in_direction": "The school building in the distance."
+        }
+      },
+      {
+        "source": "area_the_woods",
+        "target": "way_mill_to_woods",
+        "type": "connection",
+        "properties": {
+          "cardinal": "north",
+          "direction": "mill entrance",
+          "visible_in_direction": "The rusting steel mill."
+        }
+      },
+      {
+        "source": "way_mill_to_woods",
+        "target": "area_old_steel_mill",
+        "type": "connection",
+        "properties": {
+          "direction": "enter"
+        }
+      },
+      {
+        "source": "way_mill_to_woods",
+        "target": "area_the_woods",
+        "type": "connection",
+        "properties": {
+          "direction": "woods path"
+        }
+      },
+      {
+        "source": "area_old_steel_mill",
+        "target": "way_mill_to_woods",
+        "type": "connection",
+        "properties": {
+          "cardinal": "south",
+          "direction": "woods path",
+          "visible_in_direction": "The dense tree line."
+        }
+      },
+      {
+        "source": "area_old_steel_mill",
+        "target": "way_mill_to_shaft",
+        "type": "connection",
+        "properties": {
+          "cardinal": "down",
+          "direction": "shaft ladder",
+          "visible_in_direction": "A dark shaft dropping forty feet."
+        }
+      },
+      {
+        "source": "way_mill_to_shaft",
+        "target": "area_steel_mill_shaft",
+        "type": "connection",
+        "properties": {
+          "direction": "descend"
+        }
+      },
+      {
+        "source": "way_mill_to_shaft",
+        "target": "area_old_steel_mill",
+        "type": "connection",
+        "properties": {
+          "direction": "shaft ladder"
+        }
+      },
+      {
+        "source": "area_steel_mill_shaft",
+        "target": "way_mill_to_shaft",
+        "type": "connection",
+        "properties": {
+          "cardinal": "up",
+          "direction": "shaft ladder up",
+          "visible_in_direction": "The dim mill floor above."
+        }
+      },
+      {
+        "source": "area_the_woods",
+        "target": "way_kitchen_to_woods",
+        "type": "connection",
+        "properties": {
+          "cardinal": "west",
+          "direction": "halloway back door",
+          "visible_in_direction": "The warm glow of the Halloway kitchen."
+        }
+      },
+      {
+        "source": "way_kitchen_to_woods",
+        "target": "area_halloway_kitchen",
+        "type": "connection",
+        "properties": {
+          "direction": "enter"
+        }
+      },
+      {
+        "source": "way_kitchen_to_woods",
+        "target": "area_the_woods",
+        "type": "connection",
+        "properties": {
+          "direction": "back door"
+        }
+      },
+      {
+        "source": "area_halloway_kitchen",
+        "target": "way_kitchen_to_woods",
+        "type": "connection",
+        "properties": {
+          "cardinal": "south",
+          "direction": "back door",
+          "visible_in_direction": "The woods behind the house."
+        }
+      },
+      {
+        "source": "area_halloway_kitchen",
+        "target": "way_kitchen_to_bath",
+        "type": "connection",
+        "properties": {
+          "cardinal": "east",
+          "direction": "bathroom door",
+          "visible_in_direction": "A cramped bathroom."
+        }
+      },
+      {
+        "source": "way_kitchen_to_bath",
+        "target": "area_halloway_bathroom",
+        "type": "connection",
+        "properties": {
+          "direction": "enter"
+        }
+      },
+      {
+        "source": "way_kitchen_to_bath",
+        "target": "area_halloway_kitchen",
+        "type": "connection",
+        "properties": {
+          "direction": "bathroom door"
+        }
+      },
+      {
+        "source": "area_halloway_bathroom",
+        "target": "way_kitchen_to_bath",
+        "type": "connection",
+        "properties": {
+          "cardinal": "west",
+          "direction": "kitchen door",
+          "visible_in_direction": "The messy kitchen."
+        }
+      },
+      {
+        "source": "area_halloway_kitchen",
+        "target": "way_kitchen_to_living",
+        "type": "connection",
+        "properties": {
+          "cardinal": "north",
+          "direction": "living room arch",
+          "visible_in_direction": "A cluttered living room."
+        }
+      },
+      {
+        "source": "way_kitchen_to_living",
+        "target": "area_halloway_living",
+        "type": "connection",
+        "properties": {
+          "direction": "enter"
+        }
+      },
+      {
+        "source": "way_kitchen_to_living",
+        "target": "area_halloway_kitchen",
+        "type": "connection",
+        "properties": {
+          "direction": "living room arch"
+        }
+      },
+      {
+        "source": "area_halloway_living",
+        "target": "way_kitchen_to_living",
+        "type": "connection",
+        "properties": {
+          "cardinal": "south",
+          "direction": "kitchen arch",
+          "visible_in_direction": "The messy kitchen."
+        }
+      },
+      {
+        "source": "area_the_woods",
+        "target": "way_parr_yard_to_woods",
+        "type": "connection",
+        "properties": {
+          "cardinal": "south",
+          "direction": "parr yard trail",
+          "visible_in_direction": "Floodlights glow through the trees."
+        }
+      },
+      {
+        "source": "way_parr_yard_to_woods",
+        "target": "area_parr_front_yard",
+        "type": "connection",
+        "properties": {
+          "direction": "enter"
+        }
+      },
+      {
+        "source": "way_parr_yard_to_woods",
+        "target": "area_the_woods",
+        "type": "connection",
+        "properties": {
+          "direction": "woods trail"
+        }
+      },
+      {
+        "source": "area_parr_front_yard",
+        "target": "way_parr_yard_to_woods",
+        "type": "connection",
+        "properties": {
+          "cardinal": "north",
+          "direction": "woods trail",
+          "visible_in_direction": "The dark tree line."
+        }
+      },
+      {
+        "source": "area_parr_front_yard",
+        "target": "way_parr_living_to_yard",
+        "type": "connection",
+        "properties": {
+          "cardinal": "west",
+          "direction": "living room",
+          "visible_in_direction": "The wrecked living room through the hole."
+        }
+      },
+      {
+        "source": "way_parr_living_to_yard",
+        "target": "area_parr_living",
+        "type": "connection",
+        "properties": {
+          "direction": "enter"
+        }
+      },
+      {
+        "source": "way_parr_living_to_yard",
+        "target": "area_parr_front_yard",
+        "type": "connection",
+        "properties": {
+          "direction": "destroyed front"
+        }
+      },
+      {
+        "source": "area_parr_living",
+        "target": "way_parr_living_to_yard",
+        "type": "connection",
+        "properties": {
+          "cardinal": "east",
+          "direction": "destroyed front",
+          "visible_in_direction": "The destroyed yard lit by floodlights."
+        }
+      },
+      {
+        "source": "item_jake_glasses",
+        "target": "area_halloway_kitchen",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_violet_hairband",
+        "target": "area_halloway_kitchen",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_leah_leather_jacket",
+        "target": "area_halloway_living",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_amalgam_fragment",
+        "target": "area_parr_living",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_gov_mindwipe",
+        "target": "area_parr_front_yard",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_vi_phone_case",
+        "target": "area_halloway_living",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_first_aid_kit",
+        "target": "area_halloway_bathroom",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_marcus_bandana",
+        "target": "area_parr_living",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Jake_Halloway",
+        "target": "area_halloway_kitchen",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Violet_Parr",
+        "target": "area_halloway_kitchen",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Vi_Halloway",
+        "target": "area_halloway_living",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Erin_Halloway",
+        "target": "area_halloway_living",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Leah_Halloway",
+        "target": "area_halloway_kitchen",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Marcus_Halloway",
+        "target": "area_parr_living",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Bob_Parr",
+        "target": "area_parr_living",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Helen_Parr",
+        "target": "area_parr_living",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_The_Amalgam",
+        "target": "area_the_woods",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_amalgam_fragment",
+        "target": "trigger_item_amalgam_fragment_on_examine_0001",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine"
+        }
+      },
+      {
+        "source": "item_amalgam_fragment",
+        "target": "trigger_item_amalgam_fragment_on_take_0002",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_take"
+        }
+      },
+      {
+        "source": "item_gov_mindwipe",
+        "target": "trigger_item_gov_mindwipe_on_use_0003",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_use"
+        }
+      }
+    ]
+  },
+  "item_registry": {},
+  "narration_mode": "none",
+  "players": {
+    "Jake Halloway": {
+      "name": "Jake Halloway",
+      "personality": "Chaotic, unfiltered, oscillates between shy and hyperactively silly. Fiercely intelligent but socially oblivious. Uses humor and bad puns to deflect. Deeply loyal, asks permission, respects boundaries.",
+      "description": "An 18-year-old with seagreen eyes flecked with gold, short stiff hair, and a slim build. Sparks of static crackle at his fingertips.",
+      "base_description": "Jake Halloway, 18, 175cm, 71kg. Electromagnetic powers: railgun projectiles, levitation, electronics manipulation, nerve numbing, Tesla coil discharge.",
+      "stats": {
+        "STR": 9,
+        "DEX": 12,
+        "CON": 10,
+        "INT": 16,
+        "WIS": 10,
+        "CHA": 11
+      },
+      "vitals": {
+        "HP": 90,
+        "Max_HP": 100,
+        "Hunger": 30,
+        "Thirst": 25,
+        "Hygiene": 60,
+        "Energy": 85,
+        "Social": 55,
+        "Bladder": 60,
+        "Sanity": 80,
+        "Entertainment": 45,
+        "Temperature": 36.8,
+        "Mana": 0
+      },
+      "skills": {
+        "Perception": 2,
+        "Athletics": 1,
+        "Stealth": 1,
+        "Persuasion": 2,
+        "Survival": 1,
+        "Acrobatics": 1
+      },
+      "traits": {
+        "electromagnetic": true
+      },
+      "tags": [
+        "male",
+        "super",
+        "halloway_family",
+        "teen"
+      ],
+      "interest_tags": [],
+      "equipped": {
+        "head": [],
+        "torso": [],
+        "legs": [],
+        "feet": [],
+        "hands": [],
+        "hand_left": [],
+        "hand_right": [],
+        "back": [],
+        "accessory": [],
+        "neck": [],
+        "waist": []
+      },
+      "state": "awake",
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "source": null,
+            "level": 0
+          }
+        ]
+      },
+      "current_area": "Halloway House Kitchen",
+      "decay_rates": {
+        "Hunger": 1,
+        "Thirst": 1,
+        "Hygiene": 1,
+        "Energy": 1,
+        "Social": 1,
+        "Bladder": 1,
+        "Sanity": 1,
+        "Entertainment": 1
+      },
+      "emotion": {
+        "current": "anxious",
+        "description": "Still buzzing from the Amalgam encounter.",
+        "intensity": 0.6
+      },
+      "relationships": {},
+      "memories": [],
+      "activity": null,
+      "simple_npc": false,
+      "npc_behavior": "wander",
+      "npc_action_interval": 3,
+      "npc_state": "idle",
+      "behaviors": [],
+      "feels_like": 23,
+      "recent_hearing": []
+    },
+    "Violet Parr": {
+      "name": "Violet Parr",
+      "personality": "Flirty on the surface, deeply conflicted underneath. Presents as a 'good girl' but harbors secret shame. Intelligent, fierce, lonely, desperate for acceptance.",
+      "description": "An 18-year-old with long black hair, blue-violet eyes, and a waifish face. Her edges shimmer when anxious.",
+      "base_description": "Violet Parr, 18. Powers: invisibility (anxiety-triggered) and violet forcefields. Daughter of Mr. Incredible and Elastigirl.",
+      "stats": {
+        "STR": 8,
+        "DEX": 13,
+        "CON": 9,
+        "INT": 15,
+        "WIS": 12,
+        "CHA": 13
+      },
+      "vitals": {
+        "HP": 85,
+        "Max_HP": 100,
+        "Hunger": 35,
+        "Thirst": 30,
+        "Hygiene": 75,
+        "Energy": 80,
+        "Social": 45,
+        "Bladder": 55,
+        "Sanity": 70,
+        "Entertainment": 40,
+        "Temperature": 36.7,
+        "Mana": 0
+      },
+      "skills": {
+        "Perception": 2,
+        "Athletics": 1,
+        "Stealth": 3,
+        "Persuasion": 1,
+        "Survival": 1,
+        "Acrobatics": 2
+      },
+      "traits": {
+        "forcefield": true,
+        "invisibility": true
+      },
+      "tags": [
+        "female",
+        "super",
+        "parr_family",
+        "teen"
+      ],
+      "interest_tags": [],
+      "equipped": {
+        "head": [],
+        "torso": [],
+        "legs": [],
+        "feet": [],
+        "hands": [],
+        "hand_left": [],
+        "hand_right": [],
+        "back": [],
+        "accessory": [],
+        "neck": [],
+        "waist": []
+      },
+      "state": "awake",
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "source": null,
+            "level": 0
+          }
+        ]
+      },
+      "current_area": "Halloway House Kitchen",
+      "decay_rates": {
+        "Hunger": 1,
+        "Thirst": 1,
+        "Hygiene": 1,
+        "Energy": 1,
+        "Social": 1,
+        "Bladder": 1,
+        "Sanity": 1,
+        "Entertainment": 1
+      },
+      "emotion": {
+        "current": "vulnerable",
+        "description": "Shaken by the Amalgam attack.",
+        "intensity": 0.7
+      },
+      "relationships": {},
+      "memories": [],
+      "activity": null,
+      "simple_npc": false,
+      "npc_behavior": "wander",
+      "npc_action_interval": 3,
+      "npc_state": "idle",
+      "behaviors": [],
+      "feels_like": 23,
+      "recent_hearing": []
+    },
+    "Leah Halloway": {
+      "name": "Leah Halloway",
+      "personality": "Stern, intimidating, fair, unflappable. Retired spy 'Swift.' Analytical, strategic, deeply caring.",
+      "description": "Angular, dark hair with silver streak, leather jacket, band tees, silver rings.",
+      "base_description": "Leah Halloway (née Swift). Powers: memory reading via touch, diamond armor manifestation.",
+      "stats": {
+        "STR": 13,
+        "DEX": 14,
+        "CON": 12,
+        "INT": 15,
+        "WIS": 14,
+        "CHA": 12
+      },
+      "vitals": {
+        "HP": 100,
+        "Max_HP": 100,
+        "Hunger": 30,
+        "Thirst": 25,
+        "Hygiene": 85,
+        "Energy": 85,
+        "Social": 60,
+        "Bladder": 70,
+        "Sanity": 90,
+        "Entertainment": 50,
+        "Temperature": 36.7,
+        "Mana": 0
+      },
+      "skills": {
+        "Perception": 3,
+        "Athletics": 2,
+        "Stealth": 3,
+        "Persuasion": 2,
+        "Survival": 2,
+        "Acrobatics": 2
+      },
+      "traits": {
+        "memory_read": true,
+        "diamond_armor": true
+      },
+      "tags": [
+        "female",
+        "super",
+        "halloway_family",
+        "adult",
+        "ex_spy"
+      ],
+      "interest_tags": [],
+      "equipped": {
+        "head": [],
+        "torso": [],
+        "legs": [],
+        "feet": [],
+        "hands": [],
+        "hand_left": [],
+        "hand_right": [],
+        "back": [],
+        "accessory": [],
+        "neck": [],
+        "waist": []
+      },
+      "state": "awake",
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "source": null,
+            "level": 0
+          }
+        ]
+      },
+      "current_area": "Halloway House Kitchen",
+      "decay_rates": {
+        "Hunger": 1,
+        "Thirst": 1,
+        "Hygiene": 1,
+        "Energy": 1,
+        "Social": 1,
+        "Bladder": 1,
+        "Sanity": 1,
+        "Entertainment": 1
+      },
+      "emotion": {
+        "current": "alert",
+        "description": "Analyzing the Amalgam threat.",
+        "intensity": 0.5
+      },
+      "relationships": {},
+      "memories": [],
+      "activity": null,
+      "simple_npc": false,
+      "npc_behavior": "stationary",
+      "npc_action_interval": 4,
+      "npc_state": "idle",
+      "behaviors": [],
+      "feels_like": 23,
+      "recent_hearing": []
+    },
+    "The Amalgam": {
+      "name": "The Amalgam",
+      "personality": "Predatory, ancient, hungry. Absorbs memories, skills, powers. Mimics consumed forms.",
+      "description": "A shapeshifting mass of black tendrils and dark biomass. Smells of copper and ancient earth.",
+      "base_description": "Navajo skinwalker merged with Project CHIMERA bioweapon. Weaknesses: fire, loud sound.",
+      "stats": {
+        "STR": 18,
+        "DEX": 15,
+        "CON": 20,
+        "INT": 12,
+        "WIS": 10,
+        "CHA": 5
+      },
+      "vitals": {
+        "HP": 75,
+        "Max_HP": 150,
+        "Hunger": 90,
+        "Thirst": 90,
+        "Hygiene": 0,
+        "Energy": 70,
+        "Social": 0,
+        "Bladder": 0,
+        "Sanity": 0,
+        "Entertainment": 0,
+        "Temperature": 15,
+        "Mana": 0
+      },
+      "skills": {
+        "Perception": 3,
+        "Athletics": 3,
+        "Stealth": 3,
+        "Persuasion": 0,
+        "Survival": 3,
+        "Acrobatics": 2
+      },
+      "traits": {
+        "shapeshift": true,
+        "memory_absorb": true
+      },
+      "tags": [
+        "antagonist",
+        "bioweapon",
+        "skinwalker",
+        "boss"
+      ],
+      "interest_tags": [],
+      "equipped": {
+        "head": [],
+        "torso": [],
+        "legs": [],
+        "feet": [],
+        "hands": [],
+        "hand_left": [],
+        "hand_right": [],
+        "back": [],
+        "accessory": [],
+        "neck": [],
+        "waist": []
+      },
+      "state": "awake",
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "source": null,
+            "level": 0
+          }
+        ]
+      },
+      "current_area": "The Woods",
+      "decay_rates": {
+        "Hunger": 2,
+        "Thirst": 0,
+        "Hygiene": 0,
+        "Energy": 1,
+        "Social": 0,
+        "Bladder": 0,
+        "Sanity": 0,
+        "Entertainment": 0
+      },
+      "emotion": {
+        "current": "hunting",
+        "description": "Regenerating.",
+        "intensity": 0.9
+      },
+      "relationships": {},
+      "memories": [],
+      "activity": null,
+      "simple_npc": false,
+      "npc_behavior": "wander",
+      "npc_action_interval": 2,
+      "npc_state": "idle",
+      "behaviors": [],
+      "feels_like": 16,
+      "recent_hearing": []
+    }
+  },
+  "players_in_area": [
+    "Jake Halloway",
+    "Violet Parr",
+    "Leah Halloway"
+  ],
+  "rooms": {},
+  "time_per_tick_minutes": 5,
+  "time_ticks": 0,
+  "turn_number": 0,
+  "ways": {
+    "way_chem_to_hall": {
+      "display_name": "chemistry door",
+      "area_from": "Millwood Chemistry Class",
+      "area_to": "Millwood Hallway",
+      "current_state": "open",
+      "description": "A standard classroom door.",
+      "cost": {},
+      "hidden": false,
+      "needs_open": {
+        "enabled": false,
+        "skill": "Athletics",
+        "dc": 10
+      },
+      "direction": "north",
+      "cardinal": "north",
+      "pass_message": "",
+      "return_dir": "south",
+      "visible_in_direction": "",
+      "tags": [],
+      "requires": "none",
+      "jump_dc": 10,
+      "climb_dc": 10,
+      "max_size": "normal"
+    },
+    "way_mill_to_shaft": {
+      "display_name": "shaft ladder",
+      "area_from": "The Old Steel Mill",
+      "area_to": "Steel Mill Shaft",
+      "current_state": "open",
+      "description": "A bolted steel ladder descending into the testing shaft.",
+      "cost": {
+        "energy": 2,
+        "time": 1
+      },
+      "hidden": false,
+      "needs_open": {
+        "enabled": false,
+        "skill": "Athletics",
+        "dc": 10
+      },
+      "direction": "down",
+      "cardinal": "down",
+      "pass_message": "You climb down the cold rungs.",
+      "return_dir": "up",
+      "visible_in_direction": "A dark shaft dropping forty feet.",
+      "tags": [],
+      "requires": "climb",
+      "jump_dc": 10,
+      "climb_dc": 8,
+      "max_size": "normal"
+    },
+    "way_parr_living_to_yard": {
+      "display_name": "destroyed front",
+      "area_from": "Parr House Living Room",
+      "area_to": "Parr House Front Yard",
+      "current_state": "open",
+      "description": "The shattered remains of the front wall.",
+      "cost": {},
+      "hidden": false,
+      "needs_open": {
+        "enabled": false,
+        "skill": "Athletics",
+        "dc": 10
+      },
+      "direction": "east",
+      "cardinal": "east",
+      "pass_message": "You step over broken drywall.",
+      "return_dir": "west",
+      "visible_in_direction": "The destroyed yard lit by floodlights.",
+      "tags": [
+        "destroyed"
+      ],
+      "requires": "none",
+      "jump_dc": 10,
+      "climb_dc": 10,
+      "max_size": "normal"
+    }
+  },
+  "world_lore": [
+    {
+      "id": "lore_supers_hiding",
+      "category": "world",
+      "title": "Supers in Hiding",
+      "content": "Supers have been forced into hiding by the government, requiring mind-wipes and relocations when their powers are exposed. Both the Parr and Halloway families were relocated to Oklahoma after separate incidents."
+    },
+    {
+      "id": "lore_chimera",
+      "category": "threat",
+      "title": "Project CHIMERA",
+      "content": "A government bioweapon that merged with a centuries-old Navajo skinwalker to create the Amalgam — a shapeshifting mass that consumes living matter, absorbs memories and skills, and can mimic forms. Weaknesses: intense fire and sustained loud sound."
+    },
+    {
+      "id": "lore_family_history",
+      "category": "history",
+      "title": "Shared History",
+      "content": "The Halloway and Parr families have a shared history dating back 25 years. Marcus Halloway had a brief fling with Helen Parr. Leah Swift (now Halloway) knew both Bob and Helen from government superhero oversight days."
+    },
+    {
+      "id": "lore_marcus_death",
+      "category": "event",
+      "title": "Death of Marcus Halloway",
+      "content": "Marcus was killed by the Amalgam when a tendril pierced his skull during the attack on the Parr house. A fragment of the creature briefly reanimated his body before being destroyed."
+    },
+    {
+      "id": "lore_halloway_camouflage",
+      "category": "world",
+      "title": "Chaos as Camouflage",
+      "content": "The Halloway family deliberately maintains a messy, chaotic household as camouflage. No government agent would believe a super family lives in such disarray."
+    }
+  ],
+  "_scenario_name": "Qwen_json_20260811_4eevuw4hk - with guide"
+}

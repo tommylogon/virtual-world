@@ -1,0 +1,15 @@
+{
+  "id": "candy",
+  "name": "Candy",
+  "description": "Sweet confectionery.",
+  "category": "physical",
+  "color": "#f06292",
+  "icon": "🍬",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "hard candies",
+    "candy jar"
+  ]
+}

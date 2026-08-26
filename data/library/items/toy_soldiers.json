@@ -1,0 +1,19 @@
+{
+  "name": "toy_soldiers",
+  "description": "lead toy soldiers arranged in a battle formation around a tiny replica of a crystal skull, made from painted glass. the soldiers point their rifles at the tiny skull, as if trying to protect something from it.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "toy",
+    "metal",
+    "child"
+  ],
+  "triggers": [],
+  "contents": []
+}

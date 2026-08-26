@@ -1,0 +1,15 @@
+{
+  "id": "bandage",
+  "name": "Bandage",
+  "description": "Wrappings used to treat wounds.",
+  "category": "physical",
+  "color": "#e74c3c",
+  "icon": "🩹",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "fabric bandage",
+    "ace bandage"
+  ]
+}

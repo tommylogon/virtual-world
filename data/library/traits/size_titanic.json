@@ -1,0 +1,7 @@
+{
+  "id": "size_titanic",
+  "name": "Titanic Size",
+  "description": "About 14 m tall or more — a walking catastrophe. Buildings are terrain; almost nothing is built to fit you.",
+  "category": "physical",
+  "params": { "size": "titanic" }
+}

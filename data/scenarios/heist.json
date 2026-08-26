@@ -1,0 +1,77 @@
+{
+  "current_area": "Corridor",
+  "current_environment": {
+    "air": "sterile",
+    "light": 80,
+    "noise": "humming cameras",
+    "smell": "ozone",
+    "temperature": 18
+  },
+  "player": {
+    "name": "Phantom",
+    "skills": { "Acrobatics": 5, "Athletics": 3, "Perception": 4, "Persuasion": 1, "Stealth": 8, "Survival": 2 },
+    "stats": { "CHA": 10, "CON": 12, "DEX": 18, "INT": 14, "STR": 10, "WIS": 12 },
+    "vitals": { "Energy": 100, "HP": 100, "Hunger": 100, "Hygiene": 100, "Max_HP": 100, "Social": 100, "Thirst": 100 }
+  },
+  "areas": {
+    "Corridor": {
+      "name": "Corridor",
+      "description": "A sleek, dimly lit corporate corridor. The security lasers have been disabled, but the main prize is still secured behind heavy barriers.",
+      "environment": { "air": "sterile", "light": 80, "noise": "humming cameras", "smell": "ozone", "temperature": 18 },
+      "exits": {
+        "iron gate": {
+          "description": "A massive, heavily reinforced iron gate blocking the way to the vault.",
+          "locked_with": "gold_key",
+          "return_dir": "iron gate",
+          "state": "locked",
+          "target": "Vault"
+        }
+      },
+      "items": [
+        {
+          "actions": [ "examine", "take" ],
+          "description": "A heavy security key dropped by a guard.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "name": "gold_key",
+          "uses": -1
+        },
+        {
+          "actions": [ "examine", "take", "use" ],
+          "description": "A brick of military-grade C4 explosive with a remote detonator.",
+          "effect_amount": "open",
+          "effect_stat": "broken",
+          "effect_target": "connection",
+          "name": "c4_explosive",
+          "uses": 1
+        }
+      ]
+    },
+    "Vault": {
+      "name": "Vault",
+      "description": "You are inside the high-security vault! Stacks of unmarked bearer bonds and gold bars surround you.",
+      "environment": { "air": "chilly", "light": 90, "noise": "quiet hum", "smell": "old paper", "temperature": 15 },
+      "exits": {
+        "iron gate": {
+          "description": "A massive, heavily reinforced iron gate.",
+          "locked_with": "gold_key",
+          "return_dir": "iron gate",
+          "state": "locked",
+          "target": "Corridor"
+        }
+      },
+      "items": [
+        {
+          "actions": [ "examine", "take" ],
+          "description": "Millions of dollars in untraceable bearer bonds.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "name": "bearer_bonds",
+          "uses": -1
+        }
+      ]
+    }
+  }
+}

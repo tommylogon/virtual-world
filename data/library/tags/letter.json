@@ -1,0 +1,15 @@
+{
+  "id": "letter",
+  "name": "Letter",
+  "description": "Written correspondence.",
+  "category": "essence",
+  "color": "#f9e79f",
+  "icon": "✉️",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "love letters",
+    "letter from servant"
+  ]
+}

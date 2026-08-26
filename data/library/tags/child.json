@@ -1,0 +1,16 @@
+{
+  "id": "child",
+  "name": "Child",
+  "description": "Related to children or childhood.",
+  "category": "character",
+  "color": "#f8c471",
+  "icon": "🧒",
+  "applies_to": [
+    "items",
+    "characters"
+  ],
+  "examples": [
+    "child's diary",
+    "toy soldiers"
+  ]
+}

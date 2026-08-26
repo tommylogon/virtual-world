@@ -1,0 +1,36 @@
+{
+  "name": "Rations of Dried Meat",
+  "description": "A strip of tough, salted meat. It's edible, if not exactly gourmet.",
+  "actions": "examine,take,use,drop",
+  "uses": 3,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "food"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_eat",
+      "effects": [
+        {
+          "type": "adjust_vital",
+          "params": {
+            "amount": -25,
+            "message": "You chew the dried meat. It's salty and filling.",
+            "stat": "Hunger"
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

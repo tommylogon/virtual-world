@@ -1,0 +1,24 @@
+{
+  "name": "guest area 1",
+  "description": "a small, sparsely furnished guest room with a single iron bed, a nightstand with a broken lamp, and a tall wooden wardrobe. the window is boarded up from the outside, the boards nailed firmly in place. why would someone board a window from the outside?",
+  "tags": [],
+  "environment": {
+    "air": "stale",
+    "light": 20,
+    "noise": "quiet",
+    "smell": "dust and stale linen",
+    "temperature": 15
+  },
+  "items": [],
+  "exits": [
+    {
+      "direction": "guest_room1_door_back",
+      "target_room_hint": "upstairs hall",
+      "description": "a simple wooden door, standing ajar. darkness within.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "guest_room1_door_back"
+    }
+  ],
+  "triggers": []
+}

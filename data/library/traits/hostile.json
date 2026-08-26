@@ -1,0 +1,10 @@
+{
+  "id": "hostile",
+  "name": "Hostile",
+  "description": "Threat marker — other characters should consider this person dangerous and flee or fight.",
+  "category": "social",
+  "params": null,
+  "effects": {
+    "hostile": true
+  }
+}

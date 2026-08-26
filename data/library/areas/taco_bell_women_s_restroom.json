@@ -1,0 +1,85 @@
+{
+  "description": "one toilet, one sink, a full-length mirror propped crooked against the wall instead of mounted. the trash bin holds a small graveyard of crumpled napkins. graffiti on the dryer offers a hotline number corrected twice in different pens.",
+  "environment": {
+    "air": "stale",
+    "light": 50,
+    "noise": "fluorescent buzz",
+    "smell": "soap, bleach; urine",
+    "temperature": 23
+  },
+  "items": [
+    {
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "current_state": "normal",
+      "description": "two stalls with full doors and functioning latches, a minor miracle of franchise engineering. on the inner wall of the second, in neat handwriting, a note reads 'whoever keeps leaving the tray by the nacho bar — stop.'",
+      "name": "stalls",
+      "tags": [
+        "furniture",
+        "bathroom"
+      ],
+      "uses": -1,
+      "weight": 60
+    },
+    {
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "contents": [
+        {
+          "id": "disposable_hand_soap",
+          "relation": "on"
+        }
+      ],
+      "current_state": "normal",
+      "description": "a white laminate counter with two sinks and a mirror stained at the edges. a paper towel mound sits in the corner where the third dispenser once lived.",
+      "name": "sink counter",
+      "tags": [
+        "furniture",
+        "bathroom"
+      ],
+      "uses": -1,
+      "weight": 40
+    },
+    {
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "current_state": "folded",
+      "description": "a fold-down changing table bolted to the wall, sticky top surface and a strap that has lost its buckle. it folds up with a stubborn *schuck* it has no right to make.",
+      "name": "changing table",
+      "tags": [
+        "furniture",
+        "bathroom",
+        "baby"
+      ],
+      "uses": -1,
+      "weight": 20
+    }
+  ],
+  "name": "Taco Bell Women's Restroom",
+  "tags": [
+    "millbrook_falls",
+    "commercial",
+    "restaurant",
+    "food",
+    "taco bell",
+    "interior",
+    "restroom"
+  ],
+  "triggers": [],
+  "exits": [
+    {
+      "direction": "out",
+      "target_room_hint": "Taco Bell Dining Room",
+      "description": "same beige door, same chipped paint, opposite stick figure. the lock is one of those twist knobs that never fully believes it's locked.",
+      "state": "closed",
+      "hidden": false,
+      "cardinal": "south"
+    }
+  ]
+}

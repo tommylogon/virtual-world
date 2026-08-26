@@ -1,0 +1,8 @@
+{
+  "id": "iron_will",
+  "name": "Iron Will",
+  "description": "+2 on WIS saves.",
+  "category": "mental",
+  "params": null,
+  "effects": {"save_bonus": {"WIS": 2}}
+}

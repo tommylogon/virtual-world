@@ -1,0 +1,17 @@
+{
+  "id": "faction_cultist",
+  "name": "Cultist",
+  "description": "Associated with a cult or secret society",
+  "category": "faction",
+  "color": "#660066",
+  "icon": "🔮",
+  "applies_to": [
+    "characters",
+    "items",
+    "areas"
+  ],
+  "examples": [
+    "cult robe",
+    "hidden shrine"
+  ]
+}

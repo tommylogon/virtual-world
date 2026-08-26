@@ -1,0 +1,38 @@
+{
+  "name": "Shoes",
+  "description": "3 sets of shooes",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "clothing"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "success_message": "three sets of winter boots, a mans, a womans and a childs"
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": [],
+  "equip_slots": [
+    "feet"
+  ]
+}

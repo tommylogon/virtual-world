@@ -1,0 +1,20 @@
+{
+  "name": "white_feather",
+  "description": "a single white feather, impossibly clean and fresh in this dusty old mansion. it's warm to the touch.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.01,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "organic",
+    "artifact",
+    "ghostly",
+    "evidence"
+  ],
+  "triggers": [],
+  "contents": []
+}

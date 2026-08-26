@@ -1,0 +1,19 @@
+{
+  "name": "pedestal",
+  "description": "a stone pedestal covered in runes that glow with residual energy. in the center, a skull-shaped depression. the symbols are a warning: 'who bears the skull bears the burden. who returns it finds peace.'",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 100,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "stone",
+    "occult",
+    "ritual"
+  ],
+  "triggers": [],
+  "contents": []
+}

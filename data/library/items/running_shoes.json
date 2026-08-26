@@ -1,0 +1,36 @@
+{
+  "name": "Running Shoes",
+  "description": "Worn-out running shoes with untied laces. The soles are worn smooth on the heels and the mesh on the right toe is torn, showing a glimpse of sock underneath.",
+  "actions": "examine,take,use,equip,unequip",
+  "uses": 0,
+  "weight": 0.8,
+  "current_state": "normal",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 1,
+  "tags": [
+    "clothing",
+    "footwear"
+  ],
+  "equip_slots": [
+    "feet"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "The laces are untied. They're always untied. The right shoe has a hole in the toe. You trip over them constantly."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ]
+}

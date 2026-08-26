@@ -1,0 +1,41 @@
+{
+  "name": "family_photo",
+  "description": "a daguerreotype on the sideboard showing the blackwood family: augustus, eleanor, and five children ranging from a teenager to a baby. the youngest child — a girl of about three — has a blank, blurred face, as if she moved during the exposure. but photography in 1891 required sitting still for minutes.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "photo",
+    "documents",
+    "evidence",
+    "clue",
+    "portrait"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_examine"
+      ],
+      "effects": [
+        {
+          "params": {
+            "fail_message": "",
+            "success_message": "you hold the photograph closer. the youngest child's face isn't blurred by movement — it's been deliberately scratched out. but beneath the scratches, you can just make out a small, sad face. the name on the back: 'eleanor the younger, age 3. taken october 1890.'"
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

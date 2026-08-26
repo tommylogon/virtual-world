@@ -1,0 +1,18 @@
+{
+  "library_id": "",
+  "name": "slaughterhouse-hidden_tunnel",
+  "description": "a narrow tunnel carved through the earth, sloping upward toward the cellar. the walls are slick with moisture.",
+  "current_state": "open",
+  "pass_message": "",
+  "edge_length": "",
+  "needs_open": {},
+  "auto_close": false,
+  "see_through": false,
+  "one_way": false,
+  "requires": "",
+  "max_size": "",
+  "prevent_close": false,
+  "tags": [],
+  "parameters": {},
+  "triggers": []
+}

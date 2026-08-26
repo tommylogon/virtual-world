@@ -1,0 +1,9 @@
+{
+  "id": "night_owl",
+  "name": "Night Owl",
+  "description": "Energy curve shifted to night hours. Lose more energy during the day.",
+  "category": "physical",
+  "params": null,
+  "effects": {"energy_curve": {"peak_hour": 22, "off_peak_mod": -2}},
+  "conflicts": ["morning_person"]
+}

@@ -1,0 +1,39 @@
+{
+  "name": "crate",
+  "description": "a wooden crate stamped 'provisions — 1889'. nailed shut. the wood is swollen with moisture. you'd need a tool to open it.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 15,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "furniture",
+    "wooden",
+    "container"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_examine"
+      ],
+      "effects": [
+        {
+          "params": {
+            "fail_message": "",
+            "success_message": "through a gap in the crate's slats, you can see moldy burlap sacks. but something glints beneath them — a bottle of something expensive."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

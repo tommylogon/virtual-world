@@ -1,0 +1,15 @@
+{
+  "name": "front courtyard",
+  "description": "a wide, cobblestone courtyard in front of blackwood manor. the iron gate at the end of the drive hangs crookedly, its bars twisted as if by great force. a dry fountain stands in the center, its basin cracked and filled with dead leaves. the mansion looms ahead, its facade dark and imposing. overgrown hedges line the edges, rustling slightly despite the still air. the front door is a massive oak portal, barred from within, a skull-shaped keyhole glinting in the moonlight.",
+  "tags": [],
+  "environment": {
+    "air": "",
+    "light": "normal",
+    "noise": "quiet",
+    "smell": "damp earth and rust",
+    "temperature": 15
+  },
+  "items": [],
+  "exits": [],
+  "triggers": []
+}

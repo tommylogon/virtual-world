@@ -1,0 +1,40 @@
+{
+  "name": "granola_bar",
+  "description": "a slightly crushed granola bar. chocolate chip. stale but edible.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "food",
+    "granola",
+    "consumable",
+    "supplies"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "amount": -25,
+            "stat": "hunger",
+            "success_message": "you eat the granola bar. it is dry and crumbly, but it fills the gap.",
+            "target": "self"
+          },
+          "type": "adjust_vital"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

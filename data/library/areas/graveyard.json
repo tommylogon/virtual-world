@@ -1,0 +1,130 @@
+{
+  "name": "graveyard",
+  "description": "a small, neglected graveyard behind the mansion. crumbling headstones lean at odd angles like broken teeth. a large stone mausoleum stands at the far end, its heavy door slightly ajar, a sliver of darkness within. the air is cold and unnaturally still. no birds sing here. fresh lilies lie at one grave.",
+  "tags": [],
+  "environment": {
+    "air": "cold",
+    "light": 60,
+    "noise": "silent",
+    "smell": "damp earth",
+    "temperature": 12
+  },
+  "items": [
+    {
+      "name": "headstone",
+      "description": "a weathered headstone, older than the others: 'eleanor blackwood, 1847-1891. may her soul find peace. forgive us, eleanor.' the date is unusual — she died the same year the family vanished. fresh lilies lie at its base.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 500,
+      "current_state": "normal",
+      "tags": [
+        "stone",
+        "outdoor",
+        "corpse",
+        "evidence",
+        "occult"
+      ]
+    },
+    {
+      "name": "wilting_lilies",
+      "description": "fresh lilies at eleanor's grave. they can't be more than a day old. but no one has been here in 130 years. who left them?",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 0.3,
+      "current_state": "normal",
+      "tags": [
+        "plant",
+        "organic",
+        "outdoor",
+        "evidence"
+      ]
+    },
+    {
+      "name": "other_graves",
+      "description": "the other headstones mark the graves of servants and distant relatives. the most recent is dated 1889. one grave catches your eye — a small, simple stone with no name, only a date: 'october 31st, 1891.' the same day the family vanished.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 0,
+      "current_state": "normal",
+      "tags": [
+        "stone",
+        "outdoor",
+        "corpse",
+        "evidence",
+        "occult"
+      ]
+    },
+    {
+      "name": "brass_key",
+      "description": "a small brass key hidden under a loose stone near eleanor's grave. the stone was recently disturbed.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.2,
+      "current_state": "normal",
+      "tags": [
+        "key",
+        "metal"
+      ]
+    },
+    {
+      "name": "dirt_path",
+      "description": "the dirt path leading from the garden gate to the mausoleum is well-worn. despite the overgrown garden, this path has been used recently. footprints in the damp earth — a woman's shoes, narrow heels, size six or seven.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 0,
+      "current_state": "normal",
+      "tags": [
+        "path",
+        "outdoor"
+      ]
+    },
+    {
+      "name": "family_plot",
+      "description": "a cluster of smaller headstones bearing the blackwood name. the children: 'thomas, age 12. — elizabeth, age 10. — james, age 8. — margaret, age 6. — eleanor the younger, age 3.' but these graves are empty — they were never buried here. the stones were placed as memorials.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 0,
+      "current_state": "normal",
+      "tags": [
+        "stone",
+        "outdoor",
+        "corpse",
+        "evidence",
+        "occult"
+      ]
+    }
+  ],
+  "exits": [
+    {
+      "direction": "graveyard_gate_back",
+      "target_room_hint": "garden",
+      "description": "a rusty iron gate covered in climbing ivy. it creaks as it swings.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "graveyard_gate_back"
+    },
+    {
+      "direction": "mausoleum_door",
+      "target_room_hint": "crypt",
+      "description": "the heavy stone door of the mausoleum, slightly ajar. cold air seeps from the darkness within.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "mausoleum_door"
+    }
+  ],
+  "triggers": []
+}

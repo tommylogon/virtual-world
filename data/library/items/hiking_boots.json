@@ -1,0 +1,39 @@
+{
+  "name": "hiking boots",
+  "description": "scuffed brown leather hiking boots with aggressive treads. broken in perfectly, though the left sole is starting to separate at the toe.",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "uses": 0,
+  "weight": 1.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "clothing",
+    "footwear"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_equip",
+      "effects": [
+        {
+          "params": {
+            "message": "you lace up the hiking boots. they grip the floor with satisfying certainty."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": [],
+  "library_id": "hiking_boots",
+  "equip_slots": [
+    "feet"
+  ]
+}

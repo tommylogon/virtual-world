@@ -1,0 +1,15 @@
+{
+  "id": "evidence",
+  "name": "Evidence",
+  "description": "Item that reveals clues or facts.",
+  "category": "essence",
+  "color": "#e67e22",
+  "icon": "🔍",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "hidden note",
+    "family photo"
+  ]
+}

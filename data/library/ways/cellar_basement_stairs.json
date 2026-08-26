@@ -1,0 +1,18 @@
+{
+  "library_id": "",
+  "name": "cellar-basement_stairs",
+  "description": "a narrow staircase descending into darkness. cold air rises from below, carrying the faint smell of earth and something metallic — like old blood.",
+  "current_state": "open",
+  "pass_message": "",
+  "edge_length": "",
+  "needs_open": {},
+  "auto_close": false,
+  "see_through": false,
+  "one_way": false,
+  "requires": "",
+  "max_size": "",
+  "prevent_close": false,
+  "tags": [],
+  "parameters": {},
+  "triggers": []
+}

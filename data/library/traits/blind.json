@@ -1,0 +1,9 @@
+{
+  "id": "blind",
+  "name": "Blind",
+  "description": "Cannot see. Perception checks auto-fail. Narrate without sight.",
+  "category": "physical",
+  "params": null,
+  "effects": {"block_sense": "sight"},
+  "grants_conditions": ["blind"]
+}

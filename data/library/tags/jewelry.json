@@ -1,0 +1,16 @@
+{
+  "id": "jewelry",
+  "name": "Jewelry",
+  "description": "Ornaments worn for adornment.",
+  "category": "physical",
+  "color": "#f7dc6f",
+  "icon": "💍",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "ring",
+    "necklace",
+    "earrings"
+  ]
+}

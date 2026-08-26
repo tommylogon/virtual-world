@@ -1,0 +1,19 @@
+{
+  "name": "key_fragment",
+  "description": "half of a broken brass key. the teeth are intricate and finely crafted. someone deliberately broke this key in half. the other half must be somewhere in the mansion.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "key",
+    "metal",
+    "broken"
+  ],
+  "triggers": [],
+  "contents": []
+}

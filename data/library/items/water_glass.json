@@ -1,0 +1,21 @@
+{
+  "name": "water_glass",
+  "description": "a nightstand glass with stale but drinkable water. a ring of sediment circles the bottom.",
+  "actions": "examine,use",
+  "uses": 1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "water",
+    "drink",
+    "glass",
+    "container",
+    "supplies"
+  ],
+  "triggers": [],
+  "contents": []
+}

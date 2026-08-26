@@ -1,0 +1,22 @@
+{
+  "library_id": "",
+  "name": "order counter",
+  "description": "the customer side of the order counter, kiosk screens glowing at the end. the menu board looms overhead with its taped-over prices.",
+  "current_state": "open",
+  "pass_message": "You step up to the order counter.",
+  "edge_length": "",
+  "needs_open": {
+    "dc": 10,
+    "enabled": false,
+    "skill": "Athletics"
+  },
+  "auto_close": false,
+  "see_through": false,
+  "one_way": false,
+  "requires": "none",
+  "max_size": "normal",
+  "prevent_close": false,
+  "tags": [],
+  "parameters": {},
+  "triggers": []
+}

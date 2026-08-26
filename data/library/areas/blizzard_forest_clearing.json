@@ -1,0 +1,61 @@
+{
+  "description": "You stand in a small clearing, surrounded by towering pines encased in ice and snow. The wind howls relentlessly, whipping stinging flakes into your face and muffling all but the loudest sounds. Through the blinding white, you make out the faint silhouette of a two-story house in the distance, its windows glowing with a dim, warm light. Nestled to one side, a small outhouse stands incongruously bare of snow, its roof and walls oddly dry and dark against the surrounding white. Closer still, an axe is embedded deep in a weathered stump, its handle gleaming with a faint sheen of frost. The air is sharp and cold, carrying the crisp scent of frozen pine and the faint, almost imperceptible hint of woodsmoke from the house. Every step crunches on the icy crust, and the trees groan under their burden of snow.",
+  "environment": {
+    "air": "fresh",
+    "light": "bright",
+    "noise": "windy",
+    "smell": "Frozen pine, wild cedar, and a whisper of woodsmoke",
+    "temperature": -12
+  },
+  "exits": [
+    {
+      "direction": "Outhouse door",
+      "target_room_hint": "Outhouse",
+      "description": "A wooden door to the outhouse",
+      "state": "closed",
+      "hidden": false,
+      "cardinal": "northeast"
+    },
+    {
+      "direction": "front door",
+      "target_room_hint": "Living Room",
+      "description": "A heavy wooden front door, weathered by the storm. The iron handle is cold to the touch.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "north"
+    },
+    {
+      "direction": "narrow passage",
+      "target_room_hint": "Frozen Hollow",
+      "description": "A narrow cleft in the snow-covered hillside, barely wide enough for one person to squeeze through. The wind whistles through the gap, carrying the muffled sounds of the forest beyond.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "south"
+    }
+  ],
+  "items": [
+    {
+      "name": "Lumber Axe",
+      "description": "A sturdy axe. It can cut through wood or ice, ",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "equip",
+        "unequip",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 7,
+      "current_state": "normal",
+      "tags": [
+        "weapon"
+      ]
+    }
+  ],
+  "name": "Blizzard Forest Clearing",
+  "tags": [
+    "exterior"
+  ],
+  "triggers": []
+}

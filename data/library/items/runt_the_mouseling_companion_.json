@@ -1,0 +1,19 @@
+{
+  "name": "Runt the Mouseling (Companion)",
+  "description": "A small, shivering mouseling found near a Galtian military camp. Lives in the fur-lined left chest pocket of Kaelen's coat. Often pokes its head out to observe. Weighs almost nothing, but carries the weight of Kaelen's soft spot for strays.",
+  "actions": "examine,talk,feed,pet",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "companion",
+    "living",
+    "mouseling"
+  ],
+  "triggers": [],
+  "contents": []
+}

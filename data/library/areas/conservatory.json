@@ -1,0 +1,178 @@
+{
+  "name": "conservatory",
+  "description": "a glass-walled room filled with the skeletons of dead plants in clay pots. the air is humid and thick, carrying the sweet-sickly smell of decaying vegetation. a wrought-iron table and chairs sit in the centre, rusted and listing. vines have crept through broken window panes, snaking across the floor like green tentacles. a door leads to the garden.",
+  "tags": [],
+  "environment": {
+    "air": "humid",
+    "light": 70,
+    "noise": "dripping",
+    "smell": "decaying vegetation",
+    "temperature": 24
+  },
+  "items": [
+    {
+      "name": "table_8625c82c",
+      "description": "a wrought-iron table with a cracked glass top. a water-damaged notebook lies on it, pages bloated with moisture.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 15,
+      "current_state": "normal",
+      "tags": [
+        "furniture",
+        "wooden"
+      ]
+    },
+    {
+      "name": "plant",
+      "description": "a withered fern in a clay pot. it crumbles to dust when touched. beneath the dust, something glints in the soil.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 2,
+      "current_state": "normal",
+      "tags": [
+        "plant",
+        "organic",
+        "outdoor"
+      ]
+    },
+    {
+      "name": "garnet_ring",
+      "description": "a delicate gold ring set with a small garnet. inside: 'forever, a.b.' — augustus blackwood's gift to someone who wasn't his wife.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.02,
+      "current_state": "normal",
+      "tags": [
+        "jewelry",
+        "artifact",
+        "metal"
+      ]
+    },
+    {
+      "name": "watering_can",
+      "description": "a rusty watering can. empty. when you pick it up, something rattles inside — a small object.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 1.5,
+      "current_state": "normal",
+      "tags": [
+        "tool",
+        "container",
+        "outdoor",
+        "water"
+      ]
+    },
+    {
+      "name": "key_fragment",
+      "description": "half of a broken brass key. the teeth are intricate and finely crafted. someone deliberately broke this key in half. the other half must be somewhere in the mansion.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.05,
+      "current_state": "normal",
+      "tags": [
+        "key",
+        "metal",
+        "broken"
+      ]
+    },
+    {
+      "name": "rain_barrel",
+      "description": "a barrel catching rainwater through a broken pane. the water is murky with leaf litter but could be filtered through cloth.",
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "uses": -1,
+      "weight": 50,
+      "current_state": "normal",
+      "tags": [
+        "water",
+        "container",
+        "outdoor",
+        "supplies"
+      ]
+    },
+    {
+      "name": "dead_vine",
+      "description": "a thick, dead vine that has grown through a broken window. it's woody and brown, but when you touch it, it feels... warm. alive.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 5,
+      "current_state": "normal",
+      "tags": [
+        "plant",
+        "organic",
+        "outdoor"
+      ]
+    },
+    {
+      "name": "key_fragment_2",
+      "description": "the other half of a broken brass key. the break is clean, matching the fragment you found in the watering can. together, they would form a complete key.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.05,
+      "current_state": "normal",
+      "tags": [
+        "key",
+        "metal",
+        "broken"
+      ]
+    },
+    {
+      "name": "broken_key",
+      "description": "a brass key that has been ritually broken in half and bound with an occult heat-seal. the two halves, when joined, form a complete key. the tag reads: 'eleanor's hope chest — never to be opened.'",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 0.1,
+      "current_state": "normal",
+      "tags": [
+        "key",
+        "metal",
+        "broken"
+      ]
+    }
+  ],
+  "exits": [
+    {
+      "direction": "conservatory_door_back",
+      "target_room_hint": "dining area",
+      "description": "french doors leading to the conservatory, their glass panels fogged with condensation.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "conservatory_door_back"
+    },
+    {
+      "direction": "garden_door",
+      "target_room_hint": "garden",
+      "description": "a glass-paneled door leading to the garden. the garden beyond looks overgrown but peaceful.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "garden_door"
+    }
+  ],
+  "triggers": []
+}

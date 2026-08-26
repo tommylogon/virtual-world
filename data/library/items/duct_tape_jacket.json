@@ -1,0 +1,56 @@
+{
+  "name": "duct tape jacket",
+  "description": "an ancient denim jacket held together by duct tape. the tape is silver on one sleeve, black on the other, and there's a patch on the back covering a hole. it's technically tied around your waist most of the time.",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "uses": 0,
+  "weight": 1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "clothing",
+    "outerwear",
+    "insulation"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_equip",
+      "effects": [
+        {
+          "params": {
+            "message": "you shrug on the jacket. something crinkles — the duct tape on the left shoulder has peeled again."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "duct tape on the sleeves, duct tape on the collar, duct tape holding the pocket on. it's more tape than jacket at this point. you love it."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": [],
+  "library_id": "duct_tape_jacket",
+  "equip_slots": [
+    "torso"
+  ]
+}

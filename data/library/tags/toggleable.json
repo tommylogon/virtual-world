@@ -1,0 +1,16 @@
+﻿{
+  "id": "toggleable",
+  "name": "Toggleable",
+  "description": "Item that can be toggled on or off.",
+  "category": "mechanical",
+  "color": "#f39c12",
+  "icon": "ðŸ’¡",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "flashlight",
+    "candle",
+    "lamp"
+  ]
+}

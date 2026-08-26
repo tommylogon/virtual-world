@@ -1,0 +1,25 @@
+{
+  "name": "Bleeding",
+  "description": "An open wound on a body part, losing blood each tick until treated.",
+  "blocks_actions": false,
+  "blocks_movement": false,
+  "blocks_speech": false,
+  "auto_fail_checks": [],
+  "auto_fail_saves": [],
+  "attack_mod": 0,
+  "defense_mod": 0,
+  "speed_mult": 1.0,
+  "movement_mode": null,
+  "drops_held_items": false,
+  "periodic": {"HP": -2, "Hygiene": -1},
+  "ends_on": ["fix", "heal", "medicine"],
+  "known": true,
+  "symptoms": {
+    "5": "The {body_part} is bleeding — warm blood soaks your skin.",
+    "3": "Blood continues to flow from the {body_part}.",
+    "1": "The {body_part} keeps bleeding. You're getting light-headed."
+  },
+  "stack": "accumulate",
+  "default_duration": null,
+  "excludes": []
+}

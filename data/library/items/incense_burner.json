@@ -1,0 +1,21 @@
+{
+  "name": "incense_burner",
+  "description": "a brass incense burner on a small shelf. the ashes inside are cold but smell of frankincense and something unfamiliar — something acrid.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "incense",
+    "occult",
+    "ritual",
+    "fire",
+    "container"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,32 @@
+{
+  "name": "Religious book",
+  "description": "sacred text dedicated to Elistra, the Goddess of Care",
+  "actions": "examine,take",
+  "uses": -1,
+  "weight": 1.2,
+  "tags": [
+    "book",
+    "paper"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "Upon opening a random page of a sacred text dedicated to Elistra, the Goddess of Care, you find the parchment smells faintly of pine and starlight. The text is written in flowing Elvish script and is titled \"The Psalm of the Open Arms.\" The page reads: On the Duty of the Caretaker \"When the world was but a soup of primordial chaos, Elistra was the first to descend. She did not look for glory in the molten rock or the deep gems; she looked to the slow-growing forests and saw a need for a heart to pulse within the green. She birthed the Elves to be the world's pulse—long-lived and patient, to nurture the world as she nurtures the soul.\" The Verses of Starlight A marginal note, perhaps added by a priestess in Rocheveron, details a specific prayer for those facing the cyclical darkness: \"With open arms we embrace her care, and pray to her so she will help our ancestors pass on. In the age of freezing death, when the hearth goes cold, her light is the only warmth that does not bite.\" [196, Conversation History] The Tenets of Piety At the bottom of the page, a set of divine instructions is illuminated in silver ink, detailing how one might earn Elistra's Blessing:      Give to others, even if you are set back by the act.     Sacrifice yourself for the sake of those who cannot fight.     Avoid the path of revenge, for it is the rot that consumes the caretaker's heart.  The Promise of the Shroud The final paragraph on the page is a promise to those at death’s door: \"Fear not the end of your vigil. For those who walk in her grace, she shall cast a Starlight Shroud at the moment of your deepest peril, holding back the reaper's hand so that your light may shine one moment longer.\" As you close the book, the glowing ink seems to linger in your vision, a reminder that while the 120-year curse brings darkness, Elistra's open arms offer a sanctuary for those brave enough to care."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "Upon opening a random page of a sacred text dedicated to Elistra, the Goddess of Care, you find the parchment smells faintly of pine and starlight. The text is written in flowing Elvish script and is titled \"The Psalm of the Open Arms.\" The page reads: On the Duty of the Caretaker \"When the world was but a soup of primordial chaos, Elistra was the first to descend. She did not look for glory in the molten rock or the deep gems; she looked to the slow-growing forests and saw a need for a heart to pulse within the green. She birthed the Elves to be the world's pulse—long-lived and patient, to nurture the world as she nurtures the soul.\" The Verses of Starlight A marginal note, perhaps added by a priestess in Rocheveron, details a specific prayer for those facing the cyclical darkness: \"With open arms we embrace her care, and pray to her so she will help our ancestors pass on. In the age of freezing death, when the hearth goes cold, her light is the only warmth that does not bite.\" [196, Conversation History] The Tenets of Piety At the bottom of the page, a set of divine instructions is illuminated in silver ink, detailing how one might earn Elistra's Blessing:      Give to others, even if you are set back by the act.     Sacrifice yourself for the sake of those who cannot fight.     Avoid the path of revenge, for it is the rot that consumes the caretaker's heart.  The Promise of the Shroud The final paragraph on the page is a promise to those at death’s door: \"Fear not the end of your vigil. For those who walk in her grace, she shall cast a Starlight Shroud at the moment of your deepest peril, holding back the reaper's hand so that your light may shine one moment longer.\" As you close the book, the glowing ink seems to linger in your vision, a reminder that while the 120-year curse brings darkness, Elistra's open arms offer a sanctuary for those brave enough to care.",
+      "fail_message": ""
+    }
+  ],
+  "contents": [],
+  "current_state": "hidden"
+}

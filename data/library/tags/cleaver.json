@@ -1,0 +1,14 @@
+{
+  "id": "cleaver",
+  "name": "Cleaver",
+  "description": "A heavy chopping knife used in butchering.",
+  "category": "physical",
+  "color": "#7f8c8d",
+  "icon": "🔪",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "meat cleaver"
+  ]
+}

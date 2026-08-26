@@ -1,0 +1,9 @@
+{
+  "id": "introvert",
+  "name": "Introvert",
+  "description": "Energy drains faster when in groups.",
+  "category": "mental",
+  "params": null,
+  "effects": {"group_energy_drain": -2, "social_gain": 0},
+  "conflicts": ["extrovert"]
+}

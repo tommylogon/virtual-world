@@ -1,0 +1,758 @@
+{
+  "active_player": "Thief",
+  "clock_start_hour": 8,
+  "clock_start_minute": 0,
+  "current_area": "Grand Gallery",
+  "ways": {},
+  "game_log": [],
+  "game_time": "08:00:00",
+  "ghost_mode": false,
+  "graph": {
+    "edges": [
+      {
+        "properties": {
+          "direction": "east",
+          "visible_in_direction": ""
+        },
+        "source": "area_grand_gallery",
+        "target": "way_Grand Gallery_east",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "west"
+        },
+        "source": "way_Grand Gallery_east",
+        "target": "area_vault",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "west",
+          "visible_in_direction": ""
+        },
+        "source": "area_vault",
+        "target": "way_Grand Gallery_east",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "east"
+        },
+        "source": "way_Grand Gallery_east",
+        "target": "area_grand_gallery",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "north",
+          "visible_in_direction": ""
+        },
+        "source": "area_grand_gallery",
+        "target": "way_Grand Gallery_north",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "south"
+        },
+        "source": "way_Grand Gallery_north",
+        "target": "area_rooftop",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "south",
+          "visible_in_direction": ""
+        },
+        "source": "area_rooftop",
+        "target": "way_Grand Gallery_north",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "north"
+        },
+        "source": "way_Grand Gallery_north",
+        "target": "area_grand_gallery",
+        "type": "connection"
+      },
+      {
+        "properties": {},
+        "source": "item_Prized Painting",
+        "target": "area_grand_gallery",
+        "type": "location"
+      },
+      {
+        "properties": {
+          "effect_params": {
+            "message": "The painting emits a piercing alarm! Security alerted!"
+          },
+          "effect_type": "message",
+          "target_name": "",
+          "trigger_type": "on_take"
+        },
+        "source": "item_Prized Painting",
+        "target": "trigger_item_Prized Painting_on_take_1784743649508_653",
+        "type": "triggers"
+      },
+      {
+        "properties": {
+          "effect_params": {
+            "message": "The painting glows with an inner light."
+          },
+          "effect_type": "message",
+          "target_name": "",
+          "trigger_type": "on_examine"
+        },
+        "source": "item_Prized Painting",
+        "target": "trigger_item_Prized Painting_on_examine_1784743649508_560",
+        "type": "triggers"
+      },
+      {
+        "properties": {},
+        "source": "item_Security Keycard",
+        "target": "area_vault",
+        "type": "location"
+      },
+      {
+        "properties": {
+          "effect_params": {
+            "message": "Keycard blinks green — access granted."
+          },
+          "effect_type": "message",
+          "target_name": "",
+          "trigger_type": "on_use"
+        },
+        "source": "item_Security Keycard",
+        "target": "trigger_item_Security Keycard_on_use_1784743651122_962",
+        "type": "triggers"
+      },
+      {
+        "properties": {},
+        "source": "item_Flashlight",
+        "target": "area_grand_gallery",
+        "type": "location"
+      },
+      {
+        "properties": {
+          "effect_params": {
+            "message": "You deftly manipulate the lock."
+          },
+          "effect_type": "message",
+          "target_name": "",
+          "trigger_type": "on_use"
+        },
+        "source": "item_Lockpick",
+        "target": "trigger_item_Lockpick_on_use_1784743654159_775",
+        "type": "triggers"
+      },
+      {
+        "properties": {},
+        "source": "item_Lockpick",
+        "target": "player_Thief",
+        "type": "location"
+      },
+      {
+        "properties": {},
+        "source": "player_Thief",
+        "target": "area_grand_gallery",
+        "type": "location"
+      }
+    ],
+    "nodes": {
+      "way_Grand Gallery_east": {
+        "created": 1784743646.358724,
+        "id": "way_Grand Gallery_east",
+        "name": "Grand Gallery-east",
+        "properties": {
+          "cost": {},
+          "current_state": "locked",
+          "description": "Reinforced steel door with card reader.",
+          "area_from": "Grand Gallery",
+          "area_to": "Vault"
+        },
+        "type": "way",
+        "updated": 1784743646.3587246
+      },
+      "way_Grand Gallery_north": {
+        "created": 1784743647.8754594,
+        "id": "way_Grand Gallery_north",
+        "name": "Grand Gallery-north",
+        "properties": {
+          "cost": {},
+          "current_state": "open",
+          "description": "Fire exit door to rooftop.",
+          "area_from": "Grand Gallery",
+          "area_to": "Rooftop"
+        },
+        "type": "way",
+        "updated": 1784743647.8754601
+      },
+      "item_Flashlight": {
+        "created": 1784743652.5237596,
+        "id": "item_Flashlight",
+        "name": "Flashlight",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "contents": [],
+          "description": "A heavy metal flashlight.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "hidden": false,
+          "skill_check": {},
+          "uses": -1,
+          "weight": 0.1
+        },
+        "type": "item",
+        "updated": 1784743652.5237598
+      },
+      "item_Lockpick": {
+        "created": 1784743654.1592395,
+        "id": "item_Lockpick",
+        "name": "Lockpick",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "contents": [],
+          "description": "A finely crafted lockpick.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "hidden": false,
+          "skill_check": {},
+          "uses": -1,
+          "weight": 0.1
+        },
+        "type": "item",
+        "updated": 1784743654.1592398
+      },
+      "item_Prized Painting": {
+        "created": 1784743649.5083034,
+        "id": "item_Prized Painting",
+        "name": "Prized Painting",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "contents": [],
+          "description": "A stunning painting of a moonlit forest.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "hidden": false,
+          "skill_check": {},
+          "uses": -1,
+          "weight": 0.1
+        },
+        "type": "item",
+        "updated": 1784743649.5083036
+      },
+      "item_Security Keycard": {
+        "created": 1784743651.1224484,
+        "id": "item_Security Keycard",
+        "name": "Security Keycard",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "contents": [],
+          "description": "Black keycard with VAULT ACCESS label.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "hidden": false,
+          "skill_check": {},
+          "uses": -1,
+          "weight": 0.1
+        },
+        "type": "item",
+        "updated": 1784743651.1224484
+      },
+      "player_Guard": {
+        "created": 1784743655.5427525,
+        "id": "player_Guard",
+        "name": "Guard",
+        "properties": {},
+        "type": "character",
+        "updated": 1784743655.542753
+      },
+      "player_Thief": {
+        "created": 1784743654.942234,
+        "id": "player_Thief",
+        "name": "Thief",
+        "properties": {},
+        "type": "character",
+        "updated": 1784743654.942235
+      },
+      "area_grand_gallery": {
+        "created": 1784743641.8922482,
+        "id": "area_grand_gallery",
+        "name": "Grand Gallery",
+        "properties": {
+          "description": "The Grand Gallery in the museum.",
+          "environment": {
+            "air": "fresh",
+            "light": "normal",
+            "noise": "",
+            "smell": "",
+            "temperature": 21
+          }
+        },
+        "type": "area",
+        "updated": 1784743641.8922489
+      },
+      "area_rooftop": {
+        "created": 1784743644.8411336,
+        "id": "area_rooftop",
+        "name": "Rooftop",
+        "properties": {
+          "description": "The Rooftop in the museum.",
+          "environment": {
+            "air": "fresh",
+            "light": "normal",
+            "noise": "",
+            "smell": "",
+            "temperature": 21
+          }
+        },
+        "type": "area",
+        "updated": 1784743644.841134
+      },
+      "area_vault": {
+        "created": 1784743643.4264672,
+        "id": "area_vault",
+        "name": "Vault",
+        "properties": {
+          "description": "The Vault in the museum.",
+          "environment": {
+            "air": "fresh",
+            "light": "normal",
+            "noise": "",
+            "smell": "",
+            "temperature": 21
+          }
+        },
+        "type": "area",
+        "updated": 1784743643.426468
+      },
+      "trigger_item_Lockpick_on_use_1784743654159_775": {
+        "created": 1784743654.1593404,
+        "id": "trigger_item_Lockpick_on_use_1784743654159_775",
+        "name": "on_use → message",
+        "properties": {
+          "effect_params": {
+            "message": "You deftly manipulate the lock."
+          },
+          "effect_type": "message",
+          "target_name": "",
+          "trigger_type": "on_use"
+        },
+        "type": "logic_trigger",
+        "updated": 1784743654.1593406
+      },
+      "trigger_item_Prized Painting_on_examine_1784743649508_560": {
+        "created": 1784743649.5084147,
+        "id": "trigger_item_Prized Painting_on_examine_1784743649508_560",
+        "name": "on_examine → message",
+        "properties": {
+          "effect_params": {
+            "message": "The painting glows with an inner light."
+          },
+          "effect_type": "message",
+          "target_name": "",
+          "trigger_type": "on_examine"
+        },
+        "type": "logic_trigger",
+        "updated": 1784743649.508415
+      },
+      "trigger_item_Prized Painting_on_take_1784743649508_653": {
+        "created": 1784743649.508403,
+        "id": "trigger_item_Prized Painting_on_take_1784743649508_653",
+        "name": "on_take → message",
+        "properties": {
+          "effect_params": {
+            "message": "The painting emits a piercing alarm! Security alerted!"
+          },
+          "effect_type": "message",
+          "target_name": "",
+          "trigger_type": "on_take"
+        },
+        "type": "logic_trigger",
+        "updated": 1784743649.5084033
+      },
+      "trigger_item_Security Keycard_on_use_1784743651122_962": {
+        "created": 1784743651.1225157,
+        "id": "trigger_item_Security Keycard_on_use_1784743651122_962",
+        "name": "on_use → message",
+        "properties": {
+          "effect_params": {
+            "message": "Keycard blinks green — access granted."
+          },
+          "effect_type": "message",
+          "target_name": "",
+          "trigger_type": "on_use"
+        },
+        "type": "logic_trigger",
+        "updated": 1784743651.1225157
+      }
+    }
+  },
+  "item_registry": {},
+  "log_revision": 0,
+  "narration_mode": "none",
+  "players": {
+    "Guard": {
+      "base_description": "",
+      "behaviors": [],
+      "current_area": null,
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "description": "",
+      "emotion": {
+        "current": "neutral",
+        "description": "",
+        "intensity": 0
+      },
+      "equipped": {
+        "accessory": [],
+        "arms": [],
+        "back": [],
+        "feet": [],
+        "hand_left": [],
+        "hand_right": [],
+        "hands": [],
+        "head": [],
+        "legs": [],
+        "neck": [],
+        "torso": [],
+        "waist": []
+      },
+      "inventory": [
+        "Lockpick"
+      ],
+      "knowledge": {},
+      "memories": [],
+      "memory": {},
+      "name": "Guard",
+      "npc_action_interval": 3,
+      "npc_behavior": "wander",
+      "npc_state": "idle",
+      "personality": "",
+      "recent_hearing": [],
+      "relationships": {},
+      "simple_npc": true,
+      "skills": {
+        "Acrobatics": 1,
+        "Athletics": 1,
+        "Perception": 1,
+        "Persuasion": 1,
+        "Stealth": 1,
+        "Survival": 1
+      },
+      "state": "awake",
+      "state_enter_tick": 0,
+      "state_timer": 0,
+      "stats": {
+        "CHA": 10,
+        "CON": 10,
+        "DEX": 10,
+        "INT": 10,
+        "STR": 10,
+        "WIS": 10
+      },
+      "traits": {},
+      "vitals": {
+        "Bladder": 100,
+        "Energy": 100,
+        "Entertainment": 100,
+        "HP": 100,
+        "Hunger": 0,
+        "Hygiene": 100,
+        "Max_HP": 100,
+        "Sanity": 100,
+        "Social": 100,
+        "Temperature": 37,
+        "Thirst": 0
+      },
+      "world_knowledge": ""
+    },
+    "Thief": {
+      "base_description": "",
+      "behaviors": [],
+      "current_area": "Grand Gallery",
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "description": "",
+      "emotion": {
+        "current": "neutral",
+        "description": "",
+        "intensity": 0
+      },
+      "equipped": {
+        "accessory": [],
+        "arms": [],
+        "back": [],
+        "feet": [],
+        "hand_left": [],
+        "hand_right": [],
+        "hands": [],
+        "head": [],
+        "legs": [],
+        "neck": [],
+        "torso": [],
+        "waist": []
+      },
+      "inventory": [
+        "Lockpick"
+      ],
+      "knowledge": {},
+      "memories": [],
+      "memory": {},
+      "name": "Thief",
+      "npc_action_interval": 3,
+      "npc_behavior": "wander",
+      "npc_state": "idle",
+      "personality": "",
+      "recent_hearing": [],
+      "relationships": {},
+      "simple_npc": false,
+      "skills": {
+        "Acrobatics": 1,
+        "Athletics": 1,
+        "Perception": 1,
+        "Persuasion": 1,
+        "Stealth": 1,
+        "Survival": 1
+      },
+      "state": "awake",
+      "state_enter_tick": 0,
+      "state_timer": 0,
+      "stats": {
+        "CHA": 10,
+        "CON": 10,
+        "DEX": 10,
+        "INT": 10,
+        "STR": 10,
+        "WIS": 10
+      },
+      "traits": {},
+      "vitals": {
+        "Bladder": 100,
+        "Energy": 97,
+        "Entertainment": 100,
+        "HP": 100,
+        "Hunger": 0,
+        "Hygiene": 100,
+        "Max_HP": 100,
+        "Sanity": 100,
+        "Social": 100,
+        "Temperature": 37,
+        "Thirst": 0
+      },
+      "world_knowledge": ""
+    }
+  },
+  "players_in_area": [],
+  "areas": {
+    "Grand Gallery": {
+      "description": "The Grand Gallery in the museum.",
+      "environment": {
+        "air": "fresh",
+        "light": "normal",
+        "noise": "",
+        "smell": "",
+        "temperature": 21
+      },
+      "exits": {
+        "east": {
+          "cost": {},
+          "description": "Reinforced steel door with card reader.",
+          "way_id": "way_Grand Gallery_east",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "west",
+          "state": "locked",
+          "target": "Vault",
+          "visible_in_direction": ""
+        },
+        "north": {
+          "cost": {},
+          "description": "Fire exit door to rooftop.",
+          "way_id": "way_Grand Gallery_north",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "south",
+          "state": "open",
+          "target": "Rooftop",
+          "visible_in_direction": ""
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "name": "Grand Gallery",
+      "properties": {
+        "description": "The Grand Gallery in the museum.",
+        "environment": {
+          "air": "fresh",
+          "light": "normal",
+          "noise": "",
+          "smell": "",
+          "temperature": 21
+        }
+      }
+    },
+    "Rooftop": {
+      "description": "The Rooftop in the museum.",
+      "environment": {
+        "air": "fresh",
+        "light": "normal",
+        "noise": "",
+        "smell": "",
+        "temperature": 21
+      },
+      "exits": {
+        "south": {
+          "cost": {},
+          "description": "Fire exit door to rooftop.",
+          "way_id": "way_Grand Gallery_north",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "north",
+          "state": "open",
+          "target": "Grand Gallery",
+          "visible_in_direction": ""
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "name": "Rooftop",
+      "properties": {
+        "description": "The Rooftop in the museum.",
+        "environment": {
+          "air": "fresh",
+          "light": "normal",
+          "noise": "",
+          "smell": "",
+          "temperature": 21
+        }
+      }
+    },
+    "Vault": {
+      "description": "The Vault in the museum.",
+      "environment": {
+        "air": "fresh",
+        "light": "normal",
+        "noise": "",
+        "smell": "",
+        "temperature": 21
+      },
+      "exits": {
+        "west": {
+          "cost": {},
+          "description": "Reinforced steel door with card reader.",
+          "way_id": "way_Grand Gallery_east",
+          "hidden": false,
+          "pass_message": "",
+          "return_dir": "east",
+          "state": "locked",
+          "target": "Grand Gallery",
+          "visible_in_direction": ""
+        }
+      },
+      "floor": 0,
+      "items": [],
+      "name": "Vault",
+      "properties": {
+        "description": "The Vault in the museum.",
+        "environment": {
+          "air": "fresh",
+          "light": "normal",
+          "noise": "",
+          "smell": "",
+          "temperature": 21
+        }
+      }
+    }
+  },
+  "time_per_tick_minutes": 5,
+  "time_ticks": 0,
+  "turn_events": [
+    {
+      "action": "take",
+      "actor": "Thief",
+      "description": "picked up the lockpick",
+      "room": "Grand Gallery",
+      "tick": 0,
+      "turn": 0
+    },
+    {
+      "action": "move",
+      "actor": "Thief",
+      "description": "left the Grand Gallery through the north",
+      "room": "Grand Gallery",
+      "tick": 0,
+      "turn": 0
+    },
+    {
+      "action": "move",
+      "actor": "Thief",
+      "description": "entered the Rooftop through the north",
+      "room": "Rooftop",
+      "tick": 0,
+      "turn": 0
+    },
+    {
+      "action": "move",
+      "actor": "Thief",
+      "description": "left the Rooftop through the south",
+      "room": "Rooftop",
+      "tick": 0,
+      "turn": 0
+    },
+    {
+      "action": "move",
+      "actor": "Thief",
+      "description": "entered the Grand Gallery through the south",
+      "room": "Grand Gallery",
+      "tick": 0,
+      "turn": 0
+    }
+  ],
+  "turn_number": 0,
+  "world_lore": [],
+  "_scenario_name": "art_heist",
+  "_description": "Art Heist: Museum gallery with painting, locked vault, rooftop escape"
+}

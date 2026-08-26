@@ -1,0 +1,74 @@
+{
+  "name": "Stirrup Socks",
+  "description": "Knee-high wool socks with a strap that runs under the arch of your foot, leaving your toes and heel completely bare. They keep your calves warm while your feet stay free.",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "uses": 0,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 2,
+  "tags": [
+    "clothing",
+    "insulation"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_equip",
+      "effects": [
+        {
+          "type": "adjust_vital",
+          "params": {
+            "amount": 15,
+            "message": "You pull on the stirrup socks. Your calves feel cozy, but your feet remain bare.",
+            "stat": "Warmth"
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_unequip",
+      "effects": [
+        {
+          "type": "adjust_vital",
+          "params": {
+            "amount": -15,
+            "message": "You remove the stirrup socks. Your calves are now exposed.",
+            "stat": "Warmth"
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "The socks are made of soft, cream-colored wool. The stirrup strap is a thin band of elastic, meant to hold the sock in place while leaving your foot open."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": [],
+  "equip_slots": [
+    "legs"
+  ]
+}

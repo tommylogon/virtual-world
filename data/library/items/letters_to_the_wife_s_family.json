@@ -1,0 +1,35 @@
+{
+  "name": "Letters to the Wife's Family",
+  "description": "A bundle of sealed letters addressed to the wife's family.",
+  "actions": "examine,take,use,drop",
+  "uses": 0,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "flammable"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "success_message": "The bundle is now open. One letter reads: 'Dearest family, I am considering a visit to Vald to escape this treacherous cold with my family. I hope to see you soon.'"
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

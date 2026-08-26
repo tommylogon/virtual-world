@@ -1,0 +1,38 @@
+{
+  "name": "ace_bandage",
+  "description": "a rolled elastic bandage. kyrie keeps it in case someone twists an ankle.",
+  "actions": "examine,use,take,drop",
+  "uses": 1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "medical",
+    "bandage"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "amount": 15,
+            "stat": "hp",
+            "success_message": "you wrap the bandage around the wound. it will hold.",
+            "target": "self"
+          },
+          "type": "adjust_vital"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

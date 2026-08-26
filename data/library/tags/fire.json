@@ -1,0 +1,18 @@
+{
+  "id": "fire",
+  "name": "Fire",
+  "description": "Burning flame that provides light, heat, and can spread",
+  "category": "custom",
+  "color": "#ff6600",
+  "icon": "🔥",
+  "applies_to": [
+    "items",
+    "areas"
+  ],
+  "examples": [
+    "campfire",
+    "torch",
+    "candle",
+    "fireplace"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "library_id": "",
+  "name": "library-bookcase",
+  "description": "a bookcase that looks like it could slide aside. the books on this shelf are all titled 'arcane heraldry' — and they're all identical, which is suspicious.",
+  "current_state": "hidden",
+  "pass_message": "",
+  "edge_length": "",
+  "needs_open": {},
+  "auto_close": false,
+  "see_through": false,
+  "one_way": false,
+  "requires": "",
+  "max_size": "",
+  "prevent_close": false,
+  "tags": [],
+  "parameters": {},
+  "triggers": []
+}

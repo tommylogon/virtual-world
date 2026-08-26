@@ -1,0 +1,15 @@
+{
+  "id": "dwarf",
+  "name": "Dwarf",
+  "description": "Sturdy subterranean humanoid",
+  "category": "character",
+  "color": "#884400",
+  "icon": "⛏️",
+  "applies_to": [
+    "characters"
+  ],
+  "examples": [
+    "mountain dwarf",
+    "hill dwarf"
+  ]
+}

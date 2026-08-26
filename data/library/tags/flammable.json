@@ -1,0 +1,16 @@
+{
+  "id": "flammable",
+  "name": "Flammable",
+  "description": "Can be set on fire and burn",
+  "category": "physical",
+  "color": "#ff6600",
+  "icon": "🔥",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "wooden chair",
+    "curtains",
+    "paper"
+  ]
+}

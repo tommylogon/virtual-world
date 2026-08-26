@@ -1,0 +1,14 @@
+{
+  "name": "Clean Bandages",
+  "description": "your average bandage",
+  "actions": "examine,take,use",
+  "uses": -1,
+  "weight": 0.1,
+  "tags": [
+    "cloth",
+    "medicine"
+  ],
+  "triggers": [],
+  "contents": [],
+  "current_state": "hidden"
+}

@@ -1,0 +1,58 @@
+{
+  "name": "flashlight",
+  "description": "a compact led flashlight. bright enough to see where you are going. battery at about 80%.",
+  "actions": "examine,use",
+  "uses": 30,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "toggleable",
+    "light_source",
+    "electric",
+    "tool",
+    "survival"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_toggle_on",
+      "effects": [
+        {
+          "params": {
+            "fail_message": "",
+            "light": 40,
+            "success_message": "you switch the flashlight on. the beam cuts through the darkness."
+          },
+          "type": "adjust_environment"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_toggle_off",
+      "effects": [
+        {
+          "params": {
+            "fail_message": "",
+            "light": -40,
+            "success_message": "you switch the flashlight off. darkness returns."
+          },
+          "type": "adjust_environment"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

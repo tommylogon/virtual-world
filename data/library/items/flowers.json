@@ -1,0 +1,40 @@
+{
+  "name": "flowers",
+  "description": "a patch of wilted roses, their petals brown and curling. but one bush defies the decay — a single red rose bush blooms vibrantly, as if it's june instead of october.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "plant",
+    "organic",
+    "outdoor",
+    "evidence"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_examine"
+      ],
+      "effects": [
+        {
+          "params": {
+            "fail_message": "",
+            "success_message": "the single red rose bush seems out of place in this garden of decay. as you lean closer, you notice a small brass plaque at its base, nearly hidden by thorns: 'for our eleanor, who loved roses. gone but never forgotten. — mother and father.' this is a grave."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

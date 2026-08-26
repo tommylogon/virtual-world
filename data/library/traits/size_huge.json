@@ -1,0 +1,7 @@
+{
+  "id": "size_huge",
+  "name": "Huge Size",
+  "description": "About 3.4 m tall — double a normal human. Crowds normal doorways; small tunnels are impassable.",
+  "category": "physical",
+  "params": { "size": "huge" }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "water_carboy",
+  "description": "a large glass carboy of drinking water, half full. the glass stopper is still sealed with wax. the water inside is perfectly clear.",
+  "actions": "examine,take,use,drop",
+  "uses": 5,
+  "weight": 5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "water",
+    "drink",
+    "glass",
+    "container",
+    "supplies"
+  ],
+  "triggers": [],
+  "contents": []
+}

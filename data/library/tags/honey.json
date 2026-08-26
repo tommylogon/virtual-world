@@ -1,0 +1,14 @@
+{
+  "id": "honey",
+  "name": "Honey",
+  "description": "Honey, natural sweetener.",
+  "category": "physical",
+  "color": "#f1c40f",
+  "icon": "🍯",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "jar of honey"
+  ]
+}

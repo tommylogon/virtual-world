@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Stream Redesign Demo — Blackwood Manor</title>
+    <style>
+        :root {
+            --bg-main: #0d1117;
+            --bg-card: #161b22;
+            --bg-card-hover: #1c2128;
+            --bg-inset: #1c2128;
+            --border-default: #30363d;
+            --border-light: #21262d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --accent-blue: #79c0ff;
+            --accent-green: #3fb950;
+            --accent-red: #f85149;
+            --accent-orange: #f97316;
+            --accent-teal: #2dd4bf;
+            --accent-purple: #a78bfa;
+            --accent-pink: #f778ba;
+        }
+
+        /* ── Per-actor colors (from the mansion scenario's 9 characters) ── */
+        .turn-card[data-actor="Elena Vance"] { border-left-color: var(--accent-teal); }
+        .turn-card[data-actor="Elena Vance"] .actor-name { color: var(--accent-teal); }
+        .turn-card[data-actor="The Butcher"] { border-left-color: var(--accent-red); }
+        .turn-card[data-actor="The Butcher"] .actor-name { color: var(--accent-red); }
+        .turn-card[data-actor="Miki"] { border-left-color: var(--accent-orange); }
+        .turn-card[data-actor="Miki"] .actor-name { color: var(--accent-orange); }
+        .turn-card[data-actor="Jake Halloway"] { border-left-color: var(--accent-blue); }
+        .turn-card[data-actor="Jake Halloway"] .actor-name { color: var(--accent-blue); }
+        .turn-card[data-actor="Ghost"] { border-left-color: var(--accent-purple); }
+        .turn-card[data-actor="Ghost"] .actor-name { color: var(--accent-purple); }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 24px;
+            display: flex;
+            justify-content: center;
+        }
+
+        #event-stream {
+            width: 100%;
+            max-width: 860px;
+            height: 86vh;
+            overflow-y: auto;
+            border: 1px solid var(--border-default);
+            border-radius: 12px;
+            padding: 24px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        #event-stream::-webkit-scrollbar { width: 8px; }
+        #event-stream::-webkit-scrollbar-track { background: var(--bg-main); }
+        #event-stream::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 4px; }
+
+        /* Tick Dividers */
+        .tick-divider {
+            display: flex;
+            align-items: center;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 500;
+            margin-top: 12px;
+        }
+        .tick-divider::before, .tick-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-default);
+        }
+        .tick-divider span { padding: 0 12px; }
+
+        /* Turn Cards */
+        .turn-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-left: 3px solid var(--text-secondary);
+            border-radius: 8px;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: background-color 0.2s ease;
+        }
+        .turn-card:hover { background-color: var(--bg-card-hover); }
+
+        .turn-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 8px;
+        }
+        .actor-name {
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        .actor-name:hover { text-decoration: underline; opacity: 0.9; }
+        .actor-role { font-size: 11px; color: var(--text-muted); font-weight: 400; margin-left: 6px; }
+        .timestamp { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-secondary); white-space: nowrap; }
+
+        /* Message rows */
+        .msg { font-size: 13.5px; line-height: 1.55; padding-left: 10px; }
+
+        .msg-thought {
+            color: var(--text-secondary);
+            font-style: italic;
+            border-left: 2px solid var(--border-default);
+        }
+        .msg-thought::before { content: '💭 '; font-style: normal; }
+
+        .msg-speech { color: var(--text-primary); font-weight: 500; }
+        .msg-speech::before { content: '💬 '; font-weight: 400; color: var(--text-muted); }
+
+        .msg-action {
+            color: var(--accent-blue);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .msg-action::before { content: '▶'; font-size: 10px; color: var(--text-muted); }
+
+        .msg-result { color: var(--text-primary); border-left: 2px solid var(--border-light); }
+        .msg-result::before { content: '↳ '; color: var(--text-muted); }
+
+        .msg-error { color: var(--accent-red); }
+        .msg-error::before { content: '⚠ '; }
+
+        /* Hearing / environment row */
+        .msg-heard { color: var(--accent-purple); font-size: 12.5px; }
+        .msg-heard::before { content: '👂 '; }
+        .msg-env { color: var(--text-muted); font-size: 12px; }
+
+        /* Trigger effect row (real message strings from mansion.json) */
+        .msg-trigger { color: var(--accent-pink); border-left: 2px solid var(--border-light); }
+        .msg-trigger::before { content: '⚡ '; }
+
+        /* Flat non-agent rows — the stream is a universal log, not just agent turns */
+        .msg-user { color: var(--accent-blue); font-weight: 500; }
+        .msg-user::before { content: '👤 '; font-weight: 400; color: var(--text-muted); }
+        .msg-system { color: var(--text-muted); font-size: 12.5px; }
+        .msg-system::before { content: '⚙ '; }
+        .msg-edit { color: var(--text-secondary); font-size: 12.5px; border-left: 2px solid var(--border-light); }
+        .msg-edit::before { content: '✎ '; }
+
+        /* Skill badges */
+        .skill-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 4px;
+            align-self: flex-start;
+        }
+        .skill-badge.failed { background: rgba(248, 81, 73, 0.12); color: var(--accent-red); border: 1px solid rgba(248, 81, 73, 0.35); }
+        .skill-badge.success { background: rgba(63, 185, 80, 0.12); color: var(--accent-green); border: 1px solid rgba(63, 185, 80, 0.35); }
+
+        /* LLM chips — request AND response */
+        .llm-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #21262d;
+            border: 1px solid var(--border-default);
+            padding: 5px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            align-self: flex-start;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .llm-chip:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+        .llm-chip.request { color: var(--accent-blue); }
+        .llm-chip.response { color: var(--accent-green); }
+        .llm-chip.thinking { animation: pulse 1.5s infinite; }
+        .llm-chip .chip-label { flex: 1; }
+
+        .llm-raw {
+            display: none;
+            background: var(--bg-main);
+            border: 1px solid var(--border-default);
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            white-space: pre-wrap;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+        .llm-raw.request { color: var(--accent-blue); }
+        .llm-raw.response { color: var(--accent-green); }
+        .llm-chip.open + .llm-raw { display: block; }
+        .llm-raw.open { display: block; }
+
+        .llm-row { display: flex; flex-direction: column; gap: 0; align-items: flex-start; }
+
+        @keyframes pulse {
+            0% { border-color: var(--border-default); }
+            50% { border-color: var(--accent-purple); box-shadow: 0 0 8px rgba(167, 139, 250, 0.3); }
+            100% { border-color: var(--border-default); }
+        }
+
+        /* ── v2: phase pills ── */
+        .phase-row { display: flex; flex-wrap: wrap; gap: 5px; }
+        .phase-pill {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600;
+            letter-spacing: 0.04em; text-transform: uppercase;
+            padding: 1px 8px; border-radius: 10px;
+            background: var(--bg-inset); border: 1px solid var(--border-default);
+            color: var(--text-secondary);
+        }
+        .phase-pill.observe { color: var(--accent-blue); border-color: rgba(121,192,255,.35); }
+        .phase-pill.think   { color: var(--accent-purple); border-color: rgba(167,139,250,.35); }
+        .phase-pill.decide  { color: var(--accent-orange); border-color: rgba(249,115,22,.35); }
+        .phase-pill.act     { color: var(--accent-green); border-color: rgba(63,185,80,.35); }
+        .phase-pill.react   { color: var(--accent-teal); border-color: rgba(45,212,191,.35); }
+
+        /* ── v2: outcome-tinted results ── */
+        .msg-result.success { border-left: 2px solid var(--accent-green); }
+        .msg-result.failure { border-left: 2px solid var(--accent-red); }
+        .msg-result.minor   { color: var(--text-muted); font-size: 12.5px; }
+        .result-badge { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; margin-right: 4px; }
+        .result-badge.ok { color: var(--accent-green); }
+        .result-badge.fail { color: var(--accent-red); }
+
+        /* ── v2: action verb highlighting ── */
+        .msg-action .verb { color: var(--accent-teal); }
+
+        /* ── v2: narration + provenance ── */
+        .msg-narrated { color: #d4b06a; border-left: 2px solid rgba(212,176,106,.6); }
+        .msg-narrated::before { content: '🎭 '; }
+        .narrated-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; opacity: .7; margin-right: 4px; }
+        .provenance {
+            display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 10px;
+            padding: 0 6px; margin-right: 6px; border-radius: 3px; cursor: pointer;
+            background: rgba(247,120,186,.12); color: var(--accent-pink);
+            border: 1px solid rgba(247,120,186,.3);
+        }
+        .provenance:hover { border-color: var(--accent-pink); }
+
+        /* ── v2: reflection + emotion ── */
+        .msg-reflection { color: var(--accent-purple); border-left: 2px solid rgba(167,139,250,.6); }
+        .msg-reflection::before { content: '🧠 '; }
+        .emotion-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent-pink); margin-left: 6px; }
+
+        /* ── v2: whispers ── */
+        .msg-whisper { color: var(--text-secondary); font-style: italic; }
+        .msg-whisper::before { content: '🔒 '; font-style: normal; }
+        .whisper-gesture { color: var(--text-muted); font-size: 12.5px; }
+        .whisper-gesture::before { content: '🤫 '; }
+
+        /* ── v2: area transition dividers ── */
+        .area-transition {
+            display: flex; align-items: center; gap: 10px;
+            color: var(--text-muted); font-size: 11px; font-family: 'JetBrains Mono', monospace;
+        }
+        .area-transition::before, .area-transition::after { content: ''; flex: 1; height: 1px; background: var(--border-light); }
+
+        /* ── v2: streaming bubble ── */
+        .stream-bubble {
+            color: var(--text-muted); font-style: italic; font-size: 12.5px;
+            border-left: 2px dashed var(--border-default); padding-left: 10px;
+        }
+        .stream-bubble .cursor { color: var(--accent-purple); animation: blink 1s steps(1) infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* ── v2: scope banner ── */
+        .scope-banner {
+            position: sticky; top: -24px; z-index: 5;
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(121,192,255,.08); border: 1px solid rgba(121,192,255,.35);
+            border-radius: 8px; padding: 6px 12px;
+            font-size: 12px; color: var(--accent-blue);
+        }
+        .scope-banner button { background: transparent; border: none; color: var(--accent-blue); padding: 0 4px; font-size: 13px; }
+        .scope-banner button:hover { background: transparent; color: var(--text-primary); }
+
+        /* ── v2: filter bar + density toggle ── */
+        .filter-bar {
+            position: fixed; top: 20px; left: 20px; z-index: 100;
+            display: flex; flex-direction: column; gap: 6px;
+            background: var(--bg-card); border: 1px solid var(--border-default);
+            border-radius: 8px; padding: 10px 12px; width: 170px;
+        }
+        .filter-bar select {
+            width: 100%; box-sizing: border-box;
+            background: var(--bg-inset); color: var(--text-primary);
+            border: 1px solid var(--border-default); border-radius: 4px;
+            font-size: 12px; padding: 3px 6px;
+        }
+        .density-toggle { display: flex; gap: 4px; margin-top: 4px; }
+        .density-toggle button { flex: 1; padding: 4px 0; font-size: 11px; font-weight: 600; background: var(--bg-inset); color: var(--text-secondary); border: 1px solid var(--border-default); border-radius: 4px; }
+        .density-toggle button.active { background: #238636; color: white; border-color: transparent; }
+
+        /* ── v2: compact density mode ── */
+        #event-stream.compact { gap: 8px; }
+        #event-stream.compact .turn-card { padding: 6px 10px; gap: 3px; border-left-width: 2px; }
+        #event-stream.compact .msg { font-size: 12px; line-height: 1.4; padding-left: 8px; }
+
+        /* ── v2.1: timeline scrubber + turn queue + time gaps ── */
+        .timeline-scrubber {
+            position: sticky; top: 8px; z-index: 4;
+            height: 14px; margin-bottom: 10px;
+            background: var(--bg-inset); border: 1px solid var(--border-default); border-radius: 7px;
+            display: flex; align-items: center; gap: 3px; padding: 0 8px;
+            cursor: pointer;
+        }
+        .timeline-scrubber .seg { width: 4px; height: 6px; border-radius: 1px; background: var(--border-default); }
+        .timeline-scrubber .seg.hot { background: var(--accent-blue); }
+        .timeline-scrubber .seg.speech { background: var(--accent-teal); }
+        .timeline-scrubber .seg.crisis { background: var(--accent-red); }
+        .timeline-scrubber .head {
+            width: 2px; height: 10px; margin-left: auto; background: var(--accent-purple);
+            border-radius: 1px; box-shadow: 0 0 6px rgba(167,139,250,.8);
+        }
+        .time-gap {
+            text-align: center; color: var(--text-muted); font-size: 11px;
+            font-family: 'JetBrains Mono', monospace; letter-spacing: .05em;
+        }
+        .turn-queue-strip {
+            display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+            font-size: 11px; color: var(--text-secondary);
+            background: var(--bg-inset); border: 1px solid var(--border-default);
+            border-radius: 8px; padding: 5px 10px;
+        }
+        .turn-queue-strip .q-next { color: var(--accent-green); font-weight: 600; }
+        .turn-queue-strip .q-you { color: var(--accent-pink); font-weight: 700; }
+        .turn-queue-strip .q-arrow { color: var(--text-muted); }
+
+        /* ── v2.2: search ── */
+        .search-box input {
+            width: 100%; box-sizing: border-box;
+            background: var(--bg-inset); color: var(--text-primary);
+            border: 1px solid var(--border-default); border-radius: 4px;
+            font-size: 12px; padding: 4px 8px;
+        }
+        .search-count { font-size: 10px; color: var(--accent-blue); min-height: 12px; }
+
+        /* ── v2.2: token budget + prompt diff + recall annotation ── */
+        .tok-meter { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent-green); }
+        .tok-meter.warn { color: var(--accent-orange); }
+        .recall-note { font-size: 10px; color: var(--accent-purple); opacity: .85; }
+        .llm-chip.diff {
+            background: rgba(167,139,250,.08); border-color: rgba(167,139,250,.35);
+            color: var(--accent-purple); font-size: 11px; padding: 3px 10px;
+        }
+
+        /* ── v2.2: engine events made visible ── */
+        .heard-meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); margin-left: 6px; }
+        .prune-note { color: var(--accent-orange); border-left: 2px solid rgba(249,115,22,.5); padding-left: 8px; }
+        .msg-crisis {
+            color: var(--accent-red); font-size: 12px; font-weight: 600;
+            background: rgba(248,81,73,.08); border: 1px solid rgba(248,81,73,.3);
+            border-radius: 6px; padding: 4px 10px; align-self: flex-start;
+        }
+        .parse-streak {
+            color: var(--accent-red); font-size: 12px;
+            border: 1px dashed rgba(248,81,73,.45); border-radius: 8px;
+            padding: 6px 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+        }
+        .parse-streak .export-link { color: var(--accent-blue); text-decoration: underline; cursor: pointer; font-size: 11px; }
+
+        /* ── v2.2: STORY MODE — the session as readable fiction ── */
+        #event-stream.story-mode { background: #12151a; gap: 5px; max-width: 720px; }
+        #event-stream.story-mode .timeline-scrubber,
+        #event-stream.story-mode .turn-queue-strip,
+        #event-stream.story-mode .scope-banner,
+        #event-stream.story-mode .phase-row,
+        #event-stream.story-mode .llm-row,
+        #event-stream.story-mode .skill-badge,
+#event-stream.story-mode .stream-bubble,
+        #event-stream.story-mode .msg-action,
+        #event-stream.story-mode .msg-reflection,
+        #event-stream.story-mode .msg-crisis,
+        #event-stream.story-mode .flat-row,
+        #event-stream.story-mode .result-badge,
+        #event-stream.story-mode .narrated-tag,
+        #event-stream.story-mode .provenance,
+        #event-stream.story-mode .emotion-tag,
+        #event-stream.story-mode .heard-meta,
+        #event-stream.story-mode .actor-role,
+        #event-stream.story-mode .timestamp { display: none; }
+        #event-stream.story-mode .turn-card {
+            background: transparent; border: none; border-left: none;
+            border-radius: 0; padding: 0; gap: 4px;
+        }
+        #event-stream.story-mode .turn-card:hover { background: transparent; }
+        #event-stream.story-mode .turn-header { display: block; margin: 18px 0 2px; }
+        #event-stream.story-mode .actor-name {
+            font-family: Georgia, 'Times New Roman', serif; font-variant: small-caps;
+            letter-spacing: .05em; font-weight: 400; font-size: 15px;
+        }
+        #event-stream.story-mode .msg {
+            font-family: Georgia, 'Times New Roman', serif; font-size: 15px;
+            line-height: 1.75; padding-left: 0; border-left: none; font-weight: 400;
+        }
+        #event-stream.story-mode .msg::before { content: '' !important; margin: 0; }
+        #event-stream.story-mode .msg-thought { color: var(--text-secondary); font-style: italic; }
+        #event-stream.story-mode .msg-speech { color: #e8dcc0; }
+        #event-stream.story-mode .msg-trigger,
+        #event-stream.story-mode .msg-result,
+        #event-stream.story-mode .msg-narrated { color: #b9c4cf; }
+        #event-stream.story-mode .msg-heard,
+        #event-stream.story-mode .msg-whisper { color: var(--text-secondary); font-style: italic; }
+        #event-stream.story-mode .area-transition::before,
+#event-stream.story-mode .area-transition::after { background: transparent; }
+        #event-stream.story-mode .area-transition span,
+        #event-stream.story-mode .tick-divider span {
+            font-family: Georgia, serif; font-variant: small-caps;
+            font-size: 17px; color: var(--text-primary);
+        }
+        #event-stream.story-mode .time-gap { font-family: Georgia, serif; font-style: italic; }
+
+        /* Controls */
+        .controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 180px;
+        }
+        .controls .control-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+        button {
+            background: #238636;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        button:hover { background: #2ea043; }
+        button.ghost { background: transparent; border: 1px solid var(--border-default); color: var(--text-secondary); }
+        button.ghost:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+    </style>
+</head>
+<body>
+
+    <!-- v2: filter bar — area + actor scopes, density mode -->
+    <div class="filter-bar">
+        <span class="control-label">Search</span>
+        <div class="search-box">
+            <input type="text" placeholder="find anything…" oninput="searchStream(this.value)">
+        </div>
+        <div class="search-count" id="search-count"></div>
+        <span class="control-label">Area</span>
+        <select id="demo-area-filter" onchange="setDemoArea(this.value)">
+            <option value="">All areas</option>
+            <option>Entrance Hall</option>
+            <option>Dining Room</option>
+            <option>Library</option>
+            <option>Hidden Room</option>
+        </select>
+        <span class="control-label">Actor</span>
+        <select onchange="alert('live: already wired via updateAgentFilterDropdown()')">
+            <option value="">All actors</option>
+            <option>Elena Vance</option>
+            <option>Miki</option>
+            <option>Jake Halloway</option>
+        </select>
+        <div class="density-toggle">
+            <button id="density-cards" class="active" onclick="setDensity('cards')">Cards</button>
+            <button id="density-compact" onclick="setDensity('compact')">Compact</button>
+            <button id="density-story" onclick="setDensity('story')" title="Read the session as fiction">📖 Story</button>
+        </div>
+    </div>
+
+    <div class="controls">
+        <span class="control-label">Demo — Blackwood Manor</span>
+        <button onclick="simulateTick()">▶ Simulate Next Tick</button>
+        <button class="ghost" onclick="resetDemo()">↺ Reset</button>
+        <span class="control-label" style="margin-top:8px;">Real data from</span>
+        <span class="control-label">data/scenarios/mansion.json + skills.py + sound.py</span>
+    </div>
+
+    <div id="event-stream">
+        <!-- v2: persistent scope indicator — never forget you're filtered -->
+        <div class="scope-banner" id="scope-banner">
+            <span>📌 Scoped to: Entrance Hall</span>
+            <button onclick="dismissScope()" title="Clear area filter">×</button>
+        </div>
+
+        <!-- v2.1: timeline scrubber — density per tick, teal = speech, red = crisis, click to jump -->
+        <div class="timeline-scrubber" title="click to jump">
+            <div class="seg hot"></div><div class="seg"></div><div class="seg speech"></div><div class="seg"></div><div class="seg hot"></div><div class="seg speech"></div><div class="seg crisis"></div><div class="seg"></div><div class="seg speech"></div><div class="seg"></div><div class="seg hot"></div><div class="seg"></div><div class="seg speech"></div><div class="seg hot"></div><div class="seg"></div><div class="seg speech"></div><div class="seg"></div><div class="seg hot"></div><div class="seg speech"></div><div class="seg"></div><div class="seg"></div><div class="seg speech"></div>
+            <div class="head"></div>
+        </div>
+
+        <!-- v2.1: turn queue strip — the core loop made visible; pink = human slot -->
+        <div class="turn-queue-strip">
+            ⏭ up next: <span class="q-next">Miki</span> <span class="q-arrow">→</span> <span>Jake Halloway</span> <span class="q-arrow">→</span> <span>The Butcher</span> <span class="q-arrow">→</span> <span class="q-you">🎤 YOU (Elena)</span>
+        </div>
+
+        <!-- ───────── Tick 42 — first rendered turn ───────── -->
+        <div class="tick-divider"><span>Tick 42 · 08:15</span></div>
+
+        <!-- Elena's turn card -->
+        <div class="turn-card" data-actor="Elena Vance">
+            <div class="turn-header">
+                <span class="actor-name" onclick="focusAgent('Elena Vance')">Elena Vance<span class="actor-role">investigator</span></span>
+                <span class="timestamp">[08:15]</span>
+            </div>
+
+            <!-- v2: phase rhythm made scannable -->
+            <div class="phase-row">
+                <span class="phase-pill observe">👁 observe</span>
+                <span class="phase-pill think">💭 think</span>
+                <span class="phase-pill decide">🎯 decide</span>
+                <span class="phase-pill act">⚡ act</span>
+                <span class="phase-pill react">🔄 react</span>
+            </div>
+
+            <div class="msg msg-thought">That skull-shaped keyhole is unusual. The notebook mentioned a crystal skull — worth checking if it fits.</div>
+
+            <!-- v2: verb highlighted against target -->
+            <div class="msg msg-action"><span class="verb">examine</span> front_door</div>
+
+            <!-- Real trigger message from mansion.json (front door on_examine) -->
+            <!-- v2: provenance chip links back to the graph node -->
+            <div class="msg msg-trigger"><span class="provenance" onclick="focusNode('front_door')">⚡ front_door</span>The massive oak front door, reinforced with iron bands. It is barred from the inside with a strange mechanism. A skull-shaped indentation suggests something must be placed here to unlock it.</div>
+
+            <!-- Real skill-check output format from engine/skills.py -->
+            <div class="skill-badge failed">✕ Perception vs DC 12 (easy): roll=7 + 3 = 10 => failure</div>
+            <!-- v2: outcome tinted from structured data, not string matching; minor results dimmed -->
+            <div class="msg msg-result failure"><span class="result-badge fail">✕</span>You don't notice anything else about the door.</div>
+            <div class="msg msg-result minor">The wind presses against the shutters. Nothing moves.</div>
+
+            <!-- v2: narrated substitutions are marked, never invisible -->
+            <div class="msg msg-narrated"><span class="narrated-tag">narrated</span>The house holds its breath around you, patient as stone.</div>
+
+            <!-- Raw LLM REQUEST (togglable) + RESPONSE -->
+            <div class="llm-row">
+                <div class="llm-chip request" onclick="this.classList.toggle('open')">📤 <span class="chip-label">LLM Request · think-decide · <span class="tok-meter">~1.9k tok</span> · <span class="recall-note">recalled: 3 memories (2 semantic)</span></span> ▸</div>
+                <pre class="llm-raw request">=== SYSTEM ===
+You are Elena Vance, a field investigator in Blackwood Manor...
+
+=== USER (observe) ===
+You are currently in the Entrance Hall. It is dimly lit and bitingly cold.
+Items that catch your attention:
+- on the table is a candle stub
+- the oak front door is barred, a skull-shaped indentation at its center
+People here: The Butcher, Miki.
+Your investigation notes:
+- Crystal skull is not a legend. It is in the catacombs beneath Prague... brought to the manor on All Hallows Eve.
+Findings: front_door (skull-shaped keyhole)
+
+=== RESPONSE FORMAT ===
+Respond with ONLY raw JSON.
+{"inner_monologue":"...","action":"examine","item":"front_door","speech":"...","volume":"say","emote":"..."}</pre>
+            </div>
+            <div class="llm-row">
+                <div class="llm-chip response" onclick="this.classList.toggle('open')">🤖 <span class="chip-label">LLM Response · 450 tokens</span> ▸</div>
+                <pre class="llm-raw response">{"inner_monologue":"That skull-shaped keyhole is unusual. The notebook mentioned a crystal skull — worth checking if it fits.","action":"examine","item":"front_door","speech":null,"volume":"say","emote":null}</pre>
+            </div>
+            <!-- v2.2: prompt diff — consecutive requests differ by ~200 tokens; show THAT, not both dumps -->
+            <div class="llm-row">
+                <div class="llm-chip diff" onclick="alert('Expanded diff view: what changed vs her previous think-decide request. Turns payload dumps into signal.')">± diff vs previous request <span class="tok-meter">+212 / −187</span></div>
+            </div>
+        </div>
+
+        <!-- Miki's turn card — hearing + speech -->
+        <div class="turn-card" data-actor="Miki">
+            <div class="turn-header">
+                <span class="actor-name" onclick="focusAgent('Miki')">Miki<span class="actor-role">graffiti artist</span></span>
+                <span class="timestamp">[08:15]</span>
+            </div>
+
+            <!-- Real hearing narration from engine/sound.py:293 -->
+            <div class="msg msg-heard">You hear someone speaking from the north.<span class="heard-meta">entrance hall · one closed door · clear</span></div>
+
+            <div class="msg msg-thought">Did Elena say something? Sounded like she found something on the door.</div>
+
+            <div class="msg msg-speech">"What is it, Elena?"</div>
+            <div class="msg msg-action">go north</div>
+
+            <div class="llm-row">
+                <div class="llm-chip request" onclick="this.classList.toggle('open')">📤 <span class="chip-label">LLM Request · think-decide · <span class="tok-meter warn" title="near the 9500-token context window — history pruning imminent">~7.8k tok ⚠</span></span> ▸</div>
+                <pre class="llm-raw request">=== SYSTEM ===
+You are Miki, a chaotic graffiti artist exploring Blackwood Manor...
+
+=== USER (observe) ===
+You are currently in the Courtyard. It is dark and freezing.
+You hear someone speaking from the north.
+People here: no one you recognize.
+Items: [none visible in the dark]</pre>
+            </div>
+            <div class="llm-row">
+                <div class="llm-chip response" onclick="this.classList.toggle('open')">🤖 <span class="chip-label">LLM Response · 310 tokens</span> ▸</div>
+                <pre class="llm-raw response">{"inner_monologue":"Did Elena say something? Sounded like she found something on the door.","speech":"What is it, Elena?","volume":"say","action":"go","item":"north","emote":null}</pre>
+            </div>
+        </div>
+
+        <!-- ───────── v2: spatial + inner-life rows ───────── -->
+        <!-- v2.1: time compression — the clock moved, the stream should say so -->
+        <div class="time-gap">— 47 minutes pass · day 2 begins —</div>
+        <!-- v2: area transition divider — movement becomes visible -->
+        <div class="area-transition"><span>elena vance &nbsp;·&nbsp; Entrance Hall → Library</span></div>
+
+        <div class="turn-card" data-actor="Jake Halloway">
+            <div class="turn-header">
+                <span class="actor-name" onclick="focusAgent('Jake Halloway')">Jake Halloway<span class="actor-role">??</span></span>
+                <span class="timestamp">[08:16]</span>
+            </div>
+            <!-- v2.2: vital-crisis replans EXPLAINED instead of mysterious deviation -->
+            <div class="msg msg-crisis">⚠ hunger critical (22/100) — replanning: seek food</div>
+            <!-- v2: directed whisper — the TARGET's view -->
+            <div class="msg msg-whisper">psst — the study window. someone's been in the garden.</div>
+            <!-- v2: reflection styled + felt emotion surfaced -->
+            <div class="msg msg-reflection">reflected on 2 memories (tags: garden, footprints)<span class="emotion-tag">felt: wary 62</span></div>
+            <!-- v2: live token streaming bubble -->
+            <div class="stream-bubble">thinking<span class="cursor">▍</span></div>
+        </div>
+
+        <!-- v2: what everyone ELSE sees of that same whisper -->
+        <div class="flat-row">
+            <div class="msg whisper-gesture">jake halloway whispers something to elena vance.</div>
+            <!-- v2.2: context pruning made visible instead of silent amnesia -->
+            <div class="msg msg-system prune-note">✂ Context pruned for miki: dropped 12 oldest messages (30 msgs / 9500 tok ceiling)</div>
+            <div class="msg msg-system">💾 Game saved: mansion_tick_44</div>
+        </div>
+
+        <!-- v2.2: parse-error streaks collapse into one actionable summary -->
+        <div class="flat-row">
+            <div class="parse-streak">⚠ 5 consecutive parse errors · decide phase · qwen3.5-2b <span class="export-link" onclick="alert('Downloads all 5 raw payloads as files — ready to attach to a bug report.')">export payloads</span></div>
+        </div>
+    </div>
+
+    <script>
+        const stream = document.getElementById('event-stream');
+        let currentTick = 42;
+        const INITIAL_HTML = stream.innerHTML;
+
+        // Real content pulled from mansion.json (Elena, notebook, crystal skull,
+        // EMF reader, front door), engine/skills.py (skill check string), and
+        // engine/sound.py (heard narration).
+        const TICK_EVENTS = [
+            {
+                actor: 'Elena Vance', role: 'investigator', time: 8,
+                entries: [
+                    { type: 'thought', text: 'Maybe the crystal skull goes in the front door. The note said All Hallows Eve.' },
+                    { type: 'action', text: 'examine crystal_skull' },
+                    { type: 'trigger', text: 'You peer into the crystal skull\'s eye sockets. For just a moment, you see a reflection that isn\'t yours — a young girl with dark hair and sad eyes, standing behind you. You spin around. There\'s no one there.' },
+                    { type: 'skill', ok: false, label: 'Sanity vs DC 14 (medium): roll=6 + 1 = 7 => failure' },
+                    { type: 'result', text: 'A chill runs down your spine. You set the skull down quickly.' },
+                ],
+                req: '=== SYSTEM ===\nYou are Elena Vance, a field investigator in Blackwood Manor...\n\n=== USER (observe) ===\nYou are in the Hidden Room. Faint sickly green luminescence.\nItems that catch your attention:\n- on the pedestal is a crystal skull that pulses with inner light\nYour investigation notes:\n- Find the skull.\n\n=== RESPONSE FORMAT ===\nRespond with ONLY raw JSON.',
+                resp: '{"inner_monologue":"Maybe the crystal skull goes in the front door. The note said All Hallows Eve.","action":"examine","item":"crystal_skull","speech":null,"volume":"say","emote":null}',
+            },
+            {
+                actor: 'The Butcher', role: '???', time: 9,
+                entries: [
+                    { type: 'heard', text: 'You hear heavy footsteps from the east.' },
+                    { type: 'thought', text: 'Someone\'s moving around upstairs. Can\'t tell if it\'s one of the others.' },
+                    { type: 'action', text: 'go east' },
+                    { type: 'result', text: 'You move into the Dining Room. The table is set, but the chairs are all pulled out at odd angles.' },
+                ],
+                req: '=== SYSTEM ===\nYou are The Butcher...\n\n=== USER (observe) ===\nYou are in the Entrance Hall. You hear heavy footsteps from the east.',
+                resp: '{"inner_monologue":"Someone\'s moving around upstairs. Can\'t tell if it\'s one of the others.","action":"go","item":"east","speech":null,"volume":"say","emote":null}',
+            },
+            {
+                actor: 'Miki', role: 'graffiti artist', time: 10,
+                entries: [
+                    { type: 'env', text: 'The air is stale and bitingly cold. A dusty crystal chandelier hangs overhead.' },
+                    { type: 'thought', text: 'I should check the EMF reader again. This place is giving me the creeps.' },
+                    { type: 'action', text: 'examine EMF reader' },
+                    { type: 'trigger', text: 'The EMF reader hums faintly. The needle flickers but stays near zero. Whatever is in this house, it is not putting out much of a field right now.' },
+                ],
+                req: '=== SYSTEM ===\nYou are Miki, a chaotic graffiti artist...\n\n=== USER (observe) ===\nYou are in the Entrance Hall. The air is stale and bitingly cold.',
+                resp: '{"inner_monologue":"I should check the EMF reader again. This place is giving me the creeps.","action":"examine","item":"EMF reader","speech":null,"volume":"say","emote":null}',
+            },
+            {
+                actor: 'Jake Halloway', role: '??', time: 11,
+                entries: [
+                    { type: 'thought', text: 'The door is barred from the inside. Someone locked it behind us.' },
+                    { type: 'action', text: 'use brass_key on front_door' },
+                    { type: 'skill', ok: true, label: 'Lockpicking vs DC 14 (medium): roll=15 + 3 = 18 => success' },
+                    { type: 'result', text: 'The lock clicks open. The heavy oak door swings inward on silent hinges.' },
+                ],
+                req: '=== SYSTEM ===\nYou are Jake Halloway...\n\n=== USER (observe) ===\nYou are in the Entrance Hall. The oak front door looms ahead, a skull-shaped indentation at its center.',
+                resp: '{"inner_monologue":"The door is barred from the inside. Someone locked it behind us.","action":"use","item":"brass_key","target":"front_door","speech":null,"volume":"say","emote":null}',
+            },
+            {
+                actor: 'Elena Vance', role: 'investigator', time: 12,
+                entries: [
+                    { type: 'heard', text: 'You hear the front door open from the entrance hall.' },
+                    { type: 'thought', text: 'The door opened. We need to move before this house closes in again.' },
+                    { type: 'speech', text: 'Everyone, to the courtyard — now!' },
+                ],
+                req: '=== SYSTEM ===\nYou are Elena Vance...\n\n=== USER (observe) ===\nYou are in the Library. You hear the front door open from the entrance hall.',
+                resp: '{"inner_monologue":"The door opened. We need to move before this house closes in again.","speech":"Everyone, to the courtyard — now!","volume":"shout","action":null,"emote":null}',
+            },
+            // ── Flat non-agent events ──
+            // The stream is a UNIVERSAL LOG. User commands, graph edits, saves,
+            // settings toggles and AI generation all land here too — they have no
+            // actor and belong to no turn card. Real strings from main.js,
+            // graph-manager.js, saveload-view.js.
+            {
+                flat: true, time: 13,
+                entries: [
+                    { type: 'user', text: '> examine crystal_skull' },
+                    { type: 'system', text: 'You peer into the crystal skull\'s eye sockets. For just a moment, you see a reflection that isn\'t yours — a young girl with dark hair and sad eyes, standing behind you. You spin around. There\'s no one there.' },
+                ],
+            },
+            {
+                flat: true, time: 14,
+                entries: [
+                    { type: 'edit', text: '✎ Connected Entrance Hall <-> Dining Room' },
+                    { type: 'system', text: '💾 Game saved: mansion_tick_44' },
+                ],
+            },
+        ];
+
+        const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+        function entryHtml(entry, actor) {
+            switch (entry.type) {
+                case 'thought': return `<div class="msg msg-thought">${esc(entry.text)}</div>`;
+                case 'speech': return `<div class="msg msg-speech">"${esc(entry.text)}"</div>`;
+                case 'action': return `<div class="msg msg-action">${esc(entry.text)}</div>`;
+                case 'trigger': return `<div class="msg msg-trigger">${esc(entry.text)}</div>`;
+                case 'heard': return `<div class="msg msg-heard">${esc(entry.text)}</div>`;
+                case 'env': return `<div class="msg msg-env">${esc(entry.text)}</div>`;
+                case 'result': return `<div class="msg msg-result">${esc(entry.text)}</div>`;
+                case 'skill': return `<div class="skill-badge ${entry.ok ? 'success' : 'failed'}">${entry.ok ? '✓' : '✕'} ${esc(entry.label)}</div>`;
+                case 'user': return `<div class="msg msg-user">${esc(entry.text)}</div>`;
+                case 'system': return `<div class="msg msg-system">${esc(entry.text)}</div>`;
+                case 'edit': return `<div class="msg msg-edit">${esc(entry.text)}</div>`;
+                case 'narrated': return `<div class="msg msg-narrated"><span class="narrated-tag">narrated</span>${esc(entry.text)}</div>`;
+                case 'reflection': return `<div class="msg msg-reflection">${esc(entry.text)}<span class="emotion-tag">felt: ${esc(entry.emotion || 'calm 30')}</span></div>`;
+                case 'whisper': return `<div class="msg msg-whisper">${esc(entry.text)}</div>`;
+                case 'gesture': return `<div class="msg whisper-gesture">${esc(entry.text)}</div>`;
+                default: return '';
+            }
+        }
+
+        function focusAgent(name) {
+            alert(`VW.inspector.showAgent('${name}') — opens the right-side inspector`);
+        }
+
+        // ── v2 demo helpers ──
+        function focusNode(nodeId) {
+            alert(`VW.graphEditor.focus('${nodeId}') — jumps to the node in the graph editor`);
+        }
+
+        function dismissScope() {
+            const banner = document.getElementById('scope-banner');
+            if (banner) banner.remove();
+        }
+
+        function setDensity(mode) {
+            const streamEl = document.getElementById('event-stream');
+            streamEl.classList.toggle('compact', mode === 'compact');
+            streamEl.classList.toggle('story-mode', mode === 'story');
+            document.getElementById('density-cards').classList.toggle('active', mode === 'cards');
+            document.getElementById('density-compact').classList.toggle('active', mode === 'compact');
+            document.getElementById('density-story').classList.toggle('active', mode === 'story');
+        }
+
+        // v2.2: search — card-granularity filter with match count
+        function searchStream(rawQuery) {
+            const q = rawQuery.trim().toLowerCase();
+            let hits = 0;
+            stream.querySelectorAll('.turn-card').forEach(card => {
+                const match = !q || card.textContent.toLowerCase().includes(q);
+                card.style.display = match ? '' : 'none';
+                if (match && q) hits++;
+            });
+            stream.querySelectorAll('.flat-row, .area-transition, .time-gap').forEach(row => {
+                row.style.display = (!q || row.textContent.toLowerCase().includes(q)) ? '' : 'none';
+            });
+            document.getElementById('search-count').textContent = q ? `${hits} card${hits === 1 ? '' : 's'} match` : '';
+        }
+
+        // v2.1: scrubber click-to-jump — proportional scroll into the session
+        document.querySelector('.timeline-scrubber')?.addEventListener('click', (e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            stream.scrollTop = ((e.clientX - rect.left) / rect.width) * stream.scrollHeight - 40;
+        });
+
+        function setDemoArea(area) {
+            let banner = document.getElementById('scope-banner');
+            if (!area) { if (banner) banner.remove(); return; }
+            if (!banner) {
+                banner = document.createElement('div');
+                banner.className = 'scope-banner';
+                banner.id = 'scope-banner';
+                stream.prepend(banner);
+            }
+            banner.innerHTML = `<span>📌 Scoped to: ${esc(area)}</span><button onclick="dismissScope()" title="Clear area filter">×</button>`;
+        }
+
+        function simulateTick() {
+            currentTick++;
+            const t = TICK_EVENTS[(currentTick - 43) % TICK_EVENTS.length];
+
+            const divider = document.createElement('div');
+            divider.className = 'tick-divider';
+            divider.innerHTML = `<span>Tick ${currentTick} · 08:${String(t.time).padStart(2, '0')}</span>`;
+            stream.appendChild(divider);
+
+            // Flat non-agent events (user commands, graph edits, saves) render
+            // as plain rows — they have no actor and belong to no turn card.
+            if (t.flat) {
+                t.entries.forEach(e => {
+                    const row = document.createElement('div');
+                    row.className = 'flat-row';
+                    row.innerHTML = entryHtml(e, null);
+                    stream.appendChild(row);
+                });
+                stream.scrollTop = stream.scrollHeight;
+                return;
+            }
+
+            const card = document.createElement('div');
+            card.className = 'turn-card';
+            card.setAttribute('data-actor', t.actor);
+
+            let inner = `
+                <div class="turn-header">
+                    <span class="actor-name" onclick="focusAgent('${esc(t.actor)}')">${esc(t.actor)}<span class="actor-role">${esc(t.role)}</span></span>
+                    <span class="timestamp">[08:${String(t.time).padStart(2, '0')}]</span>
+                </div>`;
+
+            t.entries.forEach(e => { inner += entryHtml(e, t.actor); });
+
+            inner += `
+                <div class="llm-row">
+                    <div class="llm-chip request" onclick="this.classList.toggle('open')">📤 <span class="chip-label">LLM Request · think-decide</span> ▸</div>
+                    <pre class="llm-raw request">${esc(t.req)}</pre>
+                </div>
+                <div class="llm-row">
+                    <div class="llm-chip response" onclick="this.classList.toggle('open')">🤖 <span class="chip-label">LLM Response</span> ▸</div>
+                    <pre class="llm-raw response">${esc(t.resp)}</pre>
+                </div>`;
+
+            card.innerHTML = inner;
+            stream.appendChild(card);
+
+            stream.scrollTop = stream.scrollHeight;
+        }
+
+        function resetDemo() {
+            stream.innerHTML = INITIAL_HTML;
+            currentTick = 42;
+        }
+    </script>
+</body>
+</html>

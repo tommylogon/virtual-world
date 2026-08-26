@@ -1,0 +1,19 @@
+{
+  "name": "locked_chest",
+  "actions": "examine",
+  "contents": [
+    "gold_coins"
+  ],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "A sturdy iron-bound chest with a heavy padlock. The lock looks like it would accept a brass key.",
+  "insulation": 0,
+  "light_level": "dim",
+  "tags": [
+    "container"
+  ],
+  "triggers": [],
+  "uses": -1,
+  "weight": 20
+}

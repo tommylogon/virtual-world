@@ -1,0 +1,14 @@
+{
+  "id": "locket",
+  "name": "Locket",
+  "description": "Small ornamental case worn as jewelry.",
+  "category": "physical",
+  "color": "#f7dc6f",
+  "icon": "📿",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "silver locket"
+  ]
+}

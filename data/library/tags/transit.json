@@ -1,0 +1,17 @@
+{
+  "id": "transit",
+  "name": "Transit",
+  "description": "A transit passage — traversable way between areas (used by character_spatial.py to classify movement)",
+  "category": "mechanical",
+  "color": "#8b949e",
+  "icon": "⇅",
+  "applies_to": [
+    "ways"
+  ],
+  "examples": [
+    "tunnel",
+    "duct",
+    "catwalk",
+    "bridge"
+  ]
+}

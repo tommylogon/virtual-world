@@ -1,0 +1,14 @@
+{
+  "id": "granola",
+  "name": "Granola",
+  "description": "Granola bar, trail snack.",
+  "category": "physical",
+  "color": "#ca6f1e",
+  "icon": "🌾",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "chocolate chip granola bar"
+  ]
+}

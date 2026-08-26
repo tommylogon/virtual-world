@@ -1,0 +1,15 @@
+{
+  "id": "artifact",
+  "name": "Artifact",
+  "description": "Object of historical, magical, or mysterious significance.",
+  "category": "essence",
+  "color": "#8e44ad",
+  "icon": "🏺",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "old pocket watch",
+    "crystal skull"
+  ]
+}

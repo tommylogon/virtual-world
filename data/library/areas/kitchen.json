@@ -1,0 +1,142 @@
+{
+  "description": "A cold, dark kitchen with exposed wooden beams. The stove is out, and a chill hangs in the air. Dried herbs dangle from the ceiling, their scent faint in the cold. A large oak table sits in the center, covered with a checkered cloth.",
+  "environment": {
+    "air": "cold",
+    "light": "normal",
+    "noise": "silence, occasionally a draft",
+    "smell": "dried herbs and dust",
+    "temperature": 3
+  },
+  "exits": [
+    {
+      "direction": "bathroom door",
+      "target_room_hint": "Bathroom",
+      "description": "A wooden door that has a small sigh of Bath on it.",
+      "state": "closed",
+      "hidden": false,
+      "cardinal": "north"
+    },
+    {
+      "direction": "swinging door",
+      "target_room_hint": "Living Room",
+      "description": "A classic double swinging door with a small round window, gently swaying.",
+      "state": "closed",
+      "hidden": false,
+      "cardinal": "north"
+    },
+    {
+      "direction": "trapdoor",
+      "target_room_hint": "Cellar",
+      "description": "A heavy wooden trapdoor set into the kitchen floor, its iron ring cold against the floorboards. A sturdy ladder disappears into darkness below.",
+      "state": "closed",
+      "hidden": false,
+      "cardinal": "down"
+    }
+  ],
+  "items": [
+    {
+      "name": "apple",
+      "description": "A crisp red apple, still cool from the cellar. Juicy and fresh.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "eat",
+        "drop"
+      ],
+      "uses": 1,
+      "weight": 0.2,
+      "current_state": "normal",
+      "tags": [
+        "food"
+      ]
+    },
+    {
+      "name": "water_pitcher",
+      "description": "A clay pitcher filled with cool, clear water. Condensation beads on the surface.",
+      "actions": [
+        "examine",
+        "use",
+        "take",
+        "drink",
+        "drop"
+      ],
+      "uses": 3,
+      "weight": 1,
+      "current_state": "normal",
+      "tags": []
+    },
+    {
+      "name": "kindling",
+      "description": "A small bundle of dry twigs, perfect for starting a fire.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 1,
+      "weight": 0.3,
+      "current_state": "normal",
+      "tags": [
+        "flammable"
+      ]
+    },
+    {
+      "name": "bread",
+      "description": "A fresh loaf of crusty bread wrapped in a cloth. cold",
+      "actions": [
+        "examine",
+        "take",
+        "eat",
+        "drop"
+      ],
+      "uses": 2,
+      "weight": 0.5,
+      "current_state": "normal",
+      "tags": [
+        "food"
+      ]
+    },
+    {
+      "name": "medicine_cabinet",
+      "description": "A small wooden cabinet mounted on the wall near the stove. Inside: a vial of antiseptic and some bandages.",
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "uses": 1,
+      "weight": 3,
+      "current_state": "normal",
+      "tags": [
+        "container"
+      ]
+    },
+    {
+      "name": "Culdron",
+      "description": "A culdron on the stove\n",
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "uses": -1,
+      "weight": 0.1,
+      "current_state": "normal",
+      "tags": []
+    },
+    {
+      "name": "locked_cabinet",
+      "description": "A wall-mounted pantry cabinet with a sturdy brass lock. The keyhole suggests a small cabinet key would fit.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 15,
+      "current_state": "normal",
+      "tags": []
+    }
+  ],
+  "name": "Kitchen",
+  "tags": [],
+  "triggers": []
+}

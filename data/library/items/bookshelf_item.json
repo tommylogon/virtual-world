@@ -1,0 +1,19 @@
+{
+  "name": "bookshelf_item",
+  "description": "one shelf contains a series of identical books: 'arcane heraldry: volumes i through xiv.' they're all the same book republished with different covers. the shelf behind them is hollow — it's a door.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 30,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "book",
+    "paper",
+    "furniture"
+  ],
+  "triggers": [],
+  "contents": []
+}

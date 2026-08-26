@@ -1,0 +1,18 @@
+{
+  "name": "Sauce Packet Caddie",
+  "actions": "examine,take,drop",
+  "contents": [],
+  "current_state": "normal",
+  "description": "a wire caddie holding the sacred canon: mild, fire, diablo, and one packet labeled only MYSTERY with a Sharpie question mark. the words on each packet try too hard and somehow earn it.",
+  "tags": [
+    "furniture"
+  ],
+  "triggers": [],
+  "uses": -1,
+  "weight": 0.3,
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "library_id": "sauce_packet_caddie"
+}

@@ -1,0 +1,24 @@
+{
+  "name": "guest area 2",
+  "description": "a larger guest room that was once clearly intended for a child visitor. a small crib sits in the corner, its blankets moth-eaten and gray. the wallpaper has faded patterns of flowers and teddy bears, now barely visible. a child's drawings are pinned to the wall — crude figures of a family of eight, with one figure drawn in black crayon, crossed out.",
+  "tags": [],
+  "environment": {
+    "air": "stale",
+    "light": 20,
+    "noise": "quiet",
+    "smell": "dust and something sweet",
+    "temperature": 13
+  },
+  "items": [],
+  "exits": [
+    {
+      "direction": "guest_room2_door_back",
+      "target_room_hint": "upstairs hall",
+      "description": "another door, slightly ajar. a child's voice seems to whisper from within, then falls silent when you focus on it.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "guest_room2_door_back"
+    }
+  ],
+  "triggers": []
+}

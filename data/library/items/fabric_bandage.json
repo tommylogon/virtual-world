@@ -1,0 +1,52 @@
+{
+  "name": "fabric bandage",
+  "description": "a fabric adhesive bandage wrapped around the left forearm, covering a nasty purple bruise from a string slap during archery. it's wrapped tight and clean.",
+  "actions": "examine,take,use,unequip,drop,equip",
+  "uses": 1,
+  "weight": 0.02,
+  "current_state": "worn",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "medical",
+    "bandage"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "the bandage covers a bruise from a bowstring slap. stupid mistake — you flinched on the release. it's healing but still tender."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_unequip",
+      "effects": [
+        {
+          "params": {
+            "message": "you carefully unwrap the bandage. the bruise beneath is an ugly yellow-purple. it's healing."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": [],
+  "library_id": "fabric_bandage"
+}

@@ -1,0 +1,72 @@
+{
+  "name": "basement",
+  "description": "a vast, shadowy basement stretching beneath the entire mansion. the ceiling is low, supported by rough-hewn stone pillars. cobwebs hang like curtains, and the floor is uneven flagstone, slick with moisture. a faint, cold draft moves through the space, carrying whispers that seem to come from nowhere. in the center of the room, a single shaft of moonlight pierces through a crack in the ceiling, illuminating a patch of floor where nothing grows. the walls are lined with old shelves holding jars of preserved things - fruits, vegetables, and things that were never food. at the far end, a child's rocking chair moves gently, though no one sits in it.",
+  "tags": [],
+  "environment": {
+    "air": "damp and cold",
+    "light": 5,
+    "noise": "faint whispers",
+    "smell": "earth and decay",
+    "temperature": 6
+  },
+  "items": [
+    {
+      "name": "rocking_chair",
+      "description": "a small wooden rocking chair, old and worn. it rocks gently on its own, though the air is still. the wood is warm to the touch, as if someone just stood up.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 5,
+      "current_state": "normal",
+      "tags": [
+        "furniture",
+        "wooden",
+        "child"
+      ]
+    },
+    {
+      "name": "shelves",
+      "description": "rows of wooden shelves lined with glass jars. most contain preserved fruits and vegetables - peaches, green beans, pickles. but a few jars hold things that make you look away: a human heart, floating in amber fluid. a row of fingers, each labeled with a name. and one jar, larger than the rest, containing a crystal skull that seems to glow faintly in the dim light.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 0,
+      "current_state": "normal",
+      "tags": [
+        "furniture",
+        "wooden"
+      ]
+    },
+    {
+      "name": "crystal_skull_aa62bcdb",
+      "description": "a skull carved from a single piece of crystal. it pulses with a faint, internal light, and when you hold it, you hear a child's voice whisper 'mama?' in your mind. this is the source of the curse - the key to breaking it lies in the crypt.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 2,
+      "current_state": "normal",
+      "tags": [
+        "crystal",
+        "occult",
+        "artifact",
+        "ritual"
+      ]
+    }
+  ],
+  "exits": [
+    {
+      "direction": "basement_stairs_back",
+      "target_room_hint": "cellar",
+      "description": "a narrow staircase descending into darkness. cold air rises from below, carrying the faint smell of earth and something metallic — like old blood.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "basement_stairs_back"
+    }
+  ],
+  "triggers": []
+}

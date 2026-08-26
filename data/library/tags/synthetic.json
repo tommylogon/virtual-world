@@ -1,0 +1,16 @@
+{
+  "id": "synthetic",
+  "name": "Synthetic",
+  "description": "Artificial or construct being",
+  "category": "character",
+  "color": "#8888cc",
+  "icon": "🤖",
+  "applies_to": [
+    "characters"
+  ],
+  "examples": [
+    "android",
+    "golem",
+    "automaton"
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "name": "balcony",
+  "description": "a small wrought-iron balcony overlooking the overgrown garden far below. the railing is rusted and creaks alarmingly when you lean on it. the night air is cold and fresh, a welcome relief from the mansion's oppressive atmosphere. the moon hangs low, casting silver light across the garden. from here, you can see the graveyard gate and the mausoleum beyond.",
+  "tags": [],
+  "environment": {
+    "air": "fresh",
+    "light": 70,
+    "noise": "wind",
+    "smell": "cold night air",
+    "temperature": 12
+  },
+  "items": [
+    {
+      "name": "railing",
+      "description": "a rusted iron railing that creaks ominously when you lean on it. it's not safe, but it's held for 130 years. one section is wrapped with a faded ribbon — a woman's hair ribbon, blue silk.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 200,
+      "current_state": "normal",
+      "tags": [
+        "furniture",
+        "metal",
+        "outdoor"
+      ]
+    },
+    {
+      "name": "blue_ribbon",
+      "description": "a faded blue silk ribbon tied in a lover's knot. it has been here for over a century, yet the silk is still soft and untorn.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.01,
+      "current_state": "normal",
+      "tags": []
+    }
+  ],
+  "exits": [
+    {
+      "direction": "balcony_door_back",
+      "target_room_hint": "master bedroom",
+      "description": "french doors to a small balcony. moonlight filters through the dusty glass.",
+      "state": "closed",
+      "hidden": false,
+      "cardinal": "balcony_door_back"
+    }
+  ],
+  "triggers": []
+}

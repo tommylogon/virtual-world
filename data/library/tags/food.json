@@ -1,0 +1,16 @@
+{
+  "id": "food",
+  "name": "Food",
+  "description": "Edible item that can be consumed to restore hunger or provide effects",
+  "category": "physical",
+  "color": "#ff4444",
+  "icon": "🍎",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "apple",
+    "bread loaf",
+    "cheese wheel"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "id": "bathroom",
+  "name": "Bathroom",
+  "description": "Area or fixture suitable for washing or relieving oneself",
+  "category": "environment",
+  "color": "#66bbcc",
+  "icon": "🚽",
+  "applies_to": [
+    "items",
+    "areas"
+  ],
+  "examples": [
+    "outhouse",
+    "washroom",
+    "latrine",
+    "bath house"
+  ]
+}

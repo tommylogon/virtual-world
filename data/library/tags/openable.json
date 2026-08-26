@@ -1,0 +1,18 @@
+{
+  "id": "openable",
+  "name": "Openable",
+  "description": "Can be opened or closed, may contain something inside",
+  "category": "state",
+  "color": "#888866",
+  "icon": "🚪",
+  "applies_to": [
+    "items",
+    "areas"
+  ],
+  "examples": [
+    "chest",
+    "cabinet",
+    "door",
+    "drawer"
+  ]
+}

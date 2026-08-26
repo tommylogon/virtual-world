@@ -1,0 +1,15 @@
+{
+  "id": "underwear",
+  "name": "Underwear",
+  "description": "Underclothing worn beneath outer clothes.",
+  "category": "physical",
+  "color": "#d5d8dc",
+  "icon": "🩲",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "boxer briefs",
+    "sports bra"
+  ]
+}

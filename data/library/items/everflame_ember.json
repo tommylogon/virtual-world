@@ -1,0 +1,56 @@
+{
+  "name": "Everflame Ember",
+  "description": "A tiny, flickering flame that hovers in your palm, radiating warmth and a soft golden light. It is sustained by magic and will burn for about 15 minutes.",
+  "actions": "examine,take,use,drop",
+  "uses": 0,
+  "weight": 0.1,
+  "current_state": "unlit",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "magic",
+    "fire",
+    "light_source",
+    "heat_source",
+    "toggleable"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_tick",
+      "effects": [
+        {
+          "params": {
+            "delta": -1,
+            "message": "",
+            "node_id": "self"
+          },
+          "type": "adjust_uses"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_depleted",
+      "effects": [
+        {
+          "params": {
+            "message": "The everflame ember gutters and dies."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

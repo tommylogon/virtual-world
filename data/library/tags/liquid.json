@@ -1,0 +1,15 @@
+{
+  "id": "liquid",
+  "name": "Liquid",
+  "description": "Fluid substance, pourable",
+  "category": "physical",
+  "color": "#3399ff",
+  "icon": "💧",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "water flask",
+    "potion vial"
+  ]
+}

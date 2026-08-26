@@ -1,0 +1,48 @@
+{
+  "name": "Old Stone Well",
+  "description": "A circular stone well, half-frozen and weathered. The wooden crank creaks as if in pain, and the broken bucket lies shattered at its base. Peering into the dark shaft, you see only stale air and a faded ribbon tied to the crank.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "The well's masonry is ancient, covered in frost and moss. The crank groans when you touch it, and the broken bucket rests in pieces. Tied to the crank handle is a single, faded ribbon—perhaps a forgotten token."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "You try to turn the crank, but without a bucket there's nothing to raise. The ribbon flutters mockingly. Perhaps you could use something to repair the bucket or retrieve what lies below?"
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

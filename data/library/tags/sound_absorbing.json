@@ -1,0 +1,17 @@
+{
+  "id": "sound_absorbing",
+  "name": "Sound Absorbing",
+  "description": "Reduces ambient noise in the area. Has sound_absorption property (default 1).",
+  "category": "physical",
+  "color": "#666699",
+  "icon": "🔇",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "heavy curtains",
+    "thick carpet",
+    "foam padding",
+    "acoustic panels"
+  ]
+}

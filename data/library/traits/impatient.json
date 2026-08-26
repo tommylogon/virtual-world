@@ -1,0 +1,10 @@
+{
+  "id": "impatient",
+  "name": "Impatient",
+  "description": "Faster Entertainment decay when inactive. Acts before considering consequences.",
+  "category": "exploration",
+  "params": null,
+  "effects": {
+    "impatient": true
+  }
+}

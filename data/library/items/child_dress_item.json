@@ -1,0 +1,42 @@
+{
+  "name": "child_dress_item",
+  "description": "a small white child's dress, size for a three-year-old. the hem is stained with something dark that has long since dried to brown. no dress this small belongs in the master bedroom.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "clothing",
+    "child",
+    "evidence"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_take"
+      ],
+      "effects": [
+        {
+          "params": {
+            "fail_message": "",
+            "success_message": "as you lift the dress, a lullaby plays faintly from somewhere in the room. it stops when you set the dress down. the dress is cold and damp, as if recently washed but not dried."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": [],
+  "equip_slots": [
+    "torso"
+  ]
+}

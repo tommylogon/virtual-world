@@ -1,0 +1,17 @@
+{
+  "name": "hairbrush",
+  "description": "a silver hairbrush with long strands of gray hair tangled in the bristles. not eleanor's hair — this is darker, coarser. a servant's?",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "accessory"
+  ],
+  "triggers": [],
+  "contents": []
+}

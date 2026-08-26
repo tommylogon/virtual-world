@@ -1,0 +1,15 @@
+{
+  "id": "phone",
+  "name": "Phone",
+  "description": "Electronic communication device.",
+  "category": "physical",
+  "color": "#2c3e50",
+  "icon": "📱",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "smartphone",
+    "charger"
+  ]
+}

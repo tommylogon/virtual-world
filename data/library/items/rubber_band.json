@@ -1,0 +1,43 @@
+{
+  "name": "rubber band",
+  "description": "a thick rubber band jake fidgets with when he is nervous. it got at least 47 different uses, none of them practical. twanging it helps him think.",
+  "actions": "examine,use,take,drop",
+  "uses": -1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [],
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "fail_message": "",
+            "node_id": "self",
+            "state": "twanged"
+          },
+          "type": "set_state"
+        },
+        {
+          "params": {
+            "amount": 5,
+            "stat": "entertainment",
+            "success_message": "you twang the rubber band. it makes a satisfying sound and helps you focus.",
+            "target": "self"
+          },
+          "type": "adjust_vital"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

@@ -1,0 +1,40 @@
+{
+  "name": "syringe necklace",
+  "description": "a necklace made from black string, holding a mini glass syringe filled with bright pink liquid. the liquid glows faintly. it's sealed shut — you can't actually inject anything with it.",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "uses": 0,
+  "weight": 0.03,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "clothing",
+    "accessory",
+    "jewelry"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "the tiny syringe swings from its black string. the pink liquid inside sloshes gently. you don't remember where you got this."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": [],
+  "library_id": "syringe_necklace",
+  "equip_slots": [
+    "neck"
+  ]
+}

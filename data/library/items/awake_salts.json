@@ -1,0 +1,37 @@
+{
+  "name": "Smelling Salts",
+  "description": "A tiny tin of sharp, pungent salts. A whiff snaps the mind back to the present.",
+  "actions": "examine,take,use,drop",
+  "uses": 3,
+  "weight": 0.05,
+  "tags": [
+    "alchemical",
+    "medicine",
+    "small"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "type": "apply_condition",
+          "params": {
+            "condition": "awake",
+            "target": "self",
+            "duration": 10,
+            "source": "smelling salts",
+            "message": "The sharp scent jolts through your sinuses — you're wide awake now."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

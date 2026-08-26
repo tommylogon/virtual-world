@@ -1,0 +1,152 @@
+{
+  "name": "attic",
+  "description": "a cramped, oppressive attic under the eaves. old trunks and forgotten belongings fill the space — furniture draped in white sheets that look like ghosts in the dim light. a single bare bulb hangs from a rafter, but there's no power. the air is thick with dust and the sharp smell of mothballs. scratching sounds echo from the walls — not mice, something larger.",
+  "tags": [],
+  "environment": {
+    "air": "dusty",
+    "light": 10,
+    "noise": "scratches",
+    "smell": "mothballs and dry rot",
+    "temperature": 8
+  },
+  "items": [
+    {
+      "name": "trunk",
+      "description": "a large steamer trunk with a rusty latch and reinforced corners. it's locked with a heavy padlock. the nameplate reads: 'e. blackwood — personal effects.' something inside is tapping against the lid.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 20,
+      "current_state": "normal",
+      "tags": [
+        "furniture",
+        "wooden",
+        "container"
+      ]
+    },
+    {
+      "name": "wardrobe_attic",
+      "description": "a tall, ornate wardrobe with a cracked mirror. inside: moth-eaten fur coats, a wedding dress yellowed with age, and a small box containing a child's christening gown and a lock of baby hair.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 30,
+      "current_state": "normal",
+      "tags": [
+        "furniture",
+        "wooden",
+        "container"
+      ]
+    },
+    {
+      "name": "painting_attic",
+      "description": "a portrait of a young woman with sad, knowing eyes, propped against the wall. the nameplate is missing. there's writing on the back: 'margaret holloway, 1850-1891. beloved. forgotten.'",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 5,
+      "current_state": "normal",
+      "tags": [
+        "portrait",
+        "art",
+        "evidence",
+        "clue"
+      ]
+    },
+    {
+      "name": "candle_attic",
+      "description": "a half-melted candle on a crate. the wax has formed a small pool around its base.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 5,
+      "weight": 0.2,
+      "current_state": "normal",
+      "tags": [
+        "toggleable",
+        "candle",
+        "light_source",
+        "fire"
+      ]
+    },
+    {
+      "name": "small_key",
+      "description": "a small brass key hidden behind a loose floorboard near margaret's portrait. it's old and caked with dust.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.05,
+      "current_state": "normal",
+      "tags": [
+        "key",
+        "metal"
+      ]
+    },
+    {
+      "name": "apple_core",
+      "description": "a dried apple core someone left here decades ago. brown and shriveled, not edible.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 0.02,
+      "current_state": "normal",
+      "tags": [
+        "food",
+        "organic"
+      ]
+    },
+    {
+      "name": "old_photo_album",
+      "description": "a leather photo album filled with faded photographs of the blackwood family through the generations. the last few pages are empty, except for one photograph tucked loose: a baby's handprint in dark ink, with the date 'october 31st, 1891' written beneath.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 1.2,
+      "current_state": "normal",
+      "tags": [
+        "documents",
+        "evidence",
+        "clue",
+        "paper"
+      ]
+    },
+    {
+      "name": "christmas_decorations",
+      "description": "a box of old christmas decorations: tinsel, glass ornaments, and a small wooden angel with chipped paint. the angel's face has been worn smooth, but beneath the base, someone carved: 'save us.'",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 3,
+      "current_state": "normal",
+      "tags": [
+        "toy",
+        "art"
+      ]
+    }
+  ],
+  "exits": [
+    {
+      "direction": "attic_ladder_back",
+      "target_room_hint": "upstairs hall",
+      "description": "a pull-down ladder in the ceiling. cold air and darkness descend from above.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "attic_ladder_back"
+    }
+  ],
+  "triggers": []
+}

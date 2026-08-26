@@ -1,0 +1,10 @@
+{
+  "name": "Dark Vision",
+  "description": "Can see in complete darkness.",
+  "category": "physical",
+  "params": null,
+  "effects": {
+    "dark_vision": true
+  },
+  "id": "dark_vision"
+}

@@ -1,0 +1,18 @@
+{
+  "id": "ghostly",
+  "name": "Ghostly",
+  "description": "Ethereal or spirit-like",
+  "category": "essence",
+  "color": "#aaaaff",
+  "icon": "👻",
+  "applies_to": [
+    "items",
+    "characters",
+    "areas"
+  ],
+  "examples": [
+    "ghost",
+    "spectral blade",
+    "haunted hall"
+  ]
+}

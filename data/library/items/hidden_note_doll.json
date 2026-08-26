@@ -1,0 +1,22 @@
+{
+  "name": "hidden_note_doll",
+  "description": "a tiny scrap of paper that was hidden inside the broken doll: 'the skull is in the study. take it to mother's grave. she'll know what to do. — e.' the handwriting is a child's, but the message is clear.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.01,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "letter",
+    "documents",
+    "paper",
+    "evidence",
+    "clue",
+    "secret"
+  ],
+  "triggers": [],
+  "contents": []
+}

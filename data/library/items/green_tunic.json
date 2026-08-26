@@ -1,0 +1,77 @@
+{
+  "name": "Green Tunic",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "contents": [
+    "lyrie_polishing_kit"
+  ],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 2,
+  "description": "A simple, finely woven tunic of forest green linen. It bears no adornment but feels sturdy and comfortable.",
+  "insulation": 5,
+  "light_level": "dim",
+  "tags": [
+    "container",
+    "clothing",
+    "insulation"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "A plain but well-made green tunic. It feels soft and durable, with no patches or wear."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_equip",
+      "effects": [
+        {
+          "type": "adjust_vital",
+          "params": {
+            "amount": 10,
+            "message": "You slip into the green tunic. It fits comfortably and offers a bit of warmth.",
+            "stat": "Warmth"
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_unequip",
+      "effects": [
+        {
+          "type": "adjust_vital",
+          "params": {
+            "amount": -10,
+            "message": "You remove the green tunic and feel a slight chill.",
+            "stat": "Warmth"
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "uses": 0,
+  "weight": 0.3,
+  "equip_slots": [
+    "torso"
+  ]
+}

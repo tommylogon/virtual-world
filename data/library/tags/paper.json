@@ -1,0 +1,17 @@
+{
+  "id": "paper",
+  "name": "Paper",
+  "description": "Thin sheets for writing or reading",
+  "category": "physical",
+  "color": "#eeeeee",
+  "icon": "📄",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "book",
+    "letter",
+    "map",
+    "journal"
+  ]
+}

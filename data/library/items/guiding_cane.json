@@ -1,0 +1,17 @@
+{
+  "name": "Guiding Cane",
+  "description": "A sturdy wooden walking cane, worn smooth at the grip. Tapped ahead of you, it reads the ground and the air — a blind traveller's best friend for finding their way.",
+  "actions": "examine,take,drop,use",
+  "uses": -1,
+  "weight": 0.6,
+  "equip_slots": [
+    "hand_right"
+  ],
+  "tags": [
+    "sensory_aid",
+    "tool",
+    "wooden"
+  ],
+  "sensory_bonus": 3,
+  "contents": []
+}

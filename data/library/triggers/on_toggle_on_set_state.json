@@ -1,0 +1,43 @@
+{
+  "name": "On Toggle On → Set State",
+  "description": "Toggling the item on sets it to a given state.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "n0",
+        "type": "trigger",
+        "x": 60,
+        "y": 60,
+        "w": 260,
+        "props": {
+          "trigger_type": "on_toggle_on"
+        }
+      },
+      {
+        "id": "n1",
+        "type": "effect",
+        "x": 380,
+        "y": 60,
+        "w": 260,
+        "props": {
+          "effect_type": "set_state",
+          "node_id": "self",
+          "state": "on"
+        }
+      }
+    ],
+    "wires": [
+      {
+        "id": "w0",
+        "from": [
+          "n0",
+          "output"
+        ],
+        "to": [
+          "n1",
+          "input"
+        ]
+      }
+    ]
+  }
+}

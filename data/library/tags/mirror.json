@@ -1,0 +1,15 @@
+{
+  "id": "mirror",
+  "name": "Mirror",
+  "description": "Reflective surface.",
+  "category": "physical",
+  "color": "#aed6f1",
+  "icon": "🪞",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "cracked mirror",
+    "vanity"
+  ]
+}

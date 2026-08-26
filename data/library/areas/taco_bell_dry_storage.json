@@ -1,0 +1,80 @@
+{
+  "name": "taco bell dry storage",
+  "description": "the back-of-house warehouse alcove: metal shelving rows loaded with boxes of soft tortillas, paper cups, sauce bags, and a mountain of takeout bags in gallon zip bags. a pallet jack idles against the far wall under a single bulb. stacked next to the door is a dormant mountain of cleaned, utterably identical cardboard boxes one tall person could never reach on purpose. it smells of cardboard, dust, and the faint sweetness of old flour.",
+  "environment": {
+    "air": "dusty",
+    "light": 30,
+    "noise": "bulb hum, box shift, far compressor",
+    "smell": "cardboard, dust, dry flour",
+    "temperature": 16
+  },
+  "items": [
+    {
+      "name": "storage shelves",
+      "contents": [
+        {
+          "id": "boxed_shell_cases",
+          "relation": "on"
+        },
+        {
+          "id": "paper_products",
+          "relation": "on"
+        }
+      ],
+      "description": "metal shelving loaded to the top with dry-stock: boxes of soft flour tortillas, bags of shells, sauce bags, napkin packs, and a leaning pile of glove boxes.",
+      "actions": [
+        "examine",
+        "take"
+      ],
+      "uses": -1,
+      "weight": 120,
+      "current_state": "normal",
+      "tags": [
+        "storage",
+        "shelves",
+        "restaurant"
+      ]
+    },
+    {
+      "name": "hardware cart",
+      "description": "a service cart with a broom, mop head, a pair of cleaning spray bottles, and a pink 3M glove someone left stretched on a wheel.",
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "uses": -1,
+      "weight": 15,
+      "current_state": "normal",
+      "tags": [
+        "cleaning",
+        "equipment",
+        "utility"
+      ]
+    },
+    {
+      "name": "pallet jack",
+      "description": "a forgotten pallet jack parked by the far wall, hydraulic handle down, skid until it is needed. the warning sticker has worn to just the word 'CAUTION' in red.",
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "uses": -1,
+      "weight": 90,
+      "current_state": "normal",
+      "tags": [
+        "equipment",
+        "utility"
+      ]
+    }
+  ],
+  "tags": [
+    "millbrook_falls",
+    "commercial",
+    "restaurant",
+    "food",
+    "taco bell",
+    "interior",
+    "storage"
+  ],
+  "triggers": []
+}

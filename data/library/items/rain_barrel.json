@@ -1,0 +1,20 @@
+{
+  "name": "rain_barrel",
+  "description": "a barrel catching rainwater through a broken pane. the water is murky with leaf litter but could be filtered through cloth.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 50,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "water",
+    "container",
+    "outdoor",
+    "supplies"
+  ],
+  "triggers": [],
+  "contents": []
+}

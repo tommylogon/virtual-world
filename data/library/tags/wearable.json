@@ -1,0 +1,17 @@
+{
+  "id": "wearable",
+  "name": "Wearable",
+  "description": "Can be worn or equipped",
+  "category": "state",
+  "color": "#cc66cc",
+  "icon": "👘",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "shirt",
+    "boots",
+    "ring",
+    "cloak"
+  ]
+}

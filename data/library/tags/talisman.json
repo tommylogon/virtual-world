@@ -1,0 +1,14 @@
+{
+  "id": "talisman",
+  "name": "Talisman",
+  "description": "Object believed to hold magical protection.",
+  "category": "essence",
+  "color": "#8e44ad",
+  "icon": "🪬",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "obsidian pendant"
+  ]
+}

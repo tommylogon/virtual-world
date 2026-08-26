@@ -1,0 +1,22 @@
+{
+  "name": "diary",
+  "description": "a leather diary with the initials 'c.b.' — cordelia blackwood's diary. the final entry reads: 'the skull must never be moved. it holds the spirit of the firstborn, little eleanor. augustus refuses to listen. the spirit in the study grows stronger each night. tonight it spoke to me — it said we would all be together forever. i'm so frightened.'",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "diary",
+    "documents",
+    "paper",
+    "evidence",
+    "clue",
+    "secret"
+  ],
+  "triggers": [],
+  "contents": []
+}

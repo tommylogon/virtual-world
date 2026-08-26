@@ -1,0 +1,15 @@
+{
+  "name": "cheese_shred",
+  "description": "a third-pan of shredded cheddar blend in the make line, the orange dust of a thousand vanished burritos clinging to the rim. a stray shred has aliased its way into the cheese pump and stayed there for weeks.",
+  "actions": "examine,take,use,drop",
+  "uses": -1,
+  "weight": 2,
+  "current_state": "normal",
+  "tags": [
+    "food",
+    "cheese",
+    "ingredient"
+  ],
+  "triggers": [],
+  "contents": []
+}

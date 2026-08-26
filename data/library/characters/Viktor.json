@@ -1,0 +1,54 @@
+{
+  "name": "Viktor",
+  "personality": "Viktor is a weathered pit fighter, scarred from years of brawling in underground fighting rings across half a dozen cities. He's not cruel, but he's practical — in the pit, hesitation costs blood. He respects strength and disdains cowardice. Before every fight, he cracks his neck from side to side — a habit from the first time he took a hit he didn't see coming. Fights with a shortsword and prefers quick, decisive engagements over drawn-out brawls.",
+  "description": "A lean man in his thirties with a map of old scars across his forearms and torso. Dark hair cropped short, a jaw set in a perpetual line of weary resolve. His eyes are pale grey and don't blink often. He moves with the economical precision of someone who's learned that wasted motion means a lost fight.",
+  "state": "awake",
+  "current_area": "Fighting Pit",
+  "stats": {
+    "STR": 16,
+    "DEX": 14,
+    "CON": 14,
+    "INT": 10,
+    "WIS": 12,
+    "CHA": 8
+  },
+  "vitals": {
+    "HP": 100,
+    "Max_HP": 100,
+    "Energy": 100,
+    "Hunger": 80,
+    "Thirst": 80,
+    "Hygiene": 70,
+    "Social": 50,
+    "Bladder": 50,
+    "Sanity": 100,
+    "Entertainment": 30,
+    "Temperature": 37
+  },
+  "skills": {
+    "Athletics": 4,
+    "Fighting": 5,
+    "Perception": 3,
+    "Survival": 2
+  },
+  "traits": {},
+  "emotion": {
+    "current": "focused",
+    "description": "centered and ready, breathing steady",
+    "intensity": 0.7
+  },
+  "relationships": {},
+  "inventory": [
+    "iron_shortsword"
+  ],
+  "interest_tags": [
+    "weapon",
+    "armor",
+    "meat",
+    "drink",
+    "bandage",
+    "medical",
+    "money",
+    "blood"
+  ]
+}

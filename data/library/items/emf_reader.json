@@ -1,0 +1,37 @@
+{
+  "name": "emf_reader",
+  "description": "a handheld emf meter. it can detect electromagnetic fields. currently sitting at a steady 0.5 mg.",
+  "actions": "examine,use",
+  "uses": 15,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "electric",
+    "tool",
+    "evidence"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "success_message": "the emf reader hums faintly. the needle flickers but stays near zero. whatever is in this house, it is not putting out much of a field right now."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

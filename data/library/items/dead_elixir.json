@@ -1,0 +1,37 @@
+{
+  "name": "Deathcap Elixir",
+  "description": "A dark vial of thick liquid that smells of earth and rot. The label warns of nothing.",
+  "actions": "examine,take,drink,drop",
+  "uses": 1,
+  "weight": 0.3,
+  "tags": [
+    "alchemical",
+    "liquid",
+    "poison",
+    "cursed"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_drink"
+      ],
+      "effects": [
+        {
+          "type": "apply_condition",
+          "params": {
+            "condition": "dead",
+            "target": "self",
+            "source": "deathcap elixir",
+            "message": "A burning cold races through your veins. The room fades to black."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

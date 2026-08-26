@@ -1,0 +1,17 @@
+{
+  "id": "hot",
+  "name": "Hot",
+  "description": "High temperature area or item",
+  "category": "environment",
+  "color": "#ff4400",
+  "icon": "🌡️",
+  "applies_to": [
+    "areas",
+    "items"
+  ],
+  "examples": [
+    "forge",
+    "volcanic chamber",
+    "heated stone"
+  ]
+}

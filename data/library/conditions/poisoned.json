@@ -1,0 +1,30 @@
+{
+  "name": "Poisoned",
+  "description": "Toxin in the blood. You're losing HP.",
+  "blocks_actions": false,
+  "blocks_movement": false,
+  "blocks_speech": false,
+  "auto_fail_checks": [],
+  "auto_fail_saves": [],
+  "attack_mod": 0,
+  "defense_mod": 0,
+  "speed_mult": 1.0,
+  "movement_mode": null,
+  "drops_held_items": false,
+  "periodic": {
+    "HP": -5
+  },
+  "ends_on": [
+    "duration",
+    "antidote"
+  ],
+  "known": false,
+  "stack": "accumulate",
+  "default_duration": 10,
+  "symptoms": {
+    "6": "A queasy twist in your stomach.",
+    "3": "Cold sweat. Your gut cramps and your head swims.",
+    "1": "Everything spins. Your limbs feel wrong."
+  },
+  "excludes": []
+}

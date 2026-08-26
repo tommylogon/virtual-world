@@ -1,0 +1,7 @@
+{
+  "id": "size_normal",
+  "name": "Normal Size",
+  "description": "About 170 cm tall — an average human. Standard doors fit; tight tunnels require crawling.",
+  "category": "physical",
+  "params": { "size": "normal" }
+}

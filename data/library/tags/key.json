@@ -1,0 +1,16 @@
+{
+  "id": "key",
+  "name": "Key",
+  "description": "Used to unlock locks or doors",
+  "category": "state",
+  "color": "#ffcc00",
+  "icon": "🔑",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "brass key",
+    "rusty key",
+    "skeleton key"
+  ]
+}

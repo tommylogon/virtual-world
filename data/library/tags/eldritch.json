@@ -1,0 +1,17 @@
+{
+  "id": "eldritch",
+  "name": "Eldritch",
+  "description": "Otherworldly, alien, or cosmic horror",
+  "category": "essence",
+  "color": "#440044",
+  "icon": "👁️",
+  "applies_to": [
+    "items",
+    "characters",
+    "areas"
+  ],
+  "examples": [
+    "eldritch altar",
+    "void-touched blade"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "name": "talisman",
+  "description": "a small obsidian pendant miki bought at a spiritual shop. she claims it wards off evil spirits.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "talisman",
+    "occult",
+    "jewelry",
+    "artifact"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "amount": 5,
+            "stat": "sanity",
+            "success_message": "you clutch the talisman. whether it works or not, it makes you feel a little braver.",
+            "target": "self"
+          },
+          "type": "adjust_vital"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

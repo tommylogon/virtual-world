@@ -1,0 +1,19 @@
+{
+  "name": "statue",
+  "description": "a small stone statue of a cherub hidden among the overgrown bushes, its face chipped away. someone deliberately defaced it.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 30,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "statue",
+    "stone",
+    "art"
+  ],
+  "triggers": [],
+  "contents": []
+}

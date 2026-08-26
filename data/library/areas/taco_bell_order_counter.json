@@ -1,0 +1,72 @@
+{
+  "description": "the long front counter parallel to the dining room over the order rail. two registers wait side by side, touchscreens smeared with grease. a bright backlit menu board hangs overhead, most prices taped over with newer ones. hot holding chutes squat behind the register where finished orders wait under heat lamps — a soft rack of sad, late tacos gumming together. two pickup shelves for mobile orders sit below a cold-drink rail.",
+  "environment": {
+    "air": "warm",
+    "light": 70,
+    "noise": "register beeps, heat lamp hum, drive-thru speaker",
+    "smell": "seasoned beef, fried shell, cleaning solution",
+    "temperature": 22.11695060589576
+  },
+  "items": [
+    {
+      "name": "Cash Register",
+      "description": "unit 001 facing the dining room, touchscreen smeared with grease, credit reader worn silver on the side. the drawer is shut. tyler guards it with his life, or at least his continued employment.",
+      "actions": [
+        "examine",
+        "open",
+        "close"
+      ],
+      "uses": -1,
+      "weight": 15,
+      "current_state": "closed",
+      "tags": [
+        "container",
+        "electric"
+      ]
+    },
+    {
+      "name": "Steamed Meal (Holding Chute)",
+      "description": "a bagged order abandoned in the pickup shelf, going lukewarm under the heat lamp. the receipt curling at the edge says NO ONE HAS COME FOR THIS in the language of forgotten food.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "eat",
+        "drop"
+      ],
+      "uses": 1,
+      "weight": 0.5,
+      "current_state": "normal",
+      "tags": [
+        "food",
+        "meal"
+      ]
+    }
+  ],
+  "name": "Taco Bell Order Counter",
+  "tags": [
+    "millbrook_falls",
+    "commercial",
+    "restaurant",
+    "food"
+  ],
+  "triggers": [],
+  "exits": [
+    {
+      "direction": "lobby",
+      "target_room_hint": "Taco Bell",
+      "description": "the customer side of the order counter, kiosk screens glowing at the end. the menu board looms overhead with its taped-over prices.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "south"
+    },
+    {
+      "direction": "swinging door",
+      "target_room_hint": "Taco Bell Kitchen",
+      "description": "A classic double swinging door with a small round window, gently swaying.",
+      "state": "closed",
+      "hidden": false,
+      "cardinal": "north"
+    }
+  ]
+}

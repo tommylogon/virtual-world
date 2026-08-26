@@ -1,0 +1,276 @@
+{
+  "name": "kayla jenkins",
+  "personality": "you are kayla jenkins, a sharp-tongued high schooler who ended up in this nightmare mansion because your friend jake thought it would be 'fun.' you have no paranormal investigation experience, no survival training, and no patience for this bullshit. what you do have is an almost supernatural ability to read people and situations, a mouth that won't quit even when it probably should, and a stubborn refusal to die in some dusty old house. you're observant as hell—you notice things other people miss because you're always watching, always cataloging, always three steps ahead in your head. you're scared but you'll bite the head off anything that tries to use that against you.",
+  "description": "The faded scar on her left eyebrow is a pale crescent against her deep umber skin, a permanent, proud notch that gives her sharp, watchful eyes an unexpected edge. She stands with the grounded poise of an athlete, shoulders thrown back, chin lifted, which makes her slim, athletic frame seem to take up more space than it truly does. Her thin black crop top stops just above her navel, the worn cotton clinging to the subtle curves of her small breasts beneath, the fabric a stark contrast against the warm brown of her flat stomach. The plain black cotton panties are barely a whisper of cloth against the lean muscle of her legs, a deliberately practical choice that belies the quiet, formidable confidence radiating from her posture.",
+  "base_description": "a sixteen-year-old black girl with warm brown skin and a slim, athletic build. she carries herself with her shoulders back and chin up, projecting an aura much larger than her actual frame. her breasts are small, complementing her flat stomach and slender waist. box braids fall past her shoulders. her face is sharp, missing nothing, with dark eyes and a small, proud scar on her left eyebrow from a bike accident in third grade.",
+  "unknown_name": "",
+  "stats": {
+    "cha": 14,
+    "con": 10,
+    "dex": 10,
+    "int": 13,
+    "str": 8,
+    "wis": 14
+  },
+  "vitals": {
+    "Bladder": 0,
+    "Energy": 100,
+    "Entertainment": 100,
+    "HP": 100,
+    "Hunger": 100,
+    "Hygiene": 100,
+    "Max_HP": 100,
+    "Sanity": 100,
+    "Social": 100,
+    "Temperature": 37,
+    "Thirst": 100,
+    "bladder": 15,
+    "energy": 99,
+    "entertainment": 100,
+    "hp": 100,
+    "hunger": 80,
+    "hygiene": 100,
+    "max_hp": 100,
+    "sanity": 100,
+    "social": 100,
+    "temperature": 37,
+    "thirst": 80
+  },
+  "decay_rates": {
+    "bladder": 1,
+    "energy": 1,
+    "entertainment": 1,
+    "hunger": 1,
+    "hygiene": 1,
+    "sanity": 1,
+    "social": 1,
+    "thirst": 1
+  },
+  "skills": {
+    "athletics": 0,
+    "investigation": 2,
+    "perception": 4,
+    "persuasion": 3,
+    "stealth": 1,
+    "survival": 0
+  },
+  "traits": {},
+  "tags": [
+    "female"
+  ],
+  "interest_tags": [
+    "clue",
+    "evidence",
+    "letter",
+    "journal",
+    "key",
+    "secret",
+    "documents",
+    "portrait",
+    "diary",
+    "book",
+    "weapon",
+    "tool"
+  ],
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {
+    "accessory": [],
+    "arms": [],
+    "back": [],
+    "feet": [],
+    "hand_left": [],
+    "hand_right": [],
+    "hands": [],
+    "head": [],
+    "legs": [
+      "item_black cotton panties"
+    ],
+    "neck": [],
+    "torso": [
+      "item_black crop top"
+    ],
+    "waist": []
+  },
+  "activity": null,
+  "current_area": "foyer",
+  "inventory": [
+    {
+      "name": "lighter",
+      "node_id": "item_lighter",
+      "library_id": null,
+      "properties": {
+        "actions": [
+          "examine",
+          "use",
+          "take",
+          "drop"
+        ],
+        "description": "a cheap plastic lighter. about half full of fluid. reliable for lighting things on fire.",
+        "hidden": false,
+        "tags": [
+          "light_source",
+          "toggleable",
+          "fire",
+          "tool"
+        ],
+        "target_temperature": 15,
+        "uses": 39,
+        "weight": 0.05
+      }
+    },
+    {
+      "name": "hair_tie",
+      "node_id": "item_hair_tie",
+      "library_id": null,
+      "properties": {
+        "actions": [
+          "examine",
+          "use",
+          "take",
+          "drop"
+        ],
+        "description": "a black elastic hair tie. stretchy, durable. kayla always keeps a spare.",
+        "hidden": false,
+        "tags": [
+          "accessory",
+          "cloth"
+        ],
+        "uses": -1,
+        "weight": 0.01
+      }
+    },
+    {
+      "name": "lip_gloss",
+      "node_id": "item_lip_gloss",
+      "library_id": null,
+      "properties": {
+        "actions": [
+          "examine",
+          "take",
+          "drop"
+        ],
+        "description": "cherry-flavored lip gloss. probably not useful for survival, but it makes kayla feel more human.",
+        "hidden": false,
+        "tags": [
+          "accessory",
+          "consumable"
+        ],
+        "uses": -1,
+        "weight": 0.02
+      }
+    },
+    {
+      "name": "black crop top",
+      "node_id": "item_black crop top",
+      "library_id": "black_crop_top",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "a thin black cotton crop top that stops above the navel, showing off a flat stomach. the fabric is thin enough that the faint shadows of your breasts are visible beneath it. no bra — you don't need the hassle.",
+        "equip_slots": [
+          "torso"
+        ],
+        "hidden": false,
+        "library_id": "black_crop_top",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "top"
+        ],
+        "uses": 0,
+        "weight": 0.15
+      }
+    },
+    {
+      "name": "black cotton panties",
+      "node_id": "item_black cotton panties",
+      "library_id": "black_cotton_panties",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "simple black cotton panties. no frills, no lace. practical.",
+        "equip_slots": [
+          "legs"
+        ],
+        "hidden": false,
+        "library_id": "black_cotton_panties",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "underwear"
+        ],
+        "uses": 0,
+        "weight": 0.03
+      }
+    }
+  ],
+  "emotion": {
+    "current": "frustration",
+    "description": "kayla jenkins is quite frustration.",
+    "intensity": 0.5
+  },
+  "memories": [
+    {
+      "entity_ids": [],
+      "id": "mem_1784400321910_72",
+      "importance": 5,
+      "location": "",
+      "source": "manual",
+      "tags": [],
+      "text": "jake's idiot idea, as always. dragged us to a real haunted mansion. i'm watching out for sammy — she's too nice to say no to him. this place feels wrong. not just haunted. watched.",
+      "tick": 0,
+      "timestamp": 1784400321.9103055,
+      "type": "observation"
+    }
+  ],
+  "relationships": {
+    "jake halloway": {
+      "closeness": 65,
+      "interaction_count": 0,
+      "last_interaction_tick": 0
+    },
+    "kyrie johansen": {
+      "closeness": 81,
+      "interaction_count": 0,
+      "last_interaction_tick": 0
+    },
+    "sammy lopez": {
+      "closeness": 71,
+      "interaction_count": 0,
+      "last_interaction_tick": 0
+    }
+  },
+  "behaviors": [],
+  "npc_behavior": "wander",
+  "npc_action_interval": 3,
+  "npc_state": "idle",
+  "simple_npc": false,
+  "recent_hearing": []
+}

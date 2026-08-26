@@ -1,0 +1,19 @@
+{
+  "name": "garden_bench",
+  "description": "a stone bench under a gnarled oak, overlooking the garden. someone left a thermos here long ago. the oak's roots have grown around the bench's legs.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 100,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "furniture",
+    "stone",
+    "outdoor"
+  ],
+  "triggers": [],
+  "contents": []
+}

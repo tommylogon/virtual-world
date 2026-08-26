@@ -1,0 +1,10 @@
+{
+  "id": "homebody",
+  "name": "Homebody",
+  "description": "No Entertainment boost from new places or things; slower decay in home area.",
+  "category": "exploration",
+  "params": null,
+  "effects": {
+    "homebody": true
+  }
+}

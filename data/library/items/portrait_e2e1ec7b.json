@@ -1,0 +1,19 @@
+{
+  "name": "portrait_e2e1ec7b",
+  "description": "A portrait of Eleanor Blackwood — the matriarch, not the child. Her eyes are sharp and calculating. A small plaque reads: 'Eleanor Blackwood, 1847-1891. May her soul find peace.' There's a crack running diagonally across the canvas, as if the painting was slashed and repaired.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 50,
+  "action_costs": {},
+  "skill_check": {},
+  "effect_target": null,
+  "effect_stat": null,
+  "effect_amount": 0,
+  "tags": [
+    "art",
+    "heavy",
+    "indoor"
+  ],
+  "triggers": [],
+  "contents": []
+}

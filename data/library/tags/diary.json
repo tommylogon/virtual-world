@@ -1,0 +1,15 @@
+{
+  "id": "diary",
+  "name": "Diary",
+  "description": "Personal journal of daily events.",
+  "category": "essence",
+  "color": "#d2b4de",
+  "icon": "📓",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "leather diary",
+    "child's diary"
+  ]
+}

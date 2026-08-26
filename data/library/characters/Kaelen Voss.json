@@ -1,0 +1,508 @@
+{
+  "activity": null,
+  "base_description": "A gaunt man in his late thirties with sharp, weathered features — high cheekbones, a strong jaw under several days of dark stubble. His hazel eyes are quick and unnervingly observant, set in a permanent squint from years of reading fine print and scanning distant horizons. Dark hair, streaked with grey at the temples, is pulled back loosely.\n\nHis build is lean and wiry — the kind of frame built by long roads and skipped meals, not the gymnasium. The left leg from the knee down has been replaced with a clockwork prosthetic of brass and steel: segmented plates, exposed rivets, and a faint mechanical click with every shift of weight. The skin above the fitting is scarred, a clean amputation scar long healed.\n\nHis hands are scarred across the knuckles — old work, not recent. A thin white line runs from his left brow into the hairline. Crow's feet and worry lines are etched deeper than 36 years should allow.",
+  "behaviors": [],
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "current_area": "Blizzard Forest Clearing",
+  "decay_rates": {
+    "Bladder": 1,
+    "Energy": 1,
+    "Entertainment": 1,
+    "Hunger": 1,
+    "Hygiene": 1,
+    "Sanity": 1,
+    "Social": 1,
+    "Thirst": 1
+  },
+  "description": "He cuts a lean, weather-worn figure in a heavy fur-lined coat that hangs open over a waxed canvas vest and rumpled linen shirt, a worn leather backpack slung across his shoulders. Dark hair streaked with grey is pulled back from a face sharp with high cheekbones and a stubbled jaw, his hazel eyes narrowed in a perpetual squint that deepens the crow’s feet and worry lines. A thin white scar slices through his left brow into the hairline, and the faint, rhythmic click of a segmented brass-and-steel prosthetic leg punctuates his stance beneath the reinforced wool trousers. At his collar, a small brooch catches the light, while a web of scarred knuckles rests against the coat’s edge.",
+  "emotion": {
+    "current": "relieved but vigilant",
+    "description": "Kaelen Voss is quite relieved but vigilant.",
+    "intensity": 0.5
+  },
+  "equipped": {
+    "accessory": [],
+    "arms": [],
+    "back": [
+      "item_backpack_1"
+    ],
+    "feet": [
+      "item_Stovepipe Leather Boots (Pair)"
+    ],
+    "hand_left": [],
+    "hand_right": [],
+    "hands": [],
+    "head": [],
+    "legs": [
+      "item_Reinforced Wool Trousers",
+      "item_Wool Blend Undershirt & Drawers",
+      "item_Clockwork Prosthetic (Left Leg)"
+    ],
+    "neck": [
+      "item_Galser Office of Justice Brooch"
+    ],
+    "torso": [
+      "item_Lightweight Linen Shirt",
+      "item_Waxed Canvas Vest",
+      "item_Heavy Fur-Lined Coat"
+    ],
+    "waist": []
+  },
+  "interest_tags": [
+    "clue",
+    "evidence",
+    "documents",
+    "letter",
+    "key",
+    "book",
+    "journal",
+    "secret",
+    "investigation",
+    "weapon"
+  ],
+  "inventory": [
+    {
+      "name": "Backpack 1",
+      "node_id": "item_backpack_1",
+      "library_id": null,
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "open",
+          "close",
+          "unequip",
+          "equip",
+          "drop"
+        ],
+        "contents": [],
+        "current_state": "closed",
+        "description": "A Backpack holds up to 30 kilos within 1 cubic foot. It can also serve as a saddlebag.",
+        "effect_amount": 0,
+        "effect_stat": null,
+        "effect_target": "container",
+        "equip_slots": [
+          "back"
+        ],
+        "hidden": false,
+        "skill_check": {},
+        "tags": [
+          "Container"
+        ],
+        "uses": -1,
+        "weight": 5
+      }
+    },
+    {
+      "name": "Reinforced Wool Trousers",
+      "node_id": "item_Reinforced Wool Trousers",
+      "library_id": "reinforced_wool_trousers",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "Dark grey wool trousers, reinforced with leather patches on both knees. Right leg standard fit; left leg sewn wider and reinforced to accommodate clockwork prosthetic. Worn leather belt with brass buckle, buckle engraved with faded Galser Office of Justice symbol.",
+        "equip_slots": [
+          "legs"
+        ],
+        "hidden": false,
+        "library_id": "reinforced_wool_trousers",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "trousers",
+          "wool",
+          "reinforced"
+        ],
+        "uses": -1,
+        "weight": 1.5
+      }
+    },
+    {
+      "name": "Wool Blend Undershirt & Drawers",
+      "node_id": "item_Wool Blend Undershirt & Drawers",
+      "library_id": "wool_blend_undershirt_drawers",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "Worn soft from years of use, this practical undergarment is a coarse wool and cotton blend. The drawstrings have been replaced twice, once with leather cord, once with twine. Faintly smells of woodsmoke. Frayed but clean hems.",
+        "equip_slots": [
+          "legs"
+        ],
+        "hidden": false,
+        "library_id": "wool_blend_undershirt_drawers",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "underwear",
+          "wool"
+        ],
+        "uses": -1,
+        "weight": 0.5
+      }
+    },
+    {
+      "name": "Lightweight Linen Shirt",
+      "node_id": "item_Lightweight Linen Shirt",
+      "library_id": "lightweight_linen_shirt",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "Once a crisp, off-white Galser-issue shirt, now faded to greyish beige from desert sun. Soft collar, frayed cuffs. One mismatched black button replaces the missing second-from-top. Faint ink stain on the left sleeve.",
+        "equip_slots": [
+          "torso",
+          "arms"
+        ],
+        "hidden": false,
+        "library_id": "lightweight_linen_shirt",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "shirt",
+          "linen"
+        ],
+        "uses": -1,
+        "weight": 0.8
+      }
+    },
+    {
+      "name": "Waxed Canvas Vest",
+      "node_id": "item_Waxed Canvas Vest",
+      "library_id": "waxed_canvas_vest",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "Sturdy oiled canvas vest, dark brown, scarred from travel. Four front pockets (two large enough for notebooks). One pocket is permanently ink-stained. Leather toggles worn smooth. Right shoulder patched with darker canvas.",
+        "equip_slots": [
+          "torso"
+        ],
+        "hidden": false,
+        "library_id": "waxed_canvas_vest",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "vest",
+          "canvas",
+          "storage"
+        ],
+        "uses": -1,
+        "weight": 1.2
+      }
+    },
+    {
+      "name": "Stovepipe Leather Boots (Pair)",
+      "node_id": "item_Stovepipe Leather Boots (Pair)",
+      "library_id": "stovepipe_leather_boots",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "Dark brown leather boots rising to mid-calf. Right boot is standard issue, worn and scuffed. Left boot has been cut and modified to fit around the clockwork prosthetic, with reinforced sole and oiled leather flap covering the joint. Heels worn unevenly, caked with dried mud.",
+        "equip_slots": [
+          "feet"
+        ],
+        "hidden": false,
+        "library_id": "stovepipe_leather_boots",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "boots",
+          "leather",
+          "modified"
+        ],
+        "uses": -1,
+        "weight": 2
+      }
+    },
+    {
+      "name": "Clockwork Prosthetic (Left Leg)",
+      "node_id": "item_Clockwork Prosthetic (Left Leg)",
+      "library_id": "clockwork_prosthetic_left_leg",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "repair",
+          "oil",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "A marvel of Galser engineering. Dull brass with steel joints, segmented plates that click and whir with each step. Small inspection panel on calf. Faint artificer's rune etched into ankle. Cold to the touch, requires regular oiling. The metal foot is shaped for balance, boot bolted directly onto it.",
+        "equip_slots": [
+          "legs"
+        ],
+        "hidden": false,
+        "library_id": "clockwork_prosthetic_left_leg",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "prosthetic",
+          "clockwork",
+          "mechanical",
+          "metal",
+          "requires_maintenance"
+        ],
+        "uses": -1,
+        "weight": 4.5
+      }
+    },
+    {
+      "name": "Heavy Fur-Lined Coat",
+      "node_id": "item_Heavy Fur-Lined Coat",
+      "library_id": "heavy_fur_lined_coat",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "defense": 3,
+        "description": "Thick, hooded coat of weathered grey-brown wool, lined with matted animal fur. Hem brushes mid-thigh. Left sleeve tear repaired with crude stitches. Left chest pocket lined with softer fabric—currently occupied by a small mouseling named Runt. Smells of woodsmoke, damp wool, and clockwork oil.",
+        "equip_slots": [
+          "torso",
+          "arms"
+        ],
+        "hidden": false,
+        "insulation": 14,
+        "library_id": "heavy_fur_lined_coat",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "coat",
+          "fur-lined",
+          "hooded",
+          "container",
+          "insulation"
+        ],
+        "temp_range": [
+          -10,
+          20
+        ],
+        "uses": -1,
+        "weight": 3.5
+      }
+    },
+    {
+      "name": "Galser Office of Justice Brooch",
+      "node_id": "item_Galser Office of Justice Brooch",
+      "library_id": "brooch_galser_justice",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "Small, simple silver brooch bearing the crest of the Galser Office of Justice—a balanced scale over a shield. Hidden, pinned to the inside of his coat lining. A private reminder of who he was and what he lost.",
+        "equip_slots": [
+          "neck"
+        ],
+        "hidden": true,
+        "library_id": "brooch_galser_justice",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "jewelry",
+          "brooch",
+          "silver",
+          "hidden"
+        ],
+        "uses": -1,
+        "weight": 0.1
+      }
+    }
+  ],
+  "memories": [
+    {
+      "embedding": null,
+      "entity_ids": [],
+      "id": "mem_1785853798512_563",
+      "importance": 5,
+      "location": "",
+      "source": "auto",
+      "tags": [],
+      "text": "The valerius case - who are they, where are they? nort of rocheveron, nearest neighbour is far outside earshot. secret task from the king hiimself, somethign about the new caws. dnew dawn, cult looking for a way to end the muujeroth curse any means nececary. A week ago, you were hired by non other than King Nicolas Enfield Rocheveron in Borrim to check on the Valerius family—scholars who were Investigating something related to the new dawn. they have not been heard from in about 2 weeks.",
+      "tick": 20,
+      "timestamp": 1785853798.512617,
+      "type": "observation"
+    },
+    {
+      "embedding": null,
+      "entity_ids": [],
+      "id": "mem_1785853818674_205",
+      "importance": 5,
+      "location": "",
+      "source": "auto",
+      "tags": [],
+      "text": "Lost my sword during the night, no idea how. goblins maybe?",
+      "tick": 20,
+      "timestamp": 1785853818.6743982,
+      "type": "observation"
+    }
+  ],
+  "name": "Kaelen Voss",
+  "npc_action_interval": 3,
+  "npc_behavior": "wander",
+  "npc_state": "idle",
+  "personality": "you are Kaelen Voss, A Human who is a Disgraced Investigator for the Galser Office of Justice\nCurrent Status: Independent Truth-Seeker / Weary Traveler\nYear of Birth: 1548 (36 years old)\n\nYou are a man whose sharp eyes have seen too much of the \"Witch's Spit\" and the \"Elemental Conjunction\" to believe in simple explanations\n. Formerly a rising star in the Ulus of Galser’s bureaucratic machine, you were exiled after you refused to hand over a \"magical item of interest\" to the Department of Education and Research\n.\nYou carry the weight of the world’s 120-year curse in your bones, literally—your left leg clicks with a clockwork prosthetic, a relic of a skirmish near the Galtian border\n. While your humor remains dry as the Sarekyan Desert, it has taken on a bleaker edge as the frost of 1584 refuses to break. Your soft spot for stray animals has manifested as \"Runt,\" a shivering mouseling you found near a Galtian military camp, who now lives in the pocket of your heavy, fur-lined coat\n\n</think>",
+  "recent_hearing": [
+    {
+      "area": "Blizzard Forest Clearing",
+      "ghost_speech": false,
+      "speaker": "Kaelen Voss",
+      "speech_level": "normal",
+      "text": "damn cold. let s get inside that house before i freeze solid.",
+      "tick": 0,
+      "timestamp": 1787168658.4756322
+    },
+    {
+      "area": "Kitchen",
+      "distance": 2.5,
+      "ghost_speech": false,
+      "heard_from": "swinging door",
+      "speaker": "rat",
+      "speech_level": "normal",
+      "text": "Squeak!",
+      "tick": 0,
+      "timestamp": 1787168856.3681178
+    },
+    {
+      "area": "Kitchen",
+      "ghost_speech": false,
+      "speaker": "rat",
+      "speech_level": "normal",
+      "text": "Eep?",
+      "tick": 0,
+      "timestamp": 1787169194.9684494
+    },
+    {
+      "area": "Kitchen",
+      "ghost_speech": false,
+      "speaker": "rat",
+      "speech_level": "normal",
+      "text": "Squeak!",
+      "tick": 0,
+      "timestamp": 1787169296.48315
+    },
+    {
+      "area": "Kitchen",
+      "ghost_speech": false,
+      "speaker": "Kaelen Voss",
+      "speech_level": "normal",
+      "text": "easy now, little one. just a mouseling s chatter, eh?",
+      "tick": 0,
+      "timestamp": 1787169470.4991379
+    }
+  ],
+  "relationships": {
+    "rat": {
+      "closeness": 0,
+      "first_sighting": true,
+      "interaction_count": 0,
+      "last_interaction_tick": 24
+    }
+  },
+  "simple_npc": false,
+  "skills": {
+    "Acrobatics": 1,
+    "Athletics": 0,
+    "Perception": 2,
+    "Persuasion": 1,
+    "Stealth": 1,
+    "Survival": 2
+  },
+  "state": "awake",
+  "stats": {
+    "CHA": 12,
+    "CON": 14,
+    "DEX": 12,
+    "INT": 16,
+    "STR": 10,
+    "WIS": 15
+  },
+  "tags": [
+    "male",
+    "human"
+  ],
+  "traits": {},
+  "unknown_name": "",
+  "vitals": {
+    "Bladder": 24,
+    "Energy": 46,
+    "Entertainment": 92,
+    "HP": 99,
+    "Hunger": 53,
+    "Hygiene": 73,
+    "Max_HP": 100,
+    "Sanity": 92,
+    "Social": 94,
+    "Temperature": 34.90000000000001,
+    "Thirst": 43
+  }
+}

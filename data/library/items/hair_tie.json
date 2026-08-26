@@ -1,0 +1,46 @@
+{
+  "name": "hair_tie",
+  "description": "a black elastic hair tie. stretchy, durable. kayla always keeps a spare.",
+  "actions": "examine,use,take,drop",
+  "uses": -1,
+  "weight": 0.01,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "accessory",
+    "cloth"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "amount": 5,
+            "stat": "hygiene",
+            "success_message": "you tie your hair back. it is a small thing, but you feel more put together.",
+            "target": "self"
+          },
+          "type": "adjust_vital"
+        },
+        {
+          "params": {
+            "amount": 5,
+            "stat": "sanity",
+            "target": "self"
+          },
+          "type": "adjust_vital"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

@@ -1,0 +1,19 @@
+{
+  "name": "drawer",
+  "description": "a small drawer containing a diary, a silver letter opener, and a strange compass that doesn't point north.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "furniture",
+    "wooden",
+    "container"
+  ],
+  "triggers": [],
+  "contents": []
+}

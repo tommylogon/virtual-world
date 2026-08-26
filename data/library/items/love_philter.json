@@ -1,0 +1,37 @@
+{
+  "name": "Love Philter",
+  "description": "A rose-scented pink potion that shimmers in the light. One sip and your heart opens to whoever is near.",
+  "actions": "examine,take,drink,drop",
+  "uses": 1,
+  "weight": 0.3,
+  "tags": [
+    "alchemical",
+    "drink",
+    "liquid",
+    "magic"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_drink"
+      ],
+      "effects": [
+        {
+          "type": "apply_condition",
+          "params": {
+            "condition": "charmed",
+            "target": "self",
+            "source": "love philter",
+            "message": "The potion is warm and sweet. A soft haze settles over your thoughts — everyone looks like a friend."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

@@ -1,0 +1,22 @@
+{
+  "name": "Gold Hoop Earrings (Slightly Bent)",
+  "description": "A pair of delicate gold hoop earrings, inherited from Lyrie's grandmother. One of them is slightly bent out of shape—she snagged it on her tunic and hasn't managed to straighten it yet. They catch the light beautifully, though Lyrie sometimes forgets she's wearing them and tries to put on other earrings too.",
+  "actions": "examine,take,use,equip,unequip",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "equip_slots": [
+    "ears"
+  ],
+  "tags": [
+    "jewelry",
+    "earrings",
+    "gold",
+    "elven",
+    "heirloom",
+    "wearable",
+    "metal"
+  ],
+  "triggers": [],
+  "contents": []
+}

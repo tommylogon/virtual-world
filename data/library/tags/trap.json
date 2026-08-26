@@ -1,0 +1,17 @@
+{
+  "id": "trap",
+  "name": "Trap",
+  "description": "Triggers harmful effect when interacted with",
+  "category": "state",
+  "color": "#ff0000",
+  "icon": "⚠️",
+  "applies_to": [
+    "items",
+    "areas"
+  ],
+  "examples": [
+    "trapped chest",
+    "pit trap",
+    "poison needle"
+  ]
+}

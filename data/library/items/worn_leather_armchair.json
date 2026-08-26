@@ -1,0 +1,62 @@
+{
+  "name": "Worn Leather Armchair",
+  "description": "A faded leather armchair sits before the cold hearth, its cracked surface bearing the dark stains of countless restless nights. The cushion sinks slightly.",
+  "actions": "examine,use",
+  "uses": 1,
+  "weight": 45,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "furnitur"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "success_message": "Its soft, if i get the fire starting this would be a nice seat to *USE* to get some rest"
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "success_message": "You sink into the comfortable seat."
+          },
+          "type": "message"
+        },
+        {
+          "params": {
+            "amount": 20,
+            "message": "",
+            "stat": "Energy",
+            "success_message": "You sink into the comfortable seat.",
+            "target": "self"
+          },
+          "type": "adjust_vital"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

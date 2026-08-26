@@ -1,0 +1,18 @@
+{
+  "name": "Miki's Phone",
+  "description": "a phone in a cracked case plastered with anime stickers, screen showing 47 unread discord pings and a tinder notification she keeps not-swiping away.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "electric",
+    "phone"
+  ],
+  "triggers": [],
+  "contents": []
+}

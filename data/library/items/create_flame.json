@@ -1,0 +1,45 @@
+{
+  "name": "Create Flame",
+  "actions": "examine,use",
+  "contents": [],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "A simple spell that conjures a small, flickering flame in your hand. The flame is harmless to you but can be used to ignite kindling or light a torch.",
+  "insulation": 0,
+  "library_id": "create_flame",
+  "light_level": "dim",
+  "tags": [
+    "fire",
+    "spell",
+    "magic"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "current_state": "lit",
+            "display_name": "",
+            "item_id": "everflame_ember"
+          },
+          "type": "spawn_item"
+        },
+        {
+          "params": {
+            "message": "A small flame flickers in your palm and settles into a glowing ember at your feet. It radiates warmth."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "A small flame gets created ",
+      "fail_message": ""
+    }
+  ],
+  "uses": -1,
+  "weight": 0.1
+}

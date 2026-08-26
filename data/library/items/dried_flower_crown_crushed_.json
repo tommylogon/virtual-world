@@ -1,0 +1,21 @@
+{
+  "name": "Dried Flower Crown (Crushed)",
+  "description": "A simple crown of dried wildflowers, woven together with grass. It's badly crushed and missing several blooms, but Lyrie refuses to take it off—it was a gift from a child in her village. She forgets it's on her head half the time, and it sheds petals wherever she goes.",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "accessory",
+    "flower",
+    "crown",
+    "elven",
+    "fragile"
+  ],
+  "triggers": [],
+  "contents": []
+}

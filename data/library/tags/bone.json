@@ -1,0 +1,15 @@
+{
+  "id": "bone",
+  "name": "Bone",
+  "description": "Bone or skeletal remains.",
+  "category": "physical",
+  "color": "#ecf0f1",
+  "icon": "🦴",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "femur",
+    "skull"
+  ]
+}

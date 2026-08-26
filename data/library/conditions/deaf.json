@@ -1,0 +1,26 @@
+{
+  "name": "Deaf",
+  "description": "Can't hear. Hearing cues are lost.",
+  "blocks_actions": false,
+  "blocks_movement": false,
+  "blocks_speech": false,
+  "auto_fail_checks": [
+    "hearing"
+  ],
+  "auto_fail_saves": [],
+  "attack_mod": 0,
+  "defense_mod": 0,
+  "speed_mult": 1.0,
+  "movement_mode": null,
+  "drops_held_items": false,
+  "periodic": {},
+  "ends_on": [
+    "duration",
+    "cure"
+  ],
+  "known": true,
+  "symptoms": {},
+  "stack": "noop",
+  "default_duration": 5,
+  "excludes": []
+}

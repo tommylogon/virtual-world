@@ -1,0 +1,86 @@
+{
+  "name": "sons bedroom",
+  "description": "A smaller room with a single bed pushed against the wall. A writing desk sits beneath the window, a half-melted candle on its surface. ",
+  "tags": [],
+  "environment": {
+    "air": "stale",
+    "light": "dim",
+    "noise": "wind outside",
+    "smell": "dust",
+    "temperature": 1
+  },
+  "items": [
+    {
+      "name": "Loose Floorboard",
+      "description": "A floorboard that protrudes slightly from the rest, as if it can be pressed down or pried up.",
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "uses": 1,
+      "weight": 0.5,
+      "current_state": "normal",
+      "tags": []
+    },
+    {
+      "name": "Books of Mathematics and Magic",
+      "description": "A stack of three leather-bound textbooks, their covers embossed with geometric patterns and astral symbols. The pages are filled with dense theorems and mystical incantations.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 1,
+      "weight": 1.5,
+      "current_state": "normal",
+      "tags": [
+        "book"
+      ]
+    },
+    {
+      "name": "Hand-Painted Toy Soldier",
+      "description": "A small wooden soldier with chipped paint, a faded red coat, and a tiny musket. His eyes are still bright.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": 0,
+      "weight": 0.2,
+      "current_state": "normal",
+      "tags": [
+        "toy"
+      ]
+    },
+    {
+      "name": "Light Stone",
+      "description": "A pretty stone.",
+      "actions": [
+        "examine",
+        "take",
+        "use",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.5,
+      "current_state": "normal",
+      "tags": [
+        "magic",
+        "light_source"
+      ]
+    }
+  ],
+  "exits": [
+    {
+      "direction": "hallway",
+      "target_room_hint": "Upstairs Hallway",
+      "description": "A modest door with a simple porcelain knob. Dust has gathered in the corners of the frame.",
+      "state": "closed",
+      "hidden": false,
+      "cardinal": "south"
+    }
+  ],
+  "triggers": []
+}

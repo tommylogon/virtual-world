@@ -1,0 +1,16 @@
+{
+  "name": "Old Photograph",
+  "description": "A faded family photograph in a silver frame. Dated Autumn 1987 on the back.",
+  "actions": "examine,take",
+  "uses": -1,
+  "weight": 0.2,
+  "action_costs": {},
+  "skill_check": {},
+  "effect_target": null,
+  "effect_stat": null,
+  "effect_amount": 0,
+  "tags": [
+    "paper",
+    "indoor"
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "name": "Crossbow",
+  "description": "A compact crossbow, meticulously maintained and loaded with a single bolt. The wood is darkened with age, but the string is taut and the mechanism is clean. It looks effective, if only you had a clear shot.",
+  "actions": "examine,take,use,drop",
+  "uses": 1,
+  "weight": 3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "The crossbow is surprisingly well-kept. A small tag reads: 'For emergencies only – one shot. Make it count.' The bolt is tipped with a dull, broad head."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_take",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "You pick up the crossbow. It's heavier than it looks, but well-balanced."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "You squeeze the trigger. The crossbow fires with a sharp *thwack*, but the bolt buries itself deep into the padded wall of the panic room. The weapon is now spent."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "type": "destroy_self",
+          "params": {}
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

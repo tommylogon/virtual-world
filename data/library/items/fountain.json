@@ -1,0 +1,39 @@
+{
+  "name": "fountain",
+  "description": "a stone fountain with a weeping angel statue, its face worn smooth by time and weather. the basin holds dark water, leaves, and a surprising amount of moss. something glints at the bottom.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 200,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "water",
+    "stone",
+    "outdoor"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_examine"
+      ],
+      "effects": [
+        {
+          "params": {
+            "fail_message": "",
+            "success_message": "you peer into the murky water. at the bottom of the fountain basin, half-buried in sediment, lies a small silver crucifix. it must have been thrown in deliberately."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

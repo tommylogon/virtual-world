@@ -1,0 +1,17 @@
+{
+  "id": "animal",
+  "name": "Animal",
+  "description": "Non-human creature or beast",
+  "category": "character",
+  "color": "#aa8844",
+  "icon": "🐾",
+  "applies_to": [
+    "characters"
+  ],
+  "examples": [
+    "wolf",
+    "horse",
+    "rat",
+    "cat"
+  ]
+}

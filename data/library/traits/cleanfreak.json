@@ -1,0 +1,12 @@
+{
+  "name": "Clean Freak",
+  "description": "Hygiene decays faster.",
+  "category": "physical",
+  "params": null,
+  "effects": {
+    "vital_multiplier": {
+      "Hygiene": 1.5
+    }
+  },
+  "id": "cleanfreak"
+}

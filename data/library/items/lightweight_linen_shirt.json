@@ -1,0 +1,23 @@
+{
+  "name": "Lightweight Linen Shirt",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "contents": [],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "Once a crisp, off-white Galser-issue shirt, now faded to greyish beige from desert sun. Soft collar, frayed cuffs. One mismatched black button replaces the missing second-from-top. Faint ink stain on the left sleeve.",
+  "insulation": 0,
+  "library_id": "lightweight_linen_shirt",
+  "light_level": "dim",
+  "tags": [
+    "clothing",
+    "shirt",
+    "linen"
+  ],
+  "triggers": [],
+  "uses": -1,
+  "weight": 0.8,
+  "equip_slots": [
+    "torso"
+  ]
+}

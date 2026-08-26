@@ -1,0 +1,106 @@
+{
+  "name": "Short Forest Cape",
+  "description": "A short, forest-green cape that rustles like leaves in the wind. Light and practical, it offers subtle camouflage among the trees.",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "uses": 0,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 1,
+  "damage": 0,
+  "insulation": 1,
+  "tags": [
+    "clothing",
+    "insulation"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "The cape is made of sturdy yet soft fabric, dyed a deep green. It feels almost alive, blending with the shadows."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_take",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "You pick up the short cape. It is surprisingly light."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_drop",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "You let the cape fall. It settles like a fallen leaf."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_equip",
+      "effects": [
+        {
+          "type": "adjust_vital",
+          "params": {
+            "amount": 1,
+            "message": "The cape settles around your shoulders, making you feel more nimble.",
+            "stat": "Agility"
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_unequip",
+      "effects": [
+        {
+          "type": "adjust_vital",
+          "params": {
+            "amount": -1,
+            "message": "You remove the cape and feel slightly less quick.",
+            "stat": "Agility"
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": [],
+  "equip_slots": [
+    "back"
+  ]
+}

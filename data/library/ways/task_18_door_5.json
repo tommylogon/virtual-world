@@ -1,0 +1,40 @@
+{
+  "name": "Task 18 - door 5",
+  "description": "A circular door that blends almost perfectly into the wall except for a single dark slit from top to bottom. above the door is the number 5 that glows with a {param:light} light. Next to the door is a keycard slot",
+  "current_state": "locked",
+  "pass_message": "",
+  "edge_length": "",
+  "needs_open": {},
+  "auto_close": false,
+  "see_through": false,
+  "one_way": false,
+  "requires": "",
+  "max_size": "",
+  "prevent_close": false,
+  "tags": [
+    "clearance"
+  ],
+  "parameters": {
+    "light": "red"
+  },
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_examine"
+      ],
+      "effects": [
+        {
+          "params": {
+            "success_message": "The keycard slot and door reveals nothing usefull. defintiyl  needs a keycard"
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "The keycard slot and door reveals nothing usefull. defintiyl  needs a keycard",
+      "fail_message": ""
+    }
+  ]
+}

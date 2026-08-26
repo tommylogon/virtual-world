@@ -1,0 +1,15 @@
+{
+  "id": "water",
+  "name": "Water",
+  "description": "Water or water container.",
+  "category": "physical",
+  "color": "#3498db",
+  "icon": "💧",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "water bottle",
+    "rain barrel"
+  ]
+}

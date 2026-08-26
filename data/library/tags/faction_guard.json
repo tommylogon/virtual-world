@@ -1,0 +1,18 @@
+{
+  "id": "faction_guard",
+  "name": "Guard",
+  "description": "Associated with the city guard or watch",
+  "category": "faction",
+  "color": "#0044aa",
+  "icon": "🛡️",
+  "applies_to": [
+    "characters",
+    "items",
+    "areas"
+  ],
+  "examples": [
+    "guard uniform",
+    "guard barracks",
+    "city watch"
+  ]
+}

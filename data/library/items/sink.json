@@ -1,0 +1,19 @@
+{
+  "name": "sink",
+  "description": "a deep stone sink with a dripping faucet. the tap still works — water flows, brown with rust at first, then clear. the water is cold and clean. when the water runs, the dripping sound continues from elsewhere.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 50,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "water",
+    "bathroom",
+    "furniture"
+  ],
+  "triggers": [],
+  "contents": []
+}

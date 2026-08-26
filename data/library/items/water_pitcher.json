@@ -1,0 +1,59 @@
+{
+  "name": "water_pitcher",
+  "actions": "examine,use,take,drink,drop",
+  "contents": [],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "A clay pitcher filled with cool, clear water. Condensation beads on the surface.",
+  "insulation": 0,
+  "light_level": "dim",
+  "tags": [
+    "water",
+    "drink",
+    "glass",
+    "container",
+    "supplies"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_drink",
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "success_message": "the cool water quences your thirst"
+          },
+          "type": "message"
+        },
+        {
+          "params": {
+            "amount": -15,
+            "message": "",
+            "stat": "thirst",
+            "success_message": "the cool water quences your thirst",
+            "target": "self"
+          },
+          "type": "adjust_vital"
+        },
+        {
+          "params": {
+            "amount": 10,
+            "message": "",
+            "stat": "bladder",
+            "success_message": "the cool water quences your thirst",
+            "target": "self"
+          },
+          "type": "adjust_vital"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "uses": 3,
+  "weight": 1
+}

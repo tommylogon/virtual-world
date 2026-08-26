@@ -1,0 +1,10 @@
+{
+  "id": "wanderlust",
+  "name": "Wanderlust",
+  "description": "Gains Entertainment from moving between areas even if visited before. Prefers to keep moving.",
+  "category": "exploration",
+  "params": null,
+  "effects": {
+    "wanderlust": true
+  }
+}

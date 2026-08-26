@@ -1,0 +1,40 @@
+{
+  "name": "portrait_hall",
+  "description": "a painting of augustus blackwood in his prime. his cold, calculating eyes follow you around the room. the nameplate reads: 'augustus blackwood, 1835-1891, patriarch of blackwood manor.' there's a crack in the canvas — deliberate, not from age.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 20,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "portrait",
+    "art",
+    "evidence",
+    "clue"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_examine"
+      ],
+      "effects": [
+        {
+          "params": {
+            "fail_message": "",
+            "success_message": "you touch the crack in the canvas. behind the painting, taped to the back, you find a small photograph. it shows augustus with a woman who is not his wife — the same woman from the love letters in the library. they're holding hands. on the back: 'my dearest margaret. someday we'll be free.'"
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

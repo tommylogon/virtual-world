@@ -1,0 +1,15 @@
+{
+  "id": "ritual",
+  "name": "Ritual",
+  "description": "Ceremonial act or object.",
+  "category": "essence",
+  "color": "#6c3483",
+  "icon": "🪔",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "altar",
+    "ritual book"
+  ]
+}

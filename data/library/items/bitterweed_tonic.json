@@ -1,0 +1,36 @@
+{
+  "name": "Bitterweed Tonic",
+  "description": "A foul-tasting herbal tonic that scours sickness from the gut. The worse it tastes, the better it works.",
+  "actions": "examine,take,drink,drop",
+  "uses": 2,
+  "weight": 0.2,
+  "tags": [
+    "alchemical",
+    "drink",
+    "liquid",
+    "medicine"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_drink"
+      ],
+      "effects": [
+        {
+          "type": "remove_condition",
+          "params": {
+            "condition": "sick",
+            "target": "self",
+            "message": "You choke the tonic down. Your stomach settles and the feverish fog begins to clear."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

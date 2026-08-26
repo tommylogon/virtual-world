@@ -1,0 +1,15 @@
+{
+  "id": "mouse",
+  "name": "Mouse",
+  "description": "Mouse or rodent.",
+  "category": "character",
+  "color": "#839192",
+  "icon": "🐭",
+  "applies_to": [
+    "items",
+    "characters"
+  ],
+  "examples": [
+    "mouse nest"
+  ]
+}

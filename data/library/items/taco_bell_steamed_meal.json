@@ -1,0 +1,29 @@
+{
+  "name": "Steamed Meal (Holding Chute)",
+  "actions": "examine,take,use,eat,drop",
+  "contents": [],
+  "current_state": "normal",
+  "description": "a bagged order abandoned in the pickup shelf, going lukewarm under the heat lamp. the receipt curling at the edge says NO ONE HAS COME FOR THIS in the language of forgotten food.",
+  "tags": [
+    "food",
+    "meal"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_eat",
+      "effects": [],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "uses": 1,
+  "weight": 0.5,
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "library_id": "taco_bell_steamed_meal"
+}

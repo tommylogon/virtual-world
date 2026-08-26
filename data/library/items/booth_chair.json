@@ -1,0 +1,15 @@
+{
+  "name": "booth chair",
+  "description": "a cracked plastic booth chair in faded teal, bolted to the floor beside the table. the seat has a faint 'property of taco bell' decal worn nearly off.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 8,
+  "current_state": "normal",
+  "tags": [
+    "furniture",
+    "seating",
+    "restaurant"
+  ],
+  "triggers": [],
+  "contents": []
+}

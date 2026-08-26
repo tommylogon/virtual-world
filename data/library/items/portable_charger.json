@@ -1,0 +1,53 @@
+{
+  "name": "portable_charger",
+  "description": "a small power bank for her phone. about 30% charged.",
+  "actions": "examine,use",
+  "uses": 3,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "phone",
+    "electric",
+    "supplies"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "success_message": "a portable charger. 30% battery. but there is no power outlet in a haunted mansion that has been abandoned since 1891."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "message": "right. how? there is no electricity here."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

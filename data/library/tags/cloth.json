@@ -1,0 +1,16 @@
+{
+  "id": "cloth",
+  "name": "Cloth",
+  "description": "Made of fabric or textile",
+  "category": "physical",
+  "color": "#cc9966",
+  "icon": "👕",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "wool shirt",
+    "silk scarf",
+    "linen trousers"
+  ]
+}

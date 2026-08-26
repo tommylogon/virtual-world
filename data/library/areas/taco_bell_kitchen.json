@@ -1,0 +1,130 @@
+{
+  "description": "behind the swinging doors: stainless steel, fryer heat and the shriek of timers. the line is half-broken-down for closing, trays of seasoned beef covered in cling film, a mop sink gurgling. boxes of shells and sauce rims stacked by the back door. it smells like a taco bell looks.",
+  "environment": {
+    "air": "hot",
+    "light": 65,
+    "noise": "timer shrieks, fryer crackle, drive-thru headsets",
+    "smell": "fryer oil, seasoned beef, sanitizer",
+    "temperature": 28
+  },
+  "items": [
+    {
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "contents": [
+        "seasoned_beef_pan",
+        "cheese_shred",
+        "mystery_cream_sauce"
+      ],
+      "current_state": "on",
+      "description": "the cold prep rail: three stainless pans loaded with seasoned beef, chicken, beans, rice, cheese, and the mysterious cream sauce in the last tray that smells wrong. each tray has a date sticker — most overdue.",
+      "name": "make line",
+      "tags": [
+        "equipment",
+        "kitchen",
+        "food"
+      ],
+      "uses": -1,
+      "weight": 90
+    },
+    {
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "current_state": "on",
+      "description": "a gas flat-top grill, its surface scarred in concentric circles by a '{ch2ss metal spatula. the off hour keeps running hot under a guard of old grease.",
+      "name": "flat-top grill",
+      "tags": [
+        "equipment",
+        "kitchen",
+        "cooking"
+      ],
+      "uses": -1,
+      "weight": 130
+    },
+    {
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "current_state": "on",
+      "description": "two three-tier steamer cabinets holding soft tortillas warm and damp. a steam pops from the door of the middle tier every few seconds, startling nobody at all anymore.",
+      "name": "steamer cabinets",
+      "tags": [
+        "equipment",
+        "kitchen",
+        "cooking"
+      ],
+      "uses": -1,
+      "weight": 90
+    },
+    {
+      "actions": [
+        "examine"
+      ],
+      "current_state": "on",
+      "description": "a bank of cylindrical metal heat tubes for standing pre-cooked hard shells and Mexican pizza or how the franchise once hoped to speed the line. the one way at the back is empty, glowing for no order.",
+      "name": "hot-hold tubes",
+      "tags": [
+        "equipment",
+        "kitchen",
+        "cooking"
+      ],
+      "uses": -1,
+      "weight": 40
+    },
+    {
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "current_state": "normal",
+      "description": "an industrial wash sink of three steel bays with a hose reel and soap that smells like artificial lemon. the scrub brush on the rack has crusted date trace in grease.",
+      "name": "three-compartment sink",
+      "tags": [
+        "equipment",
+        "kitchen",
+        "sink"
+      ],
+      "uses": -1,
+      "weight": 70
+    },
+    {
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "current_state": "on",
+      "description": "a cube-header ice machine in the kitchen alcove feeding the bin beside the soda fountain. the bin's filter is the color of an old coffee cup and clicks with ice all night.",
+      "name": "ice maker",
+      "tags": [
+        "equipment",
+        "machine",
+        "kitchen"
+      ],
+      "uses": -1,
+      "weight": 90
+    }
+  ],
+  "name": "Taco Bell Kitchen",
+  "tags": [
+    "millbrook_falls",
+    "commercial",
+    "restaurant",
+    "kitchen"
+  ],
+  "triggers": [],
+  "exits": [
+    {
+      "direction": "swinging door",
+      "target_room_hint": "Taco Bell Order Counter",
+      "description": "A classic double swinging door with a small round window, gently swaying.",
+      "state": "closed",
+      "hidden": false,
+      "cardinal": "south"
+    }
+  ]
+}

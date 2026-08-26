@@ -1,0 +1,18 @@
+{
+  "auto_close": false,
+  "current_state": "closed",
+  "description": "A heavy oak door leading to the study.",
+  "edge_length": "",
+  "library_id": "",
+  "max_size": "",
+  "name": "Oak door",
+  "needs_open": {},
+  "one_way": false,
+  "parameters": {},
+  "pass_message": "",
+  "prevent_close": false,
+  "requires": "",
+  "see_through": false,
+  "tags": [],
+  "triggers": []
+}

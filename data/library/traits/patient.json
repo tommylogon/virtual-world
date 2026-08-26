@@ -1,0 +1,10 @@
+{
+  "id": "patient",
+  "name": "Patient",
+  "description": "Slower Entertainment decay; tolerates repetitive activities longer.",
+  "category": "exploration",
+  "params": null,
+  "effects": {
+    "patient": true
+  }
+}

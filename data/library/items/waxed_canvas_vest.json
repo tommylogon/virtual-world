@@ -1,0 +1,24 @@
+{
+  "name": "Waxed Canvas Vest",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "contents": [],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "Sturdy oiled canvas vest, dark brown, scarred from travel. Four front pockets (two large enough for notebooks). One pocket is permanently ink-stained. Leather toggles worn smooth. Right shoulder patched with darker canvas.",
+  "insulation": 0,
+  "library_id": "waxed_canvas_vest",
+  "light_level": "dim",
+  "tags": [
+    "clothing",
+    "vest",
+    "canvas",
+    "storage"
+  ],
+  "triggers": [],
+  "uses": -1,
+  "weight": 1.2,
+  "equip_slots": [
+    "torso"
+  ]
+}

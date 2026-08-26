@@ -1,0 +1,42 @@
+{
+  "name": "On Depleted → Message",
+  "description": "Shows a message when the item runs out of uses.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "n0",
+        "type": "trigger",
+        "x": 60,
+        "y": 60,
+        "w": 260,
+        "props": {
+          "trigger_type": "on_depleted"
+        }
+      },
+      {
+        "id": "n1",
+        "type": "effect",
+        "x": 380,
+        "y": 60,
+        "w": 260,
+        "props": {
+          "effect_type": "message",
+          "message": "The item is used up."
+        }
+      }
+    ],
+    "wires": [
+      {
+        "id": "w0",
+        "from": [
+          "n0",
+          "output"
+        ],
+        "to": [
+          "n1",
+          "input"
+        ]
+      }
+    ]
+  }
+}

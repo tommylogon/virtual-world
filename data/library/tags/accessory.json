@@ -1,0 +1,16 @@
+{
+  "id": "accessory",
+  "name": "Accessory",
+  "description": "Accessories worn or carried: belts, ties, bags, pins.",
+  "category": "physical",
+  "color": "#b48ead",
+  "icon": "🎀",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "belt",
+    "bag",
+    "hair tie"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "auto_close": false,
+  "current_state": "open",
+  "description": "A narrow cleft in the snow-covered hillside, barely wide enough for one person to squeeze through. The wind whistles through the gap, carrying the muffled sounds of the forest beyond.",
+  "edge_length": "",
+  "library_id": "",
+  "max_size": "",
+  "name": "narrow passage",
+  "needs_open": {},
+  "one_way": false,
+  "parameters": {},
+  "pass_message": "You push through the narrow passage, the snow brushing against your shoulders as the landscape shifts around you. there are footsteps towrads the clearing",
+  "prevent_close": false,
+  "requires": "",
+  "see_through": false,
+  "tags": [
+    "outdoor",
+    "snowy",
+    "passage"
+  ],
+  "triggers": []
+}

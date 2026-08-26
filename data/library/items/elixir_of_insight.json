@@ -1,0 +1,10 @@
+{
+  "name": "Elixir of Insight",
+  "description": "A shimmering blue liquid in a crystal vial. It glows faintly in the dark.",
+  "actions": "examine,take,use,eat,drink",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "equip_slots": [],
+  "tags": []
+}

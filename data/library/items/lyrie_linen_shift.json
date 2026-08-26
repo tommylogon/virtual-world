@@ -1,0 +1,25 @@
+{
+  "name": "Soft Linen Shift",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "contents": [],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "A simple, loose-fitting underdress of undyed linen, soft from many washings. There's a small, clumsily-darned hole near the hem where Lyrie caught it on a branch. Smells faintly of wildflowers and hearth smoke.",
+  "insulation": 1,
+  "library_id": "lyrie_linen_shift",
+  "light_level": "dim",
+  "tags": [
+    "clothing",
+    "underwear",
+    "linen",
+    "elven",
+    "insulation"
+  ],
+  "triggers": [],
+  "uses": -1,
+  "weight": 0.4,
+  "equip_slots": [
+    "torso"
+  ]
+}

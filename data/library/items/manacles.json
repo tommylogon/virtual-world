@@ -1,0 +1,36 @@
+{
+  "name": "Manacles",
+  "description": "Heavy iron cuffs joined by a short chain. They lock with a dull click and don't open without the key.",
+  "actions": "examine,take,use,drop",
+  "uses": 1,
+  "weight": 1.5,
+  "tags": [
+    "metal",
+    "restraint",
+    "heavy"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "type": "apply_condition",
+          "params": {
+            "condition": "restrained",
+            "target": "self",
+            "source": "manacles",
+            "message": "The cuffs snap shut around your wrists. The chain rattles as you test it — locked tight."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

@@ -1,0 +1,38 @@
+{
+  "name": "Button 7",
+  "description": "A big red button that says push me",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "electric"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "params": {
+            "param": "true",
+            "target": "Bob",
+            "trait": "hostile"
+          },
+          "type": "apply_trait"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

@@ -1,0 +1,15 @@
+{
+  "id": "consumable",
+  "name": "Consumable",
+  "description": "Item that is used up: food, drink, fuel.",
+  "category": "physical",
+  "color": "#27ae60",
+  "icon": "🍽️",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "granola bar",
+    "candle"
+  ]
+}

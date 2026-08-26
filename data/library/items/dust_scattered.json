@@ -1,0 +1,15 @@
+{
+  "name": "dust_scattered",
+  "description": "the floor of the secret study is covered in a fine layer of dust — except for a single set of footprints leading to the pedestal and back. small footprints, like a child's bare feet.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [],
+  "triggers": [],
+  "contents": []
+}

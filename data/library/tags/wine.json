@@ -1,0 +1,15 @@
+{
+  "id": "wine",
+  "name": "Wine",
+  "description": "Wine or wine bottles.",
+  "category": "physical",
+  "color": "#7b241c",
+  "icon": "🍷",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "vintage wine",
+    "port"
+  ]
+}

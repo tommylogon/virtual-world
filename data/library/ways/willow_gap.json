@@ -1,0 +1,21 @@
+{
+  "auto_close": false,
+  "current_state": "open",
+  "description": "A gap in the weeping willow's curtain of branches, where the warm air meets the biting cold of the frozen thicket.",
+  "edge_length": "",
+  "library_id": "",
+  "max_size": "",
+  "name": "willow gap",
+  "needs_open": {},
+  "one_way": false,
+  "parameters": {},
+  "pass_message": "The willow branches rustle as you step through, and the cold wraps around you like a shroud.",
+  "prevent_close": false,
+  "requires": "",
+  "see_through": false,
+  "tags": [
+    "natural",
+    "passage"
+  ],
+  "triggers": []
+}

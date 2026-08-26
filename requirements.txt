@@ -1,0 +1,8 @@
+# VirtualWorld - runtime dependencies
+# Python 3.10+ recommended
+flask
+httpx
+fastmcp
+
+# Development / testing
+pytest

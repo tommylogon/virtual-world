@@ -1,0 +1,40 @@
+{
+  "name": "hidden_shelf",
+  "description": "one of the wine racks is shallower than the others. behind it, a small recess holds a single leather-bound book. the title: 'rituals of binding and release.'",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "hidden",
+    "secret",
+    "furniture"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_examine"
+      ],
+      "effects": [
+        {
+          "params": {
+            "description": "a leather-bound grimoire titled 'rituals of binding and release'. the book falls open to a marked page: 'the ritual of the firstborn — to release a spirit bound to an object, the object must be returned to the place of death and the following incantation spoken at the hour of the binding...'",
+            "item_id": "item_ritual_book",
+            "name": "ritual_book"
+          },
+          "type": "spawn_item"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

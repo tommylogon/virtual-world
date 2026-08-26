@@ -1,0 +1,69 @@
+{
+  "name": "Painting of the Wandering Forests of Vald",
+  "description": "A breathtaking painting depicting the ancient, shifting forests of Vald. The trees seem to move ever so slightly when you look away, and the underbrush glows with faint luminescence. The frame is aged oak, intricately carved with leaves and vines.",
+  "actions": "examine,take,use,drop",
+  "uses": 0,
+  "weight": 2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "art"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "The painting mesmerizes you. You can almost hear the rustling leaves and distant bird calls of the Wandering Forests of Vald. The colors shift in the corner of your eye—perhaps the trees are moving?"
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_take",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "As you lift the painting, the air feels cooler, and a faint scent of damp earth and pine lingers."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "type": "set_environment",
+          "params": {
+            "light": "dim",
+            "message": "The hallway dims and the sound of a gentle forest breeze fills the space. The painting seems to breathe.",
+            "smell": "pine_and_earth",
+            "sound": "forest_ambient"
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

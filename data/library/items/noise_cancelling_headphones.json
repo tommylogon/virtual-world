@@ -1,0 +1,58 @@
+{
+  "name": "Noise-Cancelling Headphones",
+  "description": "Over-ear headphones with thick padded cups. When you turn them on, the world goes quiet — no ambient hum, no distant footsteps, no breathing but your own.",
+  "actions": "examine,take,use,equip,unequip",
+  "uses": -1,
+  "weight": 0.4,
+  "tags": [
+    "clothing",
+    "accessory",
+    "headphones",
+    "wearable"
+  ],
+  "equip_slots": [
+    "head"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_equip",
+      "effects": [
+        {
+          "type": "apply_condition",
+          "params": {
+            "condition": "deaf",
+            "target": "self",
+            "source": "noise-cancelling headphones",
+            "source_type": "item",
+            "duration": 0,
+            "message": "You put on the noise-cancelling headphones. The ambient hum of the lab fades into silence."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_unequip",
+      "effects": [
+        {
+          "type": "remove_condition",
+          "params": {
+            "condition": "deaf",
+            "target": "self",
+            "message": "You take off the headphones. The lab's quiet hum returns."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

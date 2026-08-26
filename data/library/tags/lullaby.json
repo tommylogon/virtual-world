@@ -1,0 +1,14 @@
+{
+  "id": "lullaby",
+  "name": "Lullaby",
+  "description": "Soothing song or music box melody.",
+  "category": "essence",
+  "color": "#bb8fce",
+  "icon": "🎵",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "lullaby box"
+  ]
+}

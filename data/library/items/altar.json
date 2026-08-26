@@ -1,0 +1,40 @@
+{
+  "name": "altar",
+  "description": "a stone altar draped in dusty black cloth. a shallow depression in the shape of a skull sits at its center, lined with faded runes. this is where the crystal skull belongs — the altar in the crypt, just as the journal said. when placed here, it might break the curse... or seal it forever.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 200,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "altar",
+    "ritual",
+    "occult",
+    "stone"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_examine"
+      ],
+      "effects": [
+        {
+          "params": {
+            "fail_message": "",
+            "success_message": "you lift the dusty cloth. the skull-shaped depression is lined with symbols that pulse with a faint, dying light. the runes around the edge read: 'return what was taken. free what is bound. eleanor waits.'"
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

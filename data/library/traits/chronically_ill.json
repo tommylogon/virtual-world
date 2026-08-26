@@ -1,0 +1,9 @@
+{
+  "id": "chronically_ill",
+  "name": "Chronically Ill",
+  "description": "A permanent, mild sickness — hunger and thirst worsen faster.",
+  "category": "physical",
+  "params": null,
+  "effects": {},
+  "grants_conditions": [{"condition": "sick", "periodic": {"Hunger": -1, "Thirst": -1}}]
+}

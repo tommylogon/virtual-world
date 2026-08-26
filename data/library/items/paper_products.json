@@ -1,0 +1,14 @@
+{
+  "name": "paper_products",
+  "description": "a dispenser box of napkins and two unopened packs of paper cups on the storage shelf, one pack bearing a hand-drawn star and the initials 'ED' in marker from a shift that no longer all work there.",
+  "actions": "examine,take,use,drop",
+  "uses": -1,
+  "weight": 3,
+  "current_state": "normal",
+  "tags": [
+    "disposable",
+    "storage"
+  ],
+  "triggers": [],
+  "contents": []
+}

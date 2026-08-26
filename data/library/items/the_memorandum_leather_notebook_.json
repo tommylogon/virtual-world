@@ -1,0 +1,20 @@
+{
+  "name": "The Memorandum (Leather Notebook)",
+  "description": "Worn, leather-bound notebook with tattered pages, stuffed with loose papers, charcoal rubbings, pressed desert flowers, and notes. Covers are scarred, binding loose. When not in use, it's tucked into a pocket. Always within reach.",
+  "actions": "examine,take,use,read,write,sketch,drop",
+  "uses": -1,
+  "weight": 0.6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "notebook",
+    "writing",
+    "investigation",
+    "storage"
+  ],
+  "triggers": [],
+  "contents": []
+}

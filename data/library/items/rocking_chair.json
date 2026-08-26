@@ -1,0 +1,19 @@
+{
+  "name": "rocking_chair",
+  "description": "a small wooden rocking chair, old and worn. it rocks gently on its own, though the air is still. the wood is warm to the touch, as if someone just stood up.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "furniture",
+    "wooden",
+    "child"
+  ],
+  "triggers": [],
+  "contents": []
+}

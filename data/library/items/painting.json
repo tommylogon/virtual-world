@@ -1,0 +1,35 @@
+{
+  "name": "Painting",
+  "description": "A painting hang above the mantlepiece.   in a silver frame. A family stands in front of this very house, smiling. ",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "art"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "success_message": "titled The Valerius Family, dated 1583. it shows a bearded man in a very nice suit. a beautiful woman in a a beautiful dress and a boy with a book in his hand smiling brightly."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

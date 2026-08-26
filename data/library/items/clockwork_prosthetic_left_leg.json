@@ -1,0 +1,22 @@
+{
+  "name": "Clockwork Prosthetic (Left Leg)",
+  "actions": "examine,take,use,equip,unequip,repair,oil,drop",
+  "contents": [],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "A marvel of Galser engineering. Dull brass with steel joints, segmented plates that click and whir with each step. Small inspection panel on calf. Faint artificer's rune etched into ankle. Cold to the touch, requires regular oiling. The metal foot is shaped for balance, boot bolted directly onto it.",
+  "insulation": 0,
+  "library_id": "clockwork_prosthetic_left_leg",
+  "light_level": "dim",
+  "tags": [
+    "prosthetic",
+    "clockwork",
+    "mechanical",
+    "metal",
+    "requires_maintenance"
+  ],
+  "triggers": [],
+  "uses": -1,
+  "weight": 4.5
+}

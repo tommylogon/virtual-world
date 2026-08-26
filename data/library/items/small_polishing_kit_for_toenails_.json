@@ -1,0 +1,22 @@
+{
+  "actions": "examine,take,use,equip,unequip,drop",
+  "contents": [],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "A small, neatly-organized wooden box containing nail polish, files, and a polishing cloth. Lyrie carries it everywhere and will excuse herself to tend to her toes if she notices a chip. She takes immense pride in her toenails, even if she forgets almost everything else.",
+  "insulation": 0,
+  "light_level": "dim",
+  "name": "Small Polishing Kit (For Toenails)",
+  "tags": [
+    "tool",
+    "cosmetic",
+    "polish",
+    "elven",
+    "wooden",
+    "container"
+  ],
+  "triggers": [],
+  "uses": -1,
+  "weight": 0.3
+}

@@ -1,0 +1,22 @@
+{
+  "library_id": "",
+  "name": "dining room archway",
+  "description": "a wide open archway between lobby and seating, framed by the soda fountain island. traffic flows through it constantly during dinner rush; tonight it's just you and the hum.",
+  "current_state": "open",
+  "pass_message": "You pass beneath the archway between lobby and dining room.",
+  "edge_length": "",
+  "needs_open": {
+    "dc": 10,
+    "enabled": false,
+    "skill": "Athletics"
+  },
+  "auto_close": false,
+  "see_through": false,
+  "one_way": false,
+  "requires": "none",
+  "max_size": "normal",
+  "prevent_close": false,
+  "tags": [],
+  "parameters": {},
+  "triggers": []
+}

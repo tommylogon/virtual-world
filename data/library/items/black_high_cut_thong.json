@@ -1,0 +1,23 @@
+{
+  "name": "black high-cut thong",
+  "description": "a black high-cut thong that peeks past the waistband of the short shorts. you don't exactly hide it.",
+  "actions": "examine,take,use,equip,unequip,drop",
+  "uses": 0,
+  "weight": 0.03,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "clothing",
+    "underwear",
+    "insulation"
+  ],
+  "triggers": [],
+  "contents": [],
+  "library_id": "black_high_cut_thong",
+  "equip_slots": [
+    "legs"
+  ]
+}

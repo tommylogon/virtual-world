@@ -1,0 +1,11 @@
+﻿{
+  "name": "Electric",
+  "description": "",
+  "category": "mechanical",
+  "color": "#888888",
+  "icon": "U0001f397ï¸",
+  "applies_to": [
+    "items"
+  ],
+  "examples": []
+}

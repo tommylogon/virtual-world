@@ -1,0 +1,14 @@
+{
+  "id": "journal",
+  "name": "Journal",
+  "description": "Written account or log.",
+  "category": "essence",
+  "color": "#aeb6bf",
+  "icon": "📖",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "leather-bound journal"
+  ]
+}

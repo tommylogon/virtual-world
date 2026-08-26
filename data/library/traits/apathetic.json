@@ -1,0 +1,10 @@
+{
+  "name": "Apathetic",
+  "description": "No entertainment decay. Emotional intensity drifts to neutral faster.",
+  "category": "mental",
+  "params": null,
+  "effects": {
+    "no_entertainment_decay": true
+  },
+  "id": "apathetic"
+}

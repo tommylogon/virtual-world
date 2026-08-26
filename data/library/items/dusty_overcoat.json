@@ -1,0 +1,34 @@
+{
+  "name": "dusty overcoat",
+  "description": " a single dusty overcoat.",
+  "actions": "examine,take,use,drop",
+  "uses": -1,
+  "weight": 1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_examine"
+      ],
+      "effects": [
+        {
+          "params": {
+            "success_message": "the coat has a strange shape — something is in the pocket."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "the coat has a strange shape — something is in the pocket.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

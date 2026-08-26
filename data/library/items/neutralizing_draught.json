@@ -1,0 +1,36 @@
+{
+  "name": "Neutralizing Draught",
+  "description": "A chalky white draught that binds to toxins and snuffs them out. The taste is like clean ash.",
+  "actions": "examine,take,drink,drop",
+  "uses": 2,
+  "weight": 0.3,
+  "tags": [
+    "alchemical",
+    "drink",
+    "liquid",
+    "medicine"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_drink"
+      ],
+      "effects": [
+        {
+          "type": "remove_condition",
+          "params": {
+            "condition": "poisoned",
+            "target": "self",
+            "message": "The draught coats your throat, thick and chalky. The poison in your blood fizzles out."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

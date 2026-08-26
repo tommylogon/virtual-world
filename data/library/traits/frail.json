@@ -1,0 +1,8 @@
+{
+  "id": "frail",
+  "name": "Frail",
+  "description": "Worn thin by hunger. Needs more food to stay strong.",
+  "category": "physical",
+  "params": null,
+  "effects": {"vital_multiplier": {"Hunger": 1.5}}
+}

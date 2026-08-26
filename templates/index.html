@@ -1,0 +1,1007 @@
+<!-- index.html — Observability Dashboard with Turn/Clock/Initiative Display -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VirtualWorld Engine</title>
+    <script type="importmap">
+    {
+        "imports": {
+            "lit-html": "/static/js/vendor/lit-html/lit-html.js",
+            "lit-html/directives/class-map.js": "/static/js/vendor/lit-html/directives/class-map.js",
+            "lit-html/directives/style-map.js": "/static/js/vendor/lit-html/directives/style-map.js",
+            "lit-html/directives/repeat.js": "/static/js/vendor/lit-html/directives/repeat.js",
+            "lit-html/directives/if-defined.js": "/static/js/vendor/lit-html/directives/if-defined.js",
+            "lit-html/directives/guard.js": "/static/js/vendor/lit-html/directives/guard.js",
+            "lit-html/directives/live.js": "/static/js/vendor/lit-html/directives/live.js",
+            "lit-html/directives/unsafe-html.js": "/static/js/vendor/lit-html/directives/unsafe-html.js"
+        }
+    }
+    </script>
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js@10.2.0/public/assets/styles/choices.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
+</head>
+<body data-scenario-name="{{ scenario_name or '' }}">
+    <a href="#command-input" class="skip-link">Skip to command input</a>
+
+    <!-- ===== TOP BAR ===== -->
+    <header id="top-bar" role="banner">
+        <div class="logo">🌍 VirtualWorld Engine</div>
+        <div class="top-actions">
+            <label class="toggle-label" for="spectator-mode">
+                <input type="checkbox" id="spectator-mode" onchange="toggleSpectator()" aria-label="Toggle spectator mode">
+                <span>👁️ Spectator</span>
+            </label>
+            <div style="font-size:9px;color:var(--text-dim);margin-left:4px;cursor:help;" title="Spectator mode polls the world state every 1.5s so you can watch the simulation unfold without clicking anything.">?</div>
+            <button class="btn btn-sm btn-green" onclick="saveGame()" aria-label="Save game snapshot">💾 Save Game</button>
+            <button class="btn btn-sm btn-blue" onclick="document.getElementById('load-game-modal').style.display='flex'; loadGameList()" aria-label="Load game snapshot">📂 Load Game</button>
+            <button class="btn btn-sm btn-orange" onclick="document.getElementById('file-upload').click()" aria-label="Load world from file">📂 Load JSON</button>
+            <button class="btn btn-sm btn-cyan" onclick="saveScenarioToFile()" aria-label="Save scenario (authorial snapshot)">📝 Save Scenario</button>
+            <button class="btn btn-sm" onclick="if(confirm('New scenario? This will clear ALL world state and start fresh with an empty world.')){ newScenario(); }" aria-label="New scenario" style="background:#2e7d32;color:#fff;border-color:#1b5e20;">🆕 New</button>
+            <button class="btn btn-sm btn-red" onclick="if(confirm('Restart scenario? This will reset all world state.')){ restartScenario(); }" aria-label="Restart scenario" style="background:#d32f2f;color:#fff;border-color:#b71c1c;">🔄 Restart</button>
+            <button class="btn btn-sm" onclick="document.getElementById('settings-modal').style.display='flex'; setTimeout(populateSettingsForm, 50);" aria-label="Agent Settings">⚙️ Settings</button>
+            <input type="file" id="file-upload" style="display:none" accept=".json" onchange="uploadWorld(event)" aria-hidden="true">
+            <select id="narration-select" class="narration-select" onchange="window.narrationUI?.setMode(this.value)" title="Narration mode" aria-label="Narration mode">
+                <option value="none">🔇 No Narration</option>
+                <option value="player">🎭 Player Narrate</option>
+                <option value="ai">🤖 AI Narrate</option>
+            </select>
+        </div>
+    </header>
+
+    <!-- ===== MAIN LAYOUT ===== -->
+    <div id="main-layout">
+
+        <!-- LEFT PANEL -->
+        <aside id="left-panel" aria-label="Agents and simulation controls">
+            <div id="sim-controls" role="toolbar" aria-label="Simulation controls">
+                <button class="sim-btn" id="sim-play" onclick="startAgent()" title="Run">▶</button>
+                <button class="sim-btn" id="sim-pause" onclick="stopAgent()" title="Pause">⏸</button>
+                <button class="sim-btn" id="sim-step" onclick="agentStepOnce()" title="Step Once">⏭</button>
+                <button class="sim-btn" id="sim-cancel" onclick="cancelStep()" title="Cancel current step" style="display:none;color:var(--red);">✕</button>
+                <input type="number" id="sim-max-steps" class="sim-max-steps" value="10" min="0" title="Max turns before auto-stop (0 = unlimited)">
+                <span id="sim-rate-limit" class="sim-rate-limit" hidden aria-live="polite" title="API rate limit cooldown"></span>
+                <div class="sim-time" id="ui-time" aria-live="polite">08:00</div>
+            </div>
+            <div id="turn-info-bar" class="turn-info-bar">
+                <span id="turn-display" class="turn-label">Turn: 0</span>
+                <span id="step-display" class="step-label">Step: 0/0</span>
+                <span id="active-char-display" class="active-char-label">Active: —</span>
+            </div>
+            <div id="left-tabs" class="left-tabs" role="tablist" aria-label="Left panel views">
+                <button class="left-tab active" data-tab="agents" role="tab" onclick="ui.switchLeftTab('agents')">🧍 Agents</button>
+                <button class="left-tab" data-tab="outline" role="tab" onclick="ui.switchLeftTab('outline')">🗺️ Outline</button>
+                <button class="left-tab" data-tab="lens" role="tab" onclick="ui.switchLeftTab('lens')">👁 Lens</button>
+                <button class="left-tab" data-tab="issues" role="tab" onclick="ui.switchLeftTab('issues')">🛠 Issues</button>
+            </div>
+            <div id="left-tab-body" class="left-tab-body">
+            <div id="left-tab-agents" class="left-tab-pane active" role="tabpanel">
+                <div id="agent-list-section">
+                    <h4 class="panel-heading">🧍 Agents <span class="section-hint">(click to select active)</span>
+                        <button class="btn btn-sm" id="reroll-init-btn" onclick="TurnQueue.rerollInitiatives(); if (window.appEvents) appEvents.emit('state:updated', worldState?.data);" title="Re-roll all initiative rolls (d20 + DEX)" style="margin-left:auto;font-size:10px;padding:1px 6px;display:none;">🎲 Re-roll</button>
+                    </h4>
+                    <div id="agent-list" role="list" aria-label="Agent list"></div>
+                    <div class="agent-add-row">
+                        <input type="text" id="char-name" placeholder="New agent name..." aria-label="New agent name">
+                        <button class="btn btn-sm btn-green" onclick="createCharacter()">+</button>
+                    </div>
+                </div>
+                <div class="settings-group" style="border-top:1px solid var(--border-light);margin-top:6px;">
+                    <div class="settings-group-title"><span class="group-icon">🎮</span> Turn Order</div>
+                    <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-turn-based" onchange="config.turnBased=this.checked;document.getElementById('turn-settings').style.display=this.checked?'block':'none';config.save();events.log(this.checked?'Turn-based enabled':'Turn-based disabled','system-msg');if(window.appEvents)appEvents.emit('state:updated',worldState?.data);"> ⏭️ Turn-Based Mode</label><span class="toggle-desc">Characters act one at a time</span></div>
+                    <div class="turn-settings-sub" id="turn-settings" style="display:none;"><div class="settings-field"><label for="agent-turn-order">Order</label><select id="agent-turn-order" style="width:160px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.turnOrder=this.value;config.save();if(window.TurnQueue&&config.turnBased){TurnQueue.initialize();if(window.appEvents)appEvents.emit('state:updated',worldState?.data);}"><option value="sequential">Sequential</option><option value="random">Random</option><option value="initiative">Initiative</option></select></div></div>
+                </div>
+            </div>
+            <div id="left-tab-outline" class="left-tab-pane" role="tabpanel">
+                <div id="outline-container" class="left-outline"></div>
+            </div>
+            <div id="left-tab-lens" class="left-tab-pane" role="tabpanel">
+                <div id="agent-lens-root" class="agent-lens-root">
+                    <div id="agent-lens-header" class="agent-lens-header"></div>
+                    <div id="agent-lens-stats" class="agent-lens-stats" hidden></div>
+                    <div id="agent-lens-toolbar" class="agent-lens-toolbar">
+                        <button type="button" class="lens-tool-btn" onclick="agentLens.expandAll()" title="Expand all">▼</button>
+                        <button type="button" class="lens-tool-btn" onclick="agentLens.collapseAll()" title="Collapse all">▲</button>
+                        <button type="button" class="lens-tool-btn" onclick="agentLens.copyAll()" title="Copy full preview">📋</button>
+                        <button type="button" class="lens-tool-btn lens-tool-refresh" id="lens-refresh-btn" onclick="agentLens.refresh()" title="Refresh">🔄</button>
+                    </div>
+                    <details id="agent-lens-settings" class="agent-lens-settings">
+                        <summary>Preview settings</summary>
+                        <div id="agent-lens-controls" class="agent-lens-controls"></div>
+                    </details>
+                    <div id="agent-lens-content" class="agent-lens-content"></div>
+                </div>
+            </div>
+            <div id="left-tab-issues" class="left-tab-pane" role="tabpanel">
+                <div id="validation-section" class="validation-section">
+                    <h4 class="panel-heading">🛠 World Issues
+                        <span id="validator-count" class="section-hint"></span>
+                        <button class="btn btn-sm" onclick="ValidatorPanel.refresh()" style="margin-left:auto;font-size:10px;padding:1px 6px;" title="Re-scan the world for trigger, way, item and library issues">🔄</button>
+                    </h4>
+                    <div id="validator-list" class="validator-list">
+                        <div class="alert-empty">Scanning…</div>
+                    </div>
+                </div>
+            </div>
+            </div><!-- #left-tab-body -->
+
+            <div id="alert-section">
+                <h4 class="panel-heading">⚠️ Alerts</h4>
+                <div id="alert-list" class="alert-list">
+                    <div class="alert-empty">No alerts</div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="resize-handle" id="left-resize-handle" title="Drag to resize"></div>
+
+        <!-- CENTER VIEWPORT -->
+        <main id="center-viewport" aria-label="World visualization">
+            <div id="graph-toolbar" class="editor-toolbar" role="toolbar" aria-label="Graph tools">
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" data-tool="add_area" onclick="addRoomViaGraph()">🏠 Area</button>
+                    <button class="toolbar-btn" data-tool="add_item" onclick="addItemViaGraph()">📦 Item</button>
+                    <button class="toolbar-btn" data-tool="add_way" onclick="connectRoomsViaGraph()">🚪 Way</button>
+                    <button class="toolbar-btn" onclick="openLibraryBrowser()">📚 Library</button>
+                    <button class="toolbar-btn" onclick="openWorldSync()" title="Sync world entities to library">📋 Sync to Library</button>
+                </div>
+                <div class="toolbar-divider"></div>
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" onclick="graphEditor.undo()">↩️</button>
+                    <button class="toolbar-btn" onclick="graphEditor.redo()">↪️</button>
+                </div>
+                <div class="toolbar-divider"></div>
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" onclick="graphEditor.showTemplates()">📋 Templates</button>
+                    <button class="toolbar-btn" onclick="VW.inspector.showWorldLore()" title="Edit world lore entries">🌍 Lore</button>
+                </div>
+                <div class="toolbar-divider"></div>
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" id="btn-physics" onclick="graphManager.togglePhysics()" title="Toggle physics (freeze/unfreeze node positions)">⏸ Physics</button>
+                    <button class="toolbar-btn" id="btn-cardinal" onclick="graphManager.toggleCardinalLayout()" title="Toggle cardinal area layout">🗺️ Map</button>
+                    <button class="toolbar-btn" onclick="graphManager.fitView()" title="Zoom to fit all nodes">⊞ Fit</button>
+                    <input class="graph-search" type="text" id="graph-search" placeholder="🔍 Search nodes..." oninput="graphManager.filterNodes(this.value)" onkeydown="if(event.key==='Enter'){GraphNetwork.settleSearch();}" onblur="GraphNetwork.settleSearch()" title="Filter graph nodes by name">
+                    <button class="toolbar-btn" onclick="graphManager.toggleLegend()" title="Toggle legend">📖 Legend</button>
+                    <button class="toolbar-btn" onclick="graphManager.toggleTagPanel()" title="Toggle tag filter / indicators">🏷️ Tags</button>
+                    <button class="toolbar-btn active" id="btn-edge-labels" onclick="graphManager.toggleEdgeLabels()" title="Show all edge type labels">🏷 Labels</button>
+                    <span style="display:inline-flex;align-items:center;gap:2px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;padding:2px 4px;">
+                        <button class="toolbar-btn" style="padding:0 6px;font-size:12px;line-height:1.2;" onclick="graphManager.setEdgeLabelSize(-1)" title="Smaller edge labels">−</button>
+                        <span id="edge-label-size" style="font-size:10px;color:var(--text);min-width:14px;text-align:center;">8</span>
+                        <button class="toolbar-btn" style="padding:0 6px;font-size:12px;line-height:1.2;" onclick="graphManager.setEdgeLabelSize(1)" title="Larger edge labels">+</button>
+                    </span>
+                    <button class="toolbar-btn" id="btn-triggers" onclick="graphManager.toggleTriggers()" title="Show/hide trigger nodes in graph">🔩 Triggers</button>
+                    <button class="toolbar-btn" id="btn-items" onclick="graphManager.toggleItems()" title="Show/hide item nodes in graph">📦 Items</button>
+                    <button class="toolbar-btn active" id="btn-inhabited" onclick="graphManager.toggleInhabitedAreas()" title="Hide areas with no characters present">🏘 Inhabited</button>
+                    <button class="toolbar-btn active" id="btn-images" onclick="graphManager.toggleImages()" title="Show node image thumbnails on the graph (where set)">🖼 Images</button>
+                    <select id="floor-filter" class="graph-search" style="width:auto;max-width:140px;padding:4px 6px;font-size:10px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="graphManager.setFloorFilter(this.value)" title="Filter graph to a single floor of areas">
+                        <option value="all">🏢 All Floors</option>
+                    </select>
+                    <button class="toolbar-btn view-toggle active" data-view="graph" onclick="graphManager.setViewMode('graph')" title="Force-directed graph view">🔮 Graph</button>
+                    <div class="toolbar-dropdown" style="position:relative;">
+                        <button class="toolbar-btn" id="btn-overlays" onclick="graphManager._toggleOverlayDropdown()" title="Graph overlay views">📊 Overlays ▾</button>
+                        <div id="overlay-dropdown" class="dropdown-menu" style="display:none;position:absolute;top:100%;left:0;z-index:200;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:4px;box-shadow:0 8px 24px rgba(0,0,0,0.5);min-width:160px;">
+                            <button class="dropdown-item overlay-toggle" data-overlay="light" onclick="graphManager.setViewMode('light');graphManager._toggleOverlayDropdown()" title="Color areas by ambient light">💡 Light</button>
+                            <button class="dropdown-item overlay-toggle" data-overlay="heat" onclick="graphManager.setViewMode('heat');graphManager._toggleOverlayDropdown()" title="Color areas by temperature">🌡️ Heat</button>
+                            <button class="dropdown-item overlay-toggle" data-overlay="sound" onclick="graphManager.setViewMode('sound');graphManager._toggleOverlayDropdown()" title="Color areas by noise level">🔊 Sound</button>
+                            <button class="dropdown-item overlay-toggle" data-overlay="trigger" onclick="graphManager.setViewMode('trigger');graphManager._toggleOverlayDropdown()" title="Highlight trigger sources and targets">⚡ Triggers</button>
+                            <button class="dropdown-item overlay-toggle" data-overlay="cardinal" onclick="graphManager.setViewMode('cardinal');graphManager._toggleOverlayDropdown()" title="Show door directions geographically">🧭 Cardinal</button>
+                        </div>
+                    </div>
+                    <button class="toolbar-btn" onclick="printWorld()" title="Printer-friendly world summary">🖨️ Print</button>
+                </div>
+                <div class="toolbar-spacer"></div>
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" onclick="copyPromptToClipboard()" title="Copy last prompt to clipboard">📋 Copy Prompt</button>
+                    <button class="toolbar-btn" onclick="openPasteModal()" title="Paste a manual LLM response">📝 Paste Response</button>
+                </div>
+            </div>
+            <div id="graph-container" role="img" aria-label="Interactive relationship graph"></div>
+
+            <div id="event-section">
+                <div class="event-header">
+                    <h4 class="panel-heading" style="border:none;padding:0;">📜 Event Stream</h4>
+                    <div class="event-controls">
+                        <button class="btn-icon" onclick="exportEventLog()" title="Export event log to file" style="background:transparent;border:none;cursor:pointer;font-size:14px;">📥</button>
+                        <button class="btn-icon" onclick="copyEventLogToClipboard()" title="Copy event stream to clipboard" style="background:transparent;border:none;cursor:pointer;font-size:14px;">📋</button>
+                        <button id="stream-auto-scroll" class="btn-icon" title="Auto-scroll (on)" style="background:transparent;border:none;cursor:pointer;font-size:16px;">📌</button>
+                        <select id="stream-style" onchange="events.setStyle(this.value); config.save()" title="Stream visual style" style="background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:3px;font-size:11px;padding:1px 4px;">
+                            <option value="dark">Dark</option>
+                            <option value="disco">Disco Elysium</option>
+                            <option value="linear">Linear</option>
+                            <option value="terminal">Terminal</option>
+                        </select>
+                        <select id="stream-agent-filter" onchange="events.setAgentFilter(this.value)" title="Filter by actor" style="background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:3px;font-size:11px;padding:1px 4px;">
+                            <option value="">All actors</option>
+                        </select>
+                        <label class="filter-label"><input type="checkbox" id="filter-tick" checked onchange="events.toggleTickDisplay(this.checked); config.save()"> Tick</label>
+                        <span class="stream-mode-toggle" title="Stream density / story mode">
+                            <button id="stream-mode-cards" class="btn-icon active" title="Card mode" onclick="events.setStreamMode('cards')" style="background:transparent;border:none;cursor:pointer;font-size:13px;color:var(--text);">&#9636;</button>
+                            <button id="stream-mode-compact" class="btn-icon" title="Compact mode" onclick="events.setStreamMode('compact')" style="background:transparent;border:none;cursor:pointer;font-size:13px;color:var(--text);">&#9637;</button>
+                            <button id="stream-mode-story" class="btn-icon" title="Story mode — read the session as fiction" onclick="events.setStreamMode('story')" style="background:transparent;border:none;cursor:pointer;font-size:13px;">📖</button>
+                        </span>
+                    </div>
+                </div>
+                <div class="filter-bar" id="filter-bar">
+                    <input type="text" id="stream-search" placeholder="find…" title="Search the stream (filters cards containing the text)" oninput="events.search(this.value)" style="background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:3px;font-size:11px;padding:1px 6px;width:110px;">
+                    <span id="stream-search-count" style="font-size:10px;color:var(--accent,#79c0ff);"></span>
+                    <label class="filter-label"><input type="checkbox" id="filter-thoughts" checked onchange="config.filterThoughts=this.checked; events.applyFilters(); config.save()"> 💭</label>
+                    <label class="filter-label"><input type="checkbox" id="filter-speech" checked onchange="config.filterSpeech=this.checked; events.applyFilters(); config.save()"> 💬</label>
+                    <label class="filter-label"><input type="checkbox" id="filter-actions" checked onchange="config.filterActions=this.checked; events.applyFilters(); config.save()"> ▶️</label>
+                    <label class="filter-label"><input type="checkbox" id="filter-system" checked onchange="config.filterSystem=this.checked; events.applyFilters(); config.save()"> ⚙️</label>
+                    <label class="filter-label"><input type="checkbox" id="filter-rawllm" checked onchange="config.filterRawLLM=this.checked; events.applyFilters(); config.save()"> 🤖</label>
+                </div>
+                <div id="event-stream" class="event-stream" role="log" aria-live="polite" tabindex="0"></div>
+                <div class="input-row" style="display:flex; gap:4px;">
+                    <input type="text" id="speak-input" placeholder="Speak as guest..." autocomplete="off" style="flex:1;">
+                    <button class="btn btn-sm btn-purple" onclick="speakAsGuest()">💬 Speak</button>
+                    <label for="command-input" class="sr-only">Enter game command</label>
+                    <input type="text" id="command-input" placeholder="Override command..." autocomplete="off" style="flex:1;">
+                </div>
+            </div>
+        </main>
+
+        <!-- RIGHT PANEL -->
+        <aside id="right-panel" aria-label="Inspector panel">
+            <div id="inspector-panel" class="inspector-panel"></div>
+        </aside>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settings-modal" class="modal" style="display:none;">
+        <div class="modal-content" style="width:620px;">
+            <div class="modal-header">
+                <h3>⚙️ Settings</h3>
+                <button class="modal-close" onclick="document.getElementById('settings-modal').style.display='none'">&times;</button>
+            </div>
+            <div class="profile-section" style="padding:10px 20px;border-bottom:1px solid var(--border);background:var(--bg-inset);">
+                <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                    <span style="font-size:12px;font-weight:600;color:var(--text-dim);">📁 Profile:</span>
+                    <select id="profile-select" style="flex:1;min-width:140px;font-size:11px;padding:3px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="switchProfile(this.value)"></select>
+                    <button class="btn btn-sm btn-blue" onclick="saveProfileFromCurrent()" title="Save current settings">💾</button>
+                    <button class="btn btn-sm btn-orange" onclick="deleteProfile()" title="Delete selected profile">🗑</button>
+                    <button class="btn btn-sm btn-green" onclick="saveProfileAsNew()" title="Save as new profile">➕</button>
+                </div>
+                <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">Saved profiles persist in your browser.</div>
+            </div>
+            <div class="modal-tabs">
+                <button class="tab-btn active" data-tab="tab-connection" onclick="switchSettingsTab('tab-connection')"><span class="tab-icon">🔌</span> Connection</button>
+                <button class="tab-btn" data-tab="tab-agent" onclick="switchSettingsTab('tab-agent')"><span class="tab-icon">🧠</span> Agent Settings</button>
+                <button class="tab-btn" data-tab="tab-automation" onclick="switchSettingsTab('tab-automation')"><span class="tab-icon">🎮</span> Behavior &amp; Automation</button>
+                <button class="tab-btn" data-tab="tab-graph" onclick="switchSettingsTab('tab-graph')"><span class="tab-icon">📊</span> Graph</button>
+                <button class="tab-btn" data-tab="tab-embedding" onclick="switchSettingsTab('tab-embedding')"><span class="tab-icon">🧬</span> Embedding</button>
+                <button class="tab-btn" data-tab="tab-engine-config" onclick="EngineConfigView.load();switchSettingsTab('tab-engine-config')"><span class="tab-icon">⚙️</span> Engine Config</button>
+            </div>
+            <div class="settings-modal-inner" style="padding:16px 20px;">
+                <div id="tab-connection" class="tab-pane active">
+                    <div class="settings-group">
+                        <div class="settings-group-title"><span class="group-icon">🌐</span> API Connection</div>
+                        <div class="settings-field"><label for="api-base-input">API Base URL</label><input type="text" id="api-base-input" placeholder="https://api.openai.com/v1" onchange="document.getElementById('agent-api-base').value=this.value;config.apiBase=this.value; config.save(); VW?.llm?.configure(config.toLLMConfig()); VW?.ui?.populateModelSelect();"><div class="field-hint">DeepSeek: https://api.deepseek.com · Groq: https://api.groq.com/openai · OpenRouter: https://openrouter.ai/api · LM Studio: http://localhost:1234/v1 · Ollama: http://localhost:11434/v1</div><input type="hidden" id="agent-api-base"></div>
+                        <div class="settings-field"><label for="api-key-input">API Key</label><input type="password" id="api-key-input" placeholder="sk-..." onchange="document.getElementById('agent-api-key').value=this.value;config.apiKey=this.value; config.save(); VW?.llm?.configure(config.toLLMConfig());"><input type="hidden" id="agent-api-key"><div class="field-hint">Your key stays in your browser.</div></div>
+                        <div class="settings-field">
+                            <label for="agent-model">Model</label>
+                            <div class="model-selector-wrap">
+                                <div class="model-search-row">
+                                    <input type="text" id="model-search" placeholder="Search models..." autocomplete="off">
+                                    <select id="model-sort" style="width:90px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;">
+                                        <option value="name-asc">A-Z</option>
+                                        <option value="name-desc">Z-A</option>
+                                    </select>
+                                </div>
+                                <div class="model-list" id="model-list">
+                                    <div class="model-list-empty">Click 🔄 to load models</div>
+                                </div>
+                                <div class="model-custom-row">
+                                    <input type="text" id="agent-model" placeholder="gpt-4o-mini" style="flex:1;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" oninput="config.model=this.value;config.save();VW?.llm?.configure(config.toLLMConfig());">
+                                    <button class="btn btn-sm btn-ghost" onclick="VW?.ui?.populateModelSelect()" title="Refresh model list from API">🔄</button>
+                                </div>
+                            </div>
+                            <select id="agent-model-select" style="display:none;"></select>
+                            <div class="field-hint">Click a model to select, or type a custom name</div>
+                        </div>
+                        <div style="margin-top:8px;"><button class="btn-test-connection" id="test-connection-btn" onclick="testAgentConnection()">🔌 Test Connection</button><div id="connection-result" class="connection-result"></div></div>
+                    </div>
+                </div>
+                <div id="tab-agent" class="tab-pane">
+                    <div class="settings-group">
+                        <div class="settings-group-title"><span class="group-icon">🔧</span> LLM Parameters</div>
+                        <div class="settings-field" style="display:flex;gap:8px;align-items:flex-start;">
+                            <div style="flex:1;"><label for="agent-temperature">Temperature <span id="agent-temperature-val" class="range-value">0.70</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Precise</span><input type="range" id="agent-temperature" min="0" max="2" step="0.05" value="0.7" style="flex:1;" oninput="config.temperature=parseFloat(this.value);document.getElementById('agent-temperature-val').textContent=parseFloat(this.value).toFixed(2);config.save();"><span style="font-size:10px;color:var(--text-muted);">Creative</span></div><div class="field-hint">Lower = more predictable</div></div>
+                            <div style="flex:1;"><label for="max-tokens-input">Max Tokens (hard)</label><input type="number" id="max-tokens-input" value="512" min="64" max="4096" step="64" onchange="config.maxTokens=parseInt(this.value);config.save();"><div class="field-hint">Hard API cap — LM Studio stops here</div></div>
+                            <div style="flex:1;"><label for="soft-max-tokens-input">Max Tokens (soft)</label><input type="number" id="soft-max-tokens-input" value="0" min="0" max="4096" step="64" onchange="config.softMaxTokens=parseInt(this.value);config.save();"><div class="field-hint">System prompt instruction — 0 = use hard limit</div></div>
+                        </div>
+                    </div>
+                    <div class="settings-group">
+                        <div class="settings-group-title"><span class="group-icon">⏱️</span> Rate Limiting</div>
+                        <div class="settings-field" style="display:flex;gap:8px;align-items:flex-start;">
+                            <div style="flex:1;"><label for="agent-rpm-limit">Requests/min</label><input type="number" id="agent-rpm-limit" min="0" max="120" value="0" style="width:100%;" onchange="config.rpmLimit=parseInt(this.value)||0;config.save();"></div>
+                            <div style="flex:1;"><label for="agent-tpm-limit">Tokens/min</label><input type="number" id="agent-tpm-limit" min="0" max="1000000" step="1000" value="0" style="width:100%;" onchange="config.tpmLimit=parseInt(this.value)||0;config.save();"></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="tab-graph" class="tab-pane">
+                    <div class="settings-group">
+                        <div class="settings-group-title"><span class="group-icon">🔮</span> Physics</div>
+                        <div class="settings-field"><label for="graph-spring-length">Spring Length <span id="graph-spring-length-val" class="range-value">100</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Tight</span><input type="range" id="graph-spring-length" min="20" max="300" step="5" value="100" style="flex:1;" oninput="config.graphSpringLength=parseInt(this.value);document.getElementById('graph-spring-length-val').textContent=this.value;config.save();GraphNetwork.applyGraphSettings();"><span style="font-size:10px;color:var(--text-muted);">Loose</span></div><div class="field-hint">Rest length of edges — lower = tighter clusters</div></div>
+                        <div class="settings-field"><label for="graph-repulsion">Repulsion <span id="graph-repulsion-val" class="range-value">-40</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Weak</span><input type="range" id="graph-repulsion" min="-500" max="-5" step="5" value="-40" style="flex:1;" oninput="config.graphGravitationalConstant=parseInt(this.value);document.getElementById('graph-repulsion-val').textContent=this.value;config.save();GraphNetwork.applyGraphSettings();"><span style="font-size:10px;color:var(--text-muted);">Strong</span></div><div class="field-hint">Node repulsion force — more negative = more spread out</div></div>
+                        <div class="settings-field"><label for="graph-damping">Damping <span id="graph-damping-val" class="range-value">0.40</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Bouncy</span><input type="range" id="graph-damping" min="0" max="1" step="0.05" value="0.4" style="flex:1;" oninput="config.graphDamping=parseFloat(this.value);document.getElementById('graph-damping-val').textContent=parseFloat(this.value).toFixed(2);config.save();GraphNetwork.applyGraphSettings();"><span style="font-size:10px;color:var(--text-muted);">Stiff</span></div><div class="field-hint">Velocity damping — higher = simulation settles faster</div></div>
+                        <div class="settings-field"><label for="graph-spring-constant">Spring Stiffness <span id="graph-spring-constant-val" class="range-value">0.02</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Soft</span><input type="range" id="graph-spring-constant" min="0.01" max="0.15" step="0.01" value="0.02" style="flex:1;" oninput="config.graphSpringConstant=parseFloat(this.value);document.getElementById('graph-spring-constant-val').textContent=parseFloat(this.value).toFixed(2);config.save();GraphNetwork.applyGraphSettings();"><span style="font-size:10px;color:var(--text-muted);">Rigid</span></div><div class="field-hint">How strongly edges pull nodes together</div></div>
+                        <div class="settings-field"><label for="graph-solver">Physics Solver</label><select id="graph-solver" style="width:180px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.graphSolver=this.value;config.save();GraphNetwork.applyGraphSettings();"><option value="forceAtlas2Based">Force Atlas 2</option><option value="barnesHut">Barnes-Hut</option><option value="repulsion">Repulsion</option></select><div class="field-hint">Force Atlas 2: smooth organic layouts · Barnes-Hut: faster for large graphs</div></div>
+                    </div>
+                    <div class="settings-group">
+                        <div class="settings-group-title"><span class="group-icon">🔗</span> Edges &amp; Layout</div>
+                        <div class="settings-field"><label for="graph-edge-width">Default Edge Width <span id="graph-edge-width-val" class="range-value">1</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Thin</span><input type="range" id="graph-edge-width" min="0.5" max="5" step="0.5" value="1" style="flex:1;" oninput="config.graphEdgeWidth=parseFloat(this.value);document.getElementById('graph-edge-width-val').textContent=parseFloat(this.value).toFixed(1);config.save();GraphNetwork.applyGraphSettings();"><span style="font-size:10px;color:var(--text-muted);">Thick</span></div></div>
+                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="graph-arrows" onchange="config.graphArrows=this.checked;config.save();GraphNetwork.applyGraphSettings();"> ➡️ Edge Arrows</label><span class="toggle-desc">Show direction arrows on connection edges</span></div>
+                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="graph-improved-layout" onchange="config.graphImprovedLayout=this.checked;config.save();GraphNetwork.applyGraphSettings();"> 🧩 Improved Layout</label><span class="toggle-desc">Better initial node placement (may shift positions)</span></div>
+                    </div>
+                </div>
+                <div id="tab-embedding" class="tab-pane">
+                    <div class="settings-group">
+                        <div class="settings-group-title"><span class="group-icon">🧬</span> Embedding Model</div>
+                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="embed-enabled" onchange="config.embedEnabled=this.checked;config.save();events.log('🧬 Semantic memory '+(this.checked?'enabled':'disabled — keyword recall only'),'system-msg');"> ✅ Semantic Memory</label><span class="toggle-desc">Embed memories for meaning-based recall</span></div>
+                        <div class="settings-field"><label for="embed-url">Embedding API URL</label><input type="text" id="embed-url" placeholder="http://localhost:11434/v1" style="width:100%;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.embedUrl=this.value.trim();config.save();"><div class="field-hint">OpenAI-compatible base URL (Ollama, LM Studio, OpenAI…). Called directly from the browser.</div></div>
+                        <div class="settings-field"><label for="embed-model">Model</label><input type="text" id="embed-model" placeholder="nomic-embed-text" style="width:100%;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.embedModel=this.value.trim();config.save();"><div class="field-hint">e.g. nomic-embed-text, text-embedding-3-small, bge-m3</div></div>
+                        <div class="settings-field" style="display:flex;gap:8px;">
+                            <div style="flex:1;"><label for="embed-dims">Dimensions</label><input type="number" id="embed-dims" min="0" placeholder="auto" style="width:100%;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.embedDims=parseInt(this.value)||0;config.save();"><div class="field-hint">Blank/0 = detect from first response</div></div>
+                            <div style="flex:1;"><label for="embed-api-key">API Key (optional)</label><input type="password" id="embed-api-key" placeholder="for cloud providers" style="width:100%;font-size:11px;padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.embedApiKey=this.value.trim();config.save();"><div class="field-hint">Never sent to the backend</div></div>
+                        </div>
+                        <div class="toggle-row" style="align-items:center;">
+                            <button class="btn btn-sm" onclick="EmbeddingClient.test().then(r => { const el = document.getElementById('embed-test-result'); el.textContent = r.ok ? '✅ ' + r.dims + ' dims' : '❌ ' + r.error; el.style.color = r.ok ? '#3fb950' : '#f85149'; })">🔌 Test Connection</button>
+                            <span id="embed-test-result" style="font-size:10px;color:var(--text-muted);"></span>
+                        </div>
+                    </div>
+                </div>
+                <div id="tab-engine-config" class="tab-pane">
+                    <div style="padding:12px;color:var(--text-dim);font-size:12px;">Loading engine config…</div>
+                </div>
+                <div id="tab-automation" class="tab-pane">
+                    <div class="settings-group">
+                        <div class="settings-group-title"><span class="group-icon">⚡</span> Agent Behavior</div>
+                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-reactive-mode" onchange="config.reactiveMode=this.checked;config.save();"> 🔁 Reactive Mode</label><span class="toggle-desc">Thought→Act→React</span></div>
+                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-streaming" onchange="config.streaming=this.checked;config.save();"> ⚡ Streaming Mode</label><span class="toggle-desc">Stream tokens in real time</span></div>
+                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-thinking" onchange="config.thinking=this.checked;document.getElementById('thinking-effort-row').style.display=this.checked?'flex':'none';config.save();"> 🧠 Thinking Mode</label><span class="toggle-desc">Enable chain-of-thought reasoning (DeepSeek reasoning models)</span></div>
+                        <div class="toggle-row" id="thinking-effort-row" style="display:none;"><label class="toggle-label"><select id="agent-thinking-effort" style="width:120px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.thinkingEffort=this.value;config.save();"><option value="low">low</option><option value="high" selected>high</option><option value="xhigh">xhigh</option><option value="max">max</option></select> Thinking Effort</label><span class="toggle-desc">Reasoning effort level (low / high / xhigh / max)</span></div>
+                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-suppress-local-thinking" onchange="config.suppressLocalThinking=this.checked;config.save();"> 🚫 Suppress Local Thinking</label><span class="toggle-desc">Inject empty assistant message to bypass Qwen 3.5 reasoning in LM Studio (API ignores disable flags)</span></div>
+                        <div class="toggle-row"><label class="toggle-label"><select id="agent-api-format" style="width:160px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.apiFormat=this.value;config.save();"><option value="auto">Auto</option><option value="chat-completions">Chat Completions</option><option value="responses">Responses API</option></select> API Format</label><span class="toggle-desc">Responses API: /v1/responses for LM Studio / DeepSeek reasoning models (stateful chat &amp; MCP not supported)</span></div>
+                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-show-logs" onchange="config.showLogs=this.checked;config.save();"> 📋 Show LLM Logs</label><span class="toggle-desc">Log LLM requests to event stream</span></div>
+                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-manual-mode" onchange="config.manualMode=this.checked;llmClient._manualMode=this.checked;llmClient._manualResponse=null;config.save();VW?.events?.log(this.checked?'✋ Manual response mode enabled. Use 📋 Copy Prompt / 📝 Paste Response in graph toolbar.':'✋ Manual response mode disabled.','system-msg');"> ✋ Manual Response Mode</label><span class="toggle-desc">Skip API call, paste a manual response instead</span></div>
+                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-auto-generate-descriptions" onchange="config.autoGenerateDescriptions=this.checked;config.save();(async()=>{try{await ApiClient.setAutoGenerateDescriptions(this.checked);}catch(e){}})();events.log('🪄 Auto-generate descriptions '+(this.checked?'enabled':'disabled'),'system-msg');"> 🪄 Auto-Generate Descriptions</label><span class="toggle-desc">Generate appearance description on equip/unequip</span></div>
+                    </div>
+                    <div class="settings-group">
+                        <div class="settings-group-title"><span class="group-icon">👻</span> Ghost Mode</div>
+                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-ghost-mode" onchange="config.ghostMode=this.checked;config.save();(async()=>{try{await ApiClient.setGhostMode(this.checked);}catch(e){}})();if(config.turnBased)agent.initializeTurnQueue();events.log('👻 Ghost mode '+(this.checked?'activated':'deactivated'),'system-msg');"> 👻 Ghost Mode</label><span class="toggle-desc">Dead characters become ghosts</span></div>
+                    </div>
+                    <div class="settings-group">
+                        <div class="settings-group-title"><span class="group-icon">⏰</span> Game Clock</div>
+                        <div class="settings-field"><label for="time-per-tick">Minutes per Tick</label><input type="number" id="time-per-tick" min="0.1" max="1440" step="0.1" value="5" style="width:100px;" onchange="updateTimePerTick(parseFloat(this.value)||5)"><div class="field-hint">Game minutes that pass per agent step. Default 5.</div></div>
+                        <div class="settings-field"><label for="clock-start">Clock Start (HH:MM)</label><input type="time" id="clock-start" value="08:00" style="width:110px;" onchange="updateClockStart(this.value)"><div class="field-hint">Scenario start time — where the in-game clock begins. Default 08:00.</div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="display:flex;gap:8px;align-items:center;justify-content:space-between;">
+                <div id="agent-status" style="font-size:11px;color:var(--text-dim);" aria-live="polite">Idle.</div>
+                <div style="display:flex;gap:6px;"><button class="btn btn-green" onclick="saveAgentSettings();document.getElementById('settings-modal').style.display='none';">💾 Save</button><button class="btn btn-secondary" onclick="document.getElementById('settings-modal').style.display='none'">Cancel</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WORLD SYNC MODAL -->
+    <div id="world-sync-modal" class="modal" style="display:none;">
+        <div class="modal-content" style="width:640px;overflow-x:hidden;">
+            <div class="modal-header">
+                <h3 style="margin:0;font-size:14px;">📋 Sync World → Library</h3>
+                <div style="display:flex;gap:2px;margin-left:16px;flex:1;">
+                    <span class="lib-tab selected" data-sync-filter="all" onclick="VW.worldSync.setFilter('all')">All</span>
+                    <span class="lib-tab" data-sync-filter="item" onclick="VW.worldSync.setFilter('item')">📦 Items</span>
+                    <span class="lib-tab" data-sync-filter="way" onclick="VW.worldSync.setFilter('way')">🚪 Ways</span>
+                    <span class="lib-tab" data-sync-filter="area" onclick="VW.worldSync.setFilter('area')">🏠 Areas</span>
+                    <span class="lib-tab" data-sync-filter="character" onclick="VW.worldSync.setFilter('character')">🧍 Characters</span>
+                </div>
+                <button class="modal-close" onclick="closeWorldSync()">&times;</button>
+            </div>
+            <div id="world-sync-summary" style="font-size:10px;color:var(--text-muted);padding:6px 20px;border-bottom:1px solid var(--border);"></div>
+            <div id="world-sync-list" style="max-height:420px;overflow-y:auto;font-size:12px;"></div>
+            <div style="display:flex;gap:6px;padding:8px 20px;border-top:1px solid var(--border);">
+                <button class="btn btn-secondary btn-sm" onclick="closeWorldSync()">Close</button>
+                <div style="flex:1;"></div>
+                <button class="btn btn-sm btn-green" onclick="VW.worldSync.syncAll()" title="Sync every unsynced entity to the library">⬇ Sync All</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LIBRARY BROWSER MODAL -->
+    <div id="library-modal" class="modal" style="display:none;">
+        <div class="modal-content" style="width:800px;overflow-x:hidden;">
+            <div class="modal-header">
+                <h3 style="margin:0;font-size:14px;">📚 Library Browser</h3>
+                <div class="library-tabs" style="display:flex;gap:2px;margin-left:16px;flex:1;">
+                    <span class="lib-tab selected" data-tab="items" onclick="VW.libraryBrowser.switchTab('items')">📦 Items</span>
+                    <span class="lib-tab" data-tab="characters" onclick="VW.libraryBrowser.switchTab('characters')">🧍 Characters</span>
+                    <span class="lib-tab" data-tab="areas" onclick="VW.libraryBrowser.switchTab('areas')">🏠 Areas</span>
+                    <span class="lib-tab" data-tab="traits" onclick="VW.libraryBrowser.switchTab('traits')">🏷️ Traits</span>
+                    <span class="lib-tab" data-tab="conditions" onclick="VW.libraryBrowser.switchTab('conditions')">💊 Conditions</span>
+                    <span class="lib-tab" data-tab="behaviours" onclick="VW.libraryBrowser.switchTab('behaviours')">🤖 Behaviours</span>
+                    <span class="lib-tab" data-tab="tags" onclick="VW.libraryBrowser.switchTab('tags')">🏷️ Tags</span>
+                    <span class="lib-tab" data-tab="ways" onclick="VW.libraryBrowser.switchTab('ways')">🚪 Ways</span>
+                </div>
+                <button class="modal-close" onclick="closeLibraryBrowser()">&times;</button>
+            </div>
+            <div id="library-body" style="padding:0;">
+                <!-- ITEMS TAB (reuses existing item-library IDs for backward compat) -->
+                <div class="lib-tab-pane active" id="lib-pane-items">
+                    <div style="display:flex;gap:16px;min-height:300px;padding:16px 20px;">
+                        <div style="flex:1;border-right:1px solid var(--border);padding-right:12px;min-width:0;">
+                            <div style="display:flex;gap:4px;margin-bottom:6px;align-items:center;">
+                                <div style="position:relative;flex:1;">
+                                    <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;">🔍</span>
+                                    <input type="text" id="item-lib-search" placeholder="Search items..." style="width:100%;font-size:11px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px 8px 4px 24px;" oninput="filterItemLibrary()">
+                                </div>
+                                <select id="lib-sort" style="font-size:10px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:3px 4px;" onchange="filterItemLibrary()">
+                                    <option value="name">A-Z</option>
+                                    <option value="type">By Type</option>
+                                    <option value="recent">Recent</option>
+                                </select>
+                                <button class="btn btn-sm btn-blue" onclick="newLibraryItem()">➕ New</button>
+                            </div>
+                            <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;" id="lib-item-count"></div>
+                            <div id="item-lib-list" style="max-height:300px;overflow-y:auto;font-size:12px;"></div>
+                        </div>
+                        <div id="item-lib-editor" style="flex:1;min-width:240px;overflow-x:hidden;"></div>
+                    </div>
+                    <div style="display:flex;gap:6px;padding:8px 20px;border-top:1px solid var(--border);">
+                        <button class="btn btn-green btn-sm" id="place-items-btn" onclick="itemLib._multiSelect?itemLib.placeSelectedInRoom():itemLib.placeInRoom()">📌 Place in Area</button>
+                        <button class="btn btn-sm" onclick="addAllWorldItemsToLibrary()">📋 Sync to Library</button>
+                        <button class="btn btn-secondary btn-sm" onclick="closeLibraryBrowser()">Close</button>
+                    </div>
+                </div>
+
+                <!-- CHARACTERS TAB -->
+                <div class="lib-tab-pane" id="lib-pane-characters">
+                    <div style="display:flex;gap:16px;min-height:300px;padding:16px 20px;">
+                        <div style="flex:1;border-right:1px solid var(--border);padding-right:12px;min-width:0;">
+                            <div style="display:flex;gap:4px;margin-bottom:6px;align-items:center;">
+                                <div style="position:relative;flex:1;">
+                                    <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;">🔍</span>
+                                    <input type="text" id="lib-char-search" placeholder="Search characters..." style="width:100%;font-size:11px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px 8px 4px 24px;" oninput="VW.libraryBrowser.filterList('characters')">
+                                </div>
+                                <button class="btn btn-sm btn-blue" onclick="VW.libraryBrowser.newEntry('characters')">➕ New</button>
+                            </div>
+                            <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;" id="lib-char-count"></div>
+                            <div id="lib-char-list" style="max-height:300px;overflow-y:auto;font-size:12px;"></div>
+                        </div>
+                        <div id="lib-char-editor" style="flex:1;min-width:240px;overflow-x:hidden;"></div>
+                    </div>
+                    <div style="display:flex;gap:6px;padding:8px 20px;border-top:1px solid var(--border);">
+                        <button class="btn btn-green btn-sm" onclick="VW.libraryBrowser.importSelectedCharacter()">🌍 Import to World</button>
+                        <button class="btn btn-sm btn-purple" onclick="VW.libraryBrowser.saveWorldToCharacter()">📤 Save from World</button>
+                        <button class="btn btn-sm btn-purple" onclick="VW.libraryBrowser.syncAllWorldCharacters()">📤 Sync All from World</button>
+                        <button class="btn btn-sm" onclick="VW.libraryBrowser.saveEntry('characters')">💾 Save to Library</button>
+                        <button class="btn btn-secondary btn-sm" onclick="closeLibraryBrowser()">Close</button>
+                    </div>
+                </div>
+
+                <!-- ROOMS TAB -->
+                <div class="lib-tab-pane" id="lib-pane-areas">
+                    <div style="display:flex;gap:16px;min-height:300px;padding:16px 20px;">
+                        <div style="flex:1;border-right:1px solid var(--border);padding-right:12px;min-width:0;">
+                            <div style="display:flex;gap:4px;margin-bottom:6px;align-items:center;">
+                                <div style="position:relative;flex:1;">
+                                    <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;">🔍</span>
+                                    <input type="text" id="lib-area-search" placeholder="Search areas..." style="width:100%;font-size:11px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px 8px 4px 24px;" oninput="VW.libraryBrowser.filterList('areas')">
+                                </div>
+                                <button class="btn btn-sm btn-blue" onclick="VW.libraryBrowser.newEntry('areas')">➕ New</button>
+                            </div>
+                            <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;" id="lib-area-count"></div>
+                            <div id="lib-area-list" style="max-height:300px;overflow-y:auto;font-size:12px;"></div>
+                        </div>
+                        <div id="lib-area-editor" style="flex:1;min-width:240px;overflow-x:hidden;"></div>
+                    </div>
+                    <div style="display:flex;gap:6px;padding:8px 20px;border-top:1px solid var(--border);">
+                        <button class="btn btn-green btn-sm" onclick="VW.libraryBrowser.importSelectedRoom()">🌍 Import to World</button>
+                        <button class="btn btn-sm btn-purple" onclick="VW.libraryBrowser.saveWorldToArea()">📤 Save from World</button>
+                        <button class="btn btn-sm btn-purple" onclick="VW.libraryBrowser.syncAllWorldAreas()">📤 Sync All from World</button>
+                        <button class="btn btn-sm" onclick="VW.libraryBrowser.saveEntry('areas')">💾 Save to Library</button>
+                        <button class="btn btn-secondary btn-sm" onclick="closeLibraryBrowser()">Close</button>
+                    </div>
+                </div>
+
+                <!-- TRAITS TAB -->
+                <div class="lib-tab-pane" id="lib-pane-traits">
+                    <div style="display:flex;gap:16px;min-height:300px;padding:16px 20px;">
+                        <div style="flex:1;border-right:1px solid var(--border);padding-right:12px;min-width:0;">
+                            <div style="display:flex;gap:4px;margin-bottom:6px;align-items:center;">
+                                <div style="position:relative;flex:1;">
+                                    <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;">🔍</span>
+                                    <input type="text" id="lib-trait-search" placeholder="Search traits..." style="width:100%;font-size:11px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px 8px 4px 24px;" oninput="VW.libraryBrowser.filterList('traits')">
+                                </div>
+                                <button class="btn btn-sm btn-blue" onclick="VW.libraryBrowser.newEntry('traits')">➕ New</button>
+                            </div>
+                            <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;" id="lib-trait-count"></div>
+                            <div id="lib-trait-list" style="max-height:300px;overflow-y:auto;font-size:12px;"></div>
+                        </div>
+                        <div id="lib-trait-editor" style="flex:1;min-width:240px;overflow-x:hidden;"></div>
+                    </div>
+                    <div style="display:flex;gap:6px;padding:8px 20px;border-top:1px solid var(--border);">
+                        <button class="btn btn-sm" onclick="VW.libraryBrowser.saveEntry('traits')">💾 Save to Library</button>
+                        <button class="btn btn-secondary btn-sm" onclick="closeLibraryBrowser()">Close</button>
+                    </div>
+                </div>
+
+                <!-- CONDITIONS TAB -->
+                <div class="lib-tab-pane" id="lib-pane-conditions">
+                    <div style="display:flex;gap:16px;min-height:300px;padding:16px 20px;">
+                        <div style="flex:1;border-right:1px solid var(--border);padding-right:12px;min-width:0;">
+                            <div style="display:flex;gap:4px;margin-bottom:6px;align-items:center;">
+                                <div style="position:relative;flex:1;">
+                                    <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;">🔍</span>
+                                    <input type="text" id="lib-cond-search" placeholder="Search conditions..." style="width:100%;font-size:11px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px 8px 4px 24px;" oninput="VW.libraryBrowser.filterList('conditions')">
+                                </div>
+                                <button class="btn btn-sm btn-blue" onclick="VW.libraryBrowser.newEntry('conditions')">➕ New</button>
+                            </div>
+                            <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;" id="lib-cond-count"></div>
+                            <div id="lib-cond-list" style="max-height:300px;overflow-y:auto;font-size:12px;"></div>
+                        </div>
+                        <div id="lib-cond-editor" style="flex:1;min-width:240px;overflow-x:hidden;"></div>
+                    </div>
+                    <div style="display:flex;gap:6px;padding:8px 20px;border-top:1px solid var(--border);">
+                        <button class="btn btn-sm" onclick="VW.libraryBrowser.saveEntry('conditions')">💾 Save to Library</button>
+                        <button class="btn btn-secondary btn-sm" onclick="closeLibraryBrowser()">Close</button>
+                    </div>
+                </div>
+
+                <!-- BEHAVIOURS TAB -->
+                <div class="lib-tab-pane" id="lib-pane-behaviours">
+                    <div style="display:flex;gap:16px;min-height:300px;padding:16px 20px;">
+                        <div style="flex:1;border-right:1px solid var(--border);padding-right:12px;min-width:0;">
+                            <div style="display:flex;gap:4px;margin-bottom:6px;align-items:center;">
+                                <div style="position:relative;flex:1;">
+                                    <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;">🔍</span>
+                                    <input type="text" id="lib-beh-search" placeholder="Search behaviours..." style="width:100%;font-size:11px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px 8px 4px 24px;" oninput="VW.libraryBrowser.filterList('behaviours')">
+                                </div>
+                                <button class="btn btn-sm btn-blue" onclick="VW.libraryBrowser.newEntry('behaviours')">➕ New</button>
+                            </div>
+                            <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;" id="lib-beh-count"></div>
+                            <div id="lib-beh-list" style="max-height:300px;overflow-y:auto;font-size:12px;"></div>
+                        </div>
+                        <div id="lib-beh-editor" style="flex:1;min-width:240px;overflow-x:hidden;"></div>
+                    </div>
+                    <div style="display:flex;gap:6px;padding:8px 20px;border-top:1px solid var(--border);">
+                        <button class="btn btn-sm" onclick="VW.libraryBrowser.saveEntry('behaviours')">💾 Save to Library</button>
+                        <button class="btn btn-secondary btn-sm" onclick="closeLibraryBrowser()">Close</button>
+                    </div>
+                </div>
+                <div class="lib-tab-pane" id="lib-pane-tags">
+                    <div style="display:flex;gap:8px;padding:8px 20px;border-bottom:1px solid var(--border);align-items:center;">
+                        <input type="text" id="lib-tag-search" placeholder="Search tags..." style="width:100%;font-size:11px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px 8px 4px 24px;" oninput="VW.libraryBrowser.filterList('tags')">
+                        <span id="lib-tag-count" style="font-size:10px;color:var(--text-muted);white-space:nowrap;">0 entries</span>
+                        <button class="btn btn-sm btn-blue" onclick="VW.libraryBrowser.newEntry('tags')">➕ New</button>
+                    </div>
+                    <div style="display:flex;flex:1;overflow:hidden;">
+                        <div class="scrollable-list" id="lib-tag-list"></div>
+                        <div id="lib-tag-editor" class="editor-panel"></div>
+                    </div>
+                    <div style="display:flex;gap:6px;padding:8px 20px;border-top:1px solid var(--border);">
+                        <button class="btn btn-sm" onclick="VW.libraryBrowser.saveEntry('tags')">💾 Save to Library</button>
+                        <button class="btn btn-secondary btn-sm" onclick="closeLibraryBrowser()">Close</button>
+                    </div>
+                </div>
+
+                <!-- WAYS TAB -->
+                <div class="lib-tab-pane" id="lib-pane-ways">
+                    <div style="display:flex;gap:16px;min-height:300px;padding:16px 20px;">
+                        <div style="flex:1;border-right:1px solid var(--border);padding-right:12px;min-width:0;">
+                            <div style="display:flex;gap:4px;margin-bottom:6px;align-items:center;">
+                                <div style="position:relative;flex:1;">
+                                    <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;">🔍</span>
+                                    <input type="text" id="lib-way-search" placeholder="Search ways..." style="width:100%;font-size:11px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px 8px 4px 24px;" oninput="VW.libraryBrowser.filterList('ways')">
+                                </div>
+                                <button class="btn btn-sm btn-blue" onclick="VW.libraryBrowser.newEntry('ways')">➕ New</button>
+                            </div>
+                            <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;" id="lib-way-count"></div>
+                            <div id="lib-way-list" style="max-height:300px;overflow-y:auto;font-size:12px;"></div>
+                        </div>
+                        <div id="lib-way-editor" style="flex:1;min-width:240px;overflow-x:hidden;"></div>
+                    </div>
+                    <div style="display:flex;gap:6px;padding:8px 20px;border-top:1px solid var(--border);">
+                        <button class="btn btn-sm" onclick="VW.libraryBrowser.saveEntry('ways')">💾 Save to Library</button>
+                        <button class="btn btn-secondary btn-sm" onclick="closeLibraryBrowser()">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CREATE MODAL -->
+    <div id="create-modal" class="modal" style="display:none;">
+        <div id="create-modal-body" class="modal-content" style="width:480px;">
+            <div class="modal-header"><h3 id="create-modal-title">Create</h3><button class="modal-close" onclick="document.getElementById('create-modal').style.display='none'">&times;</button></div>
+            <div id="create-modal-content" style="padding:16px 20px;"></div>
+            <div class="modal-footer"><button class="btn btn-green" id="create-modal-submit">✅ Create</button><button class="btn btn-secondary" onclick="closeCreateModal()">Cancel</button></div>
+        </div>
+    </div>
+
+    <!-- PASTE RESPONSE MODAL -->
+    <div id="paste-response-modal" class="modal" style="display:none;">
+        <div class="modal-content" style="width:720px;">
+            <div class="modal-header"><h3>📝 Paste Manual LLM Response</h3><button class="modal-close" onclick="document.getElementById('paste-response-modal').style.display='none'">&times;</button></div>
+            <div style="padding:16px 20px;">
+                <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">Paste the raw LLM response text below. It will be returned as the response for the next LLM call when ✋ Manual Response mode is on.</div>
+                <div style="margin-bottom:8px;">
+                    <button class="btn btn-sm" onclick="pasteFromClipboard()" title="Paste from clipboard">📋 Paste from Clipboard</button>
+                    <span style="font-size:11px;color:var(--text-muted);margin-left:8px;">(Ctrl+V also works in the textarea)</span>
+                </div>
+                <textarea id="paste-response-textarea" style="width:100%;height:300px;font-family:monospace;font-size:12px;padding:8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;resize:vertical;" placeholder="Paste the LLM response JSON or text here..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <div style="display:flex;gap:8px;flex:1;">
+                    <button class="btn btn-sm" onclick="copyPromptToClipboard()" title="Copy last prompt to clipboard first">📋 Copy Prompt First</button>
+                </div>
+                <div style="display:flex;gap:6px;">
+                    <button class="btn btn-green" onclick="submitManualResponse()">✅ Inject Response</button>
+                    <button class="btn btn-secondary" onclick="document.getElementById('paste-response-modal').style.display='none'">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MANUAL PROMPT MODAL (step-driven, replaces LLM) -->
+    <div id="manual-prompt-modal" class="modal" style="display:none;">
+        <div class="modal-content" style="width:800px;">
+            <div class="modal-header">
+                <h3>✋ Manual Response — <span id="manual-phase-name">combined</span></h3>
+                <button class="modal-close" id="manual-modal-close">&times;</button>
+            </div>
+            <div style="padding:16px 20px;max-height:75vh;overflow-y:auto;">
+                <div style="margin-bottom:12px;">
+                    <div style="font-size:11px;font-weight:600;color:var(--text-dim);margin-bottom:4px;display:flex;align-items:center;gap:6px;">📋 Prompt<button class="btn btn-sm btn-ghost" onclick="copyManualPrompt()" title="Copy prompt to clipboard" style="font-size:10px;padding:1px 6px;">📋 Copy</button></div>
+                    <pre id="manual-prompt-content" style="font-size:11px;background:var(--bg-inset);padding:8px;border-radius:4px;white-space:pre-wrap;max-height:300px;overflow-y:auto;margin:0;"></pre>
+                </div>
+                <div>
+                    <div style="font-size:11px;font-weight:600;color:var(--text-dim);margin-bottom:4px;">✏️ Your Response</div>
+                    <textarea id="manual-response-content" rows="8" style="width:100%;font-family:monospace;font-size:12px;padding:8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;resize:vertical;" placeholder="Type or paste the LLM response here..."></textarea>
+                    <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">
+                        Expecting JSON with fields like <code>inner_monologue</code>, <code>speech</code>, and <code>action</code>.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="manual-cancel-btn">Cancel</button>
+                <button class="btn btn-green" id="manual-submit-btn">✅ Submit Response</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOAD GAME MODAL -->
+    <div id="load-game-modal" class="modal" style="display:none;">
+        <div class="modal-content" style="width:600px;">
+            <div class="modal-header">
+                <h3>📂 Load Game</h3>
+                <button class="modal-close" onclick="document.getElementById('load-game-modal').style.display='none'">&times;</button>
+            </div>
+            <div style="padding:16px 20px;max-height:60vh;overflow-y:auto;">
+                <div style="margin-bottom:12px;display:flex;gap:6px;align-items:center;">
+                    <input type="text" id="save-game-name-input" placeholder="Save name..." style="flex:1;font-size:12px;padding:4px 8px;" onkeydown="if(event.key==='Enter')saveGame()">
+                    <button class="btn btn-sm btn-green" onclick="saveGame()">💾 Save Current</button>
+                    <button class="btn btn-sm btn-danger" onclick="confirmDeleteAllSaves()" style="background:#d32f2f;color:#fff;">🗑 All</button>
+                </div>
+                <div id="save-game-list" style="font-size:12px;">
+                    <div style="color:var(--text-muted);padding:20px;text-align:center;">Loading saves...</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="document.getElementById('load-game-modal').style.display='none'">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VITAL DETAIL MODAL -->
+    <div id="vital-modal" class="modal" style="display:none;">
+        <div class="modal-content" style="width:380px;">
+            <div class="modal-header">
+                <h3 id="vital-modal-title">Vital Detail</h3>
+                <button class="modal-close" onclick="closeVitalModal()">&times;</button>
+            </div>
+            <div id="vital-modal-body" style="padding:16px 20px;"></div>
+            <div class="modal-footer" style="display:flex;gap:6px;justify-content:flex-end;">
+                <button class="btn btn-secondary" onclick="closeVitalModal()">Cancel</button>
+                <button class="btn btn-green" onclick="saveVitalEdit()">💾 Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    let _vitalModalPlayer = '';
+    let _vitalModalName = '';
+
+    function openVitalModal(playerName, vitalName) {
+        _vitalModalPlayer = playerName;
+        _vitalModalName = vitalName;
+        const modal = document.getElementById('vital-modal');
+        const body = document.getElementById('vital-modal-body');
+        document.getElementById('vital-modal-title').textContent = `${playerName}'s ${vitalName}`;
+        body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">⏳ Loading...</div>';
+        modal.style.display = 'flex';
+
+        fetch(`/api/players/${encodeURIComponent(playerName)}/vitals/${encodeURIComponent(vitalName)}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) {
+                    body.innerHTML = `<div style="color:var(--red);padding:12px;">${data.error}</div>`;
+                    return;
+                }
+                const isTemp = _vitalModalName === 'Temperature';
+                const tte = isTemp
+                    ? ''
+                    : (data.time_to_empty != null
+                        ? `<span style="font-weight:600;">${data.time_to_empty} turns</span>`
+                        : '<span style="color:var(--text-muted);">No decay</span>');
+
+                // Temperature-specific info
+                let tempExtraHtml = '';
+                let comfortColor = '#3fb950';
+                if (isTemp) {
+                    const comfort = data.comfort_status || 'comfortable';
+                    if (comfort === 'dangerous') comfortColor = '#f85149';
+                    else if (comfort === 'uncomfortable') comfortColor = '#e3b341';
+                    else comfortColor = '#3fb950';
+
+                    const driftHtml = data.drift
+                        ? `<div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0;">
+                            <span style="color:var(--text-muted);">Drift:</span>
+                            <span>${data.drift.description}</span>
+                           </div>`
+                        : '';
+
+                    const timeHtml = data.time_estimates
+                        ? Object.entries(data.time_estimates).map(([key, val]) => {
+                            if (val === null || val === undefined) return '';
+                            const label = key.replace(/_/g, ' ');
+                            const color = val <= 5 ? 'var(--red)' : val <= 15 ? 'var(--orange)' : 'var(--text-muted)';
+                            return `<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0;">
+                                <span style="color:var(--text-muted);text-transform:capitalize;">${label}:</span>
+                                <span style="color:${color};font-weight:600;">${val} turns${val === 0 ? ' (now)' : ''}</span>
+                            </div>`;
+                          }).join('')
+                        : '';
+
+                    const dmgHtml = data.damage_per_tick
+                        ? Object.entries(data.damage_per_tick).map(([key, val]) => {
+                            if (!val) return '';
+                            return `<span style="font-size:11px;color:var(--red);">${key.toUpperCase()} ${val > 0 ? '-' + val : ''}/turn </span>`;
+                          }).join('')
+                        : '<span style="font-size:11px;color:var(--text-muted);">No damage per turn</span>';
+
+                    const roomTemp = data.room_temperature != null ? data.room_temperature + '°C' : '—';
+                    const effTemp = data.effective_temperature != null ? data.effective_temperature + '°C' : '—';
+
+                    const equipHtml = data.equipment?.items?.length > 0
+                        ? data.equipment.items.map(e =>
+                            `<div style="font-size:11px;color:var(--text-muted);padding:2px 0;">${e.description}</div>`
+                          ).join('')
+                        : data.equipment?.insulation
+                            ? `<div style="font-size:11px;color:var(--text-muted);padding:2px 0;">Total insulation: ${data.equipment.insulation > 0 ? '+' : ''}${data.equipment.insulation}°C</div>`
+                            : '<div style="font-size:11px;color:var(--text-muted);">No insulating equipment</div>';
+
+                    tempExtraHtml = `
+                        <div style="background:var(--bg-inset);border-radius:6px;padding:8px;margin-bottom:12px;">
+                            <div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0;">
+                                <span style="color:var(--text-muted);">Comfort:</span>
+                                <span style="color:${comfortColor};font-weight:600;text-transform:capitalize;">${comfort}</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0;">
+                                <span style="color:var(--text-muted);">Room Temp:</span>
+                                <span style="font-weight:600;">${roomTemp}</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0;">
+                                <span style="color:var(--text-muted);">Feels Like:</span>
+                                <span style="font-weight:600;">${effTemp}</span>
+                            </div>
+                            <div style="border-top:1px solid var(--border);margin:4px 0;padding:2px 0;">
+                                <span style="font-size:10px;color:var(--text-muted);">Equipment:</span>
+                                ${equipHtml}
+                            </div>
+                            ${driftHtml}
+                            ${timeHtml ? `<div style="border-top:1px solid var(--border);margin:4px 0;padding:2px 0;">
+                                <span style="font-size:10px;color:var(--text-muted);">Time to threshold:</span>
+                                ${timeHtml}
+                            </div>` : ''}
+                            <div style="border-top:1px solid var(--border);margin:4px 0;padding:2px 0;">
+                                <span style="font-size:10px;color:var(--text-muted);">Damage per turn:</span>
+                                <div style="margin-top:2px;">${dmgHtml}</div>
+                            </div>
+                        </div>`;
+                }
+
+                const conds = data.conditions_affecting && data.conditions_affecting.length > 0
+                    ? data.conditions_affecting.map(c =>
+                        `<div style="font-size:11px;padding:4px 8px;background:var(--bg-inset);border-radius:4px;border-left:3px solid var(--pink);">
+                            <span style="text-transform:capitalize;">${c.condition}</span>
+                            <span style="color:var(--orange);font-weight:600;">${c.effect > 0 ? '+' : ''}${c.effect}/turn</span>
+                        </div>`
+                      ).join('')
+                    : '<div style="font-size:11px;color:var(--text-muted);">No active conditions affect this vital.</div>';
+
+                body.innerHTML = `
+                    <div style="margin-bottom:16px;text-align:center;">
+                        <div style="font-size:28px;font-weight:700;">${isTemp ? data.value + '°C' : data.value} <span style="font-size:14px;color:var(--text-muted);">/ ${isTemp ? data.max + '°C' : data.max}</span></div>
+                        <div style="font-size:11px;color:var(--text-muted);">${data.percentage}%</div>
+                    </div>
+                    ${tempExtraHtml}
+                    <div class="field">
+                        <label>Value (${isTemp ? data.min + '–' + data.max : '0–' + data.max})</label>
+                        <input type="number" id="vital-edit-value" value="${data.value}" min="${isTemp ? data.min : 0}" max="${data.max}" step="${isTemp ? '0.1' : '1'}" style="width:100%;font-size:12px;">
+                    </div>
+                    <div class="field">
+                        <label>Decay Rate (per turn)</label>
+                        <input type="number" id="vital-edit-decay" value="${data.decay_rate}" step="0.1" style="width:100%;font-size:12px;">
+                        <div style="font-size:9px;color:var(--text-muted);margin-top:2px;">
+                            Base: ${data.base_decay_rate} | Override: ${data.decay_rate_override != null ? data.decay_rate_override : '—'}
+                        </div>
+                    </div>
+                    ${!isTemp ? `<div class="field">
+                        <label>Time to Empty</label>
+                        <div style="font-size:12px;">${tte}</div>
+                    </div>` : ''}
+                    <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:12px;">
+                        <label style="font-size:11px;font-weight:600;color:var(--pink);">Conditions Affecting</label>
+                        <div style="margin-top:6px;display:flex;flex-direction:column;gap:4px;">${conds}</div>
+                    </div>
+                `;
+            })
+            .catch(err => {
+                body.innerHTML = `<div style="color:var(--red);padding:12px;">Failed to load: ${err.message}</div>`;
+            });
+    }
+
+    function closeVitalModal() {
+        document.getElementById('vital-modal').style.display = 'none';
+    }
+
+    function saveVitalEdit() {
+        const value = parseInt(document.getElementById('vital-edit-value')?.value);
+        const decay = parseFloat(document.getElementById('vital-edit-decay')?.value);
+        const body = {};
+        if (!isNaN(value)) body.value = value;
+        if (!isNaN(decay)) body.decay_rate = decay;
+        if (Object.keys(body).length === 0) { closeVitalModal(); return; }
+
+        fetch(`/api/players/${encodeURIComponent(_vitalModalPlayer)}/vitals/${encodeURIComponent(_vitalModalName)}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) { alert(data.error); return; }
+                closeVitalModal();
+                if (window.VW?.inspector && _vitalModalPlayer) {
+                    window.VW.inspector.showAgent(_vitalModalPlayer);
+                }
+            })
+            .catch(err => alert('Save failed: ' + err.message));
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && document.getElementById('vital-modal').style.display === 'flex') {
+            closeVitalModal();
+        }
+    });
+    </script>
+
+    <!-- CONTEXT MENU + HIDDEN -->
+    <div id="context-menu" class="context-menu" style="display:none;position:fixed;z-index:10000;"></div>
+    <div id="why-panel" style="display:none;padding:8px 12px;background:var(--bg-inset);border-radius:6px;border:1px solid var(--border);font-size:11px;"></div>
+    <div id="output" aria-hidden="true"></div>
+    <input type="hidden" id="tick-interval" value="10">
+    <input type="hidden" id="system-prompt" value="">
+
+    <!-- Third-party UI libraries (CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/choices.js@10.2.0/public/assets/scripts/choices.min.js"></script>
+    <script src="/static/js/ui-helpers.js"></script>
+
+    <!-- Load JS modules in dependency order -->
+    <script src="/static/js/event-bus.js"></script>
+    <script src="/static/js/storage.js"></script>
+    <script src="/static/js/context-window.js"></script>
+    <script src="/static/js/llm-client.js"></script>
+    <script src="/static/js/stream/stream-turn-cards.js"></script>
+    <script src="/static/js/stream/stream-filters.js"></script>
+    <script src="/static/js/stream/stream-raw-llm.js"></script>
+    <script src="/static/js/stream/stream-persistence.js"></script>
+    <script src="/static/js/stream/stream-scrubber.js"></script>
+    <script src="/static/js/stream/stream-control-mode.js"></script>
+    <script src="/static/js/event-stream.js"></script>
+    <script src="/static/js/world-state.js"></script>
+    <script src="/static/js/config.js"></script>
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/prompt-docs.js"></script>
+    <script src="/static/js/shared/dom-utils.js"></script>
+    <script src="/static/js/shared/json-utils.js"></script>
+    <script src="/static/js/shared/search-select.js"></script>
+    <script src="/static/js/shared/trigger-types.js"></script>
+    <script src="/static/js/shared/trigger-editor.js"></script>
+    <script src="/static/js/shared/trigger-graph.js"></script>
+    <script src="/static/js/shared/ai-generator.js"></script>
+    <script src="/static/js/shared/embedding-client.js"></script>
+    <script src="/static/js/shared/vital-color.js"></script>
+    <script src="/static/js/shared/tag-multiselect.js"></script>
+    <script src="/static/js/shared/template-sync.js"></script>
+    <script src="/static/js/shared/diff-modal.js"></script>
+    <script src="/static/js/agent/action-normalizer.js"></script>
+    <script src="/static/js/agent/response-parser.js"></script>
+    <script src="/static/js/agent/turn-scene-view.js"></script>
+    <script src="/static/js/agent/turn-you-strip.js"></script>
+    <script src="/static/js/agent/turn-feed.js"></script>
+    <script src="/static/js/agent/human-turn-composer.js"></script>
+    <script src="/static/js/agent/threat-detector.js"></script>
+    <script src="/static/js/agent/agent-state.js"></script>
+    <script src="/static/js/agent/vital-thresholds.js"></script>
+    <script src="/static/js/agent/plan-tracker.js"></script>
+    <script src="/static/js/agent/prompt-builder/helpers.js"></script>
+    <script src="/static/js/agent/prompt-builder/character-state.js"></script>
+    <script src="/static/js/agent/prompt-builder/memory-context.js"></script>
+    <script src="/static/js/agent/prompt-builder/room-context.js"></script>
+    <script src="/static/js/agent/prompt-builder/contextual-actions.js"></script>
+    <script src="/static/js/agent/prompt-builder/conversation-context.js"></script>
+    <script src="/static/js/agent/prompt-builder/context-sections.js"></script>
+    <script src="/static/js/agent/prompt-builder/schema-fragments.js"></script>
+    <script src="/static/js/agent/prompt-builder/system-prompt.js"></script>
+    <script src="/static/js/agent/prompt-builder/turn-prompts.js"></script>
+    <script src="/static/js/agent/prompt-builder/index.js"></script>
+    <script src="/static/js/agent-lens.js"></script>
+    <script src="/static/js/agent/rate-limiter.js"></script>
+    <script src="/static/js/agent-engine.js"></script>
+    <script src="/static/js/agent/turn-queue.js"></script>
+    <script src="/static/js/agent/memory-manager.js"></script>
+    <script src="/static/js/agent/plan-manager.js"></script>
+    <script src="/static/js/ui-controller.js"></script>
+    <script src="/static/js/graph/edge-types.js"></script>
+    <script src="/static/js/graph/context-menu.js"></script>
+    <script src="/static/js/graph/layout-engine.js"></script>
+    <script src="/static/js/graph/tree-view.js"></script>
+    <script src="/static/js/graph/node-operations.js"></script>
+    <script src="/static/js/graph/node-badges.js"></script>
+    <script src="/static/js/graph/projector.js"></script>
+    <script src="/static/js/graph/overlays.js"></script>
+    <script src="/static/js/graph/tooltips.js"></script>
+    <script src="/static/js/graph/focus.js"></script>
+    <script src="/static/js/graph/network-manager.js"></script>
+    <script src="/static/js/graph/edge-inspector.js"></script>
+    <script src="/static/js/graph/event-handlers.js"></script>
+    <script src="/static/js/graph-manager.js"></script>
+    <script src="/static/js/item-library/ai-generation.js"></script>
+    <script src="/static/js/item-library/placement.js"></script>
+    <script src="/static/js/item-library/contents-editor.js"></script>
+    <script src="/static/js/item-library.js"></script>
+    <script src="/static/js/library-browser.js"></script>
+<script src="/static/js/world-sync.js"></script>
+    <script src="/static/js/inspector/helpers.js"></script>
+    <script src="/static/js/inspector/way-authoring.js"></script>
+    <script src="/static/js/inspector/panel.js"></script>
+    <script src="/static/js/inspector/trigger-helpers.js"></script>
+    <script src="/static/js/inspector/paperdoll-view.js"></script>
+    <script src="/static/js/inspector/memory-view.js"></script>
+    <script src="/static/js/inspector/behaviors-view.js"></script>
+    <script src="/static/js/inspector/lore-view.js"></script>
+    <script src="/static/js/inspector/agent-view.js"></script>
+    <script src="/static/js/inspector/area-view.js"></script>
+    <script src="/static/js/inspector/item-view.js"></script>
+    <script src="/static/js/inspector/way-view.js"></script>
+    <script src="/static/js/inspector.js"></script>
+    <script src="/static/js/ui/create-modal.js"></script>
+    <script src="/static/js/ui/settings-view.js"></script>
+    <script src="/static/js/ui/engine-config-view.js"></script>
+    <script src="/static/js/ui/world-export.js"></script>
+    <script src="/static/js/ui/saveload-view.js"></script>
+    <script src="/static/js/narration-ui.js"></script>
+    <script src="/static/js/validator-panel.js"></script>
+    <script type="module" src="/static/js/shared/lit-bootstrap.js"></script>
+    <script src="/static/js/main.js"></script>
+</body>
+</html>

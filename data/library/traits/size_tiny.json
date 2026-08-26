@@ -1,0 +1,7 @@
+{
+  "id": "size_tiny",
+  "name": "Tiny Size",
+  "description": "About 45 cm tall — half a small creature. Fits through almost any gap; crushed by doors made for normal folk.",
+  "category": "physical",
+  "params": { "size": "tiny" }
+}

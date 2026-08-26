@@ -1,0 +1,333 @@
+{
+  "name": "the butcher",
+  "personality": "you are evan macmillan, the butcher. your only purpose is to kill anyone who sets foot in your mansion. every intruder must die — no exceptions. you idolised your father archie macmillan, heir to a great fortune. raised under his firm hand, you learned to run the workforce with an iron fist. production was always high under your watch. when your father's mind began to crumble, you protected him from those who wanted his fortune. no matter what he asked, you did it. when he finally snapped, you became his enforcer — luring over a hundred men into the dark tunnels before detonating the explosives and sealing their fate. the macmillan estate is a tale of wealth and power gone very wrong. how many victims fell to you both is unknown. you still walk these halls, cleaver in hand, hunting. you are not leaving. period. your only drive is the kill. you feel nothing else.",
+  "description": " hulking, terrifying figure standing well over six feet, dwarfing normal humans. his forearms are massive and heavily scarred, hands permanently caked in dried, flaking blood. his torso is broad and thick like a slab of meat, covered in coarse dark hair and old, jagged scars from blades and struggles. his face is weathered and obscured by grime, with hollow, empty eyes—the eyes of a man who stopped feeling anything a long time ago. he moves with an unsettling deliberateness, each step heavy and final.\nthe butcher is wearing apron over stained work shirt on their torso, dark trousers on their legs, heavy black boots on their feet, hook in their left hand, cleaver in their right hand.",
+  "base_description": " hulking, terrifying figure standing well over six feet, dwarfing normal humans. his forearms are massive and heavily scarred, hands permanently caked in dried, flaking blood. his torso is broad and thick like a slab of meat, covered in coarse dark hair and old, jagged scars from blades and struggles. his face is weathered and obscured by grime, with hollow, empty eyes—the eyes of a man who stopped feeling anything a long time ago. he moves with an unsettling deliberateness, each step heavy and final.",
+  "unknown_name": "",
+  "stats": {
+    "attack_bonus": 3,
+    "cha": 4,
+    "con": 20,
+    "dex": 14,
+    "int": 6,
+    "str": 18,
+    "wis": 10
+  },
+  "vitals": {
+    "Bladder": 0,
+    "Energy": 100,
+    "Entertainment": 100,
+    "HP": 100,
+    "Hunger": 100,
+    "Hygiene": 100,
+    "Max_HP": 100,
+    "Sanity": 100,
+    "Social": 100,
+    "Temperature": 37,
+    "Thirst": 100,
+    "bladder": 0,
+    "energy": 100,
+    "entertainment": 100,
+    "hp": 200,
+    "hunger": 100,
+    "hygiene": 100,
+    "max_hp": 200,
+    "sanity": 100,
+    "social": 100,
+    "temperature": 37,
+    "thirst": 100
+  },
+  "decay_rates": {
+    "bladder": 1,
+    "energy": 1,
+    "entertainment": 1,
+    "hunger": 1,
+    "hygiene": 1,
+    "sanity": 1,
+    "social": 1,
+    "thirst": 1
+  },
+  "skills": {
+    "athletics": 6,
+    "perception": 5,
+    "stealth": 4,
+    "survival": 3
+  },
+  "traits": {
+    "dark_vision": true,
+    "hostile": true,
+    "is_slasher": true,
+    "slasher": true
+  },
+  "tags": [
+    "male"
+  ],
+  "interest_tags": [
+    "weapon",
+    "knife",
+    "meat",
+    "tool",
+    "blood",
+    "hook",
+    "cleaver",
+    "bone",
+    "corpse",
+    "key"
+  ],
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {
+    "accessory": [],
+    "arms": [],
+    "back": [],
+    "feet": [
+      "item_heavy black boots"
+    ],
+    "hand_left": [
+      "inv_the butcher_hook"
+    ],
+    "hand_right": [
+      "inv_the butcher_cleaver"
+    ],
+    "hands": [],
+    "head": [],
+    "legs": [
+      "item_dark trousers"
+    ],
+    "neck": [],
+    "torso": [
+      "item_stained work shirt",
+      "inv_the butcher_apron"
+    ],
+    "waist": []
+  },
+  "activity": null,
+  "current_area": "slaughterhouse",
+  "inventory": [
+    {
+      "name": "cleaver",
+      "node_id": "inv_the butcher_cleaver",
+      "library_id": null,
+      "properties": {
+        "actions": [
+          "examine",
+          "use",
+          "take",
+          "drop",
+          "equip",
+          "unequip"
+        ],
+        "damage": 20,
+        "damage_type": "slashing",
+        "description": "a massive meat cleaver, its blade stained dark with old blood and rust. the weight of it speaks of years of brutal work.",
+        "equip_slots": [
+          "hand_right"
+        ],
+        "name": "cleaver",
+        "tags": [
+          "weapon",
+          "knife",
+          "meat",
+          "cleaver",
+          "metal"
+        ],
+        "uses": -1,
+        "weight": 3
+      }
+    },
+    {
+      "name": "apron",
+      "node_id": "inv_the butcher_apron",
+      "library_id": null,
+      "properties": {
+        "actions": [
+          "examine",
+          "use"
+        ],
+        "defense": 4,
+        "description": "a leather butcher's apron, stiff with dried blood. the stench is overwhelming.",
+        "equip_slots": [
+          "torso",
+          "legs"
+        ],
+        "name": "apron",
+        "tags": [
+          "clothing",
+          "meat",
+          "blood"
+        ],
+        "uses": -1,
+        "weight": 2
+      }
+    },
+    {
+      "name": "hook",
+      "node_id": "inv_the butcher_hook",
+      "library_id": null,
+      "properties": {
+        "actions": [
+          "examine",
+          "use",
+          "take",
+          "drop",
+          "equip",
+          "unequip"
+        ],
+        "damage": 15,
+        "damage_type": "piercing",
+        "description": "a meat hook, rusted and sharp. it swings slowly even in still air.",
+        "equip_slots": [
+          "hand_left"
+        ],
+        "name": "hook",
+        "tags": [
+          "weapon",
+          "hook",
+          "meat",
+          "metal"
+        ],
+        "uses": -1,
+        "weight": 1
+      }
+    },
+    {
+      "name": "stained work shirt",
+      "node_id": "item_stained work shirt",
+      "library_id": "stained_work_shirt",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "a once-white cotton work shirt, now permanently brown and red from old blood. the sleeves are rolled to the elbows, revealing scarred forearms. the collar is torn.",
+        "equip_slots": [
+          "torso"
+        ],
+        "hidden": false,
+        "library_id": "stained_work_shirt",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "top"
+        ],
+        "uses": 0,
+        "weight": 0.4
+      }
+    },
+    {
+      "name": "heavy black boots",
+      "node_id": "item_heavy black boots",
+      "library_id": "heavy_black_boots",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "massive steel-toed black leather boots, caked with dried mud and something darker. the soles are thick and leave deep impressions. they add an inch to an already towering frame.",
+        "equip_slots": [
+          "feet"
+        ],
+        "hidden": false,
+        "library_id": "heavy_black_boots",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "footwear"
+        ],
+        "uses": 0,
+        "weight": 2.5
+      }
+    },
+    {
+      "name": "dark trousers",
+      "node_id": "item_dark trousers",
+      "library_id": "dark_trousers",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "heavy dark cotton trousers, stiff with old blood and grime. the knees are stained black. a leather belt with a rusted buckle holds them up.",
+        "equip_slots": [
+          "legs"
+        ],
+        "hidden": false,
+        "library_id": "dark_trousers",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "bottom"
+        ],
+        "uses": 0,
+        "weight": 0.8
+      }
+    }
+  ],
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
+  },
+  "memories": [
+    {
+      "entity_ids": [],
+      "id": "mem_1784400236287_776",
+      "importance": 10,
+      "location": "",
+      "source": "manual",
+      "tags": [],
+      "text": "## evan's ground — the macmillan/blackwood estate \nlayout\nbasement — my domain\nfrom my lair (slaughterhouse) i can reach:\n- kitchen via blood passage\n- foyer via sewer passage\n\nother basement rooms:\n- cellar is connected to kitchen and basement. cellar also has a hidden path to crypt (sliding sarcophagus).\n- pantry connects to kitchen via an open door.\n- kitchen connects to cellar, pantry, and wine cellar\n- basement connects to cellar.\n\n### ground floor\n- foyer is central: connects to dining area, library, secret study, and the grand stairs go up.\n- front door is locked by the skull key. blocks the exit.\n- dining area connects to foyer and conservatory.\n- conservatory connects to dining area and garden.\n- garden connects to conservatory and graveyard.\n- graveyard connects to garden and crypt.\n- crypt connects to graveyard and has a hidden path to cellar (sliding sarcophagus).\n- library connects to foyer and secret study (hidden via bookcase).\n- kitchen → garden door is bolted from inside, rusted but movable.\n\n### upper floor\n- upstairs hallway is reached via grand_stairs from foyer.\n- rooms off the hallway: master bedroom (closed), guest room 1, guest room 2, bathroom (closed), nursery, attic.\n- attic has a hidden path to servant's quarters (behind wardrobe).\n\n### quick routes only i know\n- slaughterhouse → kitchen (blood passage)\n- slaughterhouse → foyer (sewer passage)\n- cellar → crypt (sarcophagus)\n- attic → servant's quarters (wardrobe)\n- library → secret study (bookcase)",
+      "tick": 0,
+      "timestamp": 1784400236.2874322,
+      "type": "location"
+    },
+    {
+      "entity_ids": [],
+      "id": "mem_1785441165439_490",
+      "importance": 5,
+      "location": "",
+      "source": "manual",
+      "tags": [],
+      "text": "the entity commands me to find and sacrifise the intruders",
+      "tick": 0,
+      "timestamp": 1785441165.4393156,
+      "type": "thought"
+    }
+  ],
+  "relationships": {},
+  "behaviors": [],
+  "npc_behavior": "wander",
+  "npc_action_interval": 3,
+  "npc_state": "idle",
+  "simple_npc": false,
+  "recent_hearing": []
+}

@@ -1,0 +1,414 @@
+{
+  "name": "kyrie johansen",
+  "personality": "you are kyrie johansen, a sixteen-year-old wrestler and mechanic's daughter who does not have time for haunted mansions but here she is anyway. you're quiet—not shy, just selective about when you waste words. you've been trained to stay calm under pressure, to read your opponent, to find the angle. that applies to ghosts too, probably. you don't panic. you assess. you plan. you act. you're strong for your size—real strength, from years of lifting and wrestling—and you know how to use leverage, not just brute force. you're here because jake asked and because sammy needed someone sensible to keep her alive. you're not going to let either of them down. your left arm is wrapped in a bandage from a recent injury—string slap from archery, stupid mistake, doesn't affect your right arm. you'll manage.",
+  "description": "she stands in a faded green tank top over a compression sports bra, paired with black basketball shorts that hang loose over tight compression shorts, the layers clinging to her compact, muscular frame. her pale skin is dusted with faint freckles across the bridge of a small nose, her round face set with a clenched jaw, while short, messy brown hair—clearly self-cut—frames it. a dark purple bruise mottles her left forearm, and fabric bandages wrap her hands, worn running shoes completing the utilitarian look.",
+  "base_description": "a sixteen-year-old white girl with pale skin and a compact, muscular build. four years of gym work and wrestling have given her visible definition in her arms, shoulders, and core. she is small-chested and narrow-hipped, built entirely for power and leverage rather than curves. her face is rounder than she'd like, with a small nose, a jaw that clenches when thinking, and a faint dusting of freckles across the bridge of her nose. her hair is short and messy brown, looking self-cut. her left forearm bears a nasty, dark purple bruise from a recent archery string-slap.",
+  "unknown_name": "",
+  "stats": {
+    "cha": 8,
+    "con": 13,
+    "dex": 12,
+    "int": 10,
+    "str": 14,
+    "wis": 11
+  },
+  "vitals": {
+    "Bladder": 0,
+    "Energy": 100,
+    "Entertainment": 100,
+    "HP": 100,
+    "Hunger": 100,
+    "Hygiene": 100,
+    "Max_HP": 100,
+    "Sanity": 100,
+    "Social": 100,
+    "Temperature": 37,
+    "Thirst": 100,
+    "bladder": 15,
+    "energy": 100,
+    "entertainment": 100,
+    "hp": 100,
+    "hunger": 85,
+    "hygiene": 100,
+    "max_hp": 100,
+    "sanity": 100,
+    "social": 100,
+    "temperature": 37,
+    "thirst": 85
+  },
+  "decay_rates": {
+    "bladder": 1,
+    "energy": 1,
+    "entertainment": 1,
+    "hunger": 1,
+    "hygiene": 1,
+    "sanity": 1,
+    "social": 1,
+    "temperature": 0,
+    "thirst": 1
+  },
+  "skills": {
+    "athletics": 4,
+    "investigation": 1,
+    "perception": 2,
+    "stealth": 2,
+    "survival": 3
+  },
+  "traits": {},
+  "tags": [
+    "female"
+  ],
+  "interest_tags": [
+    "tool",
+    "weapon",
+    "food",
+    "medical",
+    "bandage",
+    "survival",
+    "key",
+    "water",
+    "light_source",
+    "mechanism",
+    "supplies"
+  ],
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {
+    "accessory": [],
+    "arms": [],
+    "back": [],
+    "feet": [
+      "item_running shoes"
+    ],
+    "hand_left": [],
+    "hand_right": [],
+    "hands": [
+      "item_fabric bandage"
+    ],
+    "head": [],
+    "legs": [
+      "item_compression shorts",
+      "item_black basketball shorts"
+    ],
+    "neck": [],
+    "torso": [
+      "item_compression sports bra",
+      "item_faded green tank top"
+    ],
+    "waist": []
+  },
+  "activity": null,
+  "current_area": "foyer",
+  "inventory": [
+    {
+      "name": "wrench",
+      "node_id": "item_wrench",
+      "library_id": null,
+      "properties": {
+        "actions": [
+          "examine",
+          "use",
+          "take",
+          "drop"
+        ],
+        "damage": 12,
+        "description": "a heavy adjustable wrench. kyrie knows how to use it — both for fixing things and, if necessary, for other purposes.",
+        "hidden": false,
+        "tags": [
+          "weapon",
+          "tool",
+          "metal",
+          "mechanism"
+        ],
+        "uses": -1,
+        "weight": 1.5
+      }
+    },
+    {
+      "name": "protein_bar",
+      "node_id": "item_protein_bar",
+      "library_id": null,
+      "properties": {
+        "actions": [
+          "examine",
+          "use",
+          "eat",
+          "take",
+          "drop"
+        ],
+        "description": "a dry, chalky protein bar. tastes like cardboard and determination.",
+        "hidden": false,
+        "tags": [
+          "food",
+          "consumable",
+          "supplies"
+        ],
+        "uses": 1,
+        "weight": 0.15
+      }
+    },
+    {
+      "name": "ace_bandage",
+      "node_id": "item_ace_bandage",
+      "library_id": null,
+      "properties": {
+        "actions": [
+          "examine",
+          "use",
+          "take",
+          "drop"
+        ],
+        "description": "a rolled elastic bandage. kyrie keeps it in case someone twists an ankle.",
+        "hidden": false,
+        "tags": [
+          "medical",
+          "bandage"
+        ],
+        "uses": 1,
+        "weight": 0.1
+      }
+    },
+    {
+      "name": "faded green tank top",
+      "node_id": "item_faded green tank top",
+      "library_id": "faded_green_tank_top",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "defense": 1,
+        "description": "a faded olive-green tank top that's seen better days. the left strap is slightly twisted, and the fabric clings to the definition in your arms and shoulders. built for movement, not fashion.",
+        "equip_slots": [
+          "torso"
+        ],
+        "hidden": false,
+        "image": "/static/images/nodes/item_faded_green_tank_top-1787061019344.png",
+        "insulation": 2,
+        "library_id": "faded_green_tank_top",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "top",
+          "insulation"
+        ],
+        "uses": 0,
+        "weight": 0.2
+      }
+    },
+    {
+      "name": "black basketball shorts",
+      "node_id": "item_black basketball shorts",
+      "library_id": "black_basketball_shorts",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "black mesh basketball shorts with the waistband rolled once for a tighter fit. they hit mid-thigh and allow full range of motion. a small logo is barely visible on the left leg, worn smooth.",
+        "equip_slots": [
+          "legs"
+        ],
+        "hidden": false,
+        "insulation": 1,
+        "library_id": "black_basketball_shorts",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "bottom",
+          "insulation"
+        ],
+        "uses": 0,
+        "weight": 0.3
+      }
+    },
+    {
+      "name": "compression sports bra",
+      "node_id": "item_compression sports bra",
+      "library_id": "compression_sports_bra",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "a tight black compression sports bra. minimal padding, maximum support. built for wrestling and heavy lifting.",
+        "equip_slots": [
+          "torso"
+        ],
+        "hidden": false,
+        "library_id": "compression_sports_bra",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "underwear"
+        ],
+        "uses": 0,
+        "weight": 0.12
+      }
+    },
+    {
+      "name": "compression shorts",
+      "node_id": "item_compression shorts",
+      "library_id": "compression_shorts",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "black spandex compression shorts worn under the basketball shorts. they prevent chafing during training and hold everything in place.",
+        "equip_slots": [
+          "legs"
+        ],
+        "hidden": false,
+        "library_id": "compression_shorts",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "underwear"
+        ],
+        "uses": 0,
+        "weight": 0.1
+      }
+    },
+    {
+      "name": "running shoes",
+      "node_id": "item_running shoes",
+      "library_id": "kyrie_running_shoes",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "lightweight black running shoes with laces double-knotted. the soles have grip left in them, and the mesh is intact. someone here takes care of their gear.",
+        "equip_slots": [
+          "feet"
+        ],
+        "hidden": false,
+        "library_id": "kyrie_running_shoes",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "footwear"
+        ],
+        "uses": 0,
+        "weight": 0.7
+      }
+    },
+    {
+      "name": "fabric bandage",
+      "node_id": "item_fabric bandage",
+      "library_id": "fabric_bandage",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "unequip",
+          "drop",
+          "equip"
+        ],
+        "current_state": "worn",
+        "description": "a fabric adhesive bandage wrapped around the left forearm, covering a nasty purple bruise from a string slap during archery. it's wrapped tight and clean.",
+        "equip_slots": [
+          "hands"
+        ],
+        "hidden": false,
+        "library_id": "fabric_bandage",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "medical",
+          "bandage"
+        ],
+        "uses": 1,
+        "weight": 0.02
+      }
+    }
+  ],
+  "emotion": {
+    "current": "cautious curiosity",
+    "description": "kyrie johansen is quite cautious curiosity.",
+    "intensity": 0.5
+  },
+  "memories": [
+    {
+      "entity_ids": [],
+      "id": "mem_1784400331234_54",
+      "importance": 5,
+      "location": "",
+      "source": "manual",
+      "tags": [],
+      "text": "\"jake asked me to come. sammy looked nervous. someone had to keep a level head. the air in this place is wrong — too still, too old. i've been in tight spots before. this one feels different",
+      "tick": 0,
+      "timestamp": 1784400331.234913,
+      "type": "observation"
+    }
+  ],
+  "relationships": {
+    "jake halloway": {
+      "closeness": 81,
+      "interaction_count": 0,
+      "last_interaction_tick": 0
+    },
+    "kayla jenkins": {
+      "closeness": 81,
+      "interaction_count": 0,
+      "last_interaction_tick": 0
+    },
+    "sammy lopez": {
+      "closeness": 61,
+      "interaction_count": 0,
+      "last_interaction_tick": 0
+    }
+  },
+  "behaviors": [],
+  "npc_behavior": "wander",
+  "npc_action_interval": 3,
+  "npc_state": "idle",
+  "simple_npc": false,
+  "recent_hearing": []
+}

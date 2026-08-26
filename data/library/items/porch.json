@@ -1,0 +1,19 @@
+{
+  "name": "porch",
+  "description": "the wide wooden porch creaks under your feet. a broken rocking chair sits near the door, swaying slightly in the breeze. the night sky is clear, stars visible above the tree line.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "furniture",
+    "wooden",
+    "outdoor"
+  ],
+  "triggers": [],
+  "contents": []
+}

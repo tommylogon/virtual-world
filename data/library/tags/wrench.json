@@ -1,0 +1,14 @@
+{
+  "id": "wrench",
+  "name": "Wrench",
+  "description": "Adjustable wrench tool.",
+  "category": "physical",
+  "color": "#95a5a6",
+  "icon": "🔧",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "adjustable wrench"
+  ]
+}

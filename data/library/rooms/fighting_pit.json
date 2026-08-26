@@ -1,0 +1,11 @@
+{
+  "name": "Fighting Pit",
+  "description": "A circular stone pit carved into the earth, the walls rising ten feet high with rough-hewn edges where generations of picks have bitten into the rock. The packed dirt floor is stained dark with old blood in irregular patches — some fresh enough to glisten in the torchlight, others aged to rusty brown. An iron gate at ground level stands closed, leading to the cells below. Sconces line the rim, each cradling a guttering torch that casts a smoky, flickering glow across the scarred stone. The air is thick with dust, sweat, and the metallic tang of old blood. Straw mats lie in tatters near the edges. A faint scuffling sound comes from the cells beneath, and the distant drip of water echoes through the gate's bars. High above, wooden benches rise in shadowy tiers — empty now, but scarred by countless audiences. The only exit is the iron gate leading to the undercells.",
+  "environment": {
+    "light": 80,
+    "temperature": 18,
+    "air": "dusty",
+    "smell": "dust and blood",
+    "noise": "dripping"
+  }
+}

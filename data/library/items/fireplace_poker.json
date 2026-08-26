@@ -1,0 +1,12 @@
+{
+  "name": "Fireplace Poker",
+  "description": "A wrought-iron poker, its tip blackened by ancient soot. The handle is wrapped in frayed leather. It seems unnaturally cold to the touch.",
+  "actions": "examine,take,use,equip,unequip",
+  "uses": 1,
+  "weight": 0.8,
+  "tags": [
+    "metal",
+    "tool",
+    "wearable"
+  ]
+}

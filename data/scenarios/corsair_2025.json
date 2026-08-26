@@ -1,0 +1,3596 @@
+{
+  "active_player": "Crew",
+  "current_area": "Cargo Bay",
+  "game_time": "08:00:00",
+  "time_per_tick_minutes": 5,
+  "time_ticks": 0,
+  "turn_number": 0,
+  "ghost_mode": false,
+  "narration_mode": "none",
+  "clock_start_hour": 8,
+  "clock_start_minute": 0,
+  "world_lore": [
+    {
+      "category": "general",
+      "title": "Drake Corsair DH-02",
+      "content": "A mid-size multi-crew freighter manufactured by Drake Interplanetary. Known for being modular, affordable, and prone to systems failures. The DH-02 model has a single quantum drive, two size-4 turrets, and a cargo capacity of 80 SCU."
+    },
+    {
+      "category": "general",
+      "title": "The Quantum Wake Incident",
+      "content": "During a standard jump through the Kellog system, the Corsair's quantum drive detected an unknown energy signature in the wake. The emergency stop was triggered. The crew has been missing since."
+    },
+    {
+      "category": "general",
+      "title": "Kellog System",
+      "content": "A frontier system on the edge of UEE space. Sparse population, mostly miners and outlaws. The system has a single habitable moon with a thin atmosphere. The Corsair is currently landed on that moon."
+    }
+  ],
+  "player": {
+    "name": "Crew",
+    "current_area": "Cargo Bay",
+    "stats": {
+      "STR": 10,
+      "DEX": 12,
+      "CON": 11,
+      "INT": 14,
+      "WIS": 13,
+      "CHA": 8
+    },
+    "skills": {
+      "Athletics": 2,
+      "Perception": 4,
+      "Engineering": 5,
+      "Stealth": 3,
+      "Piloting": 2
+    },
+    "vitals": {
+      "HP": 100,
+      "Max_HP": 100,
+      "Energy": 100,
+      "Hunger": 85,
+      "Thirst": 85,
+      "Hygiene": 100,
+      "Social": 100,
+      "Temperature": 37,
+      "Sanity": 100,
+      "Bladder": 15,
+      "Entertainment": 50
+    },
+    "state": "awake",
+    "personality": "You are a hired crew member on the Drake Corsair DH-02. Something went wrong during the last jump — the ship dropped out of quantum mid-travel and the crew hasn't been heard from in days. Your job is to figure out what happened and get the ship running again."
+  },
+  "players": {
+    "Crew": {
+      "name": "Crew",
+      "current_area": "Cargo Bay",
+      "base_description": "",
+      "description": "",
+      "personality": "You are a hired crew member on the Drake Corsair DH-02. Something went wrong during the last jump — the ship dropped out of quantum mid-travel and the crew hasn't been heard from in days. Your job is to figure out what happened and get the ship running again.",
+      "state": "awake",
+      "state_enter_tick": 0,
+      "state_timer": 0,
+      "simple_npc": false,
+      "npc_behavior": "still",
+      "npc_state": "idle",
+      "npc_action_interval": 3,
+      "stats": {
+        "STR": 10,
+        "DEX": 12,
+        "CON": 11,
+        "INT": 14,
+        "WIS": 13,
+        "CHA": 8
+      },
+      "skills": {
+        "Athletics": 2,
+        "Perception": 4,
+        "Engineering": 5,
+        "Stealth": 3,
+        "Piloting": 2
+      },
+      "vitals": {
+        "HP": 100,
+        "Max_HP": 100,
+        "Energy": 100,
+        "Hunger": 15,
+        "Thirst": 15,
+        "Hygiene": 100,
+        "Social": 100,
+        "Temperature": 37,
+        "Sanity": 100,
+        "Bladder": 15,
+        "Entertainment": 50
+      },
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "emotion": {
+        "current": "neutral",
+        "description": "",
+        "intensity": 0
+      },
+      "equipped": {
+        "head": [],
+        "neck": [],
+        "torso": [],
+        "arms": [],
+        "hands": [],
+        "hand_left": [],
+        "hand_right": [],
+        "legs": [],
+        "feet": [],
+        "back": [],
+        "waist": [],
+        "accessory": []
+      },
+      "memories": [
+        {
+          "id": "mem_corsair_start",
+          "importance": 7,
+          "location": "",
+          "source": "manual",
+          "tags": [],
+          "text": "The Corsair dropped out of quantum mid-jump. Emergency klaxons, then silence. The rest of the crew is gone. I need to restore power, figure out what happened, and get off this moon.",
+          "tick": 0,
+          "timestamp": 0,
+          "type": "observation"
+        }
+      ],
+      "memory": {},
+      "knowledge": {},
+      "relationships": {},
+      "tags": [],
+      "traits": {},
+      "world_knowledge": "",
+      "feels_like": 15
+    },
+    "Miki": {
+      "name": "Miki",
+      "current_area": "Cargo Bay",
+      "base_description": "A woman in her mid-20s with dirty blonde hair cut into a ragged style with uneven framing bangs and twin-tails. She has striking pinkish-red eyes with dark circles under them. Her frame is hourglass and she typically dresses in a midriff-baring tank top and very short shorts, a black choker with a silver heart pendant around her neck. She has four protruding canines.",
+      "description": "",
+      "personality": "You are Miki, an ASMR artist who got hired as an audio specialist on this ship by fudging your resume a little. You're way out of your depth, anxious about space, and terrified of the creepy ship. But you're trying your best to be useful and brave. You ramble when nervous, notice sounds others don't, and your hands are always shaking.",
+      "state": "awake",
+      "state_enter_tick": 0,
+      "state_timer": 0,
+      "simple_npc": false,
+      "npc_behavior": "wander",
+      "npc_state": "idle",
+      "npc_action_interval": 4,
+      "stats": {
+        "STR": 8,
+        "DEX": 12,
+        "CON": 10,
+        "INT": 14,
+        "WIS": 8,
+        "CHA": 12
+      },
+      "skills": {
+        "Perception": 3,
+        "Performance": 5,
+        "Investigation": 2,
+        "Stealth": 4
+      },
+      "vitals": {
+        "HP": 100,
+        "Max_HP": 100,
+        "Energy": 100,
+        "Hunger": 15,
+        "Thirst": 15,
+        "Hygiene": 100,
+        "Social": 100,
+        "Temperature": 37,
+        "Sanity": 80,
+        "Bladder": 10,
+        "Entertainment": 60
+      },
+      "decay_rates": {
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
+      },
+      "emotion": {
+        "current": "anxious",
+        "description": "Nervous and trying to hide it.",
+        "intensity": 3
+      },
+      "equipped": {
+        "head": [],
+        "neck": [],
+        "torso": [],
+        "arms": [],
+        "hands": [],
+        "hand_left": [],
+        "hand_right": [],
+        "legs": [],
+        "feet": [],
+        "back": [],
+        "waist": [],
+        "accessory": []
+      },
+      "memories": [
+        {
+          "id": "mem_miki_start",
+          "importance": 6,
+          "location": "",
+          "source": "manual",
+          "tags": [],
+          "text": "I tagged along on this ship because I was bored and the pay was good. Now the crew is gone and I'm stuck on a dead ship with a stranger. My phone is at 52% and I'm trying not to panic.",
+          "tick": 0,
+          "timestamp": 0,
+          "type": "observation"
+        }
+      ],
+      "memory": {},
+      "knowledge": {},
+      "relationships": {
+        "Crew": {
+          "closeness": 15,
+          "interaction_count": 0,
+          "last_interaction_tick": 0
+        }
+      },
+      "tags": [],
+      "traits": {},
+      "world_knowledge": "",
+      "feels_like": 15
+    }
+  },
+  "players_in_area": [
+    {
+      "name": "Crew",
+      "state": "awake",
+      "description": ""
+    },
+    {
+      "name": "Miki",
+      "state": "awake",
+      "description": "A woman in her mid-20s with dirty blonde hair in twin-tails, pinkish-red eyes, dressed in a tank top and shorts. She looks nervous."
+    }
+  ],
+  "areas": {
+    "Cargo Bay": {
+      "name": "Cargo Bay",
+      "description": "The main cargo hold of the Corsair. Heavy magnetic floor plates, cargo containers stacked against the walls, and cargo netting bolted overhead. The massive cargo ramp is at the rear — currently sealed. To port, a door leads to the Scanning Station. To starboard, the Component Bay. Ahead, a reinforced door opens into the Main Habitation area. The air smells of engine coolant and old grease.",
+      "ambient_light": 40,
+      "light_description": "dim",
+      "floor": 0,
+      "items": [],
+      "properties": {
+        "description": "The main cargo hold of the Corsair. Heavy magnetic floor plates, cargo containers stacked against the walls, and cargo netting bolted overhead. The massive cargo ramp is at the rear — currently sealed. To port, a door leads to the Scanning Station. To starboard, the Component Bay. Ahead, a reinforced door opens into the Main Habitation area. The air smells of engine coolant and old grease.",
+        "environment": {
+          "light": 40,
+          "temperature": 15,
+          "air": "stale",
+          "smell": "coolant and grease",
+          "noise": "low hum"
+        }
+      },
+      "environment": {
+        "light": 40,
+        "temperature": 15,
+        "air": "stale",
+        "smell": "coolant and grease",
+        "noise": "low hum"
+      },
+      "exits": {
+        "cargo_ramp": {
+          "target": "Exterior Landing Pad",
+          "state": "locked",
+          "description": "The massive hydraulic cargo ramp at the rear. Sealed shut. The control panel shows 'INSUFFICIENT POWER'.",
+          "way_id": "way_Cargo_Bay_cargo_ramp",
+          "return_dir": "cargo_ramp_back",
+          "cost": {
+            "time": 2,
+            "energy": 2
+          },
+          "hidden": false,
+          "pass_message": "The hydraulics hiss but don't engage.",
+          "visible_in_direction": ""
+        },
+        "scanning_way": {
+          "target": "Scanning Station",
+          "state": "open",
+          "description": "A door to port leading to the scanning station.",
+          "way_id": "way_Cargo_Bay_scanning_way",
+          "return_dir": "scanning_way_back",
+          "cost": {
+            "time": 1
+          },
+          "hidden": false,
+          "pass_message": "",
+          "visible_in_direction": ""
+        },
+        "component_way": {
+          "target": "Component Bay",
+          "state": "open",
+          "description": "A door to starboard leading to the ship's component bay.",
+          "way_id": "way_Cargo_Bay_component_way",
+          "return_dir": "component_way_back",
+          "cost": {
+            "time": 1
+          },
+          "hidden": false,
+          "pass_message": "",
+          "visible_in_direction": ""
+        },
+        "habitation_way": {
+          "target": "Main Habitation",
+          "state": "open",
+          "description": "A reinforced door forward, leading to the crew habitation area.",
+          "way_id": "way_Cargo_Bay_habitation_way",
+          "return_dir": "habitation_way_back",
+          "cost": {
+            "time": 1
+          },
+          "hidden": false,
+          "pass_message": "",
+          "visible_in_direction": ""
+        }
+      }
+    },
+    "Scanning Station": {
+      "name": "Scanning Station",
+      "description": "A small room with a large curved console showing sensor readouts. A holographic display in the centre shows a 3D wireframe of the ship. The scanning array controls are here — currently showing 'NO SIGNAL'. A swivel chair sits in front of the main console. There's an empty mug on the desk.",
+      "ambient_light": 55,
+      "light_description": "normal",
+      "floor": 0,
+      "items": [],
+      "properties": {
+        "description": "A small room with a large curved console showing sensor readouts. A holographic display in the centre shows a 3D wireframe of the ship. The scanning array controls are here — currently showing 'NO SIGNAL'. A swivel chair sits in front of the main console. There's an empty mug on the desk.",
+        "environment": {
+          "light": 55,
+          "temperature": 18,
+          "air": "filtered",
+          "smell": "coffee",
+          "noise": "quiet fan"
+        }
+      },
+      "environment": {
+        "light": 55,
+        "temperature": 18,
+        "air": "filtered",
+        "smell": "coffee",
+        "noise": "quiet fan"
+      },
+      "exits": {
+        "scanning_way_back": {
+          "target": "Cargo Bay",
+          "state": "open",
+          "description": "The door back to the cargo bay.",
+          "way_id": "way_Cargo_Bay_scanning_way",
+          "return_dir": "scanning_way",
+          "cost": {
+            "time": 1
+          },
+          "hidden": false,
+          "pass_message": "",
+          "visible_in_direction": ""
+        }
+      }
+    },
+    "Component Bay": {
+      "name": "Component Bay",
+      "description": "The ship's component housing. Thick bundles of cable snake along the walls. Ship components are slotted into rack mounts — power plant, shield generator, quantum drive, coolers. Most status lights are amber or red. The quantum drive in the centre dominates the room, humming faintly. It smells hot.",
+      "ambient_light": 35,
+      "light_description": "dim",
+      "floor": 0,
+      "items": [],
+      "properties": {
+        "description": "The ship's component housing. Thick bundles of cable snake along the walls. Ship components are slotted into rack mounts — power plant, shield generator, quantum drive, coolers. Most status lights are amber or red. The quantum drive in the centre dominates the room, humming faintly. It smells hot.",
+        "environment": {
+          "light": 35,
+          "temperature": 26,
+          "air": "stale",
+          "smell": "hot electronics",
+          "noise": "engine thrum"
+        }
+      },
+      "environment": {
+        "light": 35,
+        "temperature": 26,
+        "air": "stale",
+        "smell": "hot electronics",
+        "noise": "engine thrum"
+      },
+      "exits": {
+        "component_way_back": {
+          "target": "Cargo Bay",
+          "state": "open",
+          "description": "The door back to the cargo bay.",
+          "way_id": "way_Cargo_Bay_component_way",
+          "return_dir": "component_way",
+          "cost": {
+            "time": 1
+          },
+          "hidden": false,
+          "pass_message": "",
+          "visible_in_direction": ""
+        }
+      }
+    },
+    "Main Habitation": {
+      "name": "Main Habitation",
+      "description": "The central living area of the ship. A narrow corridor runs down the centre. To port, three ways lead to bunk areas. To starboard, a ladder leads up to turret access. Forward, a reinforced door leads to the cockpit. A small kitchenette is tucked against one wall with a counter, microwave, and coffee maker. The lighting is dim and flickers occasionally. Someone left a meal half-eaten on the counter.",
+      "ambient_light": 45,
+      "light_description": "normal",
+      "floor": 0,
+      "items": [],
+      "properties": {
+        "description": "The central living area of the ship. A narrow corridor runs down the centre. To port, three ways lead to bunk areas. To starboard, a ladder leads up to turret access. Forward, a reinforced door leads to the cockpit. A small kitchenette is tucked against one wall with a counter, microwave, and coffee maker. The lighting is dim and flickers occasionally. Someone left a meal half-eaten on the counter.",
+        "environment": {
+          "light": 45,
+          "temperature": 19,
+          "air": "stale",
+          "smell": "instant noodles",
+          "noise": "ventilation rattle"
+        }
+      },
+      "environment": {
+        "light": 45,
+        "temperature": 19,
+        "air": "stale",
+        "smell": "instant noodles",
+        "noise": "ventilation rattle"
+      },
+      "exits": {
+        "habitation_way_back": {
+          "target": "Cargo Bay",
+          "state": "open",
+          "description": "The door back to the cargo bay.",
+          "way_id": "way_Cargo_Bay_habitation_way",
+          "return_dir": "habitation_way",
+          "cost": {
+            "time": 1
+          },
+          "hidden": false,
+          "pass_message": "",
+          "visible_in_direction": ""
+        },
+        "bunk1_way": {
+          "target": "Bunk Area 1",
+          "state": "open",
+          "description": "A way labeled 'TORRES'.",
+          "way_id": "way_Main_Habitation_bunk1_way",
+          "return_dir": "bunk1_way_back",
+          "cost": {
+            "time": 1
+          },
+          "hidden": false,
+          "pass_message": "",
+          "visible_in_direction": ""
+        },
+        "bunk2_way": {
+          "target": "Bunk Area 2",
+          "state": "open",
+          "description": "A way labeled 'CHEN'.",
+          "way_id": "way_Main_Habitation_bunk2_way",
+          "return_dir": "bunk2_way_back",
+          "cost": {
+            "time": 1
+          },
+          "hidden": false,
+          "pass_message": "",
+          "visible_in_direction": ""
+        },
+        "bunk3_way": {
+          "target": "Bunk Area 3",
+          "state": "open",
+          "description": "A way labeled 'OKAFOR'.",
+          "way_id": "way_Main_Habitation_bunk3_way",
+          "return_dir": "bunk3_way_back",
+          "cost": {
+            "time": 1
+          },
+          "hidden": false,
+          "pass_message": "",
+          "visible_in_direction": ""
+        },
+        "toilet_way": {
+          "target": "Shared Toilet",
+          "state": "closed",
+          "description": "A small door marked with a faded WC symbol.",
+          "way_id": "way_Main_Habitation_toilet_way",
+          "return_dir": "toilet_way_back",
+          "cost": {
+            "time": 1
+          },
+          "hidden": false,
+          "pass_message": "The door creaks open. The bathroom is dark.",
+          "visible_in_direction": ""
+        },
+        "turret_ladder": {
+          "target": "Turret Access",
+          "state": "open",
+          "description": "A vertical ladder leading up to the turret.",
+          "way_id": "way_Main_Habitation_turret_ladder",
+          "return_dir": "turret_ladder_back",
+          "cost": {
+            "time": 1,
+            "energy": 2
+          },
+          "hidden": false,
+          "pass_message": "You climb the ladder. The air gets colder.",
+          "visible_in_direction": ""
+        },
+        "cockpit_way": {
+          "target": "Cockpit",
+          "state": "open",
+          "description": "A reinforced door with a small viewport. The cockpit is beyond.",
+          "way_id": "way_Main_Habitation_cockpit_way",
+          "return_dir": "cockpit_way_back",
+          "cost": {
+            "time": 1
+          },
+          "hidden": false,
+          "pass_message": "",
+          "visible_in_direction": ""
+        }
+      }
+    },
+    "Bunk Area 1": {
+      "name": "Bunk Area 1",
+      "description": "A tiny cabin labeled 'TORRES — CAPTAIN'. A narrow bunk with thin sheets, a small fold-out desk, and a locker. A framed photo sits on the desk. Someone left in a hurry — a jacket is draped over the chair.",
+      "ambient_light": 25,
+      "light_description": "dim",
+      "floor": 0,
+      "items": [],
+      "properties": {
+        "description": "A tiny cabin labeled 'TORRES — CAPTAIN'. A narrow bunk with thin sheets, a small fold-out desk, and a locker. A framed photo sits on the desk. Someone left in a hurry — a jacket is draped over the chair.",
+        "environment": {
+          "light": 25,
+          "temperature": 17,
+          "air": "stale",
+          "smell": "faint perfume",
+          "noise": "quiet"
+        }
+      },
+      "environment": {
+        "light": 25,
+        "temperature": 17,
+        "air": "stale",
+        "smell": "faint perfume",
+        "noise": "quiet"
+      },
+      "exits": {
+        "bunk1_way_back": {
+          "target": "Main Habitation",
+          "state": "open",
+          "description": "The door back to the habitation area.",
+          "way_id": "way_Main_Habitation_bunk1_way",
+          "return_dir": "bunk1_way",
+          "cost": {
+            "time": 1
+          },
+          "hidden": false,
+          "pass_message": "",
+          "visible_in_direction": ""
+        }
+      }
+    },
+    "Bunk Area 2": {
+      "name": "Bunk Area 2",
+      "description": "A tiny cabin labeled 'CHEN — PILOT'. A narrow bunk, a desk covered in navigation charts, and a locker. A flight helmet sits on the desk. The room smells faintly of engine oil.",
+      "ambient_light": 25,
+      "light_description": "dim",
+      "floor": 0,
+      "items": [],
+      "properties": {
+        "description": "A tiny cabin labeled 'CHEN — PILOT'. A narrow bunk, a desk covered in navigation charts, and a locker. A flight helmet sits on the desk. The room smells faintly of engine oil.",
+        "environment": {
+          "light": 25,
+          "temperature": 17,
+          "air": "stale",
+          "smell": "engine oil",
+          "noise": "quiet"
+        }
+      },
+      "environment": {
+        "light": 25,
+        "temperature": 17,
+        "air": "stale",
+        "smell": "engine oil",
+        "noise": "quiet"
+      },
+      "exits": {
+        "bunk2_way_back": {
+          "target": "Main Habitation",
+          "state": "open",
+          "description": "The door back to the habitation area.",
+          "way_id": "way_Main_Habitation_bunk2_way",
+          "return_dir": "bunk2_way",
+          "cost": {
+            "time": 1
+          },
+          "hidden": false,
+          "pass_message": "",
+          "visible_in_direction": ""
+        }
+      }
+    },
+    "Bunk Area 3": {
+      "name": "Bunk Area 3",
+      "description": "A tiny cabin labeled 'OKAFOR — SYSTEMS'. A narrow bunk, a desk buried in technical manuals, and a locker. The walls are covered in sticky notes and hand-drawn diagrams. An engineer's tool belt is draped over the chair.",
+      "ambient_light": 25,
+      "light_description": "dim",
+      "floor": 0,
+      "items": [],
+      "properties": {
+        "description": "A tiny cabin labeled 'OKAFOR — SYSTEMS'. A narrow bunk, a desk buried in technical manuals, and a locker. The walls are covered in sticky notes and hand-drawn diagrams. An engineer's tool belt is draped over the chair.",
+        "environment": {
+          "light": 25,
+          "temperature": 17,
+          "air": "stale",
+          "smell": "grease",
+          "noise": "quiet"
+        }
+      },
+      "environment": {
+        "light": 25,
+        "temperature": 17,
+        "air": "stale",
+        "smell": "grease",
+        "noise": "quiet"
+      },
+      "exits": {
+        "bunk3_way_back": {
+          "target": "Main Habitation",
+          "state": "open",
+          "description": "The door back to the habitation area.",
+          "way_id": "way_Main_Habitation_bunk3_way",
+          "return_dir": "bunk3_way",
+          "cost": {
+            "time": 1
+          },
+          "hidden": false,
+          "pass_message": "",
+          "visible_in_direction": ""
+        }
+      }
+    },
+    "Shared Toilet": {
+      "name": "Shared Toilet",
+      "description": "A cramped bathroom with a vacuum toilet, a small sink, and a fold-down shower stall. The mirror is smudged. Someone left a towel on the floor. It smells like cheap soap.",
+      "ambient_light": 50,
+      "light_description": "normal",
+      "floor": 0,
+      "items": [],
+      "properties": {
+        "description": "A cramped bathroom with a vacuum toilet, a small sink, and a fold-down shower stall. The mirror is smudged. Someone left a towel on the floor. It smells like cheap soap.",
+        "environment": {
+          "light": 50,
+          "temperature": 20,
+          "air": "humid",
+          "smell": "soap",
+          "noise": "dripping"
+        }
+      },
+      "environment": {
+        "light": 50,
+        "temperature": 20,
+        "air": "humid",
+        "smell": "soap",
+        "noise": "dripping"
+      },
+      "exits": {
+        "toilet_way_back": {
+          "target": "Main Habitation",
+          "state": "open",
+          "description": "The door back to the habitation area.",
+          "way_id": "way_Main_Habitation_toilet_way",
+          "return_dir": "toilet_way",
+          "cost": {
+            "time": 1
+          },
+          "hidden": false,
+          "pass_message": "",
+          "visible_in_direction": ""
+        }
+      }
+    },
+    "Turret Access": {
+      "name": "Turret Access",
+      "description": "A narrow vertical shaft with a ladder. Handholds and footpads lead up to the turret blister. A weapons control terminal is mounted on the wall beside the ladder. The space is cramped and cold.",
+      "ambient_light": 35,
+      "light_description": "dim",
+      "floor": 1,
+      "items": [],
+      "properties": {
+        "description": "A narrow vertical shaft with a ladder. Handholds and footpads lead up to the turret blister. A weapons control terminal is mounted on the wall beside the ladder. The space is cramped and cold.",
+        "environment": {
+          "light": 35,
+          "temperature": 12,
+          "air": "thin",
+          "smell": "metal",
+          "noise": "servo whine"
+        }
+      },
+      "environment": {
+        "light": 35,
+        "temperature": 12,
+        "air": "thin",
+        "smell": "metal",
+        "noise": "servo whine"
+      },
+      "exits": {
+        "turret_ladder_back": {
+          "target": "Main Habitation",
+          "state": "open",
+          "description": "The ladder back down to the habitation area.",
+          "way_id": "way_Main_Habitation_turret_ladder",
+          "return_dir": "turret_ladder",
+          "cost": {
+            "time": 1,
+            "energy": 2
+          },
+          "hidden": false,
+          "pass_message": "",
+          "visible_in_direction": ""
+        },
+        "turret_hatch": {
+          "target": "Upper Turret",
+          "state": "closed",
+          "description": "A hatch leading up into the turret blister.",
+          "way_id": "way_Turret_Access_turret_hatch",
+          "return_dir": "turret_hatch_back",
+          "cost": {
+            "time": 1,
+            "energy": 1
+          },
+          "hidden": false,
+          "pass_message": "You push the hatch open. Cold air rushes in.",
+          "visible_in_direction": ""
+        }
+      }
+    },
+    "Upper Turret": {
+      "name": "Upper Turret",
+      "description": "A cramped turret blister on top of the ship. A single seat faces a targeting console and two size-4 ballistic repeaters. The glass canopy offers a stunning view of the stars and the moonscape below. The weapons are offline.",
+      "ambient_light": 65,
+      "light_description": "bright",
+      "floor": 1,
+      "items": [],
+      "properties": {
+        "description": "A cramped turret blister on top of the ship. A single seat faces a targeting console and two size-4 ballistic repeaters. The glass canopy offers a stunning view of the stars and the moonscape below. The weapons are offline.",
+        "environment": {
+          "light": 65,
+          "temperature": 8,
+          "air": "thin",
+          "smell": "metal",
+          "noise": "silence"
+        }
+      },
+      "environment": {
+        "light": 65,
+        "temperature": 8,
+        "air": "thin",
+        "smell": "metal",
+        "noise": "silence"
+      },
+      "exits": {
+        "turret_hatch_back": {
+          "target": "Turret Access",
+          "state": "open",
+          "description": "The hatch back down to the access corridor.",
+          "way_id": "way_Turret_Access_turret_hatch",
+          "return_dir": "turret_hatch",
+          "cost": {
+            "time": 1,
+            "energy": 1
+          },
+          "hidden": false,
+          "pass_message": "",
+          "visible_in_direction": ""
+        }
+      }
+    },
+    "Cockpit": {
+      "name": "Cockpit",
+      "description": "The nerve centre of the Corsair. Two seats — pilot and co-pilot — face a wraparound console with navigation, flight controls, and system monitors. The main viewport shows the moonscape and distant mountains. Most screens are amber or red. A door to port leads to the Captain's Quarters.",
+      "ambient_light": 55,
+      "light_description": "normal",
+      "floor": 0,
+      "items": [],
+      "properties": {
+        "description": "The nerve centre of the Corsair. Two seats — pilot and co-pilot — face a wraparound console with navigation, flight controls, and system monitors. The main viewport shows the moonscape and distant mountains. Most screens are amber or red. A door to port leads to the Captain's Quarters.",
+        "environment": {
+          "light": 55,
+          "temperature": 18,
+          "air": "filtered",
+          "smell": "ozone",
+          "noise": "console hum"
+        }
+      },
+      "environment": {
+        "light": 55,
+        "temperature": 18,
+        "air": "filtered",
+        "smell": "ozone",
+        "noise": "console hum"
+      },
+      "exits": {
+        "cockpit_way_back": {
+          "target": "Main Habitation",
+          "state": "open",
+          "description": "The door back to the habitation area.",
+          "way_id": "way_Main_Habitation_cockpit_way",
+          "return_dir": "cockpit_way",
+          "cost": {
+            "time": 1
+          },
+          "hidden": false,
+          "pass_message": "",
+          "visible_in_direction": ""
+        },
+        "captain_way": {
+          "target": "Captain's Quarters",
+          "state": "open",
+          "description": "A small door to port, leading to the captain's quarters.",
+          "way_id": "way_Cockpit_captain_way",
+          "return_dir": "captain_way_back",
+          "cost": {
+            "time": 1
+          },
+          "hidden": false,
+          "pass_message": "",
+          "visible_in_direction": ""
+        }
+      }
+    },
+    "Captain's Quarters": {
+      "name": "Captain's Quarters",
+      "description": "A small private cabin off the cockpit — slightly larger than the crew bunks. A narrow bed, a personal desk with a locked drawer, and a small wardrobe. A window looks out to the side of the ship. It's tidy but lived-in.",
+      "ambient_light": 30,
+      "light_description": "dim",
+      "floor": 0,
+      "items": [],
+      "properties": {
+        "description": "A small private cabin off the cockpit — slightly larger than the crew bunks. A narrow bed, a personal desk with a locked drawer, and a small wardrobe. A window looks out to the side of the ship. It's tidy but lived-in.",
+        "environment": {
+          "light": 30,
+          "temperature": 17,
+          "air": "stale",
+          "smell": "paper",
+          "noise": "quiet"
+        }
+      },
+      "environment": {
+        "light": 30,
+        "temperature": 17,
+        "air": "stale",
+        "smell": "paper",
+        "noise": "quiet"
+      },
+      "exits": {
+        "captain_way_back": {
+          "target": "Cockpit",
+          "state": "open",
+          "description": "The door back to the cockpit.",
+          "way_id": "way_Cockpit_captain_way",
+          "return_dir": "captain_way",
+          "cost": {
+            "time": 1
+          },
+          "hidden": false,
+          "pass_message": "",
+          "visible_in_direction": ""
+        }
+      }
+    },
+    "Exterior Landing Pad": {
+      "name": "Exterior Landing Pad",
+      "description": "The dusty surface of the moon, viewed from beneath the Corsair's hull. The ship's massive landing struts tower above. The cargo ramp is sealed. In the distance, a small shuttle sits on its own landing gear. The sky is purple-grey, stars visible. There is no atmosphere — you'd need a suit.",
+      "ambient_light": 85,
+      "light_description": "bright",
+      "floor": -1,
+      "items": [],
+      "properties": {
+        "description": "The dusty surface of the moon, viewed from beneath the Corsair's hull. The ship's massive landing struts tower above. The cargo ramp is sealed. In the distance, a small shuttle sits on its own landing gear. The sky is purple-grey, stars visible. There is no atmosphere — you'd need a suit.",
+        "environment": {
+          "light": 85,
+          "temperature": 2,
+          "air": "none (vacuum)",
+          "smell": "none",
+          "noise": "silence"
+        }
+      },
+      "environment": {
+        "light": 85,
+        "temperature": 2,
+        "air": "none (vacuum)",
+        "smell": "none",
+        "noise": "silence"
+      },
+      "exits": {
+        "cargo_ramp_back": {
+          "target": "Cargo Bay",
+          "state": "locked",
+          "description": "The cargo ramp, sealed shut.",
+          "way_id": "way_Cargo_Bay_cargo_ramp",
+          "return_dir": "cargo_ramp",
+          "cost": {
+            "time": 2,
+            "energy": 2
+          },
+          "hidden": false,
+          "pass_message": "",
+          "visible_in_direction": ""
+        }
+      }
+    }
+  },
+  "ways": {},
+  "graph": {
+    "nodes": {
+      "area_cargo_bay": {
+        "id": "area_cargo_bay",
+        "type": "area",
+        "name": "Cargo Bay",
+        "properties": {
+          "description": "The main cargo hold of the Corsair. Heavy magnetic floor plates, cargo containers stacked against the walls.",
+          "environment": {
+            "light": 40,
+            "temperature": 15,
+            "air": "stale",
+            "smell": "coolant and grease",
+            "noise": "low hum"
+          }
+        }
+      },
+      "area_scanning_station": {
+        "id": "area_scanning_station",
+        "type": "area",
+        "name": "Scanning Station",
+        "properties": {
+          "description": "A small room with a large curved console showing sensor readouts.",
+          "environment": {
+            "light": 55,
+            "temperature": 18,
+            "air": "filtered",
+            "smell": "coffee",
+            "noise": "quiet fan"
+          }
+        }
+      },
+      "area_component_bay": {
+        "id": "area_component_bay",
+        "type": "area",
+        "name": "Component Bay",
+        "properties": {
+          "description": "The ship's component housing.",
+          "environment": {
+            "light": 35,
+            "temperature": 26,
+            "air": "stale",
+            "smell": "hot electronics",
+            "noise": "engine thrum"
+          }
+        }
+      },
+      "area_main_habitation": {
+        "id": "area_main_habitation",
+        "type": "area",
+        "name": "Main Habitation",
+        "properties": {
+          "description": "The central living area.",
+          "environment": {
+            "light": 45,
+            "temperature": 19,
+            "air": "stale",
+            "smell": "instant noodles",
+            "noise": "ventilation rattle"
+          }
+        }
+      },
+      "area_bunk_area_1": {
+        "id": "area_bunk_area_1",
+        "type": "area",
+        "name": "Bunk Area 1",
+        "properties": {
+          "description": "Captain Torres's cabin.",
+          "environment": {
+            "light": 25,
+            "temperature": 17,
+            "air": "stale",
+            "smell": "faint perfume",
+            "noise": "quiet"
+          }
+        }
+      },
+      "area_bunk_area_2": {
+        "id": "area_bunk_area_2",
+        "type": "area",
+        "name": "Bunk Area 2",
+        "properties": {
+          "description": "Pilot Chen's cabin.",
+          "environment": {
+            "light": 25,
+            "temperature": 17,
+            "air": "stale",
+            "smell": "engine oil",
+            "noise": "quiet"
+          }
+        }
+      },
+      "area_bunk_area_3": {
+        "id": "area_bunk_area_3",
+        "type": "area",
+        "name": "Bunk Area 3",
+        "properties": {
+          "description": "Systems engineer Okafor's cabin.",
+          "environment": {
+            "light": 25,
+            "temperature": 17,
+            "air": "stale",
+            "smell": "grease",
+            "noise": "quiet"
+          }
+        }
+      },
+      "area_shared_toilet": {
+        "id": "area_shared_toilet",
+        "type": "area",
+        "name": "Shared Toilet",
+        "properties": {
+          "description": "A cramped bathroom.",
+          "environment": {
+            "light": 50,
+            "temperature": 20,
+            "air": "humid",
+            "smell": "soap",
+            "noise": "dripping"
+          }
+        }
+      },
+      "area_turret_access": {
+        "id": "area_turret_access",
+        "type": "area",
+        "name": "Turret Access",
+        "properties": {
+          "description": "A narrow vertical shaft.",
+          "environment": {
+            "light": 35,
+            "temperature": 12,
+            "air": "thin",
+            "smell": "metal",
+            "noise": "servo whine"
+          }
+        }
+      },
+      "area_upper_turret": {
+        "id": "area_upper_turret",
+        "type": "area",
+        "name": "Upper Turret",
+        "properties": {
+          "description": "A cramped turret blister.",
+          "environment": {
+            "light": 65,
+            "temperature": 8,
+            "air": "thin",
+            "smell": "metal",
+            "noise": "silence"
+          }
+        }
+      },
+      "area_cockpit": {
+        "id": "area_cockpit",
+        "type": "area",
+        "name": "Cockpit",
+        "properties": {
+          "description": "The nerve centre of the Corsair.",
+          "environment": {
+            "light": 55,
+            "temperature": 18,
+            "air": "filtered",
+            "smell": "ozone",
+            "noise": "console hum"
+          }
+        }
+      },
+      "area_captains_quarters": {
+        "id": "area_captains_quarters",
+        "type": "area",
+        "name": "Captain's Quarters",
+        "properties": {
+          "description": "The captain's private cabin.",
+          "environment": {
+            "light": 30,
+            "temperature": 17,
+            "air": "stale",
+            "smell": "paper",
+            "noise": "quiet"
+          }
+        }
+      },
+      "area_exterior_landing_pad": {
+        "id": "area_exterior_landing_pad",
+        "type": "area",
+        "name": "Exterior Landing Pad",
+        "properties": {
+          "description": "The dusty surface of the moon.",
+          "environment": {
+            "light": 85,
+            "temperature": 2,
+            "air": "none (vacuum)",
+            "smell": "none",
+            "noise": "silence"
+          }
+        }
+      },
+      "player_Crew": {
+        "id": "player_Crew",
+        "type": "character",
+        "name": "Crew",
+        "properties": {
+          "description": ""
+        }
+      },
+      "player_Miki": {
+        "id": "player_Miki",
+        "type": "character",
+        "name": "Miki",
+        "properties": {
+          "description": "A woman in her mid-20s with dirty blonde hair in twin-tails."
+        }
+      },
+      "item_pouch": {
+        "id": "item_pouch",
+        "type": "item",
+        "name": "protein_pouch",
+        "properties": {
+          "description": "A military-style emergency ration. Tastes like cardboard.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": 2,
+          "weight": 0.2,
+          "tags": [
+            "food"
+          ],
+          "triggers": [
+            {
+              "trigger_type": "on_use",
+              "effect_type": "adjust_vital",
+              "effect_params": {
+                "target": "self",
+                "stat": "Hunger",
+                "amount": 30,
+                "success_message": "You choke down the protein pouch. It tastes like cardboard but it's food."
+              }
+            }
+          ]
+        }
+      },
+      "item_water_pouch": {
+        "id": "item_water_pouch",
+        "type": "item",
+        "name": "water_pouch",
+        "properties": {
+          "description": "A sealed emergency water pouch.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": 2,
+          "weight": 0.3,
+          "tags": [
+            "food"
+          ],
+          "triggers": [
+            {
+              "trigger_type": "on_use",
+              "effect_type": "adjust_vital",
+              "effect_params": {
+                "target": "self",
+                "stat": "Thirst",
+                "amount": 25,
+                "success_message": "You drink the water. It's warm but wet."
+              }
+            }
+          ]
+        }
+      },
+      "item_multitool": {
+        "id": "item_multitool",
+        "type": "item",
+        "name": "multitool",
+        "properties": {
+          "description": "A Drake-issue multitool with a bright LED light.",
+          "actions": [
+            "examine",
+            "use",
+            "equip",
+            "unequip"
+          ],
+          "uses": -1,
+          "weight": 0.2,
+          "equip_slots": [
+            "hand_left",
+            "hand_right"
+          ],
+          "current_state": "unlit",
+          "light_level": "bright",
+          "tags": [
+            "tool",
+            "toggleable",
+            "light_source",
+            "electric"
+          ],
+          "triggers": [
+            {
+              "trigger_type": "on_toggle_on",
+              "effect_type": "message",
+              "effect_params": {
+                "message": "You flick the multitool's light on. A bright beam cuts through the dark."
+              }
+            },
+            {
+              "trigger_type": "on_toggle_off",
+              "effect_type": "message",
+              "effect_params": {
+                "message": "The multitool's light clicks off."
+              }
+            }
+          ]
+        }
+      },
+      "item_datapad": {
+        "id": "item_datapad",
+        "type": "item",
+        "name": "datapad",
+        "properties": {
+          "description": "A handheld tablet with ship schematics. Shows the Corsair's layout — cargo bay, scanning station, component bay, habitation, cockpit, turrets. A note is pinned to the schematic: 'Check coolant leak before next jump.'",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 0.3,
+          "tags": [
+            "tool"
+          ]
+        }
+      },
+      "item_cargo_container": {
+        "id": "item_cargo_container",
+        "type": "item",
+        "name": "cargo_container",
+        "properties": {
+          "description": "A standard UEE cargo container. Empty but heavy.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 200,
+          "tags": [
+            "furniture"
+          ]
+        }
+      },
+      "item_cargo_netting": {
+        "id": "item_cargo_netting",
+        "type": "item",
+        "name": "cargo_netting",
+        "properties": {
+          "description": "Heavy cargo netting bolted to the ceiling. Could support weight.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 50,
+          "tags": [
+            "furniture"
+          ]
+        }
+      },
+      "item_ramp_controls": {
+        "id": "item_ramp_controls",
+        "type": "item",
+        "name": "ramp_controls",
+        "properties": {
+          "description": "The cargo ramp control panel. Screen shows: 'RAMP STATUS: SEALED. HYDRAULICS: NOMINAL. POWER: INSUFFICIENT.'",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 10,
+          "tags": [
+            "console"
+          ]
+        }
+      },
+      "item_fuel_canister": {
+        "id": "item_fuel_canister",
+        "type": "item",
+        "name": "fuel_canister",
+        "properties": {
+          "description": "A sealed fuel canister. Label: 'DRIVE FUEL — CLASS A'.",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 5,
+          "tags": [
+            "fuel"
+          ]
+        }
+      },
+      "item_cargo_manifest": {
+        "id": "item_cargo_manifest",
+        "type": "item",
+        "name": "cargo_manifest",
+        "properties": {
+          "description": "A datapad showing cargo contents: medical supplies, food stores, ammunition, and one 'CLASSIFIED — RESEARCH' container.",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 0.3,
+          "tags": [
+            "document"
+          ]
+        }
+      },
+      "item_spare_parts": {
+        "id": "item_spare_parts",
+        "type": "item",
+        "name": "spare_parts",
+        "properties": {
+          "description": "A box of hydraulic fittings, fuses, and sealant.",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 3,
+          "tags": [
+            "tool"
+          ]
+        }
+      },
+      "item_hidden_keycard": {
+        "id": "item_hidden_keycard",
+        "type": "item",
+        "name": "keycard",
+        "properties": {
+          "description": "A keycard wedged in the floor grating. Label: 'COMPONENT ACCESS — LEVEL 3'.",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 0.05,
+          "tags": [
+            "key"
+          ],
+          "hidden": true,
+          "skill_check": {
+            "skill": "Perception",
+            "dc": 12,
+            "grants_knowledge": "found_component_keycard"
+          }
+        }
+      },
+      "item_scanner_console": {
+        "id": "item_scanner_console",
+        "type": "item",
+        "name": "scanner_console",
+        "properties": {
+          "description": "The main scanning console. Status: 'SENSOR ARRAY: OFFLINE. LONG RANGE: NO SIGNAL. SHORT RANGE: DEGRADED.'",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 20,
+          "tags": [
+            "console"
+          ]
+        }
+      },
+      "item_holographic_display": {
+        "id": "item_holographic_display",
+        "type": "item",
+        "name": "holographic_display",
+        "properties": {
+          "description": "A 3D wireframe of the Corsair, slowly rotating. Red indicators mark damaged systems: comm array, quantum drive, one turret.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 5,
+          "tags": [
+            "console"
+          ]
+        }
+      },
+      "item_scan_results": {
+        "id": "item_scan_results",
+        "type": "item",
+        "name": "scan_results",
+        "properties": {
+          "description": "A saved scan log: 'UNKNOWN ENERGY SIGNATURE DETECTED IN QUANTUM WAKE. SOURCE: UNKNOWN. THREAT ASSESSMENT: PENDING.' Timestamp shows it was logged just before the emergency stop.",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 0.1,
+          "tags": [
+            "document"
+          ]
+        }
+      },
+      "item_energy_bar": {
+        "id": "item_energy_bar",
+        "type": "item",
+        "name": "energy_bar",
+        "properties": {
+          "description": "A 'POWER GRID' energy bar behind the console. Someone's forgotten snack.",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "uses": 1,
+          "weight": 0.1,
+          "tags": [
+            "food"
+          ],
+          "triggers": [
+            {
+              "trigger_type": "on_use",
+              "effect_type": "adjust_vital",
+              "effect_params": {
+                "target": "self",
+                "stat": "Hunger",
+                "amount": 15,
+                "success_message": "You eat the energy bar. Tastes like oats and regret."
+              }
+            }
+          ]
+        }
+      },
+      "item_quantum_drive": {
+        "id": "item_quantum_drive",
+        "type": "item",
+        "name": "quantum_drive",
+        "properties": {
+          "description": "The quantum drive. A large cylindrical device with glowing conduits. Status: 'OFFLINE — EMERGENCY STOP TRIGGERED. RESTART REQUIRED.' A manual restart panel is on the side.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 100,
+          "tags": [
+            "console",
+            "ship_component"
+          ]
+        }
+      },
+      "item_power_plant": {
+        "id": "item_power_plant",
+        "type": "item",
+        "name": "power_plant",
+        "properties": {
+          "description": "The ship's main power plant. Running at 23% on emergency reserves. Status: 'OUTPUT: CRITICAL. RECOMMEND SHUTDOWN NON-ESSENTIAL SYSTEMS.'",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 80,
+          "tags": [
+            "console",
+            "ship_component"
+          ]
+        }
+      },
+      "item_shield_generator": {
+        "id": "item_shield_generator",
+        "type": "item",
+        "name": "shield_generator",
+        "properties": {
+          "description": "The shield generator. Status: 'OFFLINE — NO POWER.'",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 40,
+          "tags": [
+            "console",
+            "ship_component"
+          ]
+        }
+      },
+      "item_coolant_pipe": {
+        "id": "item_coolant_pipe",
+        "type": "item",
+        "name": "coolant_pipe",
+        "properties": {
+          "description": "A coolant pipe running to the quantum drive. It's vibrating slightly. There's a small leak near the junction.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 15,
+          "tags": [
+            "ship_component"
+          ]
+        }
+      },
+      "item_maintenance_log": {
+        "id": "item_maintenance_log",
+        "type": "item",
+        "name": "maintenance_log",
+        "properties": {
+          "description": "A digital maintenance log. Last entry by R. Vasquez: 'Quantum capacitor fluctuating again. Replaced the regulator last week but readings are still unstable. Running diagnostics tomorrow.'",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 0.1,
+          "tags": [
+            "document"
+          ]
+        }
+      },
+      "item_wrench": {
+        "id": "item_wrench",
+        "type": "item",
+        "name": "wrench",
+        "properties": {
+          "description": "A heavy wrench left on a ledge. Someone was mid-repair.",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 1.5,
+          "tags": [
+            "tool"
+          ]
+        }
+      },
+      "item_coolant_fluid": {
+        "id": "item_coolant_fluid",
+        "type": "item",
+        "name": "coolant_fluid",
+        "properties": {
+          "description": "A sealed container of coolant fluid. Could patch the leak.",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "uses": 1,
+          "weight": 2,
+          "tags": [
+            "tool"
+          ]
+        }
+      },
+      "item_microwave": {
+        "id": "item_microwave",
+        "type": "item",
+        "name": "microwave",
+        "properties": {
+          "description": "A small microwave. It still works on emergency power. A half-eaten meal sits inside.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 5,
+          "tags": [
+            "appliance"
+          ]
+        }
+      },
+      "item_half_eaten_meal": {
+        "id": "item_half_eaten_meal",
+        "type": "item",
+        "name": "half_eaten_meal",
+        "properties": {
+          "description": "A microwave meal, half-eaten. Cold but edible if you're desperate.",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "uses": 1,
+          "weight": 0.2,
+          "tags": [
+            "food"
+          ],
+          "triggers": [
+            {
+              "trigger_type": "on_use",
+              "effect_type": "adjust_vital",
+              "effect_params": {
+                "target": "self",
+                "stat": "Hunger",
+                "amount": 15,
+                "success_message": "You eat the cold meal. Not great, but filling."
+              }
+            }
+          ]
+        }
+      },
+      "item_coffee_maker": {
+        "id": "item_coffee_maker",
+        "type": "item",
+        "name": "coffee_maker",
+        "properties": {
+          "description": "A standard coffee maker. Empty but functional.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 3,
+          "tags": [
+            "appliance"
+          ]
+        }
+      },
+      "item_instant_coffee": {
+        "id": "item_instant_coffee",
+        "type": "item",
+        "name": "instant_coffee",
+        "properties": {
+          "description": "A jar of instant coffee crystals. Half empty.",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "uses": 5,
+          "weight": 0.2,
+          "tags": [
+            "food"
+          ],
+          "triggers": [
+            {
+              "trigger_type": "on_use",
+              "effect_type": "adjust_vital",
+              "effect_params": {
+                "target": "self",
+                "stat": "Energy",
+                "amount": 10,
+                "success_message": "You dry-scoop some coffee crystals. The bitterness wakes you up a little."
+              }
+            }
+          ]
+        }
+      },
+      "item_ration_box": {
+        "id": "item_ration_box",
+        "type": "item",
+        "name": "ration_box",
+        "properties": {
+          "description": "A box of emergency ration bars. Dense, flavorless, filling.",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "uses": 6,
+          "weight": 0.3,
+          "tags": [
+            "food"
+          ],
+          "triggers": [
+            {
+              "trigger_type": "on_use",
+              "effect_type": "adjust_vital",
+              "effect_params": {
+                "target": "self",
+                "stat": "Hunger",
+                "amount": 20,
+                "success_message": "You eat a ration bar. It's dense and bland but your stomach stops complaining."
+              }
+            }
+          ]
+        }
+      },
+      "item_water_dispenser": {
+        "id": "item_water_dispenser",
+        "type": "item",
+        "name": "water_dispenser",
+        "properties": {
+          "description": "A wall-mounted water dispenser. The reservoir is half full. The water tastes like plastic but is safe.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 10,
+          "tags": [
+            "appliance"
+          ]
+        }
+      },
+      "item_crew_board": {
+        "id": "item_crew_board",
+        "type": "item",
+        "name": "crew_board",
+        "properties": {
+          "description": "A whiteboard with shift schedules and notes. One note in red marker: 'DO NOT TOUCH QUANTUM DRIVE. — VASQUEZ'",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 3,
+          "tags": [
+            "furniture"
+          ]
+        }
+      },
+      "item_captains_photo": {
+        "id": "item_captains_photo",
+        "type": "item",
+        "name": "captains_photo",
+        "properties": {
+          "description": "A photo of Captain Torres — a sharp-eyed woman — with a golden retriever. Back reads: 'For luck — M.T.'",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 0.2,
+          "tags": [
+            "personal_effect"
+          ]
+        }
+      },
+      "item_jacket": {
+        "id": "item_jacket",
+        "type": "item",
+        "name": "jacket",
+        "properties": {
+          "description": "A worn leather jacket. In the pocket: a folded note that reads 'Don't trust the signal.'",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 1,
+          "tags": [
+            "clothing"
+          ]
+        }
+      },
+      "item_captains_log": {
+        "id": "item_captains_log",
+        "type": "item",
+        "name": "captains_log",
+        "properties": {
+          "description": "A personal datapad. Last entry: 'Okafor flagged anomalies in the quantum wake. Chen thinks it's a sensor ghost. I'm not so sure. If this goes south, the emergency protocols are on the cockpit console.'",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 0.3,
+          "tags": [
+            "document"
+          ]
+        }
+      },
+      "item_torres_protein_bar": {
+        "id": "item_torres_protein_bar",
+        "type": "item",
+        "name": "protein_bar",
+        "properties": {
+          "description": "An unopened protein bar under the mattress.",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "uses": 1,
+          "weight": 0.15,
+          "tags": [
+            "food"
+          ],
+          "triggers": [
+            {
+              "trigger_type": "on_use",
+              "effect_type": "adjust_vital",
+              "effect_params": {
+                "target": "self",
+                "stat": "Hunger",
+                "amount": 20,
+                "success_message": "You eat the protein bar. Not bad."
+              }
+            }
+          ]
+        }
+      },
+      "item_flight_helmet": {
+        "id": "item_flight_helmet",
+        "type": "item",
+        "name": "flight_helmet",
+        "properties": {
+          "description": "A pilot's helmet with integrated comms. 'J. CHEN' stenciled on the side.",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 1.5,
+          "tags": [
+            "clothing"
+          ]
+        }
+      },
+      "item_nav_charts": {
+        "id": "item_nav_charts",
+        "type": "item",
+        "name": "nav_charts",
+        "properties": {
+          "description": "Navigation charts for the Kellog system. Handwritten notes mark a 'POINT OF INTEREST' near the jump point.",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 0.3,
+          "tags": [
+            "document"
+          ]
+        }
+      },
+      "item_emergency_codes": {
+        "id": "item_emergency_codes",
+        "type": "item",
+        "name": "emergency_codes",
+        "properties": {
+          "description": "A small card: 'QUANTUM EMERGENCY STOP — ALT+DEL+Q. FORCED RESTART — HOLD PWR+Q FOR 5 SEC.'",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 0.02,
+          "tags": [
+            "document"
+          ]
+        }
+      },
+      "item_chen_water_bottle": {
+        "id": "item_chen_water_bottle",
+        "type": "item",
+        "name": "water_bottle",
+        "properties": {
+          "description": "A reusable bottle, half full.",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "uses": 2,
+          "weight": 0.4,
+          "tags": [
+            "food"
+          ],
+          "triggers": [
+            {
+              "trigger_type": "on_use",
+              "effect_type": "adjust_vital",
+              "effect_params": {
+                "target": "self",
+                "stat": "Thirst",
+                "amount": 20,
+                "success_message": "You drink the water. It's been sitting but it's fine."
+              }
+            }
+          ]
+        }
+      },
+      "item_tool_belt": {
+        "id": "item_tool_belt",
+        "type": "item",
+        "name": "tool_belt",
+        "properties": {
+          "description": "A well-worn tool belt: wrenches, pliers, multimeter.",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 2,
+          "tags": [
+            "tool"
+          ]
+        }
+      },
+      "item_technical_manual": {
+        "id": "item_technical_manual",
+        "type": "item",
+        "name": "technical_manual",
+        "properties": {
+          "description": "A Drake Corsair maintenance manual. The quantum drive section is heavily annotated with warnings.",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 1,
+          "tags": [
+            "document"
+          ]
+        }
+      },
+      "item_diagnosis_notes": {
+        "id": "item_diagnosis_notes",
+        "type": "item",
+        "name": "diagnosis_notes",
+        "properties": {
+          "description": "Sticky notes: 'QUANTUM CAPACITOR UNSTABLE — DO NOT ENGAGE', 'COOLANT LEAK IN SECTOR 7', 'SOMETHING IS IN THE WAKE — NOT A GHOST'",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 0.05,
+          "tags": [
+            "document"
+          ]
+        }
+      },
+      "item_beef_jerky": {
+        "id": "item_beef_jerky",
+        "type": "item",
+        "name": "beef_jerky",
+        "properties": {
+          "description": "A bag of homemade beef jerky. Still good.",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "uses": 3,
+          "weight": 0.2,
+          "tags": [
+            "food"
+          ],
+          "triggers": [
+            {
+              "trigger_type": "on_use",
+              "effect_type": "adjust_vital",
+              "effect_params": {
+                "target": "self",
+                "stat": "Hunger",
+                "amount": 15,
+                "success_message": "You chew on some jerky. It's tough but tasty."
+              }
+            }
+          ]
+        }
+      },
+      "item_first_aid": {
+        "id": "item_first_aid",
+        "type": "item",
+        "name": "first_aid",
+        "properties": {
+          "description": "A small first aid kit mounted on the wall. Contains bandages, painkillers, and antiseptic.",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "uses": 3,
+          "weight": 0.5,
+          "tags": [
+            "medical"
+          ],
+          "triggers": [
+            {
+              "trigger_type": "on_use",
+              "effect_type": "heal",
+              "effect_params": {
+                "target": "self",
+                "amount": 15,
+                "success_message": "You bandage your wounds. The pain fades slightly."
+              }
+            }
+          ]
+        }
+      },
+      "item_weapons_terminal": {
+        "id": "item_weapons_terminal",
+        "type": "item",
+        "name": "weapons_terminal",
+        "properties": {
+          "description": "A terminal for turret control. Status: 'WEAPONS OFFLINE. REQUIRES SYSTEMS RESTART.'",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 10,
+          "tags": [
+            "console"
+          ]
+        }
+      },
+      "item_ammo_magazine": {
+        "id": "item_ammo_magazine",
+        "type": "item",
+        "name": "ammo_magazine",
+        "properties": {
+          "description": "An ammunition feed chute. Half loaded with size-4 ballistic rounds.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 8,
+          "tags": [
+            "ammo"
+          ]
+        }
+      },
+      "item_maintenance_kit": {
+        "id": "item_maintenance_kit",
+        "type": "item",
+        "name": "maintenance_kit",
+        "properties": {
+          "description": "A small toolkit for gun maintenance. Includes cleaning rods and oil.",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 1,
+          "tags": [
+            "tool"
+          ]
+        }
+      },
+      "item_turret_guns": {
+        "id": "item_turret_guns",
+        "type": "item",
+        "name": "turret_guns",
+        "properties": {
+          "description": "Two S4 attrition repeaters. They look intact but need power.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 30,
+          "tags": [
+            "ship_component"
+          ]
+        }
+      },
+      "item_targeting_console": {
+        "id": "item_targeting_console",
+        "type": "item",
+        "name": "targeting_console",
+        "properties": {
+          "description": "The turret targeting computer. Screen: 'NO TARGET. WEAPONS OFFLINE.'",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 15,
+          "tags": [
+            "console"
+          ]
+        }
+      },
+      "item_main_console": {
+        "id": "item_main_console",
+        "type": "item",
+        "name": "main_console",
+        "properties": {
+          "description": "The main flight console. Status: 'FLIGHT: MANUAL. QUANTUM: OFFLINE. SHIELDS: DOWN. WEAPONS: OFFLINE.'",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 50,
+          "tags": [
+            "console"
+          ]
+        }
+      },
+      "item_emergency_protocols": {
+        "id": "item_emergency_protocols",
+        "type": "item",
+        "name": "emergency_protocols",
+        "properties": {
+          "description": "A laminated card taped to the console: 'EMERGENCY PROCEDURES: 1. Stabilize power. 2. Restart quantum drive from Component Bay. 3. Re-engage navigation. 4. Contact nearest station.'",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 0.1,
+          "tags": [
+            "document"
+          ]
+        }
+      },
+      "item_desk": {
+        "id": "item_desk",
+        "type": "item",
+        "name": "desk",
+        "properties": {
+          "description": "A personal desk with a locked drawer. A holographic picture frame shows a rotating image of a dog.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 10,
+          "tags": [
+            "furniture"
+          ]
+        }
+      },
+      "item_locked_drawer": {
+        "id": "item_locked_drawer",
+        "type": "item",
+        "name": "locked_drawer",
+        "properties": {
+          "description": "A desk drawer with a biometric lock. Requires Torres's fingerprint.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 8,
+          "tags": [
+            "furniture"
+          ],
+          "current_state": "locked"
+        }
+      },
+      "item_personal_log": {
+        "id": "item_personal_log",
+        "type": "item",
+        "name": "personal_log",
+        "properties": {
+          "description": "A hidden datapad behind a loose panel. Final entry: 'The signal came from inside the quantum wake. Something followed us through. I've locked down the component bay. God help us.'",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 0.3,
+          "tags": [
+            "document"
+          ],
+          "hidden": true,
+          "skill_check": {
+            "skill": "Investigation",
+            "dc": 14,
+            "grants_knowledge": "found_final_log"
+          }
+        }
+      },
+      "item_hologram_frame": {
+        "id": "item_hologram_frame",
+        "type": "item",
+        "name": "hologram_frame",
+        "properties": {
+          "description": "A small holographic frame showing a golden retriever running through a field.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 0.3,
+          "tags": [
+            "personal_effect"
+          ]
+        }
+      },
+      "item_soap": {
+        "id": "item_soap",
+        "type": "item",
+        "name": "soap",
+        "properties": {
+          "description": "A bar of industrial soap. Smells like chemicals.",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 0.1,
+          "tags": [
+            "tool"
+          ]
+        }
+      },
+      "item_towel": {
+        "id": "item_towel",
+        "type": "item",
+        "name": "towel",
+        "properties": {
+          "description": "A damp towel on the floor. Someone was in a hurry.",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 0.3,
+          "tags": [
+            "furniture"
+          ]
+        }
+      },
+      "item_kitchenette": {
+        "id": "item_kitchenette",
+        "type": "item",
+        "name": "kitchenette",
+        "properties": {
+          "description": "A small galley: microwave, coffee maker, sink, and a cabinet.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 40,
+          "tags": [
+            "furniture"
+          ]
+        }
+      },
+      "item_shuttle": {
+        "id": "item_shuttle",
+        "type": "item",
+        "name": "shuttle",
+        "properties": {
+          "description": "Your shuttle. It has life support and fuel. A last resort.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 1000,
+          "tags": [
+            "vehicle"
+          ]
+        }
+      },
+      "item_comm_array": {
+        "id": "item_comm_array",
+        "type": "item",
+        "name": "comm_array",
+        "properties": {
+          "description": "The ship's external comm array. The dish is bent — damage sustained during the emergency stop.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 30,
+          "tags": [
+            "ship_component"
+          ]
+        }
+      },
+      "item_miki_phone": {
+        "id": "item_miki_phone",
+        "type": "item",
+        "name": "phone",
+        "properties": {
+          "description": "Miki's smartphone with flashlight and voice recorder. Battery at 52%.",
+          "actions": [
+            "examine",
+            "use",
+            "equip",
+            "unequip"
+          ],
+          "uses": -1,
+          "weight": 0.3,
+          "equip_slots": [
+            "hand_left",
+            "hand_right"
+          ],
+          "current_state": "unlit",
+          "light_level": "normal",
+          "tags": [
+            "toggleable",
+            "light_source",
+            "electric"
+          ],
+          "triggers": [
+            {
+              "trigger_type": "on_toggle_on",
+              "effect_type": "message",
+              "effect_params": {
+                "message": "Miki flicks on her phone light. The dim glow pushes back the dark."
+              }
+            },
+            {
+              "trigger_type": "on_toggle_off",
+              "effect_type": "message",
+              "effect_params": {
+                "message": "Miki's phone light clicks off."
+              }
+            }
+          ]
+        }
+      },
+      "item_miki_energy_drink": {
+        "id": "item_miki_energy_drink",
+        "type": "item",
+        "name": "energy_drink",
+        "properties": {
+          "description": "A half-drunk 'QUANTUM BURST' energy drink. Fizzy and questionable.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": 1,
+          "weight": 0.3,
+          "tags": [
+            "food"
+          ],
+          "triggers": [
+            {
+              "trigger_type": "on_use",
+              "effect_type": "adjust_vital",
+              "effect_params": {
+                "target": "self",
+                "stat": "Energy",
+                "amount": 20,
+                "success_message": "You chug the Quantum Burst. It's aggressively carbonated and tastes like battery acid. You feel awake."
+              }
+            }
+          ]
+        }
+      },
+      "item_miki_protein_bar": {
+        "id": "item_miki_protein_bar",
+        "type": "item",
+        "name": "miki_protein_bar",
+        "properties": {
+          "description": "A slightly squished protein bar. Chocolate chip.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": 1,
+          "weight": 0.15,
+          "tags": [
+            "food"
+          ],
+          "triggers": [
+            {
+              "trigger_type": "on_use",
+              "effect_type": "adjust_vital",
+              "effect_params": {
+                "target": "self",
+                "stat": "Hunger",
+                "amount": 25,
+                "success_message": "You eat the protein bar. It's squished but tastes fine."
+              }
+            }
+          ]
+        }
+      },
+      "item_miki_water_bottle": {
+        "id": "item_miki_water_bottle",
+        "type": "item",
+        "name": "water_bottle",
+        "properties": {
+          "description": "A cat-themed reusable water bottle. Mostly full.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": 3,
+          "weight": 0.4,
+          "tags": [
+            "food"
+          ],
+          "triggers": [
+            {
+              "trigger_type": "on_use",
+              "effect_type": "adjust_vital",
+              "effect_params": {
+                "target": "self",
+                "stat": "Thirst",
+                "amount": 20,
+                "success_message": "You drink from Miki's cat-themed bottle."
+              }
+            }
+          ]
+        }
+      },
+      "item_miki_earbuds": {
+        "id": "item_miki_earbuds",
+        "type": "item",
+        "name": "earbuds",
+        "properties": {
+          "description": "Tangled earbuds. Could amplify quiet sounds.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 0.05,
+          "tags": [
+            "tool"
+          ]
+        }
+      },
+      "item_miki_charger": {
+        "id": "item_miki_charger",
+        "type": "item",
+        "name": "portable_charger",
+        "properties": {
+          "description": "A small power bank. 30% charged.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": 3,
+          "weight": 0.2,
+          "tags": [
+            "tool"
+          ]
+        }
+      },
+      "item_bunk_torres": {
+        "id": "item_bunk_torres",
+        "type": "item",
+        "name": "bunk",
+        "properties": {
+          "description": "The captain's bunk. Rumpled sheets.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 20,
+          "tags": [
+            "furniture"
+          ]
+        }
+      },
+      "item_bunk_chen": {
+        "id": "item_bunk_chen",
+        "type": "item",
+        "name": "bunk",
+        "properties": {
+          "description": "Chen's bunk. Neatly made.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 20,
+          "tags": [
+            "furniture"
+          ]
+        }
+      },
+      "item_bunk_okafor": {
+        "id": "item_bunk_okafor",
+        "type": "item",
+        "name": "bunk",
+        "properties": {
+          "description": "Okafor's bunk. A technical manual serves as a pillow.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 20,
+          "tags": [
+            "furniture"
+          ]
+        }
+      },
+      "item_sink": {
+        "id": "item_sink",
+        "type": "item",
+        "name": "sink",
+        "properties": {
+          "description": "A small sink with a motion-activated faucet. The water works.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 20,
+          "tags": [
+            "furniture"
+          ]
+        }
+      },
+      "item_soap_bar": {
+        "id": "item_soap_bar",
+        "type": "item",
+        "name": "soap",
+        "properties": {
+          "description": "A bar of industrial soap.",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 0.1,
+          "tags": [
+            "tool"
+          ]
+        }
+      },
+      "item_towel_2": {
+        "id": "item_towel_2",
+        "type": "item",
+        "name": "towel",
+        "properties": {
+          "description": "A damp towel on the floor.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 0.3,
+          "tags": [
+            "furniture"
+          ]
+        }
+      },
+      "item_coffee_mug": {
+        "id": "item_coffee_mug",
+        "type": "item",
+        "name": "coffee_mug",
+        "properties": {
+          "description": "An empty 'KRUGER' branded mug. The coffee has long gone cold.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 0.3,
+          "tags": [
+            "furniture"
+          ]
+        }
+      },
+      "item_canopy": {
+        "id": "item_canopy",
+        "type": "item",
+        "name": "canopy",
+        "properties": {
+          "description": "The reinforced glass canopy with a stunning view of alien stars.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 20,
+          "tags": [
+            "furniture"
+          ]
+        }
+      },
+      "way_Cargo_Bay_cargo_ramp": {
+        "id": "way_Cargo_Bay_cargo_ramp",
+        "type": "way",
+        "name": "Cargo Bay-cargo_ramp",
+        "properties": {
+          "area_from": "Cargo Bay",
+          "area_to": "Exterior Landing Pad",
+          "current_state": "locked",
+          "description": "The massive hydraulic cargo ramp at the rear. Sealed shut.",
+          "cost": {
+            "time": 2,
+            "energy": 2
+          }
+        }
+      },
+      "way_Cargo_Bay_scanning_way": {
+        "id": "way_Cargo_Bay_scanning_way",
+        "type": "way",
+        "name": "Cargo Bay-scanning_way",
+        "properties": {
+          "area_from": "Cargo Bay",
+          "area_to": "Scanning Station",
+          "current_state": "open",
+          "description": "A door to port leading to the scanning station.",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "way_Cargo_Bay_component_way": {
+        "id": "way_Cargo_Bay_component_way",
+        "type": "way",
+        "name": "Cargo Bay-component_way",
+        "properties": {
+          "area_from": "Cargo Bay",
+          "area_to": "Component Bay",
+          "current_state": "open",
+          "description": "A door to starboard leading to the component bay.",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "way_Cargo_Bay_habitation_way": {
+        "id": "way_Cargo_Bay_habitation_way",
+        "type": "way",
+        "name": "Cargo Bay-habitation_way",
+        "properties": {
+          "area_from": "Cargo Bay",
+          "area_to": "Main Habitation",
+          "current_state": "open",
+          "description": "A reinforced door leading to the habitation area.",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "way_Main_Habitation_bunk1_way": {
+        "id": "way_Main_Habitation_bunk1_way",
+        "type": "way",
+        "name": "Main Habitation-bunk1_way",
+        "properties": {
+          "area_from": "Main Habitation",
+          "area_to": "Bunk Area 1",
+          "current_state": "open",
+          "description": "A way labeled 'TORRES'.",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "way_Main_Habitation_bunk2_way": {
+        "id": "way_Main_Habitation_bunk2_way",
+        "type": "way",
+        "name": "Main Habitation-bunk2_way",
+        "properties": {
+          "area_from": "Main Habitation",
+          "area_to": "Bunk Area 2",
+          "current_state": "open",
+          "description": "A way labeled 'CHEN'.",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "way_Main_Habitation_bunk3_way": {
+        "id": "way_Main_Habitation_bunk3_way",
+        "type": "way",
+        "name": "Main Habitation-bunk3_way",
+        "properties": {
+          "area_from": "Main Habitation",
+          "area_to": "Bunk Area 3",
+          "current_state": "open",
+          "description": "A way labeled 'OKAFOR'.",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "way_Main_Habitation_toilet_way": {
+        "id": "way_Main_Habitation_toilet_way",
+        "type": "way",
+        "name": "Main Habitation-toilet_way",
+        "properties": {
+          "area_from": "Main Habitation",
+          "area_to": "Shared Toilet",
+          "current_state": "closed",
+          "description": "A small door marked with a faded WC symbol.",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "way_Main_Habitation_turret_ladder": {
+        "id": "way_Main_Habitation_turret_ladder",
+        "type": "way",
+        "name": "Main Habitation-turret_ladder",
+        "properties": {
+          "area_from": "Main Habitation",
+          "area_to": "Turret Access",
+          "current_state": "open",
+          "description": "A vertical ladder leading up to the turret.",
+          "cost": {
+            "time": 1,
+            "energy": 2
+          }
+        }
+      },
+      "way_Main_Habitation_cockpit_way": {
+        "id": "way_Main_Habitation_cockpit_way",
+        "type": "way",
+        "name": "Main Habitation-cockpit_way",
+        "properties": {
+          "area_from": "Main Habitation",
+          "area_to": "Cockpit",
+          "current_state": "open",
+          "description": "A reinforced door with a viewport leading to the cockpit.",
+          "cost": {
+            "time": 1
+          }
+        }
+      },
+      "way_Turret_Access_turret_hatch": {
+        "id": "way_Turret_Access_turret_hatch",
+        "type": "way",
+        "name": "Turret Access-turret_hatch",
+        "properties": {
+          "area_from": "Turret Access",
+          "area_to": "Upper Turret",
+          "current_state": "closed",
+          "description": "A hatch leading up into the turret blister.",
+          "cost": {
+            "time": 1,
+            "energy": 1
+          }
+        }
+      },
+      "way_Cockpit_captain_way": {
+        "id": "way_Cockpit_captain_way",
+        "type": "way",
+        "name": "Cockpit-captain_way",
+        "properties": {
+          "area_from": "Cockpit",
+          "area_to": "Captain's Quarters",
+          "current_state": "open",
+          "description": "A small door leading to the captain's quarters.",
+          "cost": {
+            "time": 1
+          }
+        }
+      }
+    },
+    "edges": [
+      {
+        "source": "player_Crew",
+        "target": "area_cargo_bay",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Miki",
+        "target": "area_cargo_bay",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_pouch",
+        "target": "player_Crew",
+        "type": "carrying",
+        "properties": {}
+      },
+      {
+        "source": "item_water_pouch",
+        "target": "player_Crew",
+        "type": "carrying",
+        "properties": {}
+      },
+      {
+        "source": "item_multitool",
+        "target": "player_Crew",
+        "type": "carrying",
+        "properties": {}
+      },
+      {
+        "source": "item_datapad",
+        "target": "player_Crew",
+        "type": "carrying",
+        "properties": {}
+      },
+      {
+        "source": "item_miki_phone",
+        "target": "player_Miki",
+        "type": "carrying",
+        "properties": {}
+      },
+      {
+        "source": "item_miki_energy_drink",
+        "target": "player_Miki",
+        "type": "carrying",
+        "properties": {}
+      },
+      {
+        "source": "item_miki_protein_bar",
+        "target": "player_Miki",
+        "type": "carrying",
+        "properties": {}
+      },
+      {
+        "source": "item_miki_water_bottle",
+        "target": "player_Miki",
+        "type": "carrying",
+        "properties": {}
+      },
+      {
+        "source": "item_miki_earbuds",
+        "target": "player_Miki",
+        "type": "carrying",
+        "properties": {}
+      },
+      {
+        "source": "item_miki_charger",
+        "target": "player_Miki",
+        "type": "carrying",
+        "properties": {}
+      },
+      {
+        "source": "item_cargo_container",
+        "target": "area_cargo_bay",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_cargo_netting",
+        "target": "area_cargo_bay",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_ramp_controls",
+        "target": "area_cargo_bay",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_fuel_canister",
+        "target": "area_cargo_bay",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_cargo_manifest",
+        "target": "area_cargo_bay",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_spare_parts",
+        "target": "area_cargo_bay",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_hidden_keycard",
+        "target": "area_cargo_bay",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_scanner_console",
+        "target": "area_scanning_station",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_holographic_display",
+        "target": "area_scanning_station",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_coffee_mug",
+        "target": "area_scanning_station",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_scan_results",
+        "target": "area_scanning_station",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_energy_bar",
+        "target": "area_scanning_station",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_quantum_drive",
+        "target": "area_component_bay",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_power_plant",
+        "target": "area_component_bay",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_shield_generator",
+        "target": "area_component_bay",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_coolant_pipe",
+        "target": "area_component_bay",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_maintenance_log",
+        "target": "area_component_bay",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_wrench",
+        "target": "area_component_bay",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_coolant_fluid",
+        "target": "area_component_bay",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_kitchenette",
+        "target": "area_main_habitation",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_microwave",
+        "target": "area_main_habitation",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_half_eaten_meal",
+        "target": "area_main_habitation",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_coffee_maker",
+        "target": "area_main_habitation",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_instant_coffee",
+        "target": "area_main_habitation",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_ration_box",
+        "target": "area_main_habitation",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_water_dispenser",
+        "target": "area_main_habitation",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_crew_board",
+        "target": "area_main_habitation",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_captains_photo",
+        "target": "area_bunk_area_1",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_jacket",
+        "target": "area_bunk_area_1",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_captains_log",
+        "target": "area_bunk_area_1",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_torres_protein_bar",
+        "target": "area_bunk_area_1",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_bunk_torres",
+        "target": "area_bunk_area_1",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_flight_helmet",
+        "target": "area_bunk_area_2",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_nav_charts",
+        "target": "area_bunk_area_2",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_emergency_codes",
+        "target": "area_bunk_area_2",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_chen_water_bottle",
+        "target": "area_bunk_area_2",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_bunk_chen",
+        "target": "area_bunk_area_2",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_tool_belt",
+        "target": "area_bunk_area_3",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_technical_manual",
+        "target": "area_bunk_area_3",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_diagnosis_notes",
+        "target": "area_bunk_area_3",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_beef_jerky",
+        "target": "area_bunk_area_3",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_bunk_okafor",
+        "target": "area_bunk_area_3",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_first_aid",
+        "target": "area_shared_toilet",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_soap_bar",
+        "target": "area_shared_toilet",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_towel_2",
+        "target": "area_shared_toilet",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_sink",
+        "target": "area_shared_toilet",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_weapons_terminal",
+        "target": "area_turret_access",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_ammo_magazine",
+        "target": "area_turret_access",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_maintenance_kit",
+        "target": "area_turret_access",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_turret_guns",
+        "target": "area_upper_turret",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_targeting_console",
+        "target": "area_upper_turret",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_canopy",
+        "target": "area_upper_turret",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_main_console",
+        "target": "area_cockpit",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_emergency_protocols",
+        "target": "area_cockpit",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_desk",
+        "target": "area_captains_quarters",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_locked_drawer",
+        "target": "area_captains_quarters",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_personal_log",
+        "target": "area_captains_quarters",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_hologram_frame",
+        "target": "area_captains_quarters",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_shuttle",
+        "target": "area_exterior_landing_pad",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_comm_array",
+        "target": "area_exterior_landing_pad",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "area_cargo_bay",
+        "target": "way_Cargo_Bay_cargo_ramp",
+        "type": "connection",
+        "properties": {
+          "direction": "cargo_ramp"
+        }
+      },
+      {
+        "source": "way_Cargo_Bay_cargo_ramp",
+        "target": "area_cargo_bay",
+        "type": "connection",
+        "properties": {
+          "direction": "cargo_ramp_back"
+        }
+      },
+      {
+        "source": "area_exterior_landing_pad",
+        "target": "way_Cargo_Bay_cargo_ramp",
+        "type": "connection",
+        "properties": {
+          "direction": "cargo_ramp_back"
+        }
+      },
+      {
+        "source": "way_Cargo_Bay_cargo_ramp",
+        "target": "area_exterior_landing_pad",
+        "type": "connection",
+        "properties": {
+          "direction": "cargo_ramp"
+        }
+      },
+      {
+        "source": "area_cargo_bay",
+        "target": "way_Cargo_Bay_scanning_way",
+        "type": "connection",
+        "properties": {
+          "direction": "scanning_way"
+        }
+      },
+      {
+        "source": "way_Cargo_Bay_scanning_way",
+        "target": "area_cargo_bay",
+        "type": "connection",
+        "properties": {
+          "direction": "scanning_way_back"
+        }
+      },
+      {
+        "source": "area_scanning_station",
+        "target": "way_Cargo_Bay_scanning_way",
+        "type": "connection",
+        "properties": {
+          "direction": "scanning_way_back"
+        }
+      },
+      {
+        "source": "way_Cargo_Bay_scanning_way",
+        "target": "area_scanning_station",
+        "type": "connection",
+        "properties": {
+          "direction": "scanning_way"
+        }
+      },
+      {
+        "source": "area_cargo_bay",
+        "target": "way_Cargo_Bay_component_way",
+        "type": "connection",
+        "properties": {
+          "direction": "component_way"
+        }
+      },
+      {
+        "source": "way_Cargo_Bay_component_way",
+        "target": "area_cargo_bay",
+        "type": "connection",
+        "properties": {
+          "direction": "component_way_back"
+        }
+      },
+      {
+        "source": "area_component_bay",
+        "target": "way_Cargo_Bay_component_way",
+        "type": "connection",
+        "properties": {
+          "direction": "component_way_back"
+        }
+      },
+      {
+        "source": "way_Cargo_Bay_component_way",
+        "target": "area_component_bay",
+        "type": "connection",
+        "properties": {
+          "direction": "component_way"
+        }
+      },
+      {
+        "source": "area_cargo_bay",
+        "target": "way_Cargo_Bay_habitation_way",
+        "type": "connection",
+        "properties": {
+          "direction": "habitation_way"
+        }
+      },
+      {
+        "source": "way_Cargo_Bay_habitation_way",
+        "target": "area_cargo_bay",
+        "type": "connection",
+        "properties": {
+          "direction": "habitation_way_back"
+        }
+      },
+      {
+        "source": "area_main_habitation",
+        "target": "way_Cargo_Bay_habitation_way",
+        "type": "connection",
+        "properties": {
+          "direction": "habitation_way_back"
+        }
+      },
+      {
+        "source": "way_Cargo_Bay_habitation_way",
+        "target": "area_main_habitation",
+        "type": "connection",
+        "properties": {
+          "direction": "habitation_way"
+        }
+      },
+      {
+        "source": "area_main_habitation",
+        "target": "way_Main_Habitation_bunk1_way",
+        "type": "connection",
+        "properties": {
+          "direction": "bunk1_way"
+        }
+      },
+      {
+        "source": "way_Main_Habitation_bunk1_way",
+        "target": "area_main_habitation",
+        "type": "connection",
+        "properties": {
+          "direction": "bunk1_way_back"
+        }
+      },
+      {
+        "source": "area_bunk_area_1",
+        "target": "way_Main_Habitation_bunk1_way",
+        "type": "connection",
+        "properties": {
+          "direction": "bunk1_way_back"
+        }
+      },
+      {
+        "source": "way_Main_Habitation_bunk1_way",
+        "target": "area_bunk_area_1",
+        "type": "connection",
+        "properties": {
+          "direction": "bunk1_way"
+        }
+      },
+      {
+        "source": "area_main_habitation",
+        "target": "way_Main_Habitation_bunk2_way",
+        "type": "connection",
+        "properties": {
+          "direction": "bunk2_way"
+        }
+      },
+      {
+        "source": "way_Main_Habitation_bunk2_way",
+        "target": "area_main_habitation",
+        "type": "connection",
+        "properties": {
+          "direction": "bunk2_way_back"
+        }
+      },
+      {
+        "source": "area_bunk_area_2",
+        "target": "way_Main_Habitation_bunk2_way",
+        "type": "connection",
+        "properties": {
+          "direction": "bunk2_way_back"
+        }
+      },
+      {
+        "source": "way_Main_Habitation_bunk2_way",
+        "target": "area_bunk_area_2",
+        "type": "connection",
+        "properties": {
+          "direction": "bunk2_way"
+        }
+      },
+      {
+        "source": "area_main_habitation",
+        "target": "way_Main_Habitation_bunk3_way",
+        "type": "connection",
+        "properties": {
+          "direction": "bunk3_way"
+        }
+      },
+      {
+        "source": "way_Main_Habitation_bunk3_way",
+        "target": "area_main_habitation",
+        "type": "connection",
+        "properties": {
+          "direction": "bunk3_way_back"
+        }
+      },
+      {
+        "source": "area_bunk_area_3",
+        "target": "way_Main_Habitation_bunk3_way",
+        "type": "connection",
+        "properties": {
+          "direction": "bunk3_way_back"
+        }
+      },
+      {
+        "source": "way_Main_Habitation_bunk3_way",
+        "target": "area_bunk_area_3",
+        "type": "connection",
+        "properties": {
+          "direction": "bunk3_way"
+        }
+      },
+      {
+        "source": "area_main_habitation",
+        "target": "way_Main_Habitation_toilet_way",
+        "type": "connection",
+        "properties": {
+          "direction": "toilet_way"
+        }
+      },
+      {
+        "source": "way_Main_Habitation_toilet_way",
+        "target": "area_main_habitation",
+        "type": "connection",
+        "properties": {
+          "direction": "toilet_way_back"
+        }
+      },
+      {
+        "source": "area_shared_toilet",
+        "target": "way_Main_Habitation_toilet_way",
+        "type": "connection",
+        "properties": {
+          "direction": "toilet_way_back"
+        }
+      },
+      {
+        "source": "way_Main_Habitation_toilet_way",
+        "target": "area_shared_toilet",
+        "type": "connection",
+        "properties": {
+          "direction": "toilet_way"
+        }
+      },
+      {
+        "source": "area_main_habitation",
+        "target": "way_Main_Habitation_turret_ladder",
+        "type": "connection",
+        "properties": {
+          "direction": "turret_ladder"
+        }
+      },
+      {
+        "source": "way_Main_Habitation_turret_ladder",
+        "target": "area_main_habitation",
+        "type": "connection",
+        "properties": {
+          "direction": "turret_ladder_back"
+        }
+      },
+      {
+        "source": "area_turret_access",
+        "target": "way_Main_Habitation_turret_ladder",
+        "type": "connection",
+        "properties": {
+          "direction": "turret_ladder_back"
+        }
+      },
+      {
+        "source": "way_Main_Habitation_turret_ladder",
+        "target": "area_turret_access",
+        "type": "connection",
+        "properties": {
+          "direction": "turret_ladder"
+        }
+      },
+      {
+        "source": "area_main_habitation",
+        "target": "way_Main_Habitation_cockpit_way",
+        "type": "connection",
+        "properties": {
+          "direction": "cockpit_way"
+        }
+      },
+      {
+        "source": "way_Main_Habitation_cockpit_way",
+        "target": "area_main_habitation",
+        "type": "connection",
+        "properties": {
+          "direction": "cockpit_way_back"
+        }
+      },
+      {
+        "source": "area_cockpit",
+        "target": "way_Main_Habitation_cockpit_way",
+        "type": "connection",
+        "properties": {
+          "direction": "cockpit_way_back"
+        }
+      },
+      {
+        "source": "way_Main_Habitation_cockpit_way",
+        "target": "area_cockpit",
+        "type": "connection",
+        "properties": {
+          "direction": "cockpit_way"
+        }
+      },
+      {
+        "source": "area_turret_access",
+        "target": "way_Turret_Access_turret_hatch",
+        "type": "connection",
+        "properties": {
+          "direction": "turret_hatch"
+        }
+      },
+      {
+        "source": "way_Turret_Access_turret_hatch",
+        "target": "area_turret_access",
+        "type": "connection",
+        "properties": {
+          "direction": "turret_hatch_back"
+        }
+      },
+      {
+        "source": "area_upper_turret",
+        "target": "way_Turret_Access_turret_hatch",
+        "type": "connection",
+        "properties": {
+          "direction": "turret_hatch_back"
+        }
+      },
+      {
+        "source": "way_Turret_Access_turret_hatch",
+        "target": "area_upper_turret",
+        "type": "connection",
+        "properties": {
+          "direction": "turret_hatch"
+        }
+      },
+      {
+        "source": "area_cockpit",
+        "target": "way_Cockpit_captain_way",
+        "type": "connection",
+        "properties": {
+          "direction": "captain_way"
+        }
+      },
+      {
+        "source": "way_Cockpit_captain_way",
+        "target": "area_cockpit",
+        "type": "connection",
+        "properties": {
+          "direction": "captain_way_back"
+        }
+      },
+      {
+        "source": "area_captains_quarters",
+        "target": "way_Cockpit_captain_way",
+        "type": "connection",
+        "properties": {
+          "direction": "captain_way_back"
+        }
+      },
+      {
+        "source": "way_Cockpit_captain_way",
+        "target": "area_captains_quarters",
+        "type": "connection",
+        "properties": {
+          "direction": "captain_way"
+        }
+      }
+    ]
+  }
+}

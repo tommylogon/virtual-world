@@ -1,0 +1,17 @@
+{
+  "id": "alarm_clock",
+  "name": "alarm clock",
+  "type": "item",
+  "description": "A small mechanical alarm clock. It's currently silent.",
+  "tags": [
+    "sound_source",
+    "toggleable"
+  ],
+  "properties": {
+    "current_state": "off",
+    "sound_level": 2,
+    "sound_pattern": "piercing alarm",
+    "weight": 0.5,
+    "uses": -1
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "silver",
+  "name": "Silver",
+  "description": "Silver metal.",
+  "category": "physical",
+  "color": "#bdc3c7",
+  "icon": "🥈",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "silver key",
+    "silver crucifix"
+  ]
+}

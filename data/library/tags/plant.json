@@ -1,0 +1,19 @@
+{
+  "id": "plant",
+  "name": "Plant",
+  "description": "Living or harvested botanical growth",
+  "category": "custom",
+  "color": "#44aa44",
+  "icon": "🌱",
+  "applies_to": [
+    "items",
+    "areas"
+  ],
+  "examples": [
+    "herb",
+    "flower",
+    "bush",
+    "vine",
+    "moss"
+  ]
+}

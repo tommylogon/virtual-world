@@ -1,0 +1,40 @@
+{
+  "name": "water_bottle",
+  "description": "a half-full plastic water bottle. lukewarm but clean.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "water",
+    "drink",
+    "supplies",
+    "container"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "amount": -30,
+            "stat": "thirst",
+            "success_message": "you take a drink. lukewarm, but hydrating.",
+            "target": "self"
+          },
+          "type": "adjust_vital"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

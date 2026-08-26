@@ -1,0 +1,21 @@
+{
+  "name": "heavy_club",
+  "description": "A thick wooden club wrapped in leather at the grip. Heavy, crude, and devastating when it connects.",
+  "actions": "examine,take,use,equip,unequip",
+  "uses": -1,
+  "weight": 3.0,
+  "current_state": "normal",
+  "defense": 0,
+  "damage": "1d8",
+  "damage_type": "bludgeoning",
+  "equip_slots": [
+    "hand_right"
+  ],
+  "tags": [
+    "weapon",
+    "melee",
+    "two_handed"
+  ],
+  "triggers": [],
+  "contents": []
+}

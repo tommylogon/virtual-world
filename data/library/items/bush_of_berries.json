@@ -1,0 +1,44 @@
+{
+  "name": "Bush of Berries",
+  "description": "A thorny bush brimming with ripe berries that can be eaten for nourishment.",
+  "actions": "take,eat",
+  "uses": -1,
+  "weight": 2,
+  "current_state": "normal",
+  "equip_slots": [],
+  "tags": [
+    "vegetation",
+    "plant",
+    "food"
+  ],
+  "triggers": [
+    {
+      "type": "on_take",
+      "params": {
+        "effects": [
+          {
+            "type": "adjust_vital",
+            "params": {
+              "stat": "health",
+              "amount": 5
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "on_examine",
+      "params": {
+        "effects": [
+          {
+            "type": "message",
+            "params": {
+              "text": "The berries are sweet and cold."
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "contents": []
+}

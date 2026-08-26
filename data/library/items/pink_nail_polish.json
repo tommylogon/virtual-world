@@ -1,0 +1,58 @@
+{
+  "name": "Pink Nail Polish",
+  "description": "A small bottle of soft pink nail polish, slightly chipped on the brush. About half full.",
+  "actions": "examine,take,use",
+  "uses": 8,
+  "weight": 0.05,
+  "current_state": "normal",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "tool",
+    "cosmetic"
+  ],
+  "equip_slots": [],
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "type": "adjust_vital",
+          "params": {
+            "amount": 3,
+            "stat": "Hygiene",
+            "target": "self"
+          }
+        },
+        {
+          "type": "message",
+          "params": {
+            "message": "You paint your nails soft pink. The chipped polish is covered. You pick at the cuticle immediately — old habits."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "Soft pink, halfway empty. The brush is a bit gloppy. You pick at the polish on your fingers when you're nervous."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ]
+}

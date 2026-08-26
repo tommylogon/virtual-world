@@ -1,0 +1,151 @@
+{
+  "name": "nursery",
+  "description": "a small child's nursery frozen in time. a wooden rocking horse stands in the corner, its painted eyes strangely lifelike. toys are scattered across the floor as if a child just finished playing — but the dust says otherwise. the room is unnaturally cold, at least ten degrees colder than the hallway. faint whispers seem to come from the walls, speaking in a language you don't recognize.",
+  "tags": [],
+  "environment": {
+    "air": "cold",
+    "light": 20,
+    "noise": "faint whispers",
+    "smell": "old toys and dust",
+    "temperature": 10
+  },
+  "items": [
+    {
+      "name": "rocking_horse",
+      "description": "a wooden rocking horse with a faded red leather saddle. it rocks gently as you pass, though no one touched it. one of its painted eyes seems to follow you. the rockers creak rhythmically, slowly coming to a stop.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 10,
+      "current_state": "normal",
+      "tags": [
+        "toy",
+        "child",
+        "furniture"
+      ]
+    },
+    {
+      "name": "doll",
+      "description": "a porcelain doll with cracked, vacant eyes that seem to stare directly through you. its dress is old-fashioned, lace-trimmed. one arm is broken, revealing the hollow porcelain interior. something is stuffed inside.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.5,
+      "current_state": "normal",
+      "tags": [
+        "doll",
+        "toy",
+        "evidence",
+        "occult"
+      ]
+    },
+    {
+      "name": "hidden_note_doll",
+      "description": "a tiny scrap of paper that was hidden inside the broken doll: 'the skull is in the study. take it to mother's grave. she'll know what to do. — e.' the handwriting is a child's, but the message is clear.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.01,
+      "current_state": "normal",
+      "tags": [
+        "letter",
+        "documents",
+        "paper",
+        "evidence",
+        "clue",
+        "secret"
+      ]
+    },
+    {
+      "name": "toy_soldiers",
+      "description": "lead toy soldiers arranged in a battle formation around a tiny replica of a crystal skull, made from painted glass. the soldiers point their rifles at the tiny skull, as if trying to protect something from it.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.8,
+      "current_state": "normal",
+      "tags": [
+        "toy",
+        "metal",
+        "child"
+      ]
+    },
+    {
+      "name": "child_diary",
+      "description": "a child's leather diary, the pages yellowed and crumbly. the recurring phrase, written over and over in different colors of ink: 'the skull watches. the skull waits. eleanor is lonely. she wants me to play with her but she's not real anymore. mother says don't go near the study. but the skull calls me at night.' the final entry: 'tonight she's going to show me how to fly.'",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.2,
+      "current_state": "normal",
+      "tags": [
+        "diary",
+        "documents",
+        "paper",
+        "evidence",
+        "clue",
+        "secret"
+      ]
+    },
+    {
+      "name": "lullaby_box",
+      "description": "a small music box with a dancing ballerina. when opened, it plays a haunting, beautiful lullaby. the tune is strangely soothing, and as it plays, the whispers in the walls seem to harmonize with it.",
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "uses": -1,
+      "weight": 0.4,
+      "current_state": "normal",
+      "tags": [
+        "music",
+        "sound_source",
+        "mechanism",
+        "toy",
+        "artifact",
+        "child",
+        "lullaby"
+      ]
+    },
+    {
+      "name": "child_bed",
+      "description": "a small wooden bed with a faded quilt patterned with stars and moons. the pillow is dented. the sheets are cold, but they smell faintly of lavender soap.",
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "uses": -1,
+      "weight": 20,
+      "current_state": "normal",
+      "tags": [
+        "furniture",
+        "wooden",
+        "child"
+      ]
+    }
+  ],
+  "exits": [
+    {
+      "direction": "nursery_door_back",
+      "target_room_hint": "upstairs hall",
+      "description": "a small door with a faded teddy bear painting, its colors long since bled to ghosts of themselves.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "nursery_door_back"
+    }
+  ],
+  "triggers": []
+}

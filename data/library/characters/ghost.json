@@ -1,0 +1,196 @@
+{
+  "name": "ghost",
+  "personality": "a restless spirit bound to the mansion.",
+  "description": "",
+  "base_description": "",
+  "unknown_name": "",
+  "stats": {},
+  "vitals": {
+    "Bladder": 0,
+    "Energy": 100,
+    "Entertainment": 100,
+    "HP": 100,
+    "Hunger": 100,
+    "Hygiene": 100,
+    "Max_HP": 100,
+    "Sanity": 100,
+    "Social": 100,
+    "Temperature": 37,
+    "Thirst": 100,
+    "bladder": 0,
+    "energy": 100,
+    "entertainment": 100,
+    "hp": 100,
+    "hunger": 100,
+    "hygiene": 100,
+    "max_hp": 100,
+    "sanity": 100,
+    "social": 100,
+    "temperature": 37,
+    "thirst": 100
+  },
+  "decay_rates": {
+    "bladder": 1,
+    "energy": 1,
+    "entertainment": 1,
+    "hunger": 1,
+    "hygiene": 1,
+    "sanity": 1,
+    "social": 1,
+    "thirst": 1
+  },
+  "skills": {},
+  "traits": {},
+  "tags": [],
+  "interest_tags": [
+    "candle",
+    "portrait",
+    "lullaby",
+    "music",
+    "crystal",
+    "doll",
+    "altar",
+    "ritual",
+    "diary",
+    "sarcophagus",
+    "bone",
+    "occult",
+    "secret"
+  ],
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {
+    "accessory": [],
+    "arms": [],
+    "back": [],
+    "feet": [],
+    "hand_left": [],
+    "hand_right": [],
+    "hands": [],
+    "head": [],
+    "legs": [],
+    "neck": [],
+    "torso": [],
+    "waist": []
+  },
+  "activity": null,
+  "current_area": "basement",
+  "inventory": [],
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
+  },
+  "memories": [],
+  "relationships": {},
+  "behaviors": [
+    {
+      "actions": [
+        {
+          "text": "a cold breeze passes through you...",
+          "type": "message"
+        },
+        {
+          "amount": -5,
+          "stat": "temperature",
+          "type": "set_environment"
+        }
+      ],
+      "conditions": {
+        "target": "npc_state",
+        "type": "eq",
+        "value": "idle"
+      },
+      "trigger": "on_player_enter_room"
+    },
+    {
+      "actions": [
+        {
+          "text": "miiine...",
+          "type": "speak"
+        },
+        {
+          "state": "curious",
+          "type": "set_npc_state"
+        }
+      ],
+      "conditions": {
+        "conditions": [
+          {
+            "target": "npc_state",
+            "type": "eq",
+            "value": "idle"
+          },
+          {
+            "item": "locket",
+            "target": "player",
+            "type": "has_item"
+          }
+        ],
+        "operator": "and"
+      },
+      "trigger": "on_item_taken"
+    },
+    {
+      "actions": [
+        {
+          "text": "the air grows colder. a faint whisper follows you.",
+          "type": "message"
+        },
+        {
+          "amount": -2,
+          "stat": "temperature",
+          "type": "set_environment"
+        }
+      ],
+      "conditions": {
+        "target": "npc_state",
+        "type": "eq",
+        "value": "curious"
+      },
+      "interval": 3,
+      "trigger": "on_tick"
+    },
+    {
+      "actions": [
+        {
+          "text": "you have something that belongs to me...",
+          "type": "speak"
+        },
+        {
+          "amount": 5,
+          "target": "player",
+          "type": "damage"
+        }
+      ],
+      "conditions": {
+        "conditions": [
+          {
+            "target": "npc_state",
+            "type": "eq",
+            "value": "curious"
+          },
+          {
+            "chance": 0.5,
+            "type": "random_chance"
+          }
+        ],
+        "operator": "and"
+      },
+      "trigger": "on_player_enter_room"
+    }
+  ],
+  "npc_behavior": "stationary",
+  "npc_action_interval": 1,
+  "npc_state": "idle",
+  "simple_npc": true,
+  "recent_hearing": []
+}

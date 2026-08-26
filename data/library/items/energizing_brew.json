@@ -1,0 +1,36 @@
+{
+  "name": "Energizing Brew",
+  "description": "A steaming, bitter brew that smells of dark roasted herbs. It pours warmth and strength back into tired bones.",
+  "actions": "examine,take,drink,drop",
+  "uses": 3,
+  "weight": 0.3,
+  "tags": [
+    "drink",
+    "liquid",
+    "medicine",
+    "food"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_drink"
+      ],
+      "effects": [
+        {
+          "type": "remove_condition",
+          "params": {
+            "condition": "exhausted",
+            "target": "self",
+            "message": "The brew hits your stomach like a small fire. The leaden weight lifts from your limbs."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

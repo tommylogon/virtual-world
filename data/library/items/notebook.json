@@ -1,0 +1,37 @@
+{
+  "name": "notebook",
+  "description": "elena's investigation notebook. filled with observations about the blackwood case.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "documents",
+    "paper",
+    "evidence"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "success_message": "you flip through the notebook. elena has documented the blackwood disappearance in detail — seven people vanished overnight in 1891, the front door barred from inside, no forced entry. the case file mentions a crystal skull found on the property, later moved to an unknown location within the mansion. sketches show a skull-shaped keyhole on the front door. notes suggest the family may have been involved in something occult. the final page is blank except for the words: 'find the skull.'"
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

@@ -1,0 +1,676 @@
+{
+  "current_area": "Entrance",
+  "player": {
+    "name": "Imani Rochelle",
+    "skills": {
+      "Acrobatics": 1,
+      "Athletics": 1,
+      "Perception": 5,
+      "Persuasion": 2,
+      "Stealth": 3,
+      "Survival": 1
+    },
+    "stats": {
+      "CHA": 8,
+      "CON": 12,
+      "DEX": 10,
+      "INT": 16,
+      "STR": 8,
+      "WIS": 10
+    },
+    "vitals": {
+      "Energy": 60,
+      "HP": 90,
+      "Hunger": 50,
+      "Hygiene": 40,
+      "Max_HP": 100,
+      "Social": 100,
+      "Thirst": 50
+    },
+    "inventory": []
+  },
+  "areas": {
+    "Entrance": {
+      "name": "Entrance",
+      "description": "A narrow hallway with a worn doormat. A coat rack stands against the wall, holding a single faded jacket. Several cardboard boxes are stacked haphazardly, some labeled 'BOOKS' and 'KITCHEN' in messy handwriting.",
+      "environment": {
+        "air": "stale",
+        "light": 50,
+        "noise": "faint hum from refrigerator",
+        "smell": "dust and old paper",
+        "temperature": 19
+      },
+      "exits": {
+        "north": {
+          "target": "Living Area",
+          "return_dir": "south",
+          "state": "open",
+          "description": "A short passage leading into the living room, cluttered with more boxes.",
+          "locked_with": "",
+          "cost": { "time": 1 }
+        }
+      },
+      "items": [
+        {
+          "name": "coat_rack",
+          "description": "A wooden coat rack with a single worn jacket. The jacket has a hole in the pocket.",
+          "actions": ["examine"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        },
+        {
+          "name": "jacket",
+          "description": "An old denim jacket with a broken zipper. The pocket contains a crumpled bus ticket.",
+          "actions": ["examine", "take"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        },
+        {
+          "name": "bus_ticket",
+          "description": "A used bus ticket from Millbrook Transit, dated last week.",
+          "actions": ["examine", "take"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        },
+        {
+          "name": "box_books",
+          "description": "A cardboard box overflowing with paperback novels and conspiracy theory pamphlets. The top book is 'The Turner Diaries'.",
+          "actions": ["examine"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        }
+      ]
+    },
+    "Living Area": {
+      "name": "Living Area",
+      "description": "A cramped living area with a sagging sofa, a small coffee table, and a bookshelf stuffed to bursting. The walls are adorned with faded posters of 80s action movies and a map of the world with several pins. A large cardboard box labeled 'SURVIVAL GEAR' sits in the corner.",
+      "environment": {
+        "air": "musty",
+        "light": 40,
+        "noise": "quiet, occasional creak",
+        "smell": "old fabric and mothballs",
+        "temperature": 20
+      },
+      "exits": {
+        "south": {
+          "target": "Entrance",
+          "return_dir": "north",
+          "state": "open",
+          "description": "Back to the entrance hallway.",
+          "locked_with": "",
+          "cost": { "time": 1 }
+        },
+        "east": {
+          "target": "Kitchen",
+          "return_dir": "west",
+          "state": "open",
+          "description": "A doorway into the kitchen, visible through a bead curtain.",
+          "locked_with": "",
+          "cost": { "time": 1 }
+        },
+        "north": {
+          "target": "Bedroom",
+          "return_dir": "south",
+          "state": "closed",
+          "description": "A door leading to the bedroom, slightly ajar.",
+          "locked_with": "",
+          "cost": { "time": 1 }
+        },
+        "west": {
+          "target": "Study",
+          "return_dir": "east",
+          "state": "open",
+          "description": "A narrow doorway to a small study crammed with books and papers.",
+          "locked_with": "",
+          "cost": { "time": 1 }
+        }
+      },
+      "items": [
+        {
+          "name": "sofa",
+          "description": "A threadbare sofa with a suspicious stain. It might be comfortable for a short rest.",
+          "actions": ["examine", "use"],
+          "uses": -1,
+          "effect_target": "player",
+          "effect_stat": "Energy",
+          "effect_amount": 10,
+          "action_costs": { "rest": { "time": 1, "energy": -2 } }
+        },
+        {
+          "name": "coffee_table",
+          "description": "A low table covered in magazines, empty cups, and a half-eaten bag of chips.",
+          "actions": ["examine"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        },
+        {
+          "name": "chips",
+          "description": "A crinkled bag of barbecue chips, still half full.",
+          "actions": ["examine", "take", "use"],
+          "uses": 3,
+          "effect_target": "player",
+          "effect_stat": "Hunger",
+          "effect_amount": 10,
+          "action_costs": { "use": { "time": 1, "energy": 0 } }
+        },
+        {
+          "name": "magazine",
+          "description": "A conspiracy theory magazine with articles about the New World Order and chemtrails. The pages are dog-eared.",
+          "actions": ["examine", "take"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        },
+        {
+          "name": "bookshelf",
+          "description": "A floor-to-ceiling bookshelf crammed with books on history, politics, and white supremacist literature. A few volumes on Norse mythology as well.",
+          "actions": ["examine"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        },
+        {
+          "name": "survival_box",
+          "description": "A large cardboard box labeled 'SURVIVAL GEAR'. It contains some camping equipment and a first aid kit.",
+          "actions": ["examine"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        },
+        {
+          "name": "first_aid_kit",
+          "description": "A small plastic case with bandages, antiseptic wipes, and painkillers.",
+          "actions": ["examine", "take", "use"],
+          "uses": 3,
+          "effect_target": "player",
+          "effect_stat": "HP",
+          "effect_amount": 20,
+          "action_costs": { "use": { "time": 1, "energy": 0 } }
+        }
+      ]
+    },
+    "Kitchen": {
+      "name": "Kitchen",
+      "description": "A small kitchen with a gas stove, a refrigerator that hums loudly, and a sink full of dirty dishes. The counters are cluttered with canned goods and boxes of instant noodles. A calendar on the wall shows a photo of a mountain landscape.",
+      "environment": {
+        "air": "greasy",
+        "light": 70,
+        "noise": "loud refrigerator hum",
+        "smell": "stale grease and dish soap",
+        "temperature": 22
+      },
+      "exits": {
+        "west": {
+          "target": "Living Area",
+          "return_dir": "east",
+          "state": "open",
+          "description": "Through the bead curtain back to the living room.",
+          "locked_with": "",
+          "cost": { "time": 1 }
+        },
+        "down": {
+          "target": "Cellar",
+          "return_dir": "up",
+          "state": "closed",
+          "description": "A trapdoor in the floor, probably leading to a small cellar.",
+          "locked_with": "",
+          "cost": { "time": 2, "energy": 2 }
+        }
+      },
+      "items": [
+        {
+          "name": "refrigerator",
+          "description": "An old white refrigerator. It's humming loudly. Inside, there are some condiments, a half-empty carton of milk, and a few cans of soda.",
+          "actions": ["examine"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        },
+        {
+          "name": "milk",
+          "description": "A carton of milk with an expiration date two days from now. It's still cold.",
+          "actions": ["examine", "take", "use"],
+          "uses": 3,
+          "effect_target": "player",
+          "effect_stat": "Thirst",
+          "effect_amount": 15,
+          "action_costs": { "use": { "time": 1, "energy": 0 } }
+        },
+        {
+          "name": "soda",
+          "description": "A can of generic cola. It's warm now, but still fizzy.",
+          "actions": ["examine", "take", "use"],
+          "uses": 1,
+          "effect_target": "player",
+          "effect_stat": "Thirst",
+          "effect_amount": 10,
+          "action_costs": { "use": { "time": 1, "energy": 0 } }
+        },
+        {
+          "name": "canned_food",
+          "description": "A stack of canned beans, soup, and vegetables. Some are rusted.",
+          "actions": ["examine", "take", "use"],
+          "uses": 6,
+          "effect_target": "player",
+          "effect_stat": "Hunger",
+          "effect_amount": 20,
+          "action_costs": { "use": { "time": 1, "energy": 0 } }
+        },
+        {
+          "name": "instant_noodles",
+          "description": "Several boxes of instant ramen noodles. The cheap kind.",
+          "actions": ["examine", "take", "use"],
+          "uses": 5,
+          "effect_target": "player",
+          "effect_stat": "Hunger",
+          "effect_amount": 15,
+          "action_costs": { "use": { "time": 1, "energy": 0 } }
+        },
+        {
+          "name": "dirty_dishes",
+          "description": "A pile of crusty plates and bowls in the sink. They need washing.",
+          "actions": ["examine"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        },
+        {
+          "name": "calendar",
+          "description": "A wall calendar showing a beautiful mountain scene. The current month is circled in red ink.",
+          "actions": ["examine"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        }
+      ]
+    },
+    "Bedroom": {
+      "name": "Bedroom",
+      "description": "A small bedroom with a single bed pushed against the wall. A nightstand holds a lamp and a stack of books. The closet door is slightly open, revealing a jumble of clothes. The walls are bare except for a large poster of a wolf howling at the moon.",
+      "environment": {
+        "air": "stuffy",
+        "light": 30,
+        "noise": "quiet",
+        "smell": "unwashed sheets",
+        "temperature": 19
+      },
+      "exits": {
+        "south": {
+          "target": "Living Area",
+          "return_dir": "north",
+          "state": "closed",
+          "description": "The door back to the living room.",
+          "locked_with": "",
+          "cost": { "time": 1 }
+        },
+        "east": {
+          "target": "Bathroom",
+          "return_dir": "west",
+          "state": "closed",
+          "description": "A door leading to a small bathroom.",
+          "locked_with": "",
+          "cost": { "time": 1 }
+        }
+      },
+      "items": [
+        {
+          "name": "bed",
+          "description": "A modest single bed with rumpled sheets and a flat pillow. Looks comfortable enough for a good rest.",
+          "actions": ["examine", "use"],
+          "uses": -1,
+          "effect_target": "player",
+          "effect_stat": "Energy",
+          "effect_amount": 40,
+          "action_costs": { "rest": { "time": 2, "energy": -6 } }
+        },
+        {
+          "name": "nightstand",
+          "description": "A small wooden nightstand with a drawer. On top sits a lamp and a pile of books.",
+          "actions": ["examine"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        },
+        {
+          "name": "lamp",
+          "description": "A small reading lamp with a dusty shade. It works when plugged in.",
+          "actions": ["examine", "use"],
+          "uses": -1,
+          "effect_target": "room",
+          "effect_stat": "light",
+          "effect_amount": 30,
+          "action_costs": { "use": { "time": 1, "energy": 0 } }
+        },
+        {
+          "name": "book_pile",
+          "description": "A stack of books including 'Moby Dick', 'The Art of the Deal', and several romance novels.",
+          "actions": ["examine", "take"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        },
+        {
+          "name": "closet",
+          "description": "A small closet stuffed with clothes, a few empty hangers, and a shoebox on the top shelf.",
+          "actions": ["examine"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        },
+        {
+          "name": "shoebox",
+          "description": "A shoebox hidden on the top shelf. Inside are some old photographs and a letter.",
+          "actions": ["examine", "take"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        },
+        {
+          "name": "photograph",
+          "description": "A faded photo of a young couple at a fair. On the back, written in pencil: 'Mom & Dad, 1995'.",
+          "actions": ["examine", "take"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        },
+        {
+          "name": "letter",
+          "description": "A handwritten letter from someone named 'Grandma', talking about family and hoping Imani is doing well.",
+          "actions": ["examine", "take"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        }
+      ]
+    },
+    "Bathroom": {
+      "name": "Bathroom",
+      "description": "A tiny bathroom with a toilet, a sink, and a shower stall. The mirror is fogged and spotted. A few towels hang on a rack. The medicine cabinet is slightly ajar.",
+      "environment": {
+        "air": "humid",
+        "light": 80,
+        "noise": "dripping faucet",
+        "smell": "mildew and soap",
+        "temperature": 21
+      },
+      "exits": {
+        "west": {
+          "target": "Bedroom",
+          "return_dir": "east",
+          "state": "closed",
+          "description": "Way back to the bedroom.",
+          "locked_with": "",
+          "cost": { "time": 1 }
+        }
+      },
+      "items": [
+        {
+          "name": "toilet",
+          "description": "A standard white toilet. It flushes, though the handle sticks a little.",
+          "actions": ["examine"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        },
+        {
+          "name": "sink",
+          "description": "A small sink with a dripping faucet. A half-used bar of soap rests on the edge.",
+          "actions": ["examine"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        },
+        {
+          "name": "soap",
+          "description": "A worn bar of soap, faintly smelling of lavender.",
+          "actions": ["examine", "take", "use"],
+          "uses": 5,
+          "effect_target": "player",
+          "effect_stat": "Hygiene",
+          "effect_amount": 20,
+          "action_costs": { "use": { "time": 1, "energy": 0 } }
+        },
+        {
+          "name": "towel",
+          "description": "A damp towel hanging on the rack. It's thin but usable.",
+          "actions": ["examine", "take"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        },
+        {
+          "name": "medicine_cabinet",
+          "description": "A small mirrored cabinet above the sink. Inside: a toothbrush, toothpaste, pain relievers, and some band-aids.",
+          "actions": ["examine"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        },
+        {
+          "name": "toothbrush",
+          "description": "A worn toothbrush with frayed bristles.",
+          "actions": ["examine", "take", "use"],
+          "uses": 10,
+          "effect_target": "player",
+          "effect_stat": "Hygiene",
+          "effect_amount": 5,
+          "action_costs": { "use": { "time": 1, "energy": 0 } }
+        },
+        {
+          "name": "painkillers",
+          "description": "A bottle of ibuprofen with a few pills left.",
+          "actions": ["examine", "take", "use"],
+          "uses": 5,
+          "effect_target": "player",
+          "effect_stat": "HP",
+          "effect_amount": 10,
+          "action_costs": { "use": { "time": 1, "energy": 0 } }
+        },
+        {
+          "name": "shower",
+          "description": "A cramped shower stall with a plastic curtain. The water pressure is weak but warm.",
+          "actions": ["examine", "use"],
+          "uses": -1,
+          "effect_target": "player",
+          "effect_stat": "Hygiene",
+          "effect_amount": 80,
+          "action_costs": { "use": { "time": 2, "energy": -5 } }
+        }
+      ]
+    },
+    "Study": {
+      "name": "Study",
+      "description": "A cramped room dominated by a large desk covered in papers, books, and a desktop computer. The walls are plastered with maps, newspaper clippings, and printed forum threads. A corkboard holds photos and handwritten notes connected by red string. A single chair is pushed under the desk.",
+      "environment": {
+        "air": "stale",
+        "light": 40,
+        "noise": "faint buzzing from computer",
+        "smell": "ink and stale coffee",
+        "temperature": 19
+      },
+      "exits": {
+        "east": {
+          "target": "Living Area",
+          "return_dir": "west",
+          "state": "open",
+          "description": "Doorway back to the living room.",
+          "locked_with": "",
+          "cost": { "time": 1 }
+        }
+      },
+      "items": [
+        {
+          "name": "desk",
+          "description": "A large wooden desk cluttered with papers, a lamp, and a computer monitor. Drawers are stuffed with notebooks.",
+          "actions": ["examine"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        },
+        {
+          "name": "computer",
+          "description": "An old desktop computer with a bulky monitor. It's connected but without internet, it's just a word processor. There might be some files saved locally.",
+          "actions": ["examine", "use"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0,
+          "action_costs": { "use": { "time": 1, "energy": 0 } }
+        },
+        {
+          "name": "notebook",
+          "description": "A spiral notebook filled with Imani's handwriting: poems, conspiracy theories, and rants about race. Some pages are torn.",
+          "actions": ["examine", "take"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        },
+        {
+          "name": "corkboard",
+          "description": "A corkboard covered in newspaper clippings, printed articles, and photos linked by red string. It's a classic conspiracy theorist's wall.",
+          "actions": ["examine"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        },
+        {
+          "name": "printer",
+          "description": "A dusty inkjet printer. It's out of ink and paper.",
+          "actions": ["examine"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        },
+        {
+          "name": "books_stack",
+          "description": "A stack of books on history and political theory, including 'The Protocols of the Elders of Zion' and 'Mein Kampf'.",
+          "actions": ["examine", "take"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        },
+        {
+          "name": "coffee_mug",
+          "description": "A chipped mug with a faded logo. It has old coffee residue at the bottom.",
+          "actions": ["examine", "take"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        },
+        {
+          "name": "chair",
+          "description": "An old swivel chair with worn padding. It's not comfortable for long periods.",
+          "actions": ["examine", "use"],
+          "uses": -1,
+          "effect_target": "player",
+          "effect_stat": "Energy",
+          "effect_amount": 5,
+          "action_costs": { "rest": { "time": 1, "energy": -1 } }
+        }
+      ]
+    },
+    "Cellar": {
+      "name": "Cellar",
+      "description": "A small, dark cellar beneath the kitchen. It's cool and damp, with a dirt floor. Shelves line the walls, holding jars of preserved food and old paint cans. A single bare bulb hangs from the ceiling, but it doesn't work.",
+      "environment": {
+        "air": "damp",
+        "light": 0,
+        "noise": "dripping water",
+        "smell": "mold and earth",
+        "temperature": 12
+      },
+      "exits": {
+        "up": {
+          "target": "Kitchen",
+          "return_dir": "down",
+          "state": "closed",
+          "description": "The trapdoor leading back up to the kitchen.",
+          "locked_with": "",
+          "cost": { "time": 2, "energy": 2 }
+        }
+      },
+      "items": [
+        {
+          "name": "shelves",
+          "description": "Wooden shelves lined with mason jars of pickles, jams, and canned vegetables. Also some paint cans and old tools.",
+          "actions": ["examine"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        },
+        {
+          "name": "pickles",
+          "description": "A jar of homemade pickles. The brine looks murky but probably edible.",
+          "actions": ["examine", "take", "use"],
+          "uses": 5,
+          "effect_target": "player",
+          "effect_stat": "Hunger",
+          "effect_amount": 10,
+          "action_costs": { "use": { "time": 1, "energy": 0 } }
+        },
+        {
+          "name": "jam",
+          "description": "A jar of strawberry jam, sealed. It's probably still good.",
+          "actions": ["examine", "take", "use"],
+          "uses": 5,
+          "effect_target": "player",
+          "effect_stat": "Hunger",
+          "effect_amount": 15,
+          "action_costs": { "use": { "time": 1, "energy": 0 } }
+        },
+        {
+          "name": "flashlight_old",
+          "description": "A rusty flashlight. It might work if it had batteries.",
+          "actions": ["examine", "take"],
+          "uses": -1,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0
+        },
+        {
+          "name": "batteries",
+          "description": "A pack of AA batteries, still sealed. There are four.",
+          "actions": ["examine", "take", "use"],
+          "uses": 4,
+          "effect_target": null,
+          "effect_stat": null,
+          "effect_amount": 0,
+          "action_costs": { "use": { "time": 1, "energy": 0 } }
+        }
+      ]
+    }
+  }
+}

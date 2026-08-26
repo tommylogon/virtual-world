@@ -1,0 +1,10 @@
+{
+  "id": "darkvision",
+  "name": "Dark Vision (Alternate)",
+  "description": "Can see in complete darkness. Alternate spelling of dark_vision.",
+  "category": "physical",
+  "params": null,
+  "effects": {
+    "dark_vision": true
+  }
+}

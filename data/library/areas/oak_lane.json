@@ -1,0 +1,19 @@
+{
+  "name": "oak lane",
+  "description": "a narrow pedestrian alley that cuts between the buildings, saving locals a minute and a half on their walk. the walls are brick and windowless, streaked with decades of rain. a string of bare bulbs hangs crooked over the middle, half of them burned out. the ground is stained concrete with a few slick drain covers. the air is stiller and colder here, carrying a faint whiff of cooking oil from the diner's back vent.",
+  "environment": {
+    "air": "fresh",
+    "light": 30,
+    "noise": "footsteps echoing, distant kitchen sounds",
+    "smell": "cold brick, cooking oil",
+    "temperature": 10
+  },
+  "items": [],
+  "tags": [
+    "millbrook_falls",
+    "exterior",
+    "commercial",
+    "downtown"
+  ],
+  "triggers": []
+}

@@ -1,0 +1,11 @@
+{
+  "name": "Clearance",
+  "description": "",
+  "category": "custom",
+  "color": "#888888",
+  "icon": "U0001f397️",
+  "applies_to": [
+    "areas"
+  ],
+  "examples": []
+}

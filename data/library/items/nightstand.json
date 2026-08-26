@@ -1,0 +1,19 @@
+{
+  "name": "nightstand",
+  "description": "a small table with a broken lamp and a single drawer. the drawer contains a bible and a pair of reading glasses.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "furniture",
+    "wooden",
+    "container"
+  ],
+  "triggers": [],
+  "contents": []
+}

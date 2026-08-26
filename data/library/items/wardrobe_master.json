@@ -1,0 +1,19 @@
+{
+  "name": "wardrobe_master",
+  "description": "a massive armoire filled with victorian-era clothing: suits, dresses, and a single child's dress that doesn't belong. the dress is small, white, and stained with something dark at the hem.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 60,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "furniture",
+    "wooden",
+    "container"
+  ],
+  "triggers": [],
+  "contents": []
+}

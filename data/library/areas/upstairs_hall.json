@@ -1,0 +1,153 @@
+{
+  "name": "upstairs hall",
+  "description": "a long, dim hallway on the second floor. the carpet is threadbare and stained, the wallpaper peeling in long strips. a portrait of augustus blackwood in his prime hangs at the far end, his painted eyes seeming to follow you. a cold draft seeps from under one of the doors. the floorboards creak in a pattern that sounds almost like footsteps behind you — but when you stop, they stop too.",
+  "tags": [],
+  "environment": {
+    "air": "drafty",
+    "light": 30,
+    "noise": "creaking",
+    "smell": "old paper and dust",
+    "temperature": 14
+  },
+  "items": [
+    {
+      "name": "portrait_hall",
+      "description": "a painting of augustus blackwood in his prime. his cold, calculating eyes follow you around the room. the nameplate reads: 'augustus blackwood, 1835-1891, patriarch of blackwood manor.' there's a crack in the canvas — deliberate, not from age.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 20,
+      "current_state": "normal",
+      "tags": [
+        "portrait",
+        "art",
+        "evidence",
+        "clue"
+      ]
+    },
+    {
+      "name": "candle_holder",
+      "description": "a brass wall sconce with a half-melted candle. the wax has dripped down in frozen rivulets. the candle was extinguished recently — the wick is still slightly warm.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.5,
+      "current_state": "normal",
+      "tags": [
+        "candle",
+        "container",
+        "metal"
+      ]
+    },
+    {
+      "name": "moldy_sandwich",
+      "description": "a forgotten sandwich on a small table. it's green and fuzzy with age. definitely do not eat this.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 0.2,
+      "current_state": "normal",
+      "tags": [
+        "food",
+        "organic"
+      ]
+    },
+    {
+      "name": "ghostly_figure",
+      "description": "at the far end of the hall, near the portrait, you catch a glimpse of something in your peripheral vision. a young girl in a white nightgown, standing perfectly still. when you turn to look directly, she's gone.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 0,
+      "current_state": "normal",
+      "tags": [
+        "ghostly",
+        "occult",
+        "evidence"
+      ]
+    },
+    {
+      "name": "white_feather",
+      "description": "a single white feather, impossibly clean and fresh in this dusty old mansion. it's warm to the touch.",
+      "actions": [
+        "examine",
+        "take",
+        "drop"
+      ],
+      "uses": -1,
+      "weight": 0.01,
+      "current_state": "normal",
+      "tags": [
+        "organic",
+        "artifact",
+        "ghostly",
+        "evidence"
+      ]
+    }
+  ],
+  "exits": [
+    {
+      "direction": "attic_ladder",
+      "target_room_hint": "attic",
+      "description": "a pull-down ladder in the ceiling. cold air and darkness descend from above.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "attic_ladder"
+    },
+    {
+      "direction": "bathroom_door",
+      "target_room_hint": "bathroom",
+      "description": "a door with a frosted glass panel. the light behind it flickers, though there's no electricity.",
+      "state": "closed",
+      "hidden": false,
+      "cardinal": "bathroom_door"
+    },
+    {
+      "direction": "grand_stairs_back",
+      "target_room_hint": "foyer",
+      "description": "a grand staircase leading up into impenetrable darkness. the steps creak under the slightest weight.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "grand_stairs_back"
+    },
+    {
+      "direction": "guest_room1_door",
+      "target_room_hint": "guest area 1",
+      "description": "a simple wooden door, standing ajar. darkness within.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "guest_room1_door"
+    },
+    {
+      "direction": "guest_room2_door",
+      "target_room_hint": "guest area 2",
+      "description": "another door, slightly ajar. a child's voice seems to whisper from within, then falls silent when you focus on it.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "guest_room2_door"
+    },
+    {
+      "direction": "master_bedroom_door",
+      "target_room_hint": "master bedroom",
+      "description": "a large oak door with a polished brass knob — polished recently, as it gleams.",
+      "state": "closed",
+      "hidden": false,
+      "cardinal": "master_bedroom_door"
+    },
+    {
+      "direction": "nursery_door",
+      "target_room_hint": "nursery",
+      "description": "a small door with a faded teddy bear painting, its colors long since bled to ghosts of themselves.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "nursery_door"
+    }
+  ],
+  "triggers": []
+}

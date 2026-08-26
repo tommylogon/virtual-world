@@ -1,0 +1,74 @@
+{
+  "name": "desk",
+  "actions": "examine,open,close",
+  "contents": [
+    "spellbook"
+  ],
+  "current_state": "locked",
+  "damage": 0,
+  "defense": 0,
+  "description": "A heavy oak desk with a locked drawer on the right side. The lock is small and ornate â€” a brass key might fit it.",
+  "insulation": 0,
+  "light_level": "dim",
+  "tags": [
+    "furniture",
+    "wooden",
+    "container"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "The desk is covered in papers — shopping lists, sketches of mechanical devices, and a half-finished letter. The right drawer is locked with a small brass lock."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "fail_message": "needs a key",
+            "message": "",
+            "success_message": "The lock clicks open and you see a book"
+          },
+          "type": "message"
+        },
+        {
+          "params": {
+            "fail_message": "needs a key",
+            "message": "",
+            "node_id": "self",
+            "state": "open",
+            "success_message": "The lock clicks open and you see a book"
+          },
+          "type": "set_state"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {
+        "operator": "and",
+        "conditions": [
+          {
+            "type": "has_item",
+            "value": "Brass Key"
+          }
+        ]
+      },
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "uses": -1,
+  "weight": 60
+}

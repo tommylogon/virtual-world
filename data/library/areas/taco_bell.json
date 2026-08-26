@@ -1,0 +1,45 @@
+{
+  "description": "a corporate taco bell on the edge of downtown millbrook falls, squat between a parking lot and a drainage ditch. the sign buzzes just inside the front doors — one panel of the 'bell' flickers on the fritz. hard tile, a mop sign out on the wet floor, the hum of the place settling around you. from here the dining room sprawls left, the order counter sits straight ahead, and a long drive-thru lane wraps the far wall. the air is warm, greasy, and sweet with seasoned beef and cinnamon sugar.",
+  "environment": {
+    "air": "warm",
+    "light": 70,
+    "noise": "kiosk beeps, soda machine hiss, drive-thru speaker",
+    "smell": "seasoned beef, crispy shell, cinnamon sugar",
+    "temperature": 18.767355941833976
+  },
+  "items": [],
+  "name": "Taco Bell",
+  "tags": [
+    "millbrook_falls",
+    "commercial",
+    "restaurant",
+    "food"
+  ],
+  "triggers": [],
+  "exits": [
+    {
+      "direction": "dining room",
+      "target_room_hint": "Taco Bell Dining Room",
+      "description": "a wide open archway between lobby and seating, framed by the soda fountain island. traffic flows through it constantly during dinner rush; tonight it's just you and the hum.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "west"
+    },
+    {
+      "direction": "front door",
+      "target_room_hint": "Elm Street",
+      "description": "glass double doors with a push bar, streaked with a hundred handprints. a taped paper sign reads COME BACK TOMORROW in marker, already ignored by everyone.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "south"
+    },
+    {
+      "direction": "order counter",
+      "target_room_hint": "Taco Bell Order Counter",
+      "description": "the customer side of the order counter, kiosk screens glowing at the end. the menu board looms overhead with its taped-over prices.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "north"
+    }
+  ]
+}

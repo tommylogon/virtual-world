@@ -1,0 +1,16 @@
+{
+  "id": "cold",
+  "name": "Cold",
+  "description": "Low temperature area or item",
+  "category": "environment",
+  "color": "#aaddff",
+  "icon": "❄️",
+  "applies_to": [
+    "areas",
+    "items"
+  ],
+  "examples": [
+    "frozen tundra",
+    "ice cellar"
+  ]
+}

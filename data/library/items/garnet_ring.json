@@ -1,0 +1,19 @@
+{
+  "name": "garnet_ring",
+  "description": "a delicate gold ring set with a small garnet. inside: 'forever, a.b.' — augustus blackwood's gift to someone who wasn't his wife.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.02,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "jewelry",
+    "artifact",
+    "metal"
+  ],
+  "triggers": [],
+  "contents": []
+}

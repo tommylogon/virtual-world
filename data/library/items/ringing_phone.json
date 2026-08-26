@@ -1,0 +1,17 @@
+{
+  "id": "ringing_phone",
+  "name": "ringing phone",
+  "type": "item",
+  "description": "An old rotary phone that won't stop ringing.",
+  "tags": [
+    "sound_source",
+    "toggleable"
+  ],
+  "properties": {
+    "current_state": "ringing",
+    "sound_level": 2,
+    "sound_pattern": "insistent ringing",
+    "weight": 0.8,
+    "uses": -1
+  }
+}

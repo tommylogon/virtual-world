@@ -1,0 +1,13 @@
+{
+  "id": "nyctophobic",
+  "name": "Nyctophobic",
+  "description": "Darkness and solitude terrify you.",
+  "category": "mental",
+  "params": null,
+  "effects": {},
+  "save_on": [
+    {"event": "alone_in_dark", "stat": "WIS", "dc": 12,
+     "on_fail": [{"condition": "frightened", "duration": 2}, {"vital": "Sanity", "amount": -5}],
+     "fail_message": "The dark presses in around you. You aren't alone."}
+  ]
+}

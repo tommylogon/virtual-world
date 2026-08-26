@@ -1,0 +1,1069 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Human Turn Panel v2.7 — design mockup (task-333/334)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body { margin:0; padding:24px; background:#0b0d10; color:#cfd6dd;
+         font-family:"Segoe UI",system-ui,sans-serif; }
+  .doc-note { max-width:1060px; margin:0 auto 14px; color:#7d8894; font-size:13px; line-height:1.5; }
+  .doc-note b { color:#b9c2cc; }
+  .doc-note code { background:#171b21; padding:1px 5px; border-radius:4px; font-size:12px; }
+</style>
+</head>
+<body>
+
+<div class="doc-note">
+  <b>v2.5 — WAY BEHAVIOR RULES corrected to match the engine</b>:
+  doors <b>auto-open on go</b> (and dash) unless <b>locked, blocked, or
+  needing force</b> — no "open first, then go" two-step · <b>locked is
+  invisible knowledge</b>: chips and hover never show 🔒 until you examine
+  the way or bounce off it (menus then remember per-way) · <b>closable is
+  a way property</b> — the Serving Window simply has no Close entry ·
+  a Grapple condition blocks Go with a reason · dash bursts straight
+  through closed doors (locked still stops you and eats the turn) ·
+  <b>force-open is NOT an action</b>: go on a jammed way rolls the skill
+  check right there — d20 vs DC in the result, success bursts through
+  (and un-jams), failure bounces · <b>windows are full ways too</b> —
+  the Serving Window opens, closes, walks through, and stays see-through
+  even shut · closable:false demo moved to the Dining Archway ·
+  <b>menu labels stay CLEAN</b> — no "opens as you go"/"force check"
+  pre-hints on Go; a failed attempt or an examine is what earns the
+  "needs force"/"locked" hint (per-way discovered flags).
+  Everything from v2.4 stands: free-look
+  hover cards, activities, 🌙 darkness, stranger masking,
+  confirm-before-Act, raw JSON mode, where-picker slot, autocomplete,
+  search-reveal, grapple chip.
+</div>
+
+<turn-panel-v2></turn-panel-v2>
+
+<script type="module">
+import { html, css, LitElement } from 'https://esm.run/lit';
+
+/* ── data lifted from taco_bell_date.json + library items ────────────── */
+const SAMPLE = {
+  you: {
+    name: 'jake halloway',
+    vitals: { HP: 100, Energy: 59, Hunger: 72, Thirst: 34 },
+    conditions: ['Occupied with something. Interruptible.'],
+    activity: { name: 'Waiting', detail: 'for the order', minutes: 5 },
+    carrying: [
+      { id: 'monster_can', name: 'Crushed Monster Can', icon: '🥫',
+        actions: ['examine', 'drop', 'use'], kind: 'drink', empty: true,
+        desc: 'an empty original green monster can, crushed lengthwise.' },
+      { id: 'phone', name: "Miki's Phone", icon: '📱',
+        actions: ['examine', 'use', 'drop'],
+        desc: 'a cracked case plastered with anime stickers.' },
+      { id: 'burrito', name: 'Cheesy Burrito', icon: '🌯',
+        actions: ['examine', 'use', 'eat', 'drop'], kind: 'food',
+        desc: 'a flour burrito swaddled in foil.' },
+    ],
+    wearing: [
+      { id: 'shirt', name: 'Black Shirt', icon: '👕', slot: 'torso', layer: 1,
+        actions: ['examine', 'remove'], tags: ['clothing', 'top'],
+        desc: 'stiff with dried monster energy.' },
+      { id: 'jeans', name: 'Jeans', icon: '👖', slot: 'legs', layer: 1,
+        actions: ['examine', 'remove'], tags: ['clothing', 'bottom'],
+        desc: 'bean-stained jeans.' },
+    ],
+    known: [
+      'a girl dumped a full monster energy all over my black shirt on the sidewalk.',
+      "miki's blue butterfly earring is gone — her mom gave it to her when she was sixteen.",
+    ],
+  },
+  area: {
+    id: 'area_taco_bell_dining_room', name: 'Taco Bell Dining Room', icon: '📍',
+    actions: ['examine', 'search', 'listen'],
+    triggers: ['on_search'],
+    dark: false,
+    params: { companion: 'miki doki' },
+    desc: "the main seating area — eight laminate flex tables and six wall booths. {param:companion}'s knee bounces against the table leg, chewing her thumbnail. someone wrote a phone number and a threat under the napkin dispenser.",
+    darkDesc: 'shapes at the tables, lit only by the drink machines and the kitchen pass. you can hear {param:companion} breathing.',
+    searchHint: 'an on_search trigger lives here (the earring!)',
+  },
+  scene: {
+    exits: [
+      { id: 'ex_arch', name: 'Dining Archway', to: 'Lobby', dir: 'east',
+        dirLabel: 'under the neon arch', icon: '🏛',
+        type: 'way', wayType: 'archway', state: 'open', locked: false,
+        closable: false,
+        actions: ['examine', 'go'] },
+      { id: 'ex_kitchen', name: 'Swinging Door', to: 'Kitchen', dir: 'east',
+        dirLabel: '', icon: '🚪',
+        type: 'way', wayType: 'door', state: 'closed', locked: false,
+        closable: true, closesBehind: true,
+        actions: ['examine', 'go', 'open', 'close', 'listen'],
+        desc: 'a swinging double door, greasy fingerprints at push height.' },
+      { id: 'ex_mens', name: "Men's Room Door", to: "Men's Restroom", dir: 'north',
+        dirLabel: '', icon: '🚪',
+        type: 'way', wayType: 'door', state: 'closed', locked: true,
+        closable: true,
+        actions: ['examine', 'go', 'open', 'close', 'lock', 'unlock', 'listen'],
+        desc: 'a beige hollow-core door with the universal stick figure. currently closed.' },
+      { id: 'ex_window', name: 'Serving Window', to: 'Kitchen Counter', dir: 'northeast',
+        dirLabel: '', icon: '🪟',
+        type: 'way', wayType: 'window', state: 'closed', locked: false,
+        closable: true,
+        seeThrough: true, viewThrough: 'beyond the heat lamps — a mountain of taco wrappers and tyler plating an order.',
+        actions: ['examine', 'go', 'open', 'close', 'listen'],
+        desc: 'a wide sliding window into the kitchen — big enough to haul yourself over the counter. steam, shouting, trays.' },
+      { id: 'ex_fence', name: 'Back Fence', to: 'Alley', dir: 'south',
+        dirLabel: '', icon: '🧱',
+        type: 'way', wayType: 'fence', state: 'open', locked: false,
+        requires: 'climbing',
+        actions: ['examine', 'go'],
+        desc: 'chain-link, barbed at the top, a gap kicked into the bottom edge.' },
+      { id: 'ex_roof', name: 'Roof Hatch', to: 'Rooftop', dir: 'up',
+        dirLabel: '', icon: '🪜',
+        type: 'way', wayType: 'hatch', state: 'closed', locked: false,
+        jammed: true,
+        actions: ['examine', 'go', 'open'],
+        desc: 'a paint-stained hatch with a folding ladder. someone chalked NO beside it.' },
+    ],
+    items: [
+      { id: 'cup', name: 'Baja Blast Cup', icon: '🥤', seen: true,
+        actions: ['examine', 'take', 'drink', 'use', 'drop'], kind: 'drink',
+        desc: 'neon-teal Baja Blast sweating a ring onto the laminate.' },
+      { id: 'caddie', name: 'Sauce Packet Caddie', icon: '🧂', seen: true,
+        actions: ['examine', 'take', 'search', 'drop'],
+        desc: 'mild, fire, diablo, and one packet labeled only MYSTERY.' },
+      { id: 'booth_table', name: 'Booth Table', icon: '🪑', seen: true,
+        actions: ['examine', 'search', 'place'],
+        desc: 'crumbs, napkins, two trays of tacos arranged like a peace summit.' },
+    ],
+    chars: [
+      { id: 'miki', name: 'Miki Doki', icon: '👤', seen: true,
+        carries: [{ n: 'Syringe Necklace', equipped: true }, { n: 'Lighter' }, { n: 'House Keys' }],
+        emote: 'keeps glancing at the floor by the window booth, chewing her thumbnail',
+        desc: 'pinkish-red eyes with dark circles, four protruding canines, syringe necklace beside a heart choker. seems quite anxious.' },
+      { id: 'couple', name: 'Elderly Couple', icon: '👵👴', seen: true, ambient: true,
+        carries: [],
+        emote: 'eating slowly and staring openly at the loud table by the window',
+        desc: 'they have seen everything. they approve of nothing.' },
+      { id: 'clerk', name: 'rosa', unknown: true,
+        unknownAs: 'the woman behind the counter',
+        icon: '👤', seen: false, ambient: true, carries: [],
+        emote: 'slapping trays onto the pass, muttering order numbers',
+        desc: 'visor fringe, pen behind one ear, eyes that have calculated your wait time to the second.' },
+    ],
+  },
+  events: [
+    { who: 'tyler', n: 11, lines: ['💬 "yall want anything else or are you just gonna live here?"'] },
+  ],
+};
+
+/* hidden until the area search trigger fires */
+const EARRING = { id: 'earring', name: 'Blue Butterfly Earring', icon: '🦋', seen: true,
+  actions: ['examine', 'take'],
+  desc: 'tiny blue wings, its clasp bent from wherever it fell.' };
+
+const VERBS = ['look','wait','inventory','examine','go','take','drop','eat','drink',
+               'open','close','search','wear','remove','give','steal','attack','use',
+               'grab','dash','lock','unlock','listen','equip','unequip','place'];
+
+class TurnPanelV2 extends LitElement {
+  static properties = {
+    you: { state: true }, area: { state: true }, scene: { state: true },
+    events: { state: true },
+    cmd: { state: true }, say: { state: true }, volume: { state: true },
+    emote: { state: true }, memory: { state: true },
+    menuFor: { state: true }, preview: { state: true }, knownOpen: { state: true },
+    advanced: { state: true }, nextUp: { state: true }, toast: { state: true },
+    phase: { state: true }, lastResult: { state: true },
+    digest: { state: true }, tick: { state: true },
+    hover: { state: true }, pendingConfirm: { state: true },
+    confirmBeforeAct: { state: true }, dark: { state: true },
+    jsonMode: { state: true }, jsonText: { state: true },
+  };
+
+  constructor() {
+    super();
+    Object.assign(this, JSON.parse(JSON.stringify(SAMPLE)), {
+      cmd: '', say: '', volume: 'say', emote: '', memory: '', menuFor: null,
+      preview: null, knownOpen: false, advanced: false, nextUp: 'miki doki',
+      toast: '', phase: 'compose', lastResult: '', digest: [], tick: 12,
+      hover: null, pendingConfirm: null, confirmBeforeAct: true, dark: false,
+      jsonMode: false, jsonText: '',
+    });
+  }
+
+  static styles = css`
+    :host { display:block; max-width:1060px; margin:0 auto;
+            font-family:"Segoe UI",system-ui,sans-serif; font-size:14px; }
+    * { box-sizing:border-box; }
+    button { font:inherit; cursor:pointer; }
+
+    .panel { background:#12151a; border:1px solid #232932; border-radius:14px;
+             overflow:hidden; box-shadow:0 10px 40px #0008; }
+
+    .hdr { display:flex; align-items:center; gap:12px; padding:10px 16px;
+           background:#161a21; border-bottom:1px solid #232932; }
+    .hdr .title { font-weight:600; color:#e8edf2; }
+    .locbtn { background:#181d25; border:1px solid #262d38; border-radius:999px;
+              color:#8fd3c7; padding:4px 12px; font-size:12.5px; transition:.15s; }
+    .locbtn:hover { border-color:#3fae94; background:#122420; transform:translateY(-1px); }
+    .nextup { margin-left:auto; font-size:12px; color:#78828e; }
+    .nextup b { color:#c8a2ff; }
+
+    .grid { display:grid; grid-template-columns: 1fr 300px; }
+
+    .scene { padding:14px 16px 6px; border-right:1px solid #1d222a; }
+    .scene .desc { color:#aab4bf; line-height:1.55; margin:2px 0 12px; font-style:italic; }
+    .zone { margin-bottom:12px; }
+    .zlabel { font-size:11px; text-transform:uppercase; letter-spacing:1.2px;
+              color:#66707c; margin-bottom:6px; }
+    .chips { display:flex; flex-wrap:wrap; gap:7px; }
+    .chip { display:inline-flex; align-items:center; gap:6px; padding:5px 11px;
+            background:#181d25; border:1px solid #262d38; border-radius:999px;
+            color:#dbe2ea; transition:all .15s; position:relative; }
+    .chip:hover { border-color:#7b46c9; background:#1c1626; transform:translateY(-1px); }
+    .chip.seen::after { content:''; width:5px; height:5px; border-radius:50%;
+                        background:#3fae6a; position:absolute; top:-1px; right:-1px; }
+    .chip.exit { color:#8fd3c7; border-color:#20403a; }
+    .chip.exit:hover { border-color:#3fae94; background:#122420; }
+    .chip.exit.shut::before { content:'●'; color:#c96a46; font-size:8px; margin-right:-2px; }
+    .chip.person { color:#eec9ff; border-color:#3d2b52; }
+    .chip.person:hover { border-color:#a86ee0; background:#211733; }
+    .chip.ambient { opacity:.75; }
+    .chip .em { font-size:12px; color:#7d8894; font-style:italic; }
+    .hint { font-size:11.5px; color:#5b6570; margin-top:4px; }
+
+    .feed { padding:12px 14px; max-height:360px; overflow-y:auto; }
+    .feed h4 { margin:0 0 8px; font-size:11px; text-transform:uppercase;
+               letter-spacing:1.2px; color:#66707c; font-weight:600; }
+    .turncard { border:1px solid #20262f; border-radius:10px; padding:8px 10px;
+                margin-bottom:8px; background:#141920; }
+    .turncard .who { color:#c8b4ea; font-size:12.5px; }
+    .turncard .who span { color:#66707c; }
+    .line { color:#98a3ae; font-size:12.5px; padding:3px 0 0 12px; line-height:1.45; }
+    .line.result { color:#57c98f; }
+    .line.mine-speech { color:#bcd3ec; }
+    .line.incoming { color:#ffb37a; }
+    .line.mem { color:#8fd3c7; font-style:italic; }
+
+    .you { border-top:1px solid #232932; background:#10141a; padding:10px 16px; }
+    .you-row { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+    .vital { display:flex; align-items:center; gap:5px; font-size:12px; color:#9aa5b1; }
+    .bar { width:60px; height:6px; background:#1d2330; border-radius:3px; overflow:hidden; }
+    .bar i { display:block; height:100%; border-radius:3px; }
+    .cond { font-size:11.5px; color:#ffb37a; background:#241a10; border:1px solid #40301c;
+            border-radius:999px; padding:2px 9px; }
+    .inv-chip { font-size:12px; padding:3px 10px; background:#181d25;
+                border:1px solid #262d38; border-radius:999px; color:#c4ccd6; }
+    .inv-chip:hover { border-color:#c96a46; color:#ffd9c9; background:#20161a; }
+    .sect-label { font-size:10.5px; text-transform:uppercase; letter-spacing:1px;
+                  color:#5b6570; margin-right:2px; }
+
+    .digest { margin:10px 16px 0; background:#241a10; border:1px solid #40301c;
+              border-radius:10px; padding:9px 12px; }
+    .digest .dt { font-size:11px; text-transform:uppercase; letter-spacing:1.1px;
+                  color:#ffb37a; margin-bottom:5px; }
+    .digest .di { font-size:12.5px; color:#e8c49a; padding:2px 0; }
+
+    .composer { border-top:1px solid #232932; background:#161a21; padding:12px 16px 14px; }
+    .phasebar { display:flex; align-items:center; gap:10px; margin-bottom:9px; }
+    .ptag { font-size:11.5px; padding:3px 11px; border-radius:999px; }
+    .ptag.compose { background:#14231a; color:#57c98f; border:1px solid #2c4a36; }
+    .ptag.burst { background:#2b1f42; color:#d9baff; border:1px solid #4a3668; }
+    .ptag.react { background:#241a10; color:#ffd28f; border:1px solid #40301c; }
+    .pnote { font-size:12px; color:#78828e; }
+    .crow { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+    .crow .lbl { width:64px; text-align:right; font-size:12px; color:#7d8894; flex:none; }
+    .crow input[type=text] { flex:1; background:#0e1116; border:1px solid #2a303b; color:#e8edf2;
+                 border-radius:8px; padding:9px 12px; font-size:14px; outline:none; min-width:0; }
+    .crow input[type=text]:focus { border-color:#7b46c9; box-shadow:0 0 0 3px #7b46c922; }
+    .crow.mem textarea { flex:1; background:#0e1116; border:1px solid #2a303b; border-radius:8px;
+                 color:#d9c9a9; font:inherit; resize:none; outline:none; padding:7px 12px; }
+    .volseg { display:flex; border:1px solid #2a303b; border-radius:8px; overflow:hidden; flex:none; }
+    .volseg button { background:#181d25; color:#8b95a1; border:0; padding:8px 9px;
+                     font-size:11.5px; border-right:1px solid #2a303b; }
+    .volseg button:last-child { border-right:0; }
+    .volseg button.on { background:#2b1f42; color:#d9baff; }
+    .btn-primary { background:#7b46c9; border:0; color:#fff; font-weight:600;
+               border-radius:8px; padding:9px 20px; flex:none; }
+    .btn-primary:hover { background:#8d59da; }
+    .btn-primary.gold { background:#b3812f; } .btn-primary.gold:hover { background:#c9953e; }
+    .btn-primary:disabled { opacity:.45; cursor:default; }
+    .adv-toggle { background:none; border:0; color:#66707c; font-size:12px; }
+    .preview { margin-top:9px; margin-left:72px; font-family:ui-monospace,Consolas,monospace;
+               font-size:12px; color:#79e6a8; background:#0d1712; border:1px solid #1c3527;
+               border-radius:8px; padding:7px 11px; white-space:pre-wrap; }
+    .autoline { margin-left:72px; margin-top:6px; font-size:11.5px; color:#5b8f77;
+                font-style:italic; }
+    .ctx { position:fixed; z-index:50; background:#1a1f27; border:1px solid #333b47;
+           border-radius:10px; padding:5px; min-width:200px; max-height:60vh; overflow-y:auto;
+           box-shadow:0 12px 30px #000a; }
+    .ctx .ctx-title { font-size:11px; color:#66707c; padding:5px 10px 4px;
+                      text-transform:uppercase; letter-spacing:1px; }
+    .ctx button { display:block; width:100%; text-align:left; background:none; border:0;
+                  color:#d5dde5; padding:7px 10px; border-radius:7px; font-size:13px; }
+    .ctx button:hover:not(:disabled) { background:#7b46c93a; }
+    .ctx button:disabled { color:#55606c; cursor:not-allowed; }
+    .ctx button:disabled .why { float:right; font-size:11px; color:#55606c; max-width:110px; }
+    .ctx button.danger { color:#ff9d9d; } .ctx button.danger:hover:not(:disabled) { background:#c93a3a33; }
+    .ctx .back { color:#8b95a1; font-size:12px; border-bottom:1px solid #232932;
+                 border-radius:0; margin-bottom:3px; }
+    .scrim { position:fixed; inset:0; z-index:40; }
+
+    .toast { position:fixed; bottom:22px; left:50%; transform:translateX(-50%);
+             background:#1c2a20; color:#8fe6b0; border:1px solid #2c4a36;
+             padding:8px 18px; border-radius:999px; font-size:13px; z-index:60;
+             animation:fadein .2s ease; max-width:80vw; }
+    @keyframes fadein { from{opacity:0; transform:translate(-50%,8px)} }
+
+    /* ── v2.4 additions ── */
+    .darkbtn { background:#181d25; border:1px solid #262d38; border-radius:999px;
+               color:#8b95a1; padding:4px 10px; font-size:12px; margin-left:8px; }
+    .darkbtn.on { color:#ffd28f; border-color:#40301c; background:#241a10; }
+    .hovercard { position:fixed; z-index:70; width:300px; background:#1a1f27;
+                 border:1px solid #3a4350; border-radius:10px; padding:10px 12px;
+                 box-shadow:0 14px 34px #000c; pointer-events:none; }
+    .hovercard .ht { font-size:12.5px; color:#e8edf2; font-weight:600; }
+    .hovercard .hb { font-size:12.5px; color:#98a3ae; line-height:1.5;
+                     padding-top:5px; white-space:pre-wrap; }
+    .hovercard .hf { font-size:10.5px; color:#57c98f; padding-top:6px; letter-spacing:.5px; }
+    .scene.dim .chips { opacity:.4; }
+    .scene.dim .desc { color:#5b6570; }
+    .cond.activity { cursor:pointer; color:#ffd28f; }
+    .confirm-scrim { position:fixed; inset:0; z-index:80; background:#0009; }
+    .confirm-box { position:fixed; z-index:81; left:50%; top:36%; transform:translate(-50%,-50%);
+                   width:min(480px,92vw); background:#161a21; border:1px solid #333b47;
+                   border-radius:14px; padding:16px 18px; box-shadow:0 18px 60px #000d; }
+    .confirm-box h5 { margin:0 0 10px; color:#e8edf2; font-size:14px; }
+    .confirm-box pre { max-height:230px; overflow:auto; font-family:ui-monospace,Consolas,monospace;
+                       font-size:12px; color:#79e6a8; background:#0d1712;
+                       border:1px solid #1c3527; border-radius:8px; padding:9px 11px;
+                       white-space:pre-wrap; margin:0 0 12px; }
+    .togglelbl { display:inline-flex; align-items:center; gap:5px; font-size:12px;
+                 color:#8b95a1; cursor:pointer; user-select:none; }
+    textarea.jsonbox { flex:1; min-height:110px; background:#0e1116; border:1px solid #2a303b;
+                       border-radius:8px; color:#79e6a8; font-family:ui-monospace,Consolas,monospace;
+                       font-size:12px; padding:9px 12px; outline:none; resize:vertical; }
+    select.wherepick { background:#181d25; color:#66707c; border:1px solid #2a303b;
+                       border-radius:7px; padding:6px 9px; font-size:12px; }
+  `;
+
+  /* ── typed parsing ──────────────────────────────────────────────────── */
+  parseCmd(raw) {
+    const t = (raw || '').trim();
+    if (!t) return {};
+    const verb = t.toLowerCase().split(/\s+/)[0];
+    if (!VERBS.includes(verb)) return { speech: t };
+    let rest = t.slice(verb.length).trim();
+    const out = { action: { action: verb } };
+    if (verb === 'give' || verb === 'steal') {
+      const m = rest.split(/\s+(?:to|from)\s+/i);
+      out.action.item = m[0]; out.action.target = m[1] || '';
+      return out;
+    }
+    if (verb === 'use') {
+      const on = rest.split(/\s+on\s+/i);
+      out.action.item = on[0]; out.action.target = on[1] || '';
+      return out;
+    }
+    if (rest) out.action.item = rest;
+    return out;
+  }
+
+  rebuildPreview() {
+    const parsed = this.parseCmd(this.cmd);
+    const speech = this.say.trim() || parsed.speech || '';
+    const p = {
+      ...(parsed.action ?? {}),
+      ...(speech ? { speech, volume: this.volume } : {}),
+      ...(this.emote.trim() ? { emote: this.emote.trim() } : {}),
+      ...(this.memory.trim() ? { memory: this.memory.trim() } : {}),
+    };
+    this.preview = Object.keys(p).length ? p : null;
+  }
+
+  onCmd(e)   { this.cmd = e.target.value;   this.rebuildPreview(); }
+  onSay(e)   { this.say = e.target.value;   this.rebuildPreview(); }
+  onEmote(e) { this.emote = e.target.value; this.rebuildPreview(); }
+  onMem(e)   { this.memory = e.target.value; this.rebuildPreview(); }
+  setVolume(v) { this.volume = v; this.rebuildPreview(); }
+  clearAction() { this.cmd = ''; this.rebuildPreview(); }
+
+  setAction(action, label) {
+    const PREP = { use: 'on', give: 'to', steal: 'from' };
+    const prep = PREP[action.action];
+    const parts = [];
+    if (action.item) parts.push(action.item);
+    if (action.target && !action.item) parts.push(action.target);
+    else if (action.target) parts.push(prep ? `${prep} ${action.target}` : action.target);
+    this.cmd = [action.action, ...parts].join(' ');
+    this.rebuildPreview();
+    this.toastMsg(`drafted: ${label}`);
+    this.shadowRoot.getElementById('say').focus();
+  }
+
+  /* ── ACT → burst → react ────────────────────────────────────────────── */
+  act(skipConfirm) {
+    this.rebuildPreview();
+    if (!this.preview?.action) return;
+    if (!skipConfirm && this.confirmBeforeAct) {
+      this.pendingConfirm = JSON.parse(JSON.stringify(this.preview));
+      return;
+    }
+    this.pendingConfirm = null;
+    this._wayOk = undefined;
+    const a = this.preview.action;
+    const lines = [{ cls: '', text: `⚙ ${[a.action, a.item, a.target].filter(Boolean).join(' ')}` }];
+    if (this.preview.speech)
+      lines.push({ cls: 'mine-speech', text: `💬 you ${this.volume}: "${this.preview.speech}"` });
+    if (this.preview.emote)
+      lines.push({ cls: '', text: `🎭 ${this.preview.emote}` });
+    const result = this.simulateResult(a);
+    lines.push({ cls: 'result', text: result });
+
+    if (a.action === 'dash' && this.phase === 'compose' && this._wayOk !== false) {
+      this.phase = 'burst';
+      this.you.area = a.item ?? a.target ?? this.you.area;
+      lines.push({ cls: '', text: '⚡ dash burst — one more action this turn' });
+      this.events = [...this.events, { who: 'jake halloway (you)', n: ++this.tick, lines }];
+      this.cmd = ''; this.preview = null;
+      return;
+    }
+    // ways change state on go/open/close — keep chips honest
+    this.applyWayStateEffects(a);
+    if (a.action === 'search') this.revealEarring();
+    this.lastResult = result;
+    const memLines = [];
+    const bits = [a.action, a.item, a.target].filter(Boolean).join(' ');
+    memLines.push({ cls: 'mem', text: `🧠 will remember: ${bits}${this.preview.speech ? ` — said "${this.preview.speech}"` : ''} (${this.you.area}, tick ${this.tick})` });
+    if (this.preview.memory) memLines.push({ cls: 'mem', text: `🧠 noted by you: ${this.preview.memory}` });
+    this.events = [...this.events, { who: 'jake halloway (you)', n: ++this.tick,
+      lines: [...lines, ...memLines] }];
+    this.phase = 'react';
+    this.digest = [];
+    this.cmd = ''; this.say = ''; this.emote = ''; this.memory = '';
+    this.preview = null;
+    this.toastMsg('react to the result — then close your turn');
+  }
+
+  applyWayStateEffects(a) {
+    if (a.action === 'open' || a.action === 'close' || a.action === 'lock' || a.action === 'unlock') {
+      const w = this.scene.exits.find(x => x.name.toLowerCase().includes((a.item ?? '').toLowerCase()));
+      if (!w) return;
+      if (a.action === 'open') w.state = 'open';
+      if (a.action === 'close') w.state = 'closed';
+      if (a.action === 'lock') w.locked = true;
+      if (a.action === 'unlock') w.locked = false;
+      this.scene = { ...this.scene };
+    }
+    if (a.action === 'go' || a.action === 'dash') {
+      const w = this.scene.exits.find(x => x.to.toLowerCase() === (a.item ?? '').toLowerCase());
+      if (w && this._wayOk !== false && w.closesBehind) {
+        w.state = 'closed';
+        this.scene = { ...this.scene };
+        this.toastMsg('the swinging door flaps shut behind you');
+      }
+    }
+  }
+
+  revealEarring() {
+    if (this.scene.items.some(i => i.id === 'earring')) return;
+    this.scene = { ...this.scene, items: [EARRING, ...this.scene.items] };
+    this.toastMsg('found: Blue Butterfly Earring');
+  }
+
+  confirmAct() { this.act(true); }
+  cancelAct() { this.pendingConfirm = null; }
+
+  /* way rules (Tommy, 2026-08-24): doors auto-open on go/dash unless
+     locked, blocked, or needing force; locked is INVISIBLE until examined
+     or tried; force is not an action — going on a jammed way rolls the
+     check right here */
+  wayAttempt(itemName, verb) {
+    const w = this.scene.exits.find(x => x.to.toLowerCase() === (itemName ?? '').toLowerCase());
+    if (!w) { this._wayOk = true; return null; }
+    if (w.locked) {
+      w.knownLocked = true;
+      this.scene = { ...this.scene };
+      this._wayOk = false;
+      return `${w.name}: locked. it doesn't even rattle.`;
+    }
+    if (w.jammed) {
+      const roll = 1 + Math.floor(Math.random() * 20);
+      const mod = 3, dc = 12;
+      if (roll + mod >= dc) {
+        w.jammed = false;
+        w.state = 'open';
+        this.scene = { ...this.scene };
+        this._wayOk = true;
+        return `force vs DC ${dc} — d20+${mod}=${roll} · success! the frame splinters and it gives way`;
+      }
+      w.knownJammed = true;
+      this.scene = { ...this.scene };
+      this._wayOk = false;
+      return `force vs DC ${dc} — d20+${mod}=${roll} · it holds. your shoulder rings.`;
+    }
+    this._wayOk = true;
+    if (w.state !== 'open' && w.wayType !== 'archway') {
+      w.state = 'open';
+      this.scene = { ...this.scene };
+      return `the ${w.name} bangs open as you ${verb} it`;
+    }
+    return null;
+  }
+
+  simulateResult(a) {
+    switch (a.action) {
+      case 'dash': {
+        const extra = this.wayAttempt(a.item, 'shoulder-check');
+        const dest = (a.item ?? 'next area').replace(/^the /, '');
+        return `${extra ? extra + ' — ' : ''}you're through, in the ${dest}.`;
+      }
+      case 'go': {
+        const extra = this.wayAttempt(a.item, 'push');
+        if (this._wayOk === false) return extra;
+        const dest = (a.item ?? a.target).replace(/^the /, '');
+        return `${extra ? extra.charAt(0).toUpperCase() + extra.slice(1) + ' — y' : 'Y'}ou head toward the ${dest}.`;
+      }
+      case 'examine': {
+        const w = this.scene.exits.find(x => x.name.toLowerCase() === (a.item ?? '').toLowerCase());
+        if (w) {
+          if (w.locked) { w.knownLocked = true; this.scene = { ...this.scene }; }
+          if (w.jammed) w.knownJammed = true;
+          this.scene = { ...this.scene };
+          return `${w.name} — ${w.desc ?? 'a way out.'}`
+            + `${w.knownLocked ? ' a padlock hangs on the hasp.' : ''}`
+            + `${w.jammed ? " it's wedged shut — will take muscle." : ''}`;
+        }
+        return 'You look it over.';
+      }
+      case 'eat': return 'You demolish it. The cheese never stood a chance either way.';
+      case 'take': return `You take the ${(a.item || 'thing').toLowerCase()}.`;
+      case 'give': return `${a.target ?? 'They'} accepts it, blinking.`;
+      case 'steal': return 'Sleight of Hand vs Perception… success. Nobody saw a thing.';
+      case 'open': return `You open the ${a.item}.`;
+      case 'close': return `You close the ${a.item}.`;
+      case 'lock': return `The ${a.item} clicks locked.`;
+      case 'unlock': return `The ${a.item} clicks unlocked.`;
+      case 'search': return 'Behind the pedestal, something tiny catches the fluorescent light — a small blue butterfly earring, its clasp bent.';
+      default: return 'It works.';
+    }
+  }
+
+  /* ── REACT phase ────────────────────────────────────────────────────── */
+  closeTurn() {
+    if (!this.say.trim() && !this.emote.trim() && !this.memory.trim()) { this.passTurn(); return; }
+    const lines = [];
+    if (this.say.trim())
+      lines.push({ cls: 'mine-speech', text: `↩ you react, ${this.volume}: "${this.say.trim()}"` });
+    if (this.emote.trim())
+      lines.push({ cls: '', text: `🎭 ${this.emote.trim()}` });
+    lines.push({ cls: 'mem', text: `🧠 will remember: reacted to "${(this.lastResult || '').slice(0, 48)}…"` });
+    this.events = [...this.events, { who: 'jake halloway (you)', n: this.tick, lines }];
+    this.passTurn();
+  }
+
+  passTurn() {
+    this.phase = 'compose';
+    this.lastResult = '';
+    this.cmd = ''; this.say = ''; this.emote = ''; this.memory = ''; this.preview = null;
+    this.nextUp = this.nextUp === 'miki doki' ? 'tyler' : 'miki doki';
+    this.tick += 1;
+    const npcLines = this.nextUp === 'tyler'
+      ? ['💬 "hey— no drinks past the counter, house rule"',
+         { cls: 'incoming', text: '⚙⚠ tyler grabs your arm as you wander toward the kitchen door' }]
+      : ['💬 "did you find it? the butterfly."'];
+    if (this.nextUp === 'tyler'
+        && !this.you.conditions.some(c => c.startsWith('Grappled'))) {
+      this.you = { ...this.you,
+                   conditions: [...this.you.conditions, 'Grappled (by tyler)'] };
+    }
+    this.events = [...this.events, { who: this.nextUp, n: this.tick, lines: npcLines }];
+    this.digest = [...this.digest, this.nextUp === 'tyler'
+      ? 'tyler grabbed your arm (grappled)'
+      : `${this.nextUp} asked you about the butterfly earring`];
+    this.toastMsg(`next up soon: you — ${this.digest.length} thing(s) happened`);
+  }
+
+  interject(e) {
+    const inp = this.shadowRoot.getElementById('interject');
+    const t = (inp?.value || '').trim();
+    if (!t) return;
+    this.events = [...this.events, { who: 'jake halloway (you)', n: this.tick,
+      lines: [{ cls: 'mine-speech', text: `💬 you interject (turn not used): "${t}"` }] }];
+    inp.value = '';
+    this.toastMsg('interjected — your turn is still coming');
+  }
+
+  endTurn() { this.passTurn(); }
+
+  /* ── v2.4: hover = FREE LOOK (no turn cost; examine still ends turns) ── */
+  substituteParams(t) {
+    return (t || '').replace(/\{param:(\w+)\}/g,
+      (m, k) => this.area.params?.[k] ?? m);
+  }
+
+  lookFor(kind, o) {
+    const L = { icon: o.icon ?? '', title: o.name ?? '', body: '',
+                foot: 'free look · no turn cost' };
+    if (kind === 'area') {
+      L.title = `${o.icon} ${o.name}`;
+      L.body = this.substituteParams(this.dark ? o.darkDesc : o.desc);
+      if (!this.dark && o.searchHint) L.body += `\n\n(${o.searchHint})`;
+    } else if (kind === 'exit') {
+      L.title = `${o.icon} ${o.name}`;
+      const bits = [`${o.dirLabel || o.dir} → ${o.to}`];
+      if (o.knownLocked) bits.push('locked');
+      else if (o.state !== 'open' && o.wayType !== 'archway') bits.push('closed');
+      L.body = [this.substituteParams(o.desc), bits.join(' · ')].filter(Boolean).join('\n');
+      if (o.viewThrough) L.body += `\n\nthrough it: ${o.viewThrough}`;
+      if (o.jammed) L.body += '\n\njammed shut — opening it will take muscle';
+      if (o.requires) L.body += `\n\nrequires ${o.requires}`;
+      if (o.closesBehind) L.body += '\n\nswings shut behind you';
+      if (o.closable === false) L.body += '\n\nnot something you can close';
+    } else if (kind === 'person') {
+      L.title = `${o.icon} ${o.unknown ? o.unknownAs : o.name}`;
+      L.body = o.desc;
+      if (o.emote) L.body += `\n\nright now: ${o.emote}`;
+      if (o.unknown) L.foot = 'stranger — Talk to introduce yourself (task-339)';
+    } else {
+      L.title = `${o.icon ?? ''} ${o.name}`.trim();
+      L.body = o.desc ?? '';
+      if (o.slot) L.body += `\n\nslot: ${o.slot} · outer layer covers what's under it`;
+    }
+    if (this.dark && kind !== 'area') {
+      L.title = `${L.icon ?? ''} …something`.trim();
+      L.body = 'too dark to make out much.';
+    }
+    return L;
+  }
+
+  onEnter(e, kind, o) {
+    const r = e.currentTarget.getBoundingClientRect();
+    this.hover = { ...this.lookFor(kind, o),
+                   x: Math.max(8, Math.min(r.left, innerWidth - 316)),
+                   y: Math.min(r.bottom + 8, innerHeight - 170) };
+  }
+  onLeave() { this.hover = null; }
+
+  toggleDark() { this.dark = !this.dark; }
+
+  introduce(c) {
+    this.scene = { ...this.scene,
+      chars: this.scene.chars.map(x => x.id === c.id ? { ...x, unknown: false } : x) };
+    this.toastMsg(`her name tag reads "${c.name}" — acquaintance made`);
+  }
+
+  setActivity(name, minutes) {
+    this.you = { ...this.you, activity: { name, detail: '', minutes } };
+    this.toastMsg(`${name.toLowerCase()} (${minutes}m) — the queue skips you until stopped`);
+  }
+  stopActivity() {
+    this.you = { ...this.you, activity: null };
+    this.toastMsg("activity stopped — you're back in the rotation");
+  }
+
+  toggleJson() {
+    if (!this.jsonMode) this.jsonText = JSON.stringify(this.preview ?? {}, null, 1);
+    this.jsonMode = !this.jsonMode;
+  }
+  actJson() {
+    try { this.preview = JSON.parse(this.jsonText); }
+    catch { this.toastMsg('invalid JSON'); return; }
+    this.act(false);
+  }
+
+  /* ══ DATA-DRIVEN MENUS — mirror TriggerSystem._get_available_actions ══ */
+  /*
+     Contract: every entity exposes actions[] + tags + state (+triggers).
+     Entries: {label, run?, danger?, enabled?=false, reason?}
+     The real implementation should call POST /api/triggers/available-actions
+     (or equivalent) per entity; this mockup derives locally with the same
+     rules: state gates open/close, tags gate eat/drink/equip, etc.
+  */
+
+  act_(action, label) { return { label, run: () => this.setAction(action, label) }; }
+
+  buildItemMenu(o, carried) {
+    const acts = o.actions ?? ['examine'];
+    const st = o.current_state ?? 'normal';
+    const m = [this.act_({ action: 'examine', item: o.name }, `examine ${o.name}`)];
+    if (!carried && acts.includes('take')) m.push(this.act_({ action: 'take', item: o.name }, 'Pick up'));
+    if (carried && acts.includes('drop')) m.push({ ...this.act_({ action: 'drop', item: o.name }, 'Drop'), danger: true });
+    if (acts.includes('eat')) m.push(this.act_({ action: 'eat', item: o.name }, 'Eat'));
+    if (acts.includes('drink')) m.push(this.act_({ action: 'drink', item: o.name }, 'Drink'));
+    if ((o.kind === 'drink') && o.empty) m.push({ label: 'Drink', enabled: false, reason: 'empty' });
+    if (acts.includes('open'))
+      m.push(st === 'open'
+        ? { label: 'Open', enabled: false, reason: 'already open' }
+        : this.act_({ action: 'open', item: o.name }, 'Open'));
+    if (acts.includes('close'))
+      m.push(st === 'closed'
+        ? { label: 'Close', enabled: false, reason: 'already closed' }
+        : this.act_({ action: 'close', item: o.name }, 'Close'));
+    if (acts.includes('search')) m.push(this.act_({ action: 'search', item: o.name }, 'Search'));
+    if (acts.includes('use')) m.push(this.act_({ action: 'use', item: o.name }, 'Use'));
+    if (acts.includes('read')) m.push(this.act_({ action: 'read', item: o.name }, 'Read'));
+    return m;
+  }
+
+  buildWayMenu(w) {
+    const acts = w.actions ?? ['examine', 'go'];
+    const m = [this.act_({ action: 'examine', item: w.name }, `examine ${w.name}`)];
+    const dirText = w.dirLabel || w.dir;
+    const closed = w.state !== 'open' && w.wayType !== 'archway';
+    const grappled = this.you.conditions.some(c => c.startsWith('Grappled'));
+    if (acts.includes('go')) {
+      if (w.requires)
+        m.push({ label: `Go ${dirText} → ${w.to}`, enabled: false,
+                 reason: `requires ${w.requires}` });
+      else if (grappled)
+        m.push({ label: `Go ${dirText}`, enabled: false,
+                 reason: 'blocked — tyler has your arm' });
+      else if (w.knownLocked)
+        m.push({ label: `Go ${dirText}`, enabled: false, reason: 'locked' });
+      else if (w.jammed && w.knownJammed)
+        m.push(this.act_({ action: 'go', item: w.to.toLowerCase() },
+                         `Go ${dirText} → ${w.to} — needs force`));
+      else
+        m.push(this.act_({ action: 'go', item: w.to.toLowerCase() },
+                         `Go ${dirText} → ${w.to}`));
+    }
+    if (acts.includes('open') && !w.jammed)
+      m.push(!closed
+        ? { label: 'Open', enabled: false, reason: 'already open' }
+        : w.knownLocked
+          ? { label: 'Open', enabled: false, reason: 'locked' }
+          : this.act_({ action: 'open', item: w.name }, 'Open'));
+    if (acts.includes('close') && w.closable !== false)
+      m.push(!closed
+        ? { label: 'Close', enabled: false, reason: 'not open' }
+        : this.act_({ action: 'close', item: w.name }, 'Close'));
+    if (acts.includes('lock'))
+      m.push(w.locked
+        ? { label: 'Lock', enabled: false, reason: 'already locked' }
+        : this.act_({ action: 'lock', item: w.name }, 'Lock'));
+    if (acts.includes('unlock'))
+      m.push(!w.locked
+        ? { label: 'Unlock', enabled: false, reason: 'not locked' }
+        : this.act_({ action: 'unlock', item: w.name }, 'Unlock'));
+    if (acts.includes('listen')) m.push(this.act_({ action: 'listen', item: w.name }, 'Listen'));
+    return m;
+  }
+
+  buildPersonMenu(c) {
+    const m = [
+      { label: c.unknown ? 'Talk to (introduce yourself)' : 'Talk to',
+        run: () => {
+          if (c.unknown) { this.introduce(c); return; }
+          this.shadowRoot.getElementById('say').focus();
+        } },
+      this.act_({ action: 'examine', target: c.name }, `examine ${c.name}`),
+    ];
+    if (c.carries?.length) {
+      m.push({ label: 'Give to ▸', run: () => (this.menuFor = { ...this.menuFor, pick: 'give-item' }) });
+      m.push({ label: 'Steal from ▸', danger: true, run: () => (this.menuFor = { ...this.menuFor, pick: 'steal-item' }) });
+    }
+    m.push({ ...this.act_({ action: 'grab', target: c.name }, 'Grab'), danger: true });
+    m.push({ ...this.act_({ action: 'attack', target: c.name }, 'Attack'), danger: true });
+    // honest gap: unequip is self-only today (equipment.py:232)
+    m.push({ label: 'Undress ▸', enabled: false,
+             reason: 'self-only today — future: forced/stolen layers' });
+    return m;
+  }
+
+  buildCarriedMenu(o) {
+    return this.buildItemMenu({ ...o, current_state: 'normal' }, true);
+  }
+
+  buildWornMenu(o) {
+    return [
+      this.act_({ action: 'examine', item: o.name }, `examine ${o.name}`),
+      { ...this.act_({ action: 'remove', item: o.name }, `Remove (${o.slot})`),
+        run: () => { this.setAction({ action: 'remove', item: o.name.toLowerCase() }, `remove ${o.name}`);
+                      this.toastMsg('removing lands it in your clothing pile'); } },
+    ];
+  }
+
+  buildAreaMenu(a) {
+    return [
+      this.act_({ action: 'examine', item: a.name }, `examine the room`),
+      this.act_({ action: 'search', item: a.name }, 'Search the room'),
+      this.act_({ action: 'listen', item: a.name }, 'Listen'),
+    ];
+  }
+
+  openMenu(e, spec) {
+    e.stopPropagation();
+    if (this.phase === 'react') { this.toastMsg('your action resolved — react, or close the turn'); return; }
+    spec.x = Math.min(e.clientX, innerWidth - 240);
+    spec.y = Math.min(e.clientY, innerHeight - 280);
+    this.menuFor = spec;
+  }
+
+  menuButtons(m) {
+    if (m.pick === 'give-item')
+      return [{ label: '◂ back', back: true },
+        ...this.you.carrying.map(c => ({ label: `${c.icon} ${c.name}`,
+          run: () => this.setAction({ action: 'give', item: c.name.toLowerCase(), target: m.obj.name.toLowerCase() }, `give ${c.name} → ${m.obj.name}`) }))];
+    if (m.pick === 'steal-item')
+      return [{ label: '◂ back', back: true },
+        ...m.obj.carries.map(it => ({ label: `${it.equipped ? '🫳 (equipped) ' : ''}${it.n ?? it}`,
+          danger: true,
+          run: () => this.setAction({ action: 'steal', item: (it.n ?? it).toLowerCase(), target: m.obj.name.toLowerCase() }, `steal ${it.n ?? it} from ${m.obj.name}`) }))];
+
+    switch (m.kind) {
+      case 'scene-item': return this.buildItemMenu(m.obj, false);
+      case 'carried':    return this.buildCarriedMenu(m.obj);
+      case 'worn':       return this.buildWornMenu(m.obj);
+      case 'person':     return this.buildPersonMenu(m.obj);
+      case 'exit':       return this.buildWayMenu(m.obj);
+      case 'area':       return this.buildAreaMenu(m.obj);
+      case 'activity':
+        return [
+          { label: 'Rest · 30m',   run: () => this.setActivity('Resting', 30) },
+          { label: 'Wait · 5m',    run: () => this.setActivity('Waiting', 5) },
+          { label: 'Sit · 10m',    run: () => this.setActivity('Sitting', 10) },
+          { label: 'Meditate · 15m', run: () => this.setActivity('Meditating', 15) },
+        ];
+    }
+    return [];
+  }
+
+  menuPick(run, back) { this.menuFor = null; if (!back) run(); }
+
+  toastMsg(m) { this.toast = m; setTimeout(() => (this.toast = ''), 2800); }
+
+  render() {
+    const v = this.you.vitals;
+    const bar = (label, val, col) => html`<span class="vital">${label}<span class="bar"><i style="width:${val}%;background:${col}"></i></span>${val}</span>`;
+    const reacting = this.phase === 'react';
+    return html`
+    <div class="panel">
+      <div class="hdr">
+        <span class="title">✈ jake halloway's turn</span>
+        <!-- THE AREA IS AN ENTITY TOO -->
+        <button class="locbtn" title=${this.area.desc}
+                @click=${e => this.openMenu(e, { kind: 'area', obj: this.area })}>
+          ${this.area.icon} ${this.area.name}
+        </button>
+        <span class="nextup">tick ${this.tick} · next up: <b>${reacting ? 'still you (react)' : this.nextUp}</b></span>
+        <button class="darkbtn ${this.dark ? 'on' : ''}" title="demo: low-light scene degradation"
+                @click=${() => this.toggleDark()}>🌙 ${this.dark ? 'lights on' : 'lights out'}</button>
+      </div>
+
+      ${this.digest.length && !reacting ? html`
+      <div class="digest">
+        <div class="dt">since your turn</div>
+        ${this.digest.map(d => html`<div class="di">• ${d}</div>`)}
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <input id="interject" type="text" placeholder="quick reply… doesn't use your turn"
+                 style="flex:1;background:#0e1116;border:1px solid #40301c;color:#e8edf2;border-radius:6px;padding:5px 10px;font-size:12.5px;outline:none"
+                 @keydown=${e => e.key === 'Enter' && this.interject(e)}>
+          <button class="adv-toggle" style="color:#ffb37a" @click=${e => this.interject(e)}>interject ↩</button>
+          <button class="adv-toggle" title="dismiss" @click=${() => (this.digest = [])}>✕</button>
+        </div>
+      </div>` : ''}
+
+      <div class="grid">
+        <div class="scene ${this.dark ? 'dim' : ''}">
+          <p class="desc">${this.dark ? this.substituteParams(this.area.darkDesc)
+                                      : this.substituteParams(this.area.desc)}</p>
+          <div class="zone">
+            <div class="zlabel">People here</div>
+            <div class="chips">${this.scene.chars.map(c => html`
+              <button class="chip person ${c.seen ? 'seen' : ''} ${c.ambient ? 'ambient' : ''}"
+                      @mouseenter=${e => this.onEnter(e, 'person', c)}
+                      @mouseleave=${() => this.onLeave()}
+                      @click=${e => this.openMenu(e, { kind: 'person', obj: c })}>
+                ${c.icon} ${c.unknown ? c.unknownAs : c.name} <span class="em">— ${c.emote}</span>
+              </button>`)}
+            </div>
+          </div>
+          <div class="zone">
+            <div class="zlabel">Things you can see</div>
+            <div class="chips">${this.scene.items.map(i => html`
+              <button class="chip ${i.seen ? 'seen' : ''}"
+                      @mouseenter=${e => this.onEnter(e, 'scene-item', i)}
+                      @mouseleave=${() => this.onLeave()}
+                      @click=${e => this.openMenu(e, { kind: 'scene-item', obj: i })}>
+                ${i.icon} ${i.name}
+              </button>`)}
+            </div>
+            <div class="hint">hover = free look · menus come from each entity's real actions + state — disabled entries explain why</div>
+          </div>
+          <div class="zone">
+            <div class="zlabel">Ways out</div>
+            <div class="chips">${this.scene.exits.map(x => html`
+              <button class="chip exit ${x.state !== 'open' ? 'shut' : ''}"
+                      @mouseenter=${e => this.onEnter(e, 'exit', x)}
+                      @mouseleave=${() => this.onLeave()}
+                      @click=${e => this.openMenu(e, { kind: 'exit', obj: x })}>
+                ${x.icon} ${x.name}
+                <span class="em">${x.dirLabel || x.dir}${x.knownLocked ? ' 🔒'
+                  : x.state !== 'open' && x.wayType !== 'archway' ? ' (closed)' : ''}${x.requires ? ' ⛰' : ''}${x.knownJammed ? ' 🔧' : ''}</span>
+              </button>`)}
+            </div>
+            <div class="hint">● closed · 🔒/🔧 appear only once discovered (examine or bounce off) ·
+              ⛰ climb-gated · doors auto-open on go</div>
+          </div>
+        </div>
+
+        <div class="feed">
+          <h4>What happened</h4>
+          ${this.events.map(ev => html`
+            <div class="turncard">
+              <div class="who">▸ ${ev.who} <span>· tick ${ev.n}</span></div>
+              ${ev.lines.map(l => html`<div class="line ${l.cls ?? ''}">${l.text ?? l}</div>`)}
+            </div>`)}
+        </div>
+      </div>
+
+      <div class="you">
+        <div class="you-row">
+          <span class="sect-label">You</span>
+          ${bar('HP', v.HP, '#d05555')} ${bar('EN', v.Energy, '#d0a53f')}
+          ${bar('HUN', v.Hunger, '#7ab063')} ${bar('THI', v.Thirst, '#5b9bd0')}
+          ${this.you.conditions.map(c => html`<span class="cond">${c}</span>`)}
+          ${this.you.activity
+            ? html`<button class="cond activity"
+                    title="active activity — the turn queue skips you while it lasts"
+                    @click=${() => this.stopActivity()}>⏸ ${this.you.activity.name} · ${this.you.activity.minutes}m ✕</button>`
+            : html`<button class="adv-toggle"
+                    @click=${e => this.openMenu(e, { kind: 'activity' })}>+ activity</button>`}
+        </div>
+        <div class="you-row" style="margin-top:8px">
+          <span class="sect-label">Carrying</span>
+          ${this.you.carrying.map(c => html`<button class="inv-chip"
+              @mouseenter=${e => this.onEnter(e, 'carried', c)}
+              @mouseleave=${() => this.onLeave()}
+              @click=${e => this.openMenu(e, { kind: 'carried', obj: c })}>${c.icon} ${c.name}</button>`)}
+          <span class="sect-label" style="margin-left:10px">Wearing</span>
+          ${this.you.wearing.map(w => html`<button class="inv-chip"
+              @mouseenter=${e => this.onEnter(e, 'worn', w)}
+              @mouseleave=${() => this.onLeave()}
+              @click=${e => this.openMenu(e, { kind: 'worn', obj: w })}>${w.icon} ${w.name}</button>`)}
+          <button class="adv-toggle" style="margin-left:auto"
+                  @click=${() => (this.knownOpen = !this.knownOpen)}>
+            ${this.knownOpen ? '▾' : '▸'} what you know
+          </button>
+        </div>
+        ${this.knownOpen ? html`<div style="font-size:12.5px;color:#8b95a1;margin-top:8px;line-height:1.5;border-left:2px solid #2a303b;padding-left:10px;display:grid;gap:6px">
+          ${this.you.known.map(mm => html`<div>${mm}</div>`)}
+        </div>` : ''}
+      </div>
+
+      <div class="composer">
+        <div class="phasebar">
+          <span class="ptag ${this.phase}">${this.phase === 'compose' ? '① compose'
+            : this.phase === 'burst' ? '⚡ dash burst — one more action'
+            : '② react to the result'}</span>
+          ${reacting ? html`<span class="pnote">say / emote / note only — the world already answered</span>`
+                     : html`<span class="pnote">one turn = do + say + emote together · menus fill the draft</span>`}
+        </div>
+
+        ${reacting && this.lastResult ? html`
+          <div style="margin:0 0 9px 72px;font-size:13px;color:#98a3ae;border-left:3px solid #2c4a36;padding-left:10px">
+            <b style="color:#57c98f">result:</b> ${this.lastResult}
+          </div>` : ''}
+
+        ${!reacting && this.jsonMode ? html`
+        <div class="crow">
+          <span class="lbl">{ }</span>
+          <textarea class="jsonbox" rows="4"
+                    placeholder='full structured payload — {"action":{"action":"go","item":"kitchen"},"speech":"brb"}'
+                    .value=${this.jsonText}
+                    @input=${e => (this.jsonText = e.target.value)}></textarea>
+          <button class="btn-primary" @click=${() => this.actJson()}>Act (json)</button>
+        </div>` : ''}
+        ${!reacting && !this.jsonMode ? html`
+        <div class="crow">
+          <span class="lbl">⚙ do</span>
+          <input type="text" list="entity-names" placeholder=${this.phase === 'burst'
+              ? 'second action — your dash bought you one more…'
+              : 'action — click things above or type "take burrito", "open door"…'}
+                 .value=${this.cmd} @input=${e => this.onCmd(e)}
+                 @keydown=${e => e.key === 'Enter' && this.act()}>
+          ${this.cmd ? html`<button class="adv-toggle" @click=${() => this.clearAction()}>✕</button>` : ''}
+        </div>` : ''}
+        <div class="crow">
+          <span class="lbl">🗨 say</span>
+          <input id="say" type="text" placeholder=${reacting ? 'react to what just happened…' : 'what they say — stacks with the action'}
+                 .value=${this.say} @input=${e => this.onSay(e)}
+                 @keydown=${e => e.key === 'Enter' && (reacting ? this.closeTurn() : this.act())}>
+          <div class="volseg">
+            ${['say', 'whisper', 'shout', 'scream'].map(vol => html`
+              <button class="${this.volume === vol ? 'on' : ''}"
+                      @click=${() => this.setVolume(vol)}>${vol}</button>`)}
+          </div>
+        </div>
+        <div class="crow emote">
+          <span class="lbl">🎭 emote</span>
+          <input type="text" placeholder='body language — "sneaks closer to the door"'
+                 .value=${this.emote} @input=${e => this.onEmote(e)}>
+          ${reacting
+            ? html`<button class="btn-primary gold" @click=${() => this.closeTurn()}>close turn</button>`
+            : html`<button class="btn-primary" ?disabled=${!this.preview?.action} @click=${() => this.act()}>${this.phase === 'burst' ? 'Act (last one)' : 'Act'}</button>`}
+        </div>
+        <div class="crow mem">
+          <span class="lbl">🧠 memory</span>
+          <textarea rows="1" placeholder="optional — what you'll personally remember from this"
+                    .value=${this.memory} @input=${e => this.onMem(e)}></textarea>
+          ${reacting ? html`<button class="adv-toggle" @click=${() => this.endTurn()}>skip react, end turn</button>` : ''}
+        </div>
+
+        ${reacting ? html`<div class="autoline">auto-captured either way:
+          reacted to "${(this.lastResult || '').slice(0, 60)}…" in ${this.area.name}</div>` : ''}
+        ${this.preview && !reacting ? html`<div class="preview">${JSON.stringify(this.preview, null, 1)}</div>` : ''}
+        ${!reacting ? html`<div style="margin-left:72px;display:flex;gap:14px;align-items:center">
+          <button class="adv-toggle" @click=${() => (this.advanced = !this.advanced)}>
+            ${this.advanced ? '▾ advanced' : '▸ advanced'}
+          </button>
+          <button class="adv-toggle" @click=${() => this.toggleJson()}>
+            ${this.jsonMode ? '▾ raw json' : '▸ raw json'}</button>
+          <button class="adv-toggle" style="color:#e08f8f" @click=${() => this.endTurn()}>⏭ end turn</button>
+        </div>` : ''}
+        ${this.advanced && !reacting ? html`<div style="margin-left:72px;margin-top:6px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <select><option>relation: on</option><option>under</option><option>beside</option><option>behind</option><option>in</option></select>
+          <select class="wherepick" disabled title="reserved — region targeting lands with task-211">
+            <option>where: body region (task-211)</option>
+          </select>
+          <label class="togglelbl"><input type="checkbox" .checked=${this.confirmBeforeAct}
+                 @change=${e => (this.confirmBeforeAct = e.target.checked)}> confirm before Act</label>
+        </div>` : ''}
+      </div>
+    </div>
+
+    ${this.menuFor ? html`
+      <div class="scrim" @click=${() => (this.menuFor = null)}></div>
+      <div class="ctx" style="left:${this.menuFor.x}px;top:${this.menuFor.y}px">
+        <div class="ctx-title">${this.menuFor.obj?.icon ?? ''} ${this.menuFor.pick
+            ? (this.menuFor.pick === 'give-item' ? `give what? → ${this.menuFor.obj.name}`
+                                                : `steal what? from ${this.menuFor.obj.name}`)
+            : this.menuFor.obj?.name}</div>
+        ${this.menuButtons(this.menuFor).map(b => html`
+          <button class="${b.danger ? 'danger' : ''} ${b.back ? 'back' : ''}"
+                  ?disabled=${b.enabled === false}
+                  title=${b.reason ?? ''}
+                  @click=${() => this.menuPick(b.run, b.back)}>
+            ${b.label}${b.reason ? html`<span class="why">— ${b.reason}</span>` : ''}
+          </button>`)}
+      </div>` : ''}
+    ${this.hover ? html`
+      <div class="hovercard" style="left:${this.hover.x}px;top:${this.hover.y}px">
+        <div class="ht">${this.hover.title}</div>
+        <div class="hb">${this.hover.body}</div>
+        <div class="hf">👁 ${this.hover.foot}</div>
+      </div>` : ''}
+    <datalist id="entity-names">
+      ${[...new Set([
+        ...this.scene.items.map(i => i.name),
+        ...this.scene.chars.filter(c => !c.unknown).map(c => c.name),
+        ...this.scene.exits.map(x => x.to),
+      ])].map(n => html`<option value=${n}></option>`)}
+    </datalist>
+    ${this.toast ? html`<div class="toast">${this.toast}</div>` : ''}
+    `;
+  }
+}
+customElements.define('turn-panel-v2', TurnPanelV2);
+</script>
+</body>
+</html>

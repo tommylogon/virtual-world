@@ -1,0 +1,78 @@
+{
+  "description": "one toilet, one sink, one mirror with a corners-of-the-room blur of grime the cleaner gave up on years ago. the hand dryer sounds like a dying engine. someone has scratched 'run' into the stall door with no further elaboration.",
+  "environment": {
+    "air": "stale",
+    "light": 50,
+    "noise": "hand dryer rattling",
+    "smell": "bleach, faint urinal cake",
+    "temperature": 23
+  },
+  "items": [
+    {
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "current_state": "normal",
+      "description": "two stalls separated by a painted metal divider, one with a door that no longer latches. on the back of the unlatched door is a lengthy complaint about the dipping sauce, written in three colors.",
+      "name": "stalls",
+      "tags": [
+        "furniture",
+        "bathroom"
+      ],
+      "uses": -1,
+      "weight": 60
+    },
+    {
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "current_state": "on",
+      "description": "a single porcelain sink with a dripping handle and an automatic soap dispenser that whirs on its own when you walk past. under the counter, half-hidden, a bucket of mop water from a shift ago.",
+      "name": "sink",
+      "tags": [
+        "bathroom",
+        "furniture"
+      ],
+      "uses": -1,
+      "weight": 30
+    },
+    {
+      "actions": [
+        "examine",
+        "use"
+      ],
+      "current_state": "on",
+      "description": "a metal hand dryer bolted to the wall that takes a full eight seconds to decide it's going to start. the top vent is plugged with a folded napkin.",
+      "name": "hand dryer",
+      "tags": [
+        "electronic",
+        "bathroom"
+      ],
+      "uses": -1,
+      "weight": 5
+    }
+  ],
+  "name": "Taco Bell Men's Restroom",
+  "tags": [
+    "millbrook_falls",
+    "commercial",
+    "restaurant",
+    "food",
+    "taco bell",
+    "interior",
+    "restroom"
+  ],
+  "triggers": [],
+  "exits": [
+    {
+      "direction": "out",
+      "target_room_hint": "Taco Bell Dining Room",
+      "description": "a beige hollow-core door with the universal stick-figure, paint chipped at the push plate.",
+      "state": "closed",
+      "hidden": false,
+      "cardinal": "south"
+    }
+  ]
+}
