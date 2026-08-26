@@ -14,7 +14,7 @@ condition's longest finite duration (see ``Player.state_timer``).
 
 from typing import Dict, List, Optional
 
-from player import (
+from engine.player_conditions import (
     CONDITION_DEFINITIONS, CONDITION_HIERARCHY, BLOCKING_CONDITIONS,
     CONDITION_EXCLUSIONS, PERIODIC_CONDITIONS, CONDITION_DEFAULT_TIMERS,
 )
