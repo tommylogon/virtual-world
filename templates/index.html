@@ -30,7 +30,7 @@
 
     <!-- ===== TOP BAR ===== -->
     <header id="top-bar" role="banner">
-        <div class="logo">🌍 VirtualWorld Engine</div>
+        <div class="logo" id="scenario-name-container" title="Click to rename scenario">🌍 <span id="scenario-name-text">{{ scenario_name or 'unnamed' }}</span></div>
         <div class="top-actions">
             <label class="toggle-label" for="spectator-mode">
                 <input type="checkbox" id="spectator-mode" onchange="toggleSpectator()" aria-label="Toggle spectator mode">
@@ -938,6 +938,7 @@
     <script src="/static/js/agent/turn-scene-view.js"></script>
     <script src="/static/js/agent/turn-you-strip.js"></script>
     <script src="/static/js/agent/turn-feed.js"></script>
+    <script src="/static/js/agent/emote-picker.js"></script>
     <script src="/static/js/agent/human-turn-composer.js"></script>
     <script src="/static/js/agent/threat-detector.js"></script>
     <script src="/static/js/agent/agent-state.js"></script>

@@ -127,7 +127,7 @@ def get_inventory(self, player_manager) -> List[str]:
 
 The `ApiClient` class fetches world state via `GET /api/state` (registered in `action.py:32`) and sends actions via `POST /api/action` (registered in `action.py:44`). Inventory display logic lives in:
 
-- `static/js/inspector/inspector.js` — Inspector panels showing inventory
+- `static/js/inspector.js` — Inspector panels showing inventory
 - `static/js/inspector/paperdoll-view.js` — Paperdoll + inventory context menus
 
 ### Context Menu (Right-Click)
@@ -149,7 +149,7 @@ Stack expansion badges on layered slots (`paperdoll-view.js:59-62`) show `+N mor
 
 ## Weight System
 
-The `weight` property is defined on items (`item.py:4` constructor param, serialized in `items_registry.py:77`) but there is **no weight limit or encumbrance system**. Players can carry unlimited items. Weight is stored for UI display purposes only.
+The `weight` property is defined on items (`item.py:4` constructor param, serialized in `item.py`) but there is **no weight limit or encumbrance system**. Players can carry unlimited items. Weight is stored for UI display purposes only.
 
 ## Inventory Serialization
 

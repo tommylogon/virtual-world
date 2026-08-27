@@ -191,7 +191,7 @@ Acquisition patterns:
 
 ## Part 5 — Prompt / personality integration
 
-- Each trait's `behavior_prompt` is appended to the character's personality text consumed by `buildTraitBehaviorContext` (`static/js/agent/prompt-builder.js`) — the LLM reads it as identity.
+- Each trait's `behavior_prompt` is appended to the character's personality text consumed by `buildTraitBehaviorContext` (`static/js/agent/prompt-builder/`) — the LLM reads it as identity.
 - **Traits are inherently hidden.** What others perceive comes from `description`/`base_description` and behavior — never from the trait list. A character pretending to be blind is caught by agents watching them act, not by a system flag. (`hostile`/`is_slasher` remain internal threat markers.)
 - No trait-based "you notice X" discovery mechanic — observation is the agents' job.
 

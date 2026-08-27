@@ -12,9 +12,11 @@ window.ItemLibraryPlacement = {
     /**
      * Show a target picker modal for selecting a area, container, or character.
      * @param {string} title - Modal title text
+     * @param {Object} [options] - { tabs: ['area'] } restricts the visible tabs
      * @returns {Promise<{type: string, name?: string, id?: string}|null>}
      */
-    pickTarget(title) {
+    pickTarget(title, options = {}) {
+        const allowedTabs = Array.isArray(options?.tabs) ? options.tabs : null;
         return new Promise(resolve => {
             const rooms = Object.keys(worldState.areas || {});
             // Collect containers (items with container tag) + characters
@@ -80,9 +82,11 @@ window.ItemLibraryPlacement = {
             const tabBar = document.createElement('div');
             tabBar.style.cssText = 'display:flex;gap:4px;margin-bottom:4px;';
             const tabOptions = [];
-            if (rooms.length) tabOptions.push(['area', `🏠 Rooms (${rooms.length})`]);
-            if (containers.length) tabOptions.push(['container', `📦 Containers (${containers.length})`]);
-            if (characters.length) tabOptions.push(['character', `🧑 Characters (${characters.length})`]);
+            const show = (t) => !allowedTabs || allowedTabs.includes(t);
+            if (show('area') && rooms.length) tabOptions.push(['area', `🏠 Rooms (${rooms.length})`]);
+            if (show('container') && containers.length) tabOptions.push(['container', `📦 Containers (${containers.length})`]);
+            if (show('character') && characters.length) tabOptions.push(['character', `🧑 Characters (${characters.length})`]);
+            if (!tabOptions.some(([t]) => t === tab)) tab = tabOptions[0]?.[0] || 'area';
             const setTab = (tabId) => { tab = tabId; renderTabs(); renderList(input.value); };
             const renderTabs = () => {
                 window.Lit.render(htmlTag`

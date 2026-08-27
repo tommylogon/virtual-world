@@ -201,6 +201,9 @@ window.PromptBuilder = window.PromptBuilder || {};
         const traits = player?.traits || {};
         const hasDarkVision = traits.dark_vision === true || traits.darkvision === true;
         const vitals = player?.vitals || {};
+        // Items the character carries or has equipped — used to gate the
+        // "give" action (you can only hand over something you're holding).
+        const carried = carriedItemNodes(charName);
 
         // ---- Movement / exits ----
         const visibleExits = Object.entries(currentArea?.exits || {}).filter(([, ed]) => !ed.hidden);
@@ -214,57 +217,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             if (req === 'crawl') lines.push(`crawl — crawl through the ${handle}`);
             else if (req === 'climb') lines.push(`climb — climb the ${handle}`);
             else if (req === 'jump') lines.push(`jump — jump across the ${handle}`);
-
-            // Only door-like ways (no movement requirement) can be opened/closed —
-            // passages you crawl/climb/jump through are not handled as doors.
-            if (doorNode && !req) {
-                const wayState = exitData.state || doorNode.properties?.state || 'closed';
-                if (wayState === 'open') lines.push(`close — close the ${handle}`);
-                else lines.push(`open — open the ${handle}`);
-            }
         }
-        if (exitHandles.length) {
-            lines.push(`go — move through an exit (${exitHandles.join(', ')})`);
-            lines.push('dash — sprint through an exit');
-        }
-
-        // ---- Items (present in the area + carried) ----
-        const areaItems = currentArea?.name ? worldState.getItemsInArea(currentArea.name) : [];
-        const carried = carriedItemNodes(charName);
-        const carriedNames = new Set(carried.map(c => String(c.name || '').toLowerCase().trim()));
-        const takeNames = [];
-        const useNames = [];
-        const useOnLines = [];
-        const dropNames = [];
-        const wearNames = [];
-        const considerItem = (item, carry) => {
-            const verbs = computeItemActions(item, player, carry);
-            const triggerTypes = itemTriggerTypes(item.id);
-            if (carry) {
-                if (verbs.includes('drop')) dropNames.push(item.name);
-                if (verbs.includes('wear')) wearNames.push(item.name);
-            } else if (verbs.includes('take')) {
-                takeNames.push(item.name);
-            }
-            if (verbs.includes('use') && !triggerTypes.includes('on_use_on')) useNames.push(item.name);
-            if (triggerTypes.includes('on_use_on')) {
-                const target = useOnTargetName(item.id);
-                useOnLines.push(target ? `use_on — use the ${item.name} on the ${target}` : `use_on — use the ${item.name} on something`);
-            }
-        };
-        areaItems.forEach(it => {
-            // Skip anything the character is already carrying — an item both in-area
-            // and carried (data glitch) should not be offered as takeable.
-            if (carriedNames.has(String(it.name || '').toLowerCase().trim())) return;
-            considerItem({ id: it.id, name: it.name, properties: it.properties }, false);
-        });
-        carried.forEach(c => considerItem({ id: c.id, name: c.name, properties: c.properties }, true));
-
-        if (takeNames.length) lines.push(`take — ${takeNames.join(', ')}`);
-        if (useNames.length) lines.push(`use — ${useNames.join(', ')}`);
-        lines.push(...useOnLines);
-        if (dropNames.length) lines.push(`drop — ${dropNames.join(', ')}`);
-        if (wearNames.length) lines.push(`wear — ${wearNames.join(', ')}`);
 
         // ---- People ----
         const others = (state.players_in_area || []).filter(p => p && p.name && p.name !== charName);
@@ -291,6 +244,8 @@ window.PromptBuilder = window.PromptBuilder || {};
 
         if (blind) lines.push('listen — listen hard (you are blind)');
         if (!hasDarkVision && (blind || level === 'pitch_black' || level === 'dim')) lines.push('fumble — blind search in the darkness');
+
+        if (currentArea?.name) lines.push(`examine — examine ${currentArea.name}`);
 
         if (!lines.length) return '';
 

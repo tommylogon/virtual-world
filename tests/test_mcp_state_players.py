@@ -127,7 +127,6 @@ def test_all_tools_registered():
                   "set_active_player", "update_player", "delete_player",
                   "kill_player", "move_player", "player_speak",
                   "import_player", "import_character",
-                  "get_player_knowledge", "set_player_knowledge",
                   "get_player_memories", "set_player_memories",
                    "add_player_memory", "update_player_memory",
                    "delete_player_memory", "clear_player_memories",

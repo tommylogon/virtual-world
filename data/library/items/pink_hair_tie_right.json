@@ -1,0 +1,28 @@
+{
+  "action_costs": {},
+  "actions": [
+    "examine",
+    "take",
+    "use",
+    "equip",
+    "unequip",
+    "drop"
+  ],
+  "current_state": "normal",
+  "description": "a simple pink elastic hair tie holding the right pig tail in place. slightly stretched out.",
+  "equip_slots": [
+    "accessory"
+  ],
+  "hidden": false,
+  "library_id": "pink_hair_tie_right",
+  "locked": false,
+  "skill_check": {},
+  "tags": [
+    "clothing",
+    "accessory",
+    "hair_accessory"
+  ],
+  "uses": 0,
+  "weight": 0.01,
+  "name": "pink hair tie right"
+}

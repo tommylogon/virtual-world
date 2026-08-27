@@ -181,11 +181,17 @@ class ApiClient {
         return ApiClient.post(`/api/graph/node/${encodeURIComponent(nodeId)}/rename`, { new_id: newId });
     }
 
-    static async moveItemToRoom(nodeId, area, container, character) {
+    static async moveItemToRoom(nodeId, area, container, character, targetType, targetId, relation) {
         const payload = {};
-        if (area) payload.area = area;
-        if (container) payload.container = container;
-        if (character) payload.character = character;
+        if (targetType && targetId) {
+            payload.target_type = targetType;
+            payload.target_id = targetId;
+            if (relation) payload.relation = relation;
+        } else {
+            if (area) payload.area = area;
+            if (container) payload.container = container;
+            if (character) payload.character = character;
+        }
         return ApiClient.post(`/api/graph/item/${encodeURIComponent(nodeId)}/move`, payload);
     }
 

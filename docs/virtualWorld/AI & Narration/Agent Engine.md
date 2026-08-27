@@ -9,12 +9,17 @@ The engine lives in `static/js/agent-engine.js` as the `AgentEngine` class (`win
 | Module | File | Role |
 |--------|------|------|
 | `AgentEngine` | `agent-engine.js` | Main loop, turn orchestration, action normalization |
-| `PromptBuilder` | `agent/prompt-builder.js` | Pure functions for building LLM prompts |
+| `PromptBuilder` | `agent/prompt-builder/` (index) | Pure functions for building LLM prompts (split into submodules — see below) |
 | `TurnQueue` | `agent/turn-queue.js` | Turn ordering and advancement |
 | `AgentMemory` | `agent/memory-manager.js` | Memory storage + reflection (backend `Player.memories`) |
 | `PlanManager` | `agent/plan-manager.js` | Multi-step plan generation |
 | `RateLimiter` | `agent/rate-limiter.js` | API rate limiting |
-| `ContextWindowManager` | `context-window.js` | Token budget and context pruning |
+| `ContextWindowManager` | `static/js/context-window.js` | Token budget and context pruning |
+| `ResponseParser` | `agent/response-parser.js` | Parse/validate LLM JSON out, surface parse errors |
+| `ActionNormalizer` | `agent/action-normalizer.js` | Normalize structured actions into `/api/action` commands |
+| `ThreatDetector` | `agent/threat-detector.js` | Flag nearby threats for replanning |
+| `HumanTurnComposer` | `agent/human-turn-composer.js` | Human-turn (composer) drive path |
+| `TurnSceneView` | `agent/turn-scene-view.js` | Render current turn scene for the event stream |
 
 ## Agent Loop
 
@@ -123,11 +128,11 @@ inventory, stats, look, fumble, relieve` — plus ghost-only `manifest`/`vanish`
 - `grab <character>` is a grapple attempt (falls back to `take` for items); `escape`/`struggle`
   break a grapple with a STR save (task-4).
 - The player-state block injects **size context** when a `size_*` trait is present ("You are
-  huge. Some passages are too tight for you...") via `buildSizeContext()` in prompt-builder.js.
+  huge. Some passages are too tight for you...") via `buildSizeContext()` in `agent/prompt-builder/`.
 
 ## Prompt Building
 
-All prompt construction is in `static/js/agent/prompt-builder.js` (pure functions, no side effects).
+All prompt construction lives in `static/js/agent/prompt-builder/` (pure functions, no side effects). Submodules: `system-prompt.js`, `turn-prompts.js`, `character-state.js`, `conversation-context.js`, `memory-context.js`, `context-sections.js`, `schema-fragments.js`, `helpers.js`, `room-context.js`, `contextual-actions.js`.
 
 ### System Prompt (`buildCharacterSystemPrompt()`)
 

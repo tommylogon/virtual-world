@@ -1,4 +1,4 @@
-﻿# Settings & Configuration
+# Settings & Configuration
 
 VirtualWorld's settings are managed through a combination of backend route handlers, a frontend `ConfigManager` with IndexedDB persistence, and a settings UI panel.
 
@@ -147,7 +147,7 @@ The settings system supports **named profiles** for storing different LLM provid
 - Provider: **API (LLM Provider)** — uses your LLM provider's `/embeddings` endpoint
 - Embedding Model (API mode): text input for model name (e.g. `text-embedding-3-small`, `text-embedding-qwen3-embedding-0.6b`)
 
-The embedding source is persisted in IndexedDB and can be changed per session without restarting the server. `memory-store.js` respects the provider setting — API mode skips the server-side call entirely.
+The embedding source is persisted in IndexedDB and can be changed per session without restarting the server. the client storage layer respects the provider setting — API mode skips the server-side call entirely.
 
 Profiles are managed via:
 - `config.getProfiles()` — list all profiles

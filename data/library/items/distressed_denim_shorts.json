@@ -1,0 +1,30 @@
+{
+  "action_costs": {},
+  "actions": [
+    "examine",
+    "take",
+    "use",
+    "equip",
+    "unequip",
+    "drop"
+  ],
+  "current_state": "normal",
+  "defense": 1,
+  "description": "faded blue denim shorts that hug her narrow hips. distressed with holes at the thighs. cut short enough that her ass cheeks peek out the bottom. she pulls them up higher when she wants attention.",
+  "equip_slots": [
+    "legs"
+  ],
+  "hidden": false,
+  "insulation": 1,
+  "library_id": "distressed_denim_shorts",
+  "locked": false,
+  "skill_check": {},
+  "tags": [
+    "clothing",
+    "bottom",
+    "insulation"
+  ],
+  "uses": 0,
+  "weight": 0.3,
+  "name": "distressed denim shorts"
+}

@@ -1,4 +1,4 @@
-﻿# Narration System
+# Narration System
 
 The Narration System adds atmospheric flavor text to game actions and room descriptions. It operates in three modes and integrates with both the agent engine and the LLM client.
 
@@ -141,7 +141,7 @@ Narration feeds into agent perception in three ways:
 2. **Action results**: The narrated outcome replaces the raw system output
 3. **Event log**: Narration text appears in the room event log, visible to other agents as witnessed events
 
-The `_buildNarratedRoomContext()` method at `agent-engine.js:497` (and its extracted counterpart in `prompt-builder.js:482`) handles the narrated room context for reactive-mode agents. It:
+The `_buildNarratedRoomContext()` method at `agent-engine.js:497` (and its extracted counterpart in `agent/prompt-builder/`) handles the narrated room context for reactive-mode agents. It:
 - Calls `narrationUI.getNarratedRoomContext()` to get the narrated text
 - Replaces the default description in the room context string
 - Broadcasts the narration to the room as an emote

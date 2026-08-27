@@ -68,7 +68,7 @@ def register_saveload_routes(app):
             else:
                 template_path = os.path.join(app.root_path, 'world_template.json')
             if os.path.exists(template_path):
-                with open(template_path, 'r', encoding='utf-8') as f:
+                with open(template_path, 'r', encoding='utf-8-sig') as f:
                     template_data = json.load(f)
                 new_world.load_from_dict(template_data)
                 new_world._scenario_source = template_path
@@ -98,7 +98,7 @@ def register_saveload_routes(app):
                 if fname.endswith('.json'):
                     path = os.path.join(saves_dir, fname)
                     try:
-                        with open(path, 'r', encoding='utf-8') as f:
+                        with open(path, 'r', encoding='utf-8-sig') as f:
                             meta = json.load(f).get('_save_metadata', {})
                         files.append({
                             'filename': fname,
@@ -132,7 +132,7 @@ def register_saveload_routes(app):
         if not os.path.exists(path):
             return jsonify({"error": "Save file not found"}), 404
         try:
-            with open(path, 'r', encoding='utf-8') as f:
+            with open(path, 'r', encoding='utf-8-sig') as f:
                 data = json.load(f)
             app.world.load_from_dict(data)
             return jsonify({"status": "success"})

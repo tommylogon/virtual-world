@@ -1,9 +1,9 @@
-﻿# VirtualWorld Wiki
+# VirtualWorld Wiki
 
 This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game engine for AI beings. This wiki documents every system, how it works, how it's wired, and where the code lives.
 
-> **Main repo**: `C:\Projects\code\virtual_world`  
-> **Code conventions**: See `C:\Projects\code\AGENTS.md`  
+> **Main repo**: `F:\AI\viwo\virtual-world`  
+> **Code conventions**: See `AGENTS.md` (referenced here but not present in this checkout)  
 > **Design specs**: `docs/superpowers/specs/`
 
 ---
@@ -26,6 +26,7 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 | [[Characters/Vitals System\|Vitals System]] | HP, energy, hunger, thirst, sanity, decay per tick, death, ghost mode |
 | [[Characters/Equipment Loadouts\|Equipment Loadouts]] | Per-character generated equipment lists by slot |
 | [[Characters/NPC Behavior System\|NPC Behavior System]] | Simple NPCs, behavior types, action intervals, LLM agent vs scripted |
+| [[Characters/Relationships System\|Relationships System]] | Closeness model, what moves it (speak/give/combat), labels, guidance, grapple modifier |
 
 ## [[Items & Inventory/Items Overview|📦 Items & Inventory]]
 

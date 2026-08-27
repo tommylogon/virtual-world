@@ -1,0 +1,28 @@
+{
+  "action_costs": {},
+  "actions": [
+    "examine",
+    "take",
+    "use",
+    "equip",
+    "unequip",
+    "drop"
+  ],
+  "current_state": "normal",
+  "description": "white ankle socks scrunched down around skinny ankles. slightly dirty from walking outside.",
+  "equip_slots": [
+    "legs"
+  ],
+  "hidden": false,
+  "library_id": "ankle_socks",
+  "locked": false,
+  "skill_check": {},
+  "tags": [
+    "clothing",
+    "hosiery",
+    "insulation"
+  ],
+  "uses": 0,
+  "weight": 0.05,
+  "name": "ankle socks"
+}

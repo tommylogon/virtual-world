@@ -97,7 +97,7 @@ def test_connect_areas(mock_api):
 def test_reconnect_way(mock_api):
     from mcp_server import reconnect_way
     reconnect_way.fn("way_1", "area_a", "area_b", dir_a="north", dir_b="south")
-    mock_api.assert_called_with("POST", "/api/graph/door/reconnect",
+    mock_api.assert_called_with("POST", "/api/graph/way/reconnect",
                                 {"way_id": "way_1", "area_a": "area_a",
                                  "area_b": "area_b", "dir_a": "north",
                                  "dir_b": "south"})

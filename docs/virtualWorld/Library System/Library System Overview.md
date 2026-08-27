@@ -1,4 +1,4 @@
-﻿# Library System Overview
+# Library System Overview
 
 The Library system is a persistent, file-based registry for reusable game content. It allows world authors to create, store, and import entities (items, characters, areas, traits, conditions, behaviours) across different scenarios without duplication.
 
@@ -116,19 +116,9 @@ Maps `items.json` → `data/library/items/`, creating the directory if it doesn'
 
 ## API Endpoints
 
-### Item/Character/Trait Registry (`routes/items_registry.py`)
+### Item/Character/Trait Registry (legacy)
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/registry/items` | List all library items |
-| POST | `/api/registry/items` | Create or update an item |
-| DELETE | `/api/registry/items/<item_id>` | Delete an item from library |
-| GET | `/api/registry/traits` | List all traits |
-| POST | `/api/registry/traits` | Create or update a trait |
-| GET | `/api/registry/characters` | List all characters |
-| POST | `/api/registry/characters` | Create or update a character |
-| POST | `/api/registry/characters/import` | Import character as active player |
-| POST | `/api/build/item-from-library` | Place a library item into the world |
+> **Note:** The old `routes/items_registry.py` (the `/api/registry/*` and `/api/build/item-from-library` endpoints) has been folded into the unified library API. Use the **Unified Library CRUD** endpoints below — `/api/library/<type>`.
 
 ### Unified Library CRUD (`routes/library_routes.py`)
 
@@ -139,13 +129,13 @@ Maps `items.json` → `data/library/items/`, creating the directory if it doesn'
 | POST | `/api/library/<type>` | Create or update an entry |
 | DELETE | `/api/library/<type>/<id>` | Delete an entry |
 | POST | `/api/library/import/character/<id>` | Import character as player |
-| POST | `/api/library/import/room/<id>` | Import room into world graph |
+| POST | `/api/library/import/area/<id>` | Import area into world graph |
 
 ## Importing from Library (Copies, Not References)
 
 Importing creates **independent copies** of library data in the world graph. There is no live link — modifying the imported entity does not modify the library entry, and vice versa.
 
-### Item Import (`items_registry.py:58-155`)
+### Item Import (`routes/library_routes.py`)
 
 `POST /api/build/item-from-library` copies item properties (`description`, `actions`, `uses`, `weight`, `action_costs`, `skill_check`, `hidden`, `locked`, `equip_slots`, `tags`, `current_state`) from the library entry into a new graph `Node`. It also:
 - Creates `logic_trigger` nodes for each entry in the item's `triggers` array

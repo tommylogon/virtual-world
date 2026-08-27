@@ -1000,7 +1000,7 @@ class TestEffects:
         # doesn't stale the test — the contract is "spawn copies the library".
         lib_path = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)),
                                  '..', 'data', 'library', 'items', 'everflame_ember.json')
-        with open(lib_path, encoding='utf-8') as f:
+        with open(lib_path, encoding='utf-8-sig') as f:
             lib = _json.load(f)
         assert lib["name"] in result[0]
         ember = graph.get_node("everflame_ember")
@@ -1093,7 +1093,7 @@ class TestEffects:
         import os as _os
         lib_path = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)),
                                  '..', 'data', 'library', 'characters', 'jake.json')
-        with open(lib_path, encoding='utf-8') as f:
+        with open(lib_path, encoding='utf-8-sig') as f:
             lib_name = _json.load(f)["name"]
         assert lib_name in result[0]
         player_node_id = f"player_{lib_name}".replace(' ', '_')

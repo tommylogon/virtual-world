@@ -37,7 +37,7 @@ def create_app(config=None):
     template_path = os.path.join(os.path.dirname(__file__), 'world_template.json')
     if os.path.exists(template_path):
         try:
-            with open(template_path, 'r', encoding='utf-8') as f:
+            with open(template_path, 'r', encoding='utf-8-sig') as f:
                 template_data = json.load(f)
             world.load_from_dict(template_data)
             logger.info(f"Loaded world template from {template_path}")
@@ -112,6 +112,7 @@ def register_routes(app):
     from routes.tags import register_tag_routes
     from routes.triggers import register_triggers_routes
     from routes.scene import register_scene_routes
+    from routes.search import register_search_routes
 
     register_health_routes(app)
     register_pages_routes(app)
@@ -127,6 +128,7 @@ def register_routes(app):
     register_tag_routes(app)
     register_triggers_routes(app)
     register_scene_routes(app)
+    register_search_routes(app)
 
 # For running directly (development)
 if __name__ == '__main__':

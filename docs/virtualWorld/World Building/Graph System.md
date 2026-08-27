@@ -1,4 +1,4 @@
-﻿# Graph System
+# Graph System
 
 The WorldGraph is the beating heart of VirtualWorld. **Everything** — areas, items, ways, players, characters, triggers, locations, inventories, relationships, connections — lives in this graph. If it's not in the graph, it doesn't exist in the world.
 
@@ -62,7 +62,7 @@ Spatial locations. Players exist in areas. Items can be in areas. Rooms connect 
 - **Properties**: `description` (str), `environment` (dict with light/temp/air/smell/noise)
 - **ID convention**: `area_lowercase_name_with_underscores`
 - **Uniqueness**: Duplicate room IDs raise ValueError
-- **References**: `engine/room.py`, `engine/area_description.py`, `engine/movement.py:23-35`
+- **References**: `area.py`, `engine/area_description.py`, `engine/movement.py:23-35`
 
 ### `item`
 Objects that can exist in areas or in inventories. Items have `actions` (comma-separated string or array defining what you can do: examine, take, use, eat, drink, open, close), `uses` (remaining uses, -1 = infinite), `weight`, `current_state`, `description`, `tags`, `hidden` flag, and trigger-related properties.

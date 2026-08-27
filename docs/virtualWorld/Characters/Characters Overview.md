@@ -274,7 +274,7 @@ Inventory can be specified as a list of strings (item names, matched by `library
 
 Characters can be imported into the world via:
 
-1. **API**: `POST /api/registry/characters/import` with `{id, active}` (`routes/items_registry.py:278`)
+1. **API**: `POST /api/library/import/character/<id>` (`routes/library_routes.py`)
 2. **API**: `POST /api/library/import/character/<char_id>` with `{active, room}` (`routes/library_routes.py:92`)
 3. **API**: `POST /api/players/import` with full player data (`routes/players.py:241`)
 4. **UI**: Import button in the Character Library browser

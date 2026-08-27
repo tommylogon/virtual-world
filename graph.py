@@ -108,6 +108,19 @@ class WorldGraph:
                               and e.target.lower() == target.lower()
                               and e.type == edge_type)]
 
+    def remove_edges_for_node(self, node_id: str, edge_type: str):
+        """Remove every edge of *edge_type* touching *node_id* (as source or target).
+
+        Used to sever dangling connection edges when an item's ownership state
+        changes (equip / unequip / drop).
+        """
+        node_lower = str(node_id).lower()
+        self.edges = [
+            e for e in self.edges
+            if not (e.type == edge_type
+                    and (e.source.lower() == node_lower or e.target.lower() == node_lower))
+        ]
+
     def get_node(self, node_id: str) -> Optional[Node]:
         resolved = self._resolve_id(node_id)
         return self.nodes.get(resolved) if resolved else None

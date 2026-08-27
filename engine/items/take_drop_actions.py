@@ -12,6 +12,7 @@ from graph import (
     EDGE_BEHIND,
     EDGE_BESIDE,
     EDGE_CARRYING,
+    EDGE_CONNECTION,
     EDGE_EQUIPPED,
     EDGE_IN,
     EDGE_ON,
@@ -404,6 +405,7 @@ class TakeDropActionsMixin:
                 if free_hand:
                     self.graph.add_edge(Edge(source=item_node_id, target=player_id, type=EDGE_EQUIPPED, properties={"slot": free_hand}))
                     player.equipped.setdefault(free_hand, []).append(item_node_id)
+                    self.graph.remove_edges_for_node(item_node_id, EDGE_CONNECTION)
                     hand_used = free_hand
                 else:
                     for hand in ["hand_right", "hand_left"]:
@@ -411,12 +413,14 @@ class TakeDropActionsMixin:
                             old_item_id = player.equipped[hand].pop()
                             self.graph.remove_edge(old_item_id, player_id, EDGE_EQUIPPED)
                             self.graph.add_edge(Edge(source=old_item_id, target=player_id, type=EDGE_CARRYING))
+                            self.graph.remove_edges_for_node(old_item_id, EDGE_CONNECTION)
                             old_item = self.graph.get_node(old_item_id)
                             if old_item:
                                 self._exec_triggers(old_item, "on_unequip")
                                 stashed_item = old_item.name
                             self.graph.add_edge(Edge(source=item_node_id, target=player_id, type=EDGE_EQUIPPED, properties={"slot": hand}))
                             player.equipped.setdefault(hand, []).append(item_node_id)
+                            self.graph.remove_edges_for_node(item_node_id, EDGE_CONNECTION)
                             hand_used = hand
                             break
             else:
@@ -495,6 +499,7 @@ class TakeDropActionsMixin:
         trigger_outputs = self._exec_triggers(item_node, "on_drop") if item_node else []
 
         self.graph.remove_edge(item_node_id, player_id, EDGE_CARRYING)
+        self.graph.remove_edges_for_node(item_node_id, EDGE_CONNECTION)
         area_id = player_manager._get_current_area_id()
         if item_node:
             restored = self._restore_last_relation(item_node, player_manager, area_id)
@@ -540,6 +545,7 @@ class TakeDropActionsMixin:
                     if edge.source == item_id:
                         self.graph.remove_edge(edge.source, edge.target, edge.type)
                 self.graph.remove_edge(item_id, player_id, EDGE_CARRYING)
+                self.graph.remove_edges_for_node(item_id, EDGE_CONNECTION)
                 self.graph.add_edge(Edge(source=item_id, target=area_id, type=EDGE_IN))
                 node = self.graph.get_node(item_id)
                 if node:

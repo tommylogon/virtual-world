@@ -51,6 +51,16 @@ window.EngineConfigView = (() => {
         const sections = Object.keys(_state.sections);
         const sectionRows = (key) => {
             const meta = _state.schema[key];
+            if (meta.type === 'bool') {
+                return tag`<div class="engine-config-row" style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
+                    <label for="engine-config-${key}" style="flex:1;font-size:11px;color:var(--text);">${meta.label || key}</label>
+                    <input id="engine-config-${key}"
+                        type="checkbox"
+                        ?checked="${_state.values[key]}"
+                        data-key="${key}"
+                        style="width:auto;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:4px 6px;font-size:11px;">
+                </div>`;
+            }
             return tag`<div class="engine-config-row" style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
                 <label for="engine-config-${key}" style="flex:1;font-size:11px;color:var(--text);">${meta.label || key}</label>
                 <input id="engine-config-${key}"
@@ -98,10 +108,11 @@ window.EngineConfigView = (() => {
         for (const input of inputs) {
             const raw = input.value.trim();
             const meta = _state.schema[input.dataset.key];
-            if (raw === '') continue;
-            if (meta && meta.type === 'float') {
+            if (meta && meta.type === 'bool') {
+                payload[input.dataset.key] = input.checked;
+            } else if (meta && meta.type === 'float') {
                 payload[input.dataset.key] = parseFloat(raw);
-            } else {
+            } else if (raw !== '') {
                 payload[input.dataset.key] = parseInt(raw, 10);
             }
         }

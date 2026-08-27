@@ -133,7 +133,7 @@ class BehaviorMixin:
                                     lib_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'library', 'items')
                                     lib_path = os.path.join(lib_dir, f"{item_id}.json")
                                     if os.path.exists(lib_path):
-                                        with open(lib_path, 'r', encoding='utf-8') as f:
+                                        with open(lib_path, 'r', encoding='utf-8-sig') as f:
                                             lib_data = json.load(f)
                                 except Exception:
                                     lib_data = {}

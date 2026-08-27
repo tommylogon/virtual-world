@@ -1,4 +1,4 @@
-﻿{
+{
   "id": "insulation",
   "name": "Insulation",
   "description": "Shifts effective ambient temperature by the item's insulation value. Positive warms, negative cools. Stacks across worn items.",

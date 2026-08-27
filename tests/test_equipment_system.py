@@ -112,20 +112,25 @@ class TestEquipmentBasic:
         assert len(player.equipped["head"]) == 0
 
     def test_equip_same_item_twice_refused(self, basic_setup):
-        """Equipping an item that is already worn (same node or same name)
-        is refused with 'already wearing' — the old stack-duplication quirk
-        ('Earring over Earring', 2026-08-24 taco_bell run) confused the LLM
-        and produced nonsense worn lines. Remove first to re-slot."""
+        """Equipping an item that is already worn is refused. Equipping moves
+        the item out of inventory (the carrying edge is removed), so a second
+        equip fails as 'not carrying' — you can't equip something you're no
+        longer holding. This kills the old stack-duplication quirk
+        ('Earring over Earring', 2026-08-24 taco_bell run)."""
         graph, pm, equipment = basic_setup
         add_carried_item(graph, pm, "item_duplicate_helm", "Duplicate Helm",
                           equip_slots=["head"])
         equipment.equip_item("Duplicate Helm")
-        # Second equip is refused even though the item node is still in
-        # inventory (equip does not remove the location edge).
-        with pytest.raises(ValueError, match="already wearing"):
+        # Equipping removed the carrying edge, so the item is no longer held;
+        # a second equip is refused because it isn't being carried.
+        with pytest.raises(ValueError, match="You aren't carrying"):
             equipment.equip_item("Duplicate Helm")
         player = pm.players[pm.active_player]
         assert len(player.equipped["head"]) == 1
+        # The equipped item is not also present in the carrying/inventory list.
+        assert not any(e.source == "item_duplicate_helm"
+                       for e in graph.get_edges_for_target(
+                           pm.get_player_node_id(pm.active_player), "carrying"))
 
     def test_equip_no_such_item_raises_error(self, basic_setup):
         """Equipping an item not in inventory raises ValueError."""

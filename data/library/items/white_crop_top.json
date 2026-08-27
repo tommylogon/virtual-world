@@ -1,0 +1,30 @@
+{
+  "action_costs": {},
+  "actions": [
+    "examine",
+    "take",
+    "use",
+    "equip",
+    "unequip",
+    "drop"
+  ],
+  "current_state": "normal",
+  "defense": 0,
+  "description": "a snug white crop top that shows a hint of midriff. thin fabric, slightly see-through in the right light. no padding. she stole it from her mommas closet and it fits loose on her flat chest.",
+  "equip_slots": [
+    "torso"
+  ],
+  "hidden": false,
+  "insulation": 1,
+  "library_id": "white_crop_top",
+  "locked": false,
+  "skill_check": {},
+  "tags": [
+    "clothing",
+    "top",
+    "insulation"
+  ],
+  "uses": 0,
+  "weight": 0.1,
+  "name": "white crop top"
+}

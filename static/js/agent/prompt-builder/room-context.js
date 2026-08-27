@@ -79,6 +79,19 @@ window.PromptBuilder = window.PromptBuilder || {};
         return worldState.getNodeByIdentifier(areaName);
     }
 
+    function getContainedItems(parentItemId) {
+        const out = [];
+        for (const edge of worldState.graph?.edges || []) {
+            if (edge.type === 'in' && edge.target === parentItemId) {
+                const node = worldState.getNode(edge.source);
+                if (node && node.type === 'item') {
+                    out.push({ id: node.id, name: node.name, properties: node.properties });
+                }
+            }
+        }
+        return out;
+    }
+
     /**
      * Build the full area context as NAMED PARTS for a character — tick head,
      * personality preamble, appearance, carrying, room lead-in/body, exits,
@@ -170,7 +183,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             const hasMore = unexamined.length > attention.length;
             const trailer = hasMore
                 ? 'There are more items around that you can look for.'
-                : '...and not much else.';
+                : 'and noting else that catch your attention right now.';
             return `${listLines}\n${trailer}`;
         };
         if (isBlind) {
@@ -261,12 +274,15 @@ window.PromptBuilder = window.PromptBuilder || {};
                 const seeThrough = !!doorNode.properties?.see_through;
                 const beyondSuffix = buildBeyondSuffix(state, charName, exitData, exitData.target, doorNode);
                 const moveHint = movementSuffix(doorNode, handle);
+                const preventClose = !!doorNode.properties?.prevent_close;
                 if (wayState === 'open') {
                     const viewDirection = exitData.visible_in_direction || '';
                     const doorTags = (doorNode.properties?.tags || []).map(t => String(t).toLowerCase().trim());
                     const openWord = doorTags.includes('exterior') || doorTags.includes('natural') ? 'is clear' : 'is open';
+                    const closeHint = preventClose ? '' : ' or close it';
+                    const actionHint = ` (you can go, dash, examine${closeHint})`;
                     if (viewDirection) {
-                        exitLines.push(`[${handle}] ${openWord} — on the other side you can see ${viewDirection}${beyondSuffix}${moveHint}`);
+                        exitLines.push(`[${handle}] ${openWord} — ${viewDirection}${beyondSuffix}${moveHint}${actionHint}`);
                     } else {
                         const targetArea = resolveAreaNode(exitData.target);
                         const clues = [];
@@ -289,7 +305,7 @@ window.PromptBuilder = window.PromptBuilder || {};
                             else clues.push('freezing');
                         }
                         const clueString = clues.length ? ` (${clues.join(', ')})` : '';
-                        exitLines.push(`To the ${handle}, the ${exitData.target} is visible beyond${clueString}.${beyondSuffix}${moveHint}`);
+                        exitLines.push(`To the ${handle}, the ${exitData.target} is visible beyond${clueString}.${beyondSuffix}${moveHint}${actionHint}`);
                     }
                 } else {
                     const viewDirection = exitData.visible_in_direction || '';
@@ -302,8 +318,6 @@ window.PromptBuilder = window.PromptBuilder || {};
                     } else if (beyondSuffix && seeThrough) {
                         exitLines.push(`[${handle}] ${doorDescription} It is currently closed.${beyondSuffix}${moveHint}`);
                     } else {
-                        // A closed door reads as closed at a glance — locked/blocked/
-                        // jammed are only learned by examining the door itself.
                         exitLines.push(`[${handle}] ${doorDescription} It is currently closed.${moveHint}`);
                     }
                 }
@@ -314,17 +328,24 @@ window.PromptBuilder = window.PromptBuilder || {};
         const carriedItems = PromptBuilder.carriedItemNodes(charName);
         const wornItems = carriedItems.filter(c => c.equipped);
         const notWornItems = carriedItems.filter(c => !c.equipped);
+        const buildItemTree = (items, equipped) => {
+            const lines = [];
+            for (const c of items) {
+                const b = PromptBuilder.formatActionBrackets(PromptBuilder.computeItemActions({ id: c.id, name: c.name, properties: c.properties }, player, { equipped }));
+                lines.push(`${c.name} ${b}`.trim());
+                const contained = getContainedItems(c.id);
+                for (const ci of contained) {
+                    const cb = PromptBuilder.formatActionBrackets(PromptBuilder.computeItemActions({ id: ci.id, name: ci.name, properties: ci.properties }, player, { equipped: false }));
+                    lines.push(`    ${ci.name} ${cb}`.trim());
+                }
+            }
+            return lines;
+        };
         const wornStr = wornItems.length
-            ? `Wearing: ${wornItems.map(c => {
-                const b = PromptBuilder.formatActionBrackets(PromptBuilder.computeItemActions({ id: c.id, name: c.name, properties: c.properties }, player, { equipped: true }));
-                return `${c.name} ${b}`.trim();
-            }).join(', ')}`
+            ? `Wearing:\n${buildItemTree(wornItems, true).join(',\n')}`
             : '';
         const carryStr = notWornItems.length
-            ? `Carrying: ${notWornItems.map(c => {
-                const b = PromptBuilder.formatActionBrackets(PromptBuilder.computeItemActions({ id: c.id, name: c.name, properties: c.properties }, player, { equipped: false }));
-                return `${c.name} ${b}`.trim();
-            }).join(', ')}`
+            ? `Carrying:\n${buildItemTree(notWornItems, false).join(',\n')}`
             : '';
         const invStr = [wornStr, carryStr].filter(Boolean).join('\n');
         const appearanceDesc = player?.description || '';

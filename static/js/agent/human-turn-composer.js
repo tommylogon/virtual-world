@@ -123,6 +123,11 @@ window.HumanTurnComposer = (() => {
             .htc-confirm-actions { display:flex; gap:10px; justify-content:flex-end; }
             .htc-btn-plain { background:none; border:1px solid #333a45; color:#9aa3b2; border-radius:6px; padding:6px 12px; cursor:pointer; }
             .htc-btn-danger { color:#e05a4e !important; }
+
+            .htc-chiptoggle { background:#1d212a; border:1px solid #2a303b; color:#d9c9a9; border-radius:8px; padding:7px 10px; font-size:12px; flex:none; cursor:pointer; }
+            .htc-chiptoggle:hover { border-color:#4f9cf9; color:#e6e8ee; }
+            .htc-emote-palette { display:none; margin:3px 0 9px 64px; background:#15181f; border:1px solid #333a45; border-radius:10px; padding:8px 10px; }
+            .htc-emote-palette.open { display:block; }
         `;
         document.head.appendChild(style);
     }
@@ -272,8 +277,10 @@ window.HumanTurnComposer = (() => {
             <div class="htc-crow">
               <span class="lbl">🎭 emote</span>
               <input id="htc-emote" type="text" placeholder='body language — "sneaks closer to the door"' autocomplete="off">
+              <button type="button" id="htc-emote-toggle" class="htc-chiptoggle" title="emote quick-pick">🎭</button>
               <button type="button" id="htc-act" class="htc-btn-primary">Act</button>
             </div>
+            <div id="htc-emote-palette" class="htc-emote-palette"></div>
             <div class="htc-crow">
               <span class="lbl">🧠 memory</span>
               <textarea id="htc-memory" rows="1" placeholder="optional — what you'll personally remember from this"></textarea>
@@ -331,6 +338,19 @@ window.HumanTurnComposer = (() => {
         _modal.querySelector('#htc-do').addEventListener('input', updatePreview);
         _modal.querySelector('#htc-speech').addEventListener('input', updatePreview);
         _modal.querySelector('#htc-emote').addEventListener('input', updatePreview);
+        _modal.querySelector('#htc-emote-toggle').addEventListener('click', () => {
+            const wrap = _modal.querySelector('#htc-emote-palette');
+            EmotePicker.toggle(wrap, {
+                onPick: (emote) => {
+                    const input = _modal.querySelector('#htc-emote');
+                    if (input) input.value = emote;
+                    updatePreview();
+                }
+            });
+        });
+        _modal.querySelector('#htc-act').addEventListener('click', () => {
+            EmotePicker.close(_modal.querySelector('#htc-emote-palette'));
+        });
         _modal.querySelector('#htc-memory').addEventListener('input', updatePreview);
         for (const id of ['htc-do', 'htc-speech', 'htc-emote']) {
             _modal.querySelector('#' + id).addEventListener('keydown', (e) => {

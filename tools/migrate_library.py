@@ -20,7 +20,7 @@ def split_registry(filename, subdir):
         print(f"  [SKIP] {filename} not found")
         return
 
-    with open(src, 'r', encoding='utf-8') as f:
+    with open(src, 'r', encoding='utf-8-sig') as f:
         data = json.load(f)
 
     count = 0

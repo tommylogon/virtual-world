@@ -5,7 +5,7 @@ and hygiene modifiers.
 """
 
 from typing import Optional, Dict, List, Any
-from graph import Node, Edge, EDGE_CARRYING, EDGE_EQUIPPED, EDGE_IN
+from graph import Node, Edge, EDGE_CARRYING, EDGE_EQUIPPED, EDGE_IN, EDGE_CONNECTION
 
 
 # Tags marking an item as an intrinsic ability (a spell, power, or talent)
@@ -201,6 +201,11 @@ class EquipmentSystem:
             properties={"slot": slot}
         ))
 
+        # Equipping moves the item out of inventory state: remove the carrying
+        # edge and sever any dangling connection edges.
+        self.graph.remove_edge(item_node.id, player_id, EDGE_CARRYING)
+        self.graph.remove_edges_for_node(item_node.id, EDGE_CONNECTION)
+
         item_node.properties.pop("last_relation", None)
 
         trigger_outputs = self.triggers._execute_triggers(item_node, "on_equip", game_state=self.world)
@@ -275,6 +280,7 @@ class EquipmentSystem:
                 _clean_multi_slot_markers(real_id)
                 self.graph.remove_edge(real_id, player_id, EDGE_EQUIPPED)
                 self.graph.add_edge(Edge(source=real_id, target=player_id, type=EDGE_CARRYING))
+                self.graph.remove_edges_for_node(real_id, EDGE_CONNECTION)
                 real_item = self.graph.get_node(real_id)
                 if real_item:
                     self.triggers._execute_triggers(real_item, "on_unequip", game_state=self.world)
@@ -295,6 +301,7 @@ class EquipmentSystem:
             _clean_multi_slot_markers(item_id)
             self.graph.remove_edge(item_id, player_id, EDGE_EQUIPPED)
             self.graph.add_edge(Edge(source=item_id, target=player_id, type=EDGE_CARRYING))
+            self.graph.remove_edges_for_node(item_id, EDGE_CONNECTION)
             item_node = self.graph.get_node(item_id)
             if item_node:
                 self.triggers._execute_triggers(item_node, "on_unequip", game_state=self.world)
@@ -323,6 +330,7 @@ class EquipmentSystem:
                         removed = stack.pop(index)
                         self.graph.remove_edge(removed, player_id, EDGE_EQUIPPED)
                         self.graph.add_edge(Edge(source=removed, target=player_id, type=EDGE_CARRYING))
+                        self.graph.remove_edges_for_node(removed, EDGE_CONNECTION)
                         _clean_multi_slot_markers(removed)
                         if item_node:
                             self.triggers._execute_triggers(item_node, "on_unequip", game_state=self.world)

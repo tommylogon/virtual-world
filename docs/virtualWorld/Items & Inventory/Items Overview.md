@@ -79,7 +79,7 @@ Items in the graph are `Node` objects with `type="item"` (`virtual_world/graph.p
 
 ## Node ID Conventions
 
-From `virtual_world/.opencode/AGENTS.md:68-75` and `virtual_world/engine/node_ids.py`:
+From `virtual_world/.opencode/AGENTS.md:68-75` and `engine/node_ids.py`:
 
 - `item_<name>` — e.g. `item_rusty_key`, `item_Brass Key`
 - Area names normalized: lowercase, spaces → underscores via `_area_node_id()`
@@ -148,7 +148,7 @@ The `take_item` flow (`item_actions.py:364-...`):
 
 ### Duplicate items & selection
 
-Multiple items can share the same display name (e.g. two Jumpsuits placed from the same library item). They are distinguished by **unique node ids** — `WorldGraph.add_node` appends a random 8-char suffix to a duplicate id (`graph.py:51-57`), and `/api/build/item-from-library` (`routes/items_registry.py`) generates unique ids up front. Display names stay identical.
+Multiple items can share the same display name (e.g. two Jumpsuits placed from the same library item). They are distinguished by **unique node ids** — `WorldGraph.add_node` appends a random 8-char suffix to a duplicate id (`graph.py:51-57`), and `/api/build/item-from-library` (`routes/library_routes.py`) generates unique ids up front. Display names stay identical.
 
 When a `take` (or `use`/`drop`) resolves to several matches:
 
@@ -241,9 +241,9 @@ When a key item is used on a door (`use_item_on` at `item_actions.py:693-701`):
 3. If found, sets door state to `"closed"`
 4. Also checks `effect_target == "connection"` for direct state changes (`item_actions.py:703-709`)
 
-## Item Library (`routes/items_registry.py`)
+## Item Library (`routes/library_routes.py`)
 
-The item library stores reusable item definitions in `data/library/items/*.json`. The `/api/build/item-from-library` endpoint (`items_registry.py:57-155`) converts library items to world items:
+The item library stores reusable item definitions in `data/library/items/*.json`. The `/api/build/item-from-library` endpoint (`routes/library_routes.py`) converts library items to world items:
 1. Looks up item in library by `item_id`
 2. Creates/updates a `Node(id="item_<name>", type="item")` with properties copied from library data
 3. Places in the target room/container/character
@@ -292,7 +292,7 @@ Items with `"hidden": True` are invisible to `look` and require a Perception che
 
 ## Weight System
 
-The `weight` property exists on items (`Item.__init__`, `items_registry.py:78`) but there is **no weight limit system** — players can carry unlimited items. Weight is UI display only. A weight/volume system is planned ([[dev_tasks/review/items/task-103-weight-volume-container-limits|task-103]]).
+The `weight` property exists on items (`Item.__init__`, `item.py`) but there is **no weight limit system** — players can carry unlimited items. Weight is UI display only. A weight/volume system is planned ([[dev_tasks/review/items/task-103-weight-volume-container-limits|task-103]]).
 
 ## Related tasks
 

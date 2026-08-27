@@ -28,7 +28,57 @@ class GraphManager {
         })();
     }
 
-    async init() { return GraphNetwork.init(); }
+    async init() {
+        await GraphNetwork.init();
+        await this._applyEngineConfigDefaults();
+    }
+
+    async _applyEngineConfigDefaults() {
+        try {
+            const resp = await fetch('/api/settings/engine_config');
+            if (!resp.ok) return;
+            const data = await resp.json();
+            const values = data.values || {};
+            if ('graph.physics_enabled' in values) {
+                this._physicsEnabled = !!values['graph.physics_enabled'];
+                const pb = document.getElementById('btn-physics');
+                if (pb) pb.textContent = this._physicsEnabled ? '⏸ Physics' : '▶ Physics';
+                if (this.network) {
+                    this.network.setOptions({ physics: { enabled: this._physicsEnabled } });
+                }
+            }
+            if ('graph.show_items' in values) {
+                this._showItems = !!values['graph.show_items'];
+                const btn = document.getElementById('btn-items');
+                if (btn) btn.classList.toggle('active', this._showItems);
+                GraphNetwork.applyVisibility();
+            }
+            if ('graph.show_only_inhabited' in values) {
+                this._showOnlyInhabitedAreas = !!values['graph.show_only_inhabited'];
+                const btn = document.getElementById('btn-inhabited');
+                if (btn) btn.classList.toggle('active', this._showOnlyInhabitedAreas);
+                if (!this._showOnlyInhabitedAreas) {
+                    this._revealedAreaIds.clear();
+                }
+                GraphNetwork.applyVisibility();
+            }
+        } catch (e) {
+            console.warn('Failed to apply engine config graph defaults:', e);
+        }
+    }
+
+    async _saveGraphConfigKey(key, value) {
+        try {
+            const resp = await fetch('/api/settings/engine_config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ values: { [key]: value } }),
+            });
+            if (!resp.ok) throw new Error('Failed to save graph config');
+        } catch (e) {
+            console.warn('Failed to save graph config:', e);
+        }
+    }
 
     _buildOptions() { return GraphNetwork.buildOptions(); }
 
@@ -42,6 +92,7 @@ class GraphManager {
         // Clear signature so loadGraphData doesn't skip the reload
         this._lastSig = '';
         this.loadGraphData();
+        this._saveGraphConfigKey('graph.physics_enabled', this._physicsEnabled);
     }
 
     async loadGraphData() { return GraphNetwork.loadGraphData(); }
@@ -466,7 +517,13 @@ class GraphManager {
         return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    togglePhysics() { return GraphNetwork.togglePhysics(); }
+    togglePhysics() {
+        graphManager._physicsEnabled = !graphManager._physicsEnabled;
+        graphManager.network.setOptions({ physics: { enabled: graphManager._physicsEnabled } });
+        const btn = document.getElementById('btn-physics');
+        if (btn) btn.textContent = graphManager._physicsEnabled ? '⏸ Physics' : '▶ Physics';
+        graphManager._saveGraphConfigKey('graph.physics_enabled', graphManager._physicsEnabled);
+    }
 
     fitView() { return GraphNetwork.fitView(); }
 
@@ -474,9 +531,15 @@ class GraphManager {
 
     toggleTriggers() { return GraphNetwork.toggleTriggers(); }
 
-    toggleItems() { return GraphNetwork.toggleItems(); }
+    toggleItems() {
+        GraphNetwork.toggleItems();
+        graphManager._saveGraphConfigKey('graph.show_items', graphManager._showItems);
+    }
 
-    toggleInhabitedAreas() { return GraphNetwork.toggleInhabitedAreas(); }
+    toggleInhabitedAreas() {
+        GraphNetwork.toggleInhabitedAreas();
+        graphManager._saveGraphConfigKey('graph.show_only_inhabited', graphManager._showOnlyInhabitedAreas);
+    }
 
     toggleTagPanel() { return GraphNetwork.toggleTagPanel(); }
 

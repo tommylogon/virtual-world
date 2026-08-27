@@ -38,7 +38,7 @@ def test_get_set_world_lore(mock_api):
 
     set_world_lore.fn([{"category": "general", "content": "new lore"}])
     mock_api.assert_called_with("POST", "/api/world/lore",
-                                [{"category": "general", "content": "new lore"}])
+                                {"lore": [{"category": "general", "content": "new lore"}]})
 
 
 def test_add_lore_entry(mock_api):

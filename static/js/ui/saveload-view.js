@@ -18,6 +18,39 @@ const saveLoadViewTag = (strings, ...values) => window.Lit.html(strings, ...valu
 window.SaveLoadView = (() => {
     'use strict';
 
+    function initScenarioNameEditor() {
+        var container = document.getElementById('scenario-name-container');
+        var textSpan = document.getElementById('scenario-name-text');
+        if (!container || !textSpan) return;
+
+        container.addEventListener('click', function(e) {
+            if (e.target.tagName === 'INPUT') return;
+            var currentName = document.body.dataset.scenarioName || textSpan.textContent || 'unnamed';
+            var input = document.createElement('input');
+            input.type = 'text';
+            input.value = currentName;
+            input.style.cssText = 'background:var(--bg-input);color:var(--text);border:1px solid var(--accent);padding:2px 6px;font-size:12px;width:160px;font-family:var(--font);';
+            textSpan.replaceWith(input);
+            input.focus();
+            input.select();
+
+            function saveName() {
+                var newName = input.value.trim() || 'unnamed';
+                document.body.dataset.scenarioName = newName;
+                var newText = document.createElement('span');
+                newText.id = 'scenario-name-text';
+                newText.textContent = newName;
+                input.replaceWith(newText);
+            }
+
+            input.addEventListener('blur', saveName);
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+                if (e.key === 'Escape') { input.value = currentName; input.blur(); }
+            });
+        });
+    }
+
     /**
      * Download the current world state as a JSON file.
      */

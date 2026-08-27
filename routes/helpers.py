@@ -33,7 +33,7 @@ def load_autosave_if_exists(world):
     """Load autosave on top of current world state if present. Returns True if loaded."""
     if os.path.exists(AUTOSAVE_PATH):
         try:
-            with open(AUTOSAVE_PATH, 'r', encoding='utf-8') as f:
+            with open(AUTOSAVE_PATH, 'r', encoding='utf-8-sig') as f:
                 data = json.load(f)
             world.load_from_dict(data)
 
@@ -136,7 +136,7 @@ def load_registry(data_dir, filename):
             key = entry[:-5]
             path = os.path.join(subdir, entry)
             try:
-                with open(path, 'r', encoding='utf-8') as f:
+                with open(path, 'r', encoding='utf-8-sig') as f:
                     result[key] = json.load(f)
             except Exception as e:
                 logger.warning(f"Could not load library entry {entry}: {e}")
@@ -197,7 +197,7 @@ def validate_tags_on_save(tags, data_dir=None):
             if not fn.endswith('.json'):
                 continue
             try:
-                with open(os.path.join(tags_dir, fn), 'r', encoding='utf-8') as f:
+                with open(os.path.join(tags_dir, fn), 'r', encoding='utf-8-sig') as f:
                     entry = json.load(f)
                 library[entry.get('id', fn[:-5])] = entry.get('name', fn[:-5])
             except Exception:

@@ -5,7 +5,7 @@ import difflib
 import os
 from flask import request, jsonify
 from werkzeug.utils import secure_filename
-from graph import Node, Edge, EDGE_IN, EDGE_CARRYING
+from graph import Node, Edge, EDGE_IN, EDGE_CARRYING, EDGE_ON, EDGE_UNDER, EDGE_BEHIND, EDGE_BESIDE, EDGE_AT
 from engine.item_actions import normalize_item_actions
 
 logger = logging.getLogger(__name__)
@@ -140,55 +140,51 @@ def handle_move_item_node(app, node_id):
                      f"intended destination {dest}{extra_txt}"
         }), 404
 
-    area_name = data.get('area', '').strip()
-    container_id = data.get('container', '').strip()
-    character_id = data.get('character', '').strip()
-    if not area_name and not container_id and not character_id:
-        return jsonify({"error": "Provide 'area', 'container', or 'character'"}), 400
+    RELATION_EDGE_TYPES = {
+        "in": EDGE_IN,
+        "on": EDGE_ON,
+        "under": EDGE_UNDER,
+        "behind": EDGE_BEHIND,
+        "beside": EDGE_BESIDE,
+        "at": EDGE_AT,
+        "carrying": EDGE_CARRYING,
+    }
+    target_type = data.get('target_type') or ('item' if data.get('container') else 'character' if data.get('character') else 'area' if data.get('area') else None)
+    target_id = data.get('target_id') or data.get('container') or data.get('character') or data.get('area') or None
+    relation = data.get('relation') or ('in' if target_type in ('item', 'area') else 'carrying' if target_type == 'character' else 'in')
+    if target_type == 'character':
+        relation = 'carrying'
+    if not target_type or not target_id:
+        return jsonify({"error": "Provide target_type and target_id, or legacy area/container/character"}), 400
 
-    for e in app.world.graph.edges[:]:
-        node_id_l = node_id.lower()
-        if e.source.lower() == node_id_l and e.type in ('in', 'location', 'contains', 'carrying', 'carried_by', 'equipped'):
-            app.world.graph.remove_edge(e.source, e.target, e.type)
-
-    if container_id:
-        container_node = app.world.graph.get_node(container_id)
-        if not container_node:
-            return jsonify({"error": f"Container item '{container_id}' not found"}), 404
-        max_cap = container_node.properties.get("max_weight_capacity")
-        if max_cap is not None:
-            current_weight = 0
-            for e in app.world.graph.edges:
-                if e.type in ('in', 'contains') and e.target.lower() == container_id.lower():
-                    content_node = app.world.graph.get_node(e.source)
-                    if content_node:
-                        current_weight += content_node.properties.get("weight", 0)
-            item_node = app.world.graph.get_node(node_id)
-            item_w = item_node.properties.get("weight", 0) if item_node else 0
-            remaining = max_cap - current_weight
-            if item_w > remaining:
-                cname = container_node.name or container_id
-                return jsonify({"error": f"The {cname} can't hold that — it's too heavy (capacity: {current_weight:.1f}/{max_cap} kg)."}), 400
-        app.world.graph.add_edge(Edge(source=node_id, target=container_id, type='in'))
-        return jsonify({"status": "success", "container": container_id})
-    else:
-        if character_id:
-            character_node = app.world.graph.get_node(character_id)
-            if not character_node:
-                return jsonify({"error": f"Character '{character_id}' not found"}), 404
-            if character_node.type not in ('character', 'player'):
-                return jsonify({"error": f"'{character_id}' is not a character node"}), 400
-            app.world.graph.add_edge(Edge(source=node_id, target=character_id, type='carrying'))
-            return jsonify({"status": "success", "character": character_id})
-        area_node_id = app.world._area_node_id(area_name)
+    target_node = app.world.graph.get_node(target_id)
+    if not target_node:
+        # Legacy payloads may pass a display name rather than a node id (e.g.
+        # {"area": "Elm Street"}). Resolve by name among nodes of the expected
+        # type so the legacy area/container/character path still works.
+        id_lower = str(target_id).lower()
+        want = {
+            'area': {'area'},
+            'item': {'item'},
+            'container': {'item'},
+            'character': {'character', 'player'},
+        }.get(target_type, set())
         for n in app.world.graph.nodes.values():
-            if n.type == "area" and n.name == area_name:
-                area_node_id = n.id
+            if str(n.name).lower() == id_lower and n.type in want:
+                target_node = n
+                target_id = target_node.id
                 break
-        if not app.world.graph.get_node(area_node_id):
-            return jsonify({"error": f"Area '{area_name}' not found"}), 404
-        app.world.graph.add_edge(Edge(source=node_id, target=area_node_id, type='in'))
-        return jsonify({"status": "success", "area": area_name})
+    if not target_node:
+        return jsonify({"error": f"Target '{target_id}' not found"}), 404
+    if target_type == 'character' and target_node.type not in ('character', 'player'):
+        return jsonify({"error": f"'{target_id}' is not a character node"}), 400
+
+    edge_type = RELATION_EDGE_TYPES.get(relation, relation)
+    for e in app.world.graph.edges[:]:
+        if e.source.lower() == node_id.lower() and e.type in ('in', 'location', 'contains', 'carried_by', 'carrying', 'equipped', 'on', 'under', 'behind', 'beside', 'at'):
+            app.world.graph.remove_edge(e.source, e.target, e.type)
+    app.world.graph.add_edge(Edge(source=node_id, target=target_id, type=edge_type))
+    return jsonify({"status": "success", "target_type": target_type, "target_id": target_id, "relation": relation})
 
 
 def handle_rename_node(app, node_id):
@@ -349,32 +345,36 @@ def handle_build_item_legacy(app):
                         app.world.graph.remove_edge(e.source, e.target, e.type)
                 app.world.graph.add_edge(Edge(source=child_id, target=node_id, type=EDGE_IN, properties={}))
 
-    if data.get('container'):
-        container_id = data.get('container')
-        if not app.world.graph.get_node(container_id):
-            return jsonify({"error": f"Container item '{container_id}' not found"}), 404
+    RELATION_EDGE_TYPES = {
+        "in": EDGE_IN,
+        "on": EDGE_ON,
+        "under": EDGE_UNDER,
+        "behind": EDGE_BEHIND,
+        "beside": EDGE_BESIDE,
+        "at": EDGE_AT,
+        "carrying": EDGE_CARRYING,
+    }
+    target_type = data.get('target_type') or ('item' if data.get('container') else 'character' if data.get('character') else 'area' if area_name else None)
+    target_id = data.get('target_id') or data.get('container') or data.get('character') or None
+    relation = data.get('relation') or 'in'
+    if target_type == 'item' and relation == 'in':
+        relation = 'in'
+    if target_type == 'character':
+        relation = 'carrying'
+    if target_type == 'area':
+        relation = 'in'
+    if target_type and target_id:
+        target_node = app.world.graph.get_node(target_id)
+        if not target_node:
+            return jsonify({"error": f"Target '{target_id}' not found"}), 404
+        if target_type == 'character' and target_node.type not in ('character', 'player'):
+            return jsonify({"error": f"'{target_id}' is not a character node"}), 400
+        edge_type = RELATION_EDGE_TYPES.get(relation, relation)
         for e in app.world.graph.edges[:]:
-            if e.source.lower() == node_id.lower() and e.type in ('in', 'location', 'contains', 'carried_by', 'carrying', 'equipped'):
+            if e.source.lower() == node_id.lower() and e.type in ('in', 'location', 'contains', 'carried_by', 'carrying', 'equipped', 'on', 'under', 'behind', 'beside', 'at'):
                 app.world.graph.remove_edge(e.source, e.target, e.type)
-        app.world.graph.add_edge(Edge(source=node_id, target=container_id, type=EDGE_IN))
-    elif data.get('character'):
-        character_id = data.get('character')
-        if not app.world.graph.get_node(character_id):
-            return jsonify({"error": f"Character '{character_id}' not found"}), 404
-        for e in app.world.graph.edges[:]:
-            if e.source.lower() == node_id.lower() and e.type in ('in', 'location', 'contains', 'carried_by', 'carrying', 'equipped'):
-                app.world.graph.remove_edge(e.source, e.target, e.type)
-        app.world.graph.add_edge(Edge(source=node_id, target=character_id, type=EDGE_CARRYING))
-    elif area_name:
-        area_node_id = app.world._area_node_id(area_name)
-        for n in app.world.graph.nodes.values():
-            if n.type == "area" and n.name == area_name:
-                area_node_id = n.id
-                break
-        for e in app.world.graph.edges[:]:
-            if e.source.lower() == node_id.lower() and e.type in ('in', 'location', 'contains', 'carried_by', 'carrying', 'equipped'):
-                app.world.graph.remove_edge(e.source, e.target, e.type)
-        app.world.graph.add_edge(Edge(source=node_id, target=area_node_id, type='in'))
+        app.world.graph.add_edge(Edge(source=node_id, target=target_id, type=edge_type))
+        return jsonify({"status": "success", "target_type": target_type, "target_id": target_id, "relation": relation})
 
     item_triggers = data.get('triggers', [])
     for trigger_data in item_triggers:

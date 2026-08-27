@@ -270,24 +270,17 @@ Use the effects array for multi-step effects.`;
                         `- ${name}: ${(r.description || '(no description)').split('\n')[0]}`
                     ).join('\n');
                     if (existing) systemMsg += `\n\nExisting rooms in this world:\n${existing}\n\nGenerate a new area that fits thematically.`;
-                } else if (type === 'item') {
-                    const targetType = document.querySelector('input[name="item-target-type"]:checked')?.value || 'area';
+                } else if (useContext && type === 'item') {
+                    const targetType = document.querySelector('input[name="item-target-type"]:checked')?.value || 'item';
+                    const targetId = document.getElementById('item-target-id')?.value || '';
+                    const relation = document.getElementById('item-target-relation')?.value || 'in';
                     let targetDesc = '';
-                    if (targetType === 'area') {
-                        const selectedRoom = document.getElementById('item-target-area')?.value;
-                        const roomDesc = selectedRoom && worldState.areas?.[selectedRoom]?.description;
-                        if (roomDesc) targetDesc = `\nThis item will be placed in "${selectedRoom}": ${roomDesc}`;
-                    } else if (targetType === 'container') {
-                        const selectedId = document.getElementById('item-target-container')?.value;
-                        const node = selectedId && worldState.getNode(selectedId);
-                        if (node) targetDesc = `\nThis item will be placed inside "${node.name || selectedId}": ${node.properties?.description || '(no description)'}`;
-                    } else if (targetType === 'character') {
-                        const selectedId = document.getElementById('item-target-character')?.value;
-                        const node = selectedId && worldState.getNode(selectedId);
+                    if (targetId) {
+                        const node = worldState.getNode(targetId);
                         if (node) {
-                            const player = worldState.players?.[node.name || selectedId];
-                            const charDesc = player?.description || player?.personality || node?.properties?.description || '(no description)';
-                            targetDesc = `\nThis item will be carried by "${node.name || selectedId}": ${charDesc}`;
+                            const relationLabel = targetType === 'area' ? 'in' : targetType === 'character' ? 'carried by' : relation;
+                            const desc = node.properties?.description || '(no description)';
+                            targetDesc = `\nThis item will be placed ${relationLabel} "${node.name || targetId}": ${desc}`;
                         }
                     }
                     if (targetDesc) systemMsg += targetDesc;
@@ -421,11 +414,16 @@ VW._onConnRoomChange = function() {
 };
 
 VW._toggleItemTargetType = function() {
-    const val = document.querySelector('input[name="item-target-type"]:checked')?.value || 'area';
-    ['item-target-area', 'item-target-container', 'item-target-character'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = id === `item-target-${val}` ? 'block' : 'none';
-    });
+    const val = document.querySelector('input[name="item-target-type"]:checked')?.value || 'item';
+    const search = document.getElementById('item-target-search');
+    const relation = document.getElementById('item-target-relation');
+    if (search) {
+        const labels = { item: 'Search items...', character: 'Search characters...', area: 'Search areas...' };
+        search.placeholder = labels[val] || 'Search...';
+    }
+    if (relation) {
+        relation.style.display = val === 'item' ? 'block' : 'none';
+    }
 };
 
 VW._previewPrompt = function(type) {
@@ -441,23 +439,16 @@ VW._previewPrompt = function(type) {
         ).join('\n');
         if (existing) systemMsg += `\n\nExisting rooms in this world:\n${existing}\n\nGenerate a new area that fits thematically.`;
         } else if (useContext && type === 'item') {
-            const targetType = document.querySelector('input[name="item-target-type"]:checked')?.value || 'area';
+            const targetType = document.querySelector('input[name="item-target-type"]:checked')?.value || 'item';
+            const targetId = document.getElementById('item-target-id')?.value || '';
+            const relation = document.getElementById('item-target-relation')?.value || 'in';
             let targetDesc = '';
-            if (targetType === 'area') {
-                const selectedRoom = document.getElementById('item-target-area')?.value;
-                const roomDesc = selectedRoom && worldState.areas?.[selectedRoom]?.description;
-                if (roomDesc) targetDesc = `\nThis item will be placed in "${selectedRoom}": ${roomDesc}`;
-            } else if (targetType === 'container') {
-                const selectedId = document.getElementById('item-target-container')?.value;
-                const node = selectedId && worldState.getNode(selectedId);
-                if (node) targetDesc = `\nThis item will be placed inside "${node.name || selectedId}": ${node.properties?.description || '(no description)'}`;
-            } else if (targetType === 'character') {
-                const selectedId = document.getElementById('item-target-character')?.value;
-                const node = selectedId && worldState.getNode(selectedId);
+            if (targetId) {
+                const node = worldState.getNode(targetId);
                 if (node) {
-                    const player = worldState.players?.[node.name || selectedId];
-                    const charDesc = player?.description || player?.personality || node?.properties?.description || '(no description)';
-                    targetDesc = `\nThis item will be carried by "${node.name || selectedId}": ${charDesc}`;
+                    const relationLabel = targetType === 'area' ? 'in' : targetType === 'character' ? 'carried by' : relation;
+                    const desc = node.properties?.description || '(no description)';
+                    targetDesc = `\nThis item will be placed ${relationLabel} "${node.name || targetId}": ${desc}`;
                 }
             }
         if (targetDesc) systemMsg += targetDesc;
@@ -721,6 +712,10 @@ document.addEventListener('DOMContentLoaded', () => {
             scrollToggle.textContent = events.autoScroll ? '📌' : '📍';
             scrollToggle.title = events.autoScroll ? 'Auto-scroll (on)' : 'Auto-scroll (off)';
         });
+    }
+
+    if (window.SaveLoadView && typeof window.SaveLoadView.initScenarioNameEditor === 'function') {
+        window.SaveLoadView.initScenarioNameEditor();
     }
 });
 

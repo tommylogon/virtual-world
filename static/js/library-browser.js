@@ -504,8 +504,10 @@ class LibraryBrowser {
         if (!id || id === '__new__') { toastInfo('Select a character first.'); return; }
         const entry = this.data.characters[id];
         if (!entry) return;
-        const area = prompt(`Place "${entry.name || id}" in which area?`, entry.current_area || '');
-        if (area === null) return;
+        // Use the same target-picker modal that items use (Rooms/Containers/Characters tabs).
+        const target = await ItemLibraryPlacement.pickTarget(`Place "${entry.name || id}" in:`, { tabs: ['area'] });
+        if (!target) return;
+        const area = target.type === 'area' ? target.name : target.id;
 
         const res = await ApiClient.importCharacterFromLibrary(id, { area, active: true });
         if (res.error) { toastError('Error: ' + res.error); return; }

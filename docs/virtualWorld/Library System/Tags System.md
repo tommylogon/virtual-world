@@ -108,13 +108,13 @@ list alongside the stranger label:
   `static/js/inspector/agent-view.js`), so authors see exactly what strangers get at a
   glance as they type. It derives the handle from the character's tags and appends the
   first sentence of the current description.
-- Implementation: `static/js/agent/prompt-builder.js` — `anonymousName()` (tag handle,
+- Implementation: `static/js/agent/prompt-builder/` — `anonymousName()` (tag handle,
   mirroring `voiceLabel()`), `buildRoomContext()` "People here" list (first-sentence trim).
   Backend: `player.py` `unknown_display_name()` / `_tag_unknown_name()`.
 
 ### Hearing (cross-room)
 
-The same tag→gender mapping powers `voiceLabel()` in `static/js/agent/prompt-builder.js`
+The same tag→gender mapping powers `voiceLabel()` in `static/js/agent/prompt-builder/`
 for hearing characters through walls ("a woman's voice" / "a man's voice"). Physical
 appearance is useless through a wall, so the voice label derives from tags first, then
 pronouns in the description, then a generic "a voice".

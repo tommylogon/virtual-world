@@ -29,6 +29,7 @@ const CreateModal = {
         const contentEl = document.getElementById('create-modal-content');
         if (contentEl && formTemplate) window.Lit.render(formTemplate, contentEl);
         this._initTagMultiselects(type);
+        if (type === 'item') this._initItemTargetSearch();
         modal.style.display = 'flex';
 
         const closeOnEscape = (event) => { if (event.key === 'Escape') this.close(); };
@@ -93,6 +94,51 @@ const CreateModal = {
         }
     },
 
+    async _searchPlacementTargets(query) {
+        const targetType = document.querySelector('input[name="item-target-type"]:checked')?.value || 'item';
+        const q = encodeURIComponent(query.trim().toLowerCase());
+        try {
+            const resp = await fetch(`/api/search/placement-targets?q=${q}`);
+            if (!resp.ok) return [];
+            const all = await resp.json();
+            return all.filter(r => r.type === targetType);
+        } catch {
+            return [];
+        }
+    },
+
+    _initItemTargetSearch() {
+        const input = document.getElementById('item-target-search');
+        const results = document.getElementById('item-target-results');
+        const preview = document.getElementById('item-target-preview');
+        const hidden = document.getElementById('item-target-id');
+        if (!input || !results || !hidden || !preview) return;
+        const show = (items) => {
+            if (!items.length) {
+                results.style.display = 'none';
+                return;
+            }
+            results.innerHTML = items.map(r => `<div class="tag-option" data-id="${r.id}" data-name="${(r.name || '').replace(/"/g, '&quot;')}" style="padding:6px 8px;cursor:pointer;font-size:11px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;"><span>${r.icon}</span><span style="font-weight:600;">${r.name}</span><span style="color:var(--text-muted);font-size:9px;margin-left:auto;">${r.type}</span></div>`).join('');
+            results.style.display = 'block';
+            results.querySelectorAll('.tag-option').forEach(el => {
+                el.addEventListener('click', () => {
+                    hidden.value = el.dataset.id;
+                    preview.textContent = `Selected: ${el.dataset.name} (${el.dataset.id})`;
+                    results.style.display = 'none';
+                    input.value = el.dataset.name;
+                });
+            });
+        };
+        input.oninput = async () => {
+            const q = input.value.trim();
+            if (!q) { results.style.display = 'none'; hidden.value = ''; preview.textContent = ''; return; }
+            const items = await this._searchPlacementTargets(q);
+            show(items);
+        };
+        input.onblur = () => setTimeout(() => { results.style.display = 'none'; }, 150);
+        input.onfocus = () => { if (input.value.trim()) input.oninput({ target: input }); };
+    },
+
     _buildRoomForm() {
         return createModalHtmlTag`<div style="display:flex;gap:4px;margin-bottom:8px;">
             <input type="text" id="ai-prompt" placeholder="AI prompt..." style="flex:1;font-size:11px;">
@@ -111,30 +157,29 @@ const CreateModal = {
     },
 
     _buildItemForm() {
-        const roomOptions = Object.keys(worldState.areas || {}).map(area => `<option value="${area}">${area}</option>`).join('');
-        const containerItems = Object.values(worldState.graph?.nodes || {}).filter(node => node.type === 'item').sort((a,b) => (a.name||a.id).localeCompare(b.name||b.id));
-        const containerOptions = containerItems.map(node => `<option value="${node.id}">${node.name || node.id}</option>`).join('');
-        const characters = Object.values(worldState.graph?.nodes || {}).filter(node => node.type === 'character').sort((a,b) => (a.name||a.id).localeCompare(b.name||b.id));
-        const characterOptions = characters.map(node => `<option value="${node.id}">${node.name || node.id}</option>`).join('');
         const actionOptions = ['examine','take','use','open','close','eat','drink','read','light','activate','equip','unequip','throw','break']
             .map(action => createModalHtmlTag`<label style="font-size:10px;"><input type="checkbox" class="act-chk" value="${action}" ?checked=${['examine','take','use'].includes(action)}> ${action}</label>`);
         const equipOptions = ['head','neck','torso','arms','hands','legs','feet','back','waist','accessory','hand_left','hand_right']
             .map(s => createModalHtmlTag`<option value="${s}">${s}</option>`);
+        const relationOptions = ['in','on','under','behind','beside','at']
+            .map(r => createModalHtmlTag`<option value="${r}">${r}</option>`);
         return createModalHtmlTag`<div style="display:flex;gap:4px;margin-bottom:8px;">
             <input type="text" id="ai-prompt" placeholder="AI prompt..." style="flex:1;font-size:11px;">
             <button class="btn btn-sm btn-purple" @click=${() => generateWithAI('item')} style="background:#4a2a8a;border-color:#6a3aaa;color:#bc8cff;">🤖 Generate</button>
             <button class="btn btn-sm" @click=${() => VW._previewPrompt('item')} title="Preview and edit prompt" style="background:var(--bg-inset);border-color:var(--border);">👁️</button>
         </div>
         <div style="margin-bottom:6px;">
-            <label style="font-size:10px;font-weight:600;display:block;margin-bottom:2px;">Place In</label>
-            <div style="display:flex;gap:4px;">
-                <label style="font-size:10px;display:flex;align-items:center;gap:2px;cursor:pointer;"><input type="radio" name="item-target-type" value="area" checked @change=${() => VW._toggleItemTargetType()}> 🏠 Area</label>
-                <label style="font-size:10px;display:flex;align-items:center;gap:2px;cursor:pointer;"><input type="radio" name="item-target-type" value="container" @change=${() => VW._toggleItemTargetType()}> 📦 Container</label>
+            <label style="font-size:10px;font-weight:600;display:block;margin-bottom:2px;">Place On / In</label>
+            <div style="display:flex;gap:4px;margin-bottom:4px;">
+                <label style="font-size:10px;display:flex;align-items:center;gap:2px;cursor:pointer;"><input type="radio" name="item-target-type" value="item" checked @change=${() => VW._toggleItemTargetType()}> 📦 Item</label>
                 <label style="font-size:10px;display:flex;align-items:center;gap:2px;cursor:pointer;"><input type="radio" name="item-target-type" value="character" @change=${() => VW._toggleItemTargetType()}> 🧍 Character</label>
+                <label style="font-size:10px;display:flex;align-items:center;gap:2px;cursor:pointer;"><input type="radio" name="item-target-type" value="area" @change=${() => VW._toggleItemTargetType()}> 🏠 Area</label>
             </div>
-            <select id="item-target-area" style="width:100%;font-size:11px;padding:3px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;">${window.Lit.unsafeHTML(roomOptions)}</select>
-            <select id="item-target-container" style="display:none;width:100%;font-size:11px;padding:3px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;">${window.Lit.unsafeHTML(containerOptions || '<option value="">No container items available</option>')}</select>
-            <select id="item-target-character" style="display:none;width:100%;font-size:11px;padding:3px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;">${window.Lit.unsafeHTML(characterOptions || '<option value="">No characters available</option>')}</select>
+            <input type="text" id="item-target-search" placeholder="Search items, characters, or areas..." style="width:100%;font-size:11px;padding:3px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;">
+            <div id="item-target-results" style="display:none;position:absolute;z-index:1000;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 4px 12px rgba(0,0,0,0.3);margin-top:2px;"></div>
+            <input type="hidden" id="item-target-id">
+            <div id="item-target-preview" style="font-size:10px;color:var(--text-muted);margin-top:2px;"></div>
+            <select id="item-target-relation" style="width:100%;font-size:11px;padding:3px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;margin-top:4px;">${window.Lit.unsafeHTML(relationOptions.map(r => `<option value="${r}">${r}</option>`).join(''))}</select>
         </div>
         <label>Item Name</label><input type="text" id="item-name">
         <label>Description</label><textarea id="item-desc" rows="2"></textarea>
@@ -262,11 +307,13 @@ const CreateModal = {
             const contentsRaw = document.getElementById('item-contents-json')?.value;
             let contents = [];
             if (contentsRaw) { try { contents = JSON.parse(contentsRaw); } catch { contents = []; } }
-            const targetType = document.querySelector('input[name="item-target-type"]:checked')?.value || 'area';
+            const targetType = document.querySelector('input[name="item-target-type"]:checked')?.value || 'item';
+            const targetId = document.getElementById('item-target-id')?.value || '';
+            const relation = document.getElementById('item-target-relation')?.value || 'in';
             return {
-                area: targetType === 'area' ? document.getElementById('item-target-area')?.value : '',
-                container: targetType === 'container' ? document.getElementById('item-target-container')?.value : '',
-                character: targetType === 'character' ? document.getElementById('item-target-character')?.value : '',
+                target_type: targetType,
+                target_id: targetId,
+                relation: relation,
                 name: document.getElementById('item-name')?.value,
                 description: document.getElementById('item-desc')?.value,
                 actions: Array.from(document.querySelectorAll('.act-chk:checked')).map(checkbox => checkbox.value).join(','),

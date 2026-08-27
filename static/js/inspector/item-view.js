@@ -93,8 +93,9 @@ window.InspectorItemView = (() => {
             ${IV._renderFooter(nodeId)}
         `;
 
-InspectorPanel.render(template);
+        InspectorPanel.render(template);
         IV._populateLibraryTemplate(nodeId);
+        IV._initMoveTargetSearch();
 
         // Initialize TagMultiselect (render is synchronous, so the container exists).
         const tagContainer = document.getElementById(`tag-multiselect-container-${nodeId}`);
@@ -419,42 +420,21 @@ InspectorPanel.render(template);
      * @returns {TemplateResult}
      */
     IV._renderMoveSection = function(nodeId) {
-        const allRoomNames = Object.keys(worldState.areas || {}).sort();
-const roomOptions = allRoomNames.map(areaName => htmlTag`<option value=${areaName}>${areaName}</option>`);
-        const itemAreaId = IV._getItemAreaId(nodeId);
-        const allItems = Object.values(worldState.graph?.nodes || {})
-            .filter(node => node.type === 'item' && node.id !== nodeId)
-            .map(node => ({ node, sameArea: IV._getItemAreaId(node.id) === itemAreaId }))
-            .sort((a, b) => {
-                if (a.sameArea !== b.sameArea) return a.sameArea ? -1 : 1;
-                return (a.node.name || a.node.id).localeCompare(b.node.name || b.node.id);
-            });
-        const itemOptions = allItems.map(({ node, sameArea }) =>
-            htmlTag`<option value=${node.id} ${sameArea ? 'title="Same area as this item"' : ''}>${sameArea ? '📍 ' : ''}${node.name || node.id}</option>`
-        );
-        const allCharacters = Object.values(worldState.graph?.nodes || {})
-            .filter(node => node.type === 'character' || node.type === 'player')
-            .sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id));
-        const characterOptions = allCharacters.map(node => htmlTag`<option value=${node.id}>${node.name || node.id}</option>`);
+        const relationOptions = ['in','on','under','behind','beside','at']
+            .map(r => htmlTag`<option value=${r}>${r}</option>`);
 
         return htmlTag`<div class="inspector-section"><h3>📍 Move To</h3>
             <div style="display:flex;gap:4px;margin-bottom:4px;">
-                <label style="font-size:10px;display:flex;align-items:center;gap:2px;cursor:pointer;"><input type="radio" name="move-dest-type" value="area" checked @change=${() => IV._toggleMoveDestType()}> 🏠 Area</label>
-                <label style="font-size:10px;display:flex;align-items:center;gap:2px;cursor:pointer;"><input type="radio" name="move-dest-type" value="container" @change=${() => IV._toggleMoveDestType()}> 📦 Container</label>
-                <label style="font-size:10px;display:flex;align-items:center;gap:2px;cursor:pointer;"><input type="radio" name="move-dest-type" value="character" @change=${() => IV._toggleMoveDestType()}> 👤 Character</label>
+                <label style="font-size:10px;display:flex;align-items:center;gap:2px;cursor:pointer;"><input type="radio" name="move-dest-type" value="item" checked @change=${() => IV._toggleMoveDestType()}> 📦 Item</label>
+                <label style="font-size:10px;display:flex;align-items:center;gap:2px;cursor:pointer;"><input type="radio" name="move-dest-type" value="character" @change=${() => IV._toggleMoveDestType()}> 🧍 Character</label>
+                <label style="font-size:10px;display:flex;align-items:center;gap:2px;cursor:pointer;"><input type="radio" name="move-dest-type" value="area" @change=${() => IV._toggleMoveDestType()}> 🏠 Area</label>
             </div>
-            <div id="move-dest-area" style="display:flex;gap:4px;align-items:center;">
-                <select id="move-item-area-select" style="flex:1;font-size:11px;padding:3px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;">${roomOptions}</select>
-                <button class="btn btn-sm btn-blue" @click=${() => IV._moveItem(nodeId)}>📌 Move Here</button>
-            </div>
-            <div id="move-dest-container" style="display:none;gap:4px;align-items:center;">
-                <select id="move-item-container-select" style="flex:1;font-size:11px;padding:3px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;">${itemOptions.length ? itemOptions : htmlTag`<option value="">No items available</option>`}</select>
-                <button class="btn btn-sm btn-blue" @click=${() => IV._moveItemToContainer(nodeId)}>📌 Move Into</button>
-            </div>
-            <div id="move-dest-character" style="display:none;gap:4px;align-items:center;">
-                <select id="move-item-character-select" style="flex:1;font-size:11px;padding:3px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;">${characterOptions.length ? characterOptions : htmlTag`<option value="">No characters available</option>`}</select>
-                <button class="btn btn-sm btn-blue" @click=${() => IV._moveItemToCharacter(nodeId)}>📌 Give To</button>
-            </div>
+            <input type="text" id="move-target-search" placeholder="Search items, characters, or areas..." style="width:100%;font-size:11px;padding:3px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;margin-bottom:4px;">
+            <div id="move-target-results" style="display:none;position:absolute;z-index:1000;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;max-height:200px;overflow-y:auto;width:300px;box-shadow:0 4px 12px rgba(0,0,0,0.3);"></div>
+            <input type="hidden" id="move-target-id">
+            <div id="move-target-preview" style="font-size:10px;color:var(--text-muted);margin-bottom:4px;"></div>
+            <select id="move-target-relation" style="width:100%;font-size:11px;padding:3px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;margin-bottom:4px;">${relationOptions}</select>
+            <button class="btn btn-sm btn-blue" @click=${() => IV._moveItemToTarget(nodeId)}>📌 Move To</button>
         </div>`;
     };
 
@@ -635,66 +615,59 @@ IV._renderFooter = function(nodeId) {
      * Move item to a area
      * @param {string} nodeId - Graph node ID
      */
-    IV._moveItem = async function(nodeId) {
-        const selector = document.getElementById('move-item-area-select');
-        if (!selector) return;
-        const area = selector.value;
-        const res = await ApiClient.moveItemToRoom(nodeId, area);
+    IV._moveItemToTarget = async function(nodeId) {
+        const targetType = document.querySelector('input[name="move-dest-type"]:checked')?.value || 'item';
+        const targetId = document.getElementById('move-target-id')?.value || '';
+        const relation = document.getElementById('move-target-relation')?.value || 'in';
+        if (!targetId) { events.log('No target selected.', 'error-msg'); return; }
+        const res = await ApiClient.moveItemToRoom(nodeId, null, null, null, targetType, targetId, relation);
         if (res.error) { events.log(`Move failed: ${res.error}`, 'error-msg'); return; }
-        events.log(`Moved "${worldState.getNode(nodeId)?.name || nodeId}" to "${area}"`, 'system-msg');
+        const targetName = worldState.getNode(targetId)?.name || targetId;
+        events.log(`Moved "${worldState.getNode(nodeId)?.name || nodeId}" to "${targetName}" (${relation})`, 'system-msg');
         worldState.fetch();
-        if (window.VW?.inspector) window.VW.inspector.showNode(nodeId);
+        if (window.VW?.inspector) window.VW.inspector.showNode(targetId);
     };
 
-    /**
-     * Move item into a container
-     * @param {string} nodeId - Graph node ID
-     */
-    IV._moveItemToContainer = async function(nodeId) {
-        const selector = document.getElementById('move-item-container-select');
-        if (!selector) return;
-        const containerId = selector.value;
-        if (!containerId) { events.log('No container selected.', 'error-msg'); return; }
-        const res = await ApiClient.moveItemToRoom(nodeId, null, containerId);
-        if (res.error) { events.log(`Move failed: ${res.error}`, 'error-msg'); return; }
-        const containerName = worldState.getNode(containerId)?.name || containerId;
-        events.log(`Moved "${worldState.getNode(nodeId)?.name || nodeId}" into "${containerName}"`, 'system-msg');
-        worldState.fetch();
-        if (window.VW?.inspector) window.VW.inspector.showNode(containerId);
-    };
-
-    /**
-     * Move item onto a character (carrying)
-     * @param {string} nodeId - Graph node ID
-     */
-    IV._moveItemToCharacter = async function(nodeId) {
-        const selector = document.getElementById('move-item-character-select');
-        if (!selector) return;
-        const characterId = selector.value;
-        if (!characterId) { events.log('No character selected.', 'error-msg'); return; }
-        const res = await ApiClient.moveItemToRoom(nodeId, null, null, characterId);
-        if (res.error) { events.log(`Move failed: ${res.error}`, 'error-msg'); return; }
-        const characterName = worldState.getNode(characterId)?.name || characterId;
-        events.log(`Gave "${worldState.getNode(nodeId)?.name || nodeId}" to "${characterName}"`, 'system-msg');
-        worldState.fetch();
-        if (window.VW?.inspector) window.VW.inspector.showNode(characterId);
-    };
-
-    /**
-     * Toggle move destination type between area, container and character
-     */
     IV._toggleMoveDestType = function() {
-        const roomDiv = document.getElementById('move-dest-area');
-        const containerDiv = document.getElementById('move-dest-container');
-        const characterDiv = document.getElementById('move-dest-character');
         const selected = document.querySelector('input[name="move-dest-type"]:checked');
-        if (!roomDiv || !containerDiv || !characterDiv || !selected) return;
-        const show = (value) => {
-            roomDiv.style.display = value === 'area' ? 'flex' : 'none';
-            containerDiv.style.display = value === 'container' ? 'flex' : 'none';
-            characterDiv.style.display = value === 'character' ? 'flex' : 'none';
+        const search = document.getElementById('move-target-search');
+        const relation = document.getElementById('move-target-relation');
+        if (!search || !relation || !selected) return;
+        const labels = { item: 'Search items...', character: 'Search characters...', area: 'Search areas...' };
+        search.placeholder = labels[selected.value] || 'Search...';
+        relation.style.display = selected.value === 'item' ? 'block' : 'none';
+    };
+
+    IV._initMoveTargetSearch = function() {
+        const input = document.getElementById('move-target-search');
+        const results = document.getElementById('move-target-results');
+        const preview = document.getElementById('move-target-preview');
+        const hidden = document.getElementById('move-target-id');
+        if (!input || !results || !hidden || !preview) return;
+        const show = async (query) => {
+            const targetType = document.querySelector('input[name="move-dest-type"]:checked')?.value || 'item';
+            const q = encodeURIComponent(query.trim().toLowerCase());
+            try {
+                const resp = await fetch(`/api/search/placement-targets?q=${q}`);
+                if (!resp.ok) return;
+                const all = await resp.json();
+                const items = all.filter(r => r.type === targetType);
+                if (!items.length) { results.style.display = 'none'; return; }
+                results.innerHTML = items.map(r => `<div class="tag-option" data-id="${r.id}" data-name="${(r.name || '').replace(/"/g, '&quot;')}" style="padding:6px 8px;cursor:pointer;font-size:11px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;"><span>${r.icon}</span><span style="font-weight:600;">${r.name}</span><span style="color:var(--text-muted);font-size:9px;margin-left:auto;">${r.type}</span></div>`).join('');
+                results.style.display = 'block';
+                results.querySelectorAll('.tag-option').forEach(el => {
+                    el.addEventListener('click', () => {
+                        hidden.value = el.dataset.id;
+                        preview.textContent = `Selected: ${el.dataset.name} (${el.dataset.id})`;
+                        results.style.display = 'none';
+                        input.value = el.dataset.name;
+                    });
+                });
+            } catch { results.style.display = 'none'; }
         };
-        show(selected.value);
+        input.oninput = () => { const q = input.value.trim(); if (!q) { results.style.display = 'none'; hidden.value = ''; preview.textContent = ''; } else show(q); };
+        input.onblur = () => setTimeout(() => { results.style.display = 'none'; }, 150);
+        input.onfocus = () => { if (input.value.trim()) show(input.value); };
     };
 
     /**

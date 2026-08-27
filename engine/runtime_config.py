@@ -59,6 +59,10 @@ DEFAULTS: dict = {
     "emotion.decay_per_tick": 1.5,
     "emotion.llm_spike_max": 15.0,
     "emotion.recall_spike_scale": 0.25,
+    # Graph visualization defaults
+    "graph.physics_enabled": True,
+    "graph.show_items": False,
+    "graph.show_only_inhabited": True,
 }
 
 #: Consuming modules read values at call time via config.get(); no module
@@ -68,6 +72,7 @@ _SECTION_DESCRIPTIONS: dict[str, str] = {
     "heat": "Temperature propagation — per-tick heat exchange rate and max single-tick delta",
     "light": "Lighting — fraction of a lit neighbor area's light that spills through an open door",
     "emotion": "Character affect (task-96) — per-tick drift toward baseline, LLM-declared feeling cap, memory-recall re-spike scaling",
+    "graph": "Graph visualization — physics simulation, item visibility, area filtering",
 }
 
 #: Default config file location, relative to this module file.
@@ -195,4 +200,7 @@ SCHEMA: dict[str, dict] = {
     "emotion.decay_per_tick": {"section": "emotion", "label": "Mood drift toward baseline per tick", "type": "float"},
     "emotion.llm_spike_max": {"section": "emotion", "label": "Max spike from a declared feeling", "type": "float"},
     "emotion.recall_spike_scale": {"section": "emotion", "label": "Memory-recall re-feel scaling", "type": "float"},
+    "graph.physics_enabled": {"section": "graph", "label": "Enable physics simulation", "type": "bool"},
+    "graph.show_items": {"section": "graph", "label": "Show items in graph", "type": "bool"},
+    "graph.show_only_inhabited": {"section": "graph", "label": "Show only inhabited areas", "type": "bool"},
 }

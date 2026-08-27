@@ -271,7 +271,11 @@ window.WorldExport = (() => {
         }
         var content = lines.join('\n');
         var blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-        saveFileWithDialog(blob, 'event_log_' + new Date().toISOString().slice(0, 19).replace(/:/g, '-') + '.txt');
+        var scenarioName = (document.body.dataset.scenarioName || 'unnamed').trim() || 'unnamed';
+        var tick = worldState.tick || 0;
+        var ts = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+        var filename = scenarioName + '_tick_' + tick + '_event_log_' + ts + '.txt';
+        saveFileWithDialog(blob, filename);
         events.log('📥 Event log exported.', 'system-msg');
     }
 
