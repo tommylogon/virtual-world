@@ -4,26 +4,29 @@
 
 /* ===== CSS Variables / Theme ===== */
 :root {
-    --bg: #0d1117;
-    --bg-card: #161b22;
-    --bg-inset: #1c2128;
-    --bg-input: #21262d;
-    --bg-hover: #30363d;
-    --border: #30363d;
-    --border-light: #21262d;
-    --text: #e6edf3;
-    --text-dim: #8b949e;
-    --text-muted: #6e7681;
-    --accent: #58a6ff;
-    --accent-dim: #1f6feb;
-    --green: #3fb950;
-    --red: #f85149;
-    --orange: #e3b341;
-    --purple: #bc8cff;
-    --pink: #f778ba;
-    --yellow: #d29922;
-    --font: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-mono: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+    --bg: #0b0e14;
+    --bg-card: #131722;
+    --bg-inset: #1a1f2c;
+    --bg-input: #222938;
+    --bg-hover: #2e364a;
+    --border: #2e364a;
+    --border-light: #1e2535;
+    --text: #f0f4f9;
+    --text-dim: #9aa5b5;
+    --text-muted: #6b778d;
+    --accent: #60a5fa;
+    --accent-dim: #2563eb;
+    --green: #34d399;
+    --red: #f87171;
+    --orange: #fbbf24;
+    --purple: #c084fc;
+    --pink: #f472b6;
+    --yellow: #facc15;
+    --font: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+    --glass-bg: rgba(19, 23, 34, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; }

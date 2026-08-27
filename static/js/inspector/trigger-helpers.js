@@ -199,17 +199,17 @@ window.InspectorTriggers = (() => {
 
                 const conditionStr = condition ? `${condition.type}${condition.value !== undefined ? `=${condition.value}` : condition.skill ? `(${condition.skill} DC${condition.dc})` : ''}` : null;
 
-                        return htmlTag`<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:6px;margin-bottom:4px;">
-                            <div style="display:flex;justify-content:space-between;align-items:center;">
-                                <strong>${triggerType}</strong>
-                                <div>
-                                    <button class="btn btn-sm" @click=${() => VW.inspector._editTriggerFromNode(nodeId, JSON.stringify(trigger))} style="font-size:10px;">✏️</button>
-                                    <button class="btn btn-sm btn-red" @click=${() => T.removeTriggerFromNode(nodeId, trigger.source, trigger.target)} style="font-size:10px;">✕</button>
+                        return htmlTag`<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:8px;margin-bottom:6px;box-shadow:var(--glass-shadow);transition:border-color .15s;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-weight:700;color:var(--accent);font-size:11px;display:flex;align-items:center;gap:4px;">⚡ ${triggerType}</span>
+                                <div style="display:flex;gap:4px;">
+                                    <button class="btn btn-sm" @click=${() => VW.inspector._editTriggerFromNode(nodeId, JSON.stringify(trigger))} style="font-size:10px;padding:1px 6px;">✏️ Edit</button>
+                                    <button class="btn btn-sm btn-red" @click=${() => T.removeTriggerFromNode(nodeId, trigger.source, trigger.target)} style="font-size:10px;padding:1px 6px;">✕</button>
                                 </div>
                             </div>
-                            <div style="font-size:10px;color:var(--text-dim);margin-top:2px;">Effect: ${effectDetail}</div>
-                            ${message ? htmlTag`<div style="font-size:10px;color:var(--text-muted);">${message}</div>` : nothing}
-                            ${conditionStr ? htmlTag`<div style="font-size:10px;color:var(--pink);">Condition: ${conditionStr}</div>` : nothing}
+                            <div style="font-size:10px;color:var(--text);margin-top:2px;font-family:var(--font-mono);"><strong>Effect:</strong> ${effectDetail}</div>
+                            ${message ? htmlTag`<div style="font-size:10px;color:var(--text-dim);margin-top:2px;font-style:italic;">"${message}"</div>` : nothing}
+                            ${conditionStr ? htmlTag`<div style="font-size:10px;color:var(--pink);margin-top:2px;">🔒 Condition: ${conditionStr}</div>` : nothing}
                         </div>`;
                     })
                     : htmlTag`<div style="font-size:11px;color:var(--text-muted);padding:8px;">No triggers. Click + Add to add one.</div>`}
