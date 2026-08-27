@@ -104,6 +104,19 @@ class TestConditions:
         result = trigger_system._evaluate_trigger_condition(condition, sample_item)
         assert result is False
 
+    def test_random_chance_dual_path_consistency(self, trigger_system, sample_item):
+        """Both evaluator paths return identical results for random_chance (seeded)."""
+        import random
+        for value in ("0", "50", "100"):
+            for _ in range(20):
+                seed = random.randint(0, 2**32)
+                random.seed(seed)
+                cond = {"type": "random_chance", "value": value}
+                flat = trigger_system._evaluate_trigger_condition(cond, sample_item)
+                random.seed(seed)
+                tree = trigger_system._evaluate_conditions(cond, {"item_node": sample_item})
+                assert flat is tree
+
     def test_empty_condition_returns_true(self, trigger_system, sample_item):
         """When condition is empty/None, evaluation returns True."""
         assert trigger_system._evaluate_trigger_condition({}, sample_item) is True

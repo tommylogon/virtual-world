@@ -1,16 +1,19 @@
 """Single-condition evaluation helpers for TriggerSystem.
 
-Moved from engine/trigger_system.py.
+Task-343: all leaf evaluation lives in ``ConditionTreeMixin._evaluate_conditions``
+(engine/triggers/condition_tree.py) — this module kept only its resolver/comparison
+helpers plus a delegating ``_evaluate_trigger_condition`` so the single-condition
+entry point (movement ``requires_open``, facade wrappers) evaluates through the
+same leaf registry as tree/list conditions.
 """
 
-import random
 from typing import Any, Optional
 
-from graph import EDGE_CARRYING, EDGE_EQUIPPED, Node
+from graph import Node
 
 
 class EvaluationMixin:
-    """Condition evaluation methods."""
+    """Mixin providing evaluation helpers for TriggerSystem."""
 
     def _resolve_save_target(self, target: str, game_state: Optional[Any] = None):
         """Resolve the player object a ``save_throw`` condition targets.
@@ -96,6 +99,12 @@ class EvaluationMixin:
     ) -> bool:
         """Evaluate a single trigger condition.
 
+        Task-343: delegates to ``ConditionTreeMixin._evaluate_conditions`` so
+        both entry points share one leaf implementation (previously the two
+        evaluators duplicated ~20 leaves and diverged — e.g. ``random_chance``
+        always divided by 100 here, while the tree honours NPC-style
+        0.0–1.0 ``chance`` vs item-trigger 0–100 ``value``).
+
         Returns ``True`` if *condition* is empty/met, ``False`` otherwise.
         Unknown condition types return ``False`` (fail-safe).
 
@@ -108,287 +117,8 @@ class EvaluationMixin:
         """
         if not condition:
             return True
-        condition_type = condition.get("type", "")
-        condition_value = condition.get("value", "")
+        context = {"item_node": item_node}
+        if game_state is not None:
+            context["game_state"] = game_state
+        return self._evaluate_conditions(condition, context, game_state=game_state)
 
-        if condition_type == "uses_reached":
-            try:
-                target_uses = int(condition_value)
-                current_uses = (
-                    int(item_node.properties.get("uses", -1))
-                    if item_node
-                    else -1
-                )
-                return current_uses <= target_uses
-            except (ValueError, TypeError):
-                return False
-
-        elif condition_type == "uses_above":
-            try:
-                target_uses = int(condition_value)
-                current_uses = (
-                    int(item_node.properties.get("uses", -1))
-                    if item_node
-                    else -1
-                )
-                return current_uses > target_uses
-            except (ValueError, TypeError):
-                return False
-
-        elif condition_type == "has_item":
-            if not condition_value:
-                return False
-            if game_state is None:
-                return False
-            player_id = game_state._player_node_id(game_state.active_player)
-            inventory_edges = self.graph.get_edges_for_target(
-                player_id, EDGE_CARRYING
-            )
-            needle = str(condition_value).lower()
-            return any(
-                (node := self.graph.get_node(edge.source))
-                and node.type == "item"
-                and (needle in node.name.lower() or needle in node.id.lower())
-                for edge in inventory_edges
-            )
-
-        elif condition_type == "has_items":
-            items = condition.get("value", [])
-            if not isinstance(items, list) or not items:
-                return False
-            if game_state is None:
-                return False
-            player_id = game_state._player_node_id(game_state.active_player)
-            inventory_edges = self.graph.get_edges_for_target(
-                player_id, EDGE_CARRYING
-            )
-            for item_name in items:
-                needle = str(item_name).lower()
-                found = any(
-                    (node := self.graph.get_node(edge.source))
-                    and node.type == "item"
-                    and (
-                        needle in node.name.lower()
-                        or needle in node.id.lower()
-                    )
-                    for edge in inventory_edges
-                )
-                if not found:
-                    return False
-            return True
-
-        elif condition_type == "state_equals":
-            target_name = condition.get("target", "")
-            if target_name:
-                needle = str(target_name).lower()
-                target_node = None
-                for node_id, node in self.graph.nodes.items():
-                    if needle in node.name.lower() or needle in node_id.lower():
-                        target_node = node
-                        break
-                if target_node:
-                    expected_state = str(condition.get("value", ""))
-                    return (
-                        target_node.properties.get("current_state", "")
-                        == expected_state
-                    )
-                return False
-            if "=" in condition_value:
-                parts = condition_value.split("=", 1)
-                node_id = parts[0].strip()
-                expected_state = parts[1].strip()
-                target_node = self.graph.get_node(node_id) if node_id else None
-                if target_node:
-                    return (
-                        target_node.properties.get("current_state", "")
-                        == expected_state
-                    )
-                return False
-            if item_node:
-                return (
-                    item_node.properties.get("current_state", "")
-                    == condition_value
-                )
-            return False
-
-        elif condition_type == "random_chance":
-            try:
-                return random.random() < float(condition_value) / 100.0
-            except (ValueError, TypeError):
-                return False
-
-        elif condition_type == "skill_check":
-            skill = condition.get("skill", "Athletics")
-            dc = int(condition.get("dc", 10))
-            success, total, msg = self.skills.skill_check(skill, dc)
-            self._last_skill_check_msg = msg
-            return success
-
-        elif condition_type == "save_throw":
-            check = condition.get("stat") or condition.get("skill") or "DEX"
-            dc = int(condition.get("dc", 12))
-            player = self._resolve_save_target(condition.get("target", "self"), game_state)
-            if player is None:
-                return False
-            success, total, msg = self.skills.saving_throw(player, check, dc)
-            self._last_save_msg = msg
-            return success
-
-        elif condition_type == "temperature_below":
-            try:
-                threshold = int(condition_value)
-                if game_state is None:
-                    return False
-                area_node = self._area_node(game_state, item_node)
-                if area_node:
-                    current = int(
-                        area_node.properties.get("environment", {}).get(
-                            "temperature", 21
-                        )
-                    )
-                    return current < threshold
-            except (ValueError, TypeError):
-                pass
-            return False
-
-        elif condition_type == "temperature_above":
-            try:
-                threshold = int(condition_value)
-                if game_state is None:
-                    return False
-                area_node = self._area_node(game_state, item_node)
-                if area_node:
-                    current = int(
-                        area_node.properties.get("environment", {}).get(
-                            "temperature", 21
-                        )
-                    )
-                    return current > threshold
-            except (ValueError, TypeError):
-                pass
-            return False
-
-        elif condition_type == "area_temp":
-            try:
-                threshold = float(condition_value)
-                operator = condition.get("operator", "lt")
-                area_node = self._area_node(game_state, item_node)
-                if not area_node:
-                    return False
-                current = int(
-                    area_node.properties.get("environment", {}).get(
-                        "temperature", 21
-                    )
-                )
-                return self._compare(current, threshold, operator)
-            except (ValueError, TypeError):
-                return False
-
-        elif condition_type == "vital":
-            try:
-                stat = condition.get("stat", "HP")
-                threshold = float(condition_value)
-                operator = condition.get("operator", "lt")
-                player = self._resolve_condition_player(condition.get("target", "self"), game_state)
-                if not player:
-                    return False
-                current = player.vitals.get(stat)
-                if current is None:
-                    return False
-                return self._compare(current, threshold, operator)
-            except (ValueError, TypeError):
-                return False
-
-        elif condition_type == "vital_above":
-            try:
-                stat = condition.get("stat", "HP")
-                threshold = float(condition_value)
-                player = self._resolve_condition_player(condition.get("target", "self"), game_state)
-                if not player:
-                    return False
-                current = player.vitals.get(stat)
-                if current is None:
-                    return False
-                return self._compare(current, threshold, "gt")
-            except (ValueError, TypeError):
-                return False
-
-        elif condition_type == "vital_below":
-            try:
-                stat = condition.get("stat", "HP")
-                threshold = float(condition_value)
-                player = self._resolve_condition_player(condition.get("target", "self"), game_state)
-                if not player:
-                    return False
-                current = player.vitals.get(stat)
-                if current is None:
-                    return False
-                return self._compare(current, threshold, "lt")
-            except (ValueError, TypeError):
-                return False
-
-        elif condition_type == "is_equipped":
-            if game_state is None:
-                return False
-            player = self._resolve_condition_player(condition.get("target", "self"), game_state)
-            if not player:
-                return False
-            player_id = getattr(game_state, "_player_node_id", lambda n: f"player_{n}")(player.name)
-            needle = str(condition.get("item", "")).lower()
-            if not needle:
-                return False
-            equipped_edges = self.graph.get_edges_for_target(player_id, EDGE_EQUIPPED)
-            return any(
-                (node := self.graph.get_node(edge.source))
-                and node.type == "item"
-                and (needle in node.name.lower() or needle in node.id.lower())
-                for edge in equipped_edges
-            )
-
-        elif condition_type == "time_of_day":
-            target = str(condition_value).strip()
-            if not target:
-                return False
-            current = None
-            if game_state is not None and hasattr(game_state, "get_current_time"):
-                try:
-                    current = str(game_state.get_current_time())
-                except Exception:
-                    current = None
-            if not current:
-                return False
-            target_hm = target[:5]
-            return current[:5] == target_hm
-
-        elif condition_type == "weather":
-            if game_state is None:
-                return False
-            area_node = self._area_node(game_state, item_node)
-            if not area_node:
-                return False
-            current = area_node.properties.get("environment", {}).get("weather", "")
-            return str(current).lower() == str(condition_value).lower()
-
-        elif condition_type == "has_trait":
-            from engine.traits import TraitSystem
-            if game_state is None:
-                return False
-            player = self._resolve_condition_player(condition.get("target", "self"), game_state)
-            if not player:
-                return False
-            return TraitSystem.has_trait(player, condition_value)
-
-        elif condition_type == "has_tag":
-            if game_state is None:
-                return False
-            player = self._resolve_condition_player(condition.get("target", "self"), game_state)
-            if not player:
-                return False
-            needle_values = condition_value if isinstance(condition_value, list) else [condition_value]
-            needle_values = [str(v).strip().lower() for v in needle_values if str(v).strip()]
-            tags = player.tags or []
-            if isinstance(tags, str):
-                tags = [t.strip() for t in tags.split(",")]
-            return any(str(t).lower() in needle_values for t in tags)
-
-        return False

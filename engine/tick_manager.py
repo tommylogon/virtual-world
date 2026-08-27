@@ -1,6 +1,9 @@
+import logging
 from graph import EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED
 from player import BLOCKING_CONDITIONS
 from engine.vitals import is_drive
+
+logger = logging.getLogger(__name__)
 
 
 class TickManager:
@@ -123,8 +126,8 @@ class TickManager:
                         if set(gplayer.conditions) & set(BLOCKING_CONDITIONS):
                             grapple.release_all_for(gname)
                 grapple.sync()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("[tick] grapple-sync: %s", e)
 
         for pname, p in self.player_manager.players.items():
             if p.state == "dead":
@@ -204,8 +207,8 @@ class TickManager:
                 # drops_held_items — collapsing, you let go of what's in your hands
                 try:
                     self.gs.item_actions.drop_held_items(self.gs, pname)
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.warning("[tick] drop_held_items %s: %s", pname, e)
                 p.exhaustion_count = getattr(p, 'exhaustion_count', 0) + 1
                 if p.exhaustion_count >= 3:
                     p.state = "dead"
@@ -292,8 +295,8 @@ class TickManager:
                                 pname, "loud_noise",
                                 {"noise": noise, "source": "area", "source_type": "area"},
                             )
-                        except Exception:
-                            pass
+                        except Exception as e:
+                            logger.warning("[tick] loud_noise %s: %s", pname, e)
                     if noise in ["loud", "chaotic", "dripping", "scratches"] and (
                         p.activity and p.activity.get("type") == "sleeping"
                     ):
@@ -318,8 +321,8 @@ class TickManager:
                         if light < 20:
                             try:
                                 self.gs._emit_save_on(pname, "alone_in_dark", {"light": light})
-                            except Exception:
-                                pass
+                            except Exception as e:
+                                logger.warning("[tick] alone_in_dark %s: %s", pname, e)
                     social = p.vitals.get("Social", 100)
                     ent = p.vitals.get("Entertainment", 100)
                     sanity_penalty = 0
@@ -372,8 +375,8 @@ class TickManager:
                     activity_output = self.gs.activities.tick_activity(pname)
                     if activity_output and pname == self.player_manager.active_player:
                         self.player_manager.add_log_entry(activity_output)
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.warning("[tick] tick_activity %s: %s", pname, e)
 
             area_node = None
             if player_area_name:
@@ -483,8 +486,8 @@ class TickManager:
             delayed_outputs = self.gs._process_delayed_events() if hasattr(self.gs, "_process_delayed_events") else []
             for line in delayed_outputs:
                 self.player_manager.add_log_entry(line)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("[tick] delayed-events: %s", e)
 
         # ── Heat sources: lit items with heat_source tag push room temp ──
         from engine.environment_propagation import apply_heat_sources, propagate_temperature
@@ -589,8 +592,8 @@ class TickManager:
         )
         try:
             self.gs.item_actions.drop_held_items(self.gs, player.name)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("[tick] rest drop_held_items %s: %s", player.name, e)
         self.player_manager._action_time_consumed = True
         for _ in range(ticks):
             self.tick_turn(skip_npcs=True)
