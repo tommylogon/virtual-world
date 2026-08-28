@@ -493,6 +493,10 @@ window.InspectorMemory = (() => {
                         <label>Attached emotions (multiple)</label>
                         <div id="mem-gen-emotions" class="memedit-entitybox"></div>
                     </div>
+                    <div class="memedit-field">
+                        <label>Tags (single-word concepts, auto- or hand-edited)</label>
+                        <div id="mem-gen-tags" style="background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:6px;"></div>
+                    </div>
                 </div>
 
                 <div class="memedit-section">
@@ -513,6 +517,15 @@ window.InspectorMemory = (() => {
         M._gen = { charName };
         const genEmoEl = container.querySelector('#mem-gen-emotions');
         if (genEmoEl) M._attachEmotionSelector(genEmoEl, []);
+        const genTagsEl = container.querySelector('#mem-gen-tags');
+        if (genTagsEl && window.TagMultiselect) {
+            M._genTagSelect = new TagMultiselect(genTagsEl, {
+                tags: [],
+                placeholder: 'Search or create tags...',
+                allowNew: true,
+                onChange: (tags) => { M._genTagSelectTags = tags; }
+            });
+        }
         container.querySelector('#mem-gen-run').addEventListener('click', () => M._runMemoryGeneration());
         container.querySelector('#mem-gen-save').addEventListener('click', () => M._saveGeneratedMemory());
     };
@@ -528,13 +541,36 @@ window.InspectorMemory = (() => {
     };
 
     M._buildSeedPrompt = function(charName, theme) {
+        // Curated emotion vocabulary (from the picker groups) so the model can
+        // emit labels that round-trip into the editable picker; custom allowed.
+        const vocab = [...new Set(EMOTION_GROUPS.flatMap(g => g.items).filter(l => l !== 'neutral'))];
+        const vocabStr = vocab.join(', ');
         return 'Write a short first-person memory for ' + charName + ' about: ' + theme + '.\n'
             + 'Rules:\n'
             + '1) Speak in first person, in ' + charName + '\'s authentic voice and personality.\n'
             + '2) It is a standalone seed memory — do NOT reference any current location, scene, '
             + 'other characters, or in-world events; it may take place anywhere, at any time.\n'
             + '3) Vivid and specific but brief (1-3 sentences, under ~40 words).\n'
-            + '4) Return ONLY the memory text — no quotes, no labels, no preamble.';
+            + '4) Return ONLY a JSON object — no code fence, no labels, no preamble — shaped as:\n'
+            + '   {"text":"<the memory>","importance":<1-10>,"tags":["<tag>",...],"emotions":[{"label":"<emotion>","intensity":<1-10>},...]}\n'
+            + '   - "text": the memory, written in first person.\n'
+            + '   - "importance": how significant this memory is to ' + charName + ' (10 = life-changing, 1 = trivial).\n'
+            + '   - "tags": 1-3 single-word conceptual category words (e.g. fear, trust, shame, longing) — never names, items, or places.\n'
+            + '   - "emotions": the feelings this memory carries, each as {"label": "...", "intensity": <1-10>}. Use labels from this vocabulary when one fits: ' + vocabStr + '. You may invent a label if none fits. Use [] if the memory carries no clear feeling. This is always an ARRAY.';
+    };
+
+    /** Parse a model-returned seed-memory JSON object. Tolerates code fences,
+     *  surrounding prose, and trailing commas. Returns null if no JSON found. */
+    M._parseSeedJson = function(raw) {
+        if (!raw) return null;
+        let s = String(raw).trim();
+        const fence = s.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+        if (fence) s = fence[1].trim();
+        const objMatch = s.match(/\{[\s\S]*\}/);
+        if (!objMatch) return null;
+        s = objMatch[0];
+        s = s.replace(/,\s*([}\]])/g, '$1'); // tolerate trailing commas
+        try { return JSON.parse(s); } catch (e) { return null; }
     };
 
     M._runMemoryGeneration = async function() {
@@ -543,6 +579,7 @@ window.InspectorMemory = (() => {
         if (!charName || !container) return;
         const status = container.querySelector('#mem-gen-status');
         const result = container.querySelector('#mem-gen-result');
+        const impInput = container.querySelector('#mem-gen-importance');
         const theme = container.querySelector('#mem-gen-prompt')?.value?.trim();
         if (!theme) {
             status.textContent = 'Enter a theme first.'; status.style.color = '#e0a33c'; return;
@@ -556,12 +593,32 @@ window.InspectorMemory = (() => {
                 { role: 'system', content: M._identityBlock(charName) },
                 { role: 'user', content: M._buildSeedPrompt(charName, theme) }
             ], { streaming: false, max_tokens: config.maxTokens || 256 });
-            const clean = String(text || '').trim().replace(/^["'`]+|["'`]+$/g, '');
-            if (!clean) {
+            const raw = String(text || '').trim();
+            const parsed = M._parseSeedJson(raw);
+            // Always keep the text editable; prefer the parsed .text, else the raw.
+            const memText = (parsed && parsed.text)
+                ? String(parsed.text).trim()
+                : raw.replace(/^["'`]+|["'`]+$/g, '').trim();
+            if (!memText) {
                 status.textContent = 'No memory returned.'; status.style.color = '#e05555'; return;
             }
-            result.value = clean;
-            status.textContent = '✓ drafted'; status.style.color = '#4caf50';
+            result.value = memText;
+            if (parsed) {
+                const imp = parseInt(parsed.importance, 10);
+                if (impInput && !isNaN(imp)) impInput.value = String(Math.max(1, Math.min(10, imp)));
+                const tags = Array.isArray(parsed.tags)
+                    ? parsed.tags.filter(Boolean).map(t => String(t).toLowerCase())
+                    : [];
+                if (M._genTagSelect) M._genTagSelect.setValue(tags);
+                const emotions = (Array.isArray(parsed.emotions) ? parsed.emotions : [])
+                    .filter(e => e && e.label)
+                    .map(e => ({ label: String(e.label).toLowerCase(), intensity: Math.max(1, Math.min(10, parseInt(e.intensity, 10) || 5)) }));
+                const genEmoEl = container.querySelector('#mem-gen-emotions');
+                if (genEmoEl) M._attachEmotionSelector(genEmoEl, emotions);
+                status.textContent = '✓ drafted (parsed)'; status.style.color = '#4caf50';
+            } else {
+                status.textContent = '✓ drafted (text only — LLM didn\u2019t return JSON)'; status.style.color = '#e0a33c';
+            }
         } catch (e) {
             status.textContent = '✗ ' + (e.message || e); status.style.color = '#e05555';
         }
@@ -578,7 +635,8 @@ window.InspectorMemory = (() => {
         const emotions = Array.isArray(M._emoSelected)
             ? M._emoSelected.filter(e => e && e.label && e.label !== 'neutral')
             : [];
-        const payload = { text: content, type, importance, tick: 0, source: 'manual', location: '', tags: [], force: true };
+        const tags = M._genTagSelect ? M._genTagSelect.getValue() : (M._genTagSelectTags || []);
+        const payload = { text: content, type, importance, tick: 0, source: 'manual', location: '', tags, force: true };
         if (emotions.length) {
             payload.memory_emotions = emotions;
             payload.emotion = emotions[0]; // primary single, for backward compatibility

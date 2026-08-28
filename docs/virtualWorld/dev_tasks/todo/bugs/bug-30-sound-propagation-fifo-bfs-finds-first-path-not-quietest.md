@@ -37,3 +37,6 @@ Unit test: three rooms A-B-C chained plus A-D-C where B path has one locked
 door (weight 2+0.5=2.5) and D path two open ways (1.0 total). Sound from C
 must reach A via D-dominant damping, not B's single heavy door.
 Existing suite `tests/test_sound*.py` (if present) extended to cover it.
+
+
+dev note: i do not think that this is a real issue? sound should be like a shockwave, not only the "cheapest" path, so i dont have a reason to believe it works as this makes it sound?

@@ -35,3 +35,7 @@ OUT of scope here — local-trust is a documented decision.
 pytest: request `/api/load-game/<encoded traversal>` → 400/404, no file access
 outside saves dir (tmp_path test); `/api/state` failure injection returns JSON
 not 500 TypeError; boot without env var shows debugger off in log line.
+
+
+dev nnotes: no idea what this means? can a agent or player potentially dlevte server files?
+
