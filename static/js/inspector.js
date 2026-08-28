@@ -14,11 +14,16 @@ class Inspector {
 
     _reRender() {
         if (!this._currentView) return;
-        if (this._currentView.type === 'node') {
-            this.showNode(this._currentView.id);
-        } else if (this._currentView.type === 'agent') {
-            this.showAgent(this._currentView.name);
-        }
+        // Coalesce state:updated bursts — a full inspector rebuild on every tick
+        // fires a large bundle of API calls (graph + library + tag + memory/embed).
+        clearTimeout(this._rerenderTimer);
+        this._rerenderTimer = setTimeout(() => {
+            if (this._currentView.type === 'node') {
+                this.showNode(this._currentView.id);
+            } else if (this._currentView.type === 'agent') {
+                this.showAgent(this._currentView.name);
+            }
+        }, 250);
     }
 
     hide() {

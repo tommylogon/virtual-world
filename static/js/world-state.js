@@ -75,7 +75,13 @@ class WorldState {
     /** Start polling for spectator mode */
     startPolling(intervalMs = 1500) {
         this.stopPolling();
-        this._pollTimer = setInterval(() => this.fetch(), intervalMs);
+        this._pollTimer = setInterval(() => {
+            // The agent loop already pushes UI updates via renderAll while running.
+            // Polling /api/state on top of that doubles the stream and re-triggers
+            // the whole inspector/lens render cascade — skip it while running.
+            if (window.config && config.running) return;
+            this.fetch();
+        }, intervalMs);
     }
 
     stopPolling() {
