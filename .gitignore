@@ -40,3 +40,4 @@ Thumbs.db
 *.log
 logs/
 data/library/characters/jessica.json
+data/codebase_index.json

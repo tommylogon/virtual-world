@@ -73,4 +73,4 @@ emotion/name/memory feature session that over-reached and reinvented things.
 - static/js/agent-engine.js, response-parser.js, memory-manager.js
 - static/js/agent/prompt-builder/{schema-fragments,turn-prompts,character-state,memory-context,room-context}.js
 - static/js/stream/stream-raw-llm.js, static/js/inspector/agent-view.js
-- tests/test_derive.py (new), tests/test_grapple.py
+- tests/test_derive.py (new), tests/test_grapple.py- [2026-08-28] Demo: auto-logger works; lessons should be captured as they happen, not written at the end.
