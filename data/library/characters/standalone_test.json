@@ -1,0 +1,31 @@
+{
+  "name": "Standalone Test",
+  "personality": "",
+  "description": "a test",
+  "equipped": {
+    "accessory": [
+      {
+        "name": "Mystery Talisman",
+        "node_id": "item_mystery_talisman",
+        "library_id": "mystery_talisman",
+        "properties": {
+          "description": "a sealed talisman",
+          "actions": "examine",
+          "uses": -1,
+          "weight": 0.1,
+          "tags": [
+            "talisman"
+          ],
+          "current_state": "normal"
+        }
+      }
+    ]
+  },
+  "inventory": [],
+  "memories": [],
+  "relationships": {},
+  "emotion": {
+    "current": "neutral",
+    "intensity": 0
+  }
+}

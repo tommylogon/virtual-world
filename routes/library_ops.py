@@ -462,6 +462,25 @@ def handle_library_import_character(app, char_id):
                 if found:
                     resolved_slot.append(found)
                 elif isinstance(entry, dict):
+                    # Self-contained: if the embedded item def carries properties and
+                    # the node isn't already in the world, materialize it from the
+                    # embedded copy (so a character is portable without item files).
+                    props = entry.get('properties') if isinstance(entry.get('properties'), dict) else None
+                    node_id = entry.get('node_id')
+                    if props and (not node_id or not app.world.graph.get_node(node_id)):
+                        item_name = entry.get('name') or props.get('name') or 'Item'
+                        node_id = entry.get('node_id') or f"item_{player_name}_{item_name}_{random.randint(100,999)}"
+                        if app.world.graph.get_node(node_id):
+                            node_id = f"item_{player_name}_{item_name}_{random.randint(100,999)}"
+                        props2 = dict(props)
+                        props2.setdefault('library_id', entry.get('library_id') or '')
+                        if not props2.get('name'):
+                            props2['name'] = item_name
+                        newnode = Node(id=node_id, type='item', name=item_name, properties=props2)
+                        app.world.graph.add_node(newnode)
+                        app.world.graph.add_edge(Edge(source=node_id, target=player_node_id, type=EDGE_CARRYING))
+                        resolved_slot.append(node_id)
+                        continue
                     resolved_slot.append(entry.get('node_id') or f"item_{player_name}_{name}")
             resolved[slot] = resolved_slot
         player.equipped = resolved

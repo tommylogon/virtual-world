@@ -1393,7 +1393,16 @@ window.InspectorAgentView = (() => {
             interest_tags: player.interest_tags || [],
             state: player.state || 'awake',
             conditions: player.conditions || {},
-            equipped: player.equipped || {},
+            equipped: (() => {
+                const eq = {};
+                for (const [slot, stack] of Object.entries(player.equipped || {})) {
+                    eq[slot] = (Array.isArray(stack) ? stack : []).map(id => {
+                        const n = worldState.getNode(id);
+                        return { name: n?.name || id, node_id: id, library_id: n?.properties?.library_id || null, properties: n?.properties || {} };
+                    });
+                }
+                return eq;
+            })(),
             activity: player.activity || null,
             current_area: player.current_area,
             inventory,
