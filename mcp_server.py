@@ -610,8 +610,20 @@ def import_world(data: dict) -> dict:
 
 @mcp.tool()
 def reset_world() -> dict:
-    """Reset the world to its initial state."""
+    """Reset the world to its initial state (snapshot is saved for undo)."""
     return _api("POST", "/api/reset")
+
+
+@mcp.tool()
+def undo() -> dict:
+    """Undo the last reset/load — restores the pre-reset world state."""
+    return _api("POST", "/api/undo")
+
+
+@mcp.tool()
+def redo() -> dict:
+    """Redo a previously undone reset/load — re-applies the reset state."""
+    return _api("POST", "/api/redo")
 
 
 # ──────────────────────────────────────────────

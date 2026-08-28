@@ -76,6 +76,11 @@ def create_app(config=None):
     # Attach world to app for easy access in routes
     app.world = world
 
+    # In-session undo/redo stacks. Each entry is (state_dict, scenario_source).
+    # Reset loads state is saved here so undo can restore deleted areas/connections.
+    app._undo_stack = []
+    app._redo_stack = []
+
     # Auto-save after every mutating API operation
     @app.after_request
     def autosave_after_mutation(response):

@@ -64,6 +64,16 @@ class ApiClient {
         return resp.json();
     }
 
+    /** Undo the last snapshot (e.g. restore state deleted by reset) */
+    static async undo() {
+        return this.post('/api/undo', {});
+    }
+
+    /** Redo a previously undone state */
+    static async redo() {
+        return this.post('/api/redo', {});
+    }
+
     /** Narrative emote */
     static async emote(actor, emoteText) {
         return this.post('/api/emote', { actor, emote: emoteText });

@@ -1,6 +1,6 @@
 # Bug 27 — Outcome lines render "the the <item>" with missing space before relation
 
-**Status**: Todo — filed 2026-08-27 from export-log review (taco_bell date session).
+**Status**: Done — fixed 2026-08-28.
 
 ## Found
 
@@ -39,3 +39,22 @@ routes/action_handlers.py take path — trace from `_execute_take`/item-actions)
 - Take an item that sits *under/on/in* something → log shows exactly one
   article, `... earring from under ...` spacing.
 - Grep any new export for regex `the the|e[a-z]+from` → zero hits.
+
+## Implementation (2026-08-28)
+
+Both defects were **engine-side**, in `engine/items/take_drop_actions.py` (not the export):
+
+1. **Doubled article** — the result templates hardcoded `"the "` + the raw action
+   `item_name` (e.g. `"the blue butterfly earring"`), producing `the the`. Added a
+   module helper `_display_name(name)` that strips a leading `the`/`a`/`an`, and
+   applied it across every take/drop phrasing (`take the …`, `pick up the …`,
+   `put … away and take …`, `try to take the …`, `The … is gone.`,
+   `already wearing/carrying the …`, `dropped the …`).
+2. **Missing space** — the spatial relation clause was built as `f"{prep} the
+   {surface}"` with no leading space, so `<name>` + `from under the <surface>`
+   joined as `earringfrom`. Now the prep branch prefixes a space
+   (`f" {prep} the {surface}"`), matching the container branch.
+
+Verified: `engine/items/take_drop_actions.py` compiles; `tests/test_item_actions.py`
+(61) all pass. Taking an item `under the Booth Table` now reads
+`You pick up the blue butterfly earring from under the Booth Table.`

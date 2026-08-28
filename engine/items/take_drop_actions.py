@@ -6,6 +6,7 @@ matching, trigger_system, equipment, ghost_system, world) via the mixin.
 """
 
 from typing import Optional
+import re
 
 from graph import (
     EDGE_AT,
@@ -21,6 +22,16 @@ from graph import (
     Node,
 )
 from engine.items.errors import AmbiguousItemError
+
+
+def _display_name(name):
+    """Strip a leading article so verb phrasings don't double up.
+
+    e.g. "You pick up the {item_name}" with item_name="the iron key" would
+    become "the the iron key" — this normalises the noun first. No-op when the
+    name has no leading article (the common canonical case).
+    """
+    return re.sub(r'^(?:the|a|an)\s+', '', str(name or '').strip())
 
 
 class TakeDropActionsMixin:
@@ -150,8 +161,8 @@ class TakeDropActionsMixin:
                     held = node.name.lower().replace('_', ' ').replace('-', ' ').strip()
                     if wanted == held or wanted in held:
                         if held_edge_type == EDGE_EQUIPPED:
-                            return f"You're already wearing the {node.name}."
-                        return f"You're already carrying the {node.name}."
+                            return f"You're already wearing the {_display_name(node.name)}."
+                        return f"You're already carrying the {_display_name(node.name)}."
 
         if not player_manager.lighting.can_see_in_dark(player_manager, player_manager.active_player):
             area_id = player_manager._get_current_area_id()
@@ -360,12 +371,12 @@ class TakeDropActionsMixin:
             dc = skill_check_config.get("dc", 10)
             success, total, message = player_manager.skill_check(skill_name, dc)
             if not success:
-                return f"You try to take the {item_name}, but hesitate. {message}"
+                return f"You try to take the {_display_name(item_name)}, but hesitate. {message}"
 
         trigger_outputs = self._exec_triggers(item_node, "on_take")
 
         if not self.graph.get_node(item_node_id):
-            return "\n".join(trigger_outputs) if trigger_outputs else f"The {item_name} is gone."
+            return "\n".join(trigger_outputs) if trigger_outputs else f"The {_display_name(item_name)} is gone."
 
         self._stamp_last_relation(item_node)
 
@@ -437,7 +448,7 @@ class TakeDropActionsMixin:
         area_name = player_manager.current_area.name if player_manager.current_area else None
         if spatial_relation and spatial_surface_name:
             prep = {EDGE_ON: "off", EDGE_UNDER: "from under", EDGE_BEHIND: "from behind", EDGE_BESIDE: "from beside", EDGE_AT: "from near"}.get(spatial_relation, "from")
-            source = f"{prep} the {spatial_surface_name}"
+            source = f" {prep} the {spatial_surface_name}"
         elif container_name:
             source = f" from the {container_name}"
         else:
@@ -446,14 +457,14 @@ class TakeDropActionsMixin:
 
         if hand_slots:
             if stashed_item:
-                result = f"You put your {stashed_item} away and take the {item_name}{hand_text}{source}."
+                result = f"You put your {_display_name(stashed_item)} away and take the {_display_name(item_name)}{hand_text}{source}."
             else:
-                result = f"You take the {item_name}{hand_text}{source}."
+                result = f"You take the {_display_name(item_name)}{hand_text}{source}."
         else:
-            result = f"You pick up the {item_name}{hand_text}{source}."
+            result = f"You pick up the {_display_name(item_name)}{hand_text}{source}."
 
         event_verb = "equipped" if hand_slots else "picked up"
-        player_manager.record_turn_event(player_manager.active_player, "take", f"{event_verb} the {item_name}{source}", area_name=area_name)
+        player_manager.record_turn_event(player_manager.active_player, "take", f"{event_verb} the {_display_name(item_name)}{source}", area_name=area_name)
 
         if trigger_outputs:
             result += "\n" + "\n".join(trigger_outputs)
@@ -513,8 +524,8 @@ class TakeDropActionsMixin:
             player_manager.apply_action("drop", player=player_manager.player)
 
         area_name = player_manager.current_area.name if player_manager.current_area else None
-        player_manager.record_turn_event(player_manager.active_player, "drop", f"dropped the {item_name}", area_name=area_name)
-        result = f"You drop the {item_name}."
+        player_manager.record_turn_event(player_manager.active_player, "drop", f"dropped the {_display_name(item_name)}", area_name=area_name)
+        result = f"You drop the {_display_name(item_name)}."
         if trigger_outputs:
             result += "\n" + "\n".join(trigger_outputs)
         return result

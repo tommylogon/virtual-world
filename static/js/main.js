@@ -184,8 +184,8 @@ function saveAgentSettings() { SettingsView.saveConfigToServer(); }
 
 // Graph editor toolbar
 const graphEditor = {
-    undo() { graphManager.loadGraphData(); events.log('Undo (refreshed graph)', 'system-msg'); },
-    redo() { graphManager.loadGraphData(); events.log('Redo (refreshed graph)', 'system-msg'); },
+    undo() { ApiClient.undo().then(res => { if (!res.error) { graphManager.loadGraphData(); events.log('Undo (restored previous state)', 'system-msg'); } else { events.log('Undo: ' + res.error, 'error-msg'); } }).catch(e => events.log('Undo failed: ' + e.message, 'error-msg')); },
+    redo() { ApiClient.redo().then(res => { if (!res.error) { graphManager.loadGraphData(); events.log('Redo (restored next state)', 'system-msg'); } else { events.log('Redo: ' + res.error, 'error-msg'); } }).catch(e => events.log('Redo failed: ' + e.message, 'error-msg')); },
     showTemplates() { VW?.inspector?.showTemplates?.() || events.log('Templates panel', 'system-msg'); },
     fetchGraph() { graphManager.loadGraphData(); }
 };

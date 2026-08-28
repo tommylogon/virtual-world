@@ -38,6 +38,8 @@ NEO4J_PASS = os.environ.get("NEO4J_PASSWORD", "password")
 EMBED_URL = os.environ.get("EMBEDDING_BASE_URL", "http://localhost:1234/v1")
 EMBED_MODEL = os.environ.get("EMBEDDING_MODEL", "text-embedding-nomic-embed-text-v1.5")
 VECTOR_INDEX = os.environ.get("CODEGRAPH_INDEX", "embeddable_vector")
+# Default repo root for searches (set CODEGRAPH_ROOT to change; "all" = no filter).
+DEFAULT_ROOT = os.environ.get("CODEGRAPH_ROOT", "F:\\AI\\viwo\\virtual-world")
 
 mcp = FastMCP("Code Graph")
 
@@ -80,50 +82,66 @@ def _format_hit(node, score):
     return "\n".join(out)
 
 
-def _semantic(query: str, top_k: int, kind: str = None):
+def _root_filter(root, var="node"):
+    """Return (clause, root_value) scoped to `var`. '' = no filter."""
+    if not root or root.lower() == "all":
+        return "", None
+    return f"{var}.root_path CONTAINS $root", root
+
+
+def _semantic(query: str, top_k: int, kind: str = None, root: str = None):
     """Vector search. kind in {file,class,function,method,module,comment} or None for all."""
     vec = _embed(query)
-    kind_clause = ""
+    conditions = []
     if kind:
-        kind_clause = (
-            "AND any(l IN labels(node) WHERE l = 'Code" + kind.capitalize()
-            + "' OR l = '" + kind.capitalize() + "')"
-        )
+        conditions.append(
+            "any(l IN labels(node) WHERE l = 'Code" + kind.capitalize()
+            + "' OR l = '" + kind.capitalize() + "')")
+    root_clause, root_val = _root_filter(root)
+    if root_clause:
+        conditions.append(root_clause)
+    where_clause = ("WHERE " + " AND ".join(conditions) + " ") if conditions else ""
     with _get_driver().session() as session:
+        # Fetch more candidates from the index than the final limit, because
+        # root/kind filtering happens AFTER the ANN search.
         res = session.run(f"""
-            CALL db.index.vector.queryNodes('{VECTOR_INDEX}', $k, $vec)
+            CALL db.index.vector.queryNodes('{VECTOR_INDEX}', $cand, $vec)
             YIELD node, score
+            {where_clause}
             RETURN labels(node) AS labels, node.name AS name,
                    node.qualified_name AS qname, node.docstring AS doc,
                    node.signature AS signature, node.filepath AS filepath,
                    node.relative_path AS rel, node.line_start AS ls,
-                   node.line_end AS le, score {kind_clause}
+                   node.line_end AS le, score
             ORDER BY score DESC
             LIMIT $k
-        """, k=top_k, vec=vec)
+        """, cand=min(max(top_k * 10, 100), 1000), k=top_k, vec=vec, root=root_val)
         rows = [dict(r) for r in res]
     return "\n\n".join(_format_hit(r, r["score"]) for r in rows) if rows else "No results."
 
 
-def _keyword(query: str, top_k: int):
+def _keyword(query: str, top_k: int, root: str = None):
     """Keyword search: pull a candidate batch via name/qname CONTAINS, then
     rank in Python by token overlap. Handles identifiers and short queries."""
     tokens = [t for t in query.lower().split() if len(t) > 1]
+    rf, root_val = _root_filter(root, var="n")
     with _get_driver().session() as session:
         # Cheap prefilter: name or qname contains the full query or any token.
-        res = session.run("""
+        res = session.run(f"""
             MATCH (n:Embeddable)
             WHERE n.name IS NOT NULL
               AND (toLower(n.name) CONTAINS $q
                    OR toLower(n.name) CONTAINS $tok
                    OR (n.qualified_name IS NOT NULL AND toLower(n.qualified_name) CONTAINS $q))
+              AND ({rf})
             RETURN labels(n) AS labels, n.name AS name,
                    n.qualified_name AS qname, n.docstring AS doc,
                    n.signature AS signature, n.filepath AS filepath,
                    n.relative_path AS rel, n.line_start AS ls,
                    n.line_end AS le
             LIMIT 200
-        """, q=query.lower(), tok=(tokens[0] if tokens else query.lower()), k=top_k)
+        """, q=query.lower(), tok=(tokens[0] if tokens else query.lower()),
+            k=top_k, root=root_val)
         rows = [dict(r) for r in res]
 
     # Post-rank in Python: token hits on name/qname > doc/signature.
@@ -157,29 +175,40 @@ def _keyword(query: str, top_k: int):
 # Tools
 # ──────────────────────────────────────────────
 @mcp.tool()
-def search_code(query: str, top_k: int = 8, kind: str = "") -> str:
+def search_code(query: str, top_k: int = 8, kind: str = "", root: str = "") -> str:
     """Semantic code search. Embed `query` via LM Studio, find the closest
-    files/classes/functions/methods in the Neo4j code graph.
+    files/classes/functions/methods/comments in the Neo4j code graph.
 
     Args:
         query: Natural-language question or concept, e.g. "where is carry weight enforced".
         top_k: Number of results (default 8, max 25).
         kind: Optional filter: file, class, function, method, module, comment.
             Empty = search everything.
+        root: Repo root to scope to (default: this repo). Pass "all" for every
+            indexed codebase.
     """
     if not query.strip():
         return "Please provide a query."
-    return _semantic(query.strip(), min(max(int(top_k), 1), 25), kind.strip().lower() or None)
+    r = root.strip()
+    return _semantic(query.strip(), min(max(int(top_k), 1), 25),
+                     kind.strip().lower() or None, r or DEFAULT_ROOT)
 
 
 @mcp.tool()
-def search_keywords(query: str, top_k: int = 10) -> str:
+def search_keywords(query: str, top_k: int = 10, root: str = "") -> str:
     """Keyword search over entity names, qualified names, docstrings and signatures.
     Good for exact identifiers like `vector_store`, `carry_weight`, `upsert`.
+
+    Args:
+        query: Identifier or phrase to match by substring/token.
+        top_k: Number of results (default 10, max 50).
+        root: Repo root to scope to (default: this repo). Pass "all" for every
+            indexed codebase.
     """
     if not query.strip():
         return "Please provide a query."
-    return _keyword(query.strip(), min(max(int(top_k), 1), 50))
+    r = root.strip()
+    return _keyword(query.strip(), min(max(int(top_k), 1), 50), r or DEFAULT_ROOT)
 
 
 @mcp.tool()

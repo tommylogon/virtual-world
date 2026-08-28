@@ -36,10 +36,11 @@ EMBED_MODEL = os.environ.get("EMBEDDING_MODEL", "text-embedding-nomic-embed-text
 VECTOR_INDEX = "embeddable_vector"
 
 IGNORE_DIRS = {"__pycache__", ".git", ".venv", "venv", "node_modules", ".mypy_cache",
-               ".pytest_cache", ".ruff_cache", "data", ".kilo", "docs", "static/vendor"}
-FILE_EXTS = {".py": "python", ".js": "javascript", ".mjs": "javascript"}
+               ".pytest_cache", ".ruff_cache", ".kilo", "static/vendor"}
+FILE_EXTS = {".py": "python", ".js": "javascript", ".mjs": "javascript",
+             ".md": "markdown", ".json": "json"}
 # Only these top-level dirs are indexed (plus bare root files).
-SCAN_TOP = {"engine", "routes", "static", "tests", "tools"}
+SCAN_TOP = {"engine", "routes", "static", "tests", "tools", "docs", "data"}
 
 try:
     import pyjsparser
@@ -280,7 +281,8 @@ def extract_javascript(path: Path, rel: str):
     if HAVE_NODE_JS:
         try:
             r = subprocess.run([NODE, EXTRACT_JS, str(path), rel],
-                               capture_output=True, text=True, timeout=60)
+                               capture_output=True, text=True, encoding="utf-8",
+                               errors="replace", timeout=60)
             if r.returncode == 0:
                 data = json.loads(r.stdout)
                 if not data.get("error"):
@@ -324,8 +326,146 @@ def extract_javascript(path: Path, rel: str):
 
 
 # ---------------------------------------------------------------------------
-# Comment extraction (line-based, both languages)
+# Markdown extraction (heading-section chunks)
 # ---------------------------------------------------------------------------
+
+MD_HEADING_RE = re.compile(r"^(#{1,4})\s+(.+)$")
+MAX_MD_SECTION = 2000
+
+
+def extract_markdown(path: Path, rel: str):
+    """Split a markdown file at headings: one CodeDoc entity per heading section."""
+    try:
+        src = path.read_text(encoding="utf-8", errors="ignore")
+    except OSError:
+        return None
+    lines = src.splitlines()
+    if not lines:
+        return None
+    # Section boundaries: heading lines (at least level-2, so we don't make the
+    # title one big blob with its content).
+    sections = []  # [(level, title, start_line, end_line)]
+    cur = None
+    for i, raw in enumerate(lines):
+        m = MD_HEADING_RE.match(raw)
+        if m and len(m.group(1)) <= 3:
+            if cur is not None:
+                sections.append(cur)
+            cur = (len(m.group(1)), m.group(2).strip(), i + 1, None)
+        elif cur is not None:
+            cur = (cur[0], cur[1], cur[2], i + 1)
+    if cur is not None:
+        sections.append(cur)
+
+    entities = []
+    if not sections:
+        # No headings: whole file as one doc chunk (e.g. small readme).
+        entities.append({
+            "kind": "CodeDoc", "name": path.stem, "qualified_name": f"{rel}::<doc>",
+            "docstring": " ".join(src.split())[:MAX_MD_SECTION],
+            "signature": "", "source_code": "", "filepath": str(path),
+            "relative_path": rel, "line_start": 1, "line_end": len(lines) or 1,
+            "decorators": [], "calls": [], "bases": [],
+            "class_qname": None, "parent_qname": None,
+        })
+    else:
+        for level, title, ls, le in sections:
+            le = le or len(lines)
+            body = " ".join(lines[ls - 1: le])[:MAX_MD_SECTION]
+            entities.append({
+                "kind": "CodeDoc", "name": title, "qualified_name": f"{rel}::{title}",
+                "docstring": body, "signature": "", "source_code": "",
+                "filepath": str(path), "relative_path": rel,
+                "line_start": ls, "line_end": le,
+                "decorators": [], "calls": [], "bases": [],
+                "class_qname": None, "parent_qname": None, "doc_heading": level,
+            })
+    file_entity = {
+        "kind": "CodeFile", "name": path.name, "qualified_name": rel,
+        "docstring": (lines[0] if lines else "")[:500], "signature": "", "source_code": "",
+        "filepath": str(path), "relative_path": rel,
+        "line_start": 1, "line_end": len(lines) or 1,
+        "decorators": [], "calls": [], "imports": [],
+    }
+    return file_entity, entities, lines
+
+
+# ---------------------------------------------------------------------------
+# JSON extraction (library items: one entity per file, nested items split out)
+# ---------------------------------------------------------------------------
+
+JSON_IGNORE = {"engine_config.json", "world_template.json", "package.json",
+               "package-lock.json", "taco_bell_date.json.bak"}
+
+
+def _json_text(obj, depth=0):
+    """Flatten a JSON object to a searchable text string."""
+    if isinstance(obj, dict):
+        parts = []
+        for k, v in obj.items():
+            if k in ("items", "exits", "triggers", "tags", "environment", "stats") and depth < 2:
+                continue  # recurse into these separately, they're big
+            parts.append(f"{k}: {_json_text(v, depth + 1)}")
+        return " ".join(p for p in parts if p)
+    if isinstance(obj, list):
+        return " ".join(_json_text(x, depth + 1) for x in obj)
+    return str(obj)
+
+
+def extract_json(path: Path, rel: str):
+    """Library item: one CodeItem entity per file. Area files also get one
+    CodeItem per nested item (items inside rooms/areas/characters)."""
+    try:
+        data = json.loads(path.read_text(encoding="utf-8", errors="ignore"))
+    except Exception:
+        return None
+    if not isinstance(data, dict):
+        return None
+    name = str(data.get("name") or path.stem)
+    desc = str(data.get("description") or "")
+    tags = data.get("tags") or []
+    tag_txt = " ".join(str(t) for t in tags) if isinstance(tags, list) else ""
+    # Main entity: the file's item/area/character itself.
+    text = f"{name}. {desc} tags: {tag_txt}".strip()
+    entities = [{
+        "kind": "CodeItem", "name": name, "qualified_name": rel,
+        "docstring": text[:MAX_MD_SECTION],
+        "signature": "", "source_code": "",
+        "filepath": str(path), "relative_path": rel,
+        "line_start": 1, "line_end": 1,
+        "decorators": [], "calls": [], "bases": [],
+        "class_qname": None, "parent_qname": rel, "item_category": path.parent.name,
+    }]
+    # Nested items inside areas/rooms/containers: their own searchable entities.
+    for key in ("items", "characters", "exits"):
+        for sub in data.get(key) or []:
+            if isinstance(sub, dict) and sub.get("name") and sub.get("description"):
+                sub_name = str(sub["name"])
+                sub_desc = str(sub["description"])
+                sub_tags = sub.get("tags") or []
+                sub_text = (f"{sub_name}. {sub_desc} tags: "
+                            f"{' '.join(str(t) for t in sub_tags) if isinstance(sub_tags, list) else ''}")
+                entities.append({
+                    "kind": "CodeItem", "name": sub_name,
+                    "qualified_name": f"{rel}::{sub_name}",
+                    "docstring": sub_text[:MAX_MD_SECTION],
+                    "signature": "", "source_code": "",
+                    "filepath": str(path), "relative_path": rel,
+                    "line_start": 1, "line_end": 1,
+                    "decorators": [], "calls": [], "bases": [],
+                    "class_qname": None, "parent_qname": rel,
+                    "item_category": path.parent.name + "/nested",
+                })
+    file_entity = {
+        "kind": "CodeFile", "name": path.name, "qualified_name": rel,
+        "docstring": f"{name}. {desc}"[:500], "signature": "", "source_code": "",
+        "filepath": str(path), "relative_path": rel,
+        "line_start": 1, "line_end": 1,
+        "decorators": [], "calls": [], "imports": [],
+    }
+    return file_entity, entities, [text]
+
+
 
 PY_COMMENT_RE = re.compile(r"^\s*#\s*(.+)$")
 JS_COMMENT_RE = re.compile(r"^\s*//\s*(.+)$|^\s*/\*\s*(.+?)\s*\*/$")
@@ -397,7 +537,7 @@ def main():
             ext = Path(fn).suffix.lower()
             full = os.path.join(dirpath, fn)
             rel = os.path.relpath(full, root).replace("\\", "/")
-            if ext not in FILE_EXTS or "docs/" in rel:
+            if ext not in FILE_EXTS or "node_modules/" in rel:
                 continue
             top = rel.split("/")[0]
             if top in SCAN_TOP or "/" not in rel:
@@ -413,16 +553,32 @@ def main():
     all_files = []   # (file_entity, entities)
     for full, rel, ext in files:
         path = Path(full)
-        res = extract_python(path, rel) if ext == ".py" else extract_javascript(path, rel)
+        if ext == ".py":
+            res = extract_python(path, rel)
+        elif ext == ".js" or ext == ".mjs":
+            res = extract_javascript(path, rel)
+        elif ext == ".md":
+            res = extract_markdown(path, rel)
+        elif ext == ".json":
+            if path.name in JSON_IGNORE:
+                continue
+            res = extract_json(path, rel)
+        else:
+            res = None
         if not res:
             continue
         file_entity, entities, lines = res
-        entities = entities + extract_comments(lines, rel, entities)
+        if ext in (".py", ".js", ".mjs"):
+            entities = entities + extract_comments(lines, rel, entities)
+        elif ext == ".md":
+            # docs have no code comments; chunk headings already captured content
+            pass
+        lang = FILE_EXTS[ext]
         file_entity["root_path"] = root
-        file_entity["language"] = "python" if ext == ".py" else "javascript"
+        file_entity["language"] = lang
         for e in entities:
             e["root_path"] = root
-            e["language"] = file_entity["language"]
+            e["language"] = lang
         all_files.append((file_entity, entities))
 
     n_entities = sum(1 + len(ents) for _, ents in all_files)
@@ -518,6 +674,7 @@ def main():
             s.run("""
                 UNWIND $pairs AS p
                 MERGE (m:CodeModule {name: p[1]})
+                WITH p, m
                 MATCH (f:Embeddable {qualified_name: p[0]})
                 MERGE (f)-[:IMPORTS {names: p[2], is_from: p[3]}]->(m)
             """, pairs=imports)
