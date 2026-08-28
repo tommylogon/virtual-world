@@ -1,5 +1,6 @@
 import logging
 import math
+import re
 import time
 import random
 from flask import Flask, request, jsonify
@@ -8,6 +9,35 @@ from engine.spatial_memory import SpatialMemory
 from engine.vector_store import VectorStore
 
 logger = logging.getLogger(__name__)
+
+
+def _normalize_tokens(text):
+    """Lowercase, strip punctuation, return a token set for near-duplicate compare."""
+    return set(re.findall(r"[a-z0-9']+", str(text or "").lower()))
+
+
+def _is_near_duplicate(a_text, b_text, a_tick, b_tick,
+                       tick_window=2, threshold=0.8):
+    """True if two memory texts are near-verbatim within a small tick window.
+
+    Used to collapse the same insight written by different writers in one tick
+    (think-phase 💭 thought, observed 👁️ surfaced as a memory, react 📝 memory).
+    Compares regardless of type. Jaccard >= threshold on normalized tokens.
+    """
+    try:
+        if abs(int(a_tick or 0) - int(b_tick or 0)) > tick_window:
+            return False
+    except (TypeError, ValueError):
+        return False
+    a = _normalize_tokens(a_text)
+    b = _normalize_tokens(b_text)
+    if not a or not b:
+        return False
+    inter = len(a & b)
+    union = len(a | b)
+    if union == 0:
+        return False
+    return (inter / union) >= threshold
 
 
 def register_memories_routes(app):
@@ -77,6 +107,23 @@ def register_memories_routes(app):
             "salience_override": data.get("salience_override", data.get("salience", 0)),
             "source": data.get("source", "auto")
         }
+
+        # task-346: write-time dedup across writers (think / observation / react)
+        # so the same insight isn't stored three times within one tick. On a
+        # near-verbatim hit we merge the higher importance + union tags and do
+        # NOT append a duplicate. Opt out with force: true (manual editor /
+        # generator saves should never be silently collapsed).
+        if not data.get("force"):
+            for existing in player.memories:
+                if _is_near_duplicate(existing.get("text", ""), entry["text"],
+                                      existing.get("tick", 0), entry["tick"]):
+                    if (entry.get("importance") or 0) > (existing.get("importance") or 0):
+                        existing["importance"] = entry.get("importance", existing.get("importance", 5))
+                    existing["tags"] = list(set(existing.get("tags", [])) | set(entry.get("tags", [])))
+                    if len(entry["text"]) > len(existing.get("text", "")):
+                        existing["text"] = entry["text"]
+                    return jsonify({"status": "success", "entry": existing, "deduped": True}), 200
+
         player.memories.append(entry)
         return jsonify({"status": "success", "entry": entry}), 201
 

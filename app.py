@@ -81,14 +81,27 @@ def create_app(config=None):
     def autosave_after_mutation(response):
         if app.config.get('TESTING'):
             return response
+        method = request.method
+        path = request.path
         if response.status_code and response.status_code < 400:
-            path = request.path
-            method = request.method
             if method in ('POST', 'PATCH', 'DELETE') and (
                 '/api/graph/' in path or '/api/players/' in path
                 or '/api/build/' in path or '/api/world/' in path
             ):
                 save_autosave(app.world)
+        # Broadcast a live world-change so the GUI (and any MCP / SSE client) can
+        # refetch state in real time — including edits made by external agents
+        # hitting the same API. The MCP server tags calls with X-WV-Editor so the
+        # editor is attributed in the live stream.
+        if method in ('POST', 'PATCH', 'DELETE', 'PUT') and path.startswith('/api/'):
+            editor = request.headers.get('X-WV-Editor', 'app')
+            from engine.world_events import hub
+            hub.publish({
+                'type': 'world_changed',
+                'method': method,
+                'path': path,
+                'editor': editor,
+            })
         return response
 
     # Register all route modules
@@ -113,8 +126,10 @@ def register_routes(app):
     from routes.triggers import register_triggers_routes
     from routes.scene import register_scene_routes
     from routes.search import register_search_routes
+    from routes.events import register_events_routes
 
     register_health_routes(app)
+    register_events_routes(app)
     register_pages_routes(app)
     register_action_routes(app)
     register_players_routes(app)

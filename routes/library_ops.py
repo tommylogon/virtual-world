@@ -622,6 +622,7 @@ def handle_library_refresh_to_world(app):
     if not node:
         return jsonify({"error": "Node not found"}), 404
     sections = data.get('sections')
+    entries = data.get('entries') or {}
     template_id = data.get('template_id') or data.get('library_id')
     if node.type == 'item':
         return _refresh_item(app, node, sections, template_id)
@@ -630,7 +631,7 @@ def handle_library_refresh_to_world(app):
     if node.type == 'area':
         return _refresh_area(app, node, sections, template_id)
     if node.type == 'character':
-        return _refresh_character(app, node, sections, template_id)
+        return _refresh_character(app, node, sections, template_id, entries)
     return jsonify({"error": f"Type '{node.type}' does not support refresh-to-world"}), 400
 
 
@@ -825,7 +826,39 @@ def _refresh_area(app, node, sections, template_id=None):
     return jsonify({"status": "refreshed", "node_id": node.id, "applied": applied})
 
 
-def _refresh_character(app, node, sections, template_id=None):
+def _apply_entry_selection(current, source, sel_keys):
+    """Merge the selected entries from `source` onto `current`.
+
+    `source` is the incoming list/dict (usually the library character), `current`
+    the existing value (usually the live player's). Array entries match by
+    `id` else `name`; dict entries match by key. Returns the merged value.
+    """
+    sel_set = set(str(k) for k in (sel_keys or []))
+    if isinstance(source, list):
+        def _key(x):
+            if isinstance(x, dict):
+                return str(x.get('id') or x.get('name') or '')
+            return ''
+        out = list(current) if isinstance(current, list) else []
+        for entry in source:
+            k = _key(entry)
+            if k and k in sel_set:
+                idx = next((i for i, x in enumerate(out) if _key(x) == k), -1)
+                if idx >= 0:
+                    out[idx] = entry
+                else:
+                    out.append(entry)
+        return out
+    if isinstance(source, dict):
+        out = dict(current) if isinstance(current, dict) else {}
+        for k in sel_set:
+            if k in source:
+                out[k] = source[k]
+        return out
+    return source
+
+
+def _refresh_character(app, node, sections, template_id=None, entries=None):
     props = node.properties or {}
     char_id = template_id or props.get('library_id') or node.name or ''
     char_reg = load_registry(app.config['DATA_DIR'], 'characters.json')
@@ -917,6 +950,17 @@ def _refresh_character(app, node, sections, template_id=None):
                 player_field, kind = target
             else:
                 player_field, kind = target, None
+            if entries and section_key in entries and (entries[section_key] or []):
+                # Per-entry apply: merge only the named library entries onto the
+                # player, leaving all other runtime values untouched.
+                sel_keys = entries[section_key]
+                current_val = getattr(player, player_field, None)
+                if current_val is None:
+                    current_val = {} if kind == 'dict' else ([] if kind == 'list' else None)
+                merged = _apply_entry_selection(current_val, lib_char[section_key], sel_keys)
+                if merged is not None:
+                    assign(player_field, merged, kind)
+                continue
             assign(player_field, lib_char[section_key], kind)
         applied = sections
 

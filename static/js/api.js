@@ -246,10 +246,11 @@ class ApiClient {
         return resp.json();
     }
 
-    static async refreshFromLibrary(nodeId, sections, templateId) {
+    static async refreshFromLibrary(nodeId, sections, templateId, entries) {
         const body = { node_id: nodeId };
         if (sections) body.sections = sections;
         if (templateId) body.template_id = templateId;
+        if (entries && Object.keys(entries).length) body.entries = entries;
         return this.post('/api/library/refresh-to-world', body);
     }
 

@@ -265,3 +265,33 @@ class WorldState {
 
 // Singleton
 const worldState = new WorldState();
+window.worldState = worldState;
+
+// ── Live world-edit push (EventSource) ──────────────────────────────
+// The server broadcasts a `world_changed` event over /api/events for every
+// mutating API call — including edits made by external agents through the MCP
+// server. Refetch world state in real time so those edits appear in the GUI
+// without a manual refresh, and log a thin line when a non-local editor acted.
+// Runs immediately (no `load` race) and lets the browser auto-reconnect.
+(function connectLiveEdits() {
+  if (typeof EventSource === 'undefined') return;
+  let es = null;
+  function refresh() {
+    if (window.worldState) window.worldState.fetch();
+  }
+  try {
+    es = new EventSource('/api/events');
+    es.onmessage = function (msg) {
+      let ev;
+      try { ev = JSON.parse(msg.data); } catch (e) { return; }
+      if (!ev || ev.type !== 'world_changed') return;
+      refresh();
+      const editor = ev.editor && ev.editor !== 'app' ? ev.editor : '';
+      if (editor && typeof events !== 'undefined') {
+        events.log('World edited by ' + editor + ' — ' + (ev.method || '') + ' ' + (ev.path || ''), 'system-msg');
+      }
+    };
+    // Do not close on error — the browser reconnects the EventSource itself.
+    es.onerror = function () { /* auto-reconnect */ };
+  } catch (e) { /* keep the GUI safe if the stream is unavailable */ }
+})();

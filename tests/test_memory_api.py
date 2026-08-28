@@ -114,3 +114,58 @@ def test_serialization_roundtrips_memory_fields():
     mem = player['memories'][-1]
     assert mem['entity_ids'] == ['area_cellar']
     assert mem['source'] == 'auto'
+
+
+def test_write_dedup_collapses_same_tick_near_verbatim():
+    """task-346: the same insight written by multiple writers in one tick is
+    collapsed to a single entry (across types), keeping highest importance."""
+    client = _client()
+    name = _active_player(client)
+    client.post(f"/api/players/{name}/memories/clear")
+
+    # observation write
+    r1 = client.post(f"/api/players/{name}/memories/entry", json={
+        'text': 'The calling cards name the blackwood family.',
+        'importance': 6, 'type': 'observation', 'tick': 5,
+    })
+    assert r1.status_code == 201
+
+    # a near-verbatim react memory the SAME tick -> should dedupe, not append
+    r2 = client.post(f"/api/players/{name}/memories/entry", json={
+        'text': 'The calling cards name the blackwood family.',
+        'importance': 4, 'type': 'memory', 'tick': 5,
+    })
+    assert r2.status_code == 200
+    assert r2.get_json().get('deduped') is True
+
+    data = client.get('/api/state').get_json()
+    player = data['players'][name]
+    assert len(player['memories']) == 1
+    # highest importance kept
+    assert player['memories'][0]['importance'] == 6
+
+
+def test_write_dedup_allows_force_and_distinct():
+    """task-346: force:true bypasses dedup, and genuinely different text stays."""
+    client = _client()
+    name = _active_player(client)
+    client.post(f"/api/players/{name}/memories/clear")
+
+    client.post(f"/api/players/{name}/memories/entry", json={
+        'text': 'A red door in the west wing.', 'importance': 5, 'type': 'observation', 'tick': 4,
+    })
+
+    # force:true saves a deliberate duplicate
+    r = client.post(f"/api/players/{name}/memories/entry", json={
+        'text': 'A red door in the west wing.', 'importance': 5, 'type': 'observation',
+        'tick': 4, 'force': True,
+    })
+    assert r.status_code == 201
+
+    # genuinely different text is not deduped
+    client.post(f"/api/players/{name}/memories/entry", json={
+        'text': 'The garden gate is rusted shut.', 'importance': 3, 'type': 'observation', 'tick': 4,
+    })
+
+    data = client.get('/api/state').get_json()
+    assert len(data['players'][name]['memories']) == 3

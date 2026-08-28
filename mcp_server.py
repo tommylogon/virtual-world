@@ -12,7 +12,14 @@ TIMEOUT = int(os.environ.get("VIRTUAL_WORLD_TIMEOUT", "30"))
 
 mcp = FastMCP("Virtual World")
 
-client = httpx.Client(base_url=BASE_URL, timeout=TIMEOUT)
+# Editor tag sent with every API call so the live edit stream (and the GUI) can
+# attribute each world change to this agent/editor. Set VIRTUAL_WORLD_EDITOR to
+# e.g. the agent name. The server broadcasts an X-WV-Editor header through to
+# /api/events so edits appear in real time with a "who did it" label.
+EDITOR = os.environ.get("VIRTUAL_WORLD_EDITOR", "mcp-agent")
+
+client = httpx.Client(base_url=BASE_URL, timeout=TIMEOUT,
+                      headers={"X-WV-Editor": EDITOR})
 
 
 def _api(method: str, path: str, body: dict = None) -> dict:
@@ -162,8 +169,8 @@ def get_state() -> dict:
 
 
 @mcp.tool()
-def get_graph_nodes() -> list:
-    """Return all graph nodes (areas, items, ways, players, triggers)."""
+def get_graph_nodes() -> dict:
+    """Return all graph nodes keyed by node id (areas, items, ways, players, triggers)."""
     return _api("GET", "/api/graph/nodes")
 
 
@@ -297,7 +304,8 @@ def import_character(char_id: str, active: bool = True) -> dict:
 @mcp.tool()
 def get_player_memories(name: str) -> list:
     """Get all memories for a player."""
-    return _api("GET", f"/api/players/{name}/memories")
+    data = _api("GET", f"/api/players/{name}/memories")
+    return data.get("memories", []) if isinstance(data, dict) else data
 
 
 @mcp.tool()
@@ -518,7 +526,8 @@ def add_registry_character(char_id: str, data: dict) -> dict:
 @mcp.tool()
 def get_world_lore() -> list:
     """Get all world lore entries."""
-    return _api("GET", "/api/world/lore")
+    data = _api("GET", "/api/world/lore")
+    return data.get("lore", []) if isinstance(data, dict) else data
 
 
 @mcp.tool()
@@ -645,6 +654,24 @@ def clear_turn_events() -> dict:
 def apply_turn_decay() -> dict:
     """Apply baseline vital decay and environmental effects to all characters."""
     return _api("POST", "/api/turn/apply")
+
+
+@mcp.tool()
+def get_recent_world_events(count: int = 50) -> list:
+    """Return the most recent live world-change events (what an agent just edited).
+
+    Mirrors the /api/events SSE stream as a snapshot, so a connected agent can
+    see what other agents (or the GUI) have already edited in this session.
+    """
+    data = _api("GET", f"/api/events/recent?count={int(count)}")
+    return data.get("events", []) if isinstance(data, dict) else data
+
+
+@mcp.resource("virtualworld://events")
+def world_events_resource() -> list:
+    """Readable snapshot of recent world-change events (MCP resource)."""
+    data = _api("GET", "/api/events/recent?count=50")
+    return data.get("events", []) if isinstance(data, dict) else data
 
 
 if __name__ == "__main__":

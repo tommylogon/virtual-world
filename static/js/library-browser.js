@@ -638,6 +638,26 @@ class LibraryBrowser {
         };
     }
 
+    /**
+     * Merge a DiffModal result onto an existing library entry. Whole-section
+     * selections replace the field outright; per-entry selections (result.entries)
+     * carry over only the chosen memories/items/relationships/etc. onto the
+     * existing value, preserving everything else.
+     */
+    _applyLibrarySelection(base, incoming, result) {
+        const merged = { ...(base || {}), id: incoming.id || incoming.name || (base && base.id) };
+        (result.sections || []).forEach((key) => {
+            merged[key] = incoming[key];
+        });
+        if (result.entries) {
+            for (const key of Object.keys(result.entries)) {
+                if ((result.sections || []).includes(key)) continue;
+                merged[key] = window.DiffModal.applyEntrySelection(merged[key], incoming[key], result.entries[key]);
+            }
+        }
+        return merged;
+    }
+
     async saveWorldToCharacter() {
         const players = Object.keys(worldState.players || {});
         if (players.length === 0) { toastInfo('No characters in the world.'); return; }
@@ -684,11 +704,15 @@ class LibraryBrowser {
             { key: 'traits', label: 'Traits' },
             { key: 'tags', label: 'Tags' },
             { key: 'emotion', label: 'Emotion' },
-            { key: 'relationships', label: 'Relationships' },
-            { key: 'memories', label: 'Memories' },
+            { key: 'vitals', label: 'Vitals', perEntry: true },
+            { key: 'decay_rates', label: 'Decay Rates', perEntry: true },
+            { key: 'conditions', label: 'Conditions', perEntry: true },
+            { key: 'equipped', label: 'Equipped', perEntry: true },
+            { key: 'relationships', label: 'Relationships', perEntry: true },
+            { key: 'memories', label: 'Memories', perEntry: true },
             { key: 'behaviors', label: 'Behaviours' },
             { key: 'npc_behavior', label: 'NPC Config' },
-            { key: 'inventory', label: 'Items' }
+            { key: 'inventory', label: 'Items', perEntry: true }
         ];
 
         const result = await DiffModal.show(libEntry, charCard, sections, {
@@ -698,10 +722,7 @@ class LibraryBrowser {
         if (!result) return;
 
         if (result.action === 'update') {
-            const merged = { ...libEntry, id: charName };
-            for (const key of result.sections) {
-                merged[key] = charCard[key];
-            }
+            const merged = this._applyLibrarySelection(libEntry, charCard, result);
             const res = await ApiClient.saveLibraryType('characters', merged);
             if (res.error) { toastError('Error: ' + res.error); return; }
             events.log(`Character "${charName}" updated in library.`, 'system-msg');
@@ -746,11 +767,15 @@ class LibraryBrowser {
                 { key: 'traits', label: 'Traits' },
                 { key: 'tags', label: 'Tags' },
                 { key: 'emotion', label: 'Emotion' },
-                { key: 'relationships', label: 'Relationships' },
-                { key: 'memories', label: 'Memories' },
+                { key: 'vitals', label: 'Vitals', perEntry: true },
+                { key: 'decay_rates', label: 'Decay Rates', perEntry: true },
+                { key: 'conditions', label: 'Conditions', perEntry: true },
+                { key: 'equipped', label: 'Equipped', perEntry: true },
+                { key: 'relationships', label: 'Relationships', perEntry: true },
+                { key: 'memories', label: 'Memories', perEntry: true },
                 { key: 'behaviors', label: 'Behaviours' },
                 { key: 'npc_behavior', label: 'NPC Config' },
-                { key: 'inventory', label: 'Items' }
+                { key: 'inventory', label: 'Items', perEntry: true }
             ];
 
             const result = await DiffModal.show(libEntry, charCard, sections, {
@@ -760,10 +785,7 @@ class LibraryBrowser {
             if (!result) { skipped++; continue; }
 
             if (result.action === 'update') {
-                const merged = { ...libEntry, id: charName };
-                for (const key of result.sections) {
-                    merged[key] = charCard[key];
-                }
+                const merged = this._applyLibrarySelection(libEntry, charCard, result);
                 const res = await ApiClient.saveLibraryType('characters', merged);
                 if (!res.error) updated++;
                 else errors++;

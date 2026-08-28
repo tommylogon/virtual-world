@@ -412,7 +412,7 @@ window.InspectorMemory = (() => {
         const tags = M._tagSelect ? M._tagSelect.getValue() : (M._tagSelectTags || []);
         const entity_ids = M._entitySelected ? Array.from(M._entitySelected) : [];
 
-        const payload = { text: content, type, importance, tick, location, source, tags, salience_override: salience };
+        const payload = { text: content, type, importance, tick, location, source, tags, salience_override: salience, force: true };
         if (entity_ids.length) payload.entity_ids = entity_ids;
         if (emotions.length) {
             payload.memory_emotions = emotions;
@@ -578,7 +578,7 @@ window.InspectorMemory = (() => {
         const emotions = Array.isArray(M._emoSelected)
             ? M._emoSelected.filter(e => e && e.label && e.label !== 'neutral')
             : [];
-        const payload = { text: content, type, importance, tick: 0, source: 'manual', location: '', tags: [] };
+        const payload = { text: content, type, importance, tick: 0, source: 'manual', location: '', tags: [], force: true };
         if (emotions.length) {
             payload.memory_emotions = emotions;
             payload.emotion = emotions[0]; // primary single, for backward compatibility

@@ -105,9 +105,11 @@ window.InspectorTemplateSync = (() => {
       // so `to-world` direction protects world data from empty library values.
       direction: 'to-world'
     });
-    if (!result || !result.sections.length) return;
+    const hasWhole = (result.sections && result.sections.length) > 0;
+    const hasEntries = result.entries && Object.keys(result.entries).length > 0;
+    if (!hasWhole && !hasEntries) return;
 
-    const data = await ApiClient.refreshFromLibrary(nodeId, result.sections, libId);
+    const data = await ApiClient.refreshFromLibrary(nodeId, result.sections || [], libId, result.entries);
     if (data.error) { toastError(data.error); return; }
     await worldState.fetch();
     if (window.VW?.inspector) window.VW.inspector.showNode(nodeId);

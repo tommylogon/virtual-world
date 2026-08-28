@@ -1,6 +1,6 @@
 # task-346 — Dedup same-tick near-verbatim memory writes
 
-**Status**: Todo — filed 2026-08-27 from export-log review.
+**Status**: Done — implemented 2026-08-27.
 
 ## Found
 
@@ -42,3 +42,21 @@ Related context: recall ALREADY-KNOWN guard exists client-side
 Unit test: post same-text observation+thought+memory entries in one tick →
 one stored row survives. Play session where a discoverable fact triggers
 multiple writes → single line in next turn's I REMEMBER.
+
+## Implementation (2026-08-27)
+
+- **Server-side write choke point** `routes/memories.py::add_player_memory`
+  (`POST /api/players/<name>/memories/entry`). Before appending, it scans the
+  character's existing memories for a near-verbatim duplicate within a small
+  tick window (`_is_near_duplicate`, Jaccard ≥ 0.8 on normalized lowercase
+  tokens, `tick` within ±2), **regardless of type**. On a hit it merges the
+  higher importance + union of tags, keeps the longer text, and returns the
+  existing entry with `"deduped": true` instead of appending a third copy.
+- **Opt-out**: `force: true` in the payload bypasses dedup — used by the manual
+  memory editor / generator saves so a deliberate user save is never silently
+  collapsed.
+- **Tests**: `tests/test_memory_api.py` — `test_write_dedup_collapses_same_tick_near_verbatim`
+  (two same-tick writes → one row, highest importance kept) and
+  `test_write_dedup_allows_force_and_distinct` (force bypass + distinct text
+  stays). `tests/test_memory_api.py`, `tests/test_memory_effects.py`,
+  `tests/test_vector_store.py` all pass (43 total).
