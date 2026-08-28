@@ -121,7 +121,7 @@ window.AgentMemory = (() => {
         return out;
     }
 
-    function storeMemory(charName, text, importance, type, tick = null, entity_ids = [], tags = [], emotion = null) {
+    function storeMemory(charName, text, importance, type, tick = null, entity_ids = [], tags = [], emotion = null, emotions = null) {
         try {
             if (!text) return;
             const memoryTick = (tick !== null && tick !== undefined) ? tick : (worldState.data?.time_ticks || 0);
@@ -134,7 +134,8 @@ window.AgentMemory = (() => {
                 entity_ids: entity_ids || [],
                 source: 'auto',
                 tags: cleanTags,
-                emotion: (emotion && typeof emotion === 'object') ? { label: emotion.label, intensity: emotion.intensity } : null
+                emotion: (emotion && typeof emotion === 'object') ? { label: emotion.label, intensity: emotion.intensity } : null,
+                emotions: (emotions && typeof emotions === 'object') ? emotions : null
             };
             fetch(`/api/players/${encodeURIComponent(charName)}/memories/entry`, {
                 method: 'POST',

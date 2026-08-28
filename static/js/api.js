@@ -316,6 +316,10 @@ class ApiClient {
         return this.post(`/api/library/import/area/${encodeURIComponent(roomId)}`, options);
     }
 
+    static async importWayFromLibrary(wayId, options = {}) {
+        return this.post(`/api/library/import/way/${encodeURIComponent(wayId)}`, options);
+    }
+
     static async reconnectDoor(wayId, roomA, roomB, dirA = '', dirB = '') {
         return this.post('/api/graph/way/reconnect', { way_id: wayId, area_a: roomA, area_b: roomB, dir_a: dirA, dir_b: dirB });
     }

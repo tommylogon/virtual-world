@@ -27,6 +27,7 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 | [[Characters/Equipment Loadouts\|Equipment Loadouts]] | Per-character generated equipment lists by slot |
 | [[Characters/NPC Behavior System\|NPC Behavior System]] | Simple NPCs, behavior types, action intervals, LLM agent vs scripted |
 | [[Characters/Relationships System\|Relationships System]] | Closeness model, what moves it (speak/give/combat), labels, guidance, grapple modifier |
+| [[Characters/Emotion & Affect System\|Emotion & Affect System]] | Multi-dimensional affect map, semantic emotion mapping, mental-vital coupling, relationship valence, self- & social-recall re-feel |
 
 ## [[Items & Inventory/Items Overview|📦 Items & Inventory]]
 
@@ -72,7 +73,7 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 | [[AI & Narration/LLM Providers\|LLM Providers]] | Provider configs, API keys, rate limiting, retry logic, fallback models |
 | [[AI & Narration/Agent Engine\|Agent Engine]] | Agent loop, prompt building, turn queue, action validation, simple NPC diff |
 | [[AI & Narration/Turn-Based System\|Turn-Based System]] | Off/sequential/random/initiative modes, turn queue, tick application on wrap |
-| [[AI & Narration/Memory System\|Memory System]] | Memory types, importance, retrieval, context window, editor |
+| [[AI & Narration/Memory System\|Memory System]] | Memory types, importance, retrieval, context window, editor, generator, `memory_emotions` |
 | [[AI & Narration/Narration System\|Narration System]] | 3 narration modes, room/action narration, emote command |
 
 ## [[UI & Settings/Inspector Panels|🖥️ UI & Settings]]
@@ -83,6 +84,7 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 | [[UI & Settings/Settings & Configuration\|Settings & Configuration]] | Backend routes, ConfigManager, toggleable settings, profile system, save/load |
 | [[UI & Settings/Engine Config\|Engine Config]] | Task-304: server-side engine tuning constants (sound/heat/light) editable in the Settings menu, persisted to `data/engine_config.json`, applies live |
 | [[UI & Settings/Rendering & UI Modules\|Rendering & UI Modules]] | lit-html via `window.Lit`, the classic-vs-deferred-module bootstrap race + fix, graph module split, file-size rule |
+| [[UI & Settings/Event Log Export\|Event Log Export]] | Markdown event-log export, filter-respecting rows, Turn vs tick labeling, stream formatting + emote ordering |
 
 ---
 
@@ -101,4 +103,4 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 - **Game root**: `http://127.0.0.1:4444`
 - **Tests**: `node ../tools/test_all.cjs` (requires running server)
 
-*Last updated: 2026-08-20*
+*Last updated: 2026-08-27*

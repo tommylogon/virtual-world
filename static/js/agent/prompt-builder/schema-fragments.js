@@ -22,11 +22,13 @@ window.PromptBuilder = window.PromptBuilder || {};
     'use strict';
 
     const MEMORY_INSTRUCTION_REACTION =
-        `\nmemory is your subjective 1-3 sentence memory based on what has happened so far. It is what you will actually REMEMBER from this — your takeaway, not a recap. Set its importance 1-10 based on how significant it is (10 = life-changing, 1 = trivial). Threats, secrets, discoveries, and meaningful people should rank high. Add 1-3 tags that are single words only, conceptual categories or themes (fear, trust, mystery, amnesia) — never names, items, or places.\nemotion is what YOU feel RIGHT NOW: {"label","intensity"} where label is one of happy, sad, afraid, angry, envious, affectionate, disgusted and intensity is 1-10. It shapes how you act next turn — be honest, not dramatic.`;
+        `
+memory is your subjective 1-3 sentence memory based on what just happened — your takeaway, not a recap. Set its importance 1-10 (10 = life-changing). Threats, secrets, discoveries, and meaningful people rank high. Add 1-3 single-word tags (fear, trust, mystery) — never names, items, or places. If the memory is about a specific person, add "emotions": {"who":"<what you call them>","why":"<one short line>","data":{...}} where "data" keys are one of fear, affection, disgust, anger, trust, envy, familiarity, respect, closeness, each a small value -5..+5 telling how this changed how you feel toward THAT person (+ = more of it). A scary encounter: {"fear":2,"affection":-3}. Omit "emotions" when the memory is not about someone.`;
 
     // FLAG: differs from MEMORY_INSTRUCTION_REACTION only by "of the room" — see file header.
     const MEMORY_INSTRUCTION_REACT =
-        `\nmemory is your subjective 1-3 sentence memory based on what has happened so far. It is what you will actually REMEMBER from this — your takeaway, not a recap of the room. Set its importance 1-10 based on how significant it is (10 = life-changing, 1 = trivial). Threats, secrets, discoveries, and meaningful people should rank high. Add 1-3 tags that are single words only, conceptual categories or themes (fear, trust, mystery, amnesia) — never names, items, or places.\nemotion is what YOU feel RIGHT NOW: {"label","intensity"} where label is one of happy, sad, afraid, angry, envious, affectionate, disgusted and intensity is 1-10. React honestly to what just happened.`;
+        `
+memory is your subjective 1-3 sentence memory based on what just happened — your takeaway, not a recap of the room. Set its importance 1-10 (10 = life-changing). Threats, secrets, discoveries, and meaningful people rank high. Add 1-3 single-word tags (fear, trust, mystery) — never names, items, or places. If the memory is about a specific person, add "emotions": {"who":"<what you call them>","why":"<one short line>","data":{...}} where "data" keys are one of fear, affection, disgust, anger, trust, envy, familiarity, respect, closeness, each a small value -5..+5 telling how this changed how you feel toward THAT person (+ = more of it). A scary encounter: {"fear":2,"affection":-3}. Omit "emotions" when the memory is not about someone.`;
 
     const EMOTE_RULES_REACTION =
         `emote is body language — HOW you do something, or something you do to yourself or someone else (a kiss, a handshake, running a hand through your hair, reaching for the key). It shows the gesture and intention, never the outcome: if someone high-fives you, respond in kind or not — but you cannot claim your action succeeded before the system resolves it.`;
@@ -53,7 +55,10 @@ window.PromptBuilder = window.PromptBuilder || {};
         volume: '"volume":"say"',
         emote: '"emote":"..."',
         memory: '"memory":{"text":"...","importance":7,"tags":["..."]}',
-        emotion: '"emotion":{"label":"afraid","intensity":6}',
+        memory_emotions: '"memory":{"text":"...","importance":7,"emotions":{"who":"the man","why":"he blocked my way","data":{"fear":2,"affection":-4,"disgust":1,"anger":1}}}',
+        emotion: '"emotion":{"label":"afraid","intensity":6,"toward":"..."}',
+        learned_names: '"learned_names":["Rosa"]',
+        emotion_toward: '"emotion":{"label":"unsettled","intensity":6,"toward":"the man"}',
         action_simple: '"action":"...","speech":"...","volume":"say","emote":"..."',
         dash_go: '"action":"go","target":"<exit name from the exits above>"',
         dash_wait: '"action":"wait"',

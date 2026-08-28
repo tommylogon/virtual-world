@@ -20,7 +20,16 @@ window.ResponseParser = (() => {
             if (!text) return null;
             const imp = parseInt(m.importance, 10);
             const tags = Array.isArray(m.tags) ? m.tags.map(t => String(t).trim().toLowerCase()).filter(Boolean).slice(0, 5) : [];
-            return { text, importance: Number.isNaN(imp) ? 5 : Math.max(1, Math.min(10, imp)), tags };
+            // task-350: a memory may carry a structured feelings block toward a
+            // person {who, why, data:{dim:delta}} -> forwarded to the backend
+            // which resolves who, canonicalizes it, and folds it into the
+            // derived relationship profile.
+            const emotions = m.emotions && typeof m.emotions === 'object' ? {
+                who: String(m.emotions.who || '').trim(),
+                why: String(m.emotions.why || '').trim().slice(0, 200),
+                data: (m.emotions.data && typeof m.emotions.data === 'object') ? m.emotions.data : {}
+            } : null;
+            return { text, importance: Number.isNaN(imp) ? 5 : Math.max(1, Math.min(10, imp)), tags, emotions };
         }
         return null;
     }
@@ -45,17 +54,25 @@ window.ResponseParser = (() => {
     }
 
     /** Normalize an optional LLM-declared feeling: {label, intensity 1-10}. */
+    /** Normalize an optional LLM-declared feeling: {label, intensity 1-10, toward?}. */
     function extractEmotion(raw) {
         if (!raw || typeof raw !== 'object') return null;
         const label = String(raw.label || '').trim().toLowerCase();
         const intensity = parseFloat(raw.intensity);
         if (!label || !Number.isFinite(intensity)) return null;
-        return { label, intensity: Math.max(1, Math.min(10, intensity)) };
+        const toward = String(raw.toward || '').trim();
+        return { label, intensity: Math.max(1, Math.min(10, intensity)), toward: toward || null };
+    }
+
+    /** Normalize an optional list of names learned/confirmed this turn. */
+    function extractLearnedNames(raw) {
+        if (!Array.isArray(raw)) return [];
+        return raw.map((s) => String(s || '').trim()).filter(Boolean).slice(0, 5);
     }
 
     /** Parse a reaction/decision response — returns full structured object with parseError on failure. */
     function parseReaction(r) {
-        if (!r) return { inner: '', speech: null, speechVolume: 'say', action: '', emote: null, memory: null, emotion: null, parseError: null };
+        if (!r) return { inner: '', speech: null, speechVolume: 'say', action: '', emote: null, memory: null, emotion: null, learnedNames: [], parseError: null };
         try {
             const c = repairJSON(normalizeRawResponse(r));
             const p = JSON.parse(c);
@@ -68,11 +85,12 @@ window.ResponseParser = (() => {
                 emote: p.emote || null,
                 memory: extractMemory(p.memory),
                 emotion: extractEmotion(p.emotion),
+                learnedNames: extractLearnedNames(p.learned_names),
                 parseError: null
             };
         } catch (e) {
             return {
-                inner: '', speech: null, speechVolume: 'say', action: '', emote: null, memory: null, emotion: null,
+                inner: '', speech: null, speechVolume: 'say', action: '', emote: null, memory: null, emotion: null, learnedNames: [],
                 parseError: `Failed to parse LLM response as JSON: ${e.message}`
             };
         }
@@ -80,7 +98,7 @@ window.ResponseParser = (() => {
 
     /** Parse a result-reaction response — same shape as parseReaction, no action field. */
     function parseResultReaction(r) {
-        if (!r) return { inner: '', speech: null, speechVolume: 'say', emote: null, memory: null, emotion: null, parseError: null };
+        if (!r) return { inner: '', speech: null, speechVolume: 'say', emote: null, memory: null, emotion: null, learnedNames: [], parseError: null };
         try {
             const c = repairJSON(normalizeRawResponse(r));
             const p = JSON.parse(c);
@@ -92,11 +110,12 @@ window.ResponseParser = (() => {
                 emote: p.emote || null,
                 memory: extractMemory(p.memory),
                 emotion: extractEmotion(p.emotion),
+                learnedNames: extractLearnedNames(p.learned_names),
                 parseError: null
             };
         } catch (e) {
             return {
-                inner: '', speech: null, speechVolume: 'say', emote: null, memory: null, emotion: null,
+                inner: '', speech: null, speechVolume: 'say', emote: null, memory: null, emotion: null, learnedNames: [],
                 parseError: `Failed to parse LLM response as JSON: ${e.message}`
             };
         }

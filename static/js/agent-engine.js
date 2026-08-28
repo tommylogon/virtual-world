@@ -170,7 +170,7 @@ class AgentEngine {
             return sameText && sameTick;
         });
         if (duplicate) return;
-        AgentMemory.storeMemory(charName, memory.text, memory.importance, 'reaction', tick, entityId ? [entityId] : [], memory.tags, feltEmotion);
+        AgentMemory.storeMemory(charName, memory.text, memory.importance, 'reaction', tick, entityId ? [entityId] : [], memory.tags, feltEmotion, memory.emotions || null);
     }
 
     /**
@@ -179,11 +179,32 @@ class AgentEngine {
      */
     _applyFeltEmotion(charName, emotion) {
         if (!emotion?.label || !worldState.players?.[charName]) return null;
+        // task-350: when the feeling is TOWARD a specific person, pass `toward`
+        // so the backend records it as an experience (felt_toward) and so
+        // relationships/feelings can change toward that person. Otherwise it's
+        // a global affect spike (legacy).
+        const body = { emotion: emotion.label, intensity: Math.max(1, Math.min(10, emotion.intensity)) };
+        if (emotion.toward) body.toward = emotion.toward;
+        else body.delta = body.intensity * 1.5;
         try {
             return fetch(`/api/players/${encodeURIComponent(charName)}/emotions`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ emotion: emotion.label, delta: Math.max(1, Math.min(10, emotion.intensity)) * 1.5 })
+                body: JSON.stringify(body)
+            }).catch(() => {});
+        } catch (e) { return null; }
+    }
+
+    /** task-350: record names the agent confirmed/deduced this turn (heard,
+     *  name tag, sign, document, deduction). Fire-and-forget; engine validates
+     *  they are real present players so the agent cannot invent a name tag. */
+    _learnNames(charName, learnedNames) {
+        if (!learnedNames?.length || !worldState.players?.[charName]) return;
+        try {
+            return fetch(`/api/players/${encodeURIComponent(charName)}/names`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ names: learnedNames })
             }).catch(() => {});
         } catch (e) { return null; }
     }
@@ -284,6 +305,11 @@ class AgentEngine {
         if (reply.speech) {
             await this._speakLine(charName, player, reply.speech, reply.speechVolume, reply.target);
         }
+        // task-xxx: emote renders before the action result (consistent with the
+        // agent decide phase) so the stream reads gesture → outcome.
+        if (reply.emote) {
+            await this._performEmote(charName, reply.emote);
+        }
         let resultText = '';
         if (reply.action) {
             events.logPhase(charName, 'act', reply.action);
@@ -320,9 +346,6 @@ class AgentEngine {
                 worldState.fetch();
                 resultText = err.message;
             }
-        }
-        if (reply.emote) {
-            await this._performEmote(charName, reply.emote);
         }
         return resultText;
     }
@@ -463,7 +486,7 @@ class AgentEngine {
             const emotionNL = PromptBuilder.buildEmotionContext(player);
             const insanityNL = PromptBuilder.buildInsanityContext(player);
             const relationshipNL = PromptBuilder.buildRelationshipContext(player, charName);
-            const memoryNL = await PromptBuilder.buildMemoryContext(charName);
+            const memoryNL = await PromptBuilder.buildMemoryContext(charName, { report: true });
 
             if (config.reactiveMode) {
                 events.logPhase(charName, 'think', 'observing');
@@ -504,7 +527,7 @@ class AgentEngine {
                 // ([system, user, assistant, ...]) so the agent remembers its own
                 // earlier words across phases and turns — no more self-contradiction
                 // between decide and react (e.g. changing a favorite color).
-                const thinkDecidePrompt = PromptBuilder.buildReactionPrompt(player, observeParts, vitalsNL, emotionNL, relationshipNL, memoryNL, lastResult);
+                const thinkDecidePrompt = PromptBuilder.buildReactionPrompt(player, observeParts, vitalsNL, emotionNL, relationshipNL, memoryNL, lastResult, false, true);
                 const combinedPrompt = threatAlert ? threatAlert + '\n\n' + thinkDecidePrompt : thinkDecidePrompt;
                 history.push({ role: 'user', content: combinedPrompt });
                 const combinedResponse = await this._callLLMMessages(history, 'think-decide');
@@ -522,6 +545,7 @@ class AgentEngine {
                 }
                 let { inner, speech: decisionSpeech, speechVolume, action: finalAction, emote: decisionEmote, target: decisionTarget } = parsedDecide;
                 this._applyFeltEmotion(charName, parsedDecide.emotion);
+                this._learnNames(charName, parsedDecide.learnedNames);
                 if (inner) { events.logThought(charName, inner); }
                 events.trackAction(charName, inner, null, '', '');
                 if (!config.lastRoom[charName] && player.current_area) config.lastRoom[charName] = player.current_area;
@@ -534,6 +558,12 @@ class AgentEngine {
 
                 if (decisionSpeech) {
                     await this._speakLine(charName, player, decisionSpeech, speechVolume, decisionTarget);
+                }
+
+                // task-xxx: the act emote lands BEFORE the action's result so the
+                // stream reads gesture → outcome instead of outcome → gesture.
+                if (decisionEmote) {
+                    await this._performEmote(charName, decisionEmote);
                 }
 
                 let actionResult = '';
@@ -603,10 +633,6 @@ class AgentEngine {
                     }
                 }
 
-                if (decisionEmote && actionSucceeded) {
-                    await this._performEmote(charName, decisionEmote);
-                }
-
                 if (actionResult) {
                     const isNowResting = actionResult.toLowerCase().includes('you rest');
                     const isUnconscious = actionResult.toLowerCase().includes('while unconscious');
@@ -641,6 +667,7 @@ class AgentEngine {
                         const { inner: reactionInner, speech: reactionSpeech, speechVolume: reactionVolume, emote: reactionEmote, memory: reactionMemory } = parsedReact;
                         if (reactionInner) { events.logThought(charName, reactionInner); }
                         this._applyFeltEmotion(charName, parsedReact.emotion);
+                        this._learnNames(charName, parsedReact.learnedNames);
                         if (reactionSpeech) { await this._speakLine(charName, player, reactionSpeech, reactionVolume); }
                         if (reactionEmote) {
                             await this._performEmote(charName, reactionEmote);
@@ -672,6 +699,7 @@ class AgentEngine {
                 let { inner, speech, speechVolume, action, emote: reactionEmote, memory: reactionMemory, target: speechTarget } = parsedNonReactive;
                 if (inner) { events.log(`[${player.name} inner] ${inner}`, "msg-thought"); }
                 this._applyFeltEmotion(charName, parsedNonReactive.emotion);
+                this._learnNames(charName, parsedNonReactive.learnedNames);
                 if (speech) { await this._speakLine(charName, player, speech, speechVolume, speechTarget); }
                 this._storeReactionMemory(charName, reactionMemory, parsedNonReactive.emotion);
                 events.trackAction(charName, inner, speech, null, '');

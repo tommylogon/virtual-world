@@ -29,16 +29,302 @@ def handle_spike_emotion(app, name):
     if not player:
         return jsonify({"error": "Player not found"}), 404
     data = request.get_json(force=True) or {}
-    emotion = data.get("emotion")
-    if emotion not in ("happy", "sad", "afraid", "angry", "envious",
-                       "affectionate", "disgusted"):
+    emotion = str(data.get("emotion") or "").strip().lower()
+    # task-350: toward a specific person -> accept the wider recipient-decided
+    # vocabulary (uneasy, grateful, etc.); otherwise the strict global list.
+    # task-350 aliases: the LLM names someone by the handle it sees (the man / a
+    # subjective alias). Resolve it to a real player name; if it does not resolve,
+    # fall back to a global affect spike rather than create a bogus relationship.
+    raw_other = str(data.get("toward") or "").strip()
+    from engine import emotion as emotion_engine
+    valid = tuple(emotion_engine.BASELINES.keys())
+    other = ""
+    if raw_other:
+        resolved = _resolve_other(app, name, raw_other)
+        if resolved and hasattr(player, "_FELT_TO_DIM"):
+            other = resolved
+            valid = tuple(player._FELT_TO_DIM.keys())
+    if emotion not in valid:
         return jsonify({"error": f"unknown emotion '{emotion}'"}), 400
+
+    # Legacy global spike path (no target): nudge the affect map.
+    if not other:
+        try:
+            delta = float(data.get("delta") or 0)
+        except (TypeError, ValueError):
+            return jsonify({"error": "delta must be numeric"}), 400
+        player.spike_emotion(emotion, delta)
+        return jsonify({"emotions": player.emotions_map()})
+
+    # task-350: the feeling is TOWARD a person -> record it as an experience so
+    # relationships/feelings can change toward that person (recipient decides).
+    try:
+        intensity = max(1.0, min(10.0, float(data.get("intensity") or data.get("delta") or 5)))
+    except (TypeError, ValueError):
+        intensity = 5.0
+    if player.felt_toward(other, emotion, intensity, getattr(app.world, "time_ticks", 0)):
+        return jsonify({
+            "felt_toward": other,
+            "emotions": player.emotions_map(),
+            "relationships": list(player.relationships.keys()),
+        })
+
     try:
         delta = float(data.get("delta") or 0)
     except (TypeError, ValueError):
         return jsonify({"error": "delta must be numeric"}), 400
     player.spike_emotion(emotion, delta)
     return jsonify({"emotions": player.emotions_map()})
+
+
+def handle_map_player_emotions(app, name):
+    """Map an emotion label onto the affect map + mental vitals (recall path).
+
+    Accepts:
+      {label, intensity, mapped?, vitals?, toward?}
+        - label:   freeform emotion word (agent-invented or curated).
+        - mapped:  optional client-side semantic {dimension: delta} if the
+                   caller already resolved it via embedding.
+        - vitals:  optional explicit {vital: delta} to apply verbatim.
+        - toward:  optional speaker name — when it resolves to a known person,
+                   the recalled memory also nudges the relationship toward them.
+    Resolution order: supplied `mapped`, else server keyword ``map_label``.
+    Unknown labels are a graceful no-op (no spike, no vital change).
+    Mental-vital coupling is subtle and scaled so a single recalled memory
+    only shifts Sanity/Entertainment/Social by a few points.
+    """
+    from engine import emotion as emotion_engine
+    from engine.runtime_config import config as runtime_config
+    player = app.world.players.get(name)
+    if not player:
+        return jsonify({"error": "Player not found"}), 404
+    data = request.get_json(force=True) or {}
+
+    # --- Resolve dimension deltas ---
+    dim_deltas = {}
+    mapped = data.get("mapped")
+    if isinstance(mapped, dict):
+        dim_deltas = {str(k): float(v) for k, v in mapped.items() if v}
+    else:
+        label = str(data.get("label") or "").strip().lower()
+        try:
+            intensity = float(data.get("intensity") or 5)
+        except (TypeError, ValueError):
+            intensity = 5.0
+        intensity = max(0.0, min(10.0, intensity))
+        # Subtle feel scale: a full-strength (10) emotion nudges ~+/-15-18 pts.
+        spike_scale = float(runtime_config.get("emotion.spike_scale", 1.7))
+        for dim, _w in emotion_engine.map_label(label):
+            dim_deltas[dim] = dim_deltas.get(dim, 0.0) + intensity * spike_scale
+
+    if not dim_deltas and not isinstance(data.get("vitals"), dict):
+        return jsonify({"error": "unresolved emotion"}, 400)
+
+    for dim, delta in dim_deltas.items():
+        if dim in emotion_engine.BASELINES:
+            player.spike_emotion(dim, delta)
+
+    # --- Apply mental-vital coupling (subtle) ---
+    vitals = {}
+    if isinstance(data.get("vitals"), dict):
+        vitals.update({str(k): float(v) for k, v in data["vitals"].items() if v})
+    else:
+        vital_scale = float(runtime_config.get("emotion.vital_scale", 0.25))
+        for dim in dim_deltas:
+            if dim not in emotion_engine.VITAL_EFFECTS:
+                continue
+            vital, factor = emotion_engine.VITAL_EFFECTS[dim]
+            vitals[vital] = vitals.get(vital, 0.0) + factor * (dim_deltas[dim] / 1.7) * vital_scale
+
+    for vital, delta in vitals.items():
+        if vital not in player.vitals:
+            continue
+        cur = float(player.vitals[vital])
+        player.vitals[vital] = max(0.0, min(100.0, cur + delta))
+
+    # --- Relationship nudge toward the speaker (name-gated) ---
+    # Only when the recalled memory is attributed to a real, resolvable speaker.
+    # An anonymized voice label ("a woman's voice") resolves to None and is left
+    # as a pure re-feel — we never invent a relationship with an unknown person.
+    toward = str(data.get("toward") or "").strip()
+    if toward and dim_deltas:
+        speaker = _resolve_other(app, name, toward)
+        if speaker:
+            if speaker not in player.relationships:
+                player.relationships[speaker] = {
+                    "closeness": 0,
+                    "last_interaction_tick": getattr(app.world, "time_ticks", 0),
+                    "interaction_count": 0,
+                    "first_sighting": True,
+                }
+            drive_deltas = {}
+            rel_scale = float(runtime_config.get("emotion.rel_scale", 0.25))
+            for dim, delta in dim_deltas.items():
+                if dim in emotion_engine.RELATIONSHIP_VALENCE:
+                    d, f = emotion_engine.RELATIONSHIP_VALENCE[dim]
+                    drive_deltas[d] = drive_deltas.get(d, 0.0) + f * delta * rel_scale
+            if drive_deltas:
+                tags = ["rel:" + speaker] + [f"{d}:{round(v, 3)}" for d, v in drive_deltas.items()]
+                try:
+                    player.add_memory(
+                        "I was reminded of something that made me feel this way toward " + speaker + ".",
+                        tick=getattr(app.world, "time_ticks", 0),
+                        importance=6,
+                        memory_type="emotion",
+                        tags=tags,
+                        source="recall",
+                    )
+                except Exception:
+                    pass
+
+    return jsonify({"emotions": player.emotions_map(), "vitals": player.vitals})
+
+
+def _resolve_other(app, char_name, handle):
+    """Resolve an agent-facing handle to a real player name (task-350 aliases).
+
+    The LLM refers to others by the handle it actually sees: an anonymized
+    display label ("the man"), a subjective alias it assigned, or a description.
+    This resolves that back to the real player name within char_name's own area,
+    so felt_toward / learn_names never create a bogus record keyed by "the man".
+
+    Tiers (mirrors engine.matching _match_character_name but scoped to
+    char_name's area, independent of who is the active player):
+      exact name -> word-boundary name-substring -> node alias -> description word.
+    Returns the real player name, or None when unresolved/ambiguous.
+    """
+    import re
+    from engine.matching import node_aliases, CHARACTER_DESCRIPTION_STOPWORDS
+    if not handle:
+        return None
+    h = str(handle).strip().lower()
+    # A clear NAME resolves anywhere (feelings about a known person shouldn't
+    # require physical co-location). Only description/alias/name-substring tiers
+    # need the actor to be in the same area.
+    global_exact = [p for p in app.world.players if p != char_name and p.lower() == h]
+    if len(global_exact) == 1:
+        return global_exact[0]
+    area = None
+    char = app.world.players.get(char_name)
+    if char:
+        area = getattr(char, "current_area", None)
+    # candidates: same area as char_name (or all players if area unknown), not self
+    cands = []
+    for pname, p in app.world.players.items():
+        if pname == char_name:
+            continue
+        if area is not None and getattr(p, "current_area", None) != area:
+            continue
+        cands.append(pname)
+    if not cands:
+        return None
+    # 1 exact
+    exact = [p for p in cands if p.lower() == h]
+    if len(exact) == 1:
+        return exact[0]
+    # 2 word-boundary name substring
+    name_m = []
+    for p in cands:
+        pl = p.lower()
+        if re.search(r'(?<!\w)' + re.escape(h) + r'(?!\w)', pl) or            re.search(r'(?<!\w)' + re.escape(pl) + r'(?!\w)', h):
+            name_m.append(p)
+    if len(name_m) == 1:
+        return name_m[0]
+    # 3 alias
+    alias_m = []
+    get_node_id = getattr(app.world, "_player_node_id", None)
+    for p in cands:
+        node = None
+        if callable(get_node_id):
+            try:
+                node = app.world.graph.get_node(get_node_id(p))
+            except Exception:
+                node = None
+        for a in node_aliases(node):
+            if a == h or re.search(r'(?<!\w)' + re.escape(h) + r'(?!\w)', a):
+                alias_m.append(p)
+                break
+    if len(alias_m) == 1:
+        return alias_m[0]
+    # 4 description words
+    significant = [w for w in re.findall(r"[a-z]+", h)
+                   if len(w) >= 4 and w not in CHARACTER_DESCRIPTION_STOPWORDS]
+    if significant:
+        scored = []
+        for p in cands:
+            pl = app.world.players.get(p)
+            text = ((getattr(pl, "description", "") or "") + " " +
+                    (getattr(pl, "base_description", "") or "")).lower()
+            count = sum(1 for w in set(significant)
+                        if re.search(r'(?<!\w)' + re.escape(w) + r'(?!\w)', text))
+            scored.append((count, p))
+        best = max((c for c, _ in scored), default=0)
+        top = [p for c, p in scored if c == best]
+        # accept a single best match (>=2 is preferred; a lone distinctive word
+        # like "tall" already narrows to one same-area candidate). Keep it
+        # conservative: only when exactly one candidate matched at the top.
+        if best >= 1 and len(top) == 1:
+            return top[0]
+    return None
+
+
+def handle_get_relationship_profiles(app, name):
+    """Derived per-person relationship reads (task-350).
+
+    Returns {other: {summary, role, consent, dims...}} for every person this
+    character has a relationship with. The prompt builder renders these instead
+    of raw closeness.
+    """
+    from engine.derive import derive_person_profile
+    player = app.world.players.get(name)
+    if not player:
+        return jsonify({"error": "Player not found"}), 404
+    profiles = {}
+    for other in (player.relationships or {}).keys():
+        try:
+            prof = derive_person_profile(player, other)
+        except Exception:
+            continue
+        profiles[other] = {
+            "summary": prof.get("summary"),
+            "role": prof.get("role"),
+            "consent": round(prof.get("consent", 0.0), 3),
+            "trust": round(prof.get("trust", 0.0), 1),
+            "fear": round(prof.get("fear", 0.0), 1),
+            "closeness": round(prof.get("closeness", 0.0), 1),
+            "has_signal": bool(prof.get("_has_signal")),
+        }
+    return jsonify({"profiles": profiles})
+
+
+def handle_learn_names(app, name):
+    """Learn names this player has confirmed/deduced this turn (task-350).
+
+    Body: {"names": ["Rex", ...]}. Only names of actual present players are
+    accepted — the engine validates, so the agent cannot invent a name tag.
+    Each valid name clears the player's name-unknown (stranger) flag via
+    learn_name, exactly as if they had heard it.
+    """
+    player = app.world.players.get(name)
+    if not player:
+        return jsonify({"error": "Player not found"}), 404
+    data = request.get_json(force=True) or {}
+    names = data.get("names") or []
+    tick = getattr(app.world, "time_ticks", 0)
+    learned = []
+    for raw in names:
+        candidate = str(raw or "").strip()
+        if not candidate:
+            continue
+        # task-350 aliases: the agent names this person by the handle it saw
+        # (the man / a subjective alias / a deduction). Resolve to a real player
+        # name so we clear the right stranger flag and never invent a record.
+        resolved = _resolve_other(app, name, candidate)
+        if not resolved:
+            continue
+        if player.learn_name(resolved, tick):
+            learned.append(resolved)
+    return jsonify({"learned": learned, "relationships": list(player.relationships.keys())})
 
 
 def handle_get_conditions(app):

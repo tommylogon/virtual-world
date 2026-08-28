@@ -358,3 +358,61 @@ class TestRelationshipDC:
         target.skills["Athletics"] = 2
 
         assert world.grapple._best_escape_skill(target) == 6
+
+
+class TestExperienceDrivenGrab:
+    """task-350: at equal closeness, trust/fear from experience changes the DC.
+
+    The mechanic reads *consent* (trust - fear, derived from memories), not the
+    raw closeness scalar, so a distrusted person is harder to grab than a
+    trusted one even when the `closeness` number is identical.
+    """
+
+    def _fixed_closeness(self, target, grappler_name, closeness=50):
+        """Seed a +50 closeness (identical for every case) so only experience differs."""
+        target.relationships[grappler_name] = {
+            "closeness": closeness,
+            "last_interaction_tick": 1,
+            "interaction_count": 1,
+        }
+        target.memories = []
+
+    def test_no_signal_falls_back_to_closeness(self, grapple_world):
+        """Plain relationships (no dimensional memories) keep the legacy rule."""
+        world, grappler, target = grapple_world
+        self._fixed_closeness(target, grappler.name, closeness=50)
+        mod = world.grapple._relationship_mod("Target", grappler.name)
+        assert mod == -4  # -(50 // 25) * 2
+
+    def test_distrusted_person_harder_to_grab(self, grapple_world):
+        """Distrust/fear (experience) raises the at-equal-closeness grab DC."""
+        world, grappler, target = grapple_world
+        self._fixed_closeness(target, grappler.name, closeness=50)
+        target.felt_toward(grappler.name, "distrustful", 8, tick=1)
+        target.felt_toward(grappler.name, "uneasy", 8, tick=2)
+        mod = world.grapple._relationship_mod("Target", grappler.name)
+        assert mod > 0, f"expected a positive (harder) mod, got {mod}"
+
+    def test_trusted_person_easier_to_grab(self, grapple_world):
+        """Trust (experience) keeps the at-equal-closeness grab DC low."""
+        world, grappler, target = grapple_world
+        self._fixed_closeness(target, grappler.name, closeness=50)
+        target.felt_toward(grappler.name, "grateful", 8, tick=1)
+        mod = world.grapple._relationship_mod("Target", grappler.name)
+        assert mod < 0, f"expected a negative (easier) mod, got {mod}"
+
+    def test_identical_closeness_different_consent_changes_dc(self, grapple_world):
+        """THE proof: same closeness, opposite trust -> distrusted is harder."""
+        world, grappler, target = grapple_world
+
+        self._fixed_closeness(target, grappler.name, closeness=50)
+        target.felt_toward(grappler.name, "distrustful", 9, tick=1)
+        target.felt_toward(grappler.name, "uneasy", 9, tick=2)
+        mod_distrusted = world.grapple._relationship_mod("Target", grappler.name)
+
+        self._fixed_closeness(target, grappler.name, closeness=50)
+        target.felt_toward(grappler.name, "grateful", 9, tick=1)
+        mod_trusted = world.grapple._relationship_mod("Target", grappler.name)
+
+        assert mod_distrusted > mod_trusted, (
+            f"distrusted {mod_distrusted} should be > trusted {mod_trusted}")

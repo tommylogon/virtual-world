@@ -1,0 +1,63 @@
+{
+  "name": "Monster Crossing",
+  "description": "On entering while carrying a crushed Monster can, Miki rounds the blind corner and collides with the man on the other side, spilling her drink down his shirt. The meet beat.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "n0",
+        "type": "trigger",
+        "x": 50,
+        "y": 50,
+        "props": {
+          "trigger_type": "on_enter",
+          "target_tag": ""
+        }
+      },
+      {
+        "id": "n1",
+        "type": "condition",
+        "x": 50,
+        "y": 180,
+        "props": {
+          "condition_type": "has_item",
+          "item": "crushed monster can",
+          "target": "player"
+        }
+      },
+      {
+        "id": "n2",
+        "type": "effect",
+        "x": 320,
+        "y": 180,
+        "props": {
+          "effect_type": "message",
+          "message": "She rounds the corner and walks straight into a man — her drink sloshes down his black shirt."
+        }
+      }
+    ],
+    "wires": [
+      {
+        "id": "w0",
+        "from": [
+          "n0",
+          "output"
+        ],
+        "to": [
+          "n1",
+          "input"
+        ]
+      },
+      {
+        "id": "w1",
+        "from": [
+          "n1",
+          "output_yes"
+        ],
+        "to": [
+          "n2",
+          "input"
+        ]
+      }
+    ]
+  }
+}

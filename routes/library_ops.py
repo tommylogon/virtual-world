@@ -531,6 +531,61 @@ def handle_library_import_area(app, area_id):
     return jsonify({"status": "imported", "area": area_name, "area_node_id": area_node_id})
 
 
+def handle_library_import_way(app, way_id):
+    """Create a way node from the library def and connect it between two areas.
+
+    Body: {area_from, area_to, dir_from, dir_to?} — dirs default to "out".
+    Mirrors the area/character import pattern so a library way (e.g. the blind
+    corner) can be dropped into the world and wired between two rooms.
+    """
+    from routes.helpers import load_registry
+    import re
+    data = request.get_json() or {}
+    ways_reg = load_registry(app.config["DATA_DIR"], "ways.json")
+    if way_id not in ways_reg:
+        return jsonify({"error": f"Way '{way_id}' not found in library"}), 404
+    w = ways_reg[way_id]
+    area_from = data.get("area_from") or ""
+    area_to = data.get("area_to") or ""
+    if not area_from or not area_to:
+        return jsonify({"error": "Need area_from and area_to"}), 400
+    if area_from.lower() == area_to.lower():
+        return jsonify({"error": "area_from and area_to must differ"}), 400
+    dir_from = data.get("dir_from") or "out"
+    dir_to = data.get("dir_to") or "out"
+
+    world = app.world
+    # way node id derived from library id (filename stem) -> way_<id>
+    node_id = "way_" + re.sub(r"[^a-z0-9_]+", "_", way_id.lower())
+    if world.graph.get_node(node_id):
+        return jsonify({"error": f"Way node '{node_id}' already in world"}), 409
+
+    name = w.get("name") or node_id
+    props = {}
+    for k in ("current_state", "description", "pass_message", "requires",
+              "max_size", "auto_close", "see_through", "one_way", "prevent_close",
+              "edge_length", "needs_open", "parameters", "cost", "tags"):
+        if k in w:
+            props[k] = w[k]
+    props["area_from"] = area_from
+    props["area_to"] = area_to
+    node = Node(id=node_id, type="way", name=name, properties=props)
+    world.graph.add_node(node)
+
+    # bidirectional connection via the way node (mirrors movement.connect_areas)
+    fa = world._area_node_id(area_from)
+    ta = world._area_node_id(area_to)
+    world.graph.add_edge(Edge(source=fa, target=node_id, type="connection",
+                              properties={"direction": dir_from}))
+    world.graph.add_edge(Edge(source=node_id, target=ta, type="connection",
+                              properties={"direction": dir_to}))
+    world.graph.add_edge(Edge(source=ta, target=node_id, type="connection",
+                              properties={"direction": dir_to}))
+    world.graph.add_edge(Edge(source=node_id, target=fa, type="connection",
+                              properties={"direction": dir_from}))
+    return jsonify({"status": "imported", "way": node_id, "way_node_id": node_id})
+
+
 def handle_refresh_way_from_library(app, node_id):
     node = app.world.graph.get_node(node_id)
     if not node or node.type != 'way':
@@ -779,11 +834,47 @@ def _refresh_character(app, node, sections, template_id=None):
         'npc_action_interval': 'npc_action_interval',
         'npc_state': 'npc_state',
         'simple_npc': 'simple_npc',
+        'memories': ('memories', 'list'),
+        'relationships': ('relationships', 'dict'),
+        'vitals': ('vitals', 'dict'),
+        'decay_rates': ('decay_rates', 'dict'),
+        'conditions': ('conditions', 'dict'),
+        'equipped': ('equipped', 'dict'),
+        'recent_hearing': ('recent_hearing', 'list'),
+        'activity': ('activity', 'scalar'),
+        'current_area': ('current_area', 'area'),
+        'emotion': ('emotion', 'emotion'),
     }
 
     def assign(player_field, value, kind=None):
         if kind == 'list':
             setattr(player, player_field, list(value if isinstance(value, (list, tuple)) else []))
+        elif kind == 'dict':
+            setattr(player, player_field, dict(value) if isinstance(value, dict) else {})
+        elif kind == 'area':
+            # Standalone characters: only set current_area if that area actually
+            # exists in THIS world. A library character may carry a current_area
+            # from another scenario — don't error or strand them, just leave them
+            # where they are.
+            try:
+                aid = app.world._area_node_id(value)
+                if value and app.world.graph.get_node(aid) is None:
+                    return
+            except Exception:
+                return
+            setattr(player, player_field, value)
+            try:
+                if hasattr(app.world, 'name_matcher') and hasattr(app.world.name_matcher, '_set_player_area'):
+                    app.world.name_matcher._set_player_area(node.name, value)
+            except Exception:
+                pass
+        elif kind == 'emotion':
+            if isinstance(value, dict):
+                player.emotion = str(value.get('current') or 'neutral')
+                try:
+                    player.emotion_intensity = float(value.get('intensity') or 0)
+                except (TypeError, ValueError):
+                    player.emotion_intensity = 0.0
         else:
             setattr(player, player_field, value)
 

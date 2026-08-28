@@ -87,7 +87,7 @@ window.PromptBuilder = window.PromptBuilder || {};
      * @param {boolean} [includeMemory=false] - Whether to ask for a memory object in the response
      * @returns {string} Reaction prompt string
      */
-    function buildReactionPrompt(player, parts, vitalsNL, emotionNL, relationshipNL, memoryNL, lastResult, includeMemory = false) {
+    function buildReactionPrompt(player, parts, vitalsNL, emotionNL, relationshipNL, memoryNL, lastResult, includeMemory = false, includeFeelings = false) {
         const last = lastResult
             ? `\n\n=== RECENTLY ===\n${lastResult}`
             : '\n\n=== START ===\nThis is your first moment in this world. What do you think, say, and do?';
@@ -100,7 +100,8 @@ window.PromptBuilder = window.PromptBuilder || {};
         // — see file-header NOTE: currently unused, matching original behavior.
 
         const schemaFields = ['inner_monologue', 'action_use_on', 'speech', 'volume', 'emote'];
-        if (includeMemory) schemaFields.push('memory', 'emotion');
+        if (includeFeelings) schemaFields.push('emotion_toward', 'learned_names');
+        if (includeMemory) schemaFields.push('memory', 'emotion_toward', 'learned_names');
 
         const head = PromptBuilder.assembleMessageHead(parts, context, memoryNL);
 
@@ -254,7 +255,7 @@ ${PromptBuilder.MEMORY_INSTRUCTION_REACT}
 
 Respond ONLY raw JSON. Put a comma between every field. Do NOT repeat the same key twice.
 If you speak:
-${PromptBuilder.buildJsonExample(['inner_monologue', 'speech', 'volume', 'emote', 'memory', 'emotion'])}
+${PromptBuilder.buildJsonExample(['inner_monologue', 'speech', 'volume', 'emote', 'memory', 'emotion_toward', 'learned_names'])}
 If you stay silent but emote:
 {"inner_monologue":"...","emote":"..."}
 If you have nothing to react with:

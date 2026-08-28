@@ -58,14 +58,21 @@ class StreamRawLLM {
         const tokens = estTokens != null ? estTokens : StreamRawLLM.estimateTokens(messages);
         const warn = tokens >= this.TOKEN_WARN;
         const tokSpan = window.Lit.html`<span class=${'tok-meter' + (warn ? ' warn' : '')} title=${warn ? 'Near the context ceiling — history pruning imminent' : 'Estimated tokens'}>~${(tokens / 1000).toFixed(1)}k tok${warn ? ' ⚠' : ''}</span>`;
+        // Only attach the recall note when THIS call's messages actually recall
+        // (contains the `=== I REMEMBER ===` block). Otherwise a still-fresh
+        // _lastRecallStats from an earlier phase (e.g. the prior react call)
+        // would falsely claim this LLM call recalled memories.
         const recall = (window._lastRecallStats && (Date.now() - (window._lastRecallStats.at || 0)) < 30000)
             ? window._lastRecallStats : null;
+        const thisCallRecalls = recall && messages.some(m => /=== I REMEMBER ===/.test(String(m.content || '')));
         this._chipBubble(
             tick, 'LLM', '📤',
-            window.Lit.html`LLM → ${phaseName} ${tokSpan}${recall ? window.Lit.html` <span class="recall-note">recalled: ${recall.count} memories${recall.semantic ? ` (${recall.semantic} semantic)` : ''}</span>` : ''}`,
+            window.Lit.html`LLM → ${phaseName} ${tokSpan}${thisCallRecalls ? window.Lit.html` <span class="recall-note">recalled: ${recall.count} memories${recall.semantic ? ` (${recall.semantic} semantic)` : ''}</span>` : ''}`,
             (body) => {
-                const text = messages.map(m => `${m.role}: ${m.content}`).join('\n\n---\n\n');
-                body.textContent = text;
+                // Body is PURELY the prompt text (for display). The retrieval
+                // "why" is NOT included here — it lives on the separate always-
+                // visible stream line, so it can never be mistaken for prompt text.
+                body.textContent = messages.map(m => `${m.role}: ${m.content}`).join('\n\n---\n\n');
             },
             ''
         );

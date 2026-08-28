@@ -221,6 +221,61 @@ class Player:
         from engine import emotion as _emotion
         _emotion.spike(self.emotions_map(), emotion, delta)
 
+    #: Emotion-label -> (derived dimension, sign factor). The recipient decides
+    #: how a line landed (label + intensity 1-10); we map it to a dimension
+    #: delta and record it as an experience (task-350).
+    _FELT_TO_DIM = {
+        "affectionate": ("trust", +1.0),
+        "happy": ("trust", +0.5),
+        "grateful": ("trust", +0.7),
+        "afraid": ("fear", +1.0),
+        "frightened": ("fear", +1.0),
+        "disgusted": ("disgust", +1.0),
+        "repulsed": ("disgust", +1.0),
+        "angry": ("trust", -0.8),
+        "envious": ("disgust", -0.6),
+        "distrustful": ("trust", -1.0),
+        "uneasy": ("fear", +0.5),
+    }
+
+    def felt_toward(self, other_name: str, label: str, intensity: float, tick: int) -> bool:
+        """Record a recipient-decided feeling *toward* another character.
+
+        This is the single LLM to experience bridge. The recipient (the person
+        the line landed on) names how they feel about other_name (label + 1-10),
+        the ENGINE maps it to a dimension delta and writes a tagged memory, and
+        engine.derive later folds it into the derived profile (consent/trust/
+        fear) so mechanics can gate on it. Returns True when a memory was written.
+        """
+        key = str(label or "").strip().lower()
+        if key not in self._FELT_TO_DIM:
+            return False
+        try:
+            intensity = max(1.0, min(10.0, float(intensity)))
+        except (TypeError, ValueError):
+            return False
+        # Ensure a relationship record exists so this person shows up in
+        # derived profiles and later name-learning can clear the stranger flag.
+        if other_name not in self.relationships:
+            self.relationships[other_name] = {
+                "closeness": 0, "last_interaction_tick": tick,
+                "interaction_count": 0, "first_sighting": True,
+            }
+        dim, factor = self._FELT_TO_DIM[key]
+        # Per-point magnitude: a 10/10 feeling lands a tag of ~2.5, which the
+        # reducer multiplies by importance, leaving a real mark on the profile.
+        mag = intensity / 4.0
+        importance = max(3, round(intensity))
+        tags = ["rel:" + other_name, dim + ":" + str(round(factor * mag, 2))]
+        self.add_memory(
+            "I felt " + label + " toward " + other_name + ".", tick=tick,
+            importance=importance, memory_type="emotion", tags=tags, source="felt",
+        )
+        # Also nudge the live affect map so the mood reads this turn.
+        if label in self.emotions_map():
+            self.spike_emotion(label, intensity)
+        return True
+
     def decay_emotions(self) -> None:
         """Per-tick drift of all dimensions toward baseline (tick_manager hook)."""
         from engine import emotion as _emotion
@@ -618,13 +673,7 @@ class Player:
             "emotions": dict(self.emotions_map()),
             "equipped": dict(self.equipped),
             "activity": self.activity,
-            "relationships": {
-                name: {
-                    "closeness": data["closeness"],
-                    "interaction_count": data["interaction_count"]
-                }
-                for name, data in self.relationships.items()
-            } if self.relationships else {},
+            "relationships": self._relationships_to_dict(),
             "traits": dict(self.traits),
             "tags": list(self.tags),
             "interest_tags": list(self.interest_tags),
@@ -634,6 +683,34 @@ class Player:
             "patrol_index": getattr(self, "patrol_index", 0),
         }
 
+    def _relationships_to_dict(self):
+        """Serialize relationships, attaching the derived per-person read.
+
+        task-350: the derived (trust/fear/consent) profile is computed from the
+        experience store and included so the prompt builder can render a
+        truthful read synchronously (no extra fetch).
+        """
+        out = {}
+        for name, data in (self.relationships or {}).items():
+            entry = {
+                "closeness": data["closeness"],
+                "interaction_count": data.get("interaction_count", 0),
+                "last_interaction_tick": data.get("last_interaction_tick", 0),
+                "first_sighting": data.get("first_sighting", False),
+            }
+            try:
+                from engine.derive import derive_person_profile
+                prof = derive_person_profile(self, name)
+                entry["role"] = prof.get("role")
+                entry["consent"] = round(prof.get("consent", 0.0), 3)
+                entry["trust"] = round(prof.get("trust", 0.0), 1)
+                entry["fear"] = round(prof.get("fear", 0.0), 1)
+                entry["summary"] = prof.get("summary")
+                entry["has_signal"] = bool(prof.get("_has_signal"))
+            except Exception:
+                pass
+            out[name] = entry
+        return out
 from engine.player_conditions import (
     CONDITION_DEFINITIONS,
     CONDITION_HIERARCHY,

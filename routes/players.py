@@ -4,6 +4,9 @@ from .player_ops import (
     handle_get_players,
     handle_get_emotions,
     handle_spike_emotion,
+    handle_map_player_emotions,
+    handle_get_relationship_profiles,
+    handle_learn_names,
     handle_get_conditions,
     handle_create_player,
     handle_set_active_player,
@@ -33,6 +36,18 @@ def register_players_routes(app):
     @app.route('/api/players/<name>/emotions', methods=['POST'])
     def api_spike_emotion(name):
         return handle_spike_emotion(app, name)
+
+    @app.route('/api/players/<name>/emotions/map', methods=['POST'])
+    def api_map_emotion(name):
+        return handle_map_player_emotions(app, name)
+
+    @app.route('/api/players/<name>/relationships/profiles', methods=['GET'])
+    def api_relationship_profiles(name):
+        return handle_get_relationship_profiles(app, name)
+
+    @app.route('/api/players/<name>/names', methods=['POST'])
+    def api_learn_names(name):
+        return handle_learn_names(app, name)
 
     @app.route('/api/conditions', methods=['GET'])
     def api_get_conditions():

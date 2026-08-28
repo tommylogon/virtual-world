@@ -606,6 +606,7 @@
                         <div id="lib-way-editor" style="flex:1;min-width:240px;overflow-x:hidden;"></div>
                     </div>
                     <div style="display:flex;gap:6px;padding:8px 20px;border-top:1px solid var(--border);">
+                        <button class="btn btn-green btn-sm" onclick="VW.libraryBrowser.importSelectedWay()">🌍 Import to World</button>
                         <button class="btn btn-sm" onclick="VW.libraryBrowser.saveEntry('ways')">💾 Save to Library</button>
                         <button class="btn btn-secondary btn-sm" onclick="closeLibraryBrowser()">Close</button>
                     </div>
@@ -929,6 +930,7 @@
     <script src="/static/js/shared/trigger-graph.js"></script>
     <script src="/static/js/shared/ai-generator.js"></script>
     <script src="/static/js/shared/embedding-client.js"></script>
+    <script src="/static/js/shared/emotion-mapper.js"></script>
     <script src="/static/js/shared/vital-color.js"></script>
     <script src="/static/js/shared/tag-multiselect.js"></script>
     <script src="/static/js/shared/template-sync.js"></script>

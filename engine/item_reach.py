@@ -27,6 +27,29 @@ def _norm(s) -> str:
     return (s or "").lower().replace("_", " ").replace("-", " ").strip()
 
 
+import re
+
+_ARTICLES = ("the ", "a ", "an ")
+
+def _core(s) -> str:
+    """Normalized match key: lowercase, underscores/dashes -> spaces, with a
+    leading article and a trailing parenthetical qualifier stripped.
+
+    Lets "the steamed meal" resolve to "Steamed Meal (Holding Chute)", and
+    "use the warm crunchy taco" to "Warm Crunchy Taco" — so partial / articled /
+    parenthetically-named items match (task: item name resolution).
+    """
+    s = _norm(s)
+    s = re.sub(r"\s*\([^)]*\)\s*$", "", s).strip()
+    for a in _ARTICLES:
+        if s.lower().startswith(a):
+            s = s[len(a):].strip()
+            break
+    return s
+
+
+
+
 def _props(node) -> dict:
     return node.properties if node and node.properties else {}
 
@@ -47,7 +70,7 @@ def _is_open(node) -> bool:
 
 
 def _match_tier(node, wanted: str, fuzzy_wanted: Optional[str]) -> Optional[int]:
-    """0 exact · 1 fuzzy-exact · 2 containment · None no match."""
+    """0 exact · 1 fuzzy-exact · 2 containment · 3 core · None no match."""
     name = _norm(node.name)
     if not name:
         return None
@@ -59,6 +82,18 @@ def _match_tier(node, wanted: str, fuzzy_wanted: Optional[str]) -> Optional[int]
         return 2
     if len(name) > 3 and name in wanted:
         return 2
+    # Core match: strip article + parenthetical qualifier from both sides.
+    ncore = _core(node.name)
+    wcore = _core(wanted)
+    fcore = _core(fuzzy_wanted) if fuzzy_wanted else ""
+    if ncore and ncore == wcore:
+        return 3
+    if fcore and ncore == fcore:
+        return 3
+    if ncore and wcore and (len(wcore) >= 3 and wcore in ncore):
+        return 3
+    if ncore and wcore and (len(ncore) > 3 and ncore in wcore):
+        return 3
     return None
 
 

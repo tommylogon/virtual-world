@@ -59,10 +59,15 @@ class TransferActionsMixin:
 
         area_name = player_manager.current_area.name if player_manager.current_area else None
         player_manager.record_turn_event(player_manager.active_player, "give", f"gave {item_name} to {target_name}", area_name=area_name)
-        # Gift warms the recipient toward the giver (task-94: closeness gate).
+        # A gift warms BOTH directions (task-349): the recipient warms toward
+        # the giver, and the giver warms toward the recipient, matching how
+        # speech updates both sides (task-94: closeness gate).
         tick = getattr(player_manager, "time_ticks", 0) or 0
         if hasattr(target, "update_relationship"):
             target.update_relationship(player_manager.active_player, tick, 5)
+        giver = player_manager.players.get(player_manager.active_player)
+        if giver and hasattr(giver, "update_relationship"):
+            giver.update_relationship(target_name, tick, 5)
         result = f"You hand the {item_name} to {target_name}."
         if trigger_outputs:
             result += "\n" + "\n".join(trigger_outputs)

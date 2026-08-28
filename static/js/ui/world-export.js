@@ -262,21 +262,106 @@ window.WorldExport = (() => {
     function exportEventLog() {
         var streamEl = document.getElementById('event-stream');
         if (!streamEl) return;
-        var lines = [];
+
+        var scenarioName = (document.body.dataset.scenarioName || 'unnamed').trim() || 'unnamed';
+        var ts = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+
+        // Each stream row is labelled with a "[Tick N]" event-sequence id (a
+        // global line counter) — NOT the world clock (time_ticks, per-turn).
+        // Pick the highest sequence present so the filename tracks the log's
+        // own numbering; fall back to the world clock if none are found.
+        var maxTick = 0;
+        var tickRe = /\[\s*Tick\s+(\d+)\s*\|/;
+        var tickSpans = streamEl.querySelectorAll('.bubble-tick');
+        for (var i = 0; i < tickSpans.length; i++) {
+            var m = (tickSpans[i].textContent || '').match(tickRe);
+            if (m) maxTick = Math.max(maxTick, parseInt(m[1], 10));
+        }
+        if (!maxTick) maxTick = worldState.tick || 0;
+
+        var filename = scenarioName + '_tick_' + maxTick + '_event_log_' + ts + '.md';
+        var content = buildMarkdownLog(scenarioName, maxTick, ts, streamEl);
+        var blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+        saveFileWithDialog(blob, filename);
+        events.log('📥 Event log exported (Markdown).', 'system-msg');
+    }
+
+    /**
+     * Render the event stream into a tidy Markdown file. Walks the actual
+     * bubbles (not element.textContent of whole turn cards, which would keep
+     * filter-hidden rows like raw-LLM chips), skipping any row hidden by a
+     * visibility filter, groups rows under their world-turn ("Turn N") heading,
+     * and emits each remaining event as its own bullet with newlines intact.
+     */
+    function buildMarkdownLog(scenarioName, maxTick, ts, streamEl) {
+        var buf = '';
+        var openHeading = '';
+        var lastTurn = 0;
+
+        function emitBubble(bubble) {
+            if (!bubble || bubble.style.display === 'none') return;
+            // Raw-LLM request/response chips are huge prompt bodies — collapse to
+            // a one-line note so the export reads like the narrative cards, not a
+            // dump of every LLM payload.
+            if (bubble.classList.contains('msg-bubble-rawllm')) {
+                var headEl = bubble.querySelector('.rawllm-chip-header');
+                var head = headEl ? headEl.textContent.trim() : 'LLM request/response';
+                buf += '- _' + head + '_\n';
+                return;
+            }
+            var textEl = bubble.querySelector('.bubble-text')
+                || bubble.querySelector('.bubble-phase-pill');
+            var text = (textEl ? textEl.textContent : bubble.textContent || '') || '';
+            text = text.replace(/^\s+/, '').trim();
+            if (!text) return;
+            var iconEl = bubble.querySelector('.bubble-icon');
+            var actorEl = bubble.querySelector('.bubble-actor');
+            var icon = iconEl ? iconEl.textContent.trim() : '';
+            var actor = actorEl ? actorEl.textContent.trim() : (bubble.getAttribute('data-actor') || '');
+            var line = '';
+            if (icon) line += icon + ' ';
+            if (actor) line += '**' + actor + '** — ';
+            buf += '- ' + line + text + '\n';
+        }
+
+        function heading(title) {
+            if (title === openHeading) return;
+            buf += '\n## ' + title + '\n\n';
+            openHeading = title;
+        }
+
         for (var i = 0; i < streamEl.children.length; i++) {
             var child = streamEl.children[i];
-            if (child.style.display === 'none') continue;
-            var text = child.textContent || '';
-            if (text.trim()) lines.push(text.trim());
+            if (!child || child.style.display === 'none') continue;
+
+            var cardHeader = child.querySelector('.turn-card-header');
+            var cardBody = child.querySelector('.turn-card-body');
+            if (cardHeader && cardBody) {
+                var turn = 0, time = '';
+                var turnEl = child.querySelector('.turn-card-tick');
+                if (turnEl) {
+                    var tm = (turnEl.textContent || '').match(/Turn\s+(\d+)(?:\s*\|\s*([^)]*))?/);
+                    if (tm) {
+                        turn = parseInt(tm[1], 10) || 0;
+                        time = (tm[2] || '').trim();
+                    }
+                }
+                if (turn > lastTurn) lastTurn = turn;
+                var actorEl = child.querySelector('.turn-card-actor');
+                var actor = actorEl ? actorEl.textContent.trim() : '';
+                heading('Turn ' + turn + (actor ? ' — ' + actor : '') + (time ? ' · ' + time : ''));
+                var bubbles = cardBody.querySelectorAll('.msg-bubble');
+                for (var b = 0; b < bubbles.length; b++) emitBubble(bubbles[b]);
+            } else {
+                // System rows / area transitions that sit directly in the stream.
+                if (!openHeading) heading('Setup');
+                emitBubble(child);
+            }
         }
-        var content = lines.join('\n');
-        var blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-        var scenarioName = (document.body.dataset.scenarioName || 'unnamed').trim() || 'unnamed';
-        var tick = worldState.tick || 0;
-        var ts = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-        var filename = scenarioName + '_tick_' + tick + '_event_log_' + ts + '.txt';
-        saveFileWithDialog(blob, filename);
-        events.log('📥 Event log exported.', 'system-msg');
+
+        var header = '# ' + scenarioName + ' — event log\n\n'
+            + '> Run tick ' + maxTick + ' · final turn ' + (lastTurn || '?') + ' · exported ' + ts + '\n\n';
+        return header + buf;
     }
 
     /**
@@ -285,14 +370,11 @@ window.WorldExport = (() => {
     async function copyEventLogToClipboard() {
         var streamEl = document.getElementById('event-stream');
         if (!streamEl) return;
-        var lines = [];
-        for (var i = 0; i < streamEl.children.length; i++) {
-            var child = streamEl.children[i];
-            if (child.style.display === 'none') continue;
-            var text = child.textContent || '';
-            if (text.trim()) lines.push(text.trim());
-        }
-        var content = lines.join('\n');
+        // Clipboard now emits the SAME Markdown as the file download (task: export
+        // parity), so copying paste straight into an editor is a clean log.
+        var scenarioName = (document.body.dataset.scenarioName || 'unnamed').trim() || 'unnamed';
+        var ts = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+        var content = buildMarkdownLog(scenarioName, worldState.tick || 0, ts, streamEl);
         try {
             await navigator.clipboard.writeText(content);
             events.log('📋 Event stream copied to clipboard! (' + content.length + ' chars)', 'system-msg');

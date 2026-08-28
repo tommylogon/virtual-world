@@ -13,6 +13,92 @@ window.PromptBuilder = window.PromptBuilder || {};
 (() => {
     'use strict';
 
+    // Social-recall re-feel: when a character HEARS a line that references one of
+    // their own memories, re-feel that memory's emotions (affect + subtle vitals)
+    // and — when the speaker resolves to a known person — nudge the relationship.
+    // Rate-limited per character so repeated chatter doesn't endlessly stack.
+    const _socialRecallGuard = {};
+
+    async function _matchMemory(memories, text, charName) {
+        if (!text) return null;
+        // Semantic via the embedding store when configured.
+        if (window.EmbeddingClient && EmbeddingClient.configured()) {
+            try {
+                const vec = await EmbeddingClient.embed(text);
+                if (vec) {
+                    const resp = await fetch('/api/memory/embeddings/search', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ vector: vec, character: charName, k: 3 })
+                    });
+                    const data = await resp.json();
+                    for (const r of (data.results || [])) {
+                        const key = r.key || '';
+                        const memId = key.includes('::') ? key.split('::').pop() : key;
+                        const entry = memories.find(m => String(m.id) === String(memId));
+                        if (entry && (Number(r.score) || 0) >= 0.5) return entry;
+                    }
+                }
+            } catch (e) { /* fall through to keyword */ }
+        }
+        // Keyword overlap fallback.
+        const words = text.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+        if (words.length === 0) return null;
+        let best = null, bestScore = 0;
+        for (const m of memories) {
+            if (!m || !m.text) continue;
+            const mt = m.text.toLowerCase();
+            let overlap = 0;
+            for (const w of words) if (mt.includes(w)) overlap++;
+            const score = overlap / words.length;
+            if (score > bestScore) { bestScore = score; best = m; }
+        }
+        return bestScore >= 0.5 ? best : null;
+    }
+
+    async function _fireSocialRecall(charName, seeds) {
+        try {
+            const player = worldState.data?.players?.[charName];
+            const memories = (player && player.memories) || [];
+            if (!seeds.length || !memories.length) return;
+            const now = Date.now();
+            if (now - (_socialRecallGuard[charName] || 0) < 12000) return;
+            for (const seed of seeds) {
+                if (!seed || !seed.text) continue;
+                const entry = await _matchMemory(memories, seed.text, charName);
+                if (!entry) continue;
+                const emos = (Array.isArray(entry.memory_emotions) && entry.memory_emotions.length)
+                    ? entry.memory_emotions : (entry.emotion ? [entry.emotion] : []);
+                if (!emos.length) continue;
+                const mapped = {};
+                for (const e of emos) {
+                    let dim = null;
+                    if (window.EmotionMapper) {
+                        const r = await window.EmotionMapper.resolve(e.label);
+                        dim = r && r.dimension;
+                    } else if (e.label) {
+                        dim = e.label;
+                    }
+                    if (!dim) continue;
+                    const intens = Math.max(1, Math.min(10, Number(e.intensity) || 5));
+                    mapped[dim] = (mapped[dim] || 0) + intens;
+                }
+                if (!Object.keys(mapped).length) continue;
+                const body = { mapped };
+                // Name-gated relationship nudge: only when the speaker is a known
+                // player. An anonymized voice label stays a pure re-feel.
+                if (typeof seed.speaker === 'string' && seed.speaker.trim() && worldState.players?.[seed.speaker]) {
+                    body.toward = seed.speaker.trim();
+                }
+                _socialRecallGuard[charName] = now;
+                fetch(`/api/players/${encodeURIComponent(charName)}/emotions/map`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                }).catch(() => {});
+                break; // one social recall per turn so chatter doesn't stack
+            }
+        } catch (e) { /* non-critical */ }
+    }
+
     function buildCharacterPreamble(charName, player) {
         if (!player || !player.personality) return '';
         const fixNewlines = (s) => (s || '').replace(/\\n/g, '\n');
@@ -275,6 +361,19 @@ window.PromptBuilder = window.PromptBuilder || {};
                 const beyondSuffix = buildBeyondSuffix(state, charName, exitData, exitData.target, doorNode);
                 const moveHint = movementSuffix(doorNode, handle);
                 const preventClose = !!doorNode.properties?.prevent_close;
+                const doorTags = (doorNode.properties?.tags || []).map(t => String(t).toLowerCase().trim());
+                const req = (doorNode.properties?.requires || '').toLowerCase();
+                // Only reveal lock/force/block state the CHARACTER actually knows
+                // (learned by examining or trying) — never the raw door state, which
+                // would leak hidden info before they've discovered it (task-333).
+                const forced = !!exitData.needs_force_known;
+                const locked = !!exitData.known_locked;
+                const blocked = !!exitData.known_blocked;
+                let doorHint = ' (you can go, dash, or open it)';
+                if (forced) doorHint = ' (you can force it open)';
+                else if (locked) doorHint = " (it's locked — you'd need to unlock it first)";
+                else if (blocked) doorHint = ' (it is blocked — you will need to clear it)';
+                const openHint = doorHint;
                 if (wayState === 'open') {
                     const viewDirection = exitData.visible_in_direction || '';
                     const doorTags = (doorNode.properties?.tags || []).map(t => String(t).toLowerCase().trim());
@@ -314,11 +413,11 @@ window.PromptBuilder = window.PromptBuilder || {};
                         ? InspectorHelpers.resolveWayParams(doorRawDescription, doorNode.properties?.parameters || {})
                         : doorRawDescription;
                     if (seeThrough && viewDirection) {
-                        exitLines.push(`[${handle}] is closed — through it you can see ${viewDirection}${beyondSuffix}${moveHint}`);
+                        exitLines.push(`[${handle}] is closed — through it you can see ${viewDirection}${beyondSuffix}${moveHint}${openHint}`);
                     } else if (beyondSuffix && seeThrough) {
-                        exitLines.push(`[${handle}] ${doorDescription} It is currently closed.${beyondSuffix}${moveHint}`);
+                        exitLines.push(`[${handle}] ${doorDescription} It is currently closed.${beyondSuffix}${moveHint}${openHint}`);
                     } else {
-                        exitLines.push(`[${handle}] ${doorDescription} It is currently closed.${moveHint}`);
+                        exitLines.push(`[${handle}] ${doorDescription} It is currently closed.${moveHint}${openHint}`);
                     }
                 }
             }
@@ -386,6 +485,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         }
         let witnessedEvents = '';
         const witnessedLines = [];
+        const socialSeeds = [];
 
         // Include recent_hearing for cross-room sound propagation
         const recentHearing = player?.recent_hearing || [];
@@ -414,6 +514,7 @@ window.PromptBuilder = window.PromptBuilder || {};
                     seenSpeechKeys.add(`${evt.actor}|${spoken}`);
                     seenSpeechTexts.push(spoken);
                     line = PromptBuilder.markSpeechLine(line, textMatch[1], charName, player);
+                    socialSeeds.push({ speaker: evt.actor, text: textMatch[1] });
                 }
             }
             witnessedLines.push(line);
@@ -439,6 +540,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             let line = `[Heard${direction}] ${anon} said: "${h.text}"`;
             line = PromptBuilder.markSpeechLine(line, h.text, charName, player);
             witnessedLines.push(line);
+            socialSeeds.push({ speaker: h.speaker, text: h.text });
         });
 
         // Heard sound sources (alarms, ringing phones, etc.) from this or adjacent areas
@@ -463,6 +565,9 @@ window.PromptBuilder = window.PromptBuilder || {};
         witnessedEvents = witnessedLines.length > 0
             ? '\n\n=== WITNESSED ===\n' + witnessedLines.join('\n')
             : '\n\n=== WITNESSED ===\nNothing unusual happened while you were looking.';
+        // Social recall: if something heard references one of this character's
+        // memories, re-feel it (and nudge the relationship when known).
+        if (socialSeeds.length) _fireSocialRecall(charName, socialSeeds);
         // Build narrative lead-in — use feels_like from backend state if available
         const feelsLike = player?.feels_like ?? currentArea?.environment?.temperature;
         const tempFeel = feelsLike != null

@@ -1,0 +1,58 @@
+{
+  "description": "the corner of elm street where the sidewalk buckles and a narrow alley mouth opens between two darkened storefronts. a dead streetlight hums overhead, its bulb long gone. the taco bell's buzzing sign is the brightest thing for a block, spilling green-white light across the cracked pavement. an old bus stop bench leans against the wall, peeling to the wood, and someone has scratched a lopsided heart and a run-on apology into the grime on the glass of the adjacent storefront. it's the kind of corner you round without thinking — and the kind where, on a bad night, you walk straight into someone coming the other way.",
+  "environment": {
+    "air": "cold",
+    "light": 30,
+    "noise": "distant traffic, the taco bell sign buzzing",
+    "smell": "old brick, wet asphalt, cold dumpster",
+    "temperature": 8
+  },
+  "items": [
+    {
+      "name": "Bus Stop Bench",
+      "description": "a wooden bench bolted to the pavement, paint flaking to pale grey. a faded ad panel above it has been scraped to nothing. someone left a crushed green monster can wedged under one leg.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 25,
+      "current_state": "normal",
+      "tags": [
+        "exterior",
+        "furniture"
+      ]
+    },
+    {
+      "name": "Graffiti Wall",
+      "description": "the dark storefront window beside the alley mouth, grimy enough to write in. a half-hearted heart with an arrow, and below it, in smaller letters, 'sorry — i mean it this time'.",
+      "actions": [
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 0,
+      "current_state": "normal",
+      "tags": [
+        "exterior",
+        "graffiti"
+      ]
+    }
+  ],
+  "name": "Sidewalk Corner",
+  "tags": [
+    "millbrook_falls",
+    "exterior",
+    "street",
+    "night"
+  ],
+  "triggers": [],
+  "exits": [
+    {
+      "direction": "elm street",
+      "target_room_hint": "Elm Street",
+      "description": "the sidewalk continues along elm street, buckled in patches, the taco bell's buzzing sign pulling the eye a few doors down.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "south"
+    }
+  ]
+}

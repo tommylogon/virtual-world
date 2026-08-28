@@ -59,12 +59,30 @@ class GrappleSystem:
         return max(skills.get("Athletics", 0), skills.get("Acrobatics", 0))
 
     def _relationship_mod(self, target_name: str, grappler_name: str) -> int:
-        """Linear relationship modifier for grapple checks.
+        """Relationship modifier for grapple checks.
 
-        Positive closeness (friend) lowers the DC by 2 per 25 levels.
-        Negative closeness (enemy) raises the DC by 2 per 25 levels.
-        Clamped to [-8, +8].
+        Experience-driven (task-350): when the target carries a dimensional
+        read on the grappler (trusted/unsettling memories), the modifier comes
+        from *consent* -- whether the target would let this person close.
+        High consent (they trust you, no fear) lowers the DC (easy grip);
+        low/negative consent (they pull away, they're afraid) raises it
+        (hard to grab/hold). Clamped to [-8, +8].
+
+        When there is no experiential signal yet, falls back to the legacy
+        raw-closeness rule so existing content keeps working unchanged.
         """
+        target = self.player_manager.players.get(target_name)
+        if target is not None:
+            try:
+                from engine.derive import derive_person_profile
+                prof = derive_person_profile(target, grappler_name)
+                if prof.get("_has_signal"):
+                    return max(
+                        GRAPPLE_REL_MIN,
+                        min(GRAPPLE_REL_MAX, int(round(-prof.get("consent", 0.0) * GRAPPLE_REL_MAX))),
+                    )
+            except Exception:
+                pass
         closeness = self._closeness(target_name, grappler_name)
         mod = -(closeness // 25) * GRAPPLE_REL_PER_LEVEL
         return max(GRAPPLE_REL_MIN, min(GRAPPLE_REL_MAX, mod))

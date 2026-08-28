@@ -38,6 +38,28 @@ def register_memories_routes(app):
         if not player:
             return jsonify({"error": "Player not found"}), 404
         data = request.get_json(force=True)
+        emotions = data.get("emotions")
+        tags = list(data.get("tags", []) or [])
+        # task-350: a memory can carry a structured feelings block about a person
+        # ({who, why, data:{dim:delta}}). Resolve the handle → real player name so
+        # the derive reducer can match it, canonicalize `who`, and stamp a rel:
+        # tag (which also registers the relationship). Guessing is blocked: an
+        # unresolved/ambiguous handle simply is not attributed to anyone.
+        if isinstance(emotions, dict):
+            who = str(emotions.get("who") or "").strip()
+            if who:
+                resolved_who = None
+                try:
+                    from routes.player_ops import _resolve_other
+                    resolved_who = _resolve_other(app, name, who)
+                except Exception:
+                    resolved_who = None
+                if resolved_who:
+                    emotions = dict(emotions)
+                    emotions["who"] = resolved_who
+                    reltag = "rel:" + resolved_who
+                    if reltag not in tags:
+                        tags.append(reltag)
         entry = {
             "id": data.get("id", f"mem_{int(time.time()*1000)}_{random.randint(0,999)}"),
             "text": data.get("text", ""),
@@ -48,8 +70,11 @@ def register_memories_routes(app):
             "location": data.get("location", ""),
             "entity_ids": data.get("entity_ids", []),
             "embedding": data.get("embedding"),
-            "tags": data.get("tags", []),
+            "tags": tags,
             "emotion": data.get("emotion"),
+            "emotions": emotions,
+            "memory_emotions": data.get("memory_emotions", []),
+            "salience_override": data.get("salience_override", data.get("salience", 0)),
             "source": data.get("source", "auto")
         }
         player.memories.append(entry)
@@ -63,7 +88,9 @@ def register_memories_routes(app):
         data = request.get_json(force=True)
         for entry in player.memories:
             if entry.get("id") == entry_id:
-                for key in ["text", "type", "importance", "location", "tags"]:
+                for key in ["text", "type", "importance", "location", "tags",
+                            "tick", "source", "entity_ids", "emotion", "emotions",
+                            "memory_emotions", "salience_override", "timestamp"]:
                     if key in data:
                         entry[key] = data[key]
                 return jsonify({"status": "success", "entry": entry})

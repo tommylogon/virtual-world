@@ -1,0 +1,29 @@
+{
+  "description": "a short, darker street branching east off elm street, its one working streetlight pooled in a cone of sickly yellow. the buildings here are older — a shuttered laundromat, a pawn shop with the grate pulled down. a bus bench and a jutting corner of brick wall at the mouth of the alley make this the spot where two sidewalks meet at a blind corner. the taco bell sign glows faintly behind you, a few doors back, the only warmth on the block.",
+  "environment": {
+    "air": "cold",
+    "light": 20,
+    "noise": "distant traffic, the buzz of the taco bell sign",
+    "smell": "old brick, cold asphalt, wet garbage",
+    "temperature": 7
+  },
+  "items": [],
+  "name": "Oak Street",
+  "tags": [
+    "millbrook_falls",
+    "exterior",
+    "street",
+    "night"
+  ],
+  "triggers": [],
+  "exits": [
+    {
+      "direction": "elm street",
+      "target_room_hint": "Elm Street",
+      "description": "the blind corner where oak street runs back west into elm street, past the pawn shop grate — someone coming the other way is easy to walk straight into.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "west"
+    }
+  ]
+}

@@ -32,6 +32,7 @@ from .library_ops import (
     handle_library_place_item,
     handle_library_import_character,
     handle_library_import_area,
+    handle_library_import_way,
     handle_refresh_way_from_library,
     handle_library_refresh_to_world,
 )
@@ -75,6 +76,10 @@ def register_library_routes(app):
     @app.route('/api/library/import/area/<area_id>', methods=['POST'])
     def library_import_area(area_id):
         return handle_library_import_area(app, area_id)
+
+    @app.route('/api/library/import/way/<way_id>', methods=['POST'])
+    def library_import_way(way_id):
+        return handle_library_import_way(app, way_id)
 
     @app.route('/api/ways/<node_id>/refresh-from-library', methods=['POST'])
     def refresh_way_from_library(node_id):

@@ -60,7 +60,7 @@ Injected into the prompt as a per-character behavioral directive:
 | <= 25 | "polite but reserved; courtesy without warmth" |
 | <= 50 | "you are friendly; chat openly and help when asked" |
 | <= 75 | "you are glad they are here; engage warmly, share news, watch out for them" |
-| **> 75** | **none — function returns undefined** |
+| **> 75** | "you trust them completely; prioritize their safety, share secrets, stay close" |
 
 ## Relationship-driven mechanics (readers)
 
@@ -78,16 +78,18 @@ to_dict() emits **only** {closeness, interaction_count} per relationship.
 
 ## What's missing / broken (gaps found in this audit)
 
+> Status: audited against task-349. Items marked **[fixed]** are resolved; **[not-a-bug]** verified safe; the rest are open design follow-ups.
+
 1. **Closeness barely responds to social texture.** Only speech (+2), give (+5), and combat (-30) move it. Flirting, helping, comforting, banter, shared activities, emotional beats, and even negative social friction (cold, dismissive, insulting) do not change closeness unless they happen to be a speech line.
 2. **No time decay.** Nothing lowers closeness over time or from neglect — only an outright attack does. Relationships are monotonic upward (or crater from one attack). The -20..+20 docstring range is unused; real deltas are +2/+5/-30.
 3. **No affect/valence weighting.** Speech tone, volume, and emotion are scored not at all — a whispered compliment and a shouted insult both move closeness by the same +2.
-4. **Asymmetric give.** Give updates only the recipient's closeness toward the giver; the giver's toward the recipient is unchanged (unlike speech, which is symmetric).
-5. **Serialization drops first_sighting and last_interaction_tick** — recency/stranger state not durable across saves.
-6. **relationshipGuidance returns undefined for closeness > 75** — "inseparable" friends get no behavioral directive (every other tier has one). Label tier exists, guidance tier does not.
-7. **Two label systems drift** — backend get_relationship_nl ("inseparable") vs frontend relationshipTypeName ("inseparable friend").
+4. **[fixed]** **Asymmetric give.** Give updates only the recipient's closeness toward the giver; the giver's toward the recipient is unchanged. (Now symmetric — task-349.)
+5. **[fixed]** **Serialization drops first_sighting and last_interaction_tick** — recency/stranger state not durable across saves. (to_dict now emits both — task-349.)
+6. **[not-a-bug]** Originally flagged: relationshipGuidance returns undefined for closeness > 75. Verified the code already returns a "trust them completely" directive; the >75 tier exists. (Also now explicitly aligned — task-349.)
+7. **[fixed]** **Two label systems drift** — backend get_relationship_nl ("inseparable") vs frontend relationshipTypeName ("inseparable friend"). (Frontend aligned to "inseparable" + article fixed — task-349.)
 8. **Relationships are not derived from memories.** Seeded closeness:0 / interaction_count:0 can contradict authored memories of prior acquaintance (e.g. miki<->jake had prior banter memories but 0 closeness). Authoring must keep the two in sync; nothing computes one from the other.
-9. **Guidance tier boundaries don't match label tier boundaries** (guidance: -50/-25 vs label: -75/-50/-25) — "what the prompt says" and "what the label says" can disagree for some scores.
-10. **First meeting may double-count.** Sight-registration (scene_snapshot/area_description, sets first_sighting) plus the first update_relationship (which also creates + increments) can both fire for the same introduction; verify interaction_count isn't bumped twice.
+9. **[fixed]** **Guidance tier boundaries don't match label tier boundaries** (guidance: -50/-25 vs label: -75/-50/-25). (relationshipGuidance tiers now mirror the label tiers — task-349.)
+10. **[not-a-bug]** **First meeting may double-count.** Sight uses register_first_meeting(), which returns False if the relationship already exists and never calls update_relationship(), so interaction_count isn't bumped twice. Verified safe.
 
 ## Related
 - [[Characters/Characters Overview]]

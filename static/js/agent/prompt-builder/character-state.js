@@ -37,7 +37,7 @@ window.PromptBuilder = window.PromptBuilder || {};
      * @returns {string} Type name (e.g. "close friend")
      */
     function relationshipTypeName(closeness) {
-        return closeness <= -75 ? 'mortal enemy' : closeness <= -50 ? 'enemy' : closeness <= -25 ? 'rival' : closeness < 0 ? 'unfriendly' : closeness === 0 ? 'neutral' : closeness <= 25 ? 'acquaintance' : closeness <= 50 ? 'friend' : closeness <= 75 ? 'close friend' : 'inseparable friend';
+        return closeness <= -75 ? 'mortal enemy' : closeness <= -50 ? 'enemy' : closeness <= -25 ? 'rival' : closeness < 0 ? 'unfriendly' : closeness === 0 ? 'neutral' : closeness <= 25 ? 'acquaintance' : closeness <= 50 ? 'friend' : closeness <= 75 ? 'close friend' : 'inseparable';
     }
 
     /**
@@ -48,11 +48,17 @@ window.PromptBuilder = window.PromptBuilder || {};
      * @param {string} otherName - The other person's name
      * @returns {string} e.g. "a close friend", or empty string
      */
+    // Article handling for a relationship label — "a close friend" but
+    // "an inseparable" (vowel-initial names). Keeps prompt text grammatical.
+    function withArticle(name) {
+        return /^[aeiou]/i.test(name) ? `an ${name}` : `a ${name}`;
+    }
+
     function buildRelationshipLabel(player, otherName) {
         if (!player?.relationships || !otherName) return '';
         const relationshipObj = player.relationships[otherName];
         if (!relationshipObj || relationshipObj.closeness === undefined) return '';
-        return `a ${relationshipTypeName(relationshipObj.closeness)}`;
+        return withArticle(relationshipTypeName(relationshipObj.closeness));
     }
 
     /**
@@ -72,9 +78,17 @@ window.PromptBuilder = window.PromptBuilder || {};
             const anon = PromptBuilder.anonymousName(charName, other.name, otherDesc);
             if (!relationshipObj) return `${charName} hasn't met ${anon}`;
             const closeness = relationshipObj.closeness;
+            // task-350: when a derived read exists (experience-driven trust/
+            // fear/consent), surface its summary + role instead of just the raw
+            // closeness label. Falls back to the closeness guidance below.
+            if (relationshipObj.summary && relationshipObj.role) {
+                const read = relationshipObj.summary;
+                const sign = (relationshipObj.consent !== undefined && relationshipObj.consent <= -0.3) ? ' (you would pull away)' : (relationshipObj.consent >= 0.3 ? ' (you would let them close)' : '');
+                return `${charName} reads ${anon} as ${relationshipObj.role}: ${read}${sign}`;
+            }
             // task-94: closeness gates behavior, not just decoration — each
             // tier carries a short directive for how to act toward them.
-            return `${charName} considers ${anon} a ${relationshipTypeName(closeness)} (${closeness}/100) — ${relationshipGuidance(closeness)}`;
+            return `${charName} considers ${anon} ${withArticle(relationshipTypeName(closeness))} (${closeness}/100) — ${relationshipGuidance(closeness)}`;
         }).join('\n');
     }
 
@@ -85,9 +99,13 @@ window.PromptBuilder = window.PromptBuilder || {};
      * @returns {string} Imperative guidance clause
      */
     function relationshipGuidance(closeness) {
+        // Tiers mirror relationshipTypeName so the label and the directive
+        // always agree (task-349).
+        if (closeness <= -75) return 'you despise them; drive them off, refuse any help, show open hostility';
         if (closeness <= -50) return 'you want them gone; refuse help, keep replies hostile or silent';
         if (closeness <= -25) return 'keep interactions cold and minimal; never turn your back on them';
         if (closeness < 0) return 'you keep your guard up; brief, wary replies';
+        if (closeness === 0) return 'you have no strong feelings; polite, indifferent';
         if (closeness <= 25) return 'polite but reserved; courtesy without warmth';
         if (closeness <= 50) return 'you are friendly; chat openly and help when asked';
         if (closeness <= 75) return 'you are glad they are here; engage warmly, share news, watch out for them';

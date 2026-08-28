@@ -152,10 +152,38 @@ window.GraphNetwork = {
             }
 
             const renderedConnectionPairs = new Set();
+
+            // Node-type lookup for endpoint-aware edge suppression.
+            const nodeTypeById = {};
+            for (const id in nodesObj) nodeTypeById[id] = nodesObj[id] && nodesObj[id].type;
+
+            // The backend emits both a carrying and an equipped edge to the same
+            // item↔character pair. Track equipped pairs so the redundant carrying
+            // edge is suppressed.
+            const equippedPairs = new Set();
+            for (const e of edgesArr) {
+                if (EdgeTypes.resolve(e.type || 'connection') === 'equipped') {
+                    equippedPairs.add([e.source, e.target].sort().join('|'));
+                }
+            }
+
             for (const edgeObj of edgesArr) {
                 const rawType = edgeObj.type || 'connection';
                 const edgeType = EdgeTypes.resolve(rawType);
                 const style = edgeObj.properties?.style || {};
+
+                // Never draw a "connection" edge between a character and an item —
+                // the backend sometimes emits one alongside carrying/equipped.
+                if (edgeType === 'connection') {
+                    const st = nodeTypeById[edgeObj.source];
+                    const tt = nodeTypeById[edgeObj.target];
+                    if ((st === 'character' && tt === 'item') || (st === 'item' && tt === 'character')) continue;
+                }
+                // An equipped item is not separately "carrying" — drop the duplicate.
+                if (edgeType === 'carrying') {
+                    const pairKey = [edgeObj.source, edgeObj.target].sort().join('|');
+                    if (equippedPairs.has(pairKey)) continue;
+                }
                 const typeCfg = EdgeTypes.getConfig(edgeType);
                 let defaultColor = typeCfg.color;
                 let defaultDashes = edgeType === 'unlocks';

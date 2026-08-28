@@ -79,27 +79,49 @@ window.PromptBuilder = window.PromptBuilder || {};
      * one build never stacks more than a whisper of affect.
      */
     const _respikeTickGuard = {};
-    function _respikeFromMemories(charName, topMemories) {
+    async function _respikeFromMemories(charName, topMemories) {
         const raw = worldState.data?.players?.[charName];
         if (!raw) return;
         const now = Date.now();
         if (now - (_respikeTickGuard[charName] || 0) < 5000) return;
-        let strongest = null;
+
+        // Collect every attached emotion (plural memory_emotions list, or the
+        // single legacy emotion field), so all of them can re-feel, not just the
+        // strongest.
+        const emotions = [];
         for (const entry of topMemories) {
-            const emo = entry.emotion;
-            if (emo?.label && (!strongest || (emo.intensity || 0) > strongest.intensity)) {
-                strongest = emo;
+            const list = Array.isArray(entry.memory_emotions) && entry.memory_emotions.length
+                ? entry.memory_emotions
+                : (entry.emotion ? [entry.emotion] : []);
+            for (const e of list) {
+                if (e && e.label) emotions.push(e);
             }
         }
-        if (!strongest) return;
+        if (emotions.length === 0) return;
+
+        // Resolve each label to an affect dimension (semantic embedding fallback
+        // for novel labels; keyword otherwise) and accumulate dimension deltas.
+        const mapped = {};
+        const scale = 1.7;
+        for (const e of emotions) {
+            let dim = null;
+            if (window.EmotionMapper) {
+                const r = await window.EmotionMapper.resolve(e.label);
+                if (r && r.dimension) dim = r.dimension;
+            } else if (typeof e.label === 'string') {
+                dim = e.label;
+            }
+            if (!dim) continue;
+            const intensity = Math.max(1, Math.min(10, Number(e.intensity) || 5));
+            mapped[dim] = (mapped[dim] || 0) + intensity * scale;
+        }
+        if (Object.keys(mapped).length === 0) return;
+
         _respikeTickGuard[charName] = now;
-        fetch(`/api/players/${encodeURIComponent(charName)}/emotions`, {
+        fetch(`/api/players/${encodeURIComponent(charName)}/emotions/map`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                emotion: strongest.label,
-                delta: Math.max(1, Math.min(10, strongest.intensity || 5)) * 2.5
-            })
+            body: JSON.stringify({ mapped })
         }).catch(() => {});
     }
 
@@ -109,7 +131,7 @@ window.PromptBuilder = window.PromptBuilder || {};
      * @param {string} charName - Character name
      * @returns {Promise<string>} Formatted memory context string or empty string
      */
-    async function buildMemoryContext(charName) {
+    async function buildMemoryContext(charName, opts = {}) {
         if (!charName) return '';
         const player = worldState.data?.players?.[charName];
         const currentArea = player?.current_area;
@@ -154,7 +176,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             return '📝';
         };
 
-        const scored = [];
+        let scored = [];
 
         // Score memories from the unified backend store
         try {
@@ -172,7 +194,7 @@ window.PromptBuilder = window.PromptBuilder || {};
                 const data = await resp.json();
                 for (const memoryEntry of (data.memories || [])) {
                     const icon = memIcon(memoryEntry.type);
-                    scored.push({ text: `[${events.tickToRelative(memoryEntry.tick)}] ${icon} ${memoryEntry.text}`, score: 1.0, tick: memoryEntry.tick, emotion: memoryEntry.emotion || null });
+                    scored.push({ text: `[${events.tickToRelative(memoryEntry.tick)}] ${icon} ${memoryEntry.text}`, score: 1.0, tick: memoryEntry.tick, emotion: memoryEntry.emotion || null, source: 'retrieve' });
                 }
             }
         } catch (e) {
@@ -192,9 +214,12 @@ window.PromptBuilder = window.PromptBuilder || {};
             }
             const keywordScore = queryWords.size > 0 ? overlap / queryWords.size : 0;
             const icon = memIcon(inferIcon(textContent));
+            // Record WHICH query words matched (so feedback can say WHY).
+            const matchedWords = [];
+            for (const word of queryWords) { if (textLower.includes(word)) matchedWords.push(word); }
             // Include if it has keyword overlap OR we haven't collected enough candidates yet
             if (keywordScore > 0 || scored.length < 8) {
-                scored.push({ text: `[${events.tickToRelative(tickValue)}] ${icon} ${textContent}`, score: keywordScore, tick: tickValue, emotion: (typeof raw === 'object' && raw?.emotion) || null });
+                scored.push({ text: `[${events.tickToRelative(tickValue)}] ${icon} ${textContent}`, score: keywordScore, tick: tickValue, emotion: (typeof raw === 'object' && raw?.emotion) || null, source: 'keyword', kb: keywordScore, matchedWords, memTags: ((typeof raw === 'object' && Array.isArray(raw.tags)) ? raw.tags : []) });
             }
         }
 
@@ -220,7 +245,7 @@ window.PromptBuilder = window.PromptBuilder || {};
                             if (!textContent) continue;
                             const tickValue = memEntry.tick || 0;
                             const icon = memIcon(memEntry.type);
-                            scored.push({ text: `[${events.tickToRelative(tickValue)}] ${icon} ${textContent}`, score: 2.0 * hit.score, tick: tickValue, emotion: memEntry.emotion || null });
+                            scored.push({ text: `[${events.tickToRelative(tickValue)}] ${icon} ${textContent}`, score: 2.0 * hit.score, tick: tickValue, emotion: memEntry.emotion || null, source: 'vector', kb: hit.score });
                         }
                     }
                 }
@@ -229,9 +254,76 @@ window.PromptBuilder = window.PromptBuilder || {};
             }
         }
 
+        // Dedup by normalized text BEFORE picking the top-k. The three
+        // retrieval pipelines (backend /retrieve, player.memories keyword, and
+        // vector recall) can each return the SAME memory, so without this a
+        // single memory showed 2-3x in "I REMEMBER" (task-350/. task-339 debug).
+        const seenText = new Set();
+        const deduped = [];
+        for (const entry of scored) {
+            // Dedup on the memory TEXT WITHOUT the leading [timestamp] prefix, so
+            // the same memory shown at two relative times (e.g. "a while ago" vs
+            // "55 minutes ago") collapses to one instead of duplicating.
+            const bare = String(entry.text || '').replace(/^\s*\[[^\]]*\]\s*/, '');
+            const key = bare.replace(/\s+/g, ' ').toLowerCase();
+            if (seenText.has(key)) continue;
+            seenText.add(key);
+            deduped.push(entry);
+        }
+        scored = deduped;
+
         // Sort by score desc, then recency
         scored.sort((entryA, entryB) => entryB.score - entryA.score || (entryB.tick || 0) - (entryA.tick || 0));
-        const topMemories = scored.slice(0, 3);
+        const MAX_RECALL = 10;
+        const MIN_RECALL_SCORE = 0.3;
+        // Keep the top 3 always, then extend toward 10 for any memory within a
+        // relevance floor, so recall is richer but never drops in noise.
+        const topMemories = scored.slice(0, MAX_RECALL)
+            .filter((m, i) => i < 3 || (m.score || 0) >= MIN_RECALL_SCORE);
+
+        // Feed the EXISTING recall pipe (stream-raw-llm reads `_lastRecallStats`
+        // to show \"recalled: N\" on the LLM request chip). We set it here so the
+        // header note appears AND the expanded chip body can list WHAT + WHY.
+        try {
+            window._lastRecallStats = {
+                at: Date.now(),
+                count: topMemories.length,
+                semantic: topMemories.filter(m => m.source === 'vector').length,
+                query: String(query || '').slice(0, 120),
+                memories: topMemories.map(m => ({
+                    text: String(m.text || '').replace(/^\[[^\]]*\]\s*/, ''),
+                    source: m.source,
+                    score: m.score || 0,
+                    matchedWords: m.matchedWords || [],
+                    memTags: m.memTags || [],
+                    kb: m.kb || 0,
+                })),
+            };
+        } catch (e) { /* feedback is best-effort */ }
+
+        // Turn-only recall feedback (opts.report): one stream line (no per-memory
+        // ticks), showing WHAT was retrieved and WHY (incl. the query context).
+        // Never runs from the inspector/agent-lens (which also calls this builder),
+        // and never enters the LLM prompt.
+        try {
+            if (opts.report && typeof events?.log === 'function' && topMemories.length) {
+                const lines = topMemories.map(m => {
+                    let why;
+                    if (m.source === 'keyword') {
+                        const words = (m.matchedWords?.length ? m.matchedWords.join(',') : 'n/a');
+                        const tags = (m.memTags?.length ? m.memTags.join(',') : '');
+                        why = `keyword match on (${words}), tags ${tags || 'n/a'}`;
+                    } else if (m.source === 'vector') {
+                        why = `vector ${Math.round((m.kb||0)*100)/100} on "${String(query || '').slice(0, 60)}"`;
+                    } else {
+                        why = `retrieve on "${String(query || '').slice(0, 60)}" (score ${Math.round((m.score||0)*100)/100})`;
+                    }
+                    const short = String(m.text || '').replace(/^\[[^\]]*\]\s*/, '').slice(0, 70);
+                    return `  • ${short} — ${why}`;
+                });
+                events.log(`🧠 recalled ${topMemories.length} memories: \n${lines.join('\n')}`, 'system-msg');
+            }
+        } catch (e) { /* feedback is best-effort */ }
 
         if (topMemories.length > 0) {
             parts.push('');

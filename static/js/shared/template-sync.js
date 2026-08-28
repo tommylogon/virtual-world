@@ -38,10 +38,9 @@ window.InspectorTemplateSync = (() => {
   function renderTemplateRow(type, nodeId, props) {
     const libId = (props && props.library_id) || '';
     const sid = `${type}-lib-template-${esc(nodeId)}`;
-    return `<select id="${sid}" title="Library template this node syncs against" style="flex:1;min-width:140px;font-size:11px;padding:3px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;">
-        <option value="">(no template)</option>
-        ${libId ? `<option value="${esc(libId)}" selected>${esc(libId)}</option>` : ''}
-      </select>
+    const sidList = sid + '-opts';
+    return `<input id="${sid}" list="${sidList}" placeholder="Search or pick a library template..." value="${esc(libId)}" title="Library template this node syncs against — type to search" style="flex:1;min-width:140px;font-size:11px;padding:3px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" />
+      <datalist id="${sidList}"></datalist>
       <button class="btn btn-sm btn-green" onclick="InspectorTemplateSync.refreshFromLibrary('${type}','${esc(nodeId)}')">🔄 Refresh from Library</button>`;
   }
 
@@ -52,18 +51,21 @@ window.InspectorTemplateSync = (() => {
    */
   async function populateSelector(type, nodeId) {
     const escaped = esc(nodeId);
-    const select = document.getElementById(`${type}-lib-template-${escaped}`);
-    if (!select) return;
-    const current = select.value || (worldState.getNode(nodeId)?.properties?.library_id) || '';
+    const input = document.getElementById(`${type}-lib-template-${escaped}`);
+    if (!input) return;
+    const list = document.getElementById(`${type}-lib-template-${escaped}-opts`);
+    const current = input.value || (worldState.getNode(nodeId)?.properties?.library_id) || '';
     let libData = {};
     try { libData = await ApiClient.getLibraryType(type === 'way' ? 'ways' : `${type}s`); } catch (e) { /* ignore */ }
-    let html = '<option value="">(no template)</option>';
-    for (const [id, entry] of Object.entries(libData)) {
-      const label = (entry && entry.name) ? `${entry.name} (${id})` : id;
-      html += `<option value="${esc(id)}">${esc(label)}</option>`;
+    if (list) {
+      let html = '';
+      for (const [id, entry] of Object.entries(libData)) {
+        const label = (entry && entry.name) ? `${entry.name} (${id})` : id;
+        html += `<option value="${esc(id)}">${esc(label)}</option>`;
+      }
+      list.innerHTML = html;
     }
-    select.innerHTML = html;
-    if (current) select.value = current;
+    if (current && !input.value) input.value = current;
   }
 
   /**

@@ -757,6 +757,9 @@ window.InspectorAgentView = (() => {
                     <input type="range" min="-100" max="100" value="${closeness}" class="rel-slider" data-agent="${agentName}" data-other="${otherName}" style="flex:1;height:4px;accent-color:${relColor};">
                     <span style="font-size:10px;color:var(--text-muted);min-width:28px;text-align:right;" class="rel-val">${closeness}</span>
                     <span style="font-size:9px;color:var(--text-dim);min-width:70px;" class="rel-label">${closenessDesc}</span>
+                    <label title="Tick if you know their name (first_sighting=false)" style="display:flex;align-items:center;gap:2px;font-size:9px;color:var(--text-dim);cursor:pointer;">
+                        <input type="checkbox" class="rel-known" data-agent="${agentName}" data-other="${otherName}" ${relationship.first_sighting ? '' : 'checked'}> name
+                    </label>
                     <span onclick="InspectorAgentView._removeRelationship('${agentName}','${otherName}')" style="cursor:pointer;color:var(--red);font-size:12px;padding:0 2px;" title="Remove relationship">✕</span>
                 </div>`;
             }
@@ -1123,8 +1126,21 @@ window.InspectorAgentView = (() => {
                 const value = parseInt(this.value);
                 const existing = worldState.players?.[agent]?.relationships?.[other] || {};
                 ApiClient.updateCharacter(agent, {
-                    relationships: { [other]: { closeness: value, last_interaction_tick: worldState.data?.time_ticks || 0, interaction_count: existing.interaction_count || 0 } }
+                    relationships: { [other]: { closeness: value, last_interaction_tick: worldState.data?.time_ticks || 0, interaction_count: existing.interaction_count || 0, first_sighting: existing.first_sighting ?? false } }
                 }).then(() => {});
+            });
+        });
+
+        // "knows their name" toggle -> sets first_sighting (false = knows).
+        panel.querySelectorAll('.rel-known').forEach(cb => {
+            cb.addEventListener('change', function() {
+                const agent = this.dataset.agent;
+                const other = this.dataset.other;
+                const knowsName = this.checked;
+                const existing = worldState.players?.[agent]?.relationships?.[other] || {};
+                ApiClient.updateCharacter(agent, {
+                    relationships: { [other]: { closeness: existing.closeness || 0, last_interaction_tick: worldState.data?.time_ticks || 0, interaction_count: existing.interaction_count || 0, first_sighting: !knowsName } }
+                }).then(() => worldState.fetch());
             });
         });
 
@@ -1135,7 +1151,7 @@ window.InspectorAgentView = (() => {
                 if (!other) return;
                 this.value = '';
                 ApiClient.updateCharacter(agentName, {
-                    relationships: { [other]: { closeness: 0, last_interaction_tick: worldState.data?.time_ticks || 0, interaction_count: 0 } }
+                    relationships: { [other]: { closeness: 0, last_interaction_tick: worldState.data?.time_ticks || 0, interaction_count: 0, first_sighting: false } }
                 }).then(() => worldState.fetch().then(() => {
                     if (window.VW?.inspector) window.VW.inspector.showAgent(agentName);
                 }));
@@ -1714,6 +1730,18 @@ window.InspectorAgentView = (() => {
                     npc_action_interval: player.npc_action_interval ?? 3,
                     npc_state: player.npc_state || 'idle',
                     simple_npc: player.simple_npc || false,
+                    memories: player.memories || [],
+                    relationships: player.relationships || {},
+                    vitals: player.vitals || {},
+                    decay_rates: player.decay_rates || {},
+                    conditions: player.conditions || {},
+                    equipped: player.equipped || {},
+                    recent_hearing: player.recent_hearing || [],
+                    activity: player.activity || null,
+                    current_area: player.current_area || '',
+                    emotion: (player.emotion && typeof player.emotion === 'object')
+                        ? player.emotion
+                        : { current: player.emotion || 'neutral', intensity: player.emotion_intensity || 0 },
                 };
             },
             sections: [
@@ -1728,6 +1756,16 @@ window.InspectorAgentView = (() => {
                 { key: 'interest_tags', label: 'Interest Tags' },
                 { key: 'behaviors', label: 'Behaviours' },
                 { key: 'npc_behavior', label: 'NPC Config' },
+                { key: 'memories', label: 'Memories' },
+                { key: 'relationships', label: 'Relationships' },
+                { key: 'vitals', label: 'Vitals' },
+                { key: 'decay_rates', label: 'Decay Rates' },
+                { key: 'conditions', label: 'Conditions' },
+                { key: 'equipped', label: 'Equipped' },
+                { key: 'recent_hearing', label: 'Recent Hearing' },
+                { key: 'activity', label: 'Activity' },
+                { key: 'current_area', label: 'Current Area' },
+                { key: 'emotion', label: 'Emotion' },
             ],
         });
     }

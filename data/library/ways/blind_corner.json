@@ -1,0 +1,45 @@
+{
+  "library_id": "",
+  "name": "blind corner",
+  "description": "the blind bend where elm street runs into oak street past the pawn shop grate — a jutting corner of brick wall that hides whoever's coming the other way until the last second.",
+  "current_state": "open",
+  "pass_message": "You round the blind corner where elm street meets oak street.",
+  "edge_length": "",
+  "needs_open": {
+    "dc": 10,
+    "enabled": false,
+    "skill": "Athletics"
+  },
+  "auto_close": false,
+  "see_through": false,
+  "one_way": false,
+  "requires": "none",
+  "max_size": "normal",
+  "prevent_close": false,
+  "tags": [
+    "exterior",
+    "street",
+    "corner"
+  ],
+  "parameters": {},
+  "triggers": [
+    {
+      "trigger_type": "on_enter",
+      "conditions": [
+        {
+          "type": "has_item",
+          "item": "crushed monster can",
+          "target": "player"
+        }
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "She rounds the corner and walks straight into a man — her drink sloshes down his black shirt."
+          }
+        }
+      ]
+    }
+  ]
+}

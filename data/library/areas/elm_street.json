@@ -24,6 +24,14 @@
       "state": "open",
       "hidden": false,
       "cardinal": "north"
+    },
+    {
+      "direction": "oak street",
+      "target_room_hint": "Oak Street",
+      "description": "east down elm street, the sidewalk buckles past a vacant lot and the block bends into oak street at a blind corner by the pawn shop.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "east"
     }
   ]
 }

@@ -301,6 +301,37 @@ physics: {
 
 Physics can be toggled on/off. Nodes can have `central_gravity_enabled: false` to lock their position. The graph uses signature-based deduplication (`network-manager.js:78-89`) to avoid jitter on tick updates — only reloads the vis.js data when the graph structure actually changes.
 
+### Physics settings (Settings → Graph)
+
+`graph/network-manager.js::buildOptions()` reads `config.graph*` and injects them into the solver.
+The sliders in **Settings → Graph** map directly:
+
+| Setting | Config key | Solver param | To make connected nodes **tighter** |
+|---------|-----------|--------------|-------------------------------------|
+| Spring Length | `graphSpringLength` | `springLength` | lower (e.g. 40–60) |
+| Repulsion | `graphGravitationalConstant` | `gravitationalConstant` | toward **Weak** (less negative) |
+| Damping | `graphDamping` | `damping` | higher (Stiff) so it settles |
+| Spring Stiffness | `graphSpringConstant` | `springConstant` | **higher** (Rigid) — the main "hold connected together" lever |
+| Physics Solver | `graphSolver` | `solver` | `forceAtlas2Based` (default) or `barnesHut` |
+
+**Important:** these only apply in **Graph (🔮)** mode. The **🗺️ Map / cardinal layout** bypasses them
+entirely — `applyCardinalLayout()` hardcodes its own `barnesHut` physics and force-places items and
+characters on a fixed grid. If you tweak the sliders and see no change, you're in Map mode.
+
+### Edge dedup & suppression (character↔item)
+
+The backend can emit **three** edges for the same item↔character link (`carrying`, `equipped`, and a
+stray `connection`). `graph/network-manager.js::loadGraphData()` suppresses the redundant ones at
+render time:
+
+- **`connection` edges between a character and an item are never drawn** (the backend sometimes emits
+  one alongside carrying/equipped).
+- **`carrying` is suppressed when the same item↔character pair already has an `equipped` edge** — so an
+  equipped item shows one `equipped` edge, and a plainly carried item shows one `carrying` edge.
+
+The result: exactly one edge per character→item link — `equipped` if worn/held, `carrying` if just in
+inventory, never `connection`.
+
 ### Cardinal Layout (🗺️ Map button)
 
 The toolbar's **🗺️ Map** button toggles a cardinal-direction-based grid layout on the vis.js graph. This positions rooms geographically — areas to the north get placed above, areas to the east to the right, etc. -- creating a top-down map feel without switching to a separate view.

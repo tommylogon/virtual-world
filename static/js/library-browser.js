@@ -11,6 +11,31 @@
 // Lazy tag: classic scripts parse before the deferred lit-bootstrap module
 // runs, so window.Lit only exists when a view actually renders.
 const libraryBrowserHtmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
+// Search helpers (keyword + tag + fuzzy) for the library browser.
+function wordBoundary(text, token) {
+    if (!text || !token) return false;
+    var re = new RegExp("(^|\\W)" + token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "($|\\W)");
+    return re.test(text);
+}
+
+function fuzzyRatio(a, b) {
+    if (!a || !b) return 0;
+    // Levenshtein distance -> 1 - dist/maxLen, so close spellings rank.
+    var m = a.length, n = b.length;
+    if (m === 0) return n === 0 ? 1 : 0;
+    if (n === 0) return 0;
+    var dp = [];
+    for (var i = 0; i <= m; i++) { dp[i] = [i]; }
+    for (var j = 0; j <= n; j++) { dp[0][j] = j; }
+    for (var i2 = 1; i2 <= m; i2++) {
+        for (var j2 = 1; j2 <= n; j2++) {
+            var cost = a[i2 - 1] === b[j2 - 1] ? 0 : 1;
+            dp[i2][j2] = Math.min(dp[i2 - 1][j2] + 1, dp[i2][j2 - 1] + 1, dp[i2 - 1][j2 - 1] + cost);
+        }
+    }
+    return 1 - dp[m][n] / Math.max(m, n);
+}
+
 
 class LibraryBrowser {
     constructor() {
@@ -107,16 +132,34 @@ class LibraryBrowser {
         const searchEl = document.getElementById(searchMap[type]);
         if (!listEl) return;
 
-        const filter = (searchEl?.value || '').toLowerCase();
+        const filter = (searchEl?.value || '').trim().toLowerCase();
         const entries = Object.entries(this.data[type] || {});
         let filtered = entries;
         if (filter) {
-            filtered = entries.filter(([id, entry]) =>
-                (entry.name || id).toLowerCase().includes(filter) ||
-                (entry.description || '').toLowerCase().includes(filter)
-            );
+            // Multi-strategy: keyword (name/desc), tags, and fuzzy name match,
+            // ranked so the best hits float to the top instead of a plain
+            // substring include.
+            const tokens = filter.split(/\s+/).filter(Boolean);
+            const scored = entries.map(([id, entry]) => {
+                const name = String(entry.name || id || '').toLowerCase();
+                const desc = String(entry.description || '').toLowerCase();
+                const tags = (Array.isArray(entry.tags) ? entry.tags : []).map(t => String(t).toLowerCase());
+                let s = 0;
+                if (name.includes(filter)) s += 6;
+                else if (desc.includes(filter)) s += 3;
+                tokens.forEach(t => {
+                    if (wordBoundary(name, t)) s += 3;
+                    else if (wordBoundary(desc, t)) s += 1;
+                    if (tags.some(tag => tag.includes(t))) s += 4;
+                });
+                const fr = fuzzyRatio(name, filter);
+                if (s === 0 && fr >= 0.6) s += Math.round(fr * 6);
+                return { id, entry, s };
+            }).filter(x => x.s > 0).sort((a, b) => b.s - a.s || (a.entry.name || a.id).localeCompare(b.entry.name || b.id));
+            filtered = scored.map(x => [x.id, x.entry]);
+        } else {
+            filtered = entries.sort((a, b) => (a[1].name || a[0]).localeCompare(b[1].name || b[0]));
         }
-        filtered.sort((a, b) => (a[1].name || a[0]).localeCompare(b[1].name || b[0]));
 
         const selected = this.selectedId[type];
         countEl.textContent = filtered.length === entries.length
@@ -528,6 +571,27 @@ class LibraryBrowser {
         const res = await ApiClient.importRoomFromLibrary(id, { name: newName });
         if (res.error) { toastError('Error: ' + res.error); return; }
         events.log(`Imported area "${res.area}" into the world.`, 'system-msg');
+        worldState.fetch();
+    }
+
+    // ── Import Way from Library ──────────────────────────────────────
+
+    async importSelectedWay() {
+        const id = this.selectedId.ways;
+        if (!id || id === '__new__') { toastInfo('Select a way first.'); return; }
+        const entry = this.data.ways[id];
+        if (!entry) return;
+        // Pick the two areas the way connects; directions default to 'out' unless
+        // the library way is already connected to existing rooms in this world.
+        const fromName = prompt(`Import way "${entry.name || id}".\nConnect FROM area name:`, '');
+        if (!fromName || fromName === null) return;
+        const toName = prompt(`Connect TO area name:`, '');
+        if (!toName || toName === null) return;
+        const dirFrom = prompt(`Direction FROM ${fromName} (e.g. east):`, 'out') || 'out';
+        const dirTo = prompt(`Direction FROM ${toName} (e.g. west):`, 'out') || 'out';
+        const res = await ApiClient.importWayFromLibrary(id, { area_from: fromName, area_to: toName, dir_from: dirFrom, dir_to: dirTo });
+        if (res.error) { toastError('Error: ' + res.error); return; }
+        events.log(`Imported way "${res.way}" into the world.`, 'system-msg');
         worldState.fetch();
     }
 
