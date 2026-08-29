@@ -6,7 +6,8 @@ wiki: "[[AI & Narration/Memory System]]"
 
 **Filed**: 2026-07-22
 **Priority**: High
-**Status**: In Review — implemented 2026-08-23 per the re-scope below. Settings →
+**Status**: In Review (moved 2026-08-29) — implemented 2026-08-23 per the re-scope
+below. Settings →
 🧬 Embedding tab (enable/url/model/dims/key/test), `static/js/shared/embedding-client.js`,
 `engine/vector_store.py` (JSON store, pure-python cosine, atomic writes) + routes in
 `routes/memories.py` (`POST /api/memory/embeddings` upsert, `/search`, `GET /stats`,
@@ -17,6 +18,16 @@ recall pool at 2×score weight, keyword scoring untouched as fallback. Verified:
 tests in `tests/test_vector_store.py`, full suite 1066 passed, live curl round trip
 (upsert→ranked search→conflict), settings UI renders + populates. Not yet verified with
 a real embedding provider (Ollama/LM Studio) — needs a live endpoint E2E.
+
+**Known gaps (2026-08-29)**:
+- No backfill: only memories stored after the embed path existed get vectors.
+  Pre-existing memories stay `embedding: null`. The inspector's Semantic section can
+  generate one-off, but there is no mass re-embed job.
+- Redundant geometry live on both sides: the `embedding` field per memory object AND
+  the separate `data/embeddings.json` vector store (`<Character>::<memory_id>`) are
+  not reconciled by a single source of truth.
+- The ✨ Gen Memory editor seed path is now aligned (2026-08-29) to emit structured
+  `{text, importance, tags, emotions}` like runtime react memories, and auto-embeds.
 
 ## New scope (2026-08-23)
 

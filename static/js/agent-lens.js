@@ -44,8 +44,13 @@ class AgentLens {
     }
 
     _scheduleRefresh() {
+        // Throttle: buildMemoryContext drives the embed search vector store and is
+        // expensive. Debounce bursts, but never rebuild more than once per 2s so a
+        // fast state:updated stream (poll + agent loop) can't flood the backend.
         clearTimeout(this._debounceTimer);
-        this._debounceTimer = setTimeout(() => this.refresh(), 300);
+        const since = Date.now() - (this._lastRefreshAt || 0);
+        const delay = Math.max(300, 2000 - since);
+        this._debounceTimer = setTimeout(() => { this._lastRefreshAt = Date.now(); this.refresh(); }, delay);
     }
 
     _esc(text) {

@@ -4,9 +4,31 @@ wiki: "[[AI & Narration/Memory System]]"
 ---
 # Vector Embeddings & RAG Preparation
 
+## Superseded by (2026-08-29)
+
+The concrete RAG architecture proposed here was NOT adopted; the shipped design diverged:
+
+| This doc proposed | What actually shipped |
+|-------------------|-----------------------|
+| Two-tier stores (world_lore + per-character) | ONE store `Player.memories[]` (task-178); world_lore is a separate world-level prompt block, not embedded |
+| Embed `content` field | Field is `text` (`content` doesn't exist) |
+| Tag convention `character:`/`room:`/`action:`/`item:` | Tags are single-word concepts only; entities live in a separate `entity_ids` array |
+| FAISS in-memory index (recommended) | No-dependency JSON `data/embeddings.json` + pure-python brute-force cosine |
+| `GET /api/memories/export` for bulk index build | Not built — moot, embeddings are generated incrementally per-memory browser-side |
+| `embedding_hash` cache column | Not built — vector store keys by `<char>::<memory_id>`, so identity/dedup is free |
+| EntityIndex-driven BFS for KNOWN ROUTES | EntityIndex deleted; spatial comes from `engine/spatial_memory.py` (task-136/task-178) |
+
+---
+
+
+
 **Filed**: 2026-07-16 (updated 2026-07-20)
 **Priority**: Low (future)
-**Status**: Design / Not Started — waiting on proper_memory_editor
+**Status**: Superseded (moved 2026-08-29) — this was a *preparation* doc, never meant to
+implement embeddings. The intent is now fully covered by [[task-91 — activate cosine
+similarity in MemoryStore|task-91]] (embeddings are live). Remaining prep items were
+dropped as unnecessary rather than left outstanding (see "Superseded by" below). Kept
+as a historical record only.
 
 ---
 

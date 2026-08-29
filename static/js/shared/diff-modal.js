@@ -69,34 +69,67 @@ window.DiffModal = (() => {
     return s.length > len ? s.substring(0, len) + '...' : s;
   }
 
+  // Compact human-readable summary for one entry value. The label line already
+  // shows the entry's text/name, so this shows the *metadata* instead of dumping
+  // the full JSON object (which made memory/relationship diff rows unreadable).
+  function entrySummary(val) {
+    if (val === undefined || val === null) return '(empty)';
+    if (typeof val === 'string') return truncate(val, 120);
+    if (typeof val !== 'object') return truncate(String(val), 60);
+    if (typeof val.text === 'string') {
+      const parts = ['⭐' + (val.importance ?? '?')];
+      if (Array.isArray(val.tags) && val.tags.length) parts.push('#' + val.tags.join(' #'));
+      const emos = (Array.isArray(val.memory_emotions) && val.memory_emotions.length)
+        ? val.memory_emotions
+        : (val.emotion && val.emotion.label ? [val.emotion] : []);
+      if (emos.length) parts.push(emos.map(e => String(e.label || '') + (e.intensity ? ':' + e.intensity : '')).join(', '));
+      if (val.location) parts.push('📍' + val.location);
+      if (val.source) parts.push(val.source);
+      return truncate(parts.join(' · '), 160) || '(no metadata)';
+    }
+    if (typeof val.name === 'string') return truncate(String(val.name), 60);
+    // Compact fallback for relationship/condition/equipped objects.
+    return truncate(JSON.stringify(val), 200);
+  }
+
   // ── Per-entry helpers ──────────────────────────────────────────────
 
-  // Stable identifier for an individual entry. Object sections use their
-  // own key; array sections use `id` else `name`.
-  function entryKeyOf(item, fallback) {
+  // Object sections use their own key; array sections match by `id` first and
+  // fall back to a normalized content signature, so a runtime memory and its
+  // library copy (which may carry a different regenerated random id) still line
+  // up as one "changed"/"same" row instead of a +add/−remove pair.
+  function idKeyOf(item) {
     if (item && typeof item === 'object') {
       if (item.id != null && item.id !== '') return String(item.id);
-      if (item.name != null && item.name !== '') return String(item.name);
+      if (item.name != null && item.name !== '') return 'name:' + String(item.name);
     }
-    return fallback === undefined ? null : fallback;
+    return null;
+  }
+  function contentKeyOf(item) {
+    if (item && typeof item === 'object' && typeof item.text === 'string' && item.text.trim()) {
+      return 'text:' + item.text.toLowerCase().replace(/\s+/g, ' ').trim();
+    }
+    return null;
+  }
+  // Selection key carried by the checkbox / matched by applyEntrySelection.
+  function selKeyOf(item) {
+    const id = idKeyOf(item);
+    if (id !== null) return id;
+    return contentKeyOf(item);
   }
 
   function toEntryList(value) {
-    if (Array.isArray(value)) {
-      return value.map((item, i) => ({ key: entryKeyOf(item, i), data: item }));
-    }
-    if (value && typeof value === 'object') {
-      return Object.keys(value).map((k) => ({ key: k, data: value[k] }));
-    }
+    if (Array.isArray(value)) return value.map((item, i) => ({ key: selKeyOf(item) ?? i, data: item }));
+    if (value && typeof value === 'object') return Object.keys(value).map((k) => ({ key: k, data: value[k] }));
     return [];
   }
 
   // A section is eligible for per-entry editing only when every entry has an
-  // individually addressable key (object keys, or array entries with id/name).
+  // individually addressable key (object keys, or array entries with id/name/text).
   function perEntryEligible(value) {
     if (Array.isArray(value)) {
       if (value.length === 0) return false;
-      return value.every((v) => entryKeyOf(v) !== null);
+      return value.every((v) => selKeyOf(v) !== null);
     }
     if (value && typeof value === 'object') return Object.keys(value).length > 0;
     return false;
@@ -111,27 +144,56 @@ window.DiffModal = (() => {
     return truncate(key, 40);
   }
 
-  // Compute the per-entry diff for a section, with a stable status.
+  // Content equality ignoring identity/derived fields (id, embedding), so a
+  // memory that is identical except for its random id reads as "same", and an
+  // embedding that gets regenerated does not force "changed".
+  function contentEquals(a, b) {
+    const strip = (v) => {
+      if (Array.isArray(v)) return v.map(strip);
+      if (v && typeof v === 'object') {
+        const o = {};
+        for (const k of Object.keys(v)) { if (k === 'id' || k === 'embedding') continue; o[k] = strip(v[k]); }
+        return o;
+      }
+      return v;
+    };
+    const sa = JSON.stringify(strip(a) ?? '');
+    const sb = JSON.stringify(strip(b) ?? '');
+    return sa === sb;
+  }
+
+  // Two-pass per-entry diff: pair by id, then pair the leftovers by content.
   function entryDiff(current, incoming) {
     const cList = toEntryList(current);
     const iList = toEntryList(incoming);
-    const cMap = {};
-    const iMap = {};
-    cList.forEach((e) => { cMap[e.key] = e.data; });
-    iList.forEach((e) => { iMap[e.key] = e.data; });
-    const keys = [];
-    const seen = new Set();
-    for (const e of cList) if (e.key !== null && !seen.has(e.key)) { seen.add(e.key); keys.push(e.key); }
-    for (const e of iList) if (e.key !== null && !seen.has(e.key)) { seen.add(e.key); keys.push(e.key); }
-    return keys.map((k) => {
-      const c = cMap[k];
-      const inc = iMap[k];
-      let status = 'same';
-      if (c === undefined) status = 'added';
-      else if (inc === undefined) status = 'removed';
-      else if (compareValues(c, inc)) status = 'changed';
-      return { key: k, current: c, incoming: inc, status };
+    const usedC = new Array(cList.length).fill(false);
+    const usedI = new Array(iList.length).fill(false);
+    const rows = [];
+
+    const pairBy = (keyFn) => {
+      cList.forEach((cEle, ci) => {
+        if (usedC[ci]) return;
+        const ck = keyFn(cEle.data);
+        if (ck === null) return;
+        const ii = iList.findIndex((iEle, i) => !usedI[i] && keyFn(iEle.data) === ck);
+        if (ii < 0) return;
+        usedC[ci] = true;
+        usedI[ii] = true;
+        const inc = iList[ii].data;
+        rows.push({ key: selKeyOf(inc), current: cEle.data, incoming: inc, status: contentEquals(cEle.data, inc) ? 'same' : 'changed' });
+      });
+    };
+
+    pairBy(idKeyOf);
+    pairBy(contentKeyOf);
+
+    cList.forEach((cEle, ci) => {
+      if (!usedC[ci]) rows.push({ key: selKeyOf(cEle.data), current: cEle.data, incoming: undefined, status: 'removed' });
     });
+    iList.forEach((iEle, i) => {
+      if (!usedI[i]) rows.push({ key: selKeyOf(iEle.data), current: undefined, incoming: iEle.data, status: 'added' });
+    });
+    return rows;
   }
 
   const STATUS_COLOR = { same: 'var(--text-muted)', added: '#88ff88', removed: '#ff7b7b', changed: '#e3b341' };
@@ -161,7 +223,7 @@ window.DiffModal = (() => {
       const checked = selectable ? 'checked' : '';
       const labelText = entryLabel(r.key, r.incoming === undefined ? r.current : r.incoming);
       const cell = '<div class="diff-cell-inline" style="font-size:10px;">'
-        + esc(truncate(r.current)) + ' <span style="color:var(--text-muted)">→</span> ' + esc(truncate(r.incoming))
+        + esc(entrySummary(r.current)) + ' <span style="color:var(--text-muted)">→</span> ' + esc(entrySummary(r.incoming))
         + '</div>';
       rowHtml += '<div class="pe-row" style="display:grid;grid-template-columns:auto 16px 1fr;gap:8px;align-items:start;padding:3px 0;border-bottom:1px solid var(--border);">'
         + '<input type="checkbox" class="pe-entry" data-key="' + esc(key) + '" data-entry="' + esc(r.key) + '" ' + checked + ' '
@@ -276,7 +338,11 @@ window.DiffModal = (() => {
       overlay.appendChild(modal);
       document.body.appendChild(overlay);
 
-      const cleanup = () => { if (overlay.parentNode) document.body.removeChild(overlay); };
+      // Escape + click-on-backdrop close, matching the app's other modals.
+      const escClose = (e) => { if (e.key === 'Escape') { e.preventDefault(); cleanup(); resolve(null); } };
+      const cleanup = () => { document.removeEventListener('keydown', escClose); if (overlay.parentNode) document.body.removeChild(overlay); };
+      document.addEventListener('keydown', escClose);
+      overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) { cleanup(); resolve(null); } });
 
       document.getElementById('diff-modal-cancel').onclick = () => { cleanup(); resolve(null); };
       const cancelBtn = document.getElementById('diff-modal-cancel-bottom');
@@ -359,14 +425,31 @@ window.DiffModal = (() => {
     if (!incoming || !selKeys || selKeys.length === 0) return current;
     if (Array.isArray(incoming)) {
       const selSet = new Set(selKeys);
-      const idOf = (x) => (x && typeof x === 'object' ? (x.id ?? x.name ?? null) : null);
       let out = Array.isArray(current) ? current.slice() : [];
+      const findPartner = (inc) => {
+        const id = idKeyOf(inc);
+        if (id !== null) {
+          const idx = out.findIndex((x) => idKeyOf(x) === id);
+          if (idx >= 0) return idx;
+        }
+        const ck = contentKeyOf(inc);
+        if (ck !== null) {
+          const idx = out.findIndex((x) => contentKeyOf(x) === ck);
+          if (idx >= 0) return idx;
+        }
+        return -1;
+      };
       for (const inc of incoming) {
-        const id = idOf(inc);
-        if (id !== null && selSet.has(String(id))) {
-          const idx = out.findIndex((x) => idOf(x) === id);
-          if (idx >= 0) out[idx] = inc;
-          else out.push(inc);
+        const sk = selKeyOf(inc);
+        if (sk === null || !selSet.has(sk)) continue;
+        const idx = findPartner(inc);
+        if (idx >= 0) {
+          // Preserve the existing row's id so future syncs keep matching by id.
+          out[idx] = (out[idx] && out[idx].id != null && out[idx].id !== '')
+            ? Object.assign({}, inc, { id: out[idx].id })
+            : inc;
+        } else {
+          out.push(inc);
         }
       }
       return out;

@@ -40,6 +40,8 @@ Thumbs.db
 *.log
 logs/
 data/library/characters/jessica.json
+data/autosave.json
+data/embeddings.json
 data/codebase_index.json
 data/chroma_test/chroma.sqlite3
 data/chroma_test/1514fecf-4d25-4d83-946d-219f85416f36/data_level0.bin
