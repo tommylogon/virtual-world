@@ -55,6 +55,42 @@ Don't "fix" the command line being available out-of-turn, and don't make
 the panel appear outside the controlled character's slot — both behaviors
 are the design.
 
+## Guest speech ("Speak as guest…")
+
+The always-available command line's speech box (`speak-input`,
+`main.js:speakAsGuest`) posts through the **normal player-speech route with
+a synthetic speaker**: `POST /api/players/👤 A Guest/speak`
+(`routes/player_ops.py:handle_player_speak`) → `world.broadcast_speech`
+(`engine/speech.py`, `speech_level="normal"`, no whisper target). No
+character is required and none is created.
+
+- **Not a secret / not per-character.** It has no recipient. It is a
+  normal-volume **area broadcast**, anchored to the active character's
+  current area (fallback: world current area → first area). Characters in
+  other rooms hear it only via sound propagation — "normal" penetration 1
+  reaches adjacent areas through **open** (barrier 0.5) or **see-through**
+  (0.75) ways; a closed door (1.0) blocks it; ambient noise dampens it
+  (`engine/sound.py`).
+- **Effects:** each listener gets a `recent_hearing` entry (ring of 20) and
+  +3 Social; the line lands in `game_log` (last 50) and a `speak`
+  turn-event; the area node's `on_speech` triggers fire with
+  `{speech, speaker}`; simple NPCs get `on_speech_heard`. The guest isn't
+  a player, so the speaker gets no Social gain and name-learning from the
+  line is skipped. The speaker name is anonymized in prompts
+  ("the stranger" / "a voice").
+- **How long agents see it:** via `turn_events` — same area, current turn
+  only, wiped when the turn cycle wraps (`/api/turn/apply` then
+  `/api/turn/clear`); via `recent_hearing` — per listener until 20 newer
+  hearing entries push it out (the WITNESSED block renders the last 5
+  speech entries, so it can persist several turns in a quiet room, and is
+  saved in world saves but stripped from scenario exports); via
+  `game_log` — until 50 newer lines, visible to anyone reading
+  `/api/state` (agent prompts don't use it); the GUI event stream copy is
+  client-side only (lost on reload).
+- The human turn panel's **interject** input is a different path: it posts
+  `say …` **as the controlled character** via `/api/action`
+  (`human-turn-composer.js:interject`), also without consuming the turn.
+
 ## The scene-first panel (task-333, full redesign)
 
 The human turn panel is the mockup's three-zone layout: scene grid

@@ -163,8 +163,8 @@ class UIController {
             if (v.HP > 0 && v.HP <= hpCriticalThreshold) alerts.push({ type: 'error', text: `${name}: HP critical (${v.HP})` });
             else if (v.HP === 0) alerts.push({ type: 'error', text: `${name}: DEAD` });
             if (v.Energy <= 15) alerts.push({ type: 'warning', text: `${name}: Exhausted (${v.Energy})` });
-            if (v.Hunger <= 15) alerts.push({ type: 'warning', text: `${name}: Starving (${v.Hunger})` });
-            if (v.Thirst <= 15) alerts.push({ type: 'warning', text: `${name}: Dehydrated (${v.Thirst})` });
+            if (v.Hunger >= 85) alerts.push({ type: 'warning', text: `${name}: Starving (${v.Hunger})` });
+            if (v.Thirst >= 85) alerts.push({ type: 'warning', text: `${name}: Dehydrated (${v.Thirst})` });
             if (v.Bladder >= 85) alerts.push({ type: 'warning', text: `${name}: Bladder full (${v.Bladder}%)` });
             if (v.Sanity <= 15) alerts.push({ type: 'warning', text: `${name}: Losing sanity (${v.Sanity})` });
             if (v.Entertainment <= 15) alerts.push({ type: 'warning', text: `${name}: Bored (${v.Entertainment})` });

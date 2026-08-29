@@ -523,7 +523,38 @@ def entity_text(e):
     return e.get("name", "") + " :: " + (t or "")
 
 
+USAGE = """\
+Code Graph builder - index a codebase into Neo4j (AST entities + embeddings).
+
+Usage:
+  python build_code_graph.py <root> [--clear-old] [--no-embed] [docs|--help]
+
+Root defaults to the repo containing this script.
+
+Flags:
+  --clear-old   delete existing entities for <root> before rebuilding (idempotent)
+  --no-embed    skip the LM Studio embedding step (index structure only)
+  docs/--help   print this help and exit
+
+What it indexes:
+  .py .js .mjs   code + comments (AST via stdlib ast / acorn-Node)
+  .md            one entity per heading section
+  .json          library items + nested items (data/library/**)
+
+Where it stores:
+  Neo4j (NEO4J_URI/USERNAME/PASSWORD) - nodes :Embeddable + CodeFile/Class/
+  Function/Method/Comment/Doc/Item/Module, edges DEFINES/CONTAINS/CALLS/
+  IMPORTS/INHERITS, vectors via LM Studio (EMBEDDING_BASE_URL/EMBEDDING_MODEL).
+
+After building, serve with:  python tools/code_graph_mcp.py
+Full reference:  tools/README.md  (or README-codegraph.md at repo root)
+"""
+
+
 def main():
+    if len(sys.argv) > 1 and sys.argv[1] in ("docs", "--help", "-h"):
+        print(USAGE)
+        return
     root_raw = sys.argv[1] if len(sys.argv) > 1 else ROOT_DIR
     root = str(Path(root_raw).resolve())
     clear = "--clear-old" in sys.argv

@@ -12,6 +12,12 @@
 (() => {
     'use strict';
 
+    // Bounded in-memory dedupe: prompt/render pipelines embed the same text
+    // repeatedly (e.g. the Agent Lens rebuilds on every state poll), so cache
+    // identical inputs here instead of hammering the local model server.
+    const _cache = new Map();
+    const _CACHE_MAX = 512;
+
     function configured() {
         return !!(config?.embedEnabled && config?.embedUrl && config?.embedModel);
     }
@@ -30,6 +36,8 @@
     async function embed(input) {
         if (!configured() || !input || (Array.isArray(input) && input.length === 0)) return null;
         const single = typeof input === 'string';
+        const cacheKey = JSON.stringify(input);
+        if (_cache.has(cacheKey)) return _cache.get(cacheKey);
         try {
             const url = config.embedUrl.replace(/\/+$/, '') + '/embeddings';
             const resp = await fetch(url, {
@@ -43,7 +51,10 @@
             const rows = (data.data || []).map(d => d.embedding).filter(Array.isArray);
             if (rows.length === 0) return null;
             rememberDims(rows[0].length);
-            return single ? rows[0] : rows;
+            const result = single ? rows[0] : rows;
+            if (_cache.size >= _CACHE_MAX) _cache.clear();
+            _cache.set(cacheKey, result);
+            return result;
         } catch (e) {
             return null;
         }

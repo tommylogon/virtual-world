@@ -15,6 +15,7 @@ class AgentLens {
         this._debounceTimer = null;
         this._refreshing = false;
         this._lastPlainText = '';
+        this._lastSig = '';
         this._SECTION_META = {
             'Context lead-in': { icon: '📍', accent: '#58a6ff' },
             'Area description': { icon: '🏠', accent: '#58a6ff' },
@@ -432,6 +433,7 @@ class AgentLens {
         const roomContext = PromptBuilder.buildRoomContext(lensState, charName, player, area, {
             includePlan: !authoring,
             agentFraming: !authoring,
+            preview: true,
         });
         const sections = this._splitRoomContext(roomContext, { authoring });
         let html = '';
@@ -456,12 +458,12 @@ class AgentLens {
         }
 
         const reactive = !!config.reactiveMode;
-        const roomContext = PromptBuilder.buildRoomContext(lensState, charName, player, area);
-        const roomParts = PromptBuilder.buildRoomContextParts(lensState, charName, player, area);
+        const roomContext = PromptBuilder.buildRoomContext(lensState, charName, player, area, { preview: true });
+        const roomParts = PromptBuilder.buildRoomContextParts(lensState, charName, player, area, { preview: true });
         const vitalsNL = PromptBuilder.describeVitals?.(player) || '';
         const emotionNL = PromptBuilder.buildEmotionContext(player);
         const relationshipNL = PromptBuilder.buildRelationshipContext(player, charName);
-        const memoryNL = await PromptBuilder.buildMemoryContext(charName);
+        const memoryNL = await PromptBuilder.buildMemoryContext(charName, { preview: true });
         const turnCtx = this._getTurnContext(charName);
         const lastResult = turnCtx.lastResult;
         const systemPrompt = PromptBuilder.buildCharacterSystemPrompt(charName, player);
@@ -565,6 +567,25 @@ class AgentLens {
             this._viewAs = worldState.data?.active_player || this._playerNames()[0] || null;
         }
 
+        // Preview-input signature: skip rebuilds when nothing the preview
+        // depends on changed. State polling / re-renders fire state:updated
+        // continuously, and rebuilding the identical preview each cycle re-ran
+        // the memory pipeline (and, before preview mode, the embedding server).
+        const live = worldState.data?.players?.[this._viewAs || ''] || null;
+        const areaName = selection ? this._resolveAreaName(selection) : null;
+        const areaData = areaName ? worldState.data?.areas?.[areaName] : null;
+        const areaItems = areaName ? worldState.getItemsInArea(areaName).map(i => String(i.name) + '|' + String(i.properties?.current_state || '')).join(',') : '';
+        const sig = JSON.stringify({
+            sel: selection ? [selection.type, selection.type === 'agent' ? selection.name : selection.id] : null,
+            viewAs: this._viewAs,
+            hypo: this._hypotheticalArea || '',
+            ways: this._wayStateOverrides,
+            tick: (worldState.data && worldState.data.time_ticks) || 0,
+            live: live ? [live.current_area, live.state, JSON.stringify(live.vitals || {}), live.emotion && live.emotion.current] : null,
+            area: areaData ? [areaData.description || '', JSON.stringify(areaData.environment || {}), (areaData.exits ? Object.values(areaData.exits).map(e => e.state).join(',') : ''), areaItems] : null,
+        });
+        if (sig === this._lastSig) return;
+
         if (!selection) {
             window.Lit.render(agentLensHtmlTag`${''}`, document.getElementById('agent-lens-header'));
             document.getElementById('agent-lens-stats').hidden = true;
@@ -573,11 +594,12 @@ class AgentLens {
                 <div class="agent-lens-welcome">
                     <div class="agent-lens-welcome-icon">👁</div>
                     <h3>Agent Lens</h3>
-                    <p>See exactly what an agent gets in their prompt — live, no LLM call.</p>
+                    <p>See exactly what an agent gets in their prompt — live, no LLM or embedding calls.</p>
                     <div class="agent-lens-welcome-hints"><span>🏠 Area</span><span>🧍 Agent</span><span>🚪 Way</span></div>
                     <p class="agent-lens-welcome-foot">Click something in the graph to start.</p>
                 </div>`, content);
             this._lastPlainText = '';
+            this._lastSig = sig;
             return;
         }
 
@@ -628,6 +650,7 @@ class AgentLens {
 
             window.Lit.render(agentLensHtmlTag`${html ? window.Lit.unsafeHTML(html) : agentLensHtmlTag`<div class="agent-lens-empty">Nothing to preview yet.</div>`}`, content);
             this._lastPlainText = content.innerText || '';
+            this._lastSig = sig;
         } catch (err) {
             window.Lit.render(agentLensHtmlTag`<div class="agent-lens-empty">Something went wrong: ${err.message}</div>`, content);
         } finally {

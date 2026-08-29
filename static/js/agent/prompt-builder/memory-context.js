@@ -129,10 +129,15 @@ window.PromptBuilder = window.PromptBuilder || {};
      * Build memory context for a character — retrieves relevant memories,
      * scores them by relevance, and builds investigation notes.
      * @param {string} charName - Character name
+     * @param {Object} [opts] - Options: `report` streams turn-only recall
+     *   feedback; `preview` (Agent Lens) skips the embedding server and all
+     *   side effects (`_respikeFromMemories`, semantic recall) — a preview must
+     *   never mutate the character or hammer the embedding API.
      * @returns {Promise<string>} Formatted memory context string or empty string
      */
     async function buildMemoryContext(charName, opts = {}) {
         if (!charName) return '';
+        const preview = !!opts.preview;
         const player = worldState.data?.players?.[charName];
         const currentArea = player?.current_area;
         const parts = [];
@@ -193,8 +198,12 @@ window.PromptBuilder = window.PromptBuilder || {};
             if (resp.ok) {
                 const data = await resp.json();
                 for (const memoryEntry of (data.memories || [])) {
-                    const icon = memIcon(memoryEntry.type);
-                    scored.push({ text: `[${events.tickToRelative(memoryEntry.tick)}] ${icon} ${memoryEntry.text}`, score: 1.0, tick: memoryEntry.tick, emotion: memoryEntry.emotion || null, source: 'retrieve' });
+                    // Backend returns {memory: {...}, score: number} since the
+                    // score is now included in the API response.
+                    const mem = memoryEntry.memory || memoryEntry;
+                    const backendScore = typeof memoryEntry.score === 'number' ? memoryEntry.score : null;
+                    const icon = memIcon(mem.type);
+                    scored.push({ text: `[${events.tickToRelative(mem.tick)}] ${icon} ${mem.text}`, score: backendScore !== null ? backendScore : 1.0, tick: mem.tick, emotion: mem.emotion || null, source: 'retrieved' });
                 }
             }
         } catch (e) {
@@ -226,8 +235,10 @@ window.PromptBuilder = window.PromptBuilder || {};
         // Semantic recall (task-91): embed the query, ask the backend vector
         // store for this character's top-k memories, and merge them into the
         // candidate pool scored by cosine similarity. Silent no-op when the
-        // embedding settings are off or the call fails.
-        if (window.EmbeddingClient?.configured()) {
+        // embedding settings are off or the call fails. Skipped entirely in
+        // preview mode (Agent Lens) — previews must not hit the embedding
+        // server on every state poll.
+        if (!preview && window.EmbeddingClient?.configured()) {
             try {
                 const queryVector = await EmbeddingClient.embed(query);
                 if (queryVector) {
@@ -331,7 +342,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             for (const memoryEntry of topMemories) {
                 parts.push(memoryEntry.text);
             }
-            _respikeFromMemories(charName, topMemories);
+            if (!preview) _respikeFromMemories(charName, topMemories);
         } else {
             parts.push('');
             parts.push('=== I REMEMBER ===');

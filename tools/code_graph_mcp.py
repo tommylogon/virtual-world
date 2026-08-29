@@ -322,5 +322,47 @@ def stats_resource() -> str:
     return graph_stats()
 
 
+@mcp.resource("codegraph://docs")
+def docs_resource() -> str:
+    """Self-describing reference: schema, tools, usage. Fetch this to learn
+    how to use the Code Graph MCP server."""
+    return "\n".join([
+        "# Code Graph MCP Server",
+        "",
+        "Semantic codebase search over a Neo4j code knowledge graph.",
+        "",
+        "## Tools",
+        "  search_code(query, top_k=8, kind='', root='')   semantic ANN search",
+        "    kind: file|class|function|method|comment|doc|item ('' = all)",
+        "    root: repo path ('' = CODEGRAPH_ROOT), 'all' = everything",
+        "  search_keywords(query, top_k=10, root='')       exact identifier/token match",
+        "  code_callers(name)                              who calls a function/method",
+        "  code_callees(name)                              what a function/method calls",
+        "  file_structure(path)                            definitions in a file + line ranges",
+        "  graph_stats()                                   health: counts, vectors, edges",
+        "",
+        "## Schema",
+        "  Nodes (all :Embeddable, with vector): CodeFile, CodeClass, CodeFunction,",
+        "  CodeMethod, CodeComment, CodeDoc (md section), CodeItem (library json), CodeModule",
+        "  Props: qualified_name, filepath, line_start/end, docstring, signature,",
+        "         source_code, root_path, language",
+        "  Edges: DEFINES, CONTAINS, CALLS, IMPORTS, INHERITS",
+        "",
+        "## Example queries",
+        '  search_code(query="where is carry weight enforced")',
+        '  search_code(query="rusty key hidden behind floorboard", kind="item")',
+        '  search_keywords(query="vector_store")',
+        "  code_callers(name='tick_turn')",
+        "",
+        "## Rebuild",
+        "  python tools/build_code_graph.py <root> --clear-old",
+        "  python tools/backfill_embeddings.py [root]",
+        "",
+        "## Env",
+        "  NEO4J_URI/USERNAME/PASSWORD, EMBEDDING_BASE_URL, EMBEDDING_MODEL (768-dim),",
+        "  CODEGRAPH_INDEX (default embeddings_vector), CODEGRAPH_ROOT (default search scope)",
+    ])
+
+
 if __name__ == "__main__":
     mcp.run()

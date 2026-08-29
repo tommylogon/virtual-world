@@ -183,70 +183,96 @@ window.PromptBuilder = window.PromptBuilder || {};
     }
 
     /**
+     * Natural-language description for a SINGLE vital (task-337).
+     * Handles inverted (drive) polarity for Hunger/Thirst/Bladder —
+     * high value = urgent for drives, low value = urgent for reserves.
+     * @param {Object} vitals - Player vitals object (Capitalized keys)
+     * @param {string} key - Vital name (e.g. 'Hunger', 'Energy')
+     * @returns {string} First-person NL description, or '' if healthy/undefined
+     */
+    function describeVital(vitals, key) {
+        if (!vitals || vitals[key] === undefined || vitals[key] === null) return '';
+        const T = window.VitalThresholds;
+        const v = Number(vitals[key]) || 0;
+        switch (key) {
+            case 'Energy':
+                if (v <= 0) return 'You are collapsing from exhaustion — your legs buckle and your vision blurs.';
+                if (v < T.CRITICAL) return 'You are exhausted. Every movement feels heavy.';
+                if (v < T.WARNING) return 'You are getting tired. A yawn escapes you.';
+                return '';
+            // drives (task-337): high value = urgent, 0 = satisfied
+            case 'Hunger':
+                if (v >= 100) return 'You are starving — your stomach is a hollow knot of pain.';
+                if (v > T.WARNING) return 'You are very hungry. Your stomach growls loudly.';
+                if (v > T.CRITICAL) return 'You are hungry. Your stomach feels empty.';
+                return '';
+            case 'Thirst':
+                if (v >= 100) return 'You are dying of thirst — your throat is cracked and dry as ash.';
+                if (v > T.WARNING) return 'You are very thirsty. Your tongue sticks to the roof of your mouth.';
+                if (v > T.CRITICAL) return 'You are thirsty. Your throat feels dry.';
+                return '';
+            case 'Hygiene':
+                if (v < T.CRITICAL) return 'You are filthy — grime and sweat cling to your skin.';
+                if (v < T.WARNING) return 'You are dirty. Your clothes smell of sweat and exertion.';
+                return '';
+            case 'Social':
+                if (v < T.CRITICAL) return 'The loneliness is crushing. You desperately wish someone was here.';
+                if (v < T.WARNING) return 'You feel isolated. The silence presses in around you.';
+                return '';
+            case 'Bladder':
+                if (v >= T.BLADDER_URGENT) return 'You are about to burst — you desperately need a bathroom.';
+                if (v >= T.BLADDER_WARN) return 'Your bladder is uncomfortably full. You shift your weight.';
+                if (v >= T.BLADDER_MILD) return 'You could use a bathroom soon. A mild pressure builds.';
+                return '';
+            case 'Sanity':
+                if (v < T.SANITY_SHATTERED) return 'REALITY IS COLLAPSING — you can no longer trust what you see. Paranoia and frenzy consume you.';
+                if (v < T.CRITICAL) return 'Your mind is fracturing. Rage simmers beneath the surface and you suspect everyone is against you.';
+                if (v < T.WARNING) return 'You feel strained and irritable. Everything grates on your nerves.';
+                if (v < 75) return 'A sense of unease lingers. The shadows seem to watch you.';
+                return '';
+            case 'Entertainment':
+                if (v < 10) return 'You\'re desperate for stimulation. Staying in place any longer is unbearable. Take action — go, examine, or use.';
+                if (v < 25) return 'You\'re bored. Routine feels stifling. You\'re drawn to try something different — anything to break the monotony.';
+                if (v < 50) return 'You\'re starting to get bored. Consider doing something new or going somewhere else.';
+                return '';
+            case 'Temperature':
+                if (v < 33) return 'You are shivering uncontrollably — hypothermia is setting in. Your fingers are numb.';
+                if (v < 35) return 'You are shivering violently from the cold. Your teeth chatter.';
+                if (v < 36) return 'You are cold and shivering. A chill runs through you.';
+                if (v > 42) return 'The heat is overwhelming — you are about to collapse. The world swims before your eyes.';
+                if (v > 40) return 'You are dangerously overheated. Sweat pours down your face.';
+                if (v > 38) return 'You are feeling very hot. You wipe sweat from your brow.';
+                return '';
+            default:
+                return '';
+        }
+    }
+
+    /**
      * Describe a character's current vital stats in natural language.
      * Covers Energy, Hunger, Thirst, Hygiene, Social, Bladder, Sanity,
-     * Entertainment, and Temperature.
+     * Entertainment, and Temperature. Delegates per-vital logic to
+     * describeVital so tiers stay in sync (task-337).
      * @param {Object} player - Player data object with vitals
      * @returns {string} Natural language description of vitals or empty string
      */
     function describeVitals(player) {
         if (!player?.vitals) return '';
         const vitalsData = player.vitals;
+        const order = ['Energy', 'Hunger', 'Thirst', 'Hygiene', 'Social', 'Bladder',
+                       'Sanity', 'Entertainment', 'Temperature'];
         const parts = [];
-        // Tier boundaries come from VitalThresholds (task-322 R5) — the single
-        // source shared with plan-tracker's criticalNeeds. The `<= 0` collapse
-        // tiers are mechanical zero-states, not tunable thresholds.
-        const T = window.VitalThresholds;
-
-        // Energy
-        if (vitalsData.Energy !== undefined && vitalsData.Energy <= 0) parts.push('You are collapsing from exhaustion — your legs buckle and your vision blurs.');
-        else if (vitalsData.Energy !== undefined && vitalsData.Energy < T.CRITICAL) parts.push('You are exhausted. Every movement feels heavy.');
-        else if (vitalsData.Energy !== undefined && vitalsData.Energy < T.WARNING) parts.push('You are getting tired. A yawn escapes you.');
-
-        // Hunger — DRIVE: rises toward 100 (starving at max)
-        if (vitalsData.Hunger !== undefined && vitalsData.Hunger >= 100) parts.push('You are starving — your stomach is a hollow knot of pain.');
-        else if (vitalsData.Hunger !== undefined && vitalsData.Hunger > T.CRITICAL) parts.push('You are very hungry. Your stomach growls loudly.');
-        else if (vitalsData.Hunger !== undefined && vitalsData.Hunger > T.WARNING) parts.push('You are hungry. Your stomach feels empty.');
-
-        // Thirst — DRIVE: rises toward 100 (dehydrated at max)
-        if (vitalsData.Thirst !== undefined && vitalsData.Thirst >= 100) parts.push('You are dying of thirst — your throat is cracked and dry as ash.');
-        else if (vitalsData.Thirst !== undefined && vitalsData.Thirst > T.CRITICAL) parts.push('You are very thirsty. Your tongue sticks to the roof of your mouth.');
-        else if (vitalsData.Thirst !== undefined && vitalsData.Thirst > T.WARNING) parts.push('You are thirsty. Your throat feels dry.');
-
-        // Hygiene
-        if (vitalsData.Hygiene !== undefined && vitalsData.Hygiene < T.CRITICAL) parts.push('You are filthy — grime and sweat cling to your skin.');
-        else if (vitalsData.Hygiene !== undefined && vitalsData.Hygiene < T.WARNING) parts.push('You are dirty. Your clothes smell of sweat and exertion.');
-
-        // Social
-        if (vitalsData.Social !== undefined && vitalsData.Social < T.CRITICAL) parts.push('The loneliness is crushing. You desperately wish someone was here.');
-        else if (vitalsData.Social !== undefined && vitalsData.Social < T.WARNING) parts.push('You feel isolated. The silence presses in around you.');
-
-        // Bladder: 0 = empty (relieved), 100 = full (about to burst)
-        if (vitalsData.Bladder !== undefined && vitalsData.Bladder >= T.BLADDER_URGENT) parts.push('You are about to burst — you desperately need a bathroom.');
-        else if (vitalsData.Bladder !== undefined && vitalsData.Bladder >= T.BLADDER_WARN) parts.push('Your bladder is uncomfortably full. You shift your weight.');
-        else if (vitalsData.Bladder !== undefined && vitalsData.Bladder >= T.BLADDER_MILD) parts.push('You could use a bathroom soon. A mild pressure builds.');
-
-        // Sanity — progressive insanity tiers
-        if (vitalsData.Sanity !== undefined && vitalsData.Sanity < T.SANITY_SHATTERED) parts.push('REALITY IS COLLAPSING — you can no longer trust what you see. Paranoia and frenzy consume you.');
-        else if (vitalsData.Sanity !== undefined && vitalsData.Sanity < T.CRITICAL) parts.push('Your mind is fracturing. Rage simmers beneath the surface and you suspect everyone is against you.');
-        else if (vitalsData.Sanity !== undefined && vitalsData.Sanity < T.WARNING) parts.push('You feel strained and irritable. Everything grates on your nerves.');
-        else if (vitalsData.Sanity !== undefined && vitalsData.Sanity < 75) parts.push('A sense of unease lingers. The shadows seem to watch you.');
-
-        // Entertainment — low levels drive novelty-seeking behavior
-        if (vitalsData.Entertainment !== undefined && vitalsData.Entertainment < 10) parts.push('You\'re desperate for stimulation. Staying in place any longer is unbearable. Take action — go, examine, or use.');
-        else if (vitalsData.Entertainment !== undefined && vitalsData.Entertainment < 25) parts.push('You\'re bored. Routine feels stifling. You\'re drawn to try something different — anything to break the monotony.');
-        else if (vitalsData.Entertainment !== undefined && vitalsData.Entertainment < 50) parts.push('You\'re starting to get bored. Consider doing something new or going somewhere else.');
-
-        // Temperature
-        if (vitalsData.Temperature !== undefined) {
-            if (vitalsData.Temperature < 33) parts.push('You are shivering uncontrollably — hypothermia is setting in. Your fingers are numb.');
-            else if (vitalsData.Temperature < 35) parts.push('You are shivering violently from the cold. Your teeth chatter.');
-            else if (vitalsData.Temperature < 36) parts.push('You are cold and shivering. A chill runs through you.');
-            else if (vitalsData.Temperature > 42) parts.push('The heat is overwhelming — you are about to collapse. The world swims before your eyes.');
-            else if (vitalsData.Temperature > 40) parts.push('You are dangerously overheated. Sweat pours down your face.');
-            else if (vitalsData.Temperature > 38) parts.push('You are feeling very hot. You wipe sweat from your brow.');
+        for (const key of order) {
+            if (vitalsData[key] !== undefined) {
+                const desc = describeVital(vitalsData, key);
+                if (desc) parts.push(desc);
+            }
         }
-
+        for (const key of Object.keys(vitalsData)) {
+            if (key.startsWith('Max_') || order.includes(key)) continue;
+            const desc = describeVital(vitalsData, key);
+            if (desc) parts.push(desc);
+        }
         if (parts.length === 0) return 'You feel fine — no pressing needs right now.';
         return parts.join(' ');
     }
@@ -289,6 +315,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         buildTraitBehaviorContext,
         buildSizeContext,
         buildPerceivedState,
+        describeVital,
         describeVitals,
         buildPlanContext
     });

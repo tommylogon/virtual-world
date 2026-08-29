@@ -62,6 +62,7 @@ load('static/js/agent/vital-thresholds.js');
 load('static/js/agent/action-normalizer.js');
 load('static/js/agent/response-parser.js');
 load('static/js/agent/plan-tracker.js');
+load('static/js/agent/prompt-builder/character-state.js');
 load('static/js/agent/prompt-builder/conversation-context.js');
 
 // ── discover + run test files ──

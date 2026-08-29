@@ -15,6 +15,12 @@
 // Lazy tag: window.Lit only exists at call time (deferred module bootstrap).
 const tagMultiselectHtmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
 
+// Full-tag-list cache: the inspector re-creates TagMultiselect instances on
+// every re-render, and each constructor loaded the whole list. A short TTL
+// keeps the dropdown live without flooding /api/tags/search per re-render.
+const _tagListCache = { at: 0, tags: null };
+const _TAG_LIST_TTL = 15000;
+
 class TagMultiselect {
     constructor(container, opts = {}) {
         this.container = container;
@@ -78,9 +84,20 @@ class TagMultiselect {
     }
 
     _loadAllTags() {
-        fetch("/api/tags/search").then(r => r.json()).then(tags => {
-            tags.forEach(t => { this._tagCache[t.id] = t; });
+        const applyTags = (tags) => {
+            this._tagCache = {};
+            (tags || []).forEach(t => { this._tagCache[t.id] = t; });
             this._renderBadges();
+        };
+        if (_tagListCache.tags && Date.now() - _tagListCache.at < _TAG_LIST_TTL) {
+            applyTags(_tagListCache.tags);
+            return;
+        }
+        fetch("/api/tags/search").then(r => r.json()).then(tags => {
+            const list = Array.isArray(tags) ? tags : ((tags && tags.tags) || []);
+            _tagListCache.at = Date.now();
+            _tagListCache.tags = list;
+            applyTags(list);
         }).catch(() => {});
     }
 

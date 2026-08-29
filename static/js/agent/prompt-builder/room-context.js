@@ -198,9 +198,11 @@ window.PromptBuilder = window.PromptBuilder || {};
     function buildRoomContextParts(state, charName, player, currentArea, includePlanOrOptions = true) {
         let includePlan = true;
         let agentFraming = true;
+        let preview = false;
         if (typeof includePlanOrOptions === 'object' && includePlanOrOptions !== null) {
             includePlan = includePlanOrOptions.includePlan !== false;
             agentFraming = includePlanOrOptions.agentFraming !== false;
+            preview = includePlanOrOptions.preview === true;
         } else {
             includePlan = includePlanOrOptions !== false;
         }
@@ -566,8 +568,10 @@ window.PromptBuilder = window.PromptBuilder || {};
             ? '\n\n=== WITNESSED ===\n' + witnessedLines.join('\n')
             : '\n\n=== WITNESSED ===\nNothing unusual happened while you were looking.';
         // Social recall: if something heard references one of this character's
-        // memories, re-feel it (and nudge the relationship when known).
-        if (socialSeeds.length) _fireSocialRecall(charName, socialSeeds);
+        // memories, re-feel it (and nudge the relationship when known). Preview
+        // mode (Agent Lens) never fires this — it embeds the seeds and POSTs
+        // affect, so a preview must not do either.
+        if (!preview && socialSeeds.length) _fireSocialRecall(charName, socialSeeds);
         // Build narrative lead-in — use feels_like from backend state if available
         const feelsLike = player?.feels_like ?? currentArea?.environment?.temperature;
         const tempFeel = feelsLike != null

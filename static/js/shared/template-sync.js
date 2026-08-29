@@ -44,6 +44,12 @@ window.InspectorTemplateSync = (() => {
       <button class="btn btn-sm btn-green" onclick="InspectorTemplateSync.refreshFromLibrary('${type}','${esc(nodeId)}')">🔄 Refresh from Library</button>`;
   }
 
+  // Per-type library registry cache with a short TTL: populateSelector runs
+  // on every inspector re-render; without a cache each re-render refetched the
+  // whole registry (characters, ways, areas).
+  const _libCache = {}; // typeKey -> { at, data }
+  const _LIB_TTL = 30000;
+
   /**
    * Populate a type's template selector dropdown from its library registry.
    * @param {string} type - 'way' | 'area' | 'character'
@@ -55,8 +61,17 @@ window.InspectorTemplateSync = (() => {
     if (!input) return;
     const list = document.getElementById(`${type}-lib-template-${escaped}-opts`);
     const current = input.value || (worldState.getNode(nodeId)?.properties?.library_id) || '';
+    const typeKey = type === 'way' ? 'ways' : `${type}s`;
     let libData = {};
-    try { libData = await ApiClient.getLibraryType(type === 'way' ? 'ways' : `${type}s`); } catch (e) { /* ignore */ }
+    try {
+      const cached = _libCache[typeKey];
+      if (cached && Date.now() - cached.at < _LIB_TTL) {
+        libData = cached.data;
+      } else {
+        libData = await ApiClient.getLibraryType(typeKey);
+        _libCache[typeKey] = { at: Date.now(), data: libData };
+      }
+    } catch (e) { /* ignore */ }
     if (list) {
       let html = '';
       for (const [id, entry] of Object.entries(libData)) {

@@ -140,7 +140,14 @@ def handle_map_player_emotions(app, name):
         if vital not in player.vitals:
             continue
         cur = float(player.vitals[vital])
-        player.vitals[vital] = max(0.0, min(100.0, cur + delta))
+        new_val = max(0.0, min(100.0, cur + delta))
+        # Round to match the storage convention: Temperature is a float with
+        # 1 decimal; all other vitals are integers.  Without this the mental
+        # vital coupling produces ugly long floats (e.g. Social 98.183823…).
+        if vital == "Temperature":
+            player.vitals[vital] = round(new_val, 1)
+        else:
+            player.vitals[vital] = round(new_val)
 
     # --- Relationship nudge toward the speaker (name-gated) ---
     # Only when the recalled memory is attributed to a real, resolvable speaker.

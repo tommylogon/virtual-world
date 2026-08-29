@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
-"""Backfill embeddings for Aura code-graph nodes that lack vectors.
+"""Backfill embeddings for code-graph nodes that lack vectors.
 
-After dedup, 742 Aura Embeddables have no vector (they were never embedded,
-or their vector-bearing copy was deduped away). This re-embeds them from
-docstring/source_code via LM Studio so the whole graph is searchable.
+Usage:
+    python backfill_embeddings.py [root]
+
+Root defaults to env CODEGRAPH_ROOT or F:\\AI\\viwo\\virtual-world.
+Skips nodes that already have vectors. Idempotent.
 
 Env: NEO4J_URI/USERNAME/PASSWORD, EMBEDDING_BASE_URL, EMBEDDING_MODEL.
 """
 import os
+import sys
 import requests
 from neo4j import GraphDatabase
 
@@ -16,6 +19,7 @@ NEO4J_USER = os.environ.get("NEO4J_USERNAME", "neo4j")
 NEO4J_PASS = os.environ.get("NEO4J_PASSWORD", "password")
 EMBED_URL = os.environ.get("EMBEDDING_BASE_URL", "http://localhost:1234/v1")
 EMBED_MODEL = os.environ.get("EMBEDDING_MODEL", "text-embedding-nomic-embed-text-v1.5")
+DEFAULT_ROOT = os.environ.get("CODEGRAPH_ROOT", "F:\\AI\\viwo\\virtual-world")
 
 driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASS))
 
@@ -38,14 +42,15 @@ def text_of(n):
 
 
 def main():
+    root = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_ROOT
     with driver.session() as s:
         rows = list(s.run("""
             MATCH (n:Embeddable)
-            WHERE n.root_path = 'F:\\AI\\Aura\\Aura' AND n.vector IS NULL
+            WHERE n.root_path = $root AND n.vector IS NULL
             RETURN elementId(n) AS id, n.name AS name, n.docstring AS doc,
                    n.source_code AS src, n.signature AS sig, n.qualified_name AS q
-            LIMIT 900
-        """))
+            LIMIT 5000
+        """, root=root))
     print(f"need embedding: {len(rows)}")
     if not rows:
         driver.close()

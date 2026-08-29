@@ -66,7 +66,9 @@ window.TurnYouStrip = (() => {
         const suffix = window.VitalColor.suffix(key);
         const wrap = el('span', 'tys-vital');
         wrap.style.cursor = 'pointer';
-        wrap.title = `${key}: ${Math.round(Number(raw) || 0)}${suffix} — click for details`;
+        const _val = Math.round(Number(raw) || 0);
+        const _nl = (window.PromptBuilder?.describeVital?.(vitals, key) || '').replace(/^You /, '');
+        wrap.title = `${key}: ${_val}${suffix}${_nl ? ' — ' + _nl : ''} — click for details`;
         wrap.appendChild(el('span', null, key));
         const bar = el('span', 'tys-bar');
         const fill = el('i');

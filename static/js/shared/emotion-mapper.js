@@ -60,6 +60,11 @@
 
     const _anchorCache = { embed: false, vectors: null };
 
+    // Resolved-label cache: a novel label resolves (and embeds) once per
+    // session; repeated preview/turn builds reuse the stored dimension —
+    // including negative results, so unresolvable labels stop re-embedding.
+    const _labelCache = Object.create(null);
+
     async function _anchorVectors() {
         if (!window.EmbeddingClient || !EmbeddingClient.configured()) return null;
         if (_anchorCache.embed && _anchorCache.vectors) return _anchorCache.vectors;
@@ -108,8 +113,13 @@
         for (const lab in LABEL_TO_DIM) {
             if (lab.includes(key) || key.includes(lab)) return { dimension: LABEL_TO_DIM[lab], label: label };
         }
-        // semantic fallback for novel labels
+        // semantic fallback for novel labels — resolved once, then cached
+        if (key in _labelCache) {
+            const cachedDim = _labelCache[key];
+            return cachedDim ? { dimension: cachedDim, label: label } : null;
+        }
         const dim = await _semanticDim(key);
+        _labelCache[key] = dim || null;
         return dim ? { dimension: dim, label: label } : null;
     }
 

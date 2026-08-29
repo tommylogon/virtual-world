@@ -108,6 +108,34 @@ def register_saveload_routes(app):
             else:
                 logger.warning("No scenario file found, using blank world")
             new_world.time_per_tick_minutes = getattr(app.world, 'time_per_tick_minutes', 5)
+
+            # Clear any game_log/time state inherited from the template so only
+            # fresh init messages remain. load_from_dict writes to legacy_compat
+            # (which _serialize_world reads from for the frontend), while
+            # VirtualWorld.add_log_entry writes to game_logger — so set BOTH.
+            new_world.legacy_compat.game_log = []
+            new_world.legacy_compat.turn_events = []
+            new_world.legacy_compat.log_revision = 0
+            new_world.legacy_compat.time_ticks = 0
+            new_world.legacy_compat.clock_start_hour = 8
+            new_world.legacy_compat.clock_start_minute = 0
+            new_world.legacy_compat.turn_number = 0
+            # Also set on VirtualWorld attrs since get_current_time() reads them directly
+            new_world.time_ticks = 0
+            new_world.clock_start_hour = 8
+            new_world.clock_start_minute = 0
+            new_world.turn_number = 0
+            # Re-add fresh init messages (also goes to game_logger for engine use)
+            new_world.add_log_entry("[System] Welcome to VirtualWorld. Available Actions:")
+            new_world.add_log_entry(" - Movement: go [exit] (e.g., 'go doorway', 'go grand_stairs', 'go trapdoor')")
+            new_world.add_log_entry(" - Interaction: open/close [door], use [item] (on [target])")
+            new_world.add_log_entry(" - Items: take [item], drop [item], examine [item], inventory")
+            new_world.add_log_entry(" - Vitals: rest [minutes], eat/drink (use item), stats")
+            new_world.add_log_entry(" - CRITICAL: Keep Energy above 25% to survive and enable HP regeneration! Hunger and Thirst RISE over time — eat and drink before they max out!")
+            new_world.add_log_entry(" - WARNING: Environmental conditions affect your needs. Pay attention to temperature, air, noise, and smell!")
+            # Mirror fresh log into legacy_compat so frontend sees it via to_dict()
+            new_world.legacy_compat.game_log = list(new_world.game_logger.game_log)
+
             app.world = new_world
             # Delete autosave so restart is truly clean and next server start doesn't load stale state
             from .helpers import AUTOSAVE_PATH
