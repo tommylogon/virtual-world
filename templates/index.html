@@ -131,9 +131,10 @@
 
             <div id="alert-section">
                 <h4 class="panel-heading">⚠️ Alerts</h4>
-                <div id="alert-list" class="alert-list">
-                    <div class="alert-empty">No alerts</div>
-                </div>
+                <!-- Container must stay EMPTY: UIController.renderAlerts owns it via
+                     Lit.render (lit-html v1 append semantics) — a static placeholder
+                     is never cleared and renders "No alerts" forever above real alerts. -->
+                <div id="alert-list" class="alert-list"></div>
             </div>
         </aside>
 
@@ -231,6 +232,8 @@
                     <label class="filter-label"><input type="checkbox" id="filter-thoughts" checked onchange="config.filterThoughts=this.checked; events.applyFilters(); config.save()"> 💭</label>
                     <label class="filter-label"><input type="checkbox" id="filter-speech" checked onchange="config.filterSpeech=this.checked; events.applyFilters(); config.save()"> 💬</label>
                     <label class="filter-label"><input type="checkbox" id="filter-actions" checked onchange="config.filterActions=this.checked; events.applyFilters(); config.save()"> ▶️</label>
+                    <label class="filter-label" title="Memory recalls ('🧠 recalled …')"><input type="checkbox" id="filter-recalls" checked onchange="config.filterRecalls=this.checked; events.applyFilters(); config.save()"> 🧠</label>
+                    <label class="filter-label" title="Simple NPC rows (👾)"><input type="checkbox" id="filter-npc" checked onchange="config.filterNpc=this.checked; events.applyFilters(); config.save()"> 👾</label>
                     <label class="filter-label"><input type="checkbox" id="filter-system" checked onchange="config.filterSystem=this.checked; events.applyFilters(); config.save()"> ⚙️</label>
                     <label class="filter-label"><input type="checkbox" id="filter-rawllm" checked onchange="config.filterRawLLM=this.checked; events.applyFilters(); config.save()"> 🤖</label>
                 </div>

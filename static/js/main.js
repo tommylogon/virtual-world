@@ -755,6 +755,8 @@ document.addEventListener('DOMContentLoaded', () => {
     syncFilter('filter-actions', config.filterActions);
     syncFilter('filter-system', config.filterSystem);
     syncFilter('filter-rawllm', config.filterRawLLM);
+    syncFilter('filter-recalls', config.filterRecalls);
+    syncFilter('filter-npc', config.filterNpc);
     
     // Initialize agent UI controls
     ui.initAgentUI();

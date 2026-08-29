@@ -22,6 +22,8 @@ class StreamFilters {
             result: config.filterActions,
             whisper: config.filterSpeech,
             reflection: config.filterThoughts,
+            recall: config.filterRecalls,
+            npc: config.filterNpc,
             narrated: config.filterSystem,
             crisis: config.filterSystem,
             prune: config.filterSystem,

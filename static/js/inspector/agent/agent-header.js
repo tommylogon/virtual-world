@@ -117,8 +117,11 @@ window.InspectorAgentHeader = (() => {
                 : Math.max(0, Math.min(100, (value / max) * 100));
             const barColor = vitalBarColor(vitalName, vitals[vitalName]);
             const suffix = vitalName === 'Temperature' ? '°C' : '';
-            const nlDesc = (window.PromptBuilder?.describeVital?.(vitals, vitalName) || '');
-            const tipText = `${vitalName}: ${value}/${max}${suffix}${nlDesc ? '\n' + nlDesc : ''}`;
+            // Full hover: value + what the vital does + human natural language
+            // (task-129). VitalThresholds.hoverText falls back to the raw
+            // number line when unavailable.
+            const tipText = (window.VitalThresholds?.hoverText?.(vitals, vitalName))
+                || `${vitalName}: ${value}/${max}${suffix}`;
             return `<div style="flex:1;min-width:60px;text-align:center;cursor:pointer;" data-tippy-content="${tipText}" onclick="${openModal(vitalName)}">
                 <div style="font-size:9px;text-transform:uppercase;">${vitalName}</div>
                 <div style="height:4px;background:var(--bg-input);border-radius:2px;margin:2px 0;overflow:hidden;"><div style="height:100%;width:${percentage}%;background:${barColor};border-radius:2px;"></div></div>

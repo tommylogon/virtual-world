@@ -136,6 +136,14 @@ window.InspectorAgentView = (() => {
         // Initialize Tippy tooltips
         if (typeof tippy !== 'undefined') {
             try {
+                // Multi-line tips (vital hover) need pre-line whitespace —
+                // tippy renders content as text, so a bare \n collapses.
+                if (!document.getElementById('tippy-preline-style')) {
+                    const st = document.createElement('style');
+                    st.id = 'tippy-preline-style';
+                    st.textContent = '[data-tippy-root] .tippy-content { white-space: pre-line; }';
+                    document.head.appendChild(st);
+                }
                 tippy('[data-tippy-content]', { placement: 'top', arrow: true, animation: 'shift-away', duration: [200, 150], maxWidth: 250 });
             } catch (error) {}
         }
@@ -359,8 +367,11 @@ window.InspectorAgentView = (() => {
                 : Math.max(0, Math.min(100, (value / max) * 100));
             const barColor = vitalBarColor(vitalName, vitals[vitalName]);
             const suffix = vitalName === 'Temperature' ? '°C' : '';
-            const nlDesc = (window.PromptBuilder?.describeVital?.(vitals, vitalName) || '');
-            const tipText = `${vitalName}: ${value}/${max}${suffix}${nlDesc ? '\n' + nlDesc : ''}`;
+            // Full hover: value + what the vital does + human natural language
+            // (task-129). VitalThresholds.hoverText falls back to the raw
+            // number line when unavailable.
+            const tipText = (window.VitalThresholds?.hoverText?.(vitals, vitalName))
+                || `${vitalName}: ${value}/${max}${suffix}`;
             return `<div style="flex:1;min-width:60px;text-align:center;cursor:pointer;" data-tippy-content="${tipText}" onclick="${openModal(vitalName)}">
                 <div style="font-size:9px;text-transform:uppercase;">${vitalName}</div>
                 <div style="height:4px;background:var(--bg-input);border-radius:2px;margin:2px 0;overflow:hidden;"><div style="height:100%;width:${percentage}%;background:${barColor};border-radius:2px;"></div></div>

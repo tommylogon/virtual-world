@@ -68,14 +68,16 @@ window.TurnYouStrip = (() => {
         wrap.style.cursor = 'pointer';
         const _val = Math.round(Number(raw) || 0);
         // Human natural language on hover — the same describeVital() prose the
-        // agent prompts use ("You are hungry. Your stomach feels empty.").
-        // Rendered as a styled free-look card (same hover pattern as the
-        // scene's item/way chips) instead of the slow native title tooltip.
+        // agent prompts use ("You are hungry. Your stomach feels empty.") plus
+        // a one-line "what this vital does" (task-129). Rendered as a styled
+        // free-look card (same hover pattern as the scene's item/way chips)
+        // instead of the slow native title tooltip.
         const _nl = (window.PromptBuilder?.describeVital?.(vitals, key) || '').trim();
+        const _why = window.VitalThresholds?.explain?.(key) || '';
         if (window.TurnSceneView?.attachHover) {
             window.TurnSceneView.attachHover(wrap, () => wrap, () => ({
                 title: `${key} ${_val}${suffix}`,
-                body: _nl || 'no pressing need here.',
+                body: [_why, _nl || 'no pressing need here.'].filter(Boolean).join('\n'),
                 foot: 'click for details',
             }));
         }

@@ -132,8 +132,12 @@ class EventBus {
             }
         }
         // Memory reflections arrive as generic system messages — give them
-        // their own purple row kind (task-340 §reflection styling).
-        if (className === 'system-msg' && /^\s*🧠/.test(text)) className = 'msg-reflection';
+        // their own colored row kind (task-340 §reflection styling). Recalls
+        // (🧠 recalled N memories) and simple-NPC rows (👾) get their own
+        // kinds too so each is filterable on its own.
+        if (className === 'system-msg' && /^\s*🧠\s*recalled/.test(text)) className = 'msg-recall';
+        else if (className === 'system-msg' && /^\s*👾/.test(text)) className = 'msg-npc';
+        else if (className === 'system-msg' && /^\s*🧠/.test(text)) className = 'msg-reflection';
 
         this._routeToStream(text, className, meta);
     }
@@ -208,7 +212,7 @@ class EventBus {
         const tick = VW?.state?.tick || 0;
         this._filters.noteActor(charName);
         const bubble = document.createElement('div');
-        bubble.className = 'thought-bubble';
+        bubble.className = 'thought-bubble msg-bubble-thought';
         bubble.setAttribute('data-actor', charName);
         bubble.setAttribute('data-tick', tick);
         bubble.setAttribute('data-type', 'thought');
@@ -320,6 +324,14 @@ class EventBus {
                 streamType = 'reflection';
                 icon = '🧠';
                 break;
+            case 'msg-recall':
+                streamType = 'recall';
+                icon = '🧠';
+                break;
+            case 'msg-npc':
+                streamType = 'npc';
+                icon = '👾';
+                break;
             case 'msg-crisis':
                 streamType = 'crisis';
                 icon = '⚠️';
@@ -397,7 +409,7 @@ class EventBus {
         bubble.setAttribute('data-stream-area', actorArea || '');
         bubble.title = this.tickToRelative(tick);
 
-        const filterMap = { thought: config.filterThoughts, speech: config.filterSpeech, action: config.filterActions, emote: config.filterActions, result: config.filterActions, whisper: config.filterSpeech, reflection: config.filterThoughts, narrated: config.filterSystem, crisis: config.filterSystem, prune: config.filterSystem, system: config.filterSystem, error: config.filterSystem };
+        const filterMap = { thought: config.filterThoughts, speech: config.filterSpeech, action: config.filterActions, emote: config.filterActions, result: config.filterActions, whisper: config.filterSpeech, reflection: config.filterThoughts, recall: config.filterRecalls, npc: config.filterNpc, narrated: config.filterSystem, crisis: config.filterSystem, prune: config.filterSystem, system: config.filterSystem, error: config.filterSystem };
         if (filterMap[type] !== undefined && !filterMap[type]) bubble.style.display = 'none';
 
         const outcomeBadge = type === 'result'
