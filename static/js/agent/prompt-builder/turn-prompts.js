@@ -117,7 +117,7 @@ Respond ONLY raw JSON. Put a comma between every field. Do NOT repeat the same k
 Examples:
 ${PromptBuilder.buildJsonExample(schemaFields)}
 If you say nothing but still emote:
-{"inner_monologue":"...","action":"wait","emote":"shivers and hugs yourself"}
+{"inner_monologue":"...","action":"wait","emote":"shivers and hugs their shoulders"}
 If you have no emote, omit it:
 {"inner_monologue":"...","action":"look","target":"the archway"}`;
     }

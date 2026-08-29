@@ -197,11 +197,9 @@ window.PromptBuilder = window.PromptBuilder || {};
             });
             if (resp.ok) {
                 const data = await resp.json();
-                for (const memoryEntry of (data.memories || [])) {
-                    // Backend returns {memory: {...}, score: number} since the
-                    // score is now included in the API response.
-                    const mem = memoryEntry.memory || memoryEntry;
-                    const backendScore = typeof memoryEntry.score === 'number' ? memoryEntry.score : null;
+                for (const mem of (data.memories || [])) {
+                    // Backend now includes score directly on the memory object.
+                    const backendScore = typeof mem.score === 'number' ? mem.score : null;
                     const icon = memIcon(mem.type);
                     scored.push({ text: `[${events.tickToRelative(mem.tick)}] ${icon} ${mem.text}`, score: backendScore !== null ? backendScore : 1.0, tick: mem.tick, emotion: mem.emotion || null, source: 'retrieved' });
                 }

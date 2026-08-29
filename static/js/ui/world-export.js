@@ -300,13 +300,23 @@ window.WorldExport = (() => {
 
         function emitBubble(bubble) {
             if (!bubble || bubble.style.display === 'none') return;
-            // Raw-LLM request/response chips are huge prompt bodies — collapse to
-            // a one-line note so the export reads like the narrative cards, not a
-            // dump of every LLM payload.
+            // Raw-LLM chips: the stream FILTERS decide what gets exported (any
+            // chip hidden by a filter already returned above). A VISIBLE raw-LLM
+            // chip's full payload is included — header line + the complete
+            // prompt/response body — so enabling the LLM filter restores the old
+            // "full logs in the export" behavior instead of a header-only note.
             if (bubble.classList.contains('msg-bubble-rawllm')) {
                 var headEl = bubble.querySelector('.rawllm-chip-header');
                 var head = headEl ? headEl.textContent.trim() : 'LLM request/response';
-                buf += '- _' + head + '_\n';
+                var line = '- _' + head + '_\n';
+                var bodyEl = bubble.querySelector('.rawllm-chip-body');
+                var body = bodyEl ? (bodyEl.textContent || '').trim() : '';
+                if (body) {
+                    line += '  <details><summary>payload</summary>\n\n  ```text\n'
+                        + body.split('\n').map(function (l) { return '  ' + l; }).join('\n')
+                        + '\n  ```\n  </details>\n';
+                }
+                buf += line;
                 return;
             }
             var textEl = bubble.querySelector('.bubble-text')

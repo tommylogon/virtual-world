@@ -422,17 +422,24 @@ window.HumanTurnComposer = (() => {
         if (!_jsonMode) updatePreview();
     }
 
-    function interject() {
+    async function interject() {
         const input = _modal.querySelector('#htc-interject');
         const text = (input.value || '').trim();
         if (!text || !_charName) return;
-        // Guest-speech path: posts as the character without consuming the
-        // queued turn (same semantics as the always-available command line).
-        ApiClient.action('say ' + text, _charName);
         input.value = '';
+        events.log(`💬 ${_charName} interjected (turn not used): "${text}"`, 'msg-action');
+        try {
+            const data = await ApiClient.action('say ' + text, _charName);
+            if (data?.output) {
+                events.log(data.output, 'system-msg');
+            } else if (data?.error) {
+                events.log(`❌ ${data.error}`, 'error-msg');
+            }
+        } catch (err) {
+            events.log(`❌ Interjection failed: ${err.message}`, 'error-msg');
+        }
         TurnFeed.clearDigest();
         _modal.querySelector('#htc-digest').style.display = 'none';
-        events.log(`💬 ${_charName} interjected (turn not used): "${text}"`, 'msg-action');
     }
 
     // ── phase / resolve plumbing ─────────────────────────────────────

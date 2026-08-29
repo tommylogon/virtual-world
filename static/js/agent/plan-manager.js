@@ -91,7 +91,7 @@ Create a practical 3-5 step plan based only on the information above.
 
 Respond ONLY with a raw JSON array of strings: ["step 1", "step 2"]`;
 
-            const response = await llmClient.chat([{ role: 'user', content: prompt }], { temperature: 0.7, max_tokens: 200, streaming: false });
+            const response = await llmClient.chat([{ role: 'user', content: prompt }], { temperature: 0.7, max_tokens: 200, streaming: false, label: 'plan' });
             if (!response) return [];
             let cleaned = repairJSON(response);
             const codeBlockMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);

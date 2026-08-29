@@ -182,7 +182,7 @@ class NarrationUI {
             const response = await llmClient.chat([
                 { role: 'system', content: systemMsg },
                 { role: 'user', content: prompt }
-            ], { temperature: 0.8 });
+            ], { temperature: 0.8, label: 'narrate-area' });
             
             if (response) {
                 let cleaned = response.trim();
@@ -210,7 +210,7 @@ class NarrationUI {
             const response = await llmClient.chat([
                 { role: 'system', content: systemMsg },
                 { role: 'user', content: prompt }
-            ], { temperature: 0.8 });
+            ], { temperature: 0.8, label: 'narrate-result' });
             
             if (response) {
                 let cleaned = response.trim();

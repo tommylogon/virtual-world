@@ -30,17 +30,26 @@ memory is your subjective 1-3 sentence memory based on what just happened — yo
         `
 memory is your subjective 1-3 sentence memory based on what just happened — your takeaway, not a recap of the room. Set its importance 1-10 (10 = life-changing). Threats, secrets, discoveries, and meaningful people rank high. Add 1-3 single-word tags (fear, trust, mystery) — never names, items, or places. If the memory is about a specific person, add "emotions": {"who":"<what you call them>","why":"<one short line>","data":{...}} where "data" keys are one of fear, affection, disgust, anger, trust, envy, familiarity, respect, closeness, each a small value -5..+5 telling how this changed how you feel toward THAT person (+ = more of it). A scary encounter: {"fear":2,"affection":-3}. Omit "emotions" when the memory is not about someone.`;
 
+    // EMOTE VOICE: the narrator stamps the emote with the character's name
+    // ("Lyrie hugs their shoulders."), so the emote text itself must be a THIRD
+    // person phrase: third-person singular verbs, neutral pronouns
+    // (their/them/themselves), no "you"/"your"/"I"/"my", no names. First- and
+    // second-person emotes used to survive the name stamp and produce lines
+    // like "Lyrie hugs yourself tightly." — keep every variant in third person.
+    const EMOTE_VOICE_RULE =
+        ` Write the emote in THIRD person — the narrator adds the character's name, so "hugs their shoulders" not "hugs yourself" or "hug myself". Use singular -s verbs ("hugs", "leans", "sinks") and neutral pronouns (their/them/themselves). Never "you", "your", "I", "my", and never your own character name.`;
+
     const EMOTE_RULES_REACTION =
-        `emote is body language — HOW you do something, or something you do to yourself or someone else (a kiss, a handshake, running a hand through your hair, reaching for the key). It shows the gesture and intention, never the outcome: if someone high-fives you, respond in kind or not — but you cannot claim your action succeeded before the system resolves it.`;
+        `emote is body language — HOW the character does something, or something they do to themselves or someone else (a kiss, a handshake, running a hand through their hair, reaching for the key). It shows the gesture and intention, never the outcome: if someone high-fives you, respond in kind or not — but you cannot claim your action succeeded before the system resolves it.${EMOTE_VOICE_RULE}`;
 
     const EMOTE_RULES_DECIDE =
-        `Emote is body language — HOW you do something, or something you do to yourself or someone else (a kiss, a handshake, running a hand through your hair, reaching for the key). It describes the gesture and intention, never the outcome — you cannot claim an action succeeded in your emote. If you want the result of an action, take the action: reach for the key with an emote, but use "take" to actually pick it up. If someone high-fives you, respond in kind or not — your choice.`;
+        `Emote is body language — HOW the character does something, or something they do to themselves or someone else (a kiss, a handshake, running a hand through their hair, reaching for the key). It describes the gesture and intention, never the outcome — you cannot claim an action succeeded in your emote. If you want the result of an action, take the action: reach for the key with an emote, but use "take" to actually pick it up. If someone high-fives you, respond in kind or not — your choice.${EMOTE_VOICE_RULE}`;
 
     const EMOTE_RULES_REACT =
-        `Emote is body language — HOW you do something, or something you do to yourself or someone else (a kiss, a handshake, wincing, running a hand through your hair). In this REACT phase you HAVE seen the outcome, so your emote may reflect it (wincing from a hit, beaming after a success) — but never invent a new outcome; respond to what actually happened.`;
+        `Emote is body language — HOW the character does something, or something they do to themselves or someone else (a kiss, a handshake, wincing, running a hand through their hair). In this REACT phase you HAVE seen the outcome, so your emote may reflect it (wincing from a hit, beaming after a success) — but never invent a new outcome; respond to what actually happened.${EMOTE_VOICE_RULE}`;
 
     const EMOTE_RULES_SYSTEM =
-        `emote is body language — HOW you do something, or something you do to yourself or someone else (a kiss, a handshake, running a hand through your hair, reaching for the key). It shows the gesture and intention, never the outcome — the system resolves what actually happens. If you want the result of an action, take the action: reach for the key with an emote, but use "take" to actually pick it up. If you want to GRAB, PULL, or DRAG someone, use the "grab" action (they may resist with a save) — never narrate grabbing another character in your emote. If you are being held, use "escape" to break free. Write emotes as bare verb phrases (e.g. "lean in close", "bite your lip", "glance at the door") — never include your own character name.`;
+        `emote is body language — HOW the character does something, or something they do to themselves or someone else (a kiss, a handshake, running a hand through their hair, reaching for the key). It shows the gesture and intention, never the outcome — the system resolves what actually happens. If you want the result of an action, take the action: reach for the key with an emote, but use "take" to actually pick it up. If you want to GRAB, PULL, or DRAG someone, use the "grab" action (they may resist with a save) — never narrate grabbing another character in your emote. If you are being held, use "escape" to break free. Write emotes as bare THIRD-person verb phrases (e.g. "leans in close", "bites their lip", "glances at the door") — the narrator adds the character's name; never "you"/"your"/"I"/"my" and never your own character name.${EMOTE_VOICE_RULE}`;
 
     /**
      * JSON example-field fragments, keyed by name. Each builder picks an

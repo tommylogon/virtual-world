@@ -208,10 +208,11 @@ window.TurnSceneView = (() => {
             }
             return { title: obj.display_name, body, foot };
         }
-        // scene item
+        // scene item (or carried/worn item from the You strip — desc + slot)
         const stateBit = ['open'].includes(obj.state) ? ' · open' : '';
+        const slotBit = obj.slot ? ` · ${obj.slot} slot` : '';
         return {
-            title: `${obj.name}${stateBit}`,
+            title: `${obj.name}${stateBit}${slotBit}`,
             body: obj.desc,
             foot: 'free look · no turn cost',
         };
@@ -405,5 +406,5 @@ window.TurnSceneView = (() => {
         openMenu(x, y, title, buttons, onDraft, null);
     }
 
-    return { render, renderScene, fetch, menu };
+    return { render, renderScene, fetch, menu, lookLines, attachHover };
 })();

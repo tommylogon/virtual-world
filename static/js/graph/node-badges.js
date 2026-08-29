@@ -55,7 +55,14 @@ window.NodeBadges = {
      * @returns {string}
      */
     formatLabel(nodeData, tagMeta) {
-        const name = nodeData?.name || nodeData?.id || '?';
+        let name = nodeData?.name || '';
+        // Fall back to id only when name is genuinely empty; if the "name" is
+        // just an auto-generated id (e.g. "item_knife_1"), strip the type
+        // prefix so the label reads "knife" instead of a raw id.
+        if (!name && nodeData?.id) {
+            name = nodeData.id.replace(/^(area|item|way|character|trigger|logic_trigger)_/, '');
+        }
+        if (!name) name = '?';
         const traits = NodeBadges.collectTraitBadges(nodeData)
             .slice(0, NodeBadges.MAX_TRAIT_BADGES)
             .map(b => b.emoji)

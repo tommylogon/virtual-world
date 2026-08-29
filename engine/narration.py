@@ -6,9 +6,59 @@ descriptions.
 """
 
 import random
+import re
 from typing import Optional
 
 from graph import EDGE_IN, EDGE_CONNECTION, EDGE_CARRYING, EDGE_EQUIPPED
+
+
+#: Reflexive/possessive pronouns from the 1st ("myself") and 2nd ("yourself")
+#: persona voices that survive into emotes but read wrong under the narrator's
+#: name stamp ("Lyrie hugs yourself tightly."). Word-boundary, ordered so the
+#: longer forms win ("yourself" before "your", "myself" before "my").
+_PRONOUN_PAIRS = [
+    (r"\byourself\b", "themselves"),
+    (r"\byourselves\b", "themselves"),
+    (r"\bmyself\b", "themselves"),
+    (r"\bmeself\b", "themselves"),
+    (r"\byours\b", "theirs"),
+    (r"\bmine\b", "theirs"),
+    (r"\bmy\b", "their"),
+    (r"\byour\b", "their"),
+]
+
+#: Base-form verbs that arrive un-conjugated when the model writes in first
+#: person ("I hug my knees" → "hug my knees"). After the narrator adds the
+#: name the leading verb must be third-person singular ("Lyrie hugs...").
+_BASE_VERBS = frozenset({
+    "hug", "shiver", "sink", "lean", "glance", "run", "reach", "sit", "stand",
+    "smile", "sigh", "step", "pull", "tuck", "wrap", "fold", "breathe", "kick",
+    "tap", "drum", "shake", "hold", "press", "stretch", "curl", "cry", "laugh",
+    "yawn", "nod", "shrug", "wave", "gaze", "stare", "look", "whisper",
+    "murmur", "mutter", "peer", "squint", "tremble", "shudder", "flinch",
+    "exhale", "inhale", "settle", "crouch", "kneel", "hop", "skip", "dance",
+    "twirl", "sway", "wobble", "stumble", "bow", "kiss", "nuzzle", "pat",
+    "stroke", "brush", "dig", "push", "nudge", "creep", "pad", "tip",
+})
+
+
+def normalize_emote_person(text: str) -> str:
+    """Coerce an emote phrase into the THIRD person the narrator stamps.
+
+    ``process_emote`` prints ``"{actor_name} {text}."``, so ``text`` must never
+    carry first/second-person pronouns ("hugs yourself", "hug myself"). Rewrites
+    the common reflexive/possessive pronouns to neutral third person and fixes
+    an un-conjugated leading base-verb ("hug my knees" → "hugs their knees").
+    """
+    if not text:
+        return text
+    out = text
+    for pattern, repl in _PRONOUN_PAIRS:
+        out = re.sub(pattern, repl, out)
+    match = re.match(r"^([A-Za-z]+)(\b.*)$", out)
+    if match and match.group(1).lower() in _BASE_VERBS:
+        out = match.group(1) + "s" + match.group(2)
+    return out
 
 
 class NarrationSystem:
@@ -102,6 +152,10 @@ class NarrationSystem:
         name_lower = actor_name.lower()
         if clean.lower().startswith(name_lower):
             clean = clean[len(actor_name):].strip().lstrip(',.:; ')
+        # The emote is printed as "{actor_name} {clean}." — force the phrase
+        # into the third person so "hugs yourself"/"hug myself" never survive
+        # the name stamp (task: emote person normalization).
+        clean = normalize_emote_person(clean)
         description = f"{actor_name} {clean}." if clean else f"{actor_name} acts."
 
         self.logging_events.record_turn_event(

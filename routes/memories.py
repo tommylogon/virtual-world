@@ -250,7 +250,11 @@ def register_memories_routes(app):
         scored = [(s, m) for s, m in scored if s > 0.5]
         scored.sort(key=lambda x: x[0], reverse=True)
 
-        result = [{"memory": m, "score": round(s, 3)} for s, m in scored[:max_results]]
+        result = []
+        for s, m in scored[:max_results]:
+            entry = dict(m)  # shallow copy so we don't mutate stored data
+            entry["score"] = round(s, 3)
+            result.append(entry)
         return jsonify({"memories": result})
 
     @app.route('/api/players/<name>/memories/reflect', methods=['POST'])

@@ -898,10 +898,10 @@ class AgentEngine {
         }
         this._abortController = new AbortController();
         const streamId = `${stepName}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-        events.startStreaming(streamId);
+        events.startStreaming(streamId, stepName);
         const onChunk = c => events.appendStream(streamId, c);
         try {
-            const r = await llmClient.chat(final, { streaming: config.streaming, max_tokens: config.maxTokens, signal: this._abortController.signal, onChunk });
+            const r = await llmClient.chat(final, { streaming: config.streaming, max_tokens: config.maxTokens, signal: this._abortController.signal, onChunk, label: stepName });
             this._abortController = null;
             events.finishStreaming(streamId, r);
             return r;

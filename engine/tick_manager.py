@@ -314,15 +314,45 @@ class TickManager:
                     if light < 20:
                         p.vitals["Sanity"] = max(0, p.vitals["Sanity"] - 1)
                     others_here = [n for n, op in self.player_manager.players.items() if op.current_area == player_area_name and n != pname and op.state != "dead"]
+                    # ── Social need is company-aware (task-XXX) ──
+                    # Being with others feeds Social; being alone drains it
+                    # FASTER than the baseline decay being alone used to (the
+                    # old engine applied the same -1 baseline to everyone, so a
+                    # lone character and a crowded one decayed identically).
+                    # gain defaults to 1; the `social_gain` trait effect (e.g.
+                    # extrovert: 2, introvert: 0) scales BOTH directions —
+                    # introverts need less company, extroverts crave it.
+                    try:
+                        from engine.traits import TraitSystem, SOCIAL_GAIN
+                        raw_gain = TraitSystem.get_first_effect(p, SOCIAL_GAIN)
+                        social_gain = int(raw_gain) if raw_gain is not None else 1
+                    except Exception:
+                        social_gain = 1
+                    social_gain = max(0, social_gain)
+                    social_cause = ""
                     if len(others_here) > 0:
-                        p.vitals["Social"] = min(100, p.vitals["Social"] + 1)
+                        if social_gain > 0:
+                            p.vitals["Social"] = min(100, p.vitals["Social"] + social_gain)
+                            social_cause = f"with company ({', '.join(others_here[:3])})"
                     else:
+                        if social_gain > 0:
+                            p.vitals["Social"] = max(0, p.vitals["Social"] - social_gain)
+                            social_cause = f"alone in {player_area_name}"
                         # Phase 3 — alone_in_dark save_on hook (nyctophobic)
                         if light < 20:
                             try:
                                 self.gs._emit_save_on(pname, "alone_in_dark", {"light": light})
                             except Exception as e:
                                 logger.warning("[tick] alone_in_dark %s: %s", pname, e)
+                    if social_cause and pname == self.player_manager.active_player:
+                        try:
+                            name = getattr(p, "name", None) or pname
+                            signed = social_gain if len(others_here) > 0 else -social_gain
+                            self.player_manager.add_log_entry(
+                                f"[{name}] Social {signed:+d} — {social_cause}."
+                            )
+                        except Exception as e:
+                            logger.warning("[tick] social log %s: %s", pname, e)
                     social = p.vitals.get("Social", 100)
                     ent = p.vitals.get("Entertainment", 100)
                     sanity_penalty = 0

@@ -17,6 +17,7 @@ class EventBus {
         this.autoScroll = true;
         this._subscribers = {};
         this._streamSpans = {};
+        this._streamLabels = {};
         this._isStreaming = false;
         this._areaEventLog = {};
         this._characterState = {};
@@ -433,9 +434,10 @@ class EventBus {
 
     // --- Streaming output ---
 
-    startStreaming(id) {
+    startStreaming(id, label) {
         const chatEl = document.getElementById('event-stream');
         if (!chatEl) return null;
+        this._streamLabels[id] = label || 'LLM';
         if (this._streamSpans[id]) return this._streamSpans[id];
         const chip = document.createElement('div');
         chip.className = 'msg-bubble msg-bubble-stream';
@@ -480,10 +482,11 @@ class EventBus {
             }
             chip.remove();
             if (cleanContent) {
-                this.logRawLLM(cleanContent);
+                this.logRawLLM(this._streamLabels[id] || 'LLM', cleanContent);
             }
         }
         delete this._streamSpans[id];
+        delete this._streamLabels[id];
         this._isStreaming = Object.keys(this._streamSpans).length > 0;
     }
 
@@ -558,6 +561,7 @@ class EventBus {
         this._areaEventLog = {};
         this._characterState = {};
         this._streamSpans = {};
+        this._streamLabels = {};
         this._isStreaming = false;
         this._knownActors.clear();
         this._lineSeq = 0;

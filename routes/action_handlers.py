@@ -186,40 +186,34 @@ def handle_take_action(app):
             was_movement = True
             add_output(world.move_to_area(cmd))
             add_output(world.get_area_description())
-            add_output(f"Items: {world.get_area_items()}")
 
         elif cmd.startswith("go "):
             was_movement = True
             direction = ' '.join(tokens[1:]) if len(tokens) > 1 else cmd[3:].strip()
             add_output(world.move_to_area(direction))
             add_output(world.get_area_description())
-            add_output(f"Items: {world.get_area_items()}")
 
         elif cmd.startswith("dash "):
             was_movement = True
             direction = ' '.join(tokens[1:]) if len(tokens) > 1 else cmd[5:].strip()
             add_output(world.dash_to_area(direction))
             add_output(world.get_area_description())
-            add_output(f"Items: {world.get_area_items()}")
 
         elif cmd.startswith("crawl "):
             was_movement = True
             direction = ' '.join(tokens[1:]) if len(tokens) > 1 else ""
             add_output(world.crawl_to_area(direction))
             add_output(world.get_area_description())
-            add_output(f"Items: {world.get_area_items()}")
         elif cmd.startswith("climb "):
             was_movement = True
             direction = ' '.join(tokens[1:]) if len(tokens) > 1 else ""
             add_output(world.climb_to_area(direction))
             add_output(world.get_area_description())
-            add_output(f"Items: {world.get_area_items()}")
         elif cmd.startswith("jump "):
             was_movement = True
             direction = ' '.join(tokens[1:]) if len(tokens) > 1 else ""
             add_output(world.jump_to_area(direction))
             add_output(world.get_area_description())
-            add_output(f"Items: {world.get_area_items()}")
 
         elif cmd.startswith("open "):
             target = ' '.join(tokens[1:]) if len(tokens) > 1 else ""

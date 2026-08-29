@@ -67,8 +67,18 @@ window.TurnYouStrip = (() => {
         const wrap = el('span', 'tys-vital');
         wrap.style.cursor = 'pointer';
         const _val = Math.round(Number(raw) || 0);
-        const _nl = (window.PromptBuilder?.describeVital?.(vitals, key) || '').replace(/^You /, '');
-        wrap.title = `${key}: ${_val}${suffix}${_nl ? ' — ' + _nl : ''} — click for details`;
+        // Human natural language on hover — the same describeVital() prose the
+        // agent prompts use ("You are hungry. Your stomach feels empty.").
+        // Rendered as a styled free-look card (same hover pattern as the
+        // scene's item/way chips) instead of the slow native title tooltip.
+        const _nl = (window.PromptBuilder?.describeVital?.(vitals, key) || '').trim();
+        if (window.TurnSceneView?.attachHover) {
+            window.TurnSceneView.attachHover(wrap, () => wrap, () => ({
+                title: `${key} ${_val}${suffix}`,
+                body: _nl || 'no pressing need here.',
+                foot: 'click for details',
+            }));
+        }
         wrap.appendChild(el('span', null, key));
         const bar = el('span', 'tys-bar');
         const fill = el('i');
@@ -152,9 +162,19 @@ window.TurnYouStrip = (() => {
         // row 2 — carrying / wearing / known toggle
         const row2 = el('div', 'htc-you-row');
         row2.appendChild(el('span', 'tys-label', 'Carrying'));
+        // Free-look hover on inventory chips (same card as the scene's ways/
+        // items): you always know your own gear, so no darkness degradation.
+        const lookScene = { area: { dark: false } };
+        const attachLookHover = (chip, item) => {
+            if (!window.TurnSceneView?.attachHover || !window.TurnSceneView?.lookLines) return;
+            window.TurnSceneView.attachHover(
+                chip, () => chip,
+                () => window.TurnSceneView.lookLines(lookScene, 'item', item));
+        };
         const carried = you.carrying || [];
         for (const item of carried) {
             const chip = el('button', 'tys-inv', item.name);
+            attachLookHover(chip, item);
             chip.addEventListener('click', (e) =>
                 handlers.menu(e.clientX, e.clientY, item.name,
                               invButtons('carried', [item], handlers)));
@@ -168,7 +188,7 @@ window.TurnYouStrip = (() => {
         const worn = you.wearing || [];
         for (const item of worn) {
             const chip = el('button', 'tys-inv', item.name);
-            chip.title = item.slot ? `slot: ${item.slot}` : '';
+            attachLookHover(chip, item);
             chip.addEventListener('click', (e) =>
                 handlers.menu(e.clientX, e.clientY, item.name,
                               invButtons('worn', [item], handlers)));

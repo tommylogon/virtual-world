@@ -40,9 +40,13 @@ class LLMClient {
         this.apiFormat = config.apiFormat || this.apiFormat;
     }
 
-    /** Chat completion with retry: 3 attempts, 1s/2s/4s backoff on 429/5xx/network errors */
+    /** Chat completion with retry: 3 attempts, 1s/2s/4s backoff on 429/5xx/network errors.
+     *  options.label — human name for this call shown on the raw-LLM chips
+     *  (e.g. 'think-decide', 'result-reaction', 'plan', 'reflect'); defaults
+     *  to the model id. */
     async chat(messages, options = {}) {
         const model = options.model || this.model;
+        const label = options.label || model;
         const temperature = options.temperature !== undefined ? options.temperature : this.temperature;
         const streaming = options.streaming !== undefined ? options.streaming : this.streaming;
         const signal = options.signal || null;
@@ -65,7 +69,7 @@ class LLMClient {
             // token estimate computed here so the chip can show a budget meter
             let est = 0;
             try { est = Math.round(messages.reduce((n, m) => n + (m.content || '').length, 0) / 4); } catch (e) {}
-            VW.events.logRawLLMRequest(model, messages, est);
+            VW.events.logRawLLMRequest(label, messages, est);
         }
 
         const maxRetries = 3;
@@ -123,13 +127,13 @@ class LLMClient {
                     throw new Error(`HTTP ${resp.status}: ${errText}`);
                 }
 
-                if (streaming) return await this._handleStream(resp, format, options.onChunk);
+                if (streaming) return await this._handleStream(resp, format, options.onChunk, label);
                 const completion = await resp.json();
                 if (completion?.error) throw new Error(completion.error.message || JSON.stringify(completion.error));
                 const content = isResponses
                     ? this._extractResponsesContent(completion)
                     : this._extractChatCompletionContent(completion);
-                this._logAssistantResponse(model, content);
+                this._logAssistantResponse(label, content);
                 return content;
 
             } catch (e) {
@@ -187,10 +191,10 @@ class LLMClient {
         return this._normalizeAssistantText(msg.content || '');
     }
 
-    _logAssistantResponse(model, content) {
+    _logAssistantResponse(label, content) {
         const text = this._normalizeAssistantText(content);
         if (!text || !VW?.events?.logRawLLMResponse) return;
-        VW.events.logRawLLMResponse(model || this.model || 'LLM', text);
+        VW.events.logRawLLMResponse(label || 'LLM', text);
     }
 
     /** Build a Responses API request body from chat-style messages. */
@@ -231,7 +235,7 @@ class LLMClient {
     }
 
     /** Handle streaming response — OpenAI SSE + LM Studio formats (chat-completions and responses) */
-    async _handleStream(resp, format, onChunk) {
+    async _handleStream(resp, format, onChunk, label) {
         const reader = resp.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '', fullContent = '', currentEvent = '';
@@ -275,7 +279,7 @@ class LLMClient {
         }
         fullContent = this._normalizeAssistantText(fullContent);
         if (VW?.events?.logRawLLMResponse && fullContent && !onChunk) {
-            this._logAssistantResponse(this.model, fullContent);
+            this._logAssistantResponse(label, fullContent);
         }
         return fullContent;
     }

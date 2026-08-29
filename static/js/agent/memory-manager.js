@@ -35,7 +35,7 @@ window.AgentMemory = (() => {
             if (importantMemories.length < 3) return;
             const memoryText = importantMemories.map(m => `[${events.tickToRelative(m.tick)}] ${m.text}`).join('\n');
             const prompt = `Summarize these memories into 1-2 insights:\n${memoryText}\n\nRespond ONLY JSON array: ["insight"]`;
-            const response = await llmClient.chat([{ role: 'user', content: prompt }], { temperature: 0.7, max_tokens: 200, streaming: false });
+            const response = await llmClient.chat([{ role: 'user', content: prompt }], { temperature: 0.7, max_tokens: 200, streaming: false, label: 'reflect' });
             if (!response) return;
             let cleaned = response.trim();
             const codeBlockMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
