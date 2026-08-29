@@ -8,6 +8,7 @@ from flask import request, jsonify
 from player import Player
 from graph import Node, Edge, EDGE_CARRYING, EDGE_TRIGGERS, EDGE_IN, EDGE_ON, EDGE_UNDER, EDGE_BEHIND, EDGE_BESIDE, EDGE_AT
 from engine.item_actions import normalize_item_actions
+from engine.serialization import canonical_vitals
 from routes.helpers import load_registry, save_registry, delete_registry_entry, _registry_subdir, validate_tags_on_save
 
 logger = logging.getLogger(__name__)
@@ -356,11 +357,13 @@ def handle_library_import_character(app, char_id):
 
     player = Player(player_name)
     player.stats = cdata.get('stats', player.stats)
-    player.vitals = cdata.get('vitals', player.vitals)
+    # Lowercase vital duplicates in library files fold into the canonical keys
+    player.vitals = {**player.vitals, **canonical_vitals(cdata.get('vitals', player.vitals))}
     player.decay_rates = cdata.get('decay_rates', player.decay_rates)
     player.skills = cdata.get('skills', player.skills)
     player.traits = cdata.get('traits', player.traits)
     player.tags = cdata.get('tags', player.tags)
+    player.known = list(cdata.get('known', []) or [])
     player.interest_tags = cdata.get('interest_tags', player.interest_tags)
     player.personality = cdata.get('personality', '')
     player.description = cdata.get('description', '')

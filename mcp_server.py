@@ -57,8 +57,14 @@ def look() -> str:
 
 @mcp.tool()
 def go(direction: str) -> str:
-    """Move in a direction (e.g. north, south, east, west)."""
+    """Move through an exit (e.g. north, south, east, west, the cellar, the archway)."""
     return _action(f"go {direction}")
+
+
+@mcp.tool()
+def approach(target: str) -> str:
+    """Walk up to a door/way, item, or person and STOP there (does not pass through)."""
+    return _action(f"approach {target}")
 
 
 @mcp.tool()

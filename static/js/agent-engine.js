@@ -5,6 +5,14 @@
 
 const NOOP_VERBS = ['wait', 'nothing', 'pause', 'stay'];
 
+/** Possessive pronoun for a character, from its identity tags (female/male). */
+function _possessivePronoun(name) {
+    const tags = (worldState.players?.[name]?.tags) || [];
+    if (tags.includes('female') || tags.includes('woman') || tags.includes('girl')) return 'her';
+    if (tags.includes('male') || tags.includes('man') || tags.includes('boy')) return 'his';
+    return 'their';
+}
+
 class AgentEngine {
     constructor() {
         this.characterHistories = {};
@@ -246,7 +254,7 @@ class AgentEngine {
         }
         let lastResult = '';
         if (!reply || reply.endTurn) {
-            events.log(`🔜 ${charName} passed their turn.`, 'system-msg');
+            events.log(`🔜 ${charName} passed ${_possessivePronoun(charName)} turn.`, 'system-msg');
         } else {
             lastResult = await this._executeHumanReply(charName, player, reply);
             // Dash burst (task-334): dashing grants ONE more action slot
@@ -539,7 +547,8 @@ class AgentEngine {
                 }
                 events.logPhase(charName, 'decide', 'deciding');
                 VW?.ui?.setStatus("Deciding...", "info");
-                const parsedDecide = ResponseParser.parseReaction(combinedResponse) ?? {inner:'',speech:null,speechVolume:'say',action:'',emote:null,memory:null,emotion:null,parseError:null};
+                let parsedDecide = ResponseParser.parseReaction(combinedResponse) ?? {inner:'',speech:null,speechVolume:'say',action:'',emote:null,memory:null,emotion:null,parseError:null};
+                if (parsedDecide.parseError) parsedDecide = await this._retryOnceOnParseError(charName, history, 'think-decide', ResponseParser.parseReaction, parsedDecide);
                 if (parsedDecide.parseError) {
                     events.logParseError(charName, 'think-decide', parsedDecide.parseError, combinedResponse);
                 }
@@ -660,7 +669,8 @@ class AgentEngine {
                             VW?.ui?.setStatus("LLM Error - Stopped", "error");
                             config.running = false; return;
                         }
-                        const parsedReact = ResponseParser.parseResultReaction(reactResponse) ?? {inner:'',speech:null,speechVolume:'say',emote:null,memory:null,emotion:null,parseError:null};
+                        let parsedReact = ResponseParser.parseResultReaction(reactResponse) ?? {inner:'',speech:null,speechVolume:'say',emote:null,memory:null,emotion:null,parseError:null};
+                        if (parsedReact.parseError) parsedReact = await this._retryOnceOnParseError(charName, history, 'result-reaction', ResponseParser.parseResultReaction, parsedReact);
                         if (parsedReact.parseError) {
                             events.logParseError(charName, 'result-reaction', parsedReact.parseError, reactResponse);
                         }
@@ -772,10 +782,13 @@ class AgentEngine {
         config.maxSteps = maxInput ? parseInt(maxInput.value) || 0 : 0;
         config.running = true; VW?.ui?.updateButtons(); VW?.ui?.setStatus("Running...", "info"); VW?.ui?.showPlayPause(false, true);
         VW?.ui?.updateMaxStepsDisplay();
-        (async () => { while (config.running) { await this.step(); if (this._cancelRequested) { this.cancel(); break; } if (!config.turnBased && config.controllingPlayer) { await TurnQueue.endTurn(); this._logActorTurnEvents(config.controllingPlayer); if (worldState.data) VW?.ui?.renderAll(worldState.data); } config.stepsRun++; const turnsRun = config.turnBased ? Math.floor(config.stepsRun / Math.max(1, this.turnQueue.length)) : config.stepsRun; VW?.ui?.updateMaxStepsDisplay(); if (config.maxSteps > 0 && turnsRun >= config.maxSteps) { this.stop(); break; } await new Promise(resolve => setTimeout(resolve, 2000)); } })();
+        // A4: a stop/cancel from a PREVIOUS run must not ghost into this one
+        // ("Step cancelled." firing on a fresh ▶ was the stale flag leaking).
+        this._cancelRequested = false;
+        (async () => { while (config.running) { await this.step(); if (this._cancelRequested) { this.cancel(); break; } if (!config.turnBased && config.controllingPlayer) { await TurnQueue.endTurn(); this._logActorTurnEvents(config.controllingPlayer); if (worldState.data) VW?.ui?.renderAll(worldState.data); } config.stepsRun++; const turnsRun = config.turnBased ? Math.floor(config.stepsRun / Math.max(1, this.turnQueue.length)) : config.stepsRun; VW?.ui?.updateMaxStepsDisplay(); if (config.maxSteps > 0 && turnsRun >= config.maxSteps) { this.stop(`⏹️ Run complete — ${config.maxSteps} turns done. Press ▶ to continue.`); break; } await new Promise(resolve => setTimeout(resolve, 2000)); } })();
     }
-    stop() {
-        config.running = false; VW?.ui?.updateButtons(); events.log("Agent stopped.", "system-msg");
+    stop(reason = 'Agent stopped.') {
+        config.running = false; VW?.ui?.updateButtons(); events.log(reason, 'system-msg');
         VW?.ui?.setStatus("Idle.", "info"); VW?.ui?.showPlayPause(true, false);
         VW?.ui?.updateMaxStepsDisplay();
     }
@@ -867,6 +880,26 @@ class AgentEngine {
             events.log(`Dash follow-up error: ${err.message}`, 'error-msg');
             return dashResult;
         }
+    }
+
+    /**
+     * One automatic retry when a phase response came back as repaired/truncated
+     * JSON (N1). The repair may have silently dropped fields (e.g. the emote);
+     * re-asking once usually yields a complete reply. Never retries twice.
+     */
+    async _retryOnceOnParseError(charName, history, stepName, parser, parsed) {
+        if (!parsed?.parseError || !history?.length) return parsed;
+        events.log(`⚠️ ${charName}: ${stepName} response was repaired (truncated JSON) — retrying once.`, 'error-msg');
+        history.pop(); // drop the broken assistant message so the retry isn't seeded by it
+        const retried = await this._callLLMMessages(history, stepName);
+        if (!retried) {
+            history.push({ role: 'assistant', content: '' });
+            return parsed;
+        }
+        history.push({ role: 'assistant', content: retried });
+        const reparsed = parser(retried);
+        if (reparsed && !reparsed.parseError) return reparsed;
+        return parsed;
     }
 
     /** Thin wrapper: build message array and delegate to _callLLMMessages. */

@@ -173,8 +173,15 @@ def handle_map_player_emotions(app, name):
             if drive_deltas:
                 tags = ["rel:" + speaker] + [f"{d}:{round(v, 3)}" for d, v in drive_deltas.items()]
                 try:
+                    # N6: the recall writer used to store a contentless placeholder
+                    # ("I was reminded of something…"). The client now sends the
+                    # triggering memory as `reason` — no reason, no memory: the
+                    # affect spike already happened; a junk entry helps nobody.
+                    reason = str(data.get("reason") or "").strip()
+                    if not reason:
+                        return jsonify({"emotions": player.emotions_map(), "vitals": player.vitals})
                     player.add_memory(
-                        "I was reminded of something that made me feel this way toward " + speaker + ".",
+                        f'Remembered: "{reason}" — it made me feel this way toward {speaker}.',
                         tick=getattr(app.world, "time_ticks", 0),
                         importance=6,
                         memory_type="emotion",
@@ -531,6 +538,8 @@ def handle_update_player(app, name):
     if "tags" in data:
         player.tags = data["tags"]
         player.sync_vitals_with_tags()
+    if "known" in data:
+        player.known = [str(k) for k in (data["known"] or []) if str(k).strip()]
     if "interest_tags" in data:
         player.interest_tags = data["interest_tags"]
     if "equipped" in data:

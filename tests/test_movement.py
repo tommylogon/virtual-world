@@ -6,7 +6,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import pytest
 from virtual_world_engine import VirtualWorld
 from area import Area
-from graph import Edge, EDGE_IN, EDGE_TRIGGERS
+from graph import Node, Edge, EDGE_IN, EDGE_TRIGGERS, EDGE_AT
+from player import Player
 
 
 @pytest.fixture
@@ -23,6 +24,93 @@ def dash_world():
     player = world.player_manager.get_player(world.active_player)
     player.vitals["Energy"] = 100
     return world
+
+
+class TestRoomApproach:
+    """'go X' where X is a room item/character = walk over to it (at relation)."""
+
+    def test_go_to_item_positions_player(self):
+        world = VirtualWorld()
+        world.movement.add_area(Area("Room A", "One table in it.", []))
+        world.name_matcher._set_player_area(world.active_player, "Room A")
+        area_id = world.area_node_id("Room A")
+        table = Node(id="item_table", type="item", name="Booth Table",
+                     properties={"current_state": "normal"})
+        world.graph.add_node(table)
+        world.graph.add_edge(Edge(source=table.id, target=area_id, type=EDGE_IN))
+
+        out = world.move_to_area("the booth table")
+
+        assert "Booth Table" in out
+        pid = world.player_manager.get_player_node_id(world.active_player)
+        at_edges = world.graph.get_edges_for_source(pid, EDGE_AT)
+        assert any(e.type == EDGE_AT and e.target == "item_table" for e in at_edges)
+        # No area change — it's a positioning, not an exit
+        assert world.player.current_area == "Room A"
+
+    def test_go_to_character_positions_player(self):
+        world = VirtualWorld()
+        world.movement.add_area(Area("Room A", "Two people.", []))
+        world.name_matcher._set_player_area(world.active_player, "Room A")
+        world.add_player(Player("Miki"))
+        world.player_manager.players["Miki"].current_area = "Room A"
+        world.set_player_area("Miki", "Room A")
+        # add_player makes the NEWEST player active — restore the moving character
+        world.set_active_player("Traveler")
+
+        out = world.move_to_area("go to miki")
+
+        assert "Miki" in out
+        pid = world.player_manager.get_player_node_id(world.active_player)
+        spatial_edges = world.graph.get_edges_for_source(pid)
+        assert any(e.target == "player_Miki" and e.type in ("at", "beside") for e in spatial_edges)
+
+    def test_go_article_strip_resolves_exit(self, dash_world):
+        # "the north" / "the door" — leading articles no longer break exit matching
+        out = dash_world.move_to_area("the north")
+        assert dash_world.player.current_area == "Room B"
+        assert out.strip()
+
+    def test_go_unknown_still_fails(self, dash_world):
+        with pytest.raises(ValueError, match="No exit"):
+            dash_world.move_to_area("the cake")
+
+
+class TestRelieveShame:
+    """Public relieve = shame event (T4): Sanity hit always, Social only when
+    witnessed. Restroom (toilet item or area tag) → no hit."""
+
+    def _world_with_public_area(self):
+        from app import create_app
+        app = create_app({"TESTING": True})
+        world = app.world
+        pname = next(iter(world.player_manager.players))
+        world.movement.add_area(Area("Test Lobby", "empty public area.", []))
+        world.name_matcher._set_player_area(pname, "Test Lobby")
+        world.player_manager.players[pname].current_area = "Test Lobby"
+        world.set_active_player(pname)
+        p = world.player_manager.players[pname]
+        p.vitals["Bladder"] = 90
+        p.vitals["Sanity"] = 100
+        p.vitals["Social"] = 100
+        return world, app.test_client(), p, pname
+
+    def test_public_relieve_hits_sanity_alone(self):
+        world, client, p, pname = self._world_with_public_area()
+        client.post("/api/action", json={"command": "relieve", "character": pname})
+        assert p.vitals["Sanity"] == 98   # shame hit even with no witnesses
+        assert p.vitals["Social"] == 100  # alone → no social penalty
+        assert p.vitals["Bladder"] == 0
+
+    def test_witnessed_relieve_hits_social(self):
+        world, client, p, pname = self._world_with_public_area()
+        world.add_player(Player("Miki"))
+        world.player_manager.players["Miki"].current_area = "Test Lobby"
+        world.set_player_area("Miki", "Test Lobby")
+        world.set_active_player(pname)
+        client.post("/api/action", json={"command": "relieve", "character": pname})
+        assert p.vitals["Sanity"] == 98
+        assert p.vitals["Social"] == 97  # 3-point social hit when someone sees it
 
 
 class TestDash:
@@ -338,3 +426,83 @@ class TestOpenPassageGuards:
         assert way.properties["current_state"] == "closed"
         passage_world.movement.toggle_way("north", "open")
         assert way.properties["current_state"] == "open"
+
+
+class TestGoToApproach:
+    """'go to the <door>' / 'go toward <way>' = walk UP TO the way and stop —
+    not pass through it. Bare 'go <handle>' / 'go <area>' / 'go <direction>'
+    still cross. Agents mean "reach the doorway" with 'to' phrasing."""
+
+    def _door_world(self):
+        world = VirtualWorld()
+        world.movement.add_area(Area("Room A", "First room.", []))
+        world.movement.add_area(Area("Room B", "Second room.", []))
+        world.movement.connect_areas("Room A", "Room B", "north", "south", state="open")
+        world.name_matcher._set_player_area(world.active_player, "Room A")
+        player = world.player_manager.get_player(world.active_player)
+        player.vitals["Energy"] = 100
+        return world
+
+    def test_go_to_direction_word_still_crosses(self):
+        world = self._door_world()
+        world.move_to_area("to the north")
+        assert world.player.current_area == "Room B"
+
+    def test_go_to_destination_area_still_crosses(self):
+        world = self._door_world()
+        world.move_to_area("to the room b")
+        assert world.player.current_area == "Room B"
+
+    def test_go_to_way_approaches_and_positions(self):
+        world = self._door_world()
+        out = world.move_to_area("to the north door")
+        assert world.player.current_area == "Room A"  # NOT through
+        assert "walk over" in out.lower()
+        pid = world.player_manager.get_player_node_id(world.active_player)
+        at_edges = world.graph.get_edges_for_source(pid, EDGE_AT)
+        assert any(e.type == EDGE_AT for e in at_edges)  # positioned at a way
+
+    def test_go_through_way_crosses(self):
+        world = self._door_world()
+        world.move_to_area("through the north door")
+        assert world.player.current_area == "Room B"
+
+    def test_bare_go_way_crosses(self):
+        world = self._door_world()
+        world.move_to_area("north door")
+        assert world.player.current_area == "Room B"
+
+    def test_approach_verb_stops_at_item(self):
+        world = VirtualWorld()
+        world.movement.add_area(Area("Room A", "One table in it.", []))
+        world.name_matcher._set_player_area(world.active_player, "Room A")
+        area_id = world.area_node_id("Room A")
+        table = Node(id="item_table", type="item", name="Booth Table",
+                     properties={"current_state": "normal"})
+        world.graph.add_node(table)
+        world.graph.add_edge(Edge(source=table.id, target=area_id, type=EDGE_IN))
+        out = world.approach("the booth table")
+        assert "Booth Table" in out
+
+    def test_approach_verb_stops_at_way(self):
+        world = self._door_world()
+        out = world.approach("the north")
+        assert world.player.current_area == "Room A"
+        assert "walk over to the north" in out.lower()
+
+    def test_approach_verb_slug_matches_named_door(self):
+        world = self._door_world()
+        # "north door" phrasing on a way whose handle is "north" still resolves
+        out = world.approach("the north door")
+        assert world.player.current_area == "Room A"
+        assert "walk over" in out.lower()
+
+    def test_approach_verb_dash_not_affected(self):
+        world = self._door_world()
+        world.dash_to_area("north")
+        assert world.player.current_area == "Room B"
+
+    def test_go_to_unknown_still_fails(self):
+        world = self._door_world()
+        with pytest.raises(ValueError, match="No exit"):
+            world.move_to_area("to the cake")

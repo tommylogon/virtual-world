@@ -141,7 +141,7 @@ window.HumanTurnComposer = (() => {
     // ── typed one-box parsing ────────────────────────────────────────
 
     const VERBS = [
-        'look', 'go', 'take', 'drop', 'place', 'put', 'give', 'use', 'examine',
+        'look', 'go', 'approach', 'take', 'drop', 'place', 'put', 'give', 'use', 'examine',
         'attack', 'open', 'close', 'read', 'search', 'wear', 'equip', 'remove', 'unequip',
         'rest', 'sleep', 'wait', 'nothing', 'dash', 'crawl', 'climb', 'jump', 'grab',
         'steal', 'light', 'ignite', 'vanish', 'manifest', 'toggle', 'listen',

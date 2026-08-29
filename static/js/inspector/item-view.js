@@ -90,10 +90,13 @@ window.InspectorItemView = (() => {
             ${window.InspectorTriggers.buildTriggersHtml(nodeId, locked)}
             ${window.InspectorTriggers.buildContentsHtml(nodeId)}
             ${IV._renderMoveSection(nodeId)}
+            <div id="known-by-mount"></div>
             ${IV._renderFooter(nodeId)}
         `;
 
         InspectorPanel.render(template);
+        const kbMount = document.getElementById('known-by-mount');
+        if (kbMount && window.KnownBySection) kbMount.replaceWith(window.KnownBySection.build('item', nodeId, name));
         IV._populateLibraryTemplate(nodeId);
         IV._initMoveTargetSearch();
 

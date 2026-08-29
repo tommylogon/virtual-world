@@ -291,8 +291,8 @@ class VirtualWorld:
     def current_area(self) -> Optional[Area]:
         return self.legacy_compat.current_area
 
-    def build_exits_for_area(self, area_name: str) -> Dict[str, Any]:
-        return self.area_description.build_exits_for_area(area_name)
+    def build_exits_for_area(self, area_name: str, include_hidden: bool = False) -> Dict[str, Any]:
+        return self.area_description.build_exits_for_area(area_name, include_hidden=include_hidden)
 
     def _build_exits_for_area(self, area_name: str) -> Dict[str, Any]:
         return self.area_description.build_exits_for_area(area_name)
@@ -329,6 +329,10 @@ class VirtualWorld:
     # ─────────────────── Movement & Interaction ───────────────────
     def move_to_area(self, direction: str) -> str:
         return self.movement.move_to_area(direction)
+
+    def approach(self, target: str) -> str:
+        """Walk over to a way/item/person and stop (never crosses a way)."""
+        return self.movement.approach(target)
 
     def dash_to_area(self, direction: str) -> str:
         return self.movement.dash_to_area(direction)

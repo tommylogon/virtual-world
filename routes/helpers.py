@@ -3,6 +3,7 @@ import json
 import time
 import logging
 from logger import setup_logger
+from version import APP_VERSION
 
 logger = logging.getLogger(__name__)
 
@@ -10,9 +11,16 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 AUTOSAVE_PATH = os.path.join(PROJECT_ROOT, 'data', 'autosave.json')
 
+# Autosave ALSO lands in the saves directory (marked ``autosave: True``) so it
+# appears in the save/load modal alongside manual slots — an always-current,
+# always-restorable snapshot without manual saves piling up.
+SAVES_DIR = os.path.join(PROJECT_ROOT, 'saves')
+AUTOSAVE_SLOT = os.path.join(SAVES_DIR, 'autosave.json')
+
 
 def save_autosave(world):
-    """Write full world state to data/autosave.json so edits survive restart."""
+    """Write full world state to data/autosave.json (boot restore) AND to the
+    saves/autosave.json slot (visible in the save/load modal)."""
     try:
         os.makedirs(os.path.dirname(AUTOSAVE_PATH), exist_ok=True)
         data = world.to_dict()
@@ -25,8 +33,39 @@ def save_autosave(world):
         }
         with open(AUTOSAVE_PATH, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
+        _write_autosave_slot(data)
     except Exception as e:
         logger.warning(f"Autosave failed: {e}")
+
+
+def _write_autosave_slot(data):
+    """Write the same snapshot to saves/autosave.json (modal slot entry).
+
+    Uses a shallow copy so the boot-autosave dict keeps only ``_autosave_meta``
+    while the modal slot gets ``_save_metadata`` (which the save list reads).
+    """
+    try:
+        slot_data = dict(data)  # shallow — same nested structures
+        scenario = ''
+        source = slot_data.get('_autosave_meta', {}).get('scenario_source') or ''
+        if source:
+            scenario = os.path.splitext(os.path.basename(source))[0]
+        slot_data['_save_metadata'] = {
+            'name': 'Autosave',
+            'scenario': scenario,
+            'timestamp': time.strftime('%Y%m%d_%H%M%S'),
+            'tick': slot_data.get('_autosave_meta', {}).get('tick', 0),
+            'turn': slot_data.get('_autosave_meta', {}).get('turn', 0),
+            'player': slot_data.get('active_player', ''),
+            'version': APP_VERSION,
+            'autosave': True,
+        }
+        slot_data.pop('_autosave_meta', None)
+        os.makedirs(SAVES_DIR, exist_ok=True)
+        with open(AUTOSAVE_SLOT, 'w', encoding='utf-8') as f:
+            json.dump(slot_data, f, indent=2, ensure_ascii=False)
+    except Exception as e:
+        logger.warning(f"Autosave slot write failed: {e}")
 
 
 def load_autosave_if_exists(world):
@@ -240,24 +279,47 @@ def _save_scenario(world, name=None):
         logger.warning(f"Could not save scenario: {e}")
 
 
-def _save_game(world, name=None):
-    """Save a full runtime snapshot to saves/<name>_<timestamp>.json."""
+def _save_game(world, name=None, slot=None):
+    """Save a full runtime snapshot to saves/ as a named save (or overwrite a slot).
+
+    ``slot``: existing filename to overwrite in place (keeps its timestamped /
+    custom identity). ``name``: display name stored in ``_save_metadata``.
+    """
     try:
-        saves_dir = os.path.join(PROJECT_ROOT, 'saves')
+        saves_dir = SAVES_DIR
         os.makedirs(saves_dir, exist_ok=True)
         scenario = os.path.splitext(os.path.basename(world._scenario_source or 'world_template'))[0]
         ts = time.strftime('%Y%m%d_%H%M%S')
         safe_name = ''.join(c if c.isalnum() or c in ' _-' else '_' for c in (name or scenario))
-        filename = f"{safe_name}_{ts}.json"
+        if slot:
+            base = os.path.basename(slot or '')
+            if not base.endswith('.json') or base in ('', '.', '..') or base != slot:
+                raise ValueError("Invalid slot name")
+            filename = base
+            # Overwriting a slot without a new name keeps its existing label.
+            if not name:
+                try:
+                    existing_path = os.path.join(saves_dir, filename)
+                    if os.path.exists(existing_path):
+                        with open(existing_path, 'r', encoding='utf-8-sig') as f:
+                            existing_meta = json.load(f).get('_save_metadata', {})
+                        name = existing_meta.get('name')
+                except Exception:
+                    name = None
+        else:
+            filename = f"{safe_name}_{ts}.json"
         path = os.path.join(saves_dir, filename)
         data = world.to_dict()
+        is_auto_slot = slot and os.path.basename(slot) == os.path.basename(AUTOSAVE_SLOT)
         data['_save_metadata'] = {
             'name': name or scenario,
             'scenario': scenario,
             'timestamp': ts,
             'tick': world.time_ticks,
             'turn': world.turn_number,
-            'player': world.active_player
+            'player': world.active_player,
+            'version': APP_VERSION,
+            'autosave': bool(is_auto_slot),
         }
         with open(path, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)

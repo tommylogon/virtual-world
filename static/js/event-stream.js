@@ -69,7 +69,10 @@ class EventBus {
         this._filters.applyFilters();
     }
 
-    /** Density/story mode: 'cards' | 'compact' | 'story' (persisted). */
+    /** Set the stream density: 'cards' | 'compact' | 'story' (persisted).
+     *  Story mode also hides the gear-data brackets ([wearing: …]/[holding: …])
+     *  from character-presence rows — the raw text stays in cards/compact and
+     *  in every export preference; story is prose-only. */
     setStreamMode(mode) {
         mode = ['cards', 'compact', 'story'].includes(mode) ? mode : 'cards';
         this._streamMode = mode;
@@ -77,12 +80,28 @@ class EventBus {
         if (el) {
             el.classList.toggle('compact', mode === 'compact');
             el.classList.toggle('story-mode', mode === 'story');
+            // Re-render existing rows between raw and prose-only text.
+            for (const bubble of el.querySelectorAll('.msg-bubble')) {
+                if (bubble.dataset.rawText === undefined) continue;
+                const span = bubble.querySelector('.bubble-text');
+                if (!span) continue;
+                span.textContent = this._gearVisibleText(bubble.getAttribute('data-type'), bubble.dataset.rawText);
+            }
         }
         try { localStorage.setItem('vw_stream_mode', mode); } catch (e) {}
         for (const m of ['cards', 'compact', 'story']) {
             const btn = document.getElementById('stream-mode-' + m);
             if (btn) btn.classList.toggle('active', m === mode);
         }
+    }
+
+    /** Strip gear bracket segments in story mode, keep raw elsewhere. */
+    _gearVisibleText(type, raw) {
+        const text = String(raw || '');
+        if (this._streamMode === 'story' && (type === 'result' || type === 'narrated')) {
+            return text.replace(/\[wearing:[^\]]*\]/gi, '').replace(/\[holding:[^\]]*\]/gi, '').replace(/[ \t]{2,}/g, ' ');
+        }
+        return text;
     }
 
     getStreamMode() { return this._streamMode; }
@@ -120,8 +139,10 @@ class EventBus {
     }
 
     /** Log a message to the event stream — uses styled bubbles.
-     *  meta (optional): {outcome:'success'|'failure'|'minor'} for results. */
-    log(text, className, meta) {
+     *  meta (optional): {outcome:'success'|'failure'|'minor'} for results.
+     *  actor (optional): explicit owner for rows that would otherwise inherit
+     *  the open turn card (e.g. memory recalls logged on behalf of a character). */
+    log(text, className, meta, actor) {
         this.emit('log', { text, className });
 
         if (className === 'msg-thought') {
@@ -139,7 +160,7 @@ class EventBus {
         else if (className === 'system-msg' && /^\s*👾/.test(text)) className = 'msg-npc';
         else if (className === 'system-msg' && /^\s*🧠/.test(text)) className = 'msg-reflection';
 
-        this._routeToStream(text, className, meta);
+        this._routeToStream(text, className, meta, actor);
     }
 
     tickToTime(tick) {
@@ -279,7 +300,7 @@ class EventBus {
         if (phase === 'result' && data.result) state.lastActionResult = data.result;
     }
 
-    _routeToStream(text, className, meta) {
+    _routeToStream(text, className, meta, actor) {
         let agentName = '⚙️';
         let streamType = 'action';
         let streamText = text;
@@ -363,8 +384,18 @@ class EventBus {
         }
         // Rows without an explicit actor inherit the open card's actor, so
         // actions/results/emotes inside a turn attribute to the right person.
-        if (agentName === '⚙️' && this._cards.actor) {
-            agentName = this._cards.actor;
+        // Global/system-family rows do NOT: they go to the neutral "World"
+        // lane instead of being misfiled under whoever's card happens to be
+        // open (e.g. "Event stream copied" under Lyrie's turn). An explicit
+        // `actor` (memory recalls) wins over both.
+        if (agentName === '⚙️') {
+            if (actor) {
+                agentName = actor;
+            } else if (['system', 'error', 'recall', 'npc'].includes(streamType)) {
+                agentName = 'World';
+            } else if (this._cards.actor) {
+                agentName = this._cards.actor;
+            }
         }
 
         if (text.includes('Welcome to') || text.includes('Available Commands:')) return;
@@ -418,7 +449,11 @@ class EventBus {
               : meta.outcome === 'minor' ? '<span class="result-badge minor">ℹ</span>' : '')
             : '';
         const badge = this._renderSkillBadge(text);
-        const displayText = badge ? text.replace(/^\[Skill Check\].*/, '') : this._escapeHtml(text);
+        // Raw text is kept on the bubble so story mode can strip gear brackets
+        // on the fly without losing the data in cards/compact/exports.
+        bubble.dataset.rawText = String(text || '');
+        const shown = this._gearVisibleText(type, text);
+        const displayText = badge ? shown.replace(/^\[Skill Check\].*/, '') : this._escapeHtml(shown);
         const badgeHtml = badge ? `<br>${badge}` : '';
 
         const textSpan = badge

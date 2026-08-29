@@ -203,7 +203,7 @@ class SpeechBroadcaster:
             "speaker": speaker_name,
             "text": speech_text,
             "area": target_area,
-            "tick": 0,  # caller patches tick if desired
+            "tick": int(getattr(self.player_manager, "time_ticks", 0) or 0),
             "timestamp": time.time(),
             "ghost_speech": is_ghost_speech,
             "speech_level": speech_level,

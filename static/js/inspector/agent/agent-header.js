@@ -87,6 +87,12 @@ window.InspectorAgentHeader = (() => {
 
     H.renderEmotionSelector = function(agentName, player, escName) {
         const emotion = player.emotion || { current: 'neutral', intensity: 0 };
+        // B1: the LEGACY single-slot emotion is a stale editor artifact — the
+        // live mood comes from the affect map, which the engine renders as
+        // `emotions_description` (first-person prose). Bind the mood line to
+        // that; fall back to the legacy description for old saves.
+        const moodLine = String(player.emotions_description || '').trim()
+            || (emotion.description || '');
         const emotionOptions = Object.keys(EMOTION_ICONS).map(emotionName =>
             `<option value="${emotionName}" ${emotion.current === emotionName ? 'selected' : ''}>${EMOTION_ICONS[emotionName]} ${emotionName}</option>`
         ).join('');
@@ -99,7 +105,7 @@ window.InspectorAgentHeader = (() => {
             <span style="font-size:10px;color:var(--text-dim);">intensity</span>
             <input type="range" id="emotion-intensity-${escName}" min="0" max="1" step="0.05" value="${emotion.intensity || 0}" style="width:60px;" oninput="document.getElementById('emotion-val-${escName}').textContent=parseFloat(this.value).toFixed(2);ApiClient.updateCharacter('${escName}',{emotion:{current:'${emotion.current}',intensity:parseFloat(this.value)}}).then(()=>worldState.fetch())">
             <span id="emotion-val-${escName}" style="min-width:30px;font-size:10px;color:var(--text-dim);">${(emotion.intensity || 0).toFixed(2)}</span>
-            ${emotion.description ? `<span style="font-size:10px;color:var(--text-muted);font-style:italic;">${emotion.description}</span>` : ''}
+            ${moodLine ? `<span style="font-size:10px;color:var(--text-muted);font-style:italic;">${moodLine}</span>` : ''}
         </div>`;
     };
 

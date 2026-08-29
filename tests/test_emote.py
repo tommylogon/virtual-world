@@ -82,3 +82,38 @@ def test_process_emote_strips_leading_name_before_normalizing():
 
     result = engine.process_emote("Lyrie", "Lyrie shivers and hugs myself")
     assert result == "Lyrie shivers and hugs themselves."
+
+
+# ── Pronoun set from identity tags (female / male / neutral) ────────────
+
+def test_process_emote_uses_female_pronouns_from_tags():
+    from virtual_world_engine import VirtualWorld
+    engine = VirtualWorld()
+    engine.players = {"Lyrie": MagicMock(current_area="hollow", tags=["female"])}
+    engine.narration.logging_events.record_turn_event = MagicMock()
+
+    assert engine.process_emote("Lyrie", "hugs yourself tightly") == "Lyrie hugs herself tightly."
+    assert engine.process_emote("Lyrie", "sinks down, hugging your knees") == \
+        "Lyrie sinks down, hugging her knees."
+
+
+def test_process_emote_uses_male_pronouns_from_tags():
+    from virtual_world_engine import VirtualWorld
+    engine = VirtualWorld()
+    engine.players = {"Kaelen": MagicMock(current_area="clearing", tags=["male"])}
+    engine.narration.logging_events.record_turn_event = MagicMock()
+
+    assert engine.process_emote("Kaelen", "hug myself and shiver") == "Kaelen hugs himself and shiver."
+
+
+def test_pronouns_for_player_object():
+    from player import Player
+    from engine.pronouns import pronouns_for
+    p = Player()
+    p.tags = ["female", "elf"]
+    assert pronouns_for(p)["reflexive"] == "herself"
+    assert pronouns_for(p)["subject"] == "she"
+    p.tags = ["male"]
+    assert pronouns_for(p)["subject"] == "he"
+    p.tags = ["synthetic"]
+    assert pronouns_for(p)["subject"] == "they"

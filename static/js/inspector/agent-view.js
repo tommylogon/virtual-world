@@ -97,6 +97,16 @@ window.InspectorAgentView = (() => {
         const htmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
         window.InspectorPanel.render(htmlTag`${window.Lit.unsafeHTML(html)}`);
 
+        // Known-by authoring: who knows THIS character, and what they know
+        // (the authored `known` registry — hidden ways/items/people).
+        if (window.KnownBySection) {
+            const panelBody = document.querySelector('#inspector-panel');
+            if (panelBody) {
+                panelBody.appendChild(window.KnownBySection.build('character', player.name, player.name));
+                panelBody.appendChild(window.KnownBySection.buildOwnKnown(agentName));
+            }
+        }
+
         // Render lit-helper TemplateResults (gravity control, aliases) that
         // couldn't be embedded in the string into their placeholder containers.
         _runDeferredRenders();

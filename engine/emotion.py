@@ -233,23 +233,36 @@ def dominant(values: dict) -> tuple[str, float]:
 
 
 def describe(values: dict) -> str:
-    """First-person mood paragraph, or '' when everything is near-neutral."""
-    lines = []
+    """First-person mood paragraph, or '' when everything is near-neutral.
+
+    N4: only the TWO most-deviant dimensions narrate (dominant + one
+    secondary), so a slightly-shifted multi-dimension map reads "nervous,
+    and a little hopeful" instead of a three-line list of faint stirrings.
+    """
+    scored = []
     for key, base in BASELINES.items():
         value = values.get(key, base)
         dev = value - base
         magnitude = abs(dev)
         if magnitude < SPEAK_THRESHOLD:
             continue
+        scored.append((magnitude, dev, key))
+    if not scored:
+        return ""
+    scored.sort(key=lambda t: -t[0])
+    phrases = []
+    for magnitude, dev, key in scored[:2]:
         bands = _BANDS.get(key) or _generic_bands(key)
-        # Stronger deviations pick earlier (more intense) phrases; dips into
-        # a NEGATIVE reading of positive dims get their own phrasing below.
         idx = 0 if magnitude >= 45 else (1 if magnitude >= 30 else 2)
         phrase = bands[idx]
         if dev < 0:
             phrase = _absence_phrase(key)
-        lines.append(phrase)
-    return " ".join(lines)
+        phrases.append(phrase)
+    if not phrases:
+        return ""
+    if len(phrases) == 1:
+        return phrases[0]
+    return phrases[0] + " Also, " + phrases[1][0].lower() + phrases[1][1:]
 
 
 _ABSENCE: dict[str, str] = {

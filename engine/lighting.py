@@ -77,10 +77,21 @@ class LightingSystem:
 
     def get_item_light_contribution(self, area_id: str) -> int:
         """Sum light_level of all lit items in or carried/equipped in this area."""
+        total, _ = self._item_light_stats(area_id)
+        return total
+
+    def _item_light_stats(self, area_id: str):
+        """Return ``(total, max_level)`` for lit items in/around ``area_id``.
+
+        The max is the strongest single source — used as the brightness CEILING
+        so piling up dim/normal sources can never out-verb their own level
+        (50 dim embers read as a warm glow, never a laser).
+        """
         total = 0
+        best = 0
 
         def add_item(node):
-            nonlocal total
+            nonlocal total, best
             if node and node.type == "item" and node.properties.get("current_state") in ("lit", "on"):
                 tags = node.properties.get("tags", [])
                 if "light_source" not in tags:
@@ -95,6 +106,7 @@ class LightingSystem:
                     except (ValueError, TypeError):
                         light = 30
                 total += light
+                best = max(best, light)
 
         for edge in self.graph.get_edges_for_target(area_id, EDGE_IN):
             add_item(self.graph.get_node(edge.source))
@@ -106,7 +118,7 @@ class LightingSystem:
                          self.graph.get_edges_for_target(pnode.id, EDGE_EQUIPPED):
                     add_item(self.graph.get_node(ce.source))
 
-        return min(100, total)
+        return min(100, total), min(100, best)
 
     def is_outdoor_area(self, area_id: str) -> bool:
         """True when the area node carries the 'outdoor' tag (task-230)."""
@@ -142,7 +154,12 @@ class LightingSystem:
             curve = outdoor_light_for_hour(hour)
             own = max(curve, own) if explicit else curve
 
-        own = min(100, own + self.get_item_light_contribution(area_id))
+        own_items, own_best = self._item_light_stats(area_id)
+        # Brightness CEILING: the effective light never exceeds the strongest
+        # single source in play (area's own authored light, or the brightest
+        # lit item). Stacking normal-level items can't make an area "bright",
+        # and no pile of dim embers ever becomes a laser.
+        own = min(100, min(own + own_items, max(own, own_best)))
 
         best_spill = 0
         for edge in self.graph.get_edges_for_source(area_id, EDGE_CONNECTION):
@@ -153,8 +170,9 @@ class LightingSystem:
                         other = self.graph.get_node(conn.target)
                         if other:
                             o_env = other.properties.get("environment", {})
-                            o_light = self.get_light_int(o_env, 80)
-                            o_light = min(100, o_light + self.get_item_light_contribution(conn.target))
+                            o_own = self.get_light_int(o_env, 80)
+                            o_items, o_best = self._item_light_stats(conn.target)
+                            o_light = min(100, min(o_own + o_items, max(o_own, o_best)))
                             spill = max(0, int(o_light * _spill_factor()))
                             if spill > best_spill:
                                 best_spill = spill

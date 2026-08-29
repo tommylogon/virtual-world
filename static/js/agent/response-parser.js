@@ -75,6 +75,10 @@ window.ResponseParser = (() => {
         if (!r) return { inner: '', speech: null, speechVolume: 'say', action: '', emote: null, memory: null, emotion: null, learnedNames: [], parseError: null };
         try {
             const c = repairJSON(normalizeRawResponse(r));
+            // N1: an easy repair is still a truncated response — surface it so
+            // the stream says "salvaged" instead of silently dropping fields.
+            const repaired = !!(window.__repairStats && window.__repairStats.repaired);
+            window.__repairStats.repaired = false;
             const p = JSON.parse(c);
             const { speech, volume } = ActionNormalizer.extractSpeechVolume(p);
             return {
@@ -86,7 +90,7 @@ window.ResponseParser = (() => {
                 memory: extractMemory(p.memory),
                 emotion: extractEmotion(p.emotion),
                 learnedNames: extractLearnedNames(p.learned_names),
-                parseError: null
+                parseError: repaired ? 'JSON repaired (truncated response) — fields after the break were lost' : null
             };
         } catch (e) {
             return {

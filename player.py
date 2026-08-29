@@ -93,6 +93,12 @@ class Player:
         self.visited_areas = set()
         # Track items the character has discovered (for Entertainment novelty bonus)
         self.discovered_items = set()
+        # AUTHORED knowledge (not runtime discovery): entity ids this character
+        # knows from the start — way ids ("way_secret_passage"), item ids
+        # ("item_old_key"), player names ("miki doki"), area names or ids.
+        # Seeded from the character data's `known` list; the inspector's
+        # "Known by" control edits it. Runtime discovery still works on top.
+        self.known = []
         # Current area location (for multi-player support)
         self.current_area = None
         # Recent speech heard: list of dicts {speaker, text, tick, timestamp}

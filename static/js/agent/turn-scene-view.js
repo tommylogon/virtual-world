@@ -126,6 +126,7 @@ window.TurnSceneView = (() => {
         const dirText = way.direction || '';
         const destText = way.to ? `${dirText} → ${way.to}` : dirText;
         const menus = [{ label: `Examine ${way.name}`, run: () => draftParts({ action: 'examine', item: way.name }) }];
+        menus.push({ label: `Approach ${dirText || way.name}`, run: () => draftParts({ action: 'approach', item: dirText || way.name }) });
         if (requires) {
             menus.push({ label: `Go ${destText}`, enabled: false, reason: `requires ${requires}` });
         } else if (grappled) {

@@ -74,6 +74,14 @@ window.PromptBuilder = window.PromptBuilder || {};
         return blocks.map(block => String(block || '').trim()).filter(Boolean).join('\n\n');
     }
 
+    function _summaryLine(text) {
+        // N7: RECENTLY must be a one-line summary — the previous action's full
+        // output (room prose + exits) duplicates the current observation block
+        // on every call. First line only; the important part is the outcome.
+        const lines = String(text || '').split('\n').map(s => s.trim()).filter(Boolean);
+        return lines[0] || '';
+    }
+
     /**
      * Build the reaction prompt (non-reactive mode) — a combined think/say/do prompt.
      * This is the "single phase" mode where the character thinks, speaks, and acts in one LLM call.
@@ -89,7 +97,7 @@ window.PromptBuilder = window.PromptBuilder || {};
      */
     function buildReactionPrompt(player, parts, vitalsNL, emotionNL, relationshipNL, memoryNL, lastResult, includeMemory = false, includeFeelings = false) {
         const last = lastResult
-            ? `\n\n=== RECENTLY ===\n${lastResult}`
+            ? `\n\n=== RECENTLY ===\n${_summaryLine(lastResult)}`
             : '\n\n=== START ===\nThis is your first moment in this world. What do you think, say, and do?';
 
         const ctx = { phase: 'reaction', vitalsNL, emotionNL, relationshipNL, memoryNL };

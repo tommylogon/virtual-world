@@ -225,7 +225,8 @@ class TestCombatRegionInjury:
         # Order: attack d20, defense d20, damage 1d4, hit-location d20.
         with patch("engine.skills.random.randint", return_value=20):
             result = harness.combat.player_attack("Attacker", "TargetDummy")
-        assert "(in the Right Foot)" in result
+        assert "right foot" in result.lower()
+        assert "HP" not in result
         injured = harness.target.conditions.get("injured", [])
         assert injured and injured[0].get("body_part") == "foot_right"
         assert "Right Foot injured" in result
@@ -246,7 +247,8 @@ class TestCombatRegionInjury:
         # Order: attack d20, defense d20, damage 1d4, hit-location d20.
         with patch("engine.skills.random.randint", return_value=20):
             result = harness.combat.player_attack("Attacker", "TargetDummy")
-        assert "(in the Right Foot)" in result
+        assert "right foot" in result.lower()
+        assert "HP" not in result
         injured = harness.target.conditions.get("injured", [])
         assert injured and injured[0].get("body_part") == "foot_right"
 

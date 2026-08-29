@@ -3,6 +3,12 @@
 from graph import Edge, EDGE_IN, EDGE_CARRYING, EDGE_TRIGGERS
 
 
+def _natural_article(name: str) -> str:
+    """'a'/'an' for a noun phrase — 'an Everflame Ember', 'a Key'."""
+    head = str(name or "").strip().lstrip('"\'')
+    return "an" if head[:1].lower() in "aeiou" else "a"
+
+
 def handle_spawn_item(self, params, context, item_node=None, game_state=None):
     """Spawn a new item into the current area (default) or into a container.
 
@@ -40,7 +46,7 @@ def handle_spawn_item(self, params, context, item_node=None, game_state=None):
         self.graph.add_edge(
             Edge(source=spawn_node.id, target=item_node.id, type=EDGE_IN)
         )
-        msg = params.get("message") or f"A {spawn_node.name} appears inside the {item_node.name}."
+        msg = params.get("message") or f"{_natural_article(spawn_node.name)} {spawn_node.name} appears inside the {item_node.name}."
         return [self._render_template_fn(msg, context)]
 
     area_id = game_state.get_current_area_id() if game_state else None
@@ -52,7 +58,7 @@ def handle_spawn_item(self, params, context, item_node=None, game_state=None):
     self.graph.add_edge(
         Edge(source=spawn_node.id, target=area_id, type=EDGE_IN)
     )
-    msg = params.get("message") or f"A {spawn_node.name} appears!"
+    msg = params.get("message") or f"{_natural_article(spawn_node.name)} {spawn_node.name} appears!"
     return [self._render_template_fn(msg, context)]
 
 

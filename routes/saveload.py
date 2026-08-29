@@ -1,11 +1,12 @@
 import os
+import re
 import json
 import time
 import logging
 from flask import Flask, request, jsonify
 from virtual_world_engine import VirtualWorld
 from logger import setup_logger
-from .helpers import _save_game
+from .helpers import _save_game, SAVES_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +37,18 @@ def _restore_snapshot(app, state, source):
     if not app.config.get('TESTING'):
         from .helpers import save_autosave
         save_autosave(app.world)
+
+
+def _safe_save_path(saves_dir, filename):
+    """Resolve a save path inside saves_dir, rejecting traversal tricks."""
+    if not filename or not isinstance(filename, str):
+        return None
+    base = os.path.basename(filename.replace('\\', '/'))
+    if base in ('', '.', '..') or base != filename:
+        return None
+    if not base.endswith('.json'):
+        return None
+    return os.path.join(saves_dir, base)
 
 
 def register_saveload_routes(app):
@@ -184,7 +197,7 @@ def register_saveload_routes(app):
 
     @app.route('/api/save-games', methods=['GET'])
     def list_save_games():
-        saves_dir = os.path.join(app.root_path, 'saves')
+        saves_dir = SAVES_DIR
         try:
             if not os.path.exists(saves_dir):
                 return jsonify([])
@@ -194,7 +207,8 @@ def register_saveload_routes(app):
                     path = os.path.join(saves_dir, fname)
                     try:
                         with open(path, 'r', encoding='utf-8-sig') as f:
-                            meta = json.load(f).get('_save_metadata', {})
+                            data = json.load(f)
+                        meta = data.get('_save_metadata', {})
                         files.append({
                             'filename': fname,
                             'name': meta.get('name', fname),
@@ -203,10 +217,17 @@ def register_saveload_routes(app):
                             'tick': meta.get('tick', 0),
                             'turn': meta.get('turn', 0),
                             'player': meta.get('player', ''),
-                            'size': os.path.getsize(path)
+                            'version': meta.get('version', ''),
+                            'autosave': bool(meta.get('autosave', False)),
+                            'players': len(data.get('players', {}) or {}),
+                            'areas': len(data.get('areas', {}) or {}),
+                            'size': os.path.getsize(path),
                         })
                     except Exception:
                         files.append({'filename': fname, 'name': fname})
+            # Newest first, then a stable pass pins the autosave slot on top.
+            files.sort(key=lambda s: s.get('timestamp', ''), reverse=True)
+            files.sort(key=lambda s: 0 if s.get('autosave') else 1)
             return jsonify(files)
         except Exception as e:
             return jsonify({"error": str(e)}), 500
@@ -215,16 +236,53 @@ def register_saveload_routes(app):
     def save_game():
         data = request.get_json(force=True) or {}
         name = data.get('name')
-        filename = _save_game(app.world, name)
+        slot = data.get('slot')
+        filename = _save_game(app.world, name, slot=slot)
         if filename:
             return jsonify({"status": "success", "filename": filename}), 201
         return jsonify({"error": "Could not save game"}), 500
 
+    @app.route('/api/save-game/<filename>/rename', methods=['POST'])
+    def rename_save_game(filename):
+        """Rename a save's display name (and its file, keeping the extension)."""
+        saves_dir = SAVES_DIR
+        path = _safe_save_path(saves_dir, filename)
+        if not path or not os.path.exists(path):
+            return jsonify({"error": "Save file not found"}), 404
+        body = request.get_json(force=True, silent=True) or {}
+        new_name = str(body.get('name', '')).strip()
+        if not new_name:
+            return jsonify({"error": "Name required"}), 400
+        try:
+            with open(path, 'r', encoding='utf-8-sig') as f:
+                data = json.load(f)
+            meta = data.get('_save_metadata', {})
+            meta['name'] = new_name
+            data['_save_metadata'] = meta
+            safe_new = ''.join(c if c.isalnum() or c in ' _-' else '_' for c in new_name)
+            old_base = os.path.basename(path)[:-5]
+            # Timestamped saves end in the convention name_YYYYMMDD_HHMMSS.
+            m = re.match(r'^(.*)_(\d{8}_\d{6})$', old_base)
+            if meta.get('autosave') or not m:
+                # Slot saves keep their identity — only the label changes.
+                with open(path, 'w', encoding='utf-8') as f:
+                    json.dump(data, f, indent=2, ensure_ascii=False)
+                new_filename = os.path.basename(path)
+            else:
+                new_filename = f"{safe_new}_{m.group(2)}.json"
+                new_path = os.path.join(saves_dir, new_filename)
+                with open(new_path, 'w', encoding='utf-8') as f:
+                    json.dump(data, f, indent=2, ensure_ascii=False)
+                os.remove(path)
+            return jsonify({"status": "success", "filename": new_filename})
+        except Exception as e:
+            return jsonify({"error": f"Could not rename save: {e}"}), 500
+
     @app.route('/api/load-game/<filename>', methods=['POST'])
     def load_game(filename):
-        saves_dir = os.path.join(app.root_path, 'saves')
-        path = os.path.join(saves_dir, filename)
-        if not os.path.exists(path):
+        saves_dir = SAVES_DIR
+        path = _safe_save_path(saves_dir, filename)
+        if not path or not os.path.exists(path):
             return jsonify({"error": "Save file not found"}), 404
         try:
             with open(path, 'r', encoding='utf-8-sig') as f:
@@ -237,9 +295,9 @@ def register_saveload_routes(app):
 
     @app.route('/api/save-game/<filename>', methods=['DELETE'])
     def delete_save_game(filename):
-        saves_dir = os.path.join(app.root_path, 'saves')
-        path = os.path.join(saves_dir, filename)
-        if not os.path.exists(path):
+        saves_dir = SAVES_DIR
+        path = _safe_save_path(saves_dir, filename)
+        if not path or not os.path.exists(path):
             return jsonify({"error": "Save file not found"}), 404
         try:
             os.remove(path)

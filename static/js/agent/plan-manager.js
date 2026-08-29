@@ -24,6 +24,16 @@ window.PlanManager = (() => {
     }
 
     /**
+     * One-line summary of the previous action result (N7). The full result can
+     * be a move dump (room prose + exits) that duplicates the observation the
+     * plan prompt already contains — first line only carries the outcome.
+     */
+    function _summaryLine(text) {
+        const lines = String(text || '').split('\n').map(s => s.trim()).filter(Boolean);
+        return lines[0] || '';
+    }
+
+    /**
      * Generate a multi-step plan for a character using the LLM.
      *
      * Builds a prompt from the character's current state, area context,
@@ -48,7 +58,7 @@ window.PlanManager = (() => {
             const lastThought = events.getCharacterState(charName)?.lastThought || '';
             const lastResult = config.lastActionResult?.[charName] || '';
 
-            // Threat detection � check for hostile actors in the same room
+            // Threat detection — check for hostile actors in the same room
             const allPlyrs = state?.players || {};
             const areaPlayers = state?.players_in_area || [];
             const threatsInRoom = [];
@@ -63,13 +73,13 @@ window.PlanManager = (() => {
                 }
             }
             const threatNote = threatsInRoom.length > 0
-                ? `\n?? THREAT WARNING: ${threatsInRoom.join(', ')} ${threatsInRoom.length > 1 ? 'are' : 'is'} hostile to you and in this room. Your plan MUST address this threat first � flee, hide, fight, or warn others. Do NOT plan exploration or item examination while a threat is active.`
+                ? `\n?? THREAT WARNING: ${threatsInRoom.join(', ')} ${threatsInRoom.length > 1 ? 'are' : 'is'} hostile to you and in this room. Your plan MUST address this threat first — flee, hide, fight, or warn others. Do NOT plan exploration or item examination while a threat is active.`
                 : '';
 
             // task-92: critical vitals force the plan to address them first.
             const criticalNeedsList = PlanTracker.criticalNeeds(player?.vitals);
             const needsNote = criticalNeedsList.length > 0
-                ? `\n\n=== CRITICAL NEEDS ===\nYou are suffering from: ${criticalNeedsList.join('; ')}.\nYour plan MUST include concrete step(s) that address the most urgent of these FIRST — using items you carry, items or places listed above, or a visible exit toward them. Do not plan exploration, conversation, or goals until the urgent need is being handled.`
+                ? `\n\n=== CRITICAL NEEDS ===\nYou are suffering from: ${criticalNeedsList.join('; ')}.\nPRIORITIZE the most urgent need FIRST — the plan should address it before exploration or conversation. A short detour toward another goal is fine ONLY if you return to the urgent need immediately after. Don't let curiosity or a side-task stand between you and the pressing need.`
                 : '';
 
             const prompt = `${roomContext}
@@ -78,7 +88,7 @@ window.PlanManager = (() => {
 ${vitals || 'No urgent physical needs.'}${emotion}${threatNote}${needsNote}
 
 ${memories || ''}
-${lastResult ? `\n=== RECENTLY ===\n${lastResult}` : ''}
+${lastResult ? `\n=== RECENTLY ===\n${_summaryLine(lastResult)}` : ''}
 
 ${lastThought ? `=== YOUR THOUGHTS ===\n${lastThought}\n\n` : ''}${_previousPlanIssues(charName)}
 
@@ -87,7 +97,7 @@ Create a practical 3-5 step plan based only on the information above.
 - Do not invent props, characters, clues, areas, or events.
 - Treat the Items list as the only objects that can be directly interacted with. If more information is needed, plan to look, examine a listed item, speak to a person present, or use a visible exit.
 - Account for immediate survival needs, active threats in the room, and the character's current condition.
-- Plans are suggestions � if something changes (a threat appears, someone attacks, a new person arrives), the plan may no longer apply. Re-evaluate before acting.
+- Plans are suggestions — if something changes (a threat appears, someone attacks, a new person arrives), the plan may no longer apply. Re-evaluate before acting.
 
 Respond ONLY with a raw JSON array of strings: ["step 1", "step 2"]`;
 

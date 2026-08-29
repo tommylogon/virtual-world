@@ -314,7 +314,7 @@ class AgentLens {
             <span class="agent-lens-stat">💡 <strong>${stats.light}</strong></span>
             <span class="agent-lens-stat">🌡 <strong>${stats.temp}°</strong></span>
             <span class="agent-lens-stat">🧍 <strong>${stats.people}</strong> here</span>
-            <span class="agent-lens-stat">📦 <strong>${stats.items}</strong> items</span>
+            <span class="agent-lens-stat">📦 <strong>${stats.items}</strong> item${stats.items === 1 ? '' : 's'} here</span>
             <span class="agent-lens-stat">🚪 <strong>${stats.exits}</strong> exits</span>`, el);
     }
 

@@ -158,6 +158,48 @@ window.SaveLoadView = (() => {
     }
 
     /**
+     * Overwrite an existing save slot with the current state.
+     * @param {string} filename - Slot file to overwrite
+     * @param {string} [label] - Existing display name (kept unless re-entered)
+     */
+    async function saveGameToSlot(filename, label) {
+        var result = await api.saveGame(label || undefined, filename);
+        if (result && result.filename) {
+            toastSuccess('Slot updated: ' + result.filename);
+            events.log('💾 Slot updated: ' + result.filename, 'system-msg');
+            loadGameList();
+        } else {
+            toastError('Slot save failed: ' + (result?.error || 'unknown error'));
+        }
+    }
+
+    /**
+     * Rename a saved game (display name; timestamped files also get renamed).
+     */
+    async function doRenameSave(filename, currentName) {
+        var newName = prompt('Rename save "' + (currentName || filename) + '":', currentName || filename);
+        if (newName === null) return;
+        newName = newName.trim();
+        if (!newName || newName === currentName) return;
+        var result = await api.renameSaveGame(filename, newName);
+        if (result && result.status === 'success') {
+            toastSuccess('Renamed to ' + result.filename);
+            events.log('✏️ Save renamed: ' + filename + ' → ' + result.filename, 'system-msg');
+            loadGameList();
+        } else {
+            toastError('Rename failed: ' + (result?.error || 'unknown error'));
+        }
+    }
+
+    /** Format a byte size for the modal ("3.2 MB"). */
+    function fmtSize(bytes) {
+        if (!bytes && bytes !== 0) return '';
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+
+    /**
      * Fetch and render the list of saved games in the load-game modal.
      */
     async function loadGameList() {
@@ -172,13 +214,36 @@ window.SaveLoadView = (() => {
             }
             window.Lit.render(saveLoadViewTag`${saves.map(function(save) {
                 var ts = save.timestamp ? save.timestamp.replace('_', ' ') : '';
-                return saveLoadViewTag`<div class="save-game-item" style="display:flex;justify-content:space-between;align-items:center;padding:8px 6px;border-bottom:1px solid var(--border);">
+                var tickStr = events.tickToTime(save.tick ?? 0);
+                var stats = [];
+                if (ts) stats.push(ts);
+                if (tickStr) stats.push(tickStr);
+                if (save.turn != null && save.turn !== 0) stats.push('Turn ' + save.turn);
+                if (save.player) stats.push(save.player);
+                if (save.scenario) stats.push(save.scenario);
+                if (save.players) stats.push(save.players + ' PC' + (save.players > 1 ? 's' : ''));
+                if (save.areas) stats.push(save.areas + ' areas');
+                var size = fmtSize(save.size);
+                if (size) stats.push(size);
+                var statLine = stats.join(' · ');
+                var isAuto = !!save.autosave;
+                var badge = isAuto
+                    ? '<span style="background:var(--accent,#4a9eff);color:#fff;border-radius:3px;padding:1px 5px;font-size:9px;margin-right:5px;">AUTO</span>'
+                    : '';
+                var versionBadge = save.version
+                    ? '<span style="font-size:9px;color:var(--text-muted);margin-left:4px;">v' + save.version + '</span>'
+                    : '';
+                return saveLoadViewTag`<div class="save-game-item" style="display:flex;justify-content:space-between;align-items:center;padding:8px 6px;border-bottom:1px solid var(--border);${isAuto ? 'background:rgba(74,158,255,0.06);' : ''}">
                     <div style="flex:1;cursor:pointer;" @click=${() => window.SaveLoadView.doLoadGame(save.filename)}>
-                    <strong>${save.name || save.filename}</strong>
+                    <strong>${badge}${save.name || save.filename}</strong>${versionBadge}
                     <div style="font-size:10px;color:var(--text-muted);">
-                    ${ts ? ts + ' · ' : ''}${events.tickToTime(save.tick ?? 0)} · Turn ${save.turn ?? '?'} · ${save.player || ''}
+                    ${statLine}
                     </div></div>
-                    <button class="btn btn-sm btn-red" @click=${() => window.SaveLoadView.doDeleteSave(save.filename)} style="font-size:10px;padding:2px 6px;" title="Delete save">🗑</button>
+                    <div style="display:flex;gap:4px;align-items:center;">
+                        <button class="btn btn-sm" @click=${() => window.SaveLoadView.saveGameToSlot(save.filename, save.name)} style="font-size:10px;padding:2px 6px;" title="Overwrite this slot with current state">💾</button>
+                        <button class="btn btn-sm" @click=${() => window.SaveLoadView.doRenameSave(save.filename, save.name)} style="font-size:10px;padding:2px 6px;" title="Rename save">✏️</button>
+                        <button class="btn btn-sm btn-red" @click=${() => window.SaveLoadView.doDeleteSave(save.filename)} style="font-size:10px;padding:2px 6px;" title="Delete save">🗑</button>
+                    </div>
                 </div>`;
             })}`, listEl);
         } catch (err) {
@@ -336,6 +401,8 @@ window.SaveLoadView = (() => {
         uploadWorld: uploadWorld,
         saveScenarioToFile: saveScenarioToFile,
         saveGame: saveGame,
+        saveGameToSlot: saveGameToSlot,
+        doRenameSave: doRenameSave,
         loadGameList: loadGameList,
         doLoadGame: doLoadGame,
         doDeleteSave: doDeleteSave,

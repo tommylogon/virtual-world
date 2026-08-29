@@ -32,6 +32,7 @@ Your turn context lists the actions available to you right now in === AVAILABLE 
 - Locked doors and items need the right item: use [item] on [target]. Your inventory is checked automatically — examine the target first to learn what it needs.
 - Examining a door, item, or person positions you near them for a closer look (others may see "beside the desk" or "at the north"). \`examine room\` / \`examine here\` steps back to survey the whole area. **Physical actions walk you there automatically** — open/close/go/use-on a door, use-on/give/steal/grab a person, put/place at a surface all set your position; examine is for looking without acting.
 - Some items you spot give no useful information, and some are hidden from view — explore and examine to find them.
+- "go" passes THROUGH exits: "go north", "go the archway", "go the cellar" all move you through to the other side. To walk UP TO the doorway itself and stop there (so you can examine it, listen, open it, or use an item on it), say "approach the <door>" or "go to the <door>" — you end up positioned AT it, not through it. "go" also works on items and people in your current room: "go the booth table" walks you to it (you end up positioned "at" it), "go Lyrie" walks you face to face. No need for a special verb — go IS the approach verb for room items and people too.
 - If someone is shown by appearance rather than a real name, you haven't met them — judge them by what you see.
 - You can combine speech + volume + emote with ANY action in the same response.
 - Your inner_monologue must align with your actions. If you intend to speak, do not think "I'll stay quiet." If you intend to stay silent, omit the speech field entirely. Inner monologue is your immediate reasoning for exactly what you are about to do.
@@ -68,9 +69,13 @@ Examples:
 - {"action":"use","item":"bread"}                              → eat food (use alone)
 - {"action":"use","item":"healing salve"}                      → apply a self-use item
 - {"action":"use_on","item":"the brass key","target":"the locked door"}
-- {"action":"go","target":"north"}                             → by cardinal direction
-- {"action":"go","target":"the archway"}                       → by exit label
-- {"action":"go","target":"the hollow"}                        → by the room it leads to
+- {"action":"go","target":"north"}                             → by cardinal direction (passes through)
+- {"action":"go","target":"the archway"}                       → by exit label (passes through)
+- {"action":"go","target":"the hollow"}                        → by the room it leads to (passes through)
+- {"action":"go","target":"to the archway"}                    → walk up to the EXIT and STOP (positioned "at" it)
+- {"action":"approach","target":"the front door"}              → walk up to the DOOR and STOP (examine/open/use item)
+- {"action":"go","target":"the booth table"}                   → walk to an ITEM in your current room (positions you at it)
+- {"action":"go","target":"the woman"}                         → walk to a PERSON in your current room (face to face)
 - {"action":"take","item":"the flower crown"}                  → names are matched whole
 - {"action":"put","item":"the pen","target":"the table","relation":"on"}  → place on a surface
 - {"action":"give","item":"the key","target":"the stranger"}   → hand to someone nearby`;

@@ -5,7 +5,7 @@ Handles player-vs-player attacks, weapon discovery, and combat resolution.
 
 import random
 from typing import Optional, List
-from graph import Node, EDGE_CARRYING
+from graph import Node, EDGE_CARRYING, EDGE_EQUIPPED
 
 
 WEAPON_KEYWORDS = [
@@ -53,6 +53,34 @@ class CombatSystem:
             )
         except Exception:
             return None
+
+    def _wound_sentence(self, damage: int, damage_type: str, region: str) -> str:
+        """Narrative-only wound description — NO hit points, no totals.
+
+        The engine still tracks HP internally; characters live in injuries and
+        conditions. Region + severity + damage type drive the prose: a slashing
+        hit opens a cut that BLEEDS, a bludgeon swells, and so on. Thresholds
+        mirror the condition logic (slashing/piercing bleed at >= 8).
+        """
+        region = (region or "torso").lower()
+        dt = (damage_type or "").lower()
+        if dt == "slashing":
+            if damage >= 13:
+                return f"a deep gash tears open in the {region}, blood seeping steadily."
+            if damage >= 8:
+                return f"a nasty cut opens in the {region}, blood beading and running."
+            return f"a shallow cut opens in the {region}; it barely breaks the skin."
+        if dt == "piercing":
+            if damage >= 13:
+                return f"a deep puncture sinks into the {region}, dark blood welling up."
+            return f"a sharp puncture bites into the {region}" + ("; blood wells up." if damage >= 8 else "; a thin trickle of blood.")
+        if dt == "bludgeoning":
+            if damage >= 13:
+                return f"a crushing impact slams into the {region}, the flesh swelling at once."
+            return f"a heavy blow slams into the {region}" + (" — the area swells immediately." if damage >= 8 else " — a stinging bruise.")
+        if damage >= 8:
+            return f"a heavy hit lands in the {region}, knocking the wind out of them."
+        return f"a glancing hit lands in the {region}."
 
     def _get_target_defense(self, target_player):
         from engine.equipment_bonuses import aggregate_bonuses, resisted_damage
@@ -142,6 +170,12 @@ class CombatSystem:
         target_mods = get_condition_mods(target)
         attack_mod += attacker_mods["attack_mod"] - target_mods["defense_mod"]
 
+        # Auto-select the attacker's best weapon when none was named. "attack X"
+        # used to resolve BARE-HANDED even when a butcher carried a cleaver —
+        # the weapon just sat unseen in inventory.
+        if weapon_node is None:
+            weapon_node = self._best_weapon_node(attacker_name)
+
         attack_roll = self.skills.roll_dice(1, 20, attacker.stats.get("STR", 10) + attack_mod)
         defense_roll = self.skills.roll_dice(1, 20, target.stats.get("DEX", 10))
 
@@ -221,35 +255,34 @@ class CombatSystem:
                 region_phrase = region_meta.get("name") if hit_region else ""
                 if hit_region and hit_region_exposed:
                     injury_note = self._apply_region_injury(
-                        target, hit_region, injury_target, damage, attacker_name
+                        target, hit_region, injury_target, damage, attacker_name, damage_type
                     )
 
-                type_tag = f" {damage_type}" if damage_type else ""
-                resist_tag = f" ({resisted_by} resisted)" if resisted_by > 0 else ""
+                # Narrative-first result — NO hit-point numbers. Characters live
+                # in wounds and conditions; HP stays engine-internal.
+                wound = self._wound_sentence(damage, damage_type, region_phrase)
+                armor_note = " Armor blunted the blow." if target_defense > 0 else ""
+                resist_note = f" ({resisted_by} resisted)" if resisted_by > 0 else ""
                 self.skills.add_log_entry(
                     f"[COMBAT] {attacker_name} attacks {target_name} with {weapon_name}! "
                     f"Attack d20({attack_raw}) + {attacker.stats.get('STR', 10)} STR + {attack_mod} mod = {attack_roll} "
-                    f"vs d20({defense_raw}) + {target.stats.get('DEX', 10)} DEX = {defense_roll}: HIT for {damage}{type_tag} damage!"
+                    f"vs d20({defense_raw}) + {target.stats.get('DEX', 10)} DEX = {defense_roll}: HIT — {wound}"
                 )
                 self.skills.record_turn_event(
                     attacker_name, "combat",
-                    f"attacks {target_name} with {weapon_name} for {damage}{type_tag} damage",
+                    f"cuts {target_name} in the {(region_phrase or 'body').lower()} with {weapon_name}",
                     area_name=area_name
                 )
-                absorb = f" ({target_defense} absorbed by armor)" if target_defense > 0 else ""
                 hit_msg = (
                     f"{attacker_name} attacks {target_name} with {weapon_name}!\n"
                     f"  Attack: d20({attack_raw}) + {attacker.stats.get('STR', 10)} STR + {attack_mod} mod = {attack_roll} "
                     f"vs d20({defense_raw}) + {target.stats.get('DEX', 10)} DEX = {defense_roll} → HIT\n"
-                    f"  Damage: {dmg_desc}\n"
-                    f"  Result: {damage}{type_tag} damage{absorb}{resist_tag} — {target_name} HP {hp_before} → {target.vitals['HP']}/{hp_max}"
+                    f"  Result: {wound}{armor_note}{resist_note}"
                 )
-                if region_phrase:
-                    hit_msg += f" (in the {region_phrase})"
                 if wake_msg:
                     hit_msg += f" {wake_msg}"
                 if injury_note:
-                    hit_msg += f" {target_name} — {injury_note}!"
+                    hit_msg += f" {target_name} — {injury_note}."
 
                 # Stun on hit — driven by weapon stun_chance (0-100) and stun_duration.
                 # `stunned` stacks as "refresh": a fresh stun extends the countdown.
@@ -280,32 +313,30 @@ class CombatSystem:
                 region_phrase = region_meta.get("name") if hit_region else ""
                 if hit_region and hit_region_exposed:
                     injury_note = self._apply_region_injury(
-                        target, hit_region, injury_target, damage, attacker_name
+                        target, hit_region, injury_target, damage, attacker_name, ""
                     )
+                wound = self._wound_sentence(damage, "", region_phrase)
+                armor_note = " Armor blunted the blow." if target_defense > 0 else ""
                 self.skills.add_log_entry(
-                    f"[COMBAT] {attacker_name} attacks {target_name}! "
+                    f"[COMBAT] {attacker_name} attacks {target_name} with bare hands! "
                     f"Attack d20({attack_raw}) + {attacker.stats.get('STR', 10)} STR + {attack_mod} mod = {attack_roll} "
-                    f"vs d20({defense_raw}) + {target.stats.get('DEX', 10)} DEX = {defense_roll}: HIT for {damage} damage!"
+                    f"vs d20({defense_raw}) + {target.stats.get('DEX', 10)} DEX = {defense_roll}: HIT — {wound}"
                 )
                 self.skills.record_turn_event(
                     attacker_name, "combat",
-                    f"attacks {target_name} for {damage} damage",
+                    f"punches {target_name} in the {(region_phrase or 'body').lower()}",
                     area_name=area_name
                 )
-                absorb = f" ({target_defense} absorbed by armor)" if target_defense > 0 else ""
                 hit_msg = (
-                    f"{attacker_name} attacks {target_name}!\n"
+                    f"{attacker_name} attacks {target_name} with bare hands!\n"
                     f"  Attack: d20({attack_raw}) + {attacker.stats.get('STR', 10)} STR + {attack_mod} mod = {attack_roll} "
                     f"vs d20({defense_raw}) + {target.stats.get('DEX', 10)} DEX = {defense_roll} → HIT\n"
-                    f"  Damage: 1d4 ({damage_raw}) + {str_bonus} STR mod = {damage} total, −{target_defense} armor\n"
-                    f"  Result: {damage} damage{absorb} — {target_name} HP {hp_before} → {target.vitals['HP']}/{hp_max}"
+                    f"  Result: {wound}{armor_note}"
                 )
-                if region_phrase:
-                    hit_msg += f" (in the {region_phrase})"
                 if wake_msg:
                     hit_msg += f" {wake_msg}"
                 if injury_note:
-                    hit_msg += f" {target_name} — {injury_note}!"
+                    hit_msg += f" {target_name} — {injury_note}."
 
             if target.vitals["HP"] <= 0:
                 target.state = "dead"
@@ -320,24 +351,24 @@ class CombatSystem:
             return hit_msg
         else:
             self.skills.add_log_entry(
-                f"[COMBAT] {attacker_name} attacks {target_name}! "
+                f"[COMBAT] {attacker_name} attacks {target_name} with bare hands! "
                 f"Attack d20({attack_raw}) + {attacker.stats.get('STR', 10)} STR + {attack_mod} mod = {attack_roll} "
                 f"vs d20({defense_raw}) + {target.stats.get('DEX', 10)} DEX = {defense_roll}: MISSED"
             )
             self.skills.record_turn_event(
                 attacker_name, "combat",
-                f"attacks {target_name} and misses",
+                f"attacks {target_name} bare-handed and misses",
                 area_name=area_name
             )
             if weapon_node:
-                weapon_name = weapon_node.properties.get('name', 'weapon')
+                weapon_name = weapon_node.properties.get('name') or weapon_node.name
                 return (
                     f"{attacker_name} swings the {weapon_name} at {target_name} but misses!\n"
                     f"  Attack: d20({attack_raw}) + {attacker.stats.get('STR', 10)} STR + {attack_mod} mod = {attack_roll} "
                     f"vs d20({defense_raw}) + {target.stats.get('DEX', 10)} DEX = {defense_roll} → MISS"
                 )
             return (
-                f"{attacker_name} lunges at {target_name} but misses!\n"
+                f"{attacker_name} lunges at {target_name} with bare hands but misses!\n"
                 f"  Attack: d20({attack_raw}) + {attacker.stats.get('STR', 10)} STR + {attack_mod} mod = {attack_roll} "
                 f"vs d20({defense_raw}) + {target.stats.get('DEX', 10)} DEX = {defense_roll} → MISS"
             )
@@ -359,7 +390,7 @@ class CombatSystem:
         region = roll_hit_location()
         return region, is_exposed(target, region, self.graph)
 
-    def _apply_region_injury(self, target, region, injury_target, damage, attacker_name):
+    def _apply_region_injury(self, target, region, injury_target, damage, attacker_name, damage_type=""):
         """Apply region-scoped injured/bleeding condition instances (task-253).
 
         Only fires when the region is exposed (not covered by high-coverage
@@ -367,6 +398,8 @@ class CombatSystem:
         its own condition instances via the ``body_part`` override — so a gash
         on the arm and a bruise on the leg are mechanically distinct and heal
         independently (``ends_on: fix`` ends only the matching instances).
+        Slashing/piercing wounds bleed at a lower threshold (they cut blood
+        vessels — the condition matches the prose in _wound_sentence).
         Returns a human-readable injury note ("" when nothing applies).
         """
         if not region or not injury_target:
@@ -385,7 +418,10 @@ class CombatSystem:
             overrides={"body_part": injury_target},
         )
         notes.append(f"{region_name} injured (level {level})")
-        if damage >= BLEEDING_DAMAGE_THRESHOLD:
+        bleed_threshold = BLEEDING_DAMAGE_THRESHOLD
+        if str(damage_type or "").lower() in ("slashing", "piercing"):
+            bleed_threshold = min(bleed_threshold, 8)
+        if damage >= bleed_threshold:
             target.add_condition(
                 "bleeding", source=attacker_name, level=level,
                 overrides={"body_part": injury_target},
@@ -405,3 +441,48 @@ class CombatSystem:
                 if node.name.lower() == weapon_lower or weapon_lower in item_props.get("name", "").lower():
                     return node
         return None
+
+    def _best_weapon_node(self, attacker_name: str) -> Optional[Node]:
+        """Auto-select the strongest weapon the attacker carries or equips.
+
+        ``attack X`` with no explicit ``with <weapon>`` used to resolve bare
+        handed even when the attacker held a weapon — the butcher's cleaver did
+        fists while the cleaver sat ignored in inventory. Candidates are item
+        nodes with a ``damage`` property or a ``weapon`` tag; highest flat/dice
+        damage wins.
+        """
+        from engine.equipment_bonuses import parse_damage as _parse
+        from engine.character_spatial import _pm_get_player_node_id
+        player_node_id = _pm_get_player_node_id(self.skills, attacker_name)
+        if not player_node_id:
+            return None
+        best: Optional[Node] = None
+        best_score = -1
+        seen = set()
+        # Carried/equipped edges are item → player (same direction as EDGE_IN),
+        # so match edges whose TARGET is the player and take the source item.
+        for edge in (self.graph.get_edges_for_target(player_node_id, EDGE_CARRYING)
+                     + self.graph.get_edges_for_target(player_node_id, EDGE_EQUIPPED)):
+            node = self.graph.get_node(edge.source)
+            if not node or node.type != "item" or node.id in seen:
+                continue
+            seen.add(node.id)
+            props = node.properties or {}
+            tags = props.get("tags") or []
+            if isinstance(tags, str):
+                tags = [t.strip() for t in tags.split(",")]
+            dmg = props.get("damage", 0) or 0
+            if not dmg and "weapon" not in tags:
+                continue
+            try:
+                _count, _sides, flat = _parse(dmg)
+                if _count > 0 and _sides > 0:
+                    score = _count * (_sides + 1) / 2 + float(flat)  # expected damage
+                else:
+                    score = float(flat)
+            except Exception:
+                score = 0
+            if score > best_score:
+                best = node
+                best_score = score
+        return best

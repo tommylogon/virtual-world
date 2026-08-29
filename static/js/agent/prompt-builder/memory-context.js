@@ -118,10 +118,22 @@ window.PromptBuilder = window.PromptBuilder || {};
         if (Object.keys(mapped).length === 0) return;
 
         _respikeTickGuard[charName] = now;
+        // N6: send the triggering memory as `reason` — the backend writes
+        // "Remembered: 'X' — it made me feel this way toward Y." instead of
+        // a contentless placeholder. Full text; no truncation.
+        const firstWithEmotion = topMemories.find(m => {
+            const list = Array.isArray(m.memory_emotions) && m.memory_emotions.length
+                ? m.memory_emotions
+                : (m.emotion ? [m.emotion] : []);
+            return list.length > 0;
+        });
+        const reason = firstWithEmotion
+            ? String(firstWithEmotion.text || '').replace(/^\[[^\]]*\]\s*/, '').trim()
+            : '';
         fetch(`/api/players/${encodeURIComponent(charName)}/emotions/map`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mapped })
+            body: JSON.stringify(reason ? { mapped, reason } : { mapped })
         }).catch(() => {});
     }
 
@@ -161,10 +173,17 @@ window.PromptBuilder = window.PromptBuilder || {};
         const alreadyKnown = buildAlreadyKnownContext(charName);
         if (alreadyKnown) parts.push(alreadyKnown);
 
-        // 2. Build query from current area + last thought
+        // 2. Build query from current area + last thought + what was just heard
+        // (the retrieval trigger should be explainable: area + own latest
+        // thought + the last lines spoken around the character).
         const characterState = VW?.events?.getCharacterState?.(charName);
         const lastThought = (characterState?.lastThought || '');
-        const query = `${currentArea || ''} ${lastThought}`.trim() || currentArea || '';
+        const heardLines = (player?.recent_hearing || [])
+            .filter(h => h.type !== 'sound_source' && h.speaker !== charName && h.text)
+            .slice(-2)
+            .map(h => String(h.text).trim()).filter(Boolean);
+        const queryParts = [currentArea || '', lastThought, ...heardLines];
+        const query = queryParts.join(' ').trim() || (currentArea || '');
         const queryWords = new Set(query.toLowerCase().split(/\s+/).filter(Boolean));
 
         // 3. Collect and score memories from both sources
@@ -198,10 +217,13 @@ window.PromptBuilder = window.PromptBuilder || {};
             if (resp.ok) {
                 const data = await resp.json();
                 for (const mem of (data.memories || [])) {
+                    // A5: never render "undefined" — skip textless entries
+                    const memText = String((typeof mem === 'object' && mem?.text) || '').trim();
+                    if (!memText) continue;
                     // Backend now includes score directly on the memory object.
                     const backendScore = typeof mem.score === 'number' ? mem.score : null;
                     const icon = memIcon(mem.type);
-                    scored.push({ text: `[${events.tickToRelative(mem.tick)}] ${icon} ${mem.text}`, score: backendScore !== null ? backendScore : 1.0, tick: mem.tick, emotion: mem.emotion || null, source: 'retrieved' });
+                    scored.push({ text: `[${events.tickToRelative(mem.tick)}] ${icon} ${memText}`, score: backendScore !== null ? backendScore : 1.0, tick: mem.tick, emotion: mem.emotion || null, source: 'retrieved' });
                 }
             }
         } catch (e) {
@@ -221,9 +243,13 @@ window.PromptBuilder = window.PromptBuilder || {};
             }
             const keywordScore = queryWords.size > 0 ? overlap / queryWords.size : 0;
             const icon = memIcon(inferIcon(textContent));
-            // Record WHICH query words matched (so feedback can say WHY).
+            // A8: stopwords never explain a match ("keyword match on (in,i,a)")
+            const STOPWORDS = new Set(['a','an','the','in','on','of','to','for','and','or','but','if','so','then','there','their','them','they','this','that','with','from','just','now','really','about','when','what','where','how','why','is','are','was','were','be','been','it','its','at','as','by','my','me','i','we','you','your','not','no','yes','oh','well','much','nice','very','too','will','would','can','could','shall','should','am','get','got','go','one','two','three','after','before']);
             const matchedWords = [];
-            for (const word of queryWords) { if (textLower.includes(word)) matchedWords.push(word); }
+            for (const word of queryWords) {
+                if (STOPWORDS.has(word)) continue;
+                if (textLower.includes(word)) matchedWords.push(word);
+            }
             // Include if it has keyword overlap OR we haven't collected enough candidates yet
             if (keywordScore > 0 || scored.length < 8) {
                 scored.push({ text: `[${events.tickToRelative(tickValue)}] ${icon} ${textContent}`, score: keywordScore, tick: tickValue, emotion: (typeof raw === 'object' && raw?.emotion) || null, source: 'keyword', kb: keywordScore, matchedWords, memTags: ((typeof raw === 'object' && Array.isArray(raw.tags)) ? raw.tags : []) });
@@ -270,10 +296,12 @@ window.PromptBuilder = window.PromptBuilder || {};
         const seenText = new Set();
         const deduped = [];
         for (const entry of scored) {
-            // Dedup on the memory TEXT WITHOUT the leading [timestamp] prefix, so
-            // the same memory shown at two relative times (e.g. "a while ago" vs
-            // "55 minutes ago") collapses to one instead of duplicating.
-            const bare = String(entry.text || '').replace(/^\s*\[[^\]]*\]\s*/, '');
+            // A7: dedupe on the TEXT with the [timestamp] AND the leading icon
+            // stripped — the same memory carries a different icon per pipeline
+            // (🗺️ vector vs 📝 keyword), which used to defeat the dedupe.
+            const bare = String(entry.text || '')
+                .replace(/^\s*\[[^\]]*\]\s*/, '')
+                .replace(/^[^A-Za-z0-9]+\s*/, '');
             const key = bare.replace(/\s+/g, ' ').toLowerCase();
             if (seenText.has(key)) continue;
             seenText.add(key);
@@ -289,6 +317,9 @@ window.PromptBuilder = window.PromptBuilder || {};
         // relevance floor, so recall is richer but never drops in noise.
         const topMemories = scored.slice(0, MAX_RECALL)
             .filter((m, i) => i < 3 || (m.score || 0) >= MIN_RECALL_SCORE);
+        // N8: score picks WHAT is remembered; the ordering shown/injected is
+        // recency-first so the prompt reads newest-first instead of interleaved.
+        topMemories.sort((a, b) => (b.tick || 0) - (a.tick || 0));
 
         // Feed the EXISTING recall pipe (stream-raw-llm reads `_lastRecallStats`
         // to show \"recalled: N\" on the LLM request chip). We set it here so the
@@ -319,18 +350,25 @@ window.PromptBuilder = window.PromptBuilder || {};
                 const lines = topMemories.map(m => {
                     let why;
                     if (m.source === 'keyword') {
-                        const words = (m.matchedWords?.length ? m.matchedWords.join(',') : 'n/a');
-                        const tags = (m.memTags?.length ? m.memTags.join(',') : '');
-                        why = `keyword match on (${words}), tags ${tags || 'n/a'}`;
+                        const words = (m.matchedWords?.length ? m.matchedWords.join(', ') : 'phrase');
+                        const tags = (m.memTags?.length ? m.memTags.join(', ') : '');
+                        why = `keyword (${words})${tags ? ` · tags ${tags}` : ''}`;
                     } else if (m.source === 'vector') {
-                        why = `vector ${Math.round((m.kb||0)*100)/100} on "${String(query || '').slice(0, 60)}"`;
+                        why = `semantic ${Math.round((m.kb || 0) * 100) / 100}`;
                     } else {
-                        why = `retrieve on "${String(query || '').slice(0, 60)}" (score ${Math.round((m.score||0)*100)/100})`;
+                        // backend /retrieve — real score rides the entry (default 1.0 is a floor)
+                        const score = (m.score || 0) > 1 ? ` (score ${Math.round(m.score * 100) / 100})` : '';
+                        why = `recent${score}`;
                     }
-                    const short = String(m.text || '').replace(/^\[[^\]]*\]\s*/, '').slice(0, 70);
+                    const short = String(m.text || '').replace(/^\[[^\]]*\]\s*/, '');
                     return `  • ${short} — ${why}`;
                 });
-                events.log(`🧠 recalled ${topMemories.length} memories: \n${lines.join('\n')}`, 'system-msg');
+                const n = topMemories.length;
+                const kw = topMemories.filter(m => m.source === 'keyword').length;
+                const vec = topMemories.filter(m => m.source === 'vector').length;
+                const rec = n - kw - vec;
+                const queryShort = String(query || '').replace(/\s+/g, ' ');
+                events.log(`🧠 recalled ${n} memor${n === 1 ? 'y' : 'ies'} · query "${queryShort}" (${kw} keyword · ${vec} semantic · ${rec} recent): \n${lines.join('\n')}`, 'system-msg', null, charName);
             }
         } catch (e) { /* feedback is best-effort */ }
 
@@ -369,7 +407,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             const resultText = textContent.substring(separatorIdx + separatorLen).trim();
             if (!resultText) continue;
 
-            const knownVerbs = ['examine', 'use', 'take', 'open', 'close', 'read', 'drink', 'eat', 'light', 'go'];
+            const knownVerbs = ['examine', 'use', 'take', 'open', 'close', 'read', 'drink', 'eat', 'light', 'go', 'approach'];
             const verb = actionPart.split(/\s+/)[0];
             const target = actionPart.substring(verb.length).trim();
             if (!knownVerbs.includes(verb)) continue;

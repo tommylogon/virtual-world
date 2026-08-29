@@ -157,6 +157,10 @@ def handle_take_action(app):
         ("strike ", "attack "),
         ("punch ", "attack "),
         ("yell ", "shout "),
+        ("walk ", "go "),
+        ("move ", "go "),
+        ("head ", "go "),
+        ("step ", "go "),
     ]
     for alias_prefix, canonical_prefix in alias_map:
         if cmd.startswith(alias_prefix):
@@ -182,38 +186,48 @@ def handle_take_action(app):
         if cond_block_msg:
             raise ValueError(cond_block_msg)
 
+        # T1: movement result handling. An intra-room positioning ("go the
+        # booth table") does NOT change areas — the movement line is the whole
+        # story, so the full room description only re-dumps on a real
+        # transition (the agent already has the room in its context).
+        def _move_and_describe(call):
+            _prev = world.current_area.name if world.current_area else None
+            _msg = call()
+            add_output(_msg)
+            if world.current_area and _prev != world.current_area.name:
+                add_output(world.get_area_description())
+
         if world.current_area and cmd in [e.lower() for e in world.current_area.exits.keys()]:
             was_movement = True
-            add_output(world.move_to_area(cmd))
-            add_output(world.get_area_description())
+            _move_and_describe(lambda: world.move_to_area(cmd))
 
         elif cmd.startswith("go "):
             was_movement = True
             direction = ' '.join(tokens[1:]) if len(tokens) > 1 else cmd[3:].strip()
-            add_output(world.move_to_area(direction))
-            add_output(world.get_area_description())
+            _move_and_describe(lambda: world.move_to_area(direction))
+
+        elif cmd.startswith("approach "):
+            was_movement = True
+            target = ' '.join(tokens[1:]) if len(tokens) > 1 else cmd[9:].strip()
+            _move_and_describe(lambda: world.approach(target))
 
         elif cmd.startswith("dash "):
             was_movement = True
             direction = ' '.join(tokens[1:]) if len(tokens) > 1 else cmd[5:].strip()
-            add_output(world.dash_to_area(direction))
-            add_output(world.get_area_description())
+            _move_and_describe(lambda: world.dash_to_area(direction))
 
         elif cmd.startswith("crawl "):
             was_movement = True
             direction = ' '.join(tokens[1:]) if len(tokens) > 1 else ""
-            add_output(world.crawl_to_area(direction))
-            add_output(world.get_area_description())
+            _move_and_describe(lambda: world.crawl_to_area(direction))
         elif cmd.startswith("climb "):
             was_movement = True
             direction = ' '.join(tokens[1:]) if len(tokens) > 1 else ""
-            add_output(world.climb_to_area(direction))
-            add_output(world.get_area_description())
+            _move_and_describe(lambda: world.climb_to_area(direction))
         elif cmd.startswith("jump "):
             was_movement = True
             direction = ' '.join(tokens[1:]) if len(tokens) > 1 else ""
-            add_output(world.jump_to_area(direction))
-            add_output(world.get_area_description())
+            _move_and_describe(lambda: world.jump_to_area(direction))
 
         elif cmd.startswith("open "):
             target = ' '.join(tokens[1:]) if len(tokens) > 1 else ""
@@ -251,6 +265,14 @@ def handle_take_action(app):
                             if "toilet" in tags or "bathroom" in tags:
                                 toilet_found = True
                                 break
+                    if not toilet_found:
+                        # Some areas are restrooms without a Toilet item — the
+                        # area's own tags count too.
+                        area_node = world.graph.get_node(area_id)
+                        if area_node:
+                            atags = [str(t).lower() for t in (area_node.properties.get("tags") or [])]
+                            if any(t in atags for t in ("restroom", "bathroom", "toilet")):
+                                toilet_found = True
                 if toilet_found:
                     add_output("You relieve yourself. Ah, much better.")
                 else:
@@ -260,6 +282,23 @@ def handle_take_action(app):
                         if env is not None:
                             existing = env.get("smell", "")
                             env["smell"] = (existing + "; urine" if existing else "urine")
+                    # T4: public relieve is a shame event — an internal hit
+                    # always (Sanity), a social hit only when someone actually
+                    # witnesses it (being alone keeps it between you and the
+                    # puddle).
+                    try:
+                        player.vitals["Sanity"] = max(0, min(100, player.vitals.get("Sanity", 100) - 2))
+                        area_name = world.current_area.name if world.current_area else None
+                        witnessed = [
+                            n for n, o in world.player_manager.players.items()
+                            if n != world.active_player
+                            and o.current_area == area_name
+                            and o.state != "dead"
+                        ]
+                        if witnessed:
+                            player.vitals["Social"] = max(0, min(100, player.vitals.get("Social", 100) - 3))
+                    except Exception:
+                        pass
                     world.effects.execute(
                         "spawn_item",
                         {"item_id": "puddle"},
@@ -731,23 +770,30 @@ def handle_take_action(app):
                 add_output("You try to speak, but no sound comes out.")
             else:
                 whisper_target = None
+                # RAW command suffix, NOT re-joined tokens — the tokenizer treats
+                # apostrophes as quote delimiters and would turn "i'm coming" into
+                # "i m coming" (N2 — the mangled text was what got spoken/stored).
+                speech = ""
+                for _pfx in ("speak ", "say ", "whisper ", "shout ", "scream "):
+                    if cmd.startswith(_pfx):
+                        speech = cmd[len(_pfx):].strip()
+                        break
+                # Human-typed quoted lines: unwrap ONLY when the whole line is wrapped
+                if len(speech) >= 2 and ((speech[0] == '"' and speech[-1] == '"')
+                                         or (speech[0] == "'" and speech[-1] == "'")):
+                    speech = speech[1:-1].strip()
                 if cmd.startswith("whisper "):
                     speech_level = "whisper"
-                    speech = ' '.join(tokens[1:]) if len(tokens) > 1 else ""
                     target_match = re.match(r'^to\s+([^:]+?)(?:\s*:\s*|\s+)(.+)$', speech, re.DOTALL)
                     if target_match:
                         whisper_target = target_match.group(1).strip()
                         speech = target_match.group(2).strip()
                 elif cmd.startswith("shout "):
                     speech_level = "shout"
-                    speech = ' '.join(tokens[1:]) if len(tokens) > 1 else ""
                 elif cmd.startswith("scream "):
                     speech_level = "scream"
-                    speech = ' '.join(tokens[1:]) if len(tokens) > 1 else ""
                 else:
                     speech_level = "normal"
-                    speech = ' '.join(tokens[1:]) if len(tokens) > 1 else ""
-                
                 if speech:
                     world.broadcast_speech(world.active_player, speech, speech_level=speech_level, whisper_target=whisper_target)
                     if speech_level == "whisper":

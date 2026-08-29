@@ -25,7 +25,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js@10.2.0/public/assets/styles/choices.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
 </head>
-<body data-scenario-name="{{ scenario_name or '' }}">
+<body data-scenario-name="{{ scenario_name or '' }}" data-app-version="{{ app_version or '' }}">
     <a href="#command-input" class="skip-link">Skip to command input</a>
 
     <!-- ===== TOP BAR ===== -->
@@ -678,18 +678,22 @@
         </div>
     </div>
 
-    <!-- LOAD GAME MODAL -->
+    <!-- SAVE / LOAD GAME MODAL -->
     <div id="load-game-modal" class="modal" style="display:none;">
-        <div class="modal-content" style="width:600px;">
+        <div class="modal-content" style="width:680px;">
             <div class="modal-header">
-                <h3>📂 Load Game</h3>
+                <h3>💾 Save / Load Game</h3>
                 <button class="modal-close" onclick="document.getElementById('load-game-modal').style.display='none'">&times;</button>
             </div>
             <div style="padding:16px 20px;max-height:60vh;overflow-y:auto;">
                 <div style="margin-bottom:12px;display:flex;gap:6px;align-items:center;">
-                    <input type="text" id="save-game-name-input" placeholder="Save name..." style="flex:1;font-size:12px;padding:4px 8px;" onkeydown="if(event.key==='Enter')saveGame()">
-                    <button class="btn btn-sm btn-green" onclick="saveGame()">💾 Save Current</button>
+                    <input type="text" id="save-game-name-input" placeholder="Save name — creates a new save..." style="flex:1;font-size:12px;padding:4px 8px;" onkeydown="if(event.key==='Enter')saveGame()">
+                    <button class="btn btn-sm btn-green" onclick="saveGame()">💾 Save as New</button>
                     <button class="btn btn-sm btn-danger" onclick="confirmDeleteAllSaves()" style="background:#d32f2f;color:#fff;">🗑 All</button>
+                </div>
+                <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;">
+                    🔄 Autosave is always current (pinned top). Click a save to load it; 💾 overwrites that slot;
+                    ✏️ renames it. App version: <span id="save-modal-app-version">{{ app_version or '?' }}</span>
                 </div>
                 <div id="save-game-list" style="font-size:12px;">
                     <div style="color:var(--text-muted);padding:20px;text-align:center;">Loading saves...</div>
@@ -988,6 +992,7 @@
     <script src="/static/js/library-browser.js"></script>
 <script src="/static/js/world-sync.js"></script>
     <script src="/static/js/inspector/helpers.js"></script>
+    <script src="/static/js/inspector/known-by.js"></script>
     <script src="/static/js/inspector/way-authoring.js"></script>
     <script src="/static/js/inspector/panel.js"></script>
     <script src="/static/js/inspector/trigger-helpers.js"></script>

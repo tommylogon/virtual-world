@@ -147,7 +147,7 @@ def build_scene(world: Any, player_name: str) -> Dict[str, Any]:
             )
 
     # ── items (hidden ones stay out) ─────────────────────────────────
-    for node in visible_area_items(graph, area_id):
+    for node in visible_area_items(graph, area_id, player=player):
         render = getattr(world.area_description, "_render_node", None)
         desc = ""
         if callable(render):

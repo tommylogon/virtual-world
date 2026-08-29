@@ -124,6 +124,9 @@ class NameMatching:
         if not area_id or not input_str:
             return None, None, ""
         input_lower = input_str.lower().strip()
+        # "go the door" / "open the door" — leading articles never break exit
+        # matching (the handle is often a bare word: "out", "gap", "arch").
+        input_lower = re.sub(r'^(the|a|an)\s+', '', input_lower)
 
         from engine.character_spatial import resolve_transit_movement
         transit_hit = resolve_transit_movement(self.graph, self.gs, area_id, input_lower)

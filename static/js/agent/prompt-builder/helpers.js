@@ -104,6 +104,14 @@ window.PromptBuilder = window.PromptBuilder || {};
     function anonymousName(charName, targetName, targetDesc) {
         const hasMet = worldState.hasMet(charName, targetName);
         if (hasMet) return targetName;
+        // Authored `known` registry: a character flagged as known to the
+        // viewer is never masked, regardless of meeting state.
+        const viewer = worldState.data?.players?.[charName];
+        const known = new Set((viewer?.known || []).map(String));
+        const targetSlug = String(targetName || '').toLowerCase().replace(/\s+/g, '_');
+        if (known.has(String(targetName || '')) || known.has('player_' + targetSlug) || known.has('character_' + targetSlug)) {
+            return targetName;
+        }
         const player = worldState.data?.players?.[targetName] || {};
         const tagMap = {
             female: 'the woman', male: 'the man', woman: 'the woman', man: 'the man',

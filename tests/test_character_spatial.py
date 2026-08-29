@@ -131,8 +131,8 @@ class TestTransitAreas:
         set_character_at_way(world.graph, pid, back_way)
 
         look = world.get_area_description()
-        assert "To the back" in look
-        assert "To the forward" in look
+        assert "[back] Lab A is visible beyond" in look
+        assert "[forward] Lab B is visible beyond" in look
 
     def test_examine_room_clears_at_way(self):
         world = VirtualWorld()

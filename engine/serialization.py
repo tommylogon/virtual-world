@@ -21,6 +21,31 @@ def _body_region_catalog():
     return BODY_REGIONS
 
 
+#: Lowercase keys that need a non-trivial canonical form (not just capitalize).
+_VITAL_KEY_ALIASES = {"hp": "HP", "max_hp": "Max_HP", "mp": "Mana", "max_mp": "Max_Mana"}
+
+
+def canonical_vitals(vitals) -> dict:
+    """Fold mixed-case vital keys into their canonical form.
+
+    Library character files have historically carried BOTH cases ("Social"
+    and "social") — the lowercase duplicates leak into the runtime vitals
+    dict, where lowercase readers (talkinessHint reads ``vitals.social``)
+    pick them up and misread character state. Capitalized/aliased wins.
+    """
+    if not isinstance(vitals, dict):
+        return dict(vitals or {})
+    out = {}
+    for k, v in vitals.items():
+        key = str(k)
+        if key in _VITAL_KEY_ALIASES:
+            key = _VITAL_KEY_ALIASES[key]
+        elif key and key[0].islower():
+            key = key[0].upper() + key[1:]
+        out[key] = v
+    return out
+
+
 def _region_exposure_map(player, graph):
     """Computed per-region exposure for a player (single source of truth)."""
     from engine.body_parts import BODY_REGIONS, is_exposed
@@ -96,6 +121,8 @@ class WorldSerializer:
             "state_timer": getattr(p, 'state_timer', 0),
             "traits": getattr(p, 'traits', {}),
             "tags": getattr(p, 'tags', []),
+            "known": list(getattr(p, 'known', []) or []),
+            "discovered_exits": list(getattr(p, 'discovered_exits', []) or []),
             "interest_tags": getattr(p, 'interest_tags', []),
             "discovered_items": list(getattr(p, 'discovered_items', []) or []),
             "decay_rates": getattr(p, 'decay_rates', {}),
@@ -157,6 +184,7 @@ class WorldSerializer:
                     "ambient_light": ambient,
                     "light_description": self.player_manager.lighting.light_to_level(ambient),
                     "exits": self.player_manager.build_exits_for_area(node.name),
+                    "exits_authoring": self.player_manager.build_exits_for_area(node.name, include_hidden=True),
                     "items": [],
                     "floor": node.properties.get("floor", 0),
                     "properties": node.properties
@@ -194,7 +222,7 @@ class WorldSerializer:
         p.base_description = pdata.get("base_description", "")
         p.equipped = pdata.get("equipped", dict(p.equipped))
         p.stats = pdata.get("stats", {})
-        p.vitals = {**p.vitals, **pdata.get("vitals", {})}
+        p.vitals = {**p.vitals, **canonical_vitals(pdata.get("vitals", {}))}
         if "Max_HP" not in p.vitals:
             p.vitals["Max_HP"] = 100
         if "HP" in p.vitals:
@@ -217,6 +245,10 @@ class WorldSerializer:
                 instances[0]["duration"] = legacy_timer
         p.traits = pdata.get("traits", {})
         p.tags = list(pdata.get("tags", []))
+        p.known = list(pdata.get("known", []) or [])
+        p.discovered_exits = {
+            tuple(x) for x in (pdata.get("discovered_exits", []) or []) if isinstance(x, (list, tuple)) and len(x) == 2
+        }
         p.interest_tags = list(pdata.get("interest_tags", []))
         p.current_area = pdata.get("current_area") or pdata.get("current_area") or pdata.get("current_room")
         p.recent_hearing = pdata.get("recent_hearing", [])

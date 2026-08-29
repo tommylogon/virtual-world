@@ -89,8 +89,13 @@ function extractAssistantText(raw) {
  *  Handles: code fences, raw newlines/tabs in strings, non-ASCII chars,
  *  trailing commas before ]/}, missing commas between properties, and
  *  missing closing braces/brackets.
- *  Returns the repaired string; falls back to the raw input on failure. */
+ *  Returns the repaired string; falls back to the raw input on failure.
+ *  Sets window.__repairStats.repaired = true when the input needed fixing,
+ *  so callers can surface "salvaged from broken JSON" instead of silently
+ *  dropping fields (N1). */
 function repairJSON(raw) {
+    window.__repairStats = window.__repairStats || { repaired: false };
+    window.__repairStats.repaired = false;
     let s = raw.trim();
     s = s.replace(/^\uFEFF/, '');
     const fence = s.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
@@ -109,6 +114,8 @@ function repairJSON(raw) {
     }
     // If it already parses cleanly, return as-is and skip aggressive repair
     try { JSON.parse(s); return s; } catch {}
+    // Anything past this point was repaired — flag it.
+    window.__repairStats.repaired = true;
     // Qwen 3.5 with empty-assistant-message workaround sometimes drops the outer {}.
     // If the string does not start with { or [, wrap it in {} so the parser
     // gets a valid object. Only do this if the content looks like JSON.

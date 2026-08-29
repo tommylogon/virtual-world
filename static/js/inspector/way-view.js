@@ -523,9 +523,13 @@ window.InspectorWayView = (() => {
                 <button class="btn btn-sm btn-blue" @click=${() => wayView._refreshFromLibrary(nodeId)}>🔄 Refresh from Library</button>
                 <button class="btn btn-sm btn-red" @click=${() => graphManager._deleteNode(nodeId)}>🗑 Delete Way</button>
             </div>
+            ${htmlTag`<div id="known-by-mount"></div>`}
         `;
 
         InspectorPanel.render(template);
+
+        const kbMount = document.getElementById('known-by-mount');
+        if (kbMount && window.KnownBySection) kbMount.replaceWith(window.KnownBySection.build('way', nodeId, graphNode?.name || nodeId));
 
         // Init TagMultiselect for way tags (render is synchronous, so the container exists).
         const tagContainer = document.getElementById(`way-tag-multiselect-${escapedId}`);

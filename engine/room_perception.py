@@ -57,9 +57,19 @@ def way_visible_to(player, player_manager, viewer_name: str,
                    way_node, area_name: str, direction: str) -> bool:
     """Hidden ways stay invisible until discovered: the slasher sees every
     hidden exit, anyone else needs the (area name, raw direction) key in
-    ``discovered_exits`` — search/fumble discovery writes it (narration.py)."""
+    ``discovered_exits`` — search/fumble discovery writes it (narration.py).
+    Authored knowledge: a way, or its area, listed in the viewer's `known`
+    registry is visible from the start (the butcher's passage, a scout's map).
+    """
     if way_node.properties.get("current_state") != "hidden":
         return True
+    try:
+        known = set(getattr(player, "known", None) or [])
+        area_id_guess = "area_" + str(area_name or "").lower().replace(" ", "_")
+        if way_node.id in known or area_name in known or area_id_guess in known:
+            return True
+    except Exception:
+        known = set()
     try:
         if viewer_name and player_manager.is_slasher(viewer_name):
             return True
@@ -69,16 +79,23 @@ def way_visible_to(player, player_manager, viewer_name: str,
     return (str(area_name), str(direction)) in discovered
 
 
-def visible_area_items(graph, area_id, include_hidden: bool = False) -> list:
+def visible_area_items(graph, area_id, include_hidden: bool = False, player=None) -> list:
     """Non-hidden item nodes in the area (``get_edges_for_target`` already
-    expands spatial edges, so surface items count)."""
+    expands spatial edges, so surface items count). Items flagged in the
+    viewer's authored ``known`` registry are visible even when hidden."""
+    known = set()
+    if player is not None:
+        try:
+            known = {str(k) for k in (getattr(player, "known", None) or [])}
+        except Exception:
+            known = set()
     items = []
     if graph is None or not area_id:
         return items
     for edge in graph.get_edges_for_target(area_id, EDGE_IN):
         node = graph.get_node(edge.source)
         if node and node.type == "item":
-            if include_hidden or node.properties.get("current_state") != "hidden":
+            if include_hidden or node.properties.get("current_state") != "hidden" or node.id in known:
                 items.append(node)
     return items
 

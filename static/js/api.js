@@ -444,8 +444,11 @@ class ApiClient {
 
     // --- Save/Load Game & Scenario ---
 
-    static async saveGame(name) {
-        return this.post('/api/save-game', { name });
+    /** Save a new named snapshot, or overwrite an existing slot via `slot`. */
+    static async saveGame(name, slot) {
+        const body = { name };
+        if (slot) body.slot = slot;
+        return this.post('/api/save-game', body);
     }
 
     static async listSaveGames() {
@@ -460,6 +463,10 @@ class ApiClient {
     static async deleteSaveGame(filename) {
         const resp = await fetch(`/api/save-game/${encodeURIComponent(filename)}`, { method: 'DELETE' });
         return resp.json();
+    }
+
+    static async renameSaveGame(filename, name) {
+        return this.post(`/api/save-game/${encodeURIComponent(filename)}/rename`, { name });
     }
 
     static async saveScenario(name) {

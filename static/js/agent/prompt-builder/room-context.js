@@ -114,6 +114,43 @@ window.PromptBuilder = window.PromptBuilder || {};
         return text ? [text] : [];
     }
 
+    /**
+     * Per-viewer exits for the PROMPT. The serialized `exits` view is keyed to
+     * the server's single active player, which mis-filters for everyone else in
+     * a multi-agent run (the butcher couldn't see his own hidden passage
+     * because the state was built for whoever was active at fetch time). We
+     * rebuild from `exits_authoring` (all ways) + THIS character's knowledge:
+     * slashers see everything hidden, and authored `known` entities (way id /
+     * area name / area id) count from the start. Runtime discoveries still
+     * apply on top.
+     */
+    function viewerExits(state, charName, currentArea) {
+        const areaName = currentArea?.name || state?.current_area || '';
+        const p = state?.players?.[charName];
+        const all = (state?.areas?.[areaName]?.exits_authoring) || currentArea?.exits || {};
+        const slasher = !!(p?.traits?.is_slasher || p?.traits?.slasher);
+        const known = new Set((p?.known || []).map(String));
+        const areaIdGuess = 'area_' + String(areaName).toLowerCase().replace(/\s+/g, '_');
+        const discovered = new Set((p?.discovered_exits || []).map(d => `${d[0]}|${d[1]}`));
+        const out = {};
+        for (const [label, e] of Object.entries(all || {})) {
+            if (!e || !e.hidden) { out[label] = e; continue; }
+            if (slasher || known.has(String(e.way_id || '')) || known.has(areaName) || known.has(areaIdGuess)) {
+                out[label] = e; continue;
+            }
+            if (discovered.has(`${areaName}|${e.direction || ''}`)) { out[label] = e; continue; }
+        }
+        return out;
+    }
+
+    /** True when the viewer is authored/runtime-known to another person. */
+    function characterKnown(state, charName, otherName) {
+        const p = state?.players?.[charName];
+        const known = new Set((p?.known || []).map(String));
+        const otherKey = String(otherName || '').toLowerCase().replace(/\s+/g, '_');
+        return known.has(String(otherName || '')) || known.has('player_' + otherKey) || known.has('character_' + otherKey);
+    }
+
     function collectItemsInAreaByNames(areaName, allowedNames) {
         const allowed = new Set(normalizeVisibleItems(allowedNames).map(name => name.toLowerCase()));
         if (!allowed.size) return [];
@@ -216,7 +253,12 @@ window.PromptBuilder = window.PromptBuilder || {};
         // to "pretend"; the visual data is simply not presented to them).
         const isBlind = !!(player?.conditions?.blind);
         let warn = '', items = '';
-        const areaItems = currentArea?.name ? worldState.getItemsInArea(currentArea.name) : [];
+        // Authored `known` registry: hidden items flagged for this character
+        // show up in their attention list (a cache she knows about is never
+        // "hidden" to her).
+        const knownItems = new Set((player?.known || []).map(String));
+        const areaItems = (currentArea?.name ? worldState.getItemsInArea(currentArea.name) : [])
+            .filter(it => it.properties?.current_state !== 'hidden' || knownItems.has(it.id));
         const relationMap = PromptBuilder.buildRelationMap(areaItems);
         // Prepend a spatial relation ("on the table is a ...") for items that
         // sit on/under/behind/beside/inside another item in the area.
@@ -271,7 +313,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             const hasMore = unexamined.length > attention.length;
             const trailer = hasMore
                 ? 'There are more items around that you can look for.'
-                : 'and noting else that catch your attention right now.';
+                : 'and nothing else catches your attention right now.';
             return `${listLines}\n${trailer}`;
         };
         if (isBlind) {
@@ -311,9 +353,14 @@ window.PromptBuilder = window.PromptBuilder || {};
         const atWayId = player?.at_way_id
             || state.players?.[charName]?.at_way_id
             || null;
+        // Per-viewer exit map: authored `known` + slasher exemption + own
+        // discoveries beat the server's single-active-player filtering
+        // (the butcher sees his hidden passage; everyone else sees only what
+        // THEY have discovered/learned).
+        const viewerExitMap = PromptBuilder.viewerExits(state, charName, currentArea);
         const transitRoles = (() => {
-            if (!isTransitArea || !atWayId || !currentArea?.exits) return null;
-            const visible = Object.entries(currentArea.exits).filter(([, exitData]) => !exitData.hidden);
+            if (!isTransitArea || !atWayId || !viewerExitMap) return null;
+            const visible = Object.entries(viewerExitMap).filter(([, exitData]) => !exitData.hidden);
             if (visible.length < 2) return null;
             const back = visible.find(([, exitData]) => exitData.way_id === atWayId);
             if (!back) return null;
@@ -334,7 +381,7 @@ window.PromptBuilder = window.PromptBuilder || {};
                 }
             }
             if (!person?.at_way_id || !currentArea?.exits) return '';
-            for (const [dir, exitData] of Object.entries(currentArea.exits)) {
+            for (const [dir, exitData] of Object.entries(viewerExitMap)) {
                 if (exitData.way_id !== person.at_way_id) continue;
                 const doorNode = worldState.getNode(person.at_way_id);
                 const handle = PromptBuilder.wayHandle({ ...exitData, label: dir }, doorNode, currentArea?.name);
@@ -342,8 +389,8 @@ window.PromptBuilder = window.PromptBuilder || {};
             }
             return ' at the door';
         };
-        if (currentArea?.exits) {
-            for (const [dir, exitData] of Object.entries(currentArea.exits)) {
+        if (viewerExitMap) {
+            for (const [dir, exitData] of Object.entries(viewerExitMap)) {
                 if (exitData.hidden) continue;
                 const doorNode = worldState.getNode(exitData.way_id);
                 let handle = PromptBuilder.wayHandle({ ...exitData, label: dir }, doorNode, currentArea?.name);
@@ -371,7 +418,7 @@ window.PromptBuilder = window.PromptBuilder || {};
                 const forced = !!exitData.needs_force_known;
                 const locked = !!exitData.known_locked;
                 const blocked = !!exitData.known_blocked;
-                let doorHint = ' (you can go, dash, or open it)';
+                let doorHint = ' (you can go through it, approach it, dash, or open it)';
                 if (forced) doorHint = ' (you can force it open)';
                 else if (locked) doorHint = " (it's locked — you'd need to unlock it first)";
                 else if (blocked) doorHint = ' (it is blocked — you will need to clear it)';
@@ -381,7 +428,7 @@ window.PromptBuilder = window.PromptBuilder || {};
                     const doorTags = (doorNode.properties?.tags || []).map(t => String(t).toLowerCase().trim());
                     const openWord = doorTags.includes('exterior') || doorTags.includes('natural') ? 'is clear' : 'is open';
                     const closeHint = preventClose ? '' : ' or close it';
-                    const actionHint = ` (you can go, dash, examine${closeHint})`;
+                    const actionHint = ` (you can go through it, approach it, dash, examine${closeHint})`;
                     if (viewDirection) {
                         exitLines.push(`[${handle}] ${openWord} — ${viewDirection}${beyondSuffix}${moveHint}${actionHint}`);
                     } else {
@@ -491,9 +538,14 @@ window.PromptBuilder = window.PromptBuilder || {};
 
         // Include recent_hearing for cross-room sound propagation
         const recentHearing = player?.recent_hearing || [];
-        const heardSpeech = recentHearing.filter(h => h.type !== 'sound_source' && h.speaker !== charName).slice(-5);
+        // N3: hearing is a rolling buffer — lines must age out, or a guest's
+        // instruction stays in WITNESSED five turns later. Entries now carry a
+        // real tick (engine speech.py); anything older than 8 ticks is stale.
+        const curTick = (worldState.data?.time_ticks) || 0;
+        const hearingFresh = (h) => !h.tick || (curTick - Number(h.tick)) <= 8;
+        const heardSpeech = recentHearing.filter(h => h.type !== 'sound_source' && h.speaker !== charName && hearingFresh(h)).slice(-5);
         // Sound sources (alarms, ringing phones) propagate too — characters should perceive them
-        const heardSounds = recentHearing.filter(h => h.type === 'sound_source').slice(-3);
+        const heardSounds = recentHearing.filter(h => h.type === 'sound_source' && hearingFresh(h)).slice(-3);
 
         // Dedupe seen speech so a line isn't shown both as a local event and as heard speech
         const seenSpeechKeys = new Set();
@@ -507,7 +559,17 @@ window.PromptBuilder = window.PromptBuilder || {};
         recentEvents.slice(-10).forEach(evt => {
             const actorDesc = allPlayers[evt.actor]?.description || '';
             const anon = PromptBuilder.anonymousName(charName, evt.actor, actorDesc);
-            let line = `[${anon}] ${evt.description}`;
+            // N12: emote/action descriptions are stored with the RAW actor name
+            // ("Lyrie stamps snow off boots") — anonymize the inside too while
+            // the name is unknown, so pre-introduction rows never leak it.
+            const firstSighting = player?.relationships?.[evt.actor]?.first_sighting;
+            const nameKnown = firstSighting === false;
+            let descText = String(evt.description || '');
+            if (!nameKnown && evt.actor) {
+                const escActor = String(evt.actor).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                descText = descText.replace(new RegExp(escActor, 'gi'), anon);
+            }
+            let line = `[${anon}] ${descText}`;
             // Salience-mark direct speech so the character notices lines aimed at them.
             if (evt.action === 'speak' && evt.description) {
                 const textMatch = evt.description.match(/said: "(.+)"/);
@@ -689,7 +751,7 @@ return {
         if (narrationMode && narrationMode !== 'none') {
             try {
                 const items = currentArea?.name ? worldState.getItemsInArea(currentArea.name) : [];
-                const contextObject = { areaName: currentArea?.name || '', description: currentArea?.description || '', items: items.filter(item => item.properties?.current_state !== 'hidden').map(item => item.name) || [], characters: state.players_in_area?.map(person => person.name).filter(name => name !== charName) || [], exits: currentArea ? Object.keys(currentArea.exits || {}).join(', ') : '' };
+                const contextObject = { areaName: currentArea?.name || '', description: currentArea?.description || '', items: items.filter(item => item.properties?.current_state !== 'hidden').map(item => item.name) || [], characters: state.players_in_area?.map(person => person.name).filter(name => name !== charName) || [], exits: Object.keys(viewerExitMap || {}).join(', ') };
                 const narratedDescription = await narrationUI.getNarratedRoomContext(contextObject, charName);
                 if (narratedDescription) { contextString = contextString.replace(/^Description: .*/m, `Description: ${narratedDescription}`); try { await ApiClient.playerSpeak(charName, `*${narratedDescription}*`, currentArea?.name); } catch(innerError) {} }
             } catch(error) {}
@@ -701,6 +763,8 @@ return {
         buildCharacterPreamble,
         buildRoomContext,
         buildRoomContextParts,
-        buildNarratedRoomContext
+        buildNarratedRoomContext,
+        viewerExits,
+        characterKnown
     });
 })();

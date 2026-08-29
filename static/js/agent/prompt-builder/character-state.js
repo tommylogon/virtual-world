@@ -58,6 +58,10 @@ window.PromptBuilder = window.PromptBuilder || {};
         if (!player?.relationships || !otherName) return '';
         const relationshipObj = player.relationships[otherName];
         if (!relationshipObj || relationshipObj.closeness === undefined) return '';
+        // N5: near-zero closeness is not a relationship worth labeling —
+        // "a neutral" rendered as garbage; silence reads better ("the woman",
+        // no label). The behavioral guidance line still applies separately.
+        if (Math.abs(relationshipObj.closeness) <= 10) return '';
         return withArticle(relationshipTypeName(relationshipObj.closeness));
     }
 
@@ -273,7 +277,10 @@ window.PromptBuilder = window.PromptBuilder || {};
             const desc = describeVital(vitalsData, key);
             if (desc) parts.push(desc);
         }
-        if (parts.length === 0) return 'You feel fine — no pressing needs right now.';
+        // Deliberately NO baseline-reporting line: a neutral state stays silent
+        // in the prompt, so other characters' claims ("you look hungry!") can
+        // genuinely influence the agent instead of arguing with a system-backed
+        // "you feel fine" baseline.
         return parts.join(' ');
     }
 

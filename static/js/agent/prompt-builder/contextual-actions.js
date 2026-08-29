@@ -206,7 +206,13 @@ window.PromptBuilder = window.PromptBuilder || {};
         const carried = carriedItemNodes(charName);
 
         // ---- Movement / exits ----
-        const visibleExits = Object.entries(currentArea?.exits || {}).filter(([, ed]) => !ed.hidden);
+        // Per-viewer exits (authored `known` + slasher + discoveries) — the
+        // serialized view is keyed to the server's active player and would
+        // hide a slasher's own passages.
+        const viewExits = (window.PromptBuilder?.viewerExits)
+            ? window.PromptBuilder.viewerExits(state, charName, currentArea)
+            : (currentArea?.exits || {});
+        const visibleExits = Object.entries(viewExits).filter(([, ed]) => !ed.hidden);
         const exitHandles = [];
         for (const [dir, exitData] of visibleExits) {
             const doorNode = worldState.getNode(exitData.way_id);
@@ -217,6 +223,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             if (req === 'crawl') lines.push(`crawl — crawl through the ${handle}`);
             else if (req === 'climb') lines.push(`climb — climb the ${handle}`);
             else if (req === 'jump') lines.push(`jump — jump across the ${handle}`);
+            lines.push(`approach — walk up to the ${handle} and stop (don't pass through)`);
         }
 
         // ---- People ----

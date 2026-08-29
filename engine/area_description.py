@@ -100,11 +100,18 @@ class AreaDescription:
     def get_area_items(self, include_hidden=False) -> List[str]:
         area_id = self.get_current_area_id()
         return [node.name for node in visible_area_items(
-            self.graph, area_id, include_hidden=include_hidden)]
+            self.graph, area_id, include_hidden=include_hidden,
+            player=self.player_manager.get_active_player_obj())]
 
-    def build_exits_for_area(self, area_name: str) -> Dict[str, Any]:
+    def build_exits_for_area(self, area_name: str, include_hidden: bool = False) -> Dict[str, Any]:
         """Reconstruct the exits dict for a area from graph connections.
-        Filters out hidden exits (undiscovered). Hides back-link directions."""
+        Filters out hidden exits (undiscovered). Hides back-link directions.
+
+        ``include_hidden=True`` is for AUTHORING views (the area inspector) —
+        it returns every way regardless of the active player's discoveries,
+        so the author sees their own hidden passages. Game-facing callers
+        (prompts, look, scene) must keep the default filtered view.
+        """
         area_node = resolve_area_node(self.graph, area_name)
         area_id = area_node.id if area_node is not None else None
         if not area_id:
@@ -122,7 +129,7 @@ class AreaDescription:
                     way_node, direction, area_name,
                 )
 
-                if not way_visible_to(
+                if not include_hidden and not way_visible_to(
                         self.player_manager.players.get(self.player_manager.active_player),
                         self.player_manager,
                         self.player_manager.active_player,
@@ -141,6 +148,7 @@ class AreaDescription:
                                 "cost": way_node.properties.get("cost", {}),
                                 "way_id": way_node.id,
                                 "hidden": way_node.properties.get("current_state") == "hidden",
+                                "direction": direction,
                                 "pass_message": way_node.properties.get("pass_message", ""),
                                 "visible_in_direction": edge.properties.get("visible_in_direction", ""),
                                 "allow_see_characters": bool(edge.properties.get("allow_see_characters")),
@@ -249,7 +257,18 @@ class AreaDescription:
         if noise in ("loud", "chaotic"):
             env_summary.append(f"The area is noisy with {noise} sounds.")
         elif noise not in ("quiet", "silent", ""):
-            env_summary.append(f"You hear {noise}.")
+            # N9: raw descriptor values ("windy") read as grammar errors in
+            # prose — map the common ones to real sentences.
+            noise_prose = {
+                "windy": "The wind howls outside.",
+                "howling": "The wind howls.",
+                "dripping": "Water drips somewhere nearby.",
+                "creaking": "Wood creaks around you.",
+                "scratching": "Something scrapes nearby.",
+                "rustling": "Something rustles in the dark.",
+                "crackling": "Something crackles nearby.",
+            }
+            env_summary.append(noise_prose.get(noise, f"You hear {noise}."))
         if env_summary:
             desc += "\n" + "\n".join(env_summary)
 
@@ -280,11 +299,21 @@ class AreaDescription:
                 # Task-339: seeing someone again is RECOGNITION, not name
                 # knowledge — the name reveals only once heard spoken (or a
                 # name tag is read). `first_sighting` now means "name unknown".
+                # Authored `known` registry wins over both: a flagged person is
+                # never masked to whoever knows them.
                 known = active_player_obj is not None and active_player_obj.has_met(pname)
                 name_known = False
                 if known:
                     rel = active_player_obj.relationships.get(pname) or {}
                     name_known = not rel.get("first_sighting")
+                if not name_known and active_player_obj is not None:
+                    try:
+                        viewer_known = set(getattr(active_player_obj, "known", None) or [])
+                        p_slug = "player_" + pname.lower().replace(" ", "_")
+                        if pname in viewer_known or p_slug in viewer_known or ("character_" + p_slug[len("player_"):]) in viewer_known:
+                            name_known = True
+                    except Exception:
+                        name_known = False
                 if name_known:
                     line = pname
                 else:
@@ -447,9 +476,11 @@ class AreaDescription:
                             if noise and noise not in ("quiet", "silence", "silent"):
                                 env_clues.append(f"{noise} audible")
                             target_feels = int(effective_temperature(float(tenv.get("temperature", 21)), equip_bonuses))
-                            env_clues.append(temperature_description(target_feels).lower())
+                            # N11: temperature_description ends with a period —
+                            # trim it so the joined clue doesn't read "…cold)."
+                            env_clues.append(temperature_description(target_feels).lower().rstrip('.'))
                         clue_str = f" ({', '.join(env_clues)})" if env_clues else ""
-                        exits_desc.append(f"To the {handle}, the {target_name} is visible beyond{clue_str}.{beyond_suffix}")
+                        exits_desc.append(f"[{handle}] {target_name} is visible beyond{clue_str}.{beyond_suffix}")
                 else:
                     vid = edge.properties.get("visible_in_direction", "") or ""
                     if vid and way_node.properties.get("see_through"):

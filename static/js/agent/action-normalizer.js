@@ -19,11 +19,10 @@ window.ActionNormalizer = (() => {
         'manifest', 'vanish', 'relieve', 'read', 'search', 'inspect', 'check', 'light',
         'ignite', 'grab', 'snatch', 'collect', 'hit', 'strike', 'punch', 'yell', 'shout',
         'whisper', 'scream', 'pick', 'wear', 'equip', 'remove', 'unequip', 'wait',
-        'nothing', 'pause', 'stay', 'stand', 'listen', 'lead'
+        'nothing', 'pause', 'stay', 'stand', 'listen', 'lead', 'approach'
     ]);
 
     const MOVE_VERBS = new Set(['go', 'dash', 'crawl', 'climb', 'jump']);
-
     /** Check whether an action string uses a supported verb or matches a known exit name. */
     function isValidAction(action, charName) {
         if (typeof action !== 'string' || action.trim() === '') return false;
@@ -61,6 +60,7 @@ window.ActionNormalizer = (() => {
             case 'use': return item ? `use ${item}` : 'use';
             case 'use_on': return item && target ? `use ${item} on ${target}` : (item ? `use ${item}` : 'use');
             case 'go': case 'dash': case 'crawl': case 'climb': case 'jump': return obj ? `${verb} ${obj}` : verb;
+            case 'approach': return obj ? `approach ${obj}` : verb;
             case 'open': case 'close': return obj ? `${verb} ${obj}` : verb;
             case 'take': case 'drop': case 'pickup': return item ? `${verb} ${item}` : verb;
             case 'put': case 'place': {

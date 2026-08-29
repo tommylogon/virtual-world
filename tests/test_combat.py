@@ -133,7 +133,10 @@ class TestCombat:
         )
         target_hp_after = harness.player_manager.players["TargetDummy"].vitals["HP"]
 
-        assert "damage" in result.lower() or "misses" in result.lower()
+        assert "Iron Sword" in result
+        assert "Result:" in result
+        assert "HP" not in result  # narrative-first: no hit-point numbers
+        assert target_hp_after < 100
         if "misses" not in result.lower():
             assert target_hp_after < target_hp_before
 
@@ -395,6 +398,26 @@ class TestWorldFacadeWiring:
 
         assert isinstance(result, str)
         assert "The Butcher" in result
+
+    def test_auto_selects_carried_weapon(self, harness):
+        """attack X with no 'with <weapon>' uses the best carried/equipped weapon."""
+        harness.add_weapon_to_inventory("Attacker", "cleaver", damage=8)
+        for _ in range(20):  # dice-friendly: just assert wording + no fists
+            result = harness.combat.player_attack("Attacker", "TargetDummy")
+            assert "cleaver" in result.lower()
+            assert "bare hands" not in result.lower()
+            assert "1d4 (" not in result
+
+    def test_auto_selects_prefers_better_weapon(self, harness):
+        harness.add_weapon_to_inventory("Attacker", "rusty knife", damage=3)
+        harness.add_weapon_to_inventory("Attacker", "war axe", damage="1d10+2")
+        result = harness.combat.player_attack("Attacker", "TargetDummy")
+        assert "war axe" in result.lower()
+        assert "rusty knife" not in result.lower()
+
+    def test_unarmed_attack_says_bare_hands(self, harness):
+        result = harness.combat.player_attack("Attacker", "TargetDummy")
+        assert "bare hands" in result.lower() or "misses" in result.lower()
 
     def test_world_facade_exposes_get_player(self):
         from virtual_world_engine import VirtualWorld

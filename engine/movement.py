@@ -1,5 +1,6 @@
 # engine/movement.py — Movement, door management, and area connectivity extracted from VirtualWorld
 
+import re
 import time
 from typing import Optional, Dict, Any
 
@@ -19,6 +20,25 @@ KIND_MOVE_LINE = {
     "jump": "You leap across the {d}.",
     "go": "You head through the {d}.",
 }
+
+# Approach phrasing: "go to the door" / "go toward the archway" / "go up to the
+# cellar door" means walk UP TO the way and STOP — not pass through it. Agents
+# frequently want to reach a doorway to examine/listen/open before crossing, and
+# a plain "go <way>" was silently transporting them through. Crossing stays
+# explicit: "go <handle>", "go <area>", "go <direction>", "go through <X>".
+_APPROACH_PHRASE_RE = re.compile(
+    r'^\s*(?:go\s+)?(?:to|toward(?:s)?|up\s+to|over\s+(?:to|by)|right\s+up\s+to|'
+    r'in\s+front\s+of|next\s+to|near|at)\s+(?:the\s+|a\s+|an\s+)?(.*)$',
+    re.IGNORECASE,
+)
+
+# "go to the north" still means pass through — cardinal/direction words are
+# traversal, never a doorway to stand at.
+_APPROACH_CARDINAL_WORDS = frozenset({
+    "north", "south", "east", "west", "northeast", "northwest", "southeast",
+    "southwest", "ne", "nw", "se", "sw", "up", "down", "left", "right",
+    "back", "forward", "in", "out", "outside", "inside", "behind", "around",
+})
 
 
 class MovementSystem:
@@ -138,7 +158,98 @@ class MovementSystem:
             return 1
         return 0
 
-    def move_to_area(self, direction: str, kind: str = "go") -> str:
+    def _way_target_area_name(self, way_node, area_id):
+        """The area on the far side of a way (relative to ``area_id``)."""
+        if way_node is None:
+            return ""
+        for conn in self.graph.get_edges_for_source(way_node.id, EDGE_CONNECTION):
+            if conn.target != area_id:
+                node = self.graph.get_node(conn.target)
+                if node and node.type == "area":
+                    return node.name
+        return ""
+
+    def _try_approach(self, area_id: str, direction: str) -> str:
+        """Resolve ``go to the <doorway>`` / ``go toward <way>`` phrasing.
+
+        Returns the approach message (character walks over to the way and
+        STOPS, positioned "at" it) — or "" when the phrase is not an approach
+        request, names a cardinal direction, or names the destination AREA
+        (those all keep crossing normally).
+
+        Agents frequently write "go to the door" meaning *reach the doorway*
+        (to examine / listen / open / use a key) — a bare "go <way>" was
+        silently transporting them through it. Crossing stays explicit via
+        ``go <handle>``, ``go <room>``, ``go <direction>``, ``go through <X>``.
+        """
+        m = _APPROACH_PHRASE_RE.match(str(direction or "").strip())
+        if not m:
+            return ""
+        target = m.group(1).strip()
+        target = re.sub(r'^(?:the|a|an)\s+', '', target, flags=re.I)
+        if not target:
+            return ""
+        if target.lower() in _APPROACH_CARDINAL_WORDS:
+            return ""  # "go to the north" = pass through
+
+        hit = self._resolve_approach_way(area_id, target)
+        if hit is not None:
+            matched_edge, way_node, matched_handle = hit
+            # Naming the destination room exactly ("go to the cellar") = crossing.
+            target_area = self._way_target_area_name(way_node, area_id)
+            if target_area and target.lower().replace("_", " ") == target_area.lower():
+                return ""
+            if self.gs.active_player and (self.gs.player.state != "dead" or not self.gs.ghost_mode):
+                from engine.character_spatial import approach_way
+                pid = self.gs._player_node_id(self.gs.active_player)
+                approach_way(self.graph, pid, way_node.id)
+            label = matched_handle.replace("_", " ")
+            return (
+                f"You walk over to the {label} and stop, right at it. "
+                f"(To go through, say \"go {matched_handle}\" or \"go "
+                f"{target_area}\".)"
+            )
+
+        # Item / person target ("go to miki", "go to the booth table") — reuse
+        # the room-approach match (which also handles "near"/"to" stripping).
+        approach_msg = self._room_approach(area_id, target)
+        if approach_msg:
+            return approach_msg
+        return ""
+
+    def _resolve_approach_way(self, area_id: str, target: str):
+        """Resolve a way for the approach path.
+
+        Works like the exit matcher but is also slug-tolerant: way names are
+        stored slugged ("slaughterhouse-hidden_tunnel", "hidden_tunnel_back"),
+        so "go to the hidden tunnel" must match "hidden_tunnel".
+        """
+        edge, way_node, handle = self.name_matcher.resolve_exit(area_id, target)
+        if edge and way_node:
+            return edge, way_node, handle
+
+        t_norm = target.lower().replace("_", " ").strip()
+        if not t_norm:
+            return None
+        exits_info = self.name_matcher._collect_exits(area_id)
+        for info in exits_info:
+            _, wnode, h, _ = info
+            names = [h]
+            if wnode and wnode.name:
+                names.append(wnode.name)
+            for n in names:
+                n_norm = (n or "").lower().replace("_", " ").strip()
+                if not n_norm:
+                    continue
+                if (n_norm == t_norm
+                        or re.search(r'(?<!\w)' + re.escape(t_norm) + r'(?!\w)', n_norm)
+                        or re.search(r'(?<!\w)' + re.escape(n_norm) + r'(?!\w)', t_norm)):
+                    matched_edge, matched_way, matched_handle = self.name_matcher.resolve_exit(area_id, h)
+                    if matched_edge and matched_way:
+                        return matched_edge, matched_way, matched_handle
+        return None
+
+    def move_to_area(self, direction: str, kind: str = "go", _allow_approach: bool = True) -> str:
         """Move the active player through an exit in the given direction.
         Handles door state checks, skill checks for locked/barred ways,
         NPC reactions, area transitions, toggleable item effects, and action costs.
@@ -193,6 +304,15 @@ class MovementSystem:
         area_id = self.gs._get_current_area_id()
         old_area_name = self.gs.current_area.name if self.gs.current_area else None
 
+        # "go to the <doorway>" / "go toward <way>" — walk up to the way and
+        # STOP (positioned at it) instead of crossing. Agents use this phrasing
+        # to reach a door to examine/open/listen; a bare "go <way>" is the
+        # explicit crossing verb and keeps its old meaning.
+        if kind == "go" and _allow_approach:
+            approach_msg = self._try_approach(area_id, direction)
+            if approach_msg:
+                return approach_msg
+
         # Fuzzy match the direction
         matched_edge, _, matched_handle = self.name_matcher.resolve_exit(area_id, direction)
         way_id = None
@@ -201,6 +321,13 @@ class MovementSystem:
             way_id = matched_edge.target
             direction = matched_handle
         if not way_id:
+            # Not an exit — but "go X" where X is a room ITEM or CHARACTER
+            # means walk over to it. The spatial system records the "at"
+            # relationship ("you're at the booth table"), so agents never
+            # have to guess between exit handles and narrative objects.
+            approach_msg = self._room_approach(area_id, direction)
+            if approach_msg:
+                return approach_msg
             visible = []
             for edge in self.graph.get_edges_for_source(area_id, EDGE_CONNECTION):
                 d = edge.properties.get("direction", edge.target)
@@ -556,12 +683,122 @@ class MovementSystem:
             if encumbrance_cost >= 2:
                 raise ValueError("You're too heavily encumbered to sprint.")
 
-        hop = self.move_to_area(direction)
+        hop = self.move_to_area(direction, _allow_approach=False)
 
         # Scaled energy surcharge for sprinting (beyond the normal exit cost)
         if self.gs.player.state != "dead":
             self.gs.apply_action("move", {"energy": 4, "time": 0}, player=self.gs.player)
         return hop
+
+    def approach(self, target_input: str) -> str:
+        """Walk up to a way, item, or person and STOP. Never crosses a way."""
+        if not self.gs.current_area:
+            return "You are in an empty void."
+        area_id = self.gs._get_current_area_id()
+        if not area_id:
+            raise ValueError("You're nowhere.")
+        target = re.sub(r'^(?:the|a|an)\s+', '', str(target_input or "").strip(), flags=re.I)
+        if not target:
+            raise ValueError("Approach what?")
+        # Way target — position at the way, never pass through.
+        hit = self._resolve_approach_way(area_id, target)
+        if hit is not None:
+            matched_edge, way_node, matched_handle = hit
+            if self.gs.active_player and (self.gs.player.state != "dead" or not self.gs.ghost_mode):
+                from engine.character_spatial import approach_way
+                pid = self.gs._player_node_id(self.gs.active_player)
+                approach_way(self.graph, pid, way_node.id)
+            label = matched_handle.replace("_", " ")
+            target_area = self._way_target_area_name(way_node, area_id)
+            suffix = ""
+            if target_area:
+                suffix = f' (say "go {matched_handle}" or "go {target_area}" when you\'re ready to pass).'
+            return f"You walk over to the {label} and stop, right at it.{suffix}"
+        # Item / person target
+        msg = self._room_approach(area_id, target)
+        if msg:
+            return msg
+        raise ValueError(f"There's no '{target}' here to approach.")
+
+    def _room_approach(self, area_id: str, target_input: str) -> str:
+        """Walk over to a room ITEM or CHARACTER ('go the booth table').
+
+        Not an exit: the agent saw a narrative object in the room text and tried
+        to move to it. We MATCH it loosely and record the spatial "at" (or
+        on/beside) relationship between player and target, so go-X is a
+        positioning action, not an exit-by-mistake. Returns '' when nothing in
+        the room matches (caller reports the exit error as usual).
+        """
+        target = str(target_input or "").strip().lower()
+        if not target:
+            return ""
+        # "go to miki" / "go into the kitchen" / "walk to the table" — strip
+        # direction words + articles before matching
+        target = re.sub(r'^(the|a|an|to|into|towards|toward)\s+', '', target)
+        target = re.sub(r'^(go|walk|move|head)\s+(to\s+)?', '', target)
+        target = re.sub(r'^(the|a|an|to|into)\s+', '', target)
+        if not target:
+            return ""
+
+        # Pitch black — you can't see where you're going in the room
+        try:
+            lv = self.gs.lighting.get_ambient_light(area_id, {})
+            if lv is not None and lv < 20 and not self.gs.lighting.can_see_in_dark(
+                    self.player_manager, self.gs.active_player):
+                return ""
+        except Exception:
+            lv = None
+
+        # Items in this room, visible per the shared perception rules
+        from engine.room_perception import visible_area_items
+        from engine.character_spatial import approach_item, approach_character
+        try:
+            items = visible_area_items(self.graph, area_id, player=self.player_manager.get_player(self.gs.active_player))
+        except Exception:
+            items = []
+        best_item = None
+        for node in items:
+            name = str(node.name or "")
+            nl = name.lower()
+            if nl == target:
+                best_item = node
+                break
+            if nl and (re.search(r'(?<!\w)' + re.escape(target) + r'(?!\w)', nl)
+                       or re.search(r'(?<!\w)' + re.escape(nl) + r'(?!\w)', target)):
+                if best_item is None:
+                    best_item = node
+        if best_item is not None:
+            try:
+                approach_item(self.graph, self.gs, str(best_item.name), best_item)
+                return f"You walk over to {str(best_item.name)} and stop right there."
+            except Exception:
+                pass
+
+        # Characters in this room (same-area rule; excludes the mover)
+        try:
+            resolved, candidates = self.gs._match_character_name(target, exclude_self=True)
+        except Exception:
+            resolved, candidates = None, []
+        if resolved and not candidates:
+            try:
+                approach_character(self.graph, self.gs, resolved)
+                # Stranger display — don't name someone you haven't met
+                display = resolved
+                try:
+                    player = self.player_manager.players.get(self.gs.active_player)
+                    rel = (player.relationships.get(resolved) or {}) if player else {}
+                    if rel.get("first_sighting"):
+                        other = self.gs.player_manager.players.get(resolved)
+                        display = other.unknown_display_name() or resolved
+                except Exception:
+                    display = resolved
+                return f"You walk over to {display} and come face to face with them."
+            except Exception:
+                pass
+        if resolved and candidates:
+            return f"You're not sure which one you mean — {', '.join(candidates)} are all here."
+
+        return ""
 
     # ────────────────────── Way Toggling ──────────────────────
 

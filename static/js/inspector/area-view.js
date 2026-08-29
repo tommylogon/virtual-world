@@ -28,9 +28,10 @@ window.InspectorAreaView = (() => {
             if (found) actualNodeId = found[0];
         }
 
-        // Exits
+        // Exits — authoring view includes hidden/undiscovered ways; the
+        // gameplay-filtered list stays available as `exits` for reference.
         const areaData = worldState.areas?.[name];
-        const exits = areaData?.exits || {};
+        const exits = areaData?.exits_authoring || areaData?.exits || {};
         const exitEntries = Object.entries(exits);
 
         // Agents here
@@ -109,9 +110,13 @@ window.InspectorAreaView = (() => {
                         </div>`)
                     : htmlTag`<div style="font-size:11px;color:var(--text-muted);">No items</div>`}
             </div>
+            ${htmlTag`<div id="known-by-mount"></div>`}
         `;
 
         InspectorPanel.render(template);
+
+        const kbMount = document.getElementById('known-by-mount');
+        if (kbMount && window.KnownBySection) kbMount.replaceWith(window.KnownBySection.build('area', actualNodeId, name));
 
         if (window.InspectorTemplateSync) {
             window.InspectorTemplateSync.populateSelector('area', actualNodeId);

@@ -14,17 +14,19 @@ from graph import EDGE_IN, EDGE_CONNECTION, EDGE_CARRYING, EDGE_EQUIPPED
 
 #: Reflexive/possessive pronouns from the 1st ("myself") and 2nd ("yourself")
 #: persona voices that survive into emotes but read wrong under the narrator's
-#: name stamp ("Lyrie hugs yourself tightly."). Word-boundary, ordered so the
-#: longer forms win ("yourself" before "your", "myself" before "my").
-_PRONOUN_PAIRS = [
-    (r"\byourself\b", "themselves"),
-    (r"\byourselves\b", "themselves"),
-    (r"\bmyself\b", "themselves"),
-    (r"\bmeself\b", "themselves"),
-    (r"\byours\b", "theirs"),
-    (r"\bmine\b", "theirs"),
-    (r"\bmy\b", "their"),
-    (r"\byour\b", "their"),
+#: name stamp ("Lyrie hugs yourself tightly."). Rewritten to the ACTOR's
+#: pronoun set (identity tags → she/her, he/him, neutral they/them). Word-
+#: boundary, ordered so the longer forms win ("yourself" before "your",
+#: "myself" before "my").
+_PRONOUN_PATTERNS = [
+    r"\byourself\b",
+    r"\byourselves\b",
+    r"\bmyself\b",
+    r"\bmeself\b",
+    r"\byours\b",
+    r"\bmine\b",
+    r"\bmy\b",
+    r"\byour\b",
 ]
 
 #: Base-form verbs that arrive un-conjugated when the model writes in first
@@ -42,18 +44,25 @@ _BASE_VERBS = frozenset({
 })
 
 
-def normalize_emote_person(text: str) -> str:
+def normalize_emote_person(text: str, pronouns: Optional[dict] = None) -> str:
     """Coerce an emote phrase into the THIRD person the narrator stamps.
 
     ``process_emote`` prints ``"{actor_name} {text}."``, so ``text`` must never
     carry first/second-person pronouns ("hugs yourself", "hug myself"). Rewrites
-    the common reflexive/possessive pronouns to neutral third person and fixes
-    an un-conjugated leading base-verb ("hug my knees" → "hugs their knees").
+    them to the actor's pronoun set (from identity tags; neutral fallback) and
+    fixes an un-conjugated leading base-verb ("hug my knees" → "hugs her knees").
     """
     if not text:
         return text
+    from engine.pronouns import PRONOUN_SETS, pronouns_for
+    p = pronouns or PRONOUN_SETS["neutral"]
+    values = [
+        p["reflexive"], p["reflexive"], p["reflexive"], p["reflexive"],
+        p["possessive_pronoun"], p["possessive_pronoun"],
+        p["possessive"], p["possessive"],
+    ]
     out = text
-    for pattern, repl in _PRONOUN_PAIRS:
+    for pattern, repl in zip(_PRONOUN_PATTERNS, values):
         out = re.sub(pattern, repl, out)
     match = re.match(r"^([A-Za-z]+)(\b.*)$", out)
     if match and match.group(1).lower() in _BASE_VERBS:
@@ -153,9 +162,11 @@ class NarrationSystem:
         if clean.lower().startswith(name_lower):
             clean = clean[len(actor_name):].strip().lstrip(',.:; ')
         # The emote is printed as "{actor_name} {clean}." — force the phrase
-        # into the third person so "hugs yourself"/"hug myself" never survive
-        # the name stamp (task: emote person normalization).
-        clean = normalize_emote_person(clean)
+        # into the third person (with the actor's pronoun set from identity
+        # tags: she/her, he/him, neutral they/them) so "hugs yourself"/
+        # "hug myself" never survive the name stamp.
+        from engine.pronouns import pronouns_for
+        clean = normalize_emote_person(clean, pronouns_for(player))
         description = f"{actor_name} {clean}." if clean else f"{actor_name} acts."
 
         self.logging_events.record_turn_event(
