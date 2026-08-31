@@ -688,6 +688,44 @@ window.NLEditorTools = (() => {
             return sel ? sel.id : null;
         }
 
+        /**
+         * Normalize a library API response into an array of {id, ...entry}.
+         * The server's /api/library/<type> endpoint returns a plain dict
+         * keyed by the filename (e.g. {"flashlight": {...}}), where each
+         * entry's `id` field may or may not match its key. Older call paths
+         * returned {items: [...]} or a bare array; we accept all three.
+         */
+        _registryToEntries(res) {
+            if (!res) return [];
+            if (Array.isArray(res)) {
+                return res.map(e => ({ id: e?.id, ...e }));
+            }
+            if (res.items && Array.isArray(res.items)) {
+                return res.items.map(e => ({ id: e?.id, ...e }));
+            }
+            if (res.areas && Array.isArray(res.areas)) {
+                return res.areas.map(e => ({ id: e?.id, ...e }));
+            }
+            if (res.characters && Array.isArray(res.characters)) {
+                return res.characters.map(e => ({ id: e?.id, ...e }));
+            }
+            if (typeof res === 'object') {
+                return Object.entries(res).map(([key, entry]) => ({
+                    id: entry?.id || key,
+                    ...entry
+                }));
+            }
+            return [];
+        }
+
+        /** Look up a library entry by id; matches both dict keys and the
+         *  entry's own `id` field. */
+        _findLibraryEntry(entries, id) {
+            if (!id) return null;
+            const sid = String(id);
+            return entries.find(e => String(e.id) === sid || e.key === sid) || null;
+        }
+
         async execute(toolName, args = {}, context = {}) {
             try {
                 switch (toolName) {
@@ -705,12 +743,13 @@ window.NLEditorTools = (() => {
                         const q = (args.query || '').toLowerCase().trim();
                         try {
                             const res = await ApiClient.get('/api/library/items');
-                            let items = Array.isArray(res) ? res : (res?.items ? Object.values(res.items) : []);
+                            let items = this._registryToEntries(res);
                             if (q) {
                                 items = items.filter(it =>
                                     (it.name || '').toLowerCase().includes(q) ||
                                     (it.id || '').toLowerCase().includes(q) ||
-                                    (it.description || '').toLowerCase().includes(q)
+                                    (it.description || '').toLowerCase().includes(q) ||
+                                    (it.tags || []).some(t => String(t).toLowerCase().includes(q))
                                 );
                             }
                             const compact = items.slice(0, 10).map(it => ({
@@ -727,10 +766,8 @@ window.NLEditorTools = (() => {
                     case 'get_library_item': {
                         try {
                             const res = await ApiClient.get('/api/library/items');
-                            const items = Array.isArray(res) ? res : (res?.items || {});
-                            const item = Array.isArray(items)
-                                ? items.find(it => it.id === args.item_id)
-                                : items[args.item_id];
+                            const items = this._registryToEntries(res);
+                            const item = this._findLibraryEntry(items, args.item_id);
                             if (!item) return { error: `Library item '${args.item_id}' not found.` };
                             return item;
                         } catch (e) {
@@ -752,12 +789,13 @@ window.NLEditorTools = (() => {
                         const q = (args.query || '').toLowerCase().trim();
                         try {
                             const res = await ApiClient.get('/api/library/areas');
-                            let areas = Array.isArray(res) ? res : Object.values(res || {});
+                            let areas = this._registryToEntries(res);
                             if (q) {
                                 areas = areas.filter(a =>
                                     (a.name || '').toLowerCase().includes(q) ||
                                     (a.id || '').toLowerCase().includes(q) ||
-                                    (a.description || '').toLowerCase().includes(q)
+                                    (a.description || '').toLowerCase().includes(q) ||
+                                    (a.tags || []).some(t => String(t).toLowerCase().includes(q))
                                 );
                             }
                             const compact = areas.slice(0, 10).map(a => ({
@@ -772,8 +810,8 @@ window.NLEditorTools = (() => {
                     case 'get_library_area': {
                         try {
                             const res = await ApiClient.get('/api/library/areas');
-                            const areas = Array.isArray(res) ? res : Object.values(res || {});
-                            const area = areas.find(a => String(a.id) === args.area_id);
+                            const areas = this._registryToEntries(res);
+                            const area = this._findLibraryEntry(areas, args.area_id);
                             if (!area) return { error: `Library area '${args.area_id}' not found.` };
                             return area;
                         } catch (e) {
@@ -784,12 +822,13 @@ window.NLEditorTools = (() => {
                         const q = (args.query || '').toLowerCase().trim();
                         try {
                             const res = await ApiClient.get('/api/library/characters');
-                            let chars = Array.isArray(res) ? res : Object.values(res || {});
+                            let chars = this._registryToEntries(res);
                             if (q) {
                                 chars = chars.filter(c =>
                                     (c.name || '').toLowerCase().includes(q) ||
                                     (c.id || '').toLowerCase().includes(q) ||
-                                    (c.personality || '').toLowerCase().includes(q)
+                                    (c.personality || '').toLowerCase().includes(q) ||
+                                    (c.tags || []).some(t => String(t).toLowerCase().includes(q))
                                 );
                             }
                             const compact = chars.slice(0, 10).map(c => ({
@@ -804,8 +843,8 @@ window.NLEditorTools = (() => {
                     case 'get_library_character': {
                         try {
                             const res = await ApiClient.get('/api/library/characters');
-                            const chars = Array.isArray(res) ? res : Object.values(res || {});
-                            const char = chars.find(c => String(c.id) === args.char_id);
+                            const chars = this._registryToEntries(res);
+                            const char = this._findLibraryEntry(chars, args.char_id);
                             if (!char) return { error: `Library character '${args.char_id}' not found.` };
                             return char;
                         } catch (e) {

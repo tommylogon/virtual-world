@@ -40,11 +40,26 @@ def register_health_routes(app):
 
     @app.route('/api/health', methods=['GET'])
     def health_check():
+        # Best-effort PZ bridge status (fast timeout; never block health).
+        pz = None
+        ad = getattr(app, 'pz_adapter', None)
+        if ad is not None:
+            try:
+                snap = ad.snapshot()
+                pz = {
+                    "online": snap.get("status") == "ok",
+                    "player": snap.get("player"),
+                    "zone": snap.get("zone"),
+                    "zombie_count": snap.get("zombieCount", 0),
+                }
+            except Exception:
+                pz = {"online": False, "error": "unreachable"}
         return jsonify({
             "status": "running",
             "uptime_seconds": int(time.time() - _start_time),
             "server": "VirtualWorld",
             "llm_enabled": app.config.get('LLM_ENABLED', False),
+            "pz_bridge": pz,
         })
 
     @app.route('/api/logs', methods=['GET'])

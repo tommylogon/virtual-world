@@ -67,6 +67,7 @@ load('static/js/agent/prompt-builder/conversation-context.js');
 load('static/js/context-window.js');
 load('static/js/nl-editor/staging.js');
 load('static/js/nl-editor/tools.js');
+load('static/js/nl-editor/agent-loop.js');
 
 // ── discover + run test files ──
 const testFiles = fs.readdirSync(UNIT_DIR).filter(f => /^test_.*\.js$/.test(f)).sort();

@@ -76,6 +76,19 @@ def create_app(config=None):
     # Attach world to app for easy access in routes
     app.world = world
 
+    # PZ Bridge adapter (viwo -> Project Zomboid). Created lazily so the
+    # backend runs fine without the game; /api/pz/* routes report offline
+    # until the bridge mod is reachable on 127.0.0.1:8742.
+    try:
+        from pz_adapters.adapter import PZAdapter
+        app.pz_adapter = PZAdapter(
+            base_url=app.config.get('PZ_BRIDGE_URL', 'http://127.0.0.1:8742')
+        )
+        logger.info(f"PZ adapter ready -> {app.config.get('PZ_BRIDGE_URL', 'http://127.0.0.1:8742')}")
+    except Exception as e:
+        logger.warning(f"PZ adapter unavailable: {e}")
+        app.pz_adapter = None
+
     # In-session undo/redo stacks. Each entry is (state_dict, scenario_source).
     # Reset loads state is saved here so undo can restore deleted areas/connections.
     app._undo_stack = []
@@ -159,6 +172,7 @@ def register_routes(app):
     from routes.scene import register_scene_routes
     from routes.search import register_search_routes
     from routes.events import register_events_routes
+    from routes.pz_bridge_routes import register_pz_bridge_routes
 
     register_health_routes(app)
     register_events_routes(app)
@@ -176,6 +190,7 @@ def register_routes(app):
     register_triggers_routes(app)
     register_scene_routes(app)
     register_search_routes(app)
+    register_pz_bridge_routes(app)
 
 # For running directly (development)
 if __name__ == '__main__':

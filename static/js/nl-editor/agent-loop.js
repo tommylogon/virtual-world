@@ -23,6 +23,46 @@ window.NLEditorAgent = (() => {
             this.listeners.push(callback);
         }
 
+        /**
+         * Parse XML-ish tool-call prose from a model reply into real tool_calls.
+         * Handles nested `<param>value</param>` children:
+         *   "<search_library_items>\n<query>lantern</query>\n</search_library_items>"
+         * → { id, type:'function', function:{ name:'search_library_items', arguments:'{"query":"lantern"}' } }
+         * Only known tool names (from TOOL_DEFINITIONS) are matched. Returns [] when nothing found.
+         */
+        _extractXmlToolCalls(text) {
+            if (!text) return [];
+            const known = new Set(
+                (typeof NLEditorTools !== 'undefined' && NLEditorTools?.TOOL_DEFINITIONS || [])
+                    .map(t => t?.function?.name)
+                    .filter(Boolean)
+            );
+            const calls = [];
+            const topRe = /<([a-zA-Z_][a-zA-Z0-9_]*)>\s*([\s\S]*?)\s*<\/\1>/g;
+            let m, n = 0;
+            while ((m = topRe.exec(text)) !== null) {
+                const name = m[1];
+                if (!known.has(name)) continue;
+                const inner = m[2];
+                const args = {};
+                const paramRe = /<([a-zA-Z_][a-zA-Z0-9_]*)>\s*([\s\S]*?)\s*<\/\1>/g;
+                let pm;
+                while ((pm = paramRe.exec(inner)) !== null) {
+                    const pkey = pm[1];
+                    const pval = pm[2].trim();
+                    try { args[pkey] = JSON.parse(pval); }
+                    catch (e) { args[pkey] = pval; }
+                }
+                n++;
+                calls.push({
+                    id: `xml_${name}_${n}`,
+                    type: 'function',
+                    function: { name, arguments: JSON.stringify(args) }
+                });
+            }
+            return calls;
+        }
+
         _notify(event, data) {
             for (const cb of this.listeners) {
                 try { cb(event, data); } catch (e) { console.error('Agent loop listener error:', e); }
@@ -143,25 +183,40 @@ ${worldSummary}
                     }
 
                     const { content, tool_calls } = response;
+                    let effectiveToolCalls = tool_calls || null;
+
+                    // Fallback: some providers/models write tool calls as XML-ish prose
+                    // (e.g. "<search_library_items>\n<query>lantern</query>\n</search_library_items>")
+                    // instead of native function_call entries — typically after a poisoned
+                    // history or a non-tool-calling model. Parse them so the loop keeps
+                    // working, and record real function_calls back into history so the
+                    // model self-corrects on the next round.
+                    if (!effectiveToolCalls && content) {
+                        const parsed = this._extractXmlToolCalls(content);
+                        if (parsed.length) {
+                            effectiveToolCalls = parsed;
+                        }
+                    }
+
                     const assistantMsg = {
                         role: 'assistant',
                         content: content || '',
-                        tool_calls: tool_calls || undefined
+                        tool_calls: effectiveToolCalls || undefined
                     };
 
                     this.messages.push(assistantMsg);
-                    this.contextManager.addMessage(assistantMsg, { importance: tool_calls ? 2 : 1 });
+                    this.contextManager.addMessage(assistantMsg, { importance: effectiveToolCalls ? 2 : 1 });
                     this._notify('message:added', assistantMsg);
 
                     if (content) finalAssistantResponse = content;
 
-                    if (!tool_calls || tool_calls.length === 0) {
+                    if (!effectiveToolCalls || effectiveToolCalls.length === 0) {
                         // Model finished thinking and issued final text
                         break;
                     }
 
                     // Execute tool calls
-                    for (const call of tool_calls) {
+                    for (const call of effectiveToolCalls) {
                         const fnName = call.function?.name;
                         let fnArgs = {};
                         try {

@@ -78,7 +78,7 @@ class LLMClient {
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
                 const requestBody = isResponses
-                    ? this._buildResponsesBody(messages, { model, temperature, streaming, maxTokens: options.max_tokens })
+                    ? this._buildResponsesBody(messages, { model, temperature, streaming, maxTokens: options.max_tokens, tools: options.tools, tool_choice: options.tool_choice })
                     : (() => {
                         const body = { model, messages, temperature: parseFloat(temperature) || 0.7 };
                         if (streaming) body.stream = true;
@@ -137,8 +137,10 @@ class LLMClient {
                 const content = isResponses
                     ? this._extractResponsesContent(completion)
                     : this._extractChatCompletionContent(completion);
-                const tool_calls = completion?.choices?.[0]?.message?.tool_calls || null;
-                this._logAssistantResponse(label, content || (tool_calls ? `[tool_calls: ${tool_calls.length}]` : ''));
+                const tool_calls = isResponses
+                    ? this._extractResponsesToolCalls(completion)
+                    : (completion?.choices?.[0]?.message?.tool_calls || null);
+                this._logAssistantResponse(label, content || (tool_calls && tool_calls.length ? `[tool_calls: ${tool_calls.length}]` : ''));
                 if (options.withTools || options.tools) {
                     return { content, tool_calls };
                 }
@@ -213,20 +215,64 @@ class LLMClient {
     /** Build a Responses API request body from chat-style messages. */
     _buildResponsesBody(messages, opts) {
         const systemMessage = messages.find(m => m.role === 'system');
+        const input = [];
+        for (const m of messages) {
+            if (m === systemMessage) continue;
+            // Tool results must become function_call_output entries.
+            if (m.role === 'tool') {
+                if (m.tool_call_id) input.push({ type: 'function_call_output', call_id: m.tool_call_id, output: String(m.content ?? '') });
+                continue;
+            }
+            // Assistant tool calls become function_call entries; their text is dropped
+            // (contains only the tool-call intent, and responses-api may reject free text
+            // alongside a call).
+            if (m.role === 'assistant' && Array.isArray(m.tool_calls) && m.tool_calls.length) {
+                for (const tc of m.tool_calls) {
+                    const args = typeof tc.function?.arguments === 'string'
+                        ? tc.function.arguments
+                        : JSON.stringify(tc.function?.arguments ?? {});
+                    input.push({ type: 'function_call', call_id: tc.id, name: tc.function?.name, arguments: args });
+                }
+                continue;
+            }
+            if (m.content) {
+                input.push({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content });
+            }
+        }
         const body = {
             model: opts.model,
-            input: messages
-                .filter(m => m !== systemMessage)
-                .map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content || '' }))
-                .filter(m => m.content),
+            input,
             temperature: parseFloat(opts.temperature) || 0.7
         };
         if (systemMessage?.content) body.instructions = systemMessage.content;
         if (opts.streaming) body.stream = true;
         if (opts.maxTokens) body.max_output_tokens = opts.maxTokens;
+        // Responses API uses a flat function tool shape:
+        //   { type: 'function', name, description, parameters }
+        // (chat-completions nests them:  { type:'function', function:{...} })
+        if (opts.tools && Array.isArray(opts.tools)) {
+            body.tools = opts.tools.map(t => {
+                const fn = t.function || {};
+                return { type: 'function', name: fn.name, description: fn.description, parameters: fn.parameters };
+            });
+            if (opts.tool_choice !== undefined) body.tool_choice = opts.tool_choice;
+        }
         if (this.thinking) body.reasoning = { effort: this._translateEffort(this.thinkingEffort) };
         else body.reasoning = { exclude: true }
         return body;
+    }
+
+    /** Extract tool_calls from a Responses API completion (output[] entries of type 'function_call'). */
+    _extractResponsesToolCalls(completion) {
+        const output = Array.isArray(completion?.output) ? completion.output : [];
+        const calls = output
+            .filter(o => o.type === 'function_call')
+            .map(o => ({
+                id: o.call_id || o.id,
+                type: 'function',
+                function: { name: o.name, arguments: o.arguments || '{}' }
+            }));
+        return calls.length ? calls : null;
     }
 
     /**

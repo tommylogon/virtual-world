@@ -34,6 +34,9 @@ window.NLEditor = (() => {
                         this.ui.hideClarification();
                         this.ui.setStatus('Thinking...', true);
                         break;
+                    case 'llm:calling':
+                        this.ui.setStatus(`Thinking (round ${data.iteration}/10)…`, true);
+                        break;
                     case 'message:added':
                         if (data.role === 'user') {
                             this.ui.appendUserMessage(data.content);
@@ -41,8 +44,13 @@ window.NLEditor = (() => {
                             this.ui.appendAssistantMessage(data.content, data.tool_calls);
                         }
                         break;
+                    case 'tool:start':
+                        this.ui.appendToolRunning(data.name);
+                        this.ui.setStatus(`running ${data.name}…`, true);
+                        break;
                     case 'tool:finished':
                         this.ui.appendToolEvent(data.name, data.result);
+                        this.ui.setStatus('Thinking...', true);
                         break;
                     case 'clarification:requested':
                         this.ui.showClarification(data.question, data.choices);

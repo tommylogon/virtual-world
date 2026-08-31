@@ -1,7 +1,5 @@
 {
-  "_scenario_name": "The Valerious Case",
   "active_player": "Kaelen Voss",
-  "area_presence": {},
   "areas": {
     "Abandoned Hunter's Cabin": {
       "ambient_light": 55,
@@ -58,17 +56,14 @@
       }
     },
     "Blizzard Forest Clearing": {
-      "ambient_light": 72,
+      "ambient_light": 80,
       "description": "You stand in a small clearing, surrounded by towering pines encased in ice and snow. The wind howls relentlessly, whipping stinging flakes into your face and muffling all but the loudest sounds. Through the blinding white, you make out the faint silhouette of a two-story house in the distance, its windows glowing with a dim, warm light. Nestled to one side, a small outhouse stands incongruously bare of snow, its roof and walls oddly dry and dark against the surrounding white. Closer still, an axe is embedded deep in a weathered stump, its handle gleaming with a faint sheen of frost. The air is sharp and cold, carrying the crisp scent of frozen pine and the faint, almost imperceptible hint of woodsmoke from the house. Every step crunches on the icy crust, and the trees groan under their burden of snow.",
       "environment": {
         "air": "fresh",
-        "humidity": "humid",
-        "light": 72,
+        "light": "bright",
         "noise": "windy",
         "smell": "Frozen pine, wild cedar, and a whisper of woodsmoke",
-        "temperature": 13,
-        "weather": "snowy",
-        "wind": "gale"
+        "temperature": -12
       },
       "floor": 0,
       "items": [],
@@ -79,13 +74,10 @@
         "description": "You stand in a small clearing, surrounded by towering pines encased in ice and snow. The wind howls relentlessly, whipping stinging flakes into your face and muffling all but the loudest sounds. Through the blinding white, you make out the faint silhouette of a two-story house in the distance, its windows glowing with a dim, warm light. Nestled to one side, a small outhouse stands incongruously bare of snow, its roof and walls oddly dry and dark against the surrounding white. Closer still, an axe is embedded deep in a weathered stump, its handle gleaming with a faint sheen of frost. The air is sharp and cold, carrying the crisp scent of frozen pine and the faint, almost imperceptible hint of woodsmoke from the house. Every step crunches on the icy crust, and the trees groan under their burden of snow.",
         "environment": {
           "air": "fresh",
-          "humidity": "humid",
-          "light": 72,
+          "light": "bright",
           "noise": "windy",
           "smell": "Frozen pine, wild cedar, and a whisper of woodsmoke",
-          "temperature": 13,
-          "weather": "snowy",
-          "wind": "gale"
+          "temperature": -12
         },
         "tags": [
           "exterior"
@@ -143,17 +135,14 @@
       }
     },
     "Frozen Hollow": {
-      "ambient_light": 72,
+      "ambient_light": 80,
       "description": "A dead-end clearing surrounded by steep, snow-covered slopes. The wind is muted here, trapped by the natural bowl of the hills. In the center, an old stone well sits half-frozen, its wooden crank creaking slightly. The bucket is broken and lies in pieces at the base. Peering inside reveals only stale, cold air and a single, faded ribbon tied to the crank. ",
       "environment": {
-        "air": "fresh",
-        "humidity": "humid",
-        "light": 72,
+        "air": "",
+        "light": "bright",
         "noise": "quiet, with an occasional creak of frozen wood",
         "smell": "faint iron and frost",
-        "temperature": 13,
-        "weather": "snowy",
-        "wind": "gale"
+        "temperature": -5
       },
       "floor": 0,
       "items": [],
@@ -162,14 +151,11 @@
       "properties": {
         "description": "A dead-end clearing surrounded by steep, snow-covered slopes. The wind is muted here, trapped by the natural bowl of the hills. In the center, an old stone well sits half-frozen, its wooden crank creaking slightly. The bucket is broken and lies in pieces at the base. Peering inside reveals only stale, cold air and a single, faded ribbon tied to the crank. ",
         "environment": {
-          "air": "fresh",
-          "humidity": "humid",
-          "light": 72,
+          "air": "",
+          "light": "bright",
           "noise": "quiet, with an occasional creak of frozen wood",
           "smell": "faint iron and frost",
-          "temperature": 13,
-          "weather": "snowy",
-          "wind": "gale"
+          "temperature": -5
         },
         "tags": [
           "exterior"
@@ -177,17 +163,14 @@
       }
     },
     "Frozen Lake Clearing": {
-      "ambient_light": 72,
+      "ambient_light": 80,
       "description": "A wide clearing where the forest gives way to the shore of a vast, frozen lake. The wind roars across the ice, driving sheets of snow before it. The ice is thick and translucent, showing dark blue depths below. Bent willows and pines fringe the shore, their branches coated in rime.  The cold is relentless, biting at any exposed skin.",
       "environment": {
-        "air": "fresh",
-        "humidity": "humid",
-        "light": 72,
+        "air": "",
+        "light": "bright",
         "noise": "howling wind, creaking ice",
         "smell": "pine and clean ice",
-        "temperature": 13,
-        "weather": "snowy",
-        "wind": "gale"
+        "temperature": -12
       },
       "floor": 0,
       "items": [],
@@ -196,14 +179,11 @@
       "properties": {
         "description": "A wide clearing where the forest gives way to the shore of a vast, frozen lake. The wind roars across the ice, driving sheets of snow before it. The ice is thick and translucent, showing dark blue depths below. Bent willows and pines fringe the shore, their branches coated in rime.  The cold is relentless, biting at any exposed skin.",
         "environment": {
-          "air": "fresh",
-          "humidity": "humid",
-          "light": 72,
+          "air": "",
+          "light": "bright",
           "noise": "howling wind, creaking ice",
           "smell": "pine and clean ice",
-          "temperature": 13,
-          "weather": "snowy",
-          "wind": "gale"
+          "temperature": -12
         },
         "tags": [
           "exterior"
@@ -211,17 +191,14 @@
       }
     },
     "Frozen Stream Crossing": {
-      "ambient_light": 72,
+      "ambient_light": 80,
       "description": "A narrow, winding stream cuts through the forest, its surface a patchwork of ice and open water. The ice near the banks is thin and cracks underfoot, while a fallen log spans the widest part, its bark worn smooth by countless crossings. The air is filled with the soft gurgle of rushing water beneath the ice and the whisper of wind through the pines.",
       "environment": {
-        "air": "fresh",
-        "humidity": "humid",
-        "light": 72,
+        "air": "",
+        "light": "bright",
         "noise": "trickling water and wind",
         "smell": "frost and wet wood",
-        "temperature": 13,
-        "weather": "snowy",
-        "wind": "gale"
+        "temperature": -5
       },
       "floor": 0,
       "items": [],
@@ -230,14 +207,11 @@
       "properties": {
         "description": "A narrow, winding stream cuts through the forest, its surface a patchwork of ice and open water. The ice near the banks is thin and cracks underfoot, while a fallen log spans the widest part, its bark worn smooth by countless crossings. The air is filled with the soft gurgle of rushing water beneath the ice and the whisper of wind through the pines.",
         "environment": {
-          "air": "fresh",
-          "humidity": "humid",
-          "light": 72,
+          "air": "",
+          "light": "bright",
           "noise": "trickling water and wind",
           "smell": "frost and wet wood",
-          "temperature": 13,
-          "weather": "snowy",
-          "wind": "gale"
+          "temperature": -5
         },
         "tags": [
           "exterior"
@@ -245,33 +219,27 @@
       }
     },
     "Frozen Thicket": {
-      "ambient_light": 72,
+      "ambient_light": 55,
       "description": "A dense tangle of frozen trees and underbrush, their branches coated in thick rime. The snow here is deep and unbroken, muffling all sound. The only light filters through gaps in the canopy, casting a pale blue glow on the frost-covered bark. The air is still and cold, carrying the sharp scent of pine and frozen earth.",
       "environment": {
         "air": "fresh",
-        "humidity": "humid",
-        "light": 72,
+        "light": "normal",
         "noise": "quiet",
         "smell": "pine and frost",
-        "temperature": 13,
-        "weather": "snowy",
-        "wind": "gale"
+        "temperature": -15
       },
       "floor": 0,
       "items": [],
-      "light_description": "bright",
+      "light_description": "normal",
       "name": "Frozen Thicket",
       "properties": {
         "description": "A dense tangle of frozen trees and underbrush, their branches coated in thick rime. The snow here is deep and unbroken, muffling all sound. The only light filters through gaps in the canopy, casting a pale blue glow on the frost-covered bark. The air is still and cold, carrying the sharp scent of pine and frozen earth.",
         "environment": {
           "air": "fresh",
-          "humidity": "humid",
-          "light": 72,
+          "light": "normal",
           "noise": "quiet",
           "smell": "pine and frost",
-          "temperature": 13,
-          "weather": "snowy",
-          "wind": "gale"
+          "temperature": -15
         },
         "tags": [
           "exterior"
@@ -405,17 +373,14 @@
       }
     },
     "Snowbound Hollow": {
-      "ambient_light": 72,
+      "ambient_light": 80,
       "description": "A shallow depression beneath a dense tangle of snow-laden branches, forming a natural shelter. The blizzard howls beyond the woven walls of ice and bark, but inside, the wind is muted. The ground is carpeted with dry pine needles and a thin layer of frost. A faint glow filters through the icy canopy.",
       "environment": {
-        "air": "fresh",
-        "humidity": "humid",
-        "light": 72,
+        "air": "",
+        "light": "bright",
         "noise": "muffled howl of wind",
         "smell": "pine and frost",
-        "temperature": 13,
-        "weather": "snowy",
-        "wind": "gale"
+        "temperature": -5
       },
       "floor": 0,
       "items": [],
@@ -424,14 +389,11 @@
       "properties": {
         "description": "A shallow depression beneath a dense tangle of snow-laden branches, forming a natural shelter. The blizzard howls beyond the woven walls of ice and bark, but inside, the wind is muted. The ground is carpeted with dry pine needles and a thin layer of frost. A faint glow filters through the icy canopy.",
         "environment": {
-          "air": "fresh",
-          "humidity": "humid",
-          "light": 72,
+          "air": "",
+          "light": "bright",
           "noise": "muffled howl of wind",
           "smell": "pine and frost",
-          "temperature": 13,
-          "weather": "snowy",
-          "wind": "gale"
+          "temperature": -5
         },
         "tags": [
           "exterior"
@@ -489,17 +451,14 @@
       }
     },
     "Weeping Willow Hollow": {
-      "ambient_light": 72,
+      "ambient_light": 80,
       "description": "A small clearing cradled by the gnarled roots of an ancient weeping willow. Its branches hang low, creating a curtain of living wood that shelters this space from the relentless snow. Inside, the ground is dry and carpeted with fallen leaves and soft moss. The air is still and noticeably warmer than the surrounding forest. A faint, earthy scent of damp wood and decayed leaves mingles with the whispering rustle of the willow's trailing twigs.",
       "environment": {
-        "air": "fresh",
-        "humidity": "humid",
-        "light": 72,
+        "air": "",
+        "light": "bright",
         "noise": "quiet",
         "smell": "damp earth and dry leaves",
-        "temperature": 13,
-        "weather": "snowy",
-        "wind": "gale"
+        "temperature": 3
       },
       "floor": 0,
       "items": [],
@@ -508,14 +467,11 @@
       "properties": {
         "description": "A small clearing cradled by the gnarled roots of an ancient weeping willow. Its branches hang low, creating a curtain of living wood that shelters this space from the relentless snow. Inside, the ground is dry and carpeted with fallen leaves and soft moss. The air is still and noticeably warmer than the surrounding forest. A faint, earthy scent of damp wood and decayed leaves mingles with the whispering rustle of the willow's trailing twigs.",
         "environment": {
-          "air": "fresh",
-          "humidity": "humid",
-          "light": 72,
+          "air": "",
+          "light": "bright",
           "noise": "quiet",
           "smell": "damp earth and dry leaves",
-          "temperature": 13,
-          "weather": "snowy",
-          "wind": "gale"
+          "temperature": 3
         },
         "tags": [
           "exterior"
@@ -548,58 +504,9 @@
       }
     }
   },
-  "calendar_config": {
-    "days_per_month": 30,
-    "days_per_week": 7,
-    "minutes_per_day": 1440,
-    "months_per_year": 12,
-    "year_start_day": 1
-  },
   "clock_start_hour": 8,
   "clock_start_minute": 0,
   "current_area": "Blizzard Forest Clearing",
-  "forecast_override": {
-    "duration_ticks": 36,
-    "humidity": "humid",
-    "weather": "snowy",
-    "wind": "gale"
-  },
-  "forecast_schedule": {
-    "entries": [
-      {
-        "air": "fresh",
-        "humidity": "humid",
-        "light_mod": -8,
-        "message": "Snowfall continues across the frozen landscape, the wind biting cold.",
-        "offset": 0,
-        "temperature_mod": -8,
-        "weather": "snowy",
-        "wind": "wind"
-      },
-      {
-        "air": "fresh",
-        "humidity": "wet",
-        "light_mod": -12,
-        "message": "The wind picks up into a howling gale, driving snow sideways. The cold deepens.",
-        "offset": 360,
-        "temperature_mod": -15,
-        "weather": "snowy",
-        "wind": "gale"
-      },
-      {
-        "air": "fresh",
-        "humidity": "humid",
-        "light_mod": -5,
-        "message": "The gale subsides to a bitter breeze. Snow still falls, but the sky begins to pale.",
-        "offset": 720,
-        "temperature_mod": -5,
-        "weather": "snowy",
-        "wind": "breeze"
-      }
-    ],
-    "granularity": "hourly",
-    "mode": "authored"
-  },
   "game_time": "09:40:00",
   "ghost_mode": false,
   "graph": {
@@ -697,12 +604,6 @@
       },
       {
         "properties": {},
-        "source": "item_grandfather_clock",
-        "target": "brass_key",
-        "type": "in"
-      },
-      {
-        "properties": {},
         "source": "item_apple",
         "target": "area_kitchen",
         "type": "in"
@@ -780,18 +681,6 @@
         "source": "item_medicine_cabinet",
         "target": "trigger_item_medicine_cabinet_on_use_1784015354456_827",
         "type": "triggers"
-      },
-      {
-        "properties": {},
-        "source": "item_medicine_cabinet",
-        "target": "antiseptic",
-        "type": "in"
-      },
-      {
-        "properties": {},
-        "source": "item_medicine_cabinet",
-        "target": "bandages",
-        "type": "in"
       },
       {
         "properties": {},
@@ -1162,12 +1051,6 @@
       },
       {
         "properties": {},
-        "source": "item_desk",
-        "target": "item_Spellbook ",
-        "type": "in"
-      },
-      {
-        "properties": {},
         "source": "item_hand_lamp",
         "target": "player_Kaelen_Voss",
         "type": "in"
@@ -1433,12 +1316,6 @@
         "type": "triggers"
       },
       {
-        "properties": {},
-        "source": "item_Dusty Bookshelf",
-        "target": "item_book_cryptograph",
-        "type": "in"
-      },
-      {
         "properties": {
           "conditions": [],
           "conditions_logic": "and",
@@ -1457,12 +1334,6 @@
         "source": "item_book_of_curses_and_history",
         "target": "trigger_item_book_cryptograph_on_examine_1784449455663",
         "type": "triggers"
-      },
-      {
-        "properties": {},
-        "source": "item_Dusty Bookshelf",
-        "target": "item_book_of_curses_and_history",
-        "type": "in"
       },
       {
         "properties": {},
@@ -3037,12 +2908,6 @@
       },
       {
         "properties": {},
-        "source": "item_locked_chest",
-        "target": "item_gold_coins",
-        "type": "in"
-      },
-      {
-        "properties": {},
         "source": "item_locked_cabinet",
         "target": "area_kitchen",
         "type": "in"
@@ -3051,12 +2916,6 @@
         "properties": {},
         "source": "item_cabinet_key",
         "target": "area_living_room",
-        "type": "in"
-      },
-      {
-        "properties": {},
-        "source": "item_locked_cabinet",
-        "target": "item_canned_food",
         "type": "in"
       },
       {
@@ -3218,7 +3077,7 @@
         "properties": {
           "slot": "back"
         },
-        "source": "item_Backpack",
+        "source": "item_backpack_1",
         "target": "player_Kaelen_Voss",
         "type": "equipped"
       },
@@ -3237,72 +3096,6 @@
         "source": "item_Wool Blend Undershirt & Drawers",
         "target": "player_Kaelen_Voss",
         "type": "equipped"
-      },
-      {
-        "properties": {},
-        "source": "item_Backpack",
-        "target": "item_Book",
-        "type": "in"
-      },
-      {
-        "properties": {},
-        "source": "item_Backpack",
-        "target": "item_Unlit Torch",
-        "type": "in"
-      },
-      {
-        "properties": {},
-        "source": "item_Backpack",
-        "target": "item_Ink",
-        "type": "in"
-      },
-      {
-        "properties": {},
-        "source": "item_Heavy Fur-Lined Coat",
-        "target": "item_Ink Pen",
-        "type": "in"
-      },
-      {
-        "properties": {},
-        "source": "item_Backpack",
-        "target": "item_Oil",
-        "type": "in"
-      },
-      {
-        "properties": {},
-        "source": "item_Backpack",
-        "target": "item_Parchment",
-        "type": "in"
-      },
-      {
-        "properties": {},
-        "source": "item_Heavy Fur-Lined Coat",
-        "target": "item_Tinderbox",
-        "type": "in"
-      },
-      {
-        "properties": {},
-        "source": "item_Heavy Fur-Lined Coat",
-        "target": "item_The Memorandum (Leather Notebook)",
-        "type": "in"
-      },
-      {
-        "properties": {},
-        "source": "item_Backpack",
-        "target": "item_Brass Spyglass",
-        "type": "in"
-      },
-      {
-        "properties": {},
-        "source": "item_Heavy Fur-Lined Coat",
-        "target": "item_Runt the Mouseling (Companion)",
-        "type": "in"
-      },
-      {
-        "properties": {},
-        "source": "item_Backpack",
-        "target": "item_Small Oil Tin (For Prosthetic)",
-        "type": "in"
       },
       {
         "properties": {
@@ -3434,12 +3227,6 @@
       },
       {
         "properties": {},
-        "source": "item_Green Tunic",
-        "target": "item_Small Polishing Kit (For Toenails)",
-        "type": "in"
-      },
-      {
-        "properties": {},
         "source": "item_Frozen Corpse",
         "target": "area_abandoned_hunter's_cabin",
         "type": "in"
@@ -3492,12 +3279,6 @@
         "source": "item_Frozen Corpse",
         "target": "trigger_item_Frozen Corpse_on_use_1785094913727_185",
         "type": "triggers"
-      },
-      {
-        "properties": {},
-        "source": "item_Frozen Corpse",
-        "target": "item_Leather-bound Journal",
-        "type": "in"
       },
       {
         "properties": {
@@ -3608,132 +3389,6 @@
         "type": "in"
       },
       {
-        "properties": {
-          "slot": "back"
-        },
-        "source": "item_Backpack",
-        "target": "player_Kaelen_Voss",
-        "type": "connection"
-      },
-      {
-        "properties": {
-          "slot": "feet"
-        },
-        "source": "item_Stovepipe Leather Boots (Pair)",
-        "target": "player_Kaelen_Voss",
-        "type": "connection"
-      },
-      {
-        "properties": {
-          "slot": "legs"
-        },
-        "source": "item_Reinforced Wool Trousers",
-        "target": "player_Kaelen_Voss",
-        "type": "connection"
-      },
-      {
-        "properties": {
-          "slot": "legs"
-        },
-        "source": "item_Wool Blend Undershirt & Drawers",
-        "target": "player_Kaelen_Voss",
-        "type": "connection"
-      },
-      {
-        "properties": {
-          "slot": "legs"
-        },
-        "source": "item_Clockwork Prosthetic (Left Leg)",
-        "target": "player_Kaelen_Voss",
-        "type": "connection"
-      },
-      {
-        "properties": {
-          "slot": "neck"
-        },
-        "source": "item_Galser Office of Justice Brooch",
-        "target": "player_Kaelen_Voss",
-        "type": "connection"
-      },
-      {
-        "properties": {
-          "slot": "torso"
-        },
-        "source": "item_Lightweight Linen Shirt",
-        "target": "player_Kaelen_Voss",
-        "type": "connection"
-      },
-      {
-        "properties": {
-          "slot": "torso"
-        },
-        "source": "item_Waxed Canvas Vest",
-        "target": "player_Kaelen_Voss",
-        "type": "connection"
-      },
-      {
-        "properties": {
-          "slot": "torso"
-        },
-        "source": "item_Heavy Fur-Lined Coat",
-        "target": "player_Kaelen_Voss",
-        "type": "connection"
-      },
-      {
-        "properties": {
-          "slot": "accessory"
-        },
-        "source": "item_Frayed Friendship Bracelet",
-        "target": "player_Lyrie",
-        "type": "connection"
-      },
-      {
-        "properties": {
-          "slot": "head"
-        },
-        "source": "item_Dried Flower Crown (Crushed)",
-        "target": "player_Lyrie",
-        "type": "connection"
-      },
-      {
-        "properties": {
-          "slot": "legs"
-        },
-        "source": "item_Stirrup Socks",
-        "target": "player_Lyrie",
-        "type": "connection"
-      },
-      {
-        "properties": {
-          "slot": "torso"
-        },
-        "source": "item_Green Tunic",
-        "target": "player_Lyrie",
-        "type": "connection"
-      },
-      {
-        "properties": {
-          "slot": "torso"
-        },
-        "source": "item_Short Forest Cape",
-        "target": "player_Lyrie",
-        "type": "connection"
-      },
-      {
-        "properties": {
-          "slot": "torso"
-        },
-        "source": "item_Soft Linen Shift",
-        "target": "player_Lyrie",
-        "type": "connection"
-      },
-      {
-        "properties": {},
-        "source": "player_Kaelen_Voss",
-        "target": "area_blizzard_forest_clearing",
-        "type": "in"
-      },
-      {
         "properties": {},
         "source": "player_Lyrie",
         "target": "area_frozen_thicket",
@@ -3743,6 +3398,138 @@
         "properties": {},
         "source": "player_rat",
         "target": "area_kitchen",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_Book",
+        "target": "item_backpack_1",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_Runt the Mouseling (Companion)",
+        "target": "item_Heavy Fur-Lined Coat",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_The Memorandum (Leather Notebook)",
+        "target": "item_Heavy Fur-Lined Coat",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_Tinderbox",
+        "target": "item_Heavy Fur-Lined Coat",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_Ink Pen",
+        "target": "item_Heavy Fur-Lined Coat",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_Unlit Torch",
+        "target": "item_backpack_1",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_Parchment",
+        "target": "item_backpack_1",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_Oil",
+        "target": "item_backpack_1",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_Small Oil Tin (For Prosthetic)",
+        "target": "item_backpack_1",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_Brass Spyglass",
+        "target": "item_backpack_1",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_Ink",
+        "target": "item_backpack_1",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_Spellbook ",
+        "target": "item_desk",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "bandages",
+        "target": "item_medicine_cabinet",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_canned_food",
+        "target": "item_locked_cabinet",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "antiseptic",
+        "target": "item_medicine_cabinet",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "brass_key",
+        "target": "item_grandfather_clock",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_Small Polishing Kit (For Toenails)",
+        "target": "item_Green Tunic",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_Leather-bound Journal",
+        "target": "item_Frozen Corpse",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_gold_coins",
+        "target": "item_locked_chest",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_book_cryptograph",
+        "target": "item_Dusty Bookshelf",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_book_of_curses_and_history",
+        "target": "item_Dusty Bookshelf",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "player_Kaelen_Voss",
+        "target": "area_blizzard_forest_clearing",
         "type": "in"
       }
     ],
@@ -3814,20 +3601,17 @@
           "description": "You stand in a small clearing, surrounded by towering pines encased in ice and snow. The wind howls relentlessly, whipping stinging flakes into your face and muffling all but the loudest sounds. Through the blinding white, you make out the faint silhouette of a two-story house in the distance, its windows glowing with a dim, warm light. Nestled to one side, a small outhouse stands incongruously bare of snow, its roof and walls oddly dry and dark against the surrounding white. Closer still, an axe is embedded deep in a weathered stump, its handle gleaming with a faint sheen of frost. The air is sharp and cold, carrying the crisp scent of frozen pine and the faint, almost imperceptible hint of woodsmoke from the house. Every step crunches on the icy crust, and the trees groan under their burden of snow.",
           "environment": {
             "air": "fresh",
-            "humidity": "humid",
-            "light": 72,
+            "light": "bright",
             "noise": "windy",
             "smell": "Frozen pine, wild cedar, and a whisper of woodsmoke",
-            "temperature": 13,
-            "weather": "snowy",
-            "wind": "gale"
+            "temperature": -12
           },
           "tags": [
             "exterior"
           ]
         },
         "type": "area",
-        "updated": 1788212603.3064606
+        "updated": 1785345346.6951616
       },
       "area_cellar": {
         "created": 1784015354,
@@ -3870,21 +3654,18 @@
         "properties": {
           "description": "A dead-end clearing surrounded by steep, snow-covered slopes. The wind is muted here, trapped by the natural bowl of the hills. In the center, an old stone well sits half-frozen, its wooden crank creaking slightly. The bucket is broken and lies in pieces at the base. Peering inside reveals only stale, cold air and a single, faded ribbon tied to the crank. ",
           "environment": {
-            "air": "fresh",
-            "humidity": "humid",
-            "light": 72,
+            "air": "",
+            "light": "bright",
             "noise": "quiet, with an occasional creak of frozen wood",
             "smell": "faint iron and frost",
-            "temperature": 13,
-            "weather": "snowy",
-            "wind": "gale"
+            "temperature": -5
           },
           "tags": [
             "exterior"
           ]
         },
         "type": "area",
-        "updated": 1788212603.3064606
+        "updated": 1785314608.7563307
       },
       "area_frozen_lake_clearing": {
         "created": 1784462059.071219,
@@ -3893,21 +3674,18 @@
         "properties": {
           "description": "A wide clearing where the forest gives way to the shore of a vast, frozen lake. The wind roars across the ice, driving sheets of snow before it. The ice is thick and translucent, showing dark blue depths below. Bent willows and pines fringe the shore, their branches coated in rime.  The cold is relentless, biting at any exposed skin.",
           "environment": {
-            "air": "fresh",
-            "humidity": "humid",
-            "light": 72,
+            "air": "",
+            "light": "bright",
             "noise": "howling wind, creaking ice",
             "smell": "pine and clean ice",
-            "temperature": 13,
-            "weather": "snowy",
-            "wind": "gale"
+            "temperature": -12
           },
           "tags": [
             "exterior"
           ]
         },
         "type": "area",
-        "updated": 1788212603.3064606
+        "updated": 1785314551.9394486
       },
       "area_frozen_stream_crossing": {
         "created": 1784463834.6910167,
@@ -3916,21 +3694,18 @@
         "properties": {
           "description": "A narrow, winding stream cuts through the forest, its surface a patchwork of ice and open water. The ice near the banks is thin and cracks underfoot, while a fallen log spans the widest part, its bark worn smooth by countless crossings. The air is filled with the soft gurgle of rushing water beneath the ice and the whisper of wind through the pines.",
           "environment": {
-            "air": "fresh",
-            "humidity": "humid",
-            "light": 72,
+            "air": "",
+            "light": "bright",
             "noise": "trickling water and wind",
             "smell": "frost and wet wood",
-            "temperature": 13,
-            "weather": "snowy",
-            "wind": "gale"
+            "temperature": -5
           },
           "tags": [
             "exterior"
           ]
         },
         "type": "area",
-        "updated": 1788212603.3064606
+        "updated": 1785314544.1136734
       },
       "area_frozen_thicket": {
         "created": 1784462524.2982874,
@@ -3940,20 +3715,17 @@
           "description": "A dense tangle of frozen trees and underbrush, their branches coated in thick rime. The snow here is deep and unbroken, muffling all sound. The only light filters through gaps in the canopy, casting a pale blue glow on the frost-covered bark. The air is still and cold, carrying the sharp scent of pine and frozen earth.",
           "environment": {
             "air": "fresh",
-            "humidity": "humid",
-            "light": 72,
+            "light": "normal",
             "noise": "quiet",
             "smell": "pine and frost",
-            "temperature": 13,
-            "weather": "snowy",
-            "wind": "gale"
+            "temperature": -15
           },
           "tags": [
             "exterior"
           ]
         },
         "type": "area",
-        "updated": 1788212603.3064606
+        "updated": 1785314536.2647223
       },
       "area_hidden_panic_room": {
         "created": 1784126422.7989028,
@@ -4048,21 +3820,18 @@
         "properties": {
           "description": "A shallow depression beneath a dense tangle of snow-laden branches, forming a natural shelter. The blizzard howls beyond the woven walls of ice and bark, but inside, the wind is muted. The ground is carpeted with dry pine needles and a thin layer of frost. A faint glow filters through the icy canopy.",
           "environment": {
-            "air": "fresh",
-            "humidity": "humid",
-            "light": 72,
+            "air": "",
+            "light": "bright",
             "noise": "muffled howl of wind",
             "smell": "pine and frost",
-            "temperature": 13,
-            "weather": "snowy",
-            "wind": "gale"
+            "temperature": -5
           },
           "tags": [
             "exterior"
           ]
         },
         "type": "area",
-        "updated": 1788212603.3064606
+        "updated": 1785314599.524199
       },
       "area_sons_bedroom": {
         "created": 1784450814.038088,
@@ -4122,21 +3891,18 @@
         "properties": {
           "description": "A small clearing cradled by the gnarled roots of an ancient weeping willow. Its branches hang low, creating a curtain of living wood that shelters this space from the relentless snow. Inside, the ground is dry and carpeted with fallen leaves and soft moss. The air is still and noticeably warmer than the surrounding forest. A faint, earthy scent of damp wood and decayed leaves mingles with the whispering rustle of the willow's trailing twigs.",
           "environment": {
-            "air": "fresh",
-            "humidity": "humid",
-            "light": 72,
+            "air": "",
+            "light": "bright",
             "noise": "quiet",
             "smell": "damp earth and dry leaves",
-            "temperature": 13,
-            "weather": "snowy",
-            "wind": "gale"
+            "temperature": 3
           },
           "tags": [
             "exterior"
           ]
         },
         "type": "area",
-        "updated": 1788212603.3064606
+        "updated": 1785314595.386414
       },
       "bandages": {
         "created": 1784015354.4567058,
@@ -4181,41 +3947,6 @@
         },
         "type": "item",
         "updated": 1785097594.5196002
-      },
-      "item_Backpack": {
-        "created": 1784203090.9516723,
-        "id": "item_Backpack",
-        "name": "Backpack",
-        "properties": {
-          "action_costs": {},
-          "actions": [
-            "examine",
-            "take",
-            "open",
-            "close",
-            "unequip",
-            "equip",
-            "drop"
-          ],
-          "contents": [],
-          "current_state": "closed",
-          "description": "A Backpack holds up to 30 kilos within 1 cubic foot. It can also serve as a saddlebag.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": "container",
-          "equip_slots": [
-            "back"
-          ],
-          "hidden": false,
-          "skill_check": {},
-          "tags": [
-            "Container"
-          ],
-          "uses": -1,
-          "weight": 5
-        },
-        "type": "item",
-        "updated": 1785078882.598262
       },
       "item_Book": {
         "created": 1784203090.9516723,
@@ -6016,6 +5747,41 @@
         "type": "item",
         "updated": 1785097753.5621405
       },
+      "item_backpack_1": {
+        "created": 1787215810.108149,
+        "id": "item_backpack_1",
+        "name": "Backpack",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "open",
+            "close",
+            "unequip",
+            "equip",
+            "drop"
+          ],
+          "contents": [],
+          "current_state": "closed",
+          "description": "A Backpack holds up to 30 kilos within 1 cubic foot. It can also serve as a saddlebag.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": "container",
+          "equip_slots": [
+            "back"
+          ],
+          "hidden": false,
+          "skill_check": {},
+          "tags": [
+            "Container"
+          ],
+          "uses": -1,
+          "weight": 5
+        },
+        "type": "item",
+        "updated": 1787215810.10815
+      },
       "item_beligious_book": {
         "created": 1784451395.2244337,
         "id": "item_beligious_book",
@@ -6382,7 +6148,7 @@
           ],
           "contents": [],
           "current_state": "unlit",
-          "description": "A brass desk lamp with a green glass shade. It casts a warm pool of light across the desk.\n",
+          "description": "A brass desk lamp with a green glass shade. It casts a warm pool of light across the desk.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -6397,7 +6163,7 @@
           "weight": 2
         },
         "type": "item",
-        "updated": 1788173102.1716704
+        "updated": 1785344358.3784106
       },
       "item_letter": {
         "created": 1784015354.456755,
@@ -9207,9 +8973,8 @@
           }
         ]
       },
-      "crafting_known": [],
       "current_area": "Blizzard Forest Clearing",
-      "current_carry_weight": 19.1,
+      "current_carry_weight": 27.999999999999996,
       "decay_rates": {
         "Bladder": 1,
         "Energy": 1,
@@ -9221,57 +8986,17 @@
         "Thirst": 1
       },
       "description": "He cuts a lean, weather-worn figure in a heavy fur-lined coat that hangs open over a waxed canvas vest and rumpled linen shirt, a worn leather backpack slung across his shoulders. Dark hair streaked with grey is pulled back from a face sharp with high cheekbones and a stubbled jaw, his hazel eyes narrowed in a perpetual squint that deepens the crow’s feet and worry lines. A thin white scar slices through his left brow into the hairline, and the faint, rhythmic click of a segmented brass-and-steel prosthetic leg punctuates his stance beneath the reinforced wool trousers. At his collar, a small brooch catches the light, while a web of scarred knuckles rests against the coat’s edge.",
-      "discovered_exits": [],
       "discovered_items": [],
       "emotion": {
         "current": "relieved but vigilant",
         "description": "Kaelen Voss is quite relieved but vigilant.",
         "intensity": 0.5
       },
-      "emotions": {
-        "admiring": 30,
-        "affectionate": 25,
-        "afraid": 10,
-        "angry": 8,
-        "anxious": 12,
-        "aroused": 12,
-        "ashamed": 8,
-        "calm": 50,
-        "content": 46,
-        "craving": 15,
-        "curious": 35,
-        "disgusted": 5,
-        "dread": 8,
-        "eager": 26,
-        "elated": 22,
-        "embarrassed": 10,
-        "envious": 5,
-        "excited": 30,
-        "grateful": 24,
-        "guilty": 8,
-        "happy": 40,
-        "irritated": 12,
-        "jealous": 8,
-        "lonely": 10,
-        "loving": 26,
-        "melancholic": 12,
-        "nostalgic": 18,
-        "peaceful": 46,
-        "proud": 30,
-        "repulsed": 5,
-        "resentful": 10,
-        "sad": 8,
-        "satisfied": 40,
-        "spooked": 10,
-        "surprised": 15,
-        "uneasy": 12
-      },
-      "emotions_description": "",
       "equipped": {
         "accessory": [],
         "arms": [],
         "back": [
-          "item_Backpack"
+          "item_backpack_1"
         ],
         "feet": [
           "item_Stovepipe Leather Boots (Pair)"
@@ -9295,10 +9020,9 @@
         ],
         "waist": []
       },
-      "feels_like": 23,
+      "feels_like": 2,
       "grappled_by": null,
       "interest_tags": [],
-      "known": [],
       "max_carry_capacity": 100,
       "memories": [
         {
@@ -9335,7 +9059,7 @@
       "patrol_index": 0,
       "patrol_route": [],
       "perceived_conditions": [],
-      "personality": "you are Kaelen Voss, A Human who is a Disgraced Investigator for the Galser Office of Justice\nCurrent Status: Independent Truth-Seeker / Weary Traveler\nYear of Birth: 1548 (36 years old)\n\nYou are a man whose sharp eyes have seen too much of the \"Witch's Spit\" and the \"Elemental Conjunction\" to believe in simple explanations\n. Formerly a rising star in the Ulus of Galser’s bureaucratic machine, you were exiled after you refused to hand over a \"magical item of interest\" to the Department of Education and Research\n.\nYou carry the weight of the world’s 120-year curse in your bones, literally—your left leg clicks with a clockwork prosthetic, a relic of a skirmish near the Galtian border\n. While your humor remains dry as the Sarekyan Desert, it has taken on a bleaker edge as the frost of 1584 refuses to break. Your soft spot for stray animals has manifested as \"Runt,\" a shivering mouseling you found near a Galtian military camp, who now lives in the pocket of your heavy, fur-lined coat",
+      "personality": "you are Kaelen Voss, A Human who is a Disgraced Investigator for the Galser Office of Justice\nCurrent Status: Independent Truth-Seeker / Weary Traveler\nYear of Birth: 1548 (36 years old)\n\nYou are a man whose sharp eyes have seen too much of the \"Witch's Spit\" and the \"Elemental Conjunction\" to believe in simple explanations\n. Formerly a rising star in the Ulus of Galser’s bureaucratic machine, you were exiled after you refused to hand over a \"magical item of interest\" to the Department of Education and Research\n.\nYou carry the weight of the world’s 120-year curse in your bones, literally—your left leg clicks with a clockwork prosthetic, a relic of a skirmish near the Galtian border\n. While your humor remains dry as the Sarekyan Desert, it has taken on a bleaker edge as the frost of 1584 refuses to break. Your soft spot for stray animals has manifested as \"Runt,\" a shivering mouseling you found near a Galtian military camp, who now lives in the pocket of your heavy, fur-lined coat\n\n</think>",
       "region_exposed": {
         "arm_left": true,
         "arm_right": true,
@@ -9504,9 +9228,8 @@
           }
         ]
       },
-      "crafting_known": [],
       "current_area": "Frozen Thicket",
-      "current_carry_weight": 1.4000000000000001,
+      "current_carry_weight": 1.7,
       "decay_rates": {
         "Bladder": 1,
         "Energy": 1,
@@ -9518,52 +9241,12 @@
         "Thirst": 1
       },
       "description": "A small, slight elf with a mess of strawberry-blonde hair escapes a crushed dried flower crown, a few wisps tangling with a stray leaf. Her large, earnest pale blue eyes are framed by a soft round face peppered with freckles, while a faint silvery scar curls behind one unusually long, twitching ear. She wears a green tunic beneath a short forest cape, stirrup socks peeking above her boots, and a frayed friendship bracelet circles her wrist—her fidgeting hands marked with nicks and scratches, her cheeks flushed and still bearing faint tracks of dried tears.",
-      "discovered_exits": [],
       "discovered_items": [],
       "emotion": {
         "current": "anxious and hopeful",
         "description": "Lyrie is quite anxious and hopeful.",
         "intensity": 0.5
       },
-      "emotions": {
-        "admiring": 30,
-        "affectionate": 25,
-        "afraid": 10,
-        "angry": 8,
-        "anxious": 12,
-        "aroused": 12,
-        "ashamed": 8,
-        "calm": 50,
-        "content": 46,
-        "craving": 15,
-        "curious": 35,
-        "disgusted": 5,
-        "dread": 8,
-        "eager": 26,
-        "elated": 22,
-        "embarrassed": 10,
-        "envious": 5,
-        "excited": 30,
-        "grateful": 24,
-        "guilty": 8,
-        "happy": 40,
-        "irritated": 12,
-        "jealous": 8,
-        "lonely": 10,
-        "loving": 26,
-        "melancholic": 12,
-        "nostalgic": 18,
-        "peaceful": 46,
-        "proud": 30,
-        "repulsed": 5,
-        "resentful": 10,
-        "sad": 8,
-        "satisfied": 40,
-        "spooked": 10,
-        "surprised": 15,
-        "uneasy": 12
-      },
-      "emotions_description": "",
       "equipped": {
         "accessory": [
           "item_Frayed Friendship Bracelet"
@@ -9588,10 +9271,9 @@
         ],
         "waist": []
       },
-      "feels_like": 18,
+      "feels_like": -6,
       "grappled_by": null,
       "interest_tags": [],
-      "known": [],
       "max_carry_capacity": 100,
       "memories": [
         {
@@ -9711,7 +9393,7 @@
       "patrol_index": 0,
       "patrol_route": [],
       "perceived_conditions": [],
-      "personality": "Lyrie is a 79-year-old elven maiden, and widely known in her hometown as the village idiot.  Sweet, honest and sincere to a fault, but prone to causing disastrous trouble even when trying her best.\n\nPersonality: Put politely, Lyrie is an airhead. Dense, forgetful and clumsy, with a habit of breaking and losing things. Her grasp of basic tasks is shockingly poor, and she has issues following complex topics. While usually very polite, curious and cheerful, she is an infamous crybaby and her feelings are hurt easily. Lyrie cannot understand idioms, sarcasm or wordplay of any kind, and tends to jump to bizarre conclusions that make no sense. Lyrie never uses foul language or profanity, worried she'll be yelled at.\n\nMind: Lyrie is perpetually confused, and often daydreaming or spacing out even in dangerous situations. Her self-preservation instincts are poor, and she often gets herself into trouble and needs rescuing. Lyrie is a gifted magician, but rarely uses her powers after a certain incident almost got her exiled from her village. She wants to be helpful, but her clumsiness and poor luck often cause more harm than good.",
+      "personality": "Lyrie is a 79-year-old elven maiden, and widely known in her hometown as the village idiot.  Sweet, honest and sincere to a fault, but prone to causing disastrous trouble even when trying her best.\n\nPersonality: Put politely, Lyrie is an airhead. Dense, forgetful and clumsy, with a habit of breaking and losing things. Her grasp of basic tasks is shockingly poor, and she has issues following complex topics. While usually very polite, curious and cheerful, she is an infamous crybaby and her feelings are hurt easily. Lyrie cannot understand idioms, sarcasm or wordplay of any kind, and tends to jump to bizarre conclusions that make no sense. Lyrie never uses foul language or profanity, worried she'll be yelled at.\n\nMind: Lyrie is perpetually confused, and often daydreaming or spacing out even in dangerous situations. Her self-preservation instincts are poor, and she often gets herself into trouble and needs rescuing. Lyrie is a gifted magician, but rarely uses her powers after a certain incident almost got her exiled from her village. She wants to be helpful, but her clumsiness and poor luck often cause more harm than good.\n\n</think>",
       "region_exposed": {
         "arm_left": true,
         "arm_right": true,
@@ -10273,7 +9955,6 @@
           }
         ]
       },
-      "crafting_known": [],
       "current_area": "Kitchen",
       "current_carry_weight": 0,
       "decay_rates": {
@@ -10287,52 +9968,12 @@
         "Thirst": 1
       },
       "description": "",
-      "discovered_exits": [],
       "discovered_items": [],
       "emotion": {
         "current": "neutral",
         "description": "",
         "intensity": 0
       },
-      "emotions": {
-        "admiring": 30,
-        "affectionate": 25,
-        "afraid": 10,
-        "angry": 8,
-        "anxious": 12,
-        "aroused": 12,
-        "ashamed": 8,
-        "calm": 50,
-        "content": 46,
-        "craving": 15,
-        "curious": 35,
-        "disgusted": 5,
-        "dread": 8,
-        "eager": 26,
-        "elated": 22,
-        "embarrassed": 10,
-        "envious": 5,
-        "excited": 30,
-        "grateful": 24,
-        "guilty": 8,
-        "happy": 40,
-        "irritated": 12,
-        "jealous": 8,
-        "lonely": 10,
-        "loving": 26,
-        "melancholic": 12,
-        "nostalgic": 18,
-        "peaceful": 46,
-        "proud": 30,
-        "repulsed": 5,
-        "resentful": 10,
-        "sad": 8,
-        "satisfied": 40,
-        "spooked": 10,
-        "surprised": 15,
-        "uneasy": 12
-      },
-      "emotions_description": "",
       "equipped": {
         "accessory": [],
         "arms": [],
@@ -10350,7 +9991,6 @@
       "feels_like": 3,
       "grappled_by": null,
       "interest_tags": [],
-      "known": [],
       "max_carry_capacity": 100,
       "memories": [],
       "name": "rat",
@@ -10482,17 +10122,14 @@
       }
     },
     "Blizzard Forest Clearing": {
-      "ambient_light": 72,
+      "ambient_light": 80,
       "description": "You stand in a small clearing, surrounded by towering pines encased in ice and snow. The wind howls relentlessly, whipping stinging flakes into your face and muffling all but the loudest sounds. Through the blinding white, you make out the faint silhouette of a two-story house in the distance, its windows glowing with a dim, warm light. Nestled to one side, a small outhouse stands incongruously bare of snow, its roof and walls oddly dry and dark against the surrounding white. Closer still, an axe is embedded deep in a weathered stump, its handle gleaming with a faint sheen of frost. The air is sharp and cold, carrying the crisp scent of frozen pine and the faint, almost imperceptible hint of woodsmoke from the house. Every step crunches on the icy crust, and the trees groan under their burden of snow.",
       "environment": {
         "air": "fresh",
-        "humidity": "humid",
-        "light": 72,
+        "light": "bright",
         "noise": "windy",
         "smell": "Frozen pine, wild cedar, and a whisper of woodsmoke",
-        "temperature": 13,
-        "weather": "snowy",
-        "wind": "gale"
+        "temperature": -12
       },
       "floor": 0,
       "items": [],
@@ -10503,13 +10140,10 @@
         "description": "You stand in a small clearing, surrounded by towering pines encased in ice and snow. The wind howls relentlessly, whipping stinging flakes into your face and muffling all but the loudest sounds. Through the blinding white, you make out the faint silhouette of a two-story house in the distance, its windows glowing with a dim, warm light. Nestled to one side, a small outhouse stands incongruously bare of snow, its roof and walls oddly dry and dark against the surrounding white. Closer still, an axe is embedded deep in a weathered stump, its handle gleaming with a faint sheen of frost. The air is sharp and cold, carrying the crisp scent of frozen pine and the faint, almost imperceptible hint of woodsmoke from the house. Every step crunches on the icy crust, and the trees groan under their burden of snow.",
         "environment": {
           "air": "fresh",
-          "humidity": "humid",
-          "light": 72,
+          "light": "bright",
           "noise": "windy",
           "smell": "Frozen pine, wild cedar, and a whisper of woodsmoke",
-          "temperature": 13,
-          "weather": "snowy",
-          "wind": "gale"
+          "temperature": -12
         },
         "tags": [
           "exterior"
@@ -10567,17 +10201,14 @@
       }
     },
     "Frozen Hollow": {
-      "ambient_light": 72,
+      "ambient_light": 80,
       "description": "A dead-end clearing surrounded by steep, snow-covered slopes. The wind is muted here, trapped by the natural bowl of the hills. In the center, an old stone well sits half-frozen, its wooden crank creaking slightly. The bucket is broken and lies in pieces at the base. Peering inside reveals only stale, cold air and a single, faded ribbon tied to the crank. ",
       "environment": {
-        "air": "fresh",
-        "humidity": "humid",
-        "light": 72,
+        "air": "",
+        "light": "bright",
         "noise": "quiet, with an occasional creak of frozen wood",
         "smell": "faint iron and frost",
-        "temperature": 13,
-        "weather": "snowy",
-        "wind": "gale"
+        "temperature": -5
       },
       "floor": 0,
       "items": [],
@@ -10586,14 +10217,11 @@
       "properties": {
         "description": "A dead-end clearing surrounded by steep, snow-covered slopes. The wind is muted here, trapped by the natural bowl of the hills. In the center, an old stone well sits half-frozen, its wooden crank creaking slightly. The bucket is broken and lies in pieces at the base. Peering inside reveals only stale, cold air and a single, faded ribbon tied to the crank. ",
         "environment": {
-          "air": "fresh",
-          "humidity": "humid",
-          "light": 72,
+          "air": "",
+          "light": "bright",
           "noise": "quiet, with an occasional creak of frozen wood",
           "smell": "faint iron and frost",
-          "temperature": 13,
-          "weather": "snowy",
-          "wind": "gale"
+          "temperature": -5
         },
         "tags": [
           "exterior"
@@ -10601,17 +10229,14 @@
       }
     },
     "Frozen Lake Clearing": {
-      "ambient_light": 72,
+      "ambient_light": 80,
       "description": "A wide clearing where the forest gives way to the shore of a vast, frozen lake. The wind roars across the ice, driving sheets of snow before it. The ice is thick and translucent, showing dark blue depths below. Bent willows and pines fringe the shore, their branches coated in rime.  The cold is relentless, biting at any exposed skin.",
       "environment": {
-        "air": "fresh",
-        "humidity": "humid",
-        "light": 72,
+        "air": "",
+        "light": "bright",
         "noise": "howling wind, creaking ice",
         "smell": "pine and clean ice",
-        "temperature": 13,
-        "weather": "snowy",
-        "wind": "gale"
+        "temperature": -12
       },
       "floor": 0,
       "items": [],
@@ -10620,14 +10245,11 @@
       "properties": {
         "description": "A wide clearing where the forest gives way to the shore of a vast, frozen lake. The wind roars across the ice, driving sheets of snow before it. The ice is thick and translucent, showing dark blue depths below. Bent willows and pines fringe the shore, their branches coated in rime.  The cold is relentless, biting at any exposed skin.",
         "environment": {
-          "air": "fresh",
-          "humidity": "humid",
-          "light": 72,
+          "air": "",
+          "light": "bright",
           "noise": "howling wind, creaking ice",
           "smell": "pine and clean ice",
-          "temperature": 13,
-          "weather": "snowy",
-          "wind": "gale"
+          "temperature": -12
         },
         "tags": [
           "exterior"
@@ -10635,17 +10257,14 @@
       }
     },
     "Frozen Stream Crossing": {
-      "ambient_light": 72,
+      "ambient_light": 80,
       "description": "A narrow, winding stream cuts through the forest, its surface a patchwork of ice and open water. The ice near the banks is thin and cracks underfoot, while a fallen log spans the widest part, its bark worn smooth by countless crossings. The air is filled with the soft gurgle of rushing water beneath the ice and the whisper of wind through the pines.",
       "environment": {
-        "air": "fresh",
-        "humidity": "humid",
-        "light": 72,
+        "air": "",
+        "light": "bright",
         "noise": "trickling water and wind",
         "smell": "frost and wet wood",
-        "temperature": 13,
-        "weather": "snowy",
-        "wind": "gale"
+        "temperature": -5
       },
       "floor": 0,
       "items": [],
@@ -10654,14 +10273,11 @@
       "properties": {
         "description": "A narrow, winding stream cuts through the forest, its surface a patchwork of ice and open water. The ice near the banks is thin and cracks underfoot, while a fallen log spans the widest part, its bark worn smooth by countless crossings. The air is filled with the soft gurgle of rushing water beneath the ice and the whisper of wind through the pines.",
         "environment": {
-          "air": "fresh",
-          "humidity": "humid",
-          "light": 72,
+          "air": "",
+          "light": "bright",
           "noise": "trickling water and wind",
           "smell": "frost and wet wood",
-          "temperature": 13,
-          "weather": "snowy",
-          "wind": "gale"
+          "temperature": -5
         },
         "tags": [
           "exterior"
@@ -10669,33 +10285,27 @@
       }
     },
     "Frozen Thicket": {
-      "ambient_light": 72,
+      "ambient_light": 55,
       "description": "A dense tangle of frozen trees and underbrush, their branches coated in thick rime. The snow here is deep and unbroken, muffling all sound. The only light filters through gaps in the canopy, casting a pale blue glow on the frost-covered bark. The air is still and cold, carrying the sharp scent of pine and frozen earth.",
       "environment": {
         "air": "fresh",
-        "humidity": "humid",
-        "light": 72,
+        "light": "normal",
         "noise": "quiet",
         "smell": "pine and frost",
-        "temperature": 13,
-        "weather": "snowy",
-        "wind": "gale"
+        "temperature": -15
       },
       "floor": 0,
       "items": [],
-      "light_description": "bright",
+      "light_description": "normal",
       "name": "Frozen Thicket",
       "properties": {
         "description": "A dense tangle of frozen trees and underbrush, their branches coated in thick rime. The snow here is deep and unbroken, muffling all sound. The only light filters through gaps in the canopy, casting a pale blue glow on the frost-covered bark. The air is still and cold, carrying the sharp scent of pine and frozen earth.",
         "environment": {
           "air": "fresh",
-          "humidity": "humid",
-          "light": 72,
+          "light": "normal",
           "noise": "quiet",
           "smell": "pine and frost",
-          "temperature": 13,
-          "weather": "snowy",
-          "wind": "gale"
+          "temperature": -15
         },
         "tags": [
           "exterior"
@@ -10829,17 +10439,14 @@
       }
     },
     "Snowbound Hollow": {
-      "ambient_light": 72,
+      "ambient_light": 80,
       "description": "A shallow depression beneath a dense tangle of snow-laden branches, forming a natural shelter. The blizzard howls beyond the woven walls of ice and bark, but inside, the wind is muted. The ground is carpeted with dry pine needles and a thin layer of frost. A faint glow filters through the icy canopy.",
       "environment": {
-        "air": "fresh",
-        "humidity": "humid",
-        "light": 72,
+        "air": "",
+        "light": "bright",
         "noise": "muffled howl of wind",
         "smell": "pine and frost",
-        "temperature": 13,
-        "weather": "snowy",
-        "wind": "gale"
+        "temperature": -5
       },
       "floor": 0,
       "items": [],
@@ -10848,14 +10455,11 @@
       "properties": {
         "description": "A shallow depression beneath a dense tangle of snow-laden branches, forming a natural shelter. The blizzard howls beyond the woven walls of ice and bark, but inside, the wind is muted. The ground is carpeted with dry pine needles and a thin layer of frost. A faint glow filters through the icy canopy.",
         "environment": {
-          "air": "fresh",
-          "humidity": "humid",
-          "light": 72,
+          "air": "",
+          "light": "bright",
           "noise": "muffled howl of wind",
           "smell": "pine and frost",
-          "temperature": 13,
-          "weather": "snowy",
-          "wind": "gale"
+          "temperature": -5
         },
         "tags": [
           "exterior"
@@ -10913,17 +10517,14 @@
       }
     },
     "Weeping Willow Hollow": {
-      "ambient_light": 72,
+      "ambient_light": 80,
       "description": "A small clearing cradled by the gnarled roots of an ancient weeping willow. Its branches hang low, creating a curtain of living wood that shelters this space from the relentless snow. Inside, the ground is dry and carpeted with fallen leaves and soft moss. The air is still and noticeably warmer than the surrounding forest. A faint, earthy scent of damp wood and decayed leaves mingles with the whispering rustle of the willow's trailing twigs.",
       "environment": {
-        "air": "fresh",
-        "humidity": "humid",
-        "light": 72,
+        "air": "",
+        "light": "bright",
         "noise": "quiet",
         "smell": "damp earth and dry leaves",
-        "temperature": 13,
-        "weather": "snowy",
-        "wind": "gale"
+        "temperature": 3
       },
       "floor": 0,
       "items": [],
@@ -10932,14 +10533,11 @@
       "properties": {
         "description": "A small clearing cradled by the gnarled roots of an ancient weeping willow. Its branches hang low, creating a curtain of living wood that shelters this space from the relentless snow. Inside, the ground is dry and carpeted with fallen leaves and soft moss. The air is still and noticeably warmer than the surrounding forest. A faint, earthy scent of damp wood and decayed leaves mingles with the whispering rustle of the willow's trailing twigs.",
         "environment": {
-          "air": "fresh",
-          "humidity": "humid",
-          "light": 72,
+          "air": "",
+          "light": "bright",
           "noise": "quiet",
           "smell": "damp earth and dry leaves",
-          "temperature": 13,
-          "weather": "snowy",
-          "wind": "gale"
+          "temperature": 3
         },
         "tags": [
           "exterior"
@@ -10973,20 +10571,21 @@
     }
   },
   "time_per_tick_minutes": 5,
-  "time_ticks": 165649556,
+  "time_ticks": 20,
   "turn_number": 1,
   "ways": {},
   "world_lore": [
     {
       "category": "general",
-      "content": "Year 1584 of the Mujeeroth calendar. The Valerious Case is the name given to the unexplained disappearance of magistrate Valerious Rocheveron from his locked study in the northern keep. The case has drawn investigators, bounty hunters, and the simply curious to the frozen lands of Rocheveron — but the region is in the grip of the 'Age of Freezing Death', a localized unrelenting winter that has killed crops, frozen roads, and left the isolated cabin settlements cut off from the capital.",
-      "id": "lore_valerious_case",
+      "content": "In the year 1584, the world of Mujeeroth is a cold, unforgiving place. You are currently standing in the north of the Kingdom of Rocheveron, enduring the height of the \"age of freezing death\"—a localized unrelenting winter of chilling death that has gripped the land",
+      "id": "lore_1784192482154_799",
       "importance": 3,
       "source": "manual",
       "tags": [],
       "tick_created": 8,
-      "title": "The Valerious Case"
+      "title": "Rocheveron"
     }
   ],
+  "_scenario_name": "world_template",
   "persist": true
 }

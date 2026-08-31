@@ -295,7 +295,7 @@
       "patrol_route": [],
       "patrol_index": 0,
       "feels_like": 23,
-      "current_carry_weight": 19.1,
+      "current_carry_weight": 19.099999999999998,
       "max_carry_capacity": 100.0,
       "at_way_id": null,
       "spatial_position": null
@@ -7775,6 +7775,89 @@
         },
         "created": 1785311139.2580452,
         "updated": 1785311139.2580457
+      },
+      "item_bush of berries_1788218658044_568": {
+        "id": "item_bush of berries_1788218658044_568",
+        "type": "item",
+        "name": "Frost-Crusted Berry Bush",
+        "properties": {
+          "description": "A thorny bush brimming with ripe berries that can be eaten for nourishment.",
+          "actions": [
+            "take",
+            "eat",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 2.0,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "vegetation",
+            "plant",
+            "food"
+          ],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "bush_of_berries",
+          "image": null
+        },
+        "created": 1788218658.0445704,
+        "updated": 1788218658.0455735
+      },
+      "trigger_item_bush of berries_1788218658044_568_on_examine_1788218658044_86": {
+        "id": "trigger_item_bush of berries_1788218658044_568_on_examine_1788218658044_86",
+        "type": "logic_trigger",
+        "name": "on_examine → message",
+        "properties": {
+          "trigger_type": "on_examine",
+          "target_name": "",
+          "effect_type": "message",
+          "effect_params": {}
+        },
+        "created": 1788218658.0445704,
+        "updated": 1788218658.0445704
+      },
+      "trigger_item_bush of berries_1788218658044_568_on_examine_1788218658044_578": {
+        "id": "trigger_item_bush of berries_1788218658044_568_on_examine_1788218658044_578",
+        "type": "logic_trigger",
+        "name": "on_examine → message",
+        "properties": {
+          "trigger_type": "on_examine",
+          "target_name": "",
+          "effect_type": "message",
+          "effect_params": {}
+        },
+        "created": 1788218658.0445704,
+        "updated": 1788218658.0445704
+      },
+      "item_frozen_berries_7dtx": {
+        "id": "item_frozen_berries_7dtx",
+        "type": "item",
+        "name": "Frozen Berries",
+        "properties": {
+          "description": "A handful of frost-crusted berries, plucked from the bush. They're icy, sweet, and surprisingly edible.",
+          "tags": [
+            "food",
+            "plant",
+            "berry"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "take",
+            "eat",
+            "drop"
+          ],
+          "weight": 0.1
+        },
+        "created": 1788218880.6341205,
+        "updated": 1788218880.6341205
       }
     },
     "edges": [
@@ -10918,6 +11001,34 @@
         "target": "area_kitchen",
         "type": "in",
         "properties": {}
+      },
+      {
+        "source": "item_bush of berries_1788218658044_568",
+        "target": "area_frozen_thicket",
+        "type": "at",
+        "properties": {}
+      },
+      {
+        "source": "item_bush of berries_1788218658044_568",
+        "target": "trigger_item_bush of berries_1788218658044_568_on_examine_1788218658044_86",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine",
+          "target_name": "",
+          "effect_type": "message",
+          "effect_params": {}
+        }
+      },
+      {
+        "source": "item_bush of berries_1788218658044_568",
+        "target": "trigger_item_bush of berries_1788218658044_568_on_examine_1788218658044_578",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine",
+          "target_name": "",
+          "effect_type": "message",
+          "effect_params": {}
+        }
       }
     ]
   },

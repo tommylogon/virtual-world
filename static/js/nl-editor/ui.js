@@ -174,6 +174,18 @@ window.NLEditorUI = (() => {
             this.chatList.scrollTop = this.chatList.scrollHeight;
         }
 
+        /** Show a live "running" chip for an in-flight tool call. */
+        appendToolRunning(name) {
+            if (!this.chatList) return;
+            const chip = document.createElement('div');
+            chip.style.cssText = 'align-self:flex-start;font-size:10px;color:var(--primary);padding:2px 6px;background:var(--bg-input);border-radius:4px;border:1px dashed var(--primary);';
+            chip.textContent = `⏳ ${name}…`;
+            chip.dataset.nlrunning = '1';
+            this.chatList.appendChild(chip);
+            this.chatList.scrollTop = this.chatList.scrollHeight;
+            return chip;
+        }
+
         hideClarification() {
             const tray = document.getElementById('nl-clarify-tray');
             if (tray) tray.style.display = 'none';

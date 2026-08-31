@@ -111,3 +111,83 @@ test('OverlayGraphView queries uncommitted staged entities and respects deletion
     const deletedArea = overlay.getNode('area_cellar_1');
     assertEq(deletedArea, null, 'deleted node should not be returned');
 });
+
+// ── Library response shape normalization (regression test) ──
+
+test('ToolRouter._registryToEntries normalizes dict, {items:[]}, and array shapes', () => {
+    const staging = new NLEditorStaging.StagingBuffer();
+    const router = new NLEditorTools.ToolRouter(staging);
+
+    const dictShape = { flashlight: { name: 'flashlight', description: 'a led flashlight' }, fireplace: { name: 'fireplace' } };
+    const arr = router._registryToEntries(dictShape);
+    assertEq(arr.length, 2, 'dict → 2 entries');
+    const flashlight = arr.find(e => e.id === 'flashlight');
+    assertTrue(flashlight !== undefined, 'dict key becomes id when entry has no id field');
+    assertEq(flashlight.name, 'flashlight');
+
+    const wrapped = router._registryToEntries({ items: [{ id: 'x', name: 'X' }] });
+    assertEq(wrapped.length, 1);
+    assertEq(wrapped[0].id, 'x');
+
+    const bare = router._registryToEntries([{ id: 'y', name: 'Y' }, { name: 'Z' }]);
+    assertEq(bare.length, 2);
+    assertEq(bare[0].id, 'y');
+    assertEq(bare[1].id, undefined);
+
+    const empty = router._registryToEntries({});
+    assertEq(empty.length, 0, 'empty object → empty array');
+
+    const nullish = router._registryToEntries(null);
+    assertEq(nullish.length, 0, 'null → empty array');
+});
+
+test('ToolRouter._findLibraryEntry matches by entry id or by dict key', () => {
+    const staging = new NLEditorStaging.StagingBuffer();
+    const router = new NLEditorTools.ToolRouter(staging);
+    const entries = router._registryToEntries({
+        flashlight: { name: 'flashlight' },
+        lantern: { id: 'brass_lantern', name: 'Brass Lantern' }
+    });
+    assertTrue(router._findLibraryEntry(entries, 'flashlight') !== null, 'matches by dict key');
+    assertTrue(router._findLibraryEntry(entries, 'brass_lantern') !== null, 'matches by entry.id');
+    assertTrue(router._findLibraryEntry(entries, 'nope') === null, 'no false positive');
+});
+
+// ── XML-ish tool-call prose fallback (task-387 regression guard) ──
+
+test('AgentLoop._extractXmlToolCalls parses XML-ish tool prose into real tool_calls', () => {
+    const staging = new NLEditorStaging.StagingBuffer();
+    const router = new NLEditorTools.ToolRouter(staging);
+    const agent = new NLEditorAgent.AgentLoop(staging, router);
+
+    const content = [
+        'Let me search the library first.',
+        '<search_library_items>',
+        '<query>frozen bush shrub evergreen</query>',
+        '</search_library_items>',
+        '<search_library_items>',
+        '<query>snow covered bush</query>',
+        '<tags>["exterior"]</tags>',
+        '</search_library_items>'
+    ].join('\n');
+    const calls = agent._extractXmlToolCalls(content);
+
+    assertEq(calls.length, 2, 'both XML tool blocks parsed');
+    assertEq(calls[0].function.name, 'search_library_items');
+    assertEq(calls[0].function.arguments, '{"query":"frozen bush shrub evergreen"}');
+    const second = JSON.parse(calls[1].function.arguments);
+    assertEq(second.query, 'snow covered bush');
+    assertEq(JSON.stringify(second.tags), JSON.stringify(['exterior']), 'tags param JSON-decoded to array');
+    assertTrue(calls[0].id.startsWith('xml_'), 'call id prefixed for history tracking');
+});
+
+test('AgentLoop._extractXmlToolCalls ignores unknown tags and returns empty without XML', () => {
+    const staging = new NLEditorStaging.StagingBuffer();
+    const router = new NLEditorTools.ToolRouter(staging);
+    const agent = new NLEditorAgent.AgentLoop(staging, router);
+
+    assertEq(agent._extractXmlToolCalls('<html><body>hi</body></html>').length, 0, 'unknown tag not treated as tool');
+    assertEq(agent._extractXmlToolCalls('just plain text, no tools here').length, 0, 'plain text → empty');
+    assertEq(agent._extractXmlToolCalls('').length, 0, 'empty → empty');
+    assertEq(agent._extractXmlToolCalls(null).length, 0, 'null → empty');
+});
