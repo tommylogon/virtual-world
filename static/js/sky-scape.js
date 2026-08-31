@@ -29,53 +29,12 @@ window.SkyScape = (() => {
     };
     const SEASON_BY_MONTH = ['winter', 'winter', 'spring', 'spring', 'spring',
         'summer', 'summer', 'summer', 'autumn', 'autumn', 'autumn', 'winter'];
-    const SEASON_STYLE = {
-        spring: { sunrise: 6, sunset: 18.5, hillBack: '#79b85f', hillFront: '#5da344', crown: '#f2a9c8' },
-        summer: { sunrise: 5, sunset: 20, hillBack: '#4e9a3f', hillFront: '#3c8631', crown: '#2f7d33' },
-        autumn: { sunrise: 6.5, sunset: 18, hillBack: '#c08a3e', hillFront: '#a9762f', crown: '#d97a2b' },
-        winter: { sunrise: 8, sunset: 16.5, hillBack: '#dfe8f2', hillFront: '#cdd9e6', crown: '#e9eef5' },
-    };
-    // Mirrors environment_propagation/weather_forecast tables.
-    const WEATHER_LAYER = {
-        clear: { clouds: 1, dim: 0, precip: null, tint: '255,255,255', o: 0.5 },
-        cloudy: { clouds: 6, dim: 0.2, precip: null, tint: '208,214,226', o: 0.85 },
-        rainy: { clouds: 6, dim: 0.36, precip: 'rain', drops: 70, tint: '118,128,146', o: 0.9 },
-        stormy: { clouds: 7, dim: 0.5, precip: 'rain', drops: 120, lightning: true, tint: '66,72,88', o: 0.95 },
-        snowy: { clouds: 5, dim: 0.28, precip: 'snow', flakes: 60, tint: '234,239,247', o: 0.85 },
-        foggy: { clouds: 2, dim: 0.16, precip: null, fog: true, tint: '202,208,218', o: 0.6 },
-        windy: { clouds: 4, dim: 0.1, precip: null, tint: '190,200,214', o: 0.8 },
-    };
-    const SKY = [
-        [0, '#040613', '#0a0f26'], [4, '#070a1c', '#141a38'],
-        [5.5, '#1d2547', '#7a4a63'], [6.5, '#37477f', '#f08a5d'],
-        [8, '#4a86d8', '#a9d3f2'], [12, '#3f8ce6', '#bfe3fa'],
-        [16, '#4a86d8', '#f3cf9a'], [18.5, '#493f7d', '#f2814f'],
-        [20, '#1c2148', '#5d3a66'], [21.5, '#070a1c', '#141a38'],
-        [24, '#040613', '#0a0f26'],
-    ];
 
     let _modalEl = null;
     let _timer = null;
 
     // ── state helpers ──────────────────────────────────────────────────
 
-    function _hx(h) { return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; }
-    function _mix(a, b, t) {
-        const A = _hx(a), B = _hx(b);
-        return `rgb(${Math.round(A[0] + (B[0] - A[0]) * t)},${Math.round(A[1] + (B[1] - A[1]) * t)},${Math.round(A[2] + (B[2] - A[2]) * t)})`;
-    }
-    function _skyAt(t) {
-        let i = 0;
-        while (i < SKY.length - 2 && SKY[i + 1][0] < t) i++;
-        const a = SKY[i], b = SKY[i + 1], span = (b[0] - a[0]) || 1;
-        const k = Math.max(0, Math.min(1, (t - a[0]) / span));
-        return [_mix(a[1], b[1], k), _mix(a[2], b[2], k)];
-    }
-    function _hour(state) {
-        const t = state?.game_time || '00:00';
-        const [h, m] = t.split(':').map(Number);
-        return (h || 0) + (m || 0) / 60;
-    }
     function _monthName(m) {
         return ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][m % 13] || '';
     }
@@ -159,35 +118,58 @@ window.SkyScape = (() => {
     // ── World Sky modal ────────────────────────────────────────────────
 
     function openWorldSky() {
-        if (_modalEl) { _modalEl.style.display = 'flex'; _renderStage(); return; }
+        if (_modalEl) { _modalEl.style.display = 'flex'; _sendStateToIframe(); return; }
         const overlay = document.createElement('div');
         overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);display:flex;align-items:flex-start;justify-content:center;z-index:21000;';
         const box = document.createElement('div');
-        box.style.cssText = 'background:var(--bg-card,#121522);border:1px solid var(--border,#262c3f);border-radius:16px;margin-top:6vh;width:640px;max-width:94vw;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,0.5);';
+        box.style.cssText = 'background:var(--bg-card,#121522);border:1px solid var(--border,#262c3f);border-radius:16px;margin-top:6vh;width:min(960px,94vw);max-width:94vw;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,0.5);';
         box.innerHTML = `
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border,#262c3f);">
-                <div style="font-weight:600;font-size:14px;">🌍 World Sky</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 18px;border-bottom:1px solid var(--border,#262c3f);">
+                <div style="font-weight:700;font-size:13px;letter-spacing:.16em;">🌍 ATMOSPHERE <span style="font-size:10px;color:var(--text-dim,#6b7390);margin-left:2px;">time · season · weather · moon</span></div>
                 <button class="btn btn-sm btn-ghost" id="sky-close" style="padding:0 6px;">✕</button>
             </div>
-            <div id="sky-stage" style="height:340px;position:relative;overflow:hidden;background:#0b0d12;"></div>
-            <div id="sky-readout" style="padding:8px 14px;font-size:12px;color:var(--text,#edf0ff);border-top:1px solid var(--border,#262c3f);"></div>
-            <div style="padding:12px 14px;border-top:1px solid var(--border,#262c3f);display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
-                <span style="font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-dim,#6b7390);font-weight:700;">Clock:</span>
+            <iframe id="sky-atmosphere-frame" src="/static/sky-atmosphere.html" style="width:100%;border:none;display:block;background:#000;min-height:520px;"></iframe>
+            <div style="padding:8px 14px;border-top:1px solid var(--border,#262c3f);display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+                <span style="font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-dim,#6b7390);font-weight:700;">⏰ Time:</span>
+                <input type="time" id="sky-time-input" style="font-size:11px;background:var(--bg-input,#0d1018);color:var(--text,#edf0ff);border:1px solid var(--border,#262c3f);border-radius:6px;padding:4px;width:80px;" title="Exact time (HH:MM)">
+                <button class="btn btn-sm btn-ghost sky-set-time" style="font-size:10px;padding:3px 8px;">Set</button>
+                <span style="border-left:1px solid var(--border,#262c3f);height:22px;width:0;"></span>
+                <button class="btn btn-sm btn-ghost sky-skip" data-min="-15">-15m</button>
+                <button class="btn btn-sm btn-ghost sky-skip" data-min="-60">-1h</button>
                 <button class="btn btn-sm btn-ghost sky-skip" data-min="15">+15m</button>
                 <button class="btn btn-sm btn-ghost sky-skip" data-min="60">+1h</button>
-                <button class="btn btn-sm btn-ghost sky-skip" data-min="1440">+1 day</button>
-                <span style="flex:1;"></span>
-                <span style="font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-dim,#6b7390);font-weight:700;">Override:</span>
-                <select id="sky-weather-select" style="font-size:11px;background:var(--bg-input,#0d1018);color:var(--text,#edf0ff);border:1px solid var(--border,#262c3f);border-radius:6px;padding:4px 6px;">
-                    <option value="">—</option>
-                    <option>clear</option><option>cloudy</option><option>rainy</option>
-                    <option>stormy</option><option>snowy</option><option>foggy</option><option>windy</option>
-                </select>
-                <input type="number" id="sky-duration" min="1" value="5" style="width:52px;font-size:11px;background:var(--bg-input,#0d1018);color:var(--text,#edf0ff);border:1px solid var(--border,#262c3f);border-radius:6px;padding:4px;" title="duration (turns)">
-                <button class="btn btn-sm btn-primary" id="sky-set-override" style="font-size:11px;">Set</button>
-                <button class="btn btn-sm btn-ghost" id="sky-clear-override" style="font-size:11px;">Clear</button>
+                <button class="btn btn-sm btn-ghost sky-skip" data-min="1440">+1d</button>
+                <span style="border-left:1px solid var(--border,#262c3f);height:22px;width:0;"></span>
+                <span style="font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-dim,#6b7390);font-weight:700;">📅 Date:</span>
+                <input type="number" id="sky-date-day" min="1" max="30" style="width:44px;font-size:11px;background:var(--bg-input,#0d1018);color:var(--text,#edf0ff);border:1px solid var(--border,#262c3f);border-radius:6px;padding:4px;" title="Day">
+                <span style="color:var(--text-dim);font-size:11px;">/</span>
+                <input type="number" id="sky-date-month" min="1" max="12" style="width:44px;font-size:11px;background:var(--bg-input,#0d1018);color:var(--text,#edf0ff);border:1px solid var(--border,#262c3f);border-radius:6px;padding:4px;" title="Month">
+                <span style="color:var(--text-dim);font-size:11px;">/</span>
+                <input type="number" id="sky-date-year" min="1" style="width:56px;font-size:11px;background:var(--bg-input,#0d1018);color:var(--text,#edf0ff);border:1px solid var(--border,#262c3f);border-radius:6px;padding:4px;" title="Year">
+                <button class="btn btn-sm btn-ghost sky-set-date" style="font-size:10px;padding:3px 8px;">Set</button>
             </div>
-            <div style="padding:8px 14px;font-size:10.5px;color:var(--text-dim,#6b7390);border-top:1px solid var(--border,#262c3f);">Forecast schedule + GM override drive this sky. Overrides auto-revert after their duration (see <code>forecast_schedule</code> / <code>forecast_override</code> in world state).</div>
+            <div style="padding:8px 14px;border-top:1px solid var(--border,#262c3f);display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+                <span style="font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-dim,#6b7390);font-weight:700;">🌤 Override:</span>
+                <select id="sky-override-weather" style="font-size:11px;background:var(--bg-input,#0d1018);color:var(--text,#edf0ff);border:1px solid var(--border,#262c3f);border-radius:6px;padding:4px;">
+                    <option value="">— weather</option>
+                    <option value="clear">☀️ clear</option><option value="cloudy">☁️ cloudy</option><option value="rainy">🌧️ rainy</option>
+                    <option value="stormy">⛈️ stormy</option><option value="snowy">🌨️ snowy</option><option value="foggy">🌫️ foggy</option><option value="windy">💨 windy</option>
+                </select>
+                <select id="sky-override-wind" style="font-size:11px;background:var(--bg-input,#0d1018);color:var(--text,#edf0ff);border:1px solid var(--border,#262c3f);border-radius:6px;padding:4px;">
+                    <option value="">— wind</option>
+                    <option value="none">none</option><option value="breeze">breeze</option><option value="wind">wind</option>
+                    <option value="gale">gale</option><option value="storm">storm</option><option value="hurricane">hurricane</option>
+                </select>
+                <select id="sky-override-humidity" style="font-size:11px;background:var(--bg-input,#0d1018);color:var(--text,#edf0ff);border:1px solid var(--border,#262c3f);border-radius:6px;padding:4px;">
+                    <option value="">— humidity</option>
+                    <option value="dry">dry</option><option value="humid">humid</option><option value="wet">wet</option><option value="flooding">flooding</option>
+                </select>
+                <input type="number" id="sky-override-duration" min="1" value="5" style="width:52px;font-size:11px;background:var(--bg-input,#0d1018);color:var(--text,#edf0ff);border:1px solid var(--border,#262c3f);border-radius:6px;padding:4px;" title="duration (turns)">
+                <button class="btn btn-sm btn-primary" id="sky-override-set" style="font-size:11px;">Set</button>
+                <button class="btn btn-sm btn-ghost" id="sky-override-clear" style="font-size:11px;">Clear</button>
+                <span class="sky-override-active" style="display:none;font-size:10px;color:var(--orange,#f0883e);margin-left:4px;">● override active</span>
+            </div>
+            <div style="padding:8px 14px;font-size:10.5px;color:var(--text-dim,#6b7390);border-top:1px solid var(--border,#262c3f);">Clock: <code id="sky-clock-readout"></code> · Moon: <code id="sky-moon-readout"></code> · Forecast: <code id="sky-forecast-readout"></code></div>
         `;
         overlay.appendChild(box);
         document.body.appendChild(overlay);
@@ -195,13 +177,54 @@ window.SkyScape = (() => {
         overlay.addEventListener('mousedown', (ev) => { if (ev.target === overlay) _closeSky(); });
         box.querySelector('#sky-close').addEventListener('click', _closeSky);
         box.querySelectorAll('.sky-skip').forEach(btn => {
-            btn.addEventListener('click', () => _skipTime(Number(btn.dataset.min || 60)));
+            btn.addEventListener('click', () => {
+                _skipTime(Number(btn.dataset.min || 60));
+                _populateControls();
+            });
         });
-        box.querySelector('#sky-set-override').addEventListener('click', _setOverride);
-        box.querySelector('#sky-clear-override').addEventListener('click', _clearOverride);
-        _renderStage();
+        box.querySelector('.sky-set-time')?.addEventListener('click', _setExactTime);
+        box.querySelector('.sky-set-date')?.addEventListener('click', _setExactDate);
+        box.querySelector('#sky-override-set')?.addEventListener('click', _setOverride);
+        box.querySelector('#sky-override-clear')?.addEventListener('click', _clearOverride);
+        // Wire iframe load → feed state
+        const iframe = document.getElementById('sky-atmosphere-frame');
+        iframe.addEventListener('load', () => _sendStateToIframe());
+        // Listen for 'sky:ready' from the iframe
+        window.addEventListener('message', (ev) => {
+            if (ev.data?.type === 'sky:ready') _sendStateToIframe();
+        });
+        _populateControls();
+        _sendStateToIframe();
+        // Poll state updates to the iframe
         if (_timer) clearInterval(_timer);
-        _timer = setInterval(() => { if (document.contains(overlay)) _renderStage(); }, 3000);
+        _timer = setInterval(() => {
+            if (document.contains(overlay)) _sendStateToIframe();
+        }, 3000);
+    }
+
+    function _sendStateToIframe() {
+        const iframe = document.getElementById('sky-atmosphere-frame');
+        if (!iframe || !iframe.contentWindow) return;
+        const state = _state();
+        const t = (state?.game_time || '09:40').split(':').map(Number);
+        const hour = (t[0] || 0) + (t[1] || 0) / 60;
+        const m = Math.max(1, Math.min(12, state?.game_month || 1));
+        const seasonMap = ['winter', 'winter', 'spring', 'spring', 'spring', 'summer', 'summer', 'summer', 'autumn', 'autumn', 'autumn', 'winter'];
+        const season = seasonMap[m - 1] || 'winter';
+        const weather = effectiveWeather(state);
+        const weatherMap = { clear: 'clear', cloudy: 'overcast', rainy: 'rain', stormy: 'storm', snowy: 'snow', foggy: 'fog', windy: 'partly' };
+        const moonIdx = { new_moon: 0, crescent: 1, quarter: 2, gibbous: 3, full_moon: 4, waning: 5, blood_moon: 4 };
+        const moon = state?.moon_phase || {};
+        const phase = moonIdx[moon.name] !== undefined ? moonIdx[moon.name] : 0;
+        iframe.contentWindow.postMessage({
+            type: 'engine:sky-state',
+            t: hour,
+            season: season,
+            weather: weatherMap[weather] || 'clear',
+            phase: phase,
+            engineTime: (state?.game_time || '').slice(0, 5),
+            engineDay: state?.game_day || 1,
+        }, '*');
     }
 
     function _closeSky() {
@@ -216,26 +239,52 @@ window.SkyScape = (() => {
 
     function _skipTime(minutes) {
         const state = _state();
-        const perTick = Number(state.time_per_tick_minutes || 1);
-        const extraTicks = Math.max(1, Math.round(minutes / Math.max(0.1, perTick)));
-        // Advance via the same clock the engine uses: POST clock_start? No —
-        // tick-based: use time_per_tick settings? The cleanest engine path is
-        // a temporary override of clock_start is wrong; instead adjust the
-        // task-234 set_time-style rotation by N minutes via the settings API.
         const [hh, mm] = (state.game_time || '08:00').split(':').map(Number);
         const targetMin = ((hh || 0) * 60 + (mm || 0) + minutes) % 1440;
+        // Clamp to 0..1439 (negative wraparound)
+        const clamped = ((targetMin % 1440) + 1440) % 1440;
         fetch('/api/settings/clock_start', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ clock_start_hour: Math.floor(targetMin / 60), clock_start_minute: targetMin % 60 })
+            body: JSON.stringify({ clock_start_hour: Math.floor(clamped / 60), clock_start_minute: clamped % 60 })
+        }).then(() => worldState?.fetch?.());
+    }
+
+    function _setExactTime() {
+        const input = document.getElementById('sky-time-input');
+        if (!input || !input.value) return;
+        const [h, m] = input.value.split(':').map(Number);
+        if (isNaN(h) || isNaN(m)) return;
+        fetch('/api/settings/clock_start', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ clock_start_hour: h, clock_start_minute: m })
+        }).then(() => worldState?.fetch?.());
+    }
+
+    function _setExactDate() {
+        const d = parseInt(document.getElementById('sky-date-day')?.value);
+        const m = parseInt(document.getElementById('sky-date-month')?.value);
+        const y = parseInt(document.getElementById('sky-date-year')?.value);
+        if (isNaN(d) && isNaN(m) && isNaN(y)) return;
+        const body = {};
+        if (!isNaN(d)) body.day = d;
+        if (!isNaN(m)) body.month = m;
+        if (!isNaN(y)) body.year = y;
+        fetch('/api/settings/date', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
         }).then(() => worldState?.fetch?.());
     }
 
     function _setOverride() {
-        const sel = document.getElementById('sky-weather-select');
-        const dur = document.getElementById('sky-duration');
-        const data = { weather: sel.value };
-        const d = parseInt(dur.value, 10);
-        if (d > 0) data.duration_ticks = d;
+        const weather = document.getElementById('sky-override-weather')?.value || '';
+        const wind = document.getElementById('sky-override-wind')?.value || '';
+        const humidity = document.getElementById('sky-override-humidity')?.value || '';
+        const dur = parseInt(document.getElementById('sky-override-duration')?.value || '5');
+        const data = {};
+        if (weather) data.weather = weather;
+        if (wind) data.wind = wind;
+        if (humidity) data.humidity = humidity;
+        if (dur > 0) data.duration_ticks = dur;
         fetch('/api/settings/forecast-override', {
             method: 'POST', headers: { 'Content-Type': 'application/json', 'X-WV-Editor': 'sky-widget' },
             body: JSON.stringify(data)
@@ -249,99 +298,42 @@ window.SkyScape = (() => {
         }).then(() => worldState?.fetch?.());
     }
 
-    // ── stage render (engine-driven port of the v2 mockup) ─────────────
-
-    function _renderStage() {
-        const stageEl = document.getElementById('sky-stage');
-        const readoutEl = document.getElementById('sky-readout');
-        if (!stageEl || !_modalEl) return;
+    function _populateControls() {
         const state = _state();
-        const t = _hour(state);
-        const season = _season(state);
-        const ss = SEASON_STYLE[season] || SEASON_STYLE.summer;
-        const weather = effectiveWeather(state);
-        const w = WEATHER_LAYER[weather] || WEATHER_LAYER.clear;
-        const moon = state.moon_phase || { name: 'new_moon', light_bonus: 0 };
-        const moonIcon = MOON_CHIP[moon.name] || '🌑';
-
-        const [top, bot] = _skyAt(t);
-        const sr = ss.sunrise, ssSet = ss.sunset, dayLen = ssSet - sr;
-
-        let html = `<div style="position:absolute;inset:0;background:linear-gradient(to bottom, ${top}, ${bot});transition:background 0.4s linear;"></div>`;
-        // stars (fade by darkness)
-        const darkness = (t >= sr && t <= ss) ? Math.max(0, .35 - Math.min((t - sr) / dayLen, (ssSet - t) / dayLen) * 1.4) : Math.min(1, .4 + (t > ssSet ? t - ssSet : sr - t) * .5);
-        let stars = '';
-        for (let i = 0; i < 70; i++) {
-            const x = (i * 37 % 100), y = (i * 53 % 62);
-            stars += `<span style="position:absolute;left:${x}%;top:${y}%;width:${1 + (i % 3) * 0.5}px;height:${1 + (i % 3) * 0.5}px;border-radius:50%;background:#fff;opacity:${(i % 5) / 10};"></span>`;
+        if (!state) return;
+        const timeInput = document.getElementById('sky-time-input');
+        const dayInput = document.getElementById('sky-date-day');
+        const monthInput = document.getElementById('sky-date-month');
+        const yearInput = document.getElementById('sky-date-year');
+        const clockReadout = document.getElementById('sky-clock-readout');
+        const moonReadout = document.getElementById('sky-moon-readout');
+        const forecastReadout = document.getElementById('sky-forecast-readout');
+        const overrideActive = document.querySelector('.sky-override-active');
+        if (timeInput) {
+            const t = (state.game_time || '09:40').slice(0, 5);
+            timeInput.value = t;
         }
-        html += `<div style="position:absolute;inset:0;opacity:${darkness.toFixed(2)};transition:opacity .6s;">${stars}</div>`;
-
-        // sun arc
-        if (t >= sr && t <= ssSet) {
-            const p = (t - sr) / dayLen;
-            html += `<div style="position:absolute;left:${6 + p * 88}%;bottom:${10 + Math.sin(p * Math.PI) * 62}%;transform:translate(-50%,50%);width:56px;height:56px;border-radius:50%;background:radial-gradient(circle at 38% 35%,#fff8e0,#ffd24a 55%,#ff9d2e 80%);box-shadow:0 0 36px 14px rgba(255,205,95,.55);opacity:${(1 - w.dim * 0.8).toFixed(2)};"></div>`;
+        if (dayInput) dayInput.value = state.game_day || 1;
+        if (monthInput) monthInput.value = state.game_month || 1;
+        if (yearInput) yearInput.value = state.game_year || 1;
+        if (clockReadout) clockReadout.textContent = `${state.game_time || '?'} · Day ${state.game_day || 1}, ${_monthName(state.game_month || 1)} ${state.game_year || 1}`;
+        if (moonReadout) {
+            const moon = state.moon_phase || {};
+            const icon = MOON_CHIP[moon.name] || '🌑';
+            const label = (moon.name || '').replace(/_/g, ' ');
+            const bonus = moon.light_bonus || 0;
+            const next = nextForecastChange(state);
+            moonReadout.textContent = `${icon} ${label} (+${bonus} night light) · ${next ? `next: ${next.weather || 'change'} ${next.label}` : 'no forecast change'}`;
         }
-        // moon — v2 "real moon": age-based rise so First Quarter is an afternoon moon.
-        const MOON_AGE = { 'new_moon': 0, 'crescent': 0.125, 'quarter': 0.25, 'gibbous': 0.375, 'full_moon': 0.5, 'waning': 0.625, 'blood_moon': 0.5 };
-        const age = MOON_AGE[moon.name] ?? 0.5;
-        const moonRise = (sr + age * 24) % 24;
-        const moonSet = (moonRise + dayLen) % 24;
-        let sinceRise = t - moonRise;
-        if (sinceRise < 0) sinceRise += 24;
-        const moonUp = sinceRise <= dayLen;
-        const sep = Math.min(age, 1 - age) * 360;
-        const vis = Math.max(0, Math.min(1, (sep - 12) / 28));
-        if (moonUp && vis > 0.02) {
-            const mp = sinceRise / dayLen;
-            const glow = moon.name === 'blood_moon' ? 'rgba(255,60,40,0.5)' : 'rgba(236,233,205,0.28)';
-            html += `<div style="position:absolute;left:${6 + mp * 88}%;bottom:${10 + Math.sin(mp * Math.PI) * 62}%;transform:translate(-50%,50%);width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 32% 34%,rgba(90,90,80,.28) 0 7%,transparent 8%),radial-gradient(circle at 60% 62%,rgba(90,90,80,.22) 0 10%,transparent 11%),${moon.name === 'blood_moon' ? '#c05046' : '#ece9d8'};box-shadow:0 0 24px 7px ${glow};opacity:${(vis * (t > sr && t < ssSet ? 0.92 : 1)).toFixed(2)};"></div>`;
+        if (forecastReadout) {
+            const sched = state.forecast_schedule || {};
+            const entries = (sched.entries || []).length;
+            const ov = state.forecast_override;
+            forecastReadout.textContent = `${entries} entries (${sched.granularity || 'hourly'})${ov ? ' · GM override ACTIVE' : ''}`;
         }
-
-        // clouds
-        let clouds = '';
-        for (let i = 0; i < (w.clouds || 0); i++) {
-            const s = 0.7 + ((i * 7) % 10) / 10;
-            clouds += `<div style="position:absolute;left:${-20 + (i * 29) % 100}%;top:${5 + (i * 17) % 30}%;width:${95 * s}px;height:${36 * s}px;filter:blur(${5 + (i % 3) * 2}px);background:radial-gradient(closest-side at 35% 60%,rgba(${w.tint},${w.o}),rgba(${w.tint},0) 75%),radial-gradient(closest-side at 70% 45%,rgba(${w.tint},${w.o * 0.9}),rgba(${w.tint},0) 72%);"></div>`;
-        }
-        html += `<div style="position:absolute;inset:0;pointer-events:none;">${clouds}</div>`;
-
-        // precipitation / fog
-        if (w.precip === 'rain') {
-            let drops = '';
-            for (let i = 0; i < 40; i++) {
-                drops += `<span style="position:absolute;top:-30px;left:${(i * 23) % 100}%;width:1.5px;height:16px;background:linear-gradient(rgba(170,200,255,0),rgba(170,200,255,.75));opacity:${.35 + (i % 5) / 10};"></span>`;
-            }
-            html += `<div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;">${drops}</div>`;
-        } else if (w.precip === 'snow') {
-            let flakes = '';
-            for (let i = 0; i < 30; i++) {
-                flakes += `<span style="position:absolute;top:-14px;left:${(i * 31) % 100}%;width:${4 + (i % 4)}px;height:${4 + (i % 4)}px;border-radius:50%;background:rgba(255,255,255,.92);opacity:${.5 + (i % 3) / 10};"></span>`;
-            }
-            html += `<div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;">${flakes}</div>`;
-        }
-        if (w.fog) html += `<div style="position:absolute;left:-25%;width:150%;height:24%;top:44%;filter:blur(15px);background:linear-gradient(to bottom,transparent,rgba(214,220,231,.55),transparent);"></div>`;
-
-        // ground
-        html += `<div style="position:absolute;left:0;right:0;bottom:0;height:24%;background:${ss.hillFront};">
-            <div style="position:absolute;width:150%;height:150%;left:-40%;bottom:-78%;border-radius:50% 50% 0 0;background:${ss.hillBack};"></div>
-        </div>`;
-        html += `<div style="position:absolute;left:12%;bottom:24%;">${'' /* tree icons by season */}</div>`;
-
-        // dim + readout
-        html += `<div style="position:absolute;inset:0;background:#0b1020;opacity:${w.dim};pointer-events:none;"></div>`;
-        const [hh, mm] = (state.game_time || '00:00').split(':');
-        const moonLabel = (moon.name || 'new_moon').replace(/_/g, ' ');
-        const next = nextForecastChange(state);
-        html += `<div style="position:absolute;top:10px;left:10px;color:#fff;background:rgba(8,10,24,.42);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:8px 12px;">
-            <div style="font-size:22px;font-weight:800;">${hh}:${mm}</div>
-            <div style="font-size:11px;opacity:.92;">Day ${state.game_day || 1} · ${_monthName(state.game_month || 1)} ${state.game_year || 1} · ${season}</div>
-        </div>`;
-        stageEl.innerHTML = html;
-
-        if (readoutEl) {
-            const dayLenTxt = `${Math.floor(dayLen)}h ${Math.round((dayLen % 1) * 60)}m`;
-            readoutEl.innerHTML = `<strong>${weather}</strong> weather · moon <strong>${moonIcon} ${moonLabel}</strong> (+${moon.light_bonus || 0} night light): ${moon.name === 'blood_moon' ? 'the sky runs red' : 'rises ' + String(Math.floor(moonRise)).padStart(2, '0') + ':' + String(Math.round((moonRise % 1) * 60)).padStart(2, '0')} · ☀ ${dayLenTxt} daylight${next ? ` · forecast change ${next.label}` : ''}${state.forecast_override ? ' · GM override ACTIVE' : ''}`;
+        if (overrideActive) {
+            const ov = state.forecast_override;
+            overrideActive.style.display = ov ? 'inline' : 'none';
         }
     }
 
@@ -351,9 +343,9 @@ window.SkyScape = (() => {
         if (wire._done) return;
         wire._done = true;
         function _paint() {
-            const el = document.getElementById('ui-time');
+            const el = document.getElementById('sky-time');
             if (el && worldState?.data) renderTopBar(el, _state());
-            if (_modalEl) _renderStage();
+            if (_modalEl) _sendStateToIframe();
         }
         try {
             if (window.appEvents && typeof window.appEvents.on === 'function') {
@@ -363,7 +355,6 @@ window.SkyScape = (() => {
                 worldState.on('update', _paint);
             }
         } catch (e) { /* event wiring optional */ }
-        // Paint immediately if data is already available, or retry shortly.
         _paint();
         setTimeout(_paint, 600);
     }

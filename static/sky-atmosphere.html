@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atmosphere — sky · season · weather · moon</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0d12; --panel:#141822; --panel2:#181d29; --inset:#0d1017;
+  --border:#242b39; --border2:#33405a;
+  --text:#e2e7f2; --mut:#8b94a7; --dim:#5b6377;
+  --acc:#7aa2f7; --acc2:#9db9ff; --acc-dim:rgba(122,162,247,.12); --acc-line:rgba(122,162,247,.38);
+  --grn:#4ade80; --amb:#fbbf24;
+  --ui:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+::selection{background:var(--acc-line);color:#fff}
+body{background:radial-gradient(1100px 520px at 50% -10%,#131a28,var(--bg));color:var(--text);
+  font-family:var(--ui);font-size:13px;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+button{font-family:var(--ui);cursor:pointer;color:var(--text)}
+code{font-family:var(--mono);font-size:.92em}
+.console{width:min(960px,100%);display:flex;flex-direction:column;gap:0;
+  background:linear-gradient(180deg,#141822,#10141d);border:1px solid var(--border);border-radius:14px;
+  box-shadow:0 30px 90px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.04);overflow:hidden;
+  animation:rise .3s cubic-bezier(.2,.8,.25,1)}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+
+/* header */
+.top{display:flex;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid var(--border)}
+.logo{width:24px;height:24px;border-radius:8px;background:linear-gradient(135deg,#f2b25a,#7aa2f7 70%);
+  display:grid;place-items:center;font-size:12px;box-shadow:0 0 12px rgba(122,162,247,.3)}
+.t1{font-weight:700;font-size:13px;letter-spacing:.16em}
+.t2{font-size:10px;color:var(--dim);margin-left:2px}
+.sp{flex:1}
+.kbd{font-family:var(--mono);font-size:9px;color:#a8b3c9;background:rgba(255,255,255,.05);
+  border:1px solid var(--border);border-bottom-width:2px;border-radius:5px;padding:1.5px 7px}
+.mini{background:var(--inset);border:1px solid var(--border);border-radius:7px;color:var(--mut);
+  font-size:10px;padding:4px 10px}
+.mini:hover{color:var(--text);border-color:var(--border2)}
+.mini.on{background:var(--acc-dim);border-color:var(--acc-line);color:var(--acc2)}
+
+/* scene */
+.scene{position:relative;height:min(46vh,380px);min-height:280px;background:#000}
+.scene canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.vig{position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 90px rgba(0,0,0,.35),inset 0 -40px 60px rgba(0,0,0,.25);border-radius:0}
+.ov{position:absolute;font-family:var(--mono);pointer-events:none;text-shadow:0 1px 8px rgba(0,0,0,.6)}
+.ov.tl{top:14px;left:18px}
+.ov.tr{top:14px;right:18px;text-align:right}
+.ov.bl{bottom:12px;left:18px;font-size:10px;color:rgba(255,255,255,.75)}
+.ov.br{bottom:12px;right:18px;font-size:10px;color:rgba(255,255,255,.75)}
+#clockTime{font-size:30px;font-weight:700;letter-spacing:.04em;color:#fff}
+#clockLabel{font-size:10px;color:rgba(255,255,255,.75);margin-top:2px}
+#tempChip{pointer-events:auto;background:rgba(10,12,18,.4);border:1px solid rgba(255,255,255,.18);
+  border-radius:8px;color:#fff;font-family:var(--mono);font-size:15px;font-weight:700;padding:5px 11px;
+  backdrop-filter:blur(4px)}
+#tempChip:hover{border-color:rgba(255,255,255,.4)}
+#condLabel{font-size:10px;color:rgba(255,255,255,.75);margin-top:5px}
+#moonInfo .daytag{color:#ffe9b0}
+
+/* deck */
+.deck{padding:14px 18px 16px;display:flex;flex-direction:column;gap:12px;background:var(--panel)}
+.sec{border:1px solid var(--border);border-radius:11px;background:var(--panel2);padding:11px 13px}
+.sec-h{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.sec-n{font-family:var(--mono);font-size:9px;color:var(--dim);border:1px solid var(--border);border-radius:6px;padding:1px 6px}
+.sec-t{font-size:10px;font-weight:700;letter-spacing:.18em;color:#c6cede}
+.sec-l{flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+.sec-o{font-size:9px;color:var(--dim)}
+
+/* time row */
+.tgrid{display:grid;grid-template-columns:118px 1fr;gap:14px;align-items:center}
+.clockbig{font-family:var(--mono)}
+.clockbig .t{font-size:26px;font-weight:700;letter-spacing:.02em}
+.clockbig .d{font-size:9.5px;color:var(--dim);margin-top:2px}
+.timewrap{position:relative;height:26px;display:flex;align-items:center}
+.track{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:10px;border-radius:99px;
+  border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 1px 3px rgba(0,0,0,.4)}
+.tick{position:absolute;top:50%;width:2px;height:16px;transform:translate(-50%,-50%);border-radius:2px;pointer-events:none}
+.tick.sr{background:#ffd28a99}.tick.ss{background:#ff9a6a99}
+#timeSlider{position:absolute;inset:0;width:100%;height:100%;-webkit-appearance:none;appearance:none;background:transparent;margin:0;cursor:pointer}
+#timeSlider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+  background:#fff;border:3px solid var(--acc);box-shadow:0 0 10px rgba(122,162,247,.5)}
+#timeSlider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid var(--acc);box-shadow:0 0 10px rgba(122,162,247,.5)}
+#timeSlider::-webkit-slider-runnable-track{background:transparent}
+#timeSlider::-moz-range-track{background:transparent}
+.tbtns{display:flex;gap:5px;margin-top:9px;flex-wrap:wrap;align-items:center}
+.qb{background:var(--inset);border:1px solid var(--border);border-radius:99px;color:var(--mut);font-size:10px;padding:3px 11px}
+.qb:hover{color:var(--acc2);border-color:var(--acc-line)}
+.playbtn{background:var(--acc-dim);border:1px solid var(--acc-line);border-radius:99px;color:var(--acc2);font-size:10px;font-weight:600;padding:3px 12px}
+.playbtn.on{background:var(--acc);color:#0b0d12}
+
+/* season + weather grid */
+.duo{display:grid;grid-template-columns:300px 1fr;gap:12px}
+@media(max-width:760px){.duo{grid-template-columns:1fr}.tgrid{grid-template-columns:1fr}}
+.seg{display:flex;border:1px solid var(--border);border-radius:9px;overflow:hidden}
+.seg button{flex:1;background:var(--inset);border:none;border-right:1px solid var(--border);
+  color:var(--dim);font-size:10.5px;padding:8px 4px;transition:.12s}
+.seg button:last-child{border-right:none}
+.seg button:hover{color:var(--mut)}
+.seg button.active{background:var(--acc-dim);color:var(--acc2);font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{background:var(--inset);border:1px solid var(--border);border-radius:99px;color:var(--mut);
+  font-size:10.5px;padding:4px 12px;transition:.12s}
+.chip:hover{border-color:var(--border2);color:var(--mut)}
+.chip.active{background:var(--acc-dim);border-color:var(--acc-line);color:var(--acc2)}
+
+/* moon */
+.moons{display:flex;gap:6px;flex-wrap:wrap}
+.mbtn{display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--inset);
+  border:1px solid var(--border);border-radius:10px;padding:7px 6px 5px;min-width:66px;transition:.12s}
+.mbtn:hover{border-color:var(--border2)}
+.mbtn.active{border-color:var(--acc-line);background:var(--acc-dim);box-shadow:0 0 10px rgba(122,162,247,.15)}
+.mbtn svg{display:block}
+.mbtn .ml{font-size:8.5px;color:var(--dim);letter-spacing:.02em;text-align:center;line-height:1.2}
+.mbtn.active .ml{color:var(--acc2)}
+.mnote{font-size:9.5px;color:var(--dim);margin-top:8px;line-height:1.55}
+.mnote b{color:var(--mut);font-weight:600}
+.mnote .fx{font-family:var(--mono);color:var(--acc2);background:rgba(122,162,247,.08);
+  border:1px solid var(--border);border-radius:5px;padding:0 5px}
+
+/* stats strip */
+.stats{display:flex;flex-wrap:wrap;gap:6px 16px;padding:10px 14px;border-top:1px solid var(--border);
+  background:var(--inset);font-family:var(--mono);font-size:10px;color:var(--dim)}
+.stats b{color:#c6cede;font-weight:500;margin-left:5px}
+.stats .lk{color:var(--dim);letter-spacing:.08em;font-size:8.5px}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--panel2);
+  border:1px solid var(--grn);color:var(--grn);font-size:11px;padding:8px 16px;border-radius:9px;
+  box-shadow:0 12px 34px rgba(0,0,0,.5);opacity:0;transition:.25s;pointer-events:none;z-index:99}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="console">
+
+  <header class="top">
+    <div class="logo">◑</div>
+    <div><span class="t1">ATMOSPHERE</span> <span class="t2">time · season · weather · moon</span></div>
+    <div class="sp"></div>
+    <span class="kbd" id="syncNote">synced to your real sky</span>
+    <button class="mini" id="dialBtn" title="overlay: sun & moon on the 24h circle">⌖ sky map</button>
+    <button class="mini" id="copyState">⧉ copy state</button>
+  </header>
+
+  <div class="scene">
+    <canvas id="sky"></canvas>
+    <div class="vig"></div>
+    <div class="ov tl"><div id="clockTime">--:--</div><div id="clockLabel"></div></div>
+    <div class="ov tr"><button id="tempChip" title="toggle °C / °F">--°C</button><div id="condLabel"></div></div>
+    <div class="ov bl" id="moonInfo"></div>
+    <div class="ov br" id="sunInfo"></div>
+  </div>
+
+  <div class="deck">
+
+    <!-- 01 TIME -->
+    <section class="sec">
+      <div class="sec-h"><span class="sec-n">01</span><span class="sec-t">TIME</span><span class="sec-l"></span><span class="sec-o">sun arc follows season — scrub or let it run</span></div>
+      <div class="tgrid">
+        <div class="clockbig"><div class="t" id="deckClock">--:--</div><div class="d" id="deckLabel"></div></div>
+        <div>
+          <div class="timewrap">
+            <div class="track" id="track"></div>
+            <i class="tick sr" id="tickSR" title="sunrise"></i>
+            <i class="tick ss" id="tickSS" title="sunset"></i>
+            <input type="range" id="timeSlider" min="0" max="24" step="0.05" aria-label="time of day">
+          </div>
+          <div class="tbtns">
+            <button class="qb" data-jump="dawn">🌅 dawn</button>
+            <button class="qb" data-jump="noon">☀️ noon</button>
+            <button class="qb" data-jump="dusk">🌆 dusk</button>
+            <button class="qb" data-jump="night">🌌 midnight</button>
+            <button class="qb" id="nowBtn">⟳ now</button>
+            <span style="flex:1"></span>
+            <button class="playbtn" id="playBtn">▶ time-lapse</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 + 03 -->
+    <div class="duo">
+      <section class="sec">
+        <div class="sec-h"><span class="sec-n">02</span><span class="sec-t">SEASON</span><span class="sec-l"></span></div>
+        <div class="seg" id="seasonSeg">
+          <button data-season="spring">🌸 Spring</button>
+          <button data-season="summer">☀️ Summer</button>
+          <button data-season="autumn">🍂 Autumn</button>
+          <button data-season="winter">❄️ Winter</button>
+        </div>
+        <div class="mnote">day length shifts the sun's arc — watch the slider ticks move.</div>
+      </section>
+      <section class="sec">
+        <div class="sec-h"><span class="sec-n">03</span><span class="sec-t">WEATHER</span><span class="sec-l"></span></div>
+        <div class="chips" id="weatherChips">
+          <button class="chip" data-weather="clear">☀️ Clear</button>
+          <button class="chip" data-weather="partly">⛅ Partly cloudy</button>
+          <button class="chip" data-weather="overcast">☁️ Overcast</button>
+          <button class="chip" data-weather="rain">🌧️ Rain</button>
+          <button class="chip" data-weather="storm">⛈️ Thunderstorm</button>
+          <button class="chip" data-weather="snow">🌨️ Snow</button>
+          <button class="chip" data-weather="fog">🌫️ Fog</button>
+        </div>
+        <div class="mnote">weather eases in smoothly — clouds gather, rain ramps, fog rolls.</div>
+      </section>
+    </div>
+
+    <!-- 04 MOON -->
+    <section class="sec">
+      <div class="sec-h"><span class="sec-n">04</span><span class="sec-t">MOON PHASE</span><span class="sec-l"></span><span class="sec-o">phase sets the moon's position relative to the sun</span></div>
+      <div class="moons" id="moonBtns"></div>
+      <div class="mnote">
+        🔭 <b>the one real rule:</b> the moon's hour angle = the sun's <span class="fx">− phase × 360°</span>.
+        a <b>waxing crescent</b> shadows the sun through the <b>daytime</b> sky (that's why you never notice it);
+        <b>first quarter</b> transits at sunset; the <b>full moon</b> rises as the sun sets;
+        the <b>last quarter</b> is the morning moon, still up at noon.
+        the moon keeps its own ~12.4h crossing, so moonrise drifts a little off perfect symmetry —
+        but the sun–moon angle stays exact. toggle <b>⌖ sky map</b> and run the time-lapse to watch it.
+      </div>
+    </section>
+
+  </div>
+
+  <div class="stats">
+    <span><span class="lk">SUNRISE</span><b id="roSunrise">--</b></span>
+    <span><span class="lk">SUNSET</span><b id="roSunset">--</b></span>
+    <span><span class="lk">DAY LENGTH</span><b id="roDay">--</b></span>
+    <span><span class="lk">MOONRISE</span><b id="roMR">--</b></span>
+    <span><span class="lk">MOONSET</span><b id="roMS">--</b></span>
+    <span><span class="lk">MOON TRANSIT</span><b id="roMT">--</b></span>
+    <span><span class="lk">ELONGATION</span><b id="roElon">--</b></span>
+    <span><span class="lk">ILLUMINATION</span><b id="roIllum">--</b></span>
+    <span><span class="lk">TEMP</span><b id="roTemp">--</b></span>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════ helpers ═══════════ */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,f)=>a+(b-a)*f;
+const rand=(a,b)=>a+Math.random()*(b-a);
+let toastT; function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2200)}
+function hex2rgb(h){return [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]}
+function mix(a,b,f){return [lerp(a[0],b[0],f),lerp(a[1],b[1],f),lerp(a[2],b[2],f)]}
+function rgbStr(c,a=1){return `rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`}
+function fmt(h){h=((h%24)+24)%24;const H=Math.floor(h),M=Math.floor((h-H)*60);return String(H).padStart(2,'0')+':'+String(M).padStart(2,'0')}
+function mulberry32(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+/* ═══════════ data ═══════════ */
+const SEASONS={
+  spring:{name:'Spring',sr:6.1,ss:19.0,back:'#3a5a48',front:'#2c4838',tree:'#1f3529',base:15,amp:6,
+          tint:{c:hex2rgb('#8fd0b8'),w:.06,hw:.10}},
+  summer:{name:'Summer',sr:5.2,ss:20.1,back:'#2e5240',front:'#224233',tree:'#173024',base:27,amp:8,
+          tint:{c:hex2rgb('#2f66d0'),w:.08,hw:.05}},
+  autumn:{name:'Autumn',sr:6.9,ss:17.6,back:'#5c4630',front:'#443322',tree:'#2e2118',base:12,amp:6,
+          tint:{c:hex2rgb('#d88a40'),w:.05,hw:.14}},
+  winter:{name:'Winter',sr:7.7,ss:16.6,back:'#5a6a80',front:'#b8c4d6',tree:'#39424f',base:-2,amp:4,
+          tint:{c:hex2rgb('#a8b8d0'),w:.10,hw:.14}},
+};
+const SEASON_KEYS=['winter','spring','summer','autumn'];
+const WEATHER={
+  clear:   {label:'Clear',        cover:.6,cloudA:.14,dark:0,  rain:0,  snow:0,fog:0,  wind:8, temp:0,  gray:0},
+  partly:  {label:'Partly cloudy',cover:3, cloudA:.6, dark:.04,rain:0,  snow:0,fog:0,  wind:14,temp:-.5,gray:.10},
+  overcast:{label:'Overcast',     cover:6.5,cloudA:.75,dark:.16,rain:0,  snow:0,fog:0,  wind:20,temp:-1.5,gray:.38},
+  rain:    {label:'Rain',         cover:7,  cloudA:.9, dark:.26,rain:1,  snow:0,fog:.06,wind:44,temp:-4, gray:.5},
+  storm:   {label:'Thunderstorm', cover:8,  cloudA:.95,dark:.4, rain:1.6,snow:0,fog:.04,wind:95,temp:-6, gray:.62},
+  snow:    {label:'Snow',         cover:5.5,cloudA:.7, dark:.08,rain:0,  snow:1,fog:.10,wind:26,temp:-1, gray:.30,light:.10},
+  fog:     {label:'Fog',          cover:2,  cloudA:.28,dark:.05,rain:0,  snow:0,fog:1,  wind:6, temp:-1, gray:.5, light:.12},
+};
+const PHASES=['New Moon','Waxing Crescent','First Quarter','Waxing Gibbous','Full Moon','Waning Gibbous','Last Quarter','Waning Crescent'];
+
+/* sky color keyframes [hour, zenith, mid, horizon] */
+const KEYS=[
+  [0.0,'#070b1c','#0a102b','#101a38'],[4.0,'#080c20','#0d1330','#15203f'],
+  [5.0,'#0d1333','#1b2350','#3a2f5c'],[5.8,'#1b2a58','#4a4a80','#a86a70'],
+  [6.6,'#2a4a84','#7a7aa8','#f0a05e'],[8.0,'#3f78c0','#8ab4de','#dce8ee'],
+  [12.0,'#3a72c8','#7fb0de','#d2e4ef'],[15.5,'#3a6cbe','#82a8d4','#c8dcea'],
+  [17.2,'#3a5c98','#8a86a2','#eea868'],[18.4,'#253367','#5f4a7e','#e07450'],
+  [19.4,'#131c44','#2a2352','#5c3162'],[20.5,'#0a102e','#101736','#1b2445'],
+  [24.0,'#070b1c','#0a102b','#101a38'],
+].map(k=>[k[0],hex2rgb(k[1]),hex2rgb(k[2]),hex2rgb(k[3])]);
+
+/* ═══════════ state ═══════════ */
+const now=new Date();
+const state={
+  t:now.getHours()+now.getMinutes()/60+now.getSeconds()/3600,
+  season:SEASON_KEYS[Math.floor(((now.getMonth()+1)%12)/3)],
+  weather:'clear',
+  phase:Math.round((((Date.now()-Date.UTC(2000,0,6,18,14))/86400000)%29.53058867)/29.53058867*8)%8,
+  playing:false, units:'C', dial:false,
+};
+const eased={cover:0,cloudA:0,dark:0,rain:0,snow:0,fog:0,wind:8,gray:0,light:0};
+
+/* ═══════════★ celestial mechanics ═══════════
+   Both bodies ride one 24h circle. A body's hour angle = (t − τ)/24 × 360°,
+   measured from its transit. The moon's transit = sun's transit + 24·phase hours,
+   so at every instant  moonAngle − sunAngle = −phase × 360°  (exact elongation).
+   Each body has its own horizon window:
+     sun   → seasonal:  up for (ss − sr) hours, centered on solar transit
+     moon  → fixed:     up ~12.4 h per crossing (real-ish), regardless of season  */
+const MOON_HALF=6.2;                 // hours from moonrise to moon-transit
+const wrap12=h=>((h+12)%24+24)%24-12; // → (−12, 12]
+function sunTau(){const s=SEASONS[state.season];return (s.sr+s.ss)/2}
+function sunHalf(){const s=SEASONS[state.season];return (s.ss-s.sr)/2}
+function moonTau(p){return (sunTau()+24*p)%24}
+/* q ∈ [−1,1] while above the horizon; u = (q+1)/2 walks the visible arc 0→1 */
+function bodyQ(t,tau,w){return wrap12(t-tau)/w}
+function arcXY(u){return {x:lerp(W*.10,W*.90,u), y:H*.86-Math.sin(u*Math.PI)*(H*.86-H*.12)}}
+const illum=p=>(1-Math.cos(2*Math.PI*p))/2;
+function moonSVG(p,size){
+  const r=size/2-1.5,cx=size/2,cy=size/2,il=illum(p);
+  let lit='';
+  if(il>.015&&il<.985){
+    const waxing=p<.5, rx=Math.abs(Math.cos(2*Math.PI*p))*r;
+    const limb=waxing?1:0, term=(p<.5?(p<.25?0:1):(p<.75?0:1));
+    lit=`<path d="M ${cx} ${cy-r} A ${r} ${r} 0 0 ${limb} ${cx} ${cy+r} A ${rx.toFixed(2)} ${r} 0 0 ${term} ${cx} ${cy-r} Z" fill="#e9edf3"/>`;
+  } else if(il>=.985) lit=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="#e9edf3"/>`;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${cx}" cy="${cy}" r="${r}" fill="#141a28" stroke="#2b3448"/>${lit}</svg>`;
+}
+
+/* ═══════════ canvas ═══════════ */
+const cv=$('#sky'), ctx=cv.getContext('2d');
+let W=0,H=0,DPR=1, stars=[], ridges={}, trees=[], cloudSprites={}, clouds=[];
+function resize(){
+  const r=cv.getBoundingClientRect(); DPR=Math.min(2,devicePixelRatio||1);
+  W=r.width; H=r.height; cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0);
+  stars=Array.from({length:150},()=>({x:Math.random()*W,y:Math.random()*H*.72,r:rand(.4,1.4),tw:rand(1,3),ph:rand(0,7)}));
+  makeRidges(); makeClouds();
+}
+function makeRidges(){
+  const seed={spring:11,summer:22,autumn:33,winter:44}[state.season];
+  const rnd=mulberry32(seed), ph=[rnd()*6,rnd()*6,rnd()*6];
+  ridges={back:{base:H*.80,amp:H*.055,ph},front:{base:H*.885,amp:H*.045,ph:ph.map(x=>x+2)}};
+  const rf=rnd; trees=Array.from({length:12},()=>({x:rf()*W,w:rand(6,11),h:rand(11,22)}));
+}
+function ridgeY(r,x){const u=x/W;
+  return r.base+(Math.sin(u*5+r.ph[0])*.35+Math.sin(u*11+r.ph[1])*.22+Math.sin(u*23+r.ph[2])*.12)*r.amp;}
+function makeClouds(){clouds=Array.from({length:8},(_,i)=>({x:Math.random()*W,y:H*rand(.10,.42),s:rand(.7,1.5),v:rand(.6,1.3)}));}
+function makeCloudSprite(dark){
+  const c=document.createElement('canvas');c.width=280;c.height=150;const g=c.getContext('2d');
+  [[70,95,45],[130,68,58],[195,90,50],[105,105,40],[165,108,44],[235,105,34],[45,112,30]].forEach(([x,y,r])=>{
+    const gr=g.createRadialGradient(x,y,r*.15,x,y,r);
+    const col=dark?'150,160,178':'255,255,255';
+    gr.addColorStop(0,`rgba(${col},.9)`);gr.addColorStop(1,`rgba(${col},0)`);
+    g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,7);g.fill();});
+  return c;
+}
+cloudSprites.bright=makeCloudSprite(false); cloudSprites.dark=makeCloudSprite(true);
+
+/* sky palette engine */
+function sampleSky(t){
+  t=((t%24)+24)%24;
+  let i=0; while(i<KEYS.length-2&&KEYS[i+1][0]<=t)i++;
+  const a=KEYS[i],b=KEYS[i+1],f=(t-a[0])/(b[0]-a[0]);
+  const st=[mix(a[1],b[1],f),mix(a[2],b[2],f),mix(a[3],b[3],f)];
+  const tint=SEASONS[state.season].tint, hw=[1,.6,.35];
+  return st.map((c,j)=>mix(c,tint.c,(j===2?tint.hw:tint.w)*hw[j]));
+}
+function weatherize(c,j){ const w=eased, wf=[.8,1,1.15][j];
+  let out=c;
+  out=mix(out,hex2rgb('#8b95a3'),w.gray*wf);
+  out=out.map(v=>v*(1-w.dark*.55*wf));
+  if(w.light)out=mix(out,hex2rgb('#dfe6ee'),w.light*wf);
+  if(w.fog)out=mix(out,hex2rgb('#a8b2ba'),w.fog*.32*wf);
+  return out;
+}
+function nightF(){ const s=SEASONS[state.season],t=state.t;
+  const d=t<s.sr?s.sr-t:(t>s.ss?t-s.ss:0); return clamp(d/1.3,0,1); }
+
+/* ═══════════ scene drawing ═══════════ */
+let last=performance.now(), bolt=null, flash=0, nextBolt=0, shoot=null, nextShoot=5, simT=0;
+const rainPool=Array.from({length:240},()=>({x:Math.random()*2000,y:Math.random()*1200,l:rand(9,17),v:rand(540,800)}));
+const snowPool=Array.from({length:150},()=>({x:Math.random()*2000,y:Math.random()*1200,r:rand(1,2.8),v:rand(26,64),ph:rand(0,7),f:rand(.6,1.6)}));
+const flies=Array.from({length:9},()=>({x:0,y:0,bx:Math.random(),by:rand(.68,.85),p1:rand(0,7),p2:rand(0,7)}));
+
+function drawScene(dt){
+  simT+=dt;
+  const S=SEASONS[state.season];
+  const tw=WEATHER[state.weather];
+  for(const k of ['cover','cloudA','dark','rain','snow','fog','gray','light','wind'])
+    eased[k]+=((tw[k]??0)-eased[k])*Math.min(1,dt*1.6);
+
+  /* sky */
+  const st=sampleSky(state.t).map((c,j)=>weatherize(c,j));
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,rgbStr(st[0])); g.addColorStop(.55,rgbStr(st[1])); g.addColorStop(1,rgbStr(st[2]));
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+
+  const nf=nightF(), coverE=1-clamp(eased.cover/8,0,1);
+
+  /* stars */
+  if(nf>.02){
+    const il0=illum(state.phase/8);
+    const a0=nf*(1-il0*.3)*(.25+.75*coverE)*(1-eased.fog*.8);
+    stars.forEach(s=>{ const a=a0*(.5+.5*Math.sin(simT*s.tw+s.ph));
+      if(a<.02)return; ctx.globalAlpha=a; ctx.fillStyle='#dfe8ff';
+      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,7);ctx.fill(); });
+    ctx.globalAlpha=1;
+    nextShoot-=dt;
+    if(!shoot&&nextShoot<0&&nf>.75&&coverE>.7){shoot={x:rand(W*.3,W*.95),y:rand(H*.06,H*.3),vx:-rand(480,720),vy:rand(120,220),life:.7};nextShoot=rand(6,18);}
+    if(shoot){shoot.life-=dt;shoot.x+=shoot.vx*dt;shoot.y+=shoot.vy*dt;
+      const a=clamp(shoot.life/.7,0,1);
+      const gr=ctx.createLinearGradient(shoot.x,shoot.y,shoot.x-shoot.vx*.14,shoot.y-shoot.vy*.14);
+      gr.addColorStop(0,`rgba(255,255,255,${a})`);gr.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.strokeStyle=gr;ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(shoot.x,shoot.y);
+      ctx.lineTo(shoot.x-shoot.vx*.14,shoot.y-shoot.vy*.14);ctx.stroke();
+      if(shoot.life<=0)shoot=null;}
+  }
+
+  /* ── SUN: on the 24h circle, seasonal window ── */
+  const p=state.phase/8, il=illum(p);
+  const tauS=sunTau(), wS=sunHalf();
+  const qS=bodyQ(state.t,tauS,wS);
+  if(Math.abs(qS)<=1){
+    const u=(qS+1)/2, sp=arcXY(u), elev=Math.sin(u*Math.PI);
+    const vis=clamp(coverE+.15,0,1), warm=1-clamp(elev/.35,0,1);
+    const gc=mix(hex2rgb('#ffd9a0'),hex2rgb('#ff8a50'),warm);
+    const glow=ctx.createRadialGradient(sp.x,sp.y,0,sp.x,sp.y,110);
+    glow.addColorStop(0,rgbStr(gc,.55*vis)); glow.addColorStop(1,rgbStr(gc,0));
+    ctx.fillStyle=glow; ctx.fillRect(sp.x-120,sp.y-120,240,240);
+    const disc=ctx.createRadialGradient(sp.x,sp.y,1,sp.x,sp.y,H*.045);
+    disc.addColorStop(0,'#fff8e8');
+    disc.addColorStop(.7,rgbStr(mix(hex2rgb('#ffdf9a'),hex2rgb('#ff9a5c'),warm))); /* ✚ patched: was a raw array */
+    disc.addColorStop(1,rgbStr(gc,.4));
+    ctx.globalAlpha=vis; ctx.fillStyle=disc;
+    ctx.beginPath();ctx.arc(sp.x,sp.y,H*.045,0,7);ctx.fill(); ctx.globalAlpha=1;
+  }
+
+  /* ── MOON: hour angle = sun's − phase×360°. Up in DAYLIGHT when it should be. ── */
+  const tauM=moonTau(p);
+  const qM=bodyQ(state.t,tauM,MOON_HALF);
+  let moonLive={up:false,day:false,elev:0};
+  if(Math.abs(qM)<=1){
+    const u=(qM+1)/2, mp=arcXY(u), elev=Math.sin(u*Math.PI);
+    moonLive={up:true,day:nf<.5,elev};
+    const sepH=Math.abs(wrap12(24*p));            // hours of sun–moon separation
+    let a=(0.30+0.70*il)                          // thin crescents are faint
+         *clamp(elev/0.06,0,1)                    // dissolve into the horizon haze
+         *clamp(coverE+.30,0,1)                   // clouds hide it
+         *lerp(0.40,1,nf)                         // daytime washout
+         *clamp(sepH/3.5,0.15,1);                 // glare when near the sun
+    if(nf>.45){ /* halo belongs to night only */
+      const hg=ctx.createRadialGradient(mp.x,mp.y,0,mp.x,mp.y,90);
+      hg.addColorStop(0,`rgba(205,218,255,${(a*.30*il*(nf-.45)/.55).toFixed(3)})`);
+      hg.addColorStop(1,'rgba(205,218,255,0)');
+      ctx.fillStyle=hg;ctx.fillRect(mp.x-100,mp.y-100,200,200);
+    }
+    ctx.globalAlpha=a;
+    drawMoonDisc(mp.x,mp.y,H*.036,p);
+    /* glaze with sky color so a day moon reads as pale, not pasted-on */
+    if(nf<.5){ ctx.globalAlpha=.40*(1-nf); ctx.fillStyle=rgbStr(st[1]);
+      ctx.beginPath();ctx.arc(mp.x,mp.y,H*.036,0,7);ctx.fill(); }
+    ctx.globalAlpha=1;
+  }
+
+  /* clouds */
+  clouds.forEach((c,i)=>{
+    const a=clamp(eased.cover-i,0,1)*eased.cloudA; if(a<.01)return;
+    c.x+=eased.wind*c.v*dt*.55; if(c.x>W+160)c.x=-160;
+    const dark=eased.dark>.1||eased.gray>.35;
+    ctx.globalAlpha=a;
+    ctx.drawImage(dark?cloudSprites.dark:cloudSprites.bright,c.x-140*c.s,c.y-75*c.s,280*c.s,150*c.s);
+  });
+  ctx.globalAlpha=1;
+
+  /* hills */
+  const hillCol=(hex)=>{let c=hex2rgb(hex);
+    c=mix(c,hex2rgb('#0a0f1c'),nf*.75);
+    c=mix(c,hex2rgb('#232830'),eased.dark*.6);
+    if(state.season==='winter')c=mix(c,hex2rgb('#8fa0bd'),eased.fog*.3);
+    return c;};
+  const drawRidge=(r,col)=>{ctx.fillStyle=rgbStr(col);ctx.beginPath();ctx.moveTo(0,H);
+    for(let x=0;x<=W;x+=8)ctx.lineTo(x,ridgeY(r,x)); ctx.lineTo(W,H);ctx.closePath();ctx.fill();};
+  drawRidge(ridges.back,hillCol(S.back));
+  drawRidge(ridges.front,hillCol(S.front));
+  ctx.fillStyle=rgbStr(hillCol(S.tree));
+  trees.forEach(t=>{const y=ridgeY(ridges.front,t.x);
+    ctx.beginPath();ctx.moveTo(t.x,y-t.h);ctx.lineTo(t.x-t.w/2,y+2);ctx.lineTo(t.x+t.w/2,y+2);ctx.closePath();ctx.fill();});
+
+  /* rain */
+  if(eased.rain>.02){
+    const n=Math.floor(rainPool.length*clamp(eased.rain/1.6,0,1));
+    ctx.strokeStyle='rgba(185,205,255,.36)';ctx.lineWidth=1.1;
+    ctx.beginPath();
+    for(let i=0;i<n;i++){const d=rainPool[i];
+      d.y+=d.v*dt;d.x+=eased.wind*dt;
+      if(d.y>H+20){d.y=-20;d.x=Math.random()*(W+200)-100;}
+      if(d.x>W+30)d.x=-30;
+      const k=d.l/d.v;
+      ctx.moveTo(d.x,d.y);ctx.lineTo(d.x-eased.wind*k,d.y-d.l);}
+    ctx.stroke();
+  }
+  /* snow */
+  if(eased.snow>.02){
+    ctx.fillStyle='rgba(240,246,255,.85)';
+    snowPool.forEach(f=>{f.y+=f.v*dt;f.x+=(Math.sin(simT*f.f+f.ph)*14+eased.wind*.25)*dt;
+      if(f.y>H+6){f.y=-6;f.x=Math.random()*(W+100)-50;} if(f.x>W+20)f.x=-20; if(f.x<-20)f.x=W+20;
+      ctx.globalAlpha=.5+.5*Math.sin(f.ph+simT);
+      ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,7);ctx.fill();});
+    ctx.globalAlpha=1;
+  }
+  /* fireflies */
+  const ffOn=state.season==='summer'&&nf>.6&&coverE>.6&&eased.rain<.05;
+  if(ffOn)flies.forEach(f=>{
+    f.x=f.x||f.bx*W; f.y=f.y||f.by*H;
+    f.x+=Math.sin(simT*.5+f.p1)*12*dt; f.y+=Math.cos(simT*.4+f.p2)*8*dt;
+    const a=(0.3+0.7*Math.max(0,Math.sin(simT*1.8+f.p1)))*.9;
+    const fg=ctx.createRadialGradient(f.x,f.y,0,f.x,f.y,5);
+    fg.addColorStop(0,`rgba(214,255,158,${a})`);fg.addColorStop(1,'rgba(214,255,158,0)');
+    ctx.fillStyle=fg;ctx.beginPath();ctx.arc(f.x,f.y,5,0,7);ctx.fill();
+  });
+  /* fog */
+  if(eased.fog>.02){
+    for(let i=0;i<3;i++){const fx=((simT*(6+i*3)+i*300)%(W+400))-200, fy=H*(.68+i*.1);
+      const fg=ctx.createRadialGradient(fx,fy,10,fx,fy,W*.42);
+      fg.addColorStop(0,`rgba(190,200,212,${.13*eased.fog})`);fg.addColorStop(1,'rgba(190,200,212,0)');
+      ctx.fillStyle=fg;ctx.beginPath();ctx.ellipse(fx,fy,W*.42,H*.09,0,0,7);ctx.fill();}
+    const bg=ctx.createLinearGradient(0,H*.55,0,H);
+    bg.addColorStop(0,'rgba(190,200,212,0)');bg.addColorStop(1,`rgba(190,200,212,${.3*eased.fog})`);
+    ctx.fillStyle=bg;ctx.fillRect(0,H*.55,W,H*.45);
+  }
+  /* lightning */
+  if(state.weather==='storm'){
+    nextBolt-=dt;
+    if(nextBolt<0){flash=1;bolt=(()=>{const pts=[[rand(W*.2,W*.8),H*.2]];let[x,y]=pts[0];
+      while(y<H*.62){y+=rand(22,46);x+=rand(-28,28);pts.push([x,y]);}return pts;})();
+      nextBolt=rand(2.5,7);}
+  }
+  if(flash>0){flash-=dt*4;
+    ctx.fillStyle=`rgba(230,238,255,${.32*Math.max(0,flash)})`;ctx.fillRect(0,0,W,H);
+    if(bolt&&flash>.4){ctx.strokeStyle=`rgba(255,255,255,${flash})`;ctx.lineWidth=2;
+      ctx.shadowColor='rgba(190,210,255,.9)';ctx.shadowBlur=14;
+      ctx.beginPath();bolt.forEach((pt,i)=>i?ctx.lineTo(pt[0],pt[1]):ctx.moveTo(pt[0],pt[1]));ctx.stroke();
+      ctx.shadowBlur=0;}
+    if(flash<=0)bolt=null;
+  }
+
+  /* ── SKY MAP dial: proof of the geometry ── */
+  if(state.dial)drawDial(tauS,tauM,p,qS,qM,moonLive);
+}
+
+function drawMoonDisc(cx,cy,r,p){
+  const il=illum(p);
+  ctx.fillStyle='rgba(223,230,242,.10)';ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.fill(); // earthshine
+  if(il>.015&&il<.985){
+    const waxing=p<.5, rx=Math.abs(Math.cos(2*Math.PI*p))*r;
+    const bulgeLeft=(p>.25&&p<.5)||(p>.75);
+    ctx.beginPath();
+    ctx.arc(cx,cy,r,-Math.PI/2,Math.PI/2,!waxing);
+    ctx.ellipse(cx,cy,Math.max(rx,.5),r,0,Math.PI/2,Math.PI*1.5,bulgeLeft?false:true);
+    ctx.closePath(); ctx.fillStyle='#e9edf3'; ctx.fill();
+    ctx.save(); ctx.clip();
+    ctx.fillStyle='rgba(120,132,155,.28)';
+    [[-.3,-.2,.18],[.28,.12,.13],[-.05,.38,.11],[.38,-.34,.10]].forEach(([dx,dy,dr])=>{
+      ctx.beginPath();ctx.arc(cx+dx*r,cy+dy*r,dr*r,0,7);ctx.fill();});
+    ctx.restore();
+  } else if(il>=.985){
+    ctx.fillStyle='#e9edf3';ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.fill();
+    ctx.fillStyle='rgba(120,132,155,.22)';
+    [[-.3,-.2,.18],[.28,.12,.13],[-.05,.38,.11]].forEach(([dx,dy,dr])=>{
+      ctx.beginPath();ctx.arc(cx+dx*r,cy+dy*r,dr*r,0,7);ctx.fill();});
+  } else {
+    ctx.strokeStyle='rgba(233,238,243,.18)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.stroke();
+  }
+}
+
+/* sky-map dial — both bodies on the 24h circle, exact elongation arc */
+function drawDial(tauS,tauM,p,qS,qM,moonLive){
+  const R=54, cx=W-R-30, cy=H-R-26;
+  const pt=(t,tau)=>{const a=((t-tau)/24)*2*Math.PI;
+    return {x:cx+R*Math.sin(a), y:cy-R*Math.cos(a), a};};
+  ctx.save();
+  ctx.beginPath();ctx.arc(cx,cy,R+13,0,7);ctx.fillStyle='rgba(8,10,15,.66)';ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.14)';ctx.lineWidth=1;ctx.stroke();
+  ctx.setLineDash([3,4]);ctx.beginPath();ctx.arc(cx,cy,R,0,7);
+  ctx.strokeStyle='rgba(160,180,220,.35)';ctx.stroke();ctx.setLineDash([]);
+  /* horizon (sun's) — chord through the sun's rise/set points */
+  const d=sunHalf()/24*2*Math.PI;
+  ctx.beginPath();ctx.moveTo(cx-R*Math.sin(d)-6,cy-R*Math.cos(d));ctx.lineTo(cx+R*Math.sin(d)+6,cy-R*Math.cos(d));
+  ctx.strokeStyle='rgba(255,255,255,.25)';ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,.4)';ctx.font='7px JetBrains Mono';ctx.textAlign='center';
+  ctx.fillText('transit',cx,cy-R-4); ctx.fillText('nadir',cx,cy+R+9);
+  ctx.textAlign='left'; ctx.fillText('rise',cx-R*Math.sin(d)-R*.28,cy-R*Math.cos(d)-4);
+  ctx.textAlign='right';ctx.fillText('set',cx+R*Math.sin(d)+R*.28,cy-R*Math.cos(d)-4);
+  /* elongation arc: from moon marker to sun marker = phase×360°, always */
+  const a1=((state.t-tauS)/24)*2*Math.PI, a2=((state.t-tauM)/24)*2*Math.PI;
+  ctx.beginPath();ctx.arc(cx,cy,R-10,-Math.PI/2+a2,-Math.PI/2+a1,false);
+  ctx.setLineDash([2,3]);ctx.strokeStyle='rgba(177,140,255,.7)';ctx.stroke();ctx.setLineDash([]);
+  const mid=-Math.PI/2+a2+p*Math.PI;
+  ctx.fillStyle='#cdb2ff';ctx.font='8px JetBrains Mono';ctx.textAlign='center';
+  ctx.fillText('Δ'+Math.round(p*360)+'°',cx+(R-24)*Math.cos(mid),cy+(R-24)*Math.sin(mid)+2);
+  /* sun marker */
+  const spt=pt(state.t,tauS);
+  ctx.fillStyle='#ffd98a';ctx.beginPath();ctx.arc(spt.x,spt.y,4.2,0,7);ctx.fill();
+  ctx.strokeStyle='rgba(255,217,138,.5)';
+  for(let i=0;i<4;i++){const ra=i*Math.PI/2+Math.PI/4;
+    ctx.beginPath();ctx.moveTo(spt.x+Math.cos(ra)*6,spt.y+Math.sin(ra)*6);
+    ctx.lineTo(spt.x+Math.cos(ra)*9,spt.y+Math.sin(ra)*9);ctx.stroke();}
+  /* moon marker — dimmed while below its own horizon */
+  const mpt=pt(state.t,tauM);
+  ctx.globalAlpha=Math.abs(qM)<=1?1:.35;
+  drawMoonDisc(mpt.x,mpt.y,7,p);
+  ctx.globalAlpha=1;
+  ctx.fillStyle='rgba(255,255,255,.55)';ctx.font='7px JetBrains Mono';
+  ctx.fillText('sun',spt.x,spt.y-10); ctx.fillText('moon',mpt.x,mpt.y-11);
+  ctx.restore();
+}
+
+/* ═══════════ UI ═══════════ */
+const slider=$('#timeSlider');
+function dayLabel(){ const s=SEASONS[state.season],t=state.t;
+  if(t<s.sr-1||t>=s.ss+1.2)return 'Night';
+  if(t<s.sr+.8)return 'Dawn'; if(t<11)return 'Morning'; if(t<14)return 'Midday';
+  if(t<s.ss-1.6)return 'Afternoon'; if(t<s.ss-.5)return 'Golden hour';
+  if(t<s.ss+.5)return 'Sunset'; return 'Dusk'; }
+function temp(){ const s=SEASONS[state.season];
+  const c=s.base+s.amp*Math.cos((state.t-15)/24*2*Math.PI)+(WEATHER[state.weather].temp??0);
+  return Math.round(state.units==='C'?c:c*9/5+32); }
+function updateTrack(){
+  const stops=[]; for(let h=0;h<=24;h+=2){const c=weatherize(sampleSky(h)[1],1);stops.push(rgbStr(c)+` ${(h/24*100).toFixed(1)}%`);}
+  $('#track').style.background=`linear-gradient(90deg,${stops.join(',')})`;
+  const s=SEASONS[state.season];
+  $('#tickSR').style.left=(s.sr/24*100)+'%';
+  $('#tickSS').style.left=(s.ss/24*100)+'%';
+}
+function updateUI(){
+  slider.value=state.t;
+  const s=SEASONS[state.season], p=state.phase/8, il=illum(p);
+  const tauM=moonTau(p), mRise=fmt(tauM-MOON_HALF), mSet=fmt(tauM+MOON_HALF);
+  const clock=fmt(state.t), lbl=`${s.name} · ${dayLabel()}`;
+  $('#clockTime').textContent=clock; $('#deckClock').textContent=clock;
+  $('#clockLabel').textContent=lbl; $('#deckLabel').textContent=lbl;
+  const tp=temp();
+  $('#tempChip').textContent=tp+'°'+state.units;
+  $('#condLabel').textContent=WEATHER[state.weather].label;
+  /* moon status line — flag the day-sky moon when it happens */
+  const qM=bodyQ(state.t,tauM,MOON_HALF);
+  const up=Math.abs(qM)<=1, day=nightF()<.5;
+  const status=!up?'below horizon':day?'<span class="daytag">☀ up in the day sky</span>':'☾ night sky';
+  $('#moonInfo').innerHTML=`${PHASES[state.phase]} · ${Math.round(il*100)}% lit · ${status}`;
+  $('#sunInfo').textContent=`↑ ${fmt(s.sr)} · ↓ ${fmt(s.ss)}`;
+  $('#roSunrise').textContent=fmt(s.sr); $('#roSunset').textContent=fmt(s.ss);
+  const dl=s.ss-s.sr;
+  $('#roDay').textContent=`${Math.floor(dl)}h ${String(Math.round((dl%1)*60)).padStart(2,'0')}m`;
+  $('#roMR').textContent=mRise; $('#roMS').textContent=mSet; $('#roMT').textContent=fmt(tauM);
+  $('#roElon').textContent=Math.round(p*360)+'°';
+  $('#roIllum').textContent=Math.round(il*100)+'%';
+  $('#roTemp').textContent=tp+'°'+state.units;
+  $$('#seasonSeg button').forEach(b=>b.classList.toggle('active',b.dataset.season===state.season));
+  $$('#weatherChips .chip').forEach(b=>b.classList.toggle('active',b.dataset.weather===state.weather));
+  $$('#moonBtns .mbtn').forEach(b=>b.classList.toggle('active',+b.dataset.phase===state.phase));
+}
+function refreshTrackSeason(){makeRidges();updateTrack();}
+slider.addEventListener('input',()=>{state.t=parseFloat(slider.value);state.playing=false;syncPlayBtn();updateUI();});
+ $('#playBtn').onclick=()=>{state.playing=!state.playing;syncPlayBtn();};
+function syncPlayBtn(){const b=$('#playBtn');b.classList.toggle('on',state.playing);b.textContent=state.playing?'⏸ pause':'▶ time-lapse';}
+ $('#nowBtn').onclick=()=>{const n=new Date();state.t=n.getHours()+n.getMinutes()/60;updateUI();toast('synced to local time');};
+ $$('.qb[data-jump]').forEach(b=>b.onclick=()=>{const s=SEASONS[state.season];
+  state.t={dawn:s.sr+.2,noon:12,dusk:s.ss-.2,night:0}[b.dataset.jump];updateUI();});
+ $$('#seasonSeg button').forEach(b=>b.onclick=()=>{state.season=b.dataset.season;refreshTrackSeason();updateUI();});
+ $$('#weatherChips .chip').forEach(b=>b.onclick=()=>{state.weather=b.dataset.weather;updateUI();});
+ $('#moonBtns').innerHTML=PHASES.map((n,i)=>`<button class="mbtn" data-phase="${i}" title="${n}">${moonSVG(i/8,30)}<span class="ml">${n.replace('Moon','').replace('Waxing','Wax.').replace('Waning','Wan.').replace('Quarter','Q.').replace('Gibbous','Gib.').replace('Crescent','Cres.').trim()||'New'}</span></button>`).join('');
+ $$('#moonBtns .mbtn').forEach(b=>b.onclick=()=>{state.phase=+b.dataset.phase;updateUI();});
+ $('#tempChip').onclick=()=>{state.units=state.units==='C'?'F':'C';updateUI();};
+ $('#dialBtn').onclick=()=>{state.dial=!state.dial;$('#dialBtn').classList.toggle('on',state.dial);
+  if(state.dial)toast('sky map on — Δ is the sun–moon angle, always phase × 360°');};
+ $('#copyState').onclick=()=>{const s=SEASONS[state.season],p=state.phase/8,tauM=moonTau(p);
+  const out={time:fmt(state.t),hour:+state.t.toFixed(2),season:state.season,weather:state.weather,
+    moon:{phase:PHASES[state.phase],illumination:+illum(p).toFixed(2),
+      elongation_deg:Math.round(p*360),
+      moonrise:fmt(tauM-MOON_HALF),transit:fmt(tauM),moonset:fmt(tauM+MOON_HALF)},
+    sun:{sunrise:fmt(s.sr),sunset:fmt(s.ss)},temperature_c:temp()};
+  navigator.clipboard&&navigator.clipboard.writeText(JSON.stringify(out,null,2));
+  toast('atmosphere state copied — JSON');};
+
+/* ═══════════ loop ═══════════ */
+function frame(nowT){
+  const dt=clamp((nowT-last)/1000,0,.1); last=nowT;
+  try{
+    if(state.playing){state.t=(state.t+dt*0.6)%24;updateUI();}
+    drawScene(dt);
+  }catch(err){
+    /* 🛡 armored: a bad frame logs once, never kills the sky */
+    if(!frame._logged){console.error('[atmosphere] drawScene error:',err);frame._logged=true;}
+  }
+  requestAnimationFrame(frame);
+}
+new ResizeObserver(resize).observe($('.scene'));
+resize(); refreshTrackSeason(); updateUI(); syncPlayBtn();
+requestAnimationFrame(frame);
+setTimeout(()=>$('#syncNote').textContent='booted from your real sky ✓',1200);
+/* ═════ engine bridge: listen for parent postMessage state updates ═════ */
+window.addEventListener('message', ev => {
+    if (!ev.data || !ev.data.type) return;
+    if (ev.data.type === 'engine:sky-state') {
+        const d = ev.data;
+        // Preserve demo controls UNLESS the parent sends a specific field
+        if (d.t !== undefined) state.t = d.t;
+        if (d.season !== undefined) { state.season = d.season; refreshTrackSeason(); }
+        if (d.weather !== undefined) state.weather = d.weather;
+        if (d.phase !== undefined) state.phase = d.phase;
+        // Update the "synced" indicator
+        if (d.engineTime) $('#syncNote').textContent = '🔗 synced to ' + d.engineTime;
+        if (d.engineDay) $('#syncNote').textContent += ' · Day ' + d.engineDay;
+        updateUI();
+    }
+});
+// If we're inside an iframe, the parent will send the first update shortly.
+if (window.parent && window.parent !== window) {
+    window.parent.postMessage({ type: 'sky:ready' }, '*');
+}
+</script>
+</body>
+</html>

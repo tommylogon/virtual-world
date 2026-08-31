@@ -215,8 +215,16 @@ class UIController {
         this.renderSelectedAgentOverview(state);
         this.renderAlerts(state);
         this.renderTurnInfo(state);
-        const timeEl = document.getElementById('ui-time');
-        if (timeEl && state.game_time) timeEl.textContent = state.game_time;
+        const timeEl = document.getElementById('sky-time');
+        if (timeEl && state.game_time) {
+            // task-387: if the SkyScape widget is active, it manages #sky-time;
+            // the legacy clock-text overwrite would wipe the widget's span.
+            if (typeof window.SkyScape !== 'undefined' && window.SkyScape.wire?._done) {
+                window.SkyScape.renderTopBar(timeEl, state);
+            } else {
+                timeEl.textContent = `🕐 ${state.game_time.slice(0, 5)}`;
+            }
+        }
         const outlinePane = document.getElementById('left-tab-outline');
         if (outlinePane && outlinePane.classList.contains('active')) {
             GraphTreeView.renderOutlinePanel(document.getElementById('outline-container'));

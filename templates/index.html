@@ -31,6 +31,7 @@
     <!-- ===== TOP BAR ===== -->
     <header id="top-bar" role="banner">
         <div class="logo" id="scenario-name-container" title="Click to rename scenario">🌍 <span id="scenario-name-text">{{ scenario_name or 'unnamed' }}</span> <span id="scenario-status-chip" style="margin-left:6px;display:inline-flex;align-items:center;gap:4px;font-size:11px;white-space:nowrap;"></span></div>
+        <div class="sky-time" id="sky-time" aria-live="polite">🕐 08:00</div>
         <div class="top-actions">
             <label class="toggle-label" for="spectator-mode">
                 <input type="checkbox" id="spectator-mode" onchange="toggleSpectator()" aria-label="Toggle spectator mode">
@@ -81,7 +82,6 @@
                 <input type="number" id="sim-max-steps" class="sim-max-steps" value="10" min="0" title="Max steps before auto-stop (0 = unlimited)">
                 <span class="sim-steps-label" title="Max steps before auto-stop (0 = unlimited)">steps</span>
                 <span id="sim-rate-limit" class="sim-rate-limit" hidden aria-live="polite" title="API rate limit cooldown"></span>
-                <div class="sim-time" id="ui-time" aria-live="polite">08:00</div>
             </div>
             <div id="turn-info-bar" class="turn-info-bar">
                 <span id="turn-display" class="turn-label">Turn: 0</span>

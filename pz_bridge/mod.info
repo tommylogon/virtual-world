@@ -1,8 +1,6 @@
 name=PZBridge
 id=PZBridge
-version=0.1.0
+version=2.0.0
 author=viwo-adapter
-description=Minimal bridge mod for viwo NPC brain (HTTP server stub)
-poster=poster.jpg
-
-modDependencies=UniversalTweaks (optional)
+description=HTTP bridge for LLM-driven NPCs — vitals, inventory, personality, traits. Endpoints: /snapshot, /act, /npc, /npc/{name}, /zone
+poster=

@@ -195,6 +195,23 @@ def register_settings_routes(app):
             logger.exception("Error in POST /api/settings/forecast-override")
             return jsonify({"error": str(e)}), 500
 
+    @app.route('/api/settings/date', methods=['POST'])
+    def set_date():
+        """task-228: set game calendar date (day, month, year — each optional)."""
+        try:
+            data = request.get_json() or {}
+            app.world.set_game_date(
+                day=data.get('day'), month=data.get('month'), year=data.get('year'))
+            return jsonify({
+                "status": "success",
+                "game_day": int(app.world.game_day),
+                "game_month": int(app.world.game_month),
+                "game_year": int(app.world.game_year),
+            })
+        except Exception as e:
+            logger.exception("Error in POST /api/settings/date")
+            return jsonify({"error": str(e)}), 500
+
     @app.route('/api/settings/narration', methods=['GET'])
     def get_narration_mode():
         """Get the current narration mode."""

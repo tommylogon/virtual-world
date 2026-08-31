@@ -1,6 +1,7 @@
 {
   "current_area": "Blizzard Forest Clearing",
   "players_in_area": [],
+  "area_presence": {},
   "players": {
     "Kaelen Voss": {
       "name": "Kaelen Voss",
@@ -84,6 +85,7 @@
         "human"
       ],
       "known": [],
+      "crafting_known": [],
       "discovered_exits": [],
       "interest_tags": [],
       "discovered_items": [],
@@ -292,7 +294,7 @@
       "behaviors": [],
       "patrol_route": [],
       "patrol_index": 0,
-      "feels_like": 2,
+      "feels_like": 23,
       "current_carry_weight": 19.1,
       "max_carry_capacity": 100.0,
       "at_way_id": null,
@@ -378,6 +380,7 @@
         "elf"
       ],
       "known": [],
+      "crafting_known": [],
       "discovered_exits": [],
       "interest_tags": [],
       "discovered_items": [],
@@ -669,7 +672,7 @@
       "behaviors": [],
       "patrol_route": [],
       "patrol_index": 0,
-      "feels_like": -6,
+      "feels_like": 18,
       "current_carry_weight": 1.4000000000000001,
       "max_carry_capacity": 100.0,
       "at_way_id": null,
@@ -741,6 +744,7 @@
         "animal"
       ],
       "known": [],
+      "crafting_known": [],
       "discovered_exits": [],
       "interest_tags": [],
       "discovered_items": [],
@@ -1322,26 +1326,10 @@
   },
   "active_player": "Kaelen Voss",
   "game_time": "09:40:00",
-  "time_ticks": 20,
+  "time_ticks": 165649556,
   "time_per_tick_minutes": 5,
   "clock_start_hour": 8,
   "clock_start_minute": 0,
-  "calendar_config": {
-    "minutes_per_day": 1440,
-    "days_per_week": 7,
-    "days_per_month": 30,
-    "months_per_year": 12,
-    "year_start_day": 1
-  },
-  "forecast_schedule": {
-    "mode": "authored",
-    "granularity": "hourly",
-    "entries": [
-      {"offset": 0, "weather": "snowy", "wind": "wind", "humidity": "humid", "temperature_mod": -8, "light_mod": -8, "air": "fresh", "message": "Snowfall continues across the frozen landscape, the wind biting cold."},
-      {"offset": 360, "weather": "snowy", "wind": "gale", "humidity": "wet", "temperature_mod": -15, "light_mod": -12, "air": "fresh", "message": "The wind picks up into a howling gale, driving snow sideways. The cold deepens."},
-      {"offset": 720, "weather": "snowy", "wind": "breeze", "humidity": "humid", "temperature_mod": -5, "light_mod": -5, "air": "fresh", "message": "The gale subsides to a bitter breeze. Snow still falls, but the sky begins to pale."}
-    ]
-  },
   "areas": {
     "Abandoned Hunter's Cabin": {
       "name": "Abandoned Hunter's Cabin",
@@ -1355,42 +1343,6 @@
       },
       "ambient_light": 55,
       "light_description": "normal",
-      "exits": {
-        "cabin door": {
-          "target": "Frozen Lake Clearing",
-          "return_dir": "lakeside path",
-          "state": "open",
-          "description": "The cabin's heavy door hangs askew on broken hinges, leaning outward into the snow. Through the gap, the frozen lake and glittering white clearing are visible.",
-          "cost": {},
-          "way_id": "way_cabin_door",
-          "hidden": false,
-          "direction": "cabin door",
-          "pass_message": "You step through the sagging doorway, the broken frame scraping against your shoulder.",
-          "visible_in_direction": "The frozen lake stretches under a pale sky, surrounded by rime-laden pines. Wind drives snow across the ice, and a set of footprints vanishes into the white haze.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "cabin door",
-          "cardinal": "northeast"
-        }
-      },
-      "exits_authoring": {
-        "cabin door": {
-          "target": "Frozen Lake Clearing",
-          "return_dir": "lakeside path",
-          "state": "open",
-          "description": "The cabin's heavy door hangs askew on broken hinges, leaning outward into the snow. Through the gap, the frozen lake and glittering white clearing are visible.",
-          "cost": {},
-          "way_id": "way_cabin_door",
-          "hidden": false,
-          "direction": "cabin door",
-          "pass_message": "You step through the sagging doorway, the broken frame scraping against your shoulder.",
-          "visible_in_direction": "The frozen lake stretches under a pale sky, surrounded by rime-laden pines. Wind drives snow across the ice, and a set of footprints vanishes into the white haze.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "cabin door",
-          "cardinal": "northeast"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
@@ -1416,42 +1368,6 @@
       },
       "ambient_light": 30,
       "light_description": "dim",
-      "exits": {
-        "kitchen door": {
-          "target": "Kitchen",
-          "return_dir": "bathroom door",
-          "state": "closed",
-          "description": "A wooden door that has a small sigh of Bath on it.",
-          "cost": {},
-          "way_id": "way_bathroom_door",
-          "hidden": false,
-          "direction": "kitchen door",
-          "pass_message": "",
-          "visible_in_direction": "",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "kitchen door",
-          "cardinal": "south"
-        }
-      },
-      "exits_authoring": {
-        "kitchen door": {
-          "target": "Kitchen",
-          "return_dir": "bathroom door",
-          "state": "closed",
-          "description": "A wooden door that has a small sigh of Bath on it.",
-          "cost": {},
-          "way_id": "way_bathroom_door",
-          "hidden": false,
-          "direction": "kitchen door",
-          "pass_message": "",
-          "visible_in_direction": "",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "kitchen door",
-          "cardinal": "south"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
@@ -1474,119 +1390,16 @@
       "description": "You stand in a small clearing, surrounded by towering pines encased in ice and snow. The wind howls relentlessly, whipping stinging flakes into your face and muffling all but the loudest sounds. Through the blinding white, you make out the faint silhouette of a two-story house in the distance, its windows glowing with a dim, warm light. Nestled to one side, a small outhouse stands incongruously bare of snow, its roof and walls oddly dry and dark against the surrounding white. Closer still, an axe is embedded deep in a weathered stump, its handle gleaming with a faint sheen of frost. The air is sharp and cold, carrying the crisp scent of frozen pine and the faint, almost imperceptible hint of woodsmoke from the house. Every step crunches on the icy crust, and the trees groan under their burden of snow.",
       "environment": {
         "air": "fresh",
-        "light": "bright",
+        "light": 72,
         "noise": "windy",
         "smell": "Frozen pine, wild cedar, and a whisper of woodsmoke",
-        "temperature": -12
+        "temperature": 13.0,
+        "weather": "snowy",
+        "wind": "gale",
+        "humidity": "humid"
       },
-      "ambient_light": 80,
+      "ambient_light": 72,
       "light_description": "bright",
-      "exits": {
-        "front door": {
-          "target": "Living Room",
-          "return_dir": "enter",
-          "state": "open",
-          "description": "A heavy wooden front door, weathered by the storm. The iron handle is cold to the touch.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_front",
-          "hidden": false,
-          "direction": "front door",
-          "pass_message": "You step through the front door into the cold glow of the living room.",
-          "visible_in_direction": "The door is sligtly ajar, snow and wind slowly blowing the door back and forth. inside is the dim ligth and outlines of  furniture",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "front door",
-          "cardinal": "north"
-        },
-        "Outhouse door": {
-          "target": "Outhouse",
-          "return_dir": "Outhouse door",
-          "state": "closed",
-          "description": "A wooden door to the outhouse",
-          "cost": {},
-          "way_id": "way_outhouse_door",
-          "hidden": false,
-          "direction": "Outhouse door",
-          "pass_message": "The outhouse door creeks gently as you open and pass inside.",
-          "visible_in_direction": "You see that the snow that blows inside instantly melts in the warm air inside",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "Outhouse door",
-          "cardinal": "northeast"
-        },
-        "narrow passage": {
-          "target": "Frozen Hollow",
-          "return_dir": "hollow exit",
-          "state": "open",
-          "description": "A narrow cleft in the snow-covered hillside, barely wide enough for one person to squeeze through. The wind whistles through the gap, carrying the muffled sounds of the forest beyond.",
-          "cost": {},
-          "way_id": "way_narrow_passage",
-          "hidden": false,
-          "direction": "narrow passage",
-          "pass_message": "You push through the narrow passage, the snow brushing against your shoulders as the landscape shifts around you. there are footsteps towrads the clearing",
-          "visible_in_direction": "Through the cleft, the hollow lies silent and still, a bowl of deep snow where the wind barely stirs. The half-frozen well is a dark speck in the center.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "narrow passage",
-          "cardinal": "south"
-        }
-      },
-      "exits_authoring": {
-        "front door": {
-          "target": "Living Room",
-          "return_dir": "enter",
-          "state": "open",
-          "description": "A heavy wooden front door, weathered by the storm. The iron handle is cold to the touch.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_front",
-          "hidden": false,
-          "direction": "front door",
-          "pass_message": "You step through the front door into the cold glow of the living room.",
-          "visible_in_direction": "The door is sligtly ajar, snow and wind slowly blowing the door back and forth. inside is the dim ligth and outlines of  furniture",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "front door",
-          "cardinal": "north"
-        },
-        "Outhouse door": {
-          "target": "Outhouse",
-          "return_dir": "Outhouse door",
-          "state": "closed",
-          "description": "A wooden door to the outhouse",
-          "cost": {},
-          "way_id": "way_outhouse_door",
-          "hidden": false,
-          "direction": "Outhouse door",
-          "pass_message": "The outhouse door creeks gently as you open and pass inside.",
-          "visible_in_direction": "You see that the snow that blows inside instantly melts in the warm air inside",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "Outhouse door",
-          "cardinal": "northeast"
-        },
-        "narrow passage": {
-          "target": "Frozen Hollow",
-          "return_dir": "hollow exit",
-          "state": "open",
-          "description": "A narrow cleft in the snow-covered hillside, barely wide enough for one person to squeeze through. The wind whistles through the gap, carrying the muffled sounds of the forest beyond.",
-          "cost": {},
-          "way_id": "way_narrow_passage",
-          "hidden": false,
-          "direction": "narrow passage",
-          "pass_message": "You push through the narrow passage, the snow brushing against your shoulders as the landscape shifts around you. there are footsteps towrads the clearing",
-          "visible_in_direction": "Through the cleft, the hollow lies silent and still, a bowl of deep snow where the wind barely stirs. The half-frozen well is a dark speck in the center.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "narrow passage",
-          "cardinal": "south"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
@@ -1594,10 +1407,13 @@
         "description": "You stand in a small clearing, surrounded by towering pines encased in ice and snow. The wind howls relentlessly, whipping stinging flakes into your face and muffling all but the loudest sounds. Through the blinding white, you make out the faint silhouette of a two-story house in the distance, its windows glowing with a dim, warm light. Nestled to one side, a small outhouse stands incongruously bare of snow, its roof and walls oddly dry and dark against the surrounding white. Closer still, an axe is embedded deep in a weathered stump, its handle gleaming with a faint sheen of frost. The air is sharp and cold, carrying the crisp scent of frozen pine and the faint, almost imperceptible hint of woodsmoke from the house. Every step crunches on the icy crust, and the trees groan under their burden of snow.",
         "environment": {
           "air": "fresh",
-          "light": "bright",
+          "light": 72,
           "noise": "windy",
           "smell": "Frozen pine, wild cedar, and a whisper of woodsmoke",
-          "temperature": -12
+          "temperature": 13.0,
+          "weather": "snowy",
+          "wind": "gale",
+          "humidity": "humid"
         },
         "tags": [
           "exterior"
@@ -1616,48 +1432,6 @@
       },
       "ambient_light": 5,
       "light_description": "pitch_black",
-      "exits": {
-        "ladder": {
-          "target": "Kitchen",
-          "return_dir": "ladder",
-          "state": "closed",
-          "description": "A heavy wooden trapdoor set into the kitchen floor, its iron ring cold against the floorboards. A sturdy ladder disappears into darkness below.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_cellar_trapdoor",
-          "hidden": false,
-          "direction": "ladder",
-          "pass_message": "You lift the trapdoor and climb down the ladder into the cold, damp cellar.",
-          "visible_in_direction": "Above, through the open trapdoor, you see the kitchen ceiling and the light from the room.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "ladder",
-          "cardinal": "up"
-        }
-      },
-      "exits_authoring": {
-        "ladder": {
-          "target": "Kitchen",
-          "return_dir": "ladder",
-          "state": "closed",
-          "description": "A heavy wooden trapdoor set into the kitchen floor, its iron ring cold against the floorboards. A sturdy ladder disappears into darkness below.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_cellar_trapdoor",
-          "hidden": false,
-          "direction": "ladder",
-          "pass_message": "You lift the trapdoor and climb down the ladder into the cold, damp cellar.",
-          "visible_in_direction": "Above, through the open trapdoor, you see the kitchen ceiling and the light from the room.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "ladder",
-          "cardinal": "up"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
@@ -1683,8 +1457,6 @@
       },
       "ambient_light": 55,
       "light_description": "normal",
-      "exits": {},
-      "exits_authoring": {},
       "items": [],
       "floor": 0,
       "properties": {
@@ -1702,92 +1474,30 @@
       "name": "Frozen Hollow",
       "description": "A dead-end clearing surrounded by steep, snow-covered slopes. The wind is muted here, trapped by the natural bowl of the hills. In the center, an old stone well sits half-frozen, its wooden crank creaking slightly. The bucket is broken and lies in pieces at the base. Peering inside reveals only stale, cold air and a single, faded ribbon tied to the crank. ",
       "environment": {
-        "air": "",
-        "light": "bright",
+        "air": "fresh",
+        "light": 72,
         "noise": "quiet, with an occasional creak of frozen wood",
         "smell": "faint iron and frost",
-        "temperature": -5
+        "temperature": 13.0,
+        "weather": "snowy",
+        "wind": "gale",
+        "humidity": "humid"
       },
-      "ambient_light": 80,
+      "ambient_light": 72,
       "light_description": "bright",
-      "exits": {
-        "narrow passage": {
-          "target": "Blizzard Forest Clearing",
-          "return_dir": "forest passage",
-          "state": "open",
-          "description": "A narrow cleft in the snow-covered hillside, barely wide enough for one person to squeeze through. The wind whistles through the gap, carrying the muffled sounds of the forest beyond.",
-          "cost": {},
-          "way_id": "way_narrow_passage",
-          "hidden": false,
-          "direction": "narrow passage",
-          "pass_message": "You push through the narrow passage, the snow brushing against your shoulders as the landscape shifts around you. there are footsteps towrads the clearing",
-          "visible_in_direction": "Through the gap, the blizzard rages among the skeletal trees of the clearing beyond. The faint outline of a house and an outhouse are just visible through the white gloom.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "narrow passage",
-          "cardinal": "north"
-        },
-        "rocky slope": {
-          "target": "Frozen Thicket",
-          "return_dir": "hollow entrance",
-          "state": "open",
-          "description": "A narrow cleft in the snow-covered slope, its edges worn smooth by wind and frost. It leads out of the hollow into the tangled thicket beyond.",
-          "cost": {},
-          "way_id": "way_rocky_slope",
-          "hidden": false,
-          "direction": "rocky slope",
-          "pass_message": "The snow crunches softly underfoot as you squeeze through the tight passage, the cold air swirling around you.. there are footsteps towards the hollow entrance",
-          "visible_in_direction": "Through the cleft, you see a dense tangle of frozen branches glazed with rime, their pale blue forms barely visible in the dim light.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "rocky slope",
-          "cardinal": "east"
-        }
-      },
-      "exits_authoring": {
-        "narrow passage": {
-          "target": "Blizzard Forest Clearing",
-          "return_dir": "forest passage",
-          "state": "open",
-          "description": "A narrow cleft in the snow-covered hillside, barely wide enough for one person to squeeze through. The wind whistles through the gap, carrying the muffled sounds of the forest beyond.",
-          "cost": {},
-          "way_id": "way_narrow_passage",
-          "hidden": false,
-          "direction": "narrow passage",
-          "pass_message": "You push through the narrow passage, the snow brushing against your shoulders as the landscape shifts around you. there are footsteps towrads the clearing",
-          "visible_in_direction": "Through the gap, the blizzard rages among the skeletal trees of the clearing beyond. The faint outline of a house and an outhouse are just visible through the white gloom.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "narrow passage",
-          "cardinal": "north"
-        },
-        "rocky slope": {
-          "target": "Frozen Thicket",
-          "return_dir": "hollow entrance",
-          "state": "open",
-          "description": "A narrow cleft in the snow-covered slope, its edges worn smooth by wind and frost. It leads out of the hollow into the tangled thicket beyond.",
-          "cost": {},
-          "way_id": "way_rocky_slope",
-          "hidden": false,
-          "direction": "rocky slope",
-          "pass_message": "The snow crunches softly underfoot as you squeeze through the tight passage, the cold air swirling around you.. there are footsteps towards the hollow entrance",
-          "visible_in_direction": "Through the cleft, you see a dense tangle of frozen branches glazed with rime, their pale blue forms barely visible in the dim light.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "rocky slope",
-          "cardinal": "east"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
         "description": "A dead-end clearing surrounded by steep, snow-covered slopes. The wind is muted here, trapped by the natural bowl of the hills. In the center, an old stone well sits half-frozen, its wooden crank creaking slightly. The bucket is broken and lies in pieces at the base. Peering inside reveals only stale, cold air and a single, faded ribbon tied to the crank. ",
         "environment": {
-          "air": "",
-          "light": "bright",
+          "air": "fresh",
+          "light": 72,
           "noise": "quiet, with an occasional creak of frozen wood",
           "smell": "faint iron and frost",
-          "temperature": -5
+          "temperature": 13.0,
+          "weather": "snowy",
+          "wind": "gale",
+          "humidity": "humid"
         },
         "tags": [
           "exterior"
@@ -1798,124 +1508,30 @@
       "name": "Frozen Lake Clearing",
       "description": "A wide clearing where the forest gives way to the shore of a vast, frozen lake. The wind roars across the ice, driving sheets of snow before it. The ice is thick and translucent, showing dark blue depths below. Bent willows and pines fringe the shore, their branches coated in rime.  The cold is relentless, biting at any exposed skin.",
       "environment": {
-        "air": "",
-        "light": "bright",
+        "air": "fresh",
+        "light": 72,
         "noise": "howling wind, creaking ice",
         "smell": "pine and clean ice",
-        "temperature": -12
+        "temperature": 13.0,
+        "weather": "snowy",
+        "wind": "gale",
+        "humidity": "humid"
       },
-      "ambient_light": 80,
+      "ambient_light": 72,
       "light_description": "bright",
-      "exits": {
-        "willow arch": {
-          "target": "Frozen Thicket",
-          "return_dir": "thicket path",
-          "state": "open",
-          "description": "A narrow gap in the frozen willows, their branches bent and frozen into a frosted archway that leads into the dense thicket beyond",
-          "cost": {},
-          "way_id": "way_frosted_archway",
-          "hidden": false,
-          "direction": "willow arch",
-          "pass_message": "The icy branches scrape against your clothes as you push through, sending tufts of rime drifting to the ground",
-          "visible_in_direction": "Through the gap, you see a tangle of rime-coated branches and pale blue shadows, the snow deepening among the trees",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "willow arch",
-          "cardinal": "north"
-        },
-        "stream bank": {
-          "target": "Frozen Stream Crossing",
-          "return_dir": "stream bank",
-          "state": "open",
-          "description": "A narrow gap between snow-laden pines opens onto the windswept shore of the frozen lake. The air smells of ice and pine.",
-          "cost": {},
-          "way_id": "way_stream_bank",
-          "hidden": false,
-          "direction": "stream bank",
-          "pass_message": "You push through the gap, snow brushing your shoulders as the wind picks up from the open lake.",
-          "visible_in_direction": "Looking back through the gap, you see the winding stream cutting through the forest, its ice-covered surface reflecting the pale light.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "stream bank",
-          "cardinal": "south"
-        },
-        "cabin door": {
-          "target": "Abandoned Hunter's Cabin",
-          "return_dir": "cabin door",
-          "state": "open",
-          "description": "The cabin's heavy door hangs askew on broken hinges, leaning outward into the snow. Through the gap, the frozen lake and glittering white clearing are visible.",
-          "cost": {},
-          "way_id": "way_cabin_door",
-          "hidden": false,
-          "direction": "cabin door",
-          "pass_message": "You step through the sagging doorway, the broken frame scraping against your shoulder.",
-          "visible_in_direction": "The dark interior of the cabin is barely visible through the cracked doorway—shadows pool around a frozen corpse and scattered debris. The cold air inside seeps out like a breath.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "cabin door",
-          "cardinal": "southwest"
-        }
-      },
-      "exits_authoring": {
-        "willow arch": {
-          "target": "Frozen Thicket",
-          "return_dir": "thicket path",
-          "state": "open",
-          "description": "A narrow gap in the frozen willows, their branches bent and frozen into a frosted archway that leads into the dense thicket beyond",
-          "cost": {},
-          "way_id": "way_frosted_archway",
-          "hidden": false,
-          "direction": "willow arch",
-          "pass_message": "The icy branches scrape against your clothes as you push through, sending tufts of rime drifting to the ground",
-          "visible_in_direction": "Through the gap, you see a tangle of rime-coated branches and pale blue shadows, the snow deepening among the trees",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "willow arch",
-          "cardinal": "north"
-        },
-        "stream bank": {
-          "target": "Frozen Stream Crossing",
-          "return_dir": "stream bank",
-          "state": "open",
-          "description": "A narrow gap between snow-laden pines opens onto the windswept shore of the frozen lake. The air smells of ice and pine.",
-          "cost": {},
-          "way_id": "way_stream_bank",
-          "hidden": false,
-          "direction": "stream bank",
-          "pass_message": "You push through the gap, snow brushing your shoulders as the wind picks up from the open lake.",
-          "visible_in_direction": "Looking back through the gap, you see the winding stream cutting through the forest, its ice-covered surface reflecting the pale light.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "stream bank",
-          "cardinal": "south"
-        },
-        "cabin door": {
-          "target": "Abandoned Hunter's Cabin",
-          "return_dir": "cabin door",
-          "state": "open",
-          "description": "The cabin's heavy door hangs askew on broken hinges, leaning outward into the snow. Through the gap, the frozen lake and glittering white clearing are visible.",
-          "cost": {},
-          "way_id": "way_cabin_door",
-          "hidden": false,
-          "direction": "cabin door",
-          "pass_message": "You step through the sagging doorway, the broken frame scraping against your shoulder.",
-          "visible_in_direction": "The dark interior of the cabin is barely visible through the cracked doorway—shadows pool around a frozen corpse and scattered debris. The cold air inside seeps out like a breath.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "cabin door",
-          "cardinal": "southwest"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
         "description": "A wide clearing where the forest gives way to the shore of a vast, frozen lake. The wind roars across the ice, driving sheets of snow before it. The ice is thick and translucent, showing dark blue depths below. Bent willows and pines fringe the shore, their branches coated in rime.  The cold is relentless, biting at any exposed skin.",
         "environment": {
-          "air": "",
-          "light": "bright",
+          "air": "fresh",
+          "light": 72,
           "noise": "howling wind, creaking ice",
           "smell": "pine and clean ice",
-          "temperature": -12
+          "temperature": 13.0,
+          "weather": "snowy",
+          "wind": "gale",
+          "humidity": "humid"
         },
         "tags": [
           "exterior"
@@ -1926,90 +1542,30 @@
       "name": "Frozen Stream Crossing",
       "description": "A narrow, winding stream cuts through the forest, its surface a patchwork of ice and open water. The ice near the banks is thin and cracks underfoot, while a fallen log spans the widest part, its bark worn smooth by countless crossings. The air is filled with the soft gurgle of rushing water beneath the ice and the whisper of wind through the pines.",
       "environment": {
-        "air": "",
-        "light": "bright",
+        "air": "fresh",
+        "light": 72,
         "noise": "trickling water and wind",
         "smell": "frost and wet wood",
-        "temperature": -5
+        "temperature": 13.0,
+        "weather": "snowy",
+        "wind": "gale",
+        "humidity": "humid"
       },
-      "ambient_light": 80,
+      "ambient_light": 72,
       "light_description": "bright",
-      "exits": {
-        "stream bank": {
-          "target": "Frozen Lake Clearing",
-          "return_dir": "forest trail",
-          "state": "open",
-          "description": "A narrow gap between snow-laden pines opens onto the windswept shore of the frozen lake. The air smells of ice and pine.",
-          "cost": {},
-          "way_id": "way_stream_bank",
-          "hidden": false,
-          "direction": "stream bank",
-          "pass_message": "You push through the gap, snow brushing your shoulders as the wind picks up from the open lake.",
-          "visible_in_direction": "Through the gap, you see the vast expanse of the frozen lake, its surface white and endless under the low sky.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "stream bank",
-          "cardinal": "north"
-        },
-        "ice bridge": {
-          "target": "Frozen Thicket",
-          "return_dir": "ice bridge",
-          "state": "open",
-          "description": "A narrow ice bridge spans the stream, its surface slick but sturdy. On the far side, the frozen thicket looms, its branches encased in rime.",
-          "cost": {},
-          "way_id": "way_ice_bridge",
-          "hidden": false,
-          "direction": "ice bridge",
-          "pass_message": "You carefully cross the ice bridge, stepping into the frozen thicket.",
-          "visible_in_direction": "",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "ice bridge"
-        }
-      },
-      "exits_authoring": {
-        "stream bank": {
-          "target": "Frozen Lake Clearing",
-          "return_dir": "forest trail",
-          "state": "open",
-          "description": "A narrow gap between snow-laden pines opens onto the windswept shore of the frozen lake. The air smells of ice and pine.",
-          "cost": {},
-          "way_id": "way_stream_bank",
-          "hidden": false,
-          "direction": "stream bank",
-          "pass_message": "You push through the gap, snow brushing your shoulders as the wind picks up from the open lake.",
-          "visible_in_direction": "Through the gap, you see the vast expanse of the frozen lake, its surface white and endless under the low sky.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "stream bank",
-          "cardinal": "north"
-        },
-        "ice bridge": {
-          "target": "Frozen Thicket",
-          "return_dir": "ice bridge",
-          "state": "open",
-          "description": "A narrow ice bridge spans the stream, its surface slick but sturdy. On the far side, the frozen thicket looms, its branches encased in rime.",
-          "cost": {},
-          "way_id": "way_ice_bridge",
-          "hidden": false,
-          "direction": "ice bridge",
-          "pass_message": "You carefully cross the ice bridge, stepping into the frozen thicket.",
-          "visible_in_direction": "",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "ice bridge"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
         "description": "A narrow, winding stream cuts through the forest, its surface a patchwork of ice and open water. The ice near the banks is thin and cracks underfoot, while a fallen log spans the widest part, its bark worn smooth by countless crossings. The air is filled with the soft gurgle of rushing water beneath the ice and the whisper of wind through the pines.",
         "environment": {
-          "air": "",
-          "light": "bright",
+          "air": "fresh",
+          "light": 72,
           "noise": "trickling water and wind",
           "smell": "frost and wet wood",
-          "temperature": -5
+          "temperature": 13.0,
+          "weather": "snowy",
+          "wind": "gale",
+          "humidity": "humid"
         },
         "tags": [
           "exterior"
@@ -2021,185 +1577,29 @@
       "description": "A dense tangle of frozen trees and underbrush, their branches coated in thick rime. The snow here is deep and unbroken, muffling all sound. The only light filters through gaps in the canopy, casting a pale blue glow on the frost-covered bark. The air is still and cold, carrying the sharp scent of pine and frozen earth.",
       "environment": {
         "air": "fresh",
-        "light": "normal",
+        "light": 72,
         "noise": "quiet",
         "smell": "pine and frost",
-        "temperature": -15
+        "temperature": 13.0,
+        "weather": "snowy",
+        "wind": "gale",
+        "humidity": "humid"
       },
-      "ambient_light": 55,
-      "light_description": "normal",
-      "exits": {
-        "willow arch": {
-          "target": "Frozen Lake Clearing",
-          "return_dir": "willow arch",
-          "state": "open",
-          "description": "A narrow gap in the frozen willows, their branches bent and frozen into a frosted archway that leads into the dense thicket beyond",
-          "cost": {},
-          "way_id": "way_frosted_archway",
-          "hidden": false,
-          "direction": "willow arch",
-          "pass_message": "The icy branches scrape against your clothes as you push through, sending tufts of rime drifting to the ground",
-          "visible_in_direction": "Looking back through the arch, the frozen lake stretches white and vast under the gray sky, the wind whipping snow across the ice",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "willow arch",
-          "cardinal": "south"
-        },
-        "icy arch": {
-          "target": "Snowbound Hollow",
-          "return_dir": "icy arch",
-          "state": "open",
-          "description": "A low arch formed by two ancient pines, their branches fused together by ice and frost. The passage is narrow, requiring a crouch to pass through.",
-          "cost": {},
-          "way_id": "way_icy_arch",
-          "hidden": false,
-          "direction": "icy arch",
-          "pass_message": "You duck through the icy arch, the cold air biting at your cheeks.",
-          "visible_in_direction": "ahead the Snowbound Hollow appears as a dim, sheltered hollow beneath a lattice of icy branches.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "icy arch",
-          "cardinal": "north"
-        },
-        "rocky slope": {
-          "target": "Frozen Hollow",
-          "return_dir": "rocky slope",
-          "state": "open",
-          "description": "A narrow cleft in the snow-covered slope, its edges worn smooth by wind and frost. It leads out of the hollow into the tangled thicket beyond.",
-          "cost": {},
-          "way_id": "way_rocky_slope",
-          "hidden": false,
-          "direction": "rocky slope",
-          "pass_message": "The snow crunches softly underfoot as you squeeze through the tight passage, the cold air swirling around you.. there are footsteps towards the hollow entrance",
-          "visible_in_direction": "Glancing back through the gap, you glimpse the bowl-shaped clearing of the hollow, with the old stone well standing silent in the center. seems like footprints going up the slope too",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "rocky slope",
-          "cardinal": "west"
-        },
-        "willow gap": {
-          "target": "Weeping Willow Hollow",
-          "return_dir": "willow gap",
-          "state": "open",
-          "description": "A gap in the weeping willow's curtain of branches, where the warm air meets the biting cold of the frozen thicket.",
-          "cost": {},
-          "way_id": "way_willow_gap",
-          "hidden": false,
-          "direction": "willow gap",
-          "pass_message": "The willow branches rustle as you step through, and the cold wraps around you like a shroud.",
-          "visible_in_direction": "A warm glow emanates from a sheltered hollow under a great weeping willow, dry leaves covering the ground.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "willow gap",
-          "cardinal": "west"
-        },
-        "ice bridge": {
-          "target": "Frozen Stream Crossing",
-          "return_dir": "ice bridge",
-          "state": "open",
-          "description": "A narrow ice bridge spans the stream, its surface slick but sturdy. On the far side, the frozen thicket looms, its branches encased in rime.",
-          "cost": {},
-          "way_id": "way_ice_bridge",
-          "hidden": false,
-          "direction": "ice bridge",
-          "pass_message": "You carefully cross the ice bridge, stepping into the frozen thicket.",
-          "visible_in_direction": "",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "ice bridge"
-        }
-      },
-      "exits_authoring": {
-        "willow arch": {
-          "target": "Frozen Lake Clearing",
-          "return_dir": "willow arch",
-          "state": "open",
-          "description": "A narrow gap in the frozen willows, their branches bent and frozen into a frosted archway that leads into the dense thicket beyond",
-          "cost": {},
-          "way_id": "way_frosted_archway",
-          "hidden": false,
-          "direction": "willow arch",
-          "pass_message": "The icy branches scrape against your clothes as you push through, sending tufts of rime drifting to the ground",
-          "visible_in_direction": "Looking back through the arch, the frozen lake stretches white and vast under the gray sky, the wind whipping snow across the ice",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "willow arch",
-          "cardinal": "south"
-        },
-        "icy arch": {
-          "target": "Snowbound Hollow",
-          "return_dir": "icy arch",
-          "state": "open",
-          "description": "A low arch formed by two ancient pines, their branches fused together by ice and frost. The passage is narrow, requiring a crouch to pass through.",
-          "cost": {},
-          "way_id": "way_icy_arch",
-          "hidden": false,
-          "direction": "icy arch",
-          "pass_message": "You duck through the icy arch, the cold air biting at your cheeks.",
-          "visible_in_direction": "ahead the Snowbound Hollow appears as a dim, sheltered hollow beneath a lattice of icy branches.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "icy arch",
-          "cardinal": "north"
-        },
-        "rocky slope": {
-          "target": "Frozen Hollow",
-          "return_dir": "rocky slope",
-          "state": "open",
-          "description": "A narrow cleft in the snow-covered slope, its edges worn smooth by wind and frost. It leads out of the hollow into the tangled thicket beyond.",
-          "cost": {},
-          "way_id": "way_rocky_slope",
-          "hidden": false,
-          "direction": "rocky slope",
-          "pass_message": "The snow crunches softly underfoot as you squeeze through the tight passage, the cold air swirling around you.. there are footsteps towards the hollow entrance",
-          "visible_in_direction": "Glancing back through the gap, you glimpse the bowl-shaped clearing of the hollow, with the old stone well standing silent in the center. seems like footprints going up the slope too",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "rocky slope",
-          "cardinal": "west"
-        },
-        "willow gap": {
-          "target": "Weeping Willow Hollow",
-          "return_dir": "willow gap",
-          "state": "open",
-          "description": "A gap in the weeping willow's curtain of branches, where the warm air meets the biting cold of the frozen thicket.",
-          "cost": {},
-          "way_id": "way_willow_gap",
-          "hidden": false,
-          "direction": "willow gap",
-          "pass_message": "The willow branches rustle as you step through, and the cold wraps around you like a shroud.",
-          "visible_in_direction": "A warm glow emanates from a sheltered hollow under a great weeping willow, dry leaves covering the ground.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "willow gap",
-          "cardinal": "west"
-        },
-        "ice bridge": {
-          "target": "Frozen Stream Crossing",
-          "return_dir": "ice bridge",
-          "state": "open",
-          "description": "A narrow ice bridge spans the stream, its surface slick but sturdy. On the far side, the frozen thicket looms, its branches encased in rime.",
-          "cost": {},
-          "way_id": "way_ice_bridge",
-          "hidden": false,
-          "direction": "ice bridge",
-          "pass_message": "You carefully cross the ice bridge, stepping into the frozen thicket.",
-          "visible_in_direction": "",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "ice bridge"
-        }
-      },
+      "ambient_light": 72,
+      "light_description": "bright",
       "items": [],
       "floor": 0,
       "properties": {
         "description": "A dense tangle of frozen trees and underbrush, their branches coated in thick rime. The snow here is deep and unbroken, muffling all sound. The only light filters through gaps in the canopy, casting a pale blue glow on the frost-covered bark. The air is still and cold, carrying the sharp scent of pine and frozen earth.",
         "environment": {
           "air": "fresh",
-          "light": "normal",
+          "light": 72,
           "noise": "quiet",
           "smell": "pine and frost",
-          "temperature": -15
+          "temperature": 13.0,
+          "weather": "snowy",
+          "wind": "gale",
+          "humidity": "humid"
         },
         "tags": [
           "exterior"
@@ -2218,25 +1618,6 @@
       },
       "ambient_light": 55,
       "light_description": "normal",
-      "exits": {},
-      "exits_authoring": {
-        "hidden": {
-          "target": "sons bedroom",
-          "return_dir": "hidden",
-          "state": "hidden",
-          "description": "",
-          "cost": {},
-          "way_id": "way_hidden_door",
-          "hidden": true,
-          "direction": "hidden",
-          "pass_message": "",
-          "visible_in_direction": "Through the hidden doorway, the guest bedroom is visible, with its single bed and dusty desk.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "hidden",
-          "cardinal": "west"
-        }
-      },
       "items": [],
       "floor": 1,
       "properties": {
@@ -2263,118 +1644,6 @@
       },
       "ambient_light": 55,
       "light_description": "normal",
-      "exits": {
-        "swinging door": {
-          "target": "Living Room",
-          "return_dir": "enter",
-          "state": "closed",
-          "description": "A classic double swinging door with a small round window, gently swaying.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_swinging_door",
-          "hidden": false,
-          "direction": "swinging door",
-          "pass_message": "You push through the swinging door into the kitchen.",
-          "visible_in_direction": "The living room beyond, with its bookshelves and the grandfather clock ticking.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "swinging door",
-          "cardinal": "north"
-        },
-        "trapdoor": {
-          "target": "Cellar",
-          "return_dir": "enter",
-          "state": "closed",
-          "description": "A heavy wooden trapdoor set into the kitchen floor, its iron ring cold against the floorboards. A sturdy ladder disappears into darkness below.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_cellar_trapdoor",
-          "hidden": false,
-          "direction": "trapdoor",
-          "pass_message": "You lift the trapdoor and climb down the ladder into the cold, damp cellar.",
-          "visible_in_direction": "Below, a ladder descends into the cold, damp cellar with stone walls and shelves of preserved goods.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "trapdoor",
-          "cardinal": "down"
-        },
-        "bathroom door": {
-          "target": "Bathroom",
-          "return_dir": "kitchen door",
-          "state": "closed",
-          "description": "A wooden door that has a small sigh of Bath on it.",
-          "cost": {},
-          "way_id": "way_bathroom_door",
-          "hidden": false,
-          "direction": "bathroom door",
-          "pass_message": "",
-          "visible_in_direction": "",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "bathroom door",
-          "cardinal": "north"
-        }
-      },
-      "exits_authoring": {
-        "swinging door": {
-          "target": "Living Room",
-          "return_dir": "enter",
-          "state": "closed",
-          "description": "A classic double swinging door with a small round window, gently swaying.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_swinging_door",
-          "hidden": false,
-          "direction": "swinging door",
-          "pass_message": "You push through the swinging door into the kitchen.",
-          "visible_in_direction": "The living room beyond, with its bookshelves and the grandfather clock ticking.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "swinging door",
-          "cardinal": "north"
-        },
-        "trapdoor": {
-          "target": "Cellar",
-          "return_dir": "enter",
-          "state": "closed",
-          "description": "A heavy wooden trapdoor set into the kitchen floor, its iron ring cold against the floorboards. A sturdy ladder disappears into darkness below.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_cellar_trapdoor",
-          "hidden": false,
-          "direction": "trapdoor",
-          "pass_message": "You lift the trapdoor and climb down the ladder into the cold, damp cellar.",
-          "visible_in_direction": "Below, a ladder descends into the cold, damp cellar with stone walls and shelves of preserved goods.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "trapdoor",
-          "cardinal": "down"
-        },
-        "bathroom door": {
-          "target": "Bathroom",
-          "return_dir": "kitchen door",
-          "state": "closed",
-          "description": "A wooden door that has a small sigh of Bath on it.",
-          "cost": {},
-          "way_id": "way_bathroom_door",
-          "hidden": false,
-          "direction": "bathroom door",
-          "pass_message": "",
-          "visible_in_direction": "",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "bathroom door",
-          "cardinal": "north"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
@@ -2400,162 +1669,6 @@
       },
       "ambient_light": 55,
       "light_description": "normal",
-      "exits": {
-        "living room": {
-          "target": "Study",
-          "return_dir": "study door",
-          "state": "closed",
-          "description": "A heavy oak door leading to the study.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_oak_door",
-          "hidden": false,
-          "direction": "living room",
-          "pass_message": "",
-          "visible_in_direction": "The study, filled floor-to-ceiling with books, a large oak desk dominating the center.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "living room",
-          "cardinal": "east"
-        },
-        "swinging door": {
-          "target": "Kitchen",
-          "return_dir": "east",
-          "state": "closed",
-          "description": "A classic double swinging door with a small round window, gently swaying.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_swinging_door",
-          "hidden": false,
-          "direction": "swinging door",
-          "pass_message": "You push through the swinging door into the kitchen.",
-          "visible_in_direction": "The kitchen, with a checkered tablecloth on the table and dried herbs hanging from the ceiling.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "swinging door",
-          "cardinal": "south"
-        },
-        "front door": {
-          "target": "Blizzard Forest Clearing",
-          "return_dir": "front door",
-          "state": "open",
-          "description": "A heavy wooden front door, weathered by the storm. The iron handle is cold to the touch.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_front",
-          "hidden": false,
-          "direction": "front door",
-          "pass_message": "You step through the front door into the cold glow of the living room.",
-          "visible_in_direction": "Through the open front door, the blizzard rages in the forest clearing, white snow swirling in the bitter wind.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "front door",
-          "cardinal": "south"
-        },
-        "stairs": {
-          "target": "Upstairs Hallway",
-          "return_dir": "enter",
-          "state": "open",
-          "description": "A wooden staircase ascends into shadows, the banister worn smooth by years of use. The steps groan under any weight.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_stairs",
-          "hidden": false,
-          "direction": "stairs",
-          "pass_message": "You climb the creaking stairs to the upstairs hallway.",
-          "visible_in_direction": "A wooden staircase ascends into shadows, the banister worn smooth.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "stairs",
-          "cardinal": "up"
-        }
-      },
-      "exits_authoring": {
-        "living room": {
-          "target": "Study",
-          "return_dir": "study door",
-          "state": "closed",
-          "description": "A heavy oak door leading to the study.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_oak_door",
-          "hidden": false,
-          "direction": "living room",
-          "pass_message": "",
-          "visible_in_direction": "The study, filled floor-to-ceiling with books, a large oak desk dominating the center.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "living room",
-          "cardinal": "east"
-        },
-        "swinging door": {
-          "target": "Kitchen",
-          "return_dir": "east",
-          "state": "closed",
-          "description": "A classic double swinging door with a small round window, gently swaying.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_swinging_door",
-          "hidden": false,
-          "direction": "swinging door",
-          "pass_message": "You push through the swinging door into the kitchen.",
-          "visible_in_direction": "The kitchen, with a checkered tablecloth on the table and dried herbs hanging from the ceiling.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "swinging door",
-          "cardinal": "south"
-        },
-        "front door": {
-          "target": "Blizzard Forest Clearing",
-          "return_dir": "front door",
-          "state": "open",
-          "description": "A heavy wooden front door, weathered by the storm. The iron handle is cold to the touch.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_front",
-          "hidden": false,
-          "direction": "front door",
-          "pass_message": "You step through the front door into the cold glow of the living room.",
-          "visible_in_direction": "Through the open front door, the blizzard rages in the forest clearing, white snow swirling in the bitter wind.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "front door",
-          "cardinal": "south"
-        },
-        "stairs": {
-          "target": "Upstairs Hallway",
-          "return_dir": "enter",
-          "state": "open",
-          "description": "A wooden staircase ascends into shadows, the banister worn smooth by years of use. The steps groan under any weight.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_stairs",
-          "hidden": false,
-          "direction": "stairs",
-          "pass_message": "You climb the creaking stairs to the upstairs hallway.",
-          "visible_in_direction": "A wooden staircase ascends into shadows, the banister worn smooth.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "stairs",
-          "cardinal": "up"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
@@ -2581,48 +1694,6 @@
       },
       "ambient_light": 30,
       "light_description": "dim",
-      "exits": {
-        "hallway": {
-          "target": "Upstairs Hallway",
-          "return_dir": "hallway",
-          "state": "closed",
-          "description": "A tall wooden door with an ornate brass handle. Faint traces of lavender scent the air around it.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_bedroom_master",
-          "hidden": false,
-          "direction": "hallway",
-          "pass_message": "You enter the master bedroom. The air is cold and still.",
-          "visible_in_direction": "The narrow upstairs hallway, with the guest bedroom door opposite and the stairs at the far end.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "hallway",
-          "cardinal": "west"
-        }
-      },
-      "exits_authoring": {
-        "hallway": {
-          "target": "Upstairs Hallway",
-          "return_dir": "hallway",
-          "state": "closed",
-          "description": "A tall wooden door with an ornate brass handle. Faint traces of lavender scent the air around it.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_bedroom_master",
-          "hidden": false,
-          "direction": "hallway",
-          "pass_message": "You enter the master bedroom. The air is cold and still.",
-          "visible_in_direction": "The narrow upstairs hallway, with the guest bedroom door opposite and the stairs at the far end.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "hallway",
-          "cardinal": "west"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
@@ -2648,42 +1719,6 @@
       },
       "ambient_light": 55,
       "light_description": "normal",
-      "exits": {
-        "Outhouse door": {
-          "target": "Blizzard Forest Clearing",
-          "return_dir": "Outhouse door",
-          "state": "closed",
-          "description": "A wooden door to the outhouse",
-          "cost": {},
-          "way_id": "way_outhouse_door",
-          "hidden": false,
-          "direction": "Outhouse door",
-          "pass_message": "The outhouse door creeks gently as you open and pass inside.",
-          "visible_in_direction": "The blistering cold of the storm that rages on",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "Outhouse door",
-          "cardinal": "southwest"
-        }
-      },
-      "exits_authoring": {
-        "Outhouse door": {
-          "target": "Blizzard Forest Clearing",
-          "return_dir": "Outhouse door",
-          "state": "closed",
-          "description": "A wooden door to the outhouse",
-          "cost": {},
-          "way_id": "way_outhouse_door",
-          "hidden": false,
-          "direction": "Outhouse door",
-          "pass_message": "The outhouse door creeks gently as you open and pass inside.",
-          "visible_in_direction": "The blistering cold of the storm that rages on",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "Outhouse door",
-          "cardinal": "southwest"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
@@ -2701,92 +1736,30 @@
       "name": "Snowbound Hollow",
       "description": "A shallow depression beneath a dense tangle of snow-laden branches, forming a natural shelter. The blizzard howls beyond the woven walls of ice and bark, but inside, the wind is muted. The ground is carpeted with dry pine needles and a thin layer of frost. A faint glow filters through the icy canopy.",
       "environment": {
-        "air": "",
-        "light": "bright",
+        "air": "fresh",
+        "light": 72,
         "noise": "muffled howl of wind",
         "smell": "pine and frost",
-        "temperature": -5
+        "temperature": 13.0,
+        "weather": "snowy",
+        "wind": "gale",
+        "humidity": "humid"
       },
-      "ambient_light": 80,
+      "ambient_light": 72,
       "light_description": "bright",
-      "exits": {
-        "icy arch": {
-          "target": "Frozen Thicket",
-          "return_dir": "snowy passage",
-          "state": "open",
-          "description": "A low arch formed by two ancient pines, their branches fused together by ice and frost. The passage is narrow, requiring a crouch to pass through.",
-          "cost": {},
-          "way_id": "way_icy_arch",
-          "hidden": false,
-          "direction": "icy arch",
-          "pass_message": "You duck through the icy arch, the cold air biting at your cheeks.",
-          "visible_in_direction": "Through the arch, the Frozen Thicket glimmers with pale blue light, the branches heavy with rime.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "icy arch",
-          "cardinal": "south"
-        },
-        "root tunnel": {
-          "target": "Weeping Willow Hollow",
-          "return_dir": "root tunnel",
-          "state": "open",
-          "description": "A low, narrow opening between the weeping willow's trailing branches, where the roots have worn a smooth tunnel through the earth. The passage is just wide enough to duck through, and the floor is padded with dry leaves.",
-          "cost": {},
-          "way_id": "way_root_tunnel",
-          "hidden": false,
-          "direction": "root tunnel",
-          "pass_message": "You push through the curtain of willow twigs and step from the warm, earthy hollow into a colder space where frost crunches underfoot.",
-          "visible_in_direction": "Looking back through the low opening, you see a warm, dry hollow sheltered by the willow's roots, where fallen leaves lie undisturbed and the air is still and earthy.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "root tunnel",
-          "cardinal": "north"
-        }
-      },
-      "exits_authoring": {
-        "icy arch": {
-          "target": "Frozen Thicket",
-          "return_dir": "snowy passage",
-          "state": "open",
-          "description": "A low arch formed by two ancient pines, their branches fused together by ice and frost. The passage is narrow, requiring a crouch to pass through.",
-          "cost": {},
-          "way_id": "way_icy_arch",
-          "hidden": false,
-          "direction": "icy arch",
-          "pass_message": "You duck through the icy arch, the cold air biting at your cheeks.",
-          "visible_in_direction": "Through the arch, the Frozen Thicket glimmers with pale blue light, the branches heavy with rime.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "icy arch",
-          "cardinal": "south"
-        },
-        "root tunnel": {
-          "target": "Weeping Willow Hollow",
-          "return_dir": "root tunnel",
-          "state": "open",
-          "description": "A low, narrow opening between the weeping willow's trailing branches, where the roots have worn a smooth tunnel through the earth. The passage is just wide enough to duck through, and the floor is padded with dry leaves.",
-          "cost": {},
-          "way_id": "way_root_tunnel",
-          "hidden": false,
-          "direction": "root tunnel",
-          "pass_message": "You push through the curtain of willow twigs and step from the warm, earthy hollow into a colder space where frost crunches underfoot.",
-          "visible_in_direction": "Looking back through the low opening, you see a warm, dry hollow sheltered by the willow's roots, where fallen leaves lie undisturbed and the air is still and earthy.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "root tunnel",
-          "cardinal": "north"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
         "description": "A shallow depression beneath a dense tangle of snow-laden branches, forming a natural shelter. The blizzard howls beyond the woven walls of ice and bark, but inside, the wind is muted. The ground is carpeted with dry pine needles and a thin layer of frost. A faint glow filters through the icy canopy.",
         "environment": {
-          "air": "",
-          "light": "bright",
+          "air": "fresh",
+          "light": 72,
           "noise": "muffled howl of wind",
           "smell": "pine and frost",
-          "temperature": -5
+          "temperature": 13.0,
+          "weather": "snowy",
+          "wind": "gale",
+          "humidity": "humid"
         },
         "tags": [
           "exterior"
@@ -2805,64 +1778,6 @@
       },
       "ambient_light": 30,
       "light_description": "dim",
-      "exits": {
-        "hallway": {
-          "target": "Upstairs Hallway",
-          "return_dir": "hallway",
-          "state": "closed",
-          "description": "A modest door with a simple porcelain knob. Dust has gathered in the corners of the frame.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_bedroom_guest",
-          "hidden": false,
-          "direction": "hallway",
-          "pass_message": "You push open the door to the guest bedroom. Dust motes dance in the dim light.",
-          "visible_in_direction": "The upstairs hallway beyond, with the master bedroom door to your left and the stairs leading down.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "hallway",
-          "cardinal": "south"
-        }
-      },
-      "exits_authoring": {
-        "hallway": {
-          "target": "Upstairs Hallway",
-          "return_dir": "hallway",
-          "state": "closed",
-          "description": "A modest door with a simple porcelain knob. Dust has gathered in the corners of the frame.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_bedroom_guest",
-          "hidden": false,
-          "direction": "hallway",
-          "pass_message": "You push open the door to the guest bedroom. Dust motes dance in the dim light.",
-          "visible_in_direction": "The upstairs hallway beyond, with the master bedroom door to your left and the stairs leading down.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "hallway",
-          "cardinal": "south"
-        },
-        "hidden": {
-          "target": "Hidden Panic Room",
-          "return_dir": "hidden",
-          "state": "hidden",
-          "description": "",
-          "cost": {},
-          "way_id": "way_hidden_door",
-          "hidden": true,
-          "direction": "hidden",
-          "pass_message": "",
-          "visible_in_direction": "Through the hidden opening, a low-ceilinged attic room is visible, padded with fabric and a warm dim glow.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "hidden",
-          "cardinal": "east"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
@@ -2888,48 +1803,6 @@
       },
       "ambient_light": 55,
       "light_description": "normal",
-      "exits": {
-        "study door": {
-          "target": "Living Room",
-          "return_dir": "living room",
-          "state": "closed",
-          "description": "A heavy oak door leading to the study.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_oak_door",
-          "hidden": false,
-          "direction": "study door",
-          "pass_message": "",
-          "visible_in_direction": "The living room, with its ticking grandfather clock, cold fireplace, and bookshelves.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "study door",
-          "cardinal": "west"
-        }
-      },
-      "exits_authoring": {
-        "study door": {
-          "target": "Living Room",
-          "return_dir": "living room",
-          "state": "closed",
-          "description": "A heavy oak door leading to the study.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_oak_door",
-          "hidden": false,
-          "direction": "study door",
-          "pass_message": "",
-          "visible_in_direction": "The living room, with its ticking grandfather clock, cold fireplace, and bookshelves.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "study door",
-          "cardinal": "west"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
@@ -2955,124 +1828,6 @@
       },
       "ambient_light": 30,
       "light_description": "dim",
-      "exits": {
-        "stairs": {
-          "target": "Living Room",
-          "return_dir": "stairs",
-          "state": "open",
-          "description": "A wooden staircase ascends into shadows, the banister worn smooth by years of use. The steps groan under any weight.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_stairs",
-          "hidden": false,
-          "direction": "stairs",
-          "pass_message": "You climb the creaking stairs to the upstairs hallway.",
-          "visible_in_direction": "The stairs descend into the living room below, where you can glimpse the bookshelves and the fireplace.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "stairs",
-          "cardinal": "down"
-        },
-        "master bedroom": {
-          "target": "Master Bedroom",
-          "return_dir": "enter",
-          "state": "closed",
-          "description": "A tall wooden door with an ornate brass handle. Faint traces of lavender scent the air around it.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_bedroom_master",
-          "hidden": false,
-          "direction": "master bedroom",
-          "pass_message": "You enter the master bedroom. The air is cold and still.",
-          "visible_in_direction": "The spacious master bedroom, with a four-poster bed and frost-covered windows.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "master bedroom",
-          "cardinal": "east"
-        },
-        "guest bedroom": {
-          "target": "sons bedroom",
-          "return_dir": "enter",
-          "state": "closed",
-          "description": "A modest door with a simple porcelain knob. Dust has gathered in the corners of the frame.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_bedroom_guest",
-          "hidden": false,
-          "direction": "guest bedroom",
-          "pass_message": "You push open the door to the guest bedroom. Dust motes dance in the dim light.",
-          "visible_in_direction": "The small guest bedroom, with a single bed, a writing desk, and dust coating every surface.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "guest bedroom",
-          "cardinal": "north"
-        }
-      },
-      "exits_authoring": {
-        "stairs": {
-          "target": "Living Room",
-          "return_dir": "stairs",
-          "state": "open",
-          "description": "A wooden staircase ascends into shadows, the banister worn smooth by years of use. The steps groan under any weight.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_stairs",
-          "hidden": false,
-          "direction": "stairs",
-          "pass_message": "You climb the creaking stairs to the upstairs hallway.",
-          "visible_in_direction": "The stairs descend into the living room below, where you can glimpse the bookshelves and the fireplace.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "stairs",
-          "cardinal": "down"
-        },
-        "master bedroom": {
-          "target": "Master Bedroom",
-          "return_dir": "enter",
-          "state": "closed",
-          "description": "A tall wooden door with an ornate brass handle. Faint traces of lavender scent the air around it.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_bedroom_master",
-          "hidden": false,
-          "direction": "master bedroom",
-          "pass_message": "You enter the master bedroom. The air is cold and still.",
-          "visible_in_direction": "The spacious master bedroom, with a four-poster bed and frost-covered windows.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "master bedroom",
-          "cardinal": "east"
-        },
-        "guest bedroom": {
-          "target": "sons bedroom",
-          "return_dir": "enter",
-          "state": "closed",
-          "description": "A modest door with a simple porcelain knob. Dust has gathered in the corners of the frame.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_bedroom_guest",
-          "hidden": false,
-          "direction": "guest bedroom",
-          "pass_message": "You push open the door to the guest bedroom. Dust motes dance in the dim light.",
-          "visible_in_direction": "The small guest bedroom, with a single bed, a writing desk, and dust coating every surface.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "guest bedroom",
-          "cardinal": "north"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
@@ -3090,92 +1845,30 @@
       "name": "Weeping Willow Hollow",
       "description": "A small clearing cradled by the gnarled roots of an ancient weeping willow. Its branches hang low, creating a curtain of living wood that shelters this space from the relentless snow. Inside, the ground is dry and carpeted with fallen leaves and soft moss. The air is still and noticeably warmer than the surrounding forest. A faint, earthy scent of damp wood and decayed leaves mingles with the whispering rustle of the willow's trailing twigs.",
       "environment": {
-        "air": "",
-        "light": "bright",
+        "air": "fresh",
+        "light": 72,
         "noise": "quiet",
         "smell": "damp earth and dry leaves",
-        "temperature": 3
+        "temperature": 13.0,
+        "weather": "snowy",
+        "wind": "gale",
+        "humidity": "humid"
       },
-      "ambient_light": 80,
+      "ambient_light": 72,
       "light_description": "bright",
-      "exits": {
-        "willow gap": {
-          "target": "Frozen Thicket",
-          "return_dir": "thicket path",
-          "state": "open",
-          "description": "A gap in the weeping willow's curtain of branches, where the warm air meets the biting cold of the frozen thicket.",
-          "cost": {},
-          "way_id": "way_willow_gap",
-          "hidden": false,
-          "direction": "willow gap",
-          "pass_message": "The willow branches rustle as you step through, and the cold wraps around you like a shroud.",
-          "visible_in_direction": "Through the gap, a dense tangle of frozen trees coated in rime, pale blue light filtering through.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "willow gap",
-          "cardinal": "east"
-        },
-        "root tunnel": {
-          "target": "Snowbound Hollow",
-          "return_dir": "frosted opening",
-          "state": "open",
-          "description": "A low, narrow opening between the weeping willow's trailing branches, where the roots have worn a smooth tunnel through the earth. The passage is just wide enough to duck through, and the floor is padded with dry leaves.",
-          "cost": {},
-          "way_id": "way_root_tunnel",
-          "hidden": false,
-          "direction": "root tunnel",
-          "pass_message": "You push through the curtain of willow twigs and step from the warm, earthy hollow into a colder space where frost crunches underfoot.",
-          "visible_in_direction": "Through the gap, you glimpse a shallow depression where pale light filters through icy branches, and a faint frost coats the pine-needle floor. The muffled sound of wind suggests the storm is just beyond.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "root tunnel",
-          "cardinal": "south"
-        }
-      },
-      "exits_authoring": {
-        "willow gap": {
-          "target": "Frozen Thicket",
-          "return_dir": "thicket path",
-          "state": "open",
-          "description": "A gap in the weeping willow's curtain of branches, where the warm air meets the biting cold of the frozen thicket.",
-          "cost": {},
-          "way_id": "way_willow_gap",
-          "hidden": false,
-          "direction": "willow gap",
-          "pass_message": "The willow branches rustle as you step through, and the cold wraps around you like a shroud.",
-          "visible_in_direction": "Through the gap, a dense tangle of frozen trees coated in rime, pale blue light filtering through.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "willow gap",
-          "cardinal": "east"
-        },
-        "root tunnel": {
-          "target": "Snowbound Hollow",
-          "return_dir": "frosted opening",
-          "state": "open",
-          "description": "A low, narrow opening between the weeping willow's trailing branches, where the roots have worn a smooth tunnel through the earth. The passage is just wide enough to duck through, and the floor is padded with dry leaves.",
-          "cost": {},
-          "way_id": "way_root_tunnel",
-          "hidden": false,
-          "direction": "root tunnel",
-          "pass_message": "You push through the curtain of willow twigs and step from the warm, earthy hollow into a colder space where frost crunches underfoot.",
-          "visible_in_direction": "Through the gap, you glimpse a shallow depression where pale light filters through icy branches, and a faint frost coats the pine-needle floor. The muffled sound of wind suggests the storm is just beyond.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "root tunnel",
-          "cardinal": "south"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
         "description": "A small clearing cradled by the gnarled roots of an ancient weeping willow. Its branches hang low, creating a curtain of living wood that shelters this space from the relentless snow. Inside, the ground is dry and carpeted with fallen leaves and soft moss. The air is still and noticeably warmer than the surrounding forest. A faint, earthy scent of damp wood and decayed leaves mingles with the whispering rustle of the willow's trailing twigs.",
         "environment": {
-          "air": "",
-          "light": "bright",
+          "air": "fresh",
+          "light": 72,
           "noise": "quiet",
           "smell": "damp earth and dry leaves",
-          "temperature": 3
+          "temperature": 13.0,
+          "weather": "snowy",
+          "wind": "gale",
+          "humidity": "humid"
         },
         "tags": [
           "exterior"
@@ -3196,42 +1889,6 @@
       },
       "ambient_light": 55,
       "light_description": "normal",
-      "exits": {
-        "cabin door": {
-          "target": "Frozen Lake Clearing",
-          "return_dir": "lakeside path",
-          "state": "open",
-          "description": "The cabin's heavy door hangs askew on broken hinges, leaning outward into the snow. Through the gap, the frozen lake and glittering white clearing are visible.",
-          "cost": {},
-          "way_id": "way_cabin_door",
-          "hidden": false,
-          "direction": "cabin door",
-          "pass_message": "You step through the sagging doorway, the broken frame scraping against your shoulder.",
-          "visible_in_direction": "The frozen lake stretches under a pale sky, surrounded by rime-laden pines. Wind drives snow across the ice, and a set of footprints vanishes into the white haze.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "cabin door",
-          "cardinal": "northeast"
-        }
-      },
-      "exits_authoring": {
-        "cabin door": {
-          "target": "Frozen Lake Clearing",
-          "return_dir": "lakeside path",
-          "state": "open",
-          "description": "The cabin's heavy door hangs askew on broken hinges, leaning outward into the snow. Through the gap, the frozen lake and glittering white clearing are visible.",
-          "cost": {},
-          "way_id": "way_cabin_door",
-          "hidden": false,
-          "direction": "cabin door",
-          "pass_message": "You step through the sagging doorway, the broken frame scraping against your shoulder.",
-          "visible_in_direction": "The frozen lake stretches under a pale sky, surrounded by rime-laden pines. Wind drives snow across the ice, and a set of footprints vanishes into the white haze.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "cabin door",
-          "cardinal": "northeast"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
@@ -3257,42 +1914,6 @@
       },
       "ambient_light": 30,
       "light_description": "dim",
-      "exits": {
-        "kitchen door": {
-          "target": "Kitchen",
-          "return_dir": "bathroom door",
-          "state": "closed",
-          "description": "A wooden door that has a small sigh of Bath on it.",
-          "cost": {},
-          "way_id": "way_bathroom_door",
-          "hidden": false,
-          "direction": "kitchen door",
-          "pass_message": "",
-          "visible_in_direction": "",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "kitchen door",
-          "cardinal": "south"
-        }
-      },
-      "exits_authoring": {
-        "kitchen door": {
-          "target": "Kitchen",
-          "return_dir": "bathroom door",
-          "state": "closed",
-          "description": "A wooden door that has a small sigh of Bath on it.",
-          "cost": {},
-          "way_id": "way_bathroom_door",
-          "hidden": false,
-          "direction": "kitchen door",
-          "pass_message": "",
-          "visible_in_direction": "",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "kitchen door",
-          "cardinal": "south"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
@@ -3315,119 +1936,16 @@
       "description": "You stand in a small clearing, surrounded by towering pines encased in ice and snow. The wind howls relentlessly, whipping stinging flakes into your face and muffling all but the loudest sounds. Through the blinding white, you make out the faint silhouette of a two-story house in the distance, its windows glowing with a dim, warm light. Nestled to one side, a small outhouse stands incongruously bare of snow, its roof and walls oddly dry and dark against the surrounding white. Closer still, an axe is embedded deep in a weathered stump, its handle gleaming with a faint sheen of frost. The air is sharp and cold, carrying the crisp scent of frozen pine and the faint, almost imperceptible hint of woodsmoke from the house. Every step crunches on the icy crust, and the trees groan under their burden of snow.",
       "environment": {
         "air": "fresh",
-        "light": "bright",
+        "light": 72,
         "noise": "windy",
         "smell": "Frozen pine, wild cedar, and a whisper of woodsmoke",
-        "temperature": -12
+        "temperature": 13.0,
+        "weather": "snowy",
+        "wind": "gale",
+        "humidity": "humid"
       },
-      "ambient_light": 80,
+      "ambient_light": 72,
       "light_description": "bright",
-      "exits": {
-        "front door": {
-          "target": "Living Room",
-          "return_dir": "enter",
-          "state": "open",
-          "description": "A heavy wooden front door, weathered by the storm. The iron handle is cold to the touch.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_front",
-          "hidden": false,
-          "direction": "front door",
-          "pass_message": "You step through the front door into the cold glow of the living room.",
-          "visible_in_direction": "The door is sligtly ajar, snow and wind slowly blowing the door back and forth. inside is the dim ligth and outlines of  furniture",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "front door",
-          "cardinal": "north"
-        },
-        "Outhouse door": {
-          "target": "Outhouse",
-          "return_dir": "Outhouse door",
-          "state": "closed",
-          "description": "A wooden door to the outhouse",
-          "cost": {},
-          "way_id": "way_outhouse_door",
-          "hidden": false,
-          "direction": "Outhouse door",
-          "pass_message": "The outhouse door creeks gently as you open and pass inside.",
-          "visible_in_direction": "You see that the snow that blows inside instantly melts in the warm air inside",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "Outhouse door",
-          "cardinal": "northeast"
-        },
-        "narrow passage": {
-          "target": "Frozen Hollow",
-          "return_dir": "hollow exit",
-          "state": "open",
-          "description": "A narrow cleft in the snow-covered hillside, barely wide enough for one person to squeeze through. The wind whistles through the gap, carrying the muffled sounds of the forest beyond.",
-          "cost": {},
-          "way_id": "way_narrow_passage",
-          "hidden": false,
-          "direction": "narrow passage",
-          "pass_message": "You push through the narrow passage, the snow brushing against your shoulders as the landscape shifts around you. there are footsteps towrads the clearing",
-          "visible_in_direction": "Through the cleft, the hollow lies silent and still, a bowl of deep snow where the wind barely stirs. The half-frozen well is a dark speck in the center.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "narrow passage",
-          "cardinal": "south"
-        }
-      },
-      "exits_authoring": {
-        "front door": {
-          "target": "Living Room",
-          "return_dir": "enter",
-          "state": "open",
-          "description": "A heavy wooden front door, weathered by the storm. The iron handle is cold to the touch.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_front",
-          "hidden": false,
-          "direction": "front door",
-          "pass_message": "You step through the front door into the cold glow of the living room.",
-          "visible_in_direction": "The door is sligtly ajar, snow and wind slowly blowing the door back and forth. inside is the dim ligth and outlines of  furniture",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "front door",
-          "cardinal": "north"
-        },
-        "Outhouse door": {
-          "target": "Outhouse",
-          "return_dir": "Outhouse door",
-          "state": "closed",
-          "description": "A wooden door to the outhouse",
-          "cost": {},
-          "way_id": "way_outhouse_door",
-          "hidden": false,
-          "direction": "Outhouse door",
-          "pass_message": "The outhouse door creeks gently as you open and pass inside.",
-          "visible_in_direction": "You see that the snow that blows inside instantly melts in the warm air inside",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "Outhouse door",
-          "cardinal": "northeast"
-        },
-        "narrow passage": {
-          "target": "Frozen Hollow",
-          "return_dir": "hollow exit",
-          "state": "open",
-          "description": "A narrow cleft in the snow-covered hillside, barely wide enough for one person to squeeze through. The wind whistles through the gap, carrying the muffled sounds of the forest beyond.",
-          "cost": {},
-          "way_id": "way_narrow_passage",
-          "hidden": false,
-          "direction": "narrow passage",
-          "pass_message": "You push through the narrow passage, the snow brushing against your shoulders as the landscape shifts around you. there are footsteps towrads the clearing",
-          "visible_in_direction": "Through the cleft, the hollow lies silent and still, a bowl of deep snow where the wind barely stirs. The half-frozen well is a dark speck in the center.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "narrow passage",
-          "cardinal": "south"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
@@ -3435,10 +1953,13 @@
         "description": "You stand in a small clearing, surrounded by towering pines encased in ice and snow. The wind howls relentlessly, whipping stinging flakes into your face and muffling all but the loudest sounds. Through the blinding white, you make out the faint silhouette of a two-story house in the distance, its windows glowing with a dim, warm light. Nestled to one side, a small outhouse stands incongruously bare of snow, its roof and walls oddly dry and dark against the surrounding white. Closer still, an axe is embedded deep in a weathered stump, its handle gleaming with a faint sheen of frost. The air is sharp and cold, carrying the crisp scent of frozen pine and the faint, almost imperceptible hint of woodsmoke from the house. Every step crunches on the icy crust, and the trees groan under their burden of snow.",
         "environment": {
           "air": "fresh",
-          "light": "bright",
+          "light": 72,
           "noise": "windy",
           "smell": "Frozen pine, wild cedar, and a whisper of woodsmoke",
-          "temperature": -12
+          "temperature": 13.0,
+          "weather": "snowy",
+          "wind": "gale",
+          "humidity": "humid"
         },
         "tags": [
           "exterior"
@@ -3457,48 +1978,6 @@
       },
       "ambient_light": 5,
       "light_description": "pitch_black",
-      "exits": {
-        "ladder": {
-          "target": "Kitchen",
-          "return_dir": "ladder",
-          "state": "closed",
-          "description": "A heavy wooden trapdoor set into the kitchen floor, its iron ring cold against the floorboards. A sturdy ladder disappears into darkness below.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_cellar_trapdoor",
-          "hidden": false,
-          "direction": "ladder",
-          "pass_message": "You lift the trapdoor and climb down the ladder into the cold, damp cellar.",
-          "visible_in_direction": "Above, through the open trapdoor, you see the kitchen ceiling and the light from the room.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "ladder",
-          "cardinal": "up"
-        }
-      },
-      "exits_authoring": {
-        "ladder": {
-          "target": "Kitchen",
-          "return_dir": "ladder",
-          "state": "closed",
-          "description": "A heavy wooden trapdoor set into the kitchen floor, its iron ring cold against the floorboards. A sturdy ladder disappears into darkness below.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_cellar_trapdoor",
-          "hidden": false,
-          "direction": "ladder",
-          "pass_message": "You lift the trapdoor and climb down the ladder into the cold, damp cellar.",
-          "visible_in_direction": "Above, through the open trapdoor, you see the kitchen ceiling and the light from the room.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "ladder",
-          "cardinal": "up"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
@@ -3524,8 +2003,6 @@
       },
       "ambient_light": 55,
       "light_description": "normal",
-      "exits": {},
-      "exits_authoring": {},
       "items": [],
       "floor": 0,
       "properties": {
@@ -3543,92 +2020,30 @@
       "name": "Frozen Hollow",
       "description": "A dead-end clearing surrounded by steep, snow-covered slopes. The wind is muted here, trapped by the natural bowl of the hills. In the center, an old stone well sits half-frozen, its wooden crank creaking slightly. The bucket is broken and lies in pieces at the base. Peering inside reveals only stale, cold air and a single, faded ribbon tied to the crank. ",
       "environment": {
-        "air": "",
-        "light": "bright",
+        "air": "fresh",
+        "light": 72,
         "noise": "quiet, with an occasional creak of frozen wood",
         "smell": "faint iron and frost",
-        "temperature": -5
+        "temperature": 13.0,
+        "weather": "snowy",
+        "wind": "gale",
+        "humidity": "humid"
       },
-      "ambient_light": 80,
+      "ambient_light": 72,
       "light_description": "bright",
-      "exits": {
-        "narrow passage": {
-          "target": "Blizzard Forest Clearing",
-          "return_dir": "forest passage",
-          "state": "open",
-          "description": "A narrow cleft in the snow-covered hillside, barely wide enough for one person to squeeze through. The wind whistles through the gap, carrying the muffled sounds of the forest beyond.",
-          "cost": {},
-          "way_id": "way_narrow_passage",
-          "hidden": false,
-          "direction": "narrow passage",
-          "pass_message": "You push through the narrow passage, the snow brushing against your shoulders as the landscape shifts around you. there are footsteps towrads the clearing",
-          "visible_in_direction": "Through the gap, the blizzard rages among the skeletal trees of the clearing beyond. The faint outline of a house and an outhouse are just visible through the white gloom.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "narrow passage",
-          "cardinal": "north"
-        },
-        "rocky slope": {
-          "target": "Frozen Thicket",
-          "return_dir": "hollow entrance",
-          "state": "open",
-          "description": "A narrow cleft in the snow-covered slope, its edges worn smooth by wind and frost. It leads out of the hollow into the tangled thicket beyond.",
-          "cost": {},
-          "way_id": "way_rocky_slope",
-          "hidden": false,
-          "direction": "rocky slope",
-          "pass_message": "The snow crunches softly underfoot as you squeeze through the tight passage, the cold air swirling around you.. there are footsteps towards the hollow entrance",
-          "visible_in_direction": "Through the cleft, you see a dense tangle of frozen branches glazed with rime, their pale blue forms barely visible in the dim light.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "rocky slope",
-          "cardinal": "east"
-        }
-      },
-      "exits_authoring": {
-        "narrow passage": {
-          "target": "Blizzard Forest Clearing",
-          "return_dir": "forest passage",
-          "state": "open",
-          "description": "A narrow cleft in the snow-covered hillside, barely wide enough for one person to squeeze through. The wind whistles through the gap, carrying the muffled sounds of the forest beyond.",
-          "cost": {},
-          "way_id": "way_narrow_passage",
-          "hidden": false,
-          "direction": "narrow passage",
-          "pass_message": "You push through the narrow passage, the snow brushing against your shoulders as the landscape shifts around you. there are footsteps towrads the clearing",
-          "visible_in_direction": "Through the gap, the blizzard rages among the skeletal trees of the clearing beyond. The faint outline of a house and an outhouse are just visible through the white gloom.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "narrow passage",
-          "cardinal": "north"
-        },
-        "rocky slope": {
-          "target": "Frozen Thicket",
-          "return_dir": "hollow entrance",
-          "state": "open",
-          "description": "A narrow cleft in the snow-covered slope, its edges worn smooth by wind and frost. It leads out of the hollow into the tangled thicket beyond.",
-          "cost": {},
-          "way_id": "way_rocky_slope",
-          "hidden": false,
-          "direction": "rocky slope",
-          "pass_message": "The snow crunches softly underfoot as you squeeze through the tight passage, the cold air swirling around you.. there are footsteps towards the hollow entrance",
-          "visible_in_direction": "Through the cleft, you see a dense tangle of frozen branches glazed with rime, their pale blue forms barely visible in the dim light.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "rocky slope",
-          "cardinal": "east"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
         "description": "A dead-end clearing surrounded by steep, snow-covered slopes. The wind is muted here, trapped by the natural bowl of the hills. In the center, an old stone well sits half-frozen, its wooden crank creaking slightly. The bucket is broken and lies in pieces at the base. Peering inside reveals only stale, cold air and a single, faded ribbon tied to the crank. ",
         "environment": {
-          "air": "",
-          "light": "bright",
+          "air": "fresh",
+          "light": 72,
           "noise": "quiet, with an occasional creak of frozen wood",
           "smell": "faint iron and frost",
-          "temperature": -5
+          "temperature": 13.0,
+          "weather": "snowy",
+          "wind": "gale",
+          "humidity": "humid"
         },
         "tags": [
           "exterior"
@@ -3639,124 +2054,30 @@
       "name": "Frozen Lake Clearing",
       "description": "A wide clearing where the forest gives way to the shore of a vast, frozen lake. The wind roars across the ice, driving sheets of snow before it. The ice is thick and translucent, showing dark blue depths below. Bent willows and pines fringe the shore, their branches coated in rime.  The cold is relentless, biting at any exposed skin.",
       "environment": {
-        "air": "",
-        "light": "bright",
+        "air": "fresh",
+        "light": 72,
         "noise": "howling wind, creaking ice",
         "smell": "pine and clean ice",
-        "temperature": -12
+        "temperature": 13.0,
+        "weather": "snowy",
+        "wind": "gale",
+        "humidity": "humid"
       },
-      "ambient_light": 80,
+      "ambient_light": 72,
       "light_description": "bright",
-      "exits": {
-        "willow arch": {
-          "target": "Frozen Thicket",
-          "return_dir": "thicket path",
-          "state": "open",
-          "description": "A narrow gap in the frozen willows, their branches bent and frozen into a frosted archway that leads into the dense thicket beyond",
-          "cost": {},
-          "way_id": "way_frosted_archway",
-          "hidden": false,
-          "direction": "willow arch",
-          "pass_message": "The icy branches scrape against your clothes as you push through, sending tufts of rime drifting to the ground",
-          "visible_in_direction": "Through the gap, you see a tangle of rime-coated branches and pale blue shadows, the snow deepening among the trees",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "willow arch",
-          "cardinal": "north"
-        },
-        "stream bank": {
-          "target": "Frozen Stream Crossing",
-          "return_dir": "stream bank",
-          "state": "open",
-          "description": "A narrow gap between snow-laden pines opens onto the windswept shore of the frozen lake. The air smells of ice and pine.",
-          "cost": {},
-          "way_id": "way_stream_bank",
-          "hidden": false,
-          "direction": "stream bank",
-          "pass_message": "You push through the gap, snow brushing your shoulders as the wind picks up from the open lake.",
-          "visible_in_direction": "Looking back through the gap, you see the winding stream cutting through the forest, its ice-covered surface reflecting the pale light.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "stream bank",
-          "cardinal": "south"
-        },
-        "cabin door": {
-          "target": "Abandoned Hunter's Cabin",
-          "return_dir": "cabin door",
-          "state": "open",
-          "description": "The cabin's heavy door hangs askew on broken hinges, leaning outward into the snow. Through the gap, the frozen lake and glittering white clearing are visible.",
-          "cost": {},
-          "way_id": "way_cabin_door",
-          "hidden": false,
-          "direction": "cabin door",
-          "pass_message": "You step through the sagging doorway, the broken frame scraping against your shoulder.",
-          "visible_in_direction": "The dark interior of the cabin is barely visible through the cracked doorway—shadows pool around a frozen corpse and scattered debris. The cold air inside seeps out like a breath.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "cabin door",
-          "cardinal": "southwest"
-        }
-      },
-      "exits_authoring": {
-        "willow arch": {
-          "target": "Frozen Thicket",
-          "return_dir": "thicket path",
-          "state": "open",
-          "description": "A narrow gap in the frozen willows, their branches bent and frozen into a frosted archway that leads into the dense thicket beyond",
-          "cost": {},
-          "way_id": "way_frosted_archway",
-          "hidden": false,
-          "direction": "willow arch",
-          "pass_message": "The icy branches scrape against your clothes as you push through, sending tufts of rime drifting to the ground",
-          "visible_in_direction": "Through the gap, you see a tangle of rime-coated branches and pale blue shadows, the snow deepening among the trees",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "willow arch",
-          "cardinal": "north"
-        },
-        "stream bank": {
-          "target": "Frozen Stream Crossing",
-          "return_dir": "stream bank",
-          "state": "open",
-          "description": "A narrow gap between snow-laden pines opens onto the windswept shore of the frozen lake. The air smells of ice and pine.",
-          "cost": {},
-          "way_id": "way_stream_bank",
-          "hidden": false,
-          "direction": "stream bank",
-          "pass_message": "You push through the gap, snow brushing your shoulders as the wind picks up from the open lake.",
-          "visible_in_direction": "Looking back through the gap, you see the winding stream cutting through the forest, its ice-covered surface reflecting the pale light.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "stream bank",
-          "cardinal": "south"
-        },
-        "cabin door": {
-          "target": "Abandoned Hunter's Cabin",
-          "return_dir": "cabin door",
-          "state": "open",
-          "description": "The cabin's heavy door hangs askew on broken hinges, leaning outward into the snow. Through the gap, the frozen lake and glittering white clearing are visible.",
-          "cost": {},
-          "way_id": "way_cabin_door",
-          "hidden": false,
-          "direction": "cabin door",
-          "pass_message": "You step through the sagging doorway, the broken frame scraping against your shoulder.",
-          "visible_in_direction": "The dark interior of the cabin is barely visible through the cracked doorway—shadows pool around a frozen corpse and scattered debris. The cold air inside seeps out like a breath.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "cabin door",
-          "cardinal": "southwest"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
         "description": "A wide clearing where the forest gives way to the shore of a vast, frozen lake. The wind roars across the ice, driving sheets of snow before it. The ice is thick and translucent, showing dark blue depths below. Bent willows and pines fringe the shore, their branches coated in rime.  The cold is relentless, biting at any exposed skin.",
         "environment": {
-          "air": "",
-          "light": "bright",
+          "air": "fresh",
+          "light": 72,
           "noise": "howling wind, creaking ice",
           "smell": "pine and clean ice",
-          "temperature": -12
+          "temperature": 13.0,
+          "weather": "snowy",
+          "wind": "gale",
+          "humidity": "humid"
         },
         "tags": [
           "exterior"
@@ -3767,90 +2088,30 @@
       "name": "Frozen Stream Crossing",
       "description": "A narrow, winding stream cuts through the forest, its surface a patchwork of ice and open water. The ice near the banks is thin and cracks underfoot, while a fallen log spans the widest part, its bark worn smooth by countless crossings. The air is filled with the soft gurgle of rushing water beneath the ice and the whisper of wind through the pines.",
       "environment": {
-        "air": "",
-        "light": "bright",
+        "air": "fresh",
+        "light": 72,
         "noise": "trickling water and wind",
         "smell": "frost and wet wood",
-        "temperature": -5
+        "temperature": 13.0,
+        "weather": "snowy",
+        "wind": "gale",
+        "humidity": "humid"
       },
-      "ambient_light": 80,
+      "ambient_light": 72,
       "light_description": "bright",
-      "exits": {
-        "stream bank": {
-          "target": "Frozen Lake Clearing",
-          "return_dir": "forest trail",
-          "state": "open",
-          "description": "A narrow gap between snow-laden pines opens onto the windswept shore of the frozen lake. The air smells of ice and pine.",
-          "cost": {},
-          "way_id": "way_stream_bank",
-          "hidden": false,
-          "direction": "stream bank",
-          "pass_message": "You push through the gap, snow brushing your shoulders as the wind picks up from the open lake.",
-          "visible_in_direction": "Through the gap, you see the vast expanse of the frozen lake, its surface white and endless under the low sky.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "stream bank",
-          "cardinal": "north"
-        },
-        "ice bridge": {
-          "target": "Frozen Thicket",
-          "return_dir": "ice bridge",
-          "state": "open",
-          "description": "A narrow ice bridge spans the stream, its surface slick but sturdy. On the far side, the frozen thicket looms, its branches encased in rime.",
-          "cost": {},
-          "way_id": "way_ice_bridge",
-          "hidden": false,
-          "direction": "ice bridge",
-          "pass_message": "You carefully cross the ice bridge, stepping into the frozen thicket.",
-          "visible_in_direction": "",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "ice bridge"
-        }
-      },
-      "exits_authoring": {
-        "stream bank": {
-          "target": "Frozen Lake Clearing",
-          "return_dir": "forest trail",
-          "state": "open",
-          "description": "A narrow gap between snow-laden pines opens onto the windswept shore of the frozen lake. The air smells of ice and pine.",
-          "cost": {},
-          "way_id": "way_stream_bank",
-          "hidden": false,
-          "direction": "stream bank",
-          "pass_message": "You push through the gap, snow brushing your shoulders as the wind picks up from the open lake.",
-          "visible_in_direction": "Through the gap, you see the vast expanse of the frozen lake, its surface white and endless under the low sky.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "stream bank",
-          "cardinal": "north"
-        },
-        "ice bridge": {
-          "target": "Frozen Thicket",
-          "return_dir": "ice bridge",
-          "state": "open",
-          "description": "A narrow ice bridge spans the stream, its surface slick but sturdy. On the far side, the frozen thicket looms, its branches encased in rime.",
-          "cost": {},
-          "way_id": "way_ice_bridge",
-          "hidden": false,
-          "direction": "ice bridge",
-          "pass_message": "You carefully cross the ice bridge, stepping into the frozen thicket.",
-          "visible_in_direction": "",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "ice bridge"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
         "description": "A narrow, winding stream cuts through the forest, its surface a patchwork of ice and open water. The ice near the banks is thin and cracks underfoot, while a fallen log spans the widest part, its bark worn smooth by countless crossings. The air is filled with the soft gurgle of rushing water beneath the ice and the whisper of wind through the pines.",
         "environment": {
-          "air": "",
-          "light": "bright",
+          "air": "fresh",
+          "light": 72,
           "noise": "trickling water and wind",
           "smell": "frost and wet wood",
-          "temperature": -5
+          "temperature": 13.0,
+          "weather": "snowy",
+          "wind": "gale",
+          "humidity": "humid"
         },
         "tags": [
           "exterior"
@@ -3862,185 +2123,29 @@
       "description": "A dense tangle of frozen trees and underbrush, their branches coated in thick rime. The snow here is deep and unbroken, muffling all sound. The only light filters through gaps in the canopy, casting a pale blue glow on the frost-covered bark. The air is still and cold, carrying the sharp scent of pine and frozen earth.",
       "environment": {
         "air": "fresh",
-        "light": "normal",
+        "light": 72,
         "noise": "quiet",
         "smell": "pine and frost",
-        "temperature": -15
+        "temperature": 13.0,
+        "weather": "snowy",
+        "wind": "gale",
+        "humidity": "humid"
       },
-      "ambient_light": 55,
-      "light_description": "normal",
-      "exits": {
-        "willow arch": {
-          "target": "Frozen Lake Clearing",
-          "return_dir": "willow arch",
-          "state": "open",
-          "description": "A narrow gap in the frozen willows, their branches bent and frozen into a frosted archway that leads into the dense thicket beyond",
-          "cost": {},
-          "way_id": "way_frosted_archway",
-          "hidden": false,
-          "direction": "willow arch",
-          "pass_message": "The icy branches scrape against your clothes as you push through, sending tufts of rime drifting to the ground",
-          "visible_in_direction": "Looking back through the arch, the frozen lake stretches white and vast under the gray sky, the wind whipping snow across the ice",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "willow arch",
-          "cardinal": "south"
-        },
-        "icy arch": {
-          "target": "Snowbound Hollow",
-          "return_dir": "icy arch",
-          "state": "open",
-          "description": "A low arch formed by two ancient pines, their branches fused together by ice and frost. The passage is narrow, requiring a crouch to pass through.",
-          "cost": {},
-          "way_id": "way_icy_arch",
-          "hidden": false,
-          "direction": "icy arch",
-          "pass_message": "You duck through the icy arch, the cold air biting at your cheeks.",
-          "visible_in_direction": "ahead the Snowbound Hollow appears as a dim, sheltered hollow beneath a lattice of icy branches.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "icy arch",
-          "cardinal": "north"
-        },
-        "rocky slope": {
-          "target": "Frozen Hollow",
-          "return_dir": "rocky slope",
-          "state": "open",
-          "description": "A narrow cleft in the snow-covered slope, its edges worn smooth by wind and frost. It leads out of the hollow into the tangled thicket beyond.",
-          "cost": {},
-          "way_id": "way_rocky_slope",
-          "hidden": false,
-          "direction": "rocky slope",
-          "pass_message": "The snow crunches softly underfoot as you squeeze through the tight passage, the cold air swirling around you.. there are footsteps towards the hollow entrance",
-          "visible_in_direction": "Glancing back through the gap, you glimpse the bowl-shaped clearing of the hollow, with the old stone well standing silent in the center. seems like footprints going up the slope too",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "rocky slope",
-          "cardinal": "west"
-        },
-        "willow gap": {
-          "target": "Weeping Willow Hollow",
-          "return_dir": "willow gap",
-          "state": "open",
-          "description": "A gap in the weeping willow's curtain of branches, where the warm air meets the biting cold of the frozen thicket.",
-          "cost": {},
-          "way_id": "way_willow_gap",
-          "hidden": false,
-          "direction": "willow gap",
-          "pass_message": "The willow branches rustle as you step through, and the cold wraps around you like a shroud.",
-          "visible_in_direction": "A warm glow emanates from a sheltered hollow under a great weeping willow, dry leaves covering the ground.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "willow gap",
-          "cardinal": "west"
-        },
-        "ice bridge": {
-          "target": "Frozen Stream Crossing",
-          "return_dir": "ice bridge",
-          "state": "open",
-          "description": "A narrow ice bridge spans the stream, its surface slick but sturdy. On the far side, the frozen thicket looms, its branches encased in rime.",
-          "cost": {},
-          "way_id": "way_ice_bridge",
-          "hidden": false,
-          "direction": "ice bridge",
-          "pass_message": "You carefully cross the ice bridge, stepping into the frozen thicket.",
-          "visible_in_direction": "",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "ice bridge"
-        }
-      },
-      "exits_authoring": {
-        "willow arch": {
-          "target": "Frozen Lake Clearing",
-          "return_dir": "willow arch",
-          "state": "open",
-          "description": "A narrow gap in the frozen willows, their branches bent and frozen into a frosted archway that leads into the dense thicket beyond",
-          "cost": {},
-          "way_id": "way_frosted_archway",
-          "hidden": false,
-          "direction": "willow arch",
-          "pass_message": "The icy branches scrape against your clothes as you push through, sending tufts of rime drifting to the ground",
-          "visible_in_direction": "Looking back through the arch, the frozen lake stretches white and vast under the gray sky, the wind whipping snow across the ice",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "willow arch",
-          "cardinal": "south"
-        },
-        "icy arch": {
-          "target": "Snowbound Hollow",
-          "return_dir": "icy arch",
-          "state": "open",
-          "description": "A low arch formed by two ancient pines, their branches fused together by ice and frost. The passage is narrow, requiring a crouch to pass through.",
-          "cost": {},
-          "way_id": "way_icy_arch",
-          "hidden": false,
-          "direction": "icy arch",
-          "pass_message": "You duck through the icy arch, the cold air biting at your cheeks.",
-          "visible_in_direction": "ahead the Snowbound Hollow appears as a dim, sheltered hollow beneath a lattice of icy branches.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "icy arch",
-          "cardinal": "north"
-        },
-        "rocky slope": {
-          "target": "Frozen Hollow",
-          "return_dir": "rocky slope",
-          "state": "open",
-          "description": "A narrow cleft in the snow-covered slope, its edges worn smooth by wind and frost. It leads out of the hollow into the tangled thicket beyond.",
-          "cost": {},
-          "way_id": "way_rocky_slope",
-          "hidden": false,
-          "direction": "rocky slope",
-          "pass_message": "The snow crunches softly underfoot as you squeeze through the tight passage, the cold air swirling around you.. there are footsteps towards the hollow entrance",
-          "visible_in_direction": "Glancing back through the gap, you glimpse the bowl-shaped clearing of the hollow, with the old stone well standing silent in the center. seems like footprints going up the slope too",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "rocky slope",
-          "cardinal": "west"
-        },
-        "willow gap": {
-          "target": "Weeping Willow Hollow",
-          "return_dir": "willow gap",
-          "state": "open",
-          "description": "A gap in the weeping willow's curtain of branches, where the warm air meets the biting cold of the frozen thicket.",
-          "cost": {},
-          "way_id": "way_willow_gap",
-          "hidden": false,
-          "direction": "willow gap",
-          "pass_message": "The willow branches rustle as you step through, and the cold wraps around you like a shroud.",
-          "visible_in_direction": "A warm glow emanates from a sheltered hollow under a great weeping willow, dry leaves covering the ground.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "willow gap",
-          "cardinal": "west"
-        },
-        "ice bridge": {
-          "target": "Frozen Stream Crossing",
-          "return_dir": "ice bridge",
-          "state": "open",
-          "description": "A narrow ice bridge spans the stream, its surface slick but sturdy. On the far side, the frozen thicket looms, its branches encased in rime.",
-          "cost": {},
-          "way_id": "way_ice_bridge",
-          "hidden": false,
-          "direction": "ice bridge",
-          "pass_message": "You carefully cross the ice bridge, stepping into the frozen thicket.",
-          "visible_in_direction": "",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "ice bridge"
-        }
-      },
+      "ambient_light": 72,
+      "light_description": "bright",
       "items": [],
       "floor": 0,
       "properties": {
         "description": "A dense tangle of frozen trees and underbrush, their branches coated in thick rime. The snow here is deep and unbroken, muffling all sound. The only light filters through gaps in the canopy, casting a pale blue glow on the frost-covered bark. The air is still and cold, carrying the sharp scent of pine and frozen earth.",
         "environment": {
           "air": "fresh",
-          "light": "normal",
+          "light": 72,
           "noise": "quiet",
           "smell": "pine and frost",
-          "temperature": -15
+          "temperature": 13.0,
+          "weather": "snowy",
+          "wind": "gale",
+          "humidity": "humid"
         },
         "tags": [
           "exterior"
@@ -4059,25 +2164,6 @@
       },
       "ambient_light": 55,
       "light_description": "normal",
-      "exits": {},
-      "exits_authoring": {
-        "hidden": {
-          "target": "sons bedroom",
-          "return_dir": "hidden",
-          "state": "hidden",
-          "description": "",
-          "cost": {},
-          "way_id": "way_hidden_door",
-          "hidden": true,
-          "direction": "hidden",
-          "pass_message": "",
-          "visible_in_direction": "Through the hidden doorway, the guest bedroom is visible, with its single bed and dusty desk.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "hidden",
-          "cardinal": "west"
-        }
-      },
       "items": [],
       "floor": 1,
       "properties": {
@@ -4104,118 +2190,6 @@
       },
       "ambient_light": 55,
       "light_description": "normal",
-      "exits": {
-        "swinging door": {
-          "target": "Living Room",
-          "return_dir": "enter",
-          "state": "closed",
-          "description": "A classic double swinging door with a small round window, gently swaying.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_swinging_door",
-          "hidden": false,
-          "direction": "swinging door",
-          "pass_message": "You push through the swinging door into the kitchen.",
-          "visible_in_direction": "The living room beyond, with its bookshelves and the grandfather clock ticking.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "swinging door",
-          "cardinal": "north"
-        },
-        "trapdoor": {
-          "target": "Cellar",
-          "return_dir": "enter",
-          "state": "closed",
-          "description": "A heavy wooden trapdoor set into the kitchen floor, its iron ring cold against the floorboards. A sturdy ladder disappears into darkness below.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_cellar_trapdoor",
-          "hidden": false,
-          "direction": "trapdoor",
-          "pass_message": "You lift the trapdoor and climb down the ladder into the cold, damp cellar.",
-          "visible_in_direction": "Below, a ladder descends into the cold, damp cellar with stone walls and shelves of preserved goods.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "trapdoor",
-          "cardinal": "down"
-        },
-        "bathroom door": {
-          "target": "Bathroom",
-          "return_dir": "kitchen door",
-          "state": "closed",
-          "description": "A wooden door that has a small sigh of Bath on it.",
-          "cost": {},
-          "way_id": "way_bathroom_door",
-          "hidden": false,
-          "direction": "bathroom door",
-          "pass_message": "",
-          "visible_in_direction": "",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "bathroom door",
-          "cardinal": "north"
-        }
-      },
-      "exits_authoring": {
-        "swinging door": {
-          "target": "Living Room",
-          "return_dir": "enter",
-          "state": "closed",
-          "description": "A classic double swinging door with a small round window, gently swaying.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_swinging_door",
-          "hidden": false,
-          "direction": "swinging door",
-          "pass_message": "You push through the swinging door into the kitchen.",
-          "visible_in_direction": "The living room beyond, with its bookshelves and the grandfather clock ticking.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "swinging door",
-          "cardinal": "north"
-        },
-        "trapdoor": {
-          "target": "Cellar",
-          "return_dir": "enter",
-          "state": "closed",
-          "description": "A heavy wooden trapdoor set into the kitchen floor, its iron ring cold against the floorboards. A sturdy ladder disappears into darkness below.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_cellar_trapdoor",
-          "hidden": false,
-          "direction": "trapdoor",
-          "pass_message": "You lift the trapdoor and climb down the ladder into the cold, damp cellar.",
-          "visible_in_direction": "Below, a ladder descends into the cold, damp cellar with stone walls and shelves of preserved goods.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "trapdoor",
-          "cardinal": "down"
-        },
-        "bathroom door": {
-          "target": "Bathroom",
-          "return_dir": "kitchen door",
-          "state": "closed",
-          "description": "A wooden door that has a small sigh of Bath on it.",
-          "cost": {},
-          "way_id": "way_bathroom_door",
-          "hidden": false,
-          "direction": "bathroom door",
-          "pass_message": "",
-          "visible_in_direction": "",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "bathroom door",
-          "cardinal": "north"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
@@ -4241,162 +2215,6 @@
       },
       "ambient_light": 55,
       "light_description": "normal",
-      "exits": {
-        "living room": {
-          "target": "Study",
-          "return_dir": "study door",
-          "state": "closed",
-          "description": "A heavy oak door leading to the study.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_oak_door",
-          "hidden": false,
-          "direction": "living room",
-          "pass_message": "",
-          "visible_in_direction": "The study, filled floor-to-ceiling with books, a large oak desk dominating the center.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "living room",
-          "cardinal": "east"
-        },
-        "swinging door": {
-          "target": "Kitchen",
-          "return_dir": "east",
-          "state": "closed",
-          "description": "A classic double swinging door with a small round window, gently swaying.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_swinging_door",
-          "hidden": false,
-          "direction": "swinging door",
-          "pass_message": "You push through the swinging door into the kitchen.",
-          "visible_in_direction": "The kitchen, with a checkered tablecloth on the table and dried herbs hanging from the ceiling.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "swinging door",
-          "cardinal": "south"
-        },
-        "front door": {
-          "target": "Blizzard Forest Clearing",
-          "return_dir": "front door",
-          "state": "open",
-          "description": "A heavy wooden front door, weathered by the storm. The iron handle is cold to the touch.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_front",
-          "hidden": false,
-          "direction": "front door",
-          "pass_message": "You step through the front door into the cold glow of the living room.",
-          "visible_in_direction": "Through the open front door, the blizzard rages in the forest clearing, white snow swirling in the bitter wind.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "front door",
-          "cardinal": "south"
-        },
-        "stairs": {
-          "target": "Upstairs Hallway",
-          "return_dir": "enter",
-          "state": "open",
-          "description": "A wooden staircase ascends into shadows, the banister worn smooth by years of use. The steps groan under any weight.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_stairs",
-          "hidden": false,
-          "direction": "stairs",
-          "pass_message": "You climb the creaking stairs to the upstairs hallway.",
-          "visible_in_direction": "A wooden staircase ascends into shadows, the banister worn smooth.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "stairs",
-          "cardinal": "up"
-        }
-      },
-      "exits_authoring": {
-        "living room": {
-          "target": "Study",
-          "return_dir": "study door",
-          "state": "closed",
-          "description": "A heavy oak door leading to the study.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_oak_door",
-          "hidden": false,
-          "direction": "living room",
-          "pass_message": "",
-          "visible_in_direction": "The study, filled floor-to-ceiling with books, a large oak desk dominating the center.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "living room",
-          "cardinal": "east"
-        },
-        "swinging door": {
-          "target": "Kitchen",
-          "return_dir": "east",
-          "state": "closed",
-          "description": "A classic double swinging door with a small round window, gently swaying.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_swinging_door",
-          "hidden": false,
-          "direction": "swinging door",
-          "pass_message": "You push through the swinging door into the kitchen.",
-          "visible_in_direction": "The kitchen, with a checkered tablecloth on the table and dried herbs hanging from the ceiling.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "swinging door",
-          "cardinal": "south"
-        },
-        "front door": {
-          "target": "Blizzard Forest Clearing",
-          "return_dir": "front door",
-          "state": "open",
-          "description": "A heavy wooden front door, weathered by the storm. The iron handle is cold to the touch.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_front",
-          "hidden": false,
-          "direction": "front door",
-          "pass_message": "You step through the front door into the cold glow of the living room.",
-          "visible_in_direction": "Through the open front door, the blizzard rages in the forest clearing, white snow swirling in the bitter wind.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "front door",
-          "cardinal": "south"
-        },
-        "stairs": {
-          "target": "Upstairs Hallway",
-          "return_dir": "enter",
-          "state": "open",
-          "description": "A wooden staircase ascends into shadows, the banister worn smooth by years of use. The steps groan under any weight.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_stairs",
-          "hidden": false,
-          "direction": "stairs",
-          "pass_message": "You climb the creaking stairs to the upstairs hallway.",
-          "visible_in_direction": "A wooden staircase ascends into shadows, the banister worn smooth.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "stairs",
-          "cardinal": "up"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
@@ -4422,48 +2240,6 @@
       },
       "ambient_light": 30,
       "light_description": "dim",
-      "exits": {
-        "hallway": {
-          "target": "Upstairs Hallway",
-          "return_dir": "hallway",
-          "state": "closed",
-          "description": "A tall wooden door with an ornate brass handle. Faint traces of lavender scent the air around it.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_bedroom_master",
-          "hidden": false,
-          "direction": "hallway",
-          "pass_message": "You enter the master bedroom. The air is cold and still.",
-          "visible_in_direction": "The narrow upstairs hallway, with the guest bedroom door opposite and the stairs at the far end.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "hallway",
-          "cardinal": "west"
-        }
-      },
-      "exits_authoring": {
-        "hallway": {
-          "target": "Upstairs Hallway",
-          "return_dir": "hallway",
-          "state": "closed",
-          "description": "A tall wooden door with an ornate brass handle. Faint traces of lavender scent the air around it.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_bedroom_master",
-          "hidden": false,
-          "direction": "hallway",
-          "pass_message": "You enter the master bedroom. The air is cold and still.",
-          "visible_in_direction": "The narrow upstairs hallway, with the guest bedroom door opposite and the stairs at the far end.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "hallway",
-          "cardinal": "west"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
@@ -4489,42 +2265,6 @@
       },
       "ambient_light": 55,
       "light_description": "normal",
-      "exits": {
-        "Outhouse door": {
-          "target": "Blizzard Forest Clearing",
-          "return_dir": "Outhouse door",
-          "state": "closed",
-          "description": "A wooden door to the outhouse",
-          "cost": {},
-          "way_id": "way_outhouse_door",
-          "hidden": false,
-          "direction": "Outhouse door",
-          "pass_message": "The outhouse door creeks gently as you open and pass inside.",
-          "visible_in_direction": "The blistering cold of the storm that rages on",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "Outhouse door",
-          "cardinal": "southwest"
-        }
-      },
-      "exits_authoring": {
-        "Outhouse door": {
-          "target": "Blizzard Forest Clearing",
-          "return_dir": "Outhouse door",
-          "state": "closed",
-          "description": "A wooden door to the outhouse",
-          "cost": {},
-          "way_id": "way_outhouse_door",
-          "hidden": false,
-          "direction": "Outhouse door",
-          "pass_message": "The outhouse door creeks gently as you open and pass inside.",
-          "visible_in_direction": "The blistering cold of the storm that rages on",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "Outhouse door",
-          "cardinal": "southwest"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
@@ -4542,92 +2282,30 @@
       "name": "Snowbound Hollow",
       "description": "A shallow depression beneath a dense tangle of snow-laden branches, forming a natural shelter. The blizzard howls beyond the woven walls of ice and bark, but inside, the wind is muted. The ground is carpeted with dry pine needles and a thin layer of frost. A faint glow filters through the icy canopy.",
       "environment": {
-        "air": "",
-        "light": "bright",
+        "air": "fresh",
+        "light": 72,
         "noise": "muffled howl of wind",
         "smell": "pine and frost",
-        "temperature": -5
+        "temperature": 13.0,
+        "weather": "snowy",
+        "wind": "gale",
+        "humidity": "humid"
       },
-      "ambient_light": 80,
+      "ambient_light": 72,
       "light_description": "bright",
-      "exits": {
-        "icy arch": {
-          "target": "Frozen Thicket",
-          "return_dir": "snowy passage",
-          "state": "open",
-          "description": "A low arch formed by two ancient pines, their branches fused together by ice and frost. The passage is narrow, requiring a crouch to pass through.",
-          "cost": {},
-          "way_id": "way_icy_arch",
-          "hidden": false,
-          "direction": "icy arch",
-          "pass_message": "You duck through the icy arch, the cold air biting at your cheeks.",
-          "visible_in_direction": "Through the arch, the Frozen Thicket glimmers with pale blue light, the branches heavy with rime.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "icy arch",
-          "cardinal": "south"
-        },
-        "root tunnel": {
-          "target": "Weeping Willow Hollow",
-          "return_dir": "root tunnel",
-          "state": "open",
-          "description": "A low, narrow opening between the weeping willow's trailing branches, where the roots have worn a smooth tunnel through the earth. The passage is just wide enough to duck through, and the floor is padded with dry leaves.",
-          "cost": {},
-          "way_id": "way_root_tunnel",
-          "hidden": false,
-          "direction": "root tunnel",
-          "pass_message": "You push through the curtain of willow twigs and step from the warm, earthy hollow into a colder space where frost crunches underfoot.",
-          "visible_in_direction": "Looking back through the low opening, you see a warm, dry hollow sheltered by the willow's roots, where fallen leaves lie undisturbed and the air is still and earthy.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "root tunnel",
-          "cardinal": "north"
-        }
-      },
-      "exits_authoring": {
-        "icy arch": {
-          "target": "Frozen Thicket",
-          "return_dir": "snowy passage",
-          "state": "open",
-          "description": "A low arch formed by two ancient pines, their branches fused together by ice and frost. The passage is narrow, requiring a crouch to pass through.",
-          "cost": {},
-          "way_id": "way_icy_arch",
-          "hidden": false,
-          "direction": "icy arch",
-          "pass_message": "You duck through the icy arch, the cold air biting at your cheeks.",
-          "visible_in_direction": "Through the arch, the Frozen Thicket glimmers with pale blue light, the branches heavy with rime.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "icy arch",
-          "cardinal": "south"
-        },
-        "root tunnel": {
-          "target": "Weeping Willow Hollow",
-          "return_dir": "root tunnel",
-          "state": "open",
-          "description": "A low, narrow opening between the weeping willow's trailing branches, where the roots have worn a smooth tunnel through the earth. The passage is just wide enough to duck through, and the floor is padded with dry leaves.",
-          "cost": {},
-          "way_id": "way_root_tunnel",
-          "hidden": false,
-          "direction": "root tunnel",
-          "pass_message": "You push through the curtain of willow twigs and step from the warm, earthy hollow into a colder space where frost crunches underfoot.",
-          "visible_in_direction": "Looking back through the low opening, you see a warm, dry hollow sheltered by the willow's roots, where fallen leaves lie undisturbed and the air is still and earthy.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "root tunnel",
-          "cardinal": "north"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
         "description": "A shallow depression beneath a dense tangle of snow-laden branches, forming a natural shelter. The blizzard howls beyond the woven walls of ice and bark, but inside, the wind is muted. The ground is carpeted with dry pine needles and a thin layer of frost. A faint glow filters through the icy canopy.",
         "environment": {
-          "air": "",
-          "light": "bright",
+          "air": "fresh",
+          "light": 72,
           "noise": "muffled howl of wind",
           "smell": "pine and frost",
-          "temperature": -5
+          "temperature": 13.0,
+          "weather": "snowy",
+          "wind": "gale",
+          "humidity": "humid"
         },
         "tags": [
           "exterior"
@@ -4646,64 +2324,6 @@
       },
       "ambient_light": 30,
       "light_description": "dim",
-      "exits": {
-        "hallway": {
-          "target": "Upstairs Hallway",
-          "return_dir": "hallway",
-          "state": "closed",
-          "description": "A modest door with a simple porcelain knob. Dust has gathered in the corners of the frame.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_bedroom_guest",
-          "hidden": false,
-          "direction": "hallway",
-          "pass_message": "You push open the door to the guest bedroom. Dust motes dance in the dim light.",
-          "visible_in_direction": "The upstairs hallway beyond, with the master bedroom door to your left and the stairs leading down.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "hallway",
-          "cardinal": "south"
-        }
-      },
-      "exits_authoring": {
-        "hallway": {
-          "target": "Upstairs Hallway",
-          "return_dir": "hallway",
-          "state": "closed",
-          "description": "A modest door with a simple porcelain knob. Dust has gathered in the corners of the frame.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_bedroom_guest",
-          "hidden": false,
-          "direction": "hallway",
-          "pass_message": "You push open the door to the guest bedroom. Dust motes dance in the dim light.",
-          "visible_in_direction": "The upstairs hallway beyond, with the master bedroom door to your left and the stairs leading down.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "hallway",
-          "cardinal": "south"
-        },
-        "hidden": {
-          "target": "Hidden Panic Room",
-          "return_dir": "hidden",
-          "state": "hidden",
-          "description": "",
-          "cost": {},
-          "way_id": "way_hidden_door",
-          "hidden": true,
-          "direction": "hidden",
-          "pass_message": "",
-          "visible_in_direction": "Through the hidden opening, a low-ceilinged attic room is visible, padded with fabric and a warm dim glow.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "hidden",
-          "cardinal": "east"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
@@ -4729,48 +2349,6 @@
       },
       "ambient_light": 55,
       "light_description": "normal",
-      "exits": {
-        "study door": {
-          "target": "Living Room",
-          "return_dir": "living room",
-          "state": "closed",
-          "description": "A heavy oak door leading to the study.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_oak_door",
-          "hidden": false,
-          "direction": "study door",
-          "pass_message": "",
-          "visible_in_direction": "The living room, with its ticking grandfather clock, cold fireplace, and bookshelves.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "study door",
-          "cardinal": "west"
-        }
-      },
-      "exits_authoring": {
-        "study door": {
-          "target": "Living Room",
-          "return_dir": "living room",
-          "state": "closed",
-          "description": "A heavy oak door leading to the study.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_oak_door",
-          "hidden": false,
-          "direction": "study door",
-          "pass_message": "",
-          "visible_in_direction": "The living room, with its ticking grandfather clock, cold fireplace, and bookshelves.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "study door",
-          "cardinal": "west"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
@@ -4796,124 +2374,6 @@
       },
       "ambient_light": 30,
       "light_description": "dim",
-      "exits": {
-        "stairs": {
-          "target": "Living Room",
-          "return_dir": "stairs",
-          "state": "open",
-          "description": "A wooden staircase ascends into shadows, the banister worn smooth by years of use. The steps groan under any weight.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_stairs",
-          "hidden": false,
-          "direction": "stairs",
-          "pass_message": "You climb the creaking stairs to the upstairs hallway.",
-          "visible_in_direction": "The stairs descend into the living room below, where you can glimpse the bookshelves and the fireplace.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "stairs",
-          "cardinal": "down"
-        },
-        "master bedroom": {
-          "target": "Master Bedroom",
-          "return_dir": "enter",
-          "state": "closed",
-          "description": "A tall wooden door with an ornate brass handle. Faint traces of lavender scent the air around it.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_bedroom_master",
-          "hidden": false,
-          "direction": "master bedroom",
-          "pass_message": "You enter the master bedroom. The air is cold and still.",
-          "visible_in_direction": "The spacious master bedroom, with a four-poster bed and frost-covered windows.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "master bedroom",
-          "cardinal": "east"
-        },
-        "guest bedroom": {
-          "target": "sons bedroom",
-          "return_dir": "enter",
-          "state": "closed",
-          "description": "A modest door with a simple porcelain knob. Dust has gathered in the corners of the frame.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_bedroom_guest",
-          "hidden": false,
-          "direction": "guest bedroom",
-          "pass_message": "You push open the door to the guest bedroom. Dust motes dance in the dim light.",
-          "visible_in_direction": "The small guest bedroom, with a single bed, a writing desk, and dust coating every surface.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "guest bedroom",
-          "cardinal": "north"
-        }
-      },
-      "exits_authoring": {
-        "stairs": {
-          "target": "Living Room",
-          "return_dir": "stairs",
-          "state": "open",
-          "description": "A wooden staircase ascends into shadows, the banister worn smooth by years of use. The steps groan under any weight.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_stairs",
-          "hidden": false,
-          "direction": "stairs",
-          "pass_message": "You climb the creaking stairs to the upstairs hallway.",
-          "visible_in_direction": "The stairs descend into the living room below, where you can glimpse the bookshelves and the fireplace.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "stairs",
-          "cardinal": "down"
-        },
-        "master bedroom": {
-          "target": "Master Bedroom",
-          "return_dir": "enter",
-          "state": "closed",
-          "description": "A tall wooden door with an ornate brass handle. Faint traces of lavender scent the air around it.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_bedroom_master",
-          "hidden": false,
-          "direction": "master bedroom",
-          "pass_message": "You enter the master bedroom. The air is cold and still.",
-          "visible_in_direction": "The spacious master bedroom, with a four-poster bed and frost-covered windows.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "master bedroom",
-          "cardinal": "east"
-        },
-        "guest bedroom": {
-          "target": "sons bedroom",
-          "return_dir": "enter",
-          "state": "closed",
-          "description": "A modest door with a simple porcelain knob. Dust has gathered in the corners of the frame.",
-          "cost": {
-            "energy": 1,
-            "time": 1
-          },
-          "way_id": "way_bedroom_guest",
-          "hidden": false,
-          "direction": "guest bedroom",
-          "pass_message": "You push open the door to the guest bedroom. Dust motes dance in the dim light.",
-          "visible_in_direction": "The small guest bedroom, with a single bed, a writing desk, and dust coating every surface.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "guest bedroom",
-          "cardinal": "north"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
@@ -4931,92 +2391,30 @@
       "name": "Weeping Willow Hollow",
       "description": "A small clearing cradled by the gnarled roots of an ancient weeping willow. Its branches hang low, creating a curtain of living wood that shelters this space from the relentless snow. Inside, the ground is dry and carpeted with fallen leaves and soft moss. The air is still and noticeably warmer than the surrounding forest. A faint, earthy scent of damp wood and decayed leaves mingles with the whispering rustle of the willow's trailing twigs.",
       "environment": {
-        "air": "",
-        "light": "bright",
+        "air": "fresh",
+        "light": 72,
         "noise": "quiet",
         "smell": "damp earth and dry leaves",
-        "temperature": 3
+        "temperature": 13.0,
+        "weather": "snowy",
+        "wind": "gale",
+        "humidity": "humid"
       },
-      "ambient_light": 80,
+      "ambient_light": 72,
       "light_description": "bright",
-      "exits": {
-        "willow gap": {
-          "target": "Frozen Thicket",
-          "return_dir": "thicket path",
-          "state": "open",
-          "description": "A gap in the weeping willow's curtain of branches, where the warm air meets the biting cold of the frozen thicket.",
-          "cost": {},
-          "way_id": "way_willow_gap",
-          "hidden": false,
-          "direction": "willow gap",
-          "pass_message": "The willow branches rustle as you step through, and the cold wraps around you like a shroud.",
-          "visible_in_direction": "Through the gap, a dense tangle of frozen trees coated in rime, pale blue light filtering through.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "willow gap",
-          "cardinal": "east"
-        },
-        "root tunnel": {
-          "target": "Snowbound Hollow",
-          "return_dir": "frosted opening",
-          "state": "open",
-          "description": "A low, narrow opening between the weeping willow's trailing branches, where the roots have worn a smooth tunnel through the earth. The passage is just wide enough to duck through, and the floor is padded with dry leaves.",
-          "cost": {},
-          "way_id": "way_root_tunnel",
-          "hidden": false,
-          "direction": "root tunnel",
-          "pass_message": "You push through the curtain of willow twigs and step from the warm, earthy hollow into a colder space where frost crunches underfoot.",
-          "visible_in_direction": "Through the gap, you glimpse a shallow depression where pale light filters through icy branches, and a faint frost coats the pine-needle floor. The muffled sound of wind suggests the storm is just beyond.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "root tunnel",
-          "cardinal": "south"
-        }
-      },
-      "exits_authoring": {
-        "willow gap": {
-          "target": "Frozen Thicket",
-          "return_dir": "thicket path",
-          "state": "open",
-          "description": "A gap in the weeping willow's curtain of branches, where the warm air meets the biting cold of the frozen thicket.",
-          "cost": {},
-          "way_id": "way_willow_gap",
-          "hidden": false,
-          "direction": "willow gap",
-          "pass_message": "The willow branches rustle as you step through, and the cold wraps around you like a shroud.",
-          "visible_in_direction": "Through the gap, a dense tangle of frozen trees coated in rime, pale blue light filtering through.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "willow gap",
-          "cardinal": "east"
-        },
-        "root tunnel": {
-          "target": "Snowbound Hollow",
-          "return_dir": "frosted opening",
-          "state": "open",
-          "description": "A low, narrow opening between the weeping willow's trailing branches, where the roots have worn a smooth tunnel through the earth. The passage is just wide enough to duck through, and the floor is padded with dry leaves.",
-          "cost": {},
-          "way_id": "way_root_tunnel",
-          "hidden": false,
-          "direction": "root tunnel",
-          "pass_message": "You push through the curtain of willow twigs and step from the warm, earthy hollow into a colder space where frost crunches underfoot.",
-          "visible_in_direction": "Through the gap, you glimpse a shallow depression where pale light filters through icy branches, and a faint frost coats the pine-needle floor. The muffled sound of wind suggests the storm is just beyond.",
-          "allow_see_characters": false,
-          "visible_items": [],
-          "label": "root tunnel",
-          "cardinal": "south"
-        }
-      },
       "items": [],
       "floor": 0,
       "properties": {
         "description": "A small clearing cradled by the gnarled roots of an ancient weeping willow. Its branches hang low, creating a curtain of living wood that shelters this space from the relentless snow. Inside, the ground is dry and carpeted with fallen leaves and soft moss. The air is still and noticeably warmer than the surrounding forest. A faint, earthy scent of damp wood and decayed leaves mingles with the whispering rustle of the willow's trailing twigs.",
         "environment": {
-          "air": "",
-          "light": "bright",
+          "air": "fresh",
+          "light": 72,
           "noise": "quiet",
           "smell": "damp earth and dry leaves",
-          "temperature": 3
+          "temperature": 13.0,
+          "weather": "snowy",
+          "wind": "gale",
+          "humidity": "humid"
         },
         "tags": [
           "exterior"
@@ -5093,17 +2491,20 @@
           "description": "You stand in a small clearing, surrounded by towering pines encased in ice and snow. The wind howls relentlessly, whipping stinging flakes into your face and muffling all but the loudest sounds. Through the blinding white, you make out the faint silhouette of a two-story house in the distance, its windows glowing with a dim, warm light. Nestled to one side, a small outhouse stands incongruously bare of snow, its roof and walls oddly dry and dark against the surrounding white. Closer still, an axe is embedded deep in a weathered stump, its handle gleaming with a faint sheen of frost. The air is sharp and cold, carrying the crisp scent of frozen pine and the faint, almost imperceptible hint of woodsmoke from the house. Every step crunches on the icy crust, and the trees groan under their burden of snow.",
           "environment": {
             "air": "fresh",
-            "light": "bright",
+            "light": 72,
             "noise": "windy",
             "smell": "Frozen pine, wild cedar, and a whisper of woodsmoke",
-            "temperature": -12
+            "temperature": 13.0,
+            "weather": "snowy",
+            "wind": "gale",
+            "humidity": "humid"
           },
           "tags": [
             "exterior"
           ]
         },
         "created": 1784016449.3521793,
-        "updated": 1785345346.6951616
+        "updated": 1788212603.3064606
       },
       "area_cellar": {
         "id": "area_cellar",
@@ -5146,18 +2547,21 @@
         "properties": {
           "description": "A dead-end clearing surrounded by steep, snow-covered slopes. The wind is muted here, trapped by the natural bowl of the hills. In the center, an old stone well sits half-frozen, its wooden crank creaking slightly. The bucket is broken and lies in pieces at the base. Peering inside reveals only stale, cold air and a single, faded ribbon tied to the crank. ",
           "environment": {
-            "air": "",
-            "light": "bright",
+            "air": "fresh",
+            "light": 72,
             "noise": "quiet, with an occasional creak of frozen wood",
             "smell": "faint iron and frost",
-            "temperature": -5
+            "temperature": 13.0,
+            "weather": "snowy",
+            "wind": "gale",
+            "humidity": "humid"
           },
           "tags": [
             "exterior"
           ]
         },
         "created": 1784463951.401667,
-        "updated": 1785314608.7563307
+        "updated": 1788212603.3064606
       },
       "area_frozen_lake_clearing": {
         "id": "area_frozen_lake_clearing",
@@ -5166,18 +2570,21 @@
         "properties": {
           "description": "A wide clearing where the forest gives way to the shore of a vast, frozen lake. The wind roars across the ice, driving sheets of snow before it. The ice is thick and translucent, showing dark blue depths below. Bent willows and pines fringe the shore, their branches coated in rime.  The cold is relentless, biting at any exposed skin.",
           "environment": {
-            "air": "",
-            "light": "bright",
+            "air": "fresh",
+            "light": 72,
             "noise": "howling wind, creaking ice",
             "smell": "pine and clean ice",
-            "temperature": -12
+            "temperature": 13.0,
+            "weather": "snowy",
+            "wind": "gale",
+            "humidity": "humid"
           },
           "tags": [
             "exterior"
           ]
         },
         "created": 1784462059.071219,
-        "updated": 1785314551.9394486
+        "updated": 1788212603.3064606
       },
       "area_frozen_stream_crossing": {
         "id": "area_frozen_stream_crossing",
@@ -5186,18 +2593,21 @@
         "properties": {
           "description": "A narrow, winding stream cuts through the forest, its surface a patchwork of ice and open water. The ice near the banks is thin and cracks underfoot, while a fallen log spans the widest part, its bark worn smooth by countless crossings. The air is filled with the soft gurgle of rushing water beneath the ice and the whisper of wind through the pines.",
           "environment": {
-            "air": "",
-            "light": "bright",
+            "air": "fresh",
+            "light": 72,
             "noise": "trickling water and wind",
             "smell": "frost and wet wood",
-            "temperature": -5
+            "temperature": 13.0,
+            "weather": "snowy",
+            "wind": "gale",
+            "humidity": "humid"
           },
           "tags": [
             "exterior"
           ]
         },
         "created": 1784463834.6910167,
-        "updated": 1785314544.1136734
+        "updated": 1788212603.3064606
       },
       "area_frozen_thicket": {
         "id": "area_frozen_thicket",
@@ -5207,17 +2617,20 @@
           "description": "A dense tangle of frozen trees and underbrush, their branches coated in thick rime. The snow here is deep and unbroken, muffling all sound. The only light filters through gaps in the canopy, casting a pale blue glow on the frost-covered bark. The air is still and cold, carrying the sharp scent of pine and frozen earth.",
           "environment": {
             "air": "fresh",
-            "light": "normal",
+            "light": 72,
             "noise": "quiet",
             "smell": "pine and frost",
-            "temperature": -15
+            "temperature": 13.0,
+            "weather": "snowy",
+            "wind": "gale",
+            "humidity": "humid"
           },
           "tags": [
             "exterior"
           ]
         },
         "created": 1784462524.2982874,
-        "updated": 1785314536.2647223
+        "updated": 1788212603.3064606
       },
       "area_hidden_panic_room": {
         "id": "area_hidden_panic_room",
@@ -5312,18 +2725,21 @@
         "properties": {
           "description": "A shallow depression beneath a dense tangle of snow-laden branches, forming a natural shelter. The blizzard howls beyond the woven walls of ice and bark, but inside, the wind is muted. The ground is carpeted with dry pine needles and a thin layer of frost. A faint glow filters through the icy canopy.",
           "environment": {
-            "air": "",
-            "light": "bright",
+            "air": "fresh",
+            "light": 72,
             "noise": "muffled howl of wind",
             "smell": "pine and frost",
-            "temperature": -5
+            "temperature": 13.0,
+            "weather": "snowy",
+            "wind": "gale",
+            "humidity": "humid"
           },
           "tags": [
             "exterior"
           ]
         },
         "created": 1784462015.4540372,
-        "updated": 1785314599.524199
+        "updated": 1788212603.3064606
       },
       "area_sons_bedroom": {
         "id": "area_sons_bedroom",
@@ -5383,18 +2799,21 @@
         "properties": {
           "description": "A small clearing cradled by the gnarled roots of an ancient weeping willow. Its branches hang low, creating a curtain of living wood that shelters this space from the relentless snow. Inside, the ground is dry and carpeted with fallen leaves and soft moss. The air is still and noticeably warmer than the surrounding forest. A faint, earthy scent of damp wood and decayed leaves mingles with the whispering rustle of the willow's trailing twigs.",
           "environment": {
-            "air": "",
-            "light": "bright",
+            "air": "fresh",
+            "light": 72,
             "noise": "quiet",
             "smell": "damp earth and dry leaves",
-            "temperature": 3
+            "temperature": 13.0,
+            "weather": "snowy",
+            "wind": "gale",
+            "humidity": "humid"
           },
           "tags": [
             "exterior"
           ]
         },
         "created": 1784463936.3627849,
-        "updated": 1785314595.386414
+        "updated": 1788212603.3064606
       },
       "bandages": {
         "id": "bandages",
@@ -13363,12 +10782,6 @@
         "properties": {}
       },
       {
-        "source": "player_Kaelen_Voss",
-        "target": "area_blizzard_forest_clearing",
-        "type": "in",
-        "properties": {}
-      },
-      {
         "source": "item_Backpack",
         "target": "player_Kaelen_Voss",
         "type": "connection",
@@ -13441,12 +10854,6 @@
         }
       },
       {
-        "source": "player_Lyrie",
-        "target": "area_frozen_thicket",
-        "type": "in",
-        "properties": {}
-      },
-      {
         "source": "item_Frayed Friendship Bracelet",
         "target": "player_Lyrie",
         "type": "connection",
@@ -13495,6 +10902,18 @@
         }
       },
       {
+        "source": "player_Kaelen_Voss",
+        "target": "area_blizzard_forest_clearing",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Lyrie",
+        "target": "area_frozen_thicket",
+        "type": "in",
+        "properties": {}
+      },
+      {
         "source": "player_rat",
         "target": "area_kitchen",
         "type": "in",
@@ -13519,5 +10938,53 @@
       "title": "The Valerious Case"
     }
   ],
-  "_scenario_name": "The Valerious Case"
+  "calendar_config": {
+    "minutes_per_day": 1440,
+    "days_per_week": 7,
+    "days_per_month": 30,
+    "months_per_year": 12,
+    "year_start_day": 1
+  },
+  "forecast_schedule": {
+    "mode": "authored",
+    "granularity": "hourly",
+    "entries": [
+      {
+        "offset": 0,
+        "weather": "snowy",
+        "wind": "wind",
+        "humidity": "humid",
+        "temperature_mod": -8,
+        "light_mod": -8,
+        "air": "fresh",
+        "message": "Snowfall continues across the frozen landscape, the wind biting cold."
+      },
+      {
+        "offset": 360,
+        "weather": "snowy",
+        "wind": "gale",
+        "humidity": "wet",
+        "temperature_mod": -15,
+        "light_mod": -12,
+        "air": "fresh",
+        "message": "The wind picks up into a howling gale, driving snow sideways. The cold deepens."
+      },
+      {
+        "offset": 720,
+        "weather": "snowy",
+        "wind": "breeze",
+        "humidity": "humid",
+        "temperature_mod": -5,
+        "light_mod": -5,
+        "air": "fresh",
+        "message": "The gale subsides to a bitter breeze. Snow still falls, but the sky begins to pale."
+      }
+    ]
+  },
+  "forecast_override": {
+    "weather": "snowy",
+    "wind": "gale",
+    "humidity": "humid",
+    "duration_ticks": 36
+  }
 }
