@@ -13,6 +13,7 @@ from .action_handlers import (
     handle_autocomplete,
     handle_take_action,
     handle_process_emote,
+    handle_llm_respond_post,
     handle_apply_turn_decay,
     handle_clear_turn_events,
 )
@@ -36,6 +37,23 @@ def register_action_routes(app):
     @app.route('/api/emote', methods=['POST'])
     def process_emote_endpoint():
         return handle_process_emote(app)
+
+    @app.route('/api/llm_respond', methods=['POST'])
+    def llm_respond_post():
+        return handle_llm_respond_post(app)
+
+    @app.route('/api/auto_dress', methods=['POST'])
+    def auto_dress():
+        from flask import request, jsonify
+        data = request.get_json() or {}
+        name = data.get('character') or data.get('char')
+        if not name:
+            return jsonify({"error": "Missing 'character'"}), 400
+        try:
+            output = app.world.auto_dress_character(name)
+            return jsonify({"output": output})
+        except Exception as e:
+            return jsonify({"output": str(e), "success": False}), 400
 
     @app.route('/api/turn/apply', methods=['POST'])
     def apply_turn_decay():

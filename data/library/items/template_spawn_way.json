@@ -1,0 +1,33 @@
+{
+  "name": "Template: Spawn Way",
+  "description": "⚠️ DANGEROUS TEMPLATE — Spawn Way. Using this RUNS the effect on the live world immediately. Keep out of authoring scenarios; use only to understand the mechanic.",
+  "tags": [
+    "template",
+    "demo"
+  ],
+  "actions": [
+    "examine",
+    "use"
+  ],
+  "uses": -1,
+  "max_uses": 0,
+  "weight": 0.1,
+  "current_state": "normal",
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "type": "spawn_way",
+          "params": {
+            "name": "Template Door",
+            "current_state": "open",
+            "room1": "self",
+            "message": "[template:spawn_way] A door shimmers into being.",
+            "fail_message": "[template:spawn_way] The door needs authored areas."
+          }
+        }
+      ]
+    }
+  ]
+}

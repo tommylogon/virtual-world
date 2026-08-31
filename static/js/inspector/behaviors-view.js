@@ -27,7 +27,8 @@ window.InspectorBehaviors = (() => {
             { value: 'spawn_item', label: '📦 Spawn Item', params: ['spawn_id', 'spawn_name', 'spawn_desc'] },
             { value: 'spawn_character', label: '🧑 Spawn Character', params: ['spawn_char_id', 'spawn_char_name', 'spawn_char_area'] },
             { value: 'teleport', label: '🌀 Teleport', params: ['teleport_area', 'teleport_target'] },
-            { value: 'go', label: '🚶 Go / Move', params: ['go_mode', 'go_area', 'go_areas'] }
+            { value: 'go', label: '🚶 Go / Move', params: ['go_mode', 'go_area', 'go_areas'] },
+            { value: 'llm_respond', label: '🤖 LLM Respond', params: ['llm_instructions', 'llm_fallback', 'llm_max_words'] }
         ];
     };
 

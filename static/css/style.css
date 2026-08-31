@@ -149,13 +149,17 @@ body {
     overflow-y: auto; overflow-x: hidden;
 }
 
-/* ===== Editor Toolbar ===== */
+/* ===== Editor Toolbar =====
+ * NOTE: overflow MUST stay visible — the toolbar hosts absolutely-positioned
+ * dropdowns (More ▾, Overlays ▾) that open BELOW its box; overflow-y:hidden
+ * clipped them into invisibility. Rows wrap via flex-wrap, so no scrolling
+ * is lost. */
 .editor-toolbar {
     display: flex; align-items: center; gap: 6px; flex-shrink: 0;
     padding: 6px 12px; background: var(--bg-card);
     border-bottom: 1px solid var(--border);
     flex-wrap: wrap;
-    overflow-x: auto; overflow-y: hidden;
+    overflow: visible;
     max-width: 100%;
     scrollbar-width: thin;
 }
@@ -1008,6 +1012,23 @@ body {
     letter-spacing: 0.5px;
     line-height: 1.3;
     margin-bottom: 2px;
+}
+/* On-character gear totals strip (Inventory tab summary) */
+.paperdoll-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 8px;
+    background: var(--bg-inset);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: help;
+}
+.paperdoll-stat:hover {
+    border-color: var(--accent-dim);
+    color: var(--accent);
 }
 .paperdoll-body-btn {
     position: absolute;

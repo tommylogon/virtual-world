@@ -262,6 +262,11 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
         const resolvedDesc = doorNode
             ? InspectorHelpers.resolveWayParams(description, doorNode.properties?.parameters || {})
             : description;
+        // task-240: cardinal direction badge (map-layout data) when present.
+        const cardinal = exitData.cardinal || '';
+        const cardinalBadge = cardinal
+            ? htmlTag`<span class="state-badge" style="font-size:9px;background:rgba(88,166,255,0.12);color:#58a6ff;border:1px solid rgba(88,166,255,0.4);padding:1px 6px;border-radius:4px;font-weight:600;" title="Map cardinal: ${cardinal}">🧭 ${cardinal}</span>`
+            : window.Lit.nothing;
         const badges = typeof WayAuthoring !== 'undefined'
             ? WayAuthoring.collectExitBadges(exitData, doorNode).filter(b => b.kind !== 'state')
             : [];
@@ -282,6 +287,7 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
                     <span style="font-size:10px;color:var(--text-muted);">→ ${exitData.target || '?'}${movementHint}</span>
                 </div>
                 <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+                    ${cardinalBadge}
                     <span class="state-badge" style="font-size:9px;background:${stateColor}22;color:${stateColor};border:1px solid ${stateColor};padding:1px 6px;border-radius:4px;font-weight:600;">${state.toUpperCase()}</span>
                 </div>
             </div>

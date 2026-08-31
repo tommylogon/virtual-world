@@ -189,6 +189,8 @@ class ConditionTreeMixin:
                     return spoken.strip() == phrase.strip()
                 if mode == "contains":
                     return phrase in spoken
+                if mode == "not_contains":
+                    return phrase not in spoken
                 if mode == "startswith":
                     return spoken.strip().startswith(phrase.strip())
                 if mode == "endswith":

@@ -54,6 +54,20 @@ class CombatSystem:
         except Exception:
             return None
 
+    def _armor_wear_text(self, target):
+        """Natural-language armor-wear note for a hit (task-161) — never raw
+        use counts. Empty string when no tracked armor is equipped."""
+        try:
+            equipment = self.skills.equipment
+            if equipment is None:
+                return ""
+            wear_msgs = equipment.decrement_armor_uses_on_hit(target)
+            if wear_msgs:
+                return "\n" + "\n".join(wear_msgs)
+        except Exception:
+            pass
+        return ""
+
     def _wound_sentence(self, damage: int, damage_type: str, region: str) -> str:
         """Narrative-only wound description — NO hit points, no totals.
 
@@ -240,6 +254,8 @@ class CombatSystem:
                 uses = weapon_props.get("uses", -1)
                 if uses > 0:
                     weapon_props["uses"] = uses - 1
+                    from engine.items.carry_weight import reconcile_item_weight
+                    reconcile_item_weight(weapon_node)
                 target.vitals["HP"] = max(0, target.vitals["HP"] - damage)
                 wake_msg = self._wake_on_damage(
                     target_name, source=attacker_name, source_type="character"
@@ -283,6 +299,7 @@ class CombatSystem:
                     hit_msg += f" {wake_msg}"
                 if injury_note:
                     hit_msg += f" {target_name} — {injury_note}."
+                hit_msg += self._armor_wear_text(target)
 
                 # Stun on hit — driven by weapon stun_chance (0-100) and stun_duration.
                 # `stunned` stacks as "refresh": a fresh stun extends the countdown.
@@ -337,6 +354,7 @@ class CombatSystem:
                     hit_msg += f" {wake_msg}"
                 if injury_note:
                     hit_msg += f" {target_name} — {injury_note}."
+                hit_msg += self._armor_wear_text(target)
 
             if target.vitals["HP"] <= 0:
                 target.state = "dead"

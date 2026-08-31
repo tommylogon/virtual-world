@@ -294,6 +294,9 @@ window.worldState = worldState;
       try { ev = JSON.parse(msg.data); } catch (e) { return; }
       if (!ev || ev.type !== 'world_changed') return;
       refresh();
+      // task-384: re-emit on the event bus so the per-edit undo feed
+      // (EditFeed) can render without opening its own EventSource.
+      if (window.appEvents) appEvents.emit('world:changed', ev);
       const editor = ev.editor && ev.editor !== 'app' ? ev.editor : '';
       if (editor && typeof events !== 'undefined') {
         events.log('World edited by ' + editor + ' — ' + (ev.method || '') + ' ' + (ev.path || ''), 'system-msg');

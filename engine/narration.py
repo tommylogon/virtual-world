@@ -123,6 +123,7 @@ class NarrationSystem:
         skills,
         node_ids,
         npc_behaviors=None,
+        trigger_fn=None,
     ):
         self.graph = graph
         self.player_manager = player_manager
@@ -138,6 +139,14 @@ class NarrationSystem:
         # engine wires it (task-322 R2).
         from engine.speech import SpeechBroadcaster
         self.speech = SpeechBroadcaster(graph, player_manager, logging_events, npc_behaviors)
+        self.speech.trigger_fn = trigger_fn  # task-330: fires item on_speech triggers
+        # task-330: give the speech broadcaster the game_state so on_speech
+        # trigger effects (llm_respond etc.) get their world context.
+        try:
+            if npc_behaviors is not None:
+                self.speech.game_state = npc_behaviors
+        except Exception:
+            pass
 
     def set_name_matcher(self, name_matcher):
         """Inject the shared NameMatching resolver into the speech broadcaster."""

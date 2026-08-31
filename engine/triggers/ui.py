@@ -93,7 +93,7 @@ class UiMixin:
                     }
                 )
 
-        if "use" in actions or "on_use" in trigger_types or "on_use_on" in trigger_types:
+        if "use" in actions or "on_use" in trigger_types or "on_use_progressive" in trigger_types or "on_use_on" in trigger_types:
             label = "Use"
             if "on_use_on" in trigger_types:
                 for trigger_edge in trigger_edges:

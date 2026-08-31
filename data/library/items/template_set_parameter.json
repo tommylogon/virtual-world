@@ -1,0 +1,32 @@
+{
+  "name": "Template: Set Parameter",
+  "description": "Template item demonstrating the 'set_parameter' trigger effect. Use me when on the ground or in your hands; the wired on_use trigger shows the effect. Place me by importing from the library (library browser → Item → Import to World).",
+  "tags": [
+    "template",
+    "demo"
+  ],
+  "actions": [
+    "examine",
+    "use"
+  ],
+  "uses": -1,
+  "max_uses": 0,
+  "weight": 0.1,
+  "current_state": "normal",
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "type": "set_parameter",
+          "params": {
+            "node_id": "self",
+            "key": "template_param",
+            "value": "demo",
+            "message": "[template:set_parameter] Parameter set."
+          }
+        }
+      ]
+    }
+  ]
+}

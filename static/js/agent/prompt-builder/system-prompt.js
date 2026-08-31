@@ -54,12 +54,12 @@ You are dead. You can observe and move as a ghost, but cannot interact physicall
     const ITEMS_VS_FLAVOR = `
 
 === ITEMS vs FLAVOR ===
-The "Items that catch your attention:" list is everything you can interact with in the area — each item shows the actions you can take with it in [brackets]. Items you carry or have equipped are always accessible (see your "Carrying:" line). Area descriptions may mention things that are NOT separate items — if it's not in either list, you can't examine/take/use it separately. Use "inventory" to see what you're carrying, "look" for the full area view.`;
+The "Items that catch your attention:" list is everything you can interact with in the area — each item shows the actions you can take with it in [brackets]. Items you carry or have equipped are always accessible (see your "Wearing:" and "Carrying:" lines — each shows the item's name, its allowed actions in [brackets], whether you know it (known vs not yet examined), and its full description so you can reason about your own gear). Area descriptions may mention things that are NOT separate items — if it's not in either list, you can't examine/take/use it separately. Use "inventory" to see what you're carrying, "look" for the full area view.`;
 
     const ACTION_STRUCTURE = `
 
 === ACTION STRUCTURE ===
-The "action" field is a single verb word (go, dash, crawl, climb, jump, take, drop, use, use_on, examine, open, close, attack, grab, lead, escape, struggle, read, search, look, listen, fumble, stand, rest, wait, inventory, stats, relieve, ...). Put the thing you act on in the "item" and "target" fields — full multi-word names, never split.
+The "action" field is a single verb word (go, dash, crawl, climb, jump, take, drop, use, use_on, examine, open, close, attack, grab, lead, escape, struggle, read, search, look, listen, fumble, stand, rest, wait, inventory, stats, relieve, stow, put, combine, split, craft, make, ...). Put the thing you act on in the "item" and "target" fields — full multi-word names, never split.
 Use "use" ALONE for self-use items (Create Flame, candles, food, drink) — not "use_on".
 If you wait, listen, or hold still, use "action": "wait".
 Targets are matched leniently — by exact name, partial name, alias, or description words. Never truncate a name, but don't fret about getting it perfect; the system finds what you mean.
@@ -68,7 +68,13 @@ Examples:
 - {"action":"use","item":"create flame"}                       → light a magical ember (use alone!)
 - {"action":"use","item":"bread"}                              → eat food (use alone)
 - {"action":"use","item":"healing salve"}                      → apply a self-use item
-- {"action":"use_on","item":"the brass key","target":"the locked door"}
+- {"action":"use_on","item":"the brass key","target":"the locked door"}  → unlock a door with a key
+For use_on you may add "amount": N to use N units of the item at once (consumes N uses) — e.g. {"action":"use_on","item":"kindling","amount":2,"target":"fireplace"}
+- {"action":"stow","item":"the coin"}                                   → hand → carrying (free your hands)
+- {"action":"combine","item":"bread","target":"bread"}                  → merge two identical stacks
+- {"action":"split","item":"bread"}                                     → split a stack into halves
+- {"action":"craft","item":"fried eggs"}                                → make a recipe you know
+- {"action":"teach","item":"fried eggs","target":"jake"}                → teach a recipe (or "skill:Perception") to someone here
 - {"action":"go","target":"north"}                             → by cardinal direction (passes through)
 - {"action":"go","target":"the archway"}                       → by exit label (passes through)
 - {"action":"go","target":"the hollow"}                        → by the room it leads to (passes through)
@@ -83,7 +89,7 @@ Examples:
     const SPEECH_VOLUME = `
 
 === SPEECH & VOLUME ===
-Put speech in the "speech" field and pick its volume in the "volume" field — whisper | say | shout | scream (default say). The volume word is the KEY name, never a value inside speech:
+Put speech in the "speech" field and pick its volume in the "volume" field — whisper | say | sing | shout | scream (default say). The volume word is the KEY name, never a value inside speech:
   WRONG: {"speech":"whisper psst, over here"}
   RIGHT: {"speech":"psst, over here","volume":"whisper"}
 DIRECTED WHISPER: combine "volume":"whisper" with "target":"<character name>" for a private aside — ONLY that character hears the words; everyone else just sees you whisper to them. Use it for secrets, warnings not meant for the group, or intimate asides. A plain whisper (no target) is heard by the whole room.

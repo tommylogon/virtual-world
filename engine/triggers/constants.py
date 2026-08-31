@@ -9,6 +9,7 @@ TRIGGER_TYPES = [
     "on_examine",
     "on_inspect",
     "on_use",
+    "on_use_progressive",
     "on_use_on",
     "on_look",
     "on_search",
@@ -35,6 +36,7 @@ TRIGGER_TYPES = [
     "on_fail_jump",
     "on_fail_climb",
     "on_delayed",
+    "on_spoil",
 ]
 
 EFFECT_TYPES = [
@@ -78,4 +80,32 @@ EFFECT_TYPES = [
     "spawn_area",
     "set_way_target",
     "set_way_view",
+    "llm_respond",
+    "scry",
 ]
+
+# task-242: effects agents may bind via the `bind`/`enchant` action. This is
+# the safe subset — no inventory mutations, no world-destroying effects.
+SAFE_EFFECT_TYPES = {
+    "message",
+    "set_state",
+    "adjust_uses",
+    "set_environment",
+    "adjust_environment",
+    "set_parameter",
+    "adjust_parameter",
+    "apply_condition",
+    "remove_condition",
+    "apply_trait",
+    "remove_trait",
+    "add_tag",
+    "remove_tag",
+    "surface_memory",
+    "suppress_memory",
+    "append_description",
+    "set_description",
+    "adjust_vital",
+    "heal",
+    "damage",
+    "llm_respond",
+}

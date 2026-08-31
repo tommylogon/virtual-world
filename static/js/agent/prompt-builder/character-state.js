@@ -14,6 +14,26 @@ window.PromptBuilder = window.PromptBuilder || {};
     'use strict';
 
     /**
+     * Natural-language encumbrance context (task-156 presentation): the agent
+     * should know its load is heavy BEFORE it tries to move — no raw numbers
+     * (those stay in the inspectors). Mirrors movement.py's tiers:
+     * <50% silent, 50-80% noticeable, 80-100% heavy + no dash, >=100% blocked.
+     * @param {Object} player - Player data object
+     * @returns {string} Encumbrance context line, or '' when unloaded
+     */
+    function buildEncumbranceContext(player) {
+        if (!player) return '';
+        const current = parseFloat(player.current_carry_weight);
+        const capacity = parseFloat(player.max_carry_capacity);
+        if (isNaN(current) || isNaN(capacity) || capacity <= 0) return '';
+        const ratio = current / capacity;
+        if (ratio >= 1.0) return '\n⚠️ You are carrying far more than you can bear — you cannot move until you drop or stow something.';
+        if (ratio >= 0.8) return '\nYou are carrying about as much as you can manage — moving is exhausting and you cannot dash.';
+        if (ratio >= 0.5) return '\nYour load is starting to drag on you — moving costs noticeably more energy.';
+        return '';
+    }
+
+    /**
      * Build emotion context for a character.
      * Returns a string describing their current emotional state if it's non-neutral.
      * @param {Object} player - Player data object
@@ -118,7 +138,11 @@ window.PromptBuilder = window.PromptBuilder || {};
 
     /**
      * Build insanity context for a character based on their Sanity vitals.
-     * Returns progressively more disturbing descriptions as Sanity decreases.
+     * Returns progressively more STRESSED descriptions as Sanity decreases.
+     * Task-328: base sanity is a stress/composure curve — no horror/madness
+     * nouns (shadows, dark corners, reality bending). Delusions, paranoia and
+     * madness belongs to named conditions (poisoned/drugged/cursed), which
+     * carry their own symptom text.
      * @param {Object} player - Player data object
      * @returns {string} Insanity context string or empty string
      */
@@ -126,10 +150,10 @@ window.PromptBuilder = window.PromptBuilder || {};
         if (!player?.vitals?.Sanity) return '';
         const sanityScore = player.vitals.Sanity;
         const tiers = [
-            { max: 10, instructions: '=== YOUR MIND ===\nYour sanity has shattered. Reality bends and fractures around you. You are consumed by frenzy — you trust no one, everything is a threat, and violence feels natural. Your perception of the world is deeply distorted.' },
-            { max: 25, instructions: '=== YOUR MIND ===\nYour mind is fracturing. Paranoia and rage cloud your thoughts. You suspect others are plotting against you. Your emotions are volatile — anger surges without warning and you struggle to think clearly.' },
-            { max: 50, instructions: '=== YOUR MIND ===\nYou feel strained and irritable. Small annoyations feel unbearable and you find yourself snapping at others. Patience is thin and the world feels hostile.' },
-            { max: 75, instructions: '=== YOUR MIND ===\nA persistent sense of unease hangs over you. The dark corners of every area feel threatening. You are jumpy and distrustful.' }
+            { max: 10, instructions: '=== YOUR MIND ===\nBarely holding it together. Every decision feels heavier than it should, and you keep second-guessing yourself.' },
+            { max: 25, instructions: '=== YOUR MIND ===\nNerves frayed raw. You flinch at small sounds and snap at small annoyances — your composure is shot.' },
+            { max: 50, instructions: '=== YOUR MIND ===\nYou feel strained and irritable. Patience is thin and everything grates on your nerves.' },
+            { max: 75, instructions: '=== YOUR MIND ===\nA low hum of unease you can\'t quite shake. You keep double-checking things.' }
         ];
         for (const tier of tiers) {
             if (sanityScore < tier.max) return '\n' + tier.instructions;
@@ -187,14 +211,68 @@ window.PromptBuilder = window.PromptBuilder || {};
     }
 
     /**
+     * Lightweight scene facts used to make threshold prose context-aware
+     * (task-327): the same vital value reads differently alone vs mid-conversation.
+     * @param {Object} state - /api/state payload (or null → no context, old wording)
+     * @param {string} charName - Character name (to exclude self from company)
+     * @param {Object} player - Player data object
+     * @returns {Object|null} Scene facts or null when state is unavailable
+     */
+    function _vitalsScene(state, charName, player) {
+        if (!state) return null;
+        const areaName = player?.current_area || state.current_area || '';
+        const area = (state.areas && state.areas[areaName]) || null;
+        const others = (state.players_in_area || [])
+            .filter(p => p && p.name && String(p.name) !== String(charName));
+        const present = new Set(others.map(o => String(o.name).toLowerCase()));
+        const hearing = player?.recent_hearing || [];
+        // Someone present has spoken to/near the character recently.
+        const inConversation = hearing.some(h =>
+            h && h.type !== 'sound_source' && present.has(String(h.speaker || '').toLowerCase()));
+        // A line aimed directly at the character (name/pronoun), not room noise.
+        const addressed = hearing.some(h => {
+            if (!h || h.type === 'sound_source') return false;
+            const t = PromptBuilder.classifySpeechType(h.text, charName, player);
+            return t === 'addressed_to_you' || t === 'to_you';
+        });
+        let areaItems = [];
+        if (areaName && typeof worldState?.getItemsInArea === 'function') {
+            try { areaItems = worldState.getItemsInArea(areaName) || []; } catch (e) { /* ignore */ }
+        }
+        const tagsOf = (it) => {
+            const t = it.properties?.tags;
+            return Array.isArray(t) ? t.map(String) : String(t || '').split(',').map(s => s.trim().toLowerCase());
+        };
+        const actionsOf = (it) => {
+            const a = it.properties?.actions;
+            return Array.isArray(a) ? a.map(String) : String(a || '').split(',').map(s => s.trim().toLowerCase());
+        };
+        const foodish = areaItems.filter(it =>
+            tagsOf(it).includes('food') || actionsOf(it).includes('eat'));
+        const drinkish = areaItems.filter(it =>
+            tagsOf(it).includes('drink') || actionsOf(it).includes('drink'));
+        return {
+            company: others.length,
+            alone: others.length === 0,
+            inConversation,
+            addressed,
+            noise: String(area?.environment?.noise || '').toLowerCase(),
+            areaTags: Array.isArray(area?.tags) ? area.tags : [],
+            foodVisible: foodish.length > 0,
+            drinkVisible: drinkish.length > 0
+        };
+    }
+
+    /**
      * Natural-language description for a SINGLE vital (task-337).
      * Handles inverted (drive) polarity for Hunger/Thirst/Bladder —
      * high value = urgent for drives, low value = urgent for reserves.
      * @param {Object} vitals - Player vitals object (Capitalized keys)
      * @param {string} key - Vital name (e.g. 'Hunger', 'Energy')
+     * @param {Object} [scene] - Optional scene facts from _vitalsScene (task-327)
      * @returns {string} First-person NL description, or '' if healthy/undefined
      */
-    function describeVital(vitals, key) {
+    function describeVital(vitals, key, scene) {
         if (!vitals || vitals[key] === undefined || vitals[key] === null) return '';
         const T = window.VitalThresholds;
         const v = Number(vitals[key]) || 0;
@@ -207,21 +285,43 @@ window.PromptBuilder = window.PromptBuilder || {};
             // drives (task-337): high value = urgent, 0 = satisfied
             case 'Hunger':
                 if (v >= 100) return 'You are starving — your stomach is a hollow knot of pain.';
-                if (v > T.WARNING) return 'You are very hungry. Your stomach growls loudly.';
-                if (v > T.CRITICAL) return 'You are hungry. Your stomach feels empty.';
+                if (v > T.WARNING) {
+                    if (scene?.foodVisible) return 'You are very hungry. Your stomach growls loudly — the food nearby is all you can think about.';
+                    return 'You are very hungry. Your stomach growls loudly.';
+                }
+                if (v > T.CRITICAL) {
+                    if (scene?.foodVisible) return 'You are hungry. The food you can see is all you can think about.';
+                    return 'You are hungry. Your stomach feels empty.';
+                }
                 return '';
             case 'Thirst':
                 if (v >= 100) return 'You are dying of thirst — your throat is cracked and dry as ash.';
-                if (v > T.WARNING) return 'You are very thirsty. Your tongue sticks to the roof of your mouth.';
-                if (v > T.CRITICAL) return 'You are thirsty. Your throat feels dry.';
+                if (v > T.WARNING) {
+                    if (scene?.drinkVisible) return 'You are very thirsty. Your tongue sticks to the roof of your mouth — the drink nearby is all you can think about.';
+                    return 'You are very thirsty. Your tongue sticks to the roof of your mouth.';
+                }
+                if (v > T.CRITICAL) {
+                    if (scene?.drinkVisible) return 'You are thirsty. The drink you can see is all you can think about.';
+                    return 'You are thirsty. Your throat feels dry.';
+                }
                 return '';
             case 'Hygiene':
                 if (v < T.CRITICAL) return 'You are filthy — grime and sweat cling to your skin.';
                 if (v < T.WARNING) return 'You are dirty. Your clothes smell of sweat and exertion.';
                 return '';
             case 'Social':
-                if (v < T.CRITICAL) return 'The loneliness is crushing. You desperately wish someone was here.';
-                if (v < T.WARNING) return 'You feel isolated. The silence presses in around you.';
+                // Context-aware (task-327): isolation wording must not contradict
+                // an occupied room, a conversation, or a noisy scene.
+                if (v < T.CRITICAL) {
+                    if (scene && !scene.alone) return 'The loneliness is crushing even with people around — it feels like no one is truly there with you.';
+                    return 'The loneliness is crushing. You desperately wish someone was here.';
+                }
+                if (v < T.WARNING) {
+                    if (scene && scene.addressed) return 'You hang on their words a little too much.';
+                    if (scene && !scene.alone) return 'Being around people feels harder than it should today.';
+                    if (scene && scene.noise && scene.noise !== 'quiet' && scene.noise !== 'silence' && scene.noise !== 'silent') return 'You feel cut off from everyone even as the noise hums around you.';
+                    return 'You feel isolated. The silence presses in around you.';
+                }
                 return '';
             case 'Bladder':
                 if (v >= T.BLADDER_URGENT) return 'You are about to burst — you desperately need a bathroom.';
@@ -229,10 +329,12 @@ window.PromptBuilder = window.PromptBuilder || {};
                 if (v >= T.BLADDER_MILD) return 'You could use a bathroom soon. A mild pressure builds.';
                 return '';
             case 'Sanity':
-                if (v < T.SANITY_SHATTERED) return 'REALITY IS COLLAPSING — you can no longer trust what you see. Paranoia and frenzy consume you.';
-                if (v < T.CRITICAL) return 'Your mind is fracturing. Rage simmers beneath the surface and you suspect everyone is against you.';
-                if (v < T.WARNING) return 'You feel strained and irritable. Everything grates on your nerves.';
-                if (v < 75) return 'A sense of unease lingers. The shadows seem to watch you.';
+                // Task-328: neutral stress curve — composure erosion, never
+                // madness/horror imagery (that belongs to named conditions).
+                if (v < T.SANITY_SHATTERED) return 'Barely holding it together. Every decision feels heavier than it should, and you keep second-guessing yourself.';
+                if (v < T.CRITICAL) return 'Nerves frayed raw. You flinch at small sounds and snap at small annoyances.';
+                if (v < T.WARNING) return 'You feel strained and irritable. Patience is thin and everything grates.';
+                if (v < 75) return 'A creeping sense that something is off, even if you can\'t name it.';
                 return '';
             case 'Entertainment':
                 if (v < 10) return 'You\'re desperate for stimulation. Staying in place any longer is unbearable. Take action — go, examine, or use.';
@@ -258,23 +360,27 @@ window.PromptBuilder = window.PromptBuilder || {};
      * Entertainment, and Temperature. Delegates per-vital logic to
      * describeVital so tiers stay in sync (task-337).
      * @param {Object} player - Player data object with vitals
+     * @param {Object} [state] - /api/state payload — optional scene context
+     *   for context-aware prose (task-327; bare calls use the old wording)
+     * @param {string} [charName] - Character name, used for scene context
      * @returns {string} Natural language description of vitals or empty string
      */
-    function describeVitals(player) {
+    function describeVitals(player, state, charName) {
         if (!player?.vitals) return '';
         const vitalsData = player.vitals;
+        const scene = _vitalsScene(state, charName, player);
         const order = ['Energy', 'Hunger', 'Thirst', 'Hygiene', 'Social', 'Bladder',
                        'Sanity', 'Entertainment', 'Temperature'];
         const parts = [];
         for (const key of order) {
             if (vitalsData[key] !== undefined) {
-                const desc = describeVital(vitalsData, key);
+                const desc = describeVital(vitalsData, key, scene);
                 if (desc) parts.push(desc);
             }
         }
         for (const key of Object.keys(vitalsData)) {
             if (key.startsWith('Max_') || order.includes(key)) continue;
-            const desc = describeVital(vitalsData, key);
+            const desc = describeVital(vitalsData, key, scene);
             if (desc) parts.push(desc);
         }
         // Deliberately NO baseline-reporting line: a neutral state stays silent
@@ -319,6 +425,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         buildRelationshipLabel,
         relationshipGuidance,
         buildInsanityContext,
+        buildEncumbranceContext,
         buildTraitBehaviorContext,
         buildSizeContext,
         buildPerceivedState,

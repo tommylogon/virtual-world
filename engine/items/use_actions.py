@@ -86,6 +86,16 @@ class UseActionsMixin:
         if trigger_type != "on_use":
             use_outputs = self._exec_triggers(item_node, "on_use")
             trigger_outputs = use_outputs + trigger_outputs
+        # task-102: on_use_progressive fires alongside on_use on every use —
+        # authors gate behaviors with `uses_reached`/`uses_above` conditions
+        # (threshold effects) and build "charging" messages from the item's
+        # current `uses` in `{param:...}`-style messaging.
+        progressive_outputs = self._exec_triggers(item_node, "on_use_progressive")
+        if progressive_outputs:
+            if trigger_outputs:
+                trigger_outputs += progressive_outputs
+            else:
+                trigger_outputs = progressive_outputs
         # Fallback: if using item with no on_use triggers, try on_drink/on_eat/on_read
         if not trigger_outputs and trigger_type == "on_use":
             for fallback_type in ["on_drink", "on_eat", "on_read"]:
@@ -174,9 +184,11 @@ class UseActionsMixin:
 
         return result
 
-    def use_item_on(self, player_manager, item_name: str, target_name: str = None, params: str = None) -> str:
+    def use_item_on(self, player_manager, item_name: str, target_name: str = None, params: str = None, amount: int = 1) -> str:
         if not target_name:
             return self.use_item(player_manager, item_name)
+        # task-196: quantity — validate against tracked uses before anything fires.
+        amount = max(1, int(amount or 1))
 
         ghost_block = self.ghost_system.check_ghost_action(player_manager, "use", item_name)
         if ghost_block:
@@ -204,6 +216,12 @@ class UseActionsMixin:
             item_node = find_reachable(self.graph, self.matching, player_manager, item_name)
         if not item_node:
             raise ValueError(f"You don't have '{item_name}'.")
+
+        # task-196: quantity — validate against tracked uses before anything fires.
+        if amount > 1:
+            uses_tracked = int(item_node.properties.get("uses", -1) or 0)
+            if uses_tracked > 0 and amount > uses_tracked:
+                raise ValueError(f"You only have {uses_tracked} use{'s' if uses_tracked != 1 else ''} of the {item_node.name}.")
 
         # Frightened (item source): won't touch the item they fear
         if player_manager.player.has_condition("frightened"):
@@ -235,6 +253,16 @@ class UseActionsMixin:
             available = self.trigger_system._get_available_actions(item_node)
             raise ValueError(self.trigger_system._contextual_failure("use", item_node.name, available))
 
+        # task-196 quantity: consume N uses up-front (the represented "use 2
+        # kindling" spends 2 uses) so the trigger sees the resulting count; no
+        # double-triggering. Plain use (amount=1) stays trigger-driven.
+        if amount > 1:
+            uses = int(item_node.properties.get("uses", -1) or 0)
+            if uses > 0:
+                item_node.properties["uses"] = max(0, uses - amount)
+                from engine.items.carry_weight import reconcile_item_weight
+                reconcile_item_weight(item_node)
+
         if params:
             target_node = player_manager.find_item_node(target_name)
             if not target_node:
@@ -255,10 +283,32 @@ class UseActionsMixin:
         trigger_context = {"params": params or ""}
         trigger_outputs = self._exec_triggers(item_node, "on_use_on", target_name=target_name, context=trigger_context)
 
+        # task-191 cooking: perishable food used ON a heat source (oven/stove/
+        # cooker/heat_source tags) sets it to cooked and stops spoiling.
+        cook_note = ""
+        try:
+            target_for_cook = player_manager.find_item_node(target_name)
+            if target_for_cook is None:
+                from engine.item_reach import find_reachable
+                target_for_cook = find_reachable(self.graph, self.matching, player_manager, target_name)
+            if target_for_cook is not None:
+                ttags = [str(t).lower() for t in (target_for_cook.properties.get("tags", []) or [])]
+                iprops = item_node.properties or {}
+                if iprops.get("perishable") and iprops.get("freshness_state") != "cooked" and any(
+                    t in ("oven", "stove", "cooker", "heat_source", "cooking") for t in ttags
+                ):
+                    iprops["freshness_state"] = "cooked"
+                    iprops["perishable"] = False
+                    cook_note = f" The {item_name} cooks over the {target_name}."
+        except Exception:
+            pass
+
         if trigger_outputs:
             result = "\n".join(trigger_outputs)
         else:
             result = ""
+        if cook_note:
+            result = (result + cook_note) if result else f"You cook the {item_name} on the {target_name}."
 
         # #6: system-visible light change feedback
         if old_light is not None and area_node and self.graph.get_node(area_node.id):
@@ -276,6 +326,11 @@ class UseActionsMixin:
         if trigger_outputs:
             if not self.graph.get_node(item_node.id):
                 return result
+            return result
+
+        # task-191: a cooking interaction is complete on its own — don't fall
+        # through into the "no on_use_on fallback" that would burn the wrong item.
+        if cook_note:
             return result
 
         skill_check_config = item_node.properties.get("skill_check", {})

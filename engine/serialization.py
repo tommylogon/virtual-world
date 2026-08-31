@@ -122,6 +122,7 @@ class WorldSerializer:
             "traits": getattr(p, 'traits', {}),
             "tags": getattr(p, 'tags', []),
             "known": list(getattr(p, 'known', []) or []),
+            "crafting_known": list(getattr(p, 'crafting_known', []) or []),
             "discovered_exits": list(getattr(p, 'discovered_exits', []) or []),
             "interest_tags": getattr(p, 'interest_tags', []),
             "discovered_items": list(getattr(p, 'discovered_items', []) or []),
@@ -246,6 +247,7 @@ class WorldSerializer:
         p.traits = pdata.get("traits", {})
         p.tags = list(pdata.get("tags", []))
         p.known = list(pdata.get("known", []) or [])
+        p.crafting_known = list(pdata.get("crafting_known", []) or [])
         p.discovered_exits = {
             tuple(x) for x in (pdata.get("discovered_exits", []) or []) if isinstance(x, (list, tuple)) and len(x) == 2
         }
@@ -298,7 +300,23 @@ class WorldSerializer:
         data.pop("delayed_events", None)
         for pdata in data.get("players", {}).values():
             pdata.pop("recent_hearing", None)
+        self.strip_redundant_exits(data)
         return data
+
+    @staticmethod
+    def strip_redundant_exits(data):
+        """task-222: saved worlds are graph-only — the per-room ``exits`` /
+        ``exits_authoring`` copies are always recomputed at runtime
+        (build_exits_for_area), so writing them is redundant data that can
+        drift. Keep the live /api/state payload intact (to_dict is separate);
+        only FILE payloads pass through here.
+        """
+        for key in ("areas", "rooms"):
+            rooms = data.get(key, {}) or {}
+            for room in rooms.values():
+                if isinstance(room, dict):
+                    room.pop("exits", None)
+                    room.pop("exits_authoring", None)
 
     def load_from_dict(self, data):
         if "player" in data and "players" not in data:

@@ -247,8 +247,23 @@ window.InspectorItemView = (() => {
             </div>
             <div class="form-row">
                 <div class="field"><label>Uses</label><input type="number" .value=${props.uses ?? -1} @change=${(ev) => api.updateNode(nodeId, { properties: { uses: parseInt(ev.target.value) } }).then(() => worldState.fetch())}></div>
+                <div class="field"><label>Max Uses (0 = infinite)</label><input type="number" .value=${props.max_uses ?? 0} @change=${(ev) => api.updateNode(nodeId, { properties: { max_uses: parseInt(ev.target.value) || 0 } }).then(() => worldState.fetch())} title="When set, weight auto-scales with remaining uses (base_weight × uses/max_uses)"></div>
                 <div class="field"><label>Weight</label><input type="number" step="0.1" .value=${props.weight ?? 0.1} @change=${(ev) => api.updateNode(nodeId, { properties: { weight: parseFloat(ev.target.value) } }).then(() => worldState.fetch())}></div>
             </div>
+            ${(() => {
+                const mu = parseInt(props.max_uses, 10) || 0;
+                const u = parseInt(props.uses ?? -1, 10);
+                if (mu <= 0 || u < 0) return '';
+                const pct = Math.max(0, Math.min(100, (u / mu) * 100));
+                const color = pct <= 25 ? 'var(--red)' : pct <= 50 ? 'var(--yellow)' : 'var(--green)';
+                const word = u <= 0 ? 'broken' : pct <= 25 ? 'about to break' : pct <= 50 ? 'battered' : pct <= 90 ? 'worn' : 'pristine';
+                return htmlTag`<div class="field" style="margin-top:2px;">
+                    <label>Durability — ${word}</label>
+                    <div style="width:100%;height:8px;background:var(--bg-inset);border-radius:4px;overflow:hidden;">
+                        <div style="width:${pct}%;height:100%;background:${color};border-radius:4px;"></div>
+                    </div>
+                </div>`;
+            })()}
             <div class="form-row">
                 <div class="field"><label>Equipped Weight Mod</label><input type="number" step="0.1" .value=${props.equipped_weight_mod ?? 1.0} @change=${(ev) => api.updateNode(nodeId, { properties: { equipped_weight_mod: parseFloat(ev.target.value) || 1.0 } }).then(() => worldState.fetch())} title="Multiplier applied when equipped (default 1.0)"></div>
             </div>

@@ -166,7 +166,9 @@ class TestTraitWiring:
         area_id = world._get_current_area_id()
         world.graph.add_edge(Edge(source=heavy.id, target=area_id, type=EDGE_IN))
         result = world.item_actions.take_item(world, "Boulder")
-        assert "pick up" in result.lower()
+        # task-146: take lands the item in a hand first ("with your hand right")
+        assert "take the boulder" in result.lower()
+        assert "hand" in result.lower()
 
 
 class TestAcquiredTraits:

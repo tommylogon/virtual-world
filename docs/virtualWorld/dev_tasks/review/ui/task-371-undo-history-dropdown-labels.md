@@ -1,6 +1,6 @@
-﻿---
+---
 type: task
-status: todo
+status: review
 area: ui
 priority: medium
 ---
@@ -8,14 +8,23 @@ priority: medium
 # task-371: undo-history-dropdown-labels
 
 **Filed**: 2026-08-30
-**Status**: Todo
-**Source**: docs/virtualWorld/Scenario Workflows & UI Audit.md — P1 — Undo history dropdown: expose the 10-deep undo stack with labels ('before: reset', 'before: loaded X'); push sites add short labels; click = restore.
+**Status**: In Review — implemented 2026-08-30; per-edit labels verified by tests.
 
-## Notes
+## What was built
 
-See the audit doc for the full section and sequencing notes. Reuse existing machinery where noted; the guardrails are: CLI-free, undo-safe, and no new storage formats unless the audit says so.
+- `static/js/ui/undo-history.js` — undo history dropdown (📜) listing the recent
+  labeled snapshots (`before: reset`, `duplicate X`, `loaded Y`, `edited node <id>`…);
+  click a row to restore that state.
+- `routes/saveload.py` — `_push_undo_snapshot(app, label)` stores every mutation with a
+  label; `GET /api/undo/list` exposes the stack.
+- **Per-edit snapshots (same session, follow-up)**: every graph/player/build mutation now
+  pushes a labeled entry in the `after_request` hook — minor edits show up in history
+  (was: only loads/resets). `POST /api/undo {steps:N}` pops N snapshots.
+- Tests: `tests/test_undo_history.py` (+5: labeled snapshots, multi-step, redo, empty→400).
 
+## Note
 
-
-
-> 2026-08-30 follow-up: per-edit undo snapshots — every graph/player/build mutation now pushes a labeled history entry (edited node <id> / graph edit / character edit…) in the after_request hook (bug fix: minor edits never showed in history). test: test_graph_edit_pushes_labeled_snapshot.
+Follow-up note from 2026-08-30 kept for context: the per-edit push moved OUTSIDE the
+TESTING gate so test worlds still record (autosave remains TESTING-gated). Original
+audit text: "10-deep stack with labels; click = restore" — stack depth is controlled by
+the server (default keeps ~50 in memory; UI shows the newest 10).

@@ -1,0 +1,61 @@
+{
+  "id": "talking_mirror",
+  "name": "Talking Mirror",
+  "type": "item",
+  "description": "An antique standing mirror with an ornate brass frame. The glass is deep and dark, and you get the feeling it's watching back — maybe waiting for the right words.",
+  "tags": ["container"],
+  "properties": {
+    "current_state": "normal",
+    "weight": 12.0,
+    "uses": -1
+  },
+  "actions": ["examine", "use", "look"],
+  "triggers": [
+    {
+      "trigger_type": "on_speech",
+      "conditions": {
+        "operator": "and",
+        "conditions": [
+          { "type": "speech_matches", "phrase": "open sesame", "mode": "contains" }
+        ]
+      },
+      "effects": [
+        {
+          "type": "llm_respond",
+          "params": {
+            "instructions": "You are an ancient, haughty Talking Mirror with a dry wit. When the correct phrase is spoken you wake fully and reveal a cryptic secret or playful riddle hint about the world. Reply 1-2 sentences, in character.",
+            "fallback_message": "The mirror's surface ripples. A voice, cool and pleased: 'You know the words.'",
+            "max_words": 40,
+            "name": "The Mirror",
+            "cooldown": 30
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "success_message": "The mirror's glass ripples like a pond.",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_speech",
+      "conditions": {
+        "operator": "and",
+        "conditions": [
+          { "type": "speech_matches", "phrase": "open sesame", "mode": "not_contains" }
+        ]
+      },
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "The mirror does not react. Its glass stays dark and still, watching. (Maybe it wants the right words…)"
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ]
+}

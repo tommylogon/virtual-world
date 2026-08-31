@@ -165,14 +165,17 @@ class TestRoute:
         g = client.get(f"/api/players/{name}/emotions").get_json()
         assert g["emotions"]["envious"] == pytest.approx(25.0)
 
-    def test_unknown_emotion_is_400(self, tmp_path):
+    def test_unknown_emotion_is_graceful_noop(self, tmp_path):
+        # task-96/350 contract change: creative LLM labels never 400 — they
+        # resolve semantically (map_label) or no-op with `ignored`.
         client = self._client(tmp_path)
         from app import create_app
         app = create_app({"TESTING": True, "DATA_DIR": str(tmp_path)})
         name = next(iter(app.world.players))
         r = client.post(f"/api/players/{name}/emotions",
                         json={"emotion": "sparkly", "delta": 5})
-        assert r.status_code == 400
+        assert r.status_code == 200
+        assert r.get_json().get("ignored") == "sparkly"
 
     def test_missing_player_404(self, tmp_path):
         client = self._client(tmp_path)

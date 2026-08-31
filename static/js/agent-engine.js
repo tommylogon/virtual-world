@@ -5,6 +5,15 @@
 
 const NOOP_VERBS = ['wait', 'nothing', 'pause', 'stay'];
 
+// task-104: after a SUCCESSFUL action, the agent may chain ONE immediate
+// follow-up from the verb list (same-turn, like the original dash chain).
+// The LLM answers a quick decision prompt; invalid picks are discarded.
+const CHAIN_RULES = {
+    dash: ['go', 'wait'],
+    lead: ['go', 'approach', 'release', 'wait'],
+    grab: ['approach', 'release', 'wait'],
+};
+
 /** Possessive pronoun for a character, from its identity tags (female/male). */
 function _possessivePronoun(name) {
     const tags = (worldState.players?.[name]?.tags) || [];
@@ -26,6 +35,8 @@ class AgentEngine {
         this._stepping = false;
         this._cancelRequested = false;
         this._abortController = null;
+        // task-101 experimental simultaneous mode: per-character act countdowns
+        this._simCountdowns = {};
     }
 
     getHistory(charName) {
@@ -490,7 +501,7 @@ class AgentEngine {
             }
 
             const roomParts = PromptBuilder.buildRoomContextParts(state, charName, player, currentArea);
-            const vitalsNL = PromptBuilder.describeVitals(player);
+            const vitalsNL = PromptBuilder.describeVitals(player, state, charName);
             const emotionNL = PromptBuilder.buildEmotionContext(player);
             const insanityNL = PromptBuilder.buildInsanityContext(player);
             const relationshipNL = PromptBuilder.buildRelationshipContext(player, charName);
@@ -634,11 +645,27 @@ class AgentEngine {
                     } catch (err) { events.log(`Action error: ${err.message}`, 'error-msg'); actionResult = `Error: ${err.message}`; }
                 }
 
-                // ── Dash chained follow-up ──
+                // ── Invalid-action auto-retry (task-361) ──
+                // One same-turn retry when the agent's action failed and the
+                // setting is on. Not a new turn: no step/plan advance, and the
+                // retry outcome becomes the actionResult used by the react phase.
+                if (!actionSucceeded && config.autoRetryInvalid && actionResult) {
+                    const retry = await this._autoRetryInvalidAction(charName, player, history, actionRejected || finalAction, actionResult, memoryNL);
+                    if (retry) {
+                        finalAction = retry.finalAction;
+                        actionResult = retry.actionResult;
+                        actionSucceeded = retry.actionSucceeded;
+                    }
+                }
+
+                // ── Chained follow-up (task-104) ──
+                // Dash→go was the original; generalized to verb families:
+                // lead → go/approach/release, grab → approach/release.
                 if (finalAction && actionResult && actionSucceeded) {
-                    const dashVerb = finalAction.split(/\s+/)[0].toLowerCase();
-                    if (dashVerb === 'dash') {
-                        actionResult = await this._runDashFollowUp(charName, player, actionResult, history);
+                    const chainVerb = finalAction.split(/\s+/)[0].toLowerCase();
+                    const allowed = CHAIN_RULES[chainVerb];
+                    if (allowed) {
+                        actionResult = await this._runChainFollowUp(charName, player, actionResult, history, chainVerb, allowed);
                     }
                 }
 
@@ -785,7 +812,68 @@ class AgentEngine {
         // A4: a stop/cancel from a PREVIOUS run must not ghost into this one
         // ("Step cancelled." firing on a fresh ▶ was the stale flag leaking).
         this._cancelRequested = false;
-        (async () => { while (config.running) { await this.step(); if (this._cancelRequested) { this.cancel(); break; } if (!config.turnBased && config.controllingPlayer) { await TurnQueue.endTurn(); this._logActorTurnEvents(config.controllingPlayer); if (worldState.data) VW?.ui?.renderAll(worldState.data); } config.stepsRun++; const turnsRun = config.turnBased ? Math.floor(config.stepsRun / Math.max(1, this.turnQueue.length)) : config.stepsRun; VW?.ui?.updateMaxStepsDisplay(); if (config.maxSteps > 0 && turnsRun >= config.maxSteps) { this.stop(`⏹️ Run complete — ${config.maxSteps} turns done. Press ▶ to continue.`); break; } await new Promise(resolve => setTimeout(resolve, 2000)); } })();
+        (async () => { while (config.running) {
+            if (config.simultaneousMode) { await this._simultaneousStep(); }
+            else { await this.step(); }
+            if (this._cancelRequested) { this.cancel(); break; }
+            if (!config.turnBased && config.controllingPlayer && !config.simultaneousMode) { await TurnQueue.endTurn(); this._logActorTurnEvents(config.controllingPlayer); if (worldState.data) VW?.ui?.renderAll(worldState.data); }
+            config.stepsRun++; const turnsRun = config.turnBased ? Math.floor(config.stepsRun / Math.max(1, this.turnQueue.length)) : config.stepsRun; VW?.ui?.updateMaxStepsDisplay(); if (config.maxSteps > 0 && turnsRun >= config.maxSteps) { this.stop(`⏹️ Run complete — ${config.maxSteps} turns done. Press ▶ to continue.`); break; }
+            await new Promise(resolve => setTimeout(resolve, config.simultaneousMode ? 800 : 2000));
+        } })();
+    }
+
+    /**
+     * task-101 experimental simultaneous mode: every autonomous character has
+     * its own act countdown (derived from traits/vitals — high Social acts
+     * more often, impatient/sprinter faster, exhausted slower). Each engine
+     * tick decrements all countdowns; the first character ready processes its
+     * full turn through the normal per-character pipeline, then the countdown
+     * restarts. Chaos by design — sequential mode is untouched.
+     */
+    async _simultaneousStep() {
+        if (!worldState.data) await worldState.fetch();
+        const players = worldState.data?.players || {};
+        const names = Object.keys(players);
+        for (const name of names) {
+            if (this._simCountdowns[name] === undefined) {
+                this._simCountdowns[name] = this._cooldownFor(players[name]);
+            }
+        }
+        for (const name of names) {
+            if (this._simCountdowns[name] > 0) this._simCountdowns[name] -= 1;
+        }
+        const ready = names.filter(name => {
+            const p = players[name];
+            if (!p) return false;
+            if (!events.isAutonomous(name)) return false;   // humans compose their own turns
+            if (p.state === 'dead' && !config.ghostMode) return false;
+            return this._simCountdowns[name] <= 0;
+        });
+        if (!ready.length) return;
+        const charName = ready[0];
+        this._simCountdowns[charName] = this._cooldownFor(players[charName]);
+        const prevControlling = config.controllingPlayer;
+        config.controllingPlayer = charName;
+        try {
+            await this.step();
+        } finally {
+            config.controllingPlayer = prevControlling;
+        }
+    }
+
+    /**
+     * Act countdown for simultaneous mode: Social speeds it up, traits and
+     * exhaustion slow it down. Returns a tick count (3–15).
+     */
+    _cooldownFor(player) {
+        if (!player) return 8;
+        const traits = player.traits || {};
+        let c = 8 + Math.round((50 - (player.vitals?.Social ?? 50)) / 25);
+        if (traits.impatient) c -= 2;
+        if (traits.patient) c += 2;
+        if (traits.sprinter) c -= 1;
+        if ((player.vitals?.Energy ?? 100) < 35) c += 1;
+        return Math.max(3, Math.min(15, c));
     }
     stop(reason = 'Agent stopped.') {
         config.running = false; VW?.ui?.updateButtons(); events.log(reason, 'system-msg');
@@ -822,38 +910,109 @@ class AgentEngine {
     }
 
     /**
-     * Chained dash follow-up: after a successful dash the agent gets one
-     * immediate decision to keep sprinting through a second exit. Returns the
-     * combined result text (dash hop + optional second move).
+     * Invalid-action auto-retry (task-361): feed the failed action + reason
+     * back to the agent and let it choose a different action ONCE, in the same
+     * turn (no step/plan advance). Returns { finalAction, actionResult,
+     * actionSucceeded } when a retry was performed, or null when there is
+     * nothing to retry / the retry produced no valid action.
+     * @param {string} charName - Character name
+     * @param {Object} player - Player data object
+     * @param {Array} history - Conversation history (mutated: retry prompt + response)
+     * @param {string} failedAction - The action string that failed ('' if verb-rejected)
+     * @param {string} failedResult - Result/error text from the failed action
+     * @param {string} memoryNL - Memory context (parity with turn flow; unused here)
+     * @returns {Promise<Object|null>} Retry outcome or null
      */
-    async _runDashFollowUp(charName, player, dashResult, history) {
+    async _autoRetryInvalidAction(charName, player, history, failedAction, failedResult, memoryNL) {
+        const attempted = String(failedAction || '').trim() || '(invalid)';
+        if (!failedResult || /while unconscious/i.test(failedResult)) return null;
+        events.log(`↩️ ${charName}: auto-retry after failed action "${attempted}"`, 'system-msg');
+        events.logPhase(charName, 'decide', 'auto-retry');
+        VW?.ui?.setStatus?.('Retrying...', 'info');
+        const prompt = PromptBuilder.buildRetryPrompt(attempted, failedResult);
+        history.push({ role: 'user', content: prompt });
+        const response = await this._callLLMMessages(history, 'auto-retry');
+        if (response === null) {
+            history.pop(); // LLM call failed — drop the retry prompt, keep history as before
+            return null;
+        }
+        history.push({ role: 'assistant', content: response });
+        let parsed = ResponseParser.parseReaction(response);
+        if (parsed?.parseError) {
+            parsed = await this._retryOnceOnParseError(charName, history, 'auto-retry', ResponseParser.parseReaction, parsed);
+        }
+        if (parsed?.parseError) {
+            events.logParseError(charName, 'auto-retry', parsed.parseError, response);
+            return null;
+        }
+        const retryAction = String(parsed?.action || '').trim();
+        if (!retryAction || !ActionNormalizer.isValidAction(retryAction, charName)) {
+            events.log(`⚠️ ${charName} retry chose an invalid action: "${retryAction || '(none)'}" — giving up`, 'error-msg');
+            return null;
+        }
+        events.logPhase(charName, 'act', retryAction);
+        events.log(`[Action] ${retryAction}`, 'msg-action');
+        try {
+            const data = await ApiClient.action(retryAction, charName);
+            if (data?.scenario_ended) {
+                events.log('🏁 Scenario ended via trigger.', 'system-msg');
+                if (data?._restart_requested) {
+                    events.log('🔄 Restarting scenario...', 'system-msg');
+                    await ApiClient.resetWorld();
+                    await worldState.fetch();
+                    events.log('✅ Scenario restarted.', 'system-msg');
+                } else { this.stop(); }
+                return null;
+            }
+            const result = data?.output || '';
+            const succeeded = data?.success !== false;
+            config.lastActionResult[charName] = result;
+            PlanTracker.trackStep(charName, retryAction, result, succeeded);
+            events.trackAction(charName, '', null, retryAction, result);
+            if (result && !result.includes('says:')) {
+                events.log(result, result.includes('ValueError') ? 'error-msg' : 'msg-result', { outcome: succeeded ? 'success' : 'failure' });
+            }
+            return { finalAction: retryAction, actionResult: result, actionSucceeded: succeeded };
+        } catch (err) {
+            events.log(`Action error: ${err.message}`, 'error-msg');
+            return { finalAction: retryAction, actionResult: `Error: ${err.message}`, actionSucceeded: false };
+        }
+    }
+
+    /**
+     * Chained follow-up (task-104 / task-104 generalization of dash→go):
+     * after a successful action with a CHAIN_RULES entry, the agent gets one
+     * immediate decision to continue with an allowed verb (go/approach/
+     * release/wait). Returns the combined result text.
+     */
+    async _runChainFollowUp(charName, player, resultText, history, sourceVerb, allowedVerbs) {
         await worldState.fetch();
         const freshState = worldState.data;
-        if (!freshState) return dashResult;
+        if (!freshState) return resultText;
         const freshPlayer = freshState?.players?.[charName] || player;
         const currentArea = freshState.areas?.[freshState.current_area] || null;
         const roomContext = PromptBuilder.buildRoomContext(freshState, charName, freshPlayer, currentArea);
 
-        events.logPhase(charName, 'decide', 'dash follow-up');
-        VW?.ui?.setStatus?.("Dash follow-up...", "info");
-        const prompt = PromptBuilder.buildDashFollowUpPrompt(charName, roomContext, dashResult);
+        events.logPhase(charName, 'decide', `${sourceVerb} follow-up`);
+        VW?.ui?.setStatus?.("Chain follow-up...", "info");
+        const prompt = PromptBuilder.buildChainFollowUpPrompt(charName, roomContext, resultText, sourceVerb, allowedVerbs);
         history.push({ role: 'user', content: prompt });
-        const response = await this._callLLMMessages(history, 'dash-follow-up');
+        const response = await this._callLLMMessages(history, 'chain-follow-up');
         history.push({ role: 'assistant', content: response || '' });
-        if (response === null) return dashResult;
+        if (response === null) return resultText;
 
         const parsed = ResponseParser.parseReaction(response);
         if (parsed?.parseError) {
-            events.logParseError(charName, 'dash-follow-up', parsed.parseError, response);
+            events.logParseError(charName, 'chain-follow-up', parsed.parseError, response);
         }
         const followAction = parsed?.action || '';
-        if (!followAction || this._checkCancel()) return dashResult;
+        if (!followAction || this._checkCancel()) return resultText;
 
         const verb = followAction.split(/\s+/)[0].toLowerCase();
         const exitNames = Object.keys(currentArea?.exits || {}).map(e => e.toLowerCase());
-        const isMove = ActionNormalizer.isValidAction(followAction, charName) && ['go', 'dash', 'crawl', 'climb', 'jump'].includes(verb);
+        const allowed = allowedVerbs.includes(verb);
         const isExitName = exitNames.includes(followAction.toLowerCase());
-        if (!ActionNormalizer.isValidAction(followAction, charName) || (!isMove && !isExitName)) return dashResult;
+        if (!ActionNormalizer.isValidAction(followAction, charName) || (!allowed && !isExitName)) return resultText;
 
         events.logPhase(charName, 'act', followAction);
         events.log(`[Action] ${followAction}`, "msg-action");
@@ -867,7 +1026,7 @@ class AgentEngine {
                     await worldState.fetch();
                     events.log("✅ Scenario restarted.", "system-msg");
                 }
-                return dashResult;
+                return resultText;
             }
             const followResult = data?.output || '';
             events.trackAction(charName, '', null, followAction, followResult);
@@ -875,10 +1034,10 @@ class AgentEngine {
                 events.log(followResult, followResult.includes('ValueError') ? 'error-msg' : 'system-msg');
             }
             await worldState.fetch();
-            return dashResult + '\n' + followResult;
+            return resultText + '\n' + followResult;
         } catch (err) {
-            events.log(`Dash follow-up error: ${err.message}`, 'error-msg');
-            return dashResult;
+            events.log(`${sourceVerb} follow-up error: ${err.message}`, 'error-msg');
+            return resultText;
         }
     }
 

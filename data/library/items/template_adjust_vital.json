@@ -1,0 +1,32 @@
+{
+  "name": "Template: Adjust Vital",
+  "description": "Template item demonstrating the 'adjust_vital' trigger effect. Use me when on the ground or in your hands; the wired on_use trigger shows the effect. Place me by importing from the library (library browser → Item → Import to World).",
+  "tags": [
+    "template",
+    "demo"
+  ],
+  "actions": [
+    "examine",
+    "use"
+  ],
+  "uses": -1,
+  "max_uses": 0,
+  "weight": 0.1,
+  "current_state": "normal",
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Energy",
+            "amount": 5,
+            "target": "self",
+            "message": "[template:adjust_vital] +5 Energy."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -106,6 +106,9 @@ class VirtualWorld:
         self.triggers = TriggerSystem(self.graph, self, self)
         from engine.event_queue import DelayedEventQueue
         self.delayed_events = DelayedEventQueue()
+        # task-330: transient browser-side LLM responses (llm_respond effect).
+        # The engine queues; the browser generates + posts back; never saved.
+        self.llm_pending_requests = []
         self.equipment = EquipmentSystem(self.graph, self.triggers, self.game_logger, self.player_manager, world=self)
         self.skills = SkillSystem(self.player_manager, self.game_logger)
         self.name_matcher = NameMatching(self.graph, self)
@@ -113,6 +116,8 @@ class VirtualWorld:
         self.node_ids = NodeIDHelper
         self.toggleable_items = ToggleableItems(self.graph, self)
         self.item_actions = ItemActions(self.graph, self.name_matcher, self.triggers, self.equipment, self.ghost_system, self)
+        from engine.crafting import CraftingSystem
+        self.crafting = CraftingSystem(self.graph, self.player_manager, self.triggers, self.effects, game_state=self)
         self.area_description = AreaDescription(self.graph, self.lighting, self, self.item_actions)
         self.tick_manager = TickManager(self.graph, self, self.lighting, self.toggleable_items, self.triggers, self)
         self.serializer = WorldSerializer(self.graph, self, self)
@@ -126,7 +131,7 @@ class VirtualWorld:
         # its "skills" handle plus the real NPCBehaviorSystem — build it after both.
         self.combat = CombatSystem(self.graph, self, self.ghost_system, self.npc_behaviors)
         self.movement = MovementSystem(self.graph, self.player_manager, self.triggers, self.toggleable_items, self.name_matcher, self)
-        self.narration = NarrationSystem(self.graph, self.player_manager, self.area_description, self.lighting, self.tick_manager, self.game_logger, self.skills, self.node_ids, self)
+        self.narration = NarrationSystem(self.graph, self.player_manager, self.area_description, self.lighting, self.tick_manager, self.game_logger, self.skills, self.node_ids, self, trigger_fn=self.triggers._execute_triggers)
         # task-322 R2: speech whisper-target resolution reuses the shared matcher.
         self.narration.set_name_matcher(self.name_matcher)
         self.conditions = ConditionsSystem(self.player_manager, self)
@@ -422,6 +427,28 @@ class VirtualWorld:
     def place_item(self, item_name: str, target_name: str, relation: str = "on") -> str:
         return self.item_actions.place_item(self, item_name, target_name, relation)
 
+    def stow_item(self, item_name: str) -> str:
+        return self.item_actions.stow_item(self, item_name)
+
+    def combine_items(self, source_name: str, target_name: str) -> str:
+        return self.item_actions.combine_items(self, source_name, target_name)
+
+    def split_item(self, item_name: str, parts: int = 2) -> str:
+        return self.item_actions.split_item(self, item_name, parts)
+
+    def craft_item(self, recipe_name: str) -> str:
+        return self.crafting.craft(self, recipe_name)
+
+    def teach_item(self, subject: str, student_name: str) -> str:
+        return self.crafting.teach(self, student_name, subject)
+
+    def auto_dress_character(self, player_name: str) -> str:
+        from engine.dressing import auto_dress
+        return auto_dress(self, player_name)
+
+    def _recipe_known_names(self, player_name: str) -> list:
+        return self.crafting._recipe_known_names(player_name)
+
     def give_item(self, item_name: str, target_name: str) -> str:
         return self.item_actions.give_item(self, item_name, target_name)
 
@@ -508,8 +535,8 @@ class VirtualWorld:
     def use_item(self, item_name: str, trigger_type: str = "on_use") -> str:
         return self.item_actions.use_item(self, item_name, trigger_type)
 
-    def use_item_on(self, item_name: str, target_name: str = None, params: str = None) -> str:
-        return self.item_actions.use_item_on(self, item_name, target_name, params)
+    def use_item_on(self, item_name: str, target_name: str = None, params: str = None, amount: int = 1) -> str:
+        return self.item_actions.use_item_on(self, item_name, target_name, params=params, amount=amount)
 
     def find_item_node(self, item_name: str) -> Optional[Node]:
         return self.player_manager.find_item_node(item_name)
@@ -673,6 +700,33 @@ class VirtualWorld:
     def schedule_delayed(self, fire_tick, target_node_id, trigger_type="on_delayed", label=""):
         """Schedule a trigger fire N ticks in the future (task-90)."""
         self.delayed_events.schedule(fire_tick, target_node_id, trigger_type, label)
+
+    def queue_llm_respond(self, request):
+        """Queue a browser-side LLM response request (task-330, llm_respond).
+
+        Returns True when accepted; False when a pending request for the
+        same node is still unconsumed (cooldown — prevents chatty loops).
+        """
+        node_id = request.get("node_id", "")
+        now = request.get("ts", 0)
+        cooldown = request.get("cooldown", 30)
+        # drop if a pending request for this node is still in the queue
+        for pending in self.llm_pending_requests:
+            if pending.get("node_id") == node_id:
+                return False
+        self.llm_pending_requests.append(request)
+        # keep the queue small (fresh first)
+        self.llm_pending_requests = self.llm_pending_requests[-5:]
+        return True
+
+    def consume_llm_respond(self, request_id):
+        """Remove a pending LLM response request (called after the browser
+        posts the generated line back)."""
+        before = len(self.llm_pending_requests)
+        self.llm_pending_requests = [
+            r for r in self.llm_pending_requests if r.get("id") != request_id
+        ]
+        return len(self.llm_pending_requests) < before
 
     def _process_delayed_events(self):
         """Fire all delayed events that are now due (task-90)."""

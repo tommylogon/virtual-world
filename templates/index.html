@@ -38,14 +38,18 @@
             </label>
             <div style="font-size:9px;color:var(--text-dim);margin-left:4px;cursor:help;" title="Spectator mode polls the world state every 1.5s so you can watch the simulation unfold without clicking anything.">?</div>
             <div class="menu-anchor">
-                <button class="btn btn-sm" onclick="toggleTopMenu(event,'game-menu')" aria-label="Game menu — save, load, import, new scenario">🎮 Game ▾</button>
+                <button class="btn btn-sm" data-help="game-menu" onclick="toggleTopMenu(event,'game-menu')" aria-label="Game menu — save, load, import, new scenario">🎮 Game ▾</button>
                 <div id="game-menu" class="dropdown-menu top-menu" style="display:none;" role="menu" aria-label="Game actions">
                     <button class="dropdown-item" onclick="saveGame();closeTopMenus()" role="menuitem">💾 Save Game</button>
                     <button class="dropdown-item" onclick="closeTopMenus();document.getElementById('load-game-modal').style.display='flex'; loadGameList()" role="menuitem">📂 Load Game…</button>
                     <button class="dropdown-item" onclick="closeTopMenus();document.getElementById('file-upload').click()" role="menuitem">📂 Load JSON…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();ScenarioManager.open()" role="menuitem">🗂 Scenario Manager…</button>
+                <button class="dropdown-item" onclick="closeTopMenus();ScenarioHealth.open()" role="menuitem">🩺 Scenario Health…</button>
+                <button class="dropdown-item" onclick="closeTopMenus();RoomTemplatePalette.open()" role="menuitem">🏗️ New Room from Template…</button>
+                <button class="dropdown-item" onclick="closeTopMenus();SetupChecklist.open()" role="menuitem">🚀 Setup Checklist…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();saveScenarioToFile()" role="menuitem">📤 Export Scenario File…</button>
                     <button class="dropdown-item" onclick="closeTopMenus();ScenarioStatus.commit()" role="menuitem">💾 Commit Scenario</button>
+                    <button class="dropdown-item" onclick="closeTopMenus();ChangesPanel.open()" role="menuitem">🔄 Changes since source…</button>
                     <button class="dropdown-item" onclick="closeTopMenus();ScenarioWizard.open()" role="menuitem">✨ Scenario from Text…</button>
                     <div class="context-menu-divider"></div>
                     <button class="dropdown-item" onclick="closeTopMenus();if(confirm('New scenario? This will clear ALL world state and start fresh with an empty world.')){ newScenario(); }" role="menuitem">🆕 New Scenario…</button>
@@ -53,7 +57,8 @@
             </div>
             <button class="btn btn-sm" onclick="CommandPalette.open()" title="Command palette — jump anywhere (Ctrl+K)">⚡</button>
             <button class="btn btn-sm btn-red" onclick="if(confirm('Restart scenario? This will reset all world state.')){ restartScenario(); }" aria-label="Restart scenario">🔄 Restart</button>
-            <button class="btn btn-sm" onclick="document.getElementById('settings-modal').style.display='flex'; setTimeout(populateSettingsForm, 50);" aria-label="Agent Settings">⚙️ Settings</button>
+            <button class="btn btn-sm" data-help="settings" onclick="document.getElementById('settings-modal').style.display='flex'; setTimeout(populateSettingsForm, 50);" aria-label="Agent Settings">⚙️ Settings</button>
+            <button class="btn btn-sm" data-help="help" onclick="HelpCenter.openIndex()" title="Help & guided tours (F1)" aria-label="Help">❓ Help</button>
             <input type="file" id="file-upload" style="display:none" accept=".json" onchange="uploadWorld(event)" aria-hidden="true">
             <select id="narration-select" class="narration-select" onchange="window.narrationUI?.setMode(this.value)" title="Narration mode" aria-label="Narration mode">
                 <option value="none">🔇 No Narration</option>
@@ -69,7 +74,7 @@
         <!-- LEFT PANEL -->
         <aside id="left-panel" aria-label="Agents and simulation controls">
             <div id="sim-controls" role="toolbar" aria-label="Simulation controls">
-                <button class="sim-btn" id="sim-play" onclick="startAgent()" title="Run">▶</button>
+                <button class="sim-btn" id="sim-play" data-help="run" onclick="startAgent()" title="Run">▶</button>
                 <button class="sim-btn" id="sim-pause" onclick="stopAgent()" title="Pause">⏸</button>
                 <button class="sim-btn" id="sim-step" onclick="agentStepOnce()" title="Step Once">⏭</button>
                 <button class="sim-btn" id="sim-cancel" onclick="cancelStep()" title="Cancel current step" style="display:none;color:var(--red);">✕</button>
@@ -175,7 +180,7 @@
                     <button class="toolbar-btn view-toggle active" data-view="graph" onclick="graphManager.setViewMode('graph')" title="Force-directed graph view">🔮 Graph</button>
                     <button class="toolbar-btn" id="btn-cardinal" onclick="graphManager.toggleCardinalLayout()" title="Toggle cardinal area layout">🗺️ Map</button>
                     <div class="toolbar-dropdown menu-anchor" style="position:relative;">
-                        <button class="toolbar-btn" id="btn-overlays" onclick="graphManager._toggleOverlayDropdown()" title="Graph overlay views">📊 Overlays ▾</button>
+                        <button class="toolbar-btn" id="btn-overlays" data-help="overlays" onclick="graphManager._toggleOverlayDropdown()" title="Graph overlay views">📊 Overlays ▾</button>
                         <div id="overlay-dropdown" class="dropdown-menu" style="display:none;position:absolute;top:100%;left:0;z-index:200;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:4px;box-shadow:0 8px 24px rgba(0,0,0,0.5);min-width:160px;">
                             <button class="dropdown-item overlay-toggle" data-overlay="light" onclick="graphManager.setViewMode('light');graphManager._toggleOverlayDropdown()" title="Color areas by ambient light">💡 Light</button>
                             <button class="dropdown-item overlay-toggle" data-overlay="heat" onclick="graphManager.setViewMode('heat');graphManager._toggleOverlayDropdown()" title="Color areas by temperature">🌡️ Heat</button>
@@ -197,7 +202,7 @@
                 <div class="toolbar-group" aria-label="Show on graph">
                     <button class="toolbar-btn active" id="btn-inhabited" onclick="graphManager.toggleInhabitedAreas()" title="Hide areas with no characters present">🏘 Inhabited</button>
                     <button class="toolbar-btn active" id="btn-images" onclick="graphManager.toggleImages()" title="Show node image thumbnails on the graph (where set)">🖼 Images</button>
-                    <button class="toolbar-btn" id="btn-triggers" onclick="graphManager.toggleTriggers()" title="Show/hide trigger nodes in graph">🔩 Triggers</button>
+                    <button class="toolbar-btn" id="btn-triggers" data-help="triggers" onclick="graphManager.toggleTriggers()" title="Show/hide trigger nodes in graph">🔩 Triggers</button>
                     <button class="toolbar-btn" id="btn-items" onclick="graphManager.toggleItems()" title="Show/hide item nodes in graph">📦 Items</button>
                     <select id="floor-filter" class="graph-search" style="width:auto;max-width:140px;padding:4px 6px;font-size:10px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="graphManager.setFloorFilter(this.value)" title="Filter graph to a single floor of areas">
                         <option value="all">🏢 All Floors</option>
@@ -216,7 +221,7 @@
                 <div class="toolbar-divider"></div>
                 <!-- Rarely used -->
                 <div class="toolbar-group menu-anchor" style="position:relative;" aria-label="More tools">
-                    <button class="toolbar-btn" onclick="toggleTopMenu(event,'graph-more-menu')" title="More graph tools">⋯ More ▾</button>
+                    <button class="toolbar-btn" data-help="more" onclick="toggleTopMenu(event,'graph-more-menu')" title="More graph tools">⋯ More ▾</button>
                     <div id="graph-more-menu" class="dropdown-menu top-menu top-menu-left" style="display:none;" role="menu" aria-label="More graph tools">
                         <button class="dropdown-item" onclick="closeTopMenus();graphEditor.showTemplates()" role="menuitem">📋 Templates</button>
                         <button class="dropdown-item" onclick="closeTopMenus();VW.inspector.showWorldLore()" role="menuitem" title="Edit world lore entries">🌍 Lore</button>
@@ -412,6 +417,8 @@
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-show-logs" onchange="config.showLogs=this.checked;config.save();"> 📋 Show LLM Logs</label><span class="toggle-desc">Log LLM requests to event stream</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-manual-mode" onchange="config.manualMode=this.checked;llmClient._manualMode=this.checked;llmClient._manualResponse=null;config.save();VW?.events?.log(this.checked?'✋ Manual response mode enabled. Use 📋 Copy Prompt / 📝 Paste Response in graph toolbar.':'✋ Manual response mode disabled.','system-msg');"> ✋ Manual Response Mode</label><span class="toggle-desc">Skip API call, paste a manual response instead</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-auto-generate-descriptions" onchange="config.autoGenerateDescriptions=this.checked;config.save();(async()=>{try{await ApiClient.setAutoGenerateDescriptions(this.checked);}catch(e){}})();events.log('🪄 Auto-generate descriptions '+(this.checked?'enabled':'disabled'),'system-msg');"> 🪄 Auto-Generate Descriptions</label><span class="toggle-desc">Generate appearance description on equip/unequip</span></div>
+                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-auto-retry-invalid" onchange="config.autoRetryInvalid=this.checked;config.save();events.log('🔁 Invalid-action auto-retry '+(this.checked?'enabled':'disabled'),'system-msg');"> 🔁 Auto-Retry Invalid Actions</label><span class="toggle-desc">Give the agent one same-turn retry when its action fails (error fed back)</span></div>
+                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-simultaneous-mode" data-help="simultaneous" onchange="config.simultaneousMode=this.checked;config.save();events.log('🌊 Simultaneous mode '+(this.checked?'enabled (experimental — chaos by design)':'disabled'),'system-msg');"> 🌊 Simultaneous Mode (experimental)</label><span class="toggle-desc">Every autonomous character acts on its own countdown (Social/traits/Energy derived) instead of the fixed turn order</span></div>
                     </div>
                     <div class="settings-group">
                         <div class="settings-group-title"><span class="group-icon">👻</span> Ghost Mode</div>
@@ -1008,6 +1015,7 @@
     <script src="/static/js/agent/rate-limiter.js"></script>
     <script src="/static/js/agent-engine.js"></script>
     <script src="/static/js/agent/turn-queue.js"></script>
+    <script src="/static/js/agent/object-responder.js"></script>
     <script src="/static/js/agent/memory-manager.js"></script>
     <script src="/static/js/agent/plan-manager.js"></script>
     <script src="/static/js/ui-controller.js"></script>
@@ -1053,6 +1061,12 @@
     <script src="/static/js/ui/world-export.js"></script>
     <script src="/static/js/ui/saveload-view.js"></script>
     <script src="/static/js/ui/scenario-status.js"></script>
+    <script src="/static/js/ui/changes-panel.js"></script>
+    <script src="/static/js/ui/room-template-palette.js"></script>
+    <script src="/static/js/ui/setup-checklist.js"></script>
+    <script src="/static/js/ui/help-center.js"></script>
+    <script src="/static/js/ui/scenario-health.js"></script>
+    <script src="/static/js/ui/edit-feed.js"></script>
     <script src="/static/js/ui/scenario-wizard.js"></script>
     <script src="/static/js/ui/command-palette.js"></script>
     <script src="/static/js/ui/undo-history.js"></script>

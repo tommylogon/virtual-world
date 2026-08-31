@@ -1,8 +1,9 @@
 import logging
 import re
+import json
 from flask import request, jsonify
 from virtual_world_engine import AmbiguousItemError
-from graph import EDGE_IN
+from graph import EDGE_IN, Edge
 from engine.activities import (
     ACTIVITY_BLOCKING, ACTIVITY_INTERRUPTIBLE, activity_description,
 )
@@ -16,21 +17,21 @@ _ACTIVITY_ALLOWED = {
                  "examine", "read", "inspect", "check", "wake"},
     "bathing": {"look", "stats", "status", "inventory", "inv", "i",
                 "examine", "read", "inspect", "check",
-                "speak", "say", "whisper", "shout", "scream", "do",
+                "speak", "say", "whisper", "shout", "scream", "sing", "do",
                 "stop", "stand"},
 }
 
 _ACTION_BLOCK_ALLOWED = {
     "look", "stats", "status", "inventory", "inv", "i",
     "examine", "wait",
-    "speak", "say", "whisper", "shout", "scream", "do",
+    "speak", "say", "whisper", "shout", "scream", "sing", "do",
     "escape", "struggle",
 }
 
 _ACTIVITY_NON_INTERRUPTING = {
     "look", "stats", "status", "inventory", "inv", "i",
     "examine", "read", "inspect", "check", "wake",
-    "speak", "say", "whisper", "shout", "scream", "do",
+    "speak", "say", "whisper", "shout", "scream", "sing", "do",
     "fumble", "fumble around", "grope", "grope around", "feel around",
     "rest", "sleep", "wait", "meditate", "bathe", "bath", "sit", "sit down",
     "stand", "stand up", "get up", "stop", "dress", "get dressed", "strip", "undress",
@@ -42,7 +43,7 @@ def _activity_cmd_allowed(cmd, allowed):
     if cmd in allowed:
         return True
     return any(cmd.startswith(v + " ") for v in (
-        "speak", "say", "whisper", "shout", "scream", "do",
+        "speak", "say", "whisper", "shout", "scream", "sing", "do",
         "examine", "read", "inspect", "check", "wake",
     ))
 
@@ -114,10 +115,59 @@ def handle_get_state(app):
         state["scenario_ended"] = getattr(app.world, 'scenario_ended', False)
         state["_restart_requested"] = getattr(app.world, '_restart_requested', False)
         state["vital_polarity"] = VITAL_POLARITY
+        # task-330: pending browser-side LLM responses (llm_respond effect).
+        state["llm_pending"] = list(getattr(app.world, 'llm_pending_requests', []) or [])
         return jsonify(state)
     except Exception as e:
         logger.exception("Error in /api/state")
         return jsonify({"error": str(e)}), 500
+
+
+def handle_llm_respond_post(app):
+    """Receive a browser-generated LLM line for a pending request (task-330).
+
+    The engine cannot call LLMs (keys live in the browser), so the frontend
+    generates the line for a `llm_respond` effect and posts it here. The
+    engine logs it as area speech from the object (broadcast_speech), then
+    consumes the request. A missing/empty reply uses `fallback_message`.
+    """
+    data = request.get_json() or {}
+    rid = data.get('id', '')
+    text = (data.get('text') or '').strip()
+    world = app.world
+
+    pending = next((r for r in getattr(world, 'llm_pending_requests', []) if r.get('id') == rid), None)
+    if pending is None:
+        return jsonify({"error": "No pending request with that id (expired?)."}), 404
+
+    line = text or pending.get("fallback_message", "")
+    world.consume_llm_respond(rid)
+    if not line:
+        return jsonify({"status": "ok", "text": ""})
+
+    speaker = pending.get("speaker", "something")
+    # Route the line into the area speech pipeline so nearby agents hear it.
+    node_id = pending.get("node_id", "")
+    area_name = ''
+    if node_id:
+        node = world.graph.get_node(node_id)
+        if node is not None:
+            # the object's parent area: follow its `in`/spatial edges
+            for edge in world.graph.get_edges_for_source(node_id, EDGE_IN):
+                area_node = world.graph.get_node(edge.target)
+                if area_node is not None and area_node.type == 'area':
+                    area_name = area_node.name
+                    break
+    try:
+        if area_name:
+            world.broadcast_speech(speaker, line, area_name=area_name)
+        else:
+            world.add_log_entry(f"[{speaker}] {line}")
+    except Exception as e:
+        logger.exception("llm_respond post: speech broadcast failed")
+        return jsonify({"error": str(e)}), 500
+
+    return jsonify({"status": "ok", "text": line, "speaker": speaker, "area": area_name})
 
 
 def handle_autocomplete(app):
@@ -312,9 +362,14 @@ def handle_take_action(app):
             was_movement = False
 
         elif cmd.startswith("use "):
+            # task-196: "use 2 kindling in fireplace" — quantity on use-on.
+            amount = 1
+            if len(tokens) > 1 and re.match(r'^\d+$', tokens[1]):
+                amount = max(1, int(tokens[1]))
+                tokens = [tokens[0]] + tokens[2:]
             on_idx = None
             for i in range(1, len(tokens)):
-                if tokens[i] == "on":
+                if tokens[i] in ("on", "in"):
                     on_idx = i
                     break
             if on_idx is not None and on_idx > 1:
@@ -331,14 +386,14 @@ def handle_take_action(app):
                         rest_quoted = [tokens[i] for i in quoted_after_on[1:]]
                         params = ' '.join(rest_quoted) if rest_quoted else None
                 if params:
-                    add_output(world.use_item_on(item_name, target_name, params=params))
+                    add_output(world.use_item_on(item_name, target_name, params=params, amount=amount))
                 elif target_name:
-                    add_output(world.use_item_on(item_name, target_name))
+                    add_output(world.use_item_on(item_name, target_name, amount=amount))
                 else:
-                    add_output(world.use_item_on(item_name))
+                    add_output(world.use_item_on(item_name, amount=amount))
             else:
                 item_name = ' '.join(tokens[1:]) if len(tokens) > 1 else ""
-                add_output(world.use_item_on(item_name))
+                add_output(world.use_item_on(item_name, amount=amount))
             world._add_entertainment_gain(3)
 
         elif cmd.startswith("examine "):
@@ -478,6 +533,19 @@ def handle_take_action(app):
         elif cmd.startswith("drop "):
             item_name = ' '.join(tokens[1:]) if len(tokens) > 1 else ""
             add_output(world.drop_item(item_name))
+        elif cmd.startswith("stow "):
+            # task-146: `stow <item>` = hand → carrying; `stow <item> in
+            # <container>` mirrors put. (autocomplete already advertised stow.)
+            rest = cmd[5:].strip()
+            in_idx = rest.find(" in ")
+            if in_idx > 0:
+                item_name = rest[:in_idx].strip()
+                container_name = rest[in_idx + 4:].strip()
+                add_output(world.put_item_in_container(item_name, container_name))
+            elif rest:
+                add_output(world.stow_item(rest))
+            else:
+                add_output("Stow what? Use: stow <item>, or stow <item> in <container>")
         elif cmd.startswith("put "):
             rest = cmd[4:].strip()
             in_idx = rest.find(" in ")
@@ -512,6 +580,53 @@ def handle_take_action(app):
                 add_output(world.place_item(item_name, target_name, relation))
             else:
                 add_output("Place what where? Use: place <item> on/under/beside/behind/at/in <target>")
+        elif cmd.startswith("combine "):
+            # task-155: combine <source> with <target> (or "combine a b")
+            rest = cmd[8:].strip()
+            with_idx = rest.find(" with ")
+            if with_idx > 0:
+                source_name = rest[:with_idx].strip()
+                target_name = rest[with_idx + 6:].strip()
+            else:
+                parts_split = rest.split()
+                if len(parts_split) >= 2:
+                    source_name = parts_split[0]
+                    target_name = parts_split[1]
+                else:
+                    source_name = target_name = rest
+            add_output(world.combine_items(source_name, target_name))
+        elif cmd.startswith("split "):
+            # split <item> [into N]
+            rest = cmd[6:].strip()
+            parts = 2
+            import re as _re
+            m = _re.search(r'into\s+(\d+)', rest)
+            if m:
+                parts = int(m.group(1))
+                rest = rest[:m.start()].strip()
+            item_name = rest.strip()
+            if not item_name:
+                add_output("Split what? Use: split <item> [into N]")
+            else:
+                add_output(world.split_item(item_name, parts))
+        elif cmd.startswith("craft ") or cmd.startswith("make "):
+            recipe_name = ' '.join(tokens[1:]) if len(tokens) > 1 else (
+                cmd[6:].strip() if cmd.startswith("craft ") else cmd[5:].strip()
+            )
+            if not recipe_name:
+                add_output("Craft what? Use: craft <recipe name>")
+            else:
+                add_output(world.craft_item(recipe_name))
+        elif cmd.startswith("teach "):
+            # task-197: teach <recipe | skill:NAME> to <character>
+            rest = cmd[6:].strip()
+            to_idx = rest.find(" to ")
+            if to_idx <= 0:
+                add_output("Teach what to who? Use: teach <recipe name | skill:NAME> to <character>")
+            else:
+                subject = rest[:to_idx].strip()
+                student = rest[to_idx + 4:].strip()
+                add_output(world.teach_item(subject, student))
         elif cmd.startswith("give "):
             rest = cmd[5:].strip()
             to_idx = rest.find(" to ")
@@ -765,7 +880,68 @@ def handle_take_action(app):
                     target = resolved
             add_output(world._grapple_release(world.active_player, target))
 
-        elif cmd.startswith(("speak ", "say ", "whisper ", "shout ", "scream ")):
+        elif cmd.startswith(("bind ", "enchant ")):
+            # task-242: agents author item triggers at runtime.
+            # Schema: bind <item> <trigger_type>:<effect_type> [json params]
+            rest = cmd[len(cmd.split()[0] + " "):].strip()
+            parts = rest.split(" ", 1)
+            item_name = parts[0].strip() if parts else ""
+            spec_and_json = parts[1].strip() if len(parts) > 1 else ""
+            # parse spec "on_use:message" + optional trailing JSON params
+            type_effect = spec_and_json
+            params_json = None
+            m = re.search(r'(\{.*\})$', spec_and_json, re.DOTALL)
+            if m:
+                params_json = m.group(1)
+                type_effect = spec_and_json[:m.start()].strip()
+            parts2 = type_effect.split(":", 1)
+            trigger_type = parts2[0].strip() if parts2 else "on_use"
+            effect_type = parts2[1].strip() if len(parts2) > 1 else "message"
+            if not item_name:
+                add_output("Bind what? e.g. bind the locket on_take:message")
+            else:
+                try:
+                    from engine.triggers.constants import TRIGGER_TYPES, SAFE_EFFECT_TYPES
+                    item_id = world._match_item_name(item_name)
+                    item_node = world.graph.get_node(item_id) if item_id else None
+                    if item_node is None:
+                        # fall back to id / name substring on graph nodes
+                        for n in world.graph.nodes.values():
+                            if n.type == 'item' and (n.name or '').lower() == item_name.lower():
+                                item_node = n
+                                break
+                        if item_node is None:
+                            for n in world.graph.nodes.values():
+                                if n.type == 'item' and item_name.lower() in (n.name or '').lower():
+                                    item_node = n
+                                    break
+                    if item_node is None:
+                        add_output(f"'{item_name}' isn't something you can bind.")
+                    else:
+                        if trigger_type and trigger_type not in TRIGGER_TYPES:
+                            add_output(f"Unknown trigger '{trigger_type}' — allowed: {', '.join(TRIGGER_TYPES)}.")
+                        elif effect_type and effect_type not in SAFE_EFFECT_TYPES:
+                            add_output(f"Can't bind effect '{effect_type}' — allowed: {', '.join(sorted(SAFE_EFFECT_TYPES))}.")
+                        else:
+                            params = {}
+                            if params_json:
+                                try:
+                                    params = json.loads(params_json)
+                                    if not isinstance(params, dict):
+                                        params = {}
+                                except Exception:
+                                    params = {}
+                            trigger_id = world.triggers.create_trigger(
+                                item_node.id, trigger_type,
+                                effects=[{"type": effect_type, "params": params}],
+                            )
+                            add_output(f"You bind {item_node.name}: it will {trigger_type.replace('_', ' ')} → {effect_type.replace('_', ' ')}.")
+                            world.add_log_entry(f"[{world.active_player}] bound a {trigger_type} trigger on {item_node.name} ({effect_type}).")
+                except Exception as bind_err:
+                    logger.exception("bind trigger failed")
+                    add_output(f"The binding fails: {bind_err}")
+
+        elif cmd.startswith(("speak ", "say ", "whisper ", "shout ", "scream ", "sing ")):
             if not world.conditions.can_speak(world.active_player):
                 failed = True
                 add_output("You try to speak, but no sound comes out.")
@@ -775,7 +951,7 @@ def handle_take_action(app):
                 # apostrophes as quote delimiters and would turn "i'm coming" into
                 # "i m coming" (N2 — the mangled text was what got spoken/stored).
                 speech = ""
-                for _pfx in ("speak ", "say ", "whisper ", "shout ", "scream "):
+                for _pfx in ("speak ", "say ", "whisper ", "shout ", "scream ", "sing "):
                     if cmd.startswith(_pfx):
                         speech = cmd[len(_pfx):].strip()
                         break
@@ -793,6 +969,8 @@ def handle_take_action(app):
                     speech_level = "shout"
                 elif cmd.startswith("scream "):
                     speech_level = "scream"
+                elif cmd.startswith("sing "):
+                    speech_level = "sing"
                 else:
                     speech_level = "normal"
                 if speech:
@@ -806,6 +984,8 @@ def handle_take_action(app):
                         add_output(f'[{world.active_player}] shouts: "{speech}"')
                     elif speech_level == "scream":
                         add_output(f'[{world.active_player}] screams: "{speech}"')
+                    elif speech_level == "sing":
+                        add_output(f'[{world.active_player}] sings: "{speech}"')
                     else:
                         add_output(f'[{world.active_player}] says: "{speech}"')
                 else:

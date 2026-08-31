@@ -1,0 +1,72 @@
+{
+  "id": "encounter_radio",
+  "name": "Encounter Radio",
+  "type": "item",
+  "description": "A battered handheld walkie-talkie-red radio with a dead battery and a cracked label. The volume knob is stuck on LOW.",
+  "tags": ["sound_source", "toggleable", "radio"],
+  "properties": {
+    "current_state": "off",
+    "weight": 0.4,
+    "uses": -1,
+    "sound_level": 2
+  },
+  "actions": ["examine", "use", "take", "toggle"],
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "conditions": {},
+      "effects": [
+        {
+          "type": "llm_respond",
+          "params": {
+            "instructions": "You are a mysterious handheld Radio that crackles to life with fragments, static, and weird brief transmissions. Stay mysterious, spooky-but-playful. Reply in 1-2 sentences of radio-static flavor. Never break character.",
+            "fallback_message": "The radio crackles. Static. Somewhere, a voice almost says something.",
+            "max_words": 30,
+            "name": "The Radio",
+            "cooldown": 15
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "success_message": "You press the talk button. The radio crackles.",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_toggle_on",
+      "conditions": {},
+      "effects": [
+        {
+          "type": "llm_respond",
+          "params": {
+            "instructions": "You are a Mysterious Radio that just got switched ON. You materialize a voice with a one-line eerie-but-friendly greeting. 1 sentence max.",
+            "fallback_message": "The radio clicks on. Static. A voice hums with the tone of a dead station.",
+            "max_words": 20,
+            "name": "The Radio",
+            "cooldown": 20
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_toggle_off",
+      "conditions": {},
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "The radio clicks off. The silence is louder than the static was."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    }
+  ]
+}

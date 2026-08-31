@@ -1,0 +1,31 @@
+{
+  "name": "Template: Set State",
+  "description": "Template item demonstrating the 'set_state' trigger effect. Use me when on the ground or in your hands; the wired on_use trigger shows the effect. Place me by importing from the library (library browser → Item → Import to World).",
+  "tags": [
+    "template",
+    "demo"
+  ],
+  "actions": [
+    "examine",
+    "use"
+  ],
+  "uses": -1,
+  "max_uses": 0,
+  "weight": 0.1,
+  "current_state": "normal",
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "type": "set_state",
+          "params": {
+            "node_id": "self",
+            "state": "on",
+            "message": "[template:set_state] The template now reads: on."
+          }
+        }
+      ]
+    }
+  ]
+}

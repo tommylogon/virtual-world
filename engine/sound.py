@@ -17,6 +17,7 @@ def _speech_levels() -> Dict[str, int]:
     return {
         "whisper": _config_get_int("sound.speech_whisper", 0),
         "normal": _config_get_int("sound.speech_normal", 1),
+        "sing": _config_get_int("sound.speech_sing", 1),
         "shout": _config_get_int("sound.speech_shout", 2),
         "scream": _config_get_int("sound.speech_scream", 3),
     }

@@ -1,0 +1,32 @@
+{
+  "name": "Template: Set Way View",
+  "description": "Template item demonstrating the 'set_way_view' trigger effect. Use me when on the ground or in your hands; the wired on_use trigger shows the effect. Place me by importing from the library (library browser → Item → Import to World).",
+  "tags": [
+    "template",
+    "demo"
+  ],
+  "actions": [
+    "examine",
+    "use"
+  ],
+  "uses": -1,
+  "max_uses": 0,
+  "weight": 0.1,
+  "current_state": "normal",
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "type": "set_way_view",
+          "params": {
+            "way_id": "way_template_door",
+            "view_from_a": "a shimmering corridor",
+            "message": "[template:set_way_view] The door's view shifts.",
+            "fail_message": "[template:set_way_view] No template door here."
+          }
+        }
+      ]
+    }
+  ]
+}

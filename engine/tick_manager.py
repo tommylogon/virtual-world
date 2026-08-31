@@ -115,6 +115,9 @@ class TickManager:
         # Process periodic condition effects (poison, sick, etc.)
         self.gs.conditions.process_tick()
 
+        # task-191: perishable items decay toward spoiled, one tick at a time.
+        self._tick_item_freshness()
+
         # Incapacitated grapplers let go of everyone they're holding
         # (unconscious/dead/paralysed etc. — can't keep a grip while down),
         # then run the edge⇔condition grapple sync (orphan cleanup + desync repair).
@@ -601,6 +604,40 @@ class TickManager:
         
         # Update tracking for next tick
         self._last_sound_sources = current_sources
+
+    def _tick_item_freshness(self):
+        """task-191: perishable food decays toward spoiled (one tick at a time).
+
+        Items carrying ``perishable: true`` + ``freshness_ticks`` > 0 count
+        down; at 0 the item flips to ``freshness_state: "spoiled"`` and fires
+        ``on_spoil`` if such a trigger hangs off it. Cooked food stops
+        decaying. Cheap: only nodes that declare the properties are touched.
+        """
+        try:
+            for node in list(self.graph.nodes.values()):
+                props = node.properties or {}
+                if node.type != "item" or not props.get("perishable"):
+                    continue
+                if props.get("freshness_state") in ("cooked", "spoiled"):
+                    continue
+                ticks = int(props.get("freshness_ticks", 0) or 0)
+                if ticks <= 0:
+                    continue
+                ticks -= 1
+                props["freshness_ticks"] = ticks
+                if ticks <= 0:
+                    props["freshness_state"] = "spoiled"
+                    self.gs.add_log_entry(f"The {node.name} has gone bad.")
+                    try:
+                        outputs = self.gs.triggers._execute_triggers(
+                            node, "on_spoil", game_state=self.gs
+                        )
+                        if outputs:
+                            self.gs.add_log_entry("\n".join(outputs))
+                    except Exception:
+                        pass
+        except Exception as e:
+            logger.warning("[tick] freshness: %s", e)
 
     def tick(self, ticks=1):
         """Legacy: no longer applies baseline decay per-tick.

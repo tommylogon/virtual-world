@@ -80,6 +80,25 @@ class ExamineActionsMixin:
         if node is None:
             return ""
         desc = node.properties.get("description", "")
+        # task-191: freshness state joins the treated description naturally —
+        # no numbers, just what senses tell you.
+        if node.properties.get("perishable"):
+            fstate = node.properties.get("freshness_state", "")
+            if fstate == "cooked":
+                desc = (desc + " It's been cooked — still good.").strip()
+            elif fstate == "spoiled":
+                desc = (desc + " It has gone bad.").strip()
+        # task-10: proximity tools read their surroundings on examine.
+        if node.properties.get("proximity_effect") and self.world is not None:
+            try:
+                from engine.proximity import proximity_report
+                reading = proximity_report(
+                    self.world.player_manager, node, self.graph, game_state=self.world
+                )
+                if reading:
+                    desc = (desc + " " + reading).strip()
+            except Exception:
+                pass
         if not desc or not self.trigger_system:
             return desc
         from engine.trigger_system import TriggerSystem

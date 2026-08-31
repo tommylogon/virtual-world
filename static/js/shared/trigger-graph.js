@@ -238,7 +238,7 @@ window.TriggerGraph = (() => {
                 return `
                 <div class="tg-field-row"><label>Type</label>
                     <select class="tg-field" data-key="action_type" onchange="TG._onFieldChange(this);TG._rerenderNode('${'NODEID'}')">${[
-                        'message','speak','set_npc_state','damage','heal','set_environment','spawn_item','spawn_character','teleport','go'
+                        'message','speak','set_npc_state','damage','heal','set_environment','spawn_item','spawn_character','teleport','go','llm_respond'
                     ].map(t => `<option value="${t}" ${at===t?'selected':''}>${t.replace(/_/g,' ')}</option>`).join('')}</select>
                 </div>
                 <div class="tg-beh-text" style="display:${['message','speak'].includes(at)?'':'none'}">
@@ -246,6 +246,10 @@ window.TriggerGraph = (() => {
                 </div>
                 <div class="tg-beh-state" style="display:${at==='set_npc_state'?'':'none'}">
                     <div class="tg-field-row"><label>State</label><input class="tg-field" data-key="state" value="${p.state||''}" placeholder="idle, curious, angry..." onchange="TG._onFieldChange(this)"></div>
+                </div>
+                <div class="tg-beh-llm" style="display:${at==='llm_respond'?'':'none'}">
+                    <div class="tg-field-row"><label>Instructions (persona prompt)</label><textarea class="tg-field" data-key="instructions" rows="2" onchange="TG._onFieldChange(this)">${p.instructions||''}</textarea></div>
+                    <div class="tg-field-row"><label>Fallback message</label><input class="tg-field" data-key="fallback_message" value="${p.fallback_message||''}" placeholder="Kept quiet when it cannot answer" onchange="TG._onFieldChange(this)"></div>
                 </div>
                 <div class="tg-beh-damage" style="display:${['damage','heal'].includes(at)?'':'none'}">
                     <div class="tg-field-row"><label>${at==='damage'?'Damage':'Heal'} Amount</label><input class="tg-field" data-key="amount" type="number" value="${p.amount ?? (at==='damage'?5:10)}" onchange="TG._onFieldChange(this)"></div>

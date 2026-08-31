@@ -18,6 +18,7 @@ from .graph_ops import (
     handle_update_edge,
     handle_flip_edge,
     handle_delete_edge,
+    handle_append_draft,
 )
 
 logger = logging.getLogger(__name__)
@@ -91,3 +92,7 @@ def register_graph_routes(app):
     @app.route('/api/graph/edge', methods=['DELETE'])
     def delete_edge():
         return handle_delete_edge(app)
+
+    @app.route('/api/scenario/append', methods=['POST'])
+    def append_draft():
+        return handle_append_draft(app)

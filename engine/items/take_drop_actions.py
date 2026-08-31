@@ -403,17 +403,36 @@ class TakeDropActionsMixin:
         if isinstance(equip_slots, str):
             equip_slots = [s.strip() for s in equip_slots.split(",")]
         hand_slots = [s for s in equip_slots if s in ("hand_left", "hand_right")]
+        # task-146: take → hands first. Every physical item lands in a hand
+        # (generic held when no hand slots are declared); only intrinsic
+        # abilities (spell/talent) skip straight to carrying. When both hands
+        # are occupied, the currently-held item is auto-stowed to carrying and
+        # the new item takes its hand — all in the same turn.
+        tags_list = [str(t).lower() for t in (item_node.properties.get("tags", []) or [])]
+        is_intrinsic = any(t in ("spell", "ability", "innate", "intrinsic", "power") for t in tags_list)
+        two_handed = "two_handed" in tags_list
+        if not is_intrinsic and not hand_slots:
+            hand_slots = ["hand_right", "hand_left"]
 
         if hand_slots:
             player = player_manager.players.get(player_manager.active_player)
-            if player:
+            if player and isinstance(getattr(player, "equipped", None), dict):
+                if two_handed and (player.equipped.get("hand_left") or player.equipped.get("hand_right")):
+                    raise ValueError("Your hands are full — you can't take that. You need both hands free for a two-handed item.")
                 free_hand = None
-                for hand in ["hand_right", "hand_left"]:
-                    if not player.equipped.get(hand):
-                        free_hand = hand
-                        break
+                if not two_handed:
+                    for hand in ["hand_right", "hand_left"]:
+                        if not player.equipped.get(hand):
+                            free_hand = hand
+                            break
 
-                if free_hand:
+                if two_handed:
+                    for hand in ["hand_right", "hand_left"]:
+                        self.graph.add_edge(Edge(source=item_node_id, target=player_id, type=EDGE_EQUIPPED, properties={"slot": hand}))
+                        player.equipped.setdefault(hand, []).append(item_node_id)
+                    self.graph.remove_edges_for_node(item_node_id, EDGE_CONNECTION)
+                    hand_used = "hand_left and hand_right"
+                elif free_hand:
                     self.graph.add_edge(Edge(source=item_node_id, target=player_id, type=EDGE_EQUIPPED, properties={"slot": free_hand}))
                     player.equipped.setdefault(free_hand, []).append(item_node_id)
                     self.graph.remove_edges_for_node(item_node_id, EDGE_CONNECTION)
@@ -454,6 +473,8 @@ class TakeDropActionsMixin:
         else:
             source = ""
         hand_text = f" with your {hand_used.replace('_', ' ')}" if hand_used else ""
+        if two_handed and hand_used:
+            hand_text = " with both hands"
 
         if hand_slots:
             if stashed_item:
@@ -528,6 +549,39 @@ class TakeDropActionsMixin:
         result = f"You drop the {_display_name(item_name)}."
         if trigger_outputs:
             result += "\n" + "\n".join(trigger_outputs)
+        return result
+
+    def stow_item(self, player_manager, item_name: str) -> str:
+        """task-146: move a hand-held item back to carrying (stow).
+
+        Unbinds the item's equipped edge(s) and re-attaches via carrying, so
+        the hands free up for the next take. Fires ``on_unequip``.
+        """
+        item_node = player_manager.find_item_node(item_name)
+        if not item_node:
+            raise ValueError(f"You don't have '{item_name}'.")
+        player_id = player_manager._player_node_id(player_manager.active_player)
+        held_edges = [
+            e for e in self.graph.get_edges_for_target(player_id, EDGE_EQUIPPED)
+            if e.source == item_node.id
+        ]
+        if not held_edges:
+            raise ValueError(f"The {_display_name(item_name)} isn't in your hands.")
+        for edge in held_edges:
+            self.graph.edges.remove(edge)
+        self.graph.add_edge(Edge(source=item_node.id, target=player_id, type=EDGE_CARRYING))
+        self.graph.remove_edges_for_node(item_node.id, EDGE_CONNECTION)
+        player = player_manager.players.get(player_manager.active_player)
+        if player:
+            for slot, stack in list(player.equipped.items()):
+                if item_node.id in stack:
+                    stack.remove(item_node.id)
+        trigger_outputs = self._exec_triggers(item_node, "on_unequip") if item_node else []
+        result = f"You stow the {_display_name(item_name)} away."
+        if trigger_outputs:
+            result += "\n" + "\n".join(trigger_outputs)
+        area_name = player_manager.current_area.name if player_manager.current_area else None
+        player_manager.record_turn_event(player_manager.active_player, "stow", f"stowed the {_display_name(item_name)}", area_name=area_name)
         return result
 
     def drop_held_items(self, player_manager, player_name: str) -> list:

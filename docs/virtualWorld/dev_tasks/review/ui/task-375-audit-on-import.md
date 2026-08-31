@@ -1,6 +1,6 @@
-﻿---
+---
 type: task
-status: todo
+status: review
 area: ui
 priority: medium
 ---
@@ -8,11 +8,18 @@ priority: medium
 # task-375: audit-on-import
 
 **Filed**: 2026-08-30
-**Status**: Todo
-**Source**: docs/virtualWorld/Scenario Workflows & UI Audit.md — P2 — Audit-on-import: run TriggerValidator against the incoming world dict before load; show issues with [Apply anyway].
+**Status**: In Review — implemented 2026-08-30 as part of task-369's import preview.
 
-## Notes
+## What was built
 
-See the audit doc for the full section and sequencing notes. Reuse existing machinery where noted; the guardrails are: CLI-free, undo-safe, and no new storage formats unless the audit says so.
+- The `🔬 Deep audit` button in the import-preview dialog (`static/js/ui/saveload-view.js`)
+  runs `TriggerValidator` against the *incoming* world dict BEFORE any state mutation —
+  issues are listed in the preview with severity (err/warn/info); the user can still
+  `[Apply anyway]` (undo-protected) or cancel.
+- No separate route: reuses `POST /api/triggers/validate` (validator panel path) on an
+  in-memory copy.
 
+## Note
 
+Filed separately from 369 but landed in the same dialog. Task 369's doc is the canonical
+entry; this file records the distinction (validate-before-load vs preview counts).

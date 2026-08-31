@@ -3,6 +3,7 @@
 Moved from engine/trigger_system.py.
 """
 
+import time
 from typing import Any, List, Optional
 
 from graph import EDGE_IN
@@ -49,6 +50,42 @@ class BehaviorMixin:
                     if not text.strip():
                         continue
                     outputs.append(f"[{char_name}] {text}")
+
+                elif action_type == "llm_respond":
+                    # task-331: queue a browser-side LLM response (same request
+                    # shape + queue as the item llm_respond effect, task-330).
+                    # The browser generates the line and posts it back via
+                    # /api/llm_respond; the engine broadcasts it as speech.
+                    if not hasattr(game_state, "queue_llm_respond"):
+                        continue
+                    speaker = action.get("name", char_name)
+                    try:
+                        max_words = max(1, int(action.get("max_words", 40)))
+                    except (TypeError, ValueError):
+                        max_words = 40
+                    node_id = ""
+                    try:
+                        getter = getattr(game_state, "_player_node_id", None) or getattr(game_state, "get_player_node_id", None)
+                        node_id = getter(char_name) if getter else ""
+                    except Exception:
+                        node_id = ""
+                    request = {
+                        "id": f"llm_req_{int(time.time() * 1000)}_{id(player)}",
+                        "speaker": speaker,
+                        "node_id": node_id,
+                        "instructions": action.get("instructions", "") or action.get("llm_instructions", ""),
+                        "fallback_message": action.get("fallback_message", "") or action.get("llm_fallback", ""),
+                        "max_words": max_words,
+                        "heard": action.get("heard", ""),
+                        "tick": getattr(game_state, "time_ticks", 0),
+                        "ts": time.time(),
+                        "cooldown": max(1, int(action.get("cooldown", 30))),
+                    }
+                    accepted = game_state.queue_llm_respond(request)
+                    if accepted:
+                        outputs.append(f"[{char_name}] pauses, as if listening to something inside.")
+                    elif request["fallback_message"]:
+                        outputs.append(request["fallback_message"])
 
                 elif action_type == "speak":
                     text = action.get("text", "...")

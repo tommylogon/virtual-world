@@ -4,7 +4,7 @@ import re
 import time
 from typing import Optional, Dict, Any
 
-from graph import Node, Edge, EDGE_CONNECTION, EDGE_TRIGGERS
+from graph import Node, Edge, EDGE_CONNECTION, EDGE_TRIGGERS, EDGE_CARRYING, EDGE_EQUIPPED, EDGE_IN
 from engine.room_perception import normalize_requires
 from engine.traits import TraitSystem
 from engine.size import size_tier, size_tier_from_name
@@ -157,6 +157,48 @@ class MovementSystem:
         if ratio >= 0.5:
             return 1
         return 0
+
+    def _holds_item_gate(self, item_needle, tag_needle) -> bool:
+        """task-243/109: does the active character satisfy a way's item gate?
+
+        Carrying + equipped items first, then items lying in the current area
+        (a parked bike in the room is usable). ``item_needle`` matches an item
+        name/id substring; ``tag_needle`` matches a held item's tag.
+        """
+        if not item_needle and not tag_needle:
+            return True
+        candidates = []
+        player = self.gs.player_manager.players.get(self.gs.active_player)
+        player_id = self.gs.player_manager.get_player_node_id(self.gs.active_player)
+        seen = set()
+        for edge in self.graph.get_edges_for_target(player_id, (EDGE_CARRYING, EDGE_EQUIPPED)):
+            node = self.graph.get_node(edge.source)
+            if node and node.id not in seen:
+                seen.add(node.id)
+                candidates.append(node)
+        try:
+            area_id = self.gs._get_current_area_id()
+            for edge in self.graph.get_edges_for_target(area_id, EDGE_IN):
+                node = self.graph.get_node(edge.source)
+                if node and node.id not in seen and node.type == "item":
+                    seen.add(node.id)
+                    candidates.append(node)
+        except Exception:
+            pass
+        for node in candidates:
+            props = node.properties or {}
+            if item_needle and (
+                item_needle in str(node.name).lower() or item_needle in str(node.id).lower()
+            ):
+                return True
+            if tag_needle and any(str(t).lower() == tag_needle for t in (props.get("tags", []) or [])):
+                return True
+        return False
+
+    def _requires_item_message(self, way_node, direction, item_needle, tag_needle) -> str:
+        if item_needle:
+            return f"You need a {item_needle} to use this path ({direction})."
+        return f"You need something with the '{tag_needle}' ability to use this path ({direction})."
 
     def _way_target_area_name(self, way_node, area_id):
         """The area on the far side of a way (relative to ``area_id``)."""
@@ -370,6 +412,14 @@ class MovementSystem:
         max_size = way_node.properties.get("max_size", "") or ""
         if max_size and max_size != "none":
             player_tier = size_tier(self.gs.player)
+            # task-202: over-encumbrance makes you effectively one size larger —
+            # a heavy load is bulk through narrow passages (>= 50% capacity).
+            try:
+                ratio_data = self.gs.item_actions.get_carry_load_ratio(self.gs.player_manager)
+                if ratio_data.get("ratio", 0.0) >= 0.5:
+                    player_tier += 1
+            except Exception:
+                pass
             max_tier = size_tier_from_name(max_size)
             if player_tier >= max_tier + 2:
                 raise ValueError(f"You don't fit through the {direction}.")
@@ -379,6 +429,25 @@ class MovementSystem:
                     raise ValueError(f"You can't {kind} through the {direction} — it's too tight.")
                 if kind == "go":
                     kind = "crawl"
+
+        # ── Item-gated passage (task-243 / task-109) ──
+        # "requires_item" on the way: a name/id ("bike"), or a tag gate
+        # ("tag:fly" — any held/area item tagged fly satisfies it). A shortcut
+        # or ability path that stays blocked without the right gear.
+        requires_item = way_node.properties.get("requires_item", "")
+        if requires_item:
+            item_needle = None
+            tag_needle = None
+            for item_spec in str(requires_item).split(","):
+                item_spec = item_spec.strip()
+                if not item_spec:
+                    continue
+                if item_spec.lower().startswith("tag:"):
+                    tag_needle = item_spec[4:].strip().lower()
+                else:
+                    item_needle = item_spec.lower()
+            if not self._holds_item_gate(item_needle, tag_needle):
+                raise ValueError(self._requires_item_message(way_node, direction, item_needle, tag_needle))
 
         # ── Blind "go" — risk of stumbling and falling prone (unless a cane/guide) ──
         if blind and kind == "go" and requires not in ("jump", "climb", "crawl"):

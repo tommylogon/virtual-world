@@ -19,7 +19,9 @@ window.ActionNormalizer = (() => {
         'manifest', 'vanish', 'relieve', 'read', 'search', 'inspect', 'check', 'light',
         'ignite', 'grab', 'snatch', 'collect', 'hit', 'strike', 'punch', 'yell', 'shout',
         'whisper', 'scream', 'pick', 'wear', 'equip', 'remove', 'unequip', 'wait',
-        'nothing', 'pause', 'stay', 'stand', 'listen', 'lead', 'approach'
+        'nothing', 'pause', 'stay', 'stand', 'listen', 'lead', 'approach',
+        'stow', 'combine', 'split', 'craft', 'make', 'teach',
+        'bind', 'enchant'
     ]);
 
     const MOVE_VERBS = new Set(['go', 'dash', 'crawl', 'climb', 'jump']);
@@ -58,7 +60,14 @@ window.ActionNormalizer = (() => {
         if (isPlain) return verb;
         switch (verb) {
             case 'use': return item ? `use ${item}` : 'use';
-            case 'use_on': return item && target ? `use ${item} on ${target}` : (item ? `use ${item}` : 'use');
+            case 'use_on': {
+                // task-196: amount for quantity ("use 2 eggs on pan").
+                const amount = parseInt(p.amount, 10);
+                if (item && target && Number.isInteger(amount) && amount > 1) {
+                    return `use ${amount} ${item} on ${target}`;
+                }
+                return item && target ? `use ${item} on ${target}` : (item ? `use ${item}` : 'use');
+            }
             case 'go': case 'dash': case 'crawl': case 'climb': case 'jump': return obj ? `${verb} ${obj}` : verb;
             case 'approach': return obj ? `approach ${obj}` : verb;
             case 'open': case 'close': return obj ? `${verb} ${obj}` : verb;
@@ -68,6 +77,7 @@ window.ActionNormalizer = (() => {
                 return item && target ? `put ${item} ${rel} ${target}` : (item ? `put ${item}` : verb);
             }
             case 'give': case 'hand': return item && target ? `give ${item} to ${target}` : verb;
+            case 'teach': return item && target ? `teach ${item} to ${target}` : verb;
             case 'eat': case 'consume': return obj ? `eat ${obj}` : 'eat';
             case 'drink': case 'quaff': return obj ? `drink ${obj}` : 'drink';
             case 'steal': return item && target ? `steal ${item} from ${target}` : (item ? `steal ${item}` : verb);
@@ -88,6 +98,17 @@ window.ActionNormalizer = (() => {
             }
             case 'whisper': case 'say': case 'shout': case 'scream': case 'speak': return verb;
             case 'look': case 'inventory': case 'i': case 'inv': case 'stats': case 'status': case 'wait': case 'nothing': case 'pause': case 'stay': case 'relieve': case 'fumble': case 'manifest': case 'vanish': case 'toggle': case 'light': case 'ignite': case 'grab': case 'snatch': case 'collect': case 'hit': case 'strike': case 'punch': case 'yell': return verb;
+            case 'bind': case 'enchant': {
+                // task-242: agent-authored item trigger. Schema:
+                //   {action:"bind", item:"<name>", when:"on_use|on_take|...", effect:"message|...", effect_params:{...}}
+                // Command: `bind <item> <when>:<effect> [json params]`
+                const when = String(p.when || p.trigger_type || 'on_use').trim();
+                const effect = String(p.effect || p.effect_type || 'message').trim();
+                const extra = p.effect_params && Object.keys(p.effect_params).length
+                    ? ' ' + JSON.stringify(p.effect_params)
+                    : '';
+                return item ? `bind ${item} ${when}:${effect}${extra}` : verb;
+            }
             default: return verb;
         }
     }

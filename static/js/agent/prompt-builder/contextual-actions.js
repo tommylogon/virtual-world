@@ -92,19 +92,19 @@ window.PromptBuilder = window.PromptBuilder || {};
     /** All item nodes the character carries or has equipped. */
     function carriedItemNodes(charName) {
         const id = charNodeId(charName);
-        const out = [];
-        const seen = new Set();
+        const bySource = new Map();
         for (const edge of worldState.graph?.edges || []) {
             if (edge.target !== id) continue;
             if (edge.type !== 'carrying' && edge.type !== 'equipped') continue;
-            if (seen.has(edge.source)) continue;
-            seen.add(edge.source);
             const node = worldState.getNode(edge.source);
-            if (node && node.type === 'item') {
-                out.push({ id: edge.source, name: node.name, properties: node.properties, equipped: edge.type === 'equipped' });
-            }
+            if (!node || node.type !== 'item') continue;
+            // Consistent worlds have exactly ONE edge per item (equip removes the
+            // carrying edge). Legacy data can carry both; equipped is the
+            // stronger state and wins — "wearing" is just equipped.
+            const equipped = edge.type === 'equipped' || bySource.get(edge.source)?.equipped === true;
+            bySource.set(edge.source, { id: edge.source, name: node.name, properties: node.properties, equipped });
         }
-        return out;
+        return [...bySource.values()];
     }
 
     /** Whether a character has already examined/discovered an item by name. */
@@ -143,7 +143,7 @@ window.PromptBuilder = window.PromptBuilder || {};
 
         if (actions.includes('take') && !carry) verbs.add('take');
 
-        if (actions.includes('use') || triggerTypes.includes('on_use') || triggerTypes.includes('on_use_on')) verbs.add('use');
+        if (actions.includes('use') || triggerTypes.includes('on_use') || triggerTypes.includes('on_use_progressive') || triggerTypes.includes('on_use_on')) verbs.add('use');
         if (triggerTypes.includes('on_use_on')) verbs.add('use_on');
 
         if (actions.includes('open') && ['closed', 'normal', ''].includes(state)) verbs.add('open');
@@ -168,8 +168,11 @@ window.PromptBuilder = window.PromptBuilder || {};
         if (carry && actions.includes('drop') && !isIntrinsicAbility(props)) verbs.add('drop');
 
         // examine — shown unless the character has already examined/discovered it,
-        // or the item is an intrinsic ability the character always knows
-        if (!isDiscovered(player, item?.name) && !isIntrinsicAbility(props)) verbs.add('examine');
+        // the item is an intrinsic ability the character always knows, or the item
+        // is currently equipped/worn: the engine's item matcher only reaches
+        // carrying + area items (matching._match_item_name), so an examine on
+        // worn gear would always fail.
+        if (!(carry && carry.equipped) && !isDiscovered(player, item?.name) && !isIntrinsicAbility(props)) verbs.add('examine');
 
         return BRACKET_ORDER.filter(v => verbs.has(v));
     }
@@ -265,6 +268,8 @@ window.PromptBuilder = window.PromptBuilder || {};
         buildAvailableActionsBlock,
         carriedItemNodes,
         itemTriggerTypes,
-        useOnTargetName
+        useOnTargetName,
+        isDiscovered,
+        isIntrinsicAbility
     });
 })();

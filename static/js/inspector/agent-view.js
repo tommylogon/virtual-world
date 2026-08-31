@@ -818,7 +818,22 @@ window.InspectorAgentView = (() => {
         html += `<div class="inspector-section"><h3>✨ Interest Tags</h3>
             <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Items matching these surface in the agent's prompt. Examine/take removes them from attention.</div>
             <div id="interest-tag-multiselect-agent-${escName}"></div>
+            <button class="btn btn-sm" onclick="InspectorAgentView._generateInterestTags('${escName}')" style="font-size:10px;padding:2px 10px;margin-top:4px;" title="Ask the character's LLM to pick interest tags from the full system tag list (response: JSON CSV list)">✨ Generate from Personality</button>
         </div>`;
+
+        // Crafting (task-2): recipes this character knows + craft buttons
+        const recipeList = AV._knownRecipeNames(agentName, player);
+        html += `<div class="inspector-section"><h3>🧪 Recipes</h3>
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Recipes this character knows: global, skill-learned, item-learned, or discovered by first crafting.</div>`;
+        if (recipeList.length) {
+            html += recipeList.map(r => `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:11px;">
+                <span style="flex:1;">🧾 ${esc(r.name)}</span>
+                <button class="btn btn-sm" data-help="craft" onclick="runAction('craft ${esc(r.name)}','${escName}')" style="font-size:9px;padding:2px 8px;">Craft</button>
+            </div>`).join('');
+        } else {
+            html += `<div style="font-size:10px;color:var(--text-dim);">None yet — create a recipe node (type: recipe) with learned_by: ["global"] (or "skill:&lt;name&gt;", "item:&lt;name&gt;", discoverable:true) to add one.</div>`;
+        }
+        html += `</div>`;
 
         // What they see
         html += `<div class="inspector-section"><h3>👁️ What I See</h3>
@@ -873,6 +888,9 @@ window.InspectorAgentView = (() => {
 
         // Paperdoll / equipment on top
         html += window.InspectorPaperdoll.renderPaperdollEquipmentHtml(agentName, player, esc, escName);
+        html += `<div style="margin:-2px 0 10px 2px;">
+            <button class="btn btn-sm" data-help="autodress" onclick="InspectorAgentView._autoDress('${escName}')" style="font-size:10px;padding:2px 10px;" title="Dress from interest tags: scans the item library for wearable pieces matching the character's interest_tags and equips them">🤖 Auto-Dress from Interests</button>
+        </div>`;
 
         const inventory = worldState.getInventory(agentName);
         const equipped = player.equipped || {};
@@ -1280,6 +1298,52 @@ window.InspectorAgentView = (() => {
     };
 
     /**
+     * Grammar/voice check for LLM-generated appearance text (task-345).
+     * player.description must stay THIRD person: strangers see it (examine,
+     * labels) and the agent prompt converts it to second person for the owner
+     * via secondPersonDesc. Catches the stored repro slips ("you is",
+     * "body is who") plus any first/second-person leak — small models emit
+     * both and the text becomes permanent, load-bearing prompt content.
+     * @param {string} text - Generated description
+     * @returns {string[]} Detected issues (empty array = clean)
+     */
+    AV._appearanceGrammarIssues = function(text) {
+        const issues = [];
+        if (!text || !text.trim()) return issues;
+        if (/\b(?:you|your|yours|you're|you've)\b/i.test(text)) issues.push('second-person pronoun (you/your)');
+        if (/\b(?:I|I'm|I've|I'll|my|me)\b/i.test(text)) issues.push('first-person pronoun (I/my/me)');
+        if (/\byou\s+is\b|\byou\s+was\b|\bbody\s+is\s+who\b/i.test(text)) issues.push('verb-agreement slip');
+        return issues;
+    };
+
+    /**
+     * One silent repair pass for flagged appearance text (task-345): re-ask
+     * the LLM to fix grammar + voice in place. Returns clean text, or null
+     * when it is still flagged (the caller falls back to the safe merge).
+     * @param {string} text - Generated description with issues
+     * @returns {Promise<string|null>} Cleaned text, or null
+     */
+    AV._sanitizeAppearanceGrammar = async function(text) {
+        if (!text || AV._appearanceGrammarIssues(text).length === 0) return text;
+        try {
+            const repair = await llmClient.chat([
+                { role: 'user', content:
+                    'Fix this character appearance description.\n'
+                    + 'Keep every content detail exactly as it is; correct only grammar and rewrite any '
+                    + 'first-person or second-person wording ("I/my/me/you/your") into consistent THIRD person '
+                    + '(she/he/they + her/his/their). Subject-verb agreement must be exact.\n'
+                    + 'Output ONLY the corrected description — no commentary.\n\n'
+                    + text }
+            ], { temperature: 0.4 });
+            const fixed = (repair || '').trim();
+            if (fixed && AV._appearanceGrammarIssues(fixed).length === 0) return fixed;
+            return null;
+        } catch (e) {
+            return null;
+        }
+    };
+
+    /**
      * Generate description via AI (server-side LLM or client-side fallback)
      * @param {string} charName - Character name
      */
@@ -1314,7 +1378,10 @@ window.InspectorAgentView = (() => {
             + `Open with a single striking sentence about their face, hair, or a defining physical feature — this is the first thing a stranger would notice. Do not lead with clothing.\n`
             + `Weave the clothing into the description naturally. Mention how each piece fits, drapes, or contrasts with their skin. Use the item descriptions as texture and detail — not as a checklist.\n`
             + `If they are nude, describe their body, posture, and how they carry themselves without flinching.\n`
-            + `2-4 sentences total. No bullet points. No backstory. No personality. No internal thoughts. Only what can be seen.`;
+            + `2-4 sentences total. No bullet points. No backstory. No personality. No internal thoughts. Only what can be seen.\n`
+            + `Write in consistent third person (she/he/they + her/his/their). NEVER use "you", "your", or "I" — the character's own prompt converts this description to second person for them, so the stored text must stay third person.\n`
+            + `Grammar must be exact: no "you is", no "body is who", no "she have" — subject-verb agreement only.\n`
+            + `\nExamples:\n- "A wiry, olive-skinned woman with sharp cheekbones picks at her sleeve..."\n- "He is all lean bone and coltish angles at 171cm, self-conscious about his flat-chested frame."`;
 
         const textarea = document.getElementById('inspector-description');
         if (textarea) textarea.value = 'Generating...';
@@ -1325,9 +1392,19 @@ window.InspectorAgentView = (() => {
             ], { temperature: 0.7 });
 
             if (response && response.trim()) {
-                if (textarea) textarea.value = response.trim();
-                await AV._saveDescription(charName);
-                return;
+                // task-345: the stored description feeds EVERY prompt forever
+                // and is seen by other characters, so never persist broken
+                // grammar/voice — validate, then one silent repair pass, else
+                // fall through to the safe client-side merge below.
+                const cleaned = await AV._sanitizeAppearanceGrammar(response.trim());
+                if (cleaned) {
+                    if (textarea) textarea.value = cleaned;
+                    await AV._saveDescription(charName);
+                    return;
+                }
+                if (AV._appearanceGrammarIssues(response.trim()).length > 0) {
+                    events.log(`⚠️ ${charName}: generated appearance failed grammar check — using safe fallback`, 'error-msg');
+                }
             }
         } catch (e) {
             // fall through to fallback
@@ -1388,6 +1465,143 @@ window.InspectorAgentView = (() => {
         if (ta) player.description = ta.value;
         const preview = document.getElementById('inspector-first-impression');
         if (preview) preview.textContent = AV._computeFirstImpression(player);
+    };
+
+    /**
+     * Recipes a character knows (task-2): global / skill: / item: /
+     * discovered (crafting_known). Mirrors engine/crafting.py learning rules.
+     * @param {string} charName - Character name
+     * @param {object} player - Player data object
+     * @returns {Array} Recipe graph nodes (type === 'recipe')
+     */
+    AV._knownRecipeNames = function(charName, player) {
+        const state = worldState.data || {};
+        const nodes = state.graph?.nodes || {};
+        const equipped = player.equipped || {};
+        const carriedNames = new Set();
+        const graph = worldState.data?.graph || {};
+        const pid = 'player_' + charName.replace(/\s+/g, '_');
+        for (const e of (graph.edges || [])) {
+            if (e.target === pid && (e.type === 'carrying' || e.type === 'equipped')) {
+                const n = worldState.getNode(e.source);
+                if (n) carriedNames.add(String(n.name).toLowerCase());
+            }
+        }
+        const known = (player.crafting_known || []).map(String);
+        const out = [];
+        for (const node of Object.values(nodes)) {
+            if (node.type !== 'recipe') continue;
+            const props = node.properties || {};
+            const learnedBy = Array.isArray(props.learned_by) ? props.learned_by
+                : (props.learned_by ? [props.learned_by] : []);
+            let knows = false;
+            for (const rule of learnedBy) {
+                const r = String(rule || '');
+                if (r === 'global') { knows = true; break; }
+                if (r.startsWith('skill:')) {
+                    const skill = r.slice(6);
+                    if (parseInt(player.skills?.[skill], 10) >= 1) { knows = true; break; }
+                }
+                if (r.startsWith('item:')) {
+                    const needle = r.slice(5).toLowerCase();
+                    if (carriedNames.has(needle)) { knows = true; break; }
+                }
+            }
+            if (!knows && known.includes(node.name)) knows = true;
+            if (knows) out.push(node);
+        }
+        return out;
+    };
+
+    /**
+     * Auto-dress a character from their interest tags (task-325). Backend
+     * scans the item library, equips matching wearable pieces through the
+     * normal stacking rules; failed pieces land back in the room.
+     * @param {string} charName - Character name
+     */
+    AV._autoDress = async function(charName) {
+        try {
+            const resp = await fetch('/api/auto_dress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ character: charName }),
+            });
+            const data = await resp.json();
+            const msg = data?.output || 'Auto-dress finished.';
+            toastSuccess(msg.split('\n')[0]);
+            events?.log?.(msg, 'system-msg');
+            await worldState.fetch();
+            if (window.VW?.inspector?.showAgent) VW.inspector.showAgent(charName);
+        } catch (e) {
+            toastError('Auto-dress failed: ' + e.message);
+        }
+    };
+
+    /**
+     * LLM interest-tag generator (task-325): build the inventory of ALL tags
+     * in use across the item library, ask the character (personality +
+     * appearance as context) which ones they're interested in, and set
+     * interest_tags. The model must respond with a JSON CSV list.
+     * @param {string} charName - Character name
+     */
+    AV._generateInterestTags = async function(charName) {
+        const player = worldState.players?.[charName];
+        if (!player || !AIGenerator.isConfigured()) return;
+        let tagList = [];
+        try {
+            const resp = await fetch('/api/library/items');
+            const items = await resp.json();
+            const seen = new Set();
+            for (const item of Array.isArray(items) ? items : (items.items || [])) {
+                for (const t of (item.tags || [])) seen.add(String(t).trim().toLowerCase());
+            }
+            tagList = [...seen].sort();
+        } catch (e) { /* fall back to graph tags below */ }
+        if (!tagList.length) {
+            const nodes = worldState.data?.graph?.nodes || {};
+            const seen = new Set();
+            for (const n of Object.values(nodes)) {
+                for (const t of (n.properties?.tags || [])) seen.add(String(t).trim().toLowerCase());
+            }
+            tagList = [...seen].sort();
+        }
+        if (!tagList.length) { toastError('No tags found in the library.'); return; }
+
+        const personality = player.personality || '';
+        const appearance = (player.description || player.base_description || '').slice(0, 600);
+        const prompt = `You are ${charName}. Here is who you are:
+
+PERSONALITY
+${personality || '(none)'}
+
+APPEARANCE
+${appearance}
+
+Below is the FULL list of tags used in this world (items your kind of person might care about). Pick up to 12 that genuinely fit your character — things you'd notice, want, wear, collect, or use.
+
+TAGS: ${tagList.join(', ')}
+
+Respond ONLY with a single-line JSON array of strings, e.g. ["magic","books","jewelry"] — the tags you picked, exactly as spelled above.`;
+
+        try {
+            const response = await llmClient.chat([{ role: 'user', content: prompt }], { temperature: 0.5 });
+            const text = String(response || '').trim();
+            const match = text.match(/\[[^\]]*\]/);
+            if (!match) { toastError('The character returned no tag list.'); return; }
+            let picked = [];
+            try { picked = JSON.parse(match[0]); } catch (e) {
+                picked = match[0].replace(/[\[\]"']/g, '').split(',').map(s => s.trim()).filter(Boolean);
+            }
+            const valid = new Set(tagList.map(t => t.toLowerCase()));
+            const cleaned = [...new Set(picked.map(String).map(s => s.trim()).filter(s => valid.has(s.toLowerCase())))].slice(0, 12);
+            if (!cleaned.length) { toastWarning('None of the picked tags exist in the system.'); return; }
+            await ApiClient.updateCharacter(charName, { interest_tags: cleaned });
+            toastSuccess(`Interest tags: ${cleaned.join(', ')}`);
+            await worldState.fetch();
+            if (window.VW?.inspector?.showAgent) VW.inspector.showAgent(charName);
+        } catch (e) {
+            toastError('Interest-tag generation failed: ' + e.message);
+        }
     };
 
     /**

@@ -12,6 +12,8 @@ import re
 import time
 from typing import Optional
 
+from graph import EDGE_IN
+
 
 class SpeechBroadcaster:
     """Delivers speech events to hearers and records them.
@@ -41,12 +43,15 @@ class SpeechBroadcaster:
         logging_events,
         npc_behaviors=None,
         name_matcher=None,
+        trigger_fn=None,
     ):
         self.graph = graph
         self.player_manager = player_manager
         self.logging_events = logging_events
         self.npc_behaviors = npc_behaviors
         self.name_matcher = name_matcher
+        self.trigger_fn = trigger_fn  # optional: fires on_speech item triggers
+        self.game_state = None        # set by the owning world (trigger game_state)
 
     # ──────────────────────── Directed-whisper target ──────────────────
 
@@ -336,3 +341,36 @@ class SpeechBroadcaster:
                 "on_speech_heard",
                 {"spoken_text": speech_text, "speaker": speaker_name},
             )
+
+        # item on_speech triggers (objects that talk back — magic mirrors,
+        # radios, doors with opinions). Fired for every item/way/area node
+        # in the same area whose trigger system is wired. A directed whisper
+        # is private to its target and never fires them.
+        if not is_directed_whisper and self.graph and self.trigger_fn:
+            try:
+                speech_ctx = {
+                    "speech": speech_text,
+                    "speaker": speaker_name,
+                    "area": target_area,
+                    "tick": int(getattr(self.player_manager, "time_ticks", 0) or 0),
+                }
+                target_id = None
+                for area_node in self.graph.nodes.values():
+                    if area_node.type == "area" and area_node.name == target_area:
+                        target_id = area_node.id
+                        break
+                if target_id:
+                    # items placed in the area (in/spatial edges to the area)
+                    for edge in self.graph.get_edges_for_target(target_id, EDGE_IN):
+                        node = self.graph.get_node(edge.source)
+                        if node is not None and node.type == "item":
+                            # _execute_triggers(item, type, target_name, context, ...)
+                            # — pass the speech context as CONTEXT (4th arg) and
+                            # the game_state (5th) if the hook owns one.
+                            if self.game_state is not None:
+                                self.trigger_fn(node, "on_speech", None, speech_ctx, None, self.game_state)
+                            else:
+                                self.trigger_fn(node, "on_speech", None, speech_ctx)
+            except Exception:
+                import logging as _logging
+                _logging.getLogger("speech").exception("on_speech trigger fire failed")

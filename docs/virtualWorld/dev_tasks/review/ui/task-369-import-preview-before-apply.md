@@ -1,6 +1,6 @@
-﻿---
+---
 type: task
-status: todo
+status: review
 area: ui
 priority: medium
 ---
@@ -8,11 +8,19 @@ priority: medium
 # task-369: import-preview-before-apply
 
 **Filed**: 2026-08-30
-**Status**: Todo
-**Source**: docs/virtualWorld/Scenario Workflows & UI Audit.md — P0 — Import preview: Load JSON… parses the file, shows counts (rooms/players/ways/items) + sanity issues (dangling exits, missing targets), [Apply with Undo] / [Cancel].
+**Status**: In Review — implemented 2026-08-30; preview + Deep audit live-verified.
 
-## Notes
+## What was built
 
-See the audit doc for the full section and sequencing notes. Reuse existing machinery where noted; the guardrails are: CLI-free, undo-safe, and no new storage formats unless the audit says so.
+- `static/js/ui/saveload-view.js` — Load JSON… parses the file first and shows a
+  **preview dialog**: counts (rooms/players/ways/items) + sanity issues (dangling exits,
+  missing targets), with `[✅ Apply (Undo protects)]` / `[Cancel]` and a `🔬 Deep audit`
+  button that runs the trigger validator on the incoming world.
+- Apply rides `POST /api/load` with `persist: true` (GUI opt-in; see task-369/375 notes).
+- Undo snapshot pushed before mutation — the preview never mutates.
 
+## Note
 
+The Deep audit button was added in the same session (validator on the throwaway world
+dict). Original audit text asked for counts + sanity issues only; the audit is the
+superset. task-375 (audit-on-import) is folded into this — no separate UI needed.

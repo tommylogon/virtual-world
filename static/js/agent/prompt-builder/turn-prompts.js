@@ -102,7 +102,7 @@ window.PromptBuilder = window.PromptBuilder || {};
 
         const ctx = { phase: 'reaction', vitalsNL, emotionNL, relationshipNL, memoryNL };
         const context = PromptBuilder.buildContextBlock(player, ctx,
-            ['perceived', 'vitals', 'emotion', 'insanity', 'trait', 'size', 'activity', 'grappled', 'ghost', 'dead']);
+            ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'size', 'activity', 'grappled', 'ghost', 'dead']);
 
         // const memoryInstruction = includeMemory ? PromptBuilder.MEMORY_INSTRUCTION_REACTION : '';
         // — see file-header NOTE: currently unused, matching original behavior.
@@ -153,7 +153,7 @@ If you have no emote, omit it:
 
         const ctx = { phase: 'observe', vitalsNL, emotionNL, relationshipNL, memoryNL };
         const context = PromptBuilder.buildContextBlock(player, ctx,
-            ['perceived', 'vitals', 'emotion', 'insanity', 'trait', 'ghost', 'dead']);
+            ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'ghost', 'dead']);
 
         const head = PromptBuilder.assembleMessageHead(parts, context, memoryNL);
 
@@ -191,7 +191,7 @@ ${PromptBuilder.buildJsonExample(['inner_monologue'])}`;
 
         const ctx = { phase: 'decide', vitalsNL, emotionNL, relationshipNL, memoryNL };
         const context = PromptBuilder.buildContextBlock(player, ctx,
-            ['perceived', 'vitals', 'emotion', 'insanity', 'trait', 'size', 'ghost', 'dead']);
+            ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'size', 'ghost', 'dead']);
 
         const head = PromptBuilder.assembleMessageHead(parts, context, memoryNL);
 
@@ -202,6 +202,7 @@ Action should be a command of what you do, based on the allowed actions list.
 Say something out loud by putting your line in exactly ONE of these volume fields — pick the volume that fits the situation:
   whisper — only your current room hears it
   say — heard in adjacent rooms through open doors
+  sing — like say, but you're singing it (carries through open doors)
   shout — passes through a closed door and carries a few rooms
   scream — carries the furthest — even through two closed doors
 ${PromptBuilder.EMOTE_RULES_DECIDE}
@@ -240,7 +241,7 @@ ${PromptBuilder.buildJsonExample(['action_simple'])}`;
 
         const ctx = { phase: 'react', vitalsNL, emotionNL, relationshipNL, memoryNL };
         const context = PromptBuilder.buildContextBlock(player, ctx,
-            ['perceived', 'vitals', 'emotion', 'insanity', 'trait', 'activity', 'ghost', 'dead']);
+            ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'activity', 'ghost', 'dead']);
 
         const headBlocks = [
             String(roomContext || '').trim(),
@@ -271,24 +272,54 @@ If you have nothing to react with:
     }
 
     /**
-     * Build the mid-sprint follow-up prompt after a "dash" action — offers one
-     * chained move before the character's turn ends.
+     * Build the chained follow-up prompt after an action with a CHAIN_RULES
+     * entry (task-104): dash→go (the original), lead→go/approach/release,
+     * grab→approach/release. One quick decision — no speech/emote/memory.
      * @param {string} charName - Character name
      * @param {string} roomContext - Pre-built area context string
-     * @param {string} dashResult - Result text of the dash that just happened
-     * @returns {string} Dash follow-up prompt string
+     * @param {string} resultText - Result text of the source action
+     * @param {string} sourceVerb - The verb that just succeeded (dash/lead/grab)
+     * @param {string[]} allowedVerbs - Follow-up verbs the chain allows
+     * @returns {string} Follow-up prompt string
      */
-    function buildDashFollowUpPrompt(charName, roomContext, dashResult) {
+    function buildChainFollowUpPrompt(charName, roomContext, resultText, sourceVerb, allowedVerbs) {
+        const verbs = (allowedVerbs && allowedVerbs.length) ? allowedVerbs.join(', ') : 'go';
         return `${roomContext}
 
-=== MID-SPRINT DECISION ===
-You just dashed — ${dashResult}
+=== CHAIN FOLLOW-UP ===
+You just ${sourceVerb} — ${resultText}
 
-You are mid-sprint and may chain ONE more move before your turn ends. To keep the momentum, pick a single exit from the ones listed above and "go" through it. If you'd rather stop here, respond with "wait".
-This is a quick decision — no speech, no emote, no memory. Pick one exit or stop.
+You may chain ONE immediate follow-up action before your turn ends: ${verbs}.
+Pick an exit or target from the context above (go/approach), release a grapple, or respond with "wait".
+This is a quick decision — no speech, no emote, no memory.
 Respond ONLY raw JSON, exactly one of:
-${PromptBuilder.buildJsonExample(['dash_go'])}
+${PromptBuilder.buildJsonExample(['action_simple'])}
 ${PromptBuilder.buildJsonExample(['dash_wait'])}`;
+    }
+
+    /** @deprecated Use buildChainFollowUpPrompt (dash is one CHAIN_RULES family). */
+    function buildDashFollowUpPrompt(charName, roomContext, dashResult) {
+        return buildChainFollowUpPrompt(charName, roomContext, dashResult, 'dashed', ['go', 'wait']);
+    }
+
+    /**
+     * Invalid-action auto-retry prompt (task-361): feed back the failed action
+     * and its reason, direct a different choice. Same-turn, ONE retry — the
+     * character's own context prompts already describe the room; this only
+     * needs the failure and the instruction, so it reuses the decide schema
+     * through the normal parser.
+     * @param {string} failedAction - The action string that was rejected/failed
+     * @param {string} failedResult - The result/error text the engine returned
+     * @returns {string} Retry prompt string
+     */
+    function buildRetryPrompt(failedAction, failedResult) {
+        return 'Your previous action was not performed.\n'
+            + `Attempted: "${failedAction}"\n`
+            + `Reason: ${String(failedResult || '').trim()}\n\n`
+            + 'Choose a different action instead. Do not repeat the failed action. '
+            + 'If the same goal is reachable through another verb or target, use that; '
+            + 'otherwise pick something else you can do right now. '
+            + 'Keep the same JSON schema as a normal decision, with only action/item/target fields';
     }
 
     Object.assign(window.PromptBuilder, {
@@ -297,6 +328,8 @@ ${PromptBuilder.buildJsonExample(['dash_wait'])}`;
         buildObservationPrompt,
         buildDecisionPrompt,
         buildResultReactionPrompt,
-        buildDashFollowUpPrompt
+        buildDashFollowUpPrompt,
+        buildChainFollowUpPrompt,
+        buildRetryPrompt
     });
 })();

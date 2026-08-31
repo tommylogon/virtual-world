@@ -21,6 +21,7 @@ from engine.items.carry_weight import (
 from engine.items.errors import AmbiguousItemError
 from engine.items.examine_actions import ExamineActionsMixin
 from engine.items.place_actions import PlaceActionsMixin
+from engine.items.stacking import StackingMixin, stackable_twins
 from engine.items.take_drop_actions import TakeDropActionsMixin
 from engine.items.transfer_actions import TransferActionsMixin
 from engine.items.use_actions import UseActionsMixin
@@ -69,6 +70,7 @@ class ItemActions(
     ConsumeActionsMixin,
     UseActionsMixin,
     ExamineActionsMixin,
+    StackingMixin,
 ):
     """Handles all item-related actions: take, drop, use, eat, drink,
     examine, and inventory management."""

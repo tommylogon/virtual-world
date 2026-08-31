@@ -535,6 +535,79 @@ class EquipmentSystem:
                 return f"{player.name} is wearing nothing."
             return f"{player.name} is wearing " + ", ".join(parts) + "."
 
+    def decrement_armor_uses_on_hit(self, player) -> list:
+        """Wear the outermost armor on a hit (task-161).
+
+        Decrements ``uses`` by 1 on the topmost defense item (tag ``armor`` or
+        ``clothing`` carrying a positive ``defense``) that tracks uses;
+        infinite-use items (``uses`` <= 0) are unaffected. At 0 the item
+        breaks: removed from equipped slots (back to carrying), fires
+        ``on_break`` if present, and a natural-language message is returned —
+        never a raw use count.
+
+        @param player - the character who took the hit (player object)
+        @returns list[str] natural-language wear/break messages
+        """
+        from engine.equipment_bonuses import get_equipment_nodes
+        from engine.items.carry_weight import reconcile_item_weight
+        msgs = []
+        if player is None:
+            return msgs
+        try:
+            nodes = get_equipment_nodes(player, self.graph)
+        except Exception:
+            return msgs
+        # Outermost = last defense item of the stack (equip order is
+        # innermost → outermost; edge insertion follows stack order).
+        candidates = []
+        for node in nodes:
+            props = node.properties or {}
+            tags = [t.lower() for t in (props.get("tags", []) or [])]
+            if not any(t in ("armor", "clothing") for t in tags):
+                continue
+            if int(props.get("defense", 0) or 0) <= 0:
+                continue
+            uses = int(props.get("uses", -1) or 0)
+            if uses > 0:
+                candidates.append(node)
+        if not candidates:
+            return msgs
+        node = candidates[-1]
+        props = node.properties
+        uses = int(props.get("uses", -1) or 0)
+        uses -= 1
+        props["uses"] = uses
+        reconcile_item_weight(node)
+        ratio = uses / max(1, int(props.get("max_uses", 0) or 1))
+        if uses <= 0:
+            msgs.append(f"The {node.name} finally gives out and breaks apart under the strain.")
+            self._break_equipped_item(player, node)
+            try:
+                outputs = self.triggers._execute_triggers(node, "on_break", game_state=self.world)
+                if outputs:
+                    msgs.append("\n".join(outputs))
+            except Exception:
+                pass
+        elif ratio <= 0.25:
+            msgs.append(f"The {node.name} is hanging by a thread — it can't take much more.")
+        elif ratio <= 0.5:
+            msgs.append(f"The {node.name} is badly battered — its protection is failing.")
+        elif ratio <= 0.9:
+            msgs.append(f"The {node.name} takes the hit and shows fresh wear.")
+        else:
+            msgs.append(f"The {node.name} takes the hit.")
+        return msgs
+
+    def _break_equipped_item(self, player, node):
+        """Remove a broken item from a character's equipped slots (→ carrying)."""
+        player_id = self.player_manager.get_player_node_id(player.name)
+        self.graph.remove_edge(node.id, player_id, EDGE_EQUIPPED)
+        self.graph.add_edge(Edge(source=node.id, target=player_id, type=EDGE_CARRYING))
+        self.graph.remove_edges_for_node(node.id, EDGE_CONNECTION)
+        for slot, stack in list(player.equipped.items()):
+            if node.id in stack:
+                stack.remove(node.id)
+
     def _maybe_update_equipment_description(self, player):
         """Auto-update description only if auto_generate_descriptions is enabled."""
         if self.world is not None and not getattr(self.world, 'auto_generate_descriptions', True):

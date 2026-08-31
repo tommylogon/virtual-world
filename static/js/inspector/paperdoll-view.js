@@ -30,6 +30,52 @@ window.InspectorPaperdoll = (() => {
 
     const SLOT_LABELS = { head:'Head', neck:'Neck', arms:'Arms', torso:'Torso', hands:'Hands', legs:'Legs', feet:'Feet', back:'Back', waist:'Waist', hand_left:'L.Held', hand_right:'R.Held', accessory:'Accessory' };
 
+    // task-87: game-icons.net artwork (CC BY 3.0) per slot, stored as
+    // currentColor SVGs under /static/icons/slots/<slot>.svg. Rendered inline
+    // (fetched once, cached) so `color` CSS tints them: dim when empty,
+    // accent when filled.
+    const SLOT_ICONS = {
+        head: '/static/icons/slots/head.svg',
+        neck: '/static/icons/slots/neck.svg',
+        arms: '/static/icons/slots/arms.svg',
+        torso: '/static/icons/slots/torso.svg',
+        hands: '/static/icons/slots/hands.svg',
+        legs: '/static/icons/slots/legs.svg',
+        feet: '/static/icons/slots/feet.svg',
+        back: '/static/icons/slots/back.svg',
+        waist: '/static/icons/slots/waist.svg',
+        hand_left: '/static/icons/slots/hand_left.svg',
+        hand_right: '/static/icons/slots/hand_right.svg',
+        accessory: '/static/icons/slots/accessory.svg',
+    };
+    const _iconCache = {};   // slot -> svg inner html (placeholder until loaded)
+    const _iconLoads = {};   // slot -> Promise<innerHtml>
+    let _iconInit = false;
+
+    async function _ensureIcons() {
+        if (_iconInit) return;
+        _iconInit = true;
+        for (const [slot, url] of Object.entries(SLOT_ICONS)) {
+            _iconLoads[slot] = fetch(url).then(r => r.text()).then(text => {
+                const m = text.match(/<svg[^>]*>([\s\S]*)<\/svg>/);
+                return m ? m[1] : '';
+            }).catch(() => '');
+        }
+    }
+
+    function iconHtml(slot, filled) {
+        const cached = _iconCache[slot];
+        if (cached !== undefined) return cached;
+        // placeholder until fetch lands; render() re-runs on state refresh
+        _iconCache[slot] = `<span class="paperdoll-slot-icon" style="display:inline-block;width:22px;height:22px;color:${filled ? 'var(--accent)' : 'var(--text-dim)'};opacity:${filled ? 1 : 0.6};margin:2px auto;"></span>`;
+        _iconLoads[slot]?.then(inner => {
+            _iconCache[slot] = `<span class="paperdoll-slot-icon" style="display:inline-block;width:22px;height:22px;color:${filled ? 'var(--accent)' : 'var(--text-dim)'};margin:2px auto;">${inner}</span>`;
+            // re-render current agent if visible (cheap: call at next state tick)
+            if (window.worldState?.data) appEvents?.emit('state:updated', worldState.data);
+        });
+        return _iconCache[slot];
+    }
+
     // Map each paperdoll area to the body regions (engine/body_parts.py) that
     // occupy it, so clicking a spot on the doll inspects that body part.
     const AREA_TO_REGIONS = {
@@ -49,7 +95,70 @@ window.InspectorPaperdoll = (() => {
     };
 
     /**
-     * Build the paperdoll (equipment) HTML content — shown at the top of the
+     * Character-wide equipment totals (one place, no duplication): the same
+     * aggregation rules the engine uses (equipment_bonuses.aggregate_bonuses) —
+     * defense = sum over armor/clothing, damage = best weapon, resistances =
+     * max per damage type, insulation = sum. Slot modals stay the per-item
+     * detail view; this is the at-a-glance summary for the Inventory tab.
+     * @param {object} player - Player data object
+     * @returns {{defense:number, insulation:number, weight:number,
+     *            resistances:Object, bestDamage:Object|null,
+     *            contributors:{defense:[],insulation:[],damage:[],resistances:[]}}}
+     */
+    P.computeEquipmentTotals = function(player) {
+        const totals = { defense: 0, insulation: 0, weight: 0, resistances: {}, bestDamage: null,
+                         contributors: { defense: [], insulation: [], damage: [], resistances: [] } };
+        const stacks = player.equipped || {};
+        const addContrib = (key, name) => {
+            if (name && !totals.contributors[key].includes(name)) totals.contributors[key].push(name);
+        };
+        for (const stack of Object.values(stacks)) {
+            for (const id of stack || []) {
+                if (!id || String(id).startsWith('__')) continue;
+                const node = worldState.getNodeByIdentifier(id);
+                if (!node) continue;
+                const props = node.properties || {};
+                const tags = (props.tags || []).map(t => String(t).toLowerCase());
+                const name = node.name || id;
+                const isArmor = tags.some(t => t === 'armor' || t === 'clothing');
+                const isWeapon = tags.includes('weapon');
+                const isResistance = tags.includes('resistance');
+                const def = isArmor ? (parseInt(props.defense, 10) || 0) : 0;
+                if (def) { totals.defense += def; addContrib('defense', name); }
+                const ins = parseInt(props.insulation, 10) || 0;
+                if (ins) { totals.insulation += ins; addContrib('insulation', name); }
+                totals.weight += parseFloat(props.weight) || 0;
+                if (isResistance) {
+                    const res = props.resistances || {};
+                    for (const [dtype, val] of Object.entries(res)) {
+                        const v = parseInt(val, 10) || 0;
+                        if ((totals.resistances[dtype] || 0) < v) {
+                            totals.resistances[dtype] = v;
+                            totals.contributors.resistances.push(name);
+                        }
+                    }
+                }
+                if (isWeapon && props.damage) {
+                    const dice = props.damage_dice || null;
+                    const current = totals.bestDamage || { damage: 0, dice: [0, 0, 0] };
+                    const thisDice = dice || [0, 0, parseInt(props.damage, 10) || 0];
+                    const better = thisDice[0] > current.dice[0] ||
+                        (thisDice[0] === current.dice[0] && thisDice[1] > current.dice[1]) ||
+                        (thisDice[0] === current.dice[0] && thisDice[1] === current.dice[1] && thisDice[2] > current.dice[2]);
+                    if (better) {
+                        totals.bestDamage = { damage: props.damage, dice: thisDice, type: props.damage_type || null };
+                        totals.contributors.damage = [name];
+                    } else {
+                        addContrib('damage', name);
+                    }
+                }
+            }
+        }
+        return totals;
+    };
+
+    /**
+     * Render the paperdoll (equipment) HTML content — shown at the top of the
      * Inventory tab. No outer data-tab wrapper: the caller hosts it.
      * @param {string} agentName - Character name
      * @param {object} player - Player data from worldState
@@ -59,6 +168,7 @@ window.InspectorPaperdoll = (() => {
      */
     P.renderPaperdollEquipmentHtml = function(agentName, player, esc, escName) {
         let html = '';
+        _ensureIcons();
         const equipped = player.equipped || {};
         const carryWeight = parseFloat(player.current_carry_weight) || 0;
         const carryCapacity = parseFloat(player.max_carry_capacity) || 100;
@@ -67,7 +177,25 @@ window.InspectorPaperdoll = (() => {
         let carryColor = 'var(--green)';
         if (carryRatio >= 0.8) carryColor = 'var(--red)';
         else if (carryRatio >= 0.5) carryColor = 'var(--yellow)';
+        // Character-wide gear totals (single source — see computeEquipmentTotals).
+        const t = P.computeEquipmentTotals(player);
+        const fmtDmg = (d) => {
+            if (!d) return null;
+            if (d.dice && d.dice[0] > 0) {
+                return `${d.dice[0]}d${d.dice[1]}${d.dice[2] ? `+${d.dice[2]}` : ''}${d.type ? ` ${d.type}` : ''}`;
+            }
+            return `${d.damage}${d.type ? ` ${d.type}` : ''}`;
+        };
+        const resChips = Object.entries(t.resistances)
+            .map(([k, v]) => `<span class="paperdoll-stat" title="From: ${esc(t.contributors.resistances.join(', ') || '—')}">⚡ ${esc(k)} ${v}</span>`);
+        const statChips = [];
+        if (t.defense) statChips.push(`<span class="paperdoll-stat" title="From: ${esc(t.contributors.defense.join(', ') || '—')}">🛡️ Armor +${t.defense}</span>`);
+        const dmgText = fmtDmg(t.bestDamage);
+        if (dmgText) statChips.push(`<span class="paperdoll-stat" title="Best weapon — from: ${esc(t.contributors.damage.join(', ') || '—')}">⚔️ ${esc(dmgText)}</span>`);
+        if (t.insulation) statChips.push(`<span class="paperdoll-stat" title="From: ${esc(t.contributors.insulation.join(', ') || '—')}">🌡️ ${t.insulation > 0 ? '+' : ''}${t.insulation}°C</span>`);
+        statChips.push(...resChips);
         html += `<div class="inspector-section"><h3>🧠 Equipment</h3>
+            ${statChips.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px;font-size:11px;margin-bottom:6px;">${statChips.join('')}</div>` : ''}
             <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">
                 ⚖️ Carry Load: <strong>${carryWeight.toFixed(1)} / ${carryCapacity.toFixed(1)} kg</strong> (${carryPercent}%)
             </div>
@@ -77,6 +205,21 @@ window.InspectorPaperdoll = (() => {
             <div class="paperdoll">`;
 
         const nameForNode = (id) => (worldState.getNode(id)?.name || id);
+        // Natural-language durability chip (task-161) — humans read "battered",
+        // never "3/10". '' when the item doesn't track uses.
+        const durabilityChip = (props) => {
+            const maxUses = parseInt(props?.max_uses, 10) || 0;
+            const uses = parseInt(props?.uses ?? -1, 10);
+            if (maxUses <= 0 || uses < 0) return '';
+            const ratio = uses / maxUses;
+            let label, color;
+            if (uses <= 0) { label = '🔧 broken'; color = '#ff6b6b'; }
+            else if (ratio <= 0.25) { label = '🔧 about to break'; color = '#ff6b6b'; }
+            else if (ratio <= 0.5) { label = '🔨 battered'; color = '#ffb37a'; }
+            else if (ratio <= 0.9) { label = '🧵 worn'; color = '#ffd28f'; }
+            else { label = '✨ pristine'; color = '#7cff9c'; }
+            return `<span style="color:${color};">${label}</span>`;
+        };
         const playerConditions = player.conditions || {};
 const regionName = (regionId) => (player.body_region_names?.[regionId] || regionId.replace(/_/g, ' '));
         const regionStatus = (regionId) => {
@@ -109,6 +252,7 @@ const regionName = (regionId) => (player.body_region_names?.[regionId] || region
                 : '';
             html += `<div class="paperdoll-slot${filled ? ' filled' : ''}" data-area="${gs.area}"${filled ? ` onclick="${slotClick}" oncontextmenu="InspectorPaperdoll.showPaperdollContextMenu(event,'${escName}','${gs.slot}')"` : ''}>
                 <div class="paperdoll-slot-label">${SLOT_LABELS[gs.slot] || gs.slot}</div>
+                ${iconHtml(gs.slot, filled)}
                 <div class="paperdoll-body-btn" onclick="event.stopPropagation();InspectorPaperdoll.showBodyRegionModal('${escName}','${gs.area}')" title="Inspect body regions">🩺</div>
                 ${regionBadgeHtml}`;
             if (filled) {
@@ -300,6 +444,7 @@ const regionName = (regionId) => (player.body_region_names?.[regionId] || region
                     ${layer.bonuses.damage ? `<span>⚔️ ${formatDamage(layer.bonuses.damage, layer.bonuses.damage_dice)}</span>` : ''}
                     ${layer.bonuses.weight ? `<span>⚖️ ${layer.bonuses.weight.toFixed(1)}kg</span>` : ''}
                     ${Object.entries(layer.bonuses.resistances).map(([k, v]) => `<span>⚡ ${k}: ${v}</span>`).join('')}
+                    ${durabilityChip(layer.props)}
                 </div>
                 <div style="display:flex;gap:4px;margin-top:6px;">
                     <button class="btn btn-sm" onclick="runAction('unequip ${escName(layer.name)}', '${esc(charName)}').then(()=>{this.closest('.modal-overlay')?.remove();worldState.fetch();})" style="font-size:9px;padding:2px 8px;" title="Unequip">✕ Unequip</button>

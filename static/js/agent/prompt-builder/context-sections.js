@@ -48,6 +48,7 @@ window.PromptBuilder = window.PromptBuilder || {};
 
     const CONTEXT_SECTIONS = {
         vitals: (p, ctx) => ctx.vitalsNL || '',
+        encumbrance: (p) => PromptBuilder.buildEncumbranceContext(p),
         emotion: (p, ctx) => ctx.emotionNL || '',
         insanity: (p) => PromptBuilder.buildInsanityContext(p),
         relationship: (p, ctx) => ctx.relationshipNL || '',

@@ -1,0 +1,31 @@
+{
+  "name": "Template: Spawn Area",
+  "description": "⚠️ DANGEROUS TEMPLATE — Spawn Area. Using this RUNS the effect on the live world immediately. Keep out of authoring scenarios; use only to understand the mechanic.",
+  "tags": [
+    "template",
+    "demo"
+  ],
+  "actions": [
+    "examine",
+    "use"
+  ],
+  "uses": -1,
+  "max_uses": 0,
+  "weight": 0.1,
+  "current_state": "normal",
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "type": "spawn_area",
+          "params": {
+            "name": "Template Room",
+            "message": "[template:spawn_area] A new room forms.",
+            "fail_message": "[template:spawn_area] Check the area name."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -52,7 +52,7 @@ window.PlanManager = (() => {
 
             const currentArea = state?.areas?.[player.current_area] || null;
             const roomContext = PromptBuilder.buildRoomContext(state, charName, player, currentArea, false);
-            const vitals = PromptBuilder.describeVitals(player);
+            const vitals = PromptBuilder.describeVitals(player, state, charName);
             const emotion = PromptBuilder.buildEmotionContext(player);
             const memories = await PromptBuilder.buildMemoryContext(charName);
             const lastThought = events.getCharacterState(charName)?.lastThought || '';

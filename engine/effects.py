@@ -24,6 +24,7 @@ from engine.effect_handlers.properties import HANDLERS as PROPERTIES_HANDLERS
 from engine.effect_handlers.conditions import HANDLERS as CONDITIONS_HANDLERS
 from engine.effect_handlers.misc import HANDLERS as MISC_HANDLERS
 from engine.effect_handlers.ways import HANDLERS as WAY_HANDLERS
+from engine.effect_handlers.scry import HANDLERS as SCRY_HANDLERS
 
 HANDLERS = {}
 HANDLERS.update(VITAL_HANDLERS)
@@ -37,6 +38,7 @@ HANDLERS.update(PROPERTIES_HANDLERS)
 HANDLERS.update(CONDITIONS_HANDLERS)
 HANDLERS.update(MISC_HANDLERS)
 HANDLERS.update(WAY_HANDLERS)
+HANDLERS.update(SCRY_HANDLERS)
 
 
 class Effects:

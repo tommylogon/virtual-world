@@ -29,6 +29,7 @@ from engine.room_perception import (
     visible_area_items,
     way_visible_to,
 )
+from engine.item_actions import get_carry_load_ratio
 
 
 def _first_sentence(text: str, fallback: str = "") -> str:
@@ -262,6 +263,10 @@ def build_scene(world: Any, player_name: str) -> Dict[str, Any]:
             "name": node.name,
             "actions": actions,
             "desc": _first_sentence(desc),
+            # task-161 presentation: durability without numbers (ratio-driven
+            # labels are computed client-side).
+            "uses": node.properties.get("uses", -1),
+            "max_uses": node.properties.get("max_uses", 0),
         }
 
     carrying = []
@@ -305,6 +310,9 @@ def build_scene(world: Any, player_name: str) -> Dict[str, Any]:
         "wearing": worn,
         "activity": getattr(player, "activity", None),
         "recent_memories": memories,
+        # task-156 presentation: the load as a plain ratio (labels computed
+        # client-side; numbers stay out of the agent path).
+        "carry_load": get_carry_load_ratio(world.graph, world.player_manager, player_name=player_name),
     }
     return scene
 

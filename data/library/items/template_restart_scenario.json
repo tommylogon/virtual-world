@@ -1,0 +1,29 @@
+{
+  "name": "Template: RESTART SCENARIO (warning)",
+  "description": "⚠️ DANGEROUS TEMPLATE — RESTART SCENARIO (warning). Using this RUNS the effect on the live world immediately. Keep out of authoring scenarios; use only to understand the mechanic.",
+  "tags": [
+    "template",
+    "demo"
+  ],
+  "actions": [
+    "examine",
+    "use"
+  ],
+  "uses": -1,
+  "max_uses": 0,
+  "weight": 0.1,
+  "current_state": "normal",
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "type": "restart_scenario",
+          "params": {
+            "message": "[template:restart_scenario] The scenario restarts NOW."
+          }
+        }
+      ]
+    }
+  ]
+}

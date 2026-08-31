@@ -711,6 +711,20 @@ window.Lit.render(triggerEditorTag`
                 if (adjTemp !== undefined && adjTemp !== '') eff.params.temperature = parseInt(adjTemp);
                 const adjLight = row.querySelector('.eff-adj-light')?.value;
                 if (adjLight !== undefined && adjLight !== '') eff.params.light = parseInt(adjLight);
+            } else if (effType === 'llm_respond') {
+                // task-330: object speaks via browser-side LLM.
+                eff.params.instructions = row.querySelector('.eff-llm-instructions')?.value || '';
+                eff.params.fallback_message = row.querySelector('.eff-llm-fallback')?.value || '';
+                eff.params.max_words = parseInt(row.querySelector('.eff-llm-maxwords')?.value) || 40;
+                const cooldown = row.querySelector('.eff-llm-cooldown')?.value;
+                if (cooldown && cooldown !== '') eff.params.cooldown = parseInt(cooldown);
+                const name = row.querySelector('.eff-llm-name')?.value;
+                if (name) eff.params.name = name;
+            } else if (effType === 'scry') {
+                // task-320: far-sight view of a distant area.
+                eff.params.target = row.querySelector('.eff-scry-target')?.value || '';
+                eff.params.message = row.querySelector('.eff-scry-msg')?.value || '';
+                eff.params.fail_message = row.querySelector('.eff-scry-fail')?.value || '';
             } else if (effType === 'save') {
                 const mode = row.querySelector('.eff-save-mode')?.value || 'stat';
                 if (mode === 'skill') {
@@ -1657,6 +1671,28 @@ window.Lit.render(triggerEditorTag`
                         <input type="number" class="eff-adj-temp" value="${ep.temperature !== undefined ? ep.temperature : 0}" placeholder="5 or -3" style="width:100%;">
                         <label style="font-size:10px;">Light (+/-)</label>
                         <input type="number" class="eff-adj-light" value="${ep.light !== undefined ? ep.light : 0}" placeholder="10 or -20" style="width:100%;">
+                    </div>
+                    <div class="eff-param" data-effect="llm_respond" style="display:${effType === 'llm_respond' ? 'block' : 'none'};border-top:1px solid var(--border);padding-top:6px;margin-top:4px;">
+                        <label style="font-size:10px;">Instructions (persona prompt)</label>
+                        <textarea class="eff-llm-instructions" rows="3" placeholder="You are a grumpy magic mirror. Stay in character. Be brief." style="width:100%;font-size:11px;">${escapeForHtmlAttribute(ep.instructions || '')}</textarea>
+                        <label style="font-size:10px;">Fallback message (no key / failure / empty reply)</label>
+                        <input type="text" class="eff-llm-fallback" value="${escapeForHtmlAttribute(ep.fallback_message || '')}" placeholder="The mirror remains silent." style="width:100%;font-size:11px;">
+                        <label style="font-size:10px;">Max words</label>
+                        <input type="number" class="eff-llm-maxwords" value="${ep.max_words || 40}" min="5" max="200" style="width:100%;font-size:11px;">
+                        <label style="font-size:10px;">Cooldown seconds (per node; empty = 30)</label>
+                        <input type="number" class="eff-llm-cooldown" value="${ep.cooldown !== undefined ? ep.cooldown : ''}" min="0" style="width:100%;font-size:11px;">
+                        <label style="font-size:10px;">Speaker name (empty = the node's name)</label>
+                        <input type="text" class="eff-llm-name" value="${escapeForHtmlAttribute(ep.name || '')}" placeholder="e.g. The Magic Mirror" style="width:100%;font-size:11px;">
+                        <div style="font-size:9px;color:var(--text-muted);">The browser generates the line (API keys live client-side) and broadcasts it as area speech. Agent characters in earshot hear it.</div>
+                    </div>
+                    <div class="eff-param" data-effect="scry" style="display:${effType === 'scry' ? 'block' : 'none'};border-top:1px solid var(--border);padding-top:6px;margin-top:4px;">
+                        <label style="font-size:10px;">Target area (name)</label>
+                        <div class="eff-select" data-kind="areas" data-input-class="eff-scry-target" data-value="${escapeForHtmlAttribute(ep.target || '')}" data-placeholder="Kitchen, Taco Bell..." data-free="true" style="width:100%;"></div>
+                        <label style="font-size:10px;">Lead-in message</label>
+                        <input type="text" class="eff-scry-msg" value="${escapeForHtmlAttribute(ep.message || '')}" placeholder="You peer into the distance..." style="width:100%;font-size:11px;">
+                        <label style="font-size:10px;">Fail message (target missing)</label>
+                        <input type="text" class="eff-scry-fail" value="${escapeForHtmlAttribute(ep.fail_message || '')}" placeholder="The vision shows nothing." style="width:100%;font-size:11px;">
+                        <div style="font-size:9px;color:var(--text-muted);">Shows the target area's description, ambient light and exits — frozen narrative, no agent-prompt changes.</div>
                     </div>
                     <div class="eff-param" data-effect="apply_trait,remove_trait" style="display:${['apply_trait','remove_trait'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Trait ID</label>

@@ -70,6 +70,27 @@ def sum_carry_weight(graph, player_id: str) -> float:
     return total
 
 
+def reconcile_item_weight(node) -> None:
+    """Scale an item's weight by remaining uses when ``max_uses`` is tracked
+    (task-155): ``weight = base_weight * (uses / max_uses)``.
+
+    Items without ``max_uses`` (or with infinite uses, -1) keep static weight.
+    ``base_weight`` is captured on first reconcile so repeated calls are
+    idempotent. Callers: every place that decrements ``uses``.
+    """
+    props = node.properties
+    max_uses = int(props.get("max_uses", 0) or 0)
+    if max_uses <= 0:
+        return
+    uses = int(props.get("uses", -1) or 0)
+    if uses < 0:
+        return
+    if "base_weight" not in props:
+        props["base_weight"] = float(props.get("weight", 0) or 0)
+    base = float(props.get("base_weight", 0) or 0)
+    props["weight"] = round(base * (uses / max_uses), 3)
+
+
 def get_carry_load_ratio(graph, player_manager, player_name: str = None) -> dict:
     """Return carry-weight stats for a character.
 

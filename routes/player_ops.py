@@ -45,7 +45,15 @@ def handle_spike_emotion(app, name):
             other = resolved
             valid = tuple(player._FELT_TO_DIM.keys())
     if emotion not in valid:
-        return jsonify({"error": f"unknown emotion '{emotion}'"}), 400
+        # task-96/350: agents use free-form vocabulary. Unknown labels go
+        # through the same semantic resolver as recall (/emotions/map) —
+        # never a 400; a truly unknown label is a documented graceful no-op.
+        mapped = emotion_engine.map_label(emotion)
+        if not mapped:
+            return jsonify({"emotions": player.emotions_map(), "ignored": emotion})
+        emotion = mapped[0][0]
+    if emotion not in valid:
+        return jsonify({"emotions": player.emotions_map(), "ignored": emotion})
 
     # Legacy global spike path (no target): nudge the affect map.
     if not other:

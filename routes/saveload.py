@@ -6,6 +6,8 @@ import logging
 from flask import Flask, request, jsonify
 from virtual_world_engine import VirtualWorld
 from logger import setup_logger
+from player import Player
+from graph import Node, Edge
 from .helpers import _save_game, SAVES_DIR
 
 logger = logging.getLogger(__name__)
@@ -98,6 +100,9 @@ def register_saveload_routes(app):
                 scenarios_dir = os.path.join(app.config['DATA_DIR'], 'scenarios')
                 os.makedirs(scenarios_dir, exist_ok=True)
                 scenario_path = os.path.join(scenarios_dir, f"{scenario_name}.json")
+                # task-222: persisted worlds are graph-only — drop the redundant
+                # per-room exits copies on the way to disk.
+                app.world.serializer.strip_redundant_exits(data)
                 with open(scenario_path, 'w', encoding='utf-8') as f:
                     json.dump(data, f, indent=2, ensure_ascii=False)
                 app.world._scenario_source = scenario_path
@@ -355,8 +360,10 @@ def register_saveload_routes(app):
         """Structural diff between the live world and its scenario source.
 
         Groups: added_areas / removed_areas / changed_areas (description,
-        environment, exits) / added_players / removed_players. Rides on a
-        canonical fingerprint — no storage format changes.
+        environment, exits) / added_players / removed_players /
+        added_items / removed_items / changed_items / added_ways /
+        removed_ways / changed_ways. Rides on a canonical fingerprint —
+        no storage format changes.
         """
         world = app.world
         source = getattr(world, '_scenario_source', None)
@@ -399,6 +406,56 @@ def register_saveload_routes(app):
 
         src_players = player_names(src)
         cur_players = player_names(cur)
+
+        # Item/way drift via the graph node set (types item/way), keyed by node id
+        # so renames don't show as remove+add. Fingerprint = name + state +
+        # description so a pure position change (same node) stays out.
+        def graph_nodes(d):
+            nodes = {}
+            g = d.get('graph') or {}
+            for nid, nd in (g.get('nodes') or {}).items():
+                if not isinstance(nd, dict) or nd.get('type') not in ('item', 'way'):
+                    continue
+                props = nd.get('properties')
+                if not isinstance(props, dict):
+                    props = {}
+                nodes[nid] = (nd.get('name') or nid,
+                              str(props.get('current_state', '')),
+                              str(props.get('description', '')))
+            return nodes
+
+        src_nodes = graph_nodes(src)
+        cur_nodes = graph_nodes(cur)
+        src_item_ids = set()
+        src_way_ids = set()
+        cur_item_ids = set()
+        cur_way_ids = set()
+        for nid, nd in (src.get('graph') or {}).get('nodes', {}).items():
+            if not isinstance(nd, dict):
+                continue
+            if nd.get('type') == 'item':
+                src_item_ids.add(nid)
+            elif nd.get('type') == 'way':
+                src_way_ids.add(nid)
+        for nid, nd in (cur.get('graph') or {}).get('nodes', {}).items():
+            if not isinstance(nd, dict):
+                continue
+            if nd.get('type') == 'item':
+                cur_item_ids.add(nid)
+            elif nd.get('type') == 'way':
+                cur_way_ids.add(nid)
+
+        added_items = sorted(cur_item_ids - src_item_ids)
+        added_ways = sorted(cur_way_ids - src_way_ids)
+        removed_items = sorted(src_item_ids - cur_item_ids)
+        removed_ways = sorted(src_way_ids - cur_way_ids)
+        common_items = cur_item_ids & src_item_ids
+        common_ways = cur_way_ids & src_way_ids
+        changed_items = sorted(i for i in common_items
+                               if src_nodes.get(i) != cur_nodes.get(i))
+        changed_ways = sorted(i for i in common_ways
+                              if src_nodes.get(i) != cur_nodes.get(i))
+
         return jsonify({
             "source": source,
             "groups": {
@@ -407,6 +464,12 @@ def register_saveload_routes(app):
                 "changed_areas": changed,
                 "added_players": sorted(cur_players - src_players),
                 "removed_players": sorted(src_players - cur_players),
+                "added_items": added_items,
+                "removed_items": removed_items,
+                "changed_items": changed_items,
+                "added_ways": added_ways,
+                "removed_ways": removed_ways,
+                "changed_ways": changed_ways,
             },
         })
 
@@ -416,6 +479,128 @@ def register_saveload_routes(app):
         name = data.get('name', '').strip() or None
         scenario_data = app.world.to_scenario_dict()
         return jsonify({"status": "success", "name": name or 'unnamed', "data": scenario_data})
+
+    # ───────────────────────── Changes panel (task-373) ─────────────────────────
+
+    def _merge_area_into_source(src, cur, area_name):
+        src_areas = src.setdefault('areas', {})
+        if area_name in cur.get('areas', {}):
+            src_areas[area_name] = cur['areas'][area_name]
+
+    def _merge_node_into_source(src, cur, node_id, node_type):
+        g_src = src.setdefault('graph', {})
+        g_cur = cur.get('graph') or {}
+        nodes_src = g_src.setdefault('nodes', {})
+        nodes_cur = g_cur.get('nodes') or {}
+        if node_id in nodes_cur:
+            nodes_src[node_id] = nodes_cur[node_id]
+
+    @app.route('/api/scenario/diff/apply', methods=['POST'])
+    def scenario_diff_apply():
+        """Per-group Commit (merge live → source) and Discard (restore).
+
+        Body: {"commit": [group, ...], "discard": [group, ...]} where a group
+        is one of: areas, items, ways, players. Commit copies the live values
+        of that group's drift into the source file; Discard restores that
+        group FROM the source INTO the live world (undo snapshot first).
+        """
+        world = app.world
+        body = request.get_json(force=True, silent=True) or {}
+        commit_groups = set(body.get('commit') or [])
+        discard_groups = set(body.get('discard') or [])
+        if not commit_groups and not discard_groups:
+            return jsonify({"error": "Nothing to apply — pass commit/discard groups."}), 400
+
+        source = getattr(world, '_scenario_source', None)
+        if not source or not os.path.exists(source):
+            return jsonify({"error": "No scenario source to apply against."}), 400
+
+        # snapshot Live world first (discard mutates the world — undoable)
+        if discard_groups:
+            _push_undo_snapshot(app, label="scenario discard (restore from source)")
+
+        with open(source, 'r', encoding='utf-8-sig') as f:
+            src = json.load(f)
+
+        # ── COMMIT: live → source ──
+        if commit_groups:
+            cur = world.to_scenario_dict()
+            if 'areas' in commit_groups:
+                # re-diff to know which areas drifted (commit all of them)
+                for name in set((src.get('areas') or {})) | set((cur.get('areas') or {})):
+                    _merge_area_into_source(src, cur, name)
+            if 'items' in commit_groups or 'ways' in commit_groups:
+                g_cur = cur.get('graph') or {}
+                for nid, nd in (g_cur.get('nodes') or {}).items():
+                    if nd.get('type') == 'item' and 'items' in commit_groups:
+                        _merge_node_into_source(src, cur, nid, 'item')
+                    elif nd.get('type') == 'way' and 'ways' in commit_groups:
+                        _merge_node_into_source(src, cur, nid, 'way')
+            if 'players' in commit_groups:
+                src['players'] = cur.get('players') or {}
+                src['active_player'] = cur.get('active_player')
+            # also carry the graph edges when any node group is committed
+            if 'items' in commit_groups or 'ways' in commit_groups:
+                src.setdefault('graph', {}).setdefault('nodes', {})
+                src['graph']['edges'] = (cur.get('graph') or {}).get('edges') or []
+
+        # ── DISCARD: source → live ──
+        if discard_groups:
+            cur = world.to_scenario_dict()
+            src_graph = src.get('graph') or {}
+            src_nodes = src_graph.get('nodes') or {}
+            if 'items' in discard_groups or 'ways' in discard_groups:
+                # Remove live nodes of that type, then re-add from source.
+                live_nodes = world.graph.nodes
+                for nid, nd in list(live_nodes.items()):
+                    if 'items' in discard_groups and nd.type == 'item':
+                        world.graph.remove_node(nid)
+                    elif 'ways' in discard_groups and nd.type == 'way':
+                        world.graph.remove_node(nid)
+                for nid, nd in src_nodes.items():
+                    if 'items' in discard_groups and nd.get('type') == 'item':
+                        world.graph.add_node(Node(id=nid, type='item', name=nd.get('name', nid),
+                                                  properties=dict(nd.get('properties') or {})))
+                    elif 'ways' in discard_groups and nd.get('type') == 'way':
+                        world.graph.add_node(Node(id=nid, type='way', name=nd.get('name', nid),
+                                                  properties=dict(nd.get('properties') or {})))
+            if 'areas' in discard_groups:
+                # Restore description/environment/tags from source onto the
+                # LIVE area nodes (keep the nodes — no remove/add churn, so
+                # placement edges and current runtime state survive).
+                src_areas = src.get('areas') or {}
+                for nid, node in list(world.graph.nodes.items()):
+                    if node.type != 'area':
+                        continue
+                    name_key = node.name
+                    a = src_areas.get(name_key) or next(
+                        (v for k, v in src_areas.items()
+                         if str(k).lower() == str(name_key).lower()), None)
+                    if not a:
+                        continue
+                    node.properties['description'] = a.get('description', node.properties.get('description', ''))
+                    node.properties['environment'] = dict(a.get('environment') or {})
+                    if a.get('tags'):
+                        node.properties['tags'] = list(a['tags'])
+            if 'players' in discard_groups:
+                # players are live state; restoring from source would delete
+                # runtime memories — only re-add names that source has.
+                for pname in (src.get('players') or {}):
+                    if pname not in world.player_manager.players:
+                        world.player_manager.add_player(Player(pname))
+
+        # commit file write (atomic)
+        tmp_path = source + '.tmp'
+        try:
+            with open(tmp_path, 'w', encoding='utf-8') as f:
+                json.dump(src, f, indent=2, ensure_ascii=False)
+            os.replace(tmp_path, source)
+        except Exception as e:
+            logger.exception("Scenario diff apply failed")
+            return jsonify({"error": str(e)}), 500
+        world._commit_seq = getattr(world, '_edit_seq', 0)
+        return jsonify({"status": "success", "committed": sorted(commit_groups),
+                        "discarded": sorted(discard_groups)})
 
     # ───────────────────────── Scenario manager (task-374) ─────────────────────────
 
@@ -449,14 +634,39 @@ def register_saveload_routes(app):
             path = os.path.join(sdir, fname)
             entry = {"name": os.path.splitext(fname)[0], "filename": fname,
                      "size": os.path.getsize(path), "modified": os.path.getmtime(path),
-                     "areas": 0, "players": 0}
+                     "areas": 0, "players": 0,
+                     # task-385 health: file-parseable, structural issue counts
+                     "health": {"ok": False, "parse_error": None,
+                                "issues": 0, "trigger_edges": 0,
+                                "dangling_trigger_targets": 0,
+                                "ways_missing_description": 0,
+                                "areas_missing_description": 0}}
             try:
                 with open(path, 'r', encoding='utf-8-sig') as f:
                     data = json.load(f)
                 entry["areas"] = len(data.get('areas') or {})
                 entry["players"] = len(data.get('players') or {}) or (1 if (data.get('player') or {}).get('name') else 0)
-            except Exception:
-                pass
+                # health scan (cheap, no world load)
+                h = entry["health"]
+                h["ok"] = True
+                graph_edges = (data.get('graph') or {}).get('edges') or []
+                graph_nodes = (data.get('graph') or {}).get('nodes') or {}
+                h["trigger_edges"] = sum(1 for e in graph_edges if e.get('type') == 'triggers')
+                for e in graph_edges:
+                    if e.get('type') == 'triggers' and e.get('target') not in graph_nodes:
+                        h["dangling_trigger_targets"] += 1
+                for n in graph_nodes.values():
+                    if not isinstance(n, dict):
+                        continue
+                    props = n.get('properties') or {}
+                    if n.get('type') == 'way' and not props.get('description'):
+                        h["ways_missing_description"] += 1
+                    elif n.get('type') == 'area' and not props.get('description'):
+                        h["areas_missing_description"] += 1
+                h["issues"] = (h["dangling_trigger_targets"] + h["ways_missing_description"]
+                               + h["areas_missing_description"])
+            except Exception as e:
+                entry["health"]["parse_error"] = str(e)
             out.append(entry)
         return jsonify(out)
 

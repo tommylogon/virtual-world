@@ -1,0 +1,32 @@
+{
+  "name": "Template: Schedule Trigger",
+  "description": "Template item demonstrating the 'schedule_trigger' trigger effect. Use me when on the ground or in your hands; the wired on_use trigger shows the effect. Place me by importing from the library (library browser → Item → Import to World).",
+  "tags": [
+    "template",
+    "demo"
+  ],
+  "actions": [
+    "examine",
+    "use"
+  ],
+  "uses": -1,
+  "max_uses": 0,
+  "weight": 0.1,
+  "current_state": "normal",
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "type": "schedule_trigger",
+          "params": {
+            "delay_ticks": 2,
+            "target": "self",
+            "label": "template delayed",
+            "message": "[template:schedule_trigger] Something is scheduled 2 ticks ahead."
+          }
+        }
+      ]
+    }
+  ]
+}

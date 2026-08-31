@@ -65,6 +65,9 @@ class Player:
             "Stealth": 1, "Perception": 1,
             "Survival": 1, "Persuasion": 1
         }
+        # Crafting (task-2): recipe names this character has discovered
+        # (discoverable recipes after the first successful craft).
+        self.crafting_known = []
         # Traits: mapping trait_id -> parameter value.
         # Boolean traits use True. Parameterized traits use a string (e.g. {"allergic": "pollen"}).
         # Example: {"dark_vision": True, "hardy": True, "glutton": True}

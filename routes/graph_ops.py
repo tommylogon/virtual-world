@@ -893,3 +893,140 @@ def handle_delete_edge(app):
 
     app.world.graph.remove_edge(source, target, edge_type)
     return jsonify({"status": "success"})
+
+
+def handle_append_draft(app):
+    """Append mode (task-383): merge a template-format draft INTO the live world.
+
+    The draft is the wizard's output (areas: {name: {description, environment,
+    exits, items}}, characters, world_lore). Merge semantics:
+      * Existing area names are skipped (no clobber) — return them as `skipped`.
+      * New areas + their ways + items are added.
+      * New characters are registered only if the name is free.
+      * world_lore entries are appended (category+content dedupe).
+    Undo snapshot pushed BEFORE the merge.
+    """
+    from routes.saveload import _push_undo_snapshot
+    import copy as _copy
+    data = request.get_json() or {}
+    world = app.world
+    graph = world.graph
+
+    _push_undo_snapshot(app, label="scenario append (wizard)")
+
+    areas = data.get('areas') or {}
+    added = []
+    skipped = []
+    ways_created = 0
+    items_created = 0
+
+    # 1. areas (new ones only)
+    for name, a in areas.items():
+        existing = next((n for n in graph.nodes.values()
+                         if n.type == 'area' and n.name.lower() == str(name).lower()), None)
+        if existing:
+            skipped.append(name)
+            continue
+        aid = f"area_{str(name).lower().replace(' ', '_')}"
+        if graph.get_node(aid) is None:
+            env = a.get('environment') or {}
+            graph.add_node(Node(id=aid, type='area', name=str(name), properties={
+                'description': a.get('description', ''),
+                'environment': {
+                    'light': env.get('light', 'normal'),
+                    'temperature': env.get('temperature', 21),
+                    'air': env.get('air', 'fresh'),
+                    'smell': env.get('smell', 'neutral'),
+                    'noise': env.get('noise', 'quiet'),
+                },
+            }))
+            added.append(name)
+
+    # 2. ways + items (only within the added/skipped set; ways spider across)
+    for name, a in areas.items():
+        aid = f"area_{str(name).lower().replace(' ', '_')}"
+        if graph.get_node(aid) is None:
+            continue
+        for direction, exit_data in (a.get('exits') or {}).items():
+            if not exit_data:
+                continue
+            target = exit_data.get('target') if isinstance(exit_data, dict) else exit_data
+            if not target:
+                continue
+            tid = f"area_{str(target).lower().replace(' ', '_')}"
+            if graph.get_node(tid) is None:
+                continue
+            wid = f"way_{str(name).lower().replace(' ', '_')}_{str(direction).lower().replace(' ', '_')}"
+            if graph.get_node(wid) is not None:
+                continue
+            props = {}
+            if isinstance(exit_data, dict):
+                props = {
+                    'current_state': 'hidden' if exit_data.get('hidden') else exit_data.get('state', 'open'),
+                    'description': exit_data.get('description', f"A path to the {target}."),
+                    'pass_message': exit_data.get('pass_message', ''),
+                    'area_from': name,
+                    'area_to': target,
+                }
+            else:
+                props = {'current_state': 'open', 'description': f"A path to the {target}.", 'area_from': name, 'area_to': target}
+            graph.add_node(Node(id=wid, type='way', name=f"{name}-{direction}", properties=props))
+            graph.add_edge(Edge(source=aid, target=wid, type=EDGE_CONNECTION))
+            graph.add_edge(Edge(source=wid, target=tid, type=EDGE_CONNECTION))
+            ways_created += 1
+        # items
+        for item in (a.get('items') or []):
+            if not isinstance(item, dict):
+                continue
+            iname = item.get('name') or 'Item'
+            iid = f"item_{str(iname).lower().replace(' ', '_')}"
+            if graph.get_node(iid) is not None:
+                continue
+            graph.add_node(Node(id=iid, type='item', name=str(iname), properties={
+                'description': item.get('description', ''),
+                **({k: v for k, v in item.items() if k not in ('name', 'description')}),
+            }))
+            graph.add_edge(Edge(source=iid, target=aid, type=EDGE_IN))
+            items_created += 1
+
+    # 3. characters (new names only)
+    chars_added = []
+    for c in (data.get('characters') or []):
+        if not isinstance(c, dict) or not c.get('name'):
+            continue
+        cname = str(c['name'])
+        if cname in world.player_manager.players:
+            continue
+        from player import Player
+        p = Player(cname)
+        p.personality = c.get('personality', '')
+        p.description = c.get('description', '')
+        p.base_description = c.get('base_description', '')
+        world.player_manager.add_player(p)
+        chars_added.append(cname)
+
+    # 4. world_lore append (dedupe by category+content)
+    lore_added = 0
+    existing_lore = list(getattr(world, 'world_lore', None) or [])
+    for entry in (data.get('world_lore') or []):
+        if not isinstance(entry, dict):
+            continue
+        if any(
+            isinstance(e, dict) and e.get('category') == entry.get('category') and
+            e.get('content') == entry.get('content')
+            for e in existing_lore
+        ):
+            continue
+        existing_lore.append(dict(entry))
+        lore_added += 1
+    world.world_lore = existing_lore
+
+    return jsonify({
+        "status": "success",
+        "added_areas": added,
+        "skipped_areas": skipped,
+        "characters_added": chars_added,
+        "ways_created": ways_created,
+        "items_created": items_created,
+        "lore_added": lore_added,
+    })

@@ -106,6 +106,25 @@ def get_autocomplete_options(vw, verb: str, prefix: str = "", character_name: st
         for item in carried_items:
             _add(item.properties.get('name') or item.id)
 
+    elif verb in ('combine',):
+        for item in carried_items:
+            _add(item.properties.get('name') or item.id)
+
+    elif verb in ('split',):
+        for item in carried_items:
+            props = item.properties or {}
+            attempts = 0
+            try:
+                attempts = int(props.get('uses', -1) or 0)
+            except (TypeError, ValueError):
+                attempts = 0
+            if attempts >= 2:
+                _add(item.properties.get('name') or item.id)
+
+    elif verb in ('craft', 'make'):
+        for recipe in vw._recipe_known_names(player_manager.active_player):
+            _add(recipe)
+
     elif verb in ('eat', 'drink'):
         for item in carried_items + room_items:
             acts = _get_actions(item)

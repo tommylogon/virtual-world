@@ -423,6 +423,12 @@ window.PromptBuilder = window.PromptBuilder || {};
                 else if (locked) doorHint = " (it's locked — you'd need to unlock it first)";
                 else if (blocked) doorHint = ' (it is blocked — you will need to clear it)';
                 const openHint = doorHint;
+                // task-243/109: item-gated paths (requires_item on the way) —
+                // the agent should see the gear requirement, not just fail.
+                const rawReq = doorNode.properties?.requires_item || '';
+                const needsItem = rawReq
+                    ? ` (needs: ${String(rawReq).split(',').map(s => s.trim().replace(/^tag:/i, 'the ')).join(' & ')})`
+                    : '';
                 if (wayState === 'open') {
                     const viewDirection = exitData.visible_in_direction || '';
                     const doorTags = (doorNode.properties?.tags || []).map(t => String(t).toLowerCase().trim());
@@ -430,7 +436,7 @@ window.PromptBuilder = window.PromptBuilder || {};
                     const closeHint = preventClose ? '' : ' or close it';
                     const actionHint = ` (you can go through it, approach it, dash, examine${closeHint})`;
                     if (viewDirection) {
-                        exitLines.push(`[${handle}] ${openWord} — ${viewDirection}${beyondSuffix}${moveHint}${actionHint}`);
+                        exitLines.push(`[${handle}] ${openWord} — ${viewDirection}${beyondSuffix}${moveHint}${actionHint}${needsItem}`);
                     } else {
                         const targetArea = resolveAreaNode(exitData.target);
                         const clues = [];
@@ -453,7 +459,7 @@ window.PromptBuilder = window.PromptBuilder || {};
                             else clues.push('freezing');
                         }
                         const clueString = clues.length ? ` (${clues.join(', ')})` : '';
-                        exitLines.push(`To the ${handle}, the ${exitData.target} is visible beyond${clueString}.${beyondSuffix}${moveHint}${actionHint}`);
+                        exitLines.push(`To the ${handle}, the ${exitData.target} is visible beyond${clueString}.${beyondSuffix}${moveHint}${actionHint}${needsItem}`);
                     }
                 } else {
                     const viewDirection = exitData.visible_in_direction || '';
@@ -473,18 +479,64 @@ window.PromptBuilder = window.PromptBuilder || {};
         }
         const exitsStr = exitLines.length ? '\nFrom where you stand, you can see the following paths:\n' + exitLines.join('\n') : '\n(no visible exits)';
         // Carrying line with per-item action brackets (drop/use/wear/examine...).
+        // task-330-ish polish: each carried/worn item also shows its FULL
+        // description (never truncated) plus whether you know what it is
+        // (discovered/examined) — items you own are things you should be able
+        // to reason about, not just name-drop.
         const carriedItems = PromptBuilder.carriedItemNodes(charName);
         const wornItems = carriedItems.filter(c => c.equipped);
         const notWornItems = carriedItems.filter(c => !c.equipped);
+        // Known = equipped/worn-now (direct interaction), authored "Known by"
+        // entity ids (player.known), runtime discovery (examined/taken ->
+        // discovered_items, matched by name), or an intrinsic ability.
+        // Anything else has not been examined/used with this character.
+        const knownIds = new Set((player?.known || []).map(String));
+        const isKnown = (item, wornNow) =>
+            wornNow ||
+            PromptBuilder.isDiscovered(player, item.name) ||
+            PromptBuilder.isIntrinsicAbility(item.properties) ||
+            knownIds.has(String(item.id));
+        // Durability in plain words (task-161): worn gear degrades on hits and
+        // the agent should read condition, never numbers.
+        const durTag = (item) => {
+            const maxUses = parseInt(item.properties?.max_uses, 10) || 0;
+            const uses = parseInt(item.properties?.uses ?? -1, 10);
+            if (maxUses <= 0 || uses < 0) return '';
+            const ratio = uses / maxUses;
+            if (uses <= 0) return '[broken]';
+            if (ratio <= 0.25) return '[about to break]';
+            if (ratio <= 0.5) return '[battered]';
+            if (ratio <= 0.9) return '[worn]';
+            return '[pristine]';
+        };
+        // Freshness in plain words (task-191): spoiled food is a fact the
+        // agent must reason about without numbers.
+        const freshTag = (item) => {
+            if (!item.properties?.perishable) return '';
+            const state = item.properties.freshness_state || '';
+            if (state === 'cooked') return '(cooked)';
+            if (state === 'spoiled') return '(spoiled)';
+            return '(fresh)';
+        };
         const buildItemTree = (items, equipped) => {
             const lines = [];
             for (const c of items) {
                 const b = PromptBuilder.formatActionBrackets(PromptBuilder.computeItemActions({ id: c.id, name: c.name, properties: c.properties }, player, { equipped }));
-                lines.push(`${c.name} ${b}`.trim());
+                const d = durTag(c);
+                const f = freshTag(c);
+                const desc = (c.properties?.description || '').trim();
+                const knownTag = isKnown(c, equipped) ? '(known)' : '(not yet examined)';
+                const descPart = desc ? ` — ${desc}` : '';
+                lines.push(`${c.name} ${b}${d ? ' ' + d : ''} ${f ? f + ' ' : ''}${knownTag}${descPart}`.trim());
                 const contained = getContainedItems(c.id);
                 for (const ci of contained) {
                     const cb = PromptBuilder.formatActionBrackets(PromptBuilder.computeItemActions({ id: ci.id, name: ci.name, properties: ci.properties }, player, { equipped: false }));
-                    lines.push(`    ${ci.name} ${cb}`.trim());
+                    const cd = durTag(ci);
+                    const cf = freshTag(ci);
+                    const cdesc = (ci.properties?.description || '').trim();
+                    const cknownTag = isKnown(ci, false) ? '(known)' : '(not yet examined)';
+                    const cdescPart = cdesc ? ` — ${cdesc}` : '';
+                    lines.push(`    ${ci.name} ${cb}${cd ? ' ' + cd : ''} ${cf ? cf + ' ' : ''}${cknownTag}${cdescPart}`.trim());
                 }
             }
             return lines;

@@ -1,6 +1,6 @@
-﻿---
+---
 type: task
-status: todo
+status: review
 area: ui
 priority: medium
 ---
@@ -8,11 +8,21 @@ priority: medium
 # task-367: scenario-status-chip-commit
 
 **Filed**: 2026-08-30
-**Status**: Todo
-**Source**: docs/virtualWorld/Scenario Workflows & UI Audit.md — P0 — Scenario status chip + Commit: persistent top-bar chip (📦 scenario · ● unsaved changes) with [💾 Commit] (writes live world into the scenario source) and [🌀 Restart]. Server: GET /api/scenario/status (dirty via edit_seq vs commit_seq) + POST /api/scenario/commit (to_scenario_dict → data/scenarios/<name>.json, sets _scenario_source).
+**Status**: In Review — implemented 2026-08-30; chip + Commit + status API live-verified.
 
-## Notes
+## What was built
 
-See the audit doc for the full section and sequencing notes. Reuse existing machinery where noted; the guardrails are: CLI-free, undo-safe, and no new storage formats unless the audit says so.
+- `static/js/ui/scenario-status.js` — top-bar chip `📦 <scenario> · ●` where the ●
+  (dirty dot) appears only when `edit_seq != commit_seq`; chip holds **Commit** only.
+- `POST /api/scenario/commit` — writes live world into the scenario source file
+  (`data/scenarios/<name>.json`), resets `_commit_seq`.
+- `GET /api/scenario/status` — dirty flag via edit/commit sequence compare.
+- **Consolidation (same day)**: the chip previously had a second [🌀 Restart]
+  button (duplicate of the toolbar Restart) — removed; toolbar keeps the only Restart.
+  Chip = status + Commit only.
+- Tests: `tests/test_scenario_commit.py` (5).
 
+## Note
 
+Original audit text mentioned "[💾 Commit] and [🌀 Restart]" — Restart stayed in the
+toolbar per the two-Restart consolidation; see task-368 for the menu wording.

@@ -5,7 +5,7 @@
 window.TriggerTypes = {
     TRIGGER_TYPES: [
         'on_take', 'on_drop', 'on_examine', 'on_inspect',
-        'on_use', 'on_use_on', 'on_look', 'on_tick',
+        'on_use', 'on_use_progressive', 'on_use_on', 'on_look', 'on_tick',
         'on_eat', 'on_drink', 'on_read', 'on_light',
         'on_activate', 'on_equip', 'on_unequip',
         'on_throw', 'on_break',
@@ -14,7 +14,7 @@ window.TriggerTypes = {
         'on_state_enter', 'on_state_exit',
         'on_auto_open', 'on_enter', 'on_speech',
         'on_fail_jump', 'on_fail_climb',
-        'on_delayed'
+        'on_delayed', 'on_spoil'
     ],
 
     CONDITION_TYPES: [
@@ -76,6 +76,8 @@ window.TriggerTypes = {
         { value: 'suppress_memory', label: '🚫 Suppress Memory (block recall)', group: 'character' },
         { value: 'unblock_memory', label: '🔓 Unblock Memory', group: 'character' },
         { value: 'schedule_trigger', label: '⏳ Schedule Trigger (N ticks later)', group: 'general' },
+        { value: 'llm_respond', label: '🤖 LLM Response (object speaks, task-330)', group: 'general' },
+        { value: 'scry', label: '🔭 Scry (view a distant area)', group: 'area' },
         { value: 'spawn_way', label: '🚪 Spawn Way (runtime door)', group: 'way' },
         { value: 'spawn_area', label: '🏠 Spawn Area (runtime room)', group: 'area' },
         { value: 'set_way_target', label: '🔀 Set Way Target (repoint door)', group: 'way' },

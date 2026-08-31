@@ -352,8 +352,13 @@ RULES:
         left.className = 'btn btn-sm';
         left.textContent = '↩ Back';
         left.onclick = () => renderInput();
+        // Append mode toggle (task-383): merge into the live world instead of
+        // replacing it. Existing area names are skipped (never clobbered).
+        const appendCb = document.createElement('label');
+        appendCb.style.cssText = 'display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text);cursor:pointer;';
+        appendCb.innerHTML = '<input type="checkbox" id="wz-append"> ➕ Append to current world (skip existing rooms)';
         const right = document.createElement('div');
-        right.style.cssText = 'display:flex;gap:8px;';
+        right.style.cssText = 'display:flex;gap:8px;align-items:center;';
         const cancel = document.createElement('button');
         cancel.className = 'btn btn-sm';
         cancel.textContent = 'Cancel';
@@ -364,6 +369,7 @@ RULES:
         apply.onclick = () => applyDraft(apply);
         right.appendChild(cancel);
         right.appendChild(apply);
+        footer.appendChild(appendCb);
         footer.appendChild(left);
         footer.appendChild(right);
         box.appendChild(footer);
@@ -438,7 +444,10 @@ RULES:
         const d = _state.draft;
         const names = Object.keys(d.areas).filter((_, i) => _state.include.rooms[i] !== false);
         if (!names.length) { toastInfo('Nothing selected — tick at least one room.'); return; }
-        if (!confirm(`Apply "${_state.name}"?\n\nThis REPLACES the current world (${names.length} rooms). The previous world is kept on the undo stack — use ↩ Undo (or Ctrl+Z) to restore it.`)) return;
+        const appendMode = document.getElementById('wz-append')?.checked === true;
+        if (!confirm(appendMode
+            ? `Append "${_state.name}"?\n\nNew rooms/ways/items/characters/lore get MERGED into the current world. Existing room names are skipped. The world is on the undo stack — use ↩ Undo to revert.`
+            : `Apply "${_state.name}"?\n\nThis REPLACES the current world (${names.length} rooms). The previous world is kept on the undo stack — use ↩ Undo (or Ctrl+Z) to restore it.`)) return;
 
         const out = {
             name: _state.name || 'Generated Scenario',
@@ -461,6 +470,31 @@ RULES:
 
         btn.disabled = true;
         btn.textContent = 'Applying…';
+        if (appendMode) {
+            // task-383: merge into the live world (server-side, undo snapshot).
+            fetch('/api/scenario/append', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(out)
+            })
+                .then(resp => resp.json().then(j => ({ ok: resp.ok, j })))
+                .then(({ ok, j }) => {
+                    if (!ok) throw new Error(j.error || 'append failed');
+                    worldState.fetch().then(() => {
+                        try { events.log(`✨ Appended "${out.name}" — ${j.added_areas?.length || 0} new rooms, ${j.ways_created || 0} ways, ${j.items_created || 0} items.`, 'system-msg'); } catch (e) {}
+                        closeOverlay();
+                        const skippedNote = j.skipped_areas?.length ? ` (skipped: ${j.skipped_areas.join(', ')})` : '';
+                        if (typeof toastInfo === 'function') toastInfo(`Appended: ${j.added_areas?.length || 0} rooms${skippedNote}. Undo (↩) reverts.`);
+                    });
+                })
+                .catch(err => {
+                    console.error('[scenario-wizard] append failed:', err);
+                    toastError('Append failed: ' + (err.message || err));
+                    btn.disabled = false;
+                    btn.textContent = '🚀 Apply World';
+                });
+            return;
+        }
         out.persist = true;  // wizard builds a new scenario — write it to scenarios/
         fetch('/api/load', {
             method: 'POST',
