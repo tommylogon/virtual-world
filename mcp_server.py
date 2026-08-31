@@ -611,6 +611,11 @@ def export_world() -> dict:
 @mcp.tool()
 def import_world(data: dict) -> dict:
     """Import a full world state from a JSON dict."""
+    # Ephemeral: replace the in-memory world without writing a scenario file.
+    # Agents importing a world shouldn't litter data/scenarios/.
+    if isinstance(data, dict):
+        data = dict(data)
+        data['persist'] = False
     return _api("POST", "/api/load", data)
 
 

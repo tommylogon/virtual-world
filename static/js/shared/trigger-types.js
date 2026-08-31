@@ -36,7 +36,8 @@ window.TriggerTypes = {
         { value: 'save_throw', label: '🛡️ Save throw', group: 'character' },
         { value: 'time_of_day', label: '🕐 Time of day', group: 'general' },
         { value: 'weather', label: '🌧️ Weather', group: 'area' },
-        { value: 'speech_matches', label: '💬 Speech matches phrase', group: 'general' }
+        { value: 'speech_matches', label: '💬 Speech matches phrase', group: 'general' },
+        { value: 'item_relationship', label: '🔗 Item relationship (in/on/under...)', group: 'item' }
     ],
 
     EFFECT_TYPES: [
@@ -74,6 +75,10 @@ window.TriggerTypes = {
         { value: 'surface_memory', label: '🧠 Surface Memory (by tag/keyword)', group: 'character' },
         { value: 'suppress_memory', label: '🚫 Suppress Memory (block recall)', group: 'character' },
         { value: 'unblock_memory', label: '🔓 Unblock Memory', group: 'character' },
-        { value: 'schedule_trigger', label: '⏳ Schedule Trigger (N ticks later)', group: 'general' }
+        { value: 'schedule_trigger', label: '⏳ Schedule Trigger (N ticks later)', group: 'general' },
+        { value: 'spawn_way', label: '🚪 Spawn Way (runtime door)', group: 'way' },
+        { value: 'spawn_area', label: '🏠 Spawn Area (runtime room)', group: 'area' },
+        { value: 'set_way_target', label: '🔀 Set Way Target (repoint door)', group: 'way' },
+        { value: 'set_way_view', label: '👁 Set Way View (see-through/text)', group: 'way' }
     ]
 };

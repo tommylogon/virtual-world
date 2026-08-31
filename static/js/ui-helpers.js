@@ -82,3 +82,22 @@ function reinitChoices(container) {
         }
     });
 }
+
+// ─── Dropdown Menus (top bar "Game ▾", toolbar "More ▾") ───
+function closeTopMenus() {
+    document.querySelectorAll('.dropdown-menu.menu-open').forEach(m => { m.style.display = 'none'; m.classList.remove('menu-open'); });
+    document.removeEventListener('click', closeTopMenus);
+}
+
+function toggleTopMenu(ev, id) {
+    if (ev) ev.stopPropagation();
+    const menu = document.getElementById(id);
+    if (!menu) return;
+    const wasOpen = menu.classList.contains('menu-open');
+    closeTopMenus();
+    if (!wasOpen) {
+        menu.style.display = 'block';
+        menu.classList.add('menu-open');
+        setTimeout(() => document.addEventListener('click', closeTopMenus), 0);
+    }
+}

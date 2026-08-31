@@ -10,6 +10,11 @@
 // bootstrap), not at parse time. Unique per file so top-level consts never collide.
 const networkManagerHtmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
 
+// Item → parent attachment edge types: the child points AT its parent
+// (salt --[on]--> table, top --[equipped]--> char). These springs render
+// shorter so attached items cluster around the node that holds them.
+const GRAPH_ATTACH_EDGE_TYPES = new Set(['in', 'on', 'under', 'behind', 'beside', 'at', 'carrying', 'equipped']);
+
 window.GraphNetwork = {
     /**
      * Initializes the vis.js Network on the graph container element.
@@ -63,7 +68,9 @@ window.GraphNetwork = {
      * @returns {Object} vis.js Network options
      */
     buildOptions() {
-        const cfg = window.config || {};
+        // `config` is a top-level const (lexical global) — NEVER window.config
+        // (which is always undefined and made every slider a silent no-op).
+        const cfg = config || {};
         const solver = cfg.graphSolver || 'forceAtlas2Based';
         const physicsBase = solver === 'barnesHut'
             ? { barnesHut: { gravitationalConstant: cfg.graphGravitationalConstant ?? -3000, centralGravity: 0.3, springLength: cfg.graphSpringLength ?? 120, springConstant: cfg.graphSpringConstant ?? 0.04, damping: cfg.graphDamping ?? 0.09 } }
@@ -72,7 +79,7 @@ window.GraphNetwork = {
             physics: {
                 enabled: true, solver,
                 ...physicsBase,
-                stabilization: { iterations: 100 }
+                stabilization: { iterations: 100, fit: false }
             },
             interaction: { hover: true, tooltipDelay: 200, multiselect: false },
             edges: {
@@ -100,6 +107,13 @@ window.GraphNetwork = {
         graphManager._lastSig = '';
         graphManager.network.setOptions(GraphNetwork.buildOptions());
         GraphNetwork.loadGraphData();
+        // Re-run the simulation with the new force parameters. After the
+        // initial stabilization vis.js freezes the network (physics.stabilized
+        // = true), so setOptions() alone never moves a node — explicitly
+        // re-stabilize so slider changes actually reshape the layout.
+        try {
+            graphManager.network.stabilize(200);
+        } catch (err) { /* ignore — settings apply on the next reload */ }
     },
 
     /**
@@ -130,6 +144,21 @@ window.GraphNetwork = {
             // Preserve node positions before reload
             let savedPositions = {};
             try { savedPositions = graphManager.network.getPositions(); } catch (err) { /* ignore */ }
+
+            // Preserve the camera too. vis.js setData() emits initPhysics, and the
+            // physics engine (re)stabilization ends in a View.fit() that snaps the
+            // viewport to the fit-all position/scale — destroying the user's zoom
+            // and pan on every reload. Only restore once the network has data; the
+            // very first load keeps the fitView() in init().
+            let savedView = null;
+            try {
+                if (graphManager.network.body?.data?.nodes?.length > 0) {
+                    savedView = {
+                        position: graphManager.network.getViewPosition(),
+                        scale: graphManager.network.getScale()
+                    };
+                }
+            } catch (err) { /* ignore */ }
 
             graphManager.nodes.clear();
             graphManager._revealedItemIds = new Map();
@@ -228,6 +257,12 @@ window.GraphNetwork = {
                         const len = wayNode.properties?.edge_length;
                         if (len && len > 0) edgeLength = len;
                     }
+                } else if (GRAPH_ATTACH_EDGE_TYPES.has(edgeType)) {
+                    // Item → parent attachment edges (in/on/under/behind/beside/
+                    // at/carrying/equipped): shorter springs so children hug
+                    // their parents instead of floating at the global length.
+                    const len = (config || {}).graphItemEdgeLength || 60;
+                    edgeLength = len;
                 }
                 visEdges.push({
                     from: edgeObj.source, to: edgeObj.target,
@@ -237,7 +272,7 @@ window.GraphNetwork = {
                     arrows: edgeType === 'connection' ? 'from,to' : (style.arrows || 'to'),
                     dashes: style.dashes !== undefined ? style.dashes : defaultDashes,
                     color: { color: style.color || defaultColor, highlight: '#4ec9b0' },
-                    font: { color: style.color || defaultColor, size: graphManager._edgeLabelSize || 8, align: 'horizontal', strokeWidth: 2, strokeColor: '#0d1117' },
+                    font: { color: style.color || defaultColor, size: graphManager._edgeLabelSize || 8, align: 'horizontal', strokeWidth: 2, strokeColor: '#0d1117', background: 'rgba(13,17,23,0.85)' },
                     width: style.width || 1
                 });
             }
@@ -257,6 +292,19 @@ window.GraphNetwork = {
             }
 
             if (wasPhysics) graphManager.network.setOptions({ physics: { enabled: true } });
+
+            // Put the camera back where the user had it (setData's internal
+            // stabilization re-fit it to the whole graph; positions were restored
+            // above, now the viewport too).
+            if (savedView) {
+                try {
+                    graphManager.network.moveTo({
+                        position: savedView.position,
+                        scale: savedView.scale,
+                        animation: false
+                    });
+                } catch (err) { /* ignore */ }
+            }
 
             // Apply visibility in place (floor filter, inhabited areas, items,
             // triggers, revealed nodes, and active search). Reuses the dataset we

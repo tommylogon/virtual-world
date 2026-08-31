@@ -1,10 +1,10 @@
 {
   "id": "exterior",
   "name": "Exterior",
-  "description": "Infinite heat reservoir â€” temperature never changes via propagation",
+  "description": "Infinite heat reservoir — temperature never changes via propagation",
   "category": "mechanical",
   "color": "#4488ff",
-  "icon": "ðŸŒ¤ï¸",
+  "icon": "🌤️",
   "applies_to": [
     "areas"
   ],

@@ -1,5 +1,5 @@
 /**
- * InspectorWayView — Way inspector (showWay, reconnectDoor)
+ * InspectorWayView — Way inspector (showWay, reconnectWays)
  * Extracted from inspector.js for modularity.
  * task-216: renders lit-html TemplateResults through InspectorPanel (single panel owner).
  */
@@ -176,6 +176,26 @@ window.InspectorWayView = (() => {
         });
     };
 
+    // The reconnect implementation lives in way-view-connections.js (module
+    // InspectorWayViewConnections); expose it here so the onclick handlers that
+    // call InspectorWayView._reconnectWays resolve.
+    wayView._reconnectWays = function(wayId) {
+        const impl = window.InspectorWayViewConnections && window.InspectorWayViewConnections._reconnectWays;
+        if (typeof impl === 'function') return impl(wayId);
+        console.error('InspectorWayViewConnections._reconnectWays missing — did way-view-connections.js fail to load?');
+        return null;
+    };
+
+    // Trigger extraction lives in way-view-triggers.js (module
+    // InspectorWayViewTriggers); expose it here so _saveToLibrary and the
+    // trigger preview paths resolve on the way-view module itself.
+    wayView._extractTriggersFromEdges = function(nodeId) {
+        const impl = window.InspectorWayViewTriggers && window.InspectorWayViewTriggers._extractTriggersFromEdges;
+        if (typeof impl === 'function') return impl(nodeId);
+        console.error('InspectorWayViewTriggers._extractTriggersFromEdges missing — did way-view-triggers.js fail to load?');
+        return [];
+    };
+
     wayView._refreshParamPreview = function(wayId) {
         const previewEl = document.getElementById(`way-param-preview-${wayId}`);
         if (!previewEl) return;
@@ -251,14 +271,14 @@ window.InspectorWayView = (() => {
             ).join('');
             reconnectHtml = `
             <div style="border-top:1px solid var(--border-light);padding-top:8px;margin-top:8px;">
-                <h3 style="font-size:11px;color:var(--text-dim);">Reconnect areas</h3>
+                <h3 style="font-size:11px;color:var(--text-dim);">Reconnect to different areas</h3>
                 <div class="field"><label>Area A</label>
                     <select id="way-reconn-a">${roomOptions.replace(`value="${esc(roomAName)}"`, `value="${esc(roomAName)}" selected`)}</select>
                 </div>
                 <div class="field"><label>Area B</label>
                     <select id="way-reconn-b">${roomOptions.replace(`value="${esc(roomBName)}"`, `value="${esc(roomBName)}" selected`)}</select>
                 </div>
-                <button class="btn btn-sm btn-blue" onclick="InspectorWayView._reconnectDoor('${escapedId}')" style="margin-top:4px;">🔄 Reconnect</button>
+                <button class="btn btn-sm btn-blue" onclick="InspectorWayView._reconnectWays('${escapedId}')" style="margin-top:4px;">🔄 Reconnect Ways</button>
             </div>`;
         }
 
@@ -523,13 +543,9 @@ window.InspectorWayView = (() => {
                 <button class="btn btn-sm btn-blue" @click=${() => wayView._refreshFromLibrary(nodeId)}>🔄 Refresh from Library</button>
                 <button class="btn btn-sm btn-red" @click=${() => graphManager._deleteNode(nodeId)}>🗑 Delete Way</button>
             </div>
-            ${htmlTag`<div id="known-by-mount"></div>`}
         `;
 
         InspectorPanel.render(template);
-
-        const kbMount = document.getElementById('known-by-mount');
-        if (kbMount && window.KnownBySection) kbMount.replaceWith(window.KnownBySection.build('way', nodeId, graphNode?.name || nodeId));
 
         // Init TagMultiselect for way tags (render is synchronous, so the container exists).
         const tagContainer = document.getElementById(`way-tag-multiselect-${escapedId}`);
@@ -737,7 +753,7 @@ window.InspectorWayView = (() => {
                     <div class="field"><label>Command from B → A <span class="section-hint">(go ___)</span></label>
                         <input type="text" id="way-reconn-dir2" value="${esc(roomBDir)}" style="width:100%;padding:4px 8px;font-size:12px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text);" onchange="var v=this.value,w='${escapedId}',b='${esc(roomBId)}';Promise.all([api.updateEdge(b,w,{old_type:'connection',properties:{direction:v}}),api.updateEdge(w,b,{old_type:'connection',properties:{direction:v}})]).then(()=>worldState.fetch())">
                     </div>
-                    <button class="btn btn-sm btn-blue" onclick="InspectorWayView._reconnectDoor('${escapedId}')" style="margin-top:4px;">🔄 Reconnect</button>
+                    <button class="btn btn-sm btn-blue" onclick="InspectorWayView._reconnectWays('${escapedId}')" style="margin-top:4px;">🔄 Reconnect Ways</button>
                 </div>
             </div>`;
     };

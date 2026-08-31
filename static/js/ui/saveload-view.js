@@ -62,7 +62,8 @@ window.SaveLoadView = (() => {
     }
 
     /**
-     * Upload/load a world from a user-selected JSON file.
+     * Upload/load a world from a user-selected JSON file — WITH a preview.
+     * Shows counts + sanity issues before anything touches the live world.
      * @param {Event} event - The file input change event
      */
     function uploadWorld(event) {
@@ -73,28 +74,218 @@ window.SaveLoadView = (() => {
         reader.onload = function(e) {
             try {
                 var data = JSON.parse(e.target.result);
-                data._scenario_name = scenarioName;
-                api.loadWorld(data).then(function(resp) {
-                    if (resp && resp.error) {
-                        toastError('Load failed: ' + resp.error);
-                        events.log('❌ Load failed: ' + resp.error, 'error-msg');
-                        return;
-                    }
-                    document.body.dataset.scenarioName = scenarioName;
-                    events.log('World loaded!', 'system-msg');
-                    events.clearAll();
-                    agent.reset();
-                    worldState.fetch();
-                }).catch(function(err) {
-                    toastError('Network error: ' + err.message);
-                    events.log('❌ Load network error: ' + err.message, 'error-msg');
-                });
             } catch (err) {
                 toastError('Invalid JSON: ' + err.message);
+                event.target.value = '';
+                return;
             }
+            openImportPreview(file.name, scenarioName, data);
         };
         reader.readAsText(file);
         event.target.value = '';
+    }
+
+    /**
+     * Rough counts + sanity pass over an incoming world/template dict.
+     * Never blocks — the preview is informational; Apply is undo-protected.
+     */
+    function inspectImport(data) {
+        var isTemplate = ('player' in data) && !('players' in data);
+        var areaNames = [];
+        var areas = data.areas || {};
+        Object.keys(areas).forEach(function(k) { areaNames.push(String(k)); });
+        var areaKeys = {};
+        areaNames.forEach(function(n) { areaKeys[n.toLowerCase()] = true; });
+        var roomCount = areaNames.length;
+        var itemCount = 0, wayCount = 0, playerNames = [];
+
+        function countExits(exits) {
+            var n = 0;
+            Object.keys(exits || {}).forEach(function(dir) {
+                n += 1;
+                var t = exits[dir];
+                var target = (t && typeof t === 'object') ? (t.target || '') : t;
+                if (target && !areaKeys[String(target).toLowerCase()]) {
+                    issues.push('- Exit "' + dir + '" points at missing area "' + target + '".');
+                }
+            });
+            return n;
+        }
+        var issues = [];
+
+        if (isTemplate) {
+            playerNames.push(data.player && data.player.name ? data.player.name : 'Traveler');
+            (data.characters || []).forEach(function(c) {
+                if (c && c.name) playerNames.push(c.name);
+                if (c && c.area && !areaKeys[String(c.area).toLowerCase()]) {
+                    issues.push('- Character "' + (c.name || c.area) + '" starts in missing area "' + c.area + '".');
+                }
+            });
+        } else {
+            var graph = data.graph || {};
+            Object.keys(graph.nodes || {}).forEach(function(id) {
+                var node = graph.nodes[id];
+                if (!node) return;
+                if (node.type === 'item') itemCount += 1;
+                else if (node.type === 'way') wayCount += 1;
+            });
+            Object.keys(data.players || {}).forEach(function(pname) { playerNames.push(pname); });
+        }
+        // Item counts live in areas[].items for template/hybrid files and in
+        // graph nodes for plain world-state files — count the former too.
+        Object.keys(areas).forEach(function(aname) {
+            var a = areas[aname] || {};
+            (a.items || []).forEach(function(it) {
+                itemCount += 1;
+                itemCount += (it && it.contents ? it.contents.length : 0);
+            });
+        });
+        Object.keys(areas).forEach(function(aname) {
+            wayCount += countExits((areas[aname] || {}).exits);
+        });
+        if (!isTemplate) {
+            Object.values(data.players || {}).forEach(function(p) {
+                if (p && p.current_area && !areaKeys[String(p.current_area).toLowerCase()]) {
+                    issues.push('- Player "' + p.name + '" is in missing area "' + p.current_area + '".');
+                }
+            });
+        }
+        if (!roomCount) issues.push('- No areas found — the world will be empty after load.');
+        if (!playerNames.length) issues.push('- No players found.');
+        return {
+            file: null,
+            isTemplate: isTemplate,
+            rooms: roomCount,
+            items: itemCount,
+            ways: wayCount,
+            players: playerNames,
+            issues: issues
+        };
+    }
+
+    /**
+     * Preview modal for imported worlds: counts + issues, then [Apply] / [Cancel].
+     */
+    function openImportPreview(fileName, scenarioName, data) {
+        var info = inspectImport(data);
+        info.file = fileName;
+        var overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:10000;';
+        var box = document.createElement('div');
+        box.style.cssText = 'background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:18px;width:520px;max-height:85vh;display:flex;flex-direction:column;gap:10px;';
+
+        var header = document.createElement('div');
+        header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;';
+        var title = document.createElement('h3');
+        title.style.cssText = 'margin:0;font-size:14px;';
+        title.textContent = '📂 Import Preview — ' + fileName;
+        var close = document.createElement('button');
+        close.className = 'btn btn-sm';
+        close.textContent = '\u2715';
+        close.onclick = function() { overlay.remove(); };
+        header.appendChild(title);
+        header.appendChild(close);
+        box.appendChild(header);
+
+        var counts = document.createElement('div');
+        counts.style.cssText = 'font-size:12px;';
+        counts.innerHTML =
+            '🏠 <strong>' + info.rooms + '</strong> rooms · 📦 <strong>' + info.items +
+            '</strong> items · 🚪 <strong>' + info.ways + '</strong> ways · 🧍 <strong>' +
+            info.players.length + '</strong> characters<br>' +
+            '<span style="font-size:10px;color:var(--text-muted);">' +
+            (info.isTemplate ? 'format: authoring template' : 'format: world state') +
+            ' — the current world will be replaced (↩ Undo restores it).</span>';
+        box.appendChild(counts);
+
+        var issuesBox = null;
+        if (info.issues.length) {
+            issuesBox = document.createElement('div');
+            issuesBox.style.cssText = 'font-size:11px;color:#e3b341;background:rgba(227,179,65,0.08);border:1px solid rgba(227,179,65,0.3);border-radius:8px;padding:8px;max-height:140px;overflow-y:auto;';
+            issuesBox.innerHTML = '<strong>⚠ Notes:</strong><br>' + info.issues.map(function(i) { return i.replace(/^- /, ''); }).join('<br>');
+            box.appendChild(issuesBox);
+        } else {
+            issuesBox = document.createElement('div');
+            issuesBox.style.cssText = 'font-size:11px;color:#3fb950;';
+            issuesBox.textContent = '✅ No sanity issues found.';
+            box.appendChild(issuesBox);
+        }
+
+        var players = document.createElement('div');
+        players.style.cssText = 'font-size:11px;color:var(--text-dim);max-height:80px;overflow-y:auto;';
+        players.textContent = info.players.length ? ('Characters: ' + info.players.join(', ')) : 'No characters.';
+        box.appendChild(players);
+
+        var footer = document.createElement('div');
+        footer.style.cssText = 'display:flex;justify-content:flex-end;gap:8px;';
+        var cancel = document.createElement('button');
+        cancel.className = 'btn btn-sm';
+        cancel.textContent = '✕ Cancel';
+        cancel.onclick = function() { overlay.remove(); };
+        var audit = document.createElement('button');
+        audit.className = 'btn btn-sm';
+        audit.textContent = '🔬 Deep audit';
+        audit.title = 'Run the full trigger validator on this file (server-side, no load)';
+        audit.onclick = function() {
+            audit.disabled = true;
+            audit.textContent = 'Auditing…';
+            fetch('/api/import/audit', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            }).then(function(r) { return r.json(); }).then(function(j) {
+                audit.disabled = false;
+                audit.textContent = '🔬 Deep audit';
+                if (j.error) { toastError(j.error); return; }
+                var sev = j.severities || {};
+                var parts = [];
+                if (j.count === 0) parts.push('<span style="color:#3fb950;">✅ Full audit passed — no trigger/authoring issues.</span>');
+                if (sev.error) parts.push(sev.error + ' error(s)');
+                if (sev.warning) parts.push(sev.warning + ' warning(s)');
+                if (sev.info) parts.push(sev.info + ' info note(s)');
+                var detail = (j.issues || []).slice(0, 6).map(function(i) {
+                    return (i.severity === 'error' ? '✕ ' : i.severity === 'warning' ? '⚠ ' : 'ℹ ') +
+                        String(i.message || '').slice(0, 160);
+                }).join('<br>');
+                issuesBox.innerHTML = '<strong>🔬 Deep audit:</strong> ' + (j.count === 0 ? parts[0] : parts.join(' · ')) +
+                    (detail ? '<br>' + detail : '') +
+                    (j.count > 6 ? '<br><span style="color:var(--text-muted);">…and ' + (j.count - 6) + ' more (load the world to see them in Issues).</span>' : '');
+            }).catch(function(e) {
+                audit.disabled = false;
+                audit.textContent = '🔬 Deep audit';
+                toastError('Audit failed: ' + e.message);
+            });
+        };
+        var apply = document.createElement('button');
+        apply.className = 'btn btn-sm btn-green';
+        apply.textContent = '✅ Apply (Undo protects)';
+        apply.onclick = function() {
+            overlay.remove();
+            data._scenario_name = scenarioName;
+            data.persist = true;  // GUI apply: keep the scenario file as the source
+            api.loadWorld(data).then(function(resp) {
+                if (resp && resp.error) {
+                    toastError('Load failed: ' + resp.error);
+                    events.log('❌ Load failed: ' + resp.error, 'error-msg');
+                    return;
+                }
+                document.body.dataset.scenarioName = scenarioName;
+                events.log('World loaded!', 'system-msg');
+                events.clearAll();
+                agent.reset();
+                worldState.fetch();
+            }).catch(function(err) {
+                toastError('Network error: ' + err.message);
+                events.log('❌ Load network error: ' + err.message, 'error-msg');
+            });
+        };
+        footer.appendChild(cancel);
+        footer.appendChild(audit);
+        footer.appendChild(apply);
+        box.appendChild(footer);
+
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
     }
 
     /**

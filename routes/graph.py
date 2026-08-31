@@ -4,6 +4,7 @@ from .graph_ops import (
     handle_get_graph_nodes,
     handle_get_graph_edges,
     handle_create_node,
+    handle_duplicate_node,
     handle_update_node,
     handle_upload_node_image,
     handle_move_item_node,
@@ -50,6 +51,10 @@ def register_graph_routes(app):
     @app.route('/api/graph/node/<node_id>/rename', methods=['POST'])
     def rename_node(node_id):
         return handle_rename_node(app, node_id)
+
+    @app.route('/api/graph/duplicate', methods=['POST'])
+    def duplicate_node():
+        return handle_duplicate_node(app)
 
     @app.route('/api/graph/node/<node_id>', methods=['DELETE'])
     def delete_node(node_id):

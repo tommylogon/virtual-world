@@ -35,6 +35,7 @@ class ConfigManager {
         this.graphGravitationalConstant = parseInt(await storage.getConfig('graph_gravitational_constant')) || -40;
         this.graphDamping = parseFloat(await storage.getConfig('graph_damping')) || 0.4;
         this.graphSpringConstant = parseFloat(await storage.getConfig('graph_spring_constant')) || 0.02;
+        this.graphItemEdgeLength = parseInt(await storage.getConfig('graph_item_edge_length')) || 60;
         this.graphSolver = await storage.getConfig('graph_solver') || 'forceAtlas2Based';
         this.graphEdgeWidth = parseInt(await storage.getConfig('graph_edge_width')) || 1;
         this.graphArrows = (await storage.getConfig('graph_arrows')) !== 'false';
@@ -132,6 +133,7 @@ class ConfigManager {
         await storage.setConfig('graph_gravitational_constant', String(this.graphGravitationalConstant));
         await storage.setConfig('graph_damping', String(this.graphDamping));
         await storage.setConfig('graph_spring_constant', String(this.graphSpringConstant));
+        await storage.setConfig('graph_item_edge_length', String(this.graphItemEdgeLength));
         await storage.setConfig('graph_solver', this.graphSolver);
         await storage.setConfig('graph_edge_width', String(this.graphEdgeWidth));
         await storage.setConfig('graph_arrows', this.graphArrows ? 'true' : 'false');

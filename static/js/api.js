@@ -173,6 +173,18 @@ class ApiClient {
         return resp.ok;
     }
 
+    /** Duplicate an area / item / way / character — one atomic write on the
+     *  backend. `includeChildren=false` clones only the node (+ triggers),
+     *  skipping its attached items. */
+    static async duplicateNode(nodeId, includeChildren = true) {
+        const resp = await fetch('/api/graph/duplicate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ node_id: nodeId, include_children: !!includeChildren })
+        });
+        return resp.json();
+    }
+
     static async uploadNodeImage(nodeId, file) {
         const form = new FormData();
         form.append('file', file);
@@ -331,7 +343,8 @@ class ApiClient {
         return this.post(`/api/library/import/way/${encodeURIComponent(wayId)}`, options);
     }
 
-    static async reconnectDoor(wayId, roomA, roomB, dirA = '', dirB = '') {
+    /** Reconnect a way to another pair of areas (POST /api/graph/way/reconnect). */
+    static async reconnectWays(wayId, roomA, roomB, dirA = '', dirB = '') {
         return this.post('/api/graph/way/reconnect', { way_id: wayId, area_a: roomA, area_b: roomB, dir_a: dirA, dir_b: dirB });
     }
 

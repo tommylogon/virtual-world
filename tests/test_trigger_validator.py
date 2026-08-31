@@ -393,6 +393,30 @@ class TestMechanicalTagWarnings:
                                         "current_state": "on"}))
         assert not [i for i in validator.validate() if i["code"] == "mechanical_tag_missing_props"]
 
+    def test_engine_defaulted_prop_is_info_not_warning(self, graph, validator):
+        """light_source without light_level still works (engine defaults to
+        'dim') — the issue is an authoring nudge, not a broken tag."""
+        graph.add_node(Node(id="item_stone", type="item", name="Light Stone",
+                            properties={"tags": ["light_source"]}))
+        issue = only(validator.validate(), "mechanical_tag_missing_props")
+        assert issue["severity"] == "info"
+        assert "'dim' default" in issue["message"]
+        assert "can't apply" not in issue["message"]
+
+    def test_heat_source_defaulted_props_are_info(self, graph, validator):
+        graph.add_node(Node(id="item_fire", type="item", name="Fire",
+                            properties={"tags": ["heat_source"]}))
+        issues = [i for i in validator.validate() if i["code"] == "mechanical_tag_missing_props"]
+        assert issues and all(i["severity"] == "info" for i in issues)
+
+    def test_no_default_prop_stays_warning(self, graph, validator):
+        """weapon→damage has no engine fallback — still a hard warning."""
+        graph.add_node(Node(id="item_sword", type="item", name="Sword",
+                            properties={"tags": ["weapon"]}))
+        issue = only(validator.validate(), "mechanical_tag_missing_props")
+        assert issue["severity"] == "warning"
+        assert "can't apply" in issue["message"]
+
 
 class TestLibrarySyncWarnings:
     def test_library_entry_missing(self, graph, validator):

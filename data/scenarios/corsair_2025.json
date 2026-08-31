@@ -141,7 +141,8 @@
           "text": "The Corsair dropped out of quantum mid-jump. Emergency klaxons, then silence. The rest of the crew is gone. I need to restore power, figure out what happened, and get off this moon.",
           "tick": 0,
           "timestamp": 0,
-          "type": "observation"
+          "type": "observation",
+          "entity_ids": []
         }
       ],
       "memory": {},
@@ -231,7 +232,8 @@
           "text": "I tagged along on this ship because I was bored and the pay was good. Now the crew is gone and I'm stuck on a dead ship with a stranger. My phone is at 52% and I'm trying not to panic.",
           "tick": 0,
           "timestamp": 0,
-          "type": "observation"
+          "type": "observation",
+          "entity_ids": []
         }
       ],
       "memory": {},
@@ -1451,7 +1453,8 @@
           "actions": [
             "examine",
             "take",
-            "use"
+            "use",
+            "drop"
           ],
           "uses": 1,
           "weight": 0.1,
@@ -1585,7 +1588,8 @@
           "actions": [
             "examine",
             "take",
-            "use"
+            "use",
+            "drop"
           ],
           "uses": 1,
           "weight": 2,
@@ -1620,7 +1624,8 @@
           "actions": [
             "examine",
             "take",
-            "use"
+            "use",
+            "drop"
           ],
           "uses": 1,
           "weight": 0.2,
@@ -1666,7 +1671,8 @@
           "actions": [
             "examine",
             "take",
-            "use"
+            "use",
+            "drop"
           ],
           "uses": 5,
           "weight": 0.2,
@@ -1696,7 +1702,8 @@
           "actions": [
             "examine",
             "take",
-            "use"
+            "use",
+            "drop"
           ],
           "uses": 6,
           "weight": 0.3,
@@ -1813,7 +1820,8 @@
           "actions": [
             "examine",
             "take",
-            "use"
+            "use",
+            "drop"
           ],
           "uses": 1,
           "weight": 0.15,
@@ -1897,7 +1905,8 @@
           "actions": [
             "examine",
             "take",
-            "use"
+            "use",
+            "drop"
           ],
           "uses": 2,
           "weight": 0.4,
@@ -1981,7 +1990,8 @@
           "actions": [
             "examine",
             "take",
-            "use"
+            "use",
+            "drop"
           ],
           "uses": 3,
           "weight": 0.2,
@@ -2011,7 +2021,8 @@
           "actions": [
             "examine",
             "take",
-            "use"
+            "use",
+            "drop"
           ],
           "uses": 3,
           "weight": 0.5,
@@ -3592,5 +3603,6 @@
         }
       }
     ]
-  }
+  },
+  "_scenario_name": "corsair_2025"
 }

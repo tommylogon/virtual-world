@@ -82,6 +82,10 @@ class ExecutionMixin:
         * ``{variable_name}`` — direct lookup in the context dict.
         * ``{param:<key>}`` — lookup in ``context['item_params']``.
         * ``{prop:<key>}`` — lookup in ``context['item_properties']``.
+        * ``{uses}`` / ``{weight}`` / ``{current_state}`` / ``{name}`` —
+          from the triggering item node (task-200 template params).
+        * ``{vital:<Stat>}`` — current vital value of the acting player,
+          e.g. ``{vital:Thirst}`` (vitals readout templating).
 
         Unrecognised variables are left unchanged.
         """
@@ -101,6 +105,33 @@ class ExecutionMixin:
                 lambda m: str(item_params.get(m.group(1), m.group(0))),
                 text,
             )
+        # Item-node template params (task-200).
+        item_node = context.get("item_node")
+        if item_node is not None:
+            node_props = getattr(item_node, "properties", None) or {}
+            for key in ("uses", "weight", "current_state", "name"):
+                token = "{" + key + "}"
+                if token in text and key not in context:
+                    value = node_props.get(key, "")
+                    text = text.replace(token, str(value) if value != "" else token)
+        # Vital readout templating (task-297: {vital:Thirst} etc.).
+        if "{vital:" in text:
+            def _vital_repl(match):
+                stat = match.group(1)
+                player = context.get("player")
+                gs = context.get("game_state")
+                if player is None and gs is not None:
+                    player = getattr(gs, "player", None)
+                    if player is None:
+                        active = getattr(gs, "active_player", None)
+                        players = getattr(gs, "players", None) or {}
+                        player = players.get(active) if active else None
+                if player is not None:
+                    value = getattr(player, "vitals", {}).get(stat)
+                    if value is not None:
+                        return str(value)
+                return match.group(0)
+            text = re.sub(r"\{vital:(\w+)\}", _vital_repl, text)
         for key, value in context.items():
             if key in ("item_params", "item_properties"):
                 continue

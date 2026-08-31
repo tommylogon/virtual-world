@@ -11,6 +11,15 @@ from engine.item_actions import normalize_item_actions
 from engine.beyond_visibility import normalize_visible_items
 
 
+def _normalize_str_list(value):
+    """Accept a comma-separated string or a list; return a clean string list."""
+    if isinstance(value, str):
+        return [v.strip() for v in value.split(",") if v.strip()]
+    if isinstance(value, (list, tuple)):
+        return [str(v) for v in value if str(v).strip()]
+    return []
+
+
 def _connection_edge_props(direction, exit_data):
     """Build area->way edge properties from scenario exit data."""
     if not isinstance(exit_data, dict):
@@ -151,7 +160,14 @@ class TemplateLoader:
                     "effect_amount": item_data.get("effect_amount", 0),
                     "contents": item_data.get("contents", []),
                     "aliases": item_data.get("aliases", []),
+                    "tags": _normalize_str_list(item_data.get("tags", [])),
                 }
+                # Mechanical props the engine reads, when the draft carries them
+                # (light_source→light_level, heat_source→target/heating, ...).
+                for _prop in ("light_level", "target_temperature", "heating_rate",
+                              "sound_level", "sound_pattern"):
+                    if _prop in item_data:
+                        props[_prop] = item_data[_prop]
                 existing = self.graph.get_node(node_id)
                 if existing:
                     existing.properties.update(props)
@@ -228,6 +244,27 @@ class TemplateLoader:
         area_node_id = self.player_manager.area_node_id(start_area)
         if self.graph.get_node(player_node_id) and self.graph.get_node(area_node_id):
             self.graph.add_edge(Edge(source=player_node_id, target=area_node_id, type=EDGE_IN))
+
+        # Supporting cast (scenario-from-text): extra players beyond the
+        # protagonist, each optionally rooted in a room of their own. The
+        # protagonist stays active even when the cast list declares someone
+        # last in the roster.
+        for char_data in data.get("characters", []) or []:
+            if not isinstance(char_data, dict):
+                continue
+            cname = str(char_data.get("name", "")).strip()
+            if not cname or cname in self.player_manager.players:
+                continue
+            c = Player(cname)
+            c.description = str(char_data.get("description", "") or "")
+            c.base_description = str(char_data.get("base_description") or c.description)
+            c.personality = str(char_data.get("personality", "") or "")
+            c.tags = _normalize_str_list(char_data.get("tags"))
+            c.stats = {**c.stats, **(char_data.get("stats") or {})}
+            c.skills = {**c.skills, **(char_data.get("skills") or {})}
+            c.current_area = str(char_data.get("area") or char_data.get("current_area") or start_area)
+            self.player_manager.add_player(c)
+        self.player_manager.active_player = p.name
 
         self.legacy._create_locked_with_unlocks()
         self.legacy.world_lore = data.get("world_lore", [])

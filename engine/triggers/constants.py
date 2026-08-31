@@ -74,4 +74,8 @@ EFFECT_TYPES = [
     "suppress_memory",
     "unblock_memory",
     "schedule_trigger",
+    "spawn_way",
+    "spawn_area",
+    "set_way_target",
+    "set_way_view",
 ]

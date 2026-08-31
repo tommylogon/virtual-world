@@ -90,13 +90,10 @@ window.InspectorItemView = (() => {
             ${window.InspectorTriggers.buildTriggersHtml(nodeId, locked)}
             ${window.InspectorTriggers.buildContentsHtml(nodeId)}
             ${IV._renderMoveSection(nodeId)}
-            <div id="known-by-mount"></div>
             ${IV._renderFooter(nodeId)}
         `;
 
         InspectorPanel.render(template);
-        const kbMount = document.getElementById('known-by-mount');
-        if (kbMount && window.KnownBySection) kbMount.replaceWith(window.KnownBySection.build('item', nodeId, name));
         IV._populateLibraryTemplate(nodeId);
         IV._initMoveTargetSearch();
 
@@ -109,8 +106,18 @@ window.InspectorItemView = (() => {
                 allowNew: true,
                 placeholder: 'Search or create tags...',
                 onChange: (newTags) => {
-                    api.updateNode(nodeId, { properties: { tags: newTags } }).then(() => worldState.fetch());
+                    // Auto-stamp engine defaults when a mechanical tag lands
+                    // on an item that doesn't carry its values yet — keeps
+                    // the data honest and the validator quiet.
+                    const props = worldState.getNode(nodeId)?.properties || {};
+                    const update = { tags: newTags };
                     const t = newTags || [];
+                    if (t.includes('light_source') && !props.light_level) update.light_level = 'dim';
+                    if (t.includes('heat_source')) {
+                        if (!props.target_temperature) update.target_temperature = 30;
+                        if (!props.heating_rate) update.heating_rate = 0.5;
+                    }
+                    api.updateNode(nodeId, { properties: update }).then(() => worldState.fetch());
                     const dEl = document.getElementById(`insp-equip-defense-${nodeId}`);
                     const wEl = document.getElementById(`insp-equip-weapon-${nodeId}`);
                     const tEl = document.getElementById(`insp-equip-temp-${nodeId}`);
@@ -280,8 +287,9 @@ window.InspectorItemView = (() => {
             <div id="insp-light-source-${nodeId}" style="display:${showLightSource ? 'block' : 'none'};margin-top:4px;">
                 <div class="field"><label>Light Level</label>
                     <select @change=${(ev) => IV._updateLightLevel(nodeId, ev.target.value)} style="width:100%;font-size:11px;">
+                        <option value="" ?selected=${!props.light_level}>— unset (engine uses Dim) —</option>
                         <option value="pitch_black" ?selected=${props.light_level === 'pitch_black'}>Pitch Black</option>
-                        <option value="dim" ?selected=${!props.light_level || props.light_level === 'dim'}>Dim</option>
+                        <option value="dim" ?selected=${props.light_level === 'dim'}>Dim</option>
                         <option value="normal" ?selected=${props.light_level === 'normal'}>Normal</option>
                         <option value="bright" ?selected=${props.light_level === 'bright'}>Bright</option>
                         <option value="blinding" ?selected=${props.light_level === 'blinding'}>Blinding</option>
@@ -290,10 +298,10 @@ window.InspectorItemView = (() => {
             </div>
             <div id="insp-heat-source-${nodeId}" style="display:${showHeatSource ? 'block' : 'none'};margin-top:4px;">
                 <div class="field"><label>Target Temperature (°C)</label>
-                    <input type="number" .value=${props.target_temperature ?? 30} step="1" placeholder="target temp" @change=${(ev) => IV._updateHeatSourceProp(nodeId, 'target_temperature', ev.target.value)} style="width:100%;font-size:11px;">
+                    <input type="number" .value=${props.target_temperature ?? ''} step="1" placeholder="30 (engine default)" @change=${(ev) => IV._updateHeatSourceProp(nodeId, 'target_temperature', ev.target.value)} style="width:100%;font-size:11px;">
                 </div>
                 <div class="field" style="margin-top:4px;"><label>Heating Rate (°C/tick)</label>
-                    <input type="number" .value=${props.heating_rate ?? 0.5} step="0.1" placeholder="degrees per tick" @change=${(ev) => IV._updateHeatSourceProp(nodeId, 'heating_rate', ev.target.value)} style="width:100%;font-size:11px;">
+                    <input type="number" .value=${props.heating_rate ?? ''} step="0.1" placeholder="0.5 (engine default)" @change=${(ev) => IV._updateHeatSourceProp(nodeId, 'heating_rate', ev.target.value)} style="width:100%;font-size:11px;">
                 </div>
             </div>
             <div id="insp-container-capacity-${nodeId}" style="display:${tags.includes('container') ? 'block' : 'none'};margin-top:4px;">
@@ -455,6 +463,7 @@ IV._renderFooter = function(nodeId) {
             </select>
             <button class="btn btn-sm btn-green" @click=${() => IV._refreshFromLibrary(nodeId)}>🔄 Refresh from Library</button>
             <button class="btn btn-sm btn-yellow" @click=${() => itemLib.saveWorldItem(nodeId)}>📚 Save to Library</button>
+            <button class="btn btn-sm btn-blue" @click=${() => graphManager._duplicateNode(nodeId)} title="Duplicate this item (with contents + triggers)" style="font-size:10px;">📋 Duplicate</button>
             <button class="btn btn-sm btn-red" @click=${() => graphManager._deleteNode(nodeId)}>🗑 Delete</button>
         </div>`;
     };
@@ -597,7 +606,7 @@ IV._renderFooter = function(nodeId) {
      * @param {string} val - Input value
      */
     IV._updateLightLevel = async function(nodeId, val) {
-        await api.updateNode(nodeId, { properties: { light_level: val } });
+        await api.updateNode(nodeId, { properties: { light_level: val || null } });
         worldState.fetch();
     };
 

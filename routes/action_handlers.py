@@ -117,6 +117,7 @@ def handle_get_state(app):
         return jsonify(state)
     except Exception as e:
         logger.exception("Error in /api/state")
+        return jsonify({"error": str(e)}), 500
 
 
 def handle_autocomplete(app):

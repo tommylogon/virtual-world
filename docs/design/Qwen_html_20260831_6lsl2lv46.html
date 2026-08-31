@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Item Studio v3</title>
+<style>
+  :root{
+    --bg:#0b0d12; --surface:#121522; --surface-2:#171b2a; --surface-3:#1c2133;
+    --inset:#0d1018; --border:#262c3f; --border-strong:#3a4157;
+    --text:#edf0ff; --muted:#98a0bb; --dim:#6b7390;
+    --purple:#8b5cf6; --purple-soft:rgba(139,92,246,.16); --purple-line:rgba(139,92,246,.4);
+    --green:#34d399; --green-soft:rgba(52,211,153,.12);
+    --amber:#fbbf24; --amber-soft:rgba(251,191,36,.1);
+    --orange:#fb923c; --cyan:#22d3ee; --cyan-soft:rgba(34,211,238,.1);
+    --red:#fb7185;
+    --radius:16px; --shadow:0 24px 64px rgba(0,0,0,.5);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:radial-gradient(circle at 12% 0%,#1b1035 0%,transparent 45%),
+               radial-gradient(circle at 90% 100%,#101a35 0%,transparent 40%),var(--bg);
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    color:var(--text);padding:36px 20px 80px;min-height:100vh;
+  }
+  .wrap{max-width:1240px;margin:0 auto}
+  .wrap>.eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--purple);font-weight:700}
+  .wrap>h1{margin:6px 0 4px;font-size:28px;letter-spacing:-.02em}
+  .wrap>p.sub{margin:0 0 24px;color:var(--muted);font-size:14px;max-width:720px}
+
+  .studio{
+    background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.015)),var(--surface);
+    border:1px solid rgba(255,255,255,.08);border-radius:22px;box-shadow:var(--shadow);overflow:hidden;
+  }
+
+  /* header */
+  .s-top{display:flex;align-items:flex-start;gap:14px;padding:18px 20px;border-bottom:1px solid var(--border);
+    background:linear-gradient(180deg,rgba(139,92,246,.08),transparent)}
+  .s-top .icon{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:22px;
+    background:var(--purple-soft);border:1px solid var(--purple-line);box-shadow:0 8px 20px rgba(139,92,246,.2);flex:0 0 auto}
+  .s-top h2{margin:0;font-size:18px}
+  .s-top .sub{font-size:12px;color:var(--muted);margin-top:2px}
+  .s-top .right{margin-left:auto;display:flex;align-items:center;gap:10px}
+  .tmpl{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  .tmpl button{padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surface-2);
+    color:var(--muted);font-size:11px;cursor:pointer}
+  .tmpl button.on{color:#fff;background:var(--purple-soft);border-color:var(--purple-line)}
+  .icon-btn{width:34px;height:34px;border-radius:11px;border:1px solid var(--border);background:var(--surface-2);
+    color:var(--muted);cursor:pointer;flex:0 0 auto}
+
+  /* ai bar */
+  .ai-bar{display:flex;gap:8px;align-items:center;padding:12px 20px;border-bottom:1px solid var(--border);background:rgba(139,92,246,.05)}
+  .ai-input{flex:1;display:flex;align-items:center;gap:8px;background:var(--inset);border:1px solid var(--border);
+    border-radius:12px;padding:0 12px}
+  .ai-input input{flex:1;height:42px;background:transparent;border:0;outline:none;color:var(--text);font-size:12.5px}
+  .switch{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);white-space:nowrap}
+  .switch input{appearance:none;width:38px;height:22px;background:#20263a;border-radius:999px;position:relative;
+    outline:none;border:1px solid var(--border);cursor:pointer;transition:.2s;flex:0 0 auto}
+  .switch input:before{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#98a0bb;top:2px;left:2px;transition:.2s}
+  .switch input:checked{background:rgba(139,92,246,.4);border-color:var(--purple-line)}
+  .switch input:checked:before{left:18px;background:#fff}
+
+  /* body 3-col */
+  .s-body{display:grid;grid-template-columns:210px minmax(0,1fr) 320px;min-height:0}
+  .s-nav{padding:14px;border-right:1px solid var(--border);background:rgba(255,255,255,.015)}
+  .s-nav .nlbl{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--dim);margin:14px 8px 8px}
+  .s-nav .nlbl:first-child{margin-top:0}
+  .s-nav a{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:11px;color:var(--muted);
+    text-decoration:none;font-size:12.5px;border:1px solid transparent;margin-bottom:3px}
+  .s-nav a:hover{color:var(--text)}
+  .s-nav a.on{background:var(--purple-soft);color:#fff;border-color:rgba(139,92,246,.25)}
+  .s-nav .badge{margin-left:auto;background:#22263a;color:var(--dim);border-radius:999px;padding:1px 7px;font-size:9px}
+  .s-nav .tip{margin:16px 8px;padding:11px;border-radius:13px;background:var(--surface);border:1px solid var(--border);
+    color:var(--muted);font-size:11px;line-height:1.5}
+
+  .s-main{padding:18px;overflow:auto;display:grid;gap:16px;align-content:start;min-width:0}
+  .panel{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+  .p-head{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+  .p-head .t{font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px}
+  .p-head .hint{margin-left:auto;font-size:10.5px;color:var(--dim)}
+
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .field label{display:block;font-size:10.5px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+  .input,select.input,textarea.input{width:100%;background:var(--inset);border:1px solid var(--border);border-radius:11px;
+    padding:9px 12px;font-size:13px;color:var(--text);outline:none}
+  .input:focus{border-color:var(--purple-line);box-shadow:0 0 0 3px rgba(139,92,246,.12)}
+  textarea.input{resize:vertical}
+
+  .icon-picker{display:flex;gap:8px;flex-wrap:wrap}
+  .icon-choice{width:42px;height:42px;font-size:18px;border-radius:12px;border:1px solid var(--border);
+    background:var(--inset);color:var(--text);cursor:pointer}
+  .icon-choice.on{border-color:var(--purple-line);background:var(--purple-soft)}
+
+  /* segmented */
+  .segmented{display:inline-flex;gap:4px;padding:4px;border-radius:12px;background:var(--inset);border:1px solid var(--border);margin-bottom:12px}
+  .segmented label{position:relative}
+  .segmented input{position:absolute;opacity:0;pointer-events:none}
+  .segmented span{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:9px;font-size:12px;color:var(--muted);cursor:pointer}
+  .segmented input:checked + span{background:var(--purple-soft);color:#fff;box-shadow:inset 0 0 0 1px rgba(139,92,246,.22)}
+
+  .target-card{display:flex;align-items:center;gap:12px;padding:12px;border-radius:13px;margin:12px 0;
+    background:linear-gradient(180deg,rgba(139,92,246,.08),rgba(139,92,246,.03));border:1px solid rgba(139,92,246,.25)}
+  .target-card .thumb{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:18px;
+    background:#241a3f;border:1px solid rgba(139,92,246,.22);flex:0 0 auto}
+  .target-card .meta{min-width:0}
+  .target-card strong{display:block;font-size:13px}
+  .target-card .muted{font-size:11px;color:var(--dim)}
+  .target-card .acts{margin-left:auto;display:flex;gap:6px}
+
+  /* universal stats */
+  .universal{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .stat{background:var(--inset);border:1px solid var(--border);border-radius:13px;padding:12px 13px}
+  .stat label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.07em}
+  .stat input,.stat select{width:100%;margin-top:8px;background:transparent;border:0;outline:none;color:var(--text);
+    font-size:20px;font-weight:700;padding:0}
+  .stat select{font-size:14px;font-weight:600}
+  .stat select option{color:#111}
+
+  /* mechanics chips */
+  .mech-row{display:flex;flex-wrap:wrap;gap:8px}
+  .mech-chip{position:relative}
+  .mech-chip input{position:absolute;opacity:0;pointer-events:none}
+  .mech-chip span{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:999px;
+    border:1px solid var(--border);background:var(--inset);color:var(--muted);font-size:12px;cursor:pointer;user-select:none;transition:.15s}
+  .mech-chip input:checked + span{background:var(--purple-soft);border-color:var(--purple-line);color:#fff;
+    box-shadow:0 4px 14px rgba(139,92,246,.18)}
+  .mech-summary{margin-top:12px;font-size:11px;color:var(--dim)}
+  .mech-summary b{color:var(--purple)}
+
+  /* conditional cards */
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:14px}
+  .prop-card{display:none;flex-direction:column;gap:10px;background:var(--surface-3);border:1px solid var(--border-strong);
+    border-radius:14px;padding:13px 14px}
+  .prop-card.show{display:flex;animation:pop .22s ease}
+  @keyframes pop{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
+  .prop-card .c-head{display:flex;align-items:center;gap:8px}
+  .prop-card .c-head .ci{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:14px;
+    background:var(--purple-soft);border:1px solid var(--purple-line);flex:0 0 auto}
+  .prop-card .c-head .cn{font-size:12px;font-weight:700}
+  .prop-card .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .prop-card .hint{font-size:10px;color:var(--dim);line-height:1.4}
+
+  /* action chips */
+  .group-lbl{font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin:10px 0 6px}
+  .group-lbl:first-child{margin-top:0}
+  .chip-grid{display:flex;flex-wrap:wrap;gap:7px}
+  .toggle-chip{position:relative}
+  .toggle-chip input{position:absolute;opacity:0;pointer-events:none}
+  .toggle-chip span{display:inline-flex;align-items:center;gap:5px;padding:7px 11px;border-radius:999px;
+    border:1px solid var(--border);background:var(--inset);color:var(--muted);font-size:11.5px;cursor:pointer}
+  .toggle-chip input:checked + span{background:var(--green-soft);border-color:rgba(52,211,153,.35);color:#d1fae5}
+
+  /* gated sections */
+  .conditional{display:none}
+  .conditional.show{display:block;animation:pop .25s ease}
+
+  /* paperdoll */
+  .equip-grid{display:grid;grid-template-columns:250px minmax(0,1fr);gap:18px;align-items:start}
+  .mannequin{position:relative;width:250px;height:330px;border-radius:18px;
+    background:radial-gradient(circle at 50% 20%,rgba(139,92,246,.14),transparent 45%),var(--inset);
+    border:1px solid var(--border);overflow:hidden}
+  .mn{position:absolute;background:rgba(139,92,246,.07);border:1px solid rgba(139,92,246,.16);border-radius:18px}
+  .mn-head{width:48px;height:48px;border-radius:50%;left:50%;top:8px;transform:translateX(-50%)}
+  .mn-torso{width:92px;height:118px;left:50%;top:64px;transform:translateX(-50%);border-radius:26px}
+  .mn-arm{width:22px;height:104px;top:68px;border-radius:14px}
+  .mn-arm.l{left:34px;transform:rotate(9deg)} .mn-arm.r{right:34px;transform:rotate(-9deg)}
+  .mn-leg{width:27px;height:118px;top:186px;border-radius:16px}
+  .mn-leg.l{left:calc(50% - 34px)} .mn-leg.r{right:calc(50% - 34px)}
+  .slot-node{position:absolute;transform:translate(-50%,-50%);padding:5px 9px;border-radius:999px;
+    background:#111624;border:1px solid var(--border);color:var(--muted);font-size:9.5px;font-weight:600;
+    cursor:pointer;white-space:nowrap;transition:.15s;box-shadow:0 6px 16px rgba(0,0,0,.3)}
+  .slot-node:hover{border-color:var(--border-strong);color:var(--text)}
+  .slot-node.active{background:var(--purple-soft);border-color:var(--purple-line);color:#fff;
+    box-shadow:0 0 0 3px rgba(139,92,246,.12),0 8px 18px rgba(139,92,246,.28)}
+  .two-hand-note{display:none;margin-top:10px;font-size:11px;color:var(--amber);background:var(--amber-soft);
+    border:1px solid rgba(251,191,36,.3);border-radius:10px;padding:8px 10px}
+  .two-hand-note.show{display:block}
+
+  /* contents editor */
+  .content-row{display:grid;grid-template-columns:34px minmax(0,1.3fr) minmax(0,.8fr) 90px 30px;gap:8px;
+    align-items:center;padding:8px;border:1px solid var(--border);border-radius:12px;background:var(--inset);margin-bottom:8px}
+  .content-row .ct{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:#241a3f}
+  .content-row input,.content-row select{background:transparent;border:0;outline:none;color:var(--text);font-size:12px;width:100%}
+  .content-row select{color:var(--muted)}
+
+  /* tags */
+  .tag-box{display:flex;flex-wrap:wrap;gap:7px;align-items:center;padding:10px;background:var(--inset);
+    border:1px solid var(--border);border-radius:12px;min-height:46px}
+  .tag{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:#1c2235;
+    border:1px solid var(--border);font-size:11.5px}
+  .tag.auto{background:var(--purple-soft);border-color:var(--purple-line);color:#e9e4ff}
+  .tag button{background:transparent;border:0;color:var(--muted);cursor:pointer;padding:0}
+  .tag-input{flex:1;min-width:120px;border:0;outline:none;background:transparent;color:var(--text);font-size:12px}
+
+  /* triggers (link-out) */
+  .trig-card{display:flex;align-items:center;gap:9px;background:var(--inset);border:1px solid var(--border);
+    border-radius:11px;padding:9px 11px;margin-bottom:8px}
+  .trig-type{font-size:11px;font-weight:700;color:var(--cyan);background:var(--cyan-soft);border:1px solid rgba(34,211,238,.3);
+    padding:3px 8px;border-radius:8px;white-space:nowrap}
+  .trig-arrow{color:var(--dim);font-size:11px}
+  .trig-eff{font-size:12px;color:var(--text)}
+  .trig-edit{margin-left:auto;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);
+    font-size:11px;padding:4px 8px;cursor:pointer}
+  .trig-edit:hover{color:#fff;border-color:var(--border-strong)}
+
+  /* buttons */
+  .btn{border:1px solid var(--border);background:var(--surface-2);color:var(--text);border-radius:11px;
+    padding:9px 13px;font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s}
+  .btn:hover{transform:translateY(-1px);border-color:var(--border-strong)}
+  .btn.primary{background:linear-gradient(135deg,#7c3aed,#a855f7);border-color:transparent;color:#fff}
+  .btn.green{background:linear-gradient(135deg,#059669,#34d399);border-color:transparent;color:#04110b}
+  .btn.ghost{background:transparent}
+  .btn.sm{padding:6px 10px;font-size:11px;border-radius:9px}
+  .btn.dashed{border:1px dashed var(--border-strong);background:transparent;color:var(--muted)}
+  .btn.dashed:hover{color:#fff;border-color:var(--purple-line);background:var(--purple-soft)}
+
+  /* preview */
+  .s-preview{border-left:1px solid var(--border);padding:16px;background:rgba(255,255,255,.015);display:grid;gap:14px;
+    align-content:start;overflow:auto;min-width:0}
+  .plabel{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--dim)}
+  .game-card{background:linear-gradient(180deg,rgba(139,92,246,.10),transparent 26%),linear-gradient(180deg,#1a1f31,#121522);
+    border:1px solid rgba(139,92,246,.28);border-radius:18px;padding:16px}
+  .gc-head{display:flex;gap:11px;align-items:flex-start;margin-bottom:10px}
+  .gc-head .icon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:20px;
+    background:rgba(139,92,246,.16);border:1px solid rgba(139,92,246,.25);flex:0 0 auto}
+  .gc-name{font-size:15px;font-weight:800}
+  .gc-kind{font-size:11px;color:var(--muted);margin-top:1px}
+  .game-card p{margin:0;font-size:12.5px;line-height:1.55;color:#cfd6f0}
+  .gc-stats{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .gc-stat{font-size:11px;padding:5px 9px;border-radius:999px;background:#20263a;border:1px solid var(--border);white-space:nowrap}
+  .assistant{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:13px}
+  .assistant .at{font-size:12px;font-weight:700;margin-bottom:9px;display:flex;align-items:center;gap:6px}
+  .assistant .ai-item{padding:8px 10px;border-radius:11px;background:var(--inset);border:1px solid var(--border);
+    color:var(--muted);font-size:11.5px;line-height:1.45;margin-bottom:7px}
+  .assistant .ai-item.warn{border-color:rgba(251,191,36,.28);background:rgba(251,191,36,.06)}
+  .json-card{background:#0a0d13;border:1px solid var(--border);border-radius:14px;padding:12px;overflow:auto}
+  .json-card pre{margin:0;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;line-height:1.5;color:#d7e0ff;white-space:pre-wrap}
+
+  /* footer */
+  .s-foot{display:flex;align-items:center;gap:8px;padding:14px 20px;border-top:1px solid var(--border);background:rgba(0,0,0,.12)}
+  .s-foot .spacer{flex:1}
+  .valid{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}
+  .valid .ok{color:var(--green)} .valid .warn{color:var(--amber)}
+
+  @media (max-width:1000px){
+    .s-body{grid-template-columns:1fr}
+    .s-nav,.s-preview{display:none}
+    .equip-grid{grid-template-columns:1fr}
+    .universal{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="eyebrow">VirtualWorld Engine · Item Studio</div>
+    <h1>Item Studio v3 — properties follow the tags</h1>
+    <p class="sub">The full studio, restored. Universal stuff (weight / uses / state) is always there. Everything mechanical — damage, defense, insulation, light — only appears when its chip is on. Triggers are authored in the Trigger Editor, not here.</p>
+
+    <div class="studio">
+
+      <!-- HEADER -->
+      <div class="s-top">
+        <div class="icon">🧥</div>
+        <div>
+          <h2>Item Studio</h2>
+          <div class="sub">Heavy Fur-Lined Coat · loaded from library</div>
+        </div>
+        <div class="right">
+          <div class="tmpl">
+            <button>🧰 Blank</button><button>🔦 Light</button><button class="on">🧥 Clothing</button>
+            <button>⚔️ Weapon</button><button>🪑 Furniture</button><button>🍎 Consumable</button>
+          </div>
+          <button class="icon-btn">✕</button>
+        </div>
+      </div>
+
+      <!-- AI BAR -->
+      <div class="ai-bar">
+        <div class="ai-input">🤖 <input value="A weathered fur-lined coat with hidden pockets, warm enough for the cold." /></div>
+        <button class="btn primary">Generate Draft</button>
+        <button class="btn ghost">Preview</button>
+        <label class="switch"><input type="checkbox" checked><span>🧠 Context</span></label>
+      </div>
+
+      <div class="s-body">
+
+        <!-- NAV -->
+        <aside class="s-nav">
+          <div class="nlbl">Builder</div>
+          <a class="on" href="#identity">🪪 Identity</a>
+          <a href="#placement">📍 Placement</a>
+          <a href="#what">🧩 What is it?</a>
+          <a href="#physical">⚙️ Physical</a>
+          <a href="#actions">✅ Actions</a>
+          <a href="#equipment">🧍 Equipment</a>
+          <a href="#container">📦 Container</a>
+          <a href="#tags">🏷️ Tags</a>
+          <div class="nlbl">Behavior</div>
+          <a href="#triggers">⚡ Triggers <span class="badge">2</span></a>
+          <a href="#advanced">🧬 Advanced</a>
+          <div class="tip"><strong>Tip</strong><br />Flip on a mechanic chip and its fields appear below. Triggers open in the Trigger Editor.</div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="s-main">
+
+          <!-- Identity -->
+          <section class="panel" id="identity">
+            <div class="p-head"><span class="t">🪪 Identity</span><span class="hint">what the player reads first</span></div>
+            <div class="grid-2">
+              <div class="field"><label>Name</label><input class="input" value="Heavy Fur-Lined Coat"></div>
+              <div class="field"><label>Icon</label>
+                <div class="icon-picker">
+                  <button class="icon-choice on">🧥</button><button class="icon-choice">🔦</button>
+                  <button class="icon-choice">🗡️</button><button class="icon-choice">📦</button>
+                  <button class="icon-choice">🕯️</button><button class="icon-choice">🧰</button>
+                </div>
+              </div>
+            </div>
+            <div class="field" style="margin-top:12px"><label>Description</label>
+              <textarea class="input" rows="3">Thick, hooded coat of weathered grey-brown wool, lined with matted animal fur. Left chest pocket currently occupied by a small mouseling named Runt. Smells of woodsmoke and damp wool.</textarea>
+            </div>
+          </section>
+
+          <!-- Placement -->
+          <section class="panel" id="placement">
+            <div class="p-head"><span class="t">📍 Placement</span><span class="hint">where it starts</span></div>
+            <div class="segmented">
+              <label><input type="radio" name="tt" checked><span>📦 Item</span></label>
+              <label><input type="radio" name="tt"><span>🧍 Character</span></label>
+              <label><input type="radio" name="tt"><span>🏠 Area</span></label>
+            </div>
+            <div class="field"><label>Target</label><input class="input" value="jake halloway" placeholder="Search items, characters, or areas…"></div>
+            <div class="target-card">
+              <div class="thumb">🧍</div>
+              <div class="meta">
+                <strong>jake halloway</strong>
+                <div class="muted">Character · Taco Bell Men's Restroom</div>
+                <div class="muted">Worn on torso</div>
+              </div>
+              <div class="acts">
+                <button class="btn sm ghost">Change</button>
+                <button class="btn sm ghost">Clear</button>
+              </div>
+            </div>
+            <div class="field"><label>Relation</label>
+              <select class="input"><option>in</option><option>on</option><option>worn_by</option><option>carried_by</option><option>under</option><option>beside</option></select>
+            </div>
+          </section>
+
+          <!-- WHAT IS IT : the gate -->
+          <section class="panel" id="what">
+            <div class="p-head"><span class="t">🧩 What is it?</span><span class="hint">chips add the matching tag + reveal fields below</span></div>
+            <div class="mech-row">
+              <label class="mech-chip"><input type="checkbox" class="mech-chk" data-mech="light_source"><span>💡 Light source</span></label>
+              <label class="mech-chip"><input type="checkbox" class="mech-chk" data-mech="heat_source"><span>🌡️ Heat source</span></label>
+              <label class="mech-chip"><input type="checkbox" class="mech-chk" data-mech="sound_source"><span>🔊 Sound source</span></label>
+              <label class="mech-chip"><input type="checkbox" class="mech-chk" data-mech="toggleable"><span>🎚️ Toggleable</span></label>
+              <label class="mech-chip"><input type="checkbox" class="mech-chk" data-mech="insulation" checked><span>🧥 Insulation</span></label>
+              <label class="mech-chip"><input type="checkbox" class="mech-chk" data-mech="armor" checked><span>🛡️ Armor</span></label>
+              <label class="mech-chip"><input type="checkbox" class="mech-chk" data-mech="clothing" checked><span>👕 Clothing</span></label>
+              <label class="mech-chip"><input type="checkbox" class="mech-chk" data-mech="weapon"><span>⚔️ Weapon</span></label>
+              <label class="mech-chip"><input type="checkbox" class="mech-chk" data-mech="resistance"><span>🧿 Resistance</span></label>
+              <label class="mech-chip"><input type="checkbox" class="mech-chk" data-mech="container" checked><span>📦 Container</span></label>
+              <label class="mech-chip"><input type="checkbox" class="mech-chk" data-mech="electric"><span>⚡ Electric</span></label>
+              <label class="mech-chip"><input type="checkbox" class="mech-chk" data-mech="two_handed"><span>✌️ Two-handed</span></label>
+            </div>
+            <div class="mech-summary" id="mech-summary"></div>
+          </section>
+
+          <!-- Physical : universal + conditional -->
+          <section class="panel" id="physical">
+            <div class="p-head"><span class="t">⚙️ Physical</span><span class="hint">universal fields always shown</span></div>
+
+            <div class="universal">
+              <div class="stat"><label>Uses</label><input type="number" value="-1"></div>
+              <div class="stat"><label>Weight (kg)</label><input type="number" step="0.1" value="3.5"></div>
+              <div class="stat"><label>Initial state</label>
+                <select><option selected>normal</option><option>hidden</option><option>open</option><option>closed</option><option>locked</option><option>lit</option><option>broken</option></select>
+              </div>
+            </div>
+
+            <div class="cards">
+              <div class="prop-card" data-card="insulation">
+                <div class="c-head"><span class="ci">🧥</span><span class="cn">Insulation</span></div>
+                <div class="field"><label>°C shift</label><input class="input" type="number" value="14"></div>
+                <div class="hint">While equipped. Stacks across worn items.</div>
+              </div>
+              <div class="prop-card" data-card="armor">
+                <div class="c-head"><span class="ci">🛡️</span><span class="cn">Armor</span></div>
+                <div class="field"><label>Defense (DR)</label><input class="input" type="number" value="3"></div>
+                <div class="hint">Flat damage reduction while equipped.</div>
+              </div>
+              <div class="prop-card" data-card="weapon">
+                <div class="c-head"><span class="ci">⚔️</span><span class="cn">Weapon</span></div>
+                <div class="two">
+                  <div class="field"><label>Damage</label><input class="input" placeholder="2d6+3"></div>
+                  <div class="field"><label>Type</label><select class="input"><option>slashing</option><option>blunt</option><option>piercing</option></select></div>
+                </div>
+                <div class="hint">Dice ("1d8") or flat ("8").</div>
+              </div>
+              <div class="prop-card" data-card="light_source">
+                <div class="c-head"><span class="ci">💡</span><span class="cn">Light</span></div>
+                <div class="field"><label>Light level</label>
+                  <select class="input"><option>pitch black</option><option selected>dim</option><option>normal</option><option>bright</option><option>blinding</option></select>
+                </div>
+                <div class="hint">Applied to the area while lit.</div>
+              </div>
+              <div class="prop-card" data-card="heat_source">
+                <div class="c-head"><span class="ci">🌡️</span><span class="cn">Heat</span></div>
+                <div class="two">
+                  <div class="field"><label>Target °C</label><input class="input" type="number" value="30"></div>
+                  <div class="field"><label>Rate /tick</label><input class="input" type="number" step="0.1" value="0.5"></div>
+                </div>
+              </div>
+              <div class="prop-card" data-card="sound_source">
+                <div class="c-head"><span class="ci">🔊</span><span class="cn">Sound</span></div>
+                <div class="field"><label>Pattern</label><input class="input" placeholder="a tinny pop song…"></div>
+                <div class="hint">Heard as "You hear … from the north".</div>
+              </div>
+              <div class="prop-card" data-card="resistance">
+                <div class="c-head"><span class="ci">🧿</span><span class="cn">Resistance</span></div>
+                <div class="field"><label>Resistances</label><input class="input" placeholder="fire:5, cold:3"></div>
+                <div class="hint">type:amount — 999 ≈ immune.</div>
+              </div>
+              <div class="prop-card" data-card="electric">
+                <div class="c-head"><span class="ci">⚡</span><span class="cn">Electric</span></div>
+                <div class="two">
+                  <div class="field"><label>Battery %</label><input class="input" type="number" value="80"></div>
+                  <div class="field"><label>Drain /use</label><input class="input" type="number" value="1"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Actions -->
+          <section class="panel" id="actions">
+            <div class="p-head"><span class="t">✅ Actions</span><span class="hint">what the player can do</span></div>
+            <div class="group-lbl">Core</div>
+            <div class="chip-grid">
+              <label class="toggle-chip"><input type="checkbox" checked><span>👁 examine</span></label>
+              <label class="toggle-chip"><input type="checkbox" checked><span>🫳 take</span></label>
+              <label class="toggle-chip"><input type="checkbox" checked><span>✳ use</span></label>
+              <label class="toggle-chip"><input type="checkbox" checked><span>🪂 drop</span></label>
+            </div>
+            <div class="group-lbl">Equip</div>
+            <div class="chip-grid">
+              <label class="toggle-chip"><input type="checkbox" checked><span>🧤 equip</span></label>
+              <label class="toggle-chip"><input type="checkbox" checked><span>🚫 unequip</span></label>
+            </div>
+            <div class="group-lbl">Object</div>
+            <div class="chip-grid">
+              <label class="toggle-chip"><input type="checkbox"><span>📖 open</span></label>
+              <label class="toggle-chip"><input type="checkbox"><span>📕 close</span></label>
+              <label class="toggle-chip"><input type="checkbox"><span>🎯 throw</span></label>
+              <label class="toggle-chip"><input type="checkbox"><span>💥 break</span></label>
+            </div>
+          </section>
+
+          <!-- Equipment : gated by clothing/armor/weapon -->
+          <section class="panel conditional" id="equipment">
+            <div class="p-head"><span class="t">🧍 Equip Slots</span><span class="hint">shown because Clothing / Armor is on</span></div>
+            <div class="equip-grid">
+              <div class="mannequin">
+                <div class="mn mn-head"></div><div class="mn mn-torso"></div>
+                <div class="mn mn-arm l"></div><div class="mn mn-arm r"></div>
+                <div class="mn mn-leg l"></div><div class="mn mn-leg r"></div>
+                <span class="slot-node" style="left:50%;top:7%">head</span>
+                <span class="slot-node" style="left:50%;top:18%">neck</span>
+                <span class="slot-node" style="left:22%;top:36%">back</span>
+                <span class="slot-node active" style="left:50%;top:36%">torso</span>
+                <span class="slot-node" style="left:78%;top:36%">accessory</span>
+                <span class="slot-node" style="left:22%;top:52%">arms</span>
+                <span class="slot-node" style="left:50%;top:54%">waist</span>
+                <span class="slot-node" style="left:78%;top:52%">hands</span>
+                <span class="slot-node" style="left:22%;top:68%">hand_l</span>
+                <span class="slot-node" style="left:50%;top:72%">legs</span>
+                <span class="slot-node" style="left:78%;top:68%">hand_r</span>
+                <span class="slot-node" style="left:50%;top:90%">feet</span>
+              </div>
+              <div>
+                <div class="field"><label>Selected</label>
+                  <div class="chip-grid">
+                    <span class="tag auto">torso</span><span class="tag">head</span><span class="tag">neck</span>
+                    <span class="tag">arms</span><span class="tag">hands</span><span class="tag">legs</span>
+                    <span class="tag">feet</span><span class="tag">back</span><span class="tag">waist</span>
+                    <span class="tag">accessory</span><span class="tag">hand_l</span><span class="tag">hand_r</span>
+                  </div>
+                </div>
+                <div class="two-hand-note" id="two-hand-note">✌️ Two-handed is on — this will lock both <b>hand_left</b> + <b>hand_right</b>.</div>
+                <div class="hint" style="margin-top:12px;font-size:11px;color:var(--dim)">Click the body or a pill to toggle slots. This whole block disappears if you turn off Clothing / Armor / Weapon.</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Container : gated by container mechanic -->
+          <section class="panel conditional" id="container">
+            <div class="p-head"><span class="t">📦 Container</span><span class="hint">contents hidden until opened</span></div>
+            <div class="content-row">
+              <span class="ct">🐭</span><input value="runt_mouseling_companion"><input value="left chest pocket">
+              <select><option selected>in</option><option>on</option><option>under</option></select>
+              <button class="btn sm ghost">✕</button>
+            </div>
+            <div class="content-row">
+              <span class="ct">📓</span><input value="memorandum_leather_notebook"><input value="inner pocket">
+              <select><option selected>in</option><option>on</option><option>under</option></select>
+              <button class="btn sm ghost">✕</button>
+            </div>
+            <div class="content-row">
+              <span class="ct">🔥</span><input value="tinderbox"><input value="right pocket">
+              <select><option selected>in</option><option>on</option><option>under</option></select>
+              <button class="btn sm ghost">✕</button>
+            </div>
+            <button class="btn dashed sm">➕ Add contained item</button>
+          </section>
+
+          <!-- Tags -->
+          <section class="panel" id="tags">
+            <div class="p-head"><span class="t">🏷️ Tags</span><span class="hint">mechanics auto-add their tag</span></div>
+            <div class="tag-box">
+              <span class="tag auto">🧥 insulation</span>
+              <span class="tag auto">🛡️ armor</span>
+              <span class="tag auto">👕 clothing</span>
+              <span class="tag auto">📦 container</span>
+              <span class="tag">fur-lined <button>×</button></span>
+              <span class="tag">hooded <button>×</button></span>
+              <input class="tag-input" placeholder="add tag…">
+            </div>
+          </section>
+
+          <!-- Triggers : link-out, not inline -->
+          <section class="panel" id="triggers">
+            <div class="p-head"><span class="t">⚡ Triggers</span><span class="hint">authored in the Trigger Editor</span></div>
+            <div class="trig-card">
+              <span class="trig-type">on_equip</span><span class="trig-arrow">→</span>
+              <span class="trig-eff">apply insulation +14, defense +3</span>
+              <button class="trig-edit">✏️ Edit</button>
+            </div>
+            <div class="trig-card">
+              <span class="trig-type">on_examine</span><span class="trig-arrow">→</span>
+              <span class="trig-eff">message about the mouseling in the pocket</span>
+              <button class="trig-edit">✏️ Edit</button>
+            </div>
+            <button class="btn dashed" style="margin-top:4px">➕ Open Trigger Editor</button>
+          </section>
+
+          <!-- Advanced -->
+          <section class="panel" id="advanced">
+            <div class="p-head"><span class="t">🧬 Advanced</span></div>
+            <div class="grid-2">
+              <div class="field"><label>library_id</label><input class="input" value="heavy_fur_lined_coat"></div>
+              <div class="field"><label>schema_version</label><input class="input" value="1.0"></div>
+            </div>
+          </section>
+
+        </main>
+
+        <!-- PREVIEW -->
+        <aside class="s-preview">
+          <div class="plabel">Live game card</div>
+          <div class="game-card">
+            <div class="gc-head">
+              <div class="icon">🧥</div>
+              <div><div class="gc-name">Heavy Fur-Lined Coat</div><div class="gc-kind">Clothing · Container</div></div>
+            </div>
+            <p>Thick, hooded coat of weathered wool lined with matted fur. Smells of woodsmoke and damp wool.</p>
+            <div class="gc-stats" id="gc-stats"></div>
+          </div>
+
+          <div class="assistant">
+            <div class="at">🧠 Assistant</div>
+            <div class="ai-item">Insulation + Armor both on → reads as protective clothing. Consider an <b>on_equip</b> trigger.</div>
+            <div class="ai-item warn">Container has 4 items — they stay hidden until the coat is opened.</div>
+            <button class="btn sm">Open Trigger Editor</button>
+          </div>
+
+          <div class="plabel">JSON</div>
+          <div class="json-card"><pre id="json-preview"></pre></div>
+        </aside>
+
+      </div>
+
+      <!-- FOOTER -->
+      <div class="s-foot">
+        <div class="valid"><span class="ok">✓ 0 errors</span><span class="warn">⚠ 1 suggestion</span><span>Unsaved</span></div>
+        <div class="spacer"></div>
+        <button class="btn ghost">Cancel</button>
+        <button class="btn">Validate</button>
+        <button class="btn green">✅ Create Item</button>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+  const mechs = [...document.querySelectorAll('.mech-chk')];
+  const cards = [...document.querySelectorAll('.prop-card')];
+  const equipSection = document.getElementById('equipment');
+  const containerSection = document.getElementById('container');
+  const twoHandNote = document.getElementById('two-hand-note');
+  const summary = document.getElementById('mech-summary');
+  const gcStats = document.getElementById('gc-stats');
+  const jsonPreview = document.getElementById('json-preview');
+
+  const labels = {light_source:'Light source',heat_source:'Heat source',sound_source:'Sound source',
+    toggleable:'Toggleable',insulation:'Insulation',armor:'Armor',clothing:'Clothing',weapon:'Weapon',
+    resistance:'Resistance',container:'Container',electric:'Electric',two_handed:'Two-handed'};
+
+  function refresh(){
+    const active = new Set(mechs.filter(m=>m.checked).map(m=>m.dataset.mech));
+
+    // conditional property cards
+    cards.forEach(c=>c.classList.toggle('show', active.has(c.dataset.card)));
+
+    // gated sections
+    const equipable = ['clothing','armor','weapon'].some(k=>active.has(k));
+    equipSection.classList.toggle('show', equipable);
+    containerSection.classList.toggle('show', active.has('container'));
+    twoHandNote.classList.toggle('show', active.has('two_handed'));
+
+    // summary
+    summary.innerHTML = active.size
+      ? 'Active: <b>' + [...active].map(k=>labels[k]).join('</b> · <b>') + '</b>'
+      : 'Nothing selected — only universal fields (uses / weight / state) are shown.';
+
+    // preview pills
+    const pills = ['<span class="gc-stat">⚖ 3.5 kg</span>'];
+    if(active.has('insulation')) pills.push('<span class="gc-stat">🧥 +14° insulation</span>');
+    if(active.has('armor'))      pills.push('<span class="gc-stat">🛡 3 DR</span>');
+    if(active.has('weapon'))     pills.push('<span class="gc-stat">⚔ damage</span>');
+    if(active.has('light_source'))pills.push('<span class="gc-stat">💡 dim</span>');
+    if(active.has('container'))  pills.push('<span class="gc-stat">📦 4 items</span>');
+    if(active.has('electric'))   pills.push('<span class="gc-stat">🔋 80%</span>');
+    gcStats.innerHTML = pills.join('');
+
+    // json preview
+    const obj = {
+      name:'Heavy Fur-Lined Coat',
+      tags:[...active],
+      insulation: active.has('insulation')?14:undefined,
+      defense: active.has('armor')?3:undefined,
+      contents: active.has('container')?['runt_mouseling_companion','memorandum_leather_notebook','tinderbox','ink_pen']:[]
+    };
+    jsonPreview.textContent = JSON.stringify(obj,null,2);
+  }
+
+  mechs.forEach(m=>m.addEventListener('change', refresh));
+  refresh();
+
+  // slot interactivity
+  document.querySelectorAll('.slot-node').forEach(n=>n.addEventListener('click',()=>n.classList.toggle('active')));
+</script>
+</body>
+</html>

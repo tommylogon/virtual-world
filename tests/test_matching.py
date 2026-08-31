@@ -204,7 +204,6 @@ class TestMatching:
         result = matcher._match_item_name(None)
         assert result is None
 
-    @pytest.mark.skip(reason="difflib fuzzy matching may not trigger in test env without the right cutoff")
     def test_fuzzy_item_match(self, matcher):
         """Near-miss item name matches via difflib."""
         result = matcher._match_item_name("Rusty Ke")

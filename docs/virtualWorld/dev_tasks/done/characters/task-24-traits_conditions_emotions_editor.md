@@ -1,3 +1,8 @@
+---
+group: Items & Crafting
+wiki: "[[Characters/Traits System]]"
+---
+
 # Traits, Conditions & Emotions Editor
 
 **Filed**: 2026-07-15 (updated 2026-07-22)
@@ -190,3 +195,48 @@ Already exists — enhance with:
 ### Tests
 - `tests/test_traits.py`: 57 tests covering all trait definitions, effect resolution, tick processing.
 - `tests/test_conditions.py`: 38 tests for condition system.
+
+## Verification
+
+### Manual Test Steps
+
+#### Traits
+1. Open the game in browser at http://127.0.0.1:4444
+2. Click a character in the agent list → open inspector → Stats tab
+3. **Expected**: You should see a "Traits" section with `[+ Add Trait]` button
+4. Click `[+ Add Trait]` → searchable dropdown of predefined traits appears
+5. Select "Glutton" → badge should appear: `[Glutton ✕]`
+6. Save the character, reload the page, open inspector again → trait should still be there
+7. Click `[✕]` on Glutton → it should be removed
+8. Try a parameterized trait like "Allergic" → should prompt for a tag value (e.g. "pollen")
+9. **Expected**: `[Allergic: pollen ✕]` badge appears
+10. Check `data/library/traits/` — should have 23 trait definition files
+
+#### Traits Engine Effects
+1. Add `glutton` trait to a character
+2. Run several turns (`rest 1` or step through)
+3. **Expected**: Hunger decays approximately 2× faster than a character without glutton
+4. Add `night_owl` trait — energy should decay slower at night, faster during day
+5. Add `blind` trait — `look` and `examine` commands should return vision-blocked messages
+6. Add `immortal` trait — damage the character to 0 HP → HP should bottom at 1, not die
+7. Add `allergic: pollen` to a character, then examine/use an item with tag `pollen` → should trigger allergic reaction (poisoned condition or damage)
+
+#### Conditions
+1. Open character inspector → should see "Conditions" section
+2. Apply a condition via trigger or manual add
+3. **Expected**: Condition badge shows with remaining duration `[🔥 Poisoned ⏱ 5]`
+4. Run turns — duration should count down each tick
+5. When duration hits 0, condition should auto-remove
+6. Manually remove a condition → should disappear immediately
+
+#### Tags
+1. Open character inspector → Bio tab → Tags section
+2. Type a tag like "vampire" and click Add
+3. **Expected**: `[vampire ✕]` badge appears
+4. Save/reload → tag persists
+5. Tags are separate from traits — shown in Bio tab, not Stats tab
+
+#### Automated Tests
+Run `node tools/test_engine.py` or check test_traits.py / test_conditions.py:
+- 57 trait tests should pass
+- 38 condition tests should pass

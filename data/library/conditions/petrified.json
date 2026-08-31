@@ -1,0 +1,24 @@
+{
+  "name": "Petrified",
+  "description": "Stone from the neck down. Seen but not felt.",
+  "blocks_actions": true,
+  "blocks_movement": true,
+  "blocks_speech": true,
+  "auto_fail_checks": [],
+  "auto_fail_saves": ["STR", "DEX", "CON"],
+  "attack_mod": 0,
+  "defense_mod": 5,
+  "speed_mult": 0.0,
+  "movement_mode": null,
+  "drops_held_items": false,
+  "periodic": {},
+  "ends_on": ["cure", "unpetrify"],
+  "known": true,
+  "symptoms": {
+    "3": "Skin like marble. Your joints creak like stone.",
+    "1": "The stone is climbing your chest. Soon it'll reach your throat."
+  },
+  "stack": "noop",
+  "default_duration": null,
+  "excludes": []
+}

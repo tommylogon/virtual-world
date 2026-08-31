@@ -1,3 +1,5 @@
+> NOTE 2026-08-30: duplicate todo copy removed — this file is canonical.
+
 # Task 337 — Polarity-aware vital adjustment feedback + Hunger/Thirst drive flip
 
 **Status:** In Progress — flip IMPLEMENTED 2026-08-23 (engine/vitals.py,

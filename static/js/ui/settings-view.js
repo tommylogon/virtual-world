@@ -70,6 +70,9 @@ window.SettingsView = (() => {
         setVal('graph-spring-constant', String(config.graphSpringConstant || 0.02));
         var gscv = document.getElementById('graph-spring-constant-val');
         if (gscv) gscv.textContent = (config.graphSpringConstant || 0.02).toFixed(2);
+        setVal('graph-item-edge-length', String(config.graphItemEdgeLength || 60));
+        var gielv = document.getElementById('graph-item-edge-length-val');
+        if (gielv) gielv.textContent = config.graphItemEdgeLength || 60;
         setVal('graph-solver', config.graphSolver || 'forceAtlas2Based');
         setVal('graph-edge-width', String(config.graphEdgeWidth || 1));
         var gewv = document.getElementById('graph-edge-width-val');

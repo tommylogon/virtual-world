@@ -74,7 +74,9 @@ def test_export_import_world(mock_api):
     mock_api.assert_called_with("GET", "/api/save")
 
     import_world.fn({"areas": {}})
-    mock_api.assert_called_with("POST", "/api/load", {"areas": {}})
+    # import_world marks the load ephemeral (persist=False) so agents never
+    # litter data/scenarios/ with unnamed.json.
+    mock_api.assert_called_with("POST", "/api/load", {"areas": {}, "persist": False})
 
 
 def test_reset_world(mock_api):

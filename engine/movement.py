@@ -278,6 +278,12 @@ class MovementSystem:
                 raise ValueError("You're prone — you can only crawl.")
             kind = "crawl"
 
+        # Hard gates (task-190): no air / stone body — impossible to move.
+        if self.gs.player.has_condition("suffocating"):
+            raise ValueError("You can't move — you're suffocating.")
+        if self.gs.player.has_condition("petrified"):
+            raise ValueError("You're petrified. Stone obeys nothing.")
+
         # Effective speed 0 — too exhausted to move (e.g. exhausted level 6).
         # Dead characters are exempt (ghosts move freely via the check above).
         if self.gs.player.state != "dead" and effective_speed(self.gs.player) <= 0:

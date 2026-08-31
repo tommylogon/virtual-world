@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPG Item Creator Mockup</title>
+    <style>
+        :root {
+            --bg-base: #12141c;
+            --bg-surface: #191c26;
+            --bg-card: #212533;
+            --bg-input: #12141c;
+            --border: #2d3345;
+            --border-focus: #5e81ac;
+            --text-main: #eceff4;
+            --text-muted: #7b88a1;
+            --accent-purple: #b48ead;
+            --accent-purple-bg: #2b213a;
+            --accent-blue: #88c0d0;
+            --accent-green: #a3be8c;
+            --accent-yellow: #ebcb8b;
+            --accent-red: #bf616a;
+            --radius: 6px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+        body {
+            background-color: #0a0b0e;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Modal Layout */
+        .modal {
+            width: 820px;
+            max-width: 100%;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .modal-header {
+            padding: 16px 20px;
+            background: var(--bg-base);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-title { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .close-btn { background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; }
+        .close-btn:hover { color: var(--text-main); }
+
+        /* AI Prompt Bar */
+        .ai-bar {
+            background: var(--accent-purple-bg);
+            border-bottom: 1px solid rgba(180, 142, 173, 0.2);
+            padding: 10px 20px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .ai-bar input {
+            flex: 1;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(180, 142, 173, 0.4);
+            border-radius: var(--radius);
+            padding: 6px 12px;
+            color: var(--text-main);
+            font-size: 12px;
+        }
+        .ai-bar input:focus { outline: none; border-color: var(--accent-purple); }
+
+        /* Buttons */
+        .btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: var(--radius);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+        .btn:hover { background: var(--border); }
+        .btn-purple { background: var(--accent-purple); color: #12141c; border: none; font-weight: 600; }
+        .btn-purple:hover { opacity: 0.9; }
+        .btn-green { background: var(--accent-green); color: #12141c; border: none; font-weight: 600; }
+        .btn-green:hover { opacity: 0.9; }
+        .btn-sm { padding: 4px 8px; font-size: 11px; }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: var(--bg-base);
+            border-bottom: 1px solid var(--border);
+            padding: 0 10px;
+        }
+        .tab-btn {
+            padding: 12px 16px;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .tab-btn:hover { color: var(--text-main); }
+        .tab-btn.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); }
+
+        /* Body & Sections */
+        .modal-body { padding: 20px; min-height: 380px; max-height: 520px; overflow-y: auto; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Form Controls */
+        .form-group { margin-bottom: 16px; }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+        label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent-blue); margin-bottom: 6px; }
+        input[type="text"], input[type="number"], select, textarea {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 8px 10px;
+            color: var(--text-main);
+            font-size: 12px;
+        }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--border-focus); }
+        
+        /* Action Checkbox Cards */
+        .actions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 6px; }
+        .action-chip {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 6px 8px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .action-chip input { accent-color: var(--accent-blue); }
+
+        /* Tag Input Pill System */
+        .tag-container {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 6px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+        }
+        .tag-pill {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .tag-pill span { cursor: pointer; color: var(--text-muted); }
+        .tag-pill span:hover { color: var(--accent-red); }
+        .tag-input { border: none !important; background: transparent !important; flex: 1; min-width: 100px; padding: 2px 4px !important; }
+
+        /* Visual Trigger Cards */
+        .trigger-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent-yellow);
+            border-radius: var(--radius);
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        .trigger-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .trigger-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; font-size: 12px; }
+
+        /* Footer */
+        .modal-footer {
+            padding: 12px 20px;
+            background: var(--bg-base);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        /* JSON Toggle Area */
+        .json-preview {
+            background: #0d0f14;
+            border: 1px solid var(--border);
+            padding: 10px;
+            border-radius: var(--radius);
+            font-family: monospace;
+            font-size: 11px;
+            color: var(--accent-green);
+            max-height: 150px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+
+<div class="modal">
+    <div class="modal-header">
+        <div class="modal-title">🗡️ Item Creator Engine</div>
+        <button class="close-btn">✕</button>
+    </div>
+
+    <div class="ai-bar">
+        <span>✨</span>
+        <input type="text" id="ai-prompt" placeholder="AI Prompt: 'A heavy leather coat lined with fur, containing a pocket mouseling...'">
+        <button class="btn btn-purple">Generate</button>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(event, 'tab-identity')">Identity & Context</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tab-stats')">Combat & Stats</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tab-actions')">Actions & Tags</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tab-triggers')">Triggers (⚡)</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tab-json')">Raw Schema</button>
+    </div>
+
+    <div class="modal-body">
+        
+        <div id="tab-identity" class="tab-content active">
+            <div class="form-row">
+                <div style="flex: 2;">
+                    <label>Item Name</label>
+                    <input type="text" id="item-name" value="Heavy Fur-Lined Coat">
+                </div>
+                <div>
+                    <label>Library ID</label>
+                    <input type="text" id="item-id" value="heavy_fur_lined_coat" style="font-family: monospace;">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="item-desc" rows="3">Thick, hooded coat of weathered grey-brown wool, lined with matted animal fur. Left chest pocket lined with softer fabric—currently occupied by a small mouseling named Runt.</textarea>
+            </div>
+
+            <div style="background: var(--bg-card); padding: 12px; border-radius: var(--radius); border: 1px solid var(--border);">
+                <label>Initial World Placement</label>
+                <div class="form-row" style="margin-bottom: 0;">
+                    <div>
+                        <select id="target-type">
+                            <option value="item">Placed On / Inside Item</option>
+                            <option value="character">Equipped / Carried by Character</option>
+                            <option value="area" selected>Placed in Area</option>
+                        </select>
+                    </div>
+                    <div>
+                        <input type="text" placeholder="Search target location/entity...">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-stats" class="tab-content">
+            <div class="form-row">
+                <div>
+                    <label>State</label>
+                    <select id="item-state">
+                        <option value="normal">Normal</option>
+                        <option value="open">Open</option>
+                        <option value="closed">Closed</option>
+                        <option value="hidden">Hidden</option>
+                        <option value="broken">Broken</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Weight (kg)</label>
+                    <input type="number" step="0.1" value="3.5">
+                </div>
+                <div>
+                    <label>Uses (-1 = infinite)</label>
+                    <input type="number" value="-1">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div>
+                    <label>Damage</label>
+                    <input type="number" value="0">
+                </div>
+                <div>
+                    <label>Damage Type</label>
+                    <select>
+                        <option value="none">None</option>
+                        <option value="slashing">Slashing</option>
+                        <option value="bludgeoning">Bludgeoning</option>
+                        <option value="piercing">Piercing</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Defense</label>
+                    <input type="number" value="3">
+                </div>
+                <div>
+                    <label>Insulation</label>
+                    <input type="number" value="14">
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-actions" class="tab-content">
+            <div class="form-group">
+                <label>Allowed Actions</label>
+                <div class="actions-grid">
+                    <label class="action-chip"><input type="checkbox" checked> examine</label>
+                    <label class="action-chip"><input type="checkbox" checked> take</label>
+                    <label class="action-chip"><input type="checkbox" checked> use</label>
+                    <label class="action-chip"><input type="checkbox" checked> equip</label>
+                    <label class="action-chip"><input type="checkbox" checked> unequip</label>
+                    <label class="action-chip"><input type="checkbox" checked> drop</label>
+                    <label class="action-chip"><input type="checkbox"> open</label>
+                    <label class="action-chip"><input type="checkbox"> eat</label>
+                    <label class="action-chip"><input type="checkbox"> drink</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Equip Slots</label>
+                <select multiple style="height: 70px;">
+                    <option selected>torso</option>
+                    <option>head</option>
+                    <option>back</option>
+                    <option>hand_left</option>
+                    <option>hand_right</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Tags (Press Enter to add)</label>
+                <div class="tag-container" id="tag-container">
+                    <div class="tag-pill">clothing <span onclick="removeTag(this)">✕</span></div>
+                    <div class="tag-pill">coat <span onclick="removeTag(this)">✕</span></div>
+                    <div class="tag-pill">container <span onclick="removeTag(this)">✕</span></div>
+                    <input type="text" class="tag-input" id="tag-input" placeholder="Add tag...">
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-triggers" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <label style="margin: 0;">Configured Triggers</label>
+                <button class="btn btn-sm">+ Add Trigger</button>
+            </div>
+
+            <div class="trigger-card">
+                <div class="trigger-header">
+                    <span style="font-size: 11px; font-weight: bold; color: var(--accent-yellow);">TRIGGER #1</span>
+                    <button class="btn btn-sm" style="color: var(--accent-red);">Delete</button>
+                </div>
+                <div class="trigger-row">
+                    <span style="color: var(--accent-purple); font-weight: bold; min-width: 50px;">WHEN</span>
+                    <select style="width: 150px;"><option>on_examine</option><option>on_use</option><option>on_equip</option></select>
+                </div>
+                <div class="trigger-row">
+                    <span style="color: var(--accent-green); font-weight: bold; min-width: 50px;">EFFECT</span>
+                    <select style="width: 150px;"><option>message</option><option>adjust_environment</option></select>
+                    <input type="text" placeholder="Success message..." value="You feel snug and safe in the coat." style="flex: 1;">
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-json" class="tab-content">
+            <label>Live JSON Output</label>
+            <div class="json-preview" id="json-output"></div>
+        </div>
+
+    </div>
+
+    <div class="modal-footer">
+        <label style="font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 6px; text-transform: none; color: var(--text-muted);">
+            <input type="checkbox" checked style="accent-color: var(--accent-blue);"> Inject world context into AI engine
+        </label>
+        <div style="display: flex; gap: 8px;">
+            <button class="btn">Cancel</button>
+            <button class="btn btn-green">Create Item</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Tab Switcher Logic
+    function switchTab(evt, tabId) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        evt.currentTarget.classList.add('active');
+        
+        if(tabId === 'tab-json') updateJsonPreview();
+    }
+
+    // Tag Pill Input Logic
+    const tagInput = document.getElementById('tag-input');
+    const tagContainer = document.getElementById('tag-container');
+
+    tagInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && this.value.trim() !== '') {
+            e.preventDefault();
+            const pill = document.createElement('div');
+            pill.className = 'tag-pill';
+            pill.innerHTML = `${this.value.trim()} <span onclick="removeTag(this)">✕</span>`;
+            tagContainer.insertBefore(pill, tagInput);
+            this.value = '';
+        }
+    });
+
+    function removeTag(element) {
+        element.parentElement.remove();
+    }
+
+    // Dynamic JSON Output Generator
+    function updateJsonPreview() {
+        const itemObj = {
+            name: document.getElementById('item-name').value,
+            library_id: document.getElementById('item-id').value,
+            description: document.getElementById('item-desc').value,
+            current_state: document.getElementById('item-state').value,
+            tags: Array.from(document.querySelectorAll('.tag-pill')).map(p => p.childNodes[0].textContent.trim()),
+            triggers: [
+                {
+                    trigger_type: "on_examine",
+                    effects: [{ type: "message", params: { success_message: "You feel snug and safe in the coat." } }]
+                }
+            ]
+        };
+        document.getElementById('json-output').textContent = JSON.stringify(itemObj, null, 2);
+    }
+</script>
+
+</body>
+</html>

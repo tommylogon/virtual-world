@@ -143,7 +143,10 @@ class TestConditionHierarchy:
     def test_all_conditions_in_hierarchy(self):
         expected = {"dead", "unconscious", "paralysed", "stunned",
                     "grappled", "restrained", "prone", "busy", "exhausted",
-                    "sick", "poisoned", "blind", "deaf",
+                    "sick", "poisoned",
+                    "wet", "injured", "bleeding", "hypothermia",
+                    "suffocating", "petrified",
+                    "blind", "deaf",
                     "frightened", "charmed", "awake"}
         assert set(CONDITION_HIERARCHY) == expected
 
@@ -158,7 +161,8 @@ class TestBlockingConditions:
         assert "awake" not in BLOCKING_CONDITIONS
 
     def test_all_blocking_conditions(self):
-        expected = {"dead", "unconscious", "paralysed", "stunned", "grappled", "restrained"}
+        expected = {"dead", "unconscious", "paralysed", "stunned", "grappled",
+                    "restrained", "suffocating", "petrified"}
         assert BLOCKING_CONDITIONS == expected
 
 

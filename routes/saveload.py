@@ -18,12 +18,20 @@ def _snapshot(world):
     return (world.to_dict(), getattr(world, '_scenario_source', None))
 
 
-def _push_undo_snapshot(app):
+def _push_undo_snapshot(app, label="world edit"):
     """Save the current world state onto the undo stack and clear redo."""
-    app._undo_stack.append(_snapshot(app.world))
+    state, source = _snapshot(app.world)
+    app._undo_stack.append((state, source, label or "world edit"))
     if len(app._undo_stack) > _MAX_UNDO_DEPTH:
         app._undo_stack.pop(0)
     app._redo_stack.clear()
+
+
+def _unpack_stack_entry(entry):
+    """(state, source, label) triples, backward-compatible with old pairs."""
+    if len(entry) == 3:
+        return entry[0], entry[1], entry[2]
+    return entry[0], entry[1], "world edit"
 
 
 def _restore_snapshot(app, state, source):
@@ -77,13 +85,15 @@ def register_saveload_routes(app):
             logger.info(f"Loading world with {num_areas} areas, {num_players} players")
 
             start = time.time()
-            _push_undo_snapshot(app)
+            _push_undo_snapshot(app, label=f"load{' savegame' if '_save_metadata' in data else ' scenario'} <{data.get('_scenario_name') or data.get('name') or 'unnamed'}>")
             app.world.load_from_dict(data)
             # Save game loads (have _save_metadata) clear the scenario source
             if "_save_metadata" in data:
                 app.world._scenario_source = None
-            else:
-                # Template/scenario load — save to scenarios dir so Save Scenario works
+            elif data.get('persist'):
+                # GUI scenario loads opt IN with persist:true — write the source
+                # file to scenarios/ so Save Scenario works. Ephemeral loads
+                # (tests, MCP import, "New Scenario") never write to disk.
                 scenario_name = data.get('_scenario_name') or data.get('name', 'unnamed')
                 scenarios_dir = os.path.join(app.config['DATA_DIR'], 'scenarios')
                 os.makedirs(scenarios_dir, exist_ok=True)
@@ -91,7 +101,16 @@ def register_saveload_routes(app):
                 with open(scenario_path, 'w', encoding='utf-8') as f:
                     json.dump(data, f, indent=2, ensure_ascii=False)
                 app.world._scenario_source = scenario_path
+                app.world._scenario_name = scenario_name
+                app.world._commit_seq = getattr(app.world, '_edit_seq', 0)
                 logger.info(f"Saved loaded scenario to {scenario_path}")
+            else:
+                # Ephemeral load (no persist flag): the world is replaced in
+                # memory but nothing is written to scenarios/. Reset falls back
+                # to the boot template.
+                app.world._scenario_source = None
+                app.world._scenario_name = data.get('_scenario_name') or data.get('name') or ''
+                app.world._commit_seq = getattr(app.world, '_edit_seq', 0)
             elapsed = (time.time() - start) * 1000
             logger.info(f"World loaded in {elapsed:.0f} ms")
             return jsonify({"status": "success"})
@@ -105,7 +124,7 @@ def register_saveload_routes(app):
         try:
             # Snapshot current state onto the undo stack so undo can restore
             # any areas/connections that existed before the reset.
-            _push_undo_snapshot(app)
+            _push_undo_snapshot(app, label="reset")
             new_world = VirtualWorld()
             source = getattr(app.world, '_scenario_source', None)
             if source and os.path.exists(source):
@@ -162,20 +181,45 @@ def register_saveload_routes(app):
 
     @app.route('/api/undo', methods=['POST'])
     def undo_action():
-        """Restore the world to its state before the last snapshot (e.g. reset)."""
+        """Restore the world to its state before the last snapshot (e.g. reset).
+
+        Optional ``steps`` (default 1) pops several snapshots at once so the
+        history dropdown can restore to a specific labeled point.
+        """
         try:
-            if not app._undo_stack:
+            body = request.get_json(force=True, silent=True) or {}
+            steps = max(1, min(int(body.get('steps', 1) or 1), len(app._undo_stack)))
+            applied = 0
+            for _ in range(steps):
+                if not app._undo_stack:
+                    break
+                entry = app._undo_stack.pop()
+                state, source, label = _unpack_stack_entry(entry)
+                # Push current state onto the redo stack
+                app._redo_stack.append(_snapshot(app.world) + (label,))
+                if len(app._redo_stack) > _MAX_UNDO_DEPTH:
+                    app._redo_stack.pop(0)
+                _restore_snapshot(app, state, source)
+                applied += 1
+            logger.info(f"Undo: restored previous world state ({applied} step(s))")
+            if not applied:
                 return jsonify({"error": "Nothing to undo"}), 400
-            state, source = app._undo_stack.pop()
-            # Push current state onto the redo stack
-            app._redo_stack.append(_snapshot(app.world))
-            if len(app._redo_stack) > _MAX_UNDO_DEPTH:
-                app._redo_stack.pop(0)
-            _restore_snapshot(app, state, source)
-            logger.info("Undo: restored previous world state")
-            return jsonify({"status": "success"})
+            return jsonify({"status": "success", "steps": applied})
         except Exception as e:
             logger.exception("Error in /api/undo")
+            return jsonify({"error": str(e)}), 500
+
+    @app.route('/api/undo/list', methods=['GET'])
+    def undo_list():
+        """Labels for every undo snapshot, newest first (index 0 = next undo)."""
+        try:
+            entries = []
+            for entry in reversed(app._undo_stack):
+                _s, _src, label = _unpack_stack_entry(entry)
+                entries.append({"label": label})
+            return jsonify({"entries": entries})
+        except Exception as e:
+            logger.exception("Error in /api/undo/list")
             return jsonify({"error": str(e)}), 500
 
     @app.route('/api/redo', methods=['POST'])
@@ -184,8 +228,9 @@ def register_saveload_routes(app):
         try:
             if not app._redo_stack:
                 return jsonify({"error": "Nothing to redo"}), 400
-            state, source = app._redo_stack.pop()
-            app._undo_stack.append(_snapshot(app.world))
+            entry = app._redo_stack.pop()
+            state, source, label = _unpack_stack_entry(entry)
+            app._undo_stack.append(_snapshot(app.world) + (label,))
             if len(app._undo_stack) > _MAX_UNDO_DEPTH:
                 app._undo_stack.pop(0)
             _restore_snapshot(app, state, source)
@@ -287,7 +332,7 @@ def register_saveload_routes(app):
         try:
             with open(path, 'r', encoding='utf-8-sig') as f:
                 data = json.load(f)
-            _push_undo_snapshot(app)
+            _push_undo_snapshot(app, label=f"load savegame <{filename}>")
             app.world.load_from_dict(data)
             return jsonify({"status": "success"})
         except Exception as e:
@@ -305,9 +350,225 @@ def register_saveload_routes(app):
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 
+    @app.route('/api/scenario/diff', methods=['GET'])
+    def scenario_diff():
+        """Structural diff between the live world and its scenario source.
+
+        Groups: added_areas / removed_areas / changed_areas (description,
+        environment, exits) / added_players / removed_players. Rides on a
+        canonical fingerprint — no storage format changes.
+        """
+        world = app.world
+        source = getattr(world, '_scenario_source', None)
+        if not source or not os.path.exists(source):
+            return jsonify({"source": None, "groups": {}})
+        try:
+            with open(source, 'r', encoding='utf-8-sig') as f:
+                src = json.load(f)
+        except Exception:
+            return jsonify({"source": source, "groups": {}, "warning": "source unreadable"})
+        cur = world.to_scenario_dict()
+
+        def fingerprint(d, name):
+            a = (d.get('areas') or {}).get(name) or {}
+            env = a.get('environment') or {}
+            return json.dumps({
+                "description": a.get("description", ""),
+                "environment": {k: env.get(k) for k in ("light", "temperature", "air", "smell", "noise")},
+                "exits": a.get("exits") or {},
+            }, sort_keys=True, default=str)
+
+        src_areas = set(str(k) for k in (src.get('areas') or {}))
+        cur_areas = set(str(k) for k in (cur.get('areas') or {}))
+        added = sorted(cur_areas - src_areas)
+        removed = sorted(src_areas - cur_areas)
+        common = src_areas & cur_areas
+        changed = sorted(n for n in common if fingerprint(src, n) != fingerprint(cur, n))
+
+        def player_names(d):
+            if "players" in d:
+                return set(str(k) for k in (d.get('players') or {}))
+            names = set()
+            p = d.get('player') or {}
+            if p.get('name'):
+                names.add(str(p['name']))
+            for c in (d.get('characters') or []):
+                if isinstance(c, dict) and c.get('name'):
+                    names.add(str(c['name']))
+            return names
+
+        src_players = player_names(src)
+        cur_players = player_names(cur)
+        return jsonify({
+            "source": source,
+            "groups": {
+                "added_areas": added,
+                "removed_areas": removed,
+                "changed_areas": changed,
+                "added_players": sorted(cur_players - src_players),
+                "removed_players": sorted(src_players - cur_players),
+            },
+        })
+
     @app.route('/api/save-scenario', methods=['POST'])
     def save_scenario():
         data = request.get_json() or {}
         name = data.get('name', '').strip() or None
         scenario_data = app.world.to_scenario_dict()
         return jsonify({"status": "success", "name": name or 'unnamed', "data": scenario_data})
+
+    # ───────────────────────── Scenario manager (task-374) ─────────────────────────
+
+    def _scenarios_dir():
+        return os.path.join(app.config['DATA_DIR'], 'scenarios')
+
+    def _safe_scenario_name(name):
+        """Resolve a scenario name to a path inside the scenarios dir."""
+        from urllib.parse import unquote
+        name = unquote(str(name or ''))
+        if not name or not isinstance(name, str):
+            return None
+        base = name.replace('\\', '/').split('/')[-1]
+        if base in ('', '.', '..'):
+            return None
+        safe = ''.join(c if c.isalnum() or c in ' _-.()' else '_' for c in base)
+        if not safe.lower().endswith('.json'):
+            safe += '.json'
+        return os.path.join(_scenarios_dir(), safe)
+
+    @app.route('/api/scenarios', methods=['GET'])
+    def list_scenarios():
+        """Every scenario file with lightweight stats (for the manager modal)."""
+        sdir = _scenarios_dir()
+        if not os.path.isdir(sdir):
+            return jsonify([])
+        out = []
+        for fname in sorted(os.listdir(sdir), reverse=True):
+            if not fname.lower().endswith('.json'):
+                continue
+            path = os.path.join(sdir, fname)
+            entry = {"name": os.path.splitext(fname)[0], "filename": fname,
+                     "size": os.path.getsize(path), "modified": os.path.getmtime(path),
+                     "areas": 0, "players": 0}
+            try:
+                with open(path, 'r', encoding='utf-8-sig') as f:
+                    data = json.load(f)
+                entry["areas"] = len(data.get('areas') or {})
+                entry["players"] = len(data.get('players') or {}) or (1 if (data.get('player') or {}).get('name') else 0)
+            except Exception:
+                pass
+            out.append(entry)
+        return jsonify(out)
+
+    @app.route('/api/scenarios/<path:name>/duplicate', methods=['POST'])
+    def duplicate_scenario(name):
+        src = _safe_scenario_name(name)
+        if not src or not os.path.exists(src):
+            return jsonify({"error": "Scenario not found"}), 404
+        base = os.path.splitext(os.path.basename(src))[0]
+        import re as _re
+        m = _re.match(r'^(.*) \(copy(?: \d+)?\)$', base)
+        stem = m.group(1) if m else base
+        candidate = f"{stem} (copy).json"
+        n = 2
+        while os.path.exists(os.path.join(_scenarios_dir(), candidate)):
+            candidate = f"{stem} (copy {n}).json"
+            n += 1
+        dst = os.path.join(_scenarios_dir(), candidate)
+        import shutil
+        shutil.copyfile(src, dst)
+        return jsonify({"status": "success", "name": os.path.splitext(candidate)[0]})
+
+    @app.route('/api/scenarios/<path:name>/rename', methods=['POST'])
+    def rename_scenario(name):
+        src = _safe_scenario_name(name)
+        if not src or not os.path.exists(src):
+            return jsonify({"error": "Scenario not found"}), 404
+        body = request.get_json(force=True, silent=True) or {}
+        new_name = str(body.get('name', '')).strip()
+        if not new_name:
+            return jsonify({"error": "Name required"}), 400
+        dst = _safe_scenario_name(new_name)
+        if not dst or dst == src or os.path.exists(dst):
+            return jsonify({"error": "Target name exists or invalid"}), 400
+        os.rename(src, dst)
+        return jsonify({"status": "success", "name": os.path.splitext(os.path.basename(dst))[0]})
+
+    @app.route('/api/scenarios/<path:name>', methods=['GET'])
+    def get_scenario(name):
+        src = _safe_scenario_name(name)
+        if not src or not os.path.exists(src):
+            return jsonify({"error": "Scenario not found"}), 404
+        try:
+            with open(src, 'r', encoding='utf-8-sig') as f:
+                data = json.load(f)
+        except Exception as e:
+            return jsonify({"error": f"Could not read scenario: {e}"}), 400
+        data['_scenario_name'] = os.path.splitext(os.path.basename(src))[0]
+        return jsonify(data)
+
+    @app.route('/api/scenarios/<path:name>', methods=['DELETE'])
+    def delete_scenario(name):
+        src = _safe_scenario_name(name)
+        if not src or not os.path.exists(src):
+            return jsonify({"error": "Scenario not found"}), 404
+        os.remove(src)
+        return jsonify({"status": "success"})
+
+    @app.route('/api/scenario/status', methods=['GET'])
+    def scenario_status():
+        """Scenario source status for the top-bar chip.
+
+        ``dirty`` = the live world was mutated since the source was last loaded
+        or committed (edit_seq vs commit_seq, bumped in the after_request
+        autosave hook). Cheap and exact — no serialization on every poll.
+        """
+        world = app.world
+        source = getattr(world, '_scenario_source', None)
+        name = (getattr(world, '_scenario_name', None)
+                or (os.path.splitext(os.path.basename(source))[0] if source else None)
+                or 'unnamed')
+        edit_seq = getattr(world, '_edit_seq', 0)
+        commit_seq = getattr(world, '_commit_seq', 0)
+        committed_at = None
+        if source and os.path.exists(source):
+            try:
+                committed_at = os.path.getmtime(source)
+            except Exception:
+                committed_at = None
+        return jsonify({
+            "name": name,
+            "source": source or "",
+            "dirty": edit_seq != commit_seq,
+            "committed_at": committed_at,
+        })
+
+    @app.route('/api/scenario/commit', methods=['POST'])
+    def scenario_commit():
+        """Write the live world into the scenario source (undo not needed —
+        the world itself is unchanged; only the source file is refreshed)."""
+        world = app.world
+        body = request.get_json(force=True, silent=True) or {}
+        name = str(body.get('name') or getattr(world, '_scenario_name', None) or '').strip()
+        source = getattr(world, '_scenario_source', None)
+        if not name:
+            name = os.path.splitext(os.path.basename(source))[0] if source else 'unnamed'
+        if not source or not os.path.exists(source):
+            scenarios_dir = os.path.join(app.config['DATA_DIR'], 'scenarios')
+            os.makedirs(scenarios_dir, exist_ok=True)
+            safe = ''.join(c if c.isalnum() or c in ' _-' else '_' for c in name) or 'unnamed'
+            source = os.path.join(scenarios_dir, f"{safe}.json")
+        scenario_data = world.to_scenario_dict()
+        tmp_path = source + '.tmp'
+        try:
+            with open(tmp_path, 'w', encoding='utf-8') as f:
+                json.dump(scenario_data, f, indent=2, ensure_ascii=False)
+            os.replace(tmp_path, source)
+        except Exception as e:
+            logger.exception("Scenario commit failed")
+            return jsonify({"error": str(e)}), 500
+        world._scenario_source = source
+        world._scenario_name = name
+        world._commit_seq = getattr(world, '_edit_seq', 0)
+        logger.info(f"Committed live world to scenario {source}")
+        return jsonify({"status": "success", "name": name, "path": source})

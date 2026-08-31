@@ -84,8 +84,6 @@ def create_app(config=None):
     # Auto-save after every mutating API operation
     @app.after_request
     def autosave_after_mutation(response):
-        if app.config.get('TESTING'):
-            return response
         method = request.method
         path = request.path
         if response.status_code and response.status_code < 400:
@@ -93,7 +91,30 @@ def create_app(config=None):
                 '/api/graph/' in path or '/api/players/' in path
                 or '/api/build/' in path or '/api/world/' in path
             ):
-                save_autosave(app.world)
+                # Per-edit undo snapshots (task-371): every graph/player/build
+                # mutation becomes a labeled history entry so simple edits show
+                # up in the 📜 undo dropdown. Load/reset/undo/redo push their
+                # own entries and live outside the covered paths. (In-memory
+                # only — safe to keep active in TESTING.)
+                if not app.config.get('TESTING'):
+                    app.world._edit_seq = getattr(app.world, '_edit_seq', 0) + 1
+                try:
+                    from routes.saveload import _push_undo_snapshot
+                    if path.startswith('/api/graph/node/') and not path.endswith(('/image', '/rename')):
+                        label = f"edited node {path.rsplit('/', 1)[-1]}"
+                    elif '/api/graph/' in path:
+                        label = "graph edit"
+                    elif '/api/players/' in path:
+                        label = "character edit"
+                    elif '/api/build/' in path:
+                        label = "build edit"
+                    else:
+                        label = "world edit"
+                    _push_undo_snapshot(app, label=label)
+                except Exception:
+                    pass  # never let history bookkeeping break a mutation
+                if not app.config.get('TESTING'):
+                    save_autosave(app.world)
         # Broadcast a live world-change so the GUI (and any MCP / SSE client) can
         # refetch state in real time — including edits made by external agents
         # hitting the same API. The MCP server tags calls with X-WV-Editor so the
@@ -153,4 +174,4 @@ def register_routes(app):
 # For running directly (development)
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True, port=4444)
+    app.run(debug=os.environ.get('VW_DEBUG') == '1', port=4444)

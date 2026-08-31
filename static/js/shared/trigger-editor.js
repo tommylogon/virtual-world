@@ -22,6 +22,56 @@
 // Lazy tag: window.Lit only exists at call time (deferred module bootstrap).
 const triggerEditorTag = (strings, ...values) => window.Lit.html(strings, ...values);
 
+// ═══════ Recipe snippets (task-380) ═══════
+// Each snippet sets the trigger type, replaces the effects list with a
+// starting point (author tweaks params), and fills the success message.
+const TRIGGER_SNIPPETS = [
+    {
+        id: 'book-read', icon: '📖', label: 'Book Read', triggerType: 'on_read',
+        message: 'You read the passage aloud.',
+        effects: [{ type: 'message', params: {} }],
+    },
+    {
+        id: 'chest', icon: '📦', label: 'Chest (spawn item inside me)', triggerType: 'on_use',
+        message: 'The chest creaks. Inside: {item_name}.',
+        effects: [{ type: 'spawn_item', params: { item_id: '', into: 'container' } }],
+    },
+    {
+        id: 'light', icon: '🕯', label: 'Light Source (fill the room)', triggerType: 'on_light',
+        message: 'The {name} flares to life, casting warm light.',
+        effects: [
+            { type: 'set_state', params: { node_id: 'self', state: 'lit' } },
+            { type: 'set_environment', params: { light: 55 } },
+        ],
+    },
+    {
+        id: 'heat', icon: '🔥', label: 'Heat Source (warm the room)', triggerType: 'on_use',
+        message: 'The {name} roars, and the room slowly warms.',
+        effects: [
+            { type: 'set_state', params: { node_id: 'self', state: 'lit' } },
+            { type: 'set_environment', params: { temperature: 30 } },
+        ],
+    },
+    {
+        id: 'recorder', icon: '🎙', label: 'Recorder (capture recent speech)', triggerType: 'on_use',
+        message: 'The {name} clicks — recording what was just said.',
+        effects: [{ type: 'spawn_item', params: { item_id: '', into: 'container', capture: 'speech', capture_limit: 5 } }],
+    },
+    {
+        id: 'firstaid', icon: '💉', label: 'First Aid (heal + stop bleeding)', triggerType: 'on_use',
+        message: 'You patch yourself up.',
+        effects: [
+            { type: 'adjust_vital', params: { stat: 'HP', amount: 10, target: 'self' } },
+            { type: 'remove_condition', params: { condition: 'bleeding', target: 'self' } },
+        ],
+    },
+    {
+        id: 'whisper', icon: '🚪', label: 'Whispering Door', triggerType: 'on_open',
+        message: 'A low voice breathes: "not yet…"',
+        effects: [{ type: 'message', params: {} }],
+    },
+];
+
 const TriggerEditor = {
     _overlay: null,
     _onSave: null,
@@ -167,7 +217,14 @@ window.Lit.render(triggerEditorTag`
                 <div id="te-effects-container" data-count=${effectRowsHtml.length || 1}>
                     ${effectRowsHtml.map(r => window.Lit.unsafeHTML(r))}
                 </div>
-                <button class="btn btn-sm btn-blue" @click=${() => TriggerEditor._addEffectRow()} style="margin-top:4px;width:100%;">➕ Add Effect</button>
+                <div style="display:flex;gap:4px;margin-top:4px;">
+                    <button class="btn btn-sm btn-blue" @click=${() => TriggerEditor._addEffectRow()} style="flex:1;">➕ Add Effect</button>
+                    <button class="btn btn-sm btn-purple" @click=${() => TriggerEditor._toggleSnippetMenu()} style="flex:1;">🧩 Snippets ▾</button>
+                </div>
+                <div id="te-snippet-menu" style="display:none;margin-top:4px;border:1px solid var(--border);border-radius:8px;padding:6px;background:var(--bg-inset);">
+                    <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">Recipes fill the effects list + trigger type (tweak params, then save).</div>
+                    ${TRIGGER_SNIPPETS.map(s => `<div class="te-snippet-item" style="display:flex;justify-content:space-between;align-items:center;padding:4px 6px;cursor:pointer;font-size:12px;border-radius:6px;" onmouseenter="this.style.background='rgba(255,255,255,0.05)'" onmouseleave="this.style.background='transparent'" onclick="TriggerEditor._applySnippet('${s.id}')"><span>${s.icon} ${s.label}</span><span style="font-size:10px;color:var(--text-dim);">${s.triggerType.replace(/_/g, ' ')}</span></div>`).join('')}
+                </div>
 
                 <!-- ═══════ Messages ═══════ -->
                 <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:12px;">
@@ -589,6 +646,10 @@ window.Lit.render(triggerEditorTag`
             } else if (effType === 'spawn_item') {
                 eff.params.item_id = row.querySelector('.eff-spawn-id')?.value || '';
                 eff.params.display_name = row.querySelector('.eff-spawn-name')?.value || '';
+                const into = row.querySelector('.eff-spawn-into')?.value || 'area';
+                if (into !== 'area') eff.params.into = into;
+                const capture = row.querySelector('.eff-spawn-capture')?.value || '';
+                if (capture) eff.params.capture = capture;
             } else if (effType === 'spawn_character') {
                 eff.params.character_id = row.querySelector('.eff-spawn-char-id')?.value || '';
                 eff.params.display_name = row.querySelector('.eff-spawn-char-name')?.value || '';
@@ -1440,6 +1501,20 @@ window.Lit.render(triggerEditorTag`
                         <label style="font-size:10px;">Display Name</label>
                         <input type="text" class="eff-spawn-name" value="${escapeForHtmlAttribute(ep.display_name || '')}" style="width:100%;">
                     </div>
+                    <div class="eff-param" data-effect="spawn_item" style="display:${effType === 'spawn_item' ? 'block' : 'none'};">
+                        <label style="font-size:10px;">Place into</label>
+                        <select class="eff-spawn-into" style="width:100%;font-size:11px;">
+                            <option value="area" ${(!ep.into || ep.into === 'area') ? 'selected' : ''}>Current area</option>
+                            <option value="container" ${ep.into === 'container' ? 'selected' : ''}>This container (self)</option>
+                        </select>
+                    </div>
+                    <div class="eff-param" data-effect="spawn_item" style="display:${effType === 'spawn_item' ? 'block' : 'none'};">
+                        <label style="font-size:10px;">Capture</label>
+                        <select class="eff-spawn-capture" style="width:100%;font-size:11px;">
+                            <option value="" ${!ep.capture ? 'selected' : ''}>— none —</option>
+                            <option value="speech" ${ep.capture === 'speech' ? 'selected' : ''}>Recent speech (recorder)</option>
+                        </select>
+                    </div>
                     <div class="eff-param" data-effect="spawn_character" style="display:${effType === 'spawn_character' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Character ID</label>
                         <div class="eff-select" data-kind="chars" data-input-class="eff-spawn-char-id" data-value="${escapeForHtmlAttribute(ep.character_id || '')}" data-placeholder="character_id (library file name)" data-free="true" style="width:100%;"></div>
@@ -1667,6 +1742,37 @@ window.Lit.render(triggerEditorTag`
             const conds = (f.getAttribute('data-subcond') || '').split(',');
             f.style.display = conds.includes(ctype) ? 'block' : 'none';
         });
+    },
+
+    _toggleSnippetMenu() {
+        const menu = document.getElementById('te-snippet-menu');
+        if (menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    },
+
+    _applySnippet(id) {
+        const snippet = TRIGGER_SNIPPETS.find(s => s.id === id);
+        if (!snippet) return;
+        const typeSelect = document.getElementById('te-trigger-type');
+        if (typeSelect && typeSelect.tagName === 'SELECT' && !typeSelect.multiple && snippet.triggerType) {
+            typeSelect.value = snippet.triggerType;
+        }
+        const msgInput = document.getElementById('te-success-msg');
+        if (msgInput && snippet.message) msgInput.value = snippet.message;
+        const container = document.getElementById('te-effects-container');
+        if (container) {
+            const effectOpts = TriggerEditor._buildGroupedEffectOpts(TriggerEditor._effectTypes);
+            container.innerHTML = '';
+            container.setAttribute('data-count', String(snippet.effects.length));
+            const wrap = document.createElement('div');
+            wrap.innerHTML = snippet.effects.map((eff, idx) => TriggerEditor._buildEffectRowHtml(effectOpts, eff, idx)).join('');
+            const fragment = document.createDocumentFragment();
+            while (wrap.firstElementChild) fragment.appendChild(wrap.firstElementChild);
+            container.appendChild(fragment);
+            container.querySelectorAll('.eff-row .eff-type').forEach(sel => TriggerEditor._toggleEffectParams(sel));
+            TriggerEditor._initEffectSearchSelects(container);
+        }
+        const menu = document.getElementById('te-snippet-menu');
+        if (menu) menu.style.display = 'none';
     },
 
     _addEffectRow() {

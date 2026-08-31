@@ -273,7 +273,10 @@ class AgentLens {
         const people = Object.values(worldState.players || {}).filter(p => p.current_area === areaName).length;
         const lightVal = area.ambient_light ?? area.environment?.light ?? 50;
         const light = PromptBuilder.lightToLevel(Number(lightVal));
-        const temp = area.environment?.temperature ?? '—';
+        const rawTemp = area.environment?.temperature;
+        const temp = (rawTemp !== undefined && rawTemp !== null && !isNaN(Number(rawTemp)))
+            ? String(Math.round(Number(rawTemp) * 10) / 10)
+            : '—';
         const exits = Object.keys(area.exits || {}).length;
         return { items: items.length, people, light, temp, exits };
     }

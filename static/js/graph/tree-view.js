@@ -10,6 +10,10 @@
 // bootstrap), not at parse time. Unique per file so top-level consts never collide.
 const treeViewHtmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
 
+// Round temperature for display — kills float drift artifacts like
+// -10.452438125°C that propagation can leave in stored values.
+const treeViewFormatTemp = (v) => (v == null ? '?' : (Math.round(Number(v) * 10) / 10) + '°C');
+
 window.GraphTreeView = {
     /**
      * Build clickable item spans for a room. Clicking an item focuses the
@@ -54,7 +58,7 @@ window.GraphTreeView = {
         const roomFragments = rooms.map((areaName, roomIndex) => {
             const area = worldState.areas[areaName];
             const env = area.environment || {};
-            const temp = env.temperature != null ? `${env.temperature}°C` : '?';
+            const temp = treeViewFormatTemp(env.temperature);
             const light = env.light != null ? env.light : '?';
             const air = env.air || '?';
             const desc = area.description || '';
@@ -134,7 +138,7 @@ window.GraphTreeView = {
         rooms.forEach(areaName => {
             const area = worldState.areas[areaName];
             const env = area.environment || {};
-            const temp = env.temperature != null ? env.temperature + '°C' : '?';
+            const temp = treeViewFormatTemp(env.temperature);
             const light = env.light != null ? env.light : '?';
             const air = env.air || '?';
             text += `📍 ${areaName}  (${temp} · ${light} lux · ${air})\n`;

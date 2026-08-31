@@ -1,17 +1,17 @@
-{
-  "id": "light_source",
-  "name": "Light Source",
-  "description": "Provides illumination",
-  "category": "mechanical",
-  "color": "#ffff00",
-  "icon": "ðŸ’¡",
-  "applies_to": [
-    "items"
-  ],
-  "examples": [
-    "torch",
-    "lantern",
-    "candle",
-    "lamp"
-  ]
+{
+  "id": "light_source",
+  "name": "Light Source",
+  "description": "Provides illumination",
+  "category": "mechanical",
+  "color": "#ffff00",
+  "icon": "💡",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "torch",
+    "lantern",
+    "candle",
+    "lamp"
+  ]
 }

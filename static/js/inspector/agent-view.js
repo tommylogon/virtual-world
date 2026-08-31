@@ -97,13 +97,12 @@ window.InspectorAgentView = (() => {
         const htmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
         window.InspectorPanel.render(htmlTag`${window.Lit.unsafeHTML(html)}`);
 
-        // Known-by authoring: who knows THIS character, and what they know
-        // (the authored `known` registry — hidden ways/items/people).
+        // Known-by authoring: who knows THIS character (the Knowledge modal
+        // for what they know lives in the Advanced tab).
         if (window.KnownBySection) {
             const panelBody = document.querySelector('#inspector-panel');
             if (panelBody) {
                 panelBody.appendChild(window.KnownBySection.build('character', player.name, player.name));
-                panelBody.appendChild(window.KnownBySection.buildOwnKnown(agentName));
             }
         }
 
@@ -287,6 +286,9 @@ window.InspectorAgentView = (() => {
             mute: '#546e7a', frightened: '#7b1fa2', charmed: '#f06292', awake: 'var(--green)'
         };
         const conds = (player.conditions && typeof player.conditions === 'object' && !Array.isArray(player.conditions)) ? player.conditions : {};
+        // The state badge duplicates the interactive condition chip when the
+        // state IS a listed condition (e.g. "grappled") — show the chip only.
+        const stateHasChip = Array.isArray(conds[player.state]) && conds[player.state].length > 0;
         const condBadges = Object.entries(conds).map(([cid, instances]) => {
             if (!Array.isArray(instances) || instances.length === 0) return '';
             const color = condColors[cid] || '#888';
@@ -317,7 +319,7 @@ window.InspectorAgentView = (() => {
             <select id="player-room" name="area" onchange="ApiClient.updateCharacter('${escName}',{current_area:this.value}).then(()=>worldState.fetch())" style="font-size:10px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:1px 4px;max-width:100px;">
                 ${roomOptions}
             </select>
-            <span title="Most significant condition (derived from conditions)" style="font-size:10px;background:${player.state === 'dead' ? 'var(--red)' : 'var(--accent-dim)'};color:${player.state === 'dead' ? '#fff' : '#000'};border-radius:4px;padding:2px 8px;font-weight:600;border:1px solid var(--border);">${player.state}</span>
+            ${stateHasChip ? '' : `<span title="Most significant condition (derived from conditions)" style="font-size:10px;background:${player.state === 'dead' ? 'var(--red)' : 'var(--accent-dim)'};color:${player.state === 'dead' ? '#fff' : '#000'};border-radius:4px;padding:2px 8px;font-weight:600;border:1px solid var(--border);">${player.state}</span>`}
             ${condBadges}
             <button class="btn btn-sm" onclick="InspectorAgentView._openConditionEditor('${escName}')" title="Add a specific condition (blind, poisoned, unconscious...) with a duration, source, or level" style="font-size:10px;">➕ Add Condition</button>
             <span style="flex:1;"></span>
@@ -377,12 +379,16 @@ window.InspectorAgentView = (() => {
                 : Math.max(0, Math.min(100, (value / max) * 100));
             const barColor = vitalBarColor(vitalName, vitals[vitalName]);
             const suffix = vitalName === 'Temperature' ? '°C' : '';
+            // Quiet vitals: color is reserved for problems (VitalColor.level),
+            // so healthy bars dim back and the troubled one pops.
+            const lvl = window.VitalColor?.level?.(vitals, vitalName) || 'ok';
+            const quiet = lvl === 'ok' ? 'opacity:0.6;' : '';
             // Full hover: value + what the vital does + human natural language
             // (task-129). VitalThresholds.hoverText falls back to the raw
             // number line when unavailable.
             const tipText = (window.VitalThresholds?.hoverText?.(vitals, vitalName))
                 || `${vitalName}: ${value}/${max}${suffix}`;
-            return `<div style="flex:1;min-width:60px;text-align:center;cursor:pointer;" data-tippy-content="${tipText}" onclick="${openModal(vitalName)}">
+            return `<div style="flex:1;min-width:60px;text-align:center;cursor:pointer;${quiet}" data-tippy-content="${tipText}" onclick="${openModal(vitalName)}">
                 <div style="font-size:9px;text-transform:uppercase;">${vitalName}</div>
                 <div style="height:4px;background:var(--bg-input);border-radius:2px;margin:2px 0;overflow:hidden;"><div style="height:100%;width:${percentage}%;background:${barColor};border-radius:2px;"></div></div>
                 <div style="font-size:10px;">${value}${suffix}</div>
@@ -1010,6 +1016,24 @@ window.InspectorAgentView = (() => {
                 <button class="btn btn-sm btn-green" onclick="InspectorBehaviors.addBehavior('${escName}')" style="margin-top:4px;width:100%;">+ Add Behavior</button>
             </div>`;
         }
+
+        // Knowledge (what this character knows from the start — authored
+        // `known` registry). Chips are lit-free DOM, filled by deferred render.
+        const kbChipId = String(agentName ?? '').replace(/[^a-zA-Z0-9_-]/g, '_');
+        html += `<div class="inspector-section">
+            <h3 style="display:flex;justify-content:space-between;align-items:center;">🧠 Knowledge
+                <button class="btn btn-sm btn-blue" onclick="KnownBySection.openKnowledgeModal('${escName}')" style="font-size:10px;" title="Select every runtime entity this character knows, grouped by category">🎛 Manage</button>
+            </h3>
+            <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;">Known from the start — hidden ways/items visible, people never masked, known areas reveal hidden exits.</div>
+            <div id="knowledge-chips-${kbChipId}"></div>
+        </div>`;
+        _deferRender(() => {
+            const container = document.getElementById('knowledge-chips-' + kbChipId);
+            if (container && window.KnownBySection) {
+                container.textContent = '';
+                container.appendChild(window.KnownBySection.buildKnownChips(agentName));
+            }
+        });
 
         // Timeline
         const timeline = charState.detailedTimeline || [];

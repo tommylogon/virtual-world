@@ -15,6 +15,30 @@ window.VitalColor = (() => {
 
     const GOOD = '#3fb950', MID = '#e3b341', BAD = '#f85149';
 
+    /**
+     * Severity tier for a vital: 'ok' | 'warn' | 'bad'.
+     * Drives (Hunger/Thirst/Bladder) invert — high value = bad.
+     * Thresholds roughly match the Alerts panel (ui-controller renderAlerts).
+     * Used for the inspector's quiet-dim, not for bar colors.
+     */
+    function level(vitals, key) {
+        const v = vitals || {};
+        const n = Number(v[key]) || 0;
+        if (key === 'Mana') return 'ok';
+        if (key === 'Temperature') {
+            if (n < 33 || n > 40) return 'bad';
+            if (n < 35 || n > 39) return 'warn';
+            return 'ok';
+        }
+        if (key === 'HP' && v.Max_HP) {
+            const pct = (n / v.Max_HP) * 100;
+            return pct <= 20 ? 'bad' : (pct <= 35 ? 'warn' : 'ok');
+        }
+        const isDrive = (window.worldState?.data?.vital_polarity || {})[key] === 'drive';
+        if (isDrive) return n >= 85 ? 'bad' : (n >= 60 ? 'warn' : 'ok');
+        return n <= 15 ? 'bad' : (n <= 30 ? 'warn' : 'ok');
+    }
+
     function bar(vitals, key) {
         const v = vitals || {};
         const n = Number(v[key]) || 0;
@@ -44,5 +68,5 @@ window.VitalColor = (() => {
         return key === 'Temperature' ? '°C' : '';
     }
 
-    return { bar, percent, suffix };
+    return { bar, level, percent, suffix };
 })();

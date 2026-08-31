@@ -96,6 +96,16 @@ def aggregate_bonuses(player, graph) -> dict:
 
         insulation += int(props.get("insulation", 0))
 
+    # Wet clothing (task-190): soaked garments insulate far worse. Levels
+    # scale the loss — 1: 60% kept, 2: 40%, 3: 20%.
+    wet_levels = [
+        inst.get("level", 1) for cid, instances in getattr(player, "conditions", {}).items()
+        if cid == "wet" for inst in instances if inst is not None
+    ]
+    if wet_levels:
+        keep = {1: 0.6, 2: 0.4, 3: 0.2}.get(max(wet_levels), 0.6)
+        insulation = int(insulation * keep)
+
     return {
         "defense": defense,
         "damage": damage,

@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Item Creator — Advanced Studio Edition</title>
+<style>
+  :root {
+    --bg: #0b0d11;
+    --bg-card: #161922;
+    --bg-inset: #11131a;
+    --bg-input: #1b1f2b;
+    --border: #282f3d;
+    --border-hi: #3e485c;
+    --text: #e2e8f0;
+    --text-muted: #718096;
+    --accent: #bc8cff;
+    --accent-dim: rgba(188, 140, 255, 0.12);
+    --accent-line: rgba(188, 140, 255, 0.35);
+    --green: #48bb78;
+    --red: #f56565;
+    --cyan: #38bdf8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  
+  .modal {
+    width: 580px;
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+    overflow: hidden;
+  }
+
+  /* Header */
+  .m-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-inset);
+  }
+  .m-head h3 { font-size: 14px; font-weight: 700; color: #fff; }
+  .m-head .sub { font-size: 11px; color: var(--text-muted); }
+  .badge-live {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(56, 189, 248, 0.15);
+    color: var(--cyan);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+  }
+
+  /* Body */
+  .m-body {
+    overflow-y: auto;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .m-body::-webkit-scrollbar { width: 6px; }
+  .m-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  /* Section Headings */
+  .sec-h {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .sec-h:after { content: ""; flex: 1; height: 1px; background: var(--border); }
+  .sec-h .opt { font-size: 8px; color: var(--accent); border: 1px solid var(--accent-line); padding: 1px 5px; border-radius: 99px; }
+
+  /* Inputs */
+  .fl { display: block; font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+  input[type=text], input[type=number], select, textarea {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 12px;
+    padding: 6px 9px;
+    font-family: inherit;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-dim);
+  }
+  textarea { resize: vertical; line-height: 1.4; }
+  
+  .grid { display: grid; gap: 8px; }
+  .g2 { grid-template-columns: 1fr 1fr; }
+  .g3 { grid-template-columns: 1fr 1fr 1fr; }
+
+  /* Buttons */
+  .btn {
+    border: 1px solid var(--border);
+    background: var(--bg-input);
+    color: var(--text);
+    font-size: 11px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn:hover { border-color: var(--border-hi); background: #222736; }
+  .btn.purple { background: var(--accent-dim); border-color: var(--accent-line); color: var(--accent); }
+  .btn.green { background: rgba(72, 187, 120, 0.15); border-color: rgba(72, 187, 120, 0.4); color: var(--green); font-weight: 600; }
+  .btn.ghost { background: transparent; border-color: transparent; color: var(--text-muted); }
+  .btn.ghost:hover { color: var(--text); border-color: var(--border); }
+  .btn.sm { font-size: 10px; padding: 3px 8px; }
+
+  /* Chips & Tags */
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .chip { position: relative; }
+  .chip input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+  .chip span {
+    display: inline-block; font-size: 10px; padding: 3px 8px;
+    border: 1px solid var(--border); border-radius: 99px;
+    color: var(--text-muted); background: var(--bg-inset); cursor: pointer; user-select: none;
+  }
+  .chip input:checked + span { background: var(--accent-dim); border-color: var(--accent-line); color: var(--accent); }
+
+  .tagbox {
+    display: flex; flex-wrap: wrap; gap: 4px; align-items: center;
+    padding: 6px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 6px;
+  }
+  .tagbox input { border: none !important; background: transparent !important; flex: 1; min-width: 90px; font-size: 11px; padding: 2px !important; box-shadow: none !important; }
+  .tag {
+    display: inline-flex; align-items: center; gap: 4px; font-size: 10px;
+    padding: 2px 6px; border: 1px solid var(--accent-line); background: var(--accent-dim);
+    color: var(--accent); border-radius: 99px;
+  }
+  .tag button { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 11px; }
+
+  /* Triggers Card */
+  .tcard {
+    position: relative; border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 10px; background: var(--bg-inset); margin-bottom: 6px;
+  }
+  .tcard .del { position: absolute; top: 6px; right: 8px; background: none; border: none; color: var(--text-muted); cursor: pointer; }
+  .tcard .del:hover { color: var(--red); }
+  .tcard .when { font-size: 10px; font-weight: 700; color: var(--accent); }
+  .tcard .fx { font-size: 10px; margin-top: 2px; }
+  .tcard code { background: var(--bg-input); border: 1px solid var(--border); padding: 1px 4px; border-radius: 3px; font-size: 9px; }
+
+  /* Collapsible / JSON */
+  details { border: 1px solid var(--border); border-radius: 8px; background: var(--bg-inset); }
+  details summary { font-size: 11px; padding: 8px 10px; cursor: pointer; color: var(--text-muted); user-select: none; list-style: none; display: flex; justify-content: space-between; }
+  details summary:hover { color: var(--text); }
+  .details-inner { padding: 8px 10px 10px; border-top: 1px solid var(--border); }
+  pre { font-family: ui-monospace, SFMono-Regular, monospace; font-size: 10px; color: var(--cyan); overflow-x: auto; line-height: 1.4; }
+
+  /* Footer */
+  .m-foot { display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--border); background: var(--bg-inset); }
+  .spacer { flex: 1; }
+</style>
+</head>
+<body>
+
+<div class="modal">
+  <!-- HEADER -->
+  <div class="m-head">
+    <div>
+      <h3>＋ Studio Item Creator</h3>
+      <div class="sub">Configure entity parameters and triggers</div>
+    </div>
+    <span class="badge-live">JSON V2</span>
+  </div>
+
+  <div class="m-body">
+
+    <!-- BASICS -->
+    <div>
+      <div class="sec-h">BASICS</div>
+      <div class="grid g2" style="margin-bottom:8px">
+        <div>
+          <label class="fl">Item ID / Name *</label>
+          <input type="text" id="fName" value="tactical_flashlight">
+        </div>
+        <div>
+          <label class="fl">Initial State</label>
+          <select id="fState">
+            <option>unlit</option><option>lit</option><option>open</option>
+            <option>closed</option><option>locked</option><option>broken</option>
+          </select>
+        </div>
+      </div>
+      <label class="fl">Description</label>
+      <textarea id="fDesc" rows="2">Heavy-duty aluminum LED flashlight. Scratched lens casing.</textarea>
+    </div>
+
+    <!-- STATS -->
+    <div>
+      <div class="sec-h">PROPERTIES & STATS</div>
+      <div class="grid g3" style="margin-bottom:8px">
+        <div><label class="fl">Weight (kg)</label><input type="number" id="fWeight" step="0.1" value="0.4"></div>
+        <div><label class="fl">Max Uses</label><input type="number" id="fUses" value="50"></div>
+        <div><label class="fl">Defense</label><input type="number" id="fDef" value="0"></div>
+      </div>
+      <div class="grid g2">
+        <div><label class="fl">Damage</label><input type="number" id="fDmg" value="1"></div>
+        <div>
+          <label class="fl">Damage Type</label>
+          <select id="fDmgType">
+            <option value="">None</option><option selected>blunt</option><option>slashing</option><option>electric</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div>
+      <div class="sec-h">AVAILABLE ACTIONS</div>
+      <div class="chips" id="actChips">
+        <label class="chip"><input type="checkbox" class="act-chk" value="examine" checked><span>examine</span></label>
+        <label class="chip"><input type="checkbox" class="act-chk" value="use" checked><span>use</span></label>
+        <label class="chip"><input type="checkbox" class="act-chk" value="light" checked><span>light</span></label>
+        <label class="chip"><input type="checkbox" class="act-chk" value="equip"><span>equip</span></label>
+        <label class="chip"><input type="checkbox" class="act-chk" value="drop" checked><span>drop</span></label>
+        <label class="chip"><input type="checkbox" class="act-chk" value="throw"><span>throw</span></label>
+      </div>
+    </div>
+
+    <!-- TAGS -->
+    <div>
+      <div class="sec-h">TAGS</div>
+      <div class="tagbox">
+        <div id="tagList" style="display:contents"></div>
+        <input type="text" id="tagInput" placeholder="Add tag + press Enter...">
+      </div>
+    </div>
+
+    <!-- TRIGGERS -->
+    <div>
+      <div class="sec-h">EVENT TRIGGERS <span class="opt">logic</span></div>
+      <div id="tList"></div>
+      <div class="grid g3" style="margin-top:6px">
+        <select id="tWhen">
+          <option value="on_use">on_use</option>
+          <option value="on_examine">on_examine</option>
+          <option value="on_equip">on_equip</option>
+        </select>
+        <select id="tFx">
+          <option value="adjust_environment">adjust_environment</option>
+          <option value="message">message</option>
+          <option value="modify_state">modify_state</option>
+        </select>
+        <button class="btn purple sm" onclick="addTrigger()">＋ Add Event</button>
+      </div>
+      <input type="text" id="tMsg" placeholder="Event feedback message..." style="margin-top:6px">
+    </div>
+
+    <!-- LIVE JSON -->
+    <details open>
+      <summary><span>📄 Export Schema</span><span>JSON Output</span></summary>
+      <div class="details-inner">
+        <pre id="jsonOut"></pre>
+      </div>
+    </details>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="m-foot">
+    <button class="btn ghost sm" onclick="copyJSON()">⧉ Copy JSON</button>
+    <div class="spacer"></div>
+    <button class="btn green" onclick="downloadJSON()">💾 Export JSON File</button>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+
+/* Tags Engine */
+function addTag(val) {
+  val = val.trim().toLowerCase().replace(/\s+/g,'_');
+  if(!val || $$('#tagList .tag').some(t => t.dataset.v === val)) return;
+  const tag = document.createElement('span');
+  tag.className = 'tag'; tag.dataset.v = val;
+  tag.innerHTML = `${val} <button onclick="this.parentElement.remove(); refresh();">×</button>`;
+  $('#tagList').appendChild(tag);
+  refresh();
+}
+
+$('#tagInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag(e.target.value); e.target.value = ''; }
+});
+
+/* Trigger Engine */
+function addTrigger() {
+  const when = $('#tWhen').value, fx = $('#tFx').value, msg = $('#tMsg').value.trim();
+  const card = document.createElement('div');
+  card.className = 'tcard';
+  card.dataset.when = when; card.dataset.fx = fx; card.dataset.msg = msg;
+  card.innerHTML = `<button class="del" onclick="this.parentElement.remove(); refresh();">×</button>
+    <div class="when">⚡ ${when}</div>
+    <div class="fx">Effect: <code>${fx}</code> ${msg ? `— <em>"${msg}"</em>` : ''}</div>`;
+  $('#tList').appendChild(card);
+  $('#tMsg').value = '';
+  refresh();
+}
+
+/* JSON Generation */
+function buildSchema() {
+  return {
+    id: $('#fName').value.trim().toLowerCase().replace(/\s+/g, '_'),
+    description: $('#fDesc').value.trim(),
+    state: $('#fState').value,
+    stats: {
+      weight: parseFloat($('#fWeight').value) || 0,
+      uses: parseInt($('#fUses').value) || -1,
+      defense: parseInt($('#fDef').value) || 0,
+      damage: parseInt($('#fDmg').value) || 0,
+      damage_type: $('#fDmgType').value || null
+    },
+    actions: $$('.act-chk:checked').map(c => c.value),
+    tags: $$('#tagList .tag').map(t => t.dataset.v),
+    triggers: $$('.tcard').map(c => ({
+      on: c.dataset.when,
+      effect: c.dataset.fx,
+      message: c.dataset.msg || null
+    }))
+  };
+}
+
+function refresh() {
+  $('#jsonOut').textContent = JSON.stringify(buildSchema(), null, 2);
+}
+
+function copyJSON() {
+  navigator.clipboard.writeText(JSON.stringify(buildSchema(), null, 2));
+  alert('Copied schema to clipboard!');
+}
+
+function downloadJSON() {
+  const data = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(buildSchema(), null, 2));
+  const a = document.createElement('a');
+  a.setAttribute("href", data);
+  a.setAttribute("download", `${buildSchema().id || 'item'}.json`);
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+// Initial tags
+['tool', 'light_source', 'durable'].forEach(addTag);
+$$('input, select, textarea').forEach(el => el.addEventListener('input', refresh));
+refresh();
+</script>
+</body>
+</html>

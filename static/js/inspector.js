@@ -130,8 +130,8 @@ class Inspector {
         return InspectorWayView.showWay(nodeId, graphNode);
     }
 
-    async _reconnectDoor(wayId) {
-        return InspectorWayView._reconnectDoor(wayId);
+    async _reconnectWays(wayId) {
+        return InspectorWayView._reconnectWays(wayId);
     }
 
     // --- AI Personality Generation ---

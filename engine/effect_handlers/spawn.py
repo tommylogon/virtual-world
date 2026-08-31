@@ -9,6 +9,56 @@ def _natural_article(name: str) -> str:
     return "an" if head[:1].lower() in "aeiou" else "a"
 
 
+def _capture_recent(self, game_state, item_node, capture: str, limit: int) -> list:
+    """Pull recent speech/turn events for the current area into a text list.
+
+    task-298: record what was actually said/nearby into a freshly spawned
+    item's description (a camera photo, a recorder's tape, an EVP log).
+    Sources (duck-typed, newest first): ``turn_events`` entries with
+    ``action``/``actor``/``description``.
+    """
+    if game_state is None:
+        return []
+    events = getattr(game_state, "turn_events", None)
+    if events is None:
+        legacy = getattr(game_state, "legacy", None)
+        events = getattr(legacy, "turn_events", None) if legacy is not None else None
+    if not events:
+        return []
+
+    area_id = None
+    if item_node is not None:
+        for edge in self.graph.get_edges_for_source(item_node.id, EDGE_IN):
+            area_id = edge.target
+            break
+    if area_id is None and game_state is not None and hasattr(game_state, "get_current_area_id"):
+        try:
+            area_id = game_state.get_current_area_id()
+        except Exception:
+            area_id = None
+    area_node = self.graph.get_node(area_id) if area_id else None
+    area_name = area_node.name if area_node is not None else None
+
+    lines = []
+    for ev in reversed(events):
+        if not isinstance(ev, dict):
+            continue
+        ev_area = ev.get("area") or ""
+        if area_name and ev_area and ev_area != area_name:
+            continue
+        action = str(ev.get("action", "")).lower()
+        text = str(ev.get("description") or ev.get("text") or "")
+        if not text:
+            continue
+        if capture == "speech" and action not in ("speech", "whisper", "say", "shout"):
+            continue
+        actor = str(ev.get("actor", "")).strip()
+        lines.append(f"{actor}: {text}" if actor else text)
+        if len(lines) >= limit:
+            break
+    return lines
+
+
 def handle_spawn_item(self, params, context, item_node=None, game_state=None):
     """Spawn a new item into the current area (default) or into a container.
 
@@ -28,6 +78,20 @@ def handle_spawn_item(self, params, context, item_node=None, game_state=None):
         return []
     if params.get("current_state") and spawn_node is not None:
         spawn_node.properties["current_state"] = params["current_state"]
+
+    # task-298: capture recent speech/events into the spawned item's
+    # description (a recorder capturing what was actually said).
+    capture = (params.get("capture") or "").strip().lower()
+    if capture and spawn_node is not None:
+        captured = _capture_recent(
+            self, game_state, item_node, capture,
+            int(params.get("capture_limit", 5)),
+        )
+        if captured:
+            base = spawn_node.properties.get("description") or ""
+            spawn_node.properties["description"] = (
+                (base + "\n\n") if base else ""
+            ) + "\n".join(captured)
 
     item_weight = float(spawn_node.properties.get("weight", 0) or 0)
     into = (params.get("into") or "area").lower()

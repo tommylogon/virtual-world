@@ -1,45 +1,46 @@
 {
-  "library_id": "",
-  "name": "blind corner",
-  "description": "the blind bend where elm street runs into oak street past the pawn shop grate — a jutting corner of brick wall that hides whoever's coming the other way until the last second.",
+  "auto_close": false,
   "current_state": "open",
-  "pass_message": "You round the blind corner where elm street meets oak street.",
+  "description": "the blind bend where elm street runs into oak street past the pawn shop grate — a jutting corner of brick wall that hides whoever's coming the other way until the last second.",
   "edge_length": "",
+  "library_id": "",
+  "max_size": "normal",
+  "name": "blind corner",
   "needs_open": {
     "dc": 10,
     "enabled": false,
     "skill": "Athletics"
   },
-  "auto_close": false,
-  "see_through": false,
   "one_way": false,
-  "requires": "none",
-  "max_size": "normal",
+  "parameters": {},
+  "pass_message": "You round the blind corner where elm street meets oak street.",
   "prevent_close": false,
+  "requires": "none",
+  "see_through": false,
+  "sound_barrier": "",
   "tags": [
     "exterior",
     "street",
     "corner"
   ],
-  "parameters": {},
   "triggers": [
     {
-      "trigger_type": "on_enter",
       "conditions": [
         {
-          "type": "has_item",
           "item": "crushed monster can",
-          "target": "player"
+          "target": "player",
+          "type": "has_item"
         }
       ],
       "effects": [
         {
-          "type": "message",
           "params": {
             "message": "She rounds the corner and walks straight into a man — her drink sloshes down his black shirt."
-          }
+          },
+          "type": "message"
         }
-      ]
+      ],
+      "trigger_type": "on_enter"
     }
   ]
 }

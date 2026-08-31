@@ -4,7 +4,7 @@
   "description": "Generates heat when lit. Pushes room temperature toward target_temperature at heating_rate per tick.",
   "category": "mechanical",
   "color": "#ff3300",
-  "icon": "ðŸŒ¡ï¸",
+  "icon": "🌡️",
   "applies_to": [
     "items"
   ],

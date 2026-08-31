@@ -476,6 +476,39 @@ class ConditionTreeMixin:
                     tags = [t.strip() for t in tags.split(",")]
                 return any(str(t).lower() in needle_values for t in tags)
 
+            elif condition_type == "item_relationship":
+                # True when the triggering item has a spatial/master edge of the
+                # given type (task-308: "does this item have anything inside?"
+                # → relation "in"). Optionally filtered to a specific target.
+                if item_node is None:
+                    return False
+                rel = str(conditions.get("relation", "in")).lower().strip()
+                if not rel:
+                    return False
+                # "in" reads item-inside-item edges as "things inside me"
+                # (edges INTO self); on/under/behind/beside/at read outward.
+                default_dir = "target" if rel == "in" else "source"
+                outward = str(conditions.get("direction", default_dir)).lower() != "target"
+                try:
+                    if outward:
+                        edges = self.graph.get_edges_for_source(item_node.id, rel)
+                    else:
+                        edges = self.graph.get_edges_for_target(item_node.id, rel)
+                except Exception:
+                    return False
+                target = str(conditions.get("target", "") or "").strip()
+                if not target:
+                    return bool(edges)
+                low = target.lower()
+                for edge in edges:
+                    other_id = edge.target if outward else edge.source
+                    other = self.graph.get_node(other_id)
+                    if other is not None and (
+                        low in str(other.name or "").lower() or low in str(other_id).lower()
+                    ):
+                        return True
+                return False
+
             return False
 
         operator = conditions.get("operator")

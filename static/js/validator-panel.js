@@ -77,6 +77,29 @@
             }
         }
 
+        /**
+         * Quick-fix for info-level mechanical issues: write the engine's
+         * default values (light_level→'dim', target_temperature→30,
+         * heating_rate→0.5) onto the node so the nudge clears itself.
+         */
+        async quickFix(nodeId) {
+            if (!nodeId) return;
+            const node = worldState.getNode(nodeId);
+            const props = (node && node.properties) || {};
+            const patch = {};
+            if (!props.light_level) patch.light_level = 'dim';
+            if (!props.target_temperature) patch.target_temperature = 30;
+            if (!props.heating_rate) patch.heating_rate = 0.5;
+            if (!Object.keys(patch).length) { this.refresh(); return; }
+            const ok = await ApiClient.updateNode(nodeId, { properties: patch });
+            if (ok) {
+                worldState.fetch();
+            } else {
+                console.warn('[ValidatorPanel] quick-fix save failed for', nodeId);
+            }
+            this.refresh();
+        }
+
         render(issues, targetEl = null) {
             const listEl = targetEl || document.getElementById('validator-list');
             if (!listEl) return;
@@ -105,10 +128,14 @@
                     ? validatorPanelTag`<button class="validator-jump" title="Open node: ${nodeId}"
                          @click=${() => this.jumpTo(nodeId)}>🔍</button>`
                     : '';
+                const quickFix = (issue.code === 'mechanical_tag_missing_props' && issue.severity === 'info' && nodeId)
+                    ? validatorPanelTag`<button class="validator-jump" title="Set engine defaults (Dim / 30°C / 0.5° per tick) and clear this note"
+                         @click=${() => this.quickFix(nodeId)}>⚙</button>`
+                    : '';
                 return validatorPanelTag`<div class="validator-item" data-code=${issue.code}>
                     <span class="validator-sev" style="background:${color};" title=${sev}></span>
                     <span class="validator-msg">${icon} ${issue.message}</span>
-                    ${jump}
+                    ${jump}${quickFix}
                 </div>`;
             });
             window.Lit.render(validatorPanelTag`${rows}`, listEl);

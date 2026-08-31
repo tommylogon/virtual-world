@@ -314,7 +314,7 @@ class TickManager:
                     if light < 20:
                         p.vitals["Sanity"] = max(0, p.vitals["Sanity"] - 1)
                     others_here = [n for n, op in self.player_manager.players.items() if op.current_area == player_area_name and n != pname and op.state != "dead"]
-                    # ── Social need is company-aware (task-XXX) ──
+                    # ── Social need is company-aware ──
                     # Being with others feeds Social; being alone drains it
                     # FASTER than the baseline decay being alone used to (the
                     # old engine applied the same -1 baseline to everyone, so a

@@ -67,3 +67,37 @@ def register_triggers_routes(app):
             trigger_def, source_node_id=source_node_id
         )
         return jsonify({"issues": issues, "count": len(issues)})
+
+    @app.route('/api/import/audit', methods=['POST'])
+    def audit_import():
+        """Run the full TriggerValidator against an UNLOADED world dict.
+
+        Builds a throwaway VirtualWorld (no side effects on the live world,
+        no autosave, no scenario writes) and returns grouped issue counts —
+        the backend half of import preview / scenario auditing.
+        """
+        data = request.get_json() or {}
+        if not isinstance(data, dict) or not data:
+            return jsonify({"error": "No import data provided"}), 400
+        try:
+            from virtual_world_engine import VirtualWorld
+            from engine.trigger_validator import TriggerValidator
+            probe = VirtualWorld()
+            probe.graph.clear()
+            probe.player_manager.players = {}
+            probe.load_from_dict(data)
+            validator = TriggerValidator(probe.graph)
+            issues = validator.validate()
+        except Exception as exc:
+            return jsonify({"error": f"Audit failed: {exc}"}), 400
+        return jsonify({
+            "issues": issues,
+            "count": len(issues),
+            "areas": len(probe.graph.nodes) and len([n for n in probe.graph.nodes.values() if n.type == "area"]),
+            "items": len([n for n in probe.graph.nodes.values() if n.type == "item"]),
+            "players": len(probe.player_manager.players),
+            "severities": {
+                sev: len([i for i in issues if i.get("severity") == sev])
+                for sev in ("error", "warning", "info")
+            },
+        })

@@ -118,11 +118,13 @@ def _transfer_heat(
 
     tags_a = area_a.properties.get("tags", [])
     if not (isinstance(tags_a, list) and "exterior" in tags_a):
-        env_a["temperature"] = temp_a - transfer
+        # Round to 0.1°C so repeated float math can't accumulate artifacts
+        # like -10.452438125 in stored temperatures.
+        env_a["temperature"] = round(temp_a - transfer, 1)
 
     tags_b = area_b.properties.get("tags", [])
     if not (isinstance(tags_b, list) and "exterior" in tags_b):
-        env_b["temperature"] = temp_b + transfer
+        env_b["temperature"] = round(temp_b + transfer, 1)
 
 
 def apply_heat_sources(graph) -> None:
@@ -164,4 +166,4 @@ def apply_heat_sources(graph) -> None:
             elif area_temp > target_temp:
                 area_temp = max(target_temp, area_temp - heating_rate)
 
-        env["temperature"] = area_temp
+        env["temperature"] = round(area_temp, 1)

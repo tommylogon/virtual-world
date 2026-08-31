@@ -55,6 +55,49 @@ VW.worldSync = worldSync;
     VW.humanTurnComposer = HumanTurnComposer;
 })();
 
+// ─────────────────────────────────────────────────────────────────────────────
+// WINDOW SINGLETON PUBLICATION + BOOT GUARD (the top-level-const trap)
+//
+// `config`, `events`, `agent`, `api`, `llmClient`, `storage`, `worldSync`,
+// `agentLens` are top-level `const` declarations — lexical globals. They are
+// NOT window properties, so any module that tests `if (window.events)` or
+// reads `window.agent?.turnQueue` silently resolves `undefined` and takes the
+// dead-code branch — the exact bug class that made every graph slider a no-op
+// (config was read as `window.config` in buildOptions(), always undefined).
+//
+// Publish every singleton explicitly so BOTH idioms (bare const and
+// window.X) work, then fail loudly at boot if one is missing.
+// ─────────────────────────────────────────────────────────────────────────────
+(() => {
+    const singletons = {
+        config: config,
+        events: events,
+        agent: agent,
+        api: api,
+        llmClient: llmClient,
+        storage: storage,
+        worldSync: worldSync,
+        agentLens: agentLens,
+    };
+    for (const [name, value] of Object.entries(singletons)) {
+        if (typeof value === 'undefined') {
+            throw new Error(
+                `[boot-guard] Singleton "${name}" is undefined at publish time — ` +
+                'check script load order in index.html (see main.js header, items 1-13).'
+            );
+        }
+        window[name] = value;
+    }
+    // Identity guard: the window property must be the very same instance the
+    // boot uses — a divergent copy means code is reading a different object.
+    if (window.config !== config) {
+        throw new Error('[boot-guard] window.config does not reference the boot config — duplicate ConfigManager?');
+    }
+    if (window.events !== events) {
+        throw new Error('[boot-guard] window.events does not reference the boot EventBus — duplicate EventBus?');
+    }
+})();
+
 // ============================================
 // LEGACY GLOBAL FUNCTIONS (for onclick in HTML)
 // ============================================
@@ -134,7 +177,17 @@ function addItemViaGraph() {
             events.log('Added ' + data.name, 'system-msg');
             const libId = data.name.toLowerCase().replace(/[^a-z0-9_]+/g, '_').replace(/^_|_$/g, '');
             if (libId) {
-                api.saveLibraryItem({ id: libId, name: data.name, description: data.description || '', actions: data.actions || 'examine,take,use', uses: data.uses ?? -1, weight: data.weight ?? 0.5, current_state: data.current_state || 'normal', equip_slots: data.equip_slots || [], tags: data.tags || [] }).catch(() => {});
+                api.saveLibraryItem({
+                    id: libId, name: data.name, description: data.description || '',
+                    actions: data.actions || 'examine,take,use', uses: data.uses ?? -1, weight: data.weight ?? 0.5,
+                    current_state: data.current_state || 'normal', equip_slots: data.equip_slots || [], tags: data.tags || [],
+                    light_level: data.light_level, target_temperature: data.target_temperature, heating_rate: data.heating_rate,
+                    sound_level: data.sound_level, sound_pattern: data.sound_pattern,
+                    defense: data.defense, damage: data.damage, damage_skill: data.damage_skill, damage_type: data.damage_type,
+                    stun_chance: data.stun_chance, stun_duration: data.stun_duration,
+                    insulation: data.insulation, resistances: data.resistances,
+                    contents: data.contents || [], triggers: data.triggers || []
+                }).catch(() => {});
             }
             worldState.fetch();
         }
@@ -304,7 +357,7 @@ Use the effects array for multi-step effects.`;
             // Build format hint for the user message
             let formatHint = '';
             if (type === 'area') formatHint = '{"name":"Area Name","description":"...","light":80,"temperature":21,"air":"fresh","smell":"musty","noise":"quiet","tags":["indoor","cold"]}';
-            else if (type === 'item') formatHint = '{"name":"...","description":"...","actions":"examine,take,use","uses":1,"weight":0.5,"current_state":"normal","tags":["food","apple"],"equip_slots":[],"triggers":[{"trigger_type":"on_eat","effect_type":"adjust_vital","effect_params":{"stat":"Hunger","amount":30,"message":"You feel nourished."}},{"trigger_type":"on_use","conditions":[{"type":"has_item","value":"matches"}],"effects":[{"type":"set_state","params":{"node_id":"fireplace","state":"lit"}},{"type":"set_environment","params":{"temperature":25,"light":"bright","noise":"crackling","smell":"woodsmoke"}},{"type":"message","params":{"message":"The fire roars to life."}}]}]}';
+            else if (type === 'item') formatHint = '{"name":"...","description":"...","actions":"examine,take,use","uses":1,"weight":0.5,"current_state":"normal","tags":["food","apple"],"equip_slots":[],"light_level":"dim","target_temperature":null,"heating_rate":null,"sound_level":null,"sound_pattern":null,"defense":0,"damage":0,"damage_skill":null,"damage_type":null,"stun_chance":null,"stun_duration":null,"insulation":0,"resistances":{},"container":false,"triggers":[{"trigger_type":"on_eat","effect_type":"adjust_vital","effect_params":{"stat":"Hunger","amount":30,"message":"You feel nourished."}},{"trigger_type":"on_use","conditions":[{"type":"has_item","value":"matches"}],"effects":[{"type":"set_state","params":{"node_id":"fireplace","state":"lit"}},{"type":"set_environment","params":{"temperature":25,"light":"bright","noise":"crackling","smell":"woodsmoke"}},{"type":"message","params":{"message":"The fire roars to life."}}]}]}';
             else if (type === 'connection') formatHint = '{"room1":"Frozen Lake","room2":"Dense Forest","dir1":"north","dir2":"south","state":"open","description":"A narrow trail winds between the pines, the snow here packed hard by passing animals","pass_message":"The branches close behind you, muffling the sound of the wind","auto_close":false,"see_through":false,"needs_open":{"enabled":false,"skill":"Athletics","dc":15},"tags":["outdoor","trail"],"view_from_a":"the frozen lake shimmers through the gap in the trees","view_from_b":"a dense tangle of frozen branches casts pale blue shadows ahead","triggers":[]}';
 
             // Include the full JSON schema description in the system message for items and connections
@@ -315,6 +368,19 @@ Use the effects array for multi-step effects.`;
                 systemMsg += '\nAvailable conditions: has_item, state_equals, random_chance, uses_reached, skill_check, save_throw (stat/skill, dc, optional target)';
                 systemMsg += '\nTriggers can have a single effect (effect_type + effect_params) OR an effects array for multi-step sequences.';
                 systemMsg += '\nConditions can be a single condition OR a conditions array (all must pass).';
+            }
+            if (type === 'item' && !systemMsg.includes('Mechanical tags:')) {
+                systemMsg += `\n\nMechanical tags (add the tag AND fill its fields when the item has the capability):
+- light_source → set light_level: pitch_black|dim|normal|bright|blinding (item glows while lit)
+- heat_source → set target_temperature (°C, default 30) and heating_rate (°C/tick, default 0.5) (warms the area while lit)
+- sound_source → set sound_level (1 nearby, 2 adjacent areas, 3 distant) and sound_pattern (short description of the noise) (sounds while active)
+- toggleable → can be switched lit/unlit; add electric too for "turn on/off" phrasing
+- insulation → set insulation (°C shift while equipped; positive warms, negative cools)
+- armor or clothing → set defense (flat DR) and equip_slots
+- weapon → set damage ("2d6+3" or flat "8"), damage_skill, damage_type, optional stun_chance/stun_duration, equip_slots hand_left/hand_right (add two_handed tag if both hands needed)
+- resistance → set resistances as {"fire":5,"cold":3}
+- container → set container:true and list contents (do NOT enumerate contents in the description)
+Only set fields for capabilities the item actually has.`;
             }
 
             const userContent = `${prompt}\n\nOutput JSON:\n${formatHint}`;
@@ -350,18 +416,7 @@ Use the effects array for multi-step effects.`;
                     window.CreateModal._tagMSArea.setValue(Array.isArray(data.tags) ? data.tags : typeof data.tags === 'string' ? data.tags.split(',').map(t => t.trim()).filter(Boolean) : []);
                 }
             } else if (type === 'item') {
-                set('item-name', data.name); set('item-desc', data.description);
-                set('item-uses', data.uses ?? -1); set('item-weight', data.weight ?? 0.1);
-                const stateEl = document.getElementById('item-state'); if (stateEl) stateEl.value = data.current_state || 'normal';
-                if (window.CreateModal?._tagMSItem && data.tags) {
-                    window.CreateModal._tagMSItem.setValue(Array.isArray(data.tags) ? data.tags : typeof data.tags === 'string' ? data.tags.split(',').map(t => t.trim()).filter(Boolean) : []);
-                }
-                const es = document.getElementById('item-equip-slots');
-                if (es && Array.isArray(data.equip_slots)) {
-                    Array.from(es.options).forEach(opt => opt.selected = data.equip_slots.includes(opt.value));
-                }
-                const tf = document.getElementById('item-triggers-json');
-                if (tf && data.triggers) tf.value = JSON.stringify(data.triggers);
+                CreateModal._applyItemAIData(data);
             } else if (type === 'connection') {
                 set('conn-roomA', data.room1); set('conn-roomB', data.room2);
                 VW._onConnRoomChange(); // refresh view-from hints when rooms change
@@ -416,13 +471,13 @@ VW._onConnRoomChange = function() {
 VW._toggleItemTargetType = function() {
     const val = document.querySelector('input[name="item-target-type"]:checked')?.value || 'item';
     const search = document.getElementById('item-target-search');
-    const relation = document.getElementById('item-target-relation');
+    const relationWrap = document.getElementById('item-target-relation-wrap');
     if (search) {
         const labels = { item: 'Search items...', character: 'Search characters...', area: 'Search areas...' };
         search.placeholder = labels[val] || 'Search...';
     }
-    if (relation) {
-        relation.style.display = val === 'item' ? 'block' : 'none';
+    if (relationWrap) {
+        relationWrap.style.display = val === 'item' ? 'flex' : 'none';
     }
 };
 

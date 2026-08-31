@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Trigger Studio — Mockup</title>
+<style>
+  :root{
+    --bg:#0b0d12; --surface:#121522; --surface-2:#171b2a; --surface-3:#1c2133;
+    --inset:#0d1018; --border:#262c3f; --border-strong:#3a4157;
+    --text:#edf0ff; --muted:#98a0bb; --dim:#6b7390;
+    --purple:#8b5cf6; --purple-soft:rgba(139,92,246,.16); --purple-line:rgba(139,92,246,.4);
+    --amber:#fbbf24; --amber-soft:rgba(251,191,36,.1);
+    --orange:#fb923c; --orange-soft:rgba(251,146,60,.1);
+    --green:#34d399; --green-soft:rgba(52,211,153,.12);
+    --cyan:#22d3ee; --cyan-soft:rgba(34,211,238,.1);
+    --red:#fb7185; --red-soft:rgba(251,113,133,.12);
+    --radius:16px; --shadow:0 24px 64px rgba(0,0,0,.5);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:radial-gradient(circle at 15% 0%,#1b1035 0%,transparent 45%),
+               radial-gradient(circle at 85% 100%,#101a35 0%,transparent 40%),var(--bg);
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    color:var(--text); padding:40px 20px 80px; min-height:100vh;
+  }
+  .wrap{max-width:760px;margin:0 auto}
+  .wrap>.eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--purple);font-weight:700}
+  .wrap>h1{margin:6px 0 4px;font-size:27px;letter-spacing:-.02em}
+  .wrap>p.sub{margin:0 0 24px;color:var(--muted);font-size:14px}
+
+  .studio{
+    background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.015)),var(--surface);
+    border:1px solid rgba(255,255,255,.08); border-radius:20px; box-shadow:var(--shadow); overflow:hidden;
+  }
+
+  /* ===== top bar ===== */
+  .ts-top{
+    display:flex;align-items:center;gap:12px;padding:16px 20px;
+    border-bottom:1px solid var(--border);
+    background:linear-gradient(180deg,rgba(139,92,246,.08),transparent);
+  }
+  .ts-top .icon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:20px;
+    background:var(--purple-soft);border:1px solid var(--purple-line);box-shadow:0 8px 20px rgba(139,92,246,.2)}
+  .ts-top input.name{flex:1;background:transparent;border:1px solid transparent;color:var(--text);
+    font-size:16px;font-weight:700;border-radius:10px;padding:7px 9px;outline:none}
+  .ts-top input.name:hover,.ts-top input.name:focus{border-color:var(--border);background:var(--inset)}
+  .ts-top .kind{font-size:11px;color:var(--dim)}
+
+  /* ===== snippets bar ===== */
+  .snippets{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 20px;
+    border-bottom:1px solid var(--border);background:var(--inset)}
+  .snippets .lbl{font-size:11px;color:var(--dim);font-weight:600}
+  .snippet{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;
+    border:1px dashed var(--border-strong);background:transparent;color:var(--muted);font-size:11.5px;cursor:pointer;transition:.15s}
+  .snippet:hover{color:var(--text);border-color:var(--purple-line);background:var(--purple-soft)}
+  .snippet small{color:var(--dim);font-size:9.5px}
+
+  /* ===== body / spine ===== */
+  .ts-body{padding:20px;display:grid;gap:0}
+  .stage{position:relative;padding-left:44px;padding-bottom:22px}
+  .stage:last-child{padding-bottom:0}
+  .stage:before{content:'';position:absolute;left:15px;top:30px;bottom:0;width:2px;
+    background:linear-gradient(180deg,var(--border-strong),transparent)}
+  .stage:last-child:before{display:none}
+  .stage .dot{position:absolute;left:4px;top:2px;width:24px;height:24px;border-radius:8px;
+    display:grid;place-items:center;font-size:12px;font-weight:800;border:1px solid}
+  .stage.when .dot{background:var(--purple-soft);color:var(--purple);border-color:var(--purple-line)}
+  .stage.if .dot{background:var(--amber-soft);color:var(--amber);border-color:rgba(251,191,36,.4)}
+  .stage.then .dot{background:var(--orange-soft);color:var(--orange);border-color:rgba(251,146,60,.4)}
+  .stage.say .dot{background:var(--green-soft);color:var(--green);border-color:rgba(52,211,153,.4)}
+
+  .stage-card{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+  .stage-head{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+  .stage-head .kw{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+  .stage.when .kw{color:var(--purple)} .stage.if .kw{color:var(--amber)}
+  .stage.then .kw{color:var(--orange)} .stage.say .kw{color:var(--green)}
+  .stage-head .hint{margin-left:auto;font-size:10.5px;color:var(--dim)}
+
+  /* ===== chips (trigger types) ===== */
+  .cat{margin-bottom:10px}
+  .cat:last-child{margin-bottom:0}
+  .cat .cat-lbl{font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:6px}
+  .chip-grid{display:flex;flex-wrap:wrap;gap:6px}
+  .tchip{position:relative}
+  .tchip input{position:absolute;opacity:0;pointer-events:none}
+  .tchip span{display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:999px;
+    border:1px solid var(--border);background:var(--inset);color:var(--muted);font-size:11px;cursor:pointer;transition:.15s;user-select:none}
+  .tchip input:checked + span{background:var(--purple-soft);border-color:var(--purple-line);color:#fff;
+    box-shadow:0 4px 12px rgba(139,92,246,.18)}
+
+  /* ===== target row ===== */
+  .row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  .field label{display:block;font-size:10.5px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+  .input,select.input{width:100%;background:var(--inset);border:1px solid var(--border);border-radius:10px;
+    padding:8px 11px;font-size:12.5px;color:var(--text);outline:none}
+  .input:focus{border-color:var(--purple-line);box-shadow:0 0 0 3px rgba(139,92,246,.12)}
+
+  /* ===== condition / effect cards ===== */
+  .logic-card{background:var(--inset);border:1px solid var(--border);border-radius:12px;padding:11px 12px;margin-bottom:8px}
+  .logic-card .lc-head{display:flex;align-items:center;gap:8px}
+  .logic-card .lc-type{font-size:12px;font-weight:700}
+  .logic-card .lc-icon{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;font-size:13px;flex:0 0 auto}
+  .lc-icon.cond{background:var(--amber-soft);border:1px solid rgba(251,191,36,.35)}
+  .lc-icon.eff{background:var(--orange-soft);border:1px solid rgba(251,146,60,.35)}
+  .logic-card .lc-del{margin-left:auto;background:transparent;border:0;color:var(--dim);cursor:pointer;font-size:13px}
+  .logic-card .lc-del:hover{color:var(--red)}
+  .logic-card .lc-body{margin-top:9px;display:grid;gap:8px}
+  .lc-body .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .logic-card .lc-params{font-size:11px;color:var(--dim)}
+
+  .and-or{display:inline-flex;background:var(--surface-3);border:1px solid var(--border);border-radius:8px;padding:2px;gap:2px;margin:2px 0 8px}
+  .and-or button{border:0;background:transparent;color:var(--dim);font-size:10px;font-weight:700;padding:3px 9px;border-radius:6px;cursor:pointer}
+  .and-or button.on{background:var(--amber-soft);color:var(--amber)}
+
+  .add-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:10px;cursor:pointer;
+    border:1px dashed var(--border-strong);background:transparent;color:var(--muted);font-size:11.5px;font-weight:600;transition:.15s}
+  .add-btn:hover{color:var(--text);border-color:var(--border-strong);background:var(--surface-3)}
+  .add-btn.purple:hover{border-color:var(--purple-line);background:var(--purple-soft)}
+  .add-btn.amber:hover{border-color:rgba(251,191,36,.4);background:var(--amber-soft)}
+
+  /* ===== effect picker (categorized) ===== */
+  .picker{margin-top:10px;background:var(--surface-3);border:1px solid var(--border);border-radius:13px;padding:12px}
+  .picker .pk-title{font-size:10.5px;color:var(--dim);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:9px}
+  .pk-group{margin-bottom:9px}
+  .pk-group:last-child{margin-bottom:0}
+  .pk-group .pk-lbl{font-size:9.5px;color:var(--dim);margin-bottom:5px}
+  .pk-grid{display:flex;flex-wrap:wrap;gap:5px}
+  .pk-item{padding:5px 9px;border-radius:8px;border:1px solid var(--border);background:var(--inset);
+    color:var(--muted);font-size:10.5px;cursor:pointer;transition:.14s}
+  .pk-item:hover{color:#fff;border-color:var(--orange);background:var(--orange-soft)}
+
+  /* ===== effect param reveal (like mech-fields) ===== */
+  .eff-params{display:none;margin-top:9px;padding-top:9px;border-top:1px dashed var(--border)}
+  .eff-params.show{display:grid;gap:8px;animation:pop .2s ease}
+  @keyframes pop{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+  /* ===== footer ===== */
+  .ts-foot{display:flex;align-items:center;gap:8px;padding:14px 20px;border-top:1px solid var(--border);background:rgba(0,0,0,.12)}
+  .btn{border:1px solid var(--border);background:var(--surface-2);color:var(--text);border-radius:11px;
+    padding:9px 14px;font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s}
+  .btn:hover{transform:translateY(-1px);border-color:var(--border-strong)}
+  .btn.primary{background:linear-gradient(135deg,#7c3aed,#a855f7);border-color:transparent;color:#fff}
+  .btn.green{background:linear-gradient(135deg,#059669,#34d399);border-color:transparent;color:#04110b}
+  .btn.ghost{background:transparent}
+  .btn.warn{background:var(--amber-soft);border-color:rgba(251,191,36,.35);color:var(--amber)}
+  .spacer{flex:1}
+
+  .test-result{margin:0 20px 16px;background:var(--inset);border:1px solid rgba(52,211,153,.3);
+    border-radius:12px;padding:11px 13px;font-size:11.5px;line-height:1.6;color:#c8f5e4;display:none}
+  .test-result.show{display:block;animation:pop .2s ease}
+
+  @media (max-width:620px){
+    .row-2,.lc-body .grid-2{grid-template-columns:1fr}
+    .stage{padding-left:36px}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="eyebrow">VirtualWorld Engine · Trigger Studio</div>
+    <h1>When → If → Then → Say</h1>
+    <p class="sub">Same engine, clearer shape. Every trigger is a tiny story: it fires <b>when</b> something happens, <b>if</b> conditions pass, <b>then</b> runs effects, and <b>says</b> what changed.</p>
+
+    <div class="studio">
+
+      <!-- TOP -->
+      <div class="ts-top">
+        <div class="icon">⚡</div>
+        <div style="flex:1;min-width:0">
+          <input class="name" value="Flashlight — switch on" />
+          <div class="kind">on <b>flashlight</b> · item trigger</div>
+        </div>
+        <button class="btn ghost">🧩 Graph</button>
+        <button class="btn warn" onclick="document.getElementById('test-result').classList.add('show')">▶ Run Test</button>
+      </div>
+
+      <!-- SNIPPETS -->
+      <div class="snippets">
+        <span class="lbl">🧩 Recipes</span>
+        <button class="snippet">📖 Book Read <small>on read</small></button>
+        <button class="snippet">📦 Chest <small>on use</small></button>
+        <button class="snippet">🕯 Light Source <small>on light</small></button>
+        <button class="snippet">🔥 Heat Source <small>on use</small></button>
+        <button class="snippet">🎙 Recorder <small>on use</small></button>
+        <button class="snippet">💉 First Aid <small>on use</small></button>
+        <button class="snippet">🚪 Whispering Door <small>on open</small></button>
+      </div>
+
+      <div class="ts-body">
+
+        <!-- WHEN -->
+        <div class="stage when">
+          <div class="dot">1</div>
+          <div class="stage-card">
+            <div class="stage-head">
+              <span class="kw">When</span>
+              <span class="hint">pick one or more trigger types · Ctrl-click for multiple</span>
+            </div>
+
+            <div class="cat">
+              <div class="cat-lbl">Interaction</div>
+              <div class="chip-grid">
+                <label class="tchip"><input type="checkbox"><span>take</span></label>
+                <label class="tchip"><input type="checkbox"><span>drop</span></label>
+                <label class="tchip"><input type="checkbox"><span>examine</span></label>
+                <label class="tchip"><input type="checkbox"><span>inspect</span></label>
+                <label class="tchip"><input type="checkbox"><span>use</span></label>
+                <label class="tchip"><input type="checkbox"><span>use on</span></label>
+                <label class="tchip"><input type="checkbox"><span>look</span></label>
+                <label class="tchip"><input type="checkbox"><span>eat</span></label>
+                <label class="tchip"><input type="checkbox"><span>drink</span></label>
+                <label class="tchip"><input type="checkbox"><span>read</span></label>
+                <label class="tchip"><input type="checkbox"><span>light</span></label>
+                <label class="tchip"><input type="checkbox"><span>activate</span></label>
+                <label class="tchip"><input type="checkbox"><span>equip</span></label>
+                <label class="tchip"><input type="checkbox"><span>unequip</span></label>
+                <label class="tchip"><input type="checkbox"><span>throw</span></label>
+                <label class="tchip"><input type="checkbox"><span>break</span></label>
+              </div>
+            </div>
+
+            <div class="cat">
+              <div class="cat-lbl">Toggle &amp; State</div>
+              <div class="chip-grid">
+                <label class="tchip"><input type="checkbox" checked><span>⚡ toggle on</span></label>
+                <label class="tchip"><input type="checkbox"><span>toggle off</span></label>
+                <label class="tchip"><input type="checkbox"><span>open</span></label>
+                <label class="tchip"><input type="checkbox"><span>close</span></label>
+                <label class="tchip"><input type="checkbox"><span>auto open</span></label>
+                <label class="tchip"><input type="checkbox"><span>state enter</span></label>
+                <label class="tchip"><input type="checkbox"><span>state exit</span></label>
+                <label class="tchip"><input type="checkbox"><span>depleted</span></label>
+              </div>
+            </div>
+
+            <div class="cat">
+              <div class="cat-lbl">Flow &amp; Failure</div>
+              <div class="chip-grid">
+                <label class="tchip"><input type="checkbox"><span>tick</span></label>
+                <label class="tchip"><input type="checkbox"><span>enter</span></label>
+                <label class="tchip"><input type="checkbox"><span>speech</span></label>
+                <label class="tchip"><input type="checkbox"><span>delayed</span></label>
+                <label class="tchip"><input type="checkbox"><span>fail jump</span></label>
+                <label class="tchip"><input type="checkbox"><span>fail climb</span></label>
+              </div>
+            </div>
+
+            <div class="row-2">
+              <div class="field"><label>Target state</label><input class="input" placeholder="e.g. lit, open"></div>
+              <div class="field"><label>Target</label><input class="input" placeholder="Search exits, doors, items…"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- IF -->
+        <div class="stage if">
+          <div class="dot">2</div>
+          <div class="stage-card">
+            <div class="stage-head">
+              <span class="kw">If</span>
+              <span class="hint">all conditions must pass to fire</span>
+            </div>
+
+            <div class="and-or">
+              <button class="on">AND</button>
+              <button>OR</button>
+            </div>
+
+            <div class="logic-card">
+              <div class="lc-head">
+                <span class="lc-icon cond">🔋</span>
+                <span class="lc-type">parameter ≥ value</span>
+                <button class="lc-del">✕</button>
+              </div>
+              <div class="lc-body">
+                <div class="grid-2">
+                  <div class="field"><label>Parameter</label><input class="input" value="battery"></div>
+                  <div class="field"><label>Compare</label>
+                    <select class="input"><option>&gt;</option><option selected>≥</option><option>=</option><option>&lt;</option></select>
+                  </div>
+                </div>
+                <div class="field"><label>Value</label><input class="input" value="1"></div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:8px;margin-top:4px">
+              <button class="add-btn amber">➕ Add condition</button>
+              <button class="add-btn amber">📁 Add group</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- THEN -->
+        <div class="stage then">
+          <div class="dot">3</div>
+          <div class="stage-card">
+            <div class="stage-head">
+              <span class="kw">Then</span>
+              <span class="hint">effects run in order</span>
+            </div>
+
+            <!-- effect 1: adjust_environment -->
+            <div class="logic-card">
+              <div class="lc-head">
+                <span class="lc-icon eff">🌡️</span>
+                <span class="lc-type">Adjust Environment</span>
+                <button class="lc-del">✕</button>
+              </div>
+              <div class="lc-body">
+                <div class="grid-2">
+                  <div class="field"><label>Light (+/−)</label><input class="input" value="+40"></div>
+                  <div class="field"><label>Temperature (+/−)</label><input class="input" value="0"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- effect 2: message with param reveal demo -->
+            <div class="logic-card">
+              <div class="lc-head">
+                <span class="lc-icon eff">💬</span>
+                <span class="lc-type">Show Message</span>
+                <button class="lc-del">✕</button>
+              </div>
+              <div class="lc-body">
+                <div class="field"><label>Message</label>
+                  <input class="input" value="You switch the flashlight on. The beam cuts through the darkness.">
+                </div>
+              </div>
+            </div>
+
+            <!-- categorized effect picker -->
+            <div class="picker">
+              <div class="pk-title">➕ Add effect</div>
+
+              <div class="pk-group">
+                <div class="pk-lbl">⚙️ General</div>
+                <div class="pk-grid">
+                  <span class="pk-item">💬 message</span><span class="pk-item">💥 destroy self</span>
+                  <span class="pk-item">🎲 save gate</span><span class="pk-item">🎁 give item</span>
+                  <span class="pk-item">🔧 set state</span><span class="pk-item">👻 set hidden</span>
+                  <span class="pk-item">🌀 teleport</span><span class="pk-item">✏️ rename</span>
+                  <span class="pk-item">🏷 add/remove tag</span><span class="pk-item">🔑 set param</span>
+                  <span class="pk-item">🔢 adjust param</span><span class="pk-item">⏳ schedule trigger</span>
+                  <span class="pk-item">🏁 end scenario</span><span class="pk-item">🔄 restart</span>
+                </div>
+              </div>
+
+              <div class="pk-group">
+                <div class="pk-lbl">🧍 Character</div>
+                <div class="pk-grid">
+                  <span class="pk-item">💔 damage</span><span class="pk-item">❤️ heal</span>
+                  <span class="pk-item">📊 adjust vital</span><span class="pk-item">🧑 spawn character</span>
+                  <span class="pk-item">⭐ apply/remove trait</span><span class="pk-item">🩸 apply/remove condition</span>
+                  <span class="pk-item">🧠 surface memory</span><span class="pk-item">🚫 suppress memory</span>
+                </div>
+              </div>
+
+              <div class="pk-group">
+                <div class="pk-lbl">📦 Item · 🌍 Area · 🚪 Way</div>
+                <div class="pk-grid">
+                  <span class="pk-item">📦 spawn item</span><span class="pk-item">🗑 remove item</span>
+                  <span class="pk-item">🍽 consume item</span><span class="pk-item">🔢 adjust uses</span>
+                  <span class="pk-item">📝 set/append desc</span>
+                  <span class="pk-item">🌡 set/adjust environment</span><span class="pk-item">🏠 spawn area</span>
+                  <span class="pk-item">🔓 unlock way</span><span class="pk-item">🚪 spawn way</span>
+                  <span class="pk-item">🔀 set way target</span><span class="pk-item">👁 set way view</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SAY -->
+        <div class="stage say">
+          <div class="dot">4</div>
+          <div class="stage-card">
+            <div class="stage-head">
+              <span class="kw">Say</span>
+              <span class="hint">what the player reads</span>
+            </div>
+            <div class="field" style="margin-bottom:10px"><label>✅ Success message</label>
+              <input class="input" value="You switch the flashlight on. The beam cuts through the darkness.">
+            </div>
+            <div class="field"><label>❌ Fail message</label>
+              <input class="input" placeholder="The battery is dead — nothing happens.">
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- test result -->
+      <div class="test-result" id="test-result">
+        <b style="color:var(--green)">✅ Test passed</b> — conditions met (<span style="color:var(--amber)">battery ≥ 1</span>).
+        Ran <b>2 effects</b>: <span style="color:var(--cyan)">adjust_environment</span> (light +40),
+        <span style="color:var(--cyan)">message</span>. Area light: dim → <b>bright</b>.
+      </div>
+
+      <!-- FOOTER -->
+      <div class="ts-foot">
+        <button class="btn ghost">Cancel</button>
+        <div class="spacer"></div>
+        <button class="btn">🧩 Graph</button>
+        <button class="btn warn">▶ Run Test</button>
+        <button class="btn green">✅ Save Trigger</button>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+  // trigger-type chips already multi-toggle via checkboxes.
+  // Demo: toggle AND/OR pill.
+  document.querySelectorAll('.and-or button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      b.parentElement.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');
+    });
+  });
+</script>
+</body>
+</html>

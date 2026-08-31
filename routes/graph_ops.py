@@ -5,7 +5,7 @@ import difflib
 import os
 from flask import request, jsonify
 from werkzeug.utils import secure_filename
-from graph import Node, Edge, EDGE_IN, EDGE_CARRYING, EDGE_ON, EDGE_UNDER, EDGE_BEHIND, EDGE_BESIDE, EDGE_AT
+from graph import Node, Edge, EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED, EDGE_ON, EDGE_UNDER, EDGE_BEHIND, EDGE_BESIDE, EDGE_AT, EDGE_TRIGGERS, EDGE_CONNECTION
 from engine.item_actions import normalize_item_actions
 
 logger = logging.getLogger(__name__)
@@ -38,6 +38,219 @@ def handle_create_node(app):
     )
     app.world.graph.add_node(node)
     return jsonify({"status": "success", "id": node_id})
+
+
+# ─────────────────────────── Duplicate (task-377) ───────────────────────────
+
+def _unique_node_id(graph, base):
+    candidate = base
+    n = 2
+    while graph.get_node(candidate) is not None:
+        candidate = f"{base}_{n}"
+        n += 1
+    return candidate
+
+
+def _strip_copy_suffix(name):
+    """'Bath Room (copy) (copy 3)' → 'Bath Room'; '(2)' → ''."""
+    import re as _re
+    return _re.sub(r' \((?:copy(?:\s\d+)?|\d+)\)$', '', str(name or ''))
+
+
+def handle_duplicate_node(app):
+    """Duplicate an area / item / way / character with its attached subtree.
+
+    Semantics (matches the graph's edge direction convention):
+      * children point TO the node  — ``salt --[on]--> table``, ``top --[equipped]--> char``
+      * the node points to its parents — ``table --[in]--> kitchen``
+    So a duplicate clones the node + nodes attached TO it (children), and keeps
+    the node's own attachment edges pointing at the SAME parents (the kitchen is
+    never duplicated, the character is never duplicated).
+    Trigger nodes are never duplicated via the graph — they are cloned only as
+    attachments of a duplicated node, each with a brand-new id + link.
+    """
+    data = request.get_json() or {}
+    node_id = data.get("node_id") or data.get("id")
+    include_children = bool(data.get("include_children", True))
+    graph = app.world.graph
+    node = graph.get_node(node_id) if node_id else None
+    if node is None:
+        return jsonify({"error": "Node not found"}), 404
+    if node.type == "logic_trigger":
+        return jsonify({
+            "error": "Triggers are never duplicated from the graph — "
+                     "create new triggers from the inspector editor instead."
+        }), 400
+    if node.type not in ("area", "item", "way", "character"):
+        return jsonify({"error": f"Cannot duplicate nodes of type '{node.type}'"}), 400
+
+    import copy as _copy
+    # Snapshot BEFORE mutating so a runaway/aborted duplicate is undoable.
+    from routes.saveload import _push_undo_snapshot
+    _push_undo_snapshot(app, label=f"duplicate {node.name}")
+    ts = int(time.time() * 1000)
+    MAX_CLONED_NODES = 200
+    state = {"count": 0}
+
+    # PRE-INDEX the ORIGINAL graph once. Child relations are attach edges
+    # (in/on/under/behind/beside/at/carrying/equipped) pointing TO the parent.
+    # The recursion must never scan live edges (a parent edge clone→parent looks
+    # like a child and would re-discover clones forever).
+    CHILD_ATTACH_TYPES = {EDGE_IN, EDGE_ON, EDGE_UNDER, EDGE_BEHIND,
+                          EDGE_BESIDE, EDGE_AT, EDGE_CARRYING, EDGE_EQUIPPED}
+    children_of = {}   # parent_id -> [(child_id, edge_type, edge_props)]
+    for _e in graph.edges:
+        if _e.type not in CHILD_ATTACH_TYPES:
+            continue
+        _src = graph.get_node(_e.source)
+        if _src is None or _src.type != "item":
+            continue  # only items are cloned as children (never chars/ways/triggers)
+        children_of.setdefault(_e.target, []).append(
+            (_e.source, _e.type, dict(_e.properties or {})))
+
+    def clone_node(src, nid, name):
+        props = _copy.deepcopy(src.properties or {})
+        clone = Node(id=nid, type=src.type, name=name, properties=props)
+        graph.add_node(clone)
+        state["count"] += 1
+        return clone
+
+    def clone_triggers_for(src_id, dst_id):
+        for edge in [e for e in graph.edges[:] if e.source == src_id and e.type == EDGE_TRIGGERS]:
+            tgt = graph.get_node(edge.target)
+            if tgt is None:
+                continue
+            _tt = tgt.properties.get('trigger_type', 'x')
+            if not isinstance(_tt, str):
+                _tt = str(_tt)
+            _safe = ''.join(c if c.isalnum() or c in '-_' else '_' for c in _tt)[:24] or 'x'
+            tid = _unique_node_id(graph, f"trigger_{dst_id}_{ts}_{_safe}")
+            graph.add_node(Node(id=tid, type=tgt.type, name=tgt.name,
+                                properties=_copy.deepcopy(tgt.properties or {})))
+            graph.add_edge(Edge(source=dst_id, target=tid, type=EDGE_TRIGGERS,
+                                properties=_copy.deepcopy(edge.properties or {})))
+            state["count"] += 1
+
+    def clone_item_tree(item_id, parent_id, visited):
+        """Clone one ORIGINAL item + its children-subtree; link to parent."""
+        if item_id in visited or state["count"] >= MAX_CLONED_NODES:
+            return None
+        visited.add(item_id)
+        src = graph.get_node(item_id)
+        if src is None or src.type != "item":
+            return None
+        cid = _unique_node_id(graph, f"{item_id}_dup")
+        cnode = clone_node(src, cid, f"{_strip_copy_suffix(src.name)} (copy)")
+        clone_triggers_for(item_id, cid)
+        for child_id, etype, eprops in children_of.get(item_id, []):
+            if isinstance(child_id, str) and graph.get_node(child_id) is not None:
+                child_clone = clone_item_tree(child_id, cid, visited)
+                if child_clone is not None:
+                    graph.add_edge(Edge(source=child_clone.id, target=cid,
+                                        type=etype, properties=eprops))
+        return cnode
+
+    def attach_children(src_id, dst_id, visited):
+        visited.add(src_id)
+        for child_id, etype, eprops in children_of.get(src_id, []):
+            if isinstance(child_id, str) and graph.get_node(child_id) is not None:
+                child_clone = clone_item_tree(child_id, dst_id, visited)
+                if child_clone is not None:
+                    graph.add_edge(Edge(source=child_clone.id, target=dst_id,
+                                        type=etype, properties=eprops))
+
+    if node.type == "area":
+        new_id = _unique_node_id(graph, f"{node.id}_dup")
+        new_area = clone_node(node, new_id, f"{_strip_copy_suffix(node.name)} (2)")
+        clone_triggers_for(node.id, new_id)
+        if include_children:
+            attach_children(node.id, new_id, set())
+    elif node.type == "item":
+        new_id = _unique_node_id(graph, f"{node.id}_dup")
+        citem = clone_node(node, new_id, f"{_strip_copy_suffix(node.name)} (copy)")
+        clone_triggers_for(node.id, new_id)
+        if include_children:
+            attach_children(node.id, new_id, set())
+        # Re-link the copy to the SAME parents as the original (never clone a
+        # parent, always share it): the copy stays in the same room/container.
+        for _e in graph.edges[:]:
+            if _e.source != node.id or _e.type not in CHILD_ATTACH_TYPES:
+                continue
+            if _e.type in (EDGE_CARRYING, EDGE_EQUIPPED):
+                # Don't strap the copy onto the same holder — drop it into the
+                # holder's area instead ("duplicate the top, not the char").
+                holder_area = None
+                for _h in graph.get_edges_for_source(_e.target, EDGE_IN):
+                    _an = graph.get_node(_h.target)
+                    if _an is not None and _an.type == "area":
+                        holder_area = _h.target
+                        break
+                if holder_area:
+                    graph.add_edge(Edge(source=new_id, target=holder_area, type=EDGE_IN))
+            else:
+                graph.add_edge(Edge(source=new_id, target=_e.target, type=_e.type,
+                                    properties=_copy.deepcopy(_e.properties or {})))
+    elif node.type == "way":
+        new_id = _unique_node_id(graph, f"{node.id}_dup")
+        cway = clone_node(node, new_id, f"{_strip_copy_suffix(node.name)} (copy)")
+        clone_triggers_for(node.id, new_id)
+        if include_children:
+            attach_children(node.id, new_id, set())
+        # Reconnect the copy to the SAME areas (both directions), never cloning.
+        for _e in graph.edges[:]:
+            if _e.type != EDGE_CONNECTION:
+                continue
+            if _e.source == node.id:
+                graph.add_edge(Edge(source=new_id, target=_e.target, type=EDGE_CONNECTION,
+                                    properties=_copy.deepcopy(_e.properties or {})))
+            elif _e.target == node.id:
+                graph.add_edge(Edge(source=_e.source, target=new_id, type=EDGE_CONNECTION,
+                                    properties=_copy.deepcopy(_e.properties or {})))
+    else:  # character
+        from player import Player
+        new_name_base = f"{_strip_copy_suffix(node.name)} (copy)"
+        new_name = new_name_base
+        _n = 2
+        while (new_name in app.world.players or
+               graph.get_node(f"player_{new_name}".replace(' ', '_')) is not None):
+            new_name = f"{new_name_base} {_n}"
+            _n += 1
+        src_player = app.world.players.get(node.name)
+        new_player = Player(new_name)
+        if src_player is not None:
+            for _f in ("stats", "skills", "vitals", "traits", "tags", "interest_tags",
+                       "personality", "base_description", "description",
+                       "simple_npc", "npc_behavior", "npc_action_interval"):
+                setattr(new_player, _f, _copy.deepcopy(getattr(src_player, _f)))
+            new_player.emotion = "neutral"
+            new_player.emotion_intensity = 0.0
+        # add_player() flips active_player to the new copy — restore afterwards.
+        prev_active = app.world.active_player
+        app.world.player_manager.add_player(new_player)
+        new_pid = f"player_{new_name}".replace(' ', '_')
+        clone_triggers_for(node.id, new_pid)
+        # Spawn the copy in the SAME area as the original.
+        for _e in graph.get_edges_for_source(node.id, EDGE_IN):
+            _an = graph.get_node(_e.target)
+            if _an is not None and _an.type == "area":
+                # current_area is the area NAME in this engine (client + move API).
+                new_player.current_area = _an.name
+                graph.add_edge(Edge(source=new_pid, target=_an.id, type=EDGE_IN))
+                break
+        if include_children:
+            attach_children(node.id, new_pid, set())
+        app.world.active_player = prev_active
+        new_id = new_pid
+
+    if state["count"] >= MAX_CLONED_NODES:
+        return jsonify({
+            "error": f"Duplicate aborted after {state['count']} clones "
+                     f"(subtree cycle or a huge container chain). Undo restores the world."
+        }), 400
+
+    return jsonify({"status": "success", "id": new_id,
+                    "name": graph.get_node(new_id).name,
+                    "cloned": state["count"]})
 
 
 def handle_update_node(app, node_id):
@@ -298,6 +511,19 @@ def handle_build_item_legacy(app):
         if existing_id.lower() == node_id:
             node_id = existing_id
             break
+    RELATION_EDGE_TYPES = {
+        "in": EDGE_IN,
+        "on": EDGE_ON,
+        "under": EDGE_UNDER,
+        "behind": EDGE_BEHIND,
+        "beside": EDGE_BESIDE,
+        "at": EDGE_AT,
+        "carrying": EDGE_CARRYING,
+    }
+
+    tags = data.get('tags', [])
+    if isinstance(tags, str):
+        tags = [t.strip() for t in tags.split(',') if t.strip()]
     props = {
         "description": data.get('description', ''),
         "actions": normalize_item_actions(data.get('actions', '')),
@@ -309,8 +535,23 @@ def handle_build_item_legacy(app):
         "action_costs": data.get('action_costs', {}),
         "current_state": "hidden" if data.get('hidden', False) else data.get('current_state', 'normal'),
         "skill_check": data.get('skill_check', {}),
-        "equip_slots": data.get('equip_slots', [])
+        "equip_slots": data.get('equip_slots', []),
+        "tags": tags,
+        # Mechanical props the engine reads (lighting, heat, sound, equipment
+        # bonuses). Defaults mirror _spawn_library_item_node in library_ops.
+        "light_level": data.get('light_level', 'dim'),
+        "target_temperature": data.get('target_temperature'),
+        "heating_rate": data.get('heating_rate'),
+        "sound_level": data.get('sound_level'),
+        "sound_pattern": data.get('sound_pattern'),
+        "defense": data.get('defense', 0),
+        "damage": data.get('damage', 0),
+        "insulation": data.get('insulation', 0),
+        "resistances": data.get('resistances', {}),
     }
+    for _prop in ("damage_skill", "damage_type", "stun_chance", "stun_duration", "image"):
+        if data.get(_prop) is not None:
+            props[_prop] = data[_prop]
     contents = data.get('contents', [])
     if isinstance(contents, list) and len(contents) > 0:
         props["contents"] = contents
@@ -325,35 +566,34 @@ def handle_build_item_legacy(app):
 
     if contents and isinstance(contents, list):
         for c in contents:
-            child_id = c.get("id", "") if isinstance(c, dict) else str(c)
-            child_name = c.get("name", child_id) if isinstance(c, dict) else child_id
-            if child_id:
-                child_node = app.world.graph.get_node(child_id)
-                if not child_node:
-                    child_node = Node(
-                        id=child_id,
-                        type="item",
-                        name=child_name,
-                        properties={"description": c.get("description", "") if isinstance(c, dict) else ""}
-                    )
-                    app.world.graph.add_node(child_node)
-                child_id_l = str(child_id).lower()
-                node_id_l = node_id.lower()
-                for e in app.world.graph.edges[:]:
-                    if (e.source.lower() == child_id_l and e.target.lower() == node_id_l and e.type == EDGE_IN) or \
-                       (e.source.lower() == node_id_l and e.target.lower() == child_id_l and e.type in ('contains', EDGE_IN)):
-                        app.world.graph.remove_edge(e.source, e.target, e.type)
-                app.world.graph.add_edge(Edge(source=child_id, target=node_id, type=EDGE_IN, properties={}))
+            if not isinstance(c, dict):
+                continue
+            child_id = c.get("id", "") or f"item_{c.get('name', 'content')}".lower()
+            child_name = c.get("name", child_id)
+            child_node = app.world.graph.get_node(child_id)
+            if not child_node:
+                child_node = Node(
+                    id=child_id,
+                    type="item",
+                    name=child_name,
+                    properties={
+                        "description": c.get("description", ""),
+                        "actions": normalize_item_actions(c.get("actions", "examine,take")),
+                        "uses": int(c.get("uses", -1)),
+                        "weight": float(c.get("weight", 0.1)),
+                        "current_state": "hidden",
+                    }
+                )
+                app.world.graph.add_node(child_node)
+            child_id_l = str(child_id).lower()
+            node_id_l = node_id.lower()
+            for e in app.world.graph.edges[:]:
+                if (e.source.lower() == child_id_l and e.target.lower() == node_id_l and e.type == EDGE_IN) or \
+                   (e.source.lower() == node_id_l and e.target.lower() == child_id_l and e.type in ('contains', EDGE_IN)):
+                    app.world.graph.remove_edge(e.source, e.target, e.type)
+            content_edge_type = RELATION_EDGE_TYPES.get((c.get("relation", "") or "").strip().lower(), EDGE_IN)
+            app.world.graph.add_edge(Edge(source=child_id, target=node_id, type=content_edge_type, properties={}))
 
-    RELATION_EDGE_TYPES = {
-        "in": EDGE_IN,
-        "on": EDGE_ON,
-        "under": EDGE_UNDER,
-        "behind": EDGE_BEHIND,
-        "beside": EDGE_BESIDE,
-        "at": EDGE_AT,
-        "carrying": EDGE_CARRYING,
-    }
     target_type = data.get('target_type') or ('item' if data.get('container') else 'character' if data.get('character') else 'area' if area_name else None)
     target_id = data.get('target_id') or data.get('container') or data.get('character') or None
     relation = data.get('relation') or 'in'
@@ -363,18 +603,6 @@ def handle_build_item_legacy(app):
         relation = 'carrying'
     if target_type == 'area':
         relation = 'in'
-    if target_type and target_id:
-        target_node = app.world.graph.get_node(target_id)
-        if not target_node:
-            return jsonify({"error": f"Target '{target_id}' not found"}), 404
-        if target_type == 'character' and target_node.type not in ('character', 'player'):
-            return jsonify({"error": f"'{target_id}' is not a character node"}), 400
-        edge_type = RELATION_EDGE_TYPES.get(relation, relation)
-        for e in app.world.graph.edges[:]:
-            if e.source.lower() == node_id.lower() and e.type in ('in', 'location', 'contains', 'carried_by', 'carrying', 'equipped', 'on', 'under', 'behind', 'beside', 'at'):
-                app.world.graph.remove_edge(e.source, e.target, e.type)
-        app.world.graph.add_edge(Edge(source=node_id, target=target_id, type=edge_type))
-        return jsonify({"status": "success", "target_type": target_type, "target_id": target_id, "relation": relation})
 
     item_triggers = data.get('triggers', [])
     for trigger_data in item_triggers:
@@ -413,7 +641,19 @@ def handle_build_item_legacy(app):
             properties=trig_props
         ))
 
-    return jsonify({"status": "success"})
+    if target_type and target_id:
+        target_node = app.world.graph.get_node(target_id)
+        if not target_node:
+            return jsonify({"error": f"Target '{target_id}' not found"}), 404
+        if target_type == 'character' and target_node.type not in ('character', 'player'):
+            return jsonify({"error": f"'{target_id}' is not a character node"}), 400
+        edge_type = RELATION_EDGE_TYPES.get(relation, relation)
+        for e in app.world.graph.edges[:]:
+            if e.source.lower() == node_id.lower() and e.type in ('in', 'location', 'contains', 'carried_by', 'carrying', 'equipped', 'on', 'under', 'behind', 'beside', 'at'):
+                app.world.graph.remove_edge(e.source, e.target, e.type)
+        app.world.graph.add_edge(Edge(source=node_id, target=target_id, type=edge_type))
+
+    return jsonify({"status": "success", "node_id": node_id, "target_type": target_type, "target_id": target_id, "relation": relation})
 
 
 def handle_build_connect_legacy(app):

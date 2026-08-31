@@ -72,7 +72,7 @@ The 3 "pre-existing" failures were stale test expectations against retuned libra
 
 ## Corrections to earlier observations
 
-- task-97/task-109 were already filed in `inprogress/testing|triggers` — earlier "flat in
+- task-358/task-351 were already filed in `inprogress/testing|triggers` — earlier "flat in
   root" reading was wrong (recursive listing artifact).
 - task-155's two status lines AGREE (`todo` both) — consistent, left as-is.
 

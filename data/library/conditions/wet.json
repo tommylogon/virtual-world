@@ -1,0 +1,24 @@
+{
+  "name": "Wet",
+  "description": "Soaked through. Wet clothing insulates far worse (and you're miserable).",
+  "blocks_actions": false,
+  "blocks_movement": false,
+  "blocks_speech": false,
+  "auto_fail_checks": [],
+  "auto_fail_saves": [],
+  "attack_mod": 0,
+  "defense_mod": 0,
+  "speed_mult": 1.0,
+  "movement_mode": null,
+  "drops_held_items": false,
+  "periodic": {},
+  "ends_on": ["dry", "cure"],
+  "known": true,
+  "symptoms": {
+    "5": "Every thread clings. You're soaked to the bone.",
+    "3": "Water dribbles from your sleeves. The cold is in your bones."
+  },
+  "stack": "refresh",
+  "default_duration": null,
+  "excludes": []
+}

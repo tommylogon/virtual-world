@@ -200,12 +200,12 @@ window.InspectorWayViewConnections = (() => {
                     <div class="field"><label>Command from B → A <span class="section-hint">(go ___)</span></label>
                         <input type="text" id="way-reconn-dir2" value="${esc(roomBDir)}" style="width:100%;padding:4px 8px;font-size:12px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text);" onchange="var v=this.value,w='${escapedId}',b='${esc(roomBId)}';Promise.all([api.updateEdge(b,w,{old_type:'connection',properties:{direction:v}}),api.updateEdge(w,b,{old_type:'connection',properties:{direction:v}})]).then(()=>worldState.fetch())">
                     </div>
-                    <button class="btn btn-sm btn-blue" onclick="InspectorWayView._reconnectDoor('${escapedId}')" style="margin-top:4px;">🔄 Reconnect</button>
+                    <button class="btn btn-sm btn-blue" onclick="InspectorWayView._reconnectWays('${escapedId}')" style="margin-top:4px;">🔄 Reconnect Ways</button>
                 </div>
             </div>`;
     };
 
-    C._reconnectDoor = async function(wayId) {
+    C._reconnectWays = async function(wayId) {
         const roomASelect = document.getElementById('way-reconn-a');
         const roomBSelect = document.getElementById('way-reconn-b');
         const dir1Input = document.getElementById('way-reconn-dir1');
@@ -230,7 +230,7 @@ window.InspectorWayViewConnections = (() => {
         const dir1 = dir1Input?.value?.trim() || '';
         const dir2 = dir2Input?.value?.trim() || '';
 
-        await ApiClient.reconnectDoor(wayId, roomAId, roomBId, dir1, dir2);
+        await ApiClient.reconnectWays(wayId, roomAId, roomBId, dir1, dir2);
         worldState.fetch().then(() => {
             if (window.VW?.inspector) window.VW.inspector.showNode(wayId);
         });

@@ -110,13 +110,9 @@ window.InspectorAreaView = (() => {
                         </div>`)
                     : htmlTag`<div style="font-size:11px;color:var(--text-muted);">No items</div>`}
             </div>
-            ${htmlTag`<div id="known-by-mount"></div>`}
         `;
 
         InspectorPanel.render(template);
-
-        const kbMount = document.getElementById('known-by-mount');
-        if (kbMount && window.KnownBySection) kbMount.replaceWith(window.KnownBySection.build('area', actualNodeId, name));
 
         if (window.InspectorTemplateSync) {
             window.InspectorTemplateSync.populateSelector('area', actualNodeId);
@@ -159,6 +155,7 @@ window.InspectorAreaView = (() => {
                 </div>
             </div>
 <button class="btn btn-sm btn-ghost" @click=${() => libraryBrowser.saveAreaByName(name)} title="Save this area to library" style="font-size:10px;">📚 Save to Library</button>
+            <button class="btn btn-sm btn-ghost" @click=${() => graphManager._duplicateNode(actualNodeId)} title="Duplicate this area with its items, contents and triggers" style="font-size:10px;">📋 Duplicate</button>
             <button class="btn btn-sm btn-ghost" @click=${() => hideInspectorPanel()}>✕</button>
         </div>`;
     };
@@ -334,7 +331,7 @@ Description: ${description}
 
 Current environment:
 - light: ${env.light ?? 80}
-- temperature: ${env.temperature ?? 21}
+- temperature: ${Math.round((env.temperature ?? 21) * 10) / 10}
 - air: ${env.air || 'fresh'}
 - smell: ${env.smell || 'neutral'}
 - noise: ${env.noise || 'quiet'}

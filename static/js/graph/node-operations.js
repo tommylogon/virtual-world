@@ -267,8 +267,11 @@ window.GraphNodeOps = {
      *  @param {string} newId - New duplicate node ID
      *  @param {string} sourceType - Type of the source node
      *  @param {boolean} [skipModals=false] - Skip modals for recursive calls */
-    async _copyEdgesWithModals(sourceId, newId, sourceType, skipModals = false) {
-        const edgesArr = await ApiClient.getGraphEdges();
+    async _copyEdgesWithModals(sourceId, newId, sourceType, skipModals = false, edgesSnapshot = null, sharedDupMap = null) {
+        // Use ONE edges snapshot for the whole duplication tree. Re-fetching on
+        // every recursion was the runaway-loop bug: newly created edges made the
+        // clone discover its own copies and keep duplicating forever.
+        const edgesArr = edgesSnapshot !== null ? edgesSnapshot : await ApiClient.getGraphEdges();
 
         // Gather all outgoing edges (source -> target) and incoming edges (target <- source)
         const outgoingEdges = [];
@@ -282,8 +285,10 @@ window.GraphNodeOps = {
             }
         }
 
-        // Track which nodes we've duplicated (id map: originalId -> newCopyId)
-        const dupMap = new Map();
+        // Track which nodes we've duplicated (id map: originalId -> newCopyId).
+        // The map is shared across the whole recursion so each original node is
+        // cloned at most once, no matter how many paths reach it.
+        const dupMap = sharedDupMap !== null ? sharedDupMap : new Map();
         dupMap.set(sourceId, newId);
 
         // Group ALL edges (outgoing + incoming) by target type.
@@ -349,10 +354,10 @@ window.GraphNodeOps = {
                 'Duplicate Items?'
             );
             if (dupItems) {
-                await this._duplicateNodesByType(itemsOut, 'item', sourceId, newId, dupMap, true);
+                await this._duplicateNodesByType(itemsOut, 'item', sourceId, newId, dupMap, true, edgesArr);
             }
         } else if (itemsOut.length > 0 && skipModals) {
-            await this._duplicateNodesByType(itemsOut, 'item', sourceId, newId, dupMap, true);
+            await this._duplicateNodesByType(itemsOut, 'item', sourceId, newId, dupMap, true, edgesArr);
         }
 
         if (waysOut.length > 0 && !skipModals) {
@@ -361,10 +366,10 @@ window.GraphNodeOps = {
                 'Duplicate Ways?'
             );
             if (dupWays) {
-                await this._duplicateNodesByType(waysOut, 'way', sourceId, newId, dupMap, true);
+                await this._duplicateNodesByType(waysOut, 'way', sourceId, newId, dupMap, true, edgesArr);
             }
         } else if (waysOut.length > 0 && skipModals) {
-            await this._duplicateNodesByType(waysOut, 'way', sourceId, newId, dupMap, true);
+            await this._duplicateNodesByType(waysOut, 'way', sourceId, newId, dupMap, true, edgesArr);
         }
 
         if (charsOut.length > 0 && !skipModals) {
@@ -373,10 +378,10 @@ window.GraphNodeOps = {
                 'Duplicate Characters?'
             );
             if (dupChars) {
-                await this._duplicateNodesByType(charsOut, 'character', sourceId, newId, dupMap, true);
+                await this._duplicateNodesByType(charsOut, 'character', sourceId, newId, dupMap, true, edgesArr);
             }
         } else if (charsOut.length > 0 && skipModals) {
-            await this._duplicateNodesByType(charsOut, 'character', sourceId, newId, dupMap, true);
+            await this._duplicateNodesByType(charsOut, 'character', sourceId, newId, dupMap, true, edgesArr);
         }
 
         if (areasOut.length > 0 && !skipModals) {
@@ -385,10 +390,10 @@ window.GraphNodeOps = {
                 'Duplicate Areas?'
             );
             if (dupAreas) {
-                await this._duplicateNodesByType(areasOut, 'area', sourceId, newId, dupMap, true);
+                await this._duplicateNodesByType(areasOut, 'area', sourceId, newId, dupMap, true, edgesArr);
             }
         } else if (areasOut.length > 0 && skipModals) {
-            await this._duplicateNodesByType(areasOut, 'area', sourceId, newId, dupMap, true);
+            await this._duplicateNodesByType(areasOut, 'area', sourceId, newId, dupMap, true, edgesArr);
         }
 
         // Ask about duplicating triggers
@@ -398,10 +403,10 @@ window.GraphNodeOps = {
                 'Duplicate Triggers?'
             );
             if (dupTriggers) {
-                await this._duplicateNodesByType(triggersOut, 'trigger', sourceId, newId, dupMap, false);
+                await this._duplicateNodesByType(triggersOut, 'trigger', sourceId, newId, dupMap, false, edgesArr);
             }
         } else if (triggersOut.length > 0 && skipModals) {
-            await this._duplicateNodesByType(triggersOut, 'trigger', sourceId, newId, dupMap, false);
+            await this._duplicateNodesByType(triggersOut, 'trigger', sourceId, newId, dupMap, false, edgesArr);
         }
 
         // All categories with edges have been handled by modals above.
@@ -419,9 +424,17 @@ window.GraphNodeOps = {
      *  @param {string} targetType - Type of nodes to duplicate
      *  @param {string} sourceId - Original node ID being duplicated
      *  @param {string} parentId - New copy node ID to link duplicates to
-     *  @param {Map} dupMap - Map of original IDs to copy IDs
-     *  @param {boolean} recurse - Whether to recursively duplicate children's edges */
-    async _duplicateNodesByType(edges, targetType, sourceId, parentId, dupMap, recurse = false) {
+     *  @param {Map} dupMap - Map of original IDs to copy IDs (shared across the whole
+     *  duplication operation so no node is ever cloned twice)
+     *  @param {boolean} recurse - Whether to recursively duplicate children's edges
+     *  @param {Array|null} edgesSnapshot - The edges snapshot captured once at the
+     *  start of the operation; never re-fetch inside recursion */
+    async _duplicateNodesByType(edges, targetType, sourceId, parentId, dupMap, recurse = false, edgesSnapshot = null) {
+        // Belt-and-braces: never build more than 200 cloned nodes in one operation.
+        if (dupMap.size > 200) {
+            events.log('Duplicate aborted: more than 200 related nodes.', 'error-msg');
+            return;
+        }
         for (const edge of edges) {
             // Resolve the related node: outgoing edges have it at target, incoming at source
             const relatedNodeId = edge.source === sourceId ? edge.target : edge.source;
@@ -461,9 +474,10 @@ window.GraphNodeOps = {
                 } else {
                     await ApiClient.createEdge(charNewId, parentId, edge.type, JSON.parse(JSON.stringify(edge.properties || {})));
                 }
-                // Recursively duplicate the character's own edges (no modals)
+                // Recursively duplicate the ORIGINAL character's own edges (no modals),
+                // using the shared snapshot/map so nothing is cloned twice.
                 if (recurse) {
-                    await this._copyEdgesWithModals(charNewId, charNewId, 'character', true);
+                    await this._copyEdgesWithModals(relatedNodeId, charNewId, 'character', true, edgesSnapshot, dupMap);
                 }
             } else {
                 const res = await ApiClient.createNode({
@@ -481,9 +495,10 @@ window.GraphNodeOps = {
                 } else {
                     await ApiClient.createEdge(copyId, parentId, edge.type, JSON.parse(JSON.stringify(edge.properties || {})));
                 }
-                // Recursively duplicate the copied node's own edges (no modals)
+                // Recursively duplicate the ORIGINAL copied node's own edges (no modals),
+                // using the shared snapshot/map so nothing is cloned twice.
                 if (recurse) {
-                    await this._copyEdgesWithModals(copyId, copyId, actualType, true);
+                    await this._copyEdgesWithModals(relatedNodeId, copyId, actualType, true, edgesSnapshot, dupMap);
                 }
             }
         }

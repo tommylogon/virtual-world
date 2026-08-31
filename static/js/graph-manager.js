@@ -244,7 +244,60 @@ class GraphManager {
 
     async _deleteEdge(source, target, edgeType) { return GraphNodeOps.deleteEdge(source, target, edgeType); }
 
-    async _duplicateNode(nodeId) { return GraphNodeOps.duplicateNode(nodeId); }
+    async _duplicateNode(nodeId) {
+        const nodeData = this.nodes.get(nodeId);
+        const nodeType = nodeData?.type;
+        // Triggers are never duplicated via the graph — the inspector editor
+        // is where new triggers are made.
+        if (nodeType === 'logic_trigger') {
+            events.log('Triggers are never duplicated from the graph — edit the node and use the inspector to create a new trigger.', 'error-msg');
+            return null;
+        }
+        if (!['area', 'item', 'way', 'character'].includes(nodeType)) {
+            events.log(`Cannot duplicate nodes of type "${nodeType}".`, 'error-msg');
+            return null;
+        }
+        // ONE atomic write on the backend (POST /api/graph/duplicate). It
+        // snapshots the original, clones the node + children + triggers in a
+        // single request, and pushes an undo snapshot before mutating. Children
+        // are items attached TO the node (salt --[on]--> table / top --[equipped]--> char);
+        // parents are always shared, never cloned.
+        try {
+            let includeChildren = true;
+            const hasChildren = await this._dupNodeHasChildren(nodeId, nodeType);
+            if (hasChildren) {
+                includeChildren = await GraphNodeOps._showDuplicateChoiceModal(
+                    `Also duplicate the items attached to <strong>${nodeData?.name || nodeId}</strong>?<br><br>No = just the ${nodeType} and its triggers.`,
+                    'Duplicate Items?'
+                );
+            }
+            const res = await ApiClient.duplicateNode(nodeId, includeChildren);
+            if (res && res.id) {
+                const extra = res.cloned > 1 ? ` (${res.cloned} nodes)` : '';
+                events.log(`Duplicated "${nodeData?.name || nodeId}" as "${res.name}"${extra}`, 'system-msg');
+                worldState.fetch();
+                return res;
+            }
+            events.log(`Duplicate failed: ${res?.error || 'unknown error'}`, 'error-msg');
+            return null;
+        } catch (err) {
+            events.log(`Duplicate failed: ${err.message}`, 'error-msg');
+            return null;
+        }
+    }
+
+    /** Does this node have item children attached to it (edges pointing TO it)? */
+    async _dupNodeHasChildren(nodeId, nodeType) {
+        const edges = this._graphEdgesArr || worldState.graph?.edges || [];
+        const CHILD_TYPES = new Set(['in', 'on', 'under', 'behind', 'beside', 'at', 'carrying', 'equipped']);
+        for (const e of edges) {
+            if (e.target !== nodeId) continue;
+            if (!CHILD_TYPES.has(e.type || 'connection')) continue;
+            const src = this.nodes.get(e.source);
+            if (src && src.type === 'item') return true;
+        }
+        return false;
+    }
 
     async _createSpecialEdge(fromNodeId, edgeType, emoji) { return GraphNodeOps.createSpecialEdge(fromNodeId, edgeType, emoji); }
 
@@ -526,6 +579,17 @@ class GraphManager {
     }
 
     fitView() { return GraphNetwork.fitView(); }
+
+    /** Floating zoom-cluster actions (bottom-right of the canvas). */
+    zoomIn() { this._zoomBy(1.25); }
+
+    zoomOut() { this._zoomBy(0.8); }
+
+    _zoomBy(factor) {
+        if (!this.network) return;
+        const scale = this.network.getScale() * factor;
+        this.network.moveTo({ scale, animation: { duration: 200, easingFunction: 'easeInOutQuad' } });
+    }
 
     toggleLegend() { return GraphNetwork.toggleLegend(); }
 

@@ -79,7 +79,9 @@ class WorldState {
             // The agent loop already pushes UI updates via renderAll while running.
             // Polling /api/state on top of that doubles the stream and re-triggers
             // the whole inspector/lens render cascade — skip it while running.
-            if (window.config && config.running) return;
+            // `config` is a top-level const lexical global — window.config is
+            // always undefined (would make this guard dead code).
+            if (typeof config !== 'undefined' && config.running) return;
             this.fetch();
         }, intervalMs);
     }

@@ -30,19 +30,29 @@
 
     <!-- ===== TOP BAR ===== -->
     <header id="top-bar" role="banner">
-        <div class="logo" id="scenario-name-container" title="Click to rename scenario">🌍 <span id="scenario-name-text">{{ scenario_name or 'unnamed' }}</span></div>
+        <div class="logo" id="scenario-name-container" title="Click to rename scenario">🌍 <span id="scenario-name-text">{{ scenario_name or 'unnamed' }}</span> <span id="scenario-status-chip" style="margin-left:6px;display:inline-flex;align-items:center;gap:4px;font-size:11px;white-space:nowrap;"></span></div>
         <div class="top-actions">
             <label class="toggle-label" for="spectator-mode">
                 <input type="checkbox" id="spectator-mode" onchange="toggleSpectator()" aria-label="Toggle spectator mode">
                 <span>👁️ Spectator</span>
             </label>
             <div style="font-size:9px;color:var(--text-dim);margin-left:4px;cursor:help;" title="Spectator mode polls the world state every 1.5s so you can watch the simulation unfold without clicking anything.">?</div>
-            <button class="btn btn-sm btn-green" onclick="saveGame()" aria-label="Save game snapshot">💾 Save Game</button>
-            <button class="btn btn-sm btn-blue" onclick="document.getElementById('load-game-modal').style.display='flex'; loadGameList()" aria-label="Load game snapshot">📂 Load Game</button>
-            <button class="btn btn-sm btn-orange" onclick="document.getElementById('file-upload').click()" aria-label="Load world from file">📂 Load JSON</button>
-            <button class="btn btn-sm btn-cyan" onclick="saveScenarioToFile()" aria-label="Save scenario (authorial snapshot)">📝 Save Scenario</button>
-            <button class="btn btn-sm" onclick="if(confirm('New scenario? This will clear ALL world state and start fresh with an empty world.')){ newScenario(); }" aria-label="New scenario" style="background:#2e7d32;color:#fff;border-color:#1b5e20;">🆕 New</button>
-            <button class="btn btn-sm btn-red" onclick="if(confirm('Restart scenario? This will reset all world state.')){ restartScenario(); }" aria-label="Restart scenario" style="background:#d32f2f;color:#fff;border-color:#b71c1c;">🔄 Restart</button>
+            <div class="menu-anchor">
+                <button class="btn btn-sm" onclick="toggleTopMenu(event,'game-menu')" aria-label="Game menu — save, load, import, new scenario">🎮 Game ▾</button>
+                <div id="game-menu" class="dropdown-menu top-menu" style="display:none;" role="menu" aria-label="Game actions">
+                    <button class="dropdown-item" onclick="saveGame();closeTopMenus()" role="menuitem">💾 Save Game</button>
+                    <button class="dropdown-item" onclick="closeTopMenus();document.getElementById('load-game-modal').style.display='flex'; loadGameList()" role="menuitem">📂 Load Game…</button>
+                    <button class="dropdown-item" onclick="closeTopMenus();document.getElementById('file-upload').click()" role="menuitem">📂 Load JSON…</button>
+                <button class="dropdown-item" onclick="closeTopMenus();ScenarioManager.open()" role="menuitem">🗂 Scenario Manager…</button>
+                <button class="dropdown-item" onclick="closeTopMenus();saveScenarioToFile()" role="menuitem">📤 Export Scenario File…</button>
+                    <button class="dropdown-item" onclick="closeTopMenus();ScenarioStatus.commit()" role="menuitem">💾 Commit Scenario</button>
+                    <button class="dropdown-item" onclick="closeTopMenus();ScenarioWizard.open()" role="menuitem">✨ Scenario from Text…</button>
+                    <div class="context-menu-divider"></div>
+                    <button class="dropdown-item" onclick="closeTopMenus();if(confirm('New scenario? This will clear ALL world state and start fresh with an empty world.')){ newScenario(); }" role="menuitem">🆕 New Scenario…</button>
+                </div>
+            </div>
+            <button class="btn btn-sm" onclick="CommandPalette.open()" title="Command palette — jump anywhere (Ctrl+K)">⚡</button>
+            <button class="btn btn-sm btn-red" onclick="if(confirm('Restart scenario? This will reset all world state.')){ restartScenario(); }" aria-label="Restart scenario">🔄 Restart</button>
             <button class="btn btn-sm" onclick="document.getElementById('settings-modal').style.display='flex'; setTimeout(populateSettingsForm, 50);" aria-label="Agent Settings">⚙️ Settings</button>
             <input type="file" id="file-upload" style="display:none" accept=".json" onchange="uploadWorld(event)" aria-hidden="true">
             <select id="narration-select" class="narration-select" onchange="window.narrationUI?.setMode(this.value)" title="Narration mode" aria-label="Narration mode">
@@ -63,7 +73,8 @@
                 <button class="sim-btn" id="sim-pause" onclick="stopAgent()" title="Pause">⏸</button>
                 <button class="sim-btn" id="sim-step" onclick="agentStepOnce()" title="Step Once">⏭</button>
                 <button class="sim-btn" id="sim-cancel" onclick="cancelStep()" title="Cancel current step" style="display:none;color:var(--red);">✕</button>
-                <input type="number" id="sim-max-steps" class="sim-max-steps" value="10" min="0" title="Max turns before auto-stop (0 = unlimited)">
+                <input type="number" id="sim-max-steps" class="sim-max-steps" value="10" min="0" title="Max steps before auto-stop (0 = unlimited)">
+                <span class="sim-steps-label" title="Max steps before auto-stop (0 = unlimited)">steps</span>
                 <span id="sim-rate-limit" class="sim-rate-limit" hidden aria-live="polite" title="API rate limit cooldown"></span>
                 <div class="sim-time" id="ui-time" aria-live="polite">08:00</div>
             </div>
@@ -143,46 +154,27 @@
         <!-- CENTER VIEWPORT -->
         <main id="center-viewport" aria-label="World visualization">
             <div id="graph-toolbar" class="editor-toolbar" role="toolbar" aria-label="Graph tools">
-                <div class="toolbar-group">
+                <!-- Create -->
+                <div class="toolbar-group" aria-label="Create nodes">
                     <button class="toolbar-btn" data-tool="add_area" onclick="addRoomViaGraph()">🏠 Area</button>
                     <button class="toolbar-btn" data-tool="add_item" onclick="addItemViaGraph()">📦 Item</button>
                     <button class="toolbar-btn" data-tool="add_way" onclick="connectRoomsViaGraph()">🚪 Way</button>
                     <button class="toolbar-btn" onclick="openLibraryBrowser()">📚 Library</button>
-                    <button class="toolbar-btn" onclick="openWorldSync()" title="Sync world entities to library">📋 Sync to Library</button>
                 </div>
                 <div class="toolbar-divider"></div>
-                <div class="toolbar-group">
-                    <button class="toolbar-btn" onclick="graphEditor.undo()">↩️</button>
-                    <button class="toolbar-btn" onclick="graphEditor.redo()">↪️</button>
+                <!-- History -->
+                <div class="toolbar-group" aria-label="Undo / redo">
+                    <button class="toolbar-btn" onclick="graphEditor.undo()" title="Undo">↩️</button>
+                    <button class="toolbar-btn" onclick="graphEditor.redo()" title="Redo">↪️</button>
+                    <button class="toolbar-btn" data-role="undo-history-toggle" onclick="UndoHistory.toggle()" title="Undo history">📜</button>
+                    <div id="undo-history-menu" style="display:none;position:absolute;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:4px;z-index:15000;min-width:240px;max-width:320px;margin-top:4px;"></div>
                 </div>
                 <div class="toolbar-divider"></div>
-                <div class="toolbar-group">
-                    <button class="toolbar-btn" onclick="graphEditor.showTemplates()">📋 Templates</button>
-                    <button class="toolbar-btn" onclick="VW.inspector.showWorldLore()" title="Edit world lore entries">🌍 Lore</button>
-                </div>
-                <div class="toolbar-divider"></div>
-                <div class="toolbar-group">
-                    <button class="toolbar-btn" id="btn-physics" onclick="graphManager.togglePhysics()" title="Toggle physics (freeze/unfreeze node positions)">⏸ Physics</button>
-                    <button class="toolbar-btn" id="btn-cardinal" onclick="graphManager.toggleCardinalLayout()" title="Toggle cardinal area layout">🗺️ Map</button>
-                    <button class="toolbar-btn" onclick="graphManager.fitView()" title="Zoom to fit all nodes">⊞ Fit</button>
-                    <input class="graph-search" type="text" id="graph-search" placeholder="🔍 Search nodes..." oninput="graphManager.filterNodes(this.value)" onkeydown="if(event.key==='Enter'){GraphNetwork.settleSearch();}" onblur="GraphNetwork.settleSearch()" title="Filter graph nodes by name">
-                    <button class="toolbar-btn" onclick="graphManager.toggleLegend()" title="Toggle legend">📖 Legend</button>
-                    <button class="toolbar-btn" onclick="graphManager.toggleTagPanel()" title="Toggle tag filter / indicators">🏷️ Tags</button>
-                    <button class="toolbar-btn active" id="btn-edge-labels" onclick="graphManager.toggleEdgeLabels()" title="Show all edge type labels">🏷 Labels</button>
-                    <span style="display:inline-flex;align-items:center;gap:2px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;padding:2px 4px;">
-                        <button class="toolbar-btn" style="padding:0 6px;font-size:12px;line-height:1.2;" onclick="graphManager.setEdgeLabelSize(-1)" title="Smaller edge labels">−</button>
-                        <span id="edge-label-size" style="font-size:10px;color:var(--text);min-width:14px;text-align:center;">8</span>
-                        <button class="toolbar-btn" style="padding:0 6px;font-size:12px;line-height:1.2;" onclick="graphManager.setEdgeLabelSize(1)" title="Larger edge labels">+</button>
-                    </span>
-                    <button class="toolbar-btn" id="btn-triggers" onclick="graphManager.toggleTriggers()" title="Show/hide trigger nodes in graph">🔩 Triggers</button>
-                    <button class="toolbar-btn" id="btn-items" onclick="graphManager.toggleItems()" title="Show/hide item nodes in graph">📦 Items</button>
-                    <button class="toolbar-btn active" id="btn-inhabited" onclick="graphManager.toggleInhabitedAreas()" title="Hide areas with no characters present">🏘 Inhabited</button>
-                    <button class="toolbar-btn active" id="btn-images" onclick="graphManager.toggleImages()" title="Show node image thumbnails on the graph (where set)">🖼 Images</button>
-                    <select id="floor-filter" class="graph-search" style="width:auto;max-width:140px;padding:4px 6px;font-size:10px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="graphManager.setFloorFilter(this.value)" title="Filter graph to a single floor of areas">
-                        <option value="all">🏢 All Floors</option>
-                    </select>
+                <!-- View modes -->
+                <div class="toolbar-group" aria-label="View mode">
                     <button class="toolbar-btn view-toggle active" data-view="graph" onclick="graphManager.setViewMode('graph')" title="Force-directed graph view">🔮 Graph</button>
-                    <div class="toolbar-dropdown" style="position:relative;">
+                    <button class="toolbar-btn" id="btn-cardinal" onclick="graphManager.toggleCardinalLayout()" title="Toggle cardinal area layout">🗺️ Map</button>
+                    <div class="toolbar-dropdown menu-anchor" style="position:relative;">
                         <button class="toolbar-btn" id="btn-overlays" onclick="graphManager._toggleOverlayDropdown()" title="Graph overlay views">📊 Overlays ▾</button>
                         <div id="overlay-dropdown" class="dropdown-menu" style="display:none;position:absolute;top:100%;left:0;z-index:200;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:4px;box-shadow:0 8px 24px rgba(0,0,0,0.5);min-width:160px;">
                             <button class="dropdown-item overlay-toggle" data-overlay="light" onclick="graphManager.setViewMode('light');graphManager._toggleOverlayDropdown()" title="Color areas by ambient light">💡 Light</button>
@@ -192,7 +184,47 @@
                             <button class="dropdown-item overlay-toggle" data-overlay="cardinal" onclick="graphManager.setViewMode('cardinal');graphManager._toggleOverlayDropdown()" title="Show door directions geographically">🧭 Cardinal</button>
                         </div>
                     </div>
-                    <button class="toolbar-btn" onclick="printWorld()" title="Printer-friendly world summary">🖨️ Print</button>
+                </div>
+                <div class="toolbar-divider"></div>
+                <!-- Canvas -->
+                <div class="toolbar-group" aria-label="Canvas controls">
+                    <button class="toolbar-btn" id="btn-physics" onclick="graphManager.togglePhysics()" title="Toggle physics (freeze/unfreeze node positions)">⏸ Physics</button>
+                    <button class="toolbar-btn" onclick="graphManager.fitView()" title="Zoom to fit all nodes">⊞ Fit</button>
+                    <input class="graph-search" type="text" id="graph-search" placeholder="🔍 Search nodes..." oninput="graphManager.filterNodes(this.value)" onkeydown="if(event.key==='Enter'){GraphNetwork.settleSearch();}" onblur="GraphNetwork.settleSearch()" title="Filter graph nodes by name">
+                </div>
+                <div class="toolbar-divider"></div>
+                <!-- Visibility toggles -->
+                <div class="toolbar-group" aria-label="Show on graph">
+                    <button class="toolbar-btn active" id="btn-inhabited" onclick="graphManager.toggleInhabitedAreas()" title="Hide areas with no characters present">🏘 Inhabited</button>
+                    <button class="toolbar-btn active" id="btn-images" onclick="graphManager.toggleImages()" title="Show node image thumbnails on the graph (where set)">🖼 Images</button>
+                    <button class="toolbar-btn" id="btn-triggers" onclick="graphManager.toggleTriggers()" title="Show/hide trigger nodes in graph">🔩 Triggers</button>
+                    <button class="toolbar-btn" id="btn-items" onclick="graphManager.toggleItems()" title="Show/hide item nodes in graph">📦 Items</button>
+                    <select id="floor-filter" class="graph-search" style="width:auto;max-width:140px;padding:4px 6px;font-size:10px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="graphManager.setFloorFilter(this.value)" title="Filter graph to a single floor of areas">
+                        <option value="all">🏢 All Floors</option>
+                    </select>
+                </div>
+                <div class="toolbar-divider"></div>
+                <!-- Edge labels -->
+                <div class="toolbar-group" aria-label="Edge labels">
+                    <button class="toolbar-btn active" id="btn-edge-labels" onclick="graphManager.toggleEdgeLabels()" title="Show all edge type labels">🏷 Labels</button>
+                    <span style="display:inline-flex;align-items:center;gap:2px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;padding:2px 4px;">
+                        <button class="toolbar-btn" style="padding:0 6px;font-size:12px;line-height:1.2;" onclick="graphManager.setEdgeLabelSize(-1)" title="Smaller edge labels">−</button>
+                        <span id="edge-label-size" style="font-size:10px;color:var(--text);min-width:14px;text-align:center;">8</span>
+                        <button class="toolbar-btn" style="padding:0 6px;font-size:12px;line-height:1.2;" onclick="graphManager.setEdgeLabelSize(1)" title="Larger edge labels">+</button>
+                    </span>
+                </div>
+                <div class="toolbar-divider"></div>
+                <!-- Rarely used -->
+                <div class="toolbar-group menu-anchor" style="position:relative;" aria-label="More tools">
+                    <button class="toolbar-btn" onclick="toggleTopMenu(event,'graph-more-menu')" title="More graph tools">⋯ More ▾</button>
+                    <div id="graph-more-menu" class="dropdown-menu top-menu top-menu-left" style="display:none;" role="menu" aria-label="More graph tools">
+                        <button class="dropdown-item" onclick="closeTopMenus();graphEditor.showTemplates()" role="menuitem">📋 Templates</button>
+                        <button class="dropdown-item" onclick="closeTopMenus();VW.inspector.showWorldLore()" role="menuitem" title="Edit world lore entries">🌍 Lore</button>
+                        <button class="dropdown-item" onclick="closeTopMenus();graphManager.toggleLegend()" role="menuitem" title="Toggle legend">📖 Legend</button>
+                        <button class="dropdown-item" onclick="closeTopMenus();graphManager.toggleTagPanel()" role="menuitem" title="Toggle tag filter / indicators">🏷️ Tags</button>
+                        <button class="dropdown-item" onclick="closeTopMenus();openWorldSync()" role="menuitem" title="Sync world entities to library">📋 Sync to Library</button>
+                        <button class="dropdown-item" onclick="closeTopMenus();printWorld()" role="menuitem" title="Printer-friendly world summary">🖨️ Print</button>
+                    </div>
                 </div>
                 <div class="toolbar-spacer"></div>
                 <div class="toolbar-group">
@@ -200,13 +232,20 @@
                     <button class="toolbar-btn" onclick="openPasteModal()" title="Paste a manual LLM response">📝 Paste Response</button>
                 </div>
             </div>
-            <div id="graph-container" role="img" aria-label="Interactive relationship graph"></div>
+            <div id="graph-container" role="img" aria-label="Interactive relationship graph">
+                <div class="graph-zoom-cluster" role="group" aria-label="Zoom controls">
+                    <button onclick="graphManager.zoomIn()" title="Zoom in" aria-label="Zoom in">＋</button>
+                    <button onclick="graphManager.zoomOut()" title="Zoom out" aria-label="Zoom out">－</button>
+                    <button onclick="graphManager.fitView()" title="Fit all nodes" aria-label="Fit all nodes">⊞</button>
+                </div>
+            </div>
 
             <div id="event-section">
                 <div class="event-header">
                     <h4 class="panel-heading" style="border:none;padding:0;">📜 Event Stream</h4>
                     <div class="event-controls">
                         <button class="btn-icon" onclick="exportEventLog()" title="Export event log to file" style="background:transparent;border:none;cursor:pointer;font-size:14px;">📥</button>
+                        <button class="btn-icon" onclick="WorldExport.showRangeExport()" title="Export a range of turns (copy or file)" style="background:transparent;border:none;cursor:pointer;font-size:14px;">⏩</button>
                         <button class="btn-icon" onclick="copyEventLogToClipboard()" title="Copy event stream to clipboard" style="background:transparent;border:none;cursor:pointer;font-size:14px;">📋</button>
                         <button id="stream-auto-scroll" class="btn-icon" title="Auto-scroll (on)" style="background:transparent;border:none;cursor:pointer;font-size:16px;">📌</button>
                         <select id="stream-style" onchange="events.setStyle(this.value); config.save()" title="Stream visual style" style="background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:3px;font-size:11px;padding:1px 4px;">
@@ -229,20 +268,20 @@
                 <div class="filter-bar" id="filter-bar">
                     <input type="text" id="stream-search" placeholder="find…" title="Search the stream (filters cards containing the text)" oninput="events.search(this.value)" style="background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:3px;font-size:11px;padding:1px 6px;width:110px;">
                     <span id="stream-search-count" style="font-size:10px;color:var(--accent,#79c0ff);"></span>
-                    <label class="filter-label"><input type="checkbox" id="filter-thoughts" checked onchange="config.filterThoughts=this.checked; events.applyFilters(); config.save()"> 💭</label>
-                    <label class="filter-label"><input type="checkbox" id="filter-speech" checked onchange="config.filterSpeech=this.checked; events.applyFilters(); config.save()"> 💬</label>
-                    <label class="filter-label"><input type="checkbox" id="filter-actions" checked onchange="config.filterActions=this.checked; events.applyFilters(); config.save()"> ▶️</label>
-                    <label class="filter-label" title="Memory recalls ('🧠 recalled …')"><input type="checkbox" id="filter-recalls" checked onchange="config.filterRecalls=this.checked; events.applyFilters(); config.save()"> 🧠</label>
-                    <label class="filter-label" title="Simple NPC rows (👾)"><input type="checkbox" id="filter-npc" checked onchange="config.filterNpc=this.checked; events.applyFilters(); config.save()"> 👾</label>
-                    <label class="filter-label"><input type="checkbox" id="filter-system" checked onchange="config.filterSystem=this.checked; events.applyFilters(); config.save()"> ⚙️</label>
-                    <label class="filter-label"><input type="checkbox" id="filter-rawllm" checked onchange="config.filterRawLLM=this.checked; events.applyFilters(); config.save()"> 🤖</label>
+                    <label class="filter-chip on" title="Inner monologue"><input type="checkbox" id="filter-thoughts" checked onchange="config.filterThoughts=this.checked; this.closest('.filter-chip').classList.toggle('on', this.checked); events.applyFilters(); config.save()"><span>💭 Thought</span></label>
+                    <label class="filter-chip on" title="Spoken lines & whispers"><input type="checkbox" id="filter-speech" checked onchange="config.filterSpeech=this.checked; this.closest('.filter-chip').classList.toggle('on', this.checked); events.applyFilters(); config.save()"><span>💬 Speech</span></label>
+                    <label class="filter-chip on" title="Actions, results & emotes"><input type="checkbox" id="filter-actions" checked onchange="config.filterActions=this.checked; this.closest('.filter-chip').classList.toggle('on', this.checked); events.applyFilters(); config.save()"><span>▶️ Action</span></label>
+                    <label class="filter-chip on" title="Memory recalls ('🧠 recalled …')"><input type="checkbox" id="filter-recalls" checked onchange="config.filterRecalls=this.checked; this.closest('.filter-chip').classList.toggle('on', this.checked); events.applyFilters(); config.save()"><span>🧠 Recall</span></label>
+                    <label class="filter-chip on" title="Simple NPC rows"><input type="checkbox" id="filter-npc" checked onchange="config.filterNpc=this.checked; this.closest('.filter-chip').classList.toggle('on', this.checked); events.applyFilters(); config.save()"><span>👾 NPC</span></label>
+                    <label class="filter-chip on" title="Engine & system rows"><input type="checkbox" id="filter-system" checked onchange="config.filterSystem=this.checked; this.closest('.filter-chip').classList.toggle('on', this.checked); events.applyFilters(); config.save()"><span>⚙️ System</span></label>
+                    <label class="filter-chip on" title="Raw LLM request/response payloads"><input type="checkbox" id="filter-rawllm" checked onchange="config.filterRawLLM=this.checked; this.closest('.filter-chip').classList.toggle('on', this.checked); events.applyFilters(); config.save()"><span>🤖 LLM</span></label>
                 </div>
                 <div id="event-stream" class="event-stream" role="log" aria-live="polite" tabindex="0"></div>
                 <div class="input-row" style="display:flex; gap:4px;">
-                    <input type="text" id="speak-input" placeholder="Speak as guest..." autocomplete="off" style="flex:1;">
+                    <input type="text" id="speak-input" placeholder="💬 Speak as guest — talk to the characters here…" autocomplete="off" title="Your line is spoken in the active area and logged as speech" style="flex:1;">
                     <button class="btn btn-sm btn-purple" onclick="speakAsGuest()">💬 Speak</button>
                     <label for="command-input" class="sr-only">Enter game command</label>
-                    <input type="text" id="command-input" placeholder="Override command..." autocomplete="off" style="flex:1;">
+                    <input type="text" id="command-input" placeholder="⚡ Override — engine command (verb + target, Tab completes)" autocomplete="off" title="Runs an engine command directly, e.g. 'go kitchen', 'take lantern'. Press Tab to autocomplete targets." style="flex:1;">
                 </div>
             </div>
         </main>
@@ -332,6 +371,7 @@
                         <div class="settings-field"><label for="graph-repulsion">Repulsion <span id="graph-repulsion-val" class="range-value">-40</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Weak</span><input type="range" id="graph-repulsion" min="-500" max="-5" step="5" value="-40" style="flex:1;" oninput="config.graphGravitationalConstant=parseInt(this.value);document.getElementById('graph-repulsion-val').textContent=this.value;config.save();GraphNetwork.applyGraphSettings();"><span style="font-size:10px;color:var(--text-muted);">Strong</span></div><div class="field-hint">Node repulsion force — more negative = more spread out</div></div>
                         <div class="settings-field"><label for="graph-damping">Damping <span id="graph-damping-val" class="range-value">0.40</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Bouncy</span><input type="range" id="graph-damping" min="0" max="1" step="0.05" value="0.4" style="flex:1;" oninput="config.graphDamping=parseFloat(this.value);document.getElementById('graph-damping-val').textContent=parseFloat(this.value).toFixed(2);config.save();GraphNetwork.applyGraphSettings();"><span style="font-size:10px;color:var(--text-muted);">Stiff</span></div><div class="field-hint">Velocity damping — higher = simulation settles faster</div></div>
                         <div class="settings-field"><label for="graph-spring-constant">Spring Stiffness <span id="graph-spring-constant-val" class="range-value">0.02</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Soft</span><input type="range" id="graph-spring-constant" min="0.01" max="0.15" step="0.01" value="0.02" style="flex:1;" oninput="config.graphSpringConstant=parseFloat(this.value);document.getElementById('graph-spring-constant-val').textContent=parseFloat(this.value).toFixed(2);config.save();GraphNetwork.applyGraphSettings();"><span style="font-size:10px;color:var(--text-muted);">Rigid</span></div><div class="field-hint">How strongly edges pull nodes together</div></div>
+                        <div class="settings-field"><label for="graph-item-edge-length">Item Edge Length <span id="graph-item-edge-length-val" class="range-value">60</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Hug Parent</span><input type="range" id="graph-item-edge-length" min="20" max="200" step="5" value="60" style="flex:1;" oninput="config.graphItemEdgeLength=parseInt(this.value);document.getElementById('graph-item-edge-length-val').textContent=this.value;config.save();GraphNetwork.applyGraphSettings();"><span style="font-size:10px;color:var(--text-muted);">Stretched</span></div><div class="field-hint">Spring rest length for item → parent edges (on/in/carrying/equipped) — lower = children hug the node that holds them</div></div>
                         <div class="settings-field"><label for="graph-solver">Physics Solver</label><select id="graph-solver" style="width:180px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.graphSolver=this.value;config.save();GraphNetwork.applyGraphSettings();"><option value="forceAtlas2Based">Force Atlas 2</option><option value="barnesHut">Barnes-Hut</option><option value="repulsion">Repulsion</option></select><div class="field-hint">Force Atlas 2: smooth organic layouts · Barnes-Hut: faster for large graphs</div></div>
                     </div>
                     <div class="settings-group">
@@ -1004,12 +1044,20 @@
     <script src="/static/js/inspector/area-view.js"></script>
     <script src="/static/js/inspector/item-view.js"></script>
     <script src="/static/js/inspector/way-view.js"></script>
+    <script src="/static/js/inspector/way-view-connections.js"></script>
+    <script src="/static/js/inspector/way-view-triggers.js"></script>
     <script src="/static/js/inspector.js"></script>
     <script src="/static/js/ui/create-modal.js"></script>
     <script src="/static/js/ui/settings-view.js"></script>
     <script src="/static/js/ui/engine-config-view.js"></script>
     <script src="/static/js/ui/world-export.js"></script>
     <script src="/static/js/ui/saveload-view.js"></script>
+    <script src="/static/js/ui/scenario-status.js"></script>
+    <script src="/static/js/ui/scenario-wizard.js"></script>
+    <script src="/static/js/ui/command-palette.js"></script>
+    <script src="/static/js/ui/undo-history.js"></script>
+    <script src="/static/js/ui/scenario-manager.js"></script>
+    <script src="/static/js/ui/recent-edits.js"></script>
     <script src="/static/js/narration-ui.js"></script>
     <script src="/static/js/validator-panel.js"></script>
     <script type="module" src="/static/js/shared/lit-bootstrap.js"></script>

@@ -115,7 +115,8 @@ window.WorldExport = (() => {
             if (area.description) text += '  "' + area.description + '"\n';
             if (area.environment) {
                 var env = area.environment;
-                text += '  🌡️ Light: ' + (env.light||'?') + '  Temp: ' + (env.temperature||'?') + '°C  Air: ' + (env.air||'?') + '  Noise: ' + (env.noise||'?') + '  Smell: ' + (env.smell||'?') + '\n';
+                var envTemp = (env.temperature !== undefined && env.temperature !== null) ? (Math.round(Number(env.temperature) * 10) / 10) : '?';
+                text += '  🌡️ Light: ' + (env.light||'?') + '  Temp: ' + envTemp + '°C  Air: ' + (env.air||'?') + '  Noise: ' + (env.noise||'?') + '  Smell: ' + (env.smell||'?') + '\n';
             }
             // Exits
             if (area.exits && Object.keys(area.exits).length) {
@@ -401,6 +402,181 @@ window.WorldExport = (() => {
         }
     }
 
+    // ───────────────────────── Turn-range export (new) ─────────────────────────
+
+    /** Range bounds present in the stream: {min, max} world turns (or nulls). */
+    function rangeBounds() {
+        var streamEl = document.getElementById('event-stream');
+        var min = Infinity, max = -Infinity, found = false;
+        if (streamEl) {
+            streamEl.querySelectorAll('.turn-card-tick').forEach(function (el) {
+                var m = (el.textContent || '').match(/Turn\s+(\d+)/);
+                if (m) {
+                    var t = parseInt(m[1], 10) || 0;
+                    found = true;
+                    if (t < min) min = t;
+                    if (t > max) max = t;
+                }
+            });
+        }
+        return found ? { min: min, max: max } : null;
+    }
+
+    /**
+     * Build a log for turns [fromTurn, toTurn] (inclusive). format:
+     * 'markdown' (same as the full export) or 'plain' (bare lines).
+     */
+    function buildRangeLog(scenarioName, fromTurn, toTurn, ts, format) {
+        var streamEl = document.getElementById('event-stream');
+        if (!streamEl) return { error: 'Event stream not found.' };
+        var plain = format === 'plain';
+        var buf = '';
+        var openHeading = '';
+        var lastTurn = 0;
+        var included = 0;
+
+        function emitBubble(bubble) {
+            if (!bubble || bubble.style.display === 'none') return;
+            var textEl = bubble.querySelector('.bubble-text') || bubble.querySelector('.bubble-phase-pill');
+            var text = (textEl ? textEl.textContent : bubble.textContent || '') || '';
+            text = text.replace(/^\s+/, '').trim();
+            if (!text) return;
+            var iconEl = bubble.querySelector('.bubble-icon');
+            var actorEl = bubble.querySelector('.bubble-actor');
+            var icon = iconEl ? iconEl.textContent.trim() : '';
+            var actor = actorEl ? actorEl.textContent.trim() : (bubble.getAttribute('data-actor') || '');
+            if (plain) {
+                buf += (actor ? '[' + actor + '] ' : '') + text + '\n';
+            } else {
+                var line = '';
+                if (icon) line += icon + ' ';
+                if (actor) line += '**' + actor + '** — ';
+                buf += '- ' + line + text + '\n';
+            }
+        }
+
+        function heading(title) {
+            if (plain) { buf += '\n' + title + '\n' + (new Array(title.length + 1).join('—')) + '\n'; }
+            else if (title !== openHeading) { buf += '\n## ' + title + '\n\n'; openHeading = title; }
+        }
+
+        for (var i = 0; i < streamEl.children.length; i++) {
+            var child = streamEl.children[i];
+            if (!child || child.style.display === 'none') continue;
+            var cardHeader = child.querySelector('.turn-card-header');
+            var cardBody = child.querySelector('.turn-card-body');
+            if (cardHeader && cardBody) {
+                var turn = 0, time = '';
+                var turnEl = child.querySelector('.turn-card-tick');
+                if (turnEl) {
+                    var tm = (turnEl.textContent || '').match(/Turn\s+(\d+)(?:\s*\|\s*([^)]*))?/);
+                    if (tm) { turn = parseInt(tm[1], 10) || 0; time = (tm[2] || '').trim(); }
+                }
+                if (turn < fromTurn || turn > toTurn) continue;
+                lastTurn = Math.max(lastTurn, turn);
+                var actorEl = child.querySelector('.turn-card-actor');
+                var actor = actorEl ? actorEl.textContent.trim() : '';
+                heading('Turn ' + turn + (actor ? ' — ' + actor : '') + (time ? ' · ' + time : ''));
+                var bubbles = cardBody.querySelectorAll('.msg-bubble');
+                for (var b = 0; b < bubbles.length; b++) emitBubble(bubbles[b]);
+                included += 1;
+            } else if (included > 0) {
+                emitBubble(child); // system rows after the first included card
+            }
+        }
+
+        if (!included) return { error: 'No turns in range ' + fromTurn + '–' + toTurn + '.' };
+        var header = (plain ? '' : '# ' + scenarioName + ' — event log (turns ' + fromTurn + '–' + toTurn + ')\n\n')
+            + (plain ? '' : '> Run tick ' + (worldState.tick || 0) + ' · exported ' + ts + '\n\n');
+        return { text: header + buf, turns: included };
+    }
+
+    /**
+     * Range modal: from-to turn picker with Copy / Save. Opens from the
+     * ⏩ stream button.
+     */
+    function showRangeExport() {
+        var overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:15000;';
+        var box = document.createElement('div');
+        box.style.cssText = 'background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:18px;width:380px;display:flex;flex-direction:column;gap:10px;';
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+
+        var bounds = rangeBounds();
+        var fromInput = document.createElement('input');
+        fromInput.type = 'number';
+        fromInput.min = '0';
+        fromInput.value = bounds ? bounds.min : '0';
+        fromInput.placeholder = 'from turn';
+        var toInput = document.createElement('input');
+        toInput.type = 'number';
+        toInput.min = '0';
+        toInput.value = bounds ? bounds.max : '';
+        toInput.placeholder = 'to turn (blank = latest)';
+        var formatSel = document.createElement('select');
+        ['markdown', 'plain'].forEach(function (f) {
+            var o = document.createElement('option');
+            o.value = f; o.textContent = f === 'markdown' ? 'Markdown (like full export)' : 'Plain lines';
+            formatSel.appendChild(o);
+        });
+
+        function build() { return buildRangeLog(
+            (document.body.dataset.scenarioName || 'unnamed').trim() || 'unnamed',
+            parseInt(fromInput.value, 10) || 0,
+            toInput.value === '' ? 999999 : (parseInt(toInput.value, 10) || 0),
+            new Date().toISOString().slice(0, 19).replace(/:/g, '-'),
+            formatSel.value
+        ); }
+
+        function copyText() {
+            var res = build();
+            if (res.error) { toastError(res.error); return; }
+            navigator.clipboard.writeText(res.text).then(function () {
+                toastInfo('Copied ' + res.turns + ' turn' + (res.turns === 1 ? '' : 's') + ' to clipboard.');
+                overlay.remove();
+            }).catch(function () {
+                var ta = document.createElement('textarea');
+                ta.value = res.text; ta.style.position = 'fixed'; ta.style.left = '-9999px';
+                document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+                toastInfo('Copied ' + res.turns + ' turn' + (res.turns === 1 ? '' : 's') + ' to clipboard.');
+                overlay.remove();
+            });
+        }
+        function saveFile() {
+            var res = build();
+            if (res.error) { toastError(res.error); return; }
+            var name = (document.body.dataset.scenarioName || 'unnamed') + '_turns_' +
+                (parseInt(fromInput.value, 10) || 0) + '-' +
+                (toInput.value === '' ? (bounds ? bounds.max : '?') : toInput.value) + '.md';
+            saveFileWithDialog(new Blob([res.text], { type: 'text/markdown;charset=utf-8' }), name);
+            toastInfo('Saved turns ' + (parseInt(fromInput.value, 10) || 0) + '–' +
+                (toInput.value === '' ? (bounds ? bounds.max : '?') : toInput.value) + ' to file.');
+            overlay.remove();
+        }
+
+        var header = document.createElement('h3');
+        header.style.cssText = 'margin:0;font-size:14px;';
+        header.textContent = '⏩ Export Turns Range' + (bounds ? ' (log: ' + bounds.min + '–' + bounds.max + ')' : '');
+        var row = document.createElement('div');
+        row.style.cssText = 'display:flex;gap:6px;align-items:center;';
+        var fromL = document.createElement('label'); fromL.textContent = 'From'; fromL.style.cssText = 'font-size:11px;';
+        var toL = document.createElement('label'); toL.textContent = 'To'; toL.style.cssText = 'font-size:11px;';
+        row.appendChild(fromL); row.appendChild(fromInput); row.appendChild(toL); row.appendChild(toInput);
+        var actions = document.createElement('div');
+        actions.style.cssText = 'display:flex;gap:6px;justify-content:flex-end;';
+        var copyBtn = document.createElement('button'); copyBtn.className = 'btn btn-sm'; copyBtn.textContent = '📋 Copy';
+        copyBtn.onclick = copyText;
+        var saveBtn = document.createElement('button'); saveBtn.className = 'btn btn-sm btn-green'; saveBtn.textContent = '📥 Save file';
+        saveBtn.onclick = saveFile;
+        var closeBtn = document.createElement('button'); closeBtn.className = 'btn btn-sm'; closeBtn.textContent = '✕';
+        closeBtn.onclick = function () { overlay.remove(); };
+        actions.appendChild(copyBtn); actions.appendChild(saveBtn); actions.appendChild(closeBtn);
+        box.appendChild(header); box.appendChild(row); box.appendChild(formatSel); box.appendChild(actions);
+        overlay.addEventListener('mousedown', function (ev) { if (ev.target === overlay) overlay.remove(); });
+        setTimeout(function () { fromInput.focus(); }, 20);
+    }
+
     /**
      * Copy the last LLM prompt to the clipboard.
      */
@@ -454,6 +630,8 @@ window.WorldExport = (() => {
         printWorld: printWorld,
         exportEventLog: exportEventLog,
         copyEventLogToClipboard: copyEventLogToClipboard,
+        showRangeExport: showRangeExport,
+        buildRangeLog: buildRangeLog,
         copyPromptToClipboard: copyPromptToClipboard,
         copyManualPrompt: copyManualPrompt
     };

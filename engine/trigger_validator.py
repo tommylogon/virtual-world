@@ -119,6 +119,17 @@ MECHANICAL_REQUIREMENTS = {
     "transit": (),
 }
 
+# Mechanical props the engine silently defaults when missing — see
+# lighting.py (light_level→"dim") and environment_propagation.py
+# (target_temperature→30, heating_rate→0.5). Missing these is an authoring
+# nudge (info), not a broken tag: the engine still applies the effect at the
+# default value. Props NOT listed here have no engine fallback → warning.
+DEFAULTED_MECHANICAL_DEFAULTS = {
+    "light_level": "the 'dim' default",
+    "target_temperature": "a 30°C default",
+    "heating_rate": "a 0.5°C/tick default",
+}
+
 # Node properties every way should carry for the map/narration to work
 # (cardinal + view direction live on the connection edges, not the node).
 WAY_NODE_FIELDS = ("description", "pass_message")
@@ -595,12 +606,27 @@ class TriggerValidator:
                 if mech_tag not in tags:
                     continue
                 missing = [p for p in required if not props.get(p)]
-                if missing:
+                if not missing:
+                    continue
+                strict = [p for p in missing if p not in DEFAULTED_MECHANICAL_DEFAULTS]
+                defaulted = [p for p in missing if p in DEFAULTED_MECHANICAL_DEFAULTS]
+                if strict:
                     issues.append(self._issue(
                         "warning", "mechanical_tag_missing_props",
                         f"Item {self._label(node)} has mechanical tag "
-                        f"'{mech_tag}' but no {', '.join(missing)} — the "
+                        f"'{mech_tag}' but no {', '.join(strict)} — the "
                         f"engine can't apply its effect.",
+                        source_node_id=node.id,
+                    ))
+                if defaulted:
+                    defaults = " and ".join(
+                        DEFAULTED_MECHANICAL_DEFAULTS[p] for p in defaulted)
+                    issues.append(self._issue(
+                        "info", "mechanical_tag_missing_props",
+                        f"Item {self._label(node)} has mechanical tag "
+                        f"'{mech_tag}' but no {', '.join(defaulted)} — "
+                        f"the engine uses {defaults}; set it explicitly "
+                        f"for clarity.",
                         source_node_id=node.id,
                     ))
         return issues

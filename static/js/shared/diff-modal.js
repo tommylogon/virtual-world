@@ -288,6 +288,7 @@ window.DiffModal = (() => {
         : 'This field has data in the library but is empty in the world — applying would erase it.';
 
       const modal = document.createElement('div');
+      modal.className = 'modal-window';
       const diffs = sections.map((s) => {
         const isDifferent = compareValues(current?.[s.key], incoming?.[s.key]);
         const clobber = toWorld

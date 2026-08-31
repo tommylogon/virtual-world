@@ -53,7 +53,8 @@ class UIController {
                     isCurrent,
                     isDone,
                     rollStr: roll !== undefined ? ` <span style="font-size:9px;color:var(--text-dim);">(${roll})</span>` : '',
-                    statusStr: isCurrent ? (noTurnsYet ? 'up next' : (players[name]?.simple_npc ? 'ACTING...' : '⚡ ACTING')) : (isDone ? 'done' : 'waiting')
+                    statusStr: isCurrent ? (noTurnsYet ? 'up next' : 'ACTING…') : (isDone ? 'done' : 'waiting'),
+                    statusColor: isCurrent ? 'var(--green)' : 'var(--text-muted)'
                 };
             }
         }
@@ -82,8 +83,9 @@ class UIController {
                 ? uiControllerHtmlTag`<span class="initiative-pos" style="font-size:9px;color:var(--text-dim);min-width:14px;">${ord.pos}.</span><span style="font-size:9px;">${ord.icon}</span>${window.Lit.unsafeHTML(ord.rollStr)}`
                 : '';
             const statusText = ord
-                ? uiControllerHtmlTag`<span class="initiative-status" style="font-size:9px;color:var(--text-muted);margin-left:auto;">${ord.statusStr}</span>`
+                ? uiControllerHtmlTag`<span class="initiative-status" style="font-size:9px;color:${ord.statusColor};margin-left:auto;font-weight:${ord.isCurrent ? '600' : '400'};">${ord.statusStr}</span>`
                 : '';
+            if (!window.Lit) return; // startup race: first state:updated can arrive before Lit bootstrap
 
             rows.push(uiControllerHtmlTag`<div class="agent-item ${isSelected ? 'selected' : ''} ${statusClass === 'stuck' ? 'stuck' : ''}" @click=${() => selectAgent(name)} style="${isSimpleNpc ? 'opacity:0.85;cursor:pointer;' : ''}">
                 <div class="agent-dot ${statusClass}" style="background:${color}"></div>
@@ -160,19 +162,20 @@ class UIController {
             const v = p.vitals || {};
             const maxHp = v.Max_HP || 100;
             const hpCriticalThreshold = Math.max(1, Math.floor(maxHp * 0.2));
-            if (v.HP > 0 && v.HP <= hpCriticalThreshold) alerts.push({ type: 'error', text: `${name}: HP critical (${v.HP})` });
-            else if (v.HP === 0) alerts.push({ type: 'error', text: `${name}: DEAD` });
-            if (v.Energy <= 15) alerts.push({ type: 'warning', text: `${name}: Exhausted (${v.Energy})` });
-            if (v.Hunger >= 85) alerts.push({ type: 'warning', text: `${name}: Starving (${v.Hunger})` });
-            if (v.Thirst >= 85) alerts.push({ type: 'warning', text: `${name}: Dehydrated (${v.Thirst})` });
-            if (v.Bladder >= 85) alerts.push({ type: 'warning', text: `${name}: Bladder full (${v.Bladder}%)` });
-            if (v.Sanity <= 15) alerts.push({ type: 'warning', text: `${name}: Losing sanity (${v.Sanity})` });
-            if (v.Entertainment <= 15) alerts.push({ type: 'warning', text: `${name}: Bored (${v.Entertainment})` });
-            if (v.Temperature !== undefined && (v.Temperature < 34 || v.Temperature > 40)) alerts.push({ type: 'danger', text: `${name}: Critical body temp (${v.Temperature}°C)` });
+            if (v.HP > 0 && v.HP <= hpCriticalThreshold) alerts.push({ type: 'error', name, text: `${name}: HP critical (${v.HP})` });
+            else if (v.HP === 0) alerts.push({ type: 'error', name, text: `${name}: DEAD` });
+            if (v.Energy <= 15) alerts.push({ type: 'warning', name, text: `${name}: Exhausted (${v.Energy})` });
+            if (v.Hunger >= 85) alerts.push({ type: 'warning', name, text: `${name}: Starving (${v.Hunger})` });
+            if (v.Thirst >= 85) alerts.push({ type: 'warning', name, text: `${name}: Dehydrated (${v.Thirst})` });
+            if (v.Bladder >= 85) alerts.push({ type: 'warning', name, text: `${name}: Bladder full (${v.Bladder}%)` });
+            if (v.Sanity <= 15) alerts.push({ type: 'warning', name, text: `${name}: Losing sanity (${v.Sanity})` });
+            if (v.Entertainment <= 15) alerts.push({ type: 'warning', name, text: `${name}: Bored (${v.Entertainment})` });
+            if (v.Temperature !== undefined && (v.Temperature < 34 || v.Temperature > 40)) alerts.push({ type: 'danger', name, text: `${name}: Critical body temp (${v.Temperature}°C)` });
         }
+        // Click an alert to select & inspect the affected agent.
         window.Lit.render(alerts.length === 0
             ? uiControllerHtmlTag`<div class="alert-empty">No alerts</div>`
-            : uiControllerHtmlTag`${alerts.map(a => uiControllerHtmlTag`<div class="alert-item ${a.type}">${a.text}</div>`)}`, alertEl);
+            : uiControllerHtmlTag`${alerts.map(a => uiControllerHtmlTag`<div class="alert-item ${a.type}" title="Click to inspect ${a.name}" @click=${() => selectAgent(a.name)}>${a.text}</div>`)}`, alertEl);
     }
 
     // --- Turn Info ---
