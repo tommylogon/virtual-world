@@ -11806,17 +11806,33 @@
   "time_ticks": 20,
   "turn_number": 1,
   "ways": {},
+  "calendar_config": {
+    "minutes_per_day": 1440,
+    "days_per_week": 7,
+    "days_per_month": 30,
+    "months_per_year": 12,
+    "year_start_day": 1
+  },
+  "forecast_schedule": {
+    "mode": "authored",
+    "granularity": "hourly",
+    "entries": [
+      {"offset": 0, "weather": "snowy", "wind": "wind", "humidity": "humid", "temperature_mod": -8, "light_mod": -8, "air": "fresh", "message": "Snowfall continues across the frozen landscape, the wind biting cold."},
+      {"offset": 360, "weather": "snowy", "wind": "gale", "humidity": "wet", "temperature_mod": -15, "light_mod": -12, "air": "fresh", "message": "The wind picks up into a howling gale, driving snow sideways. The cold deepens."},
+      {"offset": 720, "weather": "snowy", "wind": "breeze", "humidity": "humid", "temperature_mod": -5, "light_mod": -5, "air": "fresh", "message": "The gale subsides to a bitter breeze. Snow still falls, but the sky begins to pale."}
+    ]
+  },
   "world_lore": [
     {
       "category": "general",
-      "content": "In the year 1584, the world of Mujeeroth is a cold, unforgiving place. You are currently standing in the north of the Kingdom of Rocheveron, enduring the height of the \"age of freezing death\"—a localized unrelenting winter of chilling death that has gripped the land",
-      "id": "lore_1784192482154_799",
+      "content": "Year 1584 of the Mujeeroth calendar. The Valerious Case is the name given to the unexplained disappearance of magistrate Valerious Rocheveron from his locked study in the northern keep. The case has drawn investigators, bounty hunters, and the simply curious to the frozen lands of Rocheveron — but the region is in the grip of the 'Age of Freezing Death', a localized unrelenting winter that has killed crops, frozen roads, and left the isolated cabin settlements cut off from the capital.",
+      "id": "lore_valerious_case",
       "importance": 3,
       "source": "manual",
       "tags": [],
       "tick_created": 8,
-      "title": "Rocheveron"
+      "title": "The Valerious Case"
     }
   ],
-  "_scenario_name": "world_template"
+  "_scenario_name": "The Valerious Case"
 }
