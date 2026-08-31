@@ -605,9 +605,17 @@ window.PromptBuilder = window.PromptBuilder || {};
         // echo like "hello lyrie!" is often nested inside a narrated local event).
         const seenSpeechTexts = [];
 
-        // Local events from turn_events (same area, other actors). A blind character
-        // only hears others' actions that make sound — visual ones are withheld.
-        const recentEvents = (state.turn_events || []).filter(evt => evt.area === currentArea?.name && evt.actor !== charName && (!isBlind || evt.action === 'speak'));
+        // Local events from turn_events (same area, other actors) WITHIN the
+        // character's presence window (task-360): the per-area ledger records
+        // entry_tick, so events before you arrived are never witnessed — the
+        // window ends at your next turn because turn_events are per-turn.
+        // Back-and-forth is the memory system's job (no auto-replay).
+        const entryTick = (state.area_presence?.[currentArea?.name]?.[charName]) ?? 0;
+        const recentEvents = (state.turn_events || []).filter(evt =>
+            evt.area === currentArea?.name &&
+            evt.actor !== charName &&
+            (evt.tick ?? 0) >= entryTick &&
+            (!isBlind || evt.action === 'speak'));
         recentEvents.slice(-10).forEach(evt => {
             const actorDesc = allPlayers[evt.actor]?.description || '';
             const anon = PromptBuilder.anonymousName(charName, evt.actor, actorDesc);
@@ -667,15 +675,10 @@ window.PromptBuilder = window.PromptBuilder || {};
             witnessedLines.push(`[Heard${direction}${sourceName}] ${pattern}.`);
         });
 
-        // Fallback: frontend room event log
-        if (witnessedLines.length === 0) {
-            const roomEvents = events.getAreaEvents(currentArea?.name || '').filter(evt => evt.actor !== charName).slice(-8);
-            roomEvents.forEach(evt => {
-                const actorDesc = allPlayers[evt.actor]?.description || '';
-                const anon = PromptBuilder.anonymousName(charName, evt.actor, actorDesc);
-                witnessedLines.push(`[${evt.tick}] ${anon} ${evt.action}`);
-            });
-        }
+        // No fallback to the frontend room-event log (task-360): that
+        // accumulator is a designer's log for the inspector, not a perception
+        // channel — watching stale rows would leak pre-entry knowledge and
+        // pollute the presence window. Trust the memory system instead.
 
         // Always render the WITNESSED header — placeholder when nothing to report
         witnessedEvents = witnessedLines.length > 0

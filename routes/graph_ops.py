@@ -19,6 +19,24 @@ def handle_get_graph_edges(app):
     return jsonify(app.world.graph.to_dict()["edges"])
 
 
+def handle_get_area_sounds(app, area_id):
+    """task-173: active sound sources in an area (read-only designer block)."""
+    from engine.sound import get_sound_sources_in_area
+    graph = app.world.graph
+    area_node = graph.get_node(area_id)
+    if area_node is None or area_node.type != "area":
+        return jsonify({"error": "Area not found"}), 404
+    sounds = []
+    for node, level, pattern in get_sound_sources_in_area(area_id, graph):
+        sounds.append({
+            "name": node.name,
+            "level": int(level or 1),
+            "pattern": pattern or "a sound",
+            "state": node.properties.get("current_state", ""),
+        })
+    return jsonify({"sounds": sounds})
+
+
 def handle_create_node(app):
     data = request.get_json()
     node_type = data.get('type')

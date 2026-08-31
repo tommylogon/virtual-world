@@ -194,6 +194,7 @@ class WorldSerializer:
         return {
             "current_area": self.legacy.current_area.name if self.legacy.current_area else None,
             "players_in_area": self.player_manager.get_players_in_area(),
+            "area_presence": getattr(self.legacy, 'area_presence', {}) or {},
             "players": players_serialized,
             "active_player": self.player_manager.active_player,
             "game_log": self.legacy.game_log,
@@ -336,6 +337,15 @@ class WorldSerializer:
         self.legacy.turn_number = data.get("turn_number", 0)
         self.legacy.turn_events = list(data.get("turn_events", []))
         self.legacy.game_log = list(data.get("game_log", []))
+        # task-360 presence ledger (per-area {char: entry_tick}) — restore as-is.
+        try:
+            raw_presence = data.get("area_presence", {}) or {}
+            self.legacy.area_presence = {
+                str(aid): {str(c): int(t) for c, t in (list(present.items()) if isinstance(present, dict) else [])}
+                for aid, present in raw_presence.items()
+            }
+        except Exception:
+            self.legacy.area_presence = {}
         self.legacy.log_revision = data.get("log_revision", 0)
         self.legacy.narration_mode = data.get("narration_mode", "none")
         self.legacy.ghost_mode = data.get("ghost_mode", False)

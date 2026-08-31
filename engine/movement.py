@@ -83,6 +83,12 @@ class MovementSystem:
         if not node:
             raise ValueError(f"Area '{area_name}' does not exist.")
         self.name_matcher._set_player_area(self.gs.active_player, area_name)
+        try:
+            # task-360: presence window — entrance records when you arrived here.
+            if hasattr(self.gs, '_record_area_presence'):
+                self.gs._record_area_presence(self.gs.active_player, area_name)
+        except Exception:
+            pass
         return f"You move into the {area_name}."
 
     def connect_areas(self, room1_name: str, room2_name: str, dir1: str, dir2: str,
@@ -591,6 +597,14 @@ class MovementSystem:
                 raise ValueError(block)
 
         self.name_matcher._set_player_area(self.gs.active_player, target_area_node.name)
+
+        # task-360: presence window — entrance records when you arrived here
+        # (per-area ledger {area: {char: entry_tick}}).
+        try:
+            if hasattr(self.gs, '_record_area_presence'):
+                self.gs._record_area_presence(self.gs.active_player, target_area_node.name)
+        except Exception:
+            pass
 
         from engine.character_spatial import set_character_at_way
         if self.gs.active_player and way_id:

@@ -45,7 +45,7 @@ class VirtualWorld:
         # players dict lives in self.player_manager.players, accessed via self.players property
         self.active_player = None
         self.time_ticks = 0
-        self.time_per_tick_minutes = 5
+        self.time_per_tick_minutes = 1
         self._scenario_source = None
         self.scenario_ended = False
         self._restart_requested = False
@@ -109,6 +109,11 @@ class VirtualWorld:
         # task-330: transient browser-side LLM responses (llm_respond effect).
         # The engine queues; the browser generates + posts back; never saved.
         self.llm_pending_requests = []
+        # task-360 presence window: per-area ledger {area_id: {char: entry_tick}}
+        # — who is in each room and since when. The agent prompt only witnesses
+        # events from entry_tick forward; leaving to another room starts a
+        # fresh window; back-and-forth is the memory system's job.
+        self.area_presence = {}
         self.equipment = EquipmentSystem(self.graph, self.triggers, self.game_logger, self.player_manager, world=self)
         self.skills = SkillSystem(self.player_manager, self.game_logger)
         self.name_matcher = NameMatching(self.graph, self)
@@ -448,6 +453,17 @@ class VirtualWorld:
 
     def _recipe_known_names(self, player_name: str) -> list:
         return self.crafting._recipe_known_names(player_name)
+
+    def _record_area_presence(self, char_name: str, area_name: str):
+        """task-360: mark *char_name* as present in *area_name* since `time_ticks`
+        (and remove them from every other area's ledger)."""
+        area_id = self._area_node_id(area_name) or area_name
+        if self.area_presence is None:
+            self.area_presence = {}
+        for aid, present in list(self.area_presence.items()):
+            if aid != area_id and char_name in present:
+                del present[char_name]
+        self.area_presence.setdefault(area_id, {})[char_name] = self.time_ticks
 
     def give_item(self, item_name: str, target_name: str) -> str:
         return self.item_actions.give_item(self, item_name, target_name)
