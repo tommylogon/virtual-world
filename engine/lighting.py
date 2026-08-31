@@ -46,6 +46,11 @@ class LightingSystem:
         # the engine (task-230). When set, OUTDOOR areas' ambient light follows
         # the time-of-day curve instead of a static value.
         self.hour_provider = None
+        # Optional callable returning the current moon phase dict
+        # (task-229): {"name", "icon", "light_bonus"}. When set, outdoor
+        # NIGHT areas gain the moon's light bonus (full moon = visibly
+        # brighter, new moon = pitch black).
+        self.moon_provider = None
 
     def light_to_level(self, value):
         """Convert a numeric or string light value to a 5-level enum string."""
@@ -153,6 +158,24 @@ class LightingSystem:
         if hour is not None and self.is_outdoor_area(area_id):
             curve = outdoor_light_for_hour(hour)
             own = max(curve, own) if explicit else curve
+            # task-229: the moon adds light to outdoor NIGHT areas — unless
+            # the sky is obscured (stormy nullifies, foggy halves the bonus).
+            if hour >= 19 or hour < 5:
+                bonus = 0
+                if self.moon_provider is not None:
+                    try:
+                        phase = self.moon_provider()
+                    except TypeError:
+                        phase = self.moon_provider
+                    if isinstance(phase, dict):
+                        bonus = int(phase.get("light_bonus", 0) or 0)
+                if bonus:
+                    weather = str((env or {}).get("weather", "") or "")
+                    if weather == "stormy":
+                        bonus = 0
+                    elif weather == "foggy":
+                        bonus = bonus // 2
+                    own = min(100, own + bonus)
 
         own_items, own_best = self._item_light_stats(area_id)
         # Brightness CEILING: the effective light never exceeds the strongest

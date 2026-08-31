@@ -49,15 +49,36 @@ class ContextWindowManager {
         for (let i = messages.length - 1; i >= 0 && recentCount < this.recentTurnCount * 3; i--) {
             keepIndices.add(i); recentCount++;
             if (messages[i].role === 'assistant' && messages[i].tool_calls) {
-                for (let j = i + 1; j < Math.min(i + 5, messages.length); j++) {
+                for (let j = i + 1; j < messages.length; j++) {
                     if (messages[j].role === 'tool') keepIndices.add(j);
-                    else if (messages[j].role !== 'tool') break;
+                    else break;
                 }
             }
         }
         for (let i = 0; i < messages.length; i++) {
             const meta = this.messageMetadata.get(i);
             if (meta && (meta.importance >= 2 || meta.keepAlways)) keepIndices.add(i);
+        }
+
+        // Post-validation: ensure atomic assistant-tool pairings
+        for (let i = 0; i < messages.length; i++) {
+            if (messages[i].role === 'tool' && keepIndices.has(i)) {
+                for (let j = i - 1; j >= 0; j--) {
+                    if (messages[j].role === 'assistant' && messages[j].tool_calls) {
+                        keepIndices.add(j);
+                        break;
+                    }
+                    if (messages[j].role !== 'tool') break;
+                }
+            }
+        }
+        for (let i = 0; i < messages.length; i++) {
+            if (messages[i].role === 'assistant' && messages[i].tool_calls && keepIndices.has(i)) {
+                for (let j = i + 1; j < messages.length; j++) {
+                    if (messages[j].role === 'tool') keepIndices.add(j);
+                    else break;
+                }
+            }
         }
         const sorted = Array.from(keepIndices).sort((a, b) => a - b);
         const pruned = [];
@@ -83,4 +104,8 @@ class ContextWindowManager {
             isOverLimit: this.isOverLimit()
         };
     }
+}
+
+if (typeof window !== 'undefined') {
+    window.ContextWindowManager = ContextWindowManager;
 }

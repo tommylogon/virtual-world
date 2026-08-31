@@ -1,4 +1,4 @@
-﻿# LLM Providers
+# LLM Providers
 
 VirtualWorld uses an OpenAI-compatible API client (`LLMClient`) to power agent behavior, narration, memory reflection, plan generation, and AI-assisted content creation. The system supports multiple providers through a unified interface.
 
@@ -65,10 +65,21 @@ Parameters:
 - `options.model` — Model override
 - `options.temperature` — Temperature override
 - `options.streaming` — Enable SSE streaming
-- `options.onChunk` — Per-call chunk callback `(chunk) => void`, invoked as streamed content arrives (replaces the old shared `onChunk()` instance method — see Streaming below)
+- `options.tools` — Array of OpenAI tool definitions (functions with JSON schemas)
+- `options.tool_choice` — Optional tool choice mode (e.g. `'auto'`, `'none'`, `'required'`)
+- `options.withTools` — If true, returns structured `{ content, tool_calls }`
+- `options.onChunk` — Per-call chunk callback `(chunk) => void`, invoked as streamed content arrives
 - `options.signal` — AbortController signal for cancellation
 
 The method sends `POST {base}/chat/completions` with standard OpenAI-compatible JSON body.
+
+### Tool Calling (`chatWithTools()`, line 160)
+
+```javascript
+async chatWithTools(messages, options = {})
+```
+
+Convenience helper for tool-calling agents (such as the Natural-Language Editor). Forces `streaming: false` and `withTools: true`, returning structured `{ content, tool_calls }` where `tool_calls` contains the parsed OpenAI function calling requests.
 
 ### Manual Mode (line 50)
 

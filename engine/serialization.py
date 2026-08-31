@@ -74,7 +74,9 @@ class WorldSerializer:
             if node.type == "area" and node.name == player.current_area:
                 env = node.properties.get("environment", {})
                 equip_bonuses = aggregate_bonuses(player, self.graph)
-                return int(effective_temperature(float(env.get("temperature", 21)), equip_bonuses))
+                return int(effective_temperature(float(env.get("temperature", 21)), equip_bonuses,
+                                                 wind_level=env.get("wind", "none"),
+                                                 humidity=env.get("humidity", "dry")))
         return 21
 
     def _grappled_by(self, player_name: str) -> Optional[str]:
@@ -214,6 +216,9 @@ class WorldSerializer:
             "narration_mode": self.legacy.narration_mode,
             "ghost_mode": self.legacy.ghost_mode,
             "world_lore": self.legacy.world_lore,
+            "calendar_config": getattr(self.legacy, "calendar_config", None),
+            "forecast_schedule": getattr(self.legacy, "forecast_schedule", None),
+            "forecast_override": getattr(self.legacy, "forecast_override", None),
             "delayed_events": self.legacy.delayed_events.to_dict()
         }
 
@@ -383,5 +388,15 @@ class WorldSerializer:
         self.legacy.ways = data.get("ways", {})
         self.legacy.item_registry = data.get("item_registry", {})
         self.legacy.world_lore = data.get("world_lore", [])
+        # task-228/227: calendar + forecast persist through saves.
+        if isinstance(data.get("calendar_config"), dict):
+            defaults = getattr(self.legacy, "calendar_config", None) or {}
+            combined = dict(defaults)
+            combined.update(data["calendar_config"])
+            self.legacy.calendar_config = combined
+        if isinstance(data.get("forecast_schedule"), dict):
+            self.legacy.forecast_schedule = data["forecast_schedule"]
+        self.legacy.forecast_override = data.get("forecast_override")
+        self.legacy._forecast_sched_obj = None
         from engine.event_queue import DelayedEventQueue
         self.legacy.delayed_events = DelayedEventQueue.from_dict(data.get("delayed_events", []))

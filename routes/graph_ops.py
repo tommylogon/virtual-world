@@ -474,6 +474,9 @@ def handle_delete_node(app, node_id):
         if len(characters) <= 1:
             return jsonify({"error": "Cannot delete the last character"}), 400
 
+    # task-378: bulk deletes should be undo-safe too (snapshot per delete).
+    from routes.saveload import _push_undo_snapshot
+    _push_undo_snapshot(app, label=f"delete {node.name}")
     app.world.graph.remove_node(node_id)
     return jsonify({"status": "success"})
 
@@ -491,6 +494,206 @@ def handle_create_edge(app):
     edge = Edge(source=src_r, target=tgt_r, type=edge_type, properties=data.get('properties', {}))
     app.world.graph.add_edge(edge)
     return jsonify({"status": "success"})
+
+
+# ─────────────────────────── NL-Editor batch (task-387) ───────────────────────────
+
+_BATCH_PHASE = {
+    'create_node': 0, 'spawn_library_item': 0, 'connect_areas': 0,
+    'update_node': 1, 'link_to_library': 1,
+    'attach': 2, 'detach': 2,
+    'delete_node': 3,
+}
+
+
+def _apply_batch_op(app, optype, p):
+    """Replay ONE staged NL-editor op directly against the live graph.
+
+    Deliberately does NOT push undo snapshots: the route-level after_request
+    hook records exactly ONE snapshot for the whole /api/graph/batch call.
+    """
+    graph = app.world.graph
+
+    if optype == 'create_node':
+        node = p.get('node') or p
+        node_type = node.get('type') or node.get('kind')
+        name = node.get('name')
+        if not node_type or not name:
+            return {"error": "Missing 'type' or 'name'"}
+        nid = (node.get('id') or f"{node_type}_{name.replace(' ', '_')}").lower()
+        if graph.get_node(nid):
+            return {"error": f"Node with id '{nid}' already exists"}
+        graph.add_node(Node(id=nid, type=node_type, name=name,
+                            properties=node.get('properties') or {}))
+        return {"id": nid}
+
+    if optype == 'spawn_library_item':
+        from routes.library_ops import place_library_item
+        parent_id = p.get('parent_id')
+        parent = graph.get_node(parent_id) if parent_id else None
+        container_id = character_id = area_name = None
+        if parent is not None:
+            if parent.type == 'area':
+                area_name = parent.name
+            elif parent.type == 'character':
+                character_id = parent.id
+            else:
+                container_id = parent.id
+        elif parent_id:
+            area_name = parent_id  # parent_id may itself be an area name
+        node_id, error, _code = place_library_item(
+            app, p.get('library_id'),
+            container_id=container_id, character_id=character_id,
+            area_name=area_name or None,
+            edge_relation=p.get('relation') or None,
+        )
+        if error:
+            return {"error": error}
+        if p.get('rename'):
+            placed = graph.get_node(node_id)
+            if placed:
+                placed.name = str(p['rename'])
+                placed.updated = time.time()
+        return {"node_id": node_id}
+
+    if optype == 'connect_areas':
+        way_id = p.get('way_id')
+        area_a = p.get('area_a_id')
+        area_b = p.get('area_b_id')
+        if not way_id or not area_a or not area_b:
+            return {"error": "connect_areas needs way_id, area_a_id, area_b_id"}
+        if graph.get_node(way_id):
+            return {"error": f"Way '{way_id}' already exists"}
+        graph.add_node(Node(id=way_id, type='way',
+                            name=p.get('way_name') or 'Door',
+                            properties=p.get('properties') or {}))
+        dir_a = p.get('direction_a') or 'north'
+        dir_b = p.get('direction_b') or 'south'
+        # Canonical connection edge pattern (mirrors handle_build_connect_legacy):
+        # area→way carries direction + visible_in_direction; way→area only direction.
+        graph.add_edge(Edge(source=area_a, target=way_id, type=EDGE_CONNECTION,
+                            properties={"direction": dir_a, "visible_in_direction": ""}))
+        graph.add_edge(Edge(source=way_id, target=area_b, type=EDGE_CONNECTION,
+                            properties={"direction": dir_b}))
+        graph.add_edge(Edge(source=area_b, target=way_id, type=EDGE_CONNECTION,
+                            properties={"direction": dir_b, "visible_in_direction": ""}))
+        graph.add_edge(Edge(source=way_id, target=area_a, type=EDGE_CONNECTION,
+                            properties={"direction": dir_a}))
+        return {"way_id": str(way_id)}
+
+    if optype == 'update_node':
+        node = graph.get_node(p.get('node_id'))
+        if not node:
+            return {"error": f"Node '{p.get('node_id')}' not found"}
+        patch = p.get('patch') or {}
+        if 'name' in patch:
+            node.name = patch['name']
+        props = dict(patch.get('properties') or {})
+        # NL-editor agents hand over a FLAT property map ({description: ...});
+        # fold every non-reserved key into properties.
+        for k, v in patch.items():
+            if k in ('name', 'properties', 'id', 'type'):
+                continue
+            props[k] = v
+        if isinstance(props.get('actions'), (list, str)):
+            props['actions'] = normalize_item_actions(props['actions'])
+        node.properties.update(props)
+        node.updated = time.time()
+        return {"status": "success"}
+
+    if optype == 'link_to_library':
+        node = graph.get_node(p.get('node_id'))
+        if not node:
+            return {"error": f"Node '{p.get('node_id')}' not found"}
+        node.properties['template_id'] = p.get('library_id')
+        node.updated = time.time()
+        return {"status": "success"}
+
+    if optype == 'attach':
+        src = graph._resolve_id(p.get('from_id')) or p.get('from_id')
+        tgt = graph._resolve_id(p.get('to_id')) or p.get('to_id')
+        etype = p.get('relation') or 'in'
+        if not graph.get_node(src):
+            return {"error": f"Source '{src}' not found"}
+        if not graph.get_node(tgt):
+            return {"error": f"Target '{tgt}' not found"}
+        graph.add_edge(Edge(source=src, target=tgt, type=etype,
+                            properties=p.get('properties') or {}))
+        return {"status": "success"}
+
+    if optype == 'detach':
+        src, tgt, etype = p.get('from_id'), p.get('to_id'), p.get('relation') or 'in'
+        before = len(graph.edges)
+        graph.remove_edge(src, tgt, etype)
+        if len(graph.edges) == before:
+            return {"error": f"No edge {src} -{etype}-> {tgt} to detach"}
+        return {"status": "success"}
+
+    if optype == 'delete_node':
+        node = graph.get_node(p.get('node_id'))
+        if not node:
+            return {"error": f"Node '{p.get('node_id')}' not found"}
+        if node.type == 'area':
+            for edge in graph.get_edges_for_target(node.id, EDGE_IN):
+                if edge.source.startswith('player_'):
+                    return {"error": f"Cannot delete area '{node.name}' – player inside"}
+        if node.type == 'character':
+            characters = [n for n in graph.nodes.values() if n.type == 'character']
+            if len(characters) <= 1:
+                return {"error": "Cannot delete the last character"}
+        graph.remove_node(node.id)
+        return {"status": "success"}
+
+    return {"error": f"Unknown op type '{optype}'"}
+
+
+def handle_graph_batch(app):
+    """Apply a staged NL-editor batch as ONE undo snapshot (task-387).
+
+    Ops are replayed in topological order (creates → updates/links →
+    edges → deletes). No per-op snapshot is pushed here; the global
+    after_request hook records exactly one undo entry for the whole call,
+    so a single Undo reverts an entire Apply. Per-op failures are reported
+    with their index; the response status is 207 (partial) when any failed.
+    """
+    data = request.get_json() or {}
+    ops = data.get('ops')
+    if not isinstance(ops, list) or not ops:
+        return jsonify({"error": "ops must be a non-empty array"}), 400
+
+    # ONE pre-state snapshot for the whole batch (the after_request hook skips
+    # this path), so a single Undo reverts the entire Apply.
+    from routes.saveload import _push_undo_snapshot
+    _push_undo_snapshot(app, label=f"NL editor batch ({len(ops)} op{'s' if len(ops) != 1 else ''})")
+
+    ordered = sorted(
+        enumerate(ops),
+        key=lambda t: (_BATCH_PHASE.get((t[1] or {}).get('type'), 99), t[0]),
+    )
+
+    applied, errors = [], []
+    for idx, op in ordered:
+        if not isinstance(op, dict):
+            errors.append({"index": idx, "error": "op must be an object"})
+            continue
+        optype = op.get('type')
+        payload = op.get('payload') or {}
+        try:
+            result = _apply_batch_op(app, optype, payload)
+        except Exception as exc:
+            logger.warning("Batch op %s (%s) failed: %s", idx, optype, exc)
+            result = {"error": str(exc)}
+        if result.get('error'):
+            errors.append({"index": idx, "type": optype, "error": result['error']})
+        else:
+            applied.append({"index": idx, "type": optype, **result})
+
+    ok = not errors
+    return jsonify({
+        "status": "success" if ok else "partial",
+        "applied": applied,
+        "errors": errors,
+    }), (200 if ok else 207)
 
 
 def handle_build_area_legacy(app):

@@ -261,12 +261,17 @@ def handle_library_rename(app, registry_type, entry_id):
     return jsonify({"status": "renamed", "old": entry_id, "new": new_id})
 
 
-def handle_library_place_item(app, item_id):
-    data = request.get_json() or {}
+def place_library_item(app, item_id, container_id=None, character_id=None,
+                       area_name=None, edge_relation=None):
+    """Core of handle_library_place_item — no request dependency.
+
+    Shared by POST /api/library/items/<id>/place and the NL-editor batch
+    endpoint (POST /api/graph/batch). Returns (node_id, error, status_code).
+    """
     library = load_registry(app.config['DATA_DIR'], 'items.json')
     lib_item = library.get(item_id)
     if not lib_item:
-        return jsonify({"error": f"Item '{item_id}' not found in library"}), 404
+        return None, f"Item '{item_id}' not found in library", 404
 
     item_name = lib_item.get('name', item_id)
     node_id = f"item_{item_name}_{int(time.time()*1000)}_{random.randint(0, 999)}".lower()
@@ -291,10 +296,11 @@ def handle_library_place_item(app, item_id):
         "library_id": item_id,
         "image": lib_item.get('image') or None
     }
-    node = app.world.graph.get_node(node_id)
+    graph = app.world.graph
+    node = graph.get_node(node_id)
     if not node:
         node = Node(id=node_id, type='item', name=item_name, properties=props)
-        app.world.graph.add_node(node)
+        graph.add_node(node)
     else:
         node.properties.update(props)
 
@@ -307,39 +313,54 @@ def handle_library_place_item(app, item_id):
             logger.warning("Item '%s' contents references missing library item '%s'", item_id, child_id)
             continue
         child_node_id = _spawn_library_item_node(app, child_id, child_entry)
-        graph_add_in_edge(app.world.graph, child_node_id, node_id)
+        graph_add_in_edge(graph, child_node_id, node_id)
 
     node_id_l = node_id.lower()
-    for e in app.world.graph.edges[:]:
+    for e in graph.edges[:]:
         if e.source.lower() == node_id_l and e.type in (EDGE_IN, EDGE_CARRYING):
-            app.world.graph.remove_edge(e.source, e.target, e.type)
+            graph.remove_edge(e.source, e.target, e.type)
 
-    container_id = data.get('container')
-    character_id = data.get('character')
-    area_name = data.get('area')
+    target_ref = None
+    edge_type = EDGE_IN
     if container_id:
-        if app.world.graph.get_node(container_id):
-            app.world.graph.add_edge(Edge(source=node_id, target=container_id, type=EDGE_IN))
-        else:
-            return jsonify({"error": f"Container '{container_id}' not found"}), 400
+        if not graph.get_node(container_id):
+            return node_id, f"Container '{container_id}' not found", 400
+        target_ref = container_id
     elif character_id:
-        if app.world.graph.get_node(character_id):
-            app.world.graph.add_edge(Edge(source=node_id, target=character_id, type=EDGE_CARRYING))
-        else:
-            return jsonify({"error": f"Character '{character_id}' not found"}), 400
+        if not graph.get_node(character_id):
+            return node_id, f"Character '{character_id}' not found", 400
+        target_ref = character_id
+        edge_type = EDGE_CARRYING
     elif area_name:
         area_node_id = app.world._area_node_id(area_name)
-        for n in app.world.graph.nodes.values():
+        for n in graph.nodes.values():
             if n.type == "area" and n.name == area_name:
                 area_node_id = n.id
                 break
-        app.world.graph.add_edge(Edge(source=node_id, target=area_node_id, type=EDGE_IN))
+        target_ref = area_node_id
     else:
-        return jsonify({"error": "Missing target: 'area', 'container', or 'character'"}), 400
+        return node_id, "Missing target: 'area', 'container', or 'character'", 400
+
+    if edge_relation and str(edge_relation).strip():
+        edge_type = RELATION_EDGE_TYPES.get(str(edge_relation).strip().lower(), edge_type)
+    graph.add_edge(Edge(source=node_id, target=target_ref, type=edge_type))
 
     for trigger_data in lib_item.get('triggers', []):
-        _materialize_trigger_nodes(app.world.graph, node_id, trigger_data)
+        _materialize_trigger_nodes(graph, node_id, trigger_data)
 
+    return node_id, None, 200
+
+
+def handle_library_place_item(app, item_id):
+    data = request.get_json() or {}
+    node_id, error, code = place_library_item(
+        app, item_id,
+        container_id=data.get('container'),
+        character_id=data.get('character'),
+        area_name=data.get('area'),
+    )
+    if error:
+        return jsonify({"error": error}), code
     return jsonify({"status": "success", "node_id": node_id})
 
 

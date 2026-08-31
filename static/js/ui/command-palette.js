@@ -13,9 +13,10 @@ window.CommandPalette = (() => {
     'use strict';
 
     const NODE_ICONS = { area: '🏠', item: '📦', way: '🚪', character: '🧍', logic_trigger: '⚡', trigger: '⚡' };
-    const TAB_NAMES = { '🧍 Agents': 'Agents', '🗺️ Outline': 'Outline', '👁 Lens': 'Lens', '🛠 Issues': 'Issues' };
+    const TAB_NAMES = { '🧍 Agents': 'Agents', '🗺️ Outline': 'Outline', '👁 Lens': 'Lens', '🛠 Issues': 'Issues', '✨ NL Editor': 'NL Editor' };
 
     const ACTIONS = [
+        { icon: '✨', label: 'Natural-Language Editor (Cmd+L / Ctrl+L)', run: () => window.NLEditor?.openPanel() },
         { icon: '💾', label: 'Save Game', run: () => saveGame() },
         { icon: '📂', label: 'Load Game…', run: () => { document.getElementById('load-game-modal').style.display = 'flex'; loadGameList(); } },
         { icon: '📄', label: 'Load JSON… (import with preview)', run: () => document.getElementById('file-upload').click() },
@@ -35,6 +36,7 @@ window.CommandPalette = (() => {
         { icon: '🗺️', label: 'Panel: Outline', run: () => switchTab('Outline') },
         { icon: '👁', label: 'Panel: Lens', run: () => switchTab('Lens') },
         { icon: '🛠', label: 'Panel: Issues', run: () => switchTab('Issues') },
+        { icon: '✨', label: 'Panel: NL Editor', run: () => switchTab('NL Editor') },
     ];
 
     function switchTab(name) {
@@ -85,6 +87,31 @@ window.CommandPalette = (() => {
 
     function render(filter) {
         const q = (filter || '').toLowerCase().trim();
+        if ((filter || '').trim().startsWith('>')) {
+            // task-387: '>' routes the rest of the line to the NL Editor.
+            results = [{
+                icon: '✨',
+                label: `NL Editor: ${(filter || '').trim().slice(1).trim() || '…'}`,
+                sub: 'natural-language edit — opens the ✨ NL Editor and runs it',
+                run: () => runEditorText((filter || '').trim().slice(1).trim())
+            }];
+            selected = 0;
+            listEl.textContent = '';
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 10px;font-size:12.5px;cursor:pointer;border-radius:6px;background:rgba(88,166,255,0.14);';
+            row.appendChild(Object.assign(document.createElement('span'), { textContent: results[0].icon }));
+            const label = document.createElement('span');
+            label.textContent = results[0].label;
+            label.style.cssText = 'flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+            row.appendChild(label);
+            const sub = document.createElement('span');
+            sub.textContent = results[0].sub;
+            sub.style.cssText = 'font-size:10px;color:var(--text-dim);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+            row.appendChild(sub);
+            row.onclick = () => { selected = 0; runSelected(); };
+            listEl.appendChild(row);
+            return;
+        }
         let entries = buildEntries();
         if (q) {
             entries = entries
@@ -131,6 +158,20 @@ window.CommandPalette = (() => {
         });
     }
 
+    /** task-387: '>' prefix — run a natural-language edit from the palette. */
+    function runEditorText(text) {
+        close();
+        window.NLEditor?.openPanel();
+        setTimeout(() => {
+            const el = document.getElementById('nl-input');
+            if (el && text) {
+                el.value = text;
+                el.focus();
+            }
+            if (text) window.NLEditor?.send(text);
+        }, 180);
+    }
+
     function runSelected() {
         const entry = results[selected];
         if (entry) {
@@ -154,7 +195,7 @@ window.CommandPalette = (() => {
         box.style.cssText = 'background:var(--bg-card);border:1px solid var(--border);border-radius:12px;margin-top:90px;width:560px;max-width:92vw;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.5);';
         const input = document.createElement('input');
         input.type = 'text';
-        input.placeholder = 'Jump to a node, or type an action… (Ctrl+K)';
+        input.placeholder = 'Jump to a node, type an action…, or type "> …" to run the NL Editor (Ctrl+K)';
         input.style.cssText = 'width:100%;font-size:14px;padding:12px 14px;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text);outline:none;box-sizing:border-box;';
         input.oninput = () => render(input.value);
         input.onkeydown = (ev) => {
@@ -180,6 +221,11 @@ window.CommandPalette = (() => {
     }
 
     document.addEventListener('keydown', (ev) => {
+        if ((ev.ctrlKey || ev.metaKey) && (ev.key === 'l' || ev.key === 'L')) {
+            ev.preventDefault();
+            window.NLEditor?.openPanel();
+            return;
+        }
         if ((ev.ctrlKey || ev.metaKey) && (ev.key === 'k' || ev.key === 'K')) {
             ev.preventDefault();
             open();

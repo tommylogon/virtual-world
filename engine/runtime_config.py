@@ -55,6 +55,8 @@ DEFAULTS: dict = {
     "heat.max_delta": 2.0,
     # engine/lighting.py
     "light.spill_factor": 0.5,
+    # engine/weather_forecast.py
+    "forecast.apply_scope": "exterior",
     # engine/emotion.py (task-96)
     "emotion.decay_per_tick": 1.5,
     "emotion.llm_spike_max": 15.0,
@@ -73,6 +75,7 @@ _SECTION_DESCRIPTIONS: dict[str, str] = {
     "light": "Lighting — fraction of a lit neighbor area's light that spills through an open door",
     "emotion": "Character affect (task-96) — per-tick drift toward baseline, LLM-declared feeling cap, memory-recall re-spike scaling",
     "graph": "Graph visualization — physics simulation, item visibility, area filtering",
+    "forecast": "Weather forecast — scope of areas the schedule baseline is applied to (exterior | all)",
 }
 
 #: Default config file location, relative to this module file.
@@ -203,4 +206,5 @@ SCHEMA: dict[str, dict] = {
     "graph.physics_enabled": {"section": "graph", "label": "Enable physics simulation", "type": "bool"},
     "graph.show_items": {"section": "graph", "label": "Show items in graph", "type": "bool"},
     "graph.show_only_inhabited": {"section": "graph", "label": "Show only inhabited areas", "type": "bool"},
+    "forecast.apply_scope": {"section": "forecast", "label": "Baseline-applied areas (exterior | all)", "type": "string"},
 }

@@ -1,0 +1,8 @@
+name=PZBridge
+id=PZBridge
+version=0.1.0
+author=viwo-adapter
+description=Minimal bridge mod for viwo NPC brain (HTTP server stub)
+poster=poster.jpg
+
+modDependencies=UniversalTweaks (optional)

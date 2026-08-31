@@ -229,7 +229,7 @@ class UIController {
         document.querySelectorAll('#left-tabs .left-tab').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.tab === tabName);
         });
-        ['agents', 'outline', 'lens', 'issues'].forEach(name => {
+        ['agents', 'outline', 'lens', 'issues', 'nl-editor'].forEach(name => {
             const pane = document.getElementById('left-tab-' + name);
             if (pane) pane.classList.toggle('active', name === tabName);
         });

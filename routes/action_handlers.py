@@ -117,6 +117,20 @@ def handle_get_state(app):
         state["vital_polarity"] = VITAL_POLARITY
         # task-330: pending browser-side LLM responses (llm_respond effect).
         state["llm_pending"] = list(getattr(app.world, 'llm_pending_requests', []) or [])
+        # task-228/229/227: calendar + sky state for widgets and agents.
+        try:
+            state["game_day"] = int(app.world.game_day)
+            state["game_month"] = int(app.world.game_month)
+            state["game_year"] = int(app.world.game_year)
+            state["calendar_config"] = dict(getattr(app.world, "calendar_config", {}) or {})
+            moon = app.world.current_moon_phase()
+            moon["game_day"] = int(app.world.game_day)
+            state["moon_phase"] = moon
+            state["forecast_schedule"] = dict(getattr(app.world, "forecast_schedule", {}) or {})
+            state["forecast_override"] = dict(getattr(app.world, "forecast_override", {}) or {}) \
+                if getattr(app.world, "forecast_override", None) else None
+        except Exception:
+            pass
         return jsonify(state)
     except Exception as e:
         logger.exception("Error in /api/state")

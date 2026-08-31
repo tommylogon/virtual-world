@@ -44,6 +44,7 @@
 | **Trigger editor** (per-node trigger rows: type, conditions (treemap), effects (param forms), graph editor (task-351 in progress), validate button, generic PARAMETERS key/value) | Shared across item/way/area/character; trigger graph editor is Phase-1 complete but not shipped (inprogress 351). | Effects need hand-authored param keys; **no snippet palette** for "chest/examine", "torch/light", "whisper door" patterns. |
 | **Outline panel** (19 rooms… copy-to-clipboard, per-room expand: description/exits/items/players; click → focus+inspect; temp/light/air badges) | Read-only tree; copy exports plain text. | Read-only: no inline edit, no checkboxes, no drag reorder. |
 | **Issues panel** (validator: trigger wiring, way authoring fields, mechanical tags with ⚙ quick-fix, library drift) | Live-world validation, auto-refresh, jump buttons. | Validates the live graph, not scenario files; no "before loading" audit. |
+| **Natural-Language Editor Mode** (task-387, `Cmd+L` / side tab) | Multi-turn tool-calling ReAct agent with 20 catalog tools, local staging buffer, overlay graph view, library-first reuse, interactive clarification chips, and single-snapshot Apply. | Full conversational authoring for areas, items, connections, and tweaks with staging safety. |
 | **Agents / Lens / Event stream** | Agent roster, initiative, per-agent lens of what they see, stream filters/persistence. | — |
 | **World Lore modal** (browser modal, `lore-view`) | CRUD over `world_lore`; lore injected into system prompt. | — |
 

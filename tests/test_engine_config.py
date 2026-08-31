@@ -33,6 +33,7 @@ BASELINE = {
     "heat.base_rate": 0.05,
     "heat.max_delta": 2.0,
     "light.spill_factor": 0.5,
+    "forecast.apply_scope": "exterior",
 }
 
 

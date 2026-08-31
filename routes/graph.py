@@ -10,6 +10,7 @@ from .graph_ops import (
     handle_move_item_node,
     handle_rename_node,
     handle_delete_node,
+    handle_get_area_sounds,
     handle_create_edge,
     handle_build_area_legacy,
     handle_build_item_legacy,
@@ -19,6 +20,7 @@ from .graph_ops import (
     handle_flip_edge,
     handle_delete_edge,
     handle_append_draft,
+    handle_graph_batch,
 )
 
 logger = logging.getLogger(__name__)
@@ -52,6 +54,10 @@ def register_graph_routes(app):
     @app.route('/api/graph/node/<node_id>/rename', methods=['POST'])
     def rename_node(node_id):
         return handle_rename_node(app, node_id)
+
+    @app.route('/api/areas/<area_id>/sounds', methods=['GET'])
+    def area_sounds(area_id):
+        return handle_get_area_sounds(app, area_id)
 
     @app.route('/api/graph/duplicate', methods=['POST'])
     def duplicate_node():
@@ -96,3 +102,7 @@ def register_graph_routes(app):
     @app.route('/api/scenario/append', methods=['POST'])
     def append_draft():
         return handle_append_draft(app)
+
+    @app.route('/api/graph/batch', methods=['POST'])
+    def graph_batch():
+        return handle_graph_batch(app)

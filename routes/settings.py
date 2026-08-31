@@ -126,6 +126,75 @@ def register_settings_routes(app):
         except (ValueError, TypeError):
             return jsonify({"error": "Invalid number"}), 400
 
+    @app.route('/api/settings/forecast', methods=['GET'])
+    def get_forecast():
+        """task-227: current forecast schedule + active override + moon."""
+        try:
+            world = app.world
+            return jsonify({
+                "forecast_schedule": dict(getattr(world, 'forecast_schedule', {}) or {}),
+                "forecast_override": dict(getattr(world, 'forecast_override', {}) or {})
+                    if getattr(world, 'forecast_override', None) else None,
+                "moon_phase": world.current_moon_phase(),
+                "game_day": int(world.game_day),
+                "game_month": int(world.game_month),
+                "game_year": int(world.game_year),
+                "time": world.get_current_time(),
+            })
+        except Exception as e:
+            logger.exception("Error in /api/settings/forecast")
+            return jsonify({"error": str(e)}), 500
+
+    @app.route('/api/settings/forecast', methods=['POST'])
+    def set_forecast():
+        """task-227: replace the whole forecast schedule."""
+        try:
+            data = request.get_json()
+            if not isinstance(data.get('schedule'), dict):
+                return jsonify({"error": "Expected {'schedule': {...}}"}), 400
+            schedule = data['schedule']
+            # Reset the cached schedule object + transition state.
+            app.world.forecast_schedule = {
+                "mode": schedule.get("mode", "authored"),
+                "seed": schedule.get("seed"),
+                "granularity": schedule.get("granularity", "hourly"),
+                "current_state": schedule.get("current_state", "clear"),
+                "transition_interval": int(schedule.get("transition_interval", 1) or 1),
+                "transition_table": schedule.get("transition_table") or {},
+                "entries": schedule.get("entries") or [],
+            }
+            app.world._forecast_sched_obj = None
+            app.world._forecast_last_entry_key = None
+            app.world._forecast_last_minute = None
+            from routes.saveload import _push_undo_snapshot
+            _push_undo_snapshot(app, label="forecast schedule update")
+            return jsonify({"status": "success"})
+        except Exception as e:
+            logger.exception("Error in POST /api/settings/forecast")
+            return jsonify({"error": str(e)}), 500
+
+    @app.route('/api/settings/forecast-override', methods=['POST'])
+    def set_forecast_override():
+        """task-234: GM/trigger forecast override (weather/wind/etc + duration)."""
+        try:
+            data = request.get_json() or {}
+            prev = dict(getattr(app.world, 'forecast_override', {}) or {})
+            if data.get("clear_all"):
+                app.world.forecast_override = None
+            else:
+                app.world.set_forecast_override(data)
+            from routes.saveload import _push_undo_snapshot
+            _push_undo_snapshot(app, label="forecast override")
+            app.world._forecast_tick()
+            return jsonify({
+                "status": "success",
+                "forecast_override": dict(getattr(app.world, 'forecast_override', {}) or {})
+                    if getattr(app.world, 'forecast_override', None) else None,
+            })
+        except Exception as e:
+            logger.exception("Error in POST /api/settings/forecast-override")
+            return jsonify({"error": str(e)}), 500
+
     @app.route('/api/settings/narration', methods=['GET'])
     def get_narration_mode():
         """Get the current narration mode."""

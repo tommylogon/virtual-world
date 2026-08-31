@@ -766,9 +766,16 @@ def handle_get_vital(app, name, vital_name):
                     break
 
         bonuses = {}
+        env = {}
         if hasattr(app.world, 'graph') and app.world.graph:
             bonuses = aggregate_bonuses(player, app.world.graph)
-        eff_temp = int(effective_temperature(float(room_temp), bonuses))
+            if area_name:
+                found = app.world.graph.get_node(app.world.area_node_id(area_name))
+                if found:
+                    env = found.properties.get("environment", {})
+        eff_temp = int(effective_temperature(float(room_temp), bonuses,
+                                             wind_level=env.get("wind", "none"),
+                                             humidity=env.get("humidity", "dry")))
 
         equip_items = []
         ins = bonuses.get("insulation", 0)

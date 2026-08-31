@@ -48,6 +48,27 @@ class TickManager:
             for mk, mv in TraitSystem.get_move_cost_mods(target).items():
                 lk = str(mk).lower()
                 cost[lk] = max(0, int(cost.get(lk, 0)) + mv)
+            # task-231/232: exterior wind drains extra Energy on movement;
+            # flooding adds +1 Energy (water drag).
+            try:
+                extra_energy = 0
+                area_name = getattr(target, "current_area", None)
+                if area_name:
+                    area_id = self.player_manager.area_node_id(area_name)
+                    area_node = self.graph.get_node(area_id)
+                    if area_node:
+                        tags = area_node.properties.get("tags", []) or []
+                        env = area_node.properties.get("environment", {})
+                        if "exterior" in tags:
+                            extra_energy += {"none": 0, "breeze": 0, "wind": 1,
+                                             "gale": 2, "storm": 3, "hurricane": 5}.get(
+                                str(env.get("wind", "none")), 0)
+                        if env.get("humidity") == "flooding":
+                            extra_energy += 1
+                if extra_energy:
+                    cost["energy"] = max(0, int(cost.get("energy", 0)) + extra_energy)
+            except Exception as e:
+                logger.warning("[tick] wind/flood cost: %s", e)
         vitals_map = {k.lower(): k for k in target.vitals.keys()}
         time_ticks = int(cost.get("time", 0))
         for k, v in list(cost.items()):
@@ -88,6 +109,13 @@ class TickManager:
     def tick_turn(self, skip_npcs=False):
         """Apply baseline vital decay and environmental effects to ALL characters.
         When skip_npcs=True, NPC behavior processing is skipped (used during rest)."""
+        # task-234: on_turn_start area/way/character triggers fire FIRST —
+        # before conditions, vitals decay, and environmental effects.
+        try:
+            self.gs._fire_turn_triggers("on_turn_start")
+        except Exception as e:
+            logger.warning("[tick] on_turn_start: %s", e)
+
         def get_need_message(stat, value):
             messages = {
                 "Energy": {75: "You're getting a bit tired.", 50: "You're feeling quite weary.", 25: "You're exhausted and struggling.", 10: "You can barely stay awake..."},
@@ -313,6 +341,11 @@ class TickManager:
                         p.vitals["Hygiene"] = max(0, p.vitals["Hygiene"] - 1)
                     elif smell == "perfume":
                         p.vitals["Social"] = min(100, p.vitals["Social"] + 1)
+                    # task-232: humid atmosphere saps Social (distinct from
+                    # the legacy air:"humid" check above).
+                    humidity = env.get("humidity", "dry")
+                    if humidity == "humid":
+                        p.vitals["Social"] = max(0, p.vitals["Social"] - 1)
                     light = self.lighting.get_ambient_light(area_node.id, env)
                     if light < 20:
                         p.vitals["Sanity"] = max(0, p.vitals["Sanity"] - 1)
@@ -369,7 +402,9 @@ class TickManager:
                         sanity_penalty += 1
                     if sanity_penalty > 0:
                         p.vitals["Sanity"] = max(0, p.vitals["Sanity"] - sanity_penalty)
-                    area_temp = float(effective_temperature(float(env.get("temperature", 21)), bonuses))
+                    area_temp = float(effective_temperature(float(env.get("temperature", 21)), bonuses,
+                                                            wind_level=env.get("wind", "none"),
+                                                            humidity=env.get("humidity", "dry")))
                     core_temp = p.vitals.get("Temperature", 37.0)
                     if area_temp < 5:
                         drift = (5 - area_temp) * 0.02
@@ -508,6 +543,16 @@ class TickManager:
 
         self.advance_clock(1)
 
+        # task-227/229/234: apply the forecast baseline + GM override countdown
+        # + weather-change narration, then fire one-shot time/day/moon triggers
+        # and let strong wind snuff out lit items.
+        try:
+            self.gs._forecast_tick()
+            self.gs._fire_time_triggers()
+        except Exception as e:
+            logger.warning("[tick] forecast/time-triggers: %s", e)
+        self._process_wind_extinguish()
+
         if not skip_npcs:
             self.npc_behaviors.process_simple_npcs()
 
@@ -531,6 +576,35 @@ class TickManager:
 
         # ── Sound sources: items with sound_source tag emit sound ──
         self._process_sound_sources()
+
+        # task-234: on_turn_end area/way/character triggers fire LAST —
+        # after the clock advanced, NPC behavior, and environment settled.
+        try:
+            self.gs._fire_turn_triggers("on_turn_end")
+        except Exception as e:
+            logger.warning("[tick] on_turn_end: %s", e)
+
+    def _process_wind_extinguish(self):
+        """task-231: gale+ wind can snuff out lit items each tick."""
+        import random as _random
+        chance_by_wind = {"gale": 0.1, "storm": 0.3, "hurricane": 0.6}
+        for node in self.graph.nodes.values():
+            if node.type != "area":
+                continue
+            env = node.properties.get("environment", {})
+            chance = chance_by_wind.get(str(env.get("wind", "none")))
+            if not chance:
+                continue
+            for edge in self.graph.get_edges_for_target(node.id, EDGE_IN):
+                item = self.graph.get_node(edge.source)
+                if not item or item.type != "item":
+                    continue
+                if item.properties.get("current_state") != "lit":
+                    continue
+                if _random.random() < chance:
+                    item.properties["current_state"] = "unlit"
+                    self.player_manager.add_log_entry(
+                        f"The {env.get('wind')} wind snuffs out the {item.name}.")
 
     def _process_sound_sources(self):
         """Process sound sources each tick - propagate sound from active items."""

@@ -114,6 +114,12 @@ window.InspectorAreaView = (() => {
 
         InspectorPanel.render(template);
 
+        // task-173: live "sounds heard here" readout (engine-sourced).
+        const soundsEl = document.getElementById(`room-sounds-${actualNodeId}`);
+        if (soundsEl) {
+            RV._fillAreaSounds(soundsEl, actualNodeId);
+        }
+
         if (window.InspectorTemplateSync) {
             window.InspectorTemplateSync.populateSelector('area', actualNodeId);
         }
@@ -219,7 +225,33 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
                 <label style="min-width:50px;">Noise</label>
                 <select @change=${(ev) => RV._updateEnv(actualNodeId, 'noise', ev.target.value)} style="flex:1;">${noiseOptions}</select>
             </div>
+            <div class="field" style="display:flex;align-items:center;gap:8px;">
+                <label style="min-width:50px;">🔊 Sounds</label>
+                <span id="room-sounds-${actualNodeId}" style="flex:1;font-size:11px;color:var(--text-muted);">…</span>
+            </div>
         </div>`;
+    };
+
+    /**
+     * task-173: fill the 🔊 Sounds readout from the engine (active sound
+     * sources in this area — level + pattern, like the graph overlay).
+     * @param {HTMLElement} el - Target span
+     * @param {string} areaId - Graph node id of the area
+     */
+    RV._fillAreaSounds = function(el, areaId) {
+        el.textContent = '…';
+        fetch(`/api/areas/${encodeURIComponent(areaId)}/sounds`)
+            .then(r => (r.ok ? r.json() : { sounds: [] }))
+            .then(data => {
+                const sounds = data.sounds || [];
+                if (!sounds.length) { el.textContent = 'quiet — no active sound sources.'; return; }
+                const levelWord = { 1: 'nearby', 2: 'loud', 3: 'carrying' };
+                el.textContent = sounds.map(s =>
+                    `${s.pattern}${s.name ? ` (${s.name})` : ''}` +
+                    (levelWord[s.level] ? ` — ${levelWord[s.level]}` : '')
+                ).join(' · ');
+            })
+            .catch(() => { el.textContent = '—'; });
     };
 
     /**

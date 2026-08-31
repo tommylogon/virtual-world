@@ -19,12 +19,16 @@ def handle_set_environment(self, params, context, item_node=None, game_state=Non
     env = area_node.properties.get("environment", {})
     if not isinstance(env, dict):
         env = {}
-    for key in ["light", "temperature", "air", "smell", "noise"]:
+    for key in ["light", "temperature", "air", "smell", "noise",
+                "weather", "wind", "humidity"]:
         if key in params:
             if key == "light":
                 env[key] = game_state._light_to_level(params[key])
             else:
                 env[key] = params[key]
+    # task-234: transparent is a WAY property, not an area env key.
+    if params.get("transparent") is not None and area_node.type == "way":
+        area_node.properties["transparent"] = bool(params["transparent"])
     area_node.properties["environment"] = env
     area_node.updated = time.time()
     return [params.get("message", f"The environment in {area_node.name} shifts.")]
@@ -51,9 +55,24 @@ def handle_adjust_environment(self, params, context, item_node=None, game_state=
                 env[key] = max(-50, min(100, current + int(params[key])))
             except (ValueError, TypeError):
                 pass
-    for key in ["air", "smell", "noise"]:
+    for key in ["air", "smell", "noise", "weather", "wind", "humidity"]:
         if key in params:
             env[key] = params[key]
+    # task-234: adjust_weather / adjust_wind / adjust_humidity cycle the enum.
+    cycles = {
+        "adjust_weather": (params.get("adjust_weather"), __import__("engine.weather_forecast", fromlist=["WEATHER_STATES"]).WEATHER_STATES),
+        "adjust_wind": (params.get("adjust_wind"), __import__("engine.weather_forecast", fromlist=["WIND_STATES"]).WIND_STATES),
+        "adjust_humidity": (params.get("adjust_humidity"), __import__("engine.weather_forecast", fromlist=["HUMIDITY_STATES"]).HUMIDITY_STATES),
+    }
+    for key, (steps, states) in cycles.items():
+        if steps is None:
+            continue
+        current = env.get(key.replace("adjust_", ""), states[0])
+        try:
+            idx = states.index(current) + int(steps)
+        except ValueError:
+            idx = int(steps) % len(states)
+        env[key.replace("adjust_", "")] = states[idx % len(states)]
     area_node.properties["environment"] = env
     area_node.updated = time.time()
     msg = params.get("message", "The environment shifts.")

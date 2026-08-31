@@ -22,6 +22,11 @@ window.GraphEventHandlers = {
             }
         }
         if (params.nodes.length > 0) {
+            // task-378: shift-click toggles bulk selection (no inspector open).
+            if (params.event?.shiftKey && !graphManager._pendingConnection) {
+                graphManager._toggleBulkSelect(params.nodes[0]);
+                return;
+            }
             const nodeId = params.nodes[0];
             const nodeData = graphManager.nodes.get(nodeId);
             if (nodeData?.type === 'character' && nodeData.name && worldState.players?.[nodeData.name]) {
@@ -46,6 +51,7 @@ window.GraphEventHandlers = {
                 graphManager.cancelPendingConnection();
                 return;
             }
+            graphManager._clearBulkSelection();
             GraphNetwork.hideRevealedItems();
             GraphNetwork.hideRevealedAreas();
             hideInspectorPanel();

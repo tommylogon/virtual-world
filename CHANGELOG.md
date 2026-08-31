@@ -4,7 +4,109 @@ All notable changes to VirtualWorld. See `docs/virtualWorld/Scenario Workflows &
 
 ---
 
-## 1.2.0 — "Craft & Carry" (2026-08-31)
+## 1.3.0 — "Weather Eye & Wild Words" (2026-08-31)
+
+A forecast schedule engine, game calendar, moon phases, wind/humidity, a triple-feature NL Editor
+power-up (ghost previews, populate_area, selective apply, mechanic inference, lore-aware prompts,
+palette shortcut), a sky widget driven by live state, trigger effects for time/weather, and
+moonlight descriptions. **2633 passing**.
+
+### 🌦 Weather & Sky (engine)
+
+- **Forecast engine** (`engine/weather_forecast.py`): authored (hourly/weekly/yearly), deterministic
+  state-machine, random, or hybrid modes. Zero authored entries = strict no-op — existing scenarios
+  are unaffected. GM/trigger `forecast_override` with duration countdown & auto-revert.
+- **Calendar** (task-228): `game_day/month/year` derived from ticks + `calendar_config`
+  (`minutes_per_day`, `days_per_month`, `months_per_year`), exposed in `/api/state`. `set_game_time`
+  / `set_game_date` effects.
+- **Moon phases** (task-229): deterministic 30-day cycle (`new → crescent → quarter → gibbous →
+  full → waning`). Outdoor night areas add the moon's `light_bonus` to ambient light (full moon
+  +25, stormy nullifies it, foggy halves it). `blood_moon` override stains the sky red (+30).
+  Moonlight lines in area descriptions.
+- **Wind** (task-231): `none/breeze/wind/gale/storm/hurricane` — accelerates heat propagation
+  (stronger wind wins), wind chill resisted by `wind_resistance%`, extiguishes lit items on
+  gale+ (10%–60% chance/tick), drains Energy on exterior moves. New item properties
+  `wind_resistance`, `water_resistance`.
+- **Humidity** (task-232): `dry/humid/wet/flooding` — affects effective temperature (hot +2/+3/+4,
+  cold -1/-2/-3), saps Social in humid air, flooding adds +1 Energy cost to movement.
+- **`effective_temperature`** now accepts `wind_level` + `humidity` kwargs (backward-compatible).
+- **Trigger effects** (task-234): `set_time`, `set_date`, `set_weather`, `forecast_override`,
+  `adjust_forecast`. `set_environment`/`adjust_environment` extended with `weather`, `wind`,
+  `humidity`, `transparent` keys + cycling. New trigger types: `on_turn_start`, `on_turn_end`,
+  `on_dawn`, `on_dusk`, `on_day`, `on_night`, `on_full_moon`, `on_blood_moon` (one-shot per
+  game-day via last-fired cache). New conditions: `date_equals`, `moon_phase_equals`, `weather`.
+- **Settings**: `GET/POST /api/settings/forecast`, `POST /api/settings/forecast-override`,
+  `/api/state` exposes `game_day/month/year`, `moon_phase`, `forecast_schedule`, `forecast_override`.
+- **Engine Config**: `forecast.apply_scope` (exterior/all), `heat.base_rate`/`heat.max_delta` now
+  apply wind multiplier.
+
+### 🌠 Sky Clock widget (GUI)
+
+- **Top-bar live widget** (`static/js/sky-scape.js`): `🕐 09:40 · Jan Day 1 · 🌑 new moon · ☀️ clear
+  · rain in 2h` — replaces the bare `#ui-time` clock. Driven by engine state, clickable → opens the
+  **World Sky panel**.
+- **World Sky panel** (modal): animated sky stage (gradient, sun arc, moon arc with v2 realistic
+  moonrise/set, seasonal hill colors, weather layers with clouds/rain/snow/fog). Time skips
+  (+15m/+1h/+1 day), weather override dropdown + duration + Set/Clear, forecast next-change
+  indicator, GM override indicator. Ported from the qwen/GLM mockups and wired to engine APIs.
+- **Design note** reconciling mockups + roadmap + implementation: `docs/design/sky-widget-reconciled.md`.
+
+### ✨ NL Editor power-up (9 features)
+
+- **Ghost-node canvas** — staged entities appear as translucent dashed nodes on the graph in real
+  time; updates/deletes tint the live node amber/red; attach/detach get dashed ghost edges.
+  Re-applies after every graph reload.
+- **Auto-pan spotlight** — when a turn finishes with fresh staged ops, the camera gently pans to
+  the newest staged target ("here's what I just drafted").
+- **Selection-aware prompting** — the system prompt reports the currently-selected node as the
+  default "this room/node"; `update_node`/`delete_node`/`get_node`/`spawn_library_item` auto-fill
+  a missing id from the selection.
+- **Inline staged property tweaker** — ✎ on any staged row → editable JSON payload, save/cancel.
+- **Selective partial apply** — checkbox per op + **Apply Selected (n)**; unchecked ops stay staged.
+- **`populate_area(area_id, theme)`** — one call stages a whole themed pass: 9 theme packs
+  (apothecary, kitchen, garden, study, smithy, warehouse, shrine, bedroom, generic), each with an
+  NPC, items, attachments, and area ambience.
+- **Smart mechanic inference** — glowing crystal → `light_source`/`dim`/`lit`; roast chicken →
+  `eat` action; plus sound/heat/weapon/armor/read/drink rules — all automatic from the name.
+- **Lore & style awareness** — system prompt injects scenario name, theme, up to 6 world-lore
+  entries, and the selection; rule 6 enforces style consistency.
+- **`>` palette route** — Ctrl+K → `> make the tavern darker and add a violin` → Enter → NL Editor
+  opens, input filled, agent runs in the background.
+
+### 🛠 Fixes
+
+- **`POST /api/graph/batch`** — NL Editor's Apply now sends all staged ops as one server-side
+  batch, recording exactly ONE undo snapshot. A single Undo reverts an entire Apply. (Previously
+  each per-op API call pushed its own snapshot, and several op types hit wrong routes giving 405 or
+  silent no-ops.)
+- **`update_node` flat patch** — the agent hands `{description: "..."}` and the PATCH route now
+  accepts it (was silently ignored).
+- **`link_to_library`** — `template_id` now correctly lands in `properties`.
+- **`connect_areas`** — connection edges now carry `direction` + `visible_in_direction` props so
+  exits actually resolve.
+- **`search_library_areas`** — now searches `description` too (matching the items search).
+
+### 🧰 Gotchas in this release
+
+- **Restart your server** (`start.bat`) — the running process needs to pick up the new engine code
+  (calendar, forecast, moon, wind, humidity, trigger effects, routes).
+- Weather forecast scenarios: **zero authored entries = no behavioral change** — existing scenarios
+  are unaffected. To use weather, author a forecast schedule via `/api/settings/forecast` or set
+  a GM override via `/api/settings/forecast-override`.
+- Moon/turn/time triggers fire only on nodes with attached trigger nodes of the matching type.
+- The Sky widget's time skips (+15m/+1h/+1 day) adjust the clock display but do NOT run engine
+  ticks — they're visual helpers. Use `/api/turn/apply` for actual world-time advancement.
+- `wind_resistance`/`water_resistance` are item properties set via the inspector or library; no
+  library items have them yet. They work as soon as set.
+- The after-request hook's post-state snapshot push for simple graph edits (PATCH `/api/graph/node/`)
+  still makes the first Undo a no-op — the batch endpoint is exempt but the per-edit quirk remains.
+
+### 🧪 Behind the scenes
+
+- New test file: `tests/test_graph_batch.py` (6 tests), `tests/test_engine_config.py` baseline
+  updated for `forecast.apply_scope`.
+- Task vault: 227/228/229/231/232/234/378/379/387 — all implemented in this session.
+- Full suite at **2633 passing**.
 
 Items stopped being cardboard props. Uses, durability, weight, freshness, stacking, crafting,
 teaching, auto-dressing, gated shortcuts — and a pile of the item/gameplay todo queue landed in

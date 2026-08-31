@@ -82,8 +82,19 @@ def propagate_temperature(graph) -> None:
                     continue
                 processed_pairs.add(pair)
 
+                pair_rate = rate
+                # task-231: wind accelerates heat exchange — the STRONGER wind
+                # of the two connected areas wins.
+                env_a = graph.get_node(area_list[i]).properties.get("environment", {}) if graph.get_node(area_list[i]) else {}
+                env_b = graph.get_node(area_list[j]).properties.get("environment", {}) if graph.get_node(area_list[j]) else {}
+                from engine.weather_forecast import WIND_HEAT_MULT
+                wind_a = WIND_HEAT_MULT.get(str(env_a.get("wind", "none")), 1.0)
+                wind_b = WIND_HEAT_MULT.get(str(env_b.get("wind", "none")), 1.0)
+                wind_mult = max(wind_a, wind_b)
+                pair_rate = rate * wind_mult
+
                 _transfer_heat(
-                    graph, area_list[i], area_list[j], rate
+                    graph, area_list[i], area_list[j], pair_rate
                 )
 
 

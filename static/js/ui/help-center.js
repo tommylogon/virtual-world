@@ -134,6 +134,15 @@ window.HelpCenter = (() => {
             body: 'In the trigger editor, <b>snippets</b> fill a whole trigger in one click — Chest, Light Source, Heat Source, First Aid, Whispering Door, Recorder. Ctrl+K finds anything.',
         },
         {
+            id: 'nl-editor',
+            event: 'data-help',
+            match: d => d === 'nl-editor',
+            group: 'World building',
+            title: 'Natural-Language Editor Mode (Cmd+L / Ctrl+L)',
+            body: 'Author and modify the world conversationally. The agent searches the library first, inspects the live world, stages all mutations into a local buffer for review, and applies everything in one undo-safe transaction.',
+            target: '[data-tab="nl-editor"]',
+        },
+        {
             id: 'simultaneous',
             event: 'data-help',
             match: d => d === 'simultaneous',

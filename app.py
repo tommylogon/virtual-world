@@ -100,7 +100,12 @@ def create_app(config=None):
                     app.world._edit_seq = getattr(app.world, '_edit_seq', 0) + 1
                 try:
                     from routes.saveload import _push_undo_snapshot
-                    if path.startswith('/api/graph/node/') and not path.endswith(('/image', '/rename')):
+                    if path == '/api/graph/batch':
+                        # task-387: the NL-editor batch handler pushes its own
+                        # single PRE-state snapshot; a post-state push here
+                        # would make the first Undo a no-op.
+                        label = None
+                    elif path.startswith('/api/graph/node/') and not path.endswith(('/image', '/rename')):
                         label = f"edited node {path.rsplit('/', 1)[-1]}"
                     elif '/api/graph/' in path:
                         label = "graph edit"
@@ -110,7 +115,8 @@ def create_app(config=None):
                         label = "build edit"
                     else:
                         label = "world edit"
-                    _push_undo_snapshot(app, label=label)
+                    if label is not None:
+                        _push_undo_snapshot(app, label=label)
                 except Exception:
                     pass  # never let history bookkeeping break a mutation
                 if not app.config.get('TESTING'):

@@ -6,6 +6,7 @@ from item import Item
 from area import Area
 from player import Player, CONDITION_DEFINITIONS
 import time
+import logging
 from typing import Optional, Dict, List, Any
 from graph import WorldGraph, Node, EDGE_CONNECTION
 from engine.trigger_system import TriggerSystem, TRIGGER_TYPES, EFFECT_TYPES
@@ -38,6 +39,8 @@ class AmbiguousItemError(ValueError):
     def __init__(self, message, options):
         self.options = options  # List of {id, name, description}
         super().__init__(message)
+
+logger = logging.getLogger(__name__)
 
 class VirtualWorld:
     def __init__(self):
@@ -95,12 +98,42 @@ class VirtualWorld:
         # World lore: shared list of structured lore entries
         self.world_lore = []
 
+        # ── Calendar (task-228) ──
+        self.calendar_config = {
+            "minutes_per_day": 1440,
+            "days_per_week": 7,
+            "days_per_month": 30,
+            "months_per_year": 12,
+            "year_start_day": 1,
+        }
+
+        # ── Weather forecast (task-227): authored schedule + GM override ──
+        # Default: authored with ZERO entries — a strict no-op until a
+        # scenario authors a schedule or a GM sets an override.
+        self.forecast_schedule = {
+            "mode": "authored",
+            "seed": None,
+            "granularity": "hourly",
+            "entries": [],
+            "current_state": "clear",
+            "transition_interval": 1,
+            "transition_table": {},
+        }
+        self.forecast_override = None
+        self._forecast_sched_obj = None
+        self._forecast_last_entry_key = None
+        self._forecast_last_minute = None
+        # task-234 one-shot cache: {(node_id, trigger_type): game_day_bucket}.
+        self._time_trigger_cache = {}
+
         # Initialize modular subsystems
         self.player_manager = PlayerManager(self.graph)
         self.lighting = LightingSystem(self.graph)
         # task-230: outdoor areas follow the time-of-day curve. The provider
         # reads the live clock (ticks + start offset) at call time.
         self.lighting.hour_provider = self.current_game_hour
+        # task-229: moon phase feeds the outdoor-night light bonus.
+        self.lighting.moon_provider = self.current_moon_phase
         self.ghost_system = GhostSystem(self.graph, self, self)
         self.effects = Effects(self.graph, self)
         self.triggers = TriggerSystem(self.graph, self, self)
@@ -830,6 +863,247 @@ class VirtualWorld:
     def current_game_hour(self) -> int:
         """Current in-game hour 0-23 (task-230)."""
         return int(self.total_game_minutes() // 60) % 24
+
+    # ─────────────────────── Calendar (task-228) ───────────────────────
+
+    @property
+    def game_day(self) -> int:
+        """Day of the scenario's calendar (1-based, derived from time_ticks)."""
+        return int(self.total_game_minutes() // 1440) + 1
+
+    @property
+    def game_month(self) -> int:
+        cfg = self.calendar_config or {}
+        days_per_month = max(1, int(cfg.get("days_per_month", 30)))
+        months_per_year = max(1, int(cfg.get("months_per_year", 12)))
+        return ((self.game_day - 1) // days_per_month) % months_per_year + 1
+
+    @property
+    def game_year(self) -> int:
+        cfg = self.calendar_config or {}
+        days_per_month = max(1, int(cfg.get("days_per_month", 30)))
+        months_per_year = max(1, int(cfg.get("months_per_year", 12)))
+        return ((self.game_day - 1) // (days_per_month * months_per_year)) + 1
+
+    def set_game_time(self, hour=None, minute=None):
+        """task-234 set_time: rotate the clock-start offset so the displayed
+        time matches. Tick count (and thus game progression) is preserved;
+        the change wraps across midnight."""
+        cur_total = self.total_game_minutes()
+        cur_h = int(cur_total // 60) % 24
+        cur_m = int(cur_total) % 60
+        desired = (int(hour if hour is not None else cur_h) * 60
+                   + int(minute if minute is not None else cur_m)) % 1440
+        delta = desired - (int(cur_total) % 1440)
+        total_start = int(getattr(self, "clock_start_hour", 8)) * 60 \
+            + int(getattr(self, "clock_start_minute", 0))
+        new_start = (total_start + delta) % 1440
+        self.clock_start_hour = new_start // 60
+        self.clock_start_minute = new_start % 60
+
+    def set_game_date(self, day=None, month=None, year=None):
+        """task-234 set_date: rewrite time_ticks so the calendar shows the
+        requested (day, month, year) — the hour of day is preserved."""
+        cfg = self.calendar_config or {}
+        days_per_month = max(1, int(cfg.get("days_per_month", 30)))
+        months_per_year = max(1, int(cfg.get("months_per_year", 12)))
+        cur_day = self.game_day
+        year_idx = ((cur_day - 1) // (days_per_month * months_per_year)) + 1
+        month_idx = ((cur_day - 1) // days_per_month) % months_per_year + 1
+        day_idx = ((cur_day - 1) % days_per_month) + 1
+        if year is not None:
+            year_idx = max(1, int(year))
+        if month is not None:
+            month_idx = max(1, min(months_per_year, int(month)))
+        if day is not None:
+            day_idx = max(1, min(days_per_month, int(day)))
+        new_day = (year_idx - 1) * days_per_month * months_per_year \
+            + (month_idx - 1) * days_per_month + day_idx
+        cur_hour_min = int(self.total_game_minutes()) % 1440
+        desired_total = (new_day - 1) * 1440 + cur_hour_min
+        start = int(getattr(self, "clock_start_hour", 8)) * 60 \
+            + int(getattr(self, "clock_start_minute", 0))
+        per_tick = abs(float(getattr(self, "time_per_tick_minutes", 1)) or 1)
+        self.time_ticks = max(0, int(round((desired_total - start) / per_tick)))
+        return True
+
+    # ─────────────────── Weather forecast (task-227/229) ───────────────────
+
+    def current_moon_phase(self) -> dict:
+        """Current moon phase (task-229). A GM/trigger ``blood_moon`` override
+        turns the night red: stronger light bonus, distinct phase name."""
+        from engine.weather_forecast import get_moon_phase
+        override = getattr(self, "forecast_override", None) or {}
+        if override.get("blood_moon"):
+            return {"name": "blood_moon", "icon": "🔴",
+                    "light_bonus": 30, "cycle_day": self.game_day % 30}
+        return get_moon_phase(self.game_day)
+
+    def _fire_turn_triggers(self, trigger_type: str):
+        """task-234: fire ``on_turn_start`` / ``on_turn_end`` triggers on every
+        area, way, and character node that has one attached."""
+        for node in list(self.graph.nodes.values()):
+            if node.type not in ("area", "way", "character"):
+                continue
+            try:
+                outputs = self.triggers._execute_triggers(node, trigger_type, game_state=self)
+                for out in outputs:
+                    self.add_log_entry(out)
+            except Exception as e:
+                logger.warning("[triggers] %s on %s: %s", trigger_type, node.id, e)
+
+    def _fire_time_triggers(self):
+        """task-234: one-shot time-of-day & moon triggers — on_dawn, on_dusk,
+        on_day, on_night, on_full_moon, on_blood_moon — fired on area/way/
+        character nodes. Each fires once per game-day transition (cache)."""
+        hour = self.current_game_hour()
+        moon = self.current_moon_phase()
+        override = getattr(self, "forecast_override", None) or {}
+        checks = {
+            "on_dawn": 5 <= hour <= 6,
+            "on_dusk": 18 <= hour <= 19,
+            "on_day": 6 <= hour <= 18,
+            "on_night": hour >= 19 or hour < 5,
+            "on_full_moon": moon.get("name") == "full_moon",
+            "on_blood_moon": bool(override.get("blood_moon")),
+        }
+        cache = self._time_trigger_cache
+        bucket = self.game_day
+        for node in list(self.graph.nodes.values()):
+            if node.type not in ("area", "way", "character"):
+                continue
+            for trigger_type, active in checks.items():
+                if not active:
+                    continue
+                key = (node.id, trigger_type)
+                if cache.get(key) == bucket:
+                    continue
+                cache[key] = bucket
+                try:
+                    outputs = self.triggers._execute_triggers(node, trigger_type, game_state=self)
+                    for out in outputs:
+                        self.add_log_entry(out)
+                except Exception as e:
+                    logger.warning("[triggers] %s on %s: %s", trigger_type, node.id, e)
+        if len(cache) > 400:
+            for key in list(cache)[:len(cache) - 200]:
+                cache.pop(key, None)
+
+    def _forecast_sched(self):
+        """Cached ForecastSchedule object (survives across ticks so the
+        state machine keeps its current_state)."""
+        from engine.weather_forecast import ForecastSchedule
+        sched = getattr(self, "_forecast_sched_obj", None)
+        raw = getattr(self, "forecast_schedule", None) or {}
+        if sched is None or getattr(sched, "_raw", None) is not raw:
+            sched = ForecastSchedule(raw)
+            sched._raw = raw
+            self._forecast_sched_obj = sched
+        return sched
+
+    def set_forecast_override(self, data: dict):
+        """Set (or clear) a GM/trigger forecast override (task-234).
+
+        ``data`` accepts weather/wind/humidity/temperature_mod/light_mod/air/
+        blood_moon + ``duration_ticks``; ``clear_all`` or an empty payload
+        clears the override. Returns the active override (None if cleared).
+        """
+        override = {}
+        for key in ("weather", "wind", "humidity", "temperature_mod", "light_mod", "air", "blood_moon"):
+            if data.get(key) is not None:
+                override[key] = data[key]
+        if data.get("duration_ticks") is not None:
+            override["duration_ticks"] = max(1, int(data["duration_ticks"]))
+        if data.get("clear_all") or not override:
+            self.forecast_override = None
+            return None
+        self.forecast_override = override
+        return override
+
+    def _forecast_tick(self):
+        """Apply the forecast baseline + override expiry (task-227/234).
+
+        Called from TickManager.tick_turn() right after the clock advances.
+        Strict no-op with the default authored/empty schedule.
+        """
+        raw = getattr(self, "forecast_schedule", None)
+        if not isinstance(raw, dict) or not any([
+            raw.get("entries"), raw.get("mode") in ("deterministic", "random", "hybrid"),
+        ]):
+            # Still let a duration-based GM override revert even without a schedule.
+            override = getattr(self, "forecast_override", None)
+            if not override:
+                return
+        from engine.runtime_config import config as _cfg
+
+        sched = self._forecast_sched()
+
+        # 1. State-machine roll at transition boundaries.
+        minute_now = int(self.total_game_minutes())
+        prev = getattr(self, "_forecast_last_minute", None)
+        if prev is not None and sched.mode in ("deterministic", "random", "hybrid"):
+            interval_minutes = max(1, sched.transition_interval) * max(1, int(self.time_per_tick_minutes))
+            bounds_crossed = (minute_now // interval_minutes) - (prev // interval_minutes)
+            for _ in range(max(0, min(bounds_crossed, 10))):
+                sched.roll_state()
+            if isinstance(self.forecast_schedule, dict):
+                self.forecast_schedule["current_state"] = sched.current_state
+        self._forecast_last_minute = minute_now
+
+        # 2. Override countdown + auto-revert.
+        override = getattr(self, "forecast_override", None) or None
+        if override and override.get("duration_ticks") is not None:
+            override["duration_ticks"] = int(override.get("duration_ticks", 1)) - 1
+            if override["duration_ticks"] <= 0:
+                self.forecast_override = None
+                override = None
+                self.add_log_entry("[Weather] The override wears off — the sky returns to the forecast.")
+
+        # 3. Effective environment + apply to exterior areas.
+        sched_env = sched.current_environment(
+            self.time_ticks, self.time_per_tick_minutes, self.game_day)
+        eff = sched.resolve(sched_env, override)
+        if not any(eff.get(k) for k in ("weather", "wind", "humidity", "air",
+                                        "temperature_mod", "light_mod")):
+            return
+        self._apply_forecast_env(eff)
+
+        # 4. Narrate weather entry transitions.
+        entry = sched.get_entry_for_time(minute_now, self.game_day)
+        key = (entry.get("offset"), entry.get("weather")) if entry else None
+        if key and key != getattr(self, "_forecast_last_entry_key", None):
+            self._forecast_last_entry_key = key
+            message = entry.get("message")
+            if message:
+                self.add_log_entry(f"[Weather] {message}")
+
+    def _apply_forecast_env(self, eff: dict):
+        """Write the effective weather baseline onto exterior (or all) areas."""
+        from engine.runtime_config import config as _cfg
+        scope = str(_cfg.get("forecast.apply_scope", "exterior"))
+        temp_mod = eff.get("temperature_mod") or 0
+        light_mod = eff.get("light_mod") or 0
+        for node in self.graph.nodes.values():
+            if node.type != "area":
+                continue
+            tags = node.properties.get("tags", []) or []
+            if scope == "exterior" and "exterior" not in tags:
+                continue
+            env = node.properties.setdefault("environment", {})
+            if eff.get("weather"):
+                env["weather"] = eff["weather"]
+            if eff.get("wind"):
+                env["wind"] = eff["wind"]
+            if eff.get("humidity"):
+                env["humidity"] = eff["humidity"]
+            if eff.get("air"):
+                env["air"] = eff["air"]
+            if temp_mod:
+                # temperature_mod is a delta from the outdoor base (21°C).
+                env["temperature"] = round(21.0 + float(temp_mod), 1)
+            if light_mod:
+                env["light"] = round(min(100, 80 + float(light_mod)))
+            node.updated = time.time()
 
     def get_turn_events_for_area(self, area_name, exclude_actor=None):
         return self.game_logger.get_turn_events_for_area(area_name, exclude_actor)

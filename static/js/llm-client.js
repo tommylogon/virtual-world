@@ -83,6 +83,10 @@ class LLMClient {
                         const body = { model, messages, temperature: parseFloat(temperature) || 0.7 };
                         if (streaming) body.stream = true;
                         if (options.max_tokens) body.max_tokens = options.max_tokens;
+                        if (options.tools && Array.isArray(options.tools)) {
+                            body.tools = options.tools;
+                            if (options.tool_choice) body.tool_choice = options.tool_choice;
+                        }
                         // Thinking mode (DeepSeek reasoning models): extra_body + reasoning_effort.
                         // When OFF we send explicit disables instead of omitting the param —
                         // providers often default reasoning models to thinking ON, so omitting it
@@ -133,7 +137,11 @@ class LLMClient {
                 const content = isResponses
                     ? this._extractResponsesContent(completion)
                     : this._extractChatCompletionContent(completion);
-                this._logAssistantResponse(label, content);
+                const tool_calls = completion?.choices?.[0]?.message?.tool_calls || null;
+                this._logAssistantResponse(label, content || (tool_calls ? `[tool_calls: ${tool_calls.length}]` : ''));
+                if (options.withTools || options.tools) {
+                    return { content, tool_calls };
+                }
                 return content;
 
             } catch (e) {
@@ -148,6 +156,11 @@ class LLMClient {
             }
         }
         throw lastError || new Error('LLM request failed after retries');
+    }
+
+    /** Chat completion helper for tool calling (forces non-streaming and returns { content, tool_calls }). */
+    async chatWithTools(messages, options = {}) {
+        return this.chat(messages, { ...options, streaming: false, withTools: true });
     }
 
     getLastPrompt() {

@@ -192,6 +192,27 @@ class AreaDescription:
         elif light_level == 'blinding':
             light_prefix = "The light is blinding — you squint against the glare, eyes watering."
 
+        # task-229: moonlight adds flavor to outdoor night areas.
+        moon_desc = ""
+        try:
+            tags = node.properties.get("tags", []) if node else []
+            if "outdoor" in tags:
+                hour = self.lighting.hour_provider() if self.lighting.hour_provider else None
+                if hour is not None and (hour >= 19 or hour < 5):
+                    if self.lighting.moon_provider is not None:
+                        mp = self.lighting.moon_provider()
+                        if isinstance(mp, dict):
+                            mname = mp.get("name", "")
+                            micon = mp.get("icon", "🌑")
+                            if mname == "full_moon":
+                                moon_desc = f" {micon} The full moon hangs bright overhead, casting silver light across the scene."
+                            elif mname == "blood_moon":
+                                moon_desc = f" {micon} An eerie red moon stains the sky — the world is bathed in crimson."
+                            elif mname in ("gibbous", "waning"):
+                                moon_desc = f" {micon} Moonlight filters through the night sky, softening the shadows."
+        except Exception:
+            pass
+
         spill_desc = ""
         if area_id:
             own_light = self.lighting.get_light_int(env, 80)
@@ -219,6 +240,8 @@ class AreaDescription:
             desc = self._render_node(self.graph.get_node(area_id))
         if light_prefix:
             desc = light_prefix + "\n" + desc
+        if moon_desc:
+            desc += moon_desc
         if spill_desc:
             desc += spill_desc
 
@@ -237,7 +260,9 @@ class AreaDescription:
         env_summary = []
         active_player = self.player_manager.players.get(self.player_manager.active_player)
         equip_bonuses = aggregate_bonuses(active_player, self.graph) if active_player else {}
-        feels_like = int(effective_temperature(float(env.get("temperature", 21)), equip_bonuses))
+        feels_like = int(effective_temperature(float(env.get("temperature", 21)), equip_bonuses,
+                                               wind_level=env.get("wind", "none"),
+                                               humidity=env.get("humidity", "dry")))
         env_summary.append(temperature_description(feels_like))
         air = env.get("air", "fresh")
         if air == "toxic":
@@ -475,7 +500,9 @@ class AreaDescription:
                             noise = tenv.get("noise", "")
                             if noise and noise not in ("quiet", "silence", "silent"):
                                 env_clues.append(f"{noise} audible")
-                            target_feels = int(effective_temperature(float(tenv.get("temperature", 21)), equip_bonuses))
+                            target_feels = int(effective_temperature(float(tenv.get("temperature", 21)), equip_bonuses,
+                                                                    wind_level=tenv.get("wind", "none"),
+                                                                    humidity=tenv.get("humidity", "dry")))
                             # N11: temperature_description ends with a period —
                             # trim it so the joined clue doesn't read "…cold)."
                             env_clues.append(temperature_description(target_feels).lower().rstrip('.'))

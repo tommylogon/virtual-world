@@ -21,6 +21,9 @@ class GraphManager {
         this._revealedAreaIds = new Set();
         this._pendingConnection = null;
         this._revealedItemIds = new Map();
+        // task-378: bulk selection (shift-click) + action bar.
+        this._bulkSelection = new Set();
+        this._bulkBar = null;
         this._floorFilter = 'all';
         this._floorOptions = [];
         this._showImages = (() => {
@@ -31,6 +34,85 @@ class GraphManager {
     async init() {
         await GraphNetwork.init();
         await this._applyEngineConfigDefaults();
+    }
+
+    // ───────────── Bulk selection (task-378 / audit #12) ─────────────
+    _toggleBulkSelect(nodeId) {
+        if (!nodeId) return;
+        if (this._bulkSelection.has(nodeId)) this._bulkSelection.delete(nodeId);
+        else {
+            if (this._bulkSelection.size >= 100) { if (typeof toastError === 'function') toastError('Bulk selection capped at 100 nodes.'); return; }
+            this._bulkSelection.add(nodeId);
+        }
+        try { this.network?.selectNodes([...this._bulkSelection]); } catch (e) { /* ignore */ }
+        this._updateBulkBar();
+    }
+    _clearBulkSelection() {
+        this._bulkSelection.clear();
+        try { this.network?.unselectAll(); } catch (e) { /* ignore */ }
+        if (this._bulkBar) { this._bulkBar.remove(); this._bulkBar = null; }
+    }
+    _updateBulkBar() {
+        if (!this._bulkSelection.size) {
+            if (this._bulkBar) { this._bulkBar.remove(); this._bulkBar = null; }
+            return;
+        }
+        if (!this._bulkBar) {
+            const bar = document.createElement('div');
+            bar.id = 'bulk-action-bar';
+            bar.style.cssText = 'position:absolute;left:12px;bottom:12px;z-index:50;display:flex;align-items:center;gap:6px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:11px;box-shadow:0 8px 24px rgba(0,0,0,.5);';
+            bar.innerHTML =
+                '<span id="bulk-count" style="color:var(--text-muted);"></span>' +
+                '<button class="btn btn-sm" id="bulk-tag">🏷 Tag</button>' +
+                '<button class="btn btn-sm" id="bulk-state">⚠ State</button>' +
+                '<button class="btn btn-sm" id="bulk-delete" style="background:#3a1a1a;color:#ff6b6b;">🗑 Delete</button>' +
+                '<button class="btn btn-sm" id="bulk-clear">✕ Clear</button>';
+            bar.querySelector('#bulk-tag').addEventListener('click', () => graphManager._bulkTag());
+            bar.querySelector('#bulk-state').addEventListener('click', () => graphManager._bulkState());
+            bar.querySelector('#bulk-delete').addEventListener('click', () => graphManager._bulkDelete());
+            bar.querySelector('#bulk-clear').addEventListener('click', () => graphManager._clearBulkSelection());
+            const host = document.getElementById('graph-container');
+            (host || document.body).appendChild(bar);
+            this._bulkBar = bar;
+        }
+        const count = this._bulkBar.querySelector('#bulk-count');
+        if (count) count.textContent = `${this._bulkSelection.size} selected — `;
+    }
+    async _bulkTag() {
+        const tags = prompt('Add tag(s) to the selected nodes (comma-separated):');
+        if (!tags || !tags.trim()) return;
+        const add = tags.split(',').map(t => t.trim()).filter(Boolean);
+        const ids = [...this._bulkSelection];
+        for (const id of ids) {
+            const node = this.nodes.get(id);
+            const existing = (node?.properties?.tags || []).map(String);
+            const merged = [...new Set([...existing, ...add])];
+            try { await ApiClient.updateNode(id, { properties: { tags: merged } }); } catch (e) { /* keep going */ }
+        }
+        await worldState.fetch();
+        this._clearBulkSelection();
+        if (typeof toastSuccess === 'function') toastSuccess(`Tagged ${ids.length} node(s): ${add.join(', ')}`);
+    }
+    async _bulkState() {
+        const state = prompt('Set current_state on selected nodes (e.g. on/closed/locked):');
+        if (!state || !state.trim()) return;
+        const ids = [...this._bulkSelection];
+        for (const id of ids) {
+            try { await ApiClient.updateNode(id, { properties: { current_state: state.trim() } }); } catch (e) { /* keep going */ }
+        }
+        await worldState.fetch();
+        this._clearBulkSelection();
+        if (typeof toastSuccess === 'function') toastSuccess(`State set to "${state.trim()}" on ${ids.length} node(s).`);
+    }
+    async _bulkDelete() {
+        const ids = [...this._bulkSelection];
+        if (!confirm(`Delete ${ids.length} node(s)? (undo-safe)`)) return;
+        for (const id of ids) {
+            try { await ApiClient.deleteNode(id); } catch (e) { /* keep going */ }
+        }
+        await worldState.fetch();
+        this._clearBulkSelection();
+        if (typeof toastSuccess === 'function') toastSuccess(`Deleted ${ids.length} node(s).`);
     }
 
     async _applyEngineConfigDefaults() {
@@ -95,7 +177,10 @@ class GraphManager {
         this._saveGraphConfigKey('graph.physics_enabled', this._physicsEnabled);
     }
 
-    async loadGraphData() { return GraphNetwork.loadGraphData(); }
+    async loadGraphData() {
+        this._clearBulkSelection();
+        return GraphNetwork.loadGraphData();
+    }
 
     _buildTooltip(nodeData) { return GraphNetwork.buildTooltip(nodeData); }
 

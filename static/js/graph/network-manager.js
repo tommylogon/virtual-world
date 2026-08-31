@@ -320,6 +320,12 @@ window.GraphNetwork = {
             // Refresh floor picker options from areas now present
             graphManager.refreshFloorOptions();
 
+            // Re-apply live NL-editor ghost previews (staged ops) after the
+            // setData() rebuild wipes the dataset's extra nodes/edges.
+            if (window.NLEditorGhosts?.refresh) {
+                try { window.NLEditorGhosts.refresh(); } catch (err) { /* ignore */ }
+            }
+
             // Re-render overlay views (map/outline) if active
             if (graphManager._viewMode !== 'graph') graphManager._renderCurrentView();
         } catch (err) {

@@ -66,6 +66,8 @@ def aggregate_bonuses(player, graph) -> dict:
     damage_type = None
     insulation = 0
     resistances = {}
+    wind_resistance = 0
+    water_resistance = 0
 
     for node in get_equipment_nodes(player, graph):
         props = node.properties or {}
@@ -95,6 +97,12 @@ def aggregate_bonuses(player, graph) -> dict:
                         pass
 
         insulation += int(props.get("insulation", 0))
+        # task-231: wind/water resistance are max-percentile over worn items.
+        try:
+            wind_resistance = max(wind_resistance, int(props.get("wind_resistance", 0) or 0))
+            water_resistance = max(water_resistance, int(props.get("water_resistance", 0) or 0))
+        except (ValueError, TypeError):
+            pass
 
     # Wet clothing (task-190): soaked garments insulate far worse. Levels
     # scale the loss — 1: 60% kept, 2: 40%, 3: 20%.
@@ -114,17 +122,34 @@ def aggregate_bonuses(player, graph) -> dict:
         "damage_type": damage_type,
         "insulation": insulation,
         "resistances": resistances,
+        "wind_resistance": wind_resistance,
+        "water_resistance": water_resistance,
     }
 
 
-def effective_temperature(ambient_temp: float, bonuses: dict) -> float:
-    """Shift ambient temperature by total equipment insulation.
+def effective_temperature(ambient_temp: float, bonuses: dict,
+                          wind_level: str = "none", humidity: str = "dry") -> float:
+    """Shift ambient temperature by equipment insulation, wind chill, humidity.
 
-    Positive insulation warms (traps body heat), negative insulation
-    cools (wicks heat away). Insulation from multiple items stacks.
+    Defaulted kwargs (task-231/232): existing callers keep working untouched;
+    callers with environment context pass ``env.get("wind")`` /
+    ``env.get("humidity")`` for wind chill & humidity feel. Wind chill is
+    resisted by item ``wind_resistance``; the humidity modifier depends on
+    whether the air is hot (>20°C → feels warmer) or cold (→ feels colder).
     """
+    from engine.weather_forecast import WIND_CHILL, HUMIDITY_TEMP_MOD
     insulation = bonuses.get("insulation", 0)
-    return ambient_temp + insulation
+
+    wind_chill = WIND_CHILL.get(str(wind_level or "none"), 0)
+    if wind_chill:
+        wind_resist = float(bonuses.get("wind_resistance", 0) or 0)
+        wind_chill = wind_chill * (1.0 - min(max(wind_resist, 0) / 100.0, 0.85))
+
+    hot = ambient_temp + insulation > 20
+    humid_mod = HUMIDITY_TEMP_MOD.get(str(humidity or "dry"), (0, 0))
+    humidity_mod = humid_mod[0] if hot else humid_mod[1]
+
+    return ambient_temp + insulation + wind_chill + humidity_mod
 
 
 def resisted_damage(base_damage: int, damage_type: str, bonuses: dict) -> int:
