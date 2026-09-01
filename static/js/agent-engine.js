@@ -705,6 +705,9 @@ class AgentEngine {
                             VW?.ui?.setStatus("LLM Error - Stopped", "error");
                             config.running = false; return;
                         }
+                        if (!reactResponse || !String(reactResponse).trim()) {
+                            events.log(`⚠️ ${charName}: result-reaction returned empty — skipping react`, 'error-msg');
+                        }
                         let parsedReact = ResponseParser.parseResultReaction(reactResponse) ?? {inner:'',speech:null,speechVolume:'say',emote:null,memory:null,emotion:null,parseError:null};
                         if (parsedReact.parseError) parsedReact = await this._retryOnceOnParseError(charName, history, 'result-reaction', ResponseParser.parseResultReaction, parsedReact);
                         if (parsedReact.parseError) {

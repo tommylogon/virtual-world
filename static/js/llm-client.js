@@ -88,10 +88,7 @@ class LLMClient {
             const responseFormat = this._effectiveResponseFormat(options);
             if (responseFormat) {
                 const key = responseFormat.type === 'json_schema' ? responseFormat.json_schema.name : 'json_object';
-                if (!this._structuredLogged.has(key)) {
-                    this._structuredLogged.add(key);
-                    if (VW?.events) VW.events.log(`🧱 Structured output active: ${key} (${format})`, 'system-msg');
-                }
+                this._structuredLogged.add(key);
             }
             try {
                 const requestBody = isResponses

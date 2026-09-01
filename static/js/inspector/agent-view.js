@@ -98,10 +98,13 @@ window.InspectorAgentView = (() => {
         window.InspectorPanel.render(htmlTag`${window.Lit.unsafeHTML(html)}`);
 
         // Known-by authoring: who knows THIS character (the Knowledge modal
-        // for what they know lives in the Advanced tab).
+        // for what they know lives in the Advanced tab). The section is
+        // appended outside the Lit template, so it survives re-renders —
+        // purge stale copies first or every poll stacks another one.
         if (window.KnownBySection) {
             const panelBody = document.querySelector('#inspector-panel');
             if (panelBody) {
+                panelBody.querySelectorAll('[data-known-by]').forEach(el => el.remove());
                 panelBody.appendChild(window.KnownBySection.build('character', player.name, player.name));
             }
         }
@@ -174,9 +177,9 @@ window.InspectorAgentView = (() => {
      * @param {object} props - Node properties
      * @returns {string} Placeholder HTML (filled in by _runDeferredRenders)
      */
-    AV._deferredGravityControl = function(nodeId, props = {}) {
+    AV._deferredGravityControl = function(nodeId, props = {}, idSuffix = '') {
         const cleanId = String(nodeId ?? 'node').replace(/[^a-zA-Z0-9_-]/g, '_');
-        const containerId = `agent-gravity-${cleanId}`;
+        const containerId = `agent-gravity-${cleanId}${idSuffix ? '-' + idSuffix : ''}`;
         _deferRender(() => {
             const container = document.getElementById(containerId);
             if (container && window.Lit) {
@@ -1004,7 +1007,7 @@ window.InspectorAgentView = (() => {
 
         if (characterNode) {
             html += window.InspectorHelpers.renderImageSection(characterNode[0], characterNode[1].properties || {});
-            html += AV._deferredGravityControl(characterNode[0], characterNode[1].properties || {});
+            html += AV._deferredGravityControl(characterNode[0], characterNode[1].properties || {}, 'adv');
         }
 
         // Behaviors
