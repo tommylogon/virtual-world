@@ -42,7 +42,13 @@ const AIGenerator = {
             response = await llmClient.chat([
                 { role: 'system', content: systemMessage },
                 { role: 'user', content: userPrompt }
-            ], { temperature: temp });
+            ], {
+                temperature: temp,
+                // json_object tier: dynamic/recursive shapes can't be a closed
+                // schema, but guaranteed-valid JSON already removes the parse
+                // failures. The client strips this when disabled/unsupported.
+                responseFormat: options.responseFormat || window.StructuredFormats?.jsonObject || null
+            });
 
             if (!response && fallback) {
                 const fallbackData = typeof fallback === 'function' ? fallback(userPrompt) : fallback;

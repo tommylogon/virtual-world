@@ -34,8 +34,8 @@ window.AgentMemory = (() => {
             const importantMemories = memories.filter(m => (m.importance || 0) >= 6).slice(0, 10);
             if (importantMemories.length < 3) return;
             const memoryText = importantMemories.map(m => `[${events.tickToRelative(m.tick)}] ${m.text}`).join('\n');
-            const prompt = `Summarize these memories into 1-2 insights:\n${memoryText}\n\nRespond ONLY JSON array: ["insight"]`;
-            const response = await llmClient.chat([{ role: 'user', content: prompt }], { temperature: 0.7, max_tokens: 200, streaming: false, label: 'reflect' });
+            const prompt = `Summarize these memories into 1-2 insights:\n${memoryText}\n\nRespond ONLY with a JSON object: {"insights": ["insight 1"]}`;
+            const response = await llmClient.chat([{ role: 'user', content: prompt }], { temperature: 0.7, max_tokens: 200, streaming: false, label: 'reflect', responseFormat: window.StructuredFormats?.insights });
             if (!response) return;
             let cleaned = response.trim();
             const codeBlockMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
@@ -55,9 +55,14 @@ window.AgentMemory = (() => {
                 }
             }
 
-            if (Array.isArray(parsed)) {
+            // Structured output wraps in {"insights":[...]}; the old raw-array
+            // contract stays accepted for providers on the plain-prompt path.
+            const parsedList = Array.isArray(parsed) ? parsed
+                : (parsed && typeof parsed === 'object' && Array.isArray(parsed.insights) ? parsed.insights : null);
+
+            if (Array.isArray(parsedList)) {
                 const currentTick = worldState?.data?.time_ticks || 0;
-                const insights = parsed.filter(i => typeof i === 'string' && i.length > 10);
+                const insights = parsedList.filter(i => typeof i === 'string' && i.length > 10);
                 if (insights.length > 0) {
                     await fetch(`/api/players/${encodeURIComponent(charName)}/memories/reflect`, {
                         method: 'POST',

@@ -390,7 +390,7 @@ window.InspectorHelpers = (() => {
             const resp = await llmClient.chat([
                 { role: 'system', content: spec.system },
                 { role: 'user', content: spec.buildPrompt(node, lockedFields) }
-            ], { temperature: 0.7 });
+            ], { temperature: 0.7, responseFormat: window.StructuredFormats?.jsonObject });
             if (!resp) { toastError('No response from LLM.'); return; }
 
             let cleaned = resp.trim();

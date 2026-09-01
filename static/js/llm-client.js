@@ -76,13 +76,19 @@ class LLMClient {
         let lastError = null;
 
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            // Structured output (task: structured output): response_format is
+            // requested per-call via options.responseFormat, gated by the
+            // config toggle, never mixed with tool calls, and auto-disabled
+            // for the session if the provider rejects the parameter.
+            const responseFormat = this._effectiveResponseFormat(options);
             try {
                 const requestBody = isResponses
-                    ? this._buildResponsesBody(messages, { model, temperature, streaming, maxTokens: options.max_tokens, tools: options.tools, tool_choice: options.tool_choice })
+                    ? this._buildResponsesBody(messages, { model, temperature, streaming, maxTokens: options.max_tokens, tools: options.tools, tool_choice: options.tool_choice, responseFormat })
                     : (() => {
                         const body = { model, messages, temperature: parseFloat(temperature) || 0.7 };
                         if (streaming) body.stream = true;
                         if (options.max_tokens) body.max_tokens = options.max_tokens;
+                        if (responseFormat) body.response_format = responseFormat;
                         if (options.tools && Array.isArray(options.tools)) {
                             body.tools = options.tools;
                             if (options.tool_choice) body.tool_choice = options.tool_choice;
@@ -123,6 +129,16 @@ class LLMClient {
                     let errText = '';
                     try { const err = await resp.json(); errText = err.error?.message || JSON.stringify(err); }
                     catch (e) { errText = await resp.text(); }
+                    // Provider rejected structured output (unknown param, json
+                    // word missing, schema unsupported) — drop it for the rest
+                    // of the session and retry immediately without burning the
+                    // remaining attempts on the same 400.
+                    if (responseFormat && (resp.status === 400 || resp.status === 422)
+                        && /response_format|json_schema|json object|structured|word ['"]?json['"]?/i.test(errText)) {
+                        this._structuredUnsupported = true;
+                        if (VW?.events) VW.events.log('⚠️ Provider rejected structured output — falling back to plain prompts for this session.', 'system-msg');
+                        continue;
+                    }
                     if ((resp.status === 429 || resp.status >= 500) && attempt < maxRetries) {
                         const delay = Math.pow(2, attempt - 1) * 1000;
                         if (VW?.events) VW.events.log(`⏱️ LLM retry ${attempt}/${maxRetries} after ${resp.status}...`, 'system-msg');
@@ -163,6 +179,21 @@ class LLMClient {
     /** Chat completion helper for tool calling (forces non-streaming and returns { content, tool_calls }). */
     async chatWithTools(messages, options = {}) {
         return this.chat(messages, { ...options, streaming: false, withTools: true });
+    }
+
+    /**
+     * Resolve the response_format to send for this call, or null when
+     * structured output is off, unsupported, or mixed with tool calls
+     * (many providers reject response_format together with tools).
+     * @param {Object} options - chat() options, may carry responseFormat
+     * @returns {Object|null} response_format payload or null
+     */
+    _effectiveResponseFormat(options) {
+        if (!options.responseFormat) return null;
+        if (options.tools && Array.isArray(options.tools)) return null;
+        if (this._structuredUnsupported) return null;
+        if (typeof config !== 'undefined' && config && config.structuredOutput === false) return null;
+        return options.responseFormat;
     }
 
     getLastPrompt() {
@@ -256,6 +287,19 @@ class LLMClient {
                 return { type: 'function', name: fn.name, description: fn.description, parameters: fn.parameters };
             });
             if (opts.tool_choice !== undefined) body.tool_choice = opts.tool_choice;
+        }
+        // Responses API carries structured output under text.format (flat shape).
+        if (opts.responseFormat) {
+            body.text = {
+                format: opts.responseFormat.type === 'json_schema'
+                    ? {
+                        type: 'json_schema',
+                        name: opts.responseFormat.json_schema.name,
+                        strict: opts.responseFormat.json_schema.strict !== false,
+                        schema: opts.responseFormat.json_schema.schema
+                    }
+                    : { type: 'json_object' }
+            };
         }
         if (this.thinking) body.reasoning = { effort: this._translateEffort(this.thinkingEffort) };
         else body.reasoning = { exclude: true }

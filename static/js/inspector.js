@@ -151,7 +151,7 @@ class Inspector {
             const resp = await llmClient.chat([
                 { role: 'system', content: system },
                 { role: 'user', content: prompt }
-            ], { temperature: 0.9 });
+            ], { temperature: 0.9, responseFormat: window.StructuredFormats?.personality });
             if (!resp) { toastError('No response from LLM.'); return; }
 
             let cleaned = resp.trim();

@@ -99,20 +99,25 @@ Create a practical 3-5 step plan based only on the information above.
 - Account for immediate survival needs, active threats in the room, and the character's current condition.
 - Plans are suggestions — if something changes (a threat appears, someone attacks, a new person arrives), the plan may no longer apply. Re-evaluate before acting.
 
-Respond ONLY with a raw JSON array of strings: ["step 1", "step 2"]`;
+Respond ONLY with a JSON object: {"steps": ["step 1", "step 2"]}`;
 
-            const response = await llmClient.chat([{ role: 'user', content: prompt }], { temperature: 0.7, max_tokens: 200, streaming: false, label: 'plan' });
+            const response = await llmClient.chat([{ role: 'user', content: prompt }], { temperature: 0.7, max_tokens: 200, streaming: false, label: 'plan', responseFormat: window.StructuredFormats?.plan });
             if (!response) return [];
             let cleaned = repairJSON(response);
             const codeBlockMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
             if (codeBlockMatch) cleaned = codeBlockMatch[1].trim();
             const parsed = JSON.parse(cleaned);
-            if (Array.isArray(parsed)) {
-                const steps = parsed.filter(step => typeof step === 'string').slice(0, 5);
+            // Structured output wraps in {"steps":[...]}; the old raw-array
+            // contract (and the legacy object-array variant) stay accepted for
+            // providers that fell back to plain prompts.
+            const arr = Array.isArray(parsed) ? parsed
+                : (Array.isArray(parsed?.steps) ? parsed.steps : null);
+            if (Array.isArray(arr)) {
+                const steps = arr.filter(step => typeof step === 'string').slice(0, 5);
                 if (steps.length > 0) return steps;
             }
-            if (Array.isArray(parsed) && typeof parsed[0] === 'object' && parsed[0] !== null) {
-                const steps = parsed.map(entry => entry.examine || entry.action || entry.step || '').filter(Boolean).slice(0, 5);
+            if (Array.isArray(arr) && typeof arr[0] === 'object' && arr[0] !== null) {
+                const steps = arr.map(entry => entry.examine || entry.action || entry.step || '').filter(Boolean).slice(0, 5);
                 if (steps.length > 0) return steps;
             }
             return [];

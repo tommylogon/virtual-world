@@ -1075,6 +1075,16 @@ class AgentEngine {
         return this._callLLMMessages([...history, { role: 'user', content: prompt }], stepName);
     }
 
+    /** Structured-output schema for a turn phase (task: structured output).
+     *  The client drops it when disabled/unsupported, so null is a fine default. */
+    _formatForStep(stepName) {
+        const F = window.StructuredFormats;
+        if (!F) return null;
+        if (stepName === 'result-reaction') return F.agentReact;
+        if (stepName === 'think-decide' || stepName === 'combined' || stepName === 'auto-retry' || stepName === 'chain-follow-up') return F.agentAction;
+        return null;
+    }
+
     // Send a pre-built message array as-is (system + accumulated history +
     // the new user message, already pushed by the caller). Pruned by the
     // context window when over the token/message limit.
@@ -1102,7 +1112,7 @@ class AgentEngine {
         events.startStreaming(streamId, stepName);
         const onChunk = c => events.appendStream(streamId, c);
         try {
-            const r = await llmClient.chat(final, { streaming: config.streaming, max_tokens: config.maxTokens, signal: this._abortController.signal, onChunk, label: stepName });
+            const r = await llmClient.chat(final, { streaming: config.streaming, max_tokens: config.maxTokens, signal: this._abortController.signal, onChunk, label: stepName, responseFormat: this._formatForStep(stepName) });
             this._abortController = null;
             events.finishStreaming(streamId, r);
             return r;

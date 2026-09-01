@@ -1265,7 +1265,7 @@ window.InspectorAgentView = (() => {
             const resp = await llmClient.chat([
                 { role: 'system', content: system },
                 { role: 'user', content: prompt }
-            ], { temperature: 0.9 });
+            ], { temperature: 0.9, responseFormat: window.StructuredFormats?.personality });
             if (!resp) { toastError('No response from LLM.'); return; }
 
             let cleaned = resp.trim();
@@ -1581,16 +1581,25 @@ Below is the FULL list of tags used in this world (items your kind of person mig
 
 TAGS: ${tagList.join(', ')}
 
-Respond ONLY with a single-line JSON array of strings, e.g. ["magic","books","jewelry"] — the tags you picked, exactly as spelled above.`;
+Respond with ONLY a JSON object: {"tags": ["magic","books","jewelry"]} — the tags you picked, exactly as spelled above.`;
 
         try {
-            const response = await llmClient.chat([{ role: 'user', content: prompt }], { temperature: 0.5 });
+            const response = await llmClient.chat([{ role: 'user', content: prompt }], { temperature: 0.5, responseFormat: window.StructuredFormats?.tags });
             const text = String(response || '').trim();
-            const match = text.match(/\[[^\]]*\]/);
-            if (!match) { toastError('The character returned no tag list.'); return; }
-            let picked = [];
-            try { picked = JSON.parse(match[0]); } catch (e) {
-                picked = match[0].replace(/[\[\]"']/g, '').split(',').map(s => s.trim()).filter(Boolean);
+            // Structured output returns {"tags":[...]}; the old raw-array
+            // contract stays accepted for the plain-prompt fallback path.
+            let parsedList = null;
+            try {
+                const parsed = JSON.parse(text);
+                parsedList = Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.tags) ? parsed.tags : null);
+            } catch (e) { /* fall through to regex extraction */ }
+            let picked = parsedList;
+            if (!picked) {
+                const match = text.match(/\[[^\]]*\]/);
+                if (!match) { toastError('The character returned no tag list.'); return; }
+                try { picked = JSON.parse(match[0]); } catch (e) {
+                    picked = match[0].replace(/[\[\]"']/g, '').split(',').map(s => s.trim()).filter(Boolean);
+                }
             }
             const valid = new Set(tagList.map(t => t.toLowerCase()));
             const cleaned = [...new Set(picked.map(String).map(s => s.trim()).filter(s => valid.has(s.toLowerCase())))].slice(0, 12);
