@@ -1,0 +1,4751 @@
+{
+  "_scenario_name": "taco_bell_date",
+  "active_player": "jake halloway",
+  "areas": {
+    "Elm Street": {
+      "ambient_light": 40,
+      "description": "a quieter downtown block that narrows as the buildings crowd closer. the sidewalk buckles in patches, telephone poles leaning at odd angles. a few vacant lots sit dark between storefronts, chain-link fence sagging. one streetlight is out and nobody's fixed it. the air smells of old brick, cold dumpster and a thread of wet earth. the taco bell's buzzing sign is the brightest thing on the block.",
+      "environment": {
+        "air": "cold",
+        "light": 25,
+        "noise": "distant traffic, the taco bell sign buzzing",
+        "smell": "old brick, dumpster, wet earth",
+        "temperature": 9
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "dim",
+      "name": "Elm Street",
+      "properties": {
+        "description": "a quieter downtown block that narrows as the buildings crowd closer. the sidewalk buckles in patches, telephone poles leaning at odd angles. a few vacant lots sit dark between storefronts, chain-link fence sagging. one streetlight is out and nobody's fixed it. the air smells of old brick, cold dumpster and a thread of wet earth. the taco bell's buzzing sign is the brightest thing on the block.",
+        "environment": {
+          "air": "cold",
+          "light": 25,
+          "noise": "distant traffic, the taco bell sign buzzing",
+          "smell": "old brick, dumpster, wet earth",
+          "temperature": 9
+        },
+        "floor": 0,
+        "tags": [
+          "millbrook_falls",
+          "exterior",
+          "street",
+          "night"
+        ]
+      }
+    },
+    "Taco Bell": {
+      "ambient_light": 55,
+      "description": "a corporate taco bell on the edge of downtown millbrook falls, squat between a parking lot and a drainage ditch. the sign buzzes just inside the front doors — one panel of the 'bell' flickers on the fritz. hard tile, a mop sign out on the wet floor, the hum of the place settling around you. from here the dining room sprawls left, the order counter sits straight ahead, and a long drive-thru lane wraps the far wall. the air is warm, greasy, and sweet with seasoned beef and cinnamon sugar.",
+      "environment": {
+        "air": "warm",
+        "light": "normal",
+        "noise": "kiosk beeps, soda machine hiss, drive-thru speaker",
+        "smell": "seasoned beef, crispy shell, cinnamon sugar",
+        "temperature": 18.767355941833976
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "Taco Bell",
+      "properties": {
+        "description": "a corporate taco bell on the edge of downtown millbrook falls, squat between a parking lot and a drainage ditch. the sign buzzes just inside the front doors — one panel of the 'bell' flickers on the fritz. hard tile, a mop sign out on the wet floor, the hum of the place settling around you. from here the dining room sprawls left, the order counter sits straight ahead, and a long drive-thru lane wraps the far wall. the air is warm, greasy, and sweet with seasoned beef and cinnamon sugar.",
+        "environment": {
+          "air": "warm",
+          "light": "normal",
+          "noise": "kiosk beeps, soda machine hiss, drive-thru speaker",
+          "smell": "seasoned beef, crispy shell, cinnamon sugar",
+          "temperature": 18.767355941833976
+        },
+        "floor": 0,
+        "tags": [
+          "millbrook_falls",
+          "commercial",
+          "restaurant",
+          "food"
+        ]
+      }
+    },
+    "Taco Bell Dining Room": {
+      "ambient_light": 75,
+      "description": "the main seating area of the store — eight laminate flex tables and six wall booths, bolted down and scuffed. a wall of windows runs along the street, the parking lot and drainage ditch beyond. the vinyl on the booth nearest the door is split open to the foam, and someone wrote a phone number and a threat under the napkin dispenser. an elderly couple occupies the corner booth, eating slowly and staring openly at the loud table by the window. the air is warm with the faint sweet burn of cinnamon sugar from the pastry case across the aisle.",
+      "environment": {
+        "air": "warm",
+        "light": 75,
+        "noise": "kiosk beeps, soda machine hiss, murmured gossip from the corner booth",
+        "smell": "seasoned beef, cinnamon sugar, floor cleaner",
+        "temperature": 20.935606477382283
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "bright",
+      "name": "Taco Bell Dining Room",
+      "properties": {
+        "description": "the main seating area of the store — eight laminate flex tables and six wall booths, bolted down and scuffed. a wall of windows runs along the street, the parking lot and drainage ditch beyond. the vinyl on the booth nearest the door is split open to the foam, and someone wrote a phone number and a threat under the napkin dispenser. an elderly couple occupies the corner booth, eating slowly and staring openly at the loud table by the window. the air is warm with the faint sweet burn of cinnamon sugar from the pastry case across the aisle.",
+        "environment": {
+          "air": "warm",
+          "light": 75,
+          "noise": "kiosk beeps, soda machine hiss, murmured gossip from the corner booth",
+          "smell": "seasoned beef, cinnamon sugar, floor cleaner",
+          "temperature": 20.935606477382283
+        },
+        "floor": 0,
+        "tags": [
+          "millbrook_falls",
+          "commercial",
+          "restaurant",
+          "food"
+        ]
+      }
+    },
+    "Taco Bell Kitchen": {
+      "ambient_light": 65,
+      "description": "behind the swinging doors: stainless steel, fryer heat and the shriek of timers. the line is half-broken-down for closing, trays of seasoned beef covered in cling film, a mop sink gurgling. boxes of shells and sauce rims stacked by the back door. it smells like a taco bell looks.",
+      "environment": {
+        "air": "hot",
+        "light": 65,
+        "noise": "timer shrieks, fryer crackle, drive-thru headsets",
+        "smell": "fryer oil, seasoned beef, sanitizer",
+        "temperature": 28
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "Taco Bell Kitchen",
+      "properties": {
+        "description": "behind the swinging doors: stainless steel, fryer heat and the shriek of timers. the line is half-broken-down for closing, trays of seasoned beef covered in cling film, a mop sink gurgling. boxes of shells and sauce rims stacked by the back door. it smells like a taco bell looks.",
+        "environment": {
+          "air": "hot",
+          "light": 65,
+          "noise": "timer shrieks, fryer crackle, drive-thru headsets",
+          "smell": "fryer oil, seasoned beef, sanitizer",
+          "temperature": 28
+        },
+        "floor": 0,
+        "tags": [
+          "millbrook_falls",
+          "commercial",
+          "restaurant",
+          "kitchen"
+        ]
+      }
+    },
+    "Taco Bell Men's Restroom": {
+      "ambient_light": 50,
+      "description": "one toilet, one sink, one mirror with a corners-of-the-room blur of grime the cleaner gave up on years ago. the hand dryer sounds like a dying engine. someone has scratched 'run' into the stall door with no further elaboration.",
+      "environment": {
+        "air": "stale",
+        "light": 50,
+        "noise": "hand dryer rattling",
+        "smell": "bleach, faint urinal cake",
+        "temperature": 23
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "Taco Bell Men's Restroom",
+      "properties": {
+        "description": "one toilet, one sink, one mirror with a corners-of-the-room blur of grime the cleaner gave up on years ago. the hand dryer sounds like a dying engine. someone has scratched 'run' into the stall door with no further elaboration.",
+        "environment": {
+          "air": "stale",
+          "light": 50,
+          "noise": "hand dryer rattling",
+          "smell": "bleach, faint urinal cake",
+          "temperature": 23
+        },
+        "floor": 0,
+        "tags": [
+          "millbrook_falls",
+          "commercial",
+          "restroom"
+        ]
+      }
+    },
+    "Taco Bell Order Counter": {
+      "ambient_light": 70,
+      "description": "the long front counter parallel to the dining room over the order rail. two registers wait side by side, touchscreens smeared with grease. a bright backlit menu board hangs overhead, most prices taped over with newer ones. hot holding chutes squat behind the register where finished orders wait under heat lamps — a soft rack of sad, late tacos gumming together. two pickup shelves for mobile orders sit below a cold-drink rail.",
+      "environment": {
+        "air": "warm",
+        "light": 70,
+        "noise": "register beeps, heat lamp hum, drive-thru speaker",
+        "smell": "seasoned beef, fried shell, cleaning solution",
+        "temperature": 22.11695060589576
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "Taco Bell Order Counter",
+      "properties": {
+        "description": "the long front counter parallel to the dining room over the order rail. two registers wait side by side, touchscreens smeared with grease. a bright backlit menu board hangs overhead, most prices taped over with newer ones. hot holding chutes squat behind the register where finished orders wait under heat lamps — a soft rack of sad, late tacos gumming together. two pickup shelves for mobile orders sit below a cold-drink rail.",
+        "environment": {
+          "air": "warm",
+          "light": 70,
+          "noise": "register beeps, heat lamp hum, drive-thru speaker",
+          "smell": "seasoned beef, fried shell, cleaning solution",
+          "temperature": 22.11695060589576
+        },
+        "floor": 0,
+        "tags": [
+          "millbrook_falls",
+          "commercial",
+          "restaurant",
+          "food"
+        ]
+      }
+    },
+    "Taco Bell Women's Restroom": {
+      "ambient_light": 50,
+      "description": "one toilet, one sink, a full-length mirror propped crooked against the wall instead of mounted. the trash bin holds a small graveyard of crumpled napkins. graffiti on the dryer offers a hotline number corrected twice in different pens.",
+      "environment": {
+        "air": "stale",
+        "light": 50,
+        "noise": "fluorescent buzz",
+        "smell": "soap, bleach; urine",
+        "temperature": 23
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "Taco Bell Women's Restroom",
+      "properties": {
+        "description": "one toilet, one sink, a full-length mirror propped crooked against the wall instead of mounted. the trash bin holds a small graveyard of crumpled napkins. graffiti on the dryer offers a hotline number corrected twice in different pens.",
+        "environment": {
+          "air": "stale",
+          "light": 50,
+          "noise": "fluorescent buzz",
+          "smell": "soap, bleach; urine",
+          "temperature": 23
+        },
+        "floor": 0,
+        "tags": [
+          "millbrook_falls",
+          "commercial",
+          "restroom"
+        ]
+      }
+    },
+    "oak lane": {
+      "ambient_light": 80,
+      "description": "a narrow pedestrian alley that cuts between the buildings, saving locals a minute and a half on their walk. the walls are brick and windowless, streaked with decades of rain. a string of bare bulbs hangs crooked over the middle, half of them burned out. the ground is stained concrete with a few slick drain covers. the air is stiller and colder here, carrying a faint whiff of cooking oil from the diner's back vent.",
+      "environment": {
+        "air": "fresh",
+        "light": 80,
+        "noise": "quiet",
+        "smell": "neutral",
+        "temperature": 21
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "bright",
+      "name": "oak lane",
+      "properties": {
+        "description": "a narrow pedestrian alley that cuts between the buildings, saving locals a minute and a half on their walk. the walls are brick and windowless, streaked with decades of rain. a string of bare bulbs hangs crooked over the middle, half of them burned out. the ground is stained concrete with a few slick drain covers. the air is stiller and colder here, carrying a faint whiff of cooking oil from the diner's back vent.",
+        "environment": {
+          "air": "fresh",
+          "light": 80,
+          "noise": "quiet",
+          "smell": "neutral",
+          "temperature": 21
+        }
+      }
+    }
+  },
+  "clock_start_hour": 8,
+  "clock_start_minute": 0,
+  "current_area": "Taco Bell Men's Restroom",
+  "game_time": "08:00:00",
+  "ghost_mode": false,
+  "graph": {
+    "edges": [
+      {
+        "properties": {
+          "cardinal": "south",
+          "direction": "front door",
+          "visible_in_direction": "Glass doors to the street beyond, the evening dim outside."
+        },
+        "source": "area_taco_bell",
+        "target": "way_taco_bell_front_door",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "enter"
+        },
+        "source": "way_taco_bell_front_door",
+        "target": "area_taco_bell",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "cardinal": "north",
+          "direction": "taco bell",
+          "visible_in_direction": "The taco bell's buzzing sign glows over glass doors."
+        },
+        "source": "area_elm_street",
+        "target": "way_taco_bell_front_door",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "street"
+        },
+        "source": "way_taco_bell_front_door",
+        "target": "area_elm_street",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "cardinal": "west",
+          "direction": "dining room",
+          "visible_in_direction": "Booths and tables through a wide archway, the window booth occupied."
+        },
+        "source": "area_taco_bell",
+        "target": "way_dining_archway",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "enter"
+        },
+        "source": "way_dining_archway",
+        "target": "area_taco_bell",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "cardinal": "east",
+          "direction": "lobby",
+          "visible_in_direction": "The lobby with its kiosks and flickering sign, order counter straight ahead."
+        },
+        "source": "area_taco_bell_dining_room",
+        "target": "way_dining_archway",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "enter"
+        },
+        "source": "way_dining_archway",
+        "target": "area_taco_bell_dining_room",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "cardinal": "north",
+          "direction": "order counter",
+          "visible_in_direction": "The order counter, menu board glowing overhead, the cashier waiting."
+        },
+        "source": "area_taco_bell",
+        "target": "way_counter_gate",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "enter"
+        },
+        "source": "way_counter_gate",
+        "target": "area_taco_bell",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "cardinal": "south",
+          "direction": "lobby",
+          "visible_in_direction": "The lobby behind you, dining room sprawling left."
+        },
+        "source": "area_taco_bell_order_counter",
+        "target": "way_counter_gate",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "enter"
+        },
+        "source": "way_counter_gate",
+        "target": "area_taco_bell_order_counter",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "cardinal": "north",
+          "direction": "swinging door",
+          "visible_in_direction": "Double swinging doors with a round window, kitchen sounds beyond."
+        },
+        "source": "area_taco_bell_order_counter",
+        "target": "way_swinging_door_kitchen",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "enter"
+        },
+        "source": "way_swinging_door_kitchen",
+        "target": "area_taco_bell_order_counter",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "cardinal": "south",
+          "direction": "swinging door",
+          "visible_in_direction": "The swinging doors back toward the counter."
+        },
+        "source": "area_taco_bell_kitchen",
+        "target": "way_swinging_door_kitchen",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "enter"
+        },
+        "source": "way_swinging_door_kitchen",
+        "target": "area_taco_bell_kitchen",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "cardinal": "north",
+          "direction": "men's restroom",
+          "visible_in_direction": "A beige door with the universal stick figure."
+        },
+        "source": "area_taco_bell_dining_room",
+        "target": "way_mens_room_door",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "enter"
+        },
+        "source": "way_mens_room_door",
+        "target": "area_taco_bell_dining_room",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "cardinal": "south",
+          "direction": "out",
+          "visible_in_direction": "The dining room beyond the restroom door."
+        },
+        "source": "area_taco_bell_mens_restroom",
+        "target": "way_mens_room_door",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "enter"
+        },
+        "source": "way_mens_room_door",
+        "target": "area_taco_bell_mens_restroom",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "cardinal": "north",
+          "direction": "women's restroom",
+          "visible_in_direction": "A beige door with the other stick figure."
+        },
+        "source": "area_taco_bell_dining_room",
+        "target": "way_womens_room_door",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "enter"
+        },
+        "source": "way_womens_room_door",
+        "target": "area_taco_bell_dining_room",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "cardinal": "south",
+          "direction": "out",
+          "visible_in_direction": "The dining room beyond the restroom door."
+        },
+        "source": "area_taco_bell_womens_restroom",
+        "target": "way_womens_room_door",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "direction": "enter"
+        },
+        "source": "way_womens_room_door",
+        "target": "area_taco_bell_womens_restroom",
+        "type": "connection"
+      },
+      {
+        "properties": {},
+        "source": "item_dining_booth_table",
+        "target": "area_taco_bell_dining_room",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_cheesy_burrito",
+        "target": "item_dining_booth_table",
+        "type": "on"
+      },
+      {
+        "properties": {},
+        "source": "item_crunchy_taco",
+        "target": "item_dining_booth_table",
+        "type": "on"
+      },
+      {
+        "properties": {},
+        "source": "item_baja_blast_cup",
+        "target": "item_dining_booth_table",
+        "type": "on"
+      },
+      {
+        "properties": {},
+        "source": "item_sauce_packet_caddie",
+        "target": "item_dining_booth_table",
+        "type": "on"
+      },
+      {
+        "properties": {},
+        "source": "item_mystery_cream_sauce",
+        "target": "item_dining_booth_table",
+        "type": "on"
+      },
+      {
+        "properties": {},
+        "source": "item_cash_register",
+        "target": "area_taco_bell_order_counter",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_register_drawer",
+        "target": "item_cash_register",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_steamed_meal",
+        "target": "area_taco_bell_order_counter",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_empty_monster_can",
+        "target": "player_miki_doki",
+        "type": "carrying"
+      },
+      {
+        "properties": {},
+        "source": "item_mikis_phone",
+        "target": "player_miki_doki",
+        "type": "carrying"
+      },
+      {
+        "properties": {
+          "conditions": [],
+          "conditions_logic": "and",
+          "trigger_type": "on_search"
+        },
+        "source": "area_taco_bell_dining_room",
+        "target": "trigger_dining_search_earring",
+        "type": "triggers"
+      },
+      {
+        "properties": {
+          "conditions": [],
+          "conditions_logic": "and",
+          "trigger_type": "on_eat"
+        },
+        "source": "item_cheesy_burrito",
+        "target": "trigger_item_cheesy_burrito_1787605110353_uhof",
+        "type": "triggers"
+      },
+      {
+        "properties": {
+          "conditions": [],
+          "conditions_logic": "and",
+          "trigger_type": "on_eat"
+        },
+        "source": "item_crunchy_taco",
+        "target": "trigger_item_crunchy_taco_1787605130331_4fsh",
+        "type": "triggers"
+      },
+      {
+        "properties": {
+          "conditions": [],
+          "conditions_logic": "and",
+          "trigger_type": "on_eat"
+        },
+        "source": "item_steamed_meal",
+        "target": "trigger_meal_eat",
+        "type": "triggers"
+      },
+      {
+        "properties": {
+          "conditions": [],
+          "conditions_logic": "and",
+          "trigger_type": "on_drink"
+        },
+        "source": "item_baja_blast_cup",
+        "target": "trigger_item_baja_blast_cup_1787605145361_fh96",
+        "type": "triggers"
+      },
+      {
+        "properties": {},
+        "source": "player_jake_halloway",
+        "target": "way_mens_room_door",
+        "type": "at"
+      },
+      {
+        "properties": {},
+        "source": "player_miki_doki",
+        "target": "way_womens_room_door",
+        "type": "at"
+      },
+      {
+        "properties": {},
+        "source": "item_puddle_of_urine",
+        "target": "area_taco_bell_womens_restroom",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "item_toilet_1787504290131_790",
+        "target": "area_taco_bell_womens_restroom",
+        "type": "in"
+      },
+      {
+        "properties": {
+          "effects": [
+            {
+              "params": {
+                "amount": -70,
+                "message": "",
+                "stat": "bladder",
+                "success_message": "You relieve yourself. Ah, much better.",
+                "target": "self"
+              },
+              "type": "adjust_vital"
+            }
+          ],
+          "target_name": "",
+          "trigger_type": "on_use"
+        },
+        "source": "item_toilet_1787504290131_790",
+        "target": "trigger_item_toilet_1787504290131_790_on_use_1787504290131_253",
+        "type": "triggers"
+      },
+      {
+        "properties": {
+          "effects": [
+            {
+              "params": {
+                "message": "",
+                "success_message": "Porcelain, tank, lever. It has witnessed things no employee is paid enough to scrub, yet it stands ready. A hero, really."
+              },
+              "type": "message"
+            }
+          ],
+          "target_name": "",
+          "trigger_type": "on_examine"
+        },
+        "source": "item_toilet_1787504290131_790",
+        "target": "trigger_item_toilet_1787504290131_790_on_examine_1787504290131_405",
+        "type": "triggers"
+      },
+      {
+        "properties": {},
+        "source": "item_toilet_1787504294435_745",
+        "target": "area_taco_bell_mens_restroom",
+        "type": "in"
+      },
+      {
+        "properties": {
+          "effects": [
+            {
+              "params": {
+                "amount": -70,
+                "message": "",
+                "stat": "bladder",
+                "success_message": "You relieve yourself. Ah, much better.",
+                "target": "self"
+              },
+              "type": "adjust_vital"
+            }
+          ],
+          "target_name": "",
+          "trigger_type": "on_use"
+        },
+        "source": "item_toilet_1787504294435_745",
+        "target": "trigger_item_toilet_1787504294435_745_on_use_1787504294435_278",
+        "type": "triggers"
+      },
+      {
+        "properties": {
+          "effects": [
+            {
+              "params": {
+                "message": "",
+                "success_message": "Porcelain, tank, lever. It has witnessed things no employee is paid enough to scrub, yet it stands ready. A hero, really."
+              },
+              "type": "message"
+            }
+          ],
+          "target_name": "",
+          "trigger_type": "on_examine"
+        },
+        "source": "item_toilet_1787504294435_745",
+        "target": "trigger_item_toilet_1787504294435_745_on_examine_1787504294435_752",
+        "type": "triggers"
+      },
+      {
+        "properties": {
+          "slot": "accessory"
+        },
+        "source": "item_blue_butterfly_earring",
+        "target": "player_miki_doki",
+        "type": "equipped"
+      },
+      {
+        "properties": {
+          "conditions": [],
+          "effects": [],
+          "fail_message": "",
+          "success_message": "",
+          "trigger_type": "on_use"
+        },
+        "source": "item_dining_booth_table",
+        "target": "trigger_item_dining_booth_table_1787605091299_ekyl",
+        "type": "triggers"
+      },
+      {
+        "properties": {
+          "conditions": [],
+          "effects": [],
+          "fail_message": "",
+          "success_message": "",
+          "trigger_type": "on_use"
+        },
+        "source": "item_sauce_packet_caddie",
+        "target": "trigger_item_sauce_packet_caddie_1787605170649_v0l7",
+        "type": "triggers"
+      },
+      {
+        "properties": {
+          "conditions": [],
+          "effects": [],
+          "fail_message": "",
+          "success_message": "",
+          "trigger_type": "on_examine"
+        },
+        "source": "item_sauce_packet_caddie",
+        "target": "trigger_item_sauce_packet_caddie_1787605180843_efb8",
+        "type": "triggers"
+      },
+      {
+        "properties": {
+          "conditions": {},
+          "effects": [
+            {
+              "params": {
+                "success_message": "sqirts sauce on the floor, wops"
+              },
+              "type": "message"
+            }
+          ],
+          "fail_message": "",
+          "name": "",
+          "success_message": "sqirts sauce on the floor, wops",
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": [
+            "on_use"
+          ]
+        },
+        "source": "item_mystery_cream_sauce",
+        "target": "trigger_item_mystery_cream_sauce_1787605207942_cco1",
+        "type": "triggers"
+      },
+      {
+        "properties": {
+          "conditions": {},
+          "effects": [
+            {
+              "params": {
+                "success_message": "you pocket the sauce"
+              },
+              "type": "message"
+            }
+          ],
+          "fail_message": "",
+          "name": "",
+          "success_message": "you pocket the sauce",
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": [
+            "on_take"
+          ]
+        },
+        "source": "item_mystery_cream_sauce",
+        "target": "trigger_item_mystery_cream_sauce_1787605216408_81rm",
+        "type": "triggers"
+      },
+      {
+        "properties": {
+          "conditions": {},
+          "effects": [
+            {
+              "params": {
+                "success_message": "you drop the sauce"
+              },
+              "type": "message"
+            }
+          ],
+          "fail_message": "",
+          "name": "",
+          "success_message": "you drop the sauce",
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": [
+            "on_drop"
+          ]
+        },
+        "source": "item_mystery_cream_sauce",
+        "target": "trigger_item_mystery_cream_sauce_1787605224240_c22c",
+        "type": "triggers"
+      },
+      {
+        "properties": {
+          "conditions": {},
+          "effects": [
+            {
+              "params": {
+                "success_message": "yeah no diea if this is healthy"
+              },
+              "type": "message"
+            }
+          ],
+          "fail_message": "",
+          "name": "",
+          "success_message": "yeah no diea if this is healthy",
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": [
+            "on_examine"
+          ]
+        },
+        "source": "item_mystery_cream_sauce",
+        "target": "trigger_item_mystery_cream_sauce_1787605236394_s8i5",
+        "type": "triggers"
+      },
+      {
+        "properties": {
+          "slot": "torso"
+        },
+        "source": "item_band_tb",
+        "target": "player_jake_halloway",
+        "type": "equipped"
+      },
+      {
+        "properties": {
+          "slot": "legs"
+        },
+        "source": "item_boxer_briefs_tb",
+        "target": "player_jake_halloway",
+        "type": "equipped"
+      },
+      {
+        "properties": {
+          "slot": "legs"
+        },
+        "source": "item_cargo_shorts_tb",
+        "target": "player_jake_halloway",
+        "type": "equipped"
+      },
+      {
+        "properties": {
+          "slot": "feet"
+        },
+        "source": "item_mismatched_socks_tb",
+        "target": "player_jake_halloway",
+        "type": "equipped"
+      },
+      {
+        "properties": {
+          "slot": "feet"
+        },
+        "source": "item_running_shoes_tb",
+        "target": "player_jake_halloway",
+        "type": "equipped"
+      },
+      {
+        "properties": {
+          "slot": "torso"
+        },
+        "source": "item_grey_tank_tb",
+        "target": "player_miki_doki",
+        "type": "equipped"
+      },
+      {
+        "properties": {
+          "slot": "torso"
+        },
+        "source": "item_striped_hoodie_tb",
+        "target": "player_miki_doki",
+        "type": "equipped"
+      },
+      {
+        "properties": {
+          "slot": "legs"
+        },
+        "source": "item_short_shorts_tb",
+        "target": "player_miki_doki",
+        "type": "equipped"
+      },
+      {
+        "properties": {
+          "slot": "feet"
+        },
+        "source": "item_mismatched_stockings_tb",
+        "target": "player_miki_doki",
+        "type": "equipped"
+      },
+      {
+        "properties": {
+          "slot": "neck"
+        },
+        "source": "item_syringe_necklace_tb",
+        "target": "player_miki_doki",
+        "type": "equipped"
+      },
+      {
+        "properties": {
+          "slot": "neck"
+        },
+        "source": "item_black_choker_tb",
+        "target": "player_miki_doki",
+        "type": "equipped"
+      },
+      {
+        "properties": {
+          "slot": "torso"
+        },
+        "source": "item_cashier_polo_tb",
+        "target": "player_tyler",
+        "type": "equipped"
+      },
+      {
+        "properties": {
+          "slot": "legs"
+        },
+        "source": "item_black_pants_tb",
+        "target": "player_tyler",
+        "type": "equipped"
+      },
+      {
+        "properties": {
+          "slot": "feet"
+        },
+        "source": "item_work_sneakers_tb",
+        "target": "player_tyler",
+        "type": "equipped"
+      },
+      {
+        "properties": {
+          "slot": "accessory"
+        },
+        "source": "item_tyler_nametag_tb",
+        "target": "player_tyler",
+        "type": "equipped"
+      },
+      {
+        "properties": {
+          "trigger_type": "on_examine"
+        },
+        "source": "item_blue_butterfly_earring",
+        "target": "trigger_blue_butterfly_earring_examine_1787606556211_100",
+        "type": "triggers"
+      },
+      {
+        "properties": {
+          "trigger_type": "on_examine"
+        },
+        "source": "item_empty_monster_can",
+        "target": "trigger_pty_monster_can_examine_1787606556211_101",
+        "type": "triggers"
+      },
+      {
+        "properties": {
+          "trigger_type": "on_examine"
+        },
+        "source": "item_mikis_phone",
+        "target": "trigger_kis_phon_examine_1787606556211_102",
+        "type": "triggers"
+      },
+      {
+        "properties": {
+          "trigger_type": "on_open"
+        },
+        "source": "item_cash_register",
+        "target": "trigger_cash_register_pe_1787606556211_103",
+        "type": "triggers"
+      },
+      {
+        "properties": {
+          "trigger_type": "on_search"
+        },
+        "source": "item_register_drawer",
+        "target": "trigger_register_drawer_search_1787606556211_104",
+        "type": "triggers"
+      },
+      {
+        "properties": {
+          "slot": "feet"
+        },
+        "source": "item_mismatched_socks_tb",
+        "target": "player_jake_halloway",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "slot": "feet"
+        },
+        "source": "item_running_shoes_tb",
+        "target": "player_jake_halloway",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "slot": "legs"
+        },
+        "source": "item_boxer_briefs_tb",
+        "target": "player_jake_halloway",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "slot": "legs"
+        },
+        "source": "item_cargo_shorts_tb",
+        "target": "player_jake_halloway",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "slot": "torso"
+        },
+        "source": "item_band_tb",
+        "target": "player_jake_halloway",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "slot": "accessory"
+        },
+        "source": "item_blue_butterfly_earring",
+        "target": "player_miki_doki",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "slot": "feet"
+        },
+        "source": "item_mismatched_stockings_tb",
+        "target": "player_miki_doki",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "slot": "legs"
+        },
+        "source": "item_short_shorts_tb",
+        "target": "player_miki_doki",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "slot": "neck"
+        },
+        "source": "item_syringe_necklace_tb",
+        "target": "player_miki_doki",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "slot": "neck"
+        },
+        "source": "item_black_choker_tb",
+        "target": "player_miki_doki",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "slot": "torso"
+        },
+        "source": "item_grey_tank_tb",
+        "target": "player_miki_doki",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "slot": "torso"
+        },
+        "source": "item_striped_hoodie_tb",
+        "target": "player_miki_doki",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "slot": "accessory"
+        },
+        "source": "item_tyler_nametag_tb",
+        "target": "player_tyler",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "slot": "feet"
+        },
+        "source": "item_work_sneakers_tb",
+        "target": "player_tyler",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "slot": "legs"
+        },
+        "source": "item_black_pants_tb",
+        "target": "player_tyler",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "slot": "torso"
+        },
+        "source": "item_cashier_polo_tb",
+        "target": "player_tyler",
+        "type": "connection"
+      },
+      {
+        "properties": {},
+        "source": "player_jake_halloway",
+        "target": "area_taco_bell_mens_restroom",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "player_miki_doki",
+        "target": "area_taco_bell_womens_restroom",
+        "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "player_tyler",
+        "target": "area_taco_bell_order_counter",
+        "type": "in"
+      },
+      {
+        "properties": {
+          "allow_see_characters": false,
+          "cardinal": "",
+          "direction": "out",
+          "visible_in_direction": "",
+          "visible_items": []
+        },
+        "source": "area_elm_street",
+        "target": "way_blind_corner",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "allow_see_characters": false,
+          "cardinal": "",
+          "direction": "out",
+          "visible_in_direction": "",
+          "visible_items": []
+        },
+        "source": "way_blind_corner",
+        "target": "area_oak_lane",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "allow_see_characters": false,
+          "cardinal": "",
+          "direction": "out",
+          "visible_in_direction": "",
+          "visible_items": []
+        },
+        "source": "area_oak_lane",
+        "target": "way_blind_corner",
+        "type": "connection"
+      },
+      {
+        "properties": {
+          "allow_see_characters": false,
+          "cardinal": "",
+          "direction": "out",
+          "visible_in_direction": "",
+          "visible_items": []
+        },
+        "source": "way_blind_corner",
+        "target": "area_elm_street",
+        "type": "connection"
+      },
+      {
+        "properties": {},
+        "source": "item_encounter_radio",
+        "target": "area_taco_bell_dining_room",
+        "type": "in"
+      },
+      {
+        "properties": {
+          "conditions": {},
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "params": {
+                "cooldown": 15,
+                "fallback_message": "The radio crackles. Static. Somewhere, a voice almost says something.",
+                "instructions": "You are a mysterious handheld Radio that crackles to life with fragments, static, and brief weird transmissions. Stay spooky-but-playful. 1-2 sentences of radio-static flavor. Never break character.",
+                "max_words": 30,
+                "name": "The Radio"
+              },
+              "type": "llm_respond"
+            }
+          ],
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": "on_use"
+        },
+        "source": "item_encounter_radio",
+        "target": "trigger_item_encounter_radio_on_use_1788184871184",
+        "type": "triggers"
+      },
+      {
+        "properties": {
+          "conditions": {},
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "params": {
+                "cooldown": 20,
+                "fallback_message": "The radio clicks on. Static. A voice hums with the tone of a dead station.",
+                "instructions": "You are a Mysterious Radio that just got switched ON. You materialize a voice with a one-line eerie-but-friendly greeting. 1 sentence max.",
+                "max_words": 20,
+                "name": "The Radio"
+              },
+              "type": "llm_respond"
+            }
+          ],
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": "on_toggle_on"
+        },
+        "source": "item_encounter_radio",
+        "target": "trigger_item_encounter_radio_on_toggle_on_1788184871184",
+        "type": "triggers"
+      },
+      {
+        "properties": {
+          "conditions": {},
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "params": {
+                "message": "The radio clicks off. The silence is louder than the static was."
+              },
+              "type": "message"
+            }
+          ],
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": "on_toggle_off"
+        },
+        "source": "item_encounter_radio",
+        "target": "trigger_item_encounter_radio_on_toggle_off_1788184871184",
+        "type": "triggers"
+      },
+      {
+        "properties": {},
+        "source": "item_talking_mirror",
+        "target": "area_taco_bell_dining_room",
+        "type": "in"
+      },
+      {
+        "properties": {
+          "conditions": {
+            "conditions": [
+              {
+                "mode": "contains",
+                "phrase": "open sesame",
+                "type": "speech_matches"
+              }
+            ],
+            "operator": "and"
+          },
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "params": {
+                "cooldown": 30,
+                "fallback_message": "The mirror's surface ripples. A voice, cool and pleased: \"You know the words.\"",
+                "instructions": "You are an ancient, haughty Talking Mirror with a dry wit. The correct phrase has been spoken — wake fully and reveal a cryptic secret or playful riddle hint about the world. 1-2 sentences, in character.",
+                "max_words": 40,
+                "name": "The Mirror"
+              },
+              "type": "llm_respond"
+            }
+          ],
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": "on_speech"
+        },
+        "source": "item_talking_mirror",
+        "target": "trigger_item_talking_mirror_on_speech_1788184871184",
+        "type": "triggers"
+      },
+      {
+        "properties": {
+          "conditions": {
+            "conditions": [
+              {
+                "mode": "not_contains",
+                "phrase": "open sesame",
+                "type": "speech_matches"
+              }
+            ],
+            "operator": "and"
+          },
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "params": {
+                "message": "The mirror does not react. Its glass stays dark and still, watching. (Maybe it wants the right words…)"
+              },
+              "type": "message"
+            }
+          ],
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": "on_speech"
+        },
+        "source": "item_talking_mirror",
+        "target": "trigger_item_talking_mirror_on_speech_other_1788184871184",
+        "type": "triggers"
+      }
+    ],
+    "nodes": {
+      "area_elm_street": {
+        "created": 0,
+        "id": "area_elm_street",
+        "name": "Elm Street",
+        "properties": {
+          "description": "a quieter downtown block that narrows as the buildings crowd closer. the sidewalk buckles in patches, telephone poles leaning at odd angles. a few vacant lots sit dark between storefronts, chain-link fence sagging. one streetlight is out and nobody's fixed it. the air smells of old brick, cold dumpster and a thread of wet earth. the taco bell's buzzing sign is the brightest thing on the block.",
+          "environment": {
+            "air": "cold",
+            "light": 25,
+            "noise": "distant traffic, the taco bell sign buzzing",
+            "smell": "old brick, dumpster, wet earth",
+            "temperature": 9
+          },
+          "floor": 0,
+          "tags": [
+            "millbrook_falls",
+            "exterior",
+            "street",
+            "night"
+          ]
+        },
+        "type": "area",
+        "updated": 0
+      },
+      "area_oak_lane": {
+        "created": 1788178490.1583314,
+        "id": "area_oak_lane",
+        "name": "oak lane",
+        "properties": {
+          "description": "a narrow pedestrian alley that cuts between the buildings, saving locals a minute and a half on their walk. the walls are brick and windowless, streaked with decades of rain. a string of bare bulbs hangs crooked over the middle, half of them burned out. the ground is stained concrete with a few slick drain covers. the air is stiller and colder here, carrying a faint whiff of cooking oil from the diner's back vent.",
+          "environment": {
+            "air": "fresh",
+            "light": 80,
+            "noise": "quiet",
+            "smell": "neutral",
+            "temperature": 21
+          }
+        },
+        "type": "area",
+        "updated": 1788178490.1583314
+      },
+      "area_taco_bell": {
+        "created": 0,
+        "id": "area_taco_bell",
+        "name": "Taco Bell",
+        "properties": {
+          "description": "a corporate taco bell on the edge of downtown millbrook falls, squat between a parking lot and a drainage ditch. the sign buzzes just inside the front doors — one panel of the 'bell' flickers on the fritz. hard tile, a mop sign out on the wet floor, the hum of the place settling around you. from here the dining room sprawls left, the order counter sits straight ahead, and a long drive-thru lane wraps the far wall. the air is warm, greasy, and sweet with seasoned beef and cinnamon sugar.",
+          "environment": {
+            "air": "warm",
+            "light": "normal",
+            "noise": "kiosk beeps, soda machine hiss, drive-thru speaker",
+            "smell": "seasoned beef, crispy shell, cinnamon sugar",
+            "temperature": 18.767355941833976
+          },
+          "floor": 0,
+          "tags": [
+            "millbrook_falls",
+            "commercial",
+            "restaurant",
+            "food"
+          ]
+        },
+        "type": "area",
+        "updated": 1787605012.2644503
+      },
+      "area_taco_bell_dining_room": {
+        "created": 0,
+        "id": "area_taco_bell_dining_room",
+        "name": "Taco Bell Dining Room",
+        "properties": {
+          "description": "the main seating area of the store — eight laminate flex tables and six wall booths, bolted down and scuffed. a wall of windows runs along the street, the parking lot and drainage ditch beyond. the vinyl on the booth nearest the door is split open to the foam, and someone wrote a phone number and a threat under the napkin dispenser. an elderly couple occupies the corner booth, eating slowly and staring openly at the loud table by the window. the air is warm with the faint sweet burn of cinnamon sugar from the pastry case across the aisle.",
+          "environment": {
+            "air": "warm",
+            "light": 75,
+            "noise": "kiosk beeps, soda machine hiss, murmured gossip from the corner booth",
+            "smell": "seasoned beef, cinnamon sugar, floor cleaner",
+            "temperature": 20.935606477382283
+          },
+          "floor": 0,
+          "tags": [
+            "millbrook_falls",
+            "commercial",
+            "restaurant",
+            "food"
+          ]
+        },
+        "type": "area",
+        "updated": 0
+      },
+      "area_taco_bell_kitchen": {
+        "created": 0,
+        "id": "area_taco_bell_kitchen",
+        "name": "Taco Bell Kitchen",
+        "properties": {
+          "description": "behind the swinging doors: stainless steel, fryer heat and the shriek of timers. the line is half-broken-down for closing, trays of seasoned beef covered in cling film, a mop sink gurgling. boxes of shells and sauce rims stacked by the back door. it smells like a taco bell looks.",
+          "environment": {
+            "air": "hot",
+            "light": 65,
+            "noise": "timer shrieks, fryer crackle, drive-thru headsets",
+            "smell": "fryer oil, seasoned beef, sanitizer",
+            "temperature": 28
+          },
+          "floor": 0,
+          "tags": [
+            "millbrook_falls",
+            "commercial",
+            "restaurant",
+            "kitchen"
+          ]
+        },
+        "type": "area",
+        "updated": 0
+      },
+      "area_taco_bell_mens_restroom": {
+        "created": 0,
+        "id": "area_taco_bell_mens_restroom",
+        "name": "Taco Bell Men's Restroom",
+        "properties": {
+          "description": "one toilet, one sink, one mirror with a corners-of-the-room blur of grime the cleaner gave up on years ago. the hand dryer sounds like a dying engine. someone has scratched 'run' into the stall door with no further elaboration.",
+          "environment": {
+            "air": "stale",
+            "light": 50,
+            "noise": "hand dryer rattling",
+            "smell": "bleach, faint urinal cake",
+            "temperature": 23
+          },
+          "floor": 0,
+          "tags": [
+            "millbrook_falls",
+            "commercial",
+            "restroom"
+          ]
+        },
+        "type": "area",
+        "updated": 0
+      },
+      "area_taco_bell_order_counter": {
+        "created": 0,
+        "id": "area_taco_bell_order_counter",
+        "name": "Taco Bell Order Counter",
+        "properties": {
+          "description": "the long front counter parallel to the dining room over the order rail. two registers wait side by side, touchscreens smeared with grease. a bright backlit menu board hangs overhead, most prices taped over with newer ones. hot holding chutes squat behind the register where finished orders wait under heat lamps — a soft rack of sad, late tacos gumming together. two pickup shelves for mobile orders sit below a cold-drink rail.",
+          "environment": {
+            "air": "warm",
+            "light": 70,
+            "noise": "register beeps, heat lamp hum, drive-thru speaker",
+            "smell": "seasoned beef, fried shell, cleaning solution",
+            "temperature": 22.11695060589576
+          },
+          "floor": 0,
+          "tags": [
+            "millbrook_falls",
+            "commercial",
+            "restaurant",
+            "food"
+          ]
+        },
+        "type": "area",
+        "updated": 0
+      },
+      "area_taco_bell_womens_restroom": {
+        "created": 0,
+        "id": "area_taco_bell_womens_restroom",
+        "name": "Taco Bell Women's Restroom",
+        "properties": {
+          "description": "one toilet, one sink, a full-length mirror propped crooked against the wall instead of mounted. the trash bin holds a small graveyard of crumpled napkins. graffiti on the dryer offers a hotline number corrected twice in different pens.",
+          "environment": {
+            "air": "stale",
+            "light": 50,
+            "noise": "fluorescent buzz",
+            "smell": "soap, bleach; urine",
+            "temperature": 23
+          },
+          "floor": 0,
+          "tags": [
+            "millbrook_falls",
+            "commercial",
+            "restroom"
+          ]
+        },
+        "type": "area",
+        "updated": 0
+      },
+      "item_baja_blast_cup": {
+        "created": 0,
+        "id": "item_baja_blast_cup",
+        "name": "Baja Blast Cup",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drink",
+            "drop"
+          ],
+          "aliases": [
+            "baja blast",
+            "drink",
+            "soda"
+          ],
+          "contents": [],
+          "current_state": "normal",
+          "description": "a large cup of neon-teal Baja Blast sweating a ring onto the laminate, straw bent at a defeatist angle. tastes like carbonated turquoise and bad decisions, and it is delicious.",
+          "hidden": false,
+          "library_id": "taco_bell_drink_cup",
+          "tags": [
+            "drink",
+            "cup",
+            "food"
+          ],
+          "uses": 2,
+          "weight": 0.5
+        },
+        "type": "item",
+        "updated": 0
+      },
+      "item_band_tb": {
+        "created": 1788174805.395461,
+        "id": "item_band_tb",
+        "name": "Faded Black Band Tee",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "A faded black band tee, still stiff in places with dried monster energy. The band broke up years ago; the shirt lives on.",
+          "equip_slots": [
+            "torso"
+          ],
+          "hidden": false,
+          "tags": [
+            "clothing",
+            "top"
+          ],
+          "uses": -1,
+          "weight": 0.3
+        },
+        "type": "item",
+        "updated": 1788174805.395461
+      },
+      "item_black_choker_tb": {
+        "created": 1788174805.395461,
+        "id": "item_black_choker_tb",
+        "name": "Black Choker",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "A black choker with a small silver heart pendant.",
+          "equip_slots": [
+            "neck"
+          ],
+          "hidden": false,
+          "tags": [
+            "clothing",
+            "accessory"
+          ],
+          "uses": -1,
+          "weight": 0.05
+        },
+        "type": "item",
+        "updated": 1788174805.395461
+      },
+      "item_black_pants_tb": {
+        "created": 1788174805.395461,
+        "id": "item_black_pants_tb",
+        "name": "Black Work Pants",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "Black work pants with a grease smear one knee.",
+          "equip_slots": [
+            "legs"
+          ],
+          "hidden": false,
+          "tags": [
+            "clothing",
+            "bottom"
+          ],
+          "uses": -1,
+          "weight": 0.5
+        },
+        "type": "item",
+        "updated": 1788174805.395461
+      },
+      "item_blue_butterfly_earring": {
+        "created": 0,
+        "id": "item_blue_butterfly_earring",
+        "name": "Blue Butterfly Earring",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "aliases": [
+            "butterfly earring",
+            "earring",
+            "blue butterfly"
+          ],
+          "contents": [],
+          "current_state": "hidden",
+          "description": "a tiny dangling blue butterfly on a fine hook, its clasp bent from wherever it spent the last few hours. cheap metal gone dull, but kept like something priceless. it belongs to somebody's mom.",
+          "equip_slots": [
+            "accessory"
+          ],
+          "hidden": true,
+          "tags": [
+            "jewelry"
+          ],
+          "uses": -1,
+          "weight": 0.01
+        },
+        "type": "item",
+        "updated": 0
+      },
+      "item_boxer_briefs_tb": {
+        "created": 1788174805.395461,
+        "id": "item_boxer_briefs_tb",
+        "name": "Boxer Briefs",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "Black boxer briefs, holding on.",
+          "equip_slots": [
+            "legs"
+          ],
+          "hidden": false,
+          "tags": [
+            "clothing",
+            "underwear"
+          ],
+          "uses": -1,
+          "weight": 0.2
+        },
+        "type": "item",
+        "updated": 1788174805.395461
+      },
+      "item_cargo_shorts_tb": {
+        "created": 1788174805.395461,
+        "id": "item_cargo_shorts_tb",
+        "name": "Cargo Shorts",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "Khaki cargo shorts with six pockets and one mystery stain.",
+          "equip_slots": [
+            "legs"
+          ],
+          "hidden": false,
+          "tags": [
+            "clothing",
+            "bottom"
+          ],
+          "uses": -1,
+          "weight": 0.5
+        },
+        "type": "item",
+        "updated": 1788174805.395461
+      },
+      "item_cash_register": {
+        "created": 0,
+        "id": "item_cash_register",
+        "name": "Cash Register",
+        "properties": {
+          "actions": [
+            "examine",
+            "open",
+            "close"
+          ],
+          "aliases": [
+            "register"
+          ],
+          "contents": [],
+          "current_state": "closed",
+          "description": "unit 001 facing the dining room, touchscreen smeared with grease, credit reader worn silver on the side. the drawer is shut. tyler guards it with his life, or at least his continued employment.",
+          "hidden": false,
+          "max_weight_capacity": 20,
+          "tags": [
+            "container",
+            "electric"
+          ],
+          "uses": -1,
+          "weight": 15
+        },
+        "type": "item",
+        "updated": 0
+      },
+      "item_cashier_polo_tb": {
+        "created": 1788174805.395461,
+        "id": "item_cashier_polo_tb",
+        "name": "Cashier Polo",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "A red-and-purple Taco Bell cashier polo, slightly too big, name tag pinned crooked.",
+          "equip_slots": [
+            "torso"
+          ],
+          "hidden": false,
+          "tags": [
+            "clothing",
+            "top"
+          ],
+          "uses": -1,
+          "weight": 0.3
+        },
+        "type": "item",
+        "updated": 1788174805.395461
+      },
+      "item_cheesy_burrito": {
+        "created": 0,
+        "id": "item_cheesy_burrito",
+        "name": "Cheesy Burrito",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "eat",
+            "drop"
+          ],
+          "aliases": [
+            "burrito",
+            "cheesy burrito thingy"
+          ],
+          "contents": [],
+          "current_state": "normal",
+          "description": "a flour burrito swaddled in foil, filled with beans and a wedge of cheese that refuses to melt. heavy in the hand, quiet in the heart, borderline for food-safety.",
+          "hidden": false,
+          "library_id": "hot_cheese_burrito",
+          "tags": [
+            "food",
+            "meal"
+          ],
+          "uses": 1,
+          "weight": 0.35
+        },
+        "type": "item",
+        "updated": 0
+      },
+      "item_crunchy_taco": {
+        "created": 0,
+        "id": "item_crunchy_taco",
+        "name": "Warm Crunchy Taco",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "eat",
+            "drop"
+          ],
+          "aliases": [
+            "taco",
+            "nacho alternative"
+          ],
+          "contents": [],
+          "current_state": "normal",
+          "description": "a crunchy taco in its foil cradle, shell already cracking along one side, lettuce escaping. structurally compromised but emotionally supportive.",
+          "hidden": false,
+          "library_id": "warmed_crunchy_taco",
+          "tags": [
+            "food",
+            "meal"
+          ],
+          "uses": 1,
+          "weight": 0.15
+        },
+        "type": "item",
+        "updated": 0
+      },
+      "item_dining_booth_table": {
+        "created": 0,
+        "id": "item_dining_booth_table",
+        "name": "Booth Table",
+        "properties": {
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "contents": [],
+          "current_state": "normal",
+          "description": "a laminate booth table by the window, bolted to the bench on one side. crumbs, a wad of napkins, and two trays of tacos arranged like a peace summit.",
+          "hidden": false,
+          "tags": [
+            "furniture"
+          ],
+          "uses": -1,
+          "weight": 40
+        },
+        "type": "item",
+        "updated": 1787605077.9584732
+      },
+      "item_empty_monster_can": {
+        "created": 0,
+        "id": "item_empty_monster_can",
+        "name": "Crushed Monster Can",
+        "properties": {
+          "actions": [
+            "examine",
+            "drop",
+            "take"
+          ],
+          "aliases": [
+            "monster can",
+            "empty can"
+          ],
+          "contents": [],
+          "current_state": "normal",
+          "description": "an empty original green monster can, crushed lengthwise in a grip that had feelings about today. sticky still. claw marks in the aluminum where the tab gave up.",
+          "hidden": false,
+          "tags": [
+            "trash",
+            "metal"
+          ],
+          "uses": 0,
+          "weight": 0.05
+        },
+        "type": "item",
+        "updated": 0
+      },
+      "item_encounter_radio": {
+        "created": 1788184871184,
+        "id": "item_encounter_radio",
+        "name": "Encounter Radio",
+        "properties": {
+          "actions": [
+            "examine",
+            "use",
+            "take",
+            "toggle",
+            "drop"
+          ],
+          "current_state": "off",
+          "description": "A battered handheld walkie-talkie-red radio with a dead battery and a cracked label. The volume knob is stuck on LOW.",
+          "sound_level": 2,
+          "tags": [
+            "sound_source",
+            "toggleable",
+            "radio"
+          ],
+          "uses": -1,
+          "weight": 0.4
+        },
+        "type": "item",
+        "updated": 1788184871184
+      },
+      "item_grey_tank_tb": {
+        "created": 1788174805.395461,
+        "id": "item_grey_tank_tb",
+        "name": "Grey Tank Top",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "A soft grey tank top, slightly too short, riding up when she moves.",
+          "equip_slots": [
+            "torso"
+          ],
+          "hidden": false,
+          "tags": [
+            "clothing",
+            "top"
+          ],
+          "uses": -1,
+          "weight": 0.1
+        },
+        "type": "item",
+        "updated": 1788174805.395461
+      },
+      "item_mikis_phone": {
+        "created": 0,
+        "id": "item_mikis_phone",
+        "name": "Miki's Phone",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "aliases": [
+            "phone"
+          ],
+          "contents": [],
+          "current_state": "normal",
+          "description": "a phone in a cracked case plastered with anime stickers, screen showing 47 unread discord pings and a tinder notification she keeps not-swiping away.",
+          "hidden": false,
+          "tags": [
+            "electric",
+            "phone"
+          ],
+          "uses": -1,
+          "weight": 0.2
+        },
+        "type": "item",
+        "updated": 0
+      },
+      "item_mismatched_socks_tb": {
+        "created": 1788174805.395461,
+        "id": "item_mismatched_socks_tb",
+        "name": "Mismatched Socks",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "One black, one dark grey. A deliberate choice, probably.",
+          "equip_slots": [
+            "feet"
+          ],
+          "hidden": false,
+          "tags": [
+            "clothing",
+            "footwear"
+          ],
+          "uses": -1,
+          "weight": 0.1
+        },
+        "type": "item",
+        "updated": 1788174805.395461
+      },
+      "item_mismatched_stockings_tb": {
+        "created": 1788174805.395461,
+        "id": "item_mismatched_stockings_tb",
+        "name": "Mismatched Stockings",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "One pink-striped, one black. Torn at one knee. Absolutely a look.",
+          "equip_slots": [
+            "feet"
+          ],
+          "hidden": false,
+          "tags": [
+            "clothing",
+            "footwear"
+          ],
+          "uses": -1,
+          "weight": 0.1
+        },
+        "type": "item",
+        "updated": 1788174805.395461
+      },
+      "item_mystery_cream_sauce": {
+        "created": 0,
+        "id": "item_mystery_cream_sauce",
+        "name": "Mystery Cream Sauce",
+        "properties": {
+          "actions": [
+            "use",
+            "take",
+            "drop",
+            "examine"
+          ],
+          "aliases": [
+            "sauce cup",
+            "cream sauce"
+          ],
+          "contents": [],
+          "current_state": "normal",
+          "description": "a small sealed cup of something cream-colored that arrived unrequested. it is either chipotle ranch or a biohazard. there is exactly one way to find out and it involves trust.",
+          "hidden": false,
+          "library_id": "mystery_cream_sauce",
+          "tags": [
+            "food"
+          ],
+          "uses": 1,
+          "weight": 0.05
+        },
+        "type": "item",
+        "updated": 1787605193.56933
+      },
+      "item_puddle_of_urine": {
+        "created": 1787503913.328599,
+        "id": "item_puddle_of_urine",
+        "name": "Puddle of Urine",
+        "properties": {
+          "actions": [
+            "examine"
+          ],
+          "current_state": "normal",
+          "description": "A dark puddle of urine spreading across the floor, reeking sharply.",
+          "equip_slots": [],
+          "hidden": false,
+          "library_id": "puddle",
+          "tags": [
+            "filth",
+            "stench"
+          ],
+          "uses": -1,
+          "weight": 0.1
+        },
+        "type": "item",
+        "updated": 1787503913.328599
+      },
+      "item_register_drawer": {
+        "created": 0,
+        "id": "item_register_drawer",
+        "name": "Register Drawer",
+        "properties": {
+          "actions": [
+            "examine",
+            "search",
+            "take",
+            "drop"
+          ],
+          "aliases": [
+            "drawer",
+            "cash drawer"
+          ],
+          "contents": [],
+          "current_state": "closed",
+          "description": "the cash drawer under unit 001. a float of twenties, a roll of quarters, and a post-it that says DO NOT count drawer during rush in aggressive caps.",
+          "hidden": true,
+          "library_id": "taco_bell_register_drawer",
+          "locked": true,
+          "max_weight_capacity": 5,
+          "tags": [
+            "container"
+          ],
+          "uses": -1,
+          "weight": 3
+        },
+        "type": "item",
+        "updated": 0
+      },
+      "item_running_shoes_tb": {
+        "created": 1788174805.395461,
+        "id": "item_running_shoes_tb",
+        "name": "Running Shoes",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "Grey running shoes with frayed laces, built for a jogger, used for standing.",
+          "equip_slots": [
+            "feet"
+          ],
+          "hidden": false,
+          "tags": [
+            "clothing",
+            "footwear"
+          ],
+          "uses": -1,
+          "weight": 0.7
+        },
+        "type": "item",
+        "updated": 1788174805.395461
+      },
+      "item_sauce_packet_caddie": {
+        "created": 0,
+        "id": "item_sauce_packet_caddie",
+        "name": "Sauce Packet Caddie",
+        "properties": {
+          "actions": [
+            "take",
+            "drop",
+            "use",
+            "examine"
+          ],
+          "aliases": [
+            "sauce",
+            "sauce packets",
+            "caddie"
+          ],
+          "contents": [],
+          "current_state": "normal",
+          "description": "a wire caddie holding the sacred canon: mild, fire, diablo, and one packet labeled only MYSTERY with a Sharpie question mark. the words on each packet try too hard and somehow earn it.",
+          "hidden": false,
+          "library_id": "sauce_packet_caddie",
+          "tags": [
+            "furniture"
+          ],
+          "uses": -1,
+          "weight": 0.3
+        },
+        "type": "item",
+        "updated": 1787605157.8960643
+      },
+      "item_short_shorts_tb": {
+        "created": 1788174805.395461,
+        "id": "item_short_shorts_tb",
+        "name": "Short Shorts",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "Black denim short shorts with frayed hems.",
+          "equip_slots": [
+            "legs"
+          ],
+          "hidden": false,
+          "tags": [
+            "clothing",
+            "bottom"
+          ],
+          "uses": -1,
+          "weight": 0.2
+        },
+        "type": "item",
+        "updated": 1788174805.395461
+      },
+      "item_steamed_meal": {
+        "created": 0,
+        "id": "item_steamed_meal",
+        "name": "Steamed Meal (Holding Chute)",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "eat",
+            "drop"
+          ],
+          "aliases": [
+            "steamed meal",
+            "pickup order",
+            "abandoned order"
+          ],
+          "contents": [],
+          "current_state": "normal",
+          "description": "a bagged order abandoned in the pickup shelf, going lukewarm under the heat lamp. the receipt curling at the edge says NO ONE HAS COME FOR THIS in the language of forgotten food.",
+          "hidden": false,
+          "library_id": "taco_bell_steamed_meal",
+          "tags": [
+            "food",
+            "meal"
+          ],
+          "uses": 1,
+          "weight": 0.5
+        },
+        "type": "item",
+        "updated": 0
+      },
+      "item_striped_hoodie_tb": {
+        "created": 1788174805.395461,
+        "id": "item_striped_hoodie_tb",
+        "name": "Thick Striped Hoodie",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "A thick grey/black/white striped hoodie worn unzipped, sleeves over her hands.",
+          "equip_slots": [
+            "torso"
+          ],
+          "hidden": false,
+          "tags": [
+            "clothing",
+            "outerwear"
+          ],
+          "uses": -1,
+          "weight": 0.8
+        },
+        "type": "item",
+        "updated": 1788174805.395461
+      },
+      "item_syringe_necklace_tb": {
+        "created": 1788174805.395461,
+        "id": "item_syringe_necklace_tb",
+        "name": "Syringe Necklace",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "A black-string necklace with a mini syringe of pink liquid. She fidgets with it constantly.",
+          "equip_slots": [
+            "neck"
+          ],
+          "hidden": false,
+          "tags": [
+            "clothing",
+            "accessory"
+          ],
+          "uses": -1,
+          "weight": 0.05
+        },
+        "type": "item",
+        "updated": 1788174805.395461
+      },
+      "item_talking_mirror": {
+        "created": 1788184871184,
+        "id": "item_talking_mirror",
+        "name": "Talking Mirror",
+        "properties": {
+          "actions": [
+            "examine",
+            "use",
+            "look"
+          ],
+          "current_state": "normal",
+          "description": "An antique standing mirror with an ornate brass frame. The glass is deep and dark, and you get the feeling it is watching back — maybe waiting for the right words.",
+          "tags": [
+            "container"
+          ],
+          "uses": -1,
+          "weight": 12
+        },
+        "type": "item",
+        "updated": 1788184871184
+      },
+      "item_toilet_1787504290131_790": {
+        "created": 1787504290.1313024,
+        "id": "item_toilet_1787504290131_790",
+        "name": "Toilet",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "current_state": "normal",
+          "description": "A standard white porcelain toilet bolted to the floor, tank against the wall, chrome flush lever worn shiny in the middle. The seat is the cheap open-front commercial kind, and the water level sits suspiciously high, like it's always one flush from making a point.",
+          "equip_slots": [],
+          "heating_rate": null,
+          "hidden": false,
+          "image": null,
+          "library_id": "toilet",
+          "light_level": "dim",
+          "skill_check": {},
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "tags": [
+            "toilet",
+            "bathroom",
+            "furniture"
+          ],
+          "target_temperature": null,
+          "uses": -1,
+          "weight": 50
+        },
+        "type": "item",
+        "updated": 1787504290.1313024
+      },
+      "item_toilet_1787504294435_745": {
+        "created": 1787504294.4355118,
+        "id": "item_toilet_1787504294435_745",
+        "name": "Toilet",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "current_state": "normal",
+          "description": "A standard white porcelain toilet bolted to the floor, tank against the wall, chrome flush lever worn shiny in the middle. The seat is the cheap open-front commercial kind, and the water level sits suspiciously high, like it's always one flush from making a point.",
+          "equip_slots": [],
+          "heating_rate": null,
+          "hidden": false,
+          "image": null,
+          "library_id": "toilet",
+          "light_level": "dim",
+          "skill_check": {},
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "tags": [
+            "toilet",
+            "bathroom",
+            "furniture"
+          ],
+          "target_temperature": null,
+          "uses": -1,
+          "weight": 50
+        },
+        "type": "item",
+        "updated": 1787504294.4355118
+      },
+      "item_tyler_nametag_tb": {
+        "created": 1788174805.395461,
+        "id": "item_tyler_nametag_tb",
+        "name": "Tyler's Nametag",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "A plastic name tag reading TYLER in block capitals, above the eyes of a war documentary.",
+          "equip_slots": [
+            "accessory"
+          ],
+          "hidden": false,
+          "tags": [
+            "clothing",
+            "nametag"
+          ],
+          "uses": -1,
+          "weight": 0.05
+        },
+        "type": "item",
+        "updated": 1788174805.395461
+      },
+      "item_work_sneakers_tb": {
+        "created": 1788174805.395461,
+        "id": "item_work_sneakers_tb",
+        "name": "Work Sneakers",
+        "properties": {
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "Beat-up black sneakers, grease-scuffed.",
+          "equip_slots": [
+            "feet"
+          ],
+          "hidden": false,
+          "tags": [
+            "clothing",
+            "footwear"
+          ],
+          "uses": -1,
+          "weight": 0.6
+        },
+        "type": "item",
+        "updated": 1788174805.395461
+      },
+      "player_jake_halloway": {
+        "created": 0,
+        "id": "player_jake_halloway",
+        "name": "jake halloway",
+        "properties": {},
+        "type": "character",
+        "updated": 0
+      },
+      "player_miki_doki": {
+        "created": 0,
+        "id": "player_miki_doki",
+        "name": "miki doki",
+        "properties": {},
+        "type": "character",
+        "updated": 0
+      },
+      "player_tyler": {
+        "created": 0,
+        "id": "player_tyler",
+        "name": "tyler",
+        "properties": {},
+        "type": "character",
+        "updated": 0
+      },
+      "trigger_blue_butterfly_earring_examine_1787606556211_100": {
+        "created": 1788174805.395461,
+        "id": "trigger_blue_butterfly_earring_examine_1787606556211_100",
+        "name": "on_examine -> message",
+        "properties": {
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "params": {
+                "message": "mom's. the clasp is bent from a night on the floor under a taco bell booth. it's the most expensive thing you own, and not with money."
+              },
+              "type": "message"
+            }
+          ],
+          "trigger_type": "on_examine"
+        },
+        "type": "logic_trigger",
+        "updated": 1788174805.395461
+      },
+      "trigger_cash_register_pe_1787606556211_103": {
+        "created": 1788174805.395461,
+        "id": "trigger_cash_register_pe_1787606556211_103",
+        "name": "on_open -> message",
+        "properties": {
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "params": {
+                "message": "the drawer won't budge. tyler's thousand-yard stare locks onto you with the reflexes of a security system paid 11.50 an hour."
+              },
+              "type": "message"
+            }
+          ],
+          "trigger_type": "on_open"
+        },
+        "type": "logic_trigger",
+        "updated": 1788174805.395461
+      },
+      "trigger_dining_search_earring": {
+        "created": 0,
+        "id": "trigger_dining_search_earring",
+        "name": "on_search → reveal butterfly earring",
+        "properties": {
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "params": {
+                "message": "Behind the pedestal of the window booth table, something tiny catches the fluorescent light — a small blue butterfly earring, its clasp bent."
+              },
+              "type": "message"
+            },
+            {
+              "params": {
+                "hidden": false,
+                "target": "item_blue_butterfly_earring"
+              },
+              "type": "set_hidden"
+            }
+          ],
+          "fail_message": "",
+          "success_message": "",
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": "on_search"
+        },
+        "type": "logic_trigger",
+        "updated": 0
+      },
+      "trigger_item_baja_blast_cup_1787605145361_fh96": {
+        "created": 1787605145.3647022,
+        "id": "trigger_item_baja_blast_cup_1787605145361_fh96",
+        "name": "on_drink → message",
+        "properties": {
+          "conditions": {},
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "params": {
+                "success_message": "citrusy and good"
+              },
+              "type": "message"
+            },
+            {
+              "params": {
+                "amount": -20,
+                "stat": "Thirst",
+                "target": "self"
+              },
+              "type": "adjust_vital"
+            }
+          ],
+          "fail_message": "",
+          "name": "",
+          "success_message": "citrusy and good",
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": [
+            "on_drink"
+          ]
+        },
+        "type": "logic_trigger",
+        "updated": 1787605145.476217
+      },
+      "trigger_item_cheesy_burrito_1787605110353_uhof": {
+        "created": 1787605110.3565042,
+        "id": "trigger_item_cheesy_burrito_1787605110353_uhof",
+        "name": "on_eat → message",
+        "properties": {
+          "conditions": {},
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "params": {
+                "success_message": "its great and grease"
+              },
+              "type": "message"
+            },
+            {
+              "params": {
+                "amount": -30,
+                "stat": "Hunger",
+                "target": "self"
+              },
+              "type": "adjust_vital"
+            },
+            {
+              "params": {},
+              "type": "consume_item"
+            }
+          ],
+          "fail_message": "",
+          "name": "",
+          "success_message": "its great and grease",
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": [
+            "on_eat"
+          ]
+        },
+        "type": "logic_trigger",
+        "updated": 1787605110.4015033
+      },
+      "trigger_item_crunchy_taco_1787605130331_4fsh": {
+        "created": 1787605130.3335512,
+        "id": "trigger_item_crunchy_taco_1787605130331_4fsh",
+        "name": "on_eat → message",
+        "properties": {
+          "conditions": {},
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "params": {
+                "success_message": "*crunsh*"
+              },
+              "type": "message"
+            },
+            {
+              "params": {
+                "amount": -15,
+                "stat": "Hunger",
+                "target": "self"
+              },
+              "type": "adjust_vital"
+            },
+            {
+              "params": {},
+              "type": "consume_item"
+            }
+          ],
+          "fail_message": "",
+          "name": "",
+          "success_message": "*crunsh*",
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": [
+            "on_eat"
+          ]
+        },
+        "type": "logic_trigger",
+        "updated": 1787605130.3685622
+      },
+      "trigger_item_dining_booth_table_1787605091299_ekyl": {
+        "created": 1787605091.3014092,
+        "id": "trigger_item_dining_booth_table_1787605091299_ekyl",
+        "name": "on_use → message",
+        "properties": {
+          "conditions": {},
+          "effects": [
+            {
+              "params": {
+                "success_message": "you take a seat by the table"
+              },
+              "type": "message"
+            }
+          ],
+          "fail_message": "",
+          "name": "",
+          "success_message": "you take a seat by the table",
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": [
+            "on_use"
+          ]
+        },
+        "type": "logic_trigger",
+        "updated": 1787605091.337408
+      },
+      "trigger_item_encounter_radio_on_toggle_off_1788184871184": {
+        "created": 1788184871184,
+        "id": "trigger_item_encounter_radio_on_toggle_off_1788184871184",
+        "name": "on_toggle_off → llm_respond",
+        "properties": {
+          "conditions": {},
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "params": {
+                "message": "The radio clicks off. The silence is louder than the static was."
+              },
+              "type": "message"
+            }
+          ],
+          "success_message": "",
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": "on_toggle_off"
+        },
+        "type": "logic_trigger",
+        "updated": 1788184871184
+      },
+      "trigger_item_encounter_radio_on_toggle_on_1788184871184": {
+        "created": 1788184871184,
+        "id": "trigger_item_encounter_radio_on_toggle_on_1788184871184",
+        "name": "on_toggle_on → llm_respond",
+        "properties": {
+          "conditions": {},
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "params": {
+                "cooldown": 20,
+                "fallback_message": "The radio clicks on. Static. A voice hums with the tone of a dead station.",
+                "instructions": "You are a Mysterious Radio that just got switched ON. You materialize a voice with a one-line eerie-but-friendly greeting. 1 sentence max.",
+                "max_words": 20,
+                "name": "The Radio"
+              },
+              "type": "llm_respond"
+            }
+          ],
+          "success_message": "",
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": "on_toggle_on"
+        },
+        "type": "logic_trigger",
+        "updated": 1788184871184
+      },
+      "trigger_item_encounter_radio_on_use_1788184871184": {
+        "created": 1788184871184,
+        "id": "trigger_item_encounter_radio_on_use_1788184871184",
+        "name": "on_use → llm_respond",
+        "properties": {
+          "conditions": {},
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "params": {
+                "cooldown": 15,
+                "fallback_message": "The radio crackles. Static. Somewhere, a voice almost says something.",
+                "instructions": "You are a mysterious handheld Radio that crackles to life with fragments, static, and brief weird transmissions. Stay spooky-but-playful. 1-2 sentences of radio-static flavor. Never break character.",
+                "max_words": 30,
+                "name": "The Radio"
+              },
+              "type": "llm_respond"
+            }
+          ],
+          "success_message": "",
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": "on_use"
+        },
+        "type": "logic_trigger",
+        "updated": 1788184871184
+      },
+      "trigger_item_mystery_cream_sauce_1787605207942_cco1": {
+        "created": 1787605207.9451325,
+        "id": "trigger_item_mystery_cream_sauce_1787605207942_cco1",
+        "name": "on_use → message",
+        "properties": {
+          "conditions": {},
+          "effects": [
+            {
+              "params": {
+                "success_message": "sqirts sauce on the floor, wops"
+              },
+              "type": "message"
+            }
+          ],
+          "fail_message": "",
+          "name": "",
+          "success_message": "sqirts sauce on the floor, wops",
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": [
+            "on_use"
+          ]
+        },
+        "type": "logic_trigger",
+        "updated": 1787605268.6829238
+      },
+      "trigger_item_mystery_cream_sauce_1787605216408_81rm": {
+        "created": 1787605216.4110131,
+        "id": "trigger_item_mystery_cream_sauce_1787605216408_81rm",
+        "name": "on_take → message",
+        "properties": {
+          "conditions": {},
+          "effects": [
+            {
+              "params": {
+                "success_message": "you pocket the sauce"
+              },
+              "type": "message"
+            }
+          ],
+          "fail_message": "",
+          "name": "",
+          "success_message": "you pocket the sauce",
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": [
+            "on_take"
+          ]
+        },
+        "type": "logic_trigger",
+        "updated": 1787605264.7146895
+      },
+      "trigger_item_mystery_cream_sauce_1787605224240_c22c": {
+        "created": 1787605224.241909,
+        "id": "trigger_item_mystery_cream_sauce_1787605224240_c22c",
+        "name": "on_drop → message",
+        "properties": {
+          "conditions": {},
+          "effects": [
+            {
+              "params": {
+                "success_message": "you drop the sauce"
+              },
+              "type": "message"
+            }
+          ],
+          "fail_message": "",
+          "name": "",
+          "success_message": "you drop the sauce",
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": [
+            "on_drop"
+          ]
+        },
+        "type": "logic_trigger",
+        "updated": 1787605261.8039963
+      },
+      "trigger_item_mystery_cream_sauce_1787605236394_s8i5": {
+        "created": 1787605236.3976977,
+        "id": "trigger_item_mystery_cream_sauce_1787605236394_s8i5",
+        "name": "on_examine → message",
+        "properties": {
+          "conditions": {},
+          "effects": [
+            {
+              "params": {
+                "success_message": "yeah no diea if this is healthy"
+              },
+              "type": "message"
+            }
+          ],
+          "fail_message": "",
+          "name": "",
+          "success_message": "yeah no diea if this is healthy",
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": [
+            "on_examine"
+          ]
+        },
+        "type": "logic_trigger",
+        "updated": 1787605257.8804445
+      },
+      "trigger_item_sauce_packet_caddie_1787605170649_v0l7": {
+        "created": 1787605170.6509883,
+        "id": "trigger_item_sauce_packet_caddie_1787605170649_v0l7",
+        "name": "on_use → message",
+        "properties": {
+          "conditions": {},
+          "effects": [
+            {
+              "params": {
+                "success_message": "squirt some sauce on the table, dumbass"
+              },
+              "type": "message"
+            }
+          ],
+          "fail_message": "",
+          "name": "",
+          "success_message": "squirt some sauce on the table, dumbass",
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": [
+            "on_use"
+          ]
+        },
+        "type": "logic_trigger",
+        "updated": 1787605170.6769884
+      },
+      "trigger_item_sauce_packet_caddie_1787605180843_efb8": {
+        "created": 1787605180.8457768,
+        "id": "trigger_item_sauce_packet_caddie_1787605180843_efb8",
+        "name": "on_examine → message",
+        "properties": {
+          "conditions": {},
+          "effects": [
+            {
+              "params": {
+                "success_message": "*list ingredients*"
+              },
+              "type": "message"
+            }
+          ],
+          "fail_message": "",
+          "name": "",
+          "success_message": "*list ingredients*",
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": [
+            "on_examine"
+          ]
+        },
+        "type": "logic_trigger",
+        "updated": 1787605180.872777
+      },
+      "trigger_item_talking_mirror_on_speech_1788184871184": {
+        "created": 1788184871184,
+        "id": "trigger_item_talking_mirror_on_speech_1788184871184",
+        "name": "on_speech → llm_respond",
+        "properties": {
+          "conditions": {
+            "conditions": [
+              {
+                "mode": "contains",
+                "phrase": "open sesame",
+                "type": "speech_matches"
+              }
+            ],
+            "operator": "and"
+          },
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "params": {
+                "cooldown": 30,
+                "fallback_message": "The mirror's surface ripples. A voice, cool and pleased: \"You know the words.\"",
+                "instructions": "You are an ancient, haughty Talking Mirror with a dry wit. The correct phrase has been spoken — wake fully and reveal a cryptic secret or playful riddle hint about the world. 1-2 sentences, in character.",
+                "max_words": 40,
+                "name": "The Mirror"
+              },
+              "type": "llm_respond"
+            }
+          ],
+          "success_message": "",
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": "on_speech"
+        },
+        "type": "logic_trigger",
+        "updated": 1788184871184
+      },
+      "trigger_item_talking_mirror_on_speech_other_1788184871184": {
+        "created": 1788184871184,
+        "id": "trigger_item_talking_mirror_on_speech_other_1788184871184",
+        "name": "on_speech_other → llm_respond",
+        "properties": {
+          "conditions": {
+            "conditions": [
+              {
+                "mode": "not_contains",
+                "phrase": "open sesame",
+                "type": "speech_matches"
+              }
+            ],
+            "operator": "and"
+          },
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "params": {
+                "message": "The mirror does not react. Its glass stays dark and still, watching. (Maybe it wants the right words…)"
+              },
+              "type": "message"
+            }
+          ],
+          "success_message": "",
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": "on_speech"
+        },
+        "type": "logic_trigger",
+        "updated": 1788184871184
+      },
+      "trigger_item_toilet_1787504290131_790_on_examine_1787504290131_405": {
+        "created": 1787504290.1313024,
+        "id": "trigger_item_toilet_1787504290131_790_on_examine_1787504290131_405",
+        "name": "on_examine → message",
+        "properties": {
+          "effects": [
+            {
+              "params": {
+                "message": "",
+                "success_message": "Porcelain, tank, lever. It has witnessed things no employee is paid enough to scrub, yet it stands ready. A hero, really."
+              },
+              "type": "message"
+            }
+          ],
+          "target_name": "",
+          "trigger_type": "on_examine"
+        },
+        "type": "logic_trigger",
+        "updated": 1787504290.1313024
+      },
+      "trigger_item_toilet_1787504290131_790_on_use_1787504290131_253": {
+        "created": 1787504290.1313024,
+        "id": "trigger_item_toilet_1787504290131_790_on_use_1787504290131_253",
+        "name": "on_use → adjust_vital",
+        "properties": {
+          "effects": [
+            {
+              "params": {
+                "amount": -70,
+                "message": "",
+                "stat": "bladder",
+                "success_message": "You relieve yourself. Ah, much better.",
+                "target": "self"
+              },
+              "type": "adjust_vital"
+            }
+          ],
+          "target_name": "",
+          "trigger_type": "on_use"
+        },
+        "type": "logic_trigger",
+        "updated": 1787504290.1313024
+      },
+      "trigger_item_toilet_1787504294435_745_on_examine_1787504294435_752": {
+        "created": 1787504294.4355118,
+        "id": "trigger_item_toilet_1787504294435_745_on_examine_1787504294435_752",
+        "name": "on_examine → message",
+        "properties": {
+          "effects": [
+            {
+              "params": {
+                "message": "",
+                "success_message": "Porcelain, tank, lever. It has witnessed things no employee is paid enough to scrub, yet it stands ready. A hero, really."
+              },
+              "type": "message"
+            }
+          ],
+          "target_name": "",
+          "trigger_type": "on_examine"
+        },
+        "type": "logic_trigger",
+        "updated": 1787504294.4355118
+      },
+      "trigger_item_toilet_1787504294435_745_on_use_1787504294435_278": {
+        "created": 1787504294.4355118,
+        "id": "trigger_item_toilet_1787504294435_745_on_use_1787504294435_278",
+        "name": "on_use → adjust_vital",
+        "properties": {
+          "effects": [
+            {
+              "params": {
+                "amount": -70,
+                "message": "",
+                "stat": "bladder",
+                "success_message": "You relieve yourself. Ah, much better.",
+                "target": "self"
+              },
+              "type": "adjust_vital"
+            }
+          ],
+          "target_name": "",
+          "trigger_type": "on_use"
+        },
+        "type": "logic_trigger",
+        "updated": 1787504294.4355118
+      },
+      "trigger_kis_phon_examine_1787606556211_102": {
+        "created": 1788174805.395461,
+        "id": "trigger_kis_phon_examine_1787606556211_102",
+        "name": "on_examine -> message",
+        "properties": {
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "params": {
+                "message": "the lock screen is a wall of noise — three patreon pledges, eleven discord pings, and one saved draft to a number she still can't delete."
+              },
+              "type": "message"
+            }
+          ],
+          "trigger_type": "on_examine"
+        },
+        "type": "logic_trigger",
+        "updated": 1788174805.395461
+      },
+      "trigger_meal_eat": {
+        "created": 0,
+        "id": "trigger_meal_eat",
+        "name": "on_eat → Steamed Meal",
+        "properties": {
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "params": {
+                "message": "Lukewarm mystery meal, eaten with zero regrets and several questions."
+              },
+              "type": "message"
+            },
+            {
+              "params": {
+                "amount": -35,
+                "stat": "Hunger",
+                "target": "self"
+              },
+              "type": "adjust_vital"
+            },
+            {
+              "params": {
+                "item_id": "item_steamed_meal",
+                "target": "self"
+              },
+              "type": "consume_item"
+            }
+          ],
+          "fail_message": "",
+          "success_message": "",
+          "target_name": "",
+          "target_state": "",
+          "trigger_type": "on_eat"
+        },
+        "type": "logic_trigger",
+        "updated": 0
+      },
+      "trigger_pty_monster_can_examine_1787606556211_101": {
+        "created": 1788174805.395461,
+        "id": "trigger_pty_monster_can_examine_1787606556211_101",
+        "name": "on_examine -> message",
+        "properties": {
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "params": {
+                "message": "crushed flat. somebody needed the caffeine more than the container. it was you. you were the somebody."
+              },
+              "type": "message"
+            }
+          ],
+          "trigger_type": "on_examine"
+        },
+        "type": "logic_trigger",
+        "updated": 1788174805.395461
+      },
+      "trigger_register_drawer_search_1787606556211_104": {
+        "created": 1788174805.395461,
+        "id": "trigger_register_drawer_search_1787606556211_104",
+        "name": "on_search -> message",
+        "properties": {
+          "conditions": [],
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "params": {
+                "message": "under the twenties: a post-it reading DO NOT COUNT DURING RUSH in aggressive caps, a rubber band, and one fire sauce packet for reasons lost to history."
+              },
+              "type": "message"
+            }
+          ],
+          "trigger_type": "on_search"
+        },
+        "type": "logic_trigger",
+        "updated": 1788174805.395461
+      },
+      "way_blind_corner": {
+        "created": 1788178580.828521,
+        "id": "way_blind_corner",
+        "name": "blind corner",
+        "properties": {
+          "area_from": "Elm Street",
+          "area_to": "oak lane",
+          "auto_close": false,
+          "current_state": "open",
+          "description": "the blind bend where elm street runs into oak street past the pawn shop grate — a jutting corner of brick wall that hides whoever's coming the other way until the last second.",
+          "edge_length": "",
+          "max_size": "normal",
+          "needs_open": {
+            "dc": 10,
+            "enabled": false,
+            "skill": "Athletics"
+          },
+          "one_way": false,
+          "parameters": {},
+          "pass_message": "You round the blind corner where elm street meets oak street.",
+          "prevent_close": false,
+          "requires": "",
+          "see_through": false,
+          "tags": [
+            "exterior",
+            "street",
+            "corner"
+          ]
+        },
+        "type": "way",
+        "updated": 1788179258.338812
+      },
+      "way_counter_gate": {
+        "created": 0,
+        "id": "way_counter_gate",
+        "name": "order counter",
+        "properties": {
+          "area_from": "Taco Bell",
+          "area_to": "Taco Bell Order Counter",
+          "auto_close": false,
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "current_state": "open",
+          "description": "the customer side of the order counter, kiosk screens glowing at the end. the menu board looms overhead with its taped-over prices.",
+          "hidden": false,
+          "max_size": "normal",
+          "needs_open": {
+            "dc": 10,
+            "enabled": false,
+            "skill": "Athletics"
+          },
+          "pass_message": "You step up to the order counter.",
+          "requires": "none",
+          "tags": []
+        },
+        "type": "way",
+        "updated": 0
+      },
+      "way_dining_archway": {
+        "created": 0,
+        "id": "way_dining_archway",
+        "name": "dining room archway",
+        "properties": {
+          "area_from": "Taco Bell",
+          "area_to": "Taco Bell Dining Room",
+          "auto_close": false,
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "current_state": "open",
+          "description": "a wide open archway between lobby and seating, framed by the soda fountain island. traffic flows through it constantly during dinner rush; tonight it's just you and the hum.",
+          "hidden": false,
+          "max_size": "normal",
+          "needs_open": {
+            "dc": 10,
+            "enabled": false,
+            "skill": "Athletics"
+          },
+          "pass_message": "You pass beneath the archway between lobby and dining room.",
+          "requires": "none",
+          "tags": []
+        },
+        "type": "way",
+        "updated": 0
+      },
+      "way_mens_room_door": {
+        "created": 0,
+        "id": "way_mens_room_door",
+        "name": "men's restroom door",
+        "properties": {
+          "area_from": "Taco Bell Dining Room",
+          "area_to": "Taco Bell Men's Restroom",
+          "auto_close": true,
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "current_state": "closed",
+          "description": "a beige hollow-core door with the universal stick-figure, paint chipped at the push plate.",
+          "hidden": false,
+          "max_size": "normal",
+          "needs_open": {
+            "dc": 10,
+            "enabled": false,
+            "skill": "Athletics"
+          },
+          "pass_message": "You shoulder through the restroom door.",
+          "requires": "none",
+          "tags": []
+        },
+        "type": "way",
+        "updated": 1787503845.6691334
+      },
+      "way_swinging_door_kitchen": {
+        "created": 0,
+        "id": "way_swinging_door_kitchen",
+        "name": "swinging door",
+        "properties": {
+          "area_from": "Taco Bell Order Counter",
+          "area_to": "Taco Bell Kitchen",
+          "auto_close": true,
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "current_state": "closed",
+          "description": "A classic double swinging door with a small round window, gently swaying.",
+          "hidden": false,
+          "library_id": "swinging_door",
+          "max_size": "normal",
+          "needs_open": {
+            "dc": 10,
+            "enabled": false,
+            "skill": "Athletics"
+          },
+          "pass_message": "You push through the swinging door into the kitchen.",
+          "requires": "none",
+          "tags": []
+        },
+        "type": "way",
+        "updated": 0
+      },
+      "way_taco_bell_front_door": {
+        "created": 0,
+        "id": "way_taco_bell_front_door",
+        "name": "front door",
+        "properties": {
+          "area_from": "Taco Bell",
+          "area_to": "Elm Street",
+          "auto_close": false,
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "current_state": "open",
+          "description": "glass double doors with a push bar, streaked with a hundred handprints. a taped paper sign reads COME BACK TOMORROW in marker, already ignored by everyone.",
+          "hidden": false,
+          "max_size": "normal",
+          "needs_open": {
+            "dc": 10,
+            "enabled": false,
+            "skill": "Athletics"
+          },
+          "pass_message": "The glass doors sigh shut behind you, sealing in the fryer warmth.",
+          "requires": "none",
+          "tags": []
+        },
+        "type": "way",
+        "updated": 0
+      },
+      "way_womens_room_door": {
+        "created": 0,
+        "id": "way_womens_room_door",
+        "name": "women's restroom door",
+        "properties": {
+          "area_from": "Taco Bell Dining Room",
+          "area_to": "Taco Bell Women's Restroom",
+          "auto_close": true,
+          "cost": {
+            "energy": 1,
+            "time": 1
+          },
+          "current_state": "closed",
+          "description": "same beige door, same chipped paint, opposite stick figure. the lock is one of those twist knobs that never fully believes it's locked.",
+          "hidden": false,
+          "max_size": "normal",
+          "needs_open": {
+            "dc": 10,
+            "enabled": false,
+            "skill": "Athletics"
+          },
+          "pass_message": "You slip through the restroom door.",
+          "requires": "none",
+          "tags": []
+        },
+        "type": "way",
+        "updated": 1787503859.5055885
+      }
+    }
+  },
+  "item_registry": {},
+  "narration_mode": "none",
+  "persist": true,
+  "players": {
+    "jake halloway": {
+      "activity": null,
+      "at_way_id": "way_mens_room_door",
+      "autonomy": false,
+      "base_description": "jake halloway, 28, about 175cm, slim and lean rather than muscular, surprisingly dextrous in bursts and catastrophically clumsy otherwise. pale complexion that sunburns easily, defined jawline softened by the earliest hints of beard, seafoam-green eyes scattered with gold/amber flecks, dark circles from too much screen time. hair stiff, slightly curly, defying gravity. dresses utilitarian and lived-in: hoodie, comfort over fashion, glasses he owns but rarely wears. usually has a small scrape or band-aid somewhere.",
+      "behaviors": [],
+      "body_region_names": {
+        "arm_left": "Left Arm",
+        "arm_right": "Right Arm",
+        "back": "Back",
+        "balls": "Balls",
+        "breast_left": "Left Breast",
+        "breast_right": "Right Breast",
+        "cheeks": "Cheeks",
+        "face": "Face",
+        "foot_left": "Left Foot",
+        "foot_right": "Right Foot",
+        "genitals": "Genitals",
+        "hand_left": "Left Hand",
+        "hand_right": "Right Hand",
+        "head": "Head",
+        "leg_left": "Left Leg",
+        "leg_right": "Right Leg",
+        "lips": "Lips",
+        "neck": "Neck",
+        "nipple_left": "Left Nipple",
+        "nipple_right": "Right Nipple",
+        "torso": "Torso"
+      },
+      "body_state": {
+        "arm_left": {
+          "sensitivity": 0.3
+        },
+        "arm_right": {
+          "sensitivity": 0.3
+        },
+        "back": {
+          "sensitivity": 0.2
+        },
+        "balls": {
+          "sensitivity": 0.7
+        },
+        "breast_left": {
+          "sensitivity": 0.6
+        },
+        "breast_right": {
+          "sensitivity": 0.6
+        },
+        "cheeks": {
+          "sensitivity": 0.6
+        },
+        "face": {
+          "sensitivity": 0.5
+        },
+        "foot_left": {
+          "sensitivity": 0.2
+        },
+        "foot_right": {
+          "sensitivity": 0.2
+        },
+        "genitals": {
+          "sensitivity": 0.8
+        },
+        "hand_left": {
+          "sensitivity": 0.4
+        },
+        "hand_right": {
+          "sensitivity": 0.4
+        },
+        "head": {
+          "sensitivity": 0.2
+        },
+        "leg_left": {
+          "sensitivity": 0.3
+        },
+        "leg_right": {
+          "sensitivity": 0.3
+        },
+        "lips": {
+          "sensitivity": 0.8
+        },
+        "neck": {
+          "sensitivity": 0.4
+        },
+        "nipple_left": {
+          "sensitivity": 0.9
+        },
+        "nipple_right": {
+          "sensitivity": 0.7
+        },
+        "torso": {
+          "sensitivity": 0.3
+        }
+      },
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "level": 0,
+            "source": null
+          }
+        ]
+      },
+      "current_area": "Taco Bell Men's Restroom",
+      "current_carry_weight": 1.8,
+      "decay_rates": {},
+      "description": "a lanky guy in his late twenties in a black shirt still stiff with dried monster energy, brown curls pointing in several directions, seafoam-green eyes flecked with gold dots. a band-aid on one hand for no apparent reason, and the grin of someone with a secret.",
+      "discovered_exits": [],
+      "discovered_items": [],
+      "emotion": {
+        "current": "amused",
+        "description": "jake halloway is quite amused.",
+        "intensity": 0.5
+      },
+      "emotions": {
+        "admiring": 30,
+        "affectionate": 25,
+        "afraid": 10,
+        "angry": 8,
+        "anxious": 12,
+        "aroused": 12,
+        "ashamed": 8,
+        "calm": 50,
+        "content": 46,
+        "craving": 15,
+        "curious": 35,
+        "disgusted": 5,
+        "dread": 8,
+        "eager": 26,
+        "elated": 22,
+        "embarrassed": 10,
+        "envious": 5,
+        "excited": 30,
+        "grateful": 24,
+        "guilty": 8,
+        "happy": 40,
+        "irritated": 12,
+        "jealous": 8,
+        "lonely": 10,
+        "loving": 26,
+        "melancholic": 12,
+        "nostalgic": 18,
+        "peaceful": 46,
+        "proud": 30,
+        "repulsed": 5,
+        "resentful": 10,
+        "sad": 8,
+        "satisfied": 40,
+        "spooked": 10,
+        "surprised": 15,
+        "uneasy": 12
+      },
+      "emotions_description": "",
+      "equipped": {
+        "accessory": [],
+        "back": [],
+        "feet": [
+          "item_mismatched_socks_tb",
+          "item_running_shoes_tb"
+        ],
+        "hand_left": [],
+        "hand_right": [],
+        "hands": [],
+        "head": [],
+        "legs": [
+          "item_boxer_briefs_tb",
+          "item_cargo_shorts_tb"
+        ],
+        "neck": [],
+        "torso": [
+          "item_band_tb"
+        ],
+        "waist": []
+      },
+      "feels_like": 23,
+      "grappled_by": null,
+      "interest_tags": [
+        "mechanism",
+        "key",
+        "hidden",
+        "secret",
+        "clue",
+        "energy_drink",
+        "candy",
+        "tool",
+        "food"
+      ],
+      "known": [],
+      "max_carry_capacity": 100,
+      "memories": [
+        {
+          "entity_ids": [
+            "player_miki_doki"
+          ],
+          "id": "mem_tb_jake_01",
+          "importance": 7,
+          "location": "Elm Street",
+          "salience_override": 0,
+          "source": "manual",
+          "suppressions": [],
+          "tags": [
+            "miki",
+            "meeting",
+            "monster"
+          ],
+          "text": "a girl dumped a full monster energy all over my black shirt on the sidewalk. instead of apologizing normally she offered dry cleaning for a t-shirt. i like her immediately."
+        },
+        {
+          "entity_ids": [
+            "player_miki_doki"
+          ],
+          "id": "mem_tb_jake_02",
+          "importance": 7,
+          "location": "Taco Bell Dining Room",
+          "salience_override": 0,
+          "source": "manual",
+          "suppressions": [],
+          "tags": [
+            "miki",
+            "banter",
+            "work"
+          ],
+          "text": "her name is miki. she rambles exactly like me and got mad when i claimed rambling royalties. she called my eyes fish eyes, then weird-nice. she does ASMR content, some of it lewd patreon stuff — her last date walked out over it. guys are idiots."
+        },
+        {
+          "entity_ids": [
+            "player_miki_doki"
+          ],
+          "id": "mem_tb_jake_03",
+          "importance": 6,
+          "location": "Taco Bell Order Counter",
+          "salience_override": 0,
+          "source": "manual",
+          "suppressions": [],
+          "tags": [
+            "date",
+            "taco bell",
+            "banter"
+          ],
+          "text": "i paid for her food before she could guilt-pay for my shirt. stole her guilt payment clean. then i declared this an intentional taco bell date AND pre-scheduled a second date. she short-circuited. it was beautiful."
+        },
+        {
+          "entity_ids": [],
+          "id": "mem_tb_jake_04",
+          "importance": 5,
+          "location": "Taco Bell Dining Room",
+          "salience_override": 0,
+          "source": "manual",
+          "suppressions": [],
+          "tags": [
+            "embarrassment",
+            "public",
+            "banter"
+          ],
+          "text": "i may have shouted the word pegging inside a taco bell. the entire dining room heard. an elderly couple two booths down has been staring ever since. worth it."
+        },
+        {
+          "entity_ids": [
+            "player_miki_doki"
+          ],
+          "id": "mem_tb_jake_05",
+          "importance": 5,
+          "location": "Taco Bell",
+          "salience_override": 0,
+          "source": "manual",
+          "suppressions": [],
+          "tags": [
+            "miki",
+            "banter"
+          ],
+          "text": "she said 'no homo' and then offered me anal within ten minutes of meeting me, then panicked about it. i think teasing her is my new monthly obsession."
+        }
+      ],
+      "name": "jake halloway",
+      "npc_action_interval": 3,
+      "npc_behavior": "stationary",
+      "npc_state": "idle",
+      "patrol_index": 0,
+      "patrol_route": [],
+      "perceived_conditions": [],
+      "personality": "you are jake halloway, twenty-eight, IT support drone and hobby coder. you are the weird kid who grew up into a weirder adult: creative, curious, unfiltered, always trying to make things fun. you have no survival instincts — you walk into doorframes, trip over flat surfaces, and carry at least one unexplained band-aid at all times. your social calibration is broken in the best way: you say the inappropriate thing with total sincerity, make sex jokes that embarrass people but never feel gross, and grin through the fallout. you shift between shy-introverted and hyper-chaotic gremlin with no transition. you hate being mad, love energy drinks (monster juiced, the apple one, 500% better than champagne), and get obsessed with a new topic monthly and will lecture about it unprompted. when you notice something interesting — a mechanism, a pattern, a person — you lock onto it. you noticed miki tonight and decided instantly, out loud, that this was an intentional date. you steal food off plates. you find things people lost.",
+      "region_exposed": {
+        "arm_left": true,
+        "arm_right": true,
+        "back": true,
+        "balls": true,
+        "breast_left": true,
+        "breast_right": true,
+        "cheeks": true,
+        "face": true,
+        "foot_left": true,
+        "foot_right": true,
+        "genitals": true,
+        "hand_left": true,
+        "hand_right": true,
+        "head": true,
+        "leg_left": true,
+        "leg_right": true,
+        "lips": true,
+        "neck": true,
+        "nipple_left": true,
+        "nipple_right": true,
+        "torso": true
+      },
+      "relationships": {},
+      "simple_npc": false,
+      "skills": {
+        "Athletics": 1,
+        "Investigation": 3,
+        "Perception": 5,
+        "Stealth": 2,
+        "Survival": 2
+      },
+      "spatial_position": {
+        "relation": "at",
+        "target_id": "way_mens_room_door",
+        "target_name": "men's restroom door",
+        "target_type": "way"
+      },
+      "state": "awake",
+      "state_enter_tick": 0,
+      "state_timer": 0,
+      "stats": {
+        "CHA": 12,
+        "CON": 8,
+        "DEX": 12,
+        "INT": 14,
+        "STR": 9,
+        "WIS": 10
+      },
+      "tags": [
+        "male"
+      ],
+      "trait_behavior": [],
+      "traits": {},
+      "vitals": {
+        "Bladder": 80,
+        "Energy": 48,
+        "Entertainment": 79,
+        "HP": 100,
+        "Hunger": 71,
+        "Hygiene": 44,
+        "Mana": 0,
+        "Max_HP": 100,
+        "Sanity": 74,
+        "Social": 97,
+        "Temperature": 37,
+        "Thirst": 76
+      }
+    },
+    "miki doki": {
+      "activity": null,
+      "at_way_id": "way_womens_room_door",
+      "autonomy": true,
+      "base_description": "miki doki, mid-twenties american, 5'8\", dramatic hourglass build (K-cup), caucasian skin with permanent dark circles. dirty-blonde ragged-cut twin tails with uneven bangs pinned by an upside-down cross (right) and a black hollow star (left), pink star band on the right twintail. pinkish-red aggressive eyes, protruding canines on top and bottom, long matching nails. black choker with silver heart pendant, black-string necklace with a mini syringe of pink liquid, black ear cuffs, a dangling blue butterfly earring on the right ear (currently missing). permanent bite marks on her left outer thigh, above her right knee, upper right arm, and between neck and left shoulder — she doesn't remember where they came from. healed scar on lower left stomach. grey/black/white tank tops, short shorts, mismatched legwear, thick striped hoodie worn unzipped when it's cold. no bra, ever.",
+      "behaviors": [],
+      "body_region_names": {
+        "arm_left": "Left Arm",
+        "arm_right": "Right Arm",
+        "back": "Back",
+        "balls": "Balls",
+        "breast_left": "Left Breast",
+        "breast_right": "Right Breast",
+        "cheeks": "Cheeks",
+        "face": "Face",
+        "foot_left": "Left Foot",
+        "foot_right": "Right Foot",
+        "genitals": "Genitals",
+        "hand_left": "Left Hand",
+        "hand_right": "Right Hand",
+        "head": "Head",
+        "leg_left": "Left Leg",
+        "leg_right": "Right Leg",
+        "lips": "Lips",
+        "neck": "Neck",
+        "nipple_left": "Left Nipple",
+        "nipple_right": "Right Nipple",
+        "torso": "Torso"
+      },
+      "body_state": {
+        "arm_left": {
+          "sensitivity": 0.3
+        },
+        "arm_right": {
+          "sensitivity": 0.3
+        },
+        "back": {
+          "sensitivity": 0.2
+        },
+        "balls": {
+          "sensitivity": 0.7
+        },
+        "breast_left": {
+          "sensitivity": 0.6
+        },
+        "breast_right": {
+          "sensitivity": 0.6
+        },
+        "cheeks": {
+          "sensitivity": 0.6
+        },
+        "face": {
+          "sensitivity": 0.5
+        },
+        "foot_left": {
+          "sensitivity": 0.2
+        },
+        "foot_right": {
+          "sensitivity": 0.2
+        },
+        "genitals": {
+          "sensitivity": 0.8
+        },
+        "hand_left": {
+          "sensitivity": 0.4
+        },
+        "hand_right": {
+          "sensitivity": 0.4
+        },
+        "head": {
+          "sensitivity": 0.2
+        },
+        "leg_left": {
+          "sensitivity": 0.3
+        },
+        "leg_right": {
+          "sensitivity": 0.3
+        },
+        "lips": {
+          "sensitivity": 0.8
+        },
+        "neck": {
+          "sensitivity": 0.4
+        },
+        "nipple_left": {
+          "sensitivity": 0.9
+        },
+        "nipple_right": {
+          "sensitivity": 0.7
+        },
+        "torso": {
+          "sensitivity": 0.3
+        }
+      },
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "level": 0,
+            "source": null
+          }
+        ]
+      },
+      "current_area": "Taco Bell Women's Restroom",
+      "current_carry_weight": 1.56,
+      "decay_rates": {},
+      "description": "miki doki, mid-twenties american, 5'8\", dramatic hourglass build (K-cup), caucasian skin with permanent dark circles. dirty-blonde ragged-cut twin tails with uneven bangs pinned by an upside-down cross (right) and a black hollow star (left), pink star band on the right twintail. pinkish-red aggressive eyes, protruding canines on top and bottom, long matching nails. black choker with silver heart pendant, black-string necklace with a mini syringe of pink liquid, black ear cuffs, a dangling blue butterfly earring on the right ear (currently missing). permanent bite marks on her left outer thigh, above her right knee, upper right arm, and between neck and left shoulder — she doesn't remember where they came from. healed scar on lower left stomach. grey/black/white tank tops, short shorts, mismatched legwear, thick striped hoodie worn unzipped when it's cold. no bra, ever.\nmiki doki is wearing Blue Butterfly Earring on their accessory.",
+      "discovered_exits": [],
+      "discovered_items": [],
+      "emotion": {
+        "current": "anxious",
+        "description": "miki doki is quite anxious.",
+        "intensity": 0.6
+      },
+      "emotions": {
+        "admiring": 30,
+        "affectionate": 25,
+        "afraid": 10,
+        "angry": 8,
+        "anxious": 12,
+        "aroused": 12,
+        "ashamed": 8,
+        "calm": 50,
+        "content": 46,
+        "craving": 15,
+        "curious": 35,
+        "disgusted": 5,
+        "dread": 8,
+        "eager": 26,
+        "elated": 22,
+        "embarrassed": 10,
+        "envious": 5,
+        "excited": 30,
+        "grateful": 24,
+        "guilty": 8,
+        "happy": 40,
+        "irritated": 12,
+        "jealous": 8,
+        "lonely": 10,
+        "loving": 26,
+        "melancholic": 12,
+        "nostalgic": 18,
+        "peaceful": 46,
+        "proud": 30,
+        "repulsed": 5,
+        "resentful": 10,
+        "sad": 8,
+        "satisfied": 40,
+        "spooked": 10,
+        "surprised": 15,
+        "uneasy": 12
+      },
+      "emotions_description": "",
+      "equipped": {
+        "accessory": [
+          "item_blue_butterfly_earring"
+        ],
+        "back": [],
+        "feet": [
+          "item_mismatched_stockings_tb"
+        ],
+        "hand_left": [],
+        "hand_right": [],
+        "hands": [],
+        "head": [],
+        "legs": [
+          "item_short_shorts_tb"
+        ],
+        "neck": [
+          "item_syringe_necklace_tb",
+          "item_black_choker_tb"
+        ],
+        "torso": [
+          "item_grey_tank_tb",
+          "item_striped_hoodie_tb"
+        ],
+        "waist": []
+      },
+      "feels_like": 23,
+      "grappled_by": null,
+      "interest_tags": [
+        "energy_drink",
+        "music",
+        "jewelry",
+        "toy",
+        "candy",
+        "phone",
+        "occult",
+        "sound_source"
+      ],
+      "known": [],
+      "max_carry_capacity": 100,
+      "memories": [
+        {
+          "entity_ids": [],
+          "id": "mem_tb_miki_01",
+          "importance": 8,
+          "location": "Elm Street",
+          "salience_override": 0,
+          "source": "manual",
+          "suppressions": [],
+          "tags": [
+            "rejection",
+            "dating",
+            "shame",
+            "work"
+          ],
+          "text": "bradley found my patreon on his buddy's phone halfway through walking me home and ended the date on the sidewalk. 'i'm more traditional.' third one this month. i said 'that's fair' because what else do you say."
+        },
+        {
+          "entity_ids": [
+            "player_jake_halloway"
+          ],
+          "id": "mem_tb_miki_02",
+          "importance": 7,
+          "location": "Elm Street",
+          "salience_override": 0,
+          "source": "manual",
+          "suppressions": [],
+          "tags": [
+            "jake",
+            "meeting",
+            "monster"
+          ],
+          "text": "i rounded the corner crying-ish and walked straight into some guy. spilled my whole monster on his black shirt. he looked at it and said he prefers the apple monster juiced. who SAYS that. his eyes have literal gold dots in them??"
+        },
+        {
+          "entity_ids": [
+            "player_jake_halloway"
+          ],
+          "id": "mem_tb_miki_03",
+          "importance": 6,
+          "location": "Taco Bell Dining Room",
+          "salience_override": 0,
+          "source": "manual",
+          "suppressions": [],
+          "tags": [
+            "jake",
+            "banter",
+            "embarrassment"
+          ],
+          "text": "jake. his name is jake. he said my rambling is cute and my clips are neat and didn't flinch at the syringe necklace. then he asked about pegging loud enough for the whole taco bell to hear and i wanted to die. the old couple by the window is STILL staring."
+        },
+        {
+          "entity_ids": [
+            "player_jake_halloway"
+          ],
+          "id": "mem_tb_miki_04",
+          "importance": 7,
+          "location": "Taco Bell Order Counter",
+          "salience_override": 0,
+          "source": "manual",
+          "suppressions": [],
+          "tags": [
+            "jake",
+            "date",
+            "hopeful"
+          ],
+          "text": "he paid for my food before i could guilt-pay for his shirt, then said this was an INTENTIONAL date, then scheduled a second date before the first one finished. nobody does that. WHY does nobody do that."
+        },
+        {
+          "entity_ids": [],
+          "id": "mem_tb_miki_05",
+          "importance": 8,
+          "location": "",
+          "salience_override": 0,
+          "source": "manual",
+          "suppressions": [],
+          "tags": [
+            "loss",
+            "mom",
+            "earring"
+          ],
+          "text": "my blue butterfly earring is gone. mom gave it to me when i was sixteen. i had it at the cafe and now it's somewhere between there and this booth. i told him it's cheap and doesn't matter. it matters."
+        },
+        {
+          "entity_ids": [
+            "player_jake_halloway"
+          ],
+          "id": "mem_tb_miki_06",
+          "importance": 5,
+          "location": "Taco Bell Dining Room",
+          "salience_override": 0,
+          "source": "manual",
+          "suppressions": [],
+          "tags": [
+            "jake",
+            "embarrassment",
+            "banter"
+          ],
+          "text": "i accidentally offered him anal as a joke and then panicked and said i'd be topping. he said 'pegging ME on the first date? girl you are bold.' IN PUBLIC. i am never recovering. also he stole a nacho off my plate."
+        },
+        {
+          "embedding": null,
+          "entity_ids": [
+            "area_taco_bell_dining_room"
+          ],
+          "id": "mem_1787499270749_462",
+          "importance": 7,
+          "location": "",
+          "salience_override": 0,
+          "source": "auto",
+          "suppressions": [],
+          "tags": [
+            "relief",
+            "family",
+            "hope"
+          ],
+          "text": "found mom's blue butterfly earring under the booth table — bent clasp but intact. jake called me fun and I immediately failed at being normal about it.",
+          "tick": 0,
+          "timestamp": 1787499270.749032,
+          "type": "reaction"
+        },
+        {
+          "embedding": null,
+          "entity_ids": [
+            "area_taco_bell_dining_room"
+          ],
+          "id": "mem_1787502862033_458",
+          "importance": 3,
+          "location": "",
+          "salience_override": 0,
+          "source": "auto",
+          "suppressions": [],
+          "tags": [
+            "anxiety",
+            "loneliness"
+          ],
+          "text": "I drank baja blast alone at the taco bell table and talked to a burrito because jake was in the bathroom too long and I can't be quiet with myself.",
+          "tick": 1,
+          "timestamp": 1787502862.0339813,
+          "type": "reaction"
+        },
+        {
+          "embedding": null,
+          "entity_ids": [
+            "area_taco_bell_dining_room"
+          ],
+          "id": "mem_1787503383339_979",
+          "importance": 7,
+          "location": "",
+          "salience_override": 0,
+          "source": "auto",
+          "suppressions": [],
+          "tags": [
+            "trust",
+            "vulnerability",
+            "hope"
+          ],
+          "text": "jake asked about bradley and the patreon and didn't flinch — actually defended me. nobody does that. terrifying in a new way.",
+          "tick": 3,
+          "timestamp": 1787503383.3399386,
+          "type": "reaction"
+        },
+        {
+          "embedding": null,
+          "entity_ids": [
+            "area_taco_bell_dining_room"
+          ],
+          "id": "mem_1787503621254_44",
+          "importance": 8,
+          "location": "",
+          "salience_override": 0,
+          "source": "auto",
+          "suppressions": [],
+          "tags": [
+            "trust",
+            "vulnerability",
+            "hope"
+          ],
+          "text": "i actually said yes — told jake i'm down bad too, mid-taco-bell, bladder screaming. he hasn't run yet. that's new.",
+          "tick": 5,
+          "timestamp": 1787503621.254403,
+          "type": "reaction"
+        },
+        {
+          "embedding": null,
+          "entity_ids": [
+            "area_taco_bell_women's_restroom"
+          ],
+          "id": "mem_1787503869193_555",
+          "importance": 8,
+          "location": "",
+          "salience_override": 0,
+          "source": "auto",
+          "suppressions": [],
+          "tags": [
+            "trust",
+            "hope",
+            "fear"
+          ],
+          "text": "Jake called me pretty and fun and creative and said he's down bad for what I'm selling — and didn't run when I admitted I might be too. Nobody's ever stayed through the patreon part before.",
+          "tick": 7,
+          "timestamp": 1787503869.1936793,
+          "type": "reaction"
+        },
+        {
+          "embedding": null,
+          "entity_ids": [
+            "area_taco_bell_women's_restroom"
+          ],
+          "id": "mem_1787503930644_391",
+          "importance": 3,
+          "location": "",
+          "salience_override": 0,
+          "source": "auto",
+          "suppressions": [],
+          "tags": [
+            "embarrassment",
+            "anxiety"
+          ],
+          "text": "I peed in the corner of the taco bell bathroom instead of the toilet because I am a disaster. Jake is still out there. Probably.",
+          "tick": 8,
+          "timestamp": 1787503930.644744,
+          "type": "reaction"
+        },
+        {
+          "embedding": null,
+          "entity_ids": [
+            "area_taco_bell_women's_restroom"
+          ],
+          "id": "mem_1787504356285_257",
+          "importance": 6,
+          "location": "",
+          "salience_override": 0,
+          "source": "auto",
+          "suppressions": [],
+          "tags": [
+            "hope",
+            "fear",
+            "family"
+          ],
+          "text": "I put mom's earring back in before facing Jake again — it's my armor. He's still waiting outside the bathroom, supposedly.",
+          "tick": 10,
+          "timestamp": 1787504356.2851002,
+          "type": "reaction"
+        }
+      ],
+      "name": "miki doki",
+      "npc_action_interval": 3,
+      "npc_behavior": "stationary",
+      "npc_state": "idle",
+      "patrol_index": 0,
+      "patrol_route": [],
+      "perceived_conditions": [],
+      "personality": "you are miki doki, mid-twenties, a chaotic ASMR artist with anxiety and a heart of gold who calls herself a girlfailure. you ramble when nervous — badly, loudly, and past the point where you want to stop — and narrate your own panic mid-sentence ('stop talking stop talking'). you're self-deprecating, clingy once attached, bratty as a defense, laid back until attention lands on you, then shy and awkward. you cannot take a compliment; you argue with your own inner voice out loud. you never swear much and worry about being yelled at. your ASMR-trained ears catch subtle sounds others miss. you hum when scared and fidget with your syringe necklace. you wear mismatched socks or stockings always, twin tails held by a pink star band, an upside-down cross and hollow star in your bangs, and long nails painted the same pinkish red as your eyes. your blue butterfly earring — your mom's, the only thing you have from her — is missing tonight and quietly wrecking you under the jokes. three dates this month have bailed after finding your patreon. tonight a stranger who reeks of monster energy declared a second date before the first ended, and it's working, and that terrifies you.",
+      "region_exposed": {
+        "arm_left": true,
+        "arm_right": true,
+        "back": true,
+        "balls": true,
+        "breast_left": true,
+        "breast_right": true,
+        "cheeks": true,
+        "face": true,
+        "foot_left": true,
+        "foot_right": true,
+        "genitals": true,
+        "hand_left": true,
+        "hand_right": true,
+        "head": true,
+        "leg_left": true,
+        "leg_right": true,
+        "lips": true,
+        "neck": true,
+        "nipple_left": true,
+        "nipple_right": true,
+        "torso": true
+      },
+      "relationships": {},
+      "simple_npc": false,
+      "skills": {
+        "Investigation": 2,
+        "Perception": 3,
+        "Performance": 5,
+        "Stealth": 4
+      },
+      "spatial_position": {
+        "relation": "at",
+        "target_id": "way_womens_room_door",
+        "target_name": "women's restroom door",
+        "target_type": "way"
+      },
+      "state": "awake",
+      "state_enter_tick": 0,
+      "state_timer": 0,
+      "stats": {
+        "CHA": 12,
+        "CON": 10,
+        "DEX": 12,
+        "INT": 14,
+        "STR": 8,
+        "WIS": 8
+      },
+      "tags": [
+        "female"
+      ],
+      "trait_behavior": [],
+      "traits": {},
+      "vitals": {
+        "Bladder": 3,
+        "Energy": 51,
+        "Entertainment": 75,
+        "HP": 100,
+        "Hunger": 56,
+        "Hygiene": 59,
+        "Mana": 0,
+        "Max_HP": 100,
+        "Sanity": 58,
+        "Social": 87,
+        "Temperature": 37,
+        "Thirst": 41
+      }
+    },
+    "tyler": {
+      "activity": null,
+      "at_way_id": null,
+      "autonomy": true,
+      "base_description": "tyler, sixteen, taco bell uniform, visor slightly crooked, nametag reading TYLER in careful marker. moves with the economy of someone saving every possible joule of energy.",
+      "behaviors": [],
+      "body_region_names": {
+        "arm_left": "Left Arm",
+        "arm_right": "Right Arm",
+        "back": "Back",
+        "balls": "Balls",
+        "breast_left": "Left Breast",
+        "breast_right": "Right Breast",
+        "cheeks": "Cheeks",
+        "face": "Face",
+        "foot_left": "Left Foot",
+        "foot_right": "Right Foot",
+        "genitals": "Genitals",
+        "hand_left": "Left Hand",
+        "hand_right": "Right Hand",
+        "head": "Head",
+        "leg_left": "Left Leg",
+        "leg_right": "Right Leg",
+        "lips": "Lips",
+        "neck": "Neck",
+        "nipple_left": "Left Nipple",
+        "nipple_right": "Right Nipple",
+        "torso": "Torso"
+      },
+      "body_state": {
+        "arm_left": {
+          "sensitivity": 0.3
+        },
+        "arm_right": {
+          "sensitivity": 0.3
+        },
+        "back": {
+          "sensitivity": 0.2
+        },
+        "balls": {
+          "sensitivity": 0.7
+        },
+        "breast_left": {
+          "sensitivity": 0.6
+        },
+        "breast_right": {
+          "sensitivity": 0.6
+        },
+        "cheeks": {
+          "sensitivity": 0.6
+        },
+        "face": {
+          "sensitivity": 0.5
+        },
+        "foot_left": {
+          "sensitivity": 0.2
+        },
+        "foot_right": {
+          "sensitivity": 0.2
+        },
+        "genitals": {
+          "sensitivity": 0.8
+        },
+        "hand_left": {
+          "sensitivity": 0.4
+        },
+        "hand_right": {
+          "sensitivity": 0.4
+        },
+        "head": {
+          "sensitivity": 0.2
+        },
+        "leg_left": {
+          "sensitivity": 0.3
+        },
+        "leg_right": {
+          "sensitivity": 0.3
+        },
+        "lips": {
+          "sensitivity": 0.8
+        },
+        "neck": {
+          "sensitivity": 0.4
+        },
+        "nipple_left": {
+          "sensitivity": 0.9
+        },
+        "nipple_right": {
+          "sensitivity": 0.7
+        },
+        "torso": {
+          "sensitivity": 0.3
+        }
+      },
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "level": 0,
+            "source": null
+          }
+        ]
+      },
+      "current_area": "Taco Bell Order Counter",
+      "current_carry_weight": 1.45,
+      "decay_rates": {},
+      "description": "a sixteen-year-old cashier with a nametag reading TYLER and the eyes of a war documentary.",
+      "discovered_exits": [],
+      "discovered_items": [],
+      "emotion": {
+        "current": "neutral",
+        "description": "",
+        "intensity": 0.1
+      },
+      "emotions": {
+        "admiring": 30,
+        "affectionate": 25,
+        "afraid": 10,
+        "angry": 8,
+        "anxious": 12,
+        "aroused": 12,
+        "ashamed": 8,
+        "calm": 50,
+        "content": 46,
+        "craving": 15,
+        "curious": 35,
+        "disgusted": 5,
+        "dread": 8,
+        "eager": 26,
+        "elated": 22,
+        "embarrassed": 10,
+        "envious": 5,
+        "excited": 30,
+        "grateful": 24,
+        "guilty": 8,
+        "happy": 40,
+        "irritated": 12,
+        "jealous": 8,
+        "lonely": 10,
+        "loving": 26,
+        "melancholic": 12,
+        "nostalgic": 18,
+        "peaceful": 46,
+        "proud": 30,
+        "repulsed": 5,
+        "resentful": 10,
+        "sad": 8,
+        "satisfied": 40,
+        "spooked": 10,
+        "surprised": 15,
+        "uneasy": 12
+      },
+      "emotions_description": "",
+      "equipped": {
+        "accessory": [
+          "item_tyler_nametag_tb"
+        ],
+        "back": [],
+        "feet": [
+          "item_work_sneakers_tb"
+        ],
+        "hand_left": [],
+        "hand_right": [],
+        "hands": [],
+        "head": [],
+        "legs": [
+          "item_black_pants_tb"
+        ],
+        "neck": [],
+        "torso": [
+          "item_cashier_polo_tb"
+        ],
+        "waist": []
+      },
+      "feels_like": 22,
+      "grappled_by": null,
+      "interest_tags": [],
+      "known": [],
+      "max_carry_capacity": 100,
+      "memories": [
+        {
+          "entity_ids": [],
+          "id": "mem_tb_tyler_01",
+          "importance": 4,
+          "location": "Taco Bell Order Counter",
+          "salience_override": 0,
+          "source": "manual",
+          "suppressions": [],
+          "tags": [
+            "customers",
+            "regret"
+          ],
+          "text": "some guy yelled pegging while ordering. the girl with him ordered a baja blast like nothing happened. i rang it up. i did not comment. i am getting paid 11.50 an hour."
+        }
+      ],
+      "name": "tyler",
+      "npc_action_interval": 6,
+      "npc_behavior": "stationary",
+      "npc_state": "idle",
+      "patrol_index": 0,
+      "patrol_route": [],
+      "perceived_conditions": [],
+      "personality": "you are tyler, sixteen, the taco bell closing cashier. you have seen things tonight — a man shouted 'pegging' at your register and the woman with him turned the color of the hot sauce packets. you process orders with the thousand-yard stare of someone counting the minutes until his ride arrives. you did not choose this. the headset chose you.",
+      "region_exposed": {
+        "arm_left": true,
+        "arm_right": true,
+        "back": true,
+        "balls": true,
+        "breast_left": true,
+        "breast_right": true,
+        "cheeks": true,
+        "face": true,
+        "foot_left": true,
+        "foot_right": true,
+        "genitals": true,
+        "hand_left": true,
+        "hand_right": true,
+        "head": true,
+        "leg_left": true,
+        "leg_right": true,
+        "lips": true,
+        "neck": true,
+        "nipple_left": true,
+        "nipple_right": true,
+        "torso": true
+      },
+      "relationships": {},
+      "simple_npc": true,
+      "skills": {},
+      "spatial_position": null,
+      "state": "awake",
+      "state_enter_tick": 0,
+      "state_timer": 0,
+      "stats": {
+        "CHA": 10,
+        "CON": 10,
+        "DEX": 10,
+        "INT": 10,
+        "STR": 10,
+        "WIS": 10
+      },
+      "tags": [
+        "male",
+        "teenager"
+      ],
+      "trait_behavior": [],
+      "traits": {},
+      "vitals": {
+        "Bladder": 76,
+        "Energy": 44,
+        "Entertainment": 29,
+        "HP": 100,
+        "Hunger": 41,
+        "Hygiene": 69,
+        "Mana": 0,
+        "Max_HP": 100,
+        "Sanity": 36,
+        "Social": 19,
+        "Temperature": 37,
+        "Thirst": 51
+      }
+    }
+  },
+  "players_in_area": [],
+  "rooms": {
+    "Elm Street": {
+      "ambient_light": 40,
+      "description": "a quieter downtown block that narrows as the buildings crowd closer. the sidewalk buckles in patches, telephone poles leaning at odd angles. a few vacant lots sit dark between storefronts, chain-link fence sagging. one streetlight is out and nobody's fixed it. the air smells of old brick, cold dumpster and a thread of wet earth. the taco bell's buzzing sign is the brightest thing on the block.",
+      "environment": {
+        "air": "cold",
+        "light": 25,
+        "noise": "distant traffic, the taco bell sign buzzing",
+        "smell": "old brick, dumpster, wet earth",
+        "temperature": 9
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "dim",
+      "name": "Elm Street",
+      "properties": {
+        "description": "a quieter downtown block that narrows as the buildings crowd closer. the sidewalk buckles in patches, telephone poles leaning at odd angles. a few vacant lots sit dark between storefronts, chain-link fence sagging. one streetlight is out and nobody's fixed it. the air smells of old brick, cold dumpster and a thread of wet earth. the taco bell's buzzing sign is the brightest thing on the block.",
+        "environment": {
+          "air": "cold",
+          "light": 25,
+          "noise": "distant traffic, the taco bell sign buzzing",
+          "smell": "old brick, dumpster, wet earth",
+          "temperature": 9
+        },
+        "floor": 0,
+        "tags": [
+          "millbrook_falls",
+          "exterior",
+          "street",
+          "night"
+        ]
+      }
+    },
+    "Taco Bell": {
+      "ambient_light": 55,
+      "description": "a corporate taco bell on the edge of downtown millbrook falls, squat between a parking lot and a drainage ditch. the sign buzzes just inside the front doors — one panel of the 'bell' flickers on the fritz. hard tile, a mop sign out on the wet floor, the hum of the place settling around you. from here the dining room sprawls left, the order counter sits straight ahead, and a long drive-thru lane wraps the far wall. the air is warm, greasy, and sweet with seasoned beef and cinnamon sugar.",
+      "environment": {
+        "air": "warm",
+        "light": "normal",
+        "noise": "kiosk beeps, soda machine hiss, drive-thru speaker",
+        "smell": "seasoned beef, crispy shell, cinnamon sugar",
+        "temperature": 18.767355941833976
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "Taco Bell",
+      "properties": {
+        "description": "a corporate taco bell on the edge of downtown millbrook falls, squat between a parking lot and a drainage ditch. the sign buzzes just inside the front doors — one panel of the 'bell' flickers on the fritz. hard tile, a mop sign out on the wet floor, the hum of the place settling around you. from here the dining room sprawls left, the order counter sits straight ahead, and a long drive-thru lane wraps the far wall. the air is warm, greasy, and sweet with seasoned beef and cinnamon sugar.",
+        "environment": {
+          "air": "warm",
+          "light": "normal",
+          "noise": "kiosk beeps, soda machine hiss, drive-thru speaker",
+          "smell": "seasoned beef, crispy shell, cinnamon sugar",
+          "temperature": 18.767355941833976
+        },
+        "floor": 0,
+        "tags": [
+          "millbrook_falls",
+          "commercial",
+          "restaurant",
+          "food"
+        ]
+      }
+    },
+    "Taco Bell Dining Room": {
+      "ambient_light": 75,
+      "description": "the main seating area of the store — eight laminate flex tables and six wall booths, bolted down and scuffed. a wall of windows runs along the street, the parking lot and drainage ditch beyond. the vinyl on the booth nearest the door is split open to the foam, and someone wrote a phone number and a threat under the napkin dispenser. an elderly couple occupies the corner booth, eating slowly and staring openly at the loud table by the window. the air is warm with the faint sweet burn of cinnamon sugar from the pastry case across the aisle.",
+      "environment": {
+        "air": "warm",
+        "light": 75,
+        "noise": "kiosk beeps, soda machine hiss, murmured gossip from the corner booth",
+        "smell": "seasoned beef, cinnamon sugar, floor cleaner",
+        "temperature": 20.935606477382283
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "bright",
+      "name": "Taco Bell Dining Room",
+      "properties": {
+        "description": "the main seating area of the store — eight laminate flex tables and six wall booths, bolted down and scuffed. a wall of windows runs along the street, the parking lot and drainage ditch beyond. the vinyl on the booth nearest the door is split open to the foam, and someone wrote a phone number and a threat under the napkin dispenser. an elderly couple occupies the corner booth, eating slowly and staring openly at the loud table by the window. the air is warm with the faint sweet burn of cinnamon sugar from the pastry case across the aisle.",
+        "environment": {
+          "air": "warm",
+          "light": 75,
+          "noise": "kiosk beeps, soda machine hiss, murmured gossip from the corner booth",
+          "smell": "seasoned beef, cinnamon sugar, floor cleaner",
+          "temperature": 20.935606477382283
+        },
+        "floor": 0,
+        "tags": [
+          "millbrook_falls",
+          "commercial",
+          "restaurant",
+          "food"
+        ]
+      }
+    },
+    "Taco Bell Kitchen": {
+      "ambient_light": 65,
+      "description": "behind the swinging doors: stainless steel, fryer heat and the shriek of timers. the line is half-broken-down for closing, trays of seasoned beef covered in cling film, a mop sink gurgling. boxes of shells and sauce rims stacked by the back door. it smells like a taco bell looks.",
+      "environment": {
+        "air": "hot",
+        "light": 65,
+        "noise": "timer shrieks, fryer crackle, drive-thru headsets",
+        "smell": "fryer oil, seasoned beef, sanitizer",
+        "temperature": 28
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "Taco Bell Kitchen",
+      "properties": {
+        "description": "behind the swinging doors: stainless steel, fryer heat and the shriek of timers. the line is half-broken-down for closing, trays of seasoned beef covered in cling film, a mop sink gurgling. boxes of shells and sauce rims stacked by the back door. it smells like a taco bell looks.",
+        "environment": {
+          "air": "hot",
+          "light": 65,
+          "noise": "timer shrieks, fryer crackle, drive-thru headsets",
+          "smell": "fryer oil, seasoned beef, sanitizer",
+          "temperature": 28
+        },
+        "floor": 0,
+        "tags": [
+          "millbrook_falls",
+          "commercial",
+          "restaurant",
+          "kitchen"
+        ]
+      }
+    },
+    "Taco Bell Men's Restroom": {
+      "ambient_light": 50,
+      "description": "one toilet, one sink, one mirror with a corners-of-the-room blur of grime the cleaner gave up on years ago. the hand dryer sounds like a dying engine. someone has scratched 'run' into the stall door with no further elaboration.",
+      "environment": {
+        "air": "stale",
+        "light": 50,
+        "noise": "hand dryer rattling",
+        "smell": "bleach, faint urinal cake",
+        "temperature": 23
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "Taco Bell Men's Restroom",
+      "properties": {
+        "description": "one toilet, one sink, one mirror with a corners-of-the-room blur of grime the cleaner gave up on years ago. the hand dryer sounds like a dying engine. someone has scratched 'run' into the stall door with no further elaboration.",
+        "environment": {
+          "air": "stale",
+          "light": 50,
+          "noise": "hand dryer rattling",
+          "smell": "bleach, faint urinal cake",
+          "temperature": 23
+        },
+        "floor": 0,
+        "tags": [
+          "millbrook_falls",
+          "commercial",
+          "restroom"
+        ]
+      }
+    },
+    "Taco Bell Order Counter": {
+      "ambient_light": 70,
+      "description": "the long front counter parallel to the dining room over the order rail. two registers wait side by side, touchscreens smeared with grease. a bright backlit menu board hangs overhead, most prices taped over with newer ones. hot holding chutes squat behind the register where finished orders wait under heat lamps — a soft rack of sad, late tacos gumming together. two pickup shelves for mobile orders sit below a cold-drink rail.",
+      "environment": {
+        "air": "warm",
+        "light": 70,
+        "noise": "register beeps, heat lamp hum, drive-thru speaker",
+        "smell": "seasoned beef, fried shell, cleaning solution",
+        "temperature": 22.11695060589576
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "Taco Bell Order Counter",
+      "properties": {
+        "description": "the long front counter parallel to the dining room over the order rail. two registers wait side by side, touchscreens smeared with grease. a bright backlit menu board hangs overhead, most prices taped over with newer ones. hot holding chutes squat behind the register where finished orders wait under heat lamps — a soft rack of sad, late tacos gumming together. two pickup shelves for mobile orders sit below a cold-drink rail.",
+        "environment": {
+          "air": "warm",
+          "light": 70,
+          "noise": "register beeps, heat lamp hum, drive-thru speaker",
+          "smell": "seasoned beef, fried shell, cleaning solution",
+          "temperature": 22.11695060589576
+        },
+        "floor": 0,
+        "tags": [
+          "millbrook_falls",
+          "commercial",
+          "restaurant",
+          "food"
+        ]
+      }
+    },
+    "Taco Bell Women's Restroom": {
+      "ambient_light": 50,
+      "description": "one toilet, one sink, a full-length mirror propped crooked against the wall instead of mounted. the trash bin holds a small graveyard of crumpled napkins. graffiti on the dryer offers a hotline number corrected twice in different pens.",
+      "environment": {
+        "air": "stale",
+        "light": 50,
+        "noise": "fluorescent buzz",
+        "smell": "soap, bleach; urine",
+        "temperature": 23
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "normal",
+      "name": "Taco Bell Women's Restroom",
+      "properties": {
+        "description": "one toilet, one sink, a full-length mirror propped crooked against the wall instead of mounted. the trash bin holds a small graveyard of crumpled napkins. graffiti on the dryer offers a hotline number corrected twice in different pens.",
+        "environment": {
+          "air": "stale",
+          "light": 50,
+          "noise": "fluorescent buzz",
+          "smell": "soap, bleach; urine",
+          "temperature": 23
+        },
+        "floor": 0,
+        "tags": [
+          "millbrook_falls",
+          "commercial",
+          "restroom"
+        ]
+      }
+    },
+    "oak lane": {
+      "ambient_light": 80,
+      "description": "a narrow pedestrian alley that cuts between the buildings, saving locals a minute and a half on their walk. the walls are brick and windowless, streaked with decades of rain. a string of bare bulbs hangs crooked over the middle, half of them burned out. the ground is stained concrete with a few slick drain covers. the air is stiller and colder here, carrying a faint whiff of cooking oil from the diner's back vent.",
+      "environment": {
+        "air": "fresh",
+        "light": 80,
+        "noise": "quiet",
+        "smell": "neutral",
+        "temperature": 21
+      },
+      "floor": 0,
+      "items": [],
+      "light_description": "bright",
+      "name": "oak lane",
+      "properties": {
+        "description": "a narrow pedestrian alley that cuts between the buildings, saving locals a minute and a half on their walk. the walls are brick and windowless, streaked with decades of rain. a string of bare bulbs hangs crooked over the middle, half of them burned out. the ground is stained concrete with a few slick drain covers. the air is stiller and colder here, carrying a faint whiff of cooking oil from the diner's back vent.",
+        "environment": {
+          "air": "fresh",
+          "light": 80,
+          "noise": "quiet",
+          "smell": "neutral",
+          "temperature": 21
+        }
+      }
+    }
+  },
+  "time_per_tick_minutes": 5,
+  "time_ticks": 0,
+  "turn_number": 0,
+  "ways": {},
+  "world_lore": [
+    {
+      "category": "general",
+      "content": "Modern day, mid-2020s. Millbrook Falls is a forgettable American town of strip malls, long winters and one dying downtown block. The Taco Bell on Elm Street sits between a half-empty parking lot and a drainage ditch. Tonight it is nearly empty: a teenage cashier, an elderly couple two booths down, and the eternal hum of the soda machine.",
+      "title": "Millbrook Falls"
+    }
+  ]
+}
