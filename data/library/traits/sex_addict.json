@@ -1,0 +1,11 @@
+{
+  "name": "Sex Addict",
+  "description": "When the need goes unmet, nothing else holds your interest.",
+  "category": "mental",
+  "params": null,
+  "effects": {
+    "sex_addict": true
+  },
+  "mature": true,
+  "conflicts": []
+}

@@ -1,0 +1,11 @@
+{
+  "name": "Attention Seeker",
+  "description": "Being looked at lights you up. Eyes on you are their own reward.",
+  "category": "social",
+  "params": null,
+  "effects": {
+    "attention_seeker": true
+  },
+  "mature": true,
+  "conflicts": []
+}

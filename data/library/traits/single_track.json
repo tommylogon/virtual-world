@@ -1,0 +1,11 @@
+{
+  "name": "Single Track",
+  "description": "One path to release and one only — anything else just frustrates.",
+  "category": "physical",
+  "params": null,
+  "effects": {
+    "single_track": true
+  },
+  "mature": true,
+  "conflicts": []
+}

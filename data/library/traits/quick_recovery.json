@@ -1,0 +1,11 @@
+{
+  "name": "Quick Recovery",
+  "description": "Overstimulation passes quickly — you bounce back fast.",
+  "category": "physical",
+  "params": null,
+  "effects": {
+    "quick_recovery": true
+  },
+  "mature": true,
+  "conflicts": []
+}

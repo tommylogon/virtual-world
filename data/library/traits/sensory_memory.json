@@ -1,0 +1,11 @@
+{
+  "name": "Sensory Memory",
+  "description": "Your skin remembers. Sensitivity lingers long after a release.",
+  "category": "physical",
+  "params": null,
+  "effects": {
+    "sensory_memory": true
+  },
+  "mature": true,
+  "conflicts": []
+}

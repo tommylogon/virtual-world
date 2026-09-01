@@ -1,0 +1,11 @@
+{
+  "name": "Exhibitionist",
+  "description": "Being seen at your most vulnerable thrills you.",
+  "category": "social",
+  "params": null,
+  "effects": {
+    "exhibitionist": true
+  },
+  "mature": true,
+  "conflicts": []
+}

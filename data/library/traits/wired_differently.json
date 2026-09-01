@@ -1,0 +1,15 @@
+{
+  "name": "Wired Differently",
+  "description": "Your body's map of pleasure is unusual — some places overwhelm, others barely register.",
+  "category": "physical",
+  "params": null,
+  "effects": {
+    "body_part_multipliers": {
+      "nipple_left": 3.0,
+      "nipple_right": 3.0,
+      "genitals": 0.1
+    }
+  },
+  "mature": true,
+  "conflicts": []
+}
