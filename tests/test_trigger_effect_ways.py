@@ -218,3 +218,54 @@ def test_spawn_item_capture_speech(world):
     assert "Kaelen: shh." in desc
     assert "footsteps" not in desc
     assert out  # narrates
+
+
+def test_spawn_item_capture_speech_matches_live_speak_action(world):
+    """Live speech is logged with action "speak" (speech.py) — the recorder
+    must capture it, not only the synthetic "speech" action value."""
+    _add_area(world, "Alpha")
+    container = Node(id="item_recorder", type="item", name="Recorder",
+                     properties={"tags": ["container"]})
+    world.graph.add_node(container)
+    world.turn_events = [
+        {"tick": 1, "actor": "Miki", "action": "speak",
+         "description": 'said: "the oven is hot"', "area": "Alpha"},
+        {"tick": 1, "actor": "Lyrie", "action": "move",
+         "description": "moved north", "area": "Alpha"},
+    ]
+    _exec(world, "spawn_item", {"item_id": "apple", "into": "container",
+                                "capture": "speech", "capture_limit": 5},
+          item_node=container)
+    desc = world.graph.get_node("apple").properties.get("description", "")
+    assert 'Miki: said: "the oven is hot"' in desc
+    assert "moved north" not in desc
+
+
+def test_spawn_item_capture_sight_camera(world):
+    """Camera mode: visible events only — speech content and engine-internal
+    rows are excluded, everything else in the area is captured."""
+    _add_area(world, "Alpha")
+    camera = Node(id="item_camera", type="item", name="Camera",
+                  properties={"tags": ["container"]})
+    world.graph.add_node(camera)
+    world.turn_events = [
+        {"tick": 1, "actor": "Miki", "action": "speak",
+         "description": 'said: "secret plans"', "area": "Alpha"},
+        {"tick": 1, "actor": "Lyrie", "action": "move",
+         "description": "moved north", "area": "Alpha"},
+        {"tick": 1, "actor": "Kaelen", "action": "combat",
+         "description": "attacked the wolf: hit for 4", "area": "Alpha"},
+        {"tick": 0, "actor": "__system__", "action": "llm_log",
+         "description": "[LLM x] Prompt: ...", "area": "Alpha"},
+        {"tick": 0, "actor": "Miki", "action": "speak",
+         "description": 'said: "in the other room"', "area": "Beta"},
+    ]
+    _exec(world, "spawn_item", {"item_id": "polaroid", "into": "container",
+                                "capture": "sight", "capture_limit": 5},
+          item_node=camera)
+    desc = world.graph.get_node("polaroid").properties.get("description", "")
+    assert "moved north" in desc
+    assert "attacked the wolf" in desc
+    assert "secret plans" not in desc
+    assert "in the other room" not in desc
+    assert "Prompt" not in desc

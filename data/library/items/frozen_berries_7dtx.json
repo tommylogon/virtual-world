@@ -1,0 +1,19 @@
+{
+  "name": "Frozen Berries",
+  "description": "A handful of frost-crusted berries, plucked from the bush. They're icy, sweet, and surprisingly edible.",
+  "actions": "take,eat,drop",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "food",
+    "plant",
+    "berry"
+  ],
+  "triggers": [],
+  "contents": []
+}

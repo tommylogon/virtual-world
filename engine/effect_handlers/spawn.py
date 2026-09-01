@@ -16,6 +16,11 @@ def _capture_recent(self, game_state, item_node, capture: str, limit: int) -> li
     item's description (a camera photo, a recorder's tape, an EVP log).
     Sources (duck-typed, newest first): ``turn_events`` entries with
     ``action``/``actor``/``description``.
+
+    capture modes:
+      ``speech`` — spoken lines only (a recorder's tape)
+      ``sight``  — visible events only, speech excluded (a camera photo)
+      anything else — unfiltered (every described event in the area)
     """
     if game_state is None:
         return []
@@ -39,6 +44,7 @@ def _capture_recent(self, game_state, item_node, capture: str, limit: int) -> li
     area_node = self.graph.get_node(area_id) if area_id else None
     area_name = area_node.name if area_node is not None else None
 
+    speech_actions = ("speech", "speak", "whisper", "say", "shout")
     lines = []
     for ev in reversed(events):
         if not isinstance(ev, dict):
@@ -50,7 +56,9 @@ def _capture_recent(self, game_state, item_node, capture: str, limit: int) -> li
         text = str(ev.get("description") or ev.get("text") or "")
         if not text:
             continue
-        if capture == "speech" and action not in ("speech", "whisper", "say", "shout"):
+        if capture == "speech" and action not in speech_actions:
+            continue
+        if capture == "sight" and (action in speech_actions or action == "llm_log"):
             continue
         actor = str(ev.get("actor", "")).strip()
         lines.append(f"{actor}: {text}" if actor else text)
@@ -66,6 +74,9 @@ def handle_spawn_item(self, params, context, item_node=None, game_state=None):
       item_id — library / graph id to spawn
       into — ``"area"`` (default) or ``"container"`` (``EDGE_IN`` into the
              triggering container; requires ``item_node``)
+      capture — ``"speech"`` (recorder tape) or ``"sight"`` (camera photo);
+             appends the captured lines to the spawned item's description
+      capture_limit — max captured lines (default 5)
       message / fail_message — narration on success / capacity failure
 
     game_state must provide: game_state.get_current_area_id() -> str | None

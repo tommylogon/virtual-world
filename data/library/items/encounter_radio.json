@@ -3,14 +3,23 @@
   "name": "Encounter Radio",
   "type": "item",
   "description": "A battered handheld walkie-talkie-red radio with a dead battery and a cracked label. The volume knob is stuck on LOW.",
-  "tags": ["sound_source", "toggleable", "radio"],
+  "tags": [
+    "sound_source",
+    "toggleable",
+    "radio"
+  ],
   "properties": {
     "current_state": "off",
     "weight": 0.4,
     "uses": -1,
     "sound_level": 2
   },
-  "actions": ["examine", "use", "take", "toggle"],
+  "actions": [
+    "examine",
+    "use",
+    "take",
+    "toggle"
+  ],
   "triggers": [
     {
       "trigger_type": "on_use",

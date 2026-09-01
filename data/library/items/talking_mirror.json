@@ -3,20 +3,30 @@
   "name": "Talking Mirror",
   "type": "item",
   "description": "An antique standing mirror with an ornate brass frame. The glass is deep and dark, and you get the feeling it's watching back — maybe waiting for the right words.",
-  "tags": ["container"],
+  "tags": [
+    "container"
+  ],
   "properties": {
     "current_state": "normal",
     "weight": 12.0,
     "uses": -1
   },
-  "actions": ["examine", "use", "look"],
+  "actions": [
+    "examine",
+    "use",
+    "look"
+  ],
   "triggers": [
     {
       "trigger_type": "on_speech",
       "conditions": {
         "operator": "and",
         "conditions": [
-          { "type": "speech_matches", "phrase": "open sesame", "mode": "contains" }
+          {
+            "type": "speech_matches",
+            "phrase": "open sesame",
+            "mode": "contains"
+          }
         ]
       },
       "effects": [
@@ -41,7 +51,11 @@
       "conditions": {
         "operator": "and",
         "conditions": [
-          { "type": "speech_matches", "phrase": "open sesame", "mode": "not_contains" }
+          {
+            "type": "speech_matches",
+            "phrase": "open sesame",
+            "mode": "not_contains"
+          }
         ]
       },
       "effects": [

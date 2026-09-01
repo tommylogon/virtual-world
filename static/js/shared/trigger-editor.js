@@ -58,6 +58,11 @@ const TRIGGER_SNIPPETS = [
         effects: [{ type: 'spawn_item', params: { item_id: '', into: 'container', capture: 'speech', capture_limit: 5 } }],
     },
     {
+        id: 'camera', icon: '📷', label: 'Camera (photo of what happened)', triggerType: 'on_use',
+        message: 'The {name} clicks — capturing the scene.',
+        effects: [{ type: 'spawn_item', params: { item_id: '', into: 'container', capture: 'sight', capture_limit: 5 } }],
+    },
+    {
         id: 'firstaid', icon: '💉', label: 'First Aid (heal + stop bleeding)', triggerType: 'on_use',
         message: 'You patch yourself up.',
         effects: [
@@ -361,6 +366,43 @@ window.Lit.render(triggerEditorTag`
         if (firstEff) TriggerEditor._toggleEffectParams(firstEff);
         TriggerEditor._initEffectSearchSelects(overlay);
         TriggerEditor._initCondTagMultis(overlay);
+        this._ensureLibraryItemOptions(overlay);
+    },
+
+    // The library registry may not be loaded yet (trigger editor opened from an
+    // item inspector without ever opening the Library Browser). Load it once in
+    // the background and hot-swap the item pickers' options in place — show()
+    // stays fully synchronous for callers and tests.
+    async _ensureLibraryItemOptions(root) {
+        const itemLib = window.VW?.itemLib;
+        if (!itemLib || Object.keys(itemLib.data || {}).length > 0) return;
+        try { await itemLib.refresh(); } catch (e) { return; }
+        const overlay = this._overlay;
+        if (!overlay || overlay !== root) return; // closed / reopened meanwhile
+        // Top up the shared on_use_on target datalist too.
+        const itemListEl = document.getElementById('te-item-list');
+        if (itemListEl) {
+            const known = new Set([...itemListEl.children].map(o => o.value));
+            Object.keys(itemLib.data).forEach(id => {
+                if (!known.has(id)) {
+                    const o = document.createElement('option'); o.value = id; itemListEl.appendChild(o);
+                }
+            });
+        }
+        overlay.querySelectorAll('.eff-select[data-kind="items"]').forEach(container => {
+            const prev = container.__searchSelect;
+            const value = prev ? prev.getValue() : (container.dataset.value || '');
+            if (prev) prev.destroy();
+            delete container.dataset.searchSelectInit;
+            container.__searchSelect = new SearchSelect(container, {
+                options: this._searchSelectOptions('items'),
+                value,
+                placeholder: container.dataset.placeholder || 'Search...',
+                inputClass: container.dataset.inputClass || '',
+                inputId: container.dataset.inputId || '',
+                allowFreeText: container.dataset.free === 'true'
+            });
+        });
     },
 
     _updateFailGroupVisibility() {
@@ -381,16 +423,27 @@ window.Lit.render(triggerEditorTag`
                     if (n.type === 'way') opts.push({ value: id, label: n.name || id, icon: '🚪' });
                 }
                 break;
-            case 'items':
-                for (const [id, n] of Object.entries(nodes)) {
-                    if (n.type === 'item') opts.push({ value: id, label: n.name || id, icon: '📦' });
-                }
+            case 'items': {
+                // Library templates first (spawning usually targets a library item
+                // that is NOT yet in the world), then world items after.
+                const libOpts = [];
                 if (window.VW?.itemLib?.data) {
-                    for (const id of Object.keys(window.VW.itemLib.data)) {
-                        if (!opts.some(o => o.value === id)) opts.push({ value: id, label: id, icon: '📦' });
+                    for (const [id, entry] of Object.entries(window.VW.itemLib.data)) {
+                        const label = (entry && entry.name) ? `${entry.name} (${id})` : id;
+                        libOpts.push({ value: id, label, icon: '📚' });
                     }
                 }
+                libOpts.sort((a, b) => (a.label || '').localeCompare(b.label || ''));
+                const worldOpts = [];
+                for (const [id, n] of Object.entries(nodes)) {
+                    if (n.type === 'item' && !libOpts.some(o => o.value === id)) {
+                        worldOpts.push({ value: id, label: n.name || id, icon: '📦' });
+                    }
+                }
+                worldOpts.sort((a, b) => (a.label || '').localeCompare(b.label || ''));
+                opts.push(...libOpts, ...worldOpts);
                 break;
+            }
             case 'nodes':
                 for (const [id, n] of Object.entries(nodes)) {
                     const icon = { area: '🗺️', way: '🚪', item: '📦', player: '🧍', character: '🧍', logic_trigger: '⚡' }[n.type] || '▪️';
@@ -454,7 +507,8 @@ window.Lit.render(triggerEditorTag`
                 break;
             }
         }
-        opts.sort((a, b) => (a.label || '').localeCompare(b.label || ''));
+        // 'items' is already grouped (library first, then world) — keep that order.
+        if (kind !== 'items') opts.sort((a, b) => (a.label || '').localeCompare(b.label || ''));
         return opts;
     },
 
@@ -470,7 +524,7 @@ window.Lit.render(triggerEditorTag`
             if (initial && !opts.some(o => o.value === initial)) {
                 opts.unshift({ value: initial, label: initial });
             }
-            new SearchSelect(container, {
+            container.__searchSelect = new SearchSelect(container, {
                 options: opts,
                 value: initial,
                 placeholder: container.dataset.placeholder || 'Search...',
@@ -1527,6 +1581,7 @@ window.Lit.render(triggerEditorTag`
                         <select class="eff-spawn-capture" style="width:100%;font-size:11px;">
                             <option value="" ${!ep.capture ? 'selected' : ''}>— none —</option>
                             <option value="speech" ${ep.capture === 'speech' ? 'selected' : ''}>Recent speech (recorder)</option>
+                            <option value="sight" ${ep.capture === 'sight' ? 'selected' : ''}>Recent sights (camera)</option>
                         </select>
                     </div>
                     <div class="eff-param" data-effect="spawn_character" style="display:${effType === 'spawn_character' ? 'block' : 'none'};">

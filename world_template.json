@@ -8,6 +8,7 @@
       "personality": "you are Kaelen Voss, A Human who is a Disgraced Investigator for the Galser Office of Justice\nCurrent Status: Independent Truth-Seeker / Weary Traveler\nYear of Birth: 1548 (36 years old)\n\nYou are a man whose sharp eyes have seen too much of the \"Witch's Spit\" and the \"Elemental Conjunction\" to believe in simple explanations\n. Formerly a rising star in the Ulus of Galser’s bureaucratic machine, you were exiled after you refused to hand over a \"magical item of interest\" to the Department of Education and Research\n.\nYou carry the weight of the world’s 120-year curse in your bones, literally—your left leg clicks with a clockwork prosthetic, a relic of a skirmish near the Galtian border\n. While your humor remains dry as the Sarekyan Desert, it has taken on a bleaker edge as the frost of 1584 refuses to break. Your soft spot for stray animals has manifested as \"Runt,\" a shivering mouseling you found near a Galtian military camp, who now lives in the pocket of your heavy, fur-lined coat",
       "description": "He cuts a lean, weather-worn figure in a heavy fur-lined coat that hangs open over a waxed canvas vest and rumpled linen shirt, a worn leather backpack slung across his shoulders. Dark hair streaked with grey is pulled back from a face sharp with high cheekbones and a stubbled jaw, his hazel eyes narrowed in a perpetual squint that deepens the crow’s feet and worry lines. A thin white scar slices through his left brow into the hairline, and the faint, rhythmic click of a segmented brass-and-steel prosthetic leg punctuates his stance beneath the reinforced wool trousers. At his collar, a small brooch catches the light, while a web of scarred knuckles rests against the coat’s edge.",
       "base_description": "A gaunt man in his late thirties with sharp, weathered features — high cheekbones, a strong jaw under several days of dark stubble. His hazel eyes are quick and unnervingly observant, set in a permanent squint from years of reading fine print and scanning distant horizons. Dark hair, streaked with grey at the temples, is pulled back loosely.\n\nHis build is lean and wiry — the kind of frame built by long roads and skipped meals, not the gymnasium. The left leg from the knee down has been replaced with a clockwork prosthetic of brass and steel: segmented plates, exposed rivets, and a faint mechanical click with every shift of weight. The skin above the fitting is scarred, a clean amputation scar long healed.\n\nHis hands are scarred across the knuckles — old work, not recent. A thin white line runs from his left brow into the hairline. Crow's feet and worry lines are etched deeper than 36 years should allow.",
+      "id": "33e94855",
       "equipped": {
         "accessory": [],
         "arms": [],
@@ -254,7 +255,7 @@
         "satisfied": 40.0,
         "surprised": 15.0
       },
-      "emotions_description": "",
+      "emotions_description": "You feel a faint stirring of uneasy.",
       "relationships": {},
       "activity": null,
       "memories": [
@@ -305,6 +306,7 @@
       "personality": "Lyrie is a 79-year-old elven maiden, and widely known in her hometown as the village idiot.  Sweet, honest and sincere to a fault, but prone to causing disastrous trouble even when trying her best.\n\nPersonality: Put politely, Lyrie is an airhead. Dense, forgetful and clumsy, with a habit of breaking and losing things. Her grasp of basic tasks is shockingly poor, and she has issues following complex topics. While usually very polite, curious and cheerful, she is an infamous crybaby and her feelings are hurt easily. Lyrie cannot understand idioms, sarcasm or wordplay of any kind, and tends to jump to bizarre conclusions that make no sense. Lyrie never uses foul language or profanity, worried she'll be yelled at.\n\nMind: Lyrie is perpetually confused, and often daydreaming or spacing out even in dangerous situations. Her self-preservation instincts are poor, and she often gets herself into trouble and needs rescuing. Lyrie is a gifted magician, but rarely uses her powers after a certain incident almost got her exiled from her village. She wants to be helpful, but her clumsiness and poor luck often cause more harm than good.",
       "description": "A small, slight elf with a mess of strawberry-blonde hair escapes a crushed dried flower crown, a few wisps tangling with a stray leaf. Her large, earnest pale blue eyes are framed by a soft round face peppered with freckles, while a faint silvery scar curls behind one unusually long, twitching ear. She wears a green tunic beneath a short forest cape, stirrup socks peeking above her boots, and a frayed friendship bracelet circles her wrist—her fidgeting hands marked with nicks and scratches, her cheeks flushed and still bearing faint tracks of dried tears.",
       "base_description": "Appearance: Lyrie is short for an elf, with a mop of messy red hair and big, bright blue eyes. Skinny and petite, with freckles peppered across her nose and cheeks. There are little nicks and scratches all over her hands where she's spaced out and hurt herself. Her elf ears are unusually long and pointy, and she has no control over when they twitch. Lyrie cannot hide her feelings at all, and her face can be comically over-expressive depending on how she feels. she is a A young woman with a soft, round face that betrays every thought before she speaks. Her eyes are large and earnest — pale blue, maybe grey — always slightly wide, as if the world keeps surprising her. Freckles scattered across her nose and cheeks. Strawberry-blonde hair that never seems to stay put: wisps escaping a messy braid, a leaf or twig often tangled in it.\n\nShe is small-boned and slight, with the kind of delicate frame that makes people instinctively want to protect her. Her hands are never still — fidgeting with her sleeves, tracing invisible patterns in the air, then suddenly dropping whatever they were holding. There's a clumsiness to the way she holds herself, as if she's not quite sure where her limbs end and the world begins.\n\nHer face is often flushed — from embarrassment, from crying, from the sheer effort of trying so hard. The faint tracks of dried tears are common. She smiles easily, a crooked, hopeful smile that crinkles her nose, even when her eyes are still wet.\n\nA faint silvery scar — maybe a half-inch — curls behind her left ear like a tiny crescent moon. A reminder of the thing she almost did, the magic she almost used. she has red pubes, a bouncy butt, and pink nipples on her soft small breasts",
+      "id": "210ef457",
       "equipped": {
         "accessory": [
           "item_Frayed Friendship Bracelet"
@@ -549,7 +551,7 @@
         "satisfied": 40.0,
         "surprised": 15.0
       },
-      "emotions_description": "",
+      "emotions_description": "You feel a faint stirring of uneasy.",
       "relationships": {},
       "activity": null,
       "memories": [
@@ -673,7 +675,7 @@
       "patrol_route": [],
       "patrol_index": 0,
       "feels_like": 18,
-      "current_carry_weight": 1.4000000000000001,
+      "current_carry_weight": 1.4,
       "max_carry_capacity": 100.0,
       "at_way_id": null,
       "spatial_position": null
@@ -683,6 +685,7 @@
       "personality": "A scruffy brown rat with bright, clever eyes and twitching whiskers. It seems more curious than afraid, sniffing at the gap beneath the kitchen door.",
       "description": "",
       "base_description": "A scruffy brown rat with bright, clever eyes and twitching whiskers.",
+      "id": "a4155dc6",
       "equipped": {
         "accessory": [],
         "arms": [],
@@ -913,7 +916,7 @@
         "satisfied": 40.0,
         "surprised": 15.0
       },
-      "emotions_description": "",
+      "emotions_description": "A nervous dread you can't quite name lingers.",
       "relationships": {},
       "activity": null,
       "memories": [],
@@ -7783,11 +7786,9 @@
         "properties": {
           "description": "A thorny bush brimming with ripe berries that can be eaten for nourishment.",
           "actions": [
-            "take",
-            "eat",
-            "drop"
+            "examine"
           ],
-          "uses": -1,
+          "uses": 4,
           "weight": 2.0,
           "action_costs": {},
           "skill_check": {},
@@ -7809,55 +7810,233 @@
           "image": null
         },
         "created": 1788218658.0445704,
-        "updated": 1788218658.0455735
+        "updated": 1788282334.826641
       },
       "trigger_item_bush of berries_1788218658044_568_on_examine_1788218658044_86": {
         "id": "trigger_item_bush of berries_1788218658044_568_on_examine_1788218658044_86",
         "type": "logic_trigger",
         "name": "on_examine → message",
         "properties": {
-          "trigger_type": "on_examine",
+          "trigger_type": [
+            "on_examine"
+          ],
           "target_name": "",
           "effect_type": "message",
-          "effect_params": {}
+          "effect_params": {},
+          "name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {}
+            },
+            {
+              "type": "spawn_item",
+              "params": {
+                "item_id": "b",
+                "display_name": ""
+              }
+            }
+          ],
+          "conditions": {},
+          "target_state": "",
+          "success_message": "",
+          "fail_message": ""
         },
         "created": 1788218658.0445704,
-        "updated": 1788218658.0445704
+        "updated": 1788282120.7939055
       },
-      "trigger_item_bush of berries_1788218658044_568_on_examine_1788218658044_578": {
-        "id": "trigger_item_bush of berries_1788218658044_568_on_examine_1788218658044_578",
-        "type": "logic_trigger",
-        "name": "on_examine → message",
-        "properties": {
-          "trigger_type": "on_examine",
-          "target_name": "",
-          "effect_type": "message",
-          "effect_params": {}
-        },
-        "created": 1788218658.0445704,
-        "updated": 1788218658.0445704
-      },
-      "item_frozen_berries_7dtx": {
-        "id": "item_frozen_berries_7dtx",
+      "item_ice_fishing_auger_6c4a": {
+        "id": "item_ice_fishing_auger_6c4a",
         "type": "item",
-        "name": "Frozen Berries",
+        "name": "Ice Fishing Auger",
         "properties": {
-          "description": "A handful of frost-crusted berries, plucked from the bush. They're icy, sweet, and surprisingly edible.",
+          "description": "A heavy iron auger with a spiral blade and a worn wooden T-handle. The cutting edge is nicked but serviceable. Used to bore holes through the thick lake ice for fishing — or for checking just how thick the ice really is.",
           "tags": [
-            "food",
-            "plant",
-            "berry"
+            "tool",
+            "metal",
+            "fishing"
           ],
           "current_state": "normal",
-          "actions": [
-            "take",
-            "eat",
-            "drop"
-          ],
-          "weight": 0.1
+          "weight": 4.5,
+          "actions": "examine,take,use,drop,eat"
         },
-        "created": 1788218880.6341205,
-        "updated": 1788218880.6341205
+        "created": 1788282651.78986,
+        "updated": 1788282651.78986
+      },
+      "item_ice_pick_36lh": {
+        "id": "item_ice_pick_36lh",
+        "type": "item",
+        "name": "Ice Pick",
+        "properties": {
+          "description": "A short, pointed steel pick with a leather-wrapped grip and a small notch for hanging from a belt. The point is sharp and cold to the touch. Meant for breaking ice crusts and testing frozen surfaces — and for any hunter who slips through.",
+          "tags": [
+            "tool",
+            "metal",
+            "weapon"
+          ],
+          "current_state": "normal",
+          "weight": 1.2,
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ]
+        },
+        "created": 1788282651.78986,
+        "updated": 1788282651.78986
+      },
+      "item_snowshoes_7lzv": {
+        "id": "item_snowshoes_7lzv",
+        "type": "item",
+        "name": "Snowshoes",
+        "properties": {
+          "description": "A pair of hand-woven snowshoes, their wooden frames bound with rawhide webbing and lashed with leather straps. Worn and weathered, but sturdy. They keep the wearer from sinking into deep drifts, letting them cross the snowbound forest in silence.",
+          "tags": [
+            "clothing",
+            "footwear",
+            "utility"
+          ],
+          "current_state": "normal",
+          "weight": 2,
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ]
+        },
+        "created": 1788282651.78986,
+        "updated": 1788282651.78986
+      },
+      "item_hand_sled_8kwm": {
+        "id": "item_hand_sled_8kwm",
+        "type": "item",
+        "name": "Hand Sled",
+        "properties": {
+          "description": "A low wooden sled with steel runners and a coiled rope tied to the front. The deck is stained dark with old blood and fish-gut. Built for hauling gear and catches across the ice, though it could just as easily drag something heavier.",
+          "tags": [
+            "tool",
+            "wood",
+            "metal",
+            "container"
+          ],
+          "current_state": "normal",
+          "weight": 8,
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ]
+        },
+        "created": 1788282651.78986,
+        "updated": 1788282651.78986
+      },
+      "item_moss_covered_fallen_log_ljm4": {
+        "id": "item_moss_covered_fallen_log_ljm4",
+        "type": "item",
+        "name": "Moss-Covered Fallen Log",
+        "properties": {
+          "description": "A thick fallen log, long since rotted soft, lying cradled between the willow's exposed roots. Its bark has peeled away, and a dense cushion of emerald moss blankets its length. Small tufts of shelf fungi sprout from its ends. It offers a dry, springy seat that holds no cold.",
+          "tags": [
+            "plant",
+            "organic",
+            "outdoor",
+            "wooden",
+            "furniture"
+          ],
+          "actions": [
+            "examine",
+            "sit"
+          ],
+          "weight": 40
+        },
+        "created": 1788282952.3503878,
+        "updated": 1788282952.3503878
+      },
+      "item_frost_shelf_mushrooms_5jy3": {
+        "id": "item_frost_shelf_mushrooms_5jy3",
+        "type": "item",
+        "name": "Frost Shelf Mushrooms",
+        "properties": {
+          "description": "A cluster of pale, fan-shaped shelf mushrooms clinging to the willow's trunk at knee height. Their caps are frost-white with delicate brown banding, and they glow faintly in the dim — not with light, but with an unnatural pallor. A few are broken, exposing dark, damp flesh that smells of deep earth.",
+          "tags": [
+            "plant",
+            "organic",
+            "fungus",
+            "outdoor"
+          ],
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "weight": 0.2
+        },
+        "created": 1788282952.3503878,
+        "updated": 1788282952.3503878
+      },
+      "item_shallow_meltwater_pool_4cxv": {
+        "id": "item_shallow_meltwater_pool_4cxv",
+        "type": "item",
+        "name": "Shallow Meltwater Pool",
+        "properties": {
+          "description": "A shallow, clear pool gathered in a hollow of the willow's root bowl. Meltwater drips from the trailing branches into it, each drop ringing a soft note against the stone-lined basin. The water is so clear the pebbled bottom looks close enough to touch, and it holds the hollow's warmth against the cold.",
+          "tags": [
+            "water",
+            "outdoor",
+            "stone"
+          ],
+          "actions": "examine,drink",
+          "weight": 0
+        },
+        "created": 1788282952.3503878,
+        "updated": 1788282952.3503878
+      },
+      "item_fox_den_in_the_roots_lprt": {
+        "id": "item_fox_den_in_the_roots_lprt",
+        "type": "item",
+        "name": "Fox Den in the Roots",
+        "properties": {
+          "description": "A dark opening between two thick willow roots, worn smooth at the rim by years of passing bodies. The packed earth is warm and smells faintly of musk and dry fur. Inside, a few scattered feathers and a tuft of russet fur suggest a fox has made its den here, sheltered from the snow.",
+          "tags": [
+            "organic",
+            "outdoor",
+            "animal",
+            "hidden"
+          ],
+          "actions": [
+            "examine"
+          ],
+          "weight": 0
+        },
+        "created": 1788282952.3503878,
+        "updated": 1788282952.3503878
+      },
+      "item_fallen_willow_branches_fw1o": {
+        "id": "item_fallen_willow_branches_fw1o",
+        "type": "item",
+        "name": "Fallen Willow Branches",
+        "properties": {
+          "description": "A tangle of slender willow switches that have snapped from the canopy and come to rest on the moss. Their bark is smooth and grey, still supple, and the leaf-buds are tight and green even in the cold. They could be gathered as kindling or woven, though the wood is stubborn.",
+          "tags": [
+            "plant",
+            "organic",
+            "outdoor",
+            "wooden"
+          ],
+          "actions": [
+            "examine",
+            "take"
+          ],
+          "weight": 1.5
+        },
+        "created": 1788282952.3503878,
+        "updated": 1788282952.3503878
       }
     },
     "edges": [
@@ -10985,6 +11164,43 @@
         }
       },
       {
+        "source": "item_bush of berries_1788218658044_568",
+        "target": "area_frozen_thicket",
+        "type": "at",
+        "properties": {}
+      },
+      {
+        "source": "item_bush of berries_1788218658044_568",
+        "target": "trigger_item_bush of berries_1788218658044_568_on_examine_1788218658044_86",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": [
+            "on_examine"
+          ],
+          "target_name": "",
+          "effect_type": "message",
+          "effect_params": {},
+          "name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {}
+            },
+            {
+              "type": "spawn_item",
+              "params": {
+                "item_id": "b",
+                "display_name": ""
+              }
+            }
+          ],
+          "conditions": {},
+          "target_state": "",
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
         "source": "player_Kaelen_Voss",
         "target": "area_blizzard_forest_clearing",
         "type": "in",
@@ -11003,32 +11219,58 @@
         "properties": {}
       },
       {
-        "source": "item_bush of berries_1788218658044_568",
-        "target": "area_frozen_thicket",
+        "source": "item_ice_fishing_auger_6c4a",
+        "target": "area_frozen_lake_clearing",
         "type": "at",
         "properties": {}
       },
       {
-        "source": "item_bush of berries_1788218658044_568",
-        "target": "trigger_item_bush of berries_1788218658044_568_on_examine_1788218658044_86",
-        "type": "triggers",
-        "properties": {
-          "trigger_type": "on_examine",
-          "target_name": "",
-          "effect_type": "message",
-          "effect_params": {}
-        }
+        "source": "item_ice_pick_36lh",
+        "target": "area_frozen_lake_clearing",
+        "type": "at",
+        "properties": {}
       },
       {
-        "source": "item_bush of berries_1788218658044_568",
-        "target": "trigger_item_bush of berries_1788218658044_568_on_examine_1788218658044_578",
-        "type": "triggers",
-        "properties": {
-          "trigger_type": "on_examine",
-          "target_name": "",
-          "effect_type": "message",
-          "effect_params": {}
-        }
+        "source": "item_snowshoes_7lzv",
+        "target": "area_frozen_lake_clearing",
+        "type": "at",
+        "properties": {}
+      },
+      {
+        "source": "item_hand_sled_8kwm",
+        "target": "area_frozen_lake_clearing",
+        "type": "at",
+        "properties": {}
+      },
+      {
+        "source": "item_moss_covered_fallen_log_ljm4",
+        "target": "area_weeping_willow_hollow",
+        "type": "at",
+        "properties": {}
+      },
+      {
+        "source": "item_frost_shelf_mushrooms_5jy3",
+        "target": "area_weeping_willow_hollow",
+        "type": "at",
+        "properties": {}
+      },
+      {
+        "source": "item_shallow_meltwater_pool_4cxv",
+        "target": "area_weeping_willow_hollow",
+        "type": "at",
+        "properties": {}
+      },
+      {
+        "source": "item_fox_den_in_the_roots_lprt",
+        "target": "area_weeping_willow_hollow",
+        "type": "at",
+        "properties": {}
+      },
+      {
+        "source": "item_fallen_willow_branches_fw1o",
+        "target": "area_weeping_willow_hollow",
+        "type": "at",
+        "properties": {}
       }
     ]
   },
@@ -11037,6 +11279,7 @@
   "turn_number": 1,
   "narration_mode": "none",
   "ghost_mode": false,
+  "mature_content": false,
   "world_lore": [
     {
       "category": "general",

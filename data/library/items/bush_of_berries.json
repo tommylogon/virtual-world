@@ -1,11 +1,10 @@
 {
-  "name": "Bush of Berries",
-  "description": "A thorny bush brimming with ripe berries that can be eaten for nourishment.",
-  "actions": "take,eat",
-  "uses": -1,
-  "weight": 2,
+  "actions": "examine",
+  "contents": [],
   "current_state": "normal",
+  "description": "A thorny bush brimming with ripe berries that can be eaten for nourishment.",
   "equip_slots": [],
+  "name": "Frost-Crusted Berry Bush",
   "tags": [
     "vegetation",
     "plant",
@@ -13,32 +12,32 @@
   ],
   "triggers": [
     {
-      "type": "on_take",
-      "params": {
-        "effects": [
-          {
-            "type": "adjust_vital",
-            "params": {
-              "stat": "health",
-              "amount": 5
-            }
-          }
-        ]
-      }
-    },
-    {
-      "type": "on_examine",
-      "params": {
-        "effects": [
-          {
-            "type": "message",
-            "params": {
-              "text": "The berries are sweet and cold."
-            }
-          }
-        ]
-      }
+      "trigger_type": [
+        "on_examine"
+      ],
+      "effects": [
+        {
+          "params": {},
+          "type": "message"
+        },
+        {
+          "params": {
+            "display_name": "",
+            "item_id": "b"
+          },
+          "type": "spawn_item"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
     }
   ],
-  "contents": []
+  "uses": 4,
+  "weight": 2,
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0
 }

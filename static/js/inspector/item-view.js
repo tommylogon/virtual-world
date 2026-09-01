@@ -470,12 +470,8 @@ window.InspectorItemView = (() => {
      * @returns {TemplateResult}
      */
 IV._renderFooter = function(nodeId) {
-        const libId = (worldState.getNode(nodeId)?.properties?.library_id) || '';
         return htmlTag`<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
-            <select id="item-lib-template-${nodeId}" title="Library template this node syncs against (task-295)" style="flex:1;min-width:140px;font-size:11px;padding:3px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;">
-                <option value="">(no template)</option>
-                ${libId ? htmlTag`<option value=${libId} ?selected=${true}>${libId}</option>` : window.Lit.nothing}
-            </select>
+            <div id="item-lib-template-wrap-${nodeId}" title="Library template this node syncs against (task-295)" style="flex:1;min-width:160px;"></div>
             <button class="btn btn-sm btn-green" @click=${() => IV._refreshFromLibrary(nodeId)}>🔄 Refresh from Library</button>
             <button class="btn btn-sm btn-yellow" @click=${() => itemLib.saveWorldItem(nodeId)}>📚 Save to Library</button>
             <button class="btn btn-sm btn-blue" @click=${() => graphManager._duplicateNode(nodeId)} title="Duplicate this item (with contents + triggers)" style="font-size:10px;">📋 Duplicate</button>
@@ -484,23 +480,31 @@ IV._renderFooter = function(nodeId) {
     };
 
     /**
-     * Populate the Library Template dropdown from the item library registry.
-     * @param {string} nodeId - Graph node ID
+     * Populate the Library Template search select from the item library registry.
+     * The SearchSelect's hidden input keeps the `item-lib-template-<nodeId>` id,
+     * so the existing `.value` readers (refresh-from-library, save-to-library)
+     * keep working unchanged. Empty value = (no template).
      */
     IV._populateLibraryTemplate = async function(nodeId) {
-        const escapedId = nodeId.replace(/'/g, "\\'");
-        const select = document.getElementById(`item-lib-template-${escapedId}`);
-        if (!select) return;
-        const current = select.value || worldState.getNode(nodeId)?.properties?.library_id || '';
+        const container = document.getElementById(`item-lib-template-wrap-${nodeId}`);
+        if (!container || typeof SearchSelect === 'undefined') return;
+        if (container.dataset.searchSelectInit) return;
+        container.dataset.searchSelectInit = '1';
+        const current = worldState.getNode(nodeId)?.properties?.library_id || '';
         let libData = {};
         try { libData = await ApiClient.getLibraryType('items'); } catch (e) { /* ignore */ }
-        const options = [htmlTag`<option value="">(no template)</option>`];
+        const options = [];
         for (const [id, entry] of Object.entries(libData)) {
             const label = (entry && entry.name) ? `${entry.name} (${id})` : id;
-            options.push(htmlTag`<option value=${id}>${label}</option>`);
+            options.push({ value: id, label, icon: '📚' });
         }
-        window.Lit.render(options, select);
-        if (current) select.value = current;
+        new SearchSelect(container, {
+            options,
+            value: current,
+            placeholder: 'Search library templates...',
+            inputId: `item-lib-template-${nodeId}`,
+            allowFreeText: true,
+        });
     };
 
     // ═══════════════════════════════════════════════
