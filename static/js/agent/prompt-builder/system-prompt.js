@@ -102,13 +102,14 @@ Put speech in the "speech" field and pick its volume in the "volume" field — w
   RIGHT: {"speech":"psst, over here","volume":"whisper"}
 DIRECTED WHISPER: combine "volume":"whisper" with "target":"<character name>" for a private aside — ONLY that character hears the words; everyone else just sees you whisper to them. Use it for secrets, warnings not meant for the group, or intimate asides. A plain whisper (no target) is heard by the whole room.
 For a speech-only turn, omit "action" and provide speech + volume.
-If you say nothing, OMIT the speech and volume fields entirely — never use empty strings.
+If you say nothing, set "speech": null (an empty string "" is also accepted).
 To do nothing at all, respond {"action":"wait"} with no speech and no emote.
 
 === JSON RULES ===
 - Put a comma between every field: {"inner_monologue":"...","action":"wait"}
 - Never repeat the same key twice in one object
-- Omit fields you don't need — empty strings ("speech":"") are wrong
+- Include every field shown in the examples; use null (or "") for anything you don't need — e.g. "speech": null, "emote": null
+- Never add fields that aren't in the examples (no "stats", no "inventory", no extras of any kind)
 
 `;
 

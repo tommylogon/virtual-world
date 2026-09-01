@@ -20,6 +20,11 @@ class LLMClient {
         this._lastMessages = null;
         this._manualResponse = null;
         this._manualMode = false;
+        // Structured output bookkeeping: log once per schema when attached,
+        // and detect providers that silently IGNORE the schema (LM Studio
+        // with sub-7B models does this — no error, model just emits free JSON).
+        this._structuredLogged = new Set();
+        this._schemaIgnoredWarned = new Set();
     }
 
     static normalizeBase(url) {
@@ -81,6 +86,13 @@ class LLMClient {
             // config toggle, never mixed with tool calls, and auto-disabled
             // for the session if the provider rejects the parameter.
             const responseFormat = this._effectiveResponseFormat(options);
+            if (responseFormat) {
+                const key = responseFormat.type === 'json_schema' ? responseFormat.json_schema.name : 'json_object';
+                if (!this._structuredLogged.has(key)) {
+                    this._structuredLogged.add(key);
+                    if (VW?.events) VW.events.log(`🧱 Structured output active: ${key} (${format})`, 'system-msg');
+                }
+            }
             try {
                 const requestBody = isResponses
                     ? this._buildResponsesBody(messages, { model, temperature, streaming, maxTokens: options.max_tokens, tools: options.tools, tool_choice: options.tool_choice, responseFormat })
@@ -147,12 +159,17 @@ class LLMClient {
                     throw new Error(`HTTP ${resp.status}: ${errText}`);
                 }
 
-                if (streaming) return await this._handleStream(resp, format, options.onChunk, label);
+                if (streaming) {
+                    const streamed = await this._handleStream(resp, format, options.onChunk, label);
+                    this._checkSchemaEnforcement(streamed, responseFormat);
+                    return streamed;
+                }
                 const completion = await resp.json();
                 if (completion?.error) throw new Error(completion.error.message || JSON.stringify(completion.error));
                 const content = isResponses
                     ? this._extractResponsesContent(completion)
                     : this._extractChatCompletionContent(completion);
+                this._checkSchemaEnforcement(content, responseFormat);
                 const tool_calls = isResponses
                     ? this._extractResponsesToolCalls(completion)
                     : (completion?.choices?.[0]?.message?.tool_calls || null);
@@ -194,6 +211,32 @@ class LLMClient {
         if (this._structuredUnsupported) return null;
         if (typeof config !== 'undefined' && config && config.structuredOutput === false) return null;
         return options.responseFormat;
+    }
+
+    /**
+     * Detect providers that silently IGNORE a strict json_schema (LM Studio
+     * does this for models without grammar support — no error is raised, the
+     * model just emits free JSON). Proof of non-enforcement: the response
+     * parses as an object but contains keys the closed schema forbids.
+     * Warns once per schema and disables structured output for the session,
+     * since continuing would only burn request tokens on an ignored payload.
+     */
+    _checkSchemaEnforcement(content, responseFormat) {
+        if (!responseFormat || responseFormat.type !== 'json_schema') return;
+        const def = responseFormat.json_schema;
+        if (this._schemaIgnoredWarned.has(def.name)) return;
+        let parsed;
+        try {
+            parsed = JSON.parse(String(content || '').replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, ''));
+        } catch (e) { return; } // parse failures are the repair path's job, not ours
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return;
+        const allowed = def.schema && def.schema.properties;
+        if (!allowed) return;
+        const extras = Object.keys(parsed).filter(k => !(k in allowed));
+        if (!extras.length) return;
+        this._schemaIgnoredWarned.add(def.name);
+        this._structuredUnsupported = true;
+        if (VW?.events) VW.events.log(`⚠️ ${def.name}: provider ignored the JSON schema (unexpected keys: ${extras.join(', ')}) — the loaded model likely can't do structured output (LM Studio: models under 7B usually can't). Structured output disabled for this session.`, 'error-msg');
     }
 
     getLastPrompt() {

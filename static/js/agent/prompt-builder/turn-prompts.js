@@ -125,9 +125,9 @@ Respond ONLY raw JSON. Put a comma between every field. Do NOT repeat the same k
 Examples:
 ${PromptBuilder.buildJsonExample(schemaFields)}
 If you say nothing but still emote:
-{"inner_monologue":"...","action":"wait","emote":"shivers and hugs their shoulders"}
+{"inner_monologue":"...","action":"wait","speech":null,"volume":null,"item":null,"target":null,"emote":"shivers and hugs their shoulders","memory":null,"emotion":null,"learned_names":[]}
 If you have no emote, omit it:
-{"inner_monologue":"...","action":"look","target":"the archway"}`;
+{"inner_monologue":"...","action":"look","target":"the archway","speech":null,"volume":null,"item":null,"emote":null,"memory":null,"emotion":null,"learned_names":[]}`;
     }
 
     /**
@@ -208,8 +208,8 @@ Say something out loud by putting your line in exactly ONE of these volume field
 ${PromptBuilder.EMOTE_RULES_DECIDE}
 Do not put speech or emote inside the action field — they have their own fields.
 
-Respond ONLY raw JSON (use exactly ONE of the volume fields):
-${PromptBuilder.buildJsonExample(['action_simple'])}`;
+Respond ONLY raw JSON (every field shown, null what you don't need):
+${PromptBuilder.buildJsonExample(['full_action'])}`;
     }
 
     /**
@@ -266,9 +266,9 @@ Respond ONLY raw JSON. Put a comma between every field. Do NOT repeat the same k
 If you speak:
 ${PromptBuilder.buildJsonExample(['inner_monologue', 'speech', 'volume', 'emote', 'memory', 'emotion_toward', 'learned_names'])}
 If you stay silent but emote:
-{"inner_monologue":"...","emote":"..."}
+{"inner_monologue":"...","speech":null,"volume":null,"emote":"...","memory":null,"emotion":null,"learned_names":[]}
 If you have nothing to react with:
-{"inner_monologue":"..."}`;
+{"inner_monologue":"...","speech":null,"volume":null,"emote":null,"memory":null,"emotion":null,"learned_names":[]}`;
     }
 
     /**
@@ -292,9 +292,8 @@ You just ${sourceVerb} — ${resultText}
 You may chain ONE immediate follow-up action before your turn ends: ${verbs}.
 Pick an exit or target from the context above (go/approach), release a grapple, or respond with "wait".
 This is a quick decision — no speech, no emote, no memory.
-Respond ONLY raw JSON, exactly one of:
-${PromptBuilder.buildJsonExample(['action_simple'])}
-${PromptBuilder.buildJsonExample(['dash_wait'])}`;
+Respond ONLY raw JSON, every field shown (null what you don't need):
+${PromptBuilder.buildJsonExample(['full_action'])}`;
     }
 
     /** @deprecated Use buildChainFollowUpPrompt (dash is one CHAIN_RULES family). */

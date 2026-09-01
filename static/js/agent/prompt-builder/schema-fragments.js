@@ -72,6 +72,7 @@ memory is your subjective 1-3 sentence memory based on what just happened — yo
         dash_go: '"action":"go","target":"<exit name from the exits above>"',
         dash_wait: '"action":"wait"',
         silent_action: '"action":"wait"',
+        full_action: '"inner_monologue":"...","action":"...","item":null,"target":null,"speech":null,"volume":"say","emote":null,"memory":null,"emotion":null,"learned_names":[]',
     };
 
     /** Build a pretty-printed JSON example string from ordered JSON_FIELDS keys. */
