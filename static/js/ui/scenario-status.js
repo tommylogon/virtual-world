@@ -32,11 +32,11 @@ window.ScenarioStatus = (() => {
             return; // older server — chip stays quiet
         }
         node.textContent = '';
-        const name = document.createElement('span');
-        name.textContent = '📦 ' + (st.name || 'unnamed');
-        name.style.cssText = 'color:var(--text-dim);';
-        name.title = st.source ? ('Scenario source: ' + st.source) : 'No scenario source yet';
-        node.appendChild(name);
+        const icon = document.createElement('span');
+        icon.textContent = '📦';
+        icon.style.cssText = 'color:var(--text-dim);';
+        icon.title = st.source ? ('Scenario source: ' + st.source) : 'No scenario source yet';
+        node.appendChild(icon);
 
         if (!st.dirty) return;
 

@@ -753,17 +753,16 @@ window.InspectorAgentView = (() => {
                 <input type="text" id="inspector-ai-prompt" placeholder="AI: e.g. 'a cowardly thief'" style="flex:1;font-size:11px;">
                 <button class="btn btn-sm btn-purple" onclick="InspectorAgentView._generatePersonality('${escName}')" style="background:#4a2a8a;border-color:#6a3aaa;color:#bc8cff;">🤖</button>
             </div>
-            <div class="field"><textarea id="inspector-personality" rows="3" style="font-size:11px;">${player.personality}</textarea></div>
-            <button class="btn btn-sm btn-green" onclick="InspectorAgentView._savePersonality('${escName}')">💾 Save</button>
+            <div class="field"><textarea id="inspector-personality" rows="3" style="font-size:11px;" @blur=${() => AV._savePersonality('${escName}')}>${player.personality}</textarea></div>
         </div>`;
 
         // Appearance
         html += `<div class="inspector-section">
             <h3>👤 Appearance</h3>
             <div class="field"><label style="font-size:10px;color:var(--text-muted);">Base Description (naked/baseline look)</label>
-                <textarea id="inspector-base-description" rows="2" style="font-size:11px;margin-bottom:4px;">${player.base_description || ''}</textarea></div>
+                <textarea id="inspector-base-description" rows="2" style="font-size:11px;margin-bottom:4px;" @blur=${() => AV._saveDescription('${escName}')}>${player.base_description || ''}</textarea></div>
             <div class="field"><label style="font-size:10px;color:var(--text-muted);">Current Description (derived from base + equipment, or manual override)</label>
-                <textarea id="inspector-description" rows="3" style="font-size:11px;" oninput="InspectorAgentView._updateFirstImpression('${escName}')">${player.description || ''}</textarea></div>
+                <textarea id="inspector-description" rows="3" style="font-size:11px;" oninput="InspectorAgentView._updateFirstImpression('${escName}')" @blur=${() => AV._saveDescription('${escName}')}>${player.description || ''}</textarea></div>
             <div style="background:var(--bg-inset);border:1px dashed var(--border);border-radius:4px;padding:4px 6px;font-size:10px;color:var(--text-muted);margin-bottom:4px;">
                 <span style="font-weight:600;">First impression:</span> <span id="inspector-first-impression">${firstImpression}</span>
             </div>
@@ -1706,18 +1705,57 @@ Respond with ONLY a JSON object: {"tags": ["magic","books","jewelry"]} — the t
         const charCard = AV._buildCharacterCard(charName);
         if (!charCard) return;
 
+        let libEntry = null;
         try {
-            await ApiClient.saveCharacterToRegistry(charName, charCard);
-            events.log(`Character "${charName}" saved to registry!`, 'system-msg');
-        } catch (error) {
-            // Fallback: retry via the same unified endpoint
-            await ApiClient.saveCharacterToRegistry(charName, charCard);
-            events.log(`Character "${charName}" saved!`, 'system-msg');
+            const libData = await ApiClient.getLibraryType('characters');
+            libEntry = libData[charName] || null;
+        } catch (e) { /* ignore */ }
+
+        if (!libEntry) {
+            const res = await ApiClient.saveLibraryType('characters', { id: charName, ...charCard });
+            if (res.error) { events.log(`Failed to save: ${res.error}`, 'error-msg'); return; }
+            events.log(`Character "${charName}" saved to library.`, 'system-msg');
+            return;
         }
-        // Sync description to runtime
-        const descTextarea = document.getElementById('inspector-description');
-        if (descTextarea && descTextarea.value !== (player.description || '')) {
-            await ApiClient.updateCharacter(charName, { description: descTextarea.value });
+
+        const sections = [
+            { key: 'personality', label: 'Personality' },
+            { key: 'description', label: 'Description' },
+            { key: 'stats', label: 'Stats' },
+            { key: 'skills', label: 'Skills' },
+            { key: 'traits', label: 'Traits' },
+            { key: 'tags', label: 'Tags' },
+            { key: 'emotion', label: 'Emotion' },
+            { key: 'vitals', label: 'Vitals', perEntry: true },
+            { key: 'decay_rates', label: 'Decay Rates', perEntry: true },
+            { key: 'conditions', label: 'Conditions', perEntry: true },
+            { key: 'equipped', label: 'Equipped', perEntry: true },
+            { key: 'relationships', label: 'Relationships', perEntry: true },
+            { key: 'memories', label: 'Memories', perEntry: true },
+            { key: 'behaviors', label: 'Behaviours' },
+            { key: 'npc_behavior', label: 'NPC Config' },
+            { key: 'inventory', label: 'Items', perEntry: true }
+        ];
+
+        const result = await DiffModal.show(libEntry, charCard, sections, {
+            title: 'Save Character to Library',
+            name: charName
+        });
+        if (!result) return;
+
+        if (result.action === 'update') {
+            const merged = { ...libEntry, id: charName };
+            for (const key of result.sections) {
+                merged[key] = charCard[key];
+            }
+            const res = await ApiClient.saveLibraryType('characters', merged);
+            if (res.error) { events.log(`Failed to save: ${res.error}`, 'error-msg'); return; }
+            events.log(`Character "${charName}" updated in library.`, 'system-msg');
+        } else if (result.action === 'duplicate') {
+            const dupePayload = { id: result.id, name: result.name, ...charCard };
+            const res = await ApiClient.saveLibraryType('characters', dupePayload);
+            if (res.error) { events.log(`Failed to save: ${res.error}`, 'error-msg'); return; }
+            events.log(`Character "${result.name}" saved as duplicate to library.`, 'system-msg');
         }
     };
 
