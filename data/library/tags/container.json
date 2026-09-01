@@ -1,17 +1,17 @@
-{
-  "id": "container",
-  "name": "Container",
-  "description": "Can hold other items inside it",
-  "category": "mechanical",
-  "color": "#cc8844",
-  "icon": "📦",
-  "applies_to": [
-    "items"
-  ],
-  "examples": [
-    "backpack",
-    "chest",
-    "pouch",
-    "barrel"
-  ]
+{
+  "id": "container",
+  "name": "Container",
+  "description": "Can hold other items inside it",
+  "category": "mechanical",
+  "color": "#cc8844",
+  "icon": "📦",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "backpack",
+    "chest",
+    "pouch",
+    "barrel"
+  ]
 }

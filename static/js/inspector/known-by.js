@@ -384,6 +384,10 @@ window.KnownBySection = (() => {
     function build(kind, id, label) {
         const wrap = document.createElement('div');
         wrap.className = 'inspector-section';
+        // Marker so consumers can purge stale copies before appending a fresh
+        // one — the inspector re-renders on every worldState.fetch() poll and
+        // manually-appended children survive Lit re-renders.
+        wrap.dataset.knownBy = '1';
         const h = document.createElement('h3');
         h.textContent = '\u{1F9E0} Known by';
         wrap.appendChild(h);

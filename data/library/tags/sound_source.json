@@ -1,17 +1,17 @@
-{
-  "id": "sound_source",
-  "name": "Sound Source",
-  "description": "Emits sound continuously when active. Has sound_level (penetration 1-3) and sound_pattern (description).",
-  "category": "mechanical",
-  "color": "#ff8800",
-  "icon": "🔊",
-  "applies_to": [
-    "items"
-  ],
-  "examples": [
-    "air horn",
-    "ringing phone",
-    "blaring alarm",
-    "speaker playing music"
-  ]
+{
+  "id": "sound_source",
+  "name": "Sound Source",
+  "description": "Emits sound continuously when active. Has sound_level (penetration 1-3) and sound_pattern (description).",
+  "category": "mechanical",
+  "color": "#ff8800",
+  "icon": "🔊",
+  "applies_to": [
+    "items"
+  ],
+  "examples": [
+    "air horn",
+    "ringing phone",
+    "blaring alarm",
+    "speaker playing music"
+  ]
 }
