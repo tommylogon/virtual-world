@@ -436,12 +436,21 @@ class MovementSystem:
                 if kind == "go":
                     kind = "crawl"
 
+        # ── task-309: undead-ghost NPCs phase through ways — locked, blocked,
+        # closed, one-way, item-gated, and skill-gated passage are all
+        # meaningless to them.
+        phasing = False
+        try:
+            phasing = self.gs.player_manager.is_undead_ghost(self.gs.player_manager.active_player or "")
+        except Exception:
+            phasing = False
+
         # ── Item-gated passage (task-243 / task-109) ──
         # "requires_item" on the way: a name/id ("bike"), or a tag gate
         # ("tag:fly" — any held/area item tagged fly satisfies it). A shortcut
         # or ability path that stays blocked without the right gear.
         requires_item = way_node.properties.get("requires_item", "")
-        if requires_item:
+        if requires_item and not phasing:
             item_needle = None
             tag_needle = None
             for item_spec in str(requires_item).split(","):
@@ -456,7 +465,7 @@ class MovementSystem:
                 raise ValueError(self._requires_item_message(way_node, direction, item_needle, tag_needle))
 
         # ── Blind "go" — risk of stumbling and falling prone (unless a cane/guide) ──
-        if blind and kind == "go" and requires not in ("jump", "climb", "crawl"):
+        if blind and kind == "go" and requires not in ("jump", "climb", "crawl") and not phasing:
             p = self.gs.player
             roll = self.gs.roll_dice(1, 20, 0)
             perception = p.skills.get("Perception", 0)
@@ -471,10 +480,15 @@ class MovementSystem:
                     "Get back up with 'stand' before moving on. A cane or a guide would help."
                 )
 
-        # ── Climb/jump risk — failure fires the way's failure trigger (task-187) ──
-        # Blind characters navigate ledges by feel: the DC climbs (a cane offsets it).
+        # ── task-309: undead-ghost NPCs phase through ways — locked, blocked,
+        # closed, one-way, and skill-gated passage are all meaningless to them.
+        phasing = False
+        try:
+            phasing = self.gs.player_manager.is_undead_ghost(self.gs.player_manager.active_player or "")
+        except Exception:
+            phasing = False
         skill_check_msg = ""
-        if requires in ("jump", "climb"):
+        if not phasing and requires in ("jump", "climb"):
             dc = int(way_node.properties.get(f"{requires}_dc", 12) or 12)
             if blind:
                 dc = max(dc, dc + 4 - cane_bonus)
@@ -490,20 +504,20 @@ class MovementSystem:
                 raise ValueError(f"{msg}\n{fail_msg}")
             skill_check_msg = msg + "\n"
 
-        if way_node.properties.get("one_way"):
+        if way_node.properties.get("one_way") and not phasing:
             source_area = way_node.properties.get("area_from")
             if self.gs.current_area and self.gs.current_area.name != source_area:
                 raise ValueError(
                     f"The {direction} is one-way — you can't go back that way."
                 )
         state = way_node.properties.get("current_state")
-        if state == "locked":
+        if state == "locked" and not phasing:
             self._learn_way_aspect(way_node, direction, "locked")
             raise ValueError(f"The {direction} is locked. You need to unlock it first.")
-        if state == "blocked":
+        if state == "blocked" and not phasing:
             self._learn_way_aspect(way_node, direction, "blocked")
             raise ValueError(f"The {direction} is blocked. There's no way through.")
-        if state == "closed":
+        if state == "closed" and not phasing:
             # Check needs_open door property (checkbox-managed)
             needs_open = way_node.properties.get("needs_open", {})
             if needs_open.get("enabled", False):

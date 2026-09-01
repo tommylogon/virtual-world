@@ -4,6 +4,149 @@ All notable changes to VirtualWorld. See `docs/virtualWorld/Scenario Workflows &
 
 ---
 
+## 1.4.0 — "Body Language" (2026-09-01)
+
+The mature-content pleasure system (vitals, intimacy verbs, arousal conditions, release loop,
+mature traits), a company-aware Social overhaul, vitals-driven emotions, involuntary actions,
+invisible undead-ghost NPCs, and the identity foundation for id-backed characters. Everything
+adult is opt-in behind a single 🔞 toggle and leaves the base game untouched. **2589 passing**
+(69 MCP tests deselected — pre-existing harness breakage, see Gotchas).
+
+### 🔞 Mature content toggle (task-206)
+
+- **World flag** `mature_content` mirroring ghost_mode end-to-end: `GET/POST /api/settings/mature_content`,
+  world attribute, save/load round-trip, settings-modal toggle (🔞 Content group), IndexedDB persistence.
+- Everything below is gated on it: toggle off → no pleasure vitals exist, intimacy verbs reject with a
+  flavor message, adult traits vanish from library pickers, arousal conditions strip themselves.
+
+### 💗 Pleasure vitals & release loop (tasks 207/208)
+
+- **Three new vitals** — Arousal (slow ebb), Stimulation (medium drain), Pleasure (fast fade) — appear
+  only in mature worlds, self-healing via `Player.sync_pleasure_vitals()`, with baseline decay rates.
+- **Clothing friction** (task-208): equipped items' `friction` property trickles Arousal (0–3/tick).
+- **Edging**: Stimulation 50–64 stacks the `sensitized` condition and feeds Arousal.
+- **Release**: Stimulation ≥ 65 ∧ Arousal ≥ 40 fires the cascade — Energy −20, Entertainment +30,
+  Hygiene −10, Sanity +15, meters reset, `satisfied` + `overstimulated` applied, log line for the
+  active player.
+
+### 💘 Intimacy verbs (tasks 211/212)
+
+- **New module** `engine/pleasure_actions.py`: 8 verbs (kiss, caress, lick, suck, bite, pinch, blow,
+  tickle) with a `VERB_BASE` pressure/pleasure/pain table.
+- **Body-part targeting**: `kiss lydia on neck`, `pinch her on the left nipple` — same region resolver
+  as task-253 combat. Omitted `where` defaults per verb (kiss → lips). Covered regions land
+  *through clothing* (damped ×0.4).
+- **Multiplier pipeline** (task-212): intensity (light/normal/firm — leading "firmly kiss…" and
+  trailing "…gently" both parse) × region sensitivity (paperdoll `body_state`) × trait
+  `body_part_multipliers` (e.g. `wired_differently`: nipples ×3.0, genitals ×0.1) × closeness bonus.
+- **Pain flips**: `pain_potential` verbs (bite, pinch) can drive Pleasure negative → `overstimulated`.
+- **Interact-type**: never damages, recorded as `interact` turn events, no weapon/roll path — a clean
+  `interact` vs `attack` split in the dispatch.
+- **Frontend** (`action-normalizer.js`): mature worlds accept/emits
+  `{action:"kiss", target, where, intensity}`; the system prompt gains an intimacy schema section.
+  Non-mature worlds never accept or advertise the verbs.
+
+### 🧬 Arousal conditions & mature traits (tasks 209/213)
+
+- **13 new conditions**: `warming_up` / `aroused` / `highly_aroused` / `frantic` (threshold-driven
+  from the Arousal vital, applied/removed automatically each tick), `overstimulated`, `nipple_hard`,
+  `blushing`, `wetness`, `sensitized` (edging stacks), `satisfied` (afterglow), plus base-game
+  `itch`, `goosebumps`, and `social_breakdown`.
+- **Guard**: condition periodic effects can no longer CREATE vitals — an arousal condition on a
+  non-mature world can't leak an Arousal key into `player.vitals`.
+- **7 mature traits** (`wired_differently`, `quick_recovery`, `sensory_memory`, `sex_addict`,
+  `attention_seeker`, `exhibitionist`, `single_track`) — marked `mature: True` and hidden from
+  library listings unless the toggle is on. Wired hooks: `quick_recovery` halves the
+  overstimulated bout, `sensory_memory` leaves lingering sensitivity after release, `sex_addict`
+  doubles Entertainment decay at low Arousal.
+
+### 🪞 Body-state descriptions (task-210)
+
+- **Equipment description enrichment**: the appearance prompt now carries per-item detail properties
+  (opacity / coverage / current_state / friction) plus a visible-physical-state section (flush, hard
+  nipples, trembling, desperation…) — woven into the prose in both the LLM and fallback paths.
+- **Agent prompts** gain first-person body-state lines derived from the arousal conditions.
+
+### 👻 Undead ghost NPCs (task-309 MVP)
+
+- Tag a character `ghost`/`undead`: invisible to room listings and social presence, skips ALL vital
+  processing (no hunger/cold/fatigue), untargetable ("the blow passes straight through"), and
+  **phases through locked/blocked/one-way/item-gated ways** — perfect for atmospheric stalkers.
+
+### 🗼 Emotion from vitals (task-142)
+
+- `engine/emotion.derive_from_vitals()`: when no explicit emotion has been set (or the affect map
+  decayed back to neutral), mood is derived from actual physical state — starving → craving/anxious,
+  frozen → uneasy, exhausted → irritated/melancholic, injured → afraid, dying → deep calm (ghosts),
+  asleep → silent. Explicit emotions always win; vitals only fill the silence.
+
+### 👥 Company-aware Social overhaul (task-353)
+
+- **Isolation timer**: after 5 consecutive alone-ticks, Social decay accelerates (extra −1/tick);
+  introverts exempt, **loners reverse it** (+1/tick in solitude).
+- **Physical ≠ social** (task-353 §2): humid air and `humidity: humid` now sap **Hygiene** (not
+  Social); perfume boosts **Entertainment** (not Social). A lone character in a perfumed room is
+  still alone.
+- **GROUP_ENERGY_DRAIN** is now consumed: crowds of 3+ sap Energy per the trait value.
+- **Self-talk**: speaking with no living listeners in the room gives +1 Social instead of +5.
+- **chatty trait**: +2 per exchange (speaker +7, chatty listeners +5).
+- **Behavioral gates** (§5): prompt flags (`social_need: moderate/desperate`) at Social < 50/25 and a
+  `social_breakdown` condition below 10 (Sanity drain, removed once Social recovers ≥ 15).
+- New traits: `loner`, `chatty` (conflict-correct, library-seeded).
+- **Fixed 5 pre-existing `test_social_company.py` failures** (the humid-area Social double-drain).
+
+### 💬 Involuntary actions (task-166)
+
+- **`static/js/agent/involuntary.js`**: condition-driven speech/emote interruptions — frightened →
+  stutter ("W-what did you say?"), freezing → chattering stutter, sick/poisoned → coughs,
+  social_breakdown → hollow muttering, itch/goosebumps → scratch/shiver emotes, plus a low random
+  baseline (hiccup/burp/yelp). Pronoun-aware, never blocks the intended action, injected before the
+  text is sent so the room and event stream both see it.
+
+### 🛠 Fixes
+
+- **Mana vital leak** — non-magic characters showed a Mana bar because saves/scenarios hardcode
+  `"Mana": 0` and every hydration path overwrote vitals after the tag sync. All five hydration
+  paths (save load, library spawn, template load, library import, player import + graph copy) now
+  re-run `sync_vitals_with_tags()`.
+- **Latent `AttributeError`** in the NPC hunter facade (`_get_nearest_player_to` /
+  `_get_path_to_area` called non-existent undecorated names on `npc_behaviors`).
+- **TickManager ghost check** — `TickManager.player_manager` is actually the engine; the undead-ghost
+  decay skip went through a facade that resolved to `None` (found by the new tests).
+- **Release cascade** — `satisfied`/`overstimulated` no longer exclude each other (refractory
+  overload + afterglow coexist).
+
+### 🧪 Behind the scenes
+
+- New test file: `tests/test_pleasure_system.py` (21 tests) covering the toggle gating, multiplier
+  pipeline, dispatch (incl. the leading-adverb form), friction/edging/release, quick_recovery,
+  ghost NPC behavior, phasing through locked ways, and id round-trips.
+- **task-316 foundation** (safe subset): stable opaque `Player.id` (uuid8, serialized/restored) and
+  `graph.add_node` no longer silently overwrites duplicate **character** nodes. The full
+  registry/relationship re-key remains a dedicated follow-up.
+- Task vault: 142/166/206/207/208/209/210/211/212/213-lite/309-MVP/316-foundation/353 — implemented
+  in this session.
+- Full suite at **2589 passing** (+21 new; 69 MCP tests deselected).
+
+### 🧰 Gotchas in this release
+
+- **Restart your server** — the engine, routes, and frontend all changed.
+- **Mature content is opt-in and off by default.** Toggle it in settings (🔞 Content group) or
+  `POST /api/settings/mature_content`. Toggling mid-session strips/creates the three vitals and
+  their conditions automatically — nothing leaks into clean scenarios.
+- **Item `friction` / `opacity` / `coverage` properties** drive the new description + arousal
+  behavior but no library items have them yet — set them in the inspector/library and they work.
+- **Ghost NPCs** need the `ghost` or `undead` **tag** on the character. They're fully invisible:
+  no room listing, no social presence, no tick processing. Include them in queries with
+  `include_ghosts=True`.
+- **MCP test modules** (`tests/test_mcp_*.py`) are broken by a pre-existing harness issue
+  (`'function' object has no attribute 'fn'`) that predates this release — 69 tests deselected
+  until that harness is fixed.
+- The 4 remaining mature traits (attention_seeker, exhibitionist, single_track, sex_addict's
+  perception side) are defined but await the NPC-perception framework (task-214) for their hooks.
+
+---
+
 ## 1.3.0 — "Weather Eye & Wild Words" (2026-08-31)
 
 A forecast schedule engine, game calendar, moon phases, wind/humidity, a triple-feature NL Editor

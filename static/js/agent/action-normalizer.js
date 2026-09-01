@@ -24,6 +24,22 @@ window.ActionNormalizer = (() => {
         'bind', 'enchant'
     ]);
 
+    // task-211: intimacy verbs are only valid actions in mature worlds. Kept
+    // out of the base set so non-mature scenarios never accept/emit them.
+    const MATURE_VERBS = new Set(['kiss', 'caress', 'lick', 'suck', 'bite', 'pinch', 'blow', 'tickle']);
+    const INTENSITY_ADVERBS = { light: 'gently', firm: 'firmly' };
+
+    function matureEnabled() {
+        return !!(window.config && window.config.matureContent);
+    }
+
+    let _matureCache = null;
+    function allVerbs() {
+        if (!matureEnabled()) return VALID_VERBS;
+        if (!_matureCache) _matureCache = new Set([...VALID_VERBS, ...MATURE_VERBS]);
+        return _matureCache;
+    }
+
     const MOVE_VERBS = new Set(['go', 'dash', 'crawl', 'climb', 'jump']);
     /** Check whether an action string uses a supported verb or matches a known exit name. */
     function isValidAction(action, charName) {
@@ -31,7 +47,7 @@ window.ActionNormalizer = (() => {
         const trimmed = action.trim();
         if (trimmed.includes('command from') || trimmed.includes('your ') || trimmed.includes('your_') || trimmed.includes('](')) return false;
         const verb = trimmed.split(/\s+/)[0].toLowerCase();
-        if (VALID_VERBS.has(verb)) return true;
+        if (allVerbs().has(verb)) return true;
         if (charName) {
             const player = worldState.data?.players?.[charName];
             const area = player?.current_area ? worldState.areas?.[player.current_area] : null;
@@ -87,6 +103,21 @@ window.ActionNormalizer = (() => {
             case 'attack': {
                 const where = String(p.where || '').trim();
                 return where ? `attack ${obj} on ${where}` : (obj ? `attack ${obj}` : verb);
+            }
+            case 'kiss': case 'caress': case 'lick': case 'suck':
+            case 'bite': case 'pinch': case 'blow': case 'tickle': {
+                // task-211: intimacy verbs carry body part + intensity.
+                // Schema: {action:"kiss", target:"lydia", where:"neck", intensity:"light|normal|firm"}
+                if (!matureEnabled()) return 'look';
+                if (!obj) return verb;
+                const where = String(p.where || '').trim();
+                const intensity = String(p.intensity || 'normal').trim().toLowerCase();
+                const adv = INTENSITY_ADVERBS[intensity] || '';
+                const parts = [];
+                if (adv) parts.push(adv);
+                parts.push(verb, obj);
+                if (where) parts.push('on', where);
+                return parts.join(' ');
             }
             case 'grab': return obj ? `grab ${obj}` : verb;
             case 'escape': case 'struggle': return verb;

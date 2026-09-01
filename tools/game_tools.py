@@ -165,7 +165,7 @@ def get_tools(world):
         if vitals.get("Hygiene", 100) <= 50:
             advice.append("Low Hygiene: Look for soap or bathing facilities.")
         if vitals.get("Social", 100) <= 50:
-            advice.append("Low Social: Try speaking or finding pleasant environments (perfume, clean spaces).")
+            advice.append("Low Social: Try speaking to someone. Company restores social well-being — solitude drains it.")
         
         # Environmental issues
         if current_area:

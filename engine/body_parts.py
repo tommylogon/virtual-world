@@ -289,6 +289,14 @@ def region_injury_level(damage):
     return 1
 
 
+def region_name(region_id):
+    """Human display name for a region id ('nipple_left' → 'left nipple')."""
+    meta = BODY_REGIONS.get(region_id)
+    if not meta:
+        return (region_id or "").replace("_", " ")
+    return meta.get("name", region_id.replace("_", " "))
+
+
 #: d20 hit-location table for un-aimed attacks (task-253). Bigger targets get
 #: more faces: torso (5 faces), legs (3), arms (2), head (2), then the small
 #: extremities. Each (low, high) pair maps a contiguous d20 range to a region.

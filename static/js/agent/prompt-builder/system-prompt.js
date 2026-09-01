@@ -86,6 +86,14 @@ For use_on you may add "amount": N to use N units of the item at once (consumes 
 - {"action":"put","item":"the pen","target":"the table","relation":"on"}  → place on a surface
 - {"action":"give","item":"the key","target":"the stranger"}   → hand to someone nearby`;
 
+    const MATURE_ACTIONS = `
+
+=== INTIMACY (adult worlds only) ===
+Intimate verbs are available: kiss, caress, lick, suck, bite, pinch, blow, tickle. Schema: {"action":"kiss","target":"lydia","where":"neck","intensity":"light|normal|firm"} — "where" is the body part (neck, lips, left nipple, ...), "intensity" defaults to normal. These are interact-type actions: they never damage, they land through clothing (weaker), and the other character reacts on their own terms — consent matters; pushing someone who pulls away changes how they feel about you.
+- {"action":"kiss","target":"lydia","where":"lips"}             → a kiss
+- {"action":"pinch","target":"lydia","where":"left nipple","intensity":"firm"}  → sharp contact — can hurt
+`;
+
     const SPEECH_VOLUME = `
 
 === SPEECH & VOLUME ===
@@ -132,6 +140,7 @@ To do nothing at all, respond {"action":"wait"} with no speech and no emote.
             PromptBuilder.EMOTE_RULES_SYSTEM,
         ];
         if (dead) parts.push(GHOST_ACTIONS);
+        if (window.config?.matureContent) parts.push(MATURE_ACTIONS);
         parts.push(ITEMS_VS_FLAVOR, ACTION_STRUCTURE, SPEECH_VOLUME, brevityRule);
 
         prompt += parts.join('');

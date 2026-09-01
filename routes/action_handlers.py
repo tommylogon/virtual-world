@@ -9,6 +9,10 @@ from engine.activities import (
 )
 from engine.vitals import format_vitals_readout, VITAL_POLARITY
 from routes.helpers import tokenize_command_detailed
+from engine.pleasure_actions import (
+    INTIMACY_VERBS as _INTIMACY_VERBS,
+    INTENSITY_ADVERBS as _INTENSITY_ADVERBS,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -865,6 +869,69 @@ def handle_take_action(app):
                         add_output(world.take_item(target))
                     except Exception as grab_err:
                         add_output(str(grab_err))
+
+        elif cmd.split(' ', 1)[0] in _INTIMACY_VERBS or (
+                len(cmd.split()) > 1 and cmd.split()[0] in _INTENSITY_ADVERBS
+                and cmd.split()[1] in _INTIMACY_VERBS):
+            # task-211: intimacy verbs — interact-type (never damages),
+            # body-part targeted, gated by the mature content toggle.
+            from engine.pleasure_actions import parse_intensity, execute_intimacy_action, INTENSITY_ADVERBS
+            if not getattr(world, "mature_content", False):
+                add_output("That kind of intimacy isn't part of this world.")
+            else:
+                words = cmd.split()
+                leading = None
+                if (len(words) > 1 and words[0] in INTENSITY_ADVERBS
+                        and words[1] in _INTIMACY_VERBS):
+                    # leading adverb ("firmly kiss lydia") — strip it here and
+                    # carry the intensity through (parse_intensity only sees
+                    # the tail below)
+                    leading = INTENSITY_ADVERBS[words[0]]
+                    cmd = ' '.join(words[1:])
+                verb, rest = cmd.split(' ', 1)
+                intensity, rest = parse_intensity(rest)
+                if leading and intensity == "normal":
+                    intensity = leading
+                # Region phrase parsing (earliest marker wins — same as attack).
+                from engine.body_parts import resolve_region
+                where_text = None
+                marker_idx, matched_marker = -1, None
+                for marker in (" on ", " where ", " in the ", " in "):
+                    idx = rest.find(marker)
+                    if idx > 0 and (marker_idx < 0 or idx < marker_idx):
+                        marker_idx, matched_marker = idx, marker
+                if marker_idx > 0:
+                    region_text = rest[marker_idx + len(matched_marker):].strip()
+                    if region_text:
+                        where_text = region_text
+                    rest = rest[:marker_idx].strip()
+                target = rest.strip()
+                if not target:
+                    add_output(f"{verb.capitalize()} whom?")
+                else:
+                    attacker = world.players.get(world.active_player)
+                    if not attacker:
+                        add_output("You can't do that.")
+                    else:
+                        target_player = world.players.get(target)
+                        resolved_target = target
+                        if target_player is None:
+                            resolved, candidates = world._match_character_name(target)
+                            if resolved:
+                                resolved_target = resolved
+                                target_player = world.players[resolved]
+                            elif candidates:
+                                add_output(f"You don't know exactly who that is. Do you mean: {', '.join(candidates)}?")
+                                resolved_target = None
+                        if resolved_target is not None:
+                            if target_player and target_player.current_area == world.current_area.name:
+                                result = execute_intimacy_action(
+                                    world, world.active_player, verb,
+                                    resolved_target, where_text, intensity)
+                                world.record_turn_event(world.active_player, "interact", f"{verb} {resolved_target}: {result}", area_name=world.current_area.name if world.current_area else None)
+                                add_output(result)
+                            else:
+                                add_output(f"{target} isn't here.")
 
         elif cmd.startswith("lead "):
             target = ' '.join(tokens[1:]) if len(tokens) > 1 else ""

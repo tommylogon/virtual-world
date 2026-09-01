@@ -141,6 +141,11 @@ class AgentEngine {
         const v = volume || 'say';
         events.trackPhase(charName, 'speech', { speech, volume: v, target });
         events.trackAction(charName, null, speech, null, '');
+        // task-166: involuntary interruptions (hiccups, stutters, coughs) —
+        // flavor only, never replaces the intended line. Runs BEFORE the text
+        // is sent so the room and event stream both see the injected moment.
+        const injected = window.Involuntary?.speech ? window.Involuntary.speech(speech, player) : null;
+        if (injected) speech = injected;
         // Directed whisper (task-248): "whisper to <name>: text" reaches only
         // the target; the rest of the room sees the gesture, not the words.
         const directed = v === 'whisper' && target;
@@ -167,6 +172,10 @@ class AgentEngine {
 
     async _performEmote(charName, emote) {
         try {
+            // task-166: involuntary emote tail (a hiccup, a yelp, a shiver).
+            const player = worldState.players?.[charName];
+            const injected = window.Involuntary?.emote ? window.Involuntary.emote(emote, player) : null;
+            if (injected) emote = injected;
             const emoteResult = await ApiClient.emote(charName, emote);
             if (emoteResult?.description) {
                 events.log(emoteResult.description, 'msg-emote');

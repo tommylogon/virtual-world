@@ -312,15 +312,24 @@ window.PromptBuilder = window.PromptBuilder || {};
             case 'Social':
                 // Context-aware (task-327): isolation wording must not contradict
                 // an occupied room, a conversation, or a noisy scene.
+                // task-353 §5: behavioral gate flags steer the LLM's action
+                // choices, not just narration.
                 if (v < T.CRITICAL) {
-                    if (scene && !scene.alone) return 'The loneliness is crushing even with people around — it feels like no one is truly there with you.';
-                    return 'The loneliness is crushing. You desperately wish someone was here.';
+                    const base = (scene && !scene.alone)
+                        ? 'The loneliness is crushing even with people around — it feels like no one is truly there with you.'
+                        : 'The loneliness is crushing. You desperately wish someone was here.';
+                    return base + ' [social_need: desperate][social_breakdown: your mind is fraying from isolation]';
                 }
                 if (v < T.WARNING) {
-                    if (scene && scene.addressed) return 'You hang on their words a little too much.';
-                    if (scene && !scene.alone) return 'Being around people feels harder than it should today.';
-                    if (scene && scene.noise && scene.noise !== 'quiet' && scene.noise !== 'silence' && scene.noise !== 'silent') return 'You feel cut off from everyone even as the noise hums around you.';
-                    return 'You feel isolated. The silence presses in around you.';
+                    let base = '';
+                    if (scene && scene.addressed) base = 'You hang on their words a little too much.';
+                    else if (scene && !scene.alone) base = 'Being around people feels harder than it should today.';
+                    else if (scene && scene.noise && scene.noise !== 'quiet' && scene.noise !== 'silence' && scene.noise !== 'silent') base = 'You feel cut off from everyone even as the noise hums around you.';
+                    else base = 'You feel isolated. The silence presses in around you.';
+                    return base + ' [social_need: desperate: find people, speak, connect]';
+                }
+                if (v < T.WARNING) {
+                    return 'You are getting lonely. [social_need: moderate: consider speaking to someone]';
                 }
                 return '';
             case 'Bladder':
@@ -387,7 +396,24 @@ window.PromptBuilder = window.PromptBuilder || {};
         // in the prompt, so other characters' claims ("you look hungry!") can
         // genuinely influence the agent instead of arguing with a system-backed
         // "you feel fine" baseline.
-        return parts.join(' ');
+        // task-210: mature worlds add a first-person body-state line derived
+        // from the arousal conditions (the vitals tiers above don't know them).
+        let out = parts.join(' ');
+        if (window.config?.matureContent && player.conditions) {
+            const lines = [];
+            if (player.conditions.satisfied) lines.push('A deep, warm satisfaction settles over you.');
+            else {
+                if (player.conditions.overstimulated) lines.push('Every nerve is raw — even light touch is almost too much.');
+                if (player.conditions.frantic) lines.push('You need release so badly it is hard to think.');
+                else if (player.conditions.highly_aroused) lines.push('You are aching with need, barely in control.');
+                else if (player.conditions.aroused) lines.push('Your body hums with want; your thoughts keep drifting.');
+                else if (player.conditions.warming_up) lines.push('A slow warmth is building in you.');
+            }
+            if (player.conditions.nipple_hard) lines.push('Your nipples are stiff and sensitive against the fabric.');
+            if (player.conditions.wetness) lines.push('You are wet — your body is making itself obvious.');
+            if (lines.length) out = (out ? out + ' ' : '') + lines.join(' ');
+        }
+        return out;
     }
 
     /**

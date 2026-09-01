@@ -614,6 +614,60 @@ class EquipmentSystem:
             return
         self._update_equipment_description(player)
 
+    def _body_state_description_lines(self, player):
+        """task-210: visible body-state bullets for the description prompt.
+
+        Mature-gated: returns [] unless world.mature_content is on. Only
+        conditions that are outwardly visible belong here — the description
+        is "how this character looks right now".
+        """
+        world = getattr(self, 'world', None)
+        if world is None or not getattr(world, 'mature_content', False):
+            return []
+        visible = {
+            'blushing': 'cheeks are flushed',
+            'nipple_hard': 'nipples press visibly against the fabric',
+            'wetness': 'a telltale wet sheen',
+            'aroused': 'a visible flush and quickened breathing',
+            'highly_aroused': 'visibly trembling, skin flushed',
+            'frantic': 'openly desperate, barely keeping composure',
+            'satisfied': 'languid and deeply relaxed',
+            'overstimulated': 'twitching at the slightest touch',
+            'hypothermia': 'pale and shivering violently',
+            'goosebumps': 'goosebumps stand out on their skin',
+        }
+        lines = []
+        for cid, phrase in visible.items():
+            if cid in (player.conditions or {}):
+                lines.append(f"- {player.name}'s {phrase}")
+        return lines
+
+    def _equipment_detail_lines(self, player, full):
+        """task-210: per-item detail properties (opacity/coverage/state/friction)
+        appended to the equipment prompt when the item defines them."""
+        lines = []
+        for slot, node_ids in (player.equipped or {}).items():
+            for node_id in node_ids:
+                if not node_id or str(node_id).startswith("__multi_slot"):
+                    continue
+                node = self.graph.get_node(node_id)
+                if node is None or node.type != 'item':
+                    continue
+                props = node.properties or {}
+                bits = []
+                if 'opacity' in props:
+                    bits.append(f"opacity {props['opacity']}")
+                if 'coverage' in props:
+                    bits.append(f"coverage {props['coverage']}")
+                state = props.get('current_state')
+                if state and state not in ('off', 'unlit'):
+                    bits.append(f"state: {state}")
+                if props.get('friction'):
+                    bits.append(f"friction {props['friction']}")
+                if bits:
+                    lines.append(f"- {node.name} ({slot}): {', '.join(bits)}")
+        return lines
+
     def _update_equipment_description(self, player):
         """Rebuild player.description from base_description and current equipment.
         Tries LLM first, falls back to code-generated 3rd-person text."""
@@ -628,14 +682,23 @@ class EquipmentSystem:
                 equip_lines.append(f"- {slot}: {' → '.join(items)} (innermost to outermost)")
         equip_text = '\n'.join(equip_lines) if equip_lines else 'Nothing worn.'
 
+        # task-210: item detail properties + visible body state enrich the
+        # prompt so descriptions reflect wet/see-through/worn gear and the
+        # character's physical state, not just a slot list.
+        detail_lines = self._equipment_detail_lines(player, full)
+        detail_text = ('\nITEM DETAILS:\n' + '\n'.join(detail_lines)) if detail_lines else ''
+        state_lines = self._body_state_description_lines(player)
+        state_text = ('\nVISIBLE PHYSICAL STATE (must be reflected in the prose):\n' + '\n'.join(state_lines)) if state_lines else ''
+
         prompt = (
             "You are writing a visual appearance description for a character in a fantasy RPG.\n\n"
             f"BASELINE APPEARANCE (naked physical traits):\n{base if base else '(none described)'}\n\n"
-            f"CURRENT EQUIPMENT:\n{equip_text}\n\n"
+            f"CURRENT EQUIPMENT:\n{equip_text}{detail_text}{state_text}\n\n"
             "Write a vivid, natural 3rd-person description of how this character looks right now. "
             "Merge their baseline physical traits with what they're wearing into smooth prose. "
             "2-4 sentences. Do not list slots or use bullet points. "
-            "Describe only visible appearance — no backstory, no personality."
+            "Describe only visible appearance — no backstory, no personality. "
+            "If a VISIBLE PHYSICAL STATE section is present, weave it into the prose."
         )
 
         self.logging.log_llm_call("_update_equipment_description", prompt, player_name=player.name)
@@ -663,6 +726,11 @@ class EquipmentSystem:
                 fallback_parts.append(f"{items[-1]} in their {slot_labels.get(hand, hand)}")
         if fallback_parts:
             parts.append(f"{player.name} is wearing " + ", ".join(fallback_parts) + ".")
+        # task-210: fallback text also carries the visible body state.
+        for state_line in state_lines:
+            clause = state_line[2:]  # strip "- "
+            clause = clause.replace(f"{player.name}'s ", "Their ")
+            parts.append(clause.rstrip('.') + ".")
         player.description = '\n'.join(parts)
 
     def update_equipment_description(self, player):

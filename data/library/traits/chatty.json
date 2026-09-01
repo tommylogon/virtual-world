@@ -1,0 +1,13 @@
+{
+  "name": "Chatty",
+  "description": "You talk easily. Conversations come naturally and leave you feeling connected.",
+  "category": "mental",
+  "params": null,
+  "effects": {
+    "social_gain": 1
+  },
+  "conflicts": [
+    "loner",
+    "mute"
+  ]
+}

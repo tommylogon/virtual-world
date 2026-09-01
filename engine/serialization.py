@@ -104,6 +104,7 @@ class WorldSerializer:
             "personality": getattr(p, 'personality', ""),
             "description": getattr(p, 'description', ""),
             "base_description": getattr(p, 'base_description', ""),
+            "id": getattr(p, 'id', ''),
             "equipped": dict(p.equipped),
             "stats": p.stats,
             "vitals": p.vitals,
@@ -215,6 +216,7 @@ class WorldSerializer:
             "turn_number": self.legacy.turn_number,
             "narration_mode": self.legacy.narration_mode,
             "ghost_mode": self.legacy.ghost_mode,
+            "mature_content": getattr(self.legacy, "mature_content", False),
             "world_lore": self.legacy.world_lore,
             "calendar_config": getattr(self.legacy, "calendar_config", None),
             "forecast_schedule": getattr(self.legacy, "forecast_schedule", None),
@@ -224,6 +226,9 @@ class WorldSerializer:
 
     def _deserialize_player(self, pname, pdata):
         p = Player(pname)
+        # task-316: restore the stable identity (fall back to a fresh id for
+        # legacy saves that never had one).
+        p.id = pdata.get("id") or p.id
         p.personality = pdata.get("personality", "")
         p.description = pdata.get("description", "")
         p.base_description = pdata.get("base_description", "")
@@ -252,6 +257,7 @@ class WorldSerializer:
                 instances[0]["duration"] = legacy_timer
         p.traits = pdata.get("traits", {})
         p.tags = list(pdata.get("tags", []))
+        p.sync_vitals_with_tags()
         p.known = list(pdata.get("known", []) or [])
         p.crafting_known = list(pdata.get("crafting_known", []) or [])
         p.discovered_exits = {
@@ -354,6 +360,7 @@ class WorldSerializer:
         self.legacy.log_revision = data.get("log_revision", 0)
         self.legacy.narration_mode = data.get("narration_mode", "none")
         self.legacy.ghost_mode = data.get("ghost_mode", False)
+        self.legacy.mature_content = data.get("mature_content", False)
         self.legacy.speech_log.clear()
 
         temp_players = {}

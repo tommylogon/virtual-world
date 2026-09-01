@@ -643,6 +643,7 @@ def handle_import_player(app):
     player.npc_state = data.get('npc_state', player.npc_state) or 'idle'
     player.behaviors = data.get('behaviors', player.behaviors) or []
     player.state_timer = data.get('state_timer', player.state_timer) or 0
+    player.sync_vitals_with_tags()
 
     emotion = data.get('emotion') or {}
     if isinstance(emotion, dict):

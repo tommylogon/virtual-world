@@ -1,0 +1,14 @@
+{
+  "name": "Loner",
+  "description": "Solitude recharges you. Being alone restores your social well-being.",
+  "category": "mental",
+  "params": null,
+  "effects": {
+    "group_energy_drain": 0,
+    "social_gain": 0
+  },
+  "conflicts": [
+    "extrovert",
+    "chatty"
+  ]
+}

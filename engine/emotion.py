@@ -176,6 +176,11 @@ _BANDS: dict[str, tuple[str, str, str]] = {
         "You are repulsed and keep your distance.",
         "Something here turns your stomach slightly.",
     ),
+    "calm": (
+        "You are utterly at peace — nothing touches you.",
+        "A deep calm settles over you.",
+        "You feel pleasantly calm.",
+    ),
 }
 
 
@@ -230,6 +235,68 @@ def dominant(values: dict) -> tuple[str, float]:
         if dev > best_dev:
             best_key, best_dev = key, dev
     return best_key, best_dev
+
+
+def derive_from_vitals(vitals: dict, state: str = "") -> dict | None:
+    """task-142: build a provisional affect map from physical/vital signals.
+
+    Returns a point-spiked map (ready for :func:`describe`) when at least one
+    signal deviates, or None when the character is asleep/unconscious or has no
+    meaningful physical pressures.
+
+    Signal thresholds follow the *current* vital semantics (task-337 flip):
+    Hunger/Thirst/Bladder are DRIVES that FILL toward 100 (so "desperate" is
+    HIGH, not low); Energy/Hygiene/etc. are resources that DRAIN toward 0.
+    """
+    if vitals is None:
+        return None
+    state = str(state or "")
+    if state == "dead":
+        # Detached, calm — a ghost pov (the living rarely see it).
+        return {"calm": 80.0}
+    if state in ("unconscious", "sleeping"):
+        # Asleep (or under) — no mood worth narrating mid-sleep.
+        return None
+
+    try:
+        def _low(resource: str, threshold: float) -> bool:
+            return float(vitals.get(resource, 100)) <= threshold
+
+        def _high(drive: str, threshold: float) -> bool:
+            return float(vitals.get(drive, 0)) >= threshold
+
+        temp = float(vitals.get("Temperature", 37.0))
+        moves: list[tuple[str, float]] = []
+        if _low("Energy", 25):
+            moves.append(("irritated", 22))
+            moves.append(("melancholic", 12))
+        if _high("Hunger", 75):
+            moves.append(("craving", 20))
+            moves.append(("anxious", 12))
+        if _high("Thirst", 75):
+            moves.append(("anxious", 18))
+        if _low("Entertainment", 25):
+            moves.append(("melancholic", 16))
+        if _low("Sanity", 25):
+            moves.append(("anxious", 24))
+        if temp < 35:
+            moves.append(("uneasy", 18))
+        elif temp > 38:
+            moves.append(("irritated", 18))
+        if _high("Bladder", 75):
+            moves.append(("irritated", 12))
+            moves.append(("anxious", 8))
+        if _low("HP", 50):
+            moves.append(("afraid", 18))
+        if not moves:
+            return None
+    except (TypeError, ValueError):
+        return None
+
+    out = baseline()
+    for dim, points in moves:
+        spike(out, dim, points)
+    return out
 
 
 def describe(values: dict) -> str:

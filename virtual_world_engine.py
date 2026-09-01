@@ -63,6 +63,12 @@ class VirtualWorld:
         # Ghost mode: when True, dead characters can act with limitations
         self.ghost_mode = False
 
+        # Mature content toggle (task-206): when True, the pleasure/arousal
+        # subsystem (vitals, intimacy verbs, adult traits, NPC sexual
+        # perception) is fully gated behind this opt-in flag. Mirrors the
+        # ghost_mode wiring: world attr + settings routes + frontend toggle.
+        self.mature_content = False
+
         # Auto-generate equipment descriptions on equip/unequip (False = manual only)
         self.auto_generate_descriptions = True
 
@@ -70,7 +76,11 @@ class VirtualWorld:
             "Energy": 1, "Hunger": 1, "Thirst": 1,
             "Social": 1, "Hygiene": 1,
             "Sanity": 1, "Entertainment": 1,
-            "Mana": 0
+            "Mana": 0,
+            # Pleasure system (task-207/208): decay only touches players that
+            # carry the vitals (mature_content on). Arousal ebbs slowly,
+            # Stimulation drains at a medium rate, Pleasure fades fastest.
+            "Arousal": 1, "Stimulation": 2, "Pleasure": 3
         }
         self.game_logger = GameLogger()
         self.turn_active = False  # True when a turn cycle is in progress
@@ -689,10 +699,10 @@ class VirtualWorld:
     def is_slasher(self, player_name: str) -> bool:
         return self.player_manager.is_slasher(player_name)
     def _get_nearest_player_to(self, hunter_name: str) -> Optional[str]:
-        return self.npc_behaviors.get_nearest_player_to(hunter_name)
+        return self.npc_behaviors._get_nearest_player_to(hunter_name)
 
     def _get_path_to_area(self, from_area: str, to_area: str) -> Optional[str]:
-        return self.npc_behaviors.get_path_to_area(from_area, to_area)
+        return self.npc_behaviors._get_path_to_area(from_area, to_area)
 
     def slasher_hunt(self, slasher_name: str) -> str:
         return self.npc_behaviors.slasher_hunt(slasher_name)
@@ -741,6 +751,13 @@ class VirtualWorld:
 
     def tick_turn(self, skip_npcs=False):
         return self.tick_manager.tick_turn(skip_npcs)
+
+    def is_undead_ghost(self, player_name: str) -> bool:
+        """task-309 facade: is this character an invisible undead-ghost NPC?"""
+        try:
+            return self.player_manager.is_undead_ghost(player_name)
+        except Exception:
+            return False
 
     # Keep the old tick() method for backwards compatibility
     def tick(self, ticks=1):

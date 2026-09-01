@@ -448,6 +448,7 @@ class Effects:
         p.skills = lib_data.get("skills", {})
         p.traits = lib_data.get("traits", {})
         p.tags = list(lib_data.get("tags", []))
+        p.sync_vitals_with_tags()
         p.interest_tags = list(lib_data.get("interest_tags", []))
         p.state = lib_data.get("state", "awake")
         p.load_conditions(lib_data.get("conditions", {}))

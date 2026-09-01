@@ -70,6 +70,8 @@ class TemplateLoader:
             p.vitals["Energy"] = max(0, min(100, p.vitals["Energy"]))
         p.skills = {**p.skills, **(player_data.get("skills", {}))}
         p.exhaustion_count = player_data.get("exhaustion_count", 0)
+        p.tags = _normalize_str_list(player_data.get("tags"))
+        p.sync_vitals_with_tags()
         self.player_manager.add_player(p)
         self.player_manager.active_player = p.name
 
@@ -260,6 +262,7 @@ class TemplateLoader:
             c.base_description = str(char_data.get("base_description") or c.description)
             c.personality = str(char_data.get("personality", "") or "")
             c.tags = _normalize_str_list(char_data.get("tags"))
+            c.sync_vitals_with_tags()
             c.stats = {**c.stats, **(char_data.get("stats") or {})}
             c.skills = {**c.skills, **(char_data.get("skills") or {})}
             c.current_area = str(char_data.get("area") or char_data.get("current_area") or start_area)

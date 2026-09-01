@@ -43,6 +43,8 @@ class ConfigManager {
 
         // Ghost mode: when true, dead characters can still act as ghosts
         this.ghostMode = (await storage.getConfig('ghost_mode')) === 'true';
+        // Mature content opt-in (task-206): gates the pleasure/arousal subsystem
+        this.matureContent = (await storage.getConfig('mature_content')) === 'true';
         this.manualMode = (await storage.getConfig('manual_mode')) === 'true';
 
         // Invalid-action auto-retry (task-361): when an agent action fails, give
@@ -117,6 +119,7 @@ class ConfigManager {
         await storage.setConfig('last_profile', this.lastProfile || '');
         await storage.setConfig('reactive_mode', this.reactiveMode ? 'true' : 'false');
         await storage.setConfig('ghost_mode', this.ghostMode ? 'true' : 'false');
+        await storage.setConfig('mature_content', this.matureContent ? 'true' : 'false');
         await storage.setConfig('rpm_limit', String(this.rpmLimit));
         await storage.setConfig('tpm_limit', String(this.tpmLimit));
         await storage.setConfig('filter_thoughts', this.filterThoughts ? 'true' : 'false');
@@ -187,6 +190,7 @@ class ConfigManager {
         this.streaming = document.getElementById('agent-streaming')?.checked || false;
         this.reactiveMode = document.getElementById('agent-reactive-mode')?.checked ?? this.reactiveMode;
         this.ghostMode = document.getElementById('agent-ghost-mode')?.checked ?? this.ghostMode;
+        this.matureContent = document.getElementById('agent-mature-content')?.checked ?? this.matureContent;
         this.manualMode = document.getElementById('agent-manual-mode')?.checked ?? this.manualMode;
         this.autoRetryInvalid = document.getElementById('agent-auto-retry-invalid')?.checked ?? this.autoRetryInvalid;
         this.simultaneousMode = document.getElementById('agent-simultaneous-mode')?.checked ?? this.simultaneousMode;

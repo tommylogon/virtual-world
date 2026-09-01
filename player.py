@@ -15,8 +15,43 @@ class Player:
             self.vitals.pop("Mana", None)
             self.decay_rates.pop("Mana", None)
 
+    def sync_pleasure_vitals(self, enabled: bool):
+        """task-206/207: add or strip the pleasure vitals with the toggle.
+
+        Arousal/Stimulation/Pleasure only exist while ``mature_content`` is on,
+        so the base game never shows them. Decay rates match the engine
+        baseline (slow Arousal, medium Stimulation, fast Pleasure).
+        """
+        if enabled:
+            if "Arousal" not in self.vitals:
+                self.vitals["Arousal"] = 0
+            if "Stimulation" not in self.vitals:
+                self.vitals["Stimulation"] = 0
+            if "Pleasure" not in self.vitals:
+                self.vitals["Pleasure"] = 0
+            self.decay_rates.setdefault("Arousal", 1)
+            self.decay_rates.setdefault("Stimulation", 2)
+            self.decay_rates.setdefault("Pleasure", 3)
+        else:
+            self.vitals.pop("Arousal", None)
+            self.vitals.pop("Stimulation", None)
+            self.vitals.pop("Pleasure", None)
+            for vital in ("Arousal", "Stimulation", "Pleasure"):
+                self.decay_rates.pop(vital, None)
+            # The arousal state conditions are meaningless without the vitals.
+            for cid in ("warming_up", "aroused", "highly_aroused", "frantic",
+                        "overstimulated", "nipple_hard", "blushing", "wetness",
+                        "sensitized", "satisfied"):
+                self.conditions.pop(cid, None)
+
     def __init__(self, name="Traveler"):
         self.name = name
+        # task-316 foundation: stable opaque identity. Display names stay the
+        # addressing surface (same-named characters are allowed); the id is the
+        # anchor the full id-backed re-key will use. 8 hex chars, survives
+        # save/load and library hydration.
+        import uuid as _uuid
+        self.id = _uuid.uuid4().hex[:8]
         # Free-form description/personality text for this character
         self.personality = ""
         # Base physical description (naked/baseline appearance — what they look like with nothing on)
@@ -292,11 +327,23 @@ class Player:
             _emotion.decay(self._emotions)
 
     def emotions_description(self) -> str:
-        """First-person mood paragraph for prompts ('' when near-neutral)."""
+        """First-person mood paragraph for prompts ('' when near-neutral).
+
+        task-142: when no explicit emotion has been set recently (the affect
+        map is untouched, or every dimension has decayed back to baseline),
+        derive a coherent mood from the character's actual vitals/state instead
+        of narrating "relieved but vigilant" while shivering and starving.
+        """
         from engine import emotion as _emotion
-        if self._emotions is None:
+        if self._emotions is not None:
+            explicit = _emotion.describe(self._emotions)
+            if explicit:
+                return explicit
+            # Near-neutral explicit map — fall through to vitals-derived mood.
+        derived = _emotion.derive_from_vitals(self.vitals, self.state)
+        if derived is None:
             return ""
-        return _emotion.describe(self._emotions)
+        return _emotion.describe(derived)
 
     def load_emotions(self, data) -> None:
         """Restore a stored emotion map from a scenario/save dict."""

@@ -242,6 +242,7 @@ def handle_duplicate_node(app):
                 setattr(new_player, _f, _copy.deepcopy(getattr(src_player, _f)))
             new_player.emotion = "neutral"
             new_player.emotion_intensity = 0.0
+            new_player.sync_vitals_with_tags()
         # add_player() flips active_player to the new copy — restore afterwards.
         prev_active = app.world.active_player
         app.world.player_manager.add_player(new_player)

@@ -180,11 +180,28 @@ def handle_library_entities(app):
     return jsonify(result)
 
 
+def _filter_mature_entries(app, registry_type, data):
+    """task-213: hide adult traits from library listings/pickers unless the
+    mature_content toggle is on. Definitions stay functional for characters
+    that already carry them."""
+    if registry_type != 'traits':
+        return data
+    if getattr(app.world, 'mature_content', False):
+        return data
+    if not isinstance(data, dict):
+        return data
+    return {
+        key: value for key, value in data.items()
+        if not (isinstance(value, dict) and value.get('mature'))
+    }
+
+
 def handle_library_list(app, registry_type):
     if registry_type not in REGISTRY_TYPES:
         return jsonify({"error": f"Unknown registry type: {registry_type}"}), 400
     filename = f"{registry_type}.json"
-    return jsonify(load_registry(app.config['DATA_DIR'], filename))
+    data = load_registry(app.config['DATA_DIR'], filename)
+    return jsonify(_filter_mature_entries(app, registry_type, data))
 
 
 def handle_library_all(app):
@@ -196,7 +213,8 @@ def handle_library_all(app):
         wanted = list(REGISTRY_TYPES)
     result = {}
     for t in wanted:
-        result[t] = load_registry(data_dir, f"{t}.json")
+        data = load_registry(data_dir, f"{t}.json")
+        result[t] = _filter_mature_entries(app, t, data)
     return jsonify(result)
 
 
@@ -384,6 +402,7 @@ def handle_library_import_character(app, char_id):
     player.skills = cdata.get('skills', player.skills)
     player.traits = cdata.get('traits', player.traits)
     player.tags = cdata.get('tags', player.tags)
+    player.sync_vitals_with_tags()
     player.known = list(cdata.get('known', []) or [])
     player.interest_tags = cdata.get('interest_tags', player.interest_tags)
     player.personality = cdata.get('personality', '')

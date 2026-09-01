@@ -70,8 +70,10 @@ class WorldGraph:
             node.type = "way"
         if node.id in self.nodes:
             existing = self.nodes[node.id]
-            # Only auto-rename items and ways, not areas/characters
-            if node.type in ('item', 'door', 'logic_trigger'):
+            # Auto-rename items, ways, and characters (task-316: a second
+            # same-named character must never silently overwrite the first —
+            # areas are the only type where collision is a hard error).
+            if node.type in ('item', 'door', 'logic_trigger', 'character'):
                 suffix = str(uuid.uuid4())[:8]
                 node.id = f"{node.id}_{suffix}"
                 node.name = f"{node.name}_{suffix}"

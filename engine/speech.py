@@ -224,12 +224,29 @@ class SpeechBroadcaster:
             if target_obj is not None and hasattr(target_obj, "update_relationship"):
                 target_obj.update_relationship(speaker_name, tick, 2)
 
-        # Social gain from conversation
+        # Social gain from conversation (task-353).
+        # chatty gives +2 extra per exchange: speaker +7, listeners +5
+        # (instead of the default +5/+3). A speaker with no living listeners
+        # gets a small +1 self-talk gain instead of a full +5.
+        def _chatty_extra(player_obj) -> int:
+            return 2 if player_obj is not None and "chatty" in (getattr(player_obj, "traits", None) or {}) else 0
+
+        living_listeners = [
+            pname for pname, player_obj in self.player_manager.players.items()
+            if getattr(player_obj, "current_area", None) == target_area
+            and pname != speaker_name
+            and getattr(player_obj, "state", None) != "dead"
+        ]
+
         if speaker_name in self.player_manager.players:
             speaker_obj = self.player_manager.players[speaker_name]
             if getattr(speaker_obj, "current_area", None) == target_area:
+                if living_listeners:
+                    gain = 5 + _chatty_extra(speaker_obj)
+                else:
+                    gain = 1  # talking to yourself still beats total silence
                 speaker_obj.vitals["Social"] = min(
-                    100, speaker_obj.vitals.get("Social", 50) + 5
+                    100, speaker_obj.vitals.get("Social", 50) + gain
                 )
 
         for pname, player_obj in self.player_manager.players.items():
@@ -237,7 +254,7 @@ class SpeechBroadcaster:
                 continue
             if pname != speaker_name:
                 player_obj.vitals["Social"] = min(
-                    100, player_obj.vitals.get("Social", 50) + 3
+                    100, player_obj.vitals.get("Social", 50) + 3 + _chatty_extra(player_obj)
                 )
 
         # Append to speech log

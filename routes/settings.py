@@ -34,6 +34,30 @@ def register_settings_routes(app):
             app.world.add_log_entry("[System] Ghost mode deactivated.")
         return jsonify({"status": "success", "ghost_mode": enabled})
 
+    @app.route('/api/settings/mature_content', methods=['GET'])
+    def get_mature_content():
+        """task-206: get the mature content opt-in flag."""
+        try:
+            enabled = getattr(app.world, 'mature_content', False)
+            return jsonify({"mature_content": enabled})
+        except Exception as e:
+            return jsonify({"mature_content": False, "error": str(e)})
+
+    @app.route('/api/settings/mature_content', methods=['POST'])
+    def set_mature_content():
+        """task-206: toggle the mature content opt-in flag."""
+        data = request.get_json()
+        enabled = data.get('mature_content', False)
+        if not isinstance(enabled, bool):
+            return jsonify({"error": "mature_content must be a boolean"}), 400
+        app.world.mature_content = enabled
+        logger.info(f"Mature content set to: {enabled}")
+        if enabled:
+            app.world.add_log_entry("[System] Mature content enabled — intimacy systems active.")
+        else:
+            app.world.add_log_entry("[System] Mature content disabled — intimacy systems hidden.")
+        return jsonify({"status": "success", "mature_content": enabled})
+
     @app.route('/api/debug/save_log', methods=['POST'])
     def save_debug_log():
         """Save a run log file for debugging. Returns the filename."""

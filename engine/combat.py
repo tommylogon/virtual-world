@@ -122,6 +122,15 @@ class CombatSystem:
         if not attacker or not target:
             return ""
 
+        # task-309: invisible undead-ghost NPCs can't be hit by normal attacks —
+        # the weapon passes through cold, intangible air.
+        try:
+            if self.skills.player_manager.is_undead_ghost(target.name):
+                return (f"{attacker_name} swings at {target_name} — and the blow passes "
+                        f"straight through without resistance. {target_name} does not even flinch.")
+        except Exception:
+            pass
+
         # Resolve an AIMED body region up front (invalid/unknown → no region).
         # Un-aimed attacks stay None here; the location is rolled on a HIT so
         # misses don't consume a hit-location roll (task-253).

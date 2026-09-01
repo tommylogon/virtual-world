@@ -363,6 +363,11 @@ class ConditionsSystem:
                     for stat, amount in periodic.items():
                         total[stat] = total.get(stat, 0) + amount
                 for stat, amount in total.items():
+                    # Guard: periodic effects must not CREATE vitals (task-206/209).
+                    # An arousal periodic on a non-mature world must not leak an
+                    # Arousal/Stimulation/Pleasure key into player.vitals.
+                    if stat not in player.vitals:
+                        continue
                     current = player.vitals.get(stat, 0)
                     player.vitals[stat] = max(0, current + amount)
 

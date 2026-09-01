@@ -174,9 +174,20 @@ class PlayerManager:
 
     # ── Area Queries ─────────────────────────────────────────────────────
 
+    def is_undead_ghost(self, player_name: str) -> bool:
+        """task-309: an NPC character tagged ``ghost``/``undead`` is an
+        invisible walker — omitted from room listings and social presence,
+        immune to vital decay, and untargetable by normal attacks."""
+        p = self.players.get(player_name)
+        if p is None:
+            return False
+        tags = getattr(p, "tags", None) or []
+        return "ghost" in tags or "undead" in tags
+
     def get_players_in_area(self, area_name: str = None, include_ghosts: bool = False) -> List[dict]:
         """Get players in a area. Excludes the active player by default.
-        When include_ghosts is False, dead players in ghost mode are omitted."""
+        When include_ghosts is False, dead players in ghost mode are omitted,
+        and so are invisible undead-ghost NPCs (task-309)."""
         target_area = area_name
         if not target_area:
             active = self.get_active_player_obj()
@@ -191,6 +202,8 @@ class PlayerManager:
                 continue
             if player_obj.current_area == target_area:
                 if player_obj.state == "dead" and self.ghost_mode and not include_ghosts:
+                    continue
+                if not include_ghosts and self.is_undead_ghost(player_name):
                     continue
                 players_here.append({
                     "name": player_name,

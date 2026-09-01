@@ -186,7 +186,9 @@ class TickManager:
                 # system wakes at full Energy (regen applied below)
 
             from engine.traits import TraitSystem
-            if TraitSystem.has_effect(p, "is_slasher"):
+            # task-309: undead-ghost NPCs skip vitals processing entirely —
+            # they don't hunger, tire, or freeze (same handling as slashers).
+            if TraitSystem.has_effect(p, "is_slasher") or self.gs.is_undead_ghost(pname):
                 continue
 
             prev_vitals = p.vitals.copy()
@@ -223,6 +225,11 @@ class TickManager:
                         ent_mod += 2
                 if ent_mod:
                     p.vitals["Entertainment"] = max(0, min(100, p.vitals["Entertainment"] + ent_mod))
+                # task-213: sex_addict — Entertainment decays twice as fast
+                # when Arousal sits below 15 (the itch comes back fast).
+                if ("Arousal" in p.vitals and p.vitals.get("Arousal", 100) < 15
+                        and TraitSystem.has_effect(p, "sex_addict")):
+                    p.vitals["Entertainment"] = max(0, p.vitals["Entertainment"] - 1)
 
             # Bladder fills over time: 0 = empty (relieved), 100 = full (need to go)
             if "Bladder" in p.vitals:
@@ -312,7 +319,9 @@ class TickManager:
                     if air == "stale":
                         p.vitals["Energy"] = max(0, p.vitals["Energy"] - 1)
                     elif air == "humid":
-                        p.vitals["Social"] = max(0, p.vitals["Social"] - 1)
+                        # task-353: humid air is physical discomfort, not social
+                        # isolation — it saps Hygiene, never Social.
+                        p.vitals["Hygiene"] = max(0, p.vitals["Hygiene"] - 1)
                     elif air == "toxic":
                         dmg = 3
                         resisted = resisted_damage(dmg, "toxic", bonuses)
@@ -340,46 +349,83 @@ class TickManager:
                     if smell in ["mold", "rot", "rotting food", "ferment", "urine"]:
                         p.vitals["Hygiene"] = max(0, p.vitals["Hygiene"] - 1)
                     elif smell == "perfume":
-                        p.vitals["Social"] = min(100, p.vitals["Social"] + 1)
-                    # task-232: humid atmosphere saps Social (distinct from
-                    # the legacy air:"humid" check above).
+                        # task-353: perfume is a physical/sensory pleasure, not
+                        # social connection — a lone character in a perfumed
+                        # room is still alone. It boosts Entertainment instead.
+                        p.vitals["Entertainment"] = min(100, p.vitals["Entertainment"] + 1)
+                    # task-232: humid atmosphere is physical discomfort (task-353)
+                    # — it saps Hygiene, distinct from the legacy air:"humid" check.
                     humidity = env.get("humidity", "dry")
                     if humidity == "humid":
-                        p.vitals["Social"] = max(0, p.vitals["Social"] - 1)
+                        p.vitals["Hygiene"] = max(0, p.vitals["Hygiene"] - 1)
                     light = self.lighting.get_ambient_light(area_node.id, env)
                     if light < 20:
                         p.vitals["Sanity"] = max(0, p.vitals["Sanity"] - 1)
-                    others_here = [n for n, op in self.player_manager.players.items() if op.current_area == player_area_name and n != pname and op.state != "dead"]
+                    others_here = [n for n, op in self.player_manager.players.items() if op.current_area == player_area_name and n != pname and op.state != "dead" and not self.gs.is_undead_ghost(n)]
                     # ── Social need is company-aware ──
                     # Being with others feeds Social; being alone drains it
                     # FASTER than the baseline decay being alone used to (the
                     # old engine applied the same -1 baseline to everyone, so a
                     # lone character and a crowded one decayed identically).
                     # gain defaults to 1; the `social_gain` trait effect (e.g.
-                    # extrovert: 2, introvert: 0) scales BOTH directions —
-                    # introverts need less company, extroverts crave it.
+                    # extrovert: 2, introvert: 0, loner: 0) scales BOTH
+                    # directions — introverts need less company, extroverts
+                    # crave it (task-353).
                     try:
-                        from engine.traits import TraitSystem, SOCIAL_GAIN
+                        from engine.traits import TraitSystem, SOCIAL_GAIN, GROUP_ENERGY_DRAIN
                         raw_gain = TraitSystem.get_first_effect(p, SOCIAL_GAIN)
                         social_gain = int(raw_gain) if raw_gain is not None else 1
+                        raw_drain = TraitSystem.get_first_effect(p, GROUP_ENERGY_DRAIN)
+                        group_drain = int(raw_drain) if raw_drain is not None else 0
                     except Exception:
                         social_gain = 1
+                        group_drain = 0
                     social_gain = max(0, social_gain)
+                    is_loner = "loner" in (p.traits or {})
                     social_cause = ""
                     if len(others_here) > 0:
+                        p._alone_ticks = 0
+                        # task-353: introverts / loners get no presence gain.
                         if social_gain > 0:
                             p.vitals["Social"] = min(100, p.vitals["Social"] + social_gain)
                             social_cause = f"with company ({', '.join(others_here[:3])})"
+                        # task-353 §1: GROUP_ENERGY_DRAIN — crowds sap energy
+                        # (introvert -2, default 0, extrovert/loner 0).
+                        if group_drain and len(others_here) >= 3:
+                            p.vitals["Energy"] = max(0, p.vitals["Energy"] + group_drain)
                     else:
-                        if social_gain > 0:
-                            p.vitals["Social"] = max(0, p.vitals["Social"] - social_gain)
-                            social_cause = f"alone in {player_area_name}"
+                        # task-353: loner reverses the isolation penalty — being
+                        # alone restores their social well-being.
+                        if is_loner:
+                            p.vitals["Social"] = min(100, p.vitals["Social"] + 1)
+                            p._alone_ticks = 0
+                            social_cause = f"enjoying solitude in {player_area_name}"
+                        else:
+                            if social_gain > 0:
+                                p.vitals["Social"] = max(0, p.vitals["Social"] - social_gain)
+                            # task-353 §1: isolation timer — after 5 consecutive
+                            # alone-ticks, Social decay accelerates by an extra
+                            # -1/tick. Introverts (social_gain 0) are exempt.
+                            alone_ticks = getattr(p, "_alone_ticks", 0) + 1
+                            p._alone_ticks = alone_ticks
+                            if social_gain > 0 and alone_ticks >= 5:
+                                p.vitals["Social"] = max(0, p.vitals["Social"] - 1)
+                                social_cause = f"isolated in {player_area_name}"
+                            else:
+                                social_cause = f"alone in {player_area_name}"
                         # Phase 3 — alone_in_dark save_on hook (nyctophobic)
                         if light < 20:
                             try:
                                 self.gs._emit_save_on(pname, "alone_in_dark", {"light": light})
                             except Exception as e:
                                 logger.warning("[tick] alone_in_dark %s: %s", pname, e)
+                    # task-353 §5: low Social → social_breakdown condition.
+                    social_val = p.vitals.get("Social", 100)
+                    if social_val < 10:
+                        if "social_breakdown" not in p.conditions:
+                            p.add_condition("social_breakdown")
+                    elif social_val >= 15 and "social_breakdown" in p.conditions:
+                        p.remove_condition("social_breakdown")
                     if social_cause and pname == self.player_manager.active_player:
                         try:
                             name = getattr(p, "name", None) or pname
@@ -465,6 +511,14 @@ class TickManager:
             for log_line in trait_logs:
                 if pname == self.player_manager.active_player:
                     self.player_manager.add_log_entry(log_line)
+
+            # task-209: arousal-state condition sync from the Arousal vital
+            # (no-op unless mature_content on and the vital exists).
+            self._sync_arousal_conditions(p)
+
+            # task-207/208: pleasure vitals sync + friction/edging/release
+            # (no-op unless mature_content on).
+            self._pleasure_tick(p, pname)
 
             if (p.vitals.get("Energy", 0) > 25 and p.vitals.get("Hunger", 0) > 25 and
                 p.vitals.get("Thirst", 0) > 25 and p.vitals.get("Sanity", 0) > 25 and
@@ -745,3 +799,105 @@ class TickManager:
         energy_restored = final_energy - initial_energy
         sign = "+" if energy_restored >= 0 else ""
         return f"You rest for {actual_minutes} minutes{' on ' + target_item_name if target_item_name else ''}. Energy restored: {sign}{energy_restored}%. Current Energy: {final_energy}%."
+
+    def _pleasure_tick(self, p, pname):
+        """task-207/208: per-tick pleasure-system maintenance.
+
+        - Keeps the pleasure vitals in sync with the mature toggle (task-207).
+        - Clothing friction trickle (task-208): equipped items' ``friction``
+          property feeds a small Arousal gain (0-3/tick).
+        - Edging (task-208): Stimulation 50-64 stacks ``sensitized``.
+        - Release (task-208): Stimulation >= 65 AND Arousal >= 40 fires the
+          release cascade and resets the meters.
+        """
+        mature = bool(getattr(self.gs, "mature_content", False))
+        p.sync_pleasure_vitals(mature)
+        if not mature:
+            return
+        vitals = p.vitals
+        if "Stimulation" not in vitals or "Arousal" not in vitals:
+            return
+
+        # ── Clothing friction trickle (task-208) ──
+        friction_sum = 0.0
+        try:
+            from graph import EDGE_EQUIPPED
+            player_node_id = self.player_manager._player_node_id(pname)
+            for edge in self.graph.get_edges_for_target(player_node_id, EDGE_EQUIPPED):
+                node = self.graph.get_node(edge.source)
+                if node is not None and node.type == "item":
+                    try:
+                        friction_sum += float(node.properties.get("friction", 0) or 0)
+                    except (TypeError, ValueError):
+                        continue
+        except Exception as e:
+            logger.warning("[tick] friction %s: %s", pname, e)
+        if friction_sum > 0:
+            trickle = max(0, min(3, round(friction_sum)))
+            if trickle:
+                vitals["Arousal"] = min(100, vitals.get("Arousal", 0) + trickle)
+
+        # ── Edging (task-208): 50 <= Stimulation < 65 ──
+        stim = vitals.get("Stimulation", 0)
+        arousal = vitals.get("Arousal", 0)
+        if 50 <= stim < 65:
+            if hasattr(p, "add_condition"):
+                p.add_condition("sensitized", duration=10)
+            vitals["Arousal"] = min(100, arousal + 1)
+
+        # ── Release (task-208): Stimulation >= 65 AND Arousal >= 40 ──
+        if stim >= 65 and arousal >= 40:
+            vitals["Energy"] = max(0, vitals.get("Energy", 100) - 20)
+            vitals["Entertainment"] = min(100, vitals.get("Entertainment", 0) + 30)
+            vitals["Hygiene"] = max(0, vitals.get("Hygiene", 100) - 10)
+            vitals["Sanity"] = min(100, vitals.get("Sanity", 100) + 15)
+            vitals["Stimulation"] = 5
+            vitals["Arousal"] = max(0, arousal - 30)
+            if hasattr(p, "add_condition"):
+                p.add_condition("satisfied", duration=20)
+                overstim_duration = 5
+                # task-213: quick_recovery halves the overstimulated bout.
+                from engine.traits import TraitSystem
+                if TraitSystem.has_effect(p, "quick_recovery"):
+                    overstim_duration = max(1, overstim_duration // 2)
+                p.add_condition("overstimulated", duration=overstim_duration)
+                # task-213: sensory_memory leaves lingering sensitivity.
+                if TraitSystem.has_effect(p, "sensory_memory"):
+                    p.add_condition("sensitized", duration=10)
+            if pname == self.player_manager.active_player:
+                self.player_manager.add_log_entry(
+                    "A wave of release washes through you — every muscle lets go at once.")
+
+    def _sync_arousal_conditions(self, p):
+        """task-209: drive arousal-state conditions from the Arousal vital.
+
+        Only active when the mature-content opt-in is on AND the Arousal vital
+        exists (the vital itself lands with task-207). Without either, the
+        arousal conditions never apply and nothing leaks into the base game.
+
+        Bands: 0-15 baseline (none), 15-30 warming_up, 30-50 aroused,
+        50-90 highly_aroused, 90+ frantic.
+        """
+        if not getattr(self.gs, "mature_content", False):
+            return
+        arousal = p.vitals.get("Arousal")
+        if arousal is None:
+            return
+        bands = [
+            ("frantic", 90, 101),
+            ("highly_aroused", 50, 90),
+            ("aroused", 30, 50),
+            ("warming_up", 15, 30),
+        ]
+        wanted = None
+        for cid, low, high in bands:
+            if low <= arousal < high:
+                wanted = cid
+                break
+        for cid, _low, _high in bands:
+            if cid == wanted:
+                continue
+            if cid in p.conditions:
+                p.remove_condition(cid)
+        if wanted and wanted not in p.conditions:
+            p.add_condition(wanted)

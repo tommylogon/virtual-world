@@ -30,10 +30,14 @@ VITAL_POLARITY: Dict[str, str] = {
     "Hunger": "drive",
     "Thirst": "drive",
     "Bladder": "drive",
-    "Arousal": "drive",           # future vital (pleasure system)
+    # Pleasure system (task-207): all three DECAY when unstimulated, so they
+    # use resource mechanics in the baseline-decay loop despite arousal being
+    # a "need" narratively.
+    "Arousal": "resource",        # eases off slowly when nothing feeds it
+    "Stimulation": "resource",    # direct contact meter — drains toward 0
+    "Pleasure": "resource",       # afterglow metric — fades fastest
     # bands: comfort window, both extremes bad
     "Temperature": "band",
-    "Pleasure": "band",           # future vital (dynamic window)
 }
 
 DISPLAY_NAMES = {
@@ -47,6 +51,9 @@ DISPLAY_NAMES = {
     "Sanity": "sanity",
     "Entertainment": "entertainment",
     "Comfort": "comfort",
+    "Arousal": "arousal",
+    "Stimulation": "stimulation",
+    "Pleasure": "pleasure",
 }
 
 
