@@ -4,6 +4,72 @@ All notable changes to VirtualWorld. See `docs/virtualWorld/Scenario Workflows &
 
 ---
 
+## 1.5.0 — "Tender Magic & Graph Forge" (2026-09-02)
+
+A sweeping working-tree day: environment/time/weather engine plumbing, trigger-graph viewport and compile-honesty overhaul, broadened NPC behavior vocabulary, character/schema cleanup, and a 15-spell Lyrie spellbook design task. **Suite at 2507 passing**; no regressions in the core scenario/turn flow.
+
+### 🌦 Environment & Time (engine)
+
+- **Area status engine** (`engine/area_statuses.py`): data-driven area status definitions, persistence, and save/load round-trip.
+- **Environment propagation** (`engine/environment_propagation.py`): temperature/light decay and adjacency propagation wired into the tick loop.
+- **Effect handlers** (`engine/effect_handlers/environment.py`): `set_environment`, `adjust_environment`, `set_weather`, `set_time`, `set_date`, `forecast_override`, `adjust_forecast`, `apply_area_status`, `clear_area_status`, `set_wet` implemented as item/trigger effects.
+- **Tick integration** (`engine/tick_manager.py`): area status + environment updates execute each tick.
+- **Trigger validator** (`engine/trigger_validator.py`): new catalog entries for the expanded environment/time effect set.
+
+### 🧠 NPC Behaviors
+
+- **`engine/triggers/behaviors.py`** (+899 lines): new action types `add_memory`, `set_emotion`, `set_flag`, `hide_in`, `hide_behind`, `hide_under`. NPCs can now leave memories, change mood, set runtime flags, and take cover.
+
+### 🎨 Trigger Graph Editor
+
+- **Viewport**: pan, zoom-to-cursor, Fit, dot-grid background, per-graph viewport persistence.
+- **Wires**: left-in/right-out socket layout, YES/NO branch coloring, arrowheads, wire selection + delete, cycle/duplicate guards.
+- **Compile honesty**: badges/warnings for fan-out drop, behavior NO-branch drop, and Y-position priority override.
+- **Catalog parity**: trigger node now supports multi-select trigger types from the shared registry; condition node grouped dropdown covers all 27 conditions; effect node covers the full 42-effect catalog plus save-gate branches, `llm_respond`, `scry`, memory effects, and environment presets.
+- **Interaction fixes**: field commits on `input`, selection class-toggle instead of rebuild, Escape/close guard, draft autosave.
+- **Tests**: `tools/test_trigger_graph_viewport.cjs` (19/19), `tools/test_behavior_action_cards.cjs` (119 action types).
+
+### 🧍 Characters
+
+- **Lyrie** (`data/library/characters/Lyrie.json`): equipment slots normalized from string refs to full item objects; memory schema unified (`salience_override`, tick normalization, text formatting cleanup); vitals corrected (`Hunger 94→6`, `Thirst 94→6`); stray markdown artifact removed from `personality`.
+- **Whiskers** (`data/library/characters/whiskers.json`): character data update.
+
+### 🗺 Scenario & World Template
+
+- **`data/scenarios/mansion.json`**: migrated to the current scenario schema (`players` map, `current_area`, `area_presence`, equipment objects).
+- **`world_template.json`**: refreshed to match the new schema.
+- **`virtual_world_engine.py`**: small schema/plumbing updates to keep live state aligned with the migrated format.
+
+### 📚 Library Items & Triggers
+
+- **New templates**: `template_adjust_forecast`, `template_apply_area_status`, `template_clear_area_status`, `template_forecast_override`, `template_set_date`, `template_set_time`, `template_set_weather`, `template_set_wet`.
+- **New scratch trigger**: `data/library/triggers/untitled.json`.
+- **New reference**: `docs/Trigger-Condition-Effect-Cheat-Sheet.md`.
+
+### 🛠 Fixes
+
+- **Behavior form editor crash**: `weighItem`/`inventoryItem` undeclared consts fixed; all 119 behavior action cards now build without throwing.
+- **Graph field persistence**: inline handlers now reference `TriggerGraph` correctly; id substitution no longer mangles quoted ids.
+- **Behavior graph layout**: re-layout from single tall column to priority-ordered row-major grid; fit zoom improved on dense behavior sets.
+- **Wire rendering after reopen**: wires now redraw after viewport settle, preventing offset/scattered wires on open.
+
+### 🧰 Gotchas in this release
+
+- **Restart your server** — engine, routes, and frontend all changed.
+- The mansion scenario file is large and structurally different from older scenarios; inspect via the Scenario Manager before mixing with older templates.
+- `llm_respond` remains blocked in trigger contexts without a host-side LLM provider decision.
+- Some new effect types (`polymorph_target`, `create_illusory_companion`, `broadcast_emotion`, `repair_item`, `ward_area`, etc.) are proposed in `task-391` but not yet implemented in the engine.
+
+### 🧪 Behind the scenes
+
+- New modules: `engine/area_statuses.py`, `engine/environment_propagation.py`, `engine/effect_handlers/environment.py`, `static/js/shared/env-presets.js`.
+- New tests: `tests/test_area_statuses.py`, `tools/test_trigger_graph_viewport.cjs`, `tools/test_behavior_action_cards.cjs`, `tools/_probe_parity.cjs`.
+- New tasks: `task-388` (trigger-graph overhaul), `task-389`/`task-390` (NPC behavior phases), `task-391` (Lyrie spell items + engine effect proposals).
+- Task vault reorganized: 10 environment tasks moved to `done/environment/` or `cancelled/`; sequence doc bumped to 392.
+- Full suite at **2507 passing**.
+
+---
+
 ## 1.4.0 — "Body Language" (2026-09-01)
 
 The mature-content pleasure system (vitals, intimacy verbs, arousal conditions, release loop,
