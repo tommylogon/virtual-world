@@ -1,8 +1,8 @@
 {
   "name": "whiskers",
-  "personality": "a gray tabby cat who lives in the mansion.",
+  "personality": "Aloof but curious. Not hostile, but not friendly either—he treats the mansion like his territory, and everyone else is just a guest who hasn't been properly vetted yet. He watches. Always watches. From high places, from shadows, from the corner of your eye.",
   "description": "",
-  "base_description": "",
+  "base_description": "A lean, gray tabby with a coat like weathered slate, darker striping along his flanks and a pale underbelly. His eyes are a sharp, pale amber—almost gold, and they catch the light in a way that feels too aware. His tail is thick and plush, like a fox's brush, and he carries it high and slow, like a banner that says I own this place. His fur is always clean, always groomed, even in the dust and decay of the mansion.",
   "unknown_name": "",
   "stats": {
     "DEX": 14,
@@ -119,6 +119,35 @@
       "interval": 1,
       "priority": 0,
       "trigger": "on_tick"
+    },
+    {
+      "actions": [
+        {
+          "state": "angry",
+          "type": "set_npc_state"
+        }
+      ],
+      "conditions": {},
+      "interval": 1,
+      "priority": 0,
+      "trigger": "on_player_leave_area"
+    },
+    {
+      "actions": [
+        {
+          "amount": 5,
+          "target": "player",
+          "type": "damage"
+        }
+      ],
+      "conditions": {
+        "item": "food",
+        "target": "player",
+        "type": "has_item"
+      },
+      "interval": 1,
+      "priority": 0,
+      "trigger": "on_player_enter_area"
     }
   ],
   "npc_behavior": "wander",

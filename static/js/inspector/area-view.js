@@ -108,8 +108,10 @@ window.InspectorAreaView = (() => {
                         <div class="relationship-item" @click=${() => VW.inspector.showNode(item.id)}>
                             <span class="rel-node">${item.properties?.current_state === 'locked' ? '🔒 ' : '📦 '}${item.name}</span>
                         </div>`)
-                    : htmlTag`<div style="font-size:11px;color:var(--text-muted);">No items</div>`}
+                     : htmlTag`<div style="font-size:11px;color:var(--text-muted);">No items</div>`}
             </div>
+
+            ${window.InspectorTemplateSync ? window.Lit.unsafeHTML(window.InspectorTemplateSync.renderTemplateRow('area', actualNodeId, props)) : ''}
         `;
 
         InspectorPanel.render(template);
@@ -226,10 +228,94 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
                 <select @change=${(ev) => RV._updateEnv(actualNodeId, 'noise', ev.target.value)} style="flex:1;">${noiseOptions}</select>
             </div>
             <div class="field" style="display:flex;align-items:center;gap:8px;">
+                <label style="min-width:50px;">Weather</label>
+                <select @change=${(ev) => RV._updateEnv(actualNodeId, 'weather', ev.target.value)} style="flex:1;">
+                    ${['', 'clear', 'cloudy', 'windy', 'rainy', 'stormy', 'foggy', 'snowy'].map(w =>
+                        htmlTag`<option value=${w} ?selected=${(env.weather || '') === w}>${w === '' ? '— area default —' : w}</option>`)}
+                </select>
+            </div>
+            <div class="field" style="display:flex;align-items:center;gap:8px;">
+                <label style="min-width:50px;">Wind</label>
+                <select @change=${(ev) => RV._updateEnv(actualNodeId, 'wind', ev.target.value)} style="flex:1;">
+                    ${['none', 'breeze', 'wind', 'gale', 'storm', 'hurricane'].map(w =>
+                        htmlTag`<option value=${w} ?selected=${(env.wind || 'none') === w}>${w}</option>`)}
+                </select>
+            </div>
+            <div class="field" style="display:flex;align-items:center;gap:8px;">
+                <label style="min-width:50px;">Humidity</label>
+                <select @change=${(ev) => RV._updateEnv(actualNodeId, 'humidity', ev.target.value)} style="flex:1;">
+                    ${['dry', 'humid', 'wet', 'flooding'].map(h =>
+                        htmlTag`<option value=${h} ?selected=${(env.humidity || 'dry') === h}>${h}</option>`)}
+                </select>
+            </div>
+            ${RV._renderEnvPresetRow(env, actualNodeId)}
+            <div class="field" style="display:flex;align-items:center;gap:8px;">
                 <label style="min-width:50px;">🔊 Sounds</label>
                 <span id="room-sounds-${actualNodeId}" style="flex:1;font-size:11px;color:var(--text-muted);">…</span>
             </div>
         </div>`;
+    };
+
+    /**
+     * task-379: environment presets — save the current env as a named preset,
+     * apply a preset to this area / area + open-way neighbours / all areas.
+     * Presets live in localStorage; applies go through api.updateNode so the
+     * existing undo snapshots cover them.
+     */
+    RV._renderEnvPresetRow = function(env, actualNodeId) {
+        const presets = window.EnvPresets ? window.EnvPresets.list() : [];
+        const options = presets.length
+            ? presets.map(name => htmlTag`<option value=${name}>${name}</option>`)
+            : htmlTag`<option value="">— no presets saved —</option>`;
+        return htmlTag`<div class="field" style="border-top:1px dashed var(--border);padding-top:8px;margin-top:8px;">
+            <label style="font-size:10px;color:var(--text-muted);">🧴 Presets</label>
+            <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;">
+                <select id="env-preset-select" style="flex:1;min-width:110px;font-size:11px;">${options}</select>
+                <button class="btn btn-sm btn-blue" title="Apply the selected preset"
+                    @click=${() => RV._applyEnvPreset(actualNodeId)}>▶ Apply</button>
+                <button class="btn btn-sm" title="Save this area's environment as a preset"
+                    @click=${() => RV._saveEnvPreset(env)}>💾 Save</button>
+                <button class="btn btn-sm btn-ghost" title="Delete the selected preset"
+                    @click=${() => RV._deleteEnvPreset()}>🗑</button>
+            </div>
+            <div style="display:flex;gap:4px;align-items:center;margin-top:4px;">
+                <label style="font-size:9px;color:var(--text-muted);">Apply to</label>
+                <select id="env-preset-scope" style="flex:1;font-size:10px;">
+                    <option value="current">This area</option>
+                    <option value="connected">Area + connected (open ways)</option>
+                    <option value="all">All areas</option>
+                </select>
+            </div>
+        </div>`;
+    };
+
+    RV._saveEnvPreset = function(env) {
+        if (!window.EnvPresets) return;
+        const name = prompt('Preset name:', 'Arctic: -12° bright fresh');
+        if (!name) return;
+        window.EnvPresets.save(name.trim(), env);
+        if (window.VW?.inspector) window.VW.inspector._reRender();
+    };
+
+    RV._deleteEnvPreset = function() {
+        if (!window.EnvPresets) return;
+        const sel = document.getElementById('env-preset-select');
+        const name = sel?.value;
+        if (!name) return;
+        if (!confirm(`Delete preset "${name}"?`)) return;
+        window.EnvPresets.delete(name);
+        if (window.VW?.inspector) window.VW.inspector._reRender();
+    };
+
+    RV._applyEnvPreset = async function(actualNodeId) {
+        if (!window.EnvPresets) return;
+        const name = document.getElementById('env-preset-select')?.value;
+        const scope = document.getElementById('env-preset-scope')?.value || 'current';
+        if (!name) return;
+        const result = await window.EnvPresets.apply(name, scope, actualNodeId);
+        if (!result.applied) return;
+        const label = result.areaNames.slice(0, 3).join(', ') + (result.areaNames.length > 3 ? ` +${result.areaNames.length - 3}` : '');
+        if (typeof toastInfo === 'function') toastInfo(`Preset "${name}" applied to ${result.applied} area(s): ${label}`);
     };
 
     /**
@@ -388,6 +474,11 @@ Improve this area's description and environment settings. Make the description m
         };
 
         await InspectorHelpers.improveWithAI(nodeId, { btnId: 'improve-area-btn', system, buildPrompt, apply });
+    };
+
+    RV._refreshFromLibrary = async function(nodeId) {
+        if (!window.InspectorTemplateSync) return;
+        await window.InspectorTemplateSync.refreshFromLibrary('area', nodeId);
     };
 
     // Register the template-sync pattern for areas.

@@ -174,6 +174,17 @@ class Player:
         # initialized to baselines via emotions_map(). None = untouched.
         self._emotions = None
 
+        # === HIDE / SEEK SYSTEM (Phase 1 edge-based hiding) ===
+        # Fast lookup flag: True when this character is hidden in/behind/under
+        # something. The edge (hidden/relation) is the source of truth; this
+        # boolean mirrors it for quick condition checks.
+        self.hidden = False
+        # Arbitrary flags set by trigger effects (set_flag action).
+        # Examples: "alert", "fleeing", "guarding", "distracted".
+        # Dict of flag_name -> value (usually True). Checked by character_has_flag
+        # condition (if added later) or simple `if "alert" in player.flags`.
+        self.flags = {}
+
         # === SOCIAL RELATIONSHIPS ===
         # Dict of {other_player_name: {"closeness": -100-100, "last_interaction_tick": int, "interaction_count": int}}
         # closeness: -100 = sworn enemy, -50 = rival, 0 = neutral, 50 = friend, 100 = inseparable
@@ -733,6 +744,8 @@ class Player:
             "traits": dict(self.traits),
             "tags": list(self.tags),
             "interest_tags": list(self.interest_tags),
+            "flags": dict(getattr(self, "flags", {})),
+            "hidden": bool(getattr(self, "hidden", False)),
             "visited_areas": list(self.visited_areas),
             "discovered_items": list(self.discovered_items),
             "patrol_route": list(getattr(self, "patrol_route", [])),

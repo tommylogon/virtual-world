@@ -607,6 +607,12 @@ class TickManager:
             logger.warning("[tick] forecast/time-triggers: %s", e)
         self._process_wind_extinguish()
 
+        # task-233/232: tick area statuses (on_fire, flooded, ...) + dry wet items.
+        try:
+            self.gs._area_statuses_tick()
+        except Exception as e:
+            logger.warning("[tick] area-statuses: %s", e)
+
         if not skip_npcs:
             self.npc_behaviors.process_simple_npcs()
 
@@ -622,11 +628,14 @@ class TickManager:
             logger.warning("[tick] delayed-events: %s", e)
 
         # ── Heat sources: lit items with heat_source tag push room temp ──
-        from engine.environment_propagation import apply_heat_sources, propagate_temperature
+        from engine.environment_propagation import apply_heat_sources, propagate_temperature, propagate_air
         apply_heat_sources(self.graph)
 
         # ── Temperature propagation between connected areas ──
         propagate_temperature(self.graph)
+
+        # ── task-232: air quality (smoke/toxic/stale) spreads through open ways ──
+        propagate_air(self.graph)
 
         # ── Sound sources: items with sound_source tag emit sound ──
         self._process_sound_sources()

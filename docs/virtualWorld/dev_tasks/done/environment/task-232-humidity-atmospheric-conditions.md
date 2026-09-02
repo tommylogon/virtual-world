@@ -1,6 +1,6 @@
 ---
 group: Environment & Climate
-status: todo
+status: done
 priority: low
 filed: 2026-08-15
 supersedes: [task-130-air-vacuum-atmospheric-effects.md, task-195-humidity-in-areas.md]
@@ -87,3 +87,14 @@ Flooding spreads to lower-connected areas through open doors (water flows downhi
 - Smoke from fire room spreads through open door over 5–10 ticks
 - Flooding drains to lower-connected areas through open doors
 - Humidity persists through save/load
+
+## Implemented (audit 2026-09-02)
+
+Implemented before this audit: humidity enum + effective-temperature modifier
+(hot/cold split), `set_environment`/`adjust_environment` + `adjust_humidity`.
+This audit added the missing pieces: `propagate_air()` in
+`engine/environment_propagation.py` (smoke/toxic/stale spreads through open
+ways, arriving as `hazy` first, slower than heat) wired into tick, and wet-item
+drying driven by humidity (dry 0.25/tick, humid half, wet quarter, flooding 0)
+with a wind speed-up. Flooding spread is covered by task-233's `flooded`
+status propagation.

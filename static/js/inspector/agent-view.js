@@ -753,20 +753,19 @@ window.InspectorAgentView = (() => {
                 <input type="text" id="inspector-ai-prompt" placeholder="AI: e.g. 'a cowardly thief'" style="flex:1;font-size:11px;">
                 <button class="btn btn-sm btn-purple" onclick="InspectorAgentView._generatePersonality('${escName}')" style="background:#4a2a8a;border-color:#6a3aaa;color:#bc8cff;">🤖</button>
             </div>
-            <div class="field"><textarea id="inspector-personality" rows="3" style="font-size:11px;" @blur=${() => AV._savePersonality('${escName}')}>${player.personality}</textarea></div>
+            <div class="field"><textarea id="inspector-personality" rows="3" style="font-size:11px;" onblur="InspectorAgentView._savePersonality('${escName}')">${player.personality}</textarea></div>
         </div>`;
 
         // Appearance
         html += `<div class="inspector-section">
             <h3>👤 Appearance</h3>
             <div class="field"><label style="font-size:10px;color:var(--text-muted);">Base Description (naked/baseline look)</label>
-                <textarea id="inspector-base-description" rows="2" style="font-size:11px;margin-bottom:4px;" @blur=${() => AV._saveDescription('${escName}')}>${player.base_description || ''}</textarea></div>
+                <textarea id="inspector-base-description" rows="2" style="font-size:11px;margin-bottom:4px;" onblur="InspectorAgentView._saveDescription('${escName}')">${player.base_description || ''}</textarea></div>
             <div class="field"><label style="font-size:10px;color:var(--text-muted);">Current Description (derived from base + equipment, or manual override)</label>
-                <textarea id="inspector-description" rows="3" style="font-size:11px;" oninput="InspectorAgentView._updateFirstImpression('${escName}')" @blur=${() => AV._saveDescription('${escName}')}>${player.description || ''}</textarea></div>
+                <textarea id="inspector-description" rows="3" style="font-size:11px;" oninput="InspectorAgentView._updateFirstImpression('${escName}')" onblur="InspectorAgentView._saveDescription('${escName}')">${player.description || ''}</textarea></div>
             <div style="background:var(--bg-inset);border:1px dashed var(--border);border-radius:4px;padding:4px 6px;font-size:10px;color:var(--text-muted);margin-bottom:4px;">
                 <span style="font-weight:600;">First impression:</span> <span id="inspector-first-impression">${firstImpression}</span>
             </div>
-            <button class="btn btn-sm btn-green" onclick="InspectorAgentView._saveDescription('${escName}')">💾 Save Appearance</button>
             <button class="btn btn-sm" onclick="InspectorAgentView._generateDescription('${escName}')">🤖 Generate from Equipment</button>
         </div>`;
 
@@ -1276,7 +1275,7 @@ window.InspectorAgentView = (() => {
             else { const firstBrace = cleaned.indexOf('{'), lastBrace = cleaned.lastIndexOf('}'); if (firstBrace !== -1 && lastBrace > firstBrace) cleaned = cleaned.substring(firstBrace, lastBrace + 1); }
             const parsed = JSON.parse(cleaned);
 
-            const personalityText = parsed.personality || parsed.description || 'A mysterious character.';
+            const personalityText = parsed.personality || 'A mysterious character.';
             const textarea = document.getElementById('inspector-personality');
             if (textarea) textarea.value = personalityText;
             await ApiClient.updateCharacter(charName, { personality: personalityText });
@@ -1462,9 +1461,11 @@ window.InspectorAgentView = (() => {
      * @param {string} charName - Character name
      */
     AV._updateFirstImpression = function(charName) {
-        const player = Object.assign({}, worldState.players[charName]);
         const ta = document.getElementById('inspector-description');
+        const baseTa = document.getElementById('inspector-base-description');
+        const player = Object.assign({}, worldState.players?.[charName] || {});
         if (ta) player.description = ta.value;
+        if (baseTa) player.base_description = baseTa.value;
         const preview = document.getElementById('inspector-first-impression');
         if (preview) preview.textContent = AV._computeFirstImpression(player);
     };

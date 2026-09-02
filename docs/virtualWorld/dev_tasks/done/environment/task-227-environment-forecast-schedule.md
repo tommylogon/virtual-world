@@ -1,6 +1,6 @@
 ---
 group: Environment & Climate
-status: todo
+status: done
 priority: high
 filed: 2026-08-15
 supersedes: [task-85-time_weather_dates.md]
@@ -162,3 +162,14 @@ In `tick_turn()`, after `advance_clock(1)`:
 - Timed override reverts after duration expires
 - Weather change narration fires on transition
 - Forecast persists through save/load
+
+## Implemented (audit 2026-09-02)
+
+Fully implemented before this audit: `engine/weather_forecast.py` (authored /
+deterministic / random / hybrid modes, seed support), tick integration via
+`_forecast_tick()`, narration on forecast changes, serialization, and
+`GET/POST /api/settings/forecast`. This audit added: `set_time`, `set_date`,
+`set_weather`, `forecast_override`, `adjust_forecast` registered in
+`EFFECT_TYPES` + validator + both trigger editors (they existed as handlers
+but were unregistered, so validation and the editors rejected them).
+GM override UI lives in the SkyScape widget / World Sky panel (`sky-scape.js`).

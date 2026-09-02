@@ -1,6 +1,6 @@
 ---
 group: Environment & Climate
-status: todo
+status: done
 priority: high
 filed: 2026-08-15
 ---
@@ -234,3 +234,18 @@ if override:
 - `on_turn_start` fires before vitals decay
 - `on_turn_end` fires after clock advance
 - API endpoints return correct current state
+
+## Implemented (audit 2026-09-02)
+
+Mostly implemented before this audit: `set_environment` new keys
+(weather/wind/humidity/transparent), adjust cycling, `forecast_override` /
+`adjust_forecast` handlers, `on_turn_start`/`on_turn_end`
+(`_fire_turn_triggers`), time/moon triggers (`_fire_time_triggers`: on_dawn,
+on_dusk, on_day, on_night, on_full_moon, on_blood_moon — one-shot per
+game-day cache), and the GM panel (SkyScape World Sky panel: override
+weather/wind/humidity/duration + Set/Clear against
+`/api/settings/forecast-override`).
+This audit registered all of those trigger types + effects in
+`TRIGGER_TYPES` / `EFFECT_TYPES` (they fired engine-side but were unregistered,
+so the validator and both editors rejected them), and added the full param
+blocks to the form and graph editors.

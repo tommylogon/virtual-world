@@ -7,6 +7,7 @@ from area import Area
 from player import Player, CONDITION_DEFINITIONS
 import time
 import logging
+import random
 from typing import Optional, Dict, List, Any
 from graph import WorldGraph, Node, EDGE_CONNECTION
 from engine.trigger_system import TriggerSystem, TRIGGER_TYPES, EFFECT_TYPES
@@ -175,6 +176,9 @@ class VirtualWorld:
         self.logger = self.game_logger
         self.legacy_compat = LegacyCompat(self.graph, self.player_manager, self.area_description)
         self.npc_behaviors = NPCBehaviorSystem(self.graph, self.player_manager, self.triggers, self)
+        # task-233: dynamic area statuses (on_fire, flooded, poison_gas, ...).
+        from engine.area_statuses import AreaStatusSystem
+        self.area_statuses = AreaStatusSystem(self.graph, self)
         # Combat needs the facade (roll_dice/is_slasher/get_player/time_ticks) as
         # its "skills" handle plus the real NPCBehaviorSystem — build it after both.
         self.combat = CombatSystem(self.graph, self, self.ghost_system, self.npc_behaviors)
@@ -1036,6 +1040,44 @@ class VirtualWorld:
             return None
         self.forecast_override = override
         return override
+
+    def _area_statuses_tick(self):
+        """task-233: tick area statuses (env mutation, damage, propagation)
+        and task-232: dry wet items. No-op unless statuses/wet items exist."""
+        try:
+            self.area_statuses.process_tick()
+        except Exception as e:
+            logger.warning("[area-statuses] tick: %s", e)
+        try:
+            self._process_item_drying()
+        except Exception as e:
+            logger.warning("[area-statuses] drying: %s", e)
+
+    def _process_item_drying(self):
+        """task-232: wet items dry over time — slower in humid air, halted in
+        flooding, sped up by wind."""
+        if not self.graph:
+            return
+        dry_chance = {"dry": 0.25, "humid": 0.125, "wet": 0.0625, "flooding": 0.0}
+        wind_boost = {"none": 1.0, "breeze": 1.25, "wind": 1.5, "gale": 2.0,
+                      "storm": 2.5, "hurricane": 3.0}
+        for node in list(self.graph.nodes.values()):
+            if node.type != "item" or not node.properties.get("wet"):
+                continue
+            # Find the containing area (item → area via "in" edge).
+            area_id = None
+            for edge in self.graph.edges:
+                if edge.type == "in" and edge.source == node.id:
+                    target = self.graph.get_node(edge.target)
+                    if target and target.type == "area":
+                        area_id = target.id
+                        break
+            env = self.graph.get_node(area_id).properties.get("environment", {}) if area_id else {}
+            chance = dry_chance.get(env.get("humidity", "dry"), 0.25)
+            chance *= wind_boost.get(env.get("wind", "none"), 1.0)
+            if chance > 0 and random.random() < chance:
+                node.properties["wet"] = False
+                self.add_log_entry(f"The {node.properties.get('name', node.id)} dries out.")
 
     def _forecast_tick(self):
         """Apply the forecast baseline + override expiry (task-227/234).

@@ -5,7 +5,7 @@ group: Graph & Area UX
 
 **Filed**: 2026-07-30  
 **Priority**: Medium  
-**Status**: Design  
+**Status**: Done (simplified — see note below)  
 
 ---
 
@@ -288,3 +288,18 @@ function getVisibleEvents(events, charName, currentArea, entryTick) {
 3. Update `prompt-builder.js` to filter events by entry tick + area match
 4. Decide: keep `_areaEventLog` as a UI display log only (not a prompt data source), or prune it per-cycle
 5. Remove the fallback in prompt-builder that reads `_areaEventLog` — or keep it but filter by presence
+
+## Implemented (simplified) — audit 2026-09-02
+
+The presence window is implemented in simplified form: per-area presence
+ledger `world.area_presence[area][char] = entry_tick` recorded on movement
+(`_record_area_presence`), serialized through saves, and prompt-builder
+`room-context.js` filters local turn_events by area + entry tick with
+blind-aware handling (blind characters only witness `speak` events).
+`_areaEventLog` is no longer a prompt data source — only the area
+inspector's recent-events list reads it.
+
+Simplified vs the design doc (kept as future work if wanted): full sensory
+channel tags (visual/auditory/tactile with deaf/sleeping states — currently
+only the blind→auditory rule), and sub-tick initiative ordering for
+same-tick presence races.

@@ -1,0 +1,31 @@
+{
+  "name": "Template: clear area status",
+  "description": "Template item demonstrating the 'clear_area_status' trigger effect. Use me when on the ground or in your hands; the wired on_use trigger shows the effect. Place me by importing from the library (library browser → Item → Import to World).",
+  "tags": [
+    "template",
+    "demo"
+  ],
+  "actions": [
+    "examine",
+    "use"
+  ],
+  "uses": -1,
+  "max_uses": 0,
+  "weight": 0.1,
+  "current_state": "normal",
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "type": "clear_area_status",
+          "params": {
+            "target": "",
+            "status_type": "smoke",
+            "message": "[template:clear_area_status] The air clears."
+          }
+        }
+      ]
+    }
+  ]
+}

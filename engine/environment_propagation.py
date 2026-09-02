@@ -11,6 +11,8 @@ heating_rate per tick.
 
 from typing import Any, Optional
 
+import random
+
 from graph import EDGE_CONNECTION, EDGE_IN
 from engine.runtime_config import config as _config
 
@@ -178,3 +180,58 @@ def apply_heat_sources(graph) -> None:
                 area_temp = max(target_temp, area_temp - heating_rate)
 
         env["temperature"] = round(area_temp, 1)
+
+
+#: Air spreads much slower than heat (task-232).
+AIR_RATE = 0.02
+
+#: Discrete air qualities that propagate through open ways.
+PROPAGATING_AIR = {"smoke", "toxic", "poison", "stale"}
+
+#: First-stage dilution when clean air meets polluted air.
+DILUTED_AIR = "hazy"
+
+
+def propagate_air(graph) -> None:
+    """task-232: spread air conditions between areas through open ways.
+
+    Smoke/toxic/stale air creeps into connected fresh areas at a slow rate,
+    arriving diluted (``hazy``) first. Only propagates through ways whose
+    ``current_state`` is ``"open"`` — same rule as heat.
+    """
+    if not graph:
+        return
+
+    way_to_areas: dict[str, set[str]] = {}
+    for edge in graph.edges:
+        if edge.type == EDGE_CONNECTION:
+            src_node = graph.get_node(edge.source)
+            if src_node and src_node.type == "way":
+                way_to_areas.setdefault(edge.source, set()).add(edge.target)
+
+    for way_id, area_ids in way_to_areas.items():
+        if len(area_ids) < 2:
+            continue
+        way_node = graph.get_node(way_id)
+        if not way_node or way_node.properties.get("current_state") != "open":
+            continue
+
+        area_list = list(area_ids)
+        for i in range(len(area_list)):
+            for j in range(len(area_list)):
+                if i == j:
+                    continue
+                src = graph.get_node(area_list[i])
+                dst = graph.get_node(area_list[j])
+                if not src or not dst:
+                    continue
+                src_air = (src.properties.get("environment", {}) or {}).get("air", "fresh")
+                dst_env = dst.properties.setdefault("environment", {})
+                dst_air = dst_env.get("air", "fresh")
+                if src_air not in PROPAGATING_AIR:
+                    continue
+                if dst_air == "fresh" and random.random() < AIR_RATE:
+                    dst_env["air"] = DILUTED_AIR
+                elif dst_air == DILUTED_AIR and src_air == dst_air and random.random() < AIR_RATE:
+                    # Sustained exposure thickens the haze into the source quality.
+                    dst_env["air"] = src_air

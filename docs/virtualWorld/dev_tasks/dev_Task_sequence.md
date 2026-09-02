@@ -6,8 +6,8 @@ Next available numbers for new task/bug files.
 
 | Type | Highest number | Next available |
 |------|---------------|----------------|
-| task | 386           | 387            |
-| bug  | 35           | 36            |
+| task | 391           | 392            |
+| bug  | 35            | 36             |
 
 ## Naming convention
 
@@ -40,6 +40,9 @@ links forced it):
 - bug-13â†’32 (spawn effect library drift), bug-22â†’33 (human speech outside turn)
 - New work filed: task-364 (scenario wizard, review), task-365 (save modal/autosave,
   done), task-366 (knowledge manager, done), bug-34 (approach-vs-cross, review)
+- Filed 2026-09-02: task-388 (trigger/behavior graph editor overhaul, todo/ui),
+  task-389 + task-390 (NPC behavior phase 1/2, todo/characters — previously `task-xxx`
+  placeholders)
 
 ## Known historical duplicates (all terminal â€” left as-is)
 

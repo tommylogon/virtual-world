@@ -37,6 +37,17 @@ TRIGGER_TYPES = [
     "on_fail_climb",
     "on_delayed",
     "on_spoil",
+    # task-234: turn-cycle and time/moon triggers — fired by the engine on
+    # area/way/character nodes (see VirtualWorldEngine._fire_turn_triggers /
+    # _fire_time_triggers), not by item interaction.
+    "on_turn_start",
+    "on_turn_end",
+    "on_dawn",
+    "on_dusk",
+    "on_day",
+    "on_night",
+    "on_full_moon",
+    "on_blood_moon",
 ]
 
 EFFECT_TYPES = [
@@ -82,6 +93,17 @@ EFFECT_TYPES = [
     "set_way_view",
     "llm_respond",
     "scry",
+    # task-227/234: weather/forecast GM + trigger controls.
+    "set_time",
+    "set_date",
+    "set_weather",
+    "forecast_override",
+    "adjust_forecast",
+    # task-233: dynamic area statuses.
+    "apply_area_status",
+    "clear_area_status",
+    # task-231: wet/dry clothing state.
+    "set_wet",
 ]
 
 # task-242: effects agents may bind via the `bind`/`enchant` action. This is

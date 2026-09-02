@@ -540,7 +540,6 @@ window.InspectorWayView = (() => {
             <div style="display:flex;gap:6px;padding:8px 16px;flex-wrap:wrap;">
                 <button class="btn btn-sm btn-green" @click=${() => wayView._saveToLibrary(nodeId)}>💾 Save to Library</button>
                 ${window.InspectorTemplateSync ? window.Lit.unsafeHTML(window.InspectorTemplateSync.renderTemplateRow('way', nodeId, props)) : ''}
-                <button class="btn btn-sm btn-blue" @click=${() => wayView._refreshFromLibrary(nodeId)}>🔄 Refresh from Library</button>
                 <button class="btn btn-sm btn-red" @click=${() => graphManager._deleteNode(nodeId)}>🗑 Delete Way</button>
             </div>
         `;

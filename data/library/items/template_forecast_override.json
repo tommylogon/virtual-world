@@ -1,0 +1,34 @@
+{
+  "name": "Template: forecast override",
+  "description": "Template item demonstrating the 'forecast_override' trigger effect. Use me when on the ground or in your hands; the wired on_use trigger shows the effect. Place me by importing from the library (library browser → Item → Import to World).",
+  "tags": [
+    "template",
+    "demo"
+  ],
+  "actions": [
+    "examine",
+    "use"
+  ],
+  "uses": -1,
+  "max_uses": 0,
+  "weight": 0.1,
+  "current_state": "normal",
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "type": "forecast_override",
+          "params": {
+            "weather": "stormy",
+            "wind": "gale",
+            "temperature_mod": -5,
+            "duration_ticks": 30,
+            "target": "global",
+            "message": "[template:forecast_override] The forecast is overridden by a raging storm."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,11 +1,11 @@
 {
-  "current_area": "Blizzard Forest Clearing",
+  "current_area": "Frozen Thicket",
   "players_in_area": [],
   "area_presence": {},
   "players": {
     "Kaelen Voss": {
       "name": "Kaelen Voss",
-      "personality": "you are Kaelen Voss, A Human who is a Disgraced Investigator for the Galser Office of Justice\nCurrent Status: Independent Truth-Seeker / Weary Traveler\nYear of Birth: 1548 (36 years old)\n\nYou are a man whose sharp eyes have seen too much of the \"Witch's Spit\" and the \"Elemental Conjunction\" to believe in simple explanations\n. Formerly a rising star in the Ulus of Galser’s bureaucratic machine, you were exiled after you refused to hand over a \"magical item of interest\" to the Department of Education and Research\n.\nYou carry the weight of the world’s 120-year curse in your bones, literally—your left leg clicks with a clockwork prosthetic, a relic of a skirmish near the Galtian border\n. While your humor remains dry as the Sarekyan Desert, it has taken on a bleaker edge as the frost of 1584 refuses to break. Your soft spot for stray animals has manifested as \"Runt,\" a shivering mouseling you found near a Galtian military camp, who now lives in the pocket of your heavy, fur-lined coat",
+      "personality": "you are Kaelen Voss, A Human who is a Disgraced Investigator for the Galser Office of Justice\nCurrent Status: Independent Truth-Seeker / Weary Traveler\nYear of Birth: 1548 (36 years old)\n\nYou are a man whose sharp eyes have seen too much of the \"Witch's Spit\" and the \"Elemental Conjunction\" to believe in simple explanations\n. Formerly a rising star in the Ulus of Galser’s bureaucratic machine, you were exiled after you refused to hand over a \"magical item of interest\" to the Department of Education and Research\n.\nYou carry the weight of the world’s 120-year curse in your bones, literally—your left leg clicks with a clockwork prosthetic, a relic of a skirmish near the Galtian border\n. While your humor remains dry as the Sarekyan Desert, it has taken on a bleaker edge as the frost of 1584 refuses to break. Your soft spot for stray animals has manifested as \"Runt,\" a shivering mouseling you found near a Galtian military camp, who now lives in the pocket of your heavy, fur-lined coat. ",
       "description": "He cuts a lean, weather-worn figure in a heavy fur-lined coat that hangs open over a waxed canvas vest and rumpled linen shirt, a worn leather backpack slung across his shoulders. Dark hair streaked with grey is pulled back from a face sharp with high cheekbones and a stubbled jaw, his hazel eyes narrowed in a perpetual squint that deepens the crow’s feet and worry lines. A thin white scar slices through his left brow into the hairline, and the faint, rhythmic click of a segmented brass-and-steel prosthetic leg punctuates his stance beneath the reinforced wool trousers. At his collar, a small brooch catches the light, while a web of scarred knuckles rests against the coat’s edge.",
       "base_description": "A gaunt man in his late thirties with sharp, weathered features — high cheekbones, a strong jaw under several days of dark stubble. His hazel eyes are quick and unnervingly observant, set in a permanent squint from years of reading fine print and scanning distant horizons. Dark hair, streaked with grey at the temples, is pulled back loosely.\n\nHis build is lean and wiry — the kind of frame built by long roads and skipped meals, not the gymnasium. The left leg from the knee down has been replaced with a clockwork prosthetic of brass and steel: segmented plates, exposed rivets, and a faint mechanical click with every shift of weight. The skin above the fitting is scarred, a clean amputation scar long healed.\n\nHis hands are scarred across the knuckles — old work, not recent. A thin white line runs from his left brow into the hairline. Crow's feet and worry lines are etched deeper than 36 years should allow.",
       "id": "33e94855",
@@ -85,10 +85,25 @@
         "male",
         "human"
       ],
+      "flags": {},
+      "hidden": false,
       "known": [],
       "crafting_known": [],
       "discovered_exits": [],
-      "interest_tags": [],
+      "interest_tags": [
+        "clockwork",
+        "coat",
+        "combat",
+        "companion",
+        "exploration",
+        "frozen",
+        "investigation",
+        "knowledge",
+        "leather",
+        "maintenance",
+        "notebook",
+        "prosthetic"
+      ],
       "discovered_items": [],
       "decay_rates": {
         "Bladder": 1,
@@ -381,10 +396,24 @@
         "female",
         "elf"
       ],
+      "flags": {},
+      "hidden": false,
       "known": [],
       "crafting_known": [],
       "discovered_exits": [],
-      "interest_tags": [],
+      "interest_tags": [
+        "accessory",
+        "animal",
+        "book",
+        "bracelet",
+        "clothing",
+        "companion",
+        "furniture",
+        "friendship",
+        "jewelry",
+        "magic",
+        "shelter"
+      ],
       "discovered_items": [],
       "decay_rates": {
         "Bladder": 1,
@@ -562,10 +591,11 @@
           "location": "",
           "source": "manual",
           "tags": [],
-          "text": "7. The Singing Fish (Age 75)\n   \"A fish in the market looked so sad. I wanted to cheer it up. I sang to it for two hours. It died. I don't sing near water anymore. I still feel bad.\"",
-          "tick": 9,
+          "text": "The Singing Fish (Age 75)\n   \"A fish in the market looked so sad. I wanted to cheer it up. I sang to it for two hours. It died. I don't sing near water anymore. I still feel bad.\"",
+          "tick": -4400,
           "timestamp": 1784462303.7175055,
-          "type": "observation"
+          "type": "observation",
+          "salience_override": 0
         },
         {
           "entity_ids": [],
@@ -574,10 +604,11 @@
           "location": "",
           "source": "manual",
           "tags": [],
-          "text": "1. The Great Baking Incident (Age 14)\n   \"I wanted to make Elder Caelum a birthday cake. The recipe said 'flour,' but I thought fire salts would make it taste warmer. The kitchen exploded. His eyebrows never grew back. I still bake him a cake every year. I buy it now.\"",
-          "tick": 20,
+          "text": "The Great Baking Incident (Age 14)\n   \"I wanted to make Elder Caelum a birthday cake. The recipe said 'flour,' but I thought fire salts would make it taste warmer. The kitchen exploded. His eyebrows never grew back. I still bake him a cake every year. I buy it now.\"",
+          "tick": -55000,
           "timestamp": 1785422848.8607314,
-          "type": "observation"
+          "type": "observation",
+          "salience_override": 0
         },
         {
           "entity_ids": [],
@@ -586,10 +617,11 @@
           "location": "",
           "source": "manual",
           "tags": [],
-          "text": "2. The Chicken Cart (Age 22)\n   \"The merchant's cart had a broken wheel. I thought I could fix it with magic. I made it better—it turned into a chicken. A very large, very angry chicken. He chased me for three days. I still apologize to chickens.\"",
+          "text": "The Chicken Cart (Age 22)\n   \"The merchant's cart had a broken wheel. I thought I could fix it with magic. I made it better—it turned into a chicken. A very large, very angry chicken. He chased me for three days. I still apologize to chickens.\"",
           "tick": 20,
           "timestamp": 1785422871.5809138,
-          "type": "observation"
+          "type": "observation",
+          "salience_override": 0
         },
         {
           "entity_ids": [],
@@ -598,10 +630,11 @@
           "location": "",
           "source": "manual",
           "tags": [],
-          "text": "3. The Squirrel Incident (Age 31)\n   \"I saw a squirrel sitting alone under a tree. It looked sad. I tried to comfort it in animal tongue. It screamed at me. For twenty minutes. I didn't know squirrels could scream. I leave acorns out for them now.\"",
+          "text": "The Squirrel Incident (Age 31)\n   \"I saw a squirrel sitting alone under a tree. It looked sad. I tried to comfort it in animal tongue. It screamed at me. For twenty minutes. I didn't know squirrels could scream. I leave acorns out for them now.\"",
           "tick": 20,
           "timestamp": 1785422883.6576118,
-          "type": "observation"
+          "type": "observation",
+          "salience_override": 0
         },
         {
           "entity_ids": [],
@@ -610,10 +643,11 @@
           "location": "",
           "source": "manual",
           "tags": [],
-          "text": "4. The Grapevine (Age 45)\n   \"I got lost in the woods. I was scared and lonely. I found a grapevine and talked to it for three days. I named him Vincent. He never talked back, but he listened. I still visit him when I'm near the woods.\"",
-          "tick": 20,
+          "text": "The Grapevine (Age 45)\n   \"I got lost in the woods. I was scared and lonely. I found a grapevine and talked to it for three days. I named him Vincent. He never talked back, but he listened. I still visit him when I'm near the woods.\"",
+          "tick": -30000,
           "timestamp": 1785422916.7481797,
-          "type": "observation"
+          "type": "observation",
+          "salience_override": 0
         },
         {
           "entity_ids": [],
@@ -634,10 +668,11 @@
           "location": "",
           "source": "manual",
           "tags": [],
-          "text": "6. The Lost Sheep (Age 70)\n   \"A farmer lost a sheep. I thought I could help. I found a rock that looked like a sheep. I convinced myself it was a sheep. I named it Fluffy. It never moved. I still visit Fluffy sometimes.\"",
-          "tick": 20,
+          "text": "The Lost Sheep (Age 70)\n   \"A farmer lost a sheep. I thought I could help. I found a rock that looked like a sheep. I convinced myself it was a sheep. I named it Fluffy. It never moved. I still visit Fluffy sometimes.\"",
+          "tick": -4600,
           "timestamp": 1785422942.7043638,
-          "type": "observation"
+          "type": "observation",
+          "salience_override": 0
         },
         {
           "entity_ids": [],
@@ -646,10 +681,11 @@
           "location": "",
           "source": "manual",
           "tags": [],
-          "text": "8. The Present (Age 79)\n   \"I was going home from the market. I got lost. That was three days ago. I'm still walking. I think I'm going the right way. I'm probably not. The snow is very cold. I hope someone finds me soon.\"",
-          "tick": 20,
+          "text": "The Present (Age 79)\n   \"I was going home from the market. I got lost. That was three days ago. I'm still walking. I think I'm going the right way. I'm probably not. The snow is very cold. I hope someone finds me soon.\"",
+          "tick": -3600,
           "timestamp": 1785422956.2950027,
-          "type": "observation"
+          "type": "observation",
+          "salience_override": 0
         },
         {
           "embedding": null,
@@ -675,7 +711,7 @@
       "patrol_route": [],
       "patrol_index": 0,
       "feels_like": 18,
-      "current_carry_weight": 1.4,
+      "current_carry_weight": 1.4000000000000001,
       "max_carry_capacity": 100.0,
       "at_way_id": null,
       "spatial_position": null
@@ -746,6 +782,8 @@
       "tags": [
         "animal"
       ],
+      "flags": {},
+      "hidden": false,
       "known": [],
       "crafting_known": [],
       "discovered_exits": [],
@@ -1327,9 +1365,9 @@
       "spatial_position": null
     }
   },
-  "active_player": "Kaelen Voss",
-  "game_time": "09:40:00",
-  "time_ticks": 165649556,
+  "active_player": "Lyrie",
+  "game_time": "08:00:00",
+  "time_ticks": 0,
   "time_per_tick_minutes": 5,
   "clock_start_hour": 8,
   "clock_start_minute": 0,
@@ -5722,49 +5760,62 @@
           },
           "effect_type": "message",
           "target_name": "",
-          "trigger_type": "on_examine"
+          "trigger_type": [
+            "on_examine"
+          ],
+          "name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {}
+            }
+          ],
+          "conditions": {},
+          "target_state": "",
+          "success_message": "",
+          "fail_message": ""
         },
         "created": 1784451068.5937755,
-        "updated": 1784451068.5937755
+        "updated": 1788367030.2838788
       },
       "trigger_item_Expensive Vanity_on_use_1784451068593_220": {
         "id": "trigger_item_Expensive Vanity_on_use_1784451068593_220",
         "type": "logic_trigger",
         "name": "on_use → message",
         "properties": {
-          "conditions": [
-            {
-              "type": "has_item",
-              "value": "silver hairpin"
-            }
-          ],
+          "conditions": {},
           "effect_params": {},
           "effect_type": "message",
           "effects": [
             {
-              "params": {
-                "message": "You insert the hairpin into the keyhole and twist. A secret drawer pops open!"
-              },
-              "type": "message"
+              "type": "message",
+              "params": {}
             },
             {
+              "type": "spawn_item",
               "params": {
-                "item": "golden locket"
-              },
-              "type": "spawn_item"
+                "item_id": "",
+                "display_name": ""
+              }
             },
             {
+              "type": "remove_item",
               "params": {
-                "item": "silver hairpin"
-              },
-              "type": "remove_item"
+                "item_id": ""
+              }
             }
           ],
           "target_name": "",
-          "trigger_type": "on_use"
+          "trigger_type": [
+            "on_use"
+          ],
+          "name": "",
+          "target_state": "",
+          "success_message": "",
+          "fail_message": ""
         },
         "created": 1784451068.5937755,
-        "updated": 1784451068.5937755
+        "updated": 1788367034.513904
       },
       "trigger_item_Frozen Corpse_on_examine_1785094913727_192": {
         "id": "trigger_item_Frozen Corpse_on_examine_1785094913727_192",
@@ -6186,18 +6237,23 @@
           "effect_type": "message",
           "effects": [
             {
-              "params": {},
-              "type": "message"
+              "type": "message",
+              "params": {
+                "success_message": "a magical rock that procude a soft blueish light when touched"
+              }
             }
           ],
           "fail_message": "",
           "success_message": "a magical rock that procude a soft blueish light when touched",
           "target_name": "",
           "target_state": "",
-          "trigger_type": "on_examine"
+          "trigger_type": [
+            "on_examine"
+          ],
+          "name": ""
         },
         "created": 1784451023.93605,
-        "updated": 1785344081.2067006
+        "updated": 1788366905.6315856
       },
       "trigger_item_Light Stone_on_use_1784451023936_192": {
         "id": "trigger_item_Light Stone_on_use_1784451023936_192",
@@ -6211,25 +6267,30 @@
           "effect_type": "message",
           "effects": [
             {
-              "params": {},
-              "type": "message"
+              "type": "message",
+              "params": {
+                "success_message": "The stone starts to glow gently"
+              }
             },
             {
+              "type": "set_state",
               "params": {
                 "node_id": "self",
                 "state": "lit"
-              },
-              "type": "set_state"
+              }
             }
           ],
           "fail_message": "",
           "success_message": "The stone starts to glow gently",
           "target_name": "",
           "target_state": "",
-          "trigger_type": "on_use"
+          "trigger_type": [
+            "on_use"
+          ],
+          "name": ""
         },
         "created": 1784451023.93605,
-        "updated": 1785344111.697647
+        "updated": 1788366909.2178092
       },
       "trigger_item_Loose Floorboard_on_examine_1784152362907": {
         "id": "trigger_item_Loose Floorboard_on_examine_1784152362907",
@@ -6537,57 +6598,6 @@
         },
         "created": 1784904197.087357,
         "updated": 1784904197.0873573
-      },
-      "trigger_item_Stone Table with Heating Rune_on_examine_1784394117585": {
-        "id": "trigger_item_Stone Table with Heating Rune_on_examine_1784394117585",
-        "type": "logic_trigger",
-        "name": "on_examine → message",
-        "properties": {
-          "conditions": [
-            {
-              "dc": 14,
-              "skill": "Investigation",
-              "type": "skill_check"
-            }
-          ],
-          "conditions_logic": "and",
-          "effects": [
-            {
-              "params": {
-                "fail_message": "Looks like a expensive magical item of some sort, its hot when it glows though.",
-                "message": "",
-                "success_message": "It is a stone plate carved with a Rune of heating, it will activate when placed on a wall in a room and start to heat it up to a comfortable temperature."
-              },
-              "type": "message"
-            }
-          ],
-          "target_name": "",
-          "trigger_type": "on_examine"
-        },
-        "created": 1784394117.5890741,
-        "updated": 1784394117.5890741
-      },
-      "trigger_item_Stone Table with Heating Rune_on_take_1784394461775": {
-        "id": "trigger_item_Stone Table with Heating Rune_on_take_1784394461775",
-        "type": "logic_trigger",
-        "name": "on_take → message",
-        "properties": {
-          "conditions": [],
-          "conditions_logic": "and",
-          "effects": [
-            {
-              "params": {
-                "message": "",
-                "success_message": "The rune stops glowing when you take it."
-              },
-              "type": "message"
-            }
-          ],
-          "target_name": "",
-          "trigger_type": "on_take"
-        },
-        "created": 1784394461.7795298,
-        "updated": 1784394461.7795298
       },
       "trigger_item_Wash Basin_on_examine_1784384734679_197": {
         "id": "trigger_item_Wash Basin_on_examine_1784384734679_197",
@@ -6924,30 +6934,6 @@
         },
         "created": 1784455689.4097197,
         "updated": 1784455689.4097197
-      },
-      "trigger_item_book of crypthograph_on_examine_1784451316557_953": {
-        "id": "trigger_item_book of crypthograph_on_examine_1784451316557_953",
-        "type": "logic_trigger",
-        "name": "on_examine → message",
-        "properties": {
-          "conditions": [],
-          "conditions_logic": "and",
-          "effect_params": {},
-          "effect_type": "message",
-          "effects": [
-            {
-              "params": {
-                "message": "",
-                "success_message": "Upon opening a random page of a sacred text dedicated to Elistra, the Goddess of Care, you find the parchment smells faintly of pine and starlight. The text is written in flowing Elvish script and is titled \"The Psalm of the Open Arms.\" The page reads: On the Duty of the Caretaker \"When the world was but a soup of primordial chaos, Elistra was the first to descend. She did not look for glory in the molten rock or the deep gems; she looked to the slow-growing forests and saw a need for a heart to pulse within the green. She birthed the Elves to be the world's pulse—long-lived and patient, to nurture the world as she nurtures the soul.\" The Verses of Starlight A marginal note, perhaps added by a priestess in Rocheveron, details a specific prayer for those facing the cyclical darkness: \"With open arms we embrace her care, and pray to her so she will help our ancestors pass on. In the age of freezing death, when the hearth goes cold, her light is the only warmth that does not bite.\" [196, Conversation History] The Tenets of Piety At the bottom of the page, a set of divine instructions is illuminated in silver ink, detailing how one might earn Elistra's Blessing:      Give to others, even if you are set back by the act.     Sacrifice yourself for the sake of those who cannot fight.     Avoid the path of revenge, for it is the rot that consumes the caretaker's heart.  The Promise of the Shroud The final paragraph on the page is a promise to those at death’s door: \"Fear not the end of your vigil. For those who walk in her grace, she shall cast a Starlight Shroud at the moment of your deepest peril, holding back the reaper's hand so that your light may shine one moment longer.\" As you close the book, the glowing ink seems to linger in your vision, a reminder that while the 120-year curse brings darkness, Elistra's open arms offer a sanctuary for those brave enough to care."
-              },
-              "type": "message"
-            }
-          ],
-          "target_name": "",
-          "trigger_type": "on_examine"
-        },
-        "created": 1784451316.5571613,
-        "updated": 1784451337.5751886
       },
       "trigger_item_book_cryptograph_on_examine_1784449455663": {
         "id": "trigger_item_book_cryptograph_on_examine_1784449455663",
@@ -7336,32 +7322,6 @@
         },
         "created": 1784015354.4566417,
         "updated": 1784015354.4566417
-      },
-      "trigger_item_photograph_on_examine_1784201358539": {
-        "id": "trigger_item_photograph_on_examine_1784201358539",
-        "type": "logic_trigger",
-        "name": "on_examine → message",
-        "properties": {
-          "conditions": [],
-          "conditions_logic": "and",
-          "effect_params": {
-            "message": "The Valerius Family, The date on the back reads 'Autumn 1583'."
-          },
-          "effect_type": "message",
-          "effects": [
-            {
-              "params": {
-                "message": "",
-                "success_message": "titled The Valerius Family, dated 1583. it shows a bearded man in a very nice suit. a beautiful woman in a a beautiful dress and a boy with a book in his hand smiling brightly."
-              },
-              "type": "message"
-            }
-          ],
-          "target_name": "",
-          "trigger_type": "on_examine"
-        },
-        "created": 1784201358.5454845,
-        "updated": 1784448850.2029662
       },
       "trigger_item_typewriter_on_use_1784015354456_104": {
         "id": "trigger_item_typewriter_on_use_1784015354456_104",
@@ -7843,7 +7803,7 @@
           "fail_message": ""
         },
         "created": 1788218658.0445704,
-        "updated": 1788282120.7939055
+        "updated": 1788367056.8781505
       },
       "item_ice_fishing_auger_6c4a": {
         "id": "item_ice_fishing_auger_6c4a",
@@ -7858,7 +7818,13 @@
           ],
           "current_state": "normal",
           "weight": 4.5,
-          "actions": "examine,take,use,drop,eat"
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop",
+            "eat"
+          ]
         },
         "created": 1788282651.78986,
         "updated": 1788282651.78986
@@ -7973,7 +7939,8 @@
           ],
           "actions": [
             "examine",
-            "take"
+            "take",
+            "drop"
           ],
           "weight": 0.2
         },
@@ -7991,7 +7958,10 @@
             "outdoor",
             "stone"
           ],
-          "actions": "examine,drink",
+          "actions": [
+            "examine",
+            "drink"
+          ],
           "weight": 0
         },
         "created": 1788282952.3503878,
@@ -8031,12 +8001,128 @@
           ],
           "actions": [
             "examine",
-            "take"
+            "take",
+            "drop"
           ],
           "weight": 1.5
         },
         "created": 1788282952.3503878,
         "updated": 1788282952.3503878
+      },
+      "trigger_item_painting_1788366876138_icrj": {
+        "id": "trigger_item_painting_1788366876138_icrj",
+        "type": "logic_trigger",
+        "name": "on_examine → message",
+        "properties": {
+          "conditions": {},
+          "conditions_logic": "and",
+          "effect_params": {
+            "message": "The Valerius Family, The date on the back reads 'Autumn 1583'."
+          },
+          "effect_type": "message",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "success_message": "titled The Valerius Family, dated 1583. it shows a bearded man in a very nice suit. a beautiful woman in a a beautiful dress and a boy with a book in his hand smiling brightly."
+              }
+            }
+          ],
+          "target_name": "",
+          "trigger_type": [
+            "on_examine"
+          ],
+          "name": "",
+          "target_state": "",
+          "success_message": "titled The Valerius Family, dated 1583. it shows a bearded man in a very nice suit. a beautiful woman in a a beautiful dress and a boy with a book in his hand smiling brightly.",
+          "fail_message": ""
+        },
+        "created": 1788366876.1413002,
+        "updated": 1788366876.2512982
+      },
+      "trigger_item_stone_tablet_with_rune_1788366890978_igvr": {
+        "id": "trigger_item_stone_tablet_with_rune_1788366890978_igvr",
+        "type": "logic_trigger",
+        "name": "on_examine → message",
+        "properties": {
+          "conditions": {},
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "success_message": "It is a stone plate carved with a Rune of heating, it will activate when placed on a wall in a room and start to heat it up to a comfortable temperature.",
+                "fail_message": "Looks like a expensive magical item of some sort, its hot when it glows though."
+              }
+            }
+          ],
+          "target_name": "",
+          "trigger_type": [
+            "on_examine"
+          ],
+          "name": "",
+          "target_state": "",
+          "success_message": "It is a stone plate carved with a Rune of heating, it will activate when placed on a wall in a room and start to heat it up to a comfortable temperature.",
+          "fail_message": "Looks like a expensive magical item of some sort, its hot when it glows though."
+        },
+        "created": 1788366890.980044,
+        "updated": 1788366891.0920606
+      },
+      "trigger_item_stone_tablet_with_rune_1788366897720_fngx": {
+        "id": "trigger_item_stone_tablet_with_rune_1788366897720_fngx",
+        "type": "logic_trigger",
+        "name": "on_take → message",
+        "properties": {
+          "conditions": {},
+          "conditions_logic": "and",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "success_message": "The rune stops glowing when you take it."
+              }
+            }
+          ],
+          "target_name": "",
+          "trigger_type": [
+            "on_take"
+          ],
+          "name": "",
+          "target_state": "",
+          "success_message": "The rune stops glowing when you take it.",
+          "fail_message": ""
+        },
+        "created": 1788366897.7227077,
+        "updated": 1788366897.8498943
+      },
+      "trigger_item_beligious_book_1788367045972_w0nj": {
+        "id": "trigger_item_beligious_book_1788367045972_w0nj",
+        "type": "logic_trigger",
+        "name": "on_examine → message",
+        "properties": {
+          "conditions": {},
+          "conditions_logic": "and",
+          "effect_params": {},
+          "effect_type": "message",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "success_message": "Upon opening a random page of a sacred text dedicated to Elistra, the Goddess of Care, you find the parchment smells faintly of pine and starlight. The text is written in flowing Elvish script and is titled \"The Psalm of the Open Arms.\" The page reads: On the Duty of the Caretaker \"When the world was but a soup of primordial chaos, Elistra was the first to descend. She did not look for glory in the molten rock or the deep gems; she looked to the slow-growing forests and saw a need for a heart to pulse within the green. She birthed the Elves to be the world's pulse—long-lived and patient, to nurture the world as she nurtures the soul.\" The Verses of Starlight A marginal note, perhaps added by a priestess in Rocheveron, details a specific prayer for those facing the cyclical darkness: \"With open arms we embrace her care, and pray to her so she will help our ancestors pass on. In the age of freezing death, when the hearth goes cold, her light is the only warmth that does not bite.\" [196, Conversation History] The Tenets of Piety At the bottom of the page, a set of divine instructions is illuminated in silver ink, detailing how one might earn Elistra's Blessing:      Give to others, even if you are set back by the act.     Sacrifice yourself for the sake of those who cannot fight.     Avoid the path of revenge, for it is the rot that consumes the caretaker's heart.  The Promise of the Shroud The final paragraph on the page is a promise to those at death’s door: \"Fear not the end of your vigil. For those who walk in her grace, she shall cast a Starlight Shroud at the moment of your deepest peril, holding back the reaper's hand so that your light may shine one moment longer.\" As you close the book, the glowing ink seems to linger in your vision, a reminder that while the 120-year curse brings darkness, Elistra's open arms offer a sanctuary for those brave enough to care."
+              }
+            }
+          ],
+          "target_name": "",
+          "trigger_type": [
+            "on_examine"
+          ],
+          "name": "",
+          "target_state": "",
+          "success_message": "Upon opening a random page of a sacred text dedicated to Elistra, the Goddess of Care, you find the parchment smells faintly of pine and starlight. The text is written in flowing Elvish script and is titled \"The Psalm of the Open Arms.\" The page reads: On the Duty of the Caretaker \"When the world was but a soup of primordial chaos, Elistra was the first to descend. She did not look for glory in the molten rock or the deep gems; she looked to the slow-growing forests and saw a need for a heart to pulse within the green. She birthed the Elves to be the world's pulse—long-lived and patient, to nurture the world as she nurtures the soul.\" The Verses of Starlight A marginal note, perhaps added by a priestess in Rocheveron, details a specific prayer for those facing the cyclical darkness: \"With open arms we embrace her care, and pray to her so she will help our ancestors pass on. In the age of freezing death, when the hearth goes cold, her light is the only warmth that does not bite.\" [196, Conversation History] The Tenets of Piety At the bottom of the page, a set of divine instructions is illuminated in silver ink, detailing how one might earn Elistra's Blessing:      Give to others, even if you are set back by the act.     Sacrifice yourself for the sake of those who cannot fight.     Avoid the path of revenge, for it is the rot that consumes the caretaker's heart.  The Promise of the Shroud The final paragraph on the page is a promise to those at death’s door: \"Fear not the end of your vigil. For those who walk in her grace, she shall cast a Starlight Shroud at the moment of your deepest peril, holding back the reaper's hand so that your light may shine one moment longer.\" As you close the book, the glowing ink seems to linger in your vision, a reminder that while the 120-year curse brings darkness, Elistra's open arms offer a sanctuary for those brave enough to care.",
+          "fail_message": ""
+        },
+        "created": 1788367045.9756746,
+        "updated": 1788367046.0802393
       }
     },
     "edges": [
@@ -8574,7 +8660,7 @@
       },
       {
         "source": "item_painting",
-        "target": "trigger_item_photograph_on_examine_1784201358539",
+        "target": "trigger_item_painting_1788366876138_icrj",
         "type": "triggers",
         "properties": {
           "conditions": [],
@@ -8710,7 +8796,7 @@
       },
       {
         "source": "item_stone_tablet_with_rune",
-        "target": "trigger_item_Stone Table with Heating Rune_on_examine_1784394117585",
+        "target": "trigger_item_stone_tablet_with_rune_1788366890978_igvr",
         "type": "triggers",
         "properties": {
           "conditions": [
@@ -8780,7 +8866,7 @@
       },
       {
         "source": "item_stone_tablet_with_rune",
-        "target": "trigger_item_Stone Table with Heating Rune_on_take_1784394461775",
+        "target": "trigger_item_stone_tablet_with_rune_1788366897720_fngx",
         "type": "triggers",
         "properties": {
           "conditions": [],
@@ -9471,7 +9557,22 @@
           },
           "effect_type": "message",
           "target_name": "",
-          "trigger_type": "on_examine"
+          "trigger_type": [
+            "on_examine"
+          ],
+          "name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "success_message": "a magical rock that procude a soft blueish light when touched"
+              }
+            }
+          ],
+          "conditions": {},
+          "target_state": "",
+          "success_message": "a magical rock that procude a soft blueish light when touched",
+          "fail_message": ""
         }
       },
       {
@@ -9484,7 +9585,29 @@
           },
           "effect_type": "message",
           "target_name": "",
-          "trigger_type": "on_use"
+          "trigger_type": [
+            "on_use"
+          ],
+          "name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "success_message": "The stone starts to glow gently"
+              }
+            },
+            {
+              "type": "set_state",
+              "params": {
+                "node_id": "self",
+                "state": "lit"
+              }
+            }
+          ],
+          "conditions": {},
+          "target_state": "",
+          "success_message": "The stone starts to glow gently",
+          "fail_message": ""
         }
       },
       {
@@ -9503,7 +9626,20 @@
           },
           "effect_type": "message",
           "target_name": "",
-          "trigger_type": "on_examine"
+          "trigger_type": [
+            "on_examine"
+          ],
+          "name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {}
+            }
+          ],
+          "conditions": {},
+          "target_state": "",
+          "success_message": "",
+          "fail_message": ""
         }
       },
       {
@@ -9511,36 +9647,36 @@
         "target": "trigger_item_Expensive Vanity_on_use_1784451068593_220",
         "type": "triggers",
         "properties": {
-          "conditions": [
-            {
-              "type": "has_item",
-              "value": "silver hairpin"
-            }
-          ],
+          "conditions": {},
           "effect_params": {},
           "effect_type": "message",
           "effects": [
             {
-              "params": {
-                "message": "You insert the hairpin into the keyhole and twist. A secret drawer pops open!"
-              },
-              "type": "message"
+              "type": "message",
+              "params": {}
             },
             {
+              "type": "spawn_item",
               "params": {
-                "item": "golden locket"
-              },
-              "type": "spawn_item"
+                "item_id": "",
+                "display_name": ""
+              }
             },
             {
+              "type": "remove_item",
               "params": {
-                "item": "silver hairpin"
-              },
-              "type": "remove_item"
+                "item_id": ""
+              }
             }
           ],
           "target_name": "",
-          "trigger_type": "on_use"
+          "trigger_type": [
+            "on_use"
+          ],
+          "name": "",
+          "target_state": "",
+          "success_message": "",
+          "fail_message": ""
         }
       },
       {
@@ -9583,7 +9719,7 @@
       },
       {
         "source": "item_beligious_book",
-        "target": "trigger_item_book of crypthograph_on_examine_1784451316557_953",
+        "target": "trigger_item_beligious_book_1788367045972_w0nj",
         "type": "triggers",
         "properties": {
           "conditions": [],
@@ -11201,24 +11337,6 @@
         }
       },
       {
-        "source": "player_Kaelen_Voss",
-        "target": "area_blizzard_forest_clearing",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Lyrie",
-        "target": "area_frozen_thicket",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_rat",
-        "target": "area_kitchen",
-        "type": "in",
-        "properties": {}
-      },
-      {
         "source": "item_ice_fishing_auger_6c4a",
         "target": "area_frozen_lake_clearing",
         "type": "at",
@@ -11271,12 +11389,30 @@
         "target": "area_weeping_willow_hollow",
         "type": "at",
         "properties": {}
+      },
+      {
+        "source": "player_Kaelen_Voss",
+        "target": "area_blizzard_forest_clearing",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_rat",
+        "target": "area_kitchen",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Lyrie",
+        "target": "area_frozen_thicket",
+        "type": "in",
+        "properties": {}
       }
     ]
   },
   "ways": {},
   "item_registry": {},
-  "turn_number": 1,
+  "turn_number": 0,
   "narration_mode": "none",
   "ghost_mode": false,
   "mature_content": false,

@@ -14,7 +14,10 @@ window.TriggerTypes = {
         'on_state_enter', 'on_state_exit',
         'on_auto_open', 'on_enter', 'on_speech',
         'on_fail_jump', 'on_fail_climb',
-        'on_delayed', 'on_spoil'
+        'on_delayed', 'on_spoil',
+        // task-234: engine-fired turn-cycle and time/moon triggers (areas/ways/characters).
+        'on_turn_start', 'on_turn_end',
+        'on_dawn', 'on_dusk', 'on_day', 'on_night', 'on_full_moon', 'on_blood_moon'
     ],
 
     CONDITION_TYPES: [
@@ -37,7 +40,8 @@ window.TriggerTypes = {
         { value: 'time_of_day', label: '🕐 Time of day', group: 'general' },
         { value: 'weather', label: '🌧️ Weather', group: 'area' },
         { value: 'speech_matches', label: '💬 Speech matches phrase', group: 'general' },
-        { value: 'item_relationship', label: '🔗 Item relationship (in/on/under...)', group: 'item' }
+        { value: 'item_relationship', label: '🔗 Item relationship (in/on/under...)', group: 'item' },
+        { value: 'area_has_status', label: '🔥 Area has status (on_fire, flooded...)', group: 'area' }
     ],
 
     EFFECT_TYPES: [
@@ -81,6 +85,17 @@ window.TriggerTypes = {
         { value: 'spawn_way', label: '🚪 Spawn Way (runtime door)', group: 'way' },
         { value: 'spawn_area', label: '🏠 Spawn Area (runtime room)', group: 'area' },
         { value: 'set_way_target', label: '🔀 Set Way Target (repoint door)', group: 'way' },
-        { value: 'set_way_view', label: '👁 Set Way View (see-through/text)', group: 'way' }
+        { value: 'set_way_view', label: '👁 Set Way View (see-through/text)', group: 'way' },
+        // task-227/234: weather, calendar & forecast controls.
+        { value: 'set_time', label: '🕐 Set Time (game clock)', group: 'general' },
+        { value: 'set_date', label: '📅 Set Date (game calendar)', group: 'general' },
+        { value: 'set_weather', label: '🌧️ Set Weather (global override)', group: 'area' },
+        { value: 'forecast_override', label: '🌩️ Forecast Override (lock forecast)', group: 'area' },
+        { value: 'adjust_forecast', label: '🌡️ Adjust Forecast (shift mods)', group: 'area' },
+        // task-233: dynamic area statuses.
+        { value: 'apply_area_status', label: '🔥 Apply Area Status (on_fire...)', group: 'area' },
+        { value: 'clear_area_status', label: '🧹 Clear Area Status', group: 'area' },
+        // task-231: wet/dry clothing state.
+        { value: 'set_wet', label: '💧 Set Wet (soak/dry items)', group: 'item' }
     ]
 };

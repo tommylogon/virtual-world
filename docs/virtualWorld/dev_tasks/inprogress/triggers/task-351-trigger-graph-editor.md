@@ -114,3 +114,11 @@ Replace the current form-based trigger editor with a **node-graph editor** (Unre
 - Phase 3: Runtime compile of blueprints → graph edges + trigger nodes; condition branching (YES/NO); AND/OR condition logic
 
 **Phase 2 & 3**: Not started
+## Follow-up (2026-09-02)
+
+UX/viewport overhaul research for this editor filed as [[task-388-trigger-graph-editor-overhaul]]
+(todo/ui): pan + zoom (currently absent, and Fit corrupts the coordinate model), wire deletion and
+YES/NO branch coloring, cycle prevention, undo/multi-select, and compile-honesty findings
+(fan-out and behavior NO-branch wires are silently dropped on save; behavior priority is derived
+from node Y position, overriding the editable Priority field). Those compile findings should be
+resolved as part of this task's Phase 3 engine work.

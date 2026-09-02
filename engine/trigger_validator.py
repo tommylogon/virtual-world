@@ -52,6 +52,8 @@ CONDITION_TYPES = {
     "proximity",
     "sound_heard",
     "speech_matches",
+    # task-233: dynamic area statuses.
+    "area_has_status",
 }
 
 # Effect params that hard-reference a graph node by id. ``self`` means the
@@ -65,6 +67,10 @@ NODE_ID_EFFECTS = {
     "remove_tag": "node_id",
     "set_parameter": "node_id",
     "adjust_parameter": "node_id",
+    # task-233/231: area-status targets reference an area node; set_wet an item.
+    "apply_area_status": "target",
+    "clear_area_status": "target",
+    "set_wet": "node_id",
 }
 
 # Effects that reference a node by a differently-named param.

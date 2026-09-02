@@ -254,6 +254,18 @@ window.Lit.render(triggerEditorTag`
         document.body.appendChild(overlay);
         this._overlay = overlay;
 
+        // Escape closes the dialog (capture phase, so it works while a field has
+        // focus); clicking the dark backdrop also cancels.
+        this._escHandler = (e) => {
+            if (e.key !== 'Escape') return;
+            e.stopPropagation();
+            this.close();
+        };
+        document.addEventListener('keydown', this._escHandler, true);
+        overlay.addEventListener('mousedown', (e) => {
+            if (e.target === overlay) this.close();
+        });
+
         // Ensure shared datalists
         ['eff-vital-stat-list', 'eff-state-node-list', 'eff-state-val-list', 'eff-trait-list', 'eff-tag-list', 'eff-weather-list', 'eff-char-list', 'eff-condition-list'].forEach(id => {
             if (!document.getElementById(id)) {
@@ -556,6 +568,10 @@ window.Lit.render(triggerEditorTag`
     },
 
     close() {
+        if (this._escHandler) {
+            document.removeEventListener('keydown', this._escHandler, true);
+            this._escHandler = null;
+        }
         if (this._overlay) {
             this._overlay.remove();
             this._overlay = null;
@@ -843,6 +859,54 @@ window.Lit.render(triggerEditorTag`
                         try { eff.params.extra_conditions = JSON.parse(extraVal); } catch (e) {}
                     }
                 }
+            } else if (effType === 'set_time') {
+                const tv = row.querySelector('.eff-settime-time')?.value || '';
+                if (tv.includes(':')) eff.params.time = tv; else eff.params.hour = parseInt(tv) || 0;
+            } else if (effType === 'set_date') {
+                const d = row.querySelector('.eff-setdate-day')?.value;
+                const m = row.querySelector('.eff-setdate-month')?.value;
+                const y = row.querySelector('.eff-setdate-year')?.value;
+                if (d !== undefined && d !== '') eff.params.day = parseInt(d);
+                if (m !== undefined && m !== '') eff.params.month = parseInt(m);
+                if (y !== undefined && y !== '') eff.params.year = parseInt(y);
+            } else if (effType === 'set_weather') {
+                eff.params.weather = row.querySelector('.eff-setweather')?.value || 'clear';
+                const dur = row.querySelector('.eff-setweather-dur')?.value;
+                if (dur !== undefined && dur !== '') eff.params.duration_ticks = parseInt(dur);
+            } else if (effType === 'forecast_override') {
+                const weather = row.querySelector('.eff-fcast-weather')?.value;
+                if (weather) eff.params.weather = weather;
+                const wind = row.querySelector('.eff-fcast-wind')?.value;
+                if (wind) eff.params.wind = wind;
+                const temp = row.querySelector('.eff-fcast-temp')?.value;
+                if (temp !== undefined && temp !== '') eff.params.temperature_mod = parseInt(temp);
+                const bdur = row.querySelector('.eff-fcast-dur')?.value;
+                if (bdur !== undefined && bdur !== '') eff.params.duration_ticks = parseInt(bdur);
+                const btarget = row.querySelector('.eff-fcast-target')?.value;
+                if (btarget) eff.params.target = btarget;
+                if (row.querySelector('.eff-fcast-blood')?.checked) eff.params.blood_moon = true;
+            } else if (effType === 'adjust_forecast') {
+                const td = row.querySelector('.eff-fcast-tdelta')?.value;
+                if (td !== undefined && td !== '') eff.params.temperature_mod_delta = parseInt(td);
+                const ld = row.querySelector('.eff-fcast-ldelta')?.value;
+                if (ld !== undefined && ld !== '') eff.params.light_mod_delta = parseInt(ld);
+                const adur = row.querySelector('.eff-fcast-adur')?.value;
+                if (adur !== undefined && adur !== '') eff.params.duration_ticks = parseInt(adur);
+            } else if (effType === 'apply_area_status') {
+                const at = row.querySelector('.eff-astat-target')?.value;
+                if (at) eff.params.target = at;
+                eff.params.status_type = row.querySelector('.eff-astat-type')?.value || 'on_fire';
+                eff.params.severity = parseInt(row.querySelector('.eff-astat-sev')?.value) || 1;
+                const ad = row.querySelector('.eff-astat-dur')?.value;
+                if (ad !== undefined && ad !== '') eff.params.duration = parseInt(ad);
+            } else if (effType === 'clear_area_status') {
+                const ct = row.querySelector('.eff-astat-clrtarget')?.value;
+                if (ct) eff.params.target = ct;
+                eff.params.status_type = row.querySelector('.eff-astat-clrtype')?.value || 'on_fire';
+            } else if (effType === 'set_wet') {
+                eff.params.wet = (row.querySelector('.eff-setwet-val')?.value || 'true') === 'true';
+                const wn = row.querySelector('.eff-setwet-node')?.value;
+                if (wn) eff.params.node_id = wn;
             }
             effects.push(eff);
         });
@@ -1037,6 +1101,12 @@ window.Lit.render(triggerEditorTag`
                         <label style="font-size:9px;">Tags (any of)</label><div class="cond-tag-multi" data-value=${Array.isArray(existingCond?.value) ? existingCond.value.join(',') : (existingCond?.value || '')}></div>
                     </div>
                 </div>
+                <div class="cond-field" data-cond="area_has_status" style="display:${SHOWS(['area_has_status'])};">
+                    <label style="font-size:9px;">Status type (on_fire, flooded, poison_gas...)</label>
+                    <input type="text" class="cond-status-type" .value=${existingCond?.status_type || ''} placeholder="on_fire" style="width:100%;font-size:11px;">
+                    <label style="font-size:9px;">Area (blank = current)</label>
+                    <input type="text" class="cond-target" .value=${existingCond?.target || ''} style="width:100%;font-size:11px;">
+                </div>
                 <div class="cond-field" data-cond="area_temp,vital,vital_above,vital_below" style="display:${SHOWS(['area_temp','vital','vital_above','vital_below'])};">
                     <div style="display:flex;gap:4px;">
                         <div style="flex:1;"><label style="font-size:9px;">Comparator</label>
@@ -1171,6 +1241,9 @@ window.Lit.render(triggerEditorTag`
                             cond.value = parseInt(q('cond-value')) || 0;
                         } else if (ctype === 'time_of_day' || ctype === 'weather') {
                             cond.value = q('cond-value') || '';
+                        } else if (ctype === 'area_has_status') {
+                            cond.status_type = q('cond-status-type') || '';
+                            cond.target = q('cond-target') || '';
                         } else {
                             cond.value = q('cond-value') || '';
                         }
@@ -1805,6 +1878,82 @@ window.Lit.render(triggerEditorTag`
                     <div class="eff-param" data-effect="apply_condition" style="display:${effType === 'apply_condition' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Extra conditions — applied alongside (e.g. [{"condition":"blind","duration":3}]); blank = none</label>
                         <textarea class="eff-condition-extras" rows="2" placeholder='[{"condition": "blind", "duration": 3}, {"condition": "exhausted", "level": 1}]' style="width:100%;font-size:11px;">${ep.extra_conditions ? escapeForHtmlAttribute(JSON.stringify(ep.extra_conditions)) : ''}</textarea>
+                    </div>
+                    <div class="eff-param" data-effect="set_time" style="display:${effType === 'set_time' ? 'block' : 'none'};">
+                        <label style="font-size:10px;">Time (HH:MM or 24h hour)</label>
+                        <input type="text" class="eff-settime-time" value="${escapeForHtmlAttribute(ep.time || (ep.hour !== undefined ? String(ep.hour) : ''))}" placeholder="14:30" style="width:100%;font-size:11px;">
+                    </div>
+                    <div class="eff-param" data-effect="set_date" style="display:${effType === 'set_date' ? 'block' : 'none'};">
+                        <label style="font-size:10px;">Day / Month / Year</label>
+                        <div style="display:flex;gap:4px;">
+                            <input type="number" class="eff-setdate-day" value="${ep.day ?? ''}" placeholder="day" style="width:33%;font-size:11px;">
+                            <input type="number" class="eff-setdate-month" value="${ep.month ?? ''}" placeholder="month" style="width:33%;font-size:11px;">
+                            <input type="number" class="eff-setdate-year" value="${ep.year ?? ''}" placeholder="year" style="width:33%;font-size:11px;">
+                        </div>
+                    </div>
+                    <div class="eff-param" data-effect="set_weather" style="display:${effType === 'set_weather' ? 'block' : 'none'};">
+                        <label style="font-size:10px;">Weather</label>
+                        <select class="eff-setweather" style="width:100%;font-size:11px;">
+                            ${['clear','cloudy','windy','rainy','stormy','foggy','snowy'].map(w => `<option value="${w}" ${ep.weather === w ? 'selected' : ''}>${w}</option>`).join('')}
+                        </select>
+                        <label style="font-size:10px;">Duration (ticks, blank = until changed)</label>
+                        <input type="number" class="eff-setweather-dur" value="${ep.duration_ticks ?? ''}" style="width:100%;font-size:11px;">
+                    </div>
+                    <div class="eff-param" data-effect="forecast_override" style="display:${effType === 'forecast_override' ? 'block' : 'none'};">
+                        <label style="font-size:10px;">Weather</label>
+                        <select class="eff-fcast-weather" style="width:100%;font-size:11px;">
+                            <option value="" ${!ep.weather ? 'selected' : ''}>— keep —</option>
+                            ${['clear','cloudy','windy','rainy','stormy','foggy','snowy'].map(w => `<option value="${w}" ${ep.weather === w ? 'selected' : ''}>${w}</option>`).join('')}
+                        </select>
+                        <label style="font-size:10px;">Wind</label>
+                        <select class="eff-fcast-wind" style="width:100%;font-size:11px;">
+                            <option value="" ${!ep.wind ? 'selected' : ''}>— keep —</option>
+                            ${['none','breeze','wind','gale','storm','hurricane'].map(w => `<option value="${w}" ${ep.wind === w ? 'selected' : ''}>${w}</option>`).join('')}
+                        </select>
+                        <label style="font-size:10px;">Temperature mod (+/- °C)</label>
+                        <input type="number" class="eff-fcast-temp" value="${ep.temperature_mod ?? ''}" style="width:100%;font-size:11px;">
+                        <label style="font-size:10px;">Duration (ticks; blank = until cleared)</label>
+                        <input type="number" class="eff-fcast-dur" value="${ep.duration_ticks ?? ''}" style="width:100%;font-size:11px;">
+                        <label style="font-size:10px;">Target (blank = global, or area id)</label>
+                        <input type="text" class="eff-fcast-target" value="${escapeForHtmlAttribute(ep.target || '')}" placeholder="global / area id" style="width:100%;font-size:11px;">
+                        <label style="font-size:9px;display:flex;align-items:center;gap:4px;margin-top:2px;"><input type="checkbox" class="eff-fcast-blood" ?checked=${ep.blood_moon === true}> Blood moon</label>
+                    </div>
+                    <div class="eff-param" data-effect="adjust_forecast" style="display:${effType === 'adjust_forecast' ? 'block' : 'none'};">
+                        <label style="font-size:10px;">Temperature mod delta</label>
+                        <input type="number" class="eff-fcast-tdelta" value="${ep.temperature_mod_delta ?? ''}" style="width:100%;font-size:11px;">
+                        <label style="font-size:10px;">Light mod delta</label>
+                        <input type="number" class="eff-fcast-ldelta" value="${ep.light_mod_delta ?? ''}" style="width:100%;font-size:11px;">
+                        <label style="font-size:10px;">Duration (ticks)</label>
+                        <input type="number" class="eff-fcast-adur" value="${ep.duration_ticks ?? ''}" style="width:100%;font-size:11px;">
+                    </div>
+                    <div class="eff-param" data-effect="apply_area_status" style="display:${effType === 'apply_area_status' ? 'block' : 'none'};">
+                        <label style="font-size:10px;">Area (blank = current)</label>
+                        <input type="text" class="eff-astat-target" value="${escapeForHtmlAttribute(ep.target || '')}" style="width:100%;font-size:11px;">
+                        <label style="font-size:10px;">Status type</label>
+                        <select class="eff-astat-type" style="width:100%;font-size:11px;">
+                            ${['on_fire','flooded','poison_gas','smoke','blessed','darkness_magic'].map(s => `<option value="${s}" ${ep.status_type === s ? 'selected' : ''}>${s}</option>`).join('')}
+                        </select>
+                        <label style="font-size:10px;">Severity (1-5)</label>
+                        <input type="number" class="eff-astat-sev" value="${ep.severity ?? 1}" min="1" max="5" style="width:100%;font-size:11px;">
+                        <label style="font-size:10px;">Duration (ticks, blank = until cleared)</label>
+                        <input type="number" class="eff-astat-dur" value="${ep.duration ?? ''}" style="width:100%;font-size:11px;">
+                    </div>
+                    <div class="eff-param" data-effect="clear_area_status" style="display:${effType === 'clear_area_status' ? 'block' : 'none'};">
+                        <label style="font-size:10px;">Area (blank = current)</label>
+                        <input type="text" class="eff-astat-clrtarget" value="${escapeForHtmlAttribute(ep.target || '')}" style="width:100%;font-size:11px;">
+                        <label style="font-size:10px;">Status type</label>
+                        <select class="eff-astat-clrtype" style="width:100%;font-size:11px;">
+                            ${['on_fire','flooded','poison_gas','smoke','blessed','darkness_magic'].map(s => `<option value="${s}" ${ep.status_type === s ? 'selected' : ''}>${s}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="eff-param" data-effect="set_wet" style="display:${effType === 'set_wet' ? 'block' : 'none'};">
+                        <label style="font-size:10px;">Wet</label>
+                        <select class="eff-setwet-val" style="width:100%;font-size:11px;">
+                            <option value="true" ${ep.wet !== false ? 'selected' : ''}>Soak (wet)</option>
+                            <option value="false" ${ep.wet === false ? 'selected' : ''}>Dry out</option>
+                        </select>
+                        <label style="font-size:10px;">Item node (blank = equipped gear)</label>
+                        <input type="text" class="eff-setwet-node" value="${escapeForHtmlAttribute(ep.node_id || '')}" placeholder="actor's equipment" style="width:100%;font-size:11px;">
                     </div>
                 </div>
                 <span onclick="this.closest('.eff-row').remove()" style="position:absolute;top:4px;right:4px;cursor:pointer;color:var(--red);font-size:12px;">✕</span>

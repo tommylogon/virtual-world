@@ -1,6 +1,6 @@
 ---
 group: Environment & Climate
-status: todo
+status: done
 priority: medium
 filed: 2026-08-15
 supersedes: [task-138-area-status-system.md]
@@ -176,3 +176,16 @@ New trigger effects:
 - Status with `duration: 10` expires after 10 ticks
 - `clear_area_status` removes status immediately
 - Statuses persist through save/load
+
+## Implemented (2026-09-02, this audit)
+
+Implemented in this pass — nothing existed before. Adds
+`engine/area_statuses.py` (registry: on_fire, smoke, flooded, poison_gas,
+blessed, darkness_magic; `AreaStatusSystem` with apply/clear/has_status,
+per-tick environment mutation + area damage (vitals) + condition application
+to every character present + duration expiry + propagation through open ways),
+engine wiring (`world.area_statuses`, `_area_statuses_tick()` in tick_turn),
+`apply_area_status` / `clear_area_status` effects (registered + validated,
+node-ref params), the `area_has_status` trigger condition, status flavour
+lines in `area_description`, and tests (`tests/test_area_statuses.py`).
+Both trigger editors expose the new effects/condition.

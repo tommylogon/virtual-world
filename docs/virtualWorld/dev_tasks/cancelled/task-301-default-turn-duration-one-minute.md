@@ -5,7 +5,7 @@ group: Environment
 
 **Filed**: 2026-08-19
 **Priority**: Low
-**Status**: Idea
+**Status**: Cancelled (2026-09-02)
 
 ---
 
@@ -23,3 +23,10 @@ Change the default time per turn from 5 minutes to 1 minute.
 
 - `developer ideas.md` line 8
 - `task-300` (scenario clock start time), `task-304` (centralized config)
+
+## Resolution (2026-09-02)
+
+Cancelled in favour of the per-scenario path this task itself recommended:
+task-300's clock settings plus `GET/POST /api/settings/time_per_tick` already
+let each scenario opt into 1-minute turns without re-pacing every other
+scenario. A global default change is deliberately not made.

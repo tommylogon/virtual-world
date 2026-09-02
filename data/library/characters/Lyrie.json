@@ -30,7 +30,40 @@
   },
   "equipped": {
     "accessory": [
-      "item_Frayed Friendship Bracelet"
+      {
+        "name": "Frayed Friendship Bracelet",
+        "node_id": "item_Frayed Friendship Bracelet",
+        "library_id": "lyrie_friendship_bracelet",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "A simple, frayed friendship bracelet made of woven green and brown threads, tied loosely around Lyrie's left wrist. It was given to her by her best friend before the 'incident' that almost got her exiled. She never takes it off, even though it's coming apart. The green has faded, and one of the knots is coming undone.",
+          "equip_slots": [
+            "accessory"
+          ],
+          "hidden": false,
+          "library_id": "lyrie_friendship_bracelet",
+          "locked": false,
+          "skill_check": {},
+          "tags": [
+            "jewelry",
+            "bracelet",
+            "friendship",
+            "elven",
+            "sentimental"
+          ],
+          "uses": -1,
+          "weight": 0
+        }
+      }
     ],
     "arms": [],
     "back": [],
@@ -39,16 +72,183 @@
     "hand_right": [],
     "hands": [],
     "head": [
-      "item_Dried Flower Crown (Crushed)"
+      {
+        "name": "Dried Flower Crown (Crushed)",
+        "node_id": "item_Dried Flower Crown (Crushed)",
+        "library_id": "lyrie_flower_crown",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "A simple crown of dried wildflowers, woven together with grass. It's badly crushed and missing several blooms, but Lyrie refuses to take it off—it was a gift from a child in her village. She forgets it's on her head half the time, and it sheds petals wherever she goes.",
+          "equip_slots": [
+            "head"
+          ],
+          "hidden": false,
+          "library_id": "lyrie_flower_crown",
+          "locked": false,
+          "skill_check": {},
+          "tags": [
+            "accessory",
+            "flower",
+            "crown",
+            "elven",
+            "fragile"
+          ],
+          "uses": -1,
+          "weight": 0.1
+        }
+      }
     ],
     "legs": [
-      "item_Stirrup Socks"
+      {
+        "name": "Stirrup Socks",
+        "node_id": "item_Stirrup Socks",
+        "library_id": null,
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "contents": [],
+          "description": "Knee-high wool socks with a strap that runs under the arch of your foot, leaving your toes and heel completely bare. They keep your calves warm while your feet stay free.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "equip_slots": [
+            "legs"
+          ],
+          "hidden": false,
+          "insulation": 2,
+          "skill_check": {},
+          "tags": [
+            "clothing",
+            "insulation"
+          ],
+          "uses": 0,
+          "weight": 0.2
+        }
+      }
     ],
     "neck": [],
     "torso": [
-      "item_Green Tunic",
-      "item_Short Forest Cape",
-      "item_Soft Linen Shift"
+      {
+        "name": "Green Tunic",
+        "node_id": "item_Green Tunic",
+        "library_id": null,
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "contents": [],
+          "defense": 2,
+          "description": "A simple, finely woven tunic of forest green linen. It bears no adornment but feels sturdy and comfortable.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "equip_slots": [
+            "torso"
+          ],
+          "hidden": false,
+          "insulation": 5,
+          "skill_check": {},
+          "tags": [
+            "container",
+            "clothing",
+            "insulation"
+          ],
+          "uses": 0,
+          "weight": 0.3
+        }
+      },
+      {
+        "name": "Short Forest Cape",
+        "node_id": "item_Short Forest Cape",
+        "library_id": null,
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "contents": [],
+          "defense": 1,
+          "description": "A short, forest-green cape that rustles like leaves in the wind. Light and practical, it offers subtle camouflage among the trees.",
+          "effect_amount": 0,
+          "effect_stat": null,
+          "effect_target": null,
+          "equip_slots": [
+            "torso"
+          ],
+          "hidden": false,
+          "insulation": 1,
+          "skill_check": {},
+          "tags": [
+            "clothing",
+            "insulation"
+          ],
+          "uses": 0,
+          "weight": 0.3
+        }
+      },
+      {
+        "name": "Soft Linen Shift",
+        "node_id": "item_Soft Linen Shift",
+        "library_id": "lyrie_linen_shift",
+        "properties": {
+          "action_costs": {},
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "current_state": "normal",
+          "description": "A simple, loose-fitting underdress of undyed linen, soft from many washings. There's a small, clumsily-darned hole near the hem where Lyrie caught it on a branch. Smells faintly of wildflowers and hearth smoke.",
+          "equip_slots": [
+            "torso",
+            "legs"
+          ],
+          "hidden": false,
+          "insulation": 1,
+          "library_id": "lyrie_linen_shift",
+          "locked": false,
+          "skill_check": {},
+          "tags": [
+            "clothing",
+            "underwear",
+            "linen",
+            "elven",
+            "insulation"
+          ],
+          "uses": -1,
+          "weight": 0.4
+        }
+      }
     ],
     "waist": []
   },
@@ -302,10 +502,11 @@
       "id": "mem_1784462303717_317",
       "importance": 5,
       "location": "",
+      "salience_override": 0,
       "source": "manual",
       "tags": [],
-      "text": "7. The Singing Fish (Age 75)\n   \"A fish in the market looked so sad. I wanted to cheer it up. I sang to it for two hours. It died. I don't sing near water anymore. I still feel bad.\"",
-      "tick": 9,
+      "text": "The Singing Fish (Age 75)\n   \"A fish in the market looked so sad. I wanted to cheer it up. I sang to it for two hours. It died. I don't sing near water anymore. I still feel bad.\"",
+      "tick": -4400,
       "timestamp": 1784462303.7175055,
       "type": "observation"
     },
@@ -314,10 +515,11 @@
       "id": "mem_1785422848857_188",
       "importance": 5,
       "location": "",
+      "salience_override": 0,
       "source": "manual",
       "tags": [],
-      "text": "1. The Great Baking Incident (Age 14)\n   \"I wanted to make Elder Caelum a birthday cake. The recipe said 'flour,' but I thought fire salts would make it taste warmer. The kitchen exploded. His eyebrows never grew back. I still bake him a cake every year. I buy it now.\"",
-      "tick": 20,
+      "text": "The Great Baking Incident (Age 14)\n   \"I wanted to make Elder Caelum a birthday cake. The recipe said 'flour,' but I thought fire salts would make it taste warmer. The kitchen exploded. His eyebrows never grew back. I still bake him a cake every year. I buy it now.\"",
+      "tick": -55000,
       "timestamp": 1785422848.8607314,
       "type": "observation"
     },
@@ -326,9 +528,10 @@
       "id": "mem_1785422871580_66",
       "importance": 5,
       "location": "",
+      "salience_override": 0,
       "source": "manual",
       "tags": [],
-      "text": "2. The Chicken Cart (Age 22)\n   \"The merchant's cart had a broken wheel. I thought I could fix it with magic. I made it better—it turned into a chicken. A very large, very angry chicken. He chased me for three days. I still apologize to chickens.\"",
+      "text": "The Chicken Cart (Age 22)\n   \"The merchant's cart had a broken wheel. I thought I could fix it with magic. I made it better—it turned into a chicken. A very large, very angry chicken. He chased me for three days. I still apologize to chickens.\"",
       "tick": 20,
       "timestamp": 1785422871.5809138,
       "type": "observation"
@@ -338,9 +541,10 @@
       "id": "mem_1785422883657_952",
       "importance": 5,
       "location": "",
+      "salience_override": 0,
       "source": "manual",
       "tags": [],
-      "text": "3. The Squirrel Incident (Age 31)\n   \"I saw a squirrel sitting alone under a tree. It looked sad. I tried to comfort it in animal tongue. It screamed at me. For twenty minutes. I didn't know squirrels could scream. I leave acorns out for them now.\"",
+      "text": "The Squirrel Incident (Age 31)\n   \"I saw a squirrel sitting alone under a tree. It looked sad. I tried to comfort it in animal tongue. It screamed at me. For twenty minutes. I didn't know squirrels could scream. I leave acorns out for them now.\"",
       "tick": 20,
       "timestamp": 1785422883.6576118,
       "type": "observation"
@@ -350,10 +554,11 @@
       "id": "mem_1785422916748_379",
       "importance": 5,
       "location": "",
+      "salience_override": 0,
       "source": "manual",
       "tags": [],
-      "text": "4. The Grapevine (Age 45)\n   \"I got lost in the woods. I was scared and lonely. I found a grapevine and talked to it for three days. I named him Vincent. He never talked back, but he listened. I still visit him when I'm near the woods.\"",
-      "tick": 20,
+      "text": "The Grapevine (Age 45)\n   \"I got lost in the woods. I was scared and lonely. I found a grapevine and talked to it for three days. I named him Vincent. He never talked back, but he listened. I still visit him when I'm near the woods.\"",
+      "tick": -30000,
       "timestamp": 1785422916.7481797,
       "type": "observation"
     },
@@ -374,10 +579,11 @@
       "id": "mem_1785422942704_590",
       "importance": 5,
       "location": "",
+      "salience_override": 0,
       "source": "manual",
       "tags": [],
-      "text": "6. The Lost Sheep (Age 70)\n   \"A farmer lost a sheep. I thought I could help. I found a rock that looked like a sheep. I convinced myself it was a sheep. I named it Fluffy. It never moved. I still visit Fluffy sometimes.\"",
-      "tick": 20,
+      "text": "The Lost Sheep (Age 70)\n   \"A farmer lost a sheep. I thought I could help. I found a rock that looked like a sheep. I convinced myself it was a sheep. I named it Fluffy. It never moved. I still visit Fluffy sometimes.\"",
+      "tick": -4600,
       "timestamp": 1785422942.7043638,
       "type": "observation"
     },
@@ -386,10 +592,11 @@
       "id": "mem_1785422956294_239",
       "importance": 5,
       "location": "",
+      "salience_override": 0,
       "source": "manual",
       "tags": [],
-      "text": "8. The Present (Age 79)\n   \"I was going home from the market. I got lost. That was three days ago. I'm still walking. I think I'm going the right way. I'm probably not. The snow is very cold. I hope someone finds me soon.\"",
-      "tick": 20,
+      "text": "The Present (Age 79)\n   \"I was going home from the market. I got lost. That was three days ago. I'm still walking. I think I'm going the right way. I'm probably not. The snow is very cold. I hope someone finds me soon.\"",
+      "tick": -3600,
       "timestamp": 1785422956.2950027,
       "type": "observation"
     },
@@ -411,7 +618,7 @@
   "npc_action_interval": 3,
   "npc_behavior": "wander",
   "npc_state": "idle",
-  "personality": "Lyrie is a 79-year-old elven maiden, and widely known in her hometown as the village idiot.  Sweet, honest and sincere to a fault, but prone to causing disastrous trouble even when trying her best.\n\nPersonality: Put politely, Lyrie is an airhead. Dense, forgetful and clumsy, with a habit of breaking and losing things. Her grasp of basic tasks is shockingly poor, and she has issues following complex topics. While usually very polite, curious and cheerful, she is an infamous crybaby and her feelings are hurt easily. Lyrie cannot understand idioms, sarcasm or wordplay of any kind, and tends to jump to bizarre conclusions that make no sense. Lyrie never uses foul language or profanity, worried she'll be yelled at.\n\nMind: Lyrie is perpetually confused, and often daydreaming or spacing out even in dangerous situations. Her self-preservation instincts are poor, and she often gets herself into trouble and needs rescuing. Lyrie is a gifted magician, but rarely uses her powers after a certain incident almost got her exiled from her village. She wants to be helpful, but her clumsiness and poor luck often cause more harm than good.\n\n</think>",
+  "personality": "Lyrie is a 79-year-old elven maiden, and widely known in her hometown as the village idiot.  Sweet, honest and sincere to a fault, but prone to causing disastrous trouble even when trying her best.\n\nPersonality: Put politely, Lyrie is an airhead. Dense, forgetful and clumsy, with a habit of breaking and losing things. Her grasp of basic tasks is shockingly poor, and she has issues following complex topics. While usually very polite, curious and cheerful, she is an infamous crybaby and her feelings are hurt easily. Lyrie cannot understand idioms, sarcasm or wordplay of any kind, and tends to jump to bizarre conclusions that make no sense. Lyrie never uses foul language or profanity, worried she'll be yelled at.\n\nMind: Lyrie is perpetually confused, and often daydreaming or spacing out even in dangerous situations. Her self-preservation instincts are poor, and she often gets herself into trouble and needs rescuing. Lyrie is a gifted magician, but rarely uses her powers after a certain incident almost got her exiled from her village. She wants to be helpful, but her clumsiness and poor luck often cause more harm than good.",
   "recent_hearing": [
     {
       "area": "Frozen Thicket",
@@ -536,12 +743,12 @@
     "Energy": 78,
     "Entertainment": 95,
     "HP": 96,
-    "Hunger": 94,
+    "Hunger": 6,
     "Hygiene": 94,
     "Max_HP": 100,
     "Sanity": 94,
     "Social": 95,
     "Temperature": 34.35999999999999,
-    "Thirst": 94
+    "Thirst": 6
   }
 }

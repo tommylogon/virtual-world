@@ -1,6 +1,6 @@
 ---
 group: Environment & Climate
-status: todo
+status: done
 priority: medium
 filed: 2026-08-15
 supersedes: [task-163-wind-environmental-enum.md, task-194-wind-water-resistance-insulation.md]
@@ -121,3 +121,12 @@ if wind in ("gale", "storm", "hurricane"):
 - Wet coat contributes 30% of its normal insulation, water_resistance improves it
 - Storm extinguish chance = 30% per tick for lit torches in exterior
 - Hurricane energy drain = +5 per move action
+
+## Implemented (audit 2026-09-02)
+
+Implemented before this audit: wind enum + numeric scale, wind chill resisted
+by `wind_resistance` in `effective_temperature()`, wind multiplier on heat
+propagation (stronger wind of the pair wins), `_process_wind_extinguish()`
+(gale/storm/hurricane snuffing lit items), wind energy drain on moves, and
+`set_environment`/`adjust_environment` + `adjust_wind` support. `set_wet`
+effect added by this audit (soaks the actor's equipped gear or a named item).

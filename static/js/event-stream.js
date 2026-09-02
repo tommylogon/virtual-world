@@ -198,11 +198,19 @@ class EventBus {
         return 'var(--green)';
     }
 
-    /** Turn-card header label — shows the round number + current game time. */
+    /** Turn-card header label — round number, calendar date, game time, moon. */
     _turnLabel() {
-        const turn = VW?.state?.data?.turn_number ?? 0;
+        const raw = VW?.state?.data || {};
+        const turn = raw.turn_number ?? 0;
         const time = this.tickToTime(VW?.state?.tick || 0);
-        return `Turn ${turn} | ${time}`;
+        // task-228/229: calendar date + moon phase when the engine exposes them.
+        let datePart = '';
+        if (raw.game_day != null) {
+            datePart = ` | Day ${raw.game_day}, Month ${raw.game_month ?? 1}, Year ${raw.game_year ?? 1}`;
+        }
+        const moon = raw.moon_phase;
+        const moonPart = moon?.icon ? ` ${moon.icon}` : '';
+        return `Turn ${turn}${datePart} | ${time}${moonPart}`;
     }
 
     /** Per-line bubble label — global monotonic sequence + current game time. */

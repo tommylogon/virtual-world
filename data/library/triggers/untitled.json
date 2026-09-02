@@ -1,0 +1,1269 @@
+{
+  "name": "untitled",
+  "description": "",
+  "graph": {
+    "nodes": [
+      {
+        "id": "n0",
+        "type": "behavior",
+        "x": 50,
+        "y": 40,
+        "props": {
+          "trigger": "on_player_enter_area",
+          "priority": 10,
+          "interval": 1
+        }
+      },
+      {
+        "id": "n1",
+        "type": "action",
+        "x": 557,
+        "y": 54,
+        "props": {
+          "action_type": "message",
+          "text": "The rat twitches its whiskers and watches you with bright, unblinking eyes."
+        }
+      },
+      {
+        "id": "n2",
+        "type": "action",
+        "x": 834,
+        "y": 193,
+        "props": {
+          "action_type": "speak",
+          "text": "Eep?"
+        }
+      },
+      {
+        "id": "n3",
+        "type": "behavior",
+        "x": 50,
+        "y": 220,
+        "props": {
+          "trigger": "on_tick",
+          "priority": 9,
+          "interval": 2
+        }
+      },
+      {
+        "id": "n4",
+        "type": "condition",
+        "x": 378,
+        "y": 233,
+        "props": {
+          "condition_type": "proximity",
+          "max_areas": 0
+        }
+      },
+      {
+        "id": "n5",
+        "type": "condition",
+        "x": 619,
+        "y": 371,
+        "props": {
+          "condition_type": "random_chance"
+        }
+      },
+      {
+        "id": "n6",
+        "type": "state",
+        "x": 520,
+        "y": 516,
+        "props": {
+          "state": "fleeing"
+        }
+      },
+      {
+        "id": "n7",
+        "type": "action",
+        "x": 520,
+        "y": 636,
+        "props": {
+          "action_type": "speak",
+          "text": "Squeak!"
+        }
+      },
+      {
+        "id": "n8",
+        "type": "action",
+        "x": 520,
+        "y": 756,
+        "props": {
+          "action_type": "message",
+          "text": "The rat squeaks in alarm and darts for cover."
+        }
+      },
+      {
+        "id": "n9",
+        "type": "behavior",
+        "x": 50,
+        "y": 400,
+        "props": {
+          "trigger": "on_tick",
+          "priority": 8,
+          "interval": 2
+        }
+      },
+      {
+        "id": "n10",
+        "type": "condition",
+        "x": 300,
+        "y": 456,
+        "props": {
+          "condition_type": "eq",
+          "target": "npc_state",
+          "value": "fleeing"
+        }
+      },
+      {
+        "id": "n11",
+        "type": "condition",
+        "x": 300,
+        "y": 576,
+        "props": {
+          "condition_type": "random_chance"
+        }
+      },
+      {
+        "id": "n12",
+        "type": "action",
+        "x": 520,
+        "y": 696,
+        "props": {
+          "action_type": "go",
+          "area": "Kitchen"
+        }
+      },
+      {
+        "id": "n13",
+        "type": "state",
+        "x": 520,
+        "y": 816,
+        "props": {
+          "state": "hiding"
+        }
+      },
+      {
+        "id": "n14",
+        "type": "action",
+        "x": 520,
+        "y": 936,
+        "props": {
+          "action_type": "message",
+          "text": "The rat vanishes under the kitchen cabinets with a final indignant squeak."
+        }
+      },
+      {
+        "id": "n15",
+        "type": "behavior",
+        "x": 50,
+        "y": 580,
+        "props": {
+          "trigger": "on_tick",
+          "priority": 7,
+          "interval": 4
+        }
+      },
+      {
+        "id": "n16",
+        "type": "condition",
+        "x": 300,
+        "y": 636,
+        "props": {
+          "condition_type": "eq",
+          "target": "npc_state",
+          "value": "hiding"
+        }
+      },
+      {
+        "id": "n17",
+        "type": "condition",
+        "x": 300,
+        "y": 756,
+        "props": {
+          "condition_type": "tick_since_state",
+          "min_ticks": 4
+        }
+      },
+      {
+        "id": "n18",
+        "type": "condition",
+        "x": 300,
+        "y": 876,
+        "props": {
+          "condition_type": "random_chance"
+        }
+      },
+      {
+        "id": "n19",
+        "type": "state",
+        "x": 520,
+        "y": 996,
+        "props": {
+          "state": "foraging"
+        }
+      },
+      {
+        "id": "n20",
+        "type": "action",
+        "x": 520,
+        "y": 1116,
+        "props": {
+          "action_type": "message",
+          "text": "After a long silence, the rat pokes its nose out and sniffs the air cautiously."
+        }
+      },
+      {
+        "id": "n21",
+        "type": "behavior",
+        "x": 50,
+        "y": 760,
+        "props": {
+          "trigger": "on_tick",
+          "priority": 6,
+          "interval": 6
+        }
+      },
+      {
+        "id": "n22",
+        "type": "condition",
+        "x": 300,
+        "y": 816,
+        "props": {
+          "condition_type": "vital_below",
+          "operator": "lt",
+          "value": "80",
+          "target": "rat"
+        }
+      },
+      {
+        "id": "n23",
+        "type": "condition",
+        "x": 300,
+        "y": 936,
+        "props": {
+          "condition_type": "in_area",
+          "area": "Kitchen",
+          "target": "npc"
+        }
+      },
+      {
+        "id": "n24",
+        "type": "condition",
+        "x": 300,
+        "y": 1056,
+        "props": {
+          "condition_type": "skill_check",
+          "skill": "Athletics",
+          "dc": 10
+        }
+      },
+      {
+        "id": "n25",
+        "type": "condition",
+        "x": 300,
+        "y": 1176,
+        "props": {
+          "condition_type": "random_chance"
+        }
+      },
+      {
+        "id": "n26",
+        "type": "state",
+        "x": 520,
+        "y": 1296,
+        "props": {
+          "state": "eating"
+        }
+      },
+      {
+        "id": "n27",
+        "type": "action",
+        "x": 520,
+        "y": 1416,
+        "props": {
+          "action_type": "heal",
+          "amount": 18,
+          "stat": "Hunger",
+          "target": "rat"
+        }
+      },
+      {
+        "id": "n28",
+        "type": "action",
+        "x": 520,
+        "y": 1536,
+        "props": {
+          "action_type": "message",
+          "text": "The rat gnaws at a crust of bread beneath the table, crumbs scattering across the floorboards."
+        }
+      },
+      {
+        "id": "n29",
+        "type": "action",
+        "x": 520,
+        "y": 1656,
+        "props": {
+          "action_type": "speak",
+          "text": "Nibble nibble."
+        }
+      },
+      {
+        "id": "n30",
+        "type": "behavior",
+        "x": 50,
+        "y": 940,
+        "props": {
+          "trigger": "on_tick",
+          "priority": 6,
+          "interval": 8
+        }
+      },
+      {
+        "id": "n31",
+        "type": "condition",
+        "x": 300,
+        "y": 996,
+        "props": {
+          "condition_type": "vital_below",
+          "operator": "lt",
+          "value": "80",
+          "target": "rat"
+        }
+      },
+      {
+        "id": "n32",
+        "type": "condition",
+        "x": 300,
+        "y": 1116,
+        "props": {
+          "condition_type": "in_area",
+          "area": "Cellar",
+          "target": "npc"
+        }
+      },
+      {
+        "id": "n33",
+        "type": "condition",
+        "x": 300,
+        "y": 1236,
+        "props": {
+          "condition_type": "eq",
+          "target": "npc_state",
+          "value": "foraging"
+        }
+      },
+      {
+        "id": "n34",
+        "type": "condition",
+        "x": 300,
+        "y": 1356,
+        "props": {
+          "condition_type": "random_chance"
+        }
+      },
+      {
+        "id": "n35",
+        "type": "state",
+        "x": 520,
+        "y": 1476,
+        "props": {
+          "state": "eating"
+        }
+      },
+      {
+        "id": "n36",
+        "type": "action",
+        "x": 520,
+        "y": 1596,
+        "props": {
+          "action_type": "heal",
+          "amount": 15,
+          "stat": "Hunger",
+          "target": "rat"
+        }
+      },
+      {
+        "id": "n37",
+        "type": "action",
+        "x": 520,
+        "y": 1716,
+        "props": {
+          "action_type": "message",
+          "text": "The rat chews on something dry and preserved from the cellar shelves."
+        }
+      },
+      {
+        "id": "n38",
+        "type": "behavior",
+        "x": 50,
+        "y": 1120,
+        "props": {
+          "trigger": "on_tick",
+          "priority": 5,
+          "interval": 4
+        }
+      },
+      {
+        "id": "n39",
+        "type": "condition",
+        "x": 300,
+        "y": 1176,
+        "props": {
+          "condition_type": "eq",
+          "target": "npc_state",
+          "value": "eating"
+        }
+      },
+      {
+        "id": "n40",
+        "type": "condition",
+        "x": 300,
+        "y": 1296,
+        "props": {
+          "condition_type": "random_chance"
+        }
+      },
+      {
+        "id": "n41",
+        "type": "state",
+        "x": 520,
+        "y": 1416,
+        "props": {
+          "state": "foraging"
+        }
+      },
+      {
+        "id": "n42",
+        "type": "action",
+        "x": 520,
+        "y": 1536,
+        "props": {
+          "action_type": "message",
+          "text": "The rat licks its whiskers and resumes patrolling the floor."
+        }
+      },
+      {
+        "id": "n43",
+        "type": "behavior",
+        "x": 50,
+        "y": 1300,
+        "props": {
+          "trigger": "on_tick",
+          "priority": 4,
+          "interval": 5
+        }
+      },
+      {
+        "id": "n44",
+        "type": "condition",
+        "x": 300,
+        "y": 1356,
+        "props": {
+          "condition_type": "eq",
+          "target": "npc_state",
+          "value": "foraging"
+        }
+      },
+      {
+        "id": "n45",
+        "type": "condition",
+        "x": 300,
+        "y": 1476,
+        "props": {
+          "condition_type": "in_area",
+          "area": "Kitchen",
+          "target": "npc"
+        }
+      },
+      {
+        "id": "n46",
+        "type": "condition",
+        "x": 300,
+        "y": 1596,
+        "props": {
+          "condition_type": "random_chance"
+        }
+      },
+      {
+        "id": "n47",
+        "type": "action",
+        "x": 520,
+        "y": 1716,
+        "props": {
+          "action_type": "go",
+          "area": "Cellar"
+        }
+      },
+      {
+        "id": "n48",
+        "type": "action",
+        "x": 520,
+        "y": 1836,
+        "props": {
+          "action_type": "message",
+          "text": "The rat scurries toward the trapdoor and disappears into the cellar."
+        }
+      },
+      {
+        "id": "n49",
+        "type": "behavior",
+        "x": 50,
+        "y": 1480,
+        "props": {
+          "trigger": "on_tick",
+          "priority": 4,
+          "interval": 5
+        }
+      },
+      {
+        "id": "n50",
+        "type": "condition",
+        "x": 300,
+        "y": 1536,
+        "props": {
+          "condition_type": "eq",
+          "target": "npc_state",
+          "value": "foraging"
+        }
+      },
+      {
+        "id": "n51",
+        "type": "condition",
+        "x": 300,
+        "y": 1656,
+        "props": {
+          "condition_type": "in_area",
+          "area": "Cellar",
+          "target": "npc"
+        }
+      },
+      {
+        "id": "n52",
+        "type": "condition",
+        "x": 300,
+        "y": 1776,
+        "props": {
+          "condition_type": "random_chance"
+        }
+      },
+      {
+        "id": "n53",
+        "type": "action",
+        "x": 520,
+        "y": 1896,
+        "props": {
+          "action_type": "go",
+          "area": "Kitchen"
+        }
+      },
+      {
+        "id": "n54",
+        "type": "action",
+        "x": 520,
+        "y": 2016,
+        "props": {
+          "action_type": "message",
+          "text": "The rat climbs the ladder and scuttles back into the warmer kitchen."
+        }
+      },
+      {
+        "id": "n55",
+        "type": "behavior",
+        "x": 50,
+        "y": 1660,
+        "props": {
+          "trigger": "on_tick",
+          "priority": 3,
+          "interval": 6
+        }
+      },
+      {
+        "id": "n56",
+        "type": "condition",
+        "x": 300,
+        "y": 1716,
+        "props": {
+          "condition_type": "eq",
+          "target": "npc_state",
+          "value": "idle"
+        }
+      },
+      {
+        "id": "n57",
+        "type": "condition",
+        "x": 300,
+        "y": 1836,
+        "props": {
+          "condition_type": "random_chance"
+        }
+      },
+      {
+        "id": "n58",
+        "type": "state",
+        "x": 520,
+        "y": 1956,
+        "props": {
+          "state": "foraging"
+        }
+      },
+      {
+        "id": "n59",
+        "type": "action",
+        "x": 520,
+        "y": 2076,
+        "props": {
+          "action_type": "message",
+          "text": "The rat skitters in a tight circle, nose to the floorboards."
+        }
+      },
+      {
+        "id": "n60",
+        "type": "behavior",
+        "x": 50,
+        "y": 1840,
+        "props": {
+          "trigger": "on_tick",
+          "priority": 2,
+          "interval": 4
+        }
+      },
+      {
+        "id": "n61",
+        "type": "condition",
+        "x": 300,
+        "y": 1896,
+        "props": {
+          "condition_type": "skill_check",
+          "skill": "Athletics",
+          "dc": 10
+        }
+      },
+      {
+        "id": "n62",
+        "type": "condition",
+        "x": 300,
+        "y": 2016,
+        "props": {
+          "condition_type": "random_chance"
+        }
+      },
+      {
+        "id": "n63",
+        "type": "action",
+        "x": 520,
+        "y": 2136,
+        "props": {
+          "action_type": "speak",
+          "text": "Eeek!"
+        }
+      },
+      {
+        "id": "n64",
+        "type": "action",
+        "x": 520,
+        "y": 2256,
+        "props": {
+          "action_type": "message",
+          "text": "A rat squeaks somewhere nearby."
+        }
+      }
+    ],
+    "wires": [
+      {
+        "id": "w0",
+        "from": [
+          "n0",
+          "output"
+        ],
+        "to": [
+          "n1",
+          "input"
+        ]
+      },
+      {
+        "id": "w1",
+        "from": [
+          "n1",
+          "output"
+        ],
+        "to": [
+          "n2",
+          "input"
+        ]
+      },
+      {
+        "id": "w2",
+        "from": [
+          "n3",
+          "output"
+        ],
+        "to": [
+          "n4",
+          "input"
+        ]
+      },
+      {
+        "id": "w3",
+        "from": [
+          "n4",
+          "output_yes"
+        ],
+        "to": [
+          "n5",
+          "input"
+        ]
+      },
+      {
+        "id": "w4",
+        "from": [
+          "n5",
+          "output_yes"
+        ],
+        "to": [
+          "n6",
+          "input"
+        ]
+      },
+      {
+        "id": "w5",
+        "from": [
+          "n6",
+          "output"
+        ],
+        "to": [
+          "n7",
+          "input"
+        ]
+      },
+      {
+        "id": "w6",
+        "from": [
+          "n7",
+          "output"
+        ],
+        "to": [
+          "n8",
+          "input"
+        ]
+      },
+      {
+        "id": "w7",
+        "from": [
+          "n9",
+          "output"
+        ],
+        "to": [
+          "n10",
+          "input"
+        ]
+      },
+      {
+        "id": "w8",
+        "from": [
+          "n10",
+          "output_yes"
+        ],
+        "to": [
+          "n11",
+          "input"
+        ]
+      },
+      {
+        "id": "w9",
+        "from": [
+          "n11",
+          "output_yes"
+        ],
+        "to": [
+          "n12",
+          "input"
+        ]
+      },
+      {
+        "id": "w10",
+        "from": [
+          "n12",
+          "output"
+        ],
+        "to": [
+          "n13",
+          "input"
+        ]
+      },
+      {
+        "id": "w11",
+        "from": [
+          "n13",
+          "output"
+        ],
+        "to": [
+          "n14",
+          "input"
+        ]
+      },
+      {
+        "id": "w12",
+        "from": [
+          "n15",
+          "output"
+        ],
+        "to": [
+          "n16",
+          "input"
+        ]
+      },
+      {
+        "id": "w13",
+        "from": [
+          "n16",
+          "output_yes"
+        ],
+        "to": [
+          "n17",
+          "input"
+        ]
+      },
+      {
+        "id": "w14",
+        "from": [
+          "n17",
+          "output_yes"
+        ],
+        "to": [
+          "n18",
+          "input"
+        ]
+      },
+      {
+        "id": "w15",
+        "from": [
+          "n18",
+          "output_yes"
+        ],
+        "to": [
+          "n19",
+          "input"
+        ]
+      },
+      {
+        "id": "w16",
+        "from": [
+          "n19",
+          "output"
+        ],
+        "to": [
+          "n20",
+          "input"
+        ]
+      },
+      {
+        "id": "w17",
+        "from": [
+          "n21",
+          "output"
+        ],
+        "to": [
+          "n22",
+          "input"
+        ]
+      },
+      {
+        "id": "w18",
+        "from": [
+          "n22",
+          "output_yes"
+        ],
+        "to": [
+          "n23",
+          "input"
+        ]
+      },
+      {
+        "id": "w19",
+        "from": [
+          "n23",
+          "output_yes"
+        ],
+        "to": [
+          "n24",
+          "input"
+        ]
+      },
+      {
+        "id": "w20",
+        "from": [
+          "n24",
+          "output_yes"
+        ],
+        "to": [
+          "n25",
+          "input"
+        ]
+      },
+      {
+        "id": "w21",
+        "from": [
+          "n25",
+          "output_yes"
+        ],
+        "to": [
+          "n26",
+          "input"
+        ]
+      },
+      {
+        "id": "w22",
+        "from": [
+          "n26",
+          "output"
+        ],
+        "to": [
+          "n27",
+          "input"
+        ]
+      },
+      {
+        "id": "w23",
+        "from": [
+          "n27",
+          "output"
+        ],
+        "to": [
+          "n28",
+          "input"
+        ]
+      },
+      {
+        "id": "w24",
+        "from": [
+          "n28",
+          "output"
+        ],
+        "to": [
+          "n29",
+          "input"
+        ]
+      },
+      {
+        "id": "w25",
+        "from": [
+          "n30",
+          "output"
+        ],
+        "to": [
+          "n31",
+          "input"
+        ]
+      },
+      {
+        "id": "w26",
+        "from": [
+          "n31",
+          "output_yes"
+        ],
+        "to": [
+          "n32",
+          "input"
+        ]
+      },
+      {
+        "id": "w27",
+        "from": [
+          "n32",
+          "output_yes"
+        ],
+        "to": [
+          "n33",
+          "input"
+        ]
+      },
+      {
+        "id": "w28",
+        "from": [
+          "n33",
+          "output_yes"
+        ],
+        "to": [
+          "n34",
+          "input"
+        ]
+      },
+      {
+        "id": "w29",
+        "from": [
+          "n34",
+          "output_yes"
+        ],
+        "to": [
+          "n35",
+          "input"
+        ]
+      },
+      {
+        "id": "w30",
+        "from": [
+          "n35",
+          "output"
+        ],
+        "to": [
+          "n36",
+          "input"
+        ]
+      },
+      {
+        "id": "w31",
+        "from": [
+          "n36",
+          "output"
+        ],
+        "to": [
+          "n37",
+          "input"
+        ]
+      },
+      {
+        "id": "w32",
+        "from": [
+          "n38",
+          "output"
+        ],
+        "to": [
+          "n39",
+          "input"
+        ]
+      },
+      {
+        "id": "w33",
+        "from": [
+          "n39",
+          "output_yes"
+        ],
+        "to": [
+          "n40",
+          "input"
+        ]
+      },
+      {
+        "id": "w34",
+        "from": [
+          "n40",
+          "output_yes"
+        ],
+        "to": [
+          "n41",
+          "input"
+        ]
+      },
+      {
+        "id": "w35",
+        "from": [
+          "n41",
+          "output"
+        ],
+        "to": [
+          "n42",
+          "input"
+        ]
+      },
+      {
+        "id": "w36",
+        "from": [
+          "n43",
+          "output"
+        ],
+        "to": [
+          "n44",
+          "input"
+        ]
+      },
+      {
+        "id": "w37",
+        "from": [
+          "n44",
+          "output_yes"
+        ],
+        "to": [
+          "n45",
+          "input"
+        ]
+      },
+      {
+        "id": "w38",
+        "from": [
+          "n45",
+          "output_yes"
+        ],
+        "to": [
+          "n46",
+          "input"
+        ]
+      },
+      {
+        "id": "w39",
+        "from": [
+          "n46",
+          "output_yes"
+        ],
+        "to": [
+          "n47",
+          "input"
+        ]
+      },
+      {
+        "id": "w40",
+        "from": [
+          "n47",
+          "output"
+        ],
+        "to": [
+          "n48",
+          "input"
+        ]
+      },
+      {
+        "id": "w41",
+        "from": [
+          "n49",
+          "output"
+        ],
+        "to": [
+          "n50",
+          "input"
+        ]
+      },
+      {
+        "id": "w42",
+        "from": [
+          "n50",
+          "output_yes"
+        ],
+        "to": [
+          "n51",
+          "input"
+        ]
+      },
+      {
+        "id": "w43",
+        "from": [
+          "n51",
+          "output_yes"
+        ],
+        "to": [
+          "n52",
+          "input"
+        ]
+      },
+      {
+        "id": "w44",
+        "from": [
+          "n52",
+          "output_yes"
+        ],
+        "to": [
+          "n53",
+          "input"
+        ]
+      },
+      {
+        "id": "w45",
+        "from": [
+          "n53",
+          "output"
+        ],
+        "to": [
+          "n54",
+          "input"
+        ]
+      },
+      {
+        "id": "w46",
+        "from": [
+          "n55",
+          "output"
+        ],
+        "to": [
+          "n56",
+          "input"
+        ]
+      },
+      {
+        "id": "w47",
+        "from": [
+          "n56",
+          "output_yes"
+        ],
+        "to": [
+          "n57",
+          "input"
+        ]
+      },
+      {
+        "id": "w48",
+        "from": [
+          "n57",
+          "output_yes"
+        ],
+        "to": [
+          "n58",
+          "input"
+        ]
+      },
+      {
+        "id": "w49",
+        "from": [
+          "n58",
+          "output"
+        ],
+        "to": [
+          "n59",
+          "input"
+        ]
+      },
+      {
+        "id": "w50",
+        "from": [
+          "n60",
+          "output"
+        ],
+        "to": [
+          "n61",
+          "input"
+        ]
+      },
+      {
+        "id": "w51",
+        "from": [
+          "n61",
+          "output_yes"
+        ],
+        "to": [
+          "n62",
+          "input"
+        ]
+      },
+      {
+        "id": "w52",
+        "from": [
+          "n62",
+          "output_yes"
+        ],
+        "to": [
+          "n63",
+          "input"
+        ]
+      },
+      {
+        "id": "w53",
+        "from": [
+          "n63",
+          "output"
+        ],
+        "to": [
+          "n64",
+          "input"
+        ]
+      }
+    ]
+  }
+}

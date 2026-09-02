@@ -1,6 +1,6 @@
 ---
 group: Environment & Climate
-status: todo
+status: done
 priority: medium
 filed: 2026-08-15
 supersedes: [task-85-time_weather_dates.md, task-80-outdoor-lighting-day-night.md]
@@ -81,3 +81,11 @@ def get_moon_phase(game_day: int) -> dict:
 - `game_day` 22 → full_moon, night outdoor light = base + 25
 - Stormy weather halves or nullifies moon bonus
 - Moon phase persists correctly across month/year boundaries
+
+## Implemented (audit 2026-09-02)
+
+Fully implemented before this audit: `get_moon_phase()` (30-day cycle),
+lighting integration via `lighting.moon_provider` (outdoor night bonus,
+obscuring weather), `blood_moon` override + red-moon descriptions, and
+`moon_phase` in `/api/state`. This audit confirmed the UI: SkyScape top-bar
+shows the moon icon; turn headers include it too.

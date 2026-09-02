@@ -1,0 +1,30 @@
+{
+  "name": "Template: set time",
+  "description": "Template item demonstrating the 'set_time' trigger effect. Use me when on the ground or in your hands; the wired on_use trigger shows the effect. Place me by importing from the library (library browser → Item → Import to World).",
+  "tags": [
+    "template",
+    "demo"
+  ],
+  "actions": [
+    "examine",
+    "use"
+  ],
+  "uses": -1,
+  "max_uses": 0,
+  "weight": 0.1,
+  "current_state": "normal",
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "type": "set_time",
+          "params": {
+            "time": "21:00",
+            "message": "[template:set_time] The clock spins — it is now 21:00."
+          }
+        }
+      ]
+    }
+  ]
+}

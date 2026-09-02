@@ -414,6 +414,22 @@ class ConditionTreeMixin:
                 target_hm = target[:5]
                 return current[:5] == target_hm
 
+            elif condition_type == "area_has_status":
+                # task-233: does an area carry a dynamic status? Blank target =
+                # the area the triggering node sits in / current area.
+                status_type = str(conditions.get("status_type") or conditions.get("value") or "").strip()
+                if not status_type:
+                    return False
+                target_area = str(conditions.get("target") or "").strip()
+                if not target_area and gs is not None:
+                    resolver = getattr(gs, "get_current_area_id", None)
+                    if callable(resolver):
+                        target_area = resolver() or ""
+                system = getattr(gs, "area_statuses", None) if gs is not None else None
+                if system is None:
+                    return False
+                return bool(system.has_status(target_area, status_type))
+
             elif condition_type == "weather":
                 if gs is None:
                     return False
@@ -510,6 +526,55 @@ class ConditionTreeMixin:
                     ):
                         return True
                 return False
+
+            # --- Phase 1 NPC behavior conditions ---
+
+            elif condition_type == "npc_emotion_is":
+                emotion = conditions.get("emotion", "")
+                operator = conditions.get("operator", "eq")
+                threshold = float(conditions.get("value", 0))
+                target = conditions.get("target", "self")
+                if gs is None:
+                    return False
+                player = self._resolve_condition_player(target, gs)
+                if not player:
+                    return False
+                current_name = getattr(player, "emotion", "") or ""
+                current_intensity = float(getattr(player, "emotion_intensity", 0) or 0)
+                if operator == "eq":
+                    return current_name == emotion
+                return self._compare(current_intensity, threshold, operator)
+
+            elif condition_type == "npc_is_hidden":
+                expect = bool(conditions.get("value", True))
+                target = conditions.get("target", "self")
+                if gs is None:
+                    return expect is False
+                player = self._resolve_condition_player(target, gs)
+                if not player:
+                    return expect is False
+                return getattr(player, "hidden", False) is expect
+
+            elif condition_type == "character_has_tag":
+                needle = str(conditions.get("tag", "")).strip().lower()
+                if not needle:
+                    return False
+                target = conditions.get("target", "self")
+                if target == "triggering":
+                    char = context.get("triggering_character")
+                    if char is None:
+                        return False
+                    tags = getattr(char, "tags", []) or []
+                elif gs is None:
+                    return False
+                else:
+                    player = self._resolve_condition_player(target, gs)
+                    if not player:
+                        return False
+                    tags = getattr(player, "tags", []) or []
+                if isinstance(tags, str):
+                    tags = [t.strip() for t in tags.split(",")]
+                return any(str(t).lower() == needle for t in tags)
 
             return False
 

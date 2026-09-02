@@ -1,6 +1,6 @@
 ---
 group: Environment & Climate
-status: todo
+status: done
 priority: medium
 filed: 2026-08-15
 supersedes: [task-85-time_weather_dates.md]
@@ -87,3 +87,10 @@ Event stream header format: `"Day {day}, Month {month}, Year {year} — {HH:MM} 
 - Advance across year boundary → `game_year` increments
 - Calendar persists through save/load
 - Custom calendar config works
+
+## Implemented (audit 2026-09-02)
+
+Fully implemented before this audit: `game_day/month/year` + `calendar_config`
+on the engine, serialization, `/api/state` exposure. This audit added the UI
+half: turn-card headers now render `Day N, Month N, Year N` (event-stream.js
+`_turnLabel`); the SkyScape top-bar widget also shows the date.

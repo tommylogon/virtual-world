@@ -245,6 +245,25 @@ class AreaDescription:
         if spill_desc:
             desc += spill_desc
 
+        # task-233: dynamic area statuses read through in the description.
+        status_area = self.graph.get_node(area_id) if area_id else None
+        if status_area is not None:
+            for st in (status_area.properties.get("statuses", []) or []):
+                stype = str(st.get("type", ""))
+                severity = int(st.get("severity", 1))
+                if stype == "on_fire":
+                    desc += "\n🔥 Flames" + (" rage through here — the heat is oppressive!" if severity >= 3 else " flicker through here.")
+                elif stype == "flooded":
+                    desc += "\n💧 Water stands" + (" deep" if severity >= 3 else " in puddles") + " across the floor."
+                elif stype == "poison_gas":
+                    desc += "\n☠️ A sickly" + (", thick" if severity >= 3 else "") + " haze hangs in the air."
+                elif stype == "smoke":
+                    desc += "\n💨 Smoke curls through the room."
+                elif stype == "blessed":
+                    desc += "\n✨ A quiet sense of blessing rests on this place."
+                elif stype == "darkness_magic":
+                    desc += "\n🌑 Shadows cling here unnaturally, swallowing the light."
+
         item_descs = []
         for edge in self.graph.get_edges_for_target(area_id, EDGE_IN):
             node = self.graph.get_node(edge.source)
