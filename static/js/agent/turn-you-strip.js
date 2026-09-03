@@ -261,8 +261,16 @@ window.TurnYouStrip = (() => {
             if (knownOpen) {
                 knownBox = el('div', 'tys-known');
                 const memories = you.recent_memories || [];
-                if (!memories.length) knownBox.appendChild(el('div', null, 'nothing worth noting yet.'));
+                if (!memories.length && !you.known_abilities?.length) knownBox.appendChild(el('div', null, 'nothing worth noting yet.'));
                 for (const memory of memories) knownBox.appendChild(el('div', null, memory));
+                const abilities = you.known_abilities || [];
+                if (abilities.length) {
+                    const sep = el('div', null, '— abilities —');
+                    sep.style.marginTop = '6px';
+                    sep.style.fontWeight = 'bold';
+                    knownBox.appendChild(sep);
+                    for (const ab of abilities) knownBox.appendChild(el('div', null, ab));
+                }
                 host.appendChild(knownBox);
             } else if (knownBox) {
                 knownBox.remove();

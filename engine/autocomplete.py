@@ -36,6 +36,12 @@ def get_autocomplete_options(vw, verb: str, prefix: str = "", character_name: st
         if vw.graph.get_node(e.source)
     ]
 
+    known_edges = vw.graph.get_edges_for_target(player_id, 'known')
+    known_items = [
+        vw.graph.get_node(e.source) for e in known_edges
+        if vw.graph.get_node(e.source)
+    ]
+
     room_ways = []
     way_directions = []
     if current_area_id:
@@ -85,15 +91,15 @@ def get_autocomplete_options(vw, verb: str, prefix: str = "", character_name: st
                 _add(item.properties.get('name') or item.id)
 
     elif verb in ('examine', 'search', 'inspect', 'check', 'x', 'read'):
-        for item in room_items + carried_items + room_ways:
+        for item in room_items + carried_items + known_items + room_ways:
             _add(item.properties.get('name') or item.id)
         for cname in area_chars:
             _add(cname)
 
     elif verb in ('use',):
-        for item in carried_items + room_items:
+        for item in carried_items + room_items + known_items:
             acts = _get_actions(item)
-            if 'use' in acts or verb in acts or item in carried_items:
+            if 'use' in acts or verb in acts or item in carried_items or item in known_items:
                 _add(item.properties.get('name') or item.id)
 
     elif verb in ('open', 'close', 'unlock', 'lock'):
@@ -122,18 +128,18 @@ def get_autocomplete_options(vw, verb: str, prefix: str = "", character_name: st
                 _add(item.properties.get('name') or item.id)
 
     elif verb in ('craft', 'make'):
-        for recipe in vw._recipe_known_names(player_manager.active_player):
+        for recipe in vw._recipe_known_names(player_name):
             _add(recipe)
 
     elif verb in ('eat', 'drink'):
-        for item in carried_items + room_items:
+        for item in carried_items + room_items + known_items:
             acts = _get_actions(item)
             tags = _get_tags(item)
             if verb in acts or any(t in ('food', 'drink', 'consumable', 'edible') for t in tags):
                 _add(item.properties.get('name') or item.id)
 
     elif verb in ('toggle',):
-        for item in room_items + carried_items:
+        for item in room_items + carried_items + known_items:
             acts = _get_actions(item)
             tags = _get_tags(item)
             if 'toggleable' in tags or 'toggle' in acts:
@@ -150,7 +156,7 @@ def get_autocomplete_options(vw, verb: str, prefix: str = "", character_name: st
             _add(d)
 
     else:
-        for item in room_items + carried_items:
+        for item in room_items + carried_items + known_items:
             _add(item.properties.get('name') or item.id)
 
     if prefix:

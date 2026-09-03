@@ -105,7 +105,7 @@ window.GraphOverlays = {
                 }
             } else if (srcNode.type === 'character') {
                 for (const ce of edges) {
-                    if (ce.type !== 'carrying' && ce.type !== 'equipped') continue;
+                    if (ce.type !== 'carrying' && ce.type !== 'equipped' && ce.type !== 'known') continue;
                     if (ce.target !== srcNode.id) continue;
                     const itemNode = allNodes[ce.source];
                     if (itemNode?.type === 'item' &&

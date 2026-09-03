@@ -374,7 +374,7 @@ class GraphManager {
     /** Does this node have item children attached to it (edges pointing TO it)? */
     async _dupNodeHasChildren(nodeId, nodeType) {
         const edges = this._graphEdgesArr || worldState.graph?.edges || [];
-        const CHILD_TYPES = new Set(['in', 'on', 'under', 'behind', 'beside', 'at', 'carrying', 'equipped']);
+        const CHILD_TYPES = new Set(['in', 'on', 'under', 'behind', 'beside', 'at', 'carrying', 'equipped', 'known']);
         for (const e of edges) {
             if (e.target !== nodeId) continue;
             if (!CHILD_TYPES.has(e.type || 'connection')) continue;

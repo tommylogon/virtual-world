@@ -21,6 +21,7 @@ from graph import (
     EDGE_CARRYING,
     EDGE_CONNECTION,
     EDGE_EQUIPPED,
+    EDGE_KNOWN,
 )
 from engine.room_perception import (
     characters_in_area,
@@ -301,6 +302,11 @@ def build_scene(world: Any, player_name: str) -> Dict[str, Any]:
         m.get("text", "") for m in reversed(getattr(player, "memories", []) or [])
         if isinstance(m, dict)
     ][:5]
+    known_abilities = []
+    for edge in graph.get_edges_for_target(player_node, EDGE_KNOWN):
+        node = graph.get_node(edge.source)
+        if node:
+            known_abilities.append(node.name)
 
     scene["you"] = {
         "name": player_name,
@@ -310,6 +316,7 @@ def build_scene(world: Any, player_name: str) -> Dict[str, Any]:
         "wearing": worn,
         "activity": getattr(player, "activity", None),
         "recent_memories": memories,
+        "known_abilities": known_abilities,
         # task-156 presentation: the load as a plain ratio (labels computed
         # client-side; numbers stay out of the agent path).
         "carry_load": get_carry_load_ratio(world.graph, world.player_manager, player_name=player_name),

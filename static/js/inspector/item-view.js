@@ -449,14 +449,16 @@ window.InspectorItemView = (() => {
         const relationOptions = ['in','on','under','behind','beside','at']
             .map(r => htmlTag`<option value=${r}>${r}</option>`);
 
-        return htmlTag`<div class="inspector-section"><h3>📍 Move To</h3>
+        return htmlTag`<div class="inspector-section" style="position:relative;"><h3>📍 Move To</h3>
             <div style="display:flex;gap:4px;margin-bottom:4px;">
                 <label style="font-size:10px;display:flex;align-items:center;gap:2px;cursor:pointer;"><input type="radio" name="move-dest-type" value="item" checked @change=${() => IV._toggleMoveDestType()}> 📦 Item</label>
                 <label style="font-size:10px;display:flex;align-items:center;gap:2px;cursor:pointer;"><input type="radio" name="move-dest-type" value="character" @change=${() => IV._toggleMoveDestType()}> 🧍 Character</label>
                 <label style="font-size:10px;display:flex;align-items:center;gap:2px;cursor:pointer;"><input type="radio" name="move-dest-type" value="area" @change=${() => IV._toggleMoveDestType()}> 🏠 Area</label>
             </div>
-            <input type="text" id="move-target-search" placeholder="Search items, characters, or areas..." style="width:100%;font-size:11px;padding:3px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;margin-bottom:4px;">
-            <div id="move-target-results" style="display:none;position:absolute;z-index:1000;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;max-height:200px;overflow-y:auto;width:300px;box-shadow:0 4px 12px rgba(0,0,0,0.3);"></div>
+            <div style="position:relative;">
+                <input type="text" id="move-target-search" placeholder="Search items, characters, or areas..." style="width:100%;font-size:11px;padding:3px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;margin-bottom:4px;">
+                <div id="move-target-results" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:1000;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.3);"></div>
+            </div>
             <input type="hidden" id="move-target-id">
             <div id="move-target-preview" style="font-size:10px;color:var(--text-muted);margin-bottom:4px;"></div>
             <select id="move-target-relation" style="width:100%;font-size:11px;padding:3px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;margin-bottom:4px;">${relationOptions}</select>

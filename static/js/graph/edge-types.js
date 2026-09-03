@@ -19,6 +19,7 @@ window.EdgeTypes = {
         'unlocks':     { label: 'Unlocks', icon: '🔓', color: '#3fb950', desc: 'Item unlocks a door' },
         'triggers':    { label: 'Triggers', icon: '⚡', color: '#e3b341', desc: 'Node triggers an action' },
         'requires':    { label: 'Requires', icon: '🔒', color: '#f85149', desc: 'Door requires a condition' },
+        'known':       { label: 'Known', icon: '🧠', color: '#a371f7', desc: 'Character knows this ability/spell/power' },
     },
 
     // Legacy aliases — map old names to new for display
@@ -44,13 +45,13 @@ window.EdgeTypes = {
         if (nodeType === 'item') {
             return ['in', 'on', 'under', 'behind', 'beside', 'at', 'carrying', 'equipped', 'unlocks', 'triggers'];
         }
+        if (nodeType === 'character') {
+            return ['triggers', 'known'];
+        }
         if (nodeType === 'area') {
             return ['triggers'];
         }
         if (nodeType === 'way') {
-            return ['triggers'];
-        }
-        if (nodeType === 'character') {
             return ['triggers'];
         }
         return ['triggers'];
@@ -68,6 +69,7 @@ window.EdgeTypes = {
             case 'at': return ['area', 'item'];
             case 'carrying': return ['character'];
             case 'equipped': return ['character'];
+            case 'known': return ['character'];
             case 'unlocks': return ['way'];
             case 'triggers': return ['area', 'item', 'way', 'character'];
             case 'requires': return ['area', 'item', 'way', 'character'];

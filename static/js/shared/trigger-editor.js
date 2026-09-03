@@ -183,8 +183,9 @@ const TriggerEditor = {
         }
 
 window.Lit.render(triggerEditorTag`
-            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;width:480px;max-height:85vh;overflow-y:auto;">
-                <h3 style="margin:0 0 12px 0;">${editTitle}</h3>
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;width:480px;max-height:85vh;display:flex;flex-direction:column;overflow:visible;">
+                <h3 style="margin:0 0 12px 0;flex:0 0 auto;">${editTitle}</h3>
+                <div style="flex:1 1 auto;overflow-y:auto;min-height:0;">
 
                 <div class="field"><label>Trigger Name</label>
                     <input type="text" id="te-trigger-name" .value=${initial?.name || ''} placeholder="e.g. Button 7 on_use" style="width:100%;font-size:11px;">
@@ -242,8 +243,9 @@ window.Lit.render(triggerEditorTag`
                         <input type="text" id="te-fail-msg" .value=${initial?.fail_message || initial?.effects?.[0]?.params?.fail_message || ''} placeholder="What happens if condition not met..." style="width:100%;">
                     </div>
                 </div>
+                </div>
 
-                <div style="display:flex;gap:6px;margin-top:12px;justify-content:flex-end;border-top:1px solid var(--border);padding-top:12px;">
+                <div style="display:flex;gap:6px;margin-top:12px;justify-content:flex-end;border-top:1px solid var(--border);padding-top:12px;flex:0 0 auto;">
                     <button class="btn btn-purple" @click=${() => TriggerEditor._onTestClick()}>▶ Run Test</button>
                     ${typeof TriggerGraph !== 'undefined' ? triggerEditorTag`<button class="btn btn-yellow" @click=${() => TriggerEditor._onOpenGraphClick()}>🧩 Graph</button>` : ''}
                     <button class="btn" @click=${() => TriggerEditor.close()}>Cancel</button>

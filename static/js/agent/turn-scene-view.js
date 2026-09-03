@@ -119,14 +119,16 @@ window.TurnSceneView = (() => {
         return menus;
     }
 
-    function buildWayMenu(way, conditions) {
+    function buildWayMenu(way, conditions, atWayId) {
         const grappled = (conditions || []).some(c => String(c).toLowerCase().includes('grappl'));
         const requires = requiresGate(way);
         const closed = way.state !== 'open';
         const dirText = way.direction || '';
         const destText = way.to ? `${dirText} → ${way.to}` : dirText;
         const menus = [{ label: `Examine ${way.name}`, run: () => draftParts({ action: 'examine', item: way.name }) }];
-        menus.push({ label: `Approach ${dirText || way.name}`, run: () => draftParts({ action: 'approach', item: dirText || way.name }) });
+        if (atWayId !== way.way_id) {
+            menus.push({ label: `Approach ${dirText || way.name}`, run: () => draftParts({ action: 'approach', item: dirText || way.name }) });
+        }
         if (requires) {
             menus.push({ label: `Go ${destText}`, enabled: false, reason: `requires ${requires}` });
         } else if (grappled) {
@@ -370,7 +372,7 @@ window.TurnSceneView = (() => {
             chip.appendChild(document.createTextNode((dark ? 'a way' : way.name) + ' '));
             chip.appendChild(em);
             chip.addEventListener('click', (e) =>
-                chipClick(e, way.name, buildWayMenu(way, scene.you.conditions)));
+                chipClick(e, way.name, buildWayMenu(way, scene.you.conditions, scene.you.at_way_id)));
             attachHover(chip, () => chip, () => lookLines(scene, 'exit', way));
             wayChips.appendChild(chip);
         }

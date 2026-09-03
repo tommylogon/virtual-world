@@ -180,7 +180,7 @@ class WorldState {
     /** Get character inventory from graph — optionally filter by edge types */
     getInventory(charName, edgeTypes) {
         const charNodeId = `player_${charName.replace(/\s+/g, '_')}`;
-        const types = edgeTypes || ['carrying', 'equipped'];
+        const types = edgeTypes || ['carrying', 'equipped', 'known'];
         const inventory = [];
         const seenIds = new Set();
         for (const edge of this.graph?.edges || []) {

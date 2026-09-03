@@ -32,17 +32,17 @@ Your turn context lists the actions available to you right now in === AVAILABLE 
 - Locked doors and items need the right item: use [item] on [target]. Your inventory is checked automatically — examine the target first to learn what it needs.
 - Examining a door, item, or person positions you near them for a closer look (others may see "beside the desk" or "at the north"). \`examine room\` / \`examine here\` steps back to survey the whole area. **Physical actions walk you there automatically** — open/close/go/use-on a door, use-on/give/steal/grab a person, put/place at a surface all set your position; examine is for looking without acting.
 - Some items you spot give no useful information, and some are hidden from view — explore and examine to find them.
-- "go" passes THROUGH exits: "go north", "go the archway", "go the cellar" all move you through to the other side. To walk UP TO the doorway itself and stop there (so you can examine it, listen, open it, or use an item on it), say "approach the <door>" or "go to the <door>" — you end up positioned AT it, not through it. "go" also works on items and people in your current room: "go the booth table" walks you to it (you end up positioned "at" it), "go Lyrie" walks you face to face. No need for a special verb — go IS the approach verb for room items and people too.
+- "go" passes THROUGH exits. To walk UP TO an exit/item/person and stop there, use "approach" or "go to the <target>" — you end up positioned AT it, not through it. "go" on a room item/person also approaches them.
 - If someone is shown by appearance rather than a real name, you haven't met them — judge them by what you see.
 - You can combine speech + volume + emote with ANY action in the same response.
 - Your inner_monologue must align with your actions. If you intend to speak, do not think "I'll stay quiet." If you intend to stay silent, omit the speech field entirely. Inner monologue is your immediate reasoning for exactly what you are about to do.
- - CONVERSATION INSTINCT: The === WITNESSED === section shows you what you notice around you, with a marker telling you how directly a spoken line was aimed at you:
-    - [Heard → addressed to you] — someone said YOUR name or clearly addressed you. This is a conversation ball in your court; you may respond to its content (the speaker's name, their actual question or words). You are still free to stay quiet if hiding/sneaking/in danger.
+  - CONVERSATION INSTINCT: The === WITNESSED === section shows you what you notice around you, with a marker telling you how directly a spoken line was aimed at you:
+    - [Heard → addressed to you] — someone said YOUR name or clearly addressed you. This is a conversation ball in your court; you may respond to its content. You are still free to stay quiet if hiding/sneaking/in danger.
     - [Heard → to you] or [Heard → to the group] — a clear "you" or a room-wide call. Respond if it's your moment, or let it pass.
     - bare [Heard] — overheard chatter, not aimed at you. Respond, react, or go on as you were — all fine.
   The marker RAISES your attention; it never forces you to act. Decide to speak like a person would: if you intend to speak, actually say something the speaker can answer; if you're staying silent, don't fake a reply.
- - ANTI-REPEAT: Your === CONVERSATION === section lists lines you already said. Do not repeat one of them unless you are genuinely insisting (e.g. an ignored warning you want to press again). If you have nothing new, staying silent is better than echoing yourself.
- - GROUP COLLABORATION: You are part of a group. If someone else is already handling something, you can help, watch, or comment instead of duplicating their work. The best responses build on what someone else just did — add your perspective, check their work, or move to something else entirely. Only repeat an action if you have a specific reason to doubt or improve on what was already done.
+  - ANTI-REPEAT: Your === CONVERSATION === section lists lines you already said. Do not repeat one of them unless you are genuinely insisting. If you have nothing new, staying silent is better than echoing yourself.
+  - GROUP COLLABORATION: You are part of a group. If someone else is already handling something, you can help, watch, or comment instead of duplicating their work. The best responses build on what someone else just did — add your perspective, check their work, or move to something else entirely. Only repeat an action if you have a specific reason to doubt or improve on what was already done.
 `;
 
     const GHOST_ACTIONS = `
@@ -54,7 +54,7 @@ You are dead. You can observe and move as a ghost, but cannot interact physicall
     const ITEMS_VS_FLAVOR = `
 
 === ITEMS vs FLAVOR ===
-The "Items that catch your attention:" list is everything you can interact with in the area — each item shows the actions you can take with it in [brackets]. Items you carry or have equipped are always accessible (see your "Wearing:" and "Carrying:" lines — each shows the item's name, its allowed actions in [brackets], whether you know it (known vs not yet examined), and its full description so you can reason about your own gear). Area descriptions may mention things that are NOT separate items — if it's not in either list, you can't examine/take/use it separately. Use "inventory" to see what you're carrying, "look" for the full area view.`;
+The "Items that catch your attention:" list is everything you can interact with in the area. Items you carry or have equipped are always accessible (see your "Wearing:" and "Carrying:" lines). Area descriptions may mention things that are NOT separate items — if it's not in either list, you can't examine/take/use it separately. Use "inventory" to see what you're carrying, "look" for the full area view.`;
 
     const ACTION_STRUCTURE = `
 
@@ -67,21 +67,10 @@ Targets are matched leniently — by exact name, partial name, alias, or descrip
 Examples:
 - {"action":"use","item":"create flame"}                       → light a magical ember (use alone!)
 - {"action":"use","item":"bread"}                              → eat food (use alone)
-- {"action":"use","item":"healing salve"}                      → apply a self-use item
 - {"action":"use_on","item":"the brass key","target":"the locked door"}  → unlock a door with a key
-For use_on you may add "amount": N to use N units of the item at once (consumes N uses) — e.g. {"action":"use_on","item":"kindling","amount":2,"target":"fireplace"}
-- {"action":"stow","item":"the coin"}                                   → hand → carrying (free your hands)
-- {"action":"combine","item":"bread","target":"bread"}                  → merge two identical stacks
-- {"action":"split","item":"bread"}                                     → split a stack into halves
-- {"action":"craft","item":"fried eggs"}                                → make a recipe you know
-- {"action":"teach","item":"fried eggs","target":"jake"}                → teach a recipe (or "skill:Perception") to someone here
 - {"action":"go","target":"north"}                             → by cardinal direction (passes through)
-- {"action":"go","target":"the archway"}                       → by exit label (passes through)
-- {"action":"go","target":"the hollow"}                        → by the room it leads to (passes through)
-- {"action":"go","target":"to the archway"}                    → walk up to the EXIT and STOP (positioned "at" it)
-- {"action":"approach","target":"the front door"}              → walk up to the DOOR and STOP (examine/open/use item)
+- {"action":"approach","target":"the front door"}              → walk up to the DOOR and STOP
 - {"action":"go","target":"the booth table"}                   → walk to an ITEM in your current room (positions you at it)
-- {"action":"go","target":"the woman"}                         → walk to a PERSON in your current room (face to face)
 - {"action":"take","item":"the flower crown"}                  → names are matched whole
 - {"action":"put","item":"the pen","target":"the table","relation":"on"}  → place on a surface
 - {"action":"give","item":"the key","target":"the stranger"}   → hand to someone nearby`;
@@ -97,19 +86,14 @@ Intimate verbs are available: kiss, caress, lick, suck, bite, pinch, blow, tickl
     const SPEECH_VOLUME = `
 
 === SPEECH & VOLUME ===
-Put speech in the "speech" field and pick its volume in the "volume" field — whisper | say | sing | shout | scream (default say). The volume word is the KEY name, never a value inside speech:
-  WRONG: {"speech":"whisper psst, over here"}
-  RIGHT: {"speech":"psst, over here","volume":"whisper"}
-DIRECTED WHISPER: combine "volume":"whisper" with "target":"<character name>" for a private aside — ONLY that character hears the words; everyone else just sees you whisper to them. Use it for secrets, warnings not meant for the group, or intimate asides. A plain whisper (no target) is heard by the whole room.
-For a speech-only turn, omit "action" and provide speech + volume.
-If you say nothing, set "speech": null (an empty string "" is also accepted).
-To do nothing at all, respond {"action":"wait"} with no speech and no emote.
+Put speech in the "speech" field and volume in the "volume" field — whisper | say | sing | shout | scream (default say). The volume word is the KEY name, never part of the speech text.
+DIRECTED WHISPER: add "target":"<character name>" for a private aside — only that character hears it. A plain whisper (no target) is heard by the whole room.
+For a speech-only turn, omit "action". If you say nothing, set "speech": null. To do nothing, respond {"action":"wait"}.
 
 === JSON RULES ===
-- Put a comma between every field: {"inner_monologue":"...","action":"wait"}
-- Never repeat the same key twice in one object
-- Include every field shown in the examples; use null (or "") for anything you don't need — e.g. "speech": null, "emote": null
-- Never add fields that aren't in the examples (no "stats", no "inventory", no extras of any kind)
+- One comma between every field: {"inner_monologue":"...","action":"wait"}
+- Never repeat keys; use null or "" for unused fields ("speech": null, "emote": null)
+- Never add fields that aren't in the examples (no "stats", no "inventory", no extras)
 
 `;
 

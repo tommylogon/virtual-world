@@ -7,7 +7,7 @@ and player trait checks.
 from typing import Optional, Dict, List, Any
 from player import Player
 from area import Area
-from graph import WorldGraph, Node, Edge, EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED
+from graph import WorldGraph, Node, Edge, EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED, EDGE_KNOWN
 from engine.character_spatial import get_character_at_way, get_spatial_position_data
 
 
@@ -139,6 +139,11 @@ class PlayerManager:
                 node = self.graph.get_node(edge.source)
                 if name_matches(node):
                     return node
+
+        for edge in self.graph.get_edges_for_target(player_id, EDGE_KNOWN):
+            node = self.graph.get_node(edge.source)
+            if name_matches(node):
+                return node
 
         if area_id:
             for edge in self.graph.get_edges_for_target(area_id, EDGE_IN):

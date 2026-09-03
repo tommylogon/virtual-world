@@ -1,0 +1,68 @@
+{
+  "name": " Streetlight",
+  "description": "A weathered steel lamppost rising from the cracked sidewalk, its bent arm holding a glass-encased bulb that casts an orange film over everything. The housing is chipped and someone has spray-painted a crude arrow pointing toward Main Street on the pole itself. A plastic bag flaps against the fixture where the wind catches it.",
+  "actions": "examine",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "normal",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "resistances": {},
+  "tags": [
+    "light_source",
+    "electric"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_take",
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "You lift the streetlight. It weighs more than it looks, and you can feel something live inside it — a low hum you notice only when nothing else is around."
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "node_id": "streetlight",
+            "state": "lit"
+          },
+          "type": "set_state"
+        },
+        {
+          "params": {
+            "light": "bright",
+            "noise": "low_hum",
+            "smell": "ozone",
+            "temperature": 28
+          },
+          "type": "set_environment"
+        },
+        {
+          "params": {
+            "message": "The sodium lamp sighs awake, flooding the corner with its familiar amber glow."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

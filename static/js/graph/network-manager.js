@@ -13,7 +13,7 @@ const networkManagerHtmlTag = (strings, ...values) => window.Lit.html(strings, .
 // Item → parent attachment edge types: the child points AT its parent
 // (salt --[on]--> table, top --[equipped]--> char). These springs render
 // shorter so attached items cluster around the node that holds them.
-const GRAPH_ATTACH_EDGE_TYPES = new Set(['in', 'on', 'under', 'behind', 'beside', 'at', 'carrying', 'equipped']);
+const GRAPH_ATTACH_EDGE_TYPES = new Set(['in', 'on', 'under', 'behind', 'beside', 'at', 'carrying', 'equipped', 'known']);
 
 window.GraphNetwork = {
     /**

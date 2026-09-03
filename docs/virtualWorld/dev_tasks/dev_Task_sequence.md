@@ -6,7 +6,7 @@ Next available numbers for new task/bug files.
 
 | Type | Highest number | Next available |
 |------|---------------|----------------|
-| task | 391           | 392            |
+| task | 392           | 393            |
 | bug  | 35            | 36             |
 
 ## Naming convention

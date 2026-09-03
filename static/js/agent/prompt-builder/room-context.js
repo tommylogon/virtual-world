@@ -547,7 +547,17 @@ window.PromptBuilder = window.PromptBuilder || {};
         const carryStr = notWornItems.length
             ? `Carrying:\n${buildItemTree(notWornItems, false).join(',\n')}`
             : '';
-        const invStr = [wornStr, carryStr].filter(Boolean).join('\n');
+        const knownAbilities = PromptBuilder.knownAbilityNodes(charName);
+        const knownAbilityLines = knownAbilities.map(ab => {
+            const b = PromptBuilder.formatActionBrackets(PromptBuilder.computeItemActions({ id: ab.id, name: ab.name, properties: ab.properties }, player));
+            const desc = (ab.properties?.description || '').trim();
+            const head = b ? `${ab.name} ${b}` : ab.name;
+            return desc ? `- ${head}: ${desc}` : `- ${head}`;
+        });
+        const knownStr = knownAbilityLines.length
+            ? `Known Abilities:\n${knownAbilityLines.join('\n')}`
+            : '';
+        const invStr = [wornStr, carryStr, knownStr].filter(Boolean).join('\n');
         const appearanceDesc = player?.description || '';
         const equipStr = appearanceDesc ? `Your appearance: ${PromptBuilder.secondPersonDesc(appearanceDesc)}` : '';
         const others = state.players_in_area || [];

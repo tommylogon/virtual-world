@@ -107,6 +107,19 @@ window.PromptBuilder = window.PromptBuilder || {};
         return [...bySource.values()];
     }
 
+    /** All ability/spell item nodes the character knows (EDGE_KNOWN). */
+    function knownAbilityNodes(charName) {
+        const id = charNodeId(charName);
+        const items = [];
+        for (const edge of worldState.graph?.edges || []) {
+            if (edge.target !== id || edge.type !== 'known') continue;
+            const node = worldState.getNode(edge.source);
+            if (!node || node.type !== 'item') continue;
+            items.push({ id: edge.source, name: node.name, properties: node.properties });
+        }
+        return items;
+    }
+
     /** Whether a character has already examined/discovered an item by name. */
     function isDiscovered(player, itemName) {
         return new Set((player?.discovered_items || []).map(n => String(n).toLowerCase().trim()))
@@ -204,32 +217,63 @@ window.PromptBuilder = window.PromptBuilder || {};
         const traits = player?.traits || {};
         const hasDarkVision = traits.dark_vision === true || traits.darkvision === true;
         const vitals = player?.vitals || {};
-        // Items the character carries or has equipped — used to gate the
-        // "give" action (you can only hand over something you're holding).
         const carried = carriedItemNodes(charName);
+        const atWayId = player?.at_way_id || state.players?.[charName]?.at_way_id || null;
 
-        // ---- Movement / exits ----
-        // Per-viewer exits (authored `known` + slasher + discoveries) — the
-        // serialized view is keyed to the server's active player and would
-        // hide a slasher's own passages.
         const viewExits = (window.PromptBuilder?.viewerExits)
             ? window.PromptBuilder.viewerExits(state, charName, currentArea)
             : (currentArea?.exits || {});
         const visibleExits = Object.entries(viewExits).filter(([, ed]) => !ed.hidden);
-        const exitHandles = [];
+
         for (const [dir, exitData] of visibleExits) {
             const doorNode = worldState.getNode(exitData.way_id);
             const handle = PromptBuilder.wayHandle({ ...exitData, label: dir }, doorNode, currentArea?.name) || dir;
-            exitHandles.push(handle);
-
             const req = String(doorNode?.properties?.requires || '').toLowerCase();
+            const wayState = exitData.state || 'closed';
+            const preventClose = !!doorNode?.properties?.prevent_close;
+
             if (req === 'crawl') lines.push(`crawl — crawl through the ${handle}`);
             else if (req === 'climb') lines.push(`climb — climb the ${handle}`);
             else if (req === 'jump') lines.push(`jump — jump across the ${handle}`);
-            lines.push(`approach — walk up to the ${handle} and stop (don't pass through)`);
+
+            if (atWayId !== exitData.way_id) {
+                lines.push(`approach — walk up to the ${handle} and stop (don't pass through)`);
+            } else {
+                lines.push(`go — go through the ${handle}`);
+            }
+            lines.push(`dash — dash through the ${handle}`);
+            lines.push(`examine — examine the ${handle}`);
+
+            if (wayState === 'closed') {
+                lines.push(`open — open the ${handle}`);
+            } else if (wayState === 'open' && !preventClose) {
+                lines.push(`close — close the ${handle}`);
+            }
         }
 
-        // ---- People ----
+        const areaItems = currentArea?.name && typeof worldState.getItemsInArea === 'function'
+            ? worldState.getItemsInArea(currentArea.name) || []
+            : [];
+        for (const item of areaItems) {
+            const props = item.properties || {};
+            const actions = expandInverseActions(asArray(props.actions).map(s => s.toLowerCase()));
+            const tags = asArray(props.tags).map(s => s.toLowerCase());
+            const stateStr = String(props.current_state || '').toLowerCase();
+            const triggerTypes = itemTriggerTypes(item.id);
+            const name = item.name || 'something';
+            const isCarried = carried.some(c => c.id === item.id);
+
+            if (!isCarried && actions.includes('take')) lines.push(`take — take the ${name}`);
+            if (actions.includes('use') || triggerTypes.includes('on_use') || triggerTypes.includes('on_use_progressive')) lines.push(`use — use the ${name}`);
+            if (triggerTypes.includes('on_use_on')) lines.push(`use_on — use the ${name} on something`);
+            if (actions.includes('read') || tags.includes('readable') || tags.includes('read')) lines.push(`read — read the ${name}`);
+            if (!isDiscovered(player, name) && !isIntrinsicAbility(props)) lines.push(`examine — examine the ${name}`);
+            if (actions.includes('open') && ['closed', 'normal', ''].includes(stateStr)) lines.push(`open — open the ${name}`);
+            if (actions.includes('close') && stateStr === 'open') lines.push(`close — close the ${name}`);
+            if (triggerTypes.includes('on_toggle_on') || triggerTypes.includes('on_toggle_off')) lines.push(`toggle — toggle the ${name}`);
+            if (isCarried && actions.includes('drop') && !isIntrinsicAbility(props)) lines.push(`drop — drop the ${name}`);
+        }
+
         const others = (state.players_in_area || []).filter(p => p && p.name && p.name !== charName);
         if (others.length) {
             const names = others.map(p =>
@@ -243,23 +287,23 @@ window.PromptBuilder = window.PromptBuilder || {};
             lines.push(`steal — take from ${target}`);
         }
 
-        // ---- Self / needs / conditions ----
         if (player?.grappled_by) lines.push('escape — break free (you are being held)');
         if ((player?.state === 'prone') || !!(player?.conditions?.prone)) lines.push('stand — get back up (you are prone)');
-
         const energy = vitals.Energy;
         if (energy !== undefined && energy < 50) lines.push('rest — rest to recover energy (you are tired)');
         const bladder = vitals.Bladder;
         if (bladder !== undefined && bladder >= 65) lines.push('relieve — relieve yourself (your bladder is full)');
-
         if (blind) lines.push('listen — listen hard (you are blind)');
         if (!hasDarkVision && (blind || level === 'pitch_black' || level === 'dim')) lines.push('fumble — blind search in the darkness');
 
         if (currentArea?.name) lines.push(`examine — examine ${currentArea.name}`);
 
-        if (!lines.length) return '';
+        lines.push('look — look around');
+        lines.push('inventory — check your inventory');
+        lines.push('stats — check your stats');
+        lines.push('wait — wait or hold still');
 
-        return `\n=== AVAILABLE ACTIONS ===\n${lines.join('\n')}\nAlways available: examine, look, inventory, stats, wait`;
+        return `\n=== AVAILABLE ACTIONS ===\n${lines.join('\n')}`;
     }
 
     Object.assign(window.PromptBuilder, {
@@ -267,6 +311,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         formatActionBrackets,
         buildAvailableActionsBlock,
         carriedItemNodes,
+        knownAbilityNodes,
         itemTriggerTypes,
         useOnTargetName,
         isDiscovered,

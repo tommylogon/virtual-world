@@ -310,6 +310,7 @@ EDGE_CONNECTION = "connection"  # area ↔ area (via door/way nodes)
 EDGE_UNLOCKS = "unlocks"    # item → door
 EDGE_REQUIRES = "requires"  # door → condition
 EDGE_TRIGGERS = "triggers"  # node → logic/action
+EDGE_KNOWN = "known"        # ability/spell/power item → character
 
 # Spatial placement types — items positioned relative to a surface/area rather
 # than inside it. Treated as present-in-area for room-level discovery.

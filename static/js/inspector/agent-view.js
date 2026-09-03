@@ -98,14 +98,13 @@ window.InspectorAgentView = (() => {
         window.InspectorPanel.render(htmlTag`${window.Lit.unsafeHTML(html)}`);
 
         // Known-by authoring: who knows THIS character (the Knowledge modal
-        // for what they know lives in the Advanced tab). The section is
-        // appended outside the Lit template, so it survives re-renders —
-        // purge stale copies first or every poll stacks another one.
+        // for what they know lives in the Advanced tab). Render into a slot
+        // inside the Advanced tab so it only shows when that tab is active.
         if (window.KnownBySection) {
-            const panelBody = document.querySelector('#inspector-panel');
-            if (panelBody) {
-                panelBody.querySelectorAll('[data-known-by]').forEach(el => el.remove());
-                panelBody.appendChild(window.KnownBySection.build('character', player.name, player.name));
+            const slot = document.getElementById('known-by-slot');
+            if (slot) {
+                slot.innerHTML = '';
+                slot.appendChild(window.KnownBySection.build('character', player.name, player.name));
             }
         }
 
@@ -985,7 +984,32 @@ window.InspectorAgentView = (() => {
         }
 
         html += `
-            <button class="btn btn-sm btn-blue" onclick="InspectorAgentView._showAddItemPicker('${escName}')" style="margin-top:4px;width:100%;font-size:10px;">+ Add Item to Inventory</button></div></div>`;  // End Inventory tab
+            <button class="btn btn-sm btn-blue" onclick="InspectorAgentView._showAddItemPicker('${escName}')" style="margin-top:4px;width:100%;font-size:10px;">+ Add Item to Inventory</button></div>`;
+
+        // Known Abilities section
+        const playerNodeId = `player_${escName}`;
+        const knownAbilityEdges = (worldState.graph?.edges || []).filter(e => e.type === 'known' && e.target === playerNodeId);
+        const knownAbilities = knownAbilityEdges.map(e => worldState.getNode(e.source)).filter(Boolean);
+        html += `<div class="inspector-section" style="margin-top:8px;"><h3>🧠 Known Abilities <span class="section-hint">(${knownAbilities.length})</span></h3>`;
+        if (knownAbilities.length === 0) {
+            html += `<div style="font-size:11px;color:var(--text-muted);padding:8px;">No abilities known yet.</div>`;
+        } else {
+            html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:4px;">`;
+            for (const ab of knownAbilities) {
+                const safeId = ab.id.replace(/'/g, "\\'");
+                const safeName = (ab.name || '').replace(/'/g, "\\'");
+                html += `<div style="background:var(--bg-inset);border-radius:4px;padding:4px 6px;text-align:center;cursor:pointer;border:1px solid var(--border);position:relative;" onclick="VW.inspector.showNode('${safeId}')" data-tippy-content="${(ab.properties?.description || ab.name || '').replace(/"/g, '&quot;')}">
+                    <div style="font-size:16px;">✨</div>
+                    <div style="font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${ab.name || safeId}</div>
+                    <div style="display:flex;gap:2px;justify-content:center;margin-top:2px;">
+                        <button class="btn btn-sm btn-red" onclick="event.stopPropagation();InspectorAgentView._removeKnownAbility('${escName}', '${safeId}')" style="font-size:8px;padding:1px 4px;" title="Forget">✕</button>
+                    </div>
+                </div>`;
+            }
+            html += `</div>`;
+        }
+        html += `<button class="btn btn-sm btn-blue" onclick="InspectorAgentView._showAddKnownAbilityPicker('${escName}')" style="margin-top:4px;width:100%;font-size:10px;">+ Add Known Ability</button></div>`;
+        html += `</div>`;  // End Inventory tab
         return html;
     };
 
@@ -1155,6 +1179,7 @@ window.InspectorAgentView = (() => {
             </div>`;
         }
 
+        html += `<div id="known-by-slot" data-known-by-slot="1"></div>`;
         html += `</div>`;  // End Advanced tab
         return html;
     };
@@ -1991,6 +2016,83 @@ Respond with ONLY a JSON object: {"tags": ["magic","books","jewelry"]} — the t
         </div>`, picker);
         document.body.appendChild(picker);
         setTimeout(() => document.getElementById('add-item-filter')?.focus(), 100);
+    };
+
+    AV._removeKnownAbility = function(charName, abilityId) {
+        const playerNodeId = `player_${charName.replace(/\s+/g, '_')}`;
+        fetch(`/api/graph/edge`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ source: abilityId, target: playerNodeId, type: 'known' })
+        }).then(() => worldState.fetch());
+    };
+
+    AV._showAddKnownAbilityPicker = function(charName) {
+        const allItems = worldState.getInventory(charName);
+        const playerNodeId = `player_${charName.replace(/\s+/g, '_')}`;
+        const currentArea = worldState.players[charName]?.current_area || '';
+        const INTRINSIC = new Set(['spell', 'ability', 'innate', 'intrinsic', 'power']);
+
+        const graphNodes = Object.entries(worldState.graph?.nodes || {})
+            .filter(([id, node]) => {
+                if (node.type !== 'item') return false;
+                if (allItems.includes(id)) return false;
+                const tags = (node.properties?.tags || []);
+                const tagSet = Array.isArray(tags) ? tags.map(t => String(t).toLowerCase()) : String(tags).toLowerCase().split(',');
+                return [...tagSet].some(t => INTRINSIC.has(t));
+            })
+            .map(([id, node]) => ({ id, name: node.name, tags: node.properties?.tags || [] }));
+
+        const libraryData = ApiClient.libraryCache?.items || {};
+        const libraryNodes = Object.entries(libraryData)
+            .filter(([id, item]) => {
+                const name = item.name || id;
+                if (allItems.includes(name)) return false;
+                const tags = item.tags || item.properties?.tags || [];
+                const tagSet = Array.isArray(tags) ? tags.map(t => String(t).toLowerCase()) : String(tags).toLowerCase().split(',');
+                return [...tagSet].some(t => INTRINSIC.has(t));
+            })
+            .map(([id, item]) => ({ id, name: item.name || id, tags: item.tags || item.properties?.tags || [] }));
+
+        function renderItem(id, name, source, tagsStr) {
+            const lower = name.toLowerCase();
+            const isLib = source === 'library';
+            const badge = isLib ? agentViewTag`<span style="font-size:9px;color:var(--text-muted);margin-left:4px;">(library)</span>` : '';
+            return agentViewTag`<div data-name=${lower} data-tags=${tagsStr} style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border);">
+                <span style="font-size:11px;">✨ ${name}${badge}</span>
+                <button class="btn btn-sm btn-blue" @click=${(e) => {
+                    e.currentTarget.closest('.modal-overlay').remove();
+                    const targetId = isLib ? `item_${name.replace(/ /g, '_')}` : id;
+                    fetch('/api/graph/edge', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ source: targetId, target: playerNodeId, type: 'known' })
+                    }).then(() => worldState.fetch());
+                }}>Know</button>
+            </div>`;
+        }
+
+        const allNodes = [
+            ...graphNodes.map(({ id, name, tags }) => renderItem(id, name, 'graph', Array.isArray(tags) ? tags.join(',') : String(tags))),
+            ...libraryNodes.map(({ id, name, tags }) => renderItem(id, name, 'library', Array.isArray(tags) ? tags.join(',') : String(tags)))
+        ];
+
+        const picker = document.createElement('div');
+        picker.className = 'modal-overlay';
+        picker.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:10000;';
+        window.Lit.render(agentViewTag`<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;width:350px;max-height:80vh;overflow-y:auto;">
+            <h3 style="margin:0 0 12px 0;">Add Known Ability</h3>
+            <input type="text" id="add-known-filter" placeholder="Search abilities or tags..." style="width:100%;font-size:11px;padding:4px;margin-bottom:8px;" @input=${(e) => {
+                const t = e.target.value.toLowerCase();
+                e.target.nextElementSibling.querySelectorAll('[data-name]').forEach(el => el.style.display = (el.getAttribute('data-name').includes(t) || (el.getAttribute('data-tags') || '').includes(t)) ? 'flex' : 'none');
+            }}>
+            <div style="max-height:50vh;overflow-y:auto;">
+                ${allNodes}
+            </div>
+            <button class="btn btn-sm" @click=${(e) => e.currentTarget.closest('.modal-overlay').remove()} style="margin-top:8px;width:100%;">Cancel</button>
+        </div>`, picker);
+        document.body.appendChild(picker);
+        setTimeout(() => document.getElementById('add-known-filter')?.focus(), 100);
     };
 
     AV._showContainerPicker = function(charName, itemName, itemId) {
