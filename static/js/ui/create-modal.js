@@ -216,8 +216,10 @@ const CreateModal = {
                 <label class="chip-toggle"><input type="radio" name="item-target-type" value="character" @change=${() => VW._toggleItemTargetType()}> 🧍 Character</label>
                 <label class="chip-toggle"><input type="radio" name="item-target-type" value="area" @change=${() => VW._toggleItemTargetType()}> 🏠 Area</label>
             </div>
-            <input type="text" id="item-target-search" placeholder="Search items, characters, or areas..." style="width:100%;font-size:11px;">
-            <div id="item-target-results" style="display:none;position:absolute;z-index:1000;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 4px 12px rgba(0,0,0,0.3);margin-top:2px;"></div>
+            <div style="position:relative;">
+                <input type="text" id="item-target-search" placeholder="Search items, characters, or areas..." style="width:100%;font-size:11px;">
+                <div id="item-target-results" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:1000;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.3);margin-top:2px;"></div>
+            </div>
             <input type="hidden" id="item-target-id">
             <div id="item-target-preview" style="font-size:10px;color:var(--text-muted);margin-top:2px;"></div>
             <div id="item-target-relation-wrap" style="display:flex;align-items:center;gap:6px;margin-top:4px;">

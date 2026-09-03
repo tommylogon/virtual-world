@@ -6,6 +6,8 @@
 
 from typing import Optional, List
 
+from graph import EDGE_IN, EDGE_KNOWN
+
 
 def get_autocomplete_options(vw, verb: str, prefix: str = "", character_name: str = None) -> list:
     """Get candidate target names for a given verb and prefix."""
@@ -36,7 +38,7 @@ def get_autocomplete_options(vw, verb: str, prefix: str = "", character_name: st
         if vw.graph.get_node(e.source)
     ]
 
-    known_edges = vw.graph.get_edges_for_target(player_id, 'known')
+    known_edges = vw.graph.get_edges_for_target(player_id, EDGE_KNOWN)
     known_items = [
         vw.graph.get_node(e.source) for e in known_edges
         if vw.graph.get_node(e.source)

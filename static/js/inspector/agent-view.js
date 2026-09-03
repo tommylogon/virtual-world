@@ -2062,12 +2062,36 @@ Respond with ONLY a JSON object: {"tags": ["magic","books","jewelry"]} — the t
                 <span style="font-size:11px;">✨ ${name}${badge}</span>
                 <button class="btn btn-sm btn-blue" @click=${(e) => {
                     e.currentTarget.closest('.modal-overlay').remove();
-                    const targetId = isLib ? `item_${name.replace(/ /g, '_')}` : id;
-                    fetch('/api/graph/edge', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ source: targetId, target: playerNodeId, type: 'known' })
-                    }).then(() => worldState.fetch());
+                    if (isLib) {
+                        // Library abilities live outside the world graph. Place the
+                        // item node into the world (server creates a unique id and
+                        // an EDGE_CARRYING edge), then swap the carry edge for a
+                        // known-only edge so the ability is "known" without being
+                        // physically carried.
+                        ApiClient.placeItemFromLibrary({ type: 'character', id: playerNodeId }, id)
+                            .then(async (placed) => {
+                                const newId = placed?.node_id;
+                                if (!newId) return;
+                                await fetch('/api/graph/edge', {
+                                    method: 'DELETE',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ source: newId, target: playerNodeId, type: 'carrying' })
+                                }).catch(() => {});
+                                await fetch('/api/graph/edge', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ source: newId, target: playerNodeId, type: 'known' })
+                                });
+                                worldState.fetch();
+                            })
+                            .catch(() => worldState.fetch());
+                    } else {
+                        fetch('/api/graph/edge', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ source: id, target: playerNodeId, type: 'known' })
+                        }).then(() => worldState.fetch());
+                    }
                 }}>Know</button>
             </div>`;
         }
