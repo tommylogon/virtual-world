@@ -243,7 +243,14 @@ ${PromptBuilder.buildJsonExample(['full_action'])}`;
         const context = PromptBuilder.buildContextBlock(player, ctx,
             ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'activity', 'ghost', 'dead']);
 
+        // task-XXX: the react call is a fresh 2-message conversation (no decide
+        // replay), so the persona must ride in THIS message — the model has no
+        // other source for voice and identity.
+        const persona = player?.personality
+            ? `You are ${charName}. Personality: ${player.personality}`
+            : '';
         const headBlocks = [
+            persona,
             String(roomContext || '').trim(),
             `=== YOUR STATE ===\n${String(context || '').trim()}`,
             String(memoryNL || '').trim(),

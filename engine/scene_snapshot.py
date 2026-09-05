@@ -31,6 +31,7 @@ from engine.room_perception import (
     way_visible_to,
 )
 from engine.item_actions import get_carry_load_ratio
+from engine.name_masking import mask_name_in_text
 
 
 def _first_sentence(text: str, fallback: str = "") -> str:
@@ -133,6 +134,15 @@ def build_scene(world: Any, player_name: str) -> Dict[str, Any]:
                         label = candidate
                 except Exception:
                     label = None
+            # task-339: a stranger's first sentence is an appearance handle,
+            # but descriptions may open with the character's own name — scrub
+            # the real name (and aliases) out before it reaches any prompt.
+            try:
+                from engine.matching import node_aliases
+
+                desc = mask_name_in_text(desc, name, label or "the stranger", node_aliases(node))
+            except Exception:
+                desc = mask_name_in_text(desc, name, label or "the stranger")
             display = label or _first_sentence(desc) or "the stranger"
         entry = {
             "id": node.id,

@@ -857,8 +857,8 @@ window.InspectorAgentView = (() => {
             ${charState.lastActionResult ? `<div style="color:var(--orange);font-size:10px;margin-top:4px;">→ ${charState.lastActionResult}</div>` : ''}
         </div></div>`;
 
-        // Plan
-        const plan = agent?._plans?.[agentName];
+        // Plan (task-185: via PlanTracker — the old agent._plans read hit a replaced store)
+        const plan = window.PlanTracker?.getPlan(agentName);
         if (plan && plan.length > 0) {
             html += `<div class="inspector-section"><h3>📋 Plan</h3>
                 <ol style="margin:0;padding-left:20px;font-size:11px;line-height:1.7;">`;

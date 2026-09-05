@@ -422,11 +422,13 @@ window.PromptBuilder = window.PromptBuilder || {};
      * @returns {string} Formatted plan string or empty string
      */
     function buildPlanContext(charName) {
-        const agentPlans = window.VW?.agent?._plans;
-        const plan = agentPlans?.[charName];
+        // task-185: read via PlanTracker — the old window.VW.agent._plans read
+        // hit a store PlanTracker replaced, so the decide prompt never showed
+        // the plan at all.
+        const plan = window.PlanTracker?.getPlan(charName);
         if (plan?.length) {
-            const progress = window.VW?.agent?._planProgress?.[charName] || 0;
-            const failures = window.VW?.agent?._planFailures?.[charName] || {};
+            const progress = window.PlanTracker?.getProgress(charName) || 0;
+            const failures = window.PlanTracker?.getFailures(charName) || {};
             const lines = plan.map((step, stepIndex) => {
                 if (stepIndex < progress) return `${stepIndex + 1}. ${step} (done)`;
                 if (stepIndex === progress) return `${stepIndex + 1}. ${step} (CURRENT)`;

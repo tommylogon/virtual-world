@@ -614,6 +614,12 @@ window.PromptBuilder = window.PromptBuilder || {};
         // Plain lowercase texts seen so far (for contains-match dedupe — a heard
         // echo like "hello lyrie!" is often nested inside a narrated local event).
         const seenSpeechTexts = [];
+        // task-360 polish: identical witnessed lines collapse — a character's
+        // decide emote and react emote are often the same gesture, and both
+        // land in turn_events; showing it twice reads as a glitch.
+        const seenWitnessKeys = new Set();
+        const witnessKey = (actor, text) =>
+            `${actor || ''}|${String(text || '').toLowerCase().replace(/\s+/g, ' ').trim()}`;
 
         // Local events from turn_events (same area, other actors) WITHIN the
         // character's presence window (task-360): the per-area ledger records
@@ -640,6 +646,9 @@ window.PromptBuilder = window.PromptBuilder || {};
                 descText = descText.replace(new RegExp(escActor, 'gi'), anon);
             }
             let line = `[${anon}] ${descText}`;
+            const wKey = witnessKey(anon, descText);
+            if (seenWitnessKeys.has(wKey)) return;
+            seenWitnessKeys.add(wKey);
             // Salience-mark direct speech so the character notices lines aimed at them.
             if (evt.action === 'speak' && evt.description) {
                 const textMatch = evt.description.match(/said: "(.+)"/);
@@ -682,7 +691,11 @@ window.PromptBuilder = window.PromptBuilder || {};
             const pattern = h.sound_pattern || 'a sound';
             const sourceName = h.source_item ? ` from the ${h.source_item}` : '';
             const direction = h.heard_from ? ` from the ${h.heard_from}` : '';
-            witnessedLines.push(`[Heard${direction}${sourceName}] ${pattern}.`);
+            const line = `[Heard${direction}${sourceName}] ${pattern}.`;
+            const wKey = witnessKey('sound', line);
+            if (seenWitnessKeys.has(wKey)) return;
+            seenWitnessKeys.add(wKey);
+            witnessedLines.push(line);
         });
 
         // No fallback to the frontend room-event log (task-360): that

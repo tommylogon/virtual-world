@@ -103,3 +103,46 @@ test('trackStep blocks a step after 3 failures', () => {
     PT.trackStep('Track2', 'open vault', 'It is locked.', false);
     assertEq(PT.getProgress('Track2'), 1, 'skipped after 3 fails');
 });
+
+test('trackStep ignores stop words — "the" alone never completes a step', () => {
+    freshTracker('Track3');
+    PT.setPlan('Track3', ['examine the Streetlight (copy)']);
+    PT.trackStep('Track3', 'go the round the corner to elm street', 'You are in Elm Street.', true);
+    assertEq(PT.getProgress('Track3'), 0, 'stop-word-only overlap does not advance');
+    PT.trackStep('Track3', 'examine streetlight', 'A weathered lamppost.', true);
+    assertEq(PT.getProgress('Track3'), 1, 'real overlap advances');
+});
+
+test('trackStep — targeted actions need a target match, not just the verb', () => {
+    freshTracker('Track4');
+    PT.setPlan('Track4', ['approach the round the corner to oak lane']);
+    PT.trackStep('Track4', 'approach the order counter', 'You stop at the counter.', true);
+    assertEq(PT.getProgress('Track4'), 0, 'shared verb with different target does not advance');
+    PT.trackStep('Track4', 'approach the round the corner to oak lane', 'You stop at the corner.', true);
+    assertEq(PT.getProgress('Track4'), 1, 'same verb and target advances');
+});
+
+test('trackStep — bare-verb actions still advance on the verb', () => {
+    freshTracker('Track5');
+    PT.setPlan('Track5', ['look around to check for anyone nearby or threats in oak lane']);
+    PT.trackStep('Track5', 'look', 'Bright light floods the area.', true);
+    assertEq(PT.getProgress('Track5'), 1, 'targetless verb advances on verb match');
+});
+
+test('shouldReplan returns a reason string for each trigger', () => {
+    freshTracker('Reason1');
+    assertEq(PT.shouldReplan('Reason1', 1, false, {}), 'no plan', 'no plan reason');
+    PT.setPlan('Reason1', ['step one'], 1);
+    assertEq(PT.shouldReplan('Reason1', 2, false, {}), null, 'fresh plan holds');
+    assertEq(PT.shouldReplan('Reason1', 12, false, {}), 'plan aged out', 'age reason');
+    PT.setPlan('Reason1', ['step one'], 1);
+    PT.trackStep('Reason1', 'do x', 'fail', false);
+    PT.trackStep('Reason1', 'do x', 'fail', false);
+    assertEq(PT.shouldReplan('Reason1', 2, false, {}), null, '2 fails holds');
+    // 3rd failure BLOCKS the step (trackStep advances + resets the counter),
+    // so shouldReplan sees a fresh next step — no replan needed for that.
+    PT.trackStep('Reason1', 'do x', 'fail', false);
+    assertEq(PT.getProgress('Reason1'), 1, 'step auto-blocked after 3 fails');
+    assertEq(PT.shouldReplan('Reason1', 2, false, {}), null, 'blocked step advanced past');
+    assertEq(PT.shouldReplan('Reason1', 2, true, {}), 'threat detected', 'threat reason');
+});

@@ -24,20 +24,31 @@ window.PlanTracker = (() => {
     // so a lingering critical need re-nudges every 5 turns instead of every turn.
     const lastCriticalSet = {};
     const lastCriticalReplanTick = {};
+    // task-185: stop-word list for step tracking — the old >2 char filter passed
+    // "the", so any action containing "the" completed any step containing "the".
+    const STOP_WORDS = new Set(['the', 'a', 'an', 'to', 'of', 'and', 'or', 'at', 'in', 'on', 'for', 'with', 'is', 'are', 'was', 'it', 'its', "it's"]);
 
     function getPlan(charName) {
         return plans[charName] || [];
     }
 
-    function setPlan(charName, steps) {
+    function setPlan(charName, steps, turnNumber) {
         plans[charName] = steps;
-        planTick[charName] = worldState.data?.time_ticks || 0;
+        // task-185: record the TURN clock (shouldReplan compares against
+        // turnNumber) — storing time_ticks was a mixed-unit bug that broke
+        // plan-age checks across engine re-inits.
+        planTick[charName] = Number.isInteger(turnNumber) ? turnNumber : 0;
         planProgress[charName] = 0;
         planFailures[charName] = {};
     }
 
     function getProgress(charName) {
         return planProgress[charName] || 0;
+    }
+
+    /** Failure counts per step index (task-185: prompt builders read via PlanTracker now). */
+    function getFailures(charName) {
+        return planFailures[charName] || {};
     }
 
     /** Advance or block the current plan step based on backend success flag. */
@@ -58,11 +69,19 @@ window.PlanTracker = (() => {
             }
             return;
         }
-        const actionNorm = (executedAction || '').toLowerCase();
+        const actionNorm = (executedAction || '').toLowerCase().trim();
         const stepNorm = String(step ?? '').toLowerCase();
-        const stepWords = stepNorm.split(/\s+/).filter(w => w.length > 2);
-        const actionWords = actionNorm.split(/\s+/).filter(w => w.length > 2);
-        const overlap = stepWords.some(w => actionWords.includes(w)) || stepNorm.includes(actionNorm) || actionNorm.includes(stepNorm);
+        const stepWords = stepNorm.split(/\s+/).filter(w => w && !STOP_WORDS.has(w));
+        const actionWords = actionNorm.split(/\s+/).filter(w => w && !STOP_WORDS.has(w));
+        // task-185: an action WITH a target must match a non-verb step word too —
+        // "approach the order counter" must not complete "approach the round the
+        // corner to oak lane" on the shared verb alone. Bare-verb actions
+        // (look, wait, rest, ...) still advance on the verb match.
+        const verbOnlyAction = actionWords.length <= 1;
+        const overlap = stepNorm.includes(actionNorm) || actionNorm.includes(stepNorm)
+            || (verbOnlyAction
+                ? actionWords.some(w => stepWords.includes(w))
+                : actionWords.slice(1).some(w => stepWords.includes(w)));
         if (overlap) {
             planProgress[charName] = idx + 1;
             planFailures[charName] = planFailures[charName] || {};
@@ -70,9 +89,14 @@ window.PlanTracker = (() => {
         }
     }
 
-    /** Check whether the character needs a fresh plan. */
+    /**
+     * Check whether the character needs a fresh plan.
+     * task-185: returns a human-readable REASON string (consumed by the
+     * task-340 crisis log line) or null when the current plan is still fine.
+     * Side effects unchanged.
+     */
     function shouldReplan(charName, turnNumber, threatAlert, vitals) {
-        if (threatAlert) return true;
+        if (threatAlert) return 'threat detected';
         // Needs-driven replanning (task-92): fire when needs CROSS into critical
         // territory, then re-nudge at most every 5 turns while still critical.
         // Without the crossing gate a starving character would regenerate their
@@ -85,16 +109,17 @@ window.PlanTracker = (() => {
             if (signature !== lastSignature || (turnNumber - (lastTick ?? -999)) >= 5) {
                 lastCriticalSet[charName] = signature;
                 lastCriticalReplanTick[charName] = turnNumber;
-                return true;
+                return needs[0];
             }
-            return false;
+            return null;
         }
         lastCriticalSet[charName] = '';
-        if (!plans[charName] || (turnNumber - (planTick[charName] || 0)) >= 10) return true;
+        if (!plans[charName]) return 'no plan';
+        if ((turnNumber - (planTick[charName] || 0)) >= 10) return 'plan aged out';
         const idx = planProgress[charName] || 0;
         const stepFails = (planFailures[charName] || {})[idx] || 0;
-        if (stepFails >= 3) return true;
-        return false;
+        if (stepFails >= 3) return 'current step failed repeatedly';
+        return null;
     }
 
     /**
@@ -156,6 +181,7 @@ window.PlanTracker = (() => {
         getPlan,
         setPlan,
         getProgress,
+        getFailures,
         trackStep,
         shouldReplan,
         criticalNeeds,

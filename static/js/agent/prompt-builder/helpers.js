@@ -160,8 +160,8 @@ window.PromptBuilder = window.PromptBuilder || {};
      * @returns {boolean} True if plan exists and has steps remaining
      */
     function hasPlan(charName) {
-        const agentPlans = window.VW?.agent?._plans;
-        const plan = agentPlans?.[charName];
+        // task-185: read via PlanTracker (the old read hit a replaced store).
+        const plan = window.PlanTracker?.getPlan(charName);
         return !!plan && plan.length > 0;
     }
 

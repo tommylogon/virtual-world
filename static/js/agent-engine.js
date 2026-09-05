@@ -535,17 +535,20 @@ class AgentEngine {
                 // (with fallback).
                 const observeParts = Object.assign({}, roomParts, { extraNote: threatObservationNote || '' });
 
-                // Threat-aware replan check — before deciding so the plan is fresh
+                // Threat-aware replan check — before deciding so the plan is fresh.
+                // task-185: shouldReplan now returns a REASON string (task-340
+                // crisis label) or null; setPlan records the turn clock.
                 const threatAlert = ThreatDetector.getThreatAlert(charName, player, currentArea, turnEvents);
-                const needsReplan = PlanTracker.shouldReplan(charName, this.turnNumber, threatAlert, player?.vitals);
-                if (needsReplan) {
+                const needsReplanReason = PlanTracker.shouldReplan(charName, this.turnNumber, threatAlert, player?.vitals);
+                if (needsReplanReason) {
                     const plan = await PlanManager.generate(charName);
                     if (plan && plan.length > 0) {
-                        PlanTracker.setPlan(charName, plan);
-                        // task-340: crisis replans surface WHY (critical need or threat).
-                        const crisisList = PlanTracker.criticalNeeds(player?.vitals);
-                        const why = threatAlert ? 'threat detected' : (crisisList[0] || 'plan stalled');
-                        events.log(`⚠️ ${charName} replanned — ${why}: ${plan.join(' → ')}`, 'msg-crisis');
+                        PlanTracker.setPlan(charName, plan, this.turnNumber);
+                        events.log(`⚠️ ${charName} replanned — ${needsReplanReason}: ${plan.join(' → ')}`, 'msg-crisis');
+                        // task-185: the decide prompt reuses this snapshot — refresh
+                        // the plan part so a plan generated THIS turn is visible
+                        // THIS turn instead of next turn.
+                        observeParts.plan = PromptBuilder.buildPlanContext(charName);
                     }
                 }
                 if (this._checkCancel()) return;
@@ -693,25 +696,57 @@ class AgentEngine {
                         const movedViaDash = finalAction.split(/\s+/)[0].toLowerCase() === 'dash';
                         const tickNum = worldState.data?.time_ticks ?? 0;
                         const areaName = freshRoom?.name || freshState?.current_area || '';
+                        // task-185: currentArea is the turn-start (pre-action) room —
+                        // if it differs from the fresh room the character MOVED this
+                        // action, and "surroundings are unchanged" was lying while
+                        // pointing the model at a stale observation of the old room.
+                        const areaBefore = currentArea?.name || player?.current_area || '';
+                        const areaChanged = !movedViaDash && !!areaName && areaName !== areaBefore;
                         const reactContext = movedViaDash
                             ? `[Tick ${tickNum}] You just sprinted and are now in ${areaName} — react to arriving here.`
-                            : `[Tick ${tickNum}] You are still in ${areaName}. Your surroundings are unchanged — see your observation above in this conversation.`;
+                            : areaChanged
+                                ? `[Tick ${tickNum}] You just moved — you are now in ${areaName}. The full description of your new surroundings is in === WHAT HAPPENED === below.`
+                                : `[Tick ${tickNum}] You are still in ${areaName}. Your surroundings are unchanged.`;
                         const reactPrompt = PromptBuilder.buildResultReactionPrompt(charName, freshPlayer, reactContext, vitalsNL, emotionNL, relationshipNL, inner, finalAction || '', actionResult, memoryNL, decisionSpeech);
-                        history.push({ role: 'user', content: reactPrompt });
-                        const reactResponse = await this._callLLMMessages(history, 'result-reaction');
-                        history.push({ role: 'assistant', content: reactResponse || '' });
+                        // task-XXX: dedicated minimal react call. The react phase cannot
+                        // act, so replaying the full decide exchange (~2-3k of persona/
+                        // room/plan/available-actions) plus the action-law system was
+                        // pure weight — and the cached system even said "Emit ONE action"
+                        // while the react user message said the opposite. Fresh 2-message
+                        // conversation instead: react-specific system + ONE user message;
+                        // WHAT HAPPENED carries the outcome. The exchange is still
+                        // mirrored into `history` below for future-turn continuity.
+                        const reactMessages = [
+                            { role: 'system', content: PromptBuilder.buildReactSystemPrompt(charName, freshPlayer) },
+                            { role: 'user', content: reactPrompt },
+                        ];
+                        let reactResponse = await this._callLLMMessages(reactMessages, 'result-reaction');
                         if (reactResponse === null) {
                             events.log(`❌ LLM call failed for ${charName} (reaction phase) — stopping agent`, 'error-msg');
                             VW?.ui?.setStatus("LLM Error - Stopped", "error");
                             config.running = false; return;
                         }
-                        if (!reactResponse || !String(reactResponse).trim()) {
-                            events.log(`⚠️ ${charName}: result-reaction returned empty — skipping react`, 'error-msg');
-                        }
                         let parsedReact = ResponseParser.parseResultReaction(reactResponse) ?? {inner:'',speech:null,speechVolume:'say',emote:null,memory:null,emotion:null,parseError:null};
-                        if (parsedReact.parseError) parsedReact = await this._retryOnceOnParseError(charName, history, 'result-reaction', ResponseParser.parseResultReaction, parsedReact);
+                        if (parsedReact.parseError && reactResponse) {
+                            // one same-conversation retry (repaired/truncated JSON):
+                            // show the broken reply, ask for a complete one.
+                            events.log(`⚠️ ${charName}: result-reaction response was repaired (truncated JSON) — retrying once.`, 'error-msg');
+                            const retryMessages = [
+                                reactMessages[0],
+                                reactMessages[1],
+                                { role: 'assistant', content: reactResponse || '' },
+                                { role: 'user', content: 'Your previous reply was cut off mid-JSON. Respond again with COMPLETE raw JSON — same schema, and finish every field you start.' },
+                            ];
+                            const retried = await this._callLLMMessages(retryMessages, 'result-reaction');
+                            if (retried) { reactResponse = retried; parsedReact = ResponseParser.parseResultReaction(reactResponse) ?? parsedReact; }
+                        }
                         if (parsedReact.parseError) {
                             events.logParseError(charName, 'result-reaction', parsedReact.parseError, reactResponse);
+                        }
+                        history.push({ role: 'user', content: reactPrompt });
+                        history.push({ role: 'assistant', content: reactResponse || '' });
+                        if (!reactResponse || !String(reactResponse).trim()) {
+                            events.log(`⚠️ ${charName}: result-reaction returned empty — skipping react`, 'error-msg');
                         }
                         const { inner: reactionInner, speech: reactionSpeech, speechVolume: reactionVolume, emote: reactionEmote, memory: reactionMemory } = parsedReact;
                         if (reactionInner) { events.logThought(charName, reactionInner); }

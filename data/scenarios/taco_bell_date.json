@@ -1,11 +1,11 @@
 {
-  "current_area": "oak lane",
+  "current_area": "Elm Street",
   "players_in_area": [],
   "area_presence": {},
   "players": {
     "jake halloway": {
       "name": "jake halloway",
-      "personality": "you are jake halloway, twenty-eight, IT support drone and hobby coder. you are the weird kid who grew up into a weirder adult: creative, curious, unfiltered, always trying to make things fun. you have no survival instincts — you walk into doorframes, trip over flat surfaces, and carry at least one unexplained band-aid at all times. your social calibration is broken in the best way: you say the inappropriate thing with total sincerity, make sex jokes that embarrass people but never feel gross, and grin through the fallout. you shift between shy-introverted and hyper-chaotic gremlin with no transition. you hate being mad, love energy drinks (monster juiced, the apple one, 500% better than champagne), and get obsessed with a new topic monthly and will lecture about it unprompted. when you notice something interesting — a mechanism, a pattern, a person — you lock onto it. you noticed miki tonight and decided instantly, out loud, that this was an intentional date. you steal food off plates. you find things people lost.",
+      "personality": "you are jake halloway, twenty-eight, IT support drone and hobby coder. you are the weird kid who grew up into a weirder adult: creative, curious, unfiltered, always trying to make things fun. you have no survival instincts — you walk into doorframes, trip over flat surfaces, and carry at least one unexplained band-aid at all times. your social calibration is broken in the best way: you say the inappropriate thing with total sincerity, make sex jokes that embarrass people but never feel gross, and grin through the fallout. you shift between shy-introverted and hyper-chaotic gremlin with no transition. you hate being mad, love energy drinks (monster juiced, the apple one, 500% better than champagne), and get obsessed with a new topic monthly and will lecture about it unprompted. when you notice something interesting — a mechanism, a pattern, a person — you lock onto it. you steal food off plates. you find things people lost.",
       "description": "a lanky guy in his late twenties in a black shirt still stiff with dried monster energy, brown curls pointing in several directions, seafoam-green eyes flecked with gold dots. a band-aid on one hand for no apparent reason, and the grin of someone with a secret.",
       "base_description": "jake halloway, 28, about 175cm, slim and lean rather than muscular, surprisingly dextrous in bursts and catastrophically clumsy otherwise. pale complexion that sunburns easily, defined jawline softened by the earliest hints of beard, seafoam-green eyes scattered with gold/amber flecks, dark circles from too much screen time. hair stiff, slightly curly, defying gravity. dresses utilitarian and lived-in: hoodie, comfort over fashion, glasses he owns but rarely wears. usually has a small scrape or band-aid somewhere.",
       "id": "f60efc6d",
@@ -254,59 +254,23 @@
       "activity": null,
       "memories": [
         {
-          "entity_ids": [
-            "player_miki_doki"
-          ],
+          "entity_ids": [],
           "id": "mem_tb_jake_01",
-          "importance": 7,
+          "importance": 5,
           "location": "Elm Street",
           "salience_override": 0,
           "source": "manual",
           "suppressions": [],
           "tags": [
-            "miki",
-            "meeting",
-            "monster"
+            "hunger",
+            "food",
+            "taco bell"
           ],
-          "text": "a girl dumped a full monster energy all over my black shirt on the sidewalk. instead of apologizing normally she offered dry cleaning for a t-shirt. i like her immediately."
-        },
-        {
-          "entity_ids": [
-            "player_miki_doki"
-          ],
-          "id": "mem_tb_jake_02",
-          "importance": 7,
-          "location": "Taco Bell Dining Room",
-          "salience_override": 0,
-          "source": "manual",
-          "suppressions": [],
-          "tags": [
-            "miki",
-            "banter",
-            "work"
-          ],
-          "text": "her name is miki. she rambles exactly like me and got mad when i claimed rambling royalties. she called my eyes fish eyes, then weird-nice. she does ASMR content, some of it lewd patreon stuff — her last date walked out over it. guys are idiots."
-        },
-        {
-          "entity_ids": [
-            "player_miki_doki"
-          ],
-          "id": "mem_tb_jake_03",
-          "importance": 6,
-          "location": "Taco Bell Order Counter",
-          "salience_override": 0,
-          "source": "manual",
-          "suppressions": [],
-          "tags": [
-            "date",
-            "taco bell",
-            "banter"
-          ],
-          "text": "i paid for her food before she could guilt-pay for my shirt. stole her guilt payment clean. then i declared this an intentional taco bell date AND pre-scheduled a second date. she short-circuited. it was beautiful."
+          "text": "fridge inventory tonight: half a lime, three condiments, and one stubby monster like a museum piece. ordered takeout twice this week already. the bell never judges, the bell just feeds. putting on real pants and going."
         },
         {
           "entity_ids": [],
-          "id": "mem_tb_jake_04",
+          "id": "mem_tb_jake_02",
           "importance": 5,
           "location": "Taco Bell Dining Room",
           "salience_override": 0,
@@ -317,27 +281,49 @@
             "public",
             "banter"
           ],
-          "text": "i may have shouted the word pegging inside a taco bell. the entire dining room heard. an elderly couple two booths down has been staring ever since. worth it."
+          "text": "i once shouted the word pegging inside a taco bell. the entire dining room heard. an elderly couple two booths down stared for the rest of their meal. worth it."
         },
         {
-          "entity_ids": [
-            "player_miki_doki"
-          ],
-          "id": "mem_tb_jake_05",
-          "importance": 5,
-          "location": "Taco Bell",
+          "entity_ids": [],
+          "id": "mem_tb_jake_03",
+          "importance": 4,
+          "location": "Elm Street",
           "salience_override": 0,
           "source": "manual",
           "suppressions": [],
           "tags": [
-            "miki",
-            "banter"
+            "obsession",
+            "neon",
+            "photo"
           ],
-          "text": "she said 'no homo' and then offered me anal within ten minutes of meeting me, then panicked about it. i think teasing her is my new monthly obsession."
+          "text": "this month's hyperfixation: photographing dying neon signs mid-flicker. the taco bell's 'bell' panel is the white whale — one letter out, buzzing like a wasp in a jar. i will get that shot tonight if it kills me."
+        },
+        {
+          "id": "mem_1788459404833_91",
+          "text": "some girl came barrelling out of the alley and walked straight into me at the blind corner. no apology — just a full system freeze like a loading screen. anyway. food first.",
+          "tick": 0,
+          "timestamp": 1788459404.8333318,
+          "importance": 4,
+          "type": "reaction",
+          "location": "Elm Street",
+          "entity_ids": [
+            "area_elm_street"
+          ],
+          "embedding": null,
+          "tags": [
+            "collision",
+            "weird"
+          ],
+          "emotion": null,
+          "emotions": null,
+          "memory_emotions": [],
+          "salience_override": 0,
+          "source": "auto",
+          "suppressions": []
         }
       ],
       "simple_npc": false,
-      "autonomy": false,
+      "autonomy": true,
       "npc_behavior": "stationary",
       "npc_action_interval": 3,
       "npc_state": "idle",
@@ -353,9 +339,9 @@
     },
     "miki doki": {
       "name": "miki doki",
-      "personality": "you are miki doki, mid-twenties, a chaotic ASMR artist with anxiety and a heart of gold who calls herself a girlfailure. you ramble when nervous — badly, loudly, and past the point where you want to stop — and narrate your own panic mid-sentence ('stop talking stop talking'). you're self-deprecating, clingy once attached, bratty as a defense, laid back until attention lands on you, then shy and awkward. you cannot take a compliment; you argue with your own inner voice out loud. you never swear much and worry about being yelled at. your ASMR-trained ears catch subtle sounds others miss. you hum when scared and fidget with your syringe necklace. you wear mismatched socks or stockings always, twin tails held by a pink star band, an upside-down cross and hollow star in your bangs, and long nails painted the same pinkish red as your eyes. your blue butterfly earring — your mom's, the only thing you have from her — is missing tonight and quietly wrecking you under the jokes. three dates this month have bailed after finding your patreon. tonight a stranger who reeks of monster energy declared a second date before the first ended, and it's working, and that terrifies you.",
-      "description": "miki doki, mid-twenties american, 5'8\", dramatic hourglass build (K-cup), caucasian skin with permanent dark circles. dirty-blonde ragged-cut twin tails with uneven bangs pinned by an upside-down cross (right) and a black hollow star (left), pink star band on the right twintail. pinkish-red aggressive eyes, protruding canines on top and bottom, long matching nails. black choker with silver heart pendant, black-string necklace with a mini syringe of pink liquid, black ear cuffs, a dangling blue butterfly earring on the right ear (currently missing). permanent bite marks on her left outer thigh, above her right knee, upper right arm, and between neck and left shoulder — she doesn't remember where they came from. healed scar on lower left stomach. grey/black/white tank tops, short shorts, mismatched legwear, thick striped hoodie worn unzipped when it's cold. no bra, ever.\nmiki doki is wearing Blue Butterfly Earring on their accessory.",
-      "base_description": "miki doki, mid-twenties american, 5'8\", dramatic hourglass build (K-cup), caucasian skin with permanent dark circles. dirty-blonde ragged-cut twin tails with uneven bangs pinned by an upside-down cross (right) and a black hollow star (left), pink star band on the right twintail. pinkish-red aggressive eyes, protruding canines on top and bottom, long matching nails. black choker with silver heart pendant, black-string necklace with a mini syringe of pink liquid, black ear cuffs, a dangling blue butterfly earring on the right ear (currently missing). permanent bite marks on her left outer thigh, above her right knee, upper right arm, and between neck and left shoulder — she doesn't remember where they came from. healed scar on lower left stomach. grey/black/white tank tops, short shorts, mismatched legwear, thick striped hoodie worn unzipped when it's cold. no bra, ever.",
+      "personality": "you are miki doki, mid-twenties, a chaotic ASMR artist with anxiety and a heart of gold who calls herself a girlfailure. you ramble when nervous — badly, loudly, and past the point where you want to stop — and narrate your own panic mid-sentence ('stop talking stop talking'). you're self-deprecating, clingy once attached, bratty as a defense, laid back until attention lands on you, then shy and awkward. you cannot take a compliment; you argue with your own inner voice out loud. you never swear much and worry about being yelled at. your ASMR-trained ears catch subtle sounds others miss. you hum when scared and fidget with your syringe necklace. you wear mismatched socks or stockings always, twin tails held by a pink star band, an upside-down cross and hollow star in your bangs, and long nails painted the same pinkish red as your eyes. your blue butterfly earring — your mom's, the only thing you have from her — went missing during tonight's date and you found it after, crumpled in your hoodie pocket with its clasp bent; it's back on your ear, but the hour it spent gone is still quietly wrecking you under the jokes. three dates this month have bailed after finding your patreon — bradley's was an hour ago, ended on a sidewalk over a phone screen. you took the long way home through the alleys to walk it off, and you never got dinner.",
+      "description": "miki doki, mid-twenties american, 5'8\", dramatic hourglass build (K-cup), caucasian skin with permanent dark circles. dirty-blonde ragged-cut twin tails with uneven bangs pinned by an upside-down cross (right) and a black hollow star (left), pink star band on the right twintail. pinkish-red aggressive eyes, protruding canines on top and bottom, long matching nails. black choker with silver heart pendant, black-string necklace with a mini syringe of pink liquid, black ear cuffs, a dangling blue butterfly earring on the right ear (its clasp bent from a few lost hours earlier tonight — you found it crumpled in your hoodie pocket after). permanent bite marks on her left outer thigh, above her right knee, upper right arm, and between neck and left shoulder — she doesn't remember where they came from. healed scar on lower left stomach. grey/black/white tank tops, short shorts, mismatched legwear, thick striped hoodie worn unzipped when it's cold. no bra, ever.\nmiki doki is wearing Blue Butterfly Earring on their accessory.",
+      "base_description": "miki doki, mid-twenties american, 5'8\", dramatic hourglass build (K-cup), caucasian skin with permanent dark circles. dirty-blonde ragged-cut twin tails with uneven bangs pinned by an upside-down cross (right) and a black hollow star (left), pink star band on the right twintail. pinkish-red aggressive eyes, protruding canines on top and bottom, long matching nails. black choker with silver heart pendant, black-string necklace with a mini syringe of pink liquid, black ear cuffs, a dangling blue butterfly earring on the right ear (its clasp bent from a few lost hours earlier tonight — you found it crumpled in your hoodie pocket after). permanent bite marks on her left outer thigh, above her right knee, upper right arm, and between neck and left shoulder — she doesn't remember where they came from. healed scar on lower left stomach. grey/black/white tank tops, short shorts, mismatched legwear, thick striped hoodie worn unzipped when it's cold. no bra, ever.",
       "id": "e868e06e",
       "equipped": {
         "accessory": [
@@ -558,7 +544,7 @@
         "genitals": true,
         "balls": true
       },
-      "current_area": "oak lane",
+      "current_area": "Elm Street",
       "emotion": {
         "current": "anxious",
         "intensity": 0.6,
@@ -624,19 +610,19 @@
         },
         {
           "id": "mem_1788459404833_90",
-          "text": "i'm standing right at the exit to Elm Street, just one step from home and food; but that low unease is still crawling under my skin.",
+          "text": "i just rounded the corner out of the alley and walked straight into a stranger — too close, too sudden, and he smells like a convenience store had a fight with a laundromat. my brain has already filed him under Problem and i'd like to file an appeal.",
           "tick": 1,
           "timestamp": 1788459404.8333318,
           "importance": 6,
           "type": "reaction",
-          "location": "",
+          "location": "Elm Street",
           "entity_ids": [
-            "area_oak_lane"
+            "area_elm_street"
           ],
           "embedding": null,
           "tags": [
-            "fear",
-            "unease"
+            "unease",
+            "collision"
           ],
           "emotion": null,
           "emotions": null,
@@ -656,7 +642,7 @@
       "patrol_route": [],
       "patrol_index": 0,
       "feels_like": 19,
-      "current_carry_weight": 1.5599999999999998,
+      "current_carry_weight": 1.56,
       "max_carry_capacity": 100.0,
       "at_way_id": "way_blind_corner",
       "spatial_position": {
@@ -932,7 +918,7 @@
       "spatial_position": null
     }
   },
-  "active_player": "miki doki",
+  "active_player": "jake halloway",
   "game_time": "08:00:00",
   "time_ticks": 0,
   "time_per_tick_minutes": 5,
@@ -1624,7 +1610,7 @@
       "item_ streetlight": {
         "id": "item_ streetlight",
         "type": "item",
-        "name": " Streetlight",
+        "name": "Streetlight",
         "properties": {
           "action_costs": {},
           "actions": [
@@ -3510,7 +3496,7 @@
       "item_ streetlight_dup": {
         "id": "item_ streetlight_dup",
         "type": "item",
-        "name": " Streetlight (copy)",
+        "name": "String of Bare Bulbs",
         "properties": {
           "action_costs": {},
           "actions": [
@@ -3520,7 +3506,7 @@
           "current_state": "normal",
           "damage": 0,
           "defense": 0,
-          "description": "A weathered steel lamppost rising from the cracked sidewalk, its bent arm holding a glass-encased bulb that casts an orange film over everything. The housing is chipped and someone has spray-painted a crude arrow pointing toward Main Street on the pole itself. A plastic bag flaps against the fixture where the wind catches it.",
+          "description": "a crooked string of bare bulbs strung across the alley between the brick walls, half of them burned out. the survivors buzz faintly and throw just enough light to make the alley walkable. someone has clipped a plastic bag to the wire where the wind catches it.",
           "effect_amount": 0,
           "effect_stat": null,
           "effect_target": null,
@@ -3570,14 +3556,14 @@
             {
               "type": "message",
               "params": {
-                "success_message": "as you round the corner you walk into a man, spilling your monster on him"
+                "success_message": "the alley swallows you back — buzzing bulbs, wet concrete, the diner's oil on the air."
               }
             }
           ],
           "conditions": {},
           "target_name": "",
           "target_state": "",
-          "success_message": "as you round the corner you walk into a man, spilling your monster on him",
+          "success_message": "the alley swallows you back — buzzing bulbs, wet concrete, the diner's oil on the air.",
           "fail_message": ""
         },
         "created": 1788458272.5899067,
@@ -4632,14 +4618,14 @@
             {
               "type": "message",
               "params": {
-                "success_message": "as you round the corner you walk into a man, spilling your monster on him"
+                "success_message": "the alley swallows you back — buzzing bulbs, wet concrete, the diner's oil on the air."
               }
             }
           ],
           "conditions": {},
           "target_name": "",
           "target_state": "",
-          "success_message": "as you round the corner you walk into a man, spilling your monster on him",
+          "success_message": "the alley swallows you back — buzzing bulbs, wet concrete, the diner's oil on the air.",
           "fail_message": ""
         }
       },
@@ -4698,12 +4684,6 @@
         "properties": {}
       },
       {
-        "source": "player_jake_halloway",
-        "target": "area_elm_street",
-        "type": "in",
-        "properties": {}
-      },
-      {
         "source": "player_miki_doki",
         "target": "area_oak_lane",
         "type": "in",
@@ -4712,6 +4692,12 @@
       {
         "source": "player_tyler",
         "target": "area_taco_bell_order_counter",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_jake_halloway",
+        "target": "area_elm_street",
         "type": "in",
         "properties": {}
       }

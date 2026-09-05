@@ -97,14 +97,14 @@ For a speech-only turn, omit "action". If you say nothing, set "speech": null. T
 
 `;
 
-     /**
-      * Build the character system prompt — the core personality and rules prompt
-      * that defines how the character should behave and what commands are available.
-      * @param {string} charName - Character name
-      * @param {Object} player - Player data object
-      * @param {number} softMaxTokens - Soft token limit for system prompt instruction (0 = use hard limit)
-      * @returns {string} Full system prompt string
-      */
+/**
+     * Build the character system prompt — the core personality and rules prompt
+     * that defines how the character should behave and what commands are available.
+     * @param {string} charName - Character name
+     * @param {Object} player - Player data object
+     * @param {number} softMaxTokens - Soft token limit for system prompt instruction (0 = use hard limit)
+     * @returns {string} Full system prompt string
+     */
     function buildCharacterSystemPrompt(charName, player, softMaxTokens) {
         if (!player) throw new Error(`buildCharacterSystemPrompt: player is null for "${charName}" — call site should validate before caching history`);
         const dead = player.state === 'dead';
@@ -133,7 +133,40 @@ For a speech-only turn, omit "action". If you say nothing, set "speech": null. T
         return prompt;
     }
 
+    /**
+     * Dedicated minimal system prompt for the result-reaction call. The react
+     * phase cannot take actions, so the action-law blocks (ACTIONS / ACTION
+     * STRUCTURE / ITEMS vs FLAVOR / INTIMACY) are dropped — they were ~1.2k of
+     * weight that also directly contradicted the react user message's
+     * "MUST NOT include action or item fields". Kept: lore, emote rules,
+     * speech & volume (the react instructions reference it), JSON rules, length.
+     */
+    function buildReactSystemPrompt(charName, player, softMaxTokens) {
+        if (!player) throw new Error(`buildReactSystemPrompt: player is null for "${charName}"`);
+        let prompt = '';
+        const lore = worldState.data?.world_lore || [];
+        if (lore.length > 0) {
+            const loreLines = lore.map(entry => `[${entry.category || 'general'}] ${entry.title}: ${entry.content}`);
+            prompt += `\n=== WORLD LORE (common knowledge) ===\n${loreLines.join('\n')}\n`;
+        }
+
+        const effectiveSoftLimit = softMaxTokens || config.maxTokens || 512;
+        const brevityRule = `\n\n=== RESPONSE LENGTH ===\nKeep your response under ${effectiveSoftLimit} tokens. Be concise — inner monologue, speech, and emote should be brief and natural.`;
+
+        const parts = [
+            `\n=== REACT MODE ===\nThis is the instant after your own action resolved. You cannot take new actions in this phase — respond only with inner_monologue, speech (rarely), emote, memory, and emotion.`,
+            PromptBuilder.EMOTE_RULES_SYSTEM,
+            SPEECH_VOLUME,
+            brevityRule,
+        ];
+
+        prompt += parts.join('');
+
+        return prompt;
+    }
+
     Object.assign(window.PromptBuilder, {
-        buildCharacterSystemPrompt
+        buildCharacterSystemPrompt,
+        buildReactSystemPrompt
     });
 })();

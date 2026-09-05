@@ -4,6 +4,67 @@ All notable changes to VirtualWorld. See `docs/virtualWorld/Scenario Workflows &
 
 ---
 
+## 1.6.0 — "Cold Open" (2026-09-04)
+
+The believability day, run against a live tick-by-tick event log: the planner was found **disconnected from the decide prompt since the PlanTracker migration** and re-wired end-to-end, the human turn panel became an honest observer (no whispers, no other minds), the react phase got its own minimal prompt (~6.2–8.1k → ~2.5–3.5k tokens, internal contradiction deleted), stranger descriptions stopped leaking names through their "appearance handle", and the taco_bell_date scenario was rebuilt to open **cold** — two strangers, one crash, zero shared history. **Full suite at 2653 passing** (pre-existing MCP harness failures unchanged; see Gotchas).
+
+### 🗺 Planner — visible, honest, unit-tested
+
+- **The plan was never shown to the decider.** `buildPlanContext` / `hasPlan` / the inspector read `window.VW.agent._plans` — a store `PlanTracker` had replaced. Fixed: all three read `PlanTracker`, so `=== YOUR PLAN ===` (with `(done)` / `(CURRENT)` markers and the blocked-step warning) now renders in the decide prompt for the first time since the migration. Fresh plans are visible **the same turn** (the decide snapshot refreshes after `setPlan`).
+- **`trackStep` matching fixed twice**: stop-words are filtered for real (the old `length > 2` filter passed "the", so *any* action containing "the" completed *any* step), and an action **with a target must match a non-verb step word** — `approach the order counter` no longer completes `approach the round the corner to oak lane` on the shared verb alone. Bare verbs (`look`, `wait`, `rest`…) still advance on the verb.
+- **`shouldReplan` returns a reason string** consumed by the task-340 crisis log: `no plan` / `plan aged out` / `current step failed repeatedly` / `threat detected` / the critical need itself — replacing the fallback label that logged every no-crisis replan as a fake `plan stalled`.
+- **`setPlan` records the turn clock** (was `time_ticks`, compared against `turnNumber` — a mixed-units bug that broke plan-age checks across engine re-inits).
+- `getFailures` exported; the PREVIOUS PLAN prompt section reads PlanTracker directly.
+- Tests: 6 new tracker tests (stop-words, verb-vs-target, reason strings, block-and-advance semantics).
+
+### 👁 Observer feed (human turn panel)
+
+- **`turn-feed.js` rewritten** around structured entries: raw event lines parse into speech / whisper / action / emote / result / system / NPC / recall, grouped and styled with icons, colored actor labels, quoted speech, italic emotes.
+- **Observer Concise view is the default**: whispers collapse to *"X whispered"* (never the words), inner monologues, memory-recall dumps, plan stalls, and meta noise are filtered out; a short narrative summary ("Since your turn: …") opens the feed. **Detailed** toggle restores the full styled log.
+- Stranger names are masked in the feed via the same `anonymousName` logic as the scene.
+
+### ⚡ React phase — own mind, own prompt
+
+- **Dedicated minimal react system prompt** (`buildReactSystemPrompt`): lore + emote rules + speech/volume + JSON rules + length. The action-law blocks (ACTIONS / ACTION STRUCTURE / ITEMS vs FLAVOR / INTIMACY) are gone — they were ~1.2k of weight that also directly contradicted the react instruction *"MUST NOT include action or item fields."*
+- **Fresh 2-message conversation** for the react call: the decide-phase replay (~2–3k of persona/room/plan/available-actions duplication) and chain-follow-up bloat no longer ride along. React calls drop from **~6.2–8.1k to ~2.5–3.5k tokens**; the exchange is still mirrored into the character history for next-turn continuity, and the persona rides in the react user message.
+- **Movement-aware react context**: a `go` now says *"You just moved — you are now in X. The full description of your new surroundings is in === WHAT HAPPENED === below."* instead of the lying *"surroundings are unchanged — see your observation above"* pointing at the room you left.
+- Inline truncated-JSON retry re-asks in the same conversation with a completion nudge, and the final (retried) response is what lands in history.
+
+### 🙈 Stranger descriptions stop leaking names (task-339 companion)
+
+- **New `engine/name_masking.py`** + scrubbing applied in **both** people renderers: `scene_snapshot.py` (decide-prompt People lines, incl. the JS dim-light `"A vague shape in the gloom — …"` prefix) and `area_description.py` (the backend `look` People line). A stranger's first sentence is an *appearance* handle — descriptions that open with the character's own name no longer leak it; the name is learned by hearing it, as designed.
+- Previously this leak let an observer-LLM "learn" a name nobody had spoken.
+
+### 🎭 Scenario: `taco_bell_date.json` rebuilt as a cold open
+
+- **Premise**: Miki's date (Bradley — patreon discovery, ended on a sidewalk an hour ago) went bad; Jake is simply out for food. They crash into each other at the blind corner — **that is turn 0**. Both start on Elm Street, seconds after the collision, as strangers.
+- **Jake's 5 first-date memories replaced** with stranger-state seeds: the fridge inventory that sent him out, the pegging shout (now a *past* visit), a neon-sign photography hyperfixation aimed at the flickering `'bell'` panel, and the crash itself. His personality no longer pre-decides "you noticed miki tonight… intentional date."
+- **Miki**: keeps the Bradley anchor; the earring contradiction resolved as story — it went missing during the date and *she* found it crumpled in her hoodie pocket (clasp bent), so prose and live equipped-state finally agree. Relationships wiped both ways: the anonymizer ("the man" / "a man's voice") is now correct, and names get learned in-run.
+- **World fixes**: ` Streetlight (copy)` (an Elm Street lamppost — spray-painted arrow and all — sitting in the wrong alley) is now **String of Bare Bulbs** matching oak lane's prose; both streetlight names lost their phantom leading spaces; the impossible old meet-cute spill trigger (4 copies, spilling from a crushed empty can) is neutralized.
+
+### 🛠 Fixes
+
+- **Witnessed dedupe** — a character's decide emote and identical react emote no longer render as two WITNESSED lines; repeated heard sounds dedupe too.
+- **Comprehensive AVAILABLE ACTIONS** — the block now lists every actionable verb per turn with concrete targets (per-way go/dash/examine/open/close, per-item take/use/read/toggle, self verbs with need hints) instead of a curated sparse subset; the scene view's way menu respects already-standing-at-the-way state (no duplicate `approach`).
+- **System prompt trimmed** post-AVAILABLE-ACTIONS: rules that duplicate what the per-turn block demonstrates (go/approach semantics, action structure examples) cut ~40%.
+- Plan-stall label honesty, memory-recall label cleanup, and NPC idle lines parse as typed entries in the feed.
+
+### 🧰 Gotchas in this release
+
+- **Restart your server** — engine changed (`name_masking.py`, `scene_snapshot.py`, `area_description.py`); static JS is reload-only.
+- **Scenario edits apply on reset to initial state** — existing saves keep the old state. The rebuilt taco_bell_date opens cold; older runs in your saves/ folder are from the previous premise.
+- The observer feed defaults to **Concise**; the Detailed toggle shows whispers' existence, system rows, and typed raw entries — it is a debug view, not the intended read.
+- React calls are ~2.5–3.5k tokens now, but keep LM Studio context ≥ 9k anyway: the context window, not `max_tokens`, was silently truncating completions mid-JSON (diagnosed via two identical ~196-token cuts on ~6k prompts).
+- Plan steps still match by word overlap on prose steps — structured `goal/step/then` plans are the designed follow-up (see session analysis).
+
+### 🧪 Behind the scenes
+
+- New: `engine/name_masking.py`, `tests/test_name_masking.py` (5).
+- Updated: `tests/test_plan_tracker.js` (+6), `engine/scene_snapshot.py`, `engine/area_description.py`, `static/js/agent/{plan-tracker,agent-engine,turn-feed}.js`, `static/js/agent/prompt-builder/{character-state,helpers,room-context,system-prompt,turn-prompts}.js`, `static/js/inspector/agent-view.js`, `data/scenarios/taco_bell_date.json`.
+- JS unit suite **52 passing**; engine name/masking/snapshot/area tests **34 passing**; full Python suite **2653 passing** — the pre-existing `tests/test_mcp_*.py` harness breakage (54–55 failures, `'function' object has no attribute 'fn'`) predates this release and is unchanged by it.
+
+---
+
 ## 1.5.0 — "Tender Magic & Graph Forge" (2026-09-02)
 
 A sweeping working-tree day: environment/time/weather engine plumbing, trigger-graph viewport and compile-honesty overhaul, broadened NPC behavior vocabulary, character/schema cleanup, and a 15-spell Lyrie spellbook design task. **Suite at 2507 passing**; no regressions in the core scenario/turn flow.

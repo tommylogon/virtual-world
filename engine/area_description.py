@@ -5,6 +5,7 @@ from engine.equipment import INTRINSIC_ABILITY_TAGS
 from engine.equipment_bonuses import aggregate_bonuses, effective_temperature
 from engine.activities import activity_description
 from engine.beyond_visibility import build_beyond_suffix, normalize_visible_items
+from engine.name_masking import mask_name_in_text
 from engine.room_perception import resolve_area_node, visible_area_items, way_visible_to
 
 
@@ -382,7 +383,21 @@ class AreaDescription:
                     if name_known:
                         line += f" — {pdata_desc}"
                     else:
-                        line += f" — {first_sentence}"
+                        # task-339: scrub the real name (and aliases) out of the
+                        # appearance handle — descriptions may open with the name.
+                        try:
+                            from engine.matching import node_aliases
+
+                            p_node_id = None
+                            _getter = getattr(self.player_manager, "_player_node_id", None)
+                            if callable(_getter):
+                                p_node_id = _getter(pname)
+                            p_node = self.graph.get_node(p_node_id) if p_node_id else None
+                            _aliases = node_aliases(p_node) if p_node is not None else ()
+                        except Exception:
+                            _aliases = ()
+                        masked = mask_name_in_text(first_sentence, pname, line, _aliases)
+                        line += f" — {masked}"
                 if worn:
                     line += f" [wearing: {', '.join(worn)}]"
                 if carried:
