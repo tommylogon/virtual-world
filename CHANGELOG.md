@@ -4,6 +4,33 @@ All notable changes to VirtualWorld. See `docs/virtualWorld/Scenario Workflows &
 
 ---
 
+## 1.7.1 — "Self-healing JSON & dataset capture" (2026-09-07)
+
+The parse-failure follow-up: when heuristic JSON repair gives up, the LLM now fixes its own broken output (the sports-bra response had 5 stray closing braces — `19 {` vs `24 }` — unrecoverable by regex); and every request/response pair is now captured to IndexedDB so it can be exported as a chat-format JSONL fine-tuning dataset.
+
+### ⚡ LLM-backed JSON repair (last-resort fallback)
+
+- `parseJSONFromResponse` now also returns the **parser error message** alongside `{json, raw}`.
+- `AIGenerator.generate`: when `extractTopLevelJSON` + `repairJSON` both fail, the broken JSON **and the error** are sent back to the LLM ("This JSON is invalid. Identify and fix the issue based on the error message, and return ONLY the corrected JSON object."), re-parsed, and used as if the original parse had succeeded. Falls through to the existing failure path if the repair also fails. Verified end-to-end: broken bra-JSON → parse null + `"…at position 354"` → one repair call → success.
+
+### 🧪 Dataset collector (fine-tuning pipeline, step 1)
+
+- `shared/dataset-collector.js`: captures every completed `llmClient.chat` call — `{messages, response, label, model, parsed_ok, repaired}` — into a new IndexedDB store (`llm_dataset`, storage v3). Streaming and non-streaming both covered.
+- Floating **🧪 dataset** button (bottom-right): live count (captured / parsed-OK / failed), **Export all / parsed-OK only / failures only** as chat-format JSONL (system→user→assistant + meta), and clear.
+- The negative examples (failed parses, like the bra) are exactly what a tiny fine-tune needs to learn "emit valid JSON in the app's exact shapes" — pair them with the AI-repaired output as the target.
+
+### 🛠 Fixes
+
+- **`graphManager is not defined`** on load (`static/js/graph/focus.js`): `init()` dereferenced `graphManager` at parse time; it now defers until the global exists (`DOMContentLoaded` / `state:updated` self-guard).
+- **ESLint guard**: flat config (`eslint.config.js`) with `no-undef` over `static/js` + the full cross-file global set (excludes 3rd-party `vendor/`). `npm run lint` clean. Would have caught the `graphManager` bug statically.
+
+### 🧰 Gotchas
+
+- Restart your server — storage version bumped to 3 (IndexedDB upgrades on next load; existing data preserved).
+- Dataset export is manual (the 🧪 button); nothing leaves the browser until you click export.
+
+---
+
 ## 1.7.0 — "Trigger Smith & Triage" (2026-09-07)
 
 The authoring-and-triggers day: an AI trigger suggester that finally writes *correct* triggers (full catalog + worked-example prompt, `{triggers:[...]}` object output, fixed local-model response parsing), a plan-driven heuristic floor that can't invent "eat the spyglass", a review-the-diff modal instead of blind overwrites, a batched apply that doesn't lag the graph, a validator that became a triage panel (group by node/code, dismiss-until-touched, derived progress), graph search that freezes hidden nodes and clusters matches, and a fixed dead `on_light` trigger. **Full suite at 2636 passing** (81 MCP/emote tests deselected — pre-existing harness breakage, see Gotchas).

@@ -157,7 +157,7 @@ class LLMClient {
                 }
 
                 if (streaming) {
-                    const streamed = await this._handleStream(resp, format, options.onChunk, label);
+                    const streamed = await this._handleStream(resp, format, options.onChunk, label, messages, options);
                     this._checkSchemaEnforcement(streamed, responseFormat);
                     return streamed;
                 }
@@ -171,6 +171,7 @@ class LLMClient {
                     ? this._extractResponsesToolCalls(completion)
                     : (completion?.choices?.[0]?.message?.tool_calls || null);
                 this._logAssistantResponse(label, content || (tool_calls && tool_calls.length ? `[tool_calls: ${tool_calls.length}]` : ''));
+                this._captureDataset(messages, content, label, options);
                 if (options.withTools || options.tools) {
                     return { content, tool_calls };
                 }
@@ -283,6 +284,18 @@ class LLMClient {
         VW.events.logRawLLMResponse(label || 'LLM', text);
     }
 
+    /** Feed one completed request/response pair to the dataset collector.
+     *  Never throws — capture is best-effort and must not affect gameplay. */
+    _captureDataset(messages, content, label, options) {
+        try {
+            if (typeof DatasetCollector !== 'undefined' && DatasetCollector && content) {
+                DatasetCollector.capture(messages, content, label, {
+                    responseFormat: options && options.responseFormat ? options.responseFormat.type : null,
+                });
+            }
+        } catch (e) {}
+    }
+
     /** Build a Responses API request body from chat-style messages. */
     _buildResponsesBody(messages, opts) {
         const systemMessage = messages.find(m => m.role === 'system');
@@ -378,7 +391,7 @@ class LLMClient {
     }
 
     /** Handle streaming response — OpenAI SSE + LM Studio formats (chat-completions and responses) */
-    async _handleStream(resp, format, onChunk, label) {
+    async _handleStream(resp, format, onChunk, label, messages, options) {
         const reader = resp.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '', fullContent = '', currentEvent = '';
@@ -419,6 +432,7 @@ class LLMClient {
                     if (VW?.events?.logRawLLMResponse && fullContent && !onChunk) {
                         this._logAssistantResponse(label, fullContent);
                     }
+                    this._captureDataset(messages, fullContent, label, options);
                     return fullContent;
                 }
                 try {
@@ -434,6 +448,7 @@ class LLMClient {
                             if (VW?.events?.logRawLLMResponse && fullContent && !onChunk) {
                                 this._logAssistantResponse(label, fullContent);
                             }
+                            this._captureDataset(messages, fullContent, label, options);
                             return fullContent;
                         }
                         content = parsed?.delta || parsed?.output_text || '';
@@ -452,6 +467,7 @@ class LLMClient {
         if (VW?.events?.logRawLLMResponse && fullContent && !onChunk) {
             this._logAssistantResponse(label, fullContent);
         }
+        this._captureDataset(messages, fullContent, label, options);
         return fullContent;
     }
 

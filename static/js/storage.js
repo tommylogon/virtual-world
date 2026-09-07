@@ -4,7 +4,7 @@
  * Stores: config, profiles, item library, character histories
  */
 class StorageProvider {
-    constructor(dbName = 'VirtualWorldDB', version = 2) {
+    constructor(dbName = 'VirtualWorldDB', version = 3) {
         this.dbName = dbName;
         this.version = version;
         this._db = null;
@@ -46,6 +46,10 @@ class StorageProvider {
                 }
                 if (!db.objectStoreNames.contains('event_log')) {
                     db.createObjectStore('event_log', { keyPath: 'id' });
+                }
+                // Version 3: LLM request/response dataset for fine-tuning export
+                if (!db.objectStoreNames.contains('llm_dataset')) {
+                    db.createObjectStore('llm_dataset', { keyPath: 'key' });
                 }
             };
             req.onsuccess = (e) => {

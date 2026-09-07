@@ -88,6 +88,7 @@ for (const name of [
     'ScenarioWizard', 'SettingsView', 'SkyScape', 'StreamControlMode',
     'StreamFilters', 'StreamPersistence', 'StreamRawLLM', 'StreamScrubber',
     'StreamTurnCards', 'ThreatDetector', 'TriggerGraph', 'TriggerTypes',
+    'DatasetCollector',
     'TurnFeed', 'TurnQueue', 'VitalThresholds', 'WayAuthoring',
     'WorldExport', 'agent', 'agentLens', 'copyPromptToClipboard',
     'durabilityChip', 'escapeForHtmlAttribute', 'eventStream',
