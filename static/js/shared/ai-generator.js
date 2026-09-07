@@ -63,13 +63,63 @@ const AIGenerator = {
                 return { success: true, data: parsed.json, raw: parsed.raw, error: null };
             }
 
+            // Heuristics (extract + repairJSON) gave up — hand the broken JSON
+            // and the parser's complaint back to the LLM and let it fix itself.
+            if (typeof events !== 'undefined' && events.log) {
+                events.log('⚙️ Heuristic JSON repair failed — asking the LLM to fix the response.', 'system-msg');
+            }
+            const aiRepaired = await this._repairJSONWithAI(parsed.raw, parsed.error);
+            if (aiRepaired) {
+                const reparsed = parseJSONFromResponse(aiRepaired.raw);
+                if (reparsed.json) {
+                    return { success: true, data: reparsed.json, raw: reparsed.raw, error: null };
+                }
+            }
+
             return { success: false, data: null, raw: response, error: 'Failed to parse JSON from response' };
         } catch (err) {
             return { success: false, data: null, raw: response || '', error: err.message || 'Unknown error' };
         }
     },
 
-    /** Convenience: generate and populate form fields via a setter callback.
+    /** AI repair fallback: when heuristic JSON repair fails, send the broken
+     *  JSON plus the parser error back to the LLM and ask it to return only
+     *  the corrected JSON object. Returns { raw, error } (raw re-parsed by
+     *  the caller) or null when the LLM is unavailable / also fails. */
+    async _repairJSONWithAI(brokenJSON, parserError) {
+        if (!brokenJSON) return null;
+        if (typeof llmClient === 'undefined' || !llmClient) return null;
+        const repairSystem = 'You fix malformed JSON objects produced by another language model. '
+            + 'Given the invalid JSON and a parser error message, return ONLY the corrected, '
+            + 'valid single JSON object. Preserve every field and value — fix only the syntax '
+            + 'structure (brackets, braces, quotes, commas). No markdown, no code fences, no commentary.';
+        const repairPrompt = 'Here is the JSON I received:\n\n'
+            + brokenJSON
+            + '\n\nIt is invalid. Here is the parser error I got:\n'
+            + (parserError ? parserError : 'unknown')
+            + '\n\nThis JSON is invalid. Identify and fix the issue based on the error message, '
+            + 'and RETURN ONLY the corrected JSON object.';
+        try {
+            const repaired = await llmClient.chat([
+                { role: 'system', content: repairSystem },
+                { role: 'user', content: repairPrompt }
+            ], {
+                temperature: 0,
+                // json_object tier: keep whatever the primary call used — the
+                // client already strips this when the provider rejects it.
+                responseFormat: window.StructuredFormats?.jsonObject || null
+            });
+            if (!repaired) return null;
+            return { raw: String(repaired).trim() };
+        } catch (err) {
+            if (typeof events !== 'undefined' && events.log) {
+                events.log('⚡ AI JSON repair attempted but failed: ' + (err.message || err), 'error-msg');
+            }
+            return null;
+        }
+    },
+
+    /** Convenience: generate and populate result via a setter callback.
      *  Returns { success, data } or shows error toast. */
     async generateAndPopulate(userPrompt, systemMessage, setFormData, options = {}) {
         const result = await this.generate(userPrompt, systemMessage, options);
