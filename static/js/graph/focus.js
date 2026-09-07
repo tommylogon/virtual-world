@@ -301,11 +301,27 @@ window.GraphFocus = {
     /** Sync the toolbar checkbox (and manager flag) with persisted state. */
     init() {
         const on = GraphFocus.isKeepInPlace();
-        graphManager._searchKeepInPlace = on;
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => GraphFocus._applyCheckbox(on));
-        } else {
+        // graphManager may not be defined at script-eval time (load order).
+        // Store the flag on the global only once it exists; the checkbox can
+        // be applied once the DOM is ready.
+        const sync = () => {
+            if (typeof graphManager !== 'undefined' && graphManager) {
+                graphManager._searchKeepInPlace = on;
+            }
             GraphFocus._applyCheckbox(on);
+        };
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', sync);
+        } else if (typeof graphManager === 'undefined' || !graphManager) {
+            // graphManager loads after this script; sync once it exists.
+            const handler = () => { if (typeof graphManager !== 'undefined' && graphManager) sync(); };
+            if (typeof appEvents !== 'undefined' && appEvents.on) {
+                appEvents.on('state:updated', handler);
+                // Guarded by the typeof check above, so once graphManager exists
+                // the checkbox is applied and later handlers are no-ops.
+            }
+        } else {
+            sync();
         }
     },
 
