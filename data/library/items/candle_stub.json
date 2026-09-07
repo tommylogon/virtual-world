@@ -1,19 +1,150 @@
 {
-  "name": "candle_stub",
-  "description": "a candle stub on the bedside table, burned down to almost nothing. the wax is still slightly warm.",
-  "actions": "examine,take,drop",
-  "uses": 1,
-  "weight": 0.05,
+  "actions": "examine,take,drop,use",
+  "contents": [],
   "current_state": "normal",
-  "light_level": "dim",
-  "defense": 0,
   "damage": 0,
+  "defense": 0,
+  "description": "a candle stub on the bedside table, burned down to almost nothing. the wax is still slightly warm.",
   "insulation": 0,
+  "light_level": "dim",
+  "name": "candle_stub",
   "tags": [
     "candle",
     "light_source",
     "fire"
   ],
-  "triggers": [],
-  "contents": []
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "message": "You try to light the candle stub, but the wick is too short and charred to catch a flame."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {
+        "operator": "and",
+        "conditions": [
+          {
+            "type": "uses_above",
+            "value": 0
+          }
+        ]
+      },
+      "success_message": "",
+      "fail_message": "The candle stub is too depleted to be lit."
+    },
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "A candle stub, burned down to almost nothing. The wax is still slightly warm to the touch, and the wick is blackened and curled."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_take",
+      "effects": [
+        {
+          "params": {
+            "message": "You pick up the candle stub. It's warm, and a faint smell of smoke clings to the wax."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_drop",
+      "effects": [
+        {
+          "params": {
+            "message": "You set the candle stub back down on the bedside table."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_light",
+      "effects": [
+        {
+          "params": {
+            "message": "With a flick of your thumb, the wick catches. A small, steady flame blooms, casting soft shadows on the walls."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {
+        "operator": "and",
+        "conditions": [
+          {
+            "type": "uses_above",
+            "value": 0
+          }
+        ]
+      },
+      "success_message": "",
+      "fail_message": "The wick is too short to ignite."
+    },
+    {
+      "trigger_type": "on_toggle_off",
+      "effects": [
+        {
+          "params": {
+            "message": "You pinch the flame out. The room goes dark, and the smell of burnt wax lingers."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {
+        "operator": "and",
+        "conditions": [
+          {
+            "target": "self",
+            "type": "state_equals",
+            "value": "lit"
+          }
+        ]
+      },
+      "success_message": "",
+      "fail_message": "The candle is not lit."
+    }
+  ],
+  "uses": 6,
+  "weight": 0.05
 }

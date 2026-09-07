@@ -22,7 +22,10 @@ function extractTopLevelJSON(text) {
 }
 
 /** Strip code fences (```json ... ```) and extract JSON from a response string.
- *  Returns {json, raw} where json is the parsed object or null, raw is the extracted string. */
+ *  Returns {json, raw} where json is the parsed object or null, raw is the extracted string.
+ *  Falls back to repairJSON when the clean extract fails, so slightly-broken
+ *  model output (stray trailing chars, wrapped prefix/suffix, missing commas)
+ *  is salvaged instead of surfacing a hard parse error. */
 function parseJSONFromResponse(response) {
     if (!response) return { json: null, raw: '' };
     let content = response.trim();
@@ -35,6 +38,17 @@ function parseJSONFromResponse(response) {
     try {
         return { json: JSON.parse(content), raw: content };
     } catch {
+        // Try the aggressive repair path (handles missing commas, trailing
+        // commas, raw control chars, unbalanced brackets, wrapped JSON).
+        if (typeof repairJSON === 'function') {
+            try {
+                const repaired = repairJSON(content);
+                const repairedContent = extractTopLevelJSON(repaired);
+                return { json: JSON.parse(repairedContent), raw: repairedContent };
+            } catch {
+                /* fall through to null */
+            }
+        }
         return { json: null, raw: content };
     }
 }

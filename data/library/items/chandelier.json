@@ -1,20 +1,72 @@
 {
-  "name": "chandelier",
-  "description": "a crystal chandelier thick with cobwebs. it creaks ominously above you, swaying slightly despite no draft.",
-  "actions": "examine",
-  "uses": -1,
-  "weight": 50,
+  "actions": "use,examine",
+  "contents": [],
   "current_state": "normal",
-  "light_level": "dim",
-  "defense": 0,
   "damage": 0,
+  "defense": 0,
+  "description": "a crystal chandelier thick with cobwebs. it creaks ominously above you, swaying slightly despite no draft.",
   "insulation": 0,
+  "light_level": "dim",
+  "name": "chandelier",
   "tags": [
     "light_source",
     "crystal",
     "glass",
     "furniture"
   ],
-  "triggers": [],
-  "contents": []
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "The crystal chandelier is thick with cobwebs, its facets dulled by years of dust. It creaks ominously above you, swaying slightly despite the still air."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "chandelier",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "params": {
+            "message": "You reach up and give the chandelier a firm tug. With a groan of protesting metal, it detaches from the ceiling and crashes to the floor in a glittering explosion of glass."
+          },
+          "type": "message"
+        },
+        {
+          "params": {
+            "amount": 10,
+            "save": {
+              "dc": 14,
+              "on_success": "half",
+              "stat": "DEX"
+            },
+            "target": "self"
+          },
+          "type": "damage"
+        },
+        {
+          "params": {
+            "node_id": "self",
+            "state": "broken"
+          },
+          "type": "set_state"
+        }
+      ],
+      "target_name": "chandelier",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "uses": -1,
+  "weight": 50
 }

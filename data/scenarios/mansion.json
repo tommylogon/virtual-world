@@ -5976,7 +5976,8 @@
           "actions": [
             "examine",
             "take",
-            "drop"
+            "drop",
+            "use"
           ],
           "description": "a candle stub on the bedside table, burned down to almost nothing. the wax is still slightly warm.",
           "hidden": false,
@@ -5986,11 +5987,14 @@
             "light_source",
             "fire"
           ],
-          "uses": 1,
-          "weight": 0.05
+          "uses": 6,
+          "weight": 0.05,
+          "light_level": "dim",
+          "max_uses": 15,
+          "library_id": "candle_stub"
         },
         "created": 1784318436.3252974,
-        "updated": 1784318436.3252974
+        "updated": 1788808636.3099172
       },
       "item_candlestick": {
         "id": "item_candlestick",
@@ -6120,6 +6124,7 @@
         "properties": {
           "action_costs": {},
           "actions": [
+            "use",
             "examine"
           ],
           "description": "a crystal chandelier thick with cobwebs. it creaks ominously above you, swaying slightly despite no draft.",
@@ -6135,7 +6140,7 @@
           "weight": 50
         },
         "created": 1784318436.318297,
-        "updated": 1784318436.318297
+        "updated": 1788808679.0008378
       },
       "item_child_bed": {
         "id": "item_child_bed",
@@ -14230,6 +14235,375 @@
         },
         "created": 1788775128.9148862,
         "updated": 1788775128.9148862
+      },
+      "trigger_1788803117076_iik8": {
+        "id": "trigger_1788803117076_iik8",
+        "type": "logic_trigger",
+        "name": "on_examine → message",
+        "properties": {
+          "trigger_type": "on_examine",
+          "target_name": "candlestick",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "message": "You examine the candlestick.\n\nA heavy silver candlestick, one of a set of eight. This one is slightly bent, as if it was used to strike something. There's a dark stain near the base."
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788803117.1177099,
+        "updated": 1788803117.1177099
+      },
+      "trigger_1788803117077_ro7y": {
+        "id": "trigger_1788803117077_ro7y",
+        "type": "logic_trigger",
+        "name": "on_take → message",
+        "properties": {
+          "trigger_type": "on_take",
+          "target_name": "candlestick",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "message": "You pick up the heavy silver candlestick. It's colder than it should be, and faintly tarnished near where that dark stain sits."
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788803117.1177099,
+        "updated": 1788803117.1177099
+      },
+      "trigger_1788803117077_llex": {
+        "id": "trigger_1788803117077_llex",
+        "type": "logic_trigger",
+        "name": "on_drop → message",
+        "properties": {
+          "trigger_type": "on_drop",
+          "target_name": "candlestick",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "message": "You drop the candlestick. It clatters against the floor with an odd, dull thud."
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788803117.1177099,
+        "updated": 1788803117.1177099
+      },
+      "trigger_1788803117077_sspd": {
+        "id": "trigger_1788803117077_sspd",
+        "type": "logic_trigger",
+        "name": "on_light → message",
+        "properties": {
+          "trigger_type": "on_light",
+          "target_name": "candlestick",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "message": "You hold the candlestick up to catch any available light, but its bent form and dark stain make it hard to see clearly."
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788803117.1177099,
+        "updated": 1788803117.1177099
+      },
+      "trigger_1788803117077_wezl": {
+        "id": "trigger_1788803117077_wezl",
+        "type": "logic_trigger",
+        "name": "on_toggle_on → message",
+        "properties": {
+          "trigger_type": "on_toggle_on",
+          "target_name": "candlestick",
+          "target_state": "on",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "message": "You light the wick and coax a small flame into life. The candlestick glows with a warm, flickering silver light."
+            },
+            {
+              "type": "set_environment",
+              "node_id": "current_area",
+              "light": 40
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788803117.1177099,
+        "updated": 1788803117.1177099
+      },
+      "trigger_1788803117077_zqj0": {
+        "id": "trigger_1788803117077_zqj0",
+        "type": "logic_trigger",
+        "name": "on_toggle_off → message",
+        "properties": {
+          "trigger_type": "on_toggle_off",
+          "target_name": "candlestick",
+          "target_state": "off",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "message": "The flame sputters and dies. The candlestick falls dark and cold in your hand."
+            },
+            {
+              "type": "set_environment",
+              "node_id": "current_area",
+              "light": 15
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788803117.1177099,
+        "updated": 1788803117.1177099
+      },
+      "trigger_1788808378924_hj53": {
+        "id": "trigger_1788808378924_hj53",
+        "type": "logic_trigger",
+        "name": "on_use → ?",
+        "properties": {
+          "trigger_type": "on_use",
+          "effects": [],
+          "conditions": [],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788808378.9261358,
+        "updated": 1788808378.9261358
+      },
+      "trigger_1788808613875_mv6c": {
+        "id": "trigger_1788808613875_mv6c",
+        "type": "logic_trigger",
+        "name": "on_use → message",
+        "properties": {
+          "trigger_type": "on_use",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [
+            {
+              "type": "uses_above",
+              "value": 0
+            }
+          ],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You try to light the candle stub, but the wick is too short and charred to catch a flame."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": "The candle stub is too depleted to be lit."
+        },
+        "created": 1788808613.9273038,
+        "updated": 1788808613.9273038
+      },
+      "trigger_1788808613875_pdvu": {
+        "id": "trigger_1788808613875_pdvu",
+        "type": "logic_trigger",
+        "name": "on_examine → message",
+        "properties": {
+          "trigger_type": "on_examine",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "A candle stub, burned down to almost nothing. The wax is still slightly warm to the touch, and the wick is blackened and curled."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788808613.9273038,
+        "updated": 1788808613.9273038
+      },
+      "trigger_1788808613875_z49u": {
+        "id": "trigger_1788808613875_z49u",
+        "type": "logic_trigger",
+        "name": "on_take → message",
+        "properties": {
+          "trigger_type": "on_take",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You pick up the candle stub. It's warm, and a faint smell of smoke clings to the wax."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788808613.9273038,
+        "updated": 1788808613.9273038
+      },
+      "trigger_1788808613875_ht41": {
+        "id": "trigger_1788808613875_ht41",
+        "type": "logic_trigger",
+        "name": "on_drop → message",
+        "properties": {
+          "trigger_type": "on_drop",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You set the candle stub back down on the bedside table."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788808613.9273038,
+        "updated": 1788808613.9273038
+      },
+      "trigger_1788808613875_yise": {
+        "id": "trigger_1788808613875_yise",
+        "type": "logic_trigger",
+        "name": "on_light → message",
+        "properties": {
+          "trigger_type": "on_light",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [
+            {
+              "type": "uses_above",
+              "value": 0
+            }
+          ],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "With a flick of your thumb, the wick catches. A small, steady flame blooms, casting soft shadows on the walls."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": "The wick is too short to ignite."
+        },
+        "created": 1788808613.9273038,
+        "updated": 1788808613.9273038
+      },
+      "trigger_1788808613875_cio2": {
+        "id": "trigger_1788808613875_cio2",
+        "type": "logic_trigger",
+        "name": "on_toggle_off → message",
+        "properties": {
+          "trigger_type": "on_toggle_off",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [
+            {
+              "type": "state_equals",
+              "target": "self",
+              "value": "lit"
+            }
+          ],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You pinch the flame out. The room goes dark, and the smell of burnt wax lingers."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": "The candle is not lit."
+        },
+        "created": 1788808613.9273038,
+        "updated": 1788808613.9273038
+      },
+      "trigger_1788808734540_clu5": {
+        "id": "trigger_1788808734540_clu5",
+        "type": "logic_trigger",
+        "name": "on_examine → message",
+        "properties": {
+          "trigger_type": "on_examine",
+          "target_name": "chandelier",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "The crystal chandelier is thick with cobwebs, its facets dulled by years of dust. It creaks ominously above you, swaying slightly despite the still air."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788808734.5895457,
+        "updated": 1788808734.5895457
+      },
+      "trigger_1788808734540_a6o1": {
+        "id": "trigger_1788808734540_a6o1",
+        "type": "logic_trigger",
+        "name": "on_use → message",
+        "properties": {
+          "trigger_type": "on_use",
+          "target_name": "chandelier",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You reach up and give the chandelier a firm tug. With a groan of protesting metal, it detaches from the ceiling and crashes to the floor in a glittering explosion of glass."
+              }
+            },
+            {
+              "type": "damage",
+              "params": {
+                "amount": 10,
+                "target": "self",
+                "save": {
+                  "stat": "DEX",
+                  "dc": 14,
+                  "on_success": "half"
+                }
+              }
+            },
+            {
+              "type": "set_state",
+              "params": {
+                "node_id": "self",
+                "state": "broken"
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788808734.5895457,
+        "updated": 1788808734.5895457
       }
     },
     "edges": [
@@ -20049,6 +20423,345 @@
         "target": "area_kitchen",
         "type": "in",
         "properties": {}
+      },
+      {
+        "source": "item_candlestick",
+        "target": "trigger_1788803117076_iik8",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine",
+          "target_name": "candlestick",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "message": "You examine the candlestick.\n\nA heavy silver candlestick, one of a set of eight. This one is slightly bent, as if it was used to strike something. There's a dark stain near the base."
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_candlestick",
+        "target": "trigger_1788803117077_ro7y",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_take",
+          "target_name": "candlestick",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "message": "You pick up the heavy silver candlestick. It's colder than it should be, and faintly tarnished near where that dark stain sits."
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_candlestick",
+        "target": "trigger_1788803117077_llex",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_drop",
+          "target_name": "candlestick",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "message": "You drop the candlestick. It clatters against the floor with an odd, dull thud."
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_candlestick",
+        "target": "trigger_1788803117077_sspd",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_light",
+          "target_name": "candlestick",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "message": "You hold the candlestick up to catch any available light, but its bent form and dark stain make it hard to see clearly."
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_candlestick",
+        "target": "trigger_1788803117077_wezl",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_toggle_on",
+          "target_name": "candlestick",
+          "target_state": "on",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "message": "You light the wick and coax a small flame into life. The candlestick glows with a warm, flickering silver light."
+            },
+            {
+              "type": "set_environment",
+              "node_id": "current_area",
+              "light": 40
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_candlestick",
+        "target": "trigger_1788803117077_zqj0",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_toggle_off",
+          "target_name": "candlestick",
+          "target_state": "off",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "message": "The flame sputters and dies. The candlestick falls dark and cold in your hand."
+            },
+            {
+              "type": "set_environment",
+              "node_id": "current_area",
+              "light": 15
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_candle_stub",
+        "target": "trigger_1788808378924_hj53",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_use",
+          "effects": [],
+          "conditions": [],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_candle_stub",
+        "target": "trigger_1788808613875_mv6c",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_use",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [
+            {
+              "type": "uses_above",
+              "value": 0
+            }
+          ],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You try to light the candle stub, but the wick is too short and charred to catch a flame."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": "The candle stub is too depleted to be lit."
+        }
+      },
+      {
+        "source": "item_candle_stub",
+        "target": "trigger_1788808613875_pdvu",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "A candle stub, burned down to almost nothing. The wax is still slightly warm to the touch, and the wick is blackened and curled."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_candle_stub",
+        "target": "trigger_1788808613875_z49u",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_take",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You pick up the candle stub. It's warm, and a faint smell of smoke clings to the wax."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_candle_stub",
+        "target": "trigger_1788808613875_ht41",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_drop",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You set the candle stub back down on the bedside table."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_candle_stub",
+        "target": "trigger_1788808613875_yise",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_light",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [
+            {
+              "type": "uses_above",
+              "value": 0
+            }
+          ],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "With a flick of your thumb, the wick catches. A small, steady flame blooms, casting soft shadows on the walls."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": "The wick is too short to ignite."
+        }
+      },
+      {
+        "source": "item_candle_stub",
+        "target": "trigger_1788808613875_cio2",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_toggle_off",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [
+            {
+              "type": "state_equals",
+              "target": "self",
+              "value": "lit"
+            }
+          ],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You pinch the flame out. The room goes dark, and the smell of burnt wax lingers."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": "The candle is not lit."
+        }
+      },
+      {
+        "source": "item_chandelier",
+        "target": "trigger_1788808734540_clu5",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine",
+          "target_name": "chandelier",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "The crystal chandelier is thick with cobwebs, its facets dulled by years of dust. It creaks ominously above you, swaying slightly despite the still air."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_chandelier",
+        "target": "trigger_1788808734540_a6o1",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_use",
+          "target_name": "chandelier",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You reach up and give the chandelier a firm tug. With a groan of protesting metal, it detaches from the ceiling and crashes to the floor in a glittering explosion of glass."
+              }
+            },
+            {
+              "type": "damage",
+              "params": {
+                "amount": 10,
+                "target": "self",
+                "save": {
+                  "stat": "DEX",
+                  "dc": 14,
+                  "on_success": "half"
+                }
+              }
+            },
+            {
+              "type": "set_state",
+              "params": {
+                "node_id": "self",
+                "state": "broken"
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
       }
     ]
   },
