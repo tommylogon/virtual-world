@@ -6,7 +6,7 @@ Next available numbers for new task/bug files.
 
 | Type | Highest number | Next available |
 |------|---------------|----------------|
-| task | 392           | 393            |
+| task | 396           | 397            |
 | bug  | 35            | 36             |
 
 ## Naming convention
@@ -43,6 +43,9 @@ links forced it):
 - Filed 2026-09-02: task-388 (trigger/behavior graph editor overhaul, todo/ui),
   task-389 + task-390 (NPC behavior phase 1/2, todo/characters — previously `task-xxx`
   placeholders)
+- Filed 2026-09-07 (inprogress): task-393 (validator triage panel, ui),
+  task-394 (graph search freeze + center, graph), task-395 (way-orientation bulk-fix, graph)
+- Filed 2026-09-07 (todo): task-396 (AI trigger prompt examples, triggers)
 
 ## Known historical duplicates (all terminal â€” left as-is)
 

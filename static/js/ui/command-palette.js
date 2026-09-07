@@ -50,10 +50,15 @@ window.CommandPalette = (() => {
         const nodes = (worldState && worldState.graph && worldState.graph.nodes) || {};
         for (const [id, node] of Object.entries(nodes)) {
             if (!node || !node.type) continue;
+            const tags = node.properties?.tags;
+            const tagList = Array.isArray(tags)
+                ? tags.map(String)
+                : (tags ? String(tags).split(',').map(s => s.trim()).filter(Boolean) : []);
             out.push({
                 icon: NODE_ICONS[node.type] || '📌',
                 label: node.name || id,
-                sub: `${node.type} · ${id}`,
+                sub: tagList.length ? `${node.type} · ${id} · tags: ${tagList.join(', ')}` : `${node.type} · ${id}`,
+                tags: tagList.map(t => t.toLowerCase()),
                 run: () => {
                     try { graphManager.showNodeAndFocus(id); }
                     catch (e) { try { VW.inspector.showNode(id); } catch (e2) {} }
@@ -72,6 +77,8 @@ window.CommandPalette = (() => {
         else if (label.includes(' ' + q) || label.startsWith(q)) s = 6;
         else if (label.includes(q)) s = 5;
         else if (sub.includes(q)) s = 3;
+        else if ((entry.tags || []).some(t => t === q)) s = 8;
+        else if ((entry.tags || []).some(t => t.includes(q))) s = 4;
         return s;
     }
 
@@ -195,7 +202,7 @@ window.CommandPalette = (() => {
         box.style.cssText = 'background:var(--bg-card);border:1px solid var(--border);border-radius:12px;margin-top:90px;width:560px;max-width:92vw;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.5);';
         const input = document.createElement('input');
         input.type = 'text';
-        input.placeholder = 'Jump to a node, type an action…, or type "> …" to run the NL Editor (Ctrl+K)';
+        input.placeholder = 'Jump to a node (name or tag), type an action…, or type "> …" to run the NL Editor (Ctrl+K)';
         input.style.cssText = 'width:100%;font-size:14px;padding:12px 14px;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text);outline:none;box-sizing:border-box;';
         input.oninput = () => render(input.value);
         input.onkeydown = (ev) => {

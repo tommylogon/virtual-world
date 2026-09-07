@@ -340,13 +340,15 @@ class ItemLibrary {
             const conditions = t.conditions || [];
             const condHtml = TriggerEditor._renderConditionSummary(conditions).join(' ');
             const effectNames = effects.map(e => e.type).join(', ');
+            const ttRaw = t.trigger_type;
+            const ttLabel = Array.isArray(ttRaw) ? ttRaw.join(', ') : (ttRaw || '');
             const firstParams = effects[0]?.params || {};
             const successMsg = firstParams.success_message || firstParams.message || '';
             const failMsg = firstParams.fail_message || '';
             return itemLibraryHtmlTag`<div style="padding:6px 8px;background:var(--bg-inset);border-radius:4px;margin-bottom:4px;border-left:3px solid var(--orange);">
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;">
                     <div style="flex:1;min-width:0;">
-                        <div><span style="font-weight:600;font-size:11px;">${t.trigger_type}</span> <span style="font-size:10px;color:var(--text-muted);">→ ${effectNames}</span>${window.Lit.unsafeHTML(condHtml)}</div>
+                        <div><span style="font-weight:600;font-size:11px;">${ttLabel}</span> <span style="font-size:10px;color:var(--text-muted);">→ ${effectNames}</span>${window.Lit.unsafeHTML(condHtml)}</div>
                         ${successMsg ? itemLibraryHtmlTag`<div style="font-size:10px;color:var(--green);font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">✅ \u201C${successMsg}\u201D</div>` : ''}
                         ${failMsg ? itemLibraryHtmlTag`<div style="font-size:10px;color:var(--orange);font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">❌ \u201C${failMsg}\u201D</div>` : ''}
                         ${effects.length > 1 ? itemLibraryHtmlTag`<div style="font-size:9px;color:var(--text-muted);">${effects.length} effects</div>` : ''}
@@ -483,6 +485,8 @@ class ItemLibrary {
                     </h3>
                     <div style="display:flex;gap:3px;align-items:center;">
                         <button class="btn btn-sm" @click=${(e) => { e.stopPropagation(); VW.itemLib._openGraphEditor(); }} style="font-size:10px;padding:2px 8px;">🧩 Graph</button>
+                        <button class="btn btn-sm" @click=${(e) => { e.stopPropagation(); VW.itemLib.suggestTriggers(false, e.currentTarget); }} style="font-size:10px;padding:2px 8px;background:var(--bg-inset);border-color:var(--orange);color:var(--orange);" title="Suggest a full set of useful triggers from this item's name, tags and description (no AI)">⚡ Suggest</button>
+                        <button class="btn btn-sm" @click=${(e) => { e.stopPropagation(); VW.itemLib.suggestTriggers(true, e.currentTarget); }} style="font-size:10px;padding:2px 8px;background:var(--bg-inset);border-color:var(--blue);color:var(--blue);" title="Ask the LLM to suggest a full set of useful triggers (AI)">✨ Suggest (AI)</button>
                         <button class="btn btn-sm btn-blue" @click=${(e) => { e.stopPropagation(); VW.itemLib._addTrigger(); }} style="font-size:10px;padding:2px 8px;">➕ Add</button>
                         <span id="lib-trigger-toggle-icon" style="font-size:10px;color:var(--text-muted);">${hasTriggers ? '▼' : '▶'}</span>
                     </div>
@@ -596,6 +600,71 @@ class ItemLibrary {
         return [...itemOpts.values()]
             .sort((a, b) => a.value.localeCompare(b.value))
             .map(o => `<option value="${o.value}">${o.label}</option>`).join('');
+    }
+
+    /**
+     * Suggest — with the toggle `useAI`, either run the local heuristic suggester
+     * or the LLM-based AI trigger generator. Both are plan-driven (item actions
+     * decide WHICH triggers) and merge into the existing field via a review
+     * modal instead of a blind overwrite.
+     */
+    suggestTriggers(useAI = false, btn = null) {
+        if (useAI) {
+            if (typeof ItemLibraryAI === 'undefined' || typeof ItemLibraryAI.suggestTriggersWithAI !== 'function') {
+                if (typeof toastError === 'function') toastError('AI trigger suggester is not loaded.');
+                return;
+            }
+            ItemLibraryAI.suggestTriggersWithAI.call(this, btn);
+            return;
+        }
+        const field = document.getElementById('lib-item-triggers');
+        if (!field) return;
+        const Suggester = window.ItemLibraryTriggerSuggester;
+        if (typeof Suggester === 'undefined') {
+            if (typeof toastError === 'function') toastError('Trigger suggester is not loaded.');
+            return;
+        }
+        const label = document.getElementById('lib-item-name')?.value?.trim() || 'item';
+        const usesRaw = parseInt(document.getElementById('lib-item-uses')?.value || '-1');
+        const fields = {
+            name: label,
+            description: document.getElementById('lib-item-desc')?.value || '',
+            actions: (document.getElementById('lib-item-actions')?.value || '').split(',').map(s => s.trim()).filter(Boolean),
+            tags: Array.isArray(this._tagMs?.getValue()) ? this._tagMs.getValue() : [],
+            uses: Number.isNaN(usesRaw) ? -1 : usesRaw,
+        };
+
+        const existing = parseJsonSafely(field.value || '[]') || [];
+        const planTypes = Suggester.plan(fields);
+        const triggers = Suggester.generate(fields);
+
+        if (typeof window.TriggerSuggestDiff === 'undefined') {
+            if (typeof toastError === 'function') toastError('Trigger review UI is not loaded.');
+            return;
+        }
+        const rows = window.TriggerSuggestDiff.diff(existing, planTypes, triggers);
+        if (!rows.length) {
+            if (existing.length && typeof toastInfo === 'function') toastInfo('All planned triggers are already covered — nothing to change.');
+            else field.value = JSON.stringify(triggers);
+            this._refreshEditorWithTriggers();
+            return;
+        }
+        window.TriggerSuggestDiff.show({
+            title: '⚡ Review suggested triggers',
+            subtitle: `${label} — keep working triggers, swap conflicts per-row.`,
+            rows,
+            onApply: (result) => {
+                fields.actions = (document.getElementById('lib-item-actions')?.value || '').split(',').map(s => s.trim()).filter(Boolean);
+                fields.tags = Array.isArray(this._tagMs?.getValue()) ? this._tagMs.getValue() : [];
+                const merged = window.TriggerSuggestDiff.merge(
+                    parseJsonSafely(document.getElementById('lib-item-triggers')?.value || '[]') || [],
+                    result
+                );
+                document.getElementById('lib-item-triggers').value = JSON.stringify(merged);
+                this._refreshEditorWithTriggers();
+                events.log(`⚡ applied ${result.add.length + result.replace.length} suggested trigger${result.add.length + result.replace.length === 1 ? '' : 's'} (${result.keep.length} kept).`, 'system-msg');
+            },
+        });
     }
 
     _addTrigger() {

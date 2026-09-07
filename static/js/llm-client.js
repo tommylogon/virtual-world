@@ -401,13 +401,41 @@ class LLMClient {
                 if (data === '[DONE]' || currentEvent === 'chat.end') continue;
                 // Responses API has no [DONE] — terminate on response.completed / response.failed
                 if (isResponses && (currentEvent === 'response.completed' || currentEvent === 'response.failed')) {
+                    // Some local providers emit NO delta chunks — the whole
+                    // answer rides inside the final envelope as
+                    // { response: { output: [{ content: [{ text }] }] } }.
+                    // Pull it out so we don't return an empty string, and log
+                    // it to the event stream exactly like the non-responses
+                    // path does (task-396: without this, local Responses-API
+                    // models never surface their output as a chip).
+                    try {
+                        const env = JSON.parse(data);
+                        if (env && env.response) {
+                            const full = this._extractResponsesContent(env.response);
+                            if (full && !fullContent) fullContent = full;
+                        }
+                    } catch (e) {}
+                    fullContent = this._normalizeAssistantText(fullContent);
+                    if (VW?.events?.logRawLLMResponse && fullContent && !onChunk) {
+                        this._logAssistantResponse(label, fullContent);
+                    }
                     return fullContent;
                 }
                 try {
                     const parsed = JSON.parse(data);
                     let content;
                     if (isResponses) {
-                        if (parsed?.type === 'response.completed' || parsed?.type === 'response.failed') return fullContent;
+                        if (parsed?.type === 'response.completed' || parsed?.type === 'response.failed') {
+                            if (parsed.response) {
+                                const full = this._extractResponsesContent(parsed.response);
+                                if (full && !fullContent) fullContent = full;
+                            }
+                            fullContent = this._normalizeAssistantText(fullContent);
+                            if (VW?.events?.logRawLLMResponse && fullContent && !onChunk) {
+                                this._logAssistantResponse(label, fullContent);
+                            }
+                            return fullContent;
+                        }
                         content = parsed?.delta || parsed?.output_text || '';
                     } else {
                         // Content tokens only — ignore reasoning/thinking deltas (Nemotron, DeepSeek, etc.)

@@ -4,6 +4,23 @@
  * This centralises that pattern.
  */
 
+/** Extract the top-level JSON value (object OR array) from arbitrary text.
+ *  Models returning `[...]` arrays (e.g. the trigger suggester) must not have
+ *  their brackets stripped by brace-only extraction. */
+function extractTopLevelJSON(text) {
+    const s = String(text || '').trim();
+    const firstBracket = s.indexOf('[');
+    const firstBrace = s.indexOf('{');
+    if (firstBracket !== -1 && (firstBrace === -1 || firstBracket < firstBrace)) {
+        const lastBracket = s.lastIndexOf(']');
+        if (lastBracket > firstBracket) return s.substring(firstBracket, lastBracket + 1);
+    }
+    const firstB = s.indexOf('{');
+    const lastB = s.lastIndexOf('}');
+    if (firstB !== -1 && lastB > firstB) return s.substring(firstB, lastB + 1);
+    return s;
+}
+
 /** Strip code fences (```json ... ```) and extract JSON from a response string.
  *  Returns {json, raw} where json is the parsed object or null, raw is the extracted string. */
 function parseJSONFromResponse(response) {
@@ -13,12 +30,7 @@ function parseJSONFromResponse(response) {
     if (match) {
         content = match[1].trim();
     } else {
-        // Fallback: find first { and last }
-        const firstBrace = content.indexOf('{');
-        const lastBrace = content.lastIndexOf('}');
-        if (firstBrace !== -1 && lastBrace > firstBrace) {
-            content = content.substring(firstBrace, lastBrace + 1);
-        }
+        content = extractTopLevelJSON(content);
     }
     try {
         return { json: JSON.parse(content), raw: content };

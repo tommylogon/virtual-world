@@ -364,7 +364,7 @@ window.InspectorItemView = (() => {
         const current = IV._containerCurrentWeight(nodeId);
         const max = parseFloat(maxCap);
         if (!max || isNaN(max)) {
-            return `<span style="font-size:12px;color:var(--text-dim);">${current.toFixed(1)} kg</span>`;
+            return `<div style="font-size:12px;color:var(--text-dim);margin-top:2px;">${current.toFixed(1)} kg</div>`;
         }
         const ratio = Math.min(current / max, 1);
         const pct = (ratio * 100).toFixed(0);

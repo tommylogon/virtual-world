@@ -1,0 +1,77 @@
+{
+  "actions": "use,drink,take,drop,examine",
+  "contents": [],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "a half-full plastic water bottle. lukewarm but clean.",
+  "insulation": 0,
+  "light_level": "dim",
+  "name": "water_bottle",
+  "tags": [
+    "water",
+    "drink",
+    "supplies",
+    "container"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "params": {
+            "amount": -30,
+            "fail_message": "its empty",
+            "stat": "thirst",
+            "success_message": "you take a drink. lukewarm, but hydrating.",
+            "target": "self"
+          },
+          "type": "adjust_vital"
+        },
+        {
+          "params": {
+            "delta": -1,
+            "node_id": "self"
+          },
+          "type": "adjust_uses"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "you take a drink. lukewarm, but hydrating.",
+      "fail_message": "its empty"
+    },
+    {
+      "trigger_type": "on_take",
+      "effects": [],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_drop",
+      "effects": [],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": "on_examine",
+      "effects": [],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "uses": 2,
+  "weight": 0.5
+}

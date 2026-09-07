@@ -610,6 +610,46 @@ def _apply_batch_op(app, optype, p):
         node.updated = time.time()
         return {"status": "success"}
 
+    if optype == 'clear_way_fix_fields':
+        # task-395 (rework): undo the earlier invented bulk-fill that minted
+        # "north" cardinals and templated pass_messages/visible_in_direction
+        # onto ways. Removes ONLY values that match the exact generated
+        # template we wrote, so author-written text is never touched:
+        #   pass_message           == "You pass through <name>."
+        #   visible_in_direction   == "A glimpse of <area-name> beyond."
+        #   cardinal               == "north" AND the edge's direction command
+        #                            is NOT actually a cardinal (was a mint).
+        # Idempotent; returns how many fields were reverted.
+        wanted = set(p.get('way_ids') or [])
+        touched_ways = 0
+        touched_edges = 0
+        CARDINALS = {'north','south','east','west','northeast','northwest',
+                     'southeast','southwest','up','down'}
+        ways = [n for n in graph.nodes.values()
+                if n.type == 'way' and (not wanted or n.id in wanted)]
+        for node in ways:
+            props = node.properties
+            name = node.name or 'the way'
+            if str(props.get('pass_message') or '').strip() == f"You pass through {name}.":
+                props.pop('pass_message', None)
+                touched_ways += 1
+            for edge in graph.edges:
+                if edge.type != EDGE_CONNECTION or edge.target != node.id:
+                    continue
+                ep = edge.properties
+                changed = False
+                if str(ep.get('visible_in_direction') or '').strip() == f"A glimpse of {edge.source} beyond.":
+                    ep.pop('visible_in_direction', None)
+                    changed = True
+                direction = str(ep.get('direction') or '').strip().lower()
+                if str(ep.get('cardinal') or '').strip() == 'north' and direction not in CARDINALS:
+                    ep.pop('cardinal', None)
+                    changed = True
+                if changed:
+                    edge.properties = ep
+                    touched_edges += 1
+        return {"status": "success", "ways": touched_ways, "edges": touched_edges, "count": touched_ways + touched_edges}
+
     if optype == 'attach':
         src = graph._resolve_id(p.get('from_id')) or p.get('from_id')
         tgt = graph._resolve_id(p.get('to_id')) or p.get('to_id')

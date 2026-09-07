@@ -175,8 +175,46 @@ class TriggerValidator:
         issues.extend(self._validate_way_authoring(node_id))
         issues.extend(self._validate_mechanical_items(node_id))
         issues.extend(self._validate_library_sync(node_id))
+        issues = self._filter_ignored(issues)
         issues.sort(key=lambda i: SEVERITY_ORDER.get(i.get("severity"), 9))
         return issues
+
+    def _filter_ignored(self, issues: List[dict]) -> List[dict]:
+        """Drop issues a node's author dismissed (task-393).
+
+        A node carries ``ignored_issues`` — a list of validation codes the
+        author explicitly dismissed (work-in-progress state, deliberate
+        deviation, etc.). A dismissal carries ``_ignored_at`` (epoch when it
+        was written); if the node was edited AFTER that (``node.updated >
+        _ignored_at``) the dismissal expires and the issue resurfaces, so "I
+        dismissed it, then I changed the node" never silently hides a fresh
+        problem.
+        """
+        if not issues:
+            return issues
+        out: List[dict] = []
+        for issue in issues:
+            node_id = issue.get("source_node_id")
+            if not node_id:
+                out.append(issue)
+                continue
+            node = self.graph.get_node(node_id)
+            if node is None:
+                out.append(issue)
+                continue
+            props = node.properties or {}
+            ignored = props.get("ignored_issues") or []
+            if not ignored or issue.get("code") not in ignored:
+                out.append(issue)
+                continue
+            try:
+                ignored_at = float(props.get("_ignored_at") or 0)
+            except (TypeError, ValueError):
+                ignored_at = 0
+            edited_at = float(getattr(node, "updated", 0) or 0)
+            if edited_at > ignored_at:
+                out.append(issue)  # node touched since dismissal → resurface
+        return out
 
     def validate_trigger_props(
         self,
@@ -556,12 +594,16 @@ class TriggerValidator:
     # ─────────────────── Authoring / data checks ───────────────────
 
     def _validate_way_authoring(self, node_id: Optional[str] = None) -> List[dict]:
-        """Warn on ways missing description / pass message / cardinal / view
-        direction — the fields the map editor and narration rely on.
+        """Report on ways missing description / pass message / cardinal / view
+        direction — the fields the map editor and narration use.
 
-        Cardinal + view direction live on the area→way connection edges; the
-        reverse way→area "enter" edges only carry the direction command, so
-        only ``edge.target == node.id`` edges are validated."""
+        These are OPTIONAL helpers (the engine has runtime defaults for
+        pass_message and visible_in_direction, and cardinal only seeds map
+        layout), so they surface as ``info`` nudges, not warnings. Cardinal +
+        view direction live on the area→way connection edges; the reverse
+        way→area "enter" edges only carry the direction command, so only
+        ``edge.target == node.id`` edges are checked.
+        """
         issues: List[dict] = []
         for node in self.graph.nodes.values():
             if node.type != "way":
@@ -573,8 +615,9 @@ class TriggerValidator:
             for field in WAY_NODE_FIELDS:
                 if not str(props.get(field) or "").strip():
                     issues.append(self._issue(
-                        "warning", f"way_missing_{field}",
-                        f"Way {label} has no {field.replace('_', ' ')}.",
+                        "info", f"way_missing_{field}",
+                        f"Way {label} has no {field.replace('_', ' ')} "
+                        f"(engine falls back to its default).",
                         source_node_id=node.id,
                     ))
             for edge in self.graph.edges:
@@ -583,16 +626,18 @@ class TriggerValidator:
                 eprops = edge.properties or {}
                 if not str(eprops.get("cardinal") or "").strip():
                     issues.append(self._issue(
-                        "warning", "way_missing_cardinal",
+                        "info", "way_missing_cardinal",
                         f"Way {label} side '{edge.source}->{node.id}' has no "
-                        f"cardinal direction — the map can't orient it.",
+                        f"cardinal direction — the map falls back to a layout "
+                        f"without a compass bearing.",
                         source_node_id=node.id,
                     ))
                 if not str(eprops.get("visible_in_direction") or "").strip():
                     issues.append(self._issue(
-                        "warning", "way_missing_view_direction",
+                        "info", "way_missing_view_direction",
                         f"Way {label} side '{edge.source}->{node.id}' has no "
-                        f"view direction (visible_in_direction).",
+                        f"view direction (visible_in_direction) — the engine "
+                        f"just names the room beyond.",
                         source_node_id=node.id,
                     ))
         return issues

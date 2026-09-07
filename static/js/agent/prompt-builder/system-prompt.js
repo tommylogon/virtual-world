@@ -23,7 +23,7 @@ window.PromptBuilder = window.PromptBuilder || {};
 === ACTIONS ===
 Emit ONE action per response as a structured object. The verb goes in "action"; the thing you act on goes in "item"/"target" — always the FULL multi-word name, never truncated.
 
-Your turn context lists the actions available to you right now in === AVAILABLE ACTIONS ===, with concrete targets. Act on what's listed there. Always available: examine, look, inventory, stats, wait.
+Your turn context shows what's around you — each item, door, exit, person, and carried/worn thing already lists the actions you can take with it. === AVAILABLE ACTIONS === lists the remaining actions you can take this turn. Always available: examine, look, inventory, stats, wait.
 
 ## Rules
 - "use" is for self-use items (Create Flame, candles, food, drink). Use "use_on" only when the item must be used on something else.

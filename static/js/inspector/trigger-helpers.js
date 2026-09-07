@@ -145,13 +145,16 @@ window.InspectorTriggers = (() => {
                 <div style="display:flex;gap:3px;">
                     <button class="btn btn-sm" @click=${() => T._openGraphEditor(nodeId)} style="font-size:10px;">🧩 Graph</button>
                     <button class="btn btn-sm" @click=${() => T.validateNode(nodeId)} style="font-size:10px;" title="Scan this node's triggers for broken references">⚠ Validate</button>
+                    <button class="btn btn-sm" @click=${(e) => T.suggestForNode(nodeId, false, e.currentTarget)} style="font-size:10px;background:var(--bg-inset);border-color:var(--orange);color:var(--orange);" title="Suggest a full set of useful triggers from this node (no AI)">⚡ Suggest</button>
+                    <button class="btn btn-sm" @click=${(e) => T.suggestForNode(nodeId, true, e.currentTarget)} style="font-size:10px;background:var(--bg-inset);border-color:var(--blue);color:var(--blue);" title="Ask the LLM to suggest a full set of useful triggers (AI)">✨ Suggest (AI)</button>
                     <button class="btn btn-sm btn-blue" @click=${() => VW.inspector._addTriggerToNode(nodeId)}>➕ Add</button>
                 </div>
             </h3>
             <div style="max-height:300px;overflow-y:auto;">
                 ${triggers.length > 0
                     ? triggers.map((trigger) => {
-                const triggerType = trigger.properties?.trigger_type || '?';
+                const rawTriggerType = trigger.properties?.trigger_type || '?';
+                const triggerType = Array.isArray(rawTriggerType) ? rawTriggerType.join(', ') : rawTriggerType;
                 const effectsList = trigger.properties?.effects || [];
                 const conditionsList = trigger.properties?.conditions || [];
                 const firstEff = effectsList[0] || {};
@@ -270,7 +273,7 @@ window.InspectorTriggers = (() => {
         const persistCompiled = async (compiled) => {
             if (!compiled) return;
             const typeLabel = Array.isArray(compiled.trigger_type)
-                ? compiled.trigger_type.join('+')
+                ? compiled.trigger_type.join(', ')
                 : (compiled.trigger_type || 'custom');
             const triggerName = `${typeLabel} → ${compiled.effects?.[0]?.type || '?'}`;
 
@@ -317,6 +320,253 @@ window.InspectorTriggers = (() => {
                 await persistCompiled(compiled);
             }
         });
+    };
+
+    /**
+     * Collect the trigger edges (source node → logic_trigger) for a node.
+     * @param {string} nodeId - Graph node ID
+     * @returns {Array} trigger edges
+     */
+    T._getNodeTriggers = function(nodeId) {
+        const out = [];
+        const lower = String(nodeId).toLowerCase();
+        if (worldState.graph?.edges) {
+            for (const edge of worldState.graph.edges) {
+                if (String(edge.source).toLowerCase() === lower && edge.type === 'triggers') {
+                    out.push(edge);
+                }
+            }
+        }
+        return out;
+    };
+
+    /**
+     * Create a logic_trigger node + triggers edge for a node, mirroring the
+     * save path in inspector._addTriggerToNode.
+     * @param {string} nodeId - Source node ID
+     * @param {object} data   - Trigger data ({ trigger_type, effects, conditions, ... })
+     */
+    T.createTriggerOnNode = async function(nodeId, data) {
+        const triggerId = `trigger_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+        const typeLabel = Array.isArray(data.trigger_type) ? data.trigger_type.join(', ') : (data.trigger_type || 'custom');
+        const name = (data.name || '').trim() || `${typeLabel} → ${data.effects?.[0]?.type || '?'}`;
+        const nodeRes = await ApiClient.createNode({
+            id: triggerId,
+            type: 'logic_trigger',
+            name,
+            properties: data
+        });
+        if (nodeRes?.error) {
+            console.warn('[suggestForNode] trigger node create failed:', nodeRes.error);
+            return;
+        }
+        await ApiClient.createEdge(nodeId, triggerId, 'triggers', data);
+    };
+
+    /**
+     * Build input fields for the trigger suggesters from a live graph node.
+     * @param {string} nodeId - Graph node ID
+     * @returns {object} { kind, name, description, tags, actions, uses, current_state, requires }
+     */
+    T._suggestFieldsForNode = function(nodeId) {
+        const node = worldState.getNode(nodeId);
+        if (!node) return null;
+        const props = node.properties || {};
+        const actions = Array.isArray(props.actions)
+            ? props.actions
+            : (typeof props.actions === 'string' ? props.actions.split(',').map(s => s.trim()).filter(Boolean) : []);
+        const usesRaw = parseInt(props.uses ?? -1);
+        return {
+            kind: node.type,
+            name: node.name || nodeId,
+            description: props.description || '',
+            tags: Array.isArray(props.tags) ? props.tags : [],
+            actions,
+            uses: Number.isNaN(usesRaw) ? -1 : usesRaw,
+            current_state: props.current_state || '',
+            requires: props.requires || '',
+        };
+    };
+
+    /**
+     * ⚡ Suggest / ✨ Suggest (AI) — item / way / area inspector.
+     *
+     * Plan-driven: the heuristic computes WHICH trigger types the item's
+     * actions call for (planForNode). The heuristic authors them directly; the
+     * AI authors the same types (missing ones backfilled from the heuristic
+     * floor). Result is diffed against existing triggers and shown in a review
+     * modal — per-trigger keep/use-suggested/skip — never a blind overwrite.
+     */
+    T.suggestForNode = async function(nodeId, useAI, btn) {
+        const Suggester = window.ItemLibraryTriggerSuggester;
+        const fields = T._suggestFieldsForNode(nodeId);
+        if (!fields) {
+            if (typeof toastInfo === 'function') toastInfo('Node not found.');
+            return;
+        }
+        const label = fields.name;
+        if (btn) {
+            btn.disabled = true;
+            btn.dataset.old = btn.textContent;
+            btn.textContent = '⏳…';
+        }
+        try {
+            const planTypes = Suggester ? Suggester.planForNode(fields.kind, fields) : null;
+            const heuristicFloor = Suggester ? Suggester.suggestForNode(fields.kind, fields) : [];
+            const floorByType = new Map(heuristicFloor.map(t => [t.trigger_type, t]));
+
+            let triggers = null;
+            if (useAI) {
+                if (!window.TriggerSuggestAI || typeof window.TriggerSuggestAI.suggest !== 'function') {
+                    if (typeof toastError === 'function') toastError('AI trigger suggester is not loaded.');
+                    return;
+                }
+                triggers = await window.TriggerSuggestAI.suggest(fields, fields.kind, planTypes);
+                if (triggers === null) return;
+                // Backfill any planned type the model skipped from the heuristic
+                // floor, so the suggested set always matches the plan.
+                if (planTypes) {
+                    const have = new Set(triggers.map(t => t.trigger_type));
+                    for (const type of planTypes) {
+                        if (!have.has(type) && floorByType.has(type)) {
+                            triggers.push(floorByType.get(type));
+                            have.add(type);
+                        }
+                    }
+                }
+            } else {
+                if (!Suggester) {
+                    if (typeof toastError === 'function') toastError('Trigger suggester is not loaded.');
+                    return;
+                }
+                triggers = heuristicFloor.length ? heuristicFloor : Suggester.suggestForNode(fields.kind, fields);
+            }
+            if (!triggers || !triggers.length) {
+                if (typeof toastInfo === 'function') toastInfo('No triggers suggested for this node.');
+                return;
+            }
+
+            // Diff against what already exists on the node.
+            const existingData = T._getNodeTriggerData(nodeId);
+            const rows = (window.TriggerSuggestDiff && planTypes)
+                ? window.TriggerSuggestDiff.diff(existingData, planTypes, triggers)
+                : [];
+            if (!window.TriggerSuggestDiff || !rows.length) {
+                if (existingData.length) {
+                    if (typeof toastInfo === 'function' && rows.length === 0) toastInfo('All planned triggers are already covered — nothing to change.');
+                } else if (!confirm(`Add ${triggers.length} suggested trigger${triggers.length === 1 ? '' : 's'} to "${label}"?`)) return;
+            }
+
+            const apply = async (result) => {
+                await T._applyTriggerDiff(nodeId, existingData, result);
+                worldState.fetch().then(() => {
+                    if (window.VW?.inspector) window.VW.inspector.showNode(nodeId);
+                });
+                if (typeof events !== 'undefined' && events.log) {
+                    const added = result.add.length + result.replace.length;
+                    events.log(`${useAI ? '🤖 AI-' : '⚡ '}applied ${added} suggested trigger${added === 1 ? '' : 's'} on "${label}" (${result.keep.length} kept).`, 'system-msg');
+                }
+            };
+
+            if (window.TriggerSuggestDiff && rows.length) {
+                window.TriggerSuggestDiff.show({
+                    title: useAI ? '🤖 Review AI-suggested triggers' : '⚡ Review suggested triggers',
+                    subtitle: `${label} — keep existing triggers you already like; conflicts pick per-row.`,
+                    rows,
+                    onApply: apply,
+                });
+            } else if (rows.length === 0 && !existingData.length) {
+                await apply({ keep: [], replace: [], add: triggers.map(t => ({ type: t.trigger_type, data: t })) });
+            }
+        } catch (err) {
+            console.error(err);
+            if (typeof toastError === 'function') toastError('Trigger suggestion failed: ' + err.message);
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = btn.dataset?.old || (useAI ? '✨ Suggest (AI)' : '⚡ Suggest');
+                delete btn.dataset.old;
+            }
+        }
+    };
+
+    /**
+     * Read the trigger data currently attached to a node (edge → logic_trigger
+     * node properties), for diffing against suggestions.
+     * @param {string} nodeId - Graph node ID
+     * @returns {Array} [{ trigger_type, effects, conditions, ... }]
+     */
+    T._getNodeTriggerData = function(nodeId) {
+        const out = [];
+        for (const edge of T._getNodeTriggers(nodeId)) {
+            const tn = worldState.getNode(edge.target);
+            if (tn && tn.type === 'logic_trigger' && tn.properties) {
+                out.push(tn.properties);
+            }
+        }
+        return out;
+    };
+
+    /**
+     * Apply a diff-modal result to a node's trigger edges — as ONE batched
+     * /api/graph/batch request (single undo snapshot, single state reload)
+     * instead of N sequential create/delete round-trips.
+     * @param {string} nodeId
+     * @param {Array} existingData - the pre-existing trigger data
+     * @param {object} result - { keep: [types], replace: [{type,data}], add: [{type,data}] }
+     */
+    T._applyTriggerDiff = async function(nodeId, existingData, result) {
+        const toTypeKey = (t) => Array.isArray(t) ? t.join(',') : String(t || '');
+        const wanted = new Set(result.keep);
+        result.replace.forEach(r => wanted.add(r.type));
+        result.add.forEach(r => wanted.add(r.type));
+
+        const ops = [];
+        const deletes = [];
+
+        // Delete existing triggers we're NOT keeping (replaced or skipped).
+        for (const edge of T._getNodeTriggers(nodeId)) {
+            const tn = worldState.getNode(edge.target);
+            if (!tn || tn.type !== 'logic_trigger' || !tn.properties) continue;
+            const k = toTypeKey(tn.properties.trigger_type);
+            if (wanted.has(k)) continue;
+            ops.push({ type: 'delete_node', payload: { node_id: edge.target } });
+            deletes.push(edge.target);
+        }
+
+        // Create replacements + additions (new trigger node + triggers edge).
+        const makeName = (data) => {
+            const typeLabel = toTypeKey(data.trigger_type);
+            return (data.name || '').trim() || `${typeLabel} → ${data.effects?.[0]?.type || '?'}`;
+        };
+        const addItems = [...result.replace, ...result.add];
+        for (const { data } of addItems) {
+            const triggerId = `trigger_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+            ops.push({ type: 'create_node', payload: { node: { id: triggerId, type: 'logic_trigger', name: makeName(data), properties: data } } });
+            ops.push({ type: 'attach', payload: { from_id: nodeId, to_id: triggerId, relation: 'triggers', properties: data } });
+        }
+
+        // Prefer the atomic backend batch; fall back to sequential calls if the
+        // batch endpoint is unavailable or returned failures.
+        if (ops.length) {
+            let batchOk = true;
+            try {
+                const res = await ApiClient.batchGraph(ops);
+                const failed = res && Array.isArray(res.errors) && res.errors.length;
+                if (res && failed) {
+                    console.warn('[suggestForNode] batch partial failure:', res.errors);
+                }
+                batchOk = !!res && !failed && res.status === 'success';
+            } catch (e) {
+                console.warn('[suggestForNode] batch endpoint failed, falling back to sequential:', e.message);
+                batchOk = false;
+            }
+            if (!batchOk) {
+                // Sequential fallback: delete, then create.
+                for (const id of deletes) { try { await ApiClient.deleteNode(id); } catch (e) {} }
+                for (const { data } of addItems) await T.createTriggerOnNode(nodeId, data);
+            }
+        }
     };
 
     /**

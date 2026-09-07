@@ -1,10 +1,11 @@
 /**
- * prompt-builder/contextual-actions.js — Per-turn action availability.
+ * prompt-builder/contextual-actions.js — Non-redundant action availability.
  *
- * Computes, from the current world state, the actions a character can take right
- * now, plus per-item action brackets. This is the "contextual" replacement for
- * the old static ACTIONS table: instead of a wall of verbs, the agent is told
- * exactly what it can do this turn, with concrete targets from the room.
+ * Computes the === AVAILABLE ACTIONS === block: only the actions that aren't
+ * already bracketed on doors/items/people in the room context (the universal
+ * set: person interactions, conditional verbs, requirement passage verbs, and
+ * the always-on examine-room/look/inventory/stats/wait). This is the
+ * "contextual" replacement for the old static ACTIONS table.
  *
  * Gating is guidance, not enforcement — the backend still resolves verbs
  * leniently, so a missed gate only hides a verb from the prompt, never breaks
@@ -199,9 +200,12 @@ window.PromptBuilder = window.PromptBuilder || {};
     /**
      * Build the per-turn `=== AVAILABLE ACTIONS ===` block for a character.
      *
-     * Only verbs whose gate is true are listed, each with concrete targets from
-     * the current room. Mirrors the room-context exit/people/item data so the
-     * block agrees with the rest of the character's surroundings.
+     * Only NON-redundant actions are listed. The room context already brackets
+     * what you can do with each door, item, person, and carried/worn thing, so
+     * this block covers only self/universal actions: interacting with people,
+     * per-turn conditional verbs (escape/stand/rest/relieve/listen/fumble),
+     * requirement-gated passage verbs (crawl/climb/jump), and the always-on
+     * examine-room/look/inventory/stats/wait set.
      *
      * @param {Object} state - Full world state data (players / players_in_area / ...)
      * @param {string} charName - Character name
@@ -218,7 +222,6 @@ window.PromptBuilder = window.PromptBuilder || {};
         const hasDarkVision = traits.dark_vision === true || traits.darkvision === true;
         const vitals = player?.vitals || {};
         const carried = carriedItemNodes(charName);
-        const atWayId = player?.at_way_id || state.players?.[charName]?.at_way_id || null;
 
         const viewExits = (window.PromptBuilder?.viewerExits)
             ? window.PromptBuilder.viewerExits(state, charName, currentArea)
@@ -229,49 +232,12 @@ window.PromptBuilder = window.PromptBuilder || {};
             const doorNode = worldState.getNode(exitData.way_id);
             const handle = PromptBuilder.wayHandle({ ...exitData, label: dir }, doorNode, currentArea?.name) || dir;
             const req = String(doorNode?.properties?.requires || '').toLowerCase();
-            const wayState = exitData.state || 'closed';
-            const preventClose = !!doorNode?.properties?.prevent_close;
 
+            // Requirement-gated passage verbs aren't in the door's standard
+            // bracket list, so they live here to stay visible.
             if (req === 'crawl') lines.push(`crawl — crawl through the ${handle}`);
             else if (req === 'climb') lines.push(`climb — climb the ${handle}`);
             else if (req === 'jump') lines.push(`jump — jump across the ${handle}`);
-
-            if (atWayId !== exitData.way_id) {
-                lines.push(`approach — walk up to the ${handle} and stop (don't pass through)`);
-            } else {
-                lines.push(`go — go through the ${handle}`);
-            }
-            lines.push(`dash — dash through the ${handle}`);
-            lines.push(`examine — examine the ${handle}`);
-
-            if (wayState === 'closed') {
-                lines.push(`open — open the ${handle}`);
-            } else if (wayState === 'open' && !preventClose) {
-                lines.push(`close — close the ${handle}`);
-            }
-        }
-
-        const areaItems = currentArea?.name && typeof worldState.getItemsInArea === 'function'
-            ? worldState.getItemsInArea(currentArea.name) || []
-            : [];
-        for (const item of areaItems) {
-            const props = item.properties || {};
-            const actions = expandInverseActions(asArray(props.actions).map(s => s.toLowerCase()));
-            const tags = asArray(props.tags).map(s => s.toLowerCase());
-            const stateStr = String(props.current_state || '').toLowerCase();
-            const triggerTypes = itemTriggerTypes(item.id);
-            const name = item.name || 'something';
-            const isCarried = carried.some(c => c.id === item.id);
-
-            if (!isCarried && actions.includes('take')) lines.push(`take — take the ${name}`);
-            if (actions.includes('use') || triggerTypes.includes('on_use') || triggerTypes.includes('on_use_progressive')) lines.push(`use — use the ${name}`);
-            if (triggerTypes.includes('on_use_on')) lines.push(`use_on — use the ${name} on something`);
-            if (actions.includes('read') || tags.includes('readable') || tags.includes('read')) lines.push(`read — read the ${name}`);
-            if (!isDiscovered(player, name) && !isIntrinsicAbility(props)) lines.push(`examine — examine the ${name}`);
-            if (actions.includes('open') && ['closed', 'normal', ''].includes(stateStr)) lines.push(`open — open the ${name}`);
-            if (actions.includes('close') && stateStr === 'open') lines.push(`close — close the ${name}`);
-            if (triggerTypes.includes('on_toggle_on') || triggerTypes.includes('on_toggle_off')) lines.push(`toggle — toggle the ${name}`);
-            if (isCarried && actions.includes('drop') && !isIntrinsicAbility(props)) lines.push(`drop — drop the ${name}`);
         }
 
         const others = (state.players_in_area || []).filter(p => p && p.name && p.name !== charName);
@@ -303,7 +269,8 @@ window.PromptBuilder = window.PromptBuilder || {};
         lines.push('stats — check your stats');
         lines.push('wait — wait or hold still');
 
-        return `\n=== AVAILABLE ACTIONS ===\n${lines.join('\n')}`;
+        const intro = 'Other than what you see around the room, what you are wearing or carrying, or who else is here, you can do these actions:';
+        return `\n=== AVAILABLE ACTIONS ===\n${intro}\n${lines.join('\n')}`;
     }
 
     Object.assign(window.PromptBuilder, {

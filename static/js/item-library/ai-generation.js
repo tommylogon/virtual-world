@@ -304,5 +304,68 @@ OUTPUT FORMAT: Respond with ONLY raw JSON. No markdown, no code fences, just JSO
             input.value = editedUserPrompt;
         }
         this.generateWithAI();
+    },
+
+/**
+     * AI trigger suggester — "✨ Suggest (AI)".
+     * Plan-driven: the heuristic decides WHICH trigger types the item's actions
+     * call for, then the shared TriggerSuggestAI authors their content. Missing
+     * plan types are backfilled from the heuristic floor, and the result is
+     * diffed against the existing triggers in a review modal (no blind
+     * overwrite).
+     * @param {HTMLElement|null} suggesterBtn - optional button for busy state
+     * @returns {Promise<void>}
+     */
+    async suggestTriggersWithAI(suggesterBtn = null) {
+        const btn = suggesterBtn || document.getElementById('lib-suggest-ai-btn');
+        if (btn) { btn.disabled = true; btn.textContent = '⏳ Suggesting...'; }
+        try {
+            const field = document.getElementById('lib-item-triggers');
+            const name = document.getElementById('lib-item-name')?.value || '';
+            const description = document.getElementById('lib-item-desc')?.value || '';
+            const actions = (document.getElementById('lib-item-actions')?.value || '').split(',').map(s => s.trim()).filter(Boolean);
+            const usesRaw = parseInt(document.getElementById('lib-item-uses')?.value || '-1');
+            const uses = Number.isNaN(usesRaw) ? -1 : usesRaw;
+            const tags = Array.isArray(this._tagMs?.getValue()) ? this._tagMs.getValue() : [];
+            const fields = { name, description, actions, tags, uses };
+
+            const Suggester = window.ItemLibraryTriggerSuggester;
+            const DiffUI = window.TriggerSuggestDiff;
+            if (!Suggester || !DiffUI) { toastError('Trigger suggester is not loaded.'); return; }
+            const planTypes = Suggester.plan(fields);
+            const floorByType = new Map(Suggester.generate(fields).map(t => [t.trigger_type, t]));
+
+            let triggers = await window.TriggerSuggestAI.suggest(fields, 'item', planTypes);
+            if (triggers === null) return;
+            const have = new Set(triggers.map(t => t.trigger_type));
+            for (const type of planTypes) {
+                if (!have.has(type) && floorByType.has(type)) { triggers.push(floorByType.get(type)); have.add(type); }
+            }
+            if (!triggers.length) { toastInfo('AI returned no usable triggers.'); return; }
+            if (!field) return;
+
+            const existing = parseJsonSafely(field.value || '[]') || [];
+            const rows = DiffUI.diff(existing, planTypes, triggers);
+            if (!rows.length) {
+                if (existing.length) toastInfo('All planned triggers are already covered — nothing to change.');
+                else { field.value = JSON.stringify(triggers); this._refreshEditorWithTriggers(); }
+                return;
+            }
+            DiffUI.show({
+                title: '🤖 Review AI-suggested triggers',
+                subtitle: `${name || 'item'} — AI authored these; keep working triggers or swap per-row.`,
+                rows,
+                onApply: (result) => {
+                    field.value = JSON.stringify(DiffUI.merge(existing, result));
+                    this._refreshEditorWithTriggers();
+                    events.log(`🤖 applied ${result.add.length + result.replace.length} AI trigger${result.add.length + result.replace.length === 1 ? '' : 's'} (${result.keep.length} kept).`, 'system-msg');
+                },
+            });
+        } catch (err) {
+            console.error(err);
+            toastError('AI trigger suggestion failed: ' + err.message);
+        } finally {
+            if (btn) { btn.disabled = false; btn.textContent = '✨ Suggest (AI)'; }
+        }
     }
 };

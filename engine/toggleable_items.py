@@ -70,6 +70,13 @@ class ToggleableItems:
 
         if new_status == "lit":
             trig_outputs = player_manager._execute_triggers(item_node, "on_toggle_on")
+            # task-396: `on_light` is the semantic "this got lit" hook — a
+            # companion to on_toggle_on so authors can bind lighting flavor
+            # without the confusing toggle_on/off dichotomy. Both fire when a
+            # toggleable is turned on.
+            light_outputs = player_manager._execute_triggers(item_node, "on_light")
+            if light_outputs:
+                trig_outputs = trig_outputs + light_outputs
         else:
             trig_outputs = player_manager._execute_triggers(item_node, "on_toggle_off")
         if trig_outputs:

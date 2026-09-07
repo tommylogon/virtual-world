@@ -65,6 +65,8 @@ window.InspectorAreaView = (() => {
                 <div style="font-size:11px;color:var(--text-muted);padding:4px 0;">Use 📚 Item Library in the toolbar to add items.</div>
             </div>
 
+            ${window.InspectorTriggers ? window.InspectorTriggers.buildTriggersHtml(actualNodeId, props.locked_fields || []) : window.Lit.nothing}
+
             <div class="inspector-section"><h3>🧍 Agents</h3>
                 ${agentsHere.length > 0
                     ? agentsHere.map(([agentName]) => htmlTag`

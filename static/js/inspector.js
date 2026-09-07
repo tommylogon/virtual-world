@@ -274,7 +274,7 @@ class Inspector {
             ...this._triggerEditorOptions(nodeId),
             onSave: async (data) => {
                 const triggerId = `trigger_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-                const typeLabel = Array.isArray(data.trigger_type) ? data.trigger_type.join('+') : (data.trigger_type || 'custom');
+                const typeLabel = Array.isArray(data.trigger_type) ? data.trigger_type.join(', ') : (data.trigger_type || 'custom');
                 const triggerName = (data.name || '').trim() || `${typeLabel} → ${data.effects?.[0]?.type || '?'}`;
                 const nodeRes = await ApiClient.createNode({
                     id: triggerId,
@@ -343,7 +343,7 @@ class Inspector {
             initialData: triggerData,
             onSave: async (data) => {
                 const updatedProps = { ...data };
-                const typeLabel = Array.isArray(data.trigger_type) ? data.trigger_type.join('+') : (data.trigger_type || 'custom');
+                const typeLabel = Array.isArray(data.trigger_type) ? data.trigger_type.join(', ') : (data.trigger_type || 'custom');
                 const newName = (data.name || '').trim() || `${typeLabel} → ${data.effects?.[0]?.type || '?'}`;
                 // Keep node + edge in sync: the runtime reads edge properties first.
                 try {

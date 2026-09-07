@@ -85,57 +85,9 @@ const TriggerEditor = {
     _effectTypes: [],
     _conditionTypes: [],
     _triggerTypes: [],
-    _condOpts: null,
     _itemDatalist: '',
     _contextItemId: '',
     _targetDatalistHtml: '',
-
-    _buildGroupedCondOpts(conditionTypes, selectedValue) {
-        const groups = {};
-        conditionTypes.forEach(c => {
-            const g = c.group || 'general';
-            if (!groups[g]) groups[g] = [];
-            groups[g].push(c);
-        });
-        const groupLabels = {
-            general: '⚙️ General',
-            character: '🧍 Character',
-            item: '📦 Item',
-            way: '🚪 Way',
-            area: '🌍 Area/Environment',
-            tag: '🏷️ Tag'
-        };
-        return Object.entries(groups).map(([g, conds]) => {
-            const label = groupLabels[g] || g;
-            const opts = conds.map(c =>
-                `<option value="${c.value}" ${c.value === selectedValue ? 'selected' : ''}>${c.label}</option>`
-            ).join('');
-            return `<optgroup label="${label}">${opts}</optgroup>`;
-        }).join('');
-    },
-
-    _buildGroupedEffectOpts(effectTypes, selectedValue) {
-        const groups = {};
-        effectTypes.forEach(e => {
-            const g = e.group || 'general';
-            if (!groups[g]) groups[g] = [];
-            groups[g].push(e);
-        });
-        const groupLabels = {
-            general: '⚙️ General',
-            character: '🧍 Character',
-            item: '📦 Item',
-            way: '🚪 Way',
-            area: '🌍 Area/Environment'
-        };
-        return Object.entries(groups).map(([g, effects]) => {
-            const label = groupLabels[g] || g;
-            const opts = effects.map(e =>
-                `<option value="${e.value}" ${e.value === selectedValue ? 'selected' : ''}>${e.label}</option>`
-            ).join('');
-            return `<optgroup label="${label}">${opts}</optgroup>`;
-        }).join('');
-    },
 
     open(itemId, triggerType) {
         return this.show({ initialData: null, mode: 'single' });
@@ -155,12 +107,10 @@ const TriggerEditor = {
         const initial = options.initialData || null;
         const targetDatalist = this._targetDatalistHtml;
 
-        const effectOpts = this._buildGroupedEffectOpts(this._effectTypes);
-        this._condOpts = this._buildGroupedCondOpts(this._conditionTypes);
-
         const initialTriggerType = initial?.trigger_type;
         const triggerTypeHtml = this._mode === 'multi'
-            ? triggerEditorTag`<select id="te-trigger-type" multiple size="6" style="height:auto;min-height:100px;width:100%;">
+            ? triggerEditorTag`<input type="text" id="te-trigger-type-filter" placeholder="Search trigger types..." style="width:100%;font-size:10px;padding:2px 6px;margin-bottom:2px;background:var(--bg-input);border:1px solid var(--border);border-radius:3px;color:var(--text);" oninput="TriggerEditor._filterTriggerTypeList(this.value)">
+                    <select id="te-trigger-type" multiple size="6" style="height:auto;min-height:100px;width:100%;">
                     ${this._triggerTypes.map(t => triggerEditorTag`<option value=${t} ?selected=${(initialTriggerType || []).includes(t)}>${t.replace(/_/g, ' ')}</option>`)}
                 </select>`
             : triggerEditorTag`<select id="te-trigger-type" style="width:100%;">
@@ -176,10 +126,10 @@ const TriggerEditor = {
         let effectRowsHtml = [];
         if (initial && initial.effects && initial.effects.length > 0) {
             initial.effects.forEach((eff, idx) => {
-                effectRowsHtml.push(TriggerEditor._buildEffectRowHtml(effectOpts, eff, idx));
+                effectRowsHtml.push(TriggerEditor._buildEffectRowHtml(eff, idx));
             });
         } else {
-            effectRowsHtml.push(TriggerEditor._buildEffectRowHtml(effectOpts, null, 0));
+            effectRowsHtml.push(TriggerEditor._buildEffectRowHtml(null, 0));
         }
 
 window.Lit.render(triggerEditorTag`
@@ -375,11 +325,13 @@ window.Lit.render(triggerEditorTag`
         // Show fail message group if conditions exist
         TriggerEditor._updateFailGroupVisibility();
 
-        // Trigger effect params for first row
-        const firstEff = overlay.querySelector('.eff-type');
-        if (firstEff) TriggerEditor._toggleEffectParams(firstEff);
+        // Init searchable pickers, then apply per-row param visibility (the
+        // eff-type/cond-type pickers don't exist in the DOM until SearchSelect
+        // builds their hidden inputs).
         TriggerEditor._initEffectSearchSelects(overlay);
         TriggerEditor._initCondTagMultis(overlay);
+        overlay.querySelectorAll('.eff-row .eff-type').forEach(sel => TriggerEditor._toggleEffectParams(sel));
+        overlay.querySelectorAll('.cond-row .cond-type').forEach(sel => TriggerEditor._toggleConditionFields(sel));
         this._ensureLibraryItemOptions(overlay);
     },
 
@@ -520,6 +472,12 @@ window.Lit.render(triggerEditorTag`
                 }
                 break;
             }
+            case 'effect-types':
+                TriggerEditor._effectTypes.forEach(e => opts.push({ value: e.value, label: e.label }));
+                break;
+            case 'condition-types':
+                TriggerEditor._conditionTypes.forEach(c => opts.push({ value: c.value, label: c.label }));
+                break;
         }
         // 'items' is already grouped (library first, then world) — keep that order.
         if (kind !== 'items') opts.sort((a, b) => (a.label || '').localeCompare(b.label || ''));
@@ -538,13 +496,27 @@ window.Lit.render(triggerEditorTag`
             if (initial && !opts.some(o => o.value === initial)) {
                 opts.unshift({ value: initial, label: initial });
             }
+            const onChange = kind === 'effect-types'
+                ? () => {
+                    const row = container.closest('.eff-row');
+                    const hidden = row && row.querySelector('.eff-type');
+                    if (hidden) TriggerEditor._toggleEffectParams(hidden);
+                }
+                : kind === 'condition-types'
+                ? () => {
+                    const row = container.closest('.cond-row');
+                    const hidden = row && row.querySelector('.cond-type');
+                    if (hidden) TriggerEditor._toggleConditionFields(hidden);
+                }
+                : undefined;
             container.__searchSelect = new SearchSelect(container, {
                 options: opts,
                 value: initial,
                 placeholder: container.dataset.placeholder || 'Search...',
                 inputClass: container.dataset.inputClass || '',
                 inputId: container.dataset.inputId || '',
-                allowFreeText: free
+                allowFreeText: free,
+                onChange
             });
         });
     },
@@ -1064,9 +1036,6 @@ window.Lit.render(triggerEditorTag`
         const cPhrase = existingCond?.phrase || existingCond?.value || '';
         const isItems = ctype === 'has_items';
         const dispVal = isItems ? (Array.isArray(cv) ? cv.join(', ') : cv) : cv;
-        const condOptionsHtml = (this._conditionTypes || []).length
-            ? this._buildGroupedCondOpts(this._conditionTypes, existingCond?.type || 'skill_check')
-            : `<option value="skill_check">Skill check</option>`;
 
         const SHOWS = (types) => types.includes(ctype) ? 'block' : 'none';
         const OPTS = ['lt', 'le', 'eq', 'ge', 'gt'].map(o =>
@@ -1079,9 +1048,8 @@ window.Lit.render(triggerEditorTag`
         row.style.cssText = 'background:var(--bg-inset);border-radius:4px;padding:6px;margin-bottom:0;border-left:3px solid var(--pink);position:relative;';
 
         window.Lit.render(triggerEditorTag`
-            <select class="cond-type" style="width:100%;font-size:10px;margin-bottom:3px;" @change=${(e) => TriggerEditor._toggleConditionFields(e.target)}>
-                ${window.Lit.unsafeHTML(condOptionsHtml)}
-            </select>
+            <label style="font-size:9px;font-weight:600;">Condition type</label>
+            <div class="eff-select" data-kind="condition-types" data-input-class="cond-type" data-value=${ctype} data-placeholder="Search condition type..." style="width:100%;font-size:11px;margin-bottom:3px;"></div>
             <div class="cond-fields">
                 <div class="cond-field" data-cond="uses_reached,uses_above,random_chance,has_item,has_items,has_trait,has_tag,state_equals,speech_matches,time_of_day,weather" style="display:${SHOWS(['uses_reached','uses_above','random_chance','has_item','has_items','has_trait','has_tag','state_equals','speech_matches','time_of_day','weather'])};">
                     <div data-subcond="uses_reached,uses_above,random_chance,has_item,has_items,has_trait,speech_matches,time_of_day,weather" style="display:${ctype === 'has_tag' ? 'none' : 'block'};">
@@ -1510,6 +1478,15 @@ window.Lit.render(triggerEditorTag`
         if (skillWrap) skillWrap.style.display = mode === 'skill' ? 'block' : 'none';
     },
 
+    _filterTriggerTypeList(query) {
+        const sel = document.getElementById('te-trigger-type');
+        if (!sel) return;
+        const needle = (query || '').trim().toLowerCase();
+        for (const opt of sel.querySelectorAll('option')) {
+            opt.style.display = (!needle || opt.textContent.toLowerCase().includes(needle)) ? '' : 'none';
+        }
+    },
+
     _toggleSaveBranch(row, prefix) {
         if (typeof row === 'string') {
             prefix = row;
@@ -1526,7 +1503,7 @@ window.Lit.render(triggerEditorTag`
         });
     },
 
-    _buildEffectRowHtml(effectOpts, existingEff, idx) {
+    _buildEffectRowHtml(existingEff, idx) {
         const effType = existingEff?.type || 'message';
         const ep = existingEff?.params || {};
         const failFx = TriggerEditor._parseSaveBranchEffect(ep.on_fail);
@@ -1537,11 +1514,11 @@ window.Lit.render(triggerEditorTag`
             ? JSON.stringify(ep.on_fail, null, 2) : '';
         const advSuccessJson = (ep.on_success?.length > 1 || (ep.on_success?.length && successFx.type === 'none'))
             ? JSON.stringify(ep.on_success, null, 2) : '';
-        return `
+
+return `
             <div class="eff-row" data-idx="${idx}" style="background:var(--bg-inset);border-radius:6px;padding:6px;margin-bottom:4px;border-left:3px solid var(--orange);position:relative;">
-                <select class="eff-type" style="width:100%;font-size:11px;margin-bottom:4px;" onchange="TriggerEditor._toggleEffectParams(this)">
-                    ${effectOpts.replace(`value="${effType}"`, `value="${effType}" selected`)}
-                </select>
+                <label style="font-size:9px;font-weight:600;">Effect type</label>
+                <div class="eff-select" data-kind="effect-types" data-input-class="eff-type" data-value="${escapeForHtmlAttribute(effType)}" data-placeholder="Search effect type..." style="width:100%;margin-bottom:4px;"></div>
                 <div class="eff-params" style="display:${effType === 'message' ? 'none' : 'block'};">
                     <div class="eff-param" data-effect="damage,heal" style="display:${['damage','heal'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Amount</label><input type="number" class="eff-amount" value="${ep.amount || 5}" style="width:100%;">
@@ -2002,16 +1979,15 @@ window.Lit.render(triggerEditorTag`
         if (msgInput && snippet.message) msgInput.value = snippet.message;
         const container = document.getElementById('te-effects-container');
         if (container) {
-            const effectOpts = TriggerEditor._buildGroupedEffectOpts(TriggerEditor._effectTypes);
             container.innerHTML = '';
             container.setAttribute('data-count', String(snippet.effects.length));
             const wrap = document.createElement('div');
-            wrap.innerHTML = snippet.effects.map((eff, idx) => TriggerEditor._buildEffectRowHtml(effectOpts, eff, idx)).join('');
+            wrap.innerHTML = snippet.effects.map((eff, idx) => TriggerEditor._buildEffectRowHtml(eff, idx)).join('');
             const fragment = document.createDocumentFragment();
             while (wrap.firstElementChild) fragment.appendChild(wrap.firstElementChild);
             container.appendChild(fragment);
-            container.querySelectorAll('.eff-row .eff-type').forEach(sel => TriggerEditor._toggleEffectParams(sel));
             TriggerEditor._initEffectSearchSelects(container);
+            container.querySelectorAll('.eff-row .eff-type').forEach(sel => TriggerEditor._toggleEffectParams(sel));
         }
         const menu = document.getElementById('te-snippet-menu');
         if (menu) menu.style.display = 'none';
@@ -2022,14 +1998,13 @@ window.Lit.render(triggerEditorTag`
         if (!container) return;
         const count = parseInt(container.getAttribute('data-count') || '0');
         container.setAttribute('data-count', count + 1);
-        const effectOpts = TriggerEditor._buildGroupedEffectOpts(TriggerEditor._effectTypes);
-        const rowHtml = TriggerEditor._buildEffectRowHtml(effectOpts, null, count);
+        const rowHtml = TriggerEditor._buildEffectRowHtml(null, count);
         const div = document.createElement('div');
         window.Lit.render(triggerEditorTag`${window.Lit.unsafeHTML(rowHtml)}`, div);
         container.appendChild(div.firstElementChild);
+        TriggerEditor._initEffectSearchSelects(container);
         const lastEff = container.querySelector('.eff-row:last-child .eff-type');
         if (lastEff) TriggerEditor._toggleEffectParams(lastEff);
-        TriggerEditor._initEffectSearchSelects(container);
     }
 };
 

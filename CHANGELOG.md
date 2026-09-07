@@ -4,6 +4,60 @@ All notable changes to VirtualWorld. See `docs/virtualWorld/Scenario Workflows &
 
 ---
 
+## 1.7.0 — "Trigger Smith & Triage" (2026-09-07)
+
+The authoring-and-triggers day: an AI trigger suggester that finally writes *correct* triggers (full catalog + worked-example prompt, `{triggers:[...]}` object output, fixed local-model response parsing), a plan-driven heuristic floor that can't invent "eat the spyglass", a review-the-diff modal instead of blind overwrites, a batched apply that doesn't lag the graph, a validator that became a triage panel (group by node/code, dismiss-until-touched, derived progress), graph search that freezes hidden nodes and clusters matches, and a fixed dead `on_light` trigger. **Full suite at 2636 passing** (81 MCP/emote tests deselected — pre-existing harness breakage, see Gotchas).
+
+### 🤖 Trigger AI generator — works now
+
+- **Prompt is a real catalog, not a schema dump** (task-396): every trigger type, condition, and effect with a plain-language description AND a worked example; three complete style-anchor objects (food, tainted-drink, haunted-take). Hard rules the model used to miss: `effects[]` is mandatory (≥1 per trigger), prose lives in `effects[].params.message` / `adjust_vital.success_message` (top-level strings stay `""`), consume uses exactly ONE of `on_eat`/`on_drink`/`on_use`, finite-uses get a `uses_above:0` guard, heat sources are item **properties** (`target_temperature`/`heating_rate`), not triggers.
+- **Model output is now `{"triggers":[...]}`** (object wrapper) — local models handle that far better than a bare array; the parser also still accepts a bare array defensively. `extractTopLevelJSON` correctly handles top-level arrays (brace-only extraction was destroying them).
+- **Local-model streaming fixed**: the whole answer rides inside the `response.completed` envelope for Responses-API providers (ornith-1.5-9b etc.); `_handleStream` now pulls content out of it AND logs the raw response to the event stream like every other generator — no more opening the network tab to see what the model made.
+- **`on_light` is no longer dead**: it was registered but never fired. `toggle_item_status` now fires it as a companion to `on_toggle_on` when a toggleable turns on, so authors can bind "this got lit" flavor without the toggle_on/off dichotomy. Never author both `on_light` + `on_toggle_on` (they fire together). 4 new tests (`tests/test_toggleable_items.py`).
+
+### 🎯 Trigger suggester — heuristic + AI + diff review
+
+- **Plan-driven**: the item's own actions decide WHICH triggers exist (`examine/use/take/drop/equip/unequip/eat/drink/read` → their `on_*`), tags/category decide WHAT they contain. Category detection is tags + explicit actions only — no free-text word matching, so "lea**ther**" can never turn a spyglass into food (validated across all 472 library items: zero eat-without-eat-action, zero duplicates). Augments: lights → `on_light` + `on_toggle_off`, books → `on_read`, consumables with only a `use` action carry the vital on `on_use`.
+- **Heuristic floor is provably solid**: empty-guards, CON-save poison on tainted/cursed, Arcana/Survival examine reveals, haunted take-whispers — and it beats the hand-authored `water_bottle`/`energy_drink`/`tainted_wine` (which lacked the guard/poison entirely).
+- **AI authors the prose** on the same plan (`TriggerSuggestAI` → shared `AIGenerator`), with heuristic backfill for plan types the model skips.
+- **Diff modal, not overwrite** (`trigger-suggest-diff.js`): per-trigger cards with Keep existing / Use suggested / Skip both pills, live "Apply N changes" footer, and `covered()` dedupe so a food item that already has `on_eat` Hunger is left alone. Applies in both the item-library form and the item/way/area inspectors, via one atomic `/api/graph/batch` (single undo) instead of N sequential createNode+createEdge round-trips — the apply no longer lags the graph.
+- **Architectural cleanup**: `ItemLibraryAI` never was a separate AI (it always wrapped the shared `AIGenerator`); the trigger-AI moved to `shared/trigger-suggest-ai.js` so the inspector doesn't reach through the item-library namespace.
+
+### 🛠 Validator → triage panel (task-393)
+
+- **Group by node / by code**: one row per way/item/area (a way's 6 side-warnings collapse to one expandable row; candy_jar's 4 empty stubs collapse to one) or one row per issue class ("way_missing_cardinal ×58"). De-duplicates the flat 254-row wall.
+- **Dismiss-until-touched**: 🚫/🔓 writes `ignored_issues` into the node itself (survives reloads — your whole "can't remember what's fixed" pain); a dismissal expires if the node is edited after (`_ignored_at` vs `node.updated`).
+- **🧹 remove all empty stubs**, **⚡ quick-fix** for mechanical info nudges, **⚡ Fix all** (one batch), and a derived progress bar (clean/total item+way+area nodes with no undismissed issues — computed, can't drift).
+- **Scrollable list + sticky count**, sticky filter toggle, `POST /api/triggers/ignore` backend.
+
+### 🧭 Graph search freezes + clusters (task-394)
+
+- Hidden (non-match) nodes are **excluded from physics** during a search — they were invisible but still repelling, which is why "food" results stayed wedged in place. Matches settle freely now.
+- On settle, the match cluster gets **gathered into a compact grid at the viewport center** (positions + viewport saved); clearing the search **restores the exact prior layout**.
+- **KEEP checkbox** next to the search box: freezes hidden nodes but leaves matches geographically in place — for "where does food live in this house?" reasoning.
+- **Tag filtering** landed in both the graph search and Ctrl+K palette (write what you *think* exists in tags, fuzzy-match reveals those nodes too).
+
+### 🚪 Way-orientation honesty (task-395 rework)
+
+- The earlier blind bulk-fill (churching "north" cardinals, templated pass/visible messages) was **removed** — it would have written false facts into ways. `way_missing_pass_message` / `cardinal` / `view_direction` downgraded from `warning` to `info` (they have engine defaults), a `clear_way_fix_fields` op undoes any legacy mints exactly, and the panel's button now routes to the existing per-way ✨ Improve AI instead of templating prose. Remove-`fix_way_orientation` no-op deleted.
+
+### 🧰 Gotchas in this release
+
+- **Restart your server** — engine changed (`toggleable_items.py`, `trigger_validator.py`, `routes/triggers.py`, `routes/graph_ops.py`); static JS is reload-only.
+- **Mansion scenario file churned** by live testing saves — inspect before mixing with other templates.
+- **81 tests deselected** (`-k "not mcp and not emote"`): the pre-existing MCP harness breakage (`'function' object has no attribute 'fn'`) plus the emote suite; unchanged by this release.
+- The AI trigger suggester needs a configured API key/model; the heuristic `⚡ Suggest` works fully offline. Diff modal defaults: conflicts → keep existing, adds → add.
+- `on_light` now fires with `on_toggle_on`; existing items that had BOTH will double-fire (remove one).
+
+### 🧪 Behind the scenes
+
+- New modules: `static/js/shared/trigger-suggest-ai.js`, `static/js/shared/trigger-suggest-diff.js`, `static/js/item-library/consumable-triggers.js`, `tests/test_toggleable_items.py` (4).
+- Updated: `engine/toggleable_items.py`, `engine/trigger_validator.py`, `routes/triggers.py`, `routes/graph_ops.py`, `static/js/{llm-client,api,validator-panel}.js`, `static/js/shared/{json-utils,trigger-editor}.js`, `static/js/inspector/trigger-helpers.js`, `static/js/graph/{focus,projector,tooltips}.js`, `static/js/ui/command-palette.js`, `static/js/item-library.js` + `item-library/ai-generation.js`, `static/js/agent/prompt-builder/{contextual-actions,system-prompt,turn-prompts}.js`, `templates/index.html`.
+- Tasks: task-393 (validator triage), task-394 (graph search cluster), task-395 (way-orientation rework), task-396 (AI trigger prompt examples — reference + embedding).
+- Full suite at **2636 passing** (81 deselected).
+
+---
+
 ## 1.6.0 — "Cold Open" (2026-09-04)
 
 The believability day, run against a live tick-by-tick event log: the planner was found **disconnected from the decide prompt since the PlanTracker migration** and re-wired end-to-end, the human turn panel became an honest observer (no whispers, no other minds), the react phase got its own minimal prompt (~6.2–8.1k → ~2.5–3.5k tokens, internal contradiction deleted), stranger descriptions stopped leaking names through their "appearance handle", and the taco_bell_date scenario was rebuilt to open **cold** — two strangers, one crash, zero shared history. **Full suite at 2653 passing** (pre-existing MCP harness failures unchanged; see Gotchas).

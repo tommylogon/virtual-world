@@ -113,7 +113,7 @@ window.GraphTooltips = {
             if (charTags.length > 0) html += '<div style="margin:2px 0;">🏷️ ' + esc(charTags.join(', ')) + '</div>';
         } else if (nodeData.type === 'logic_trigger') {
             const tType = props.trigger_type || props.trigger_types || '?';
-            html += '<div style="margin:2px 0;">⚡ Type: ' + esc(Array.isArray(tType) ? tType.join('+') : tType) + '</div>';
+            html += '<div style="margin:2px 0;">⚡ Type: ' + esc(Array.isArray(tType) ? tType.join(', ') : tType) + '</div>';
             const effects = props.effects || [];
             if (effects.length > 0) {
                 html += '<div style="margin:2px 0;color:var(--text-muted);">Effects:</div>';

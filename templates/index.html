@@ -197,7 +197,11 @@
                 <div class="toolbar-group" aria-label="Canvas controls">
                     <button class="toolbar-btn" id="btn-physics" onclick="graphManager.togglePhysics()" title="Toggle physics (freeze/unfreeze node positions)">⏸ Physics</button>
                     <button class="toolbar-btn" onclick="graphManager.fitView()" title="Zoom to fit all nodes">⊞ Fit</button>
-                    <input class="graph-search" type="text" id="graph-search" placeholder="🔍 Search nodes..." oninput="graphManager.filterNodes(this.value)" onkeydown="if(event.key==='Enter'){GraphNetwork.settleSearch();}" onblur="GraphNetwork.settleSearch()" title="Filter graph nodes by name">
+                    <input class="graph-search" type="text" id="graph-search" placeholder="🔍 Search nodes or tags..." oninput="graphManager.filterNodes(this.value)" onkeydown="if(event.key==='Enter'){GraphNetwork.settleSearch();}" onblur="GraphNetwork.settleSearch()" title="Filter graph nodes by name or tag">
+                    <label class="toolbar-btn" style="display:inline-flex;align-items:center;gap:3px;cursor:pointer;font-size:10px;" title="Freeze hidden nodes but keep matches in place (for spatial review)">
+                        <input type="checkbox" id="search-keep-in-place" style="margin:0;cursor:pointer;" onchange="GraphFocus.setKeepInPlace(this.checked); this.parentElement.classList.toggle('active', this.checked)">
+                        <span>KEEP</span>
+                    </label>
                 </div>
                 <div class="toolbar-divider"></div>
                 <!-- Visibility toggles -->
@@ -991,6 +995,8 @@
     <script src="/static/js/shared/trigger-editor.js"></script>
     <script src="/static/js/shared/trigger-graph.js"></script>
     <script src="/static/js/shared/ai-generator.js"></script>
+    <script src="/static/js/shared/trigger-suggest-ai.js"></script>
+    <script src="/static/js/shared/trigger-suggest-diff.js"></script>
     <script src="/static/js/shared/embedding-client.js"></script>
     <script src="/static/js/shared/emotion-mapper.js"></script>
     <script src="/static/js/shared/vital-color.js"></script>
@@ -1042,6 +1048,7 @@
     <script src="/static/js/graph/edge-inspector.js"></script>
     <script src="/static/js/graph/event-handlers.js"></script>
     <script src="/static/js/graph-manager.js"></script>
+    <script src="/static/js/item-library/consumable-triggers.js"></script>
     <script src="/static/js/item-library/ai-generation.js"></script>
     <script src="/static/js/item-library/placement.js"></script>
     <script src="/static/js/item-library/contents-editor.js"></script>

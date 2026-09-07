@@ -119,7 +119,7 @@ First, think about what's happening around you (inner_monologue). Then decide wh
 ${PromptBuilder.EMOTE_RULES_REACTION}
 
 Follow the ACTION STRUCTURE and SPEECH & VOLUME rules above in the system prompt — action/item/target fields, speech in "speech" with its volume in "volume", emote as a field on any action.
-Your context's === AVAILABLE ACTIONS === section lists the actions you can take right now, with concrete targets — use those verbs and act on what it names.
+Your context's === AVAILABLE ACTIONS === section lists the actions you can take beyond what your surroundings already offer — use those verbs and act on what it names.
 
 Respond ONLY raw JSON. Put a comma between every field. Do NOT repeat the same key twice.
 Examples:

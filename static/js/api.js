@@ -12,6 +12,15 @@ class ApiClient {
         return resp.json();
     }
 
+    /**
+     * Apply a list of graph ops as ONE atomic batch request + ONE undo snapshot.
+     * op shape: { type: 'create_node'|'attach'|'detach'|'delete_node'|'update_node', payload: {...} }
+     * See routes/graph_ops.py _apply_batch_op for payloads. Returns { status, applied, errors }.
+     */
+    static async batchGraph(ops) {
+        return this.post('/api/graph/batch', { ops });
+    }
+
     /** Generic GET helper */
     static async get(url) {
         const resp = await fetch(url);

@@ -1,4 +1,6 @@
 """Trigger routes — dry-run / live-run a trigger definition + world-wide validation."""
+import time
+
 from flask import jsonify, request
 
 
@@ -18,6 +20,35 @@ def register_triggers_routes(app):
             "issues": issues,
             "count": len(issues),
         })
+
+    @app.route('/api/triggers/ignore', methods=['POST'])
+    def set_ignored_issue():
+        """Dismiss / restore a validation code on a single node (task-393).
+
+        Request JSON: {"node_id": "...", "code": "empty_trigger",
+        "ignore": true|false}. Writes the code into the node's
+        ``ignored_issues`` list (with ``_ignored_at`` = the node's updated
+        timestamp at write time); the validator hides the code until the node
+        is edited again. Returns the node's new ignored list.
+        """
+        data = request.get_json() or {}
+        node_id = data.get('node_id') or ''
+        code = str(data.get('code') or '').strip()
+        if not node_id or not code:
+            return jsonify({"error": "node_id and code are required"}), 400
+        world = app.world
+        node = world.graph.get_node(node_id)
+        if node is None:
+            return jsonify({"error": f"Node '{node_id}' not found"}), 404
+        props = node.properties
+        ignored = [c for c in (props.get('ignored_issues') or []) if c != code]
+        if data.get('ignore', True):
+            ignored.append(code)
+        props['ignored_issues'] = sorted(set(ignored))
+        node.updated = time.time()
+        props['_ignored_at'] = node.updated
+        world._edit_seq = getattr(world, '_edit_seq', 0) + 1
+        return jsonify({"status": "success", "ignored_issues": props['ignored_issues']})
     @app.route('/api/triggers/test', methods=['POST'])
     def test_trigger():
         """Evaluate a trigger definition against the live world.

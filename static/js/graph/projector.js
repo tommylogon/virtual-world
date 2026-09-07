@@ -42,6 +42,29 @@ window.GraphProjector = {
     },
 
     /**
+     * Does a node match a search query by name OR by any of its tags?
+     *
+     * Search matches a node when its name/id contains the query, or when one of
+     * its tags contains the query — so writing what you think exists in tags
+     * (e.g. "furniture", "heat") reveals those nodes too, not just names.
+     *
+     * @param {object} node - raw graph node ({ id, name, properties })
+     * @param {string} q    - lowercased, trimmed query
+     * @returns {boolean}
+     */
+    nodeMatchesQuery(node, q) {
+        if (!node || !q) return false;
+        if (String(node.name || node.id || '').toLowerCase().includes(q)) return true;
+        const tags = node.properties?.tags;
+        if (!tags) return false;
+        const list = Array.isArray(tags) ? tags : String(tags).split(',');
+        for (const t of list) {
+            if (String(t || '').trim().toLowerCase().includes(q)) return true;
+        }
+        return false;
+    },
+
+    /**
      * Compute the set of visible node ids from raw graph data + view state.
      *
      * Search mode is special: it surfaces every matching node PLUS its direct
@@ -63,7 +86,7 @@ window.GraphProjector = {
         if (query) {
             const matchIds = new Set();
             for (const id in nodesObj) {
-                if (String(nodesObj[id].name || id || '').toLowerCase().includes(query)) {
+                if (GraphProjector.nodeMatchesQuery(nodesObj[id], query)) {
                     matchIds.add(id);
                 }
             }
