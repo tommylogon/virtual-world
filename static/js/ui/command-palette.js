@@ -37,6 +37,7 @@ window.CommandPalette = (() => {
         { icon: '👁', label: 'Panel: Lens', run: () => switchTab('Lens') },
         { icon: '🛠', label: 'Panel: Issues', run: () => switchTab('Issues') },
         { icon: '✨', label: 'Panel: NL Editor', run: () => switchTab('NL Editor') },
+        { icon: '🧪', label: 'LLM Dataset (capture & export fine-tuning data)', run: () => window.DatasetCollector?.togglePanel() },
     ];
 
     function switchTab(name) {
