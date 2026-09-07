@@ -180,3 +180,12 @@ window.DatasetCollector = (() => {
 
     return { capture, getAll, count, clear, buildJSONL, ensureUI, togglePanel };
 })();
+
+// Auto-show the floating button once the DOM is ready (no user action needed).
+if (typeof window !== 'undefined') {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => window.DatasetCollector.ensureUI());
+    } else {
+        window.DatasetCollector.ensureUI();
+    }
+}
