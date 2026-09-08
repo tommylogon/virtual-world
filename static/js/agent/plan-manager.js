@@ -84,8 +84,19 @@ window.PlanManager = (() => {
             // the character is starving is wrong, however interesting the
             // search is.
             const criticalNeedsList = PlanTracker.criticalNeeds(player?.vitals);
-            const maslowNote = criticalNeedsList.length > 0
-                ? `\n\n=== CRITICAL NEEDS (MASLOW — address these FIRST) ===\nYou are suffering from: ${criticalNeedsList.join('; ')}.\n\nThese are PHYSIOLOGICAL needs — the base of Maslow's hierarchy. They outrank every other goal: safety, exploration, investigation, and social connection can wait. Build the FIRST step of your plan around satisfying the most urgent need (eat your food, drink your water, find shelter, rest).\n\nA short detour toward another goal is fine ONLY if you return to the urgent need immediately after. Don't let curiosity or a side-task stand between you and the pressing need.`
+            // BUT a slasher/undead character doesn't have physiological needs —
+            // the engine skips their vital decay entirely, so telling the
+            // Butcher to "eat your food" first is a distraction from the
+            // murder. Filter those needs out for horror/undead traits.
+            const pTraits = player?.traits || {};
+            const noPhysNeeds = pTraits.is_slasher === true
+                || pTraits.undead === true
+                || pTraits.no_physiological_needs === true;
+            const filteredNeeds = noPhysNeeds
+                ? criticalNeedsList.filter(n => !/^hunger|thirst|sleep/i.test(n))
+                : criticalNeedsList;
+            const maslowNote = filteredNeeds.length > 0
+                ? `\n\n=== CRITICAL NEEDS (MASLOW — address these FIRST) ===\nYou are suffering from: ${filteredNeeds.join('; ')}.\n\nThese are PHYSIOLOGICAL needs — the base of Maslow's hierarchy. They outrank every other goal: safety, exploration, investigation, and social connection can wait. Build the FIRST step of your plan around satisfying the most urgent need (eat your food, drink your water, find shelter, rest).\n\nA short detour toward another goal is fine ONLY if you return to the urgent need immediately after. Don't let curiosity or a side-task stand between you and the pressing need.`
                 : '';
 
             const prompt = `${roomContext}

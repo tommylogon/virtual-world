@@ -103,16 +103,7 @@
         "tool"
       ],
       "discovered_items": [],
-      "decay_rates": {
-        "bladder": 1,
-        "energy": 1,
-        "entertainment": 1,
-        "hygiene": 1,
-        "sanity": 1,
-        "social": 1,
-        "Hunger": 0.06,
-        "Thirst": 0.18
-      },
+      "decay_rates": {"Hunger": 0.06, "Thirst": 0.18},
       "body_state": {
         "arm_left": {
           "sensitivity": 0.3
@@ -403,16 +394,7 @@
         "secret"
       ],
       "discovered_items": [],
-      "decay_rates": {
-        "bladder": 1,
-        "energy": 1,
-        "entertainment": 1,
-        "hygiene": 1,
-        "sanity": 1,
-        "social": 1,
-        "Hunger": 0.06,
-        "Thirst": 0.18
-      },
+      "decay_rates": {"Hunger": 0.06, "Thirst": 0.18},
       "body_state": {
         "arm_left": {
           "sensitivity": 0.3
@@ -778,16 +760,7 @@
         "artifact"
       ],
       "discovered_items": [],
-      "decay_rates": {
-        "bladder": 1,
-        "energy": 1,
-        "entertainment": 1,
-        "hygiene": 1,
-        "sanity": 1,
-        "social": 1,
-        "Hunger": 0.06,
-        "Thirst": 0.18
-      },
+      "decay_rates": {"Hunger": 0.06, "Thirst": 0.18},
       "body_state": {
         "arm_left": {
           "sensitivity": 0.3
@@ -1080,16 +1053,7 @@
         "tool"
       ],
       "discovered_items": [],
-      "decay_rates": {
-        "bladder": 1,
-        "energy": 1,
-        "entertainment": 1,
-        "hygiene": 1,
-        "sanity": 1,
-        "social": 1,
-        "Hunger": 0.06,
-        "Thirst": 0.18
-      },
+      "decay_rates": {"Hunger": 0.06, "Thirst": 0.18},
       "body_state": {
         "arm_left": {
           "sensitivity": 0.3
@@ -1389,17 +1353,7 @@
         "supplies"
       ],
       "discovered_items": [],
-      "decay_rates": {
-        "bladder": 1,
-        "energy": 1,
-        "entertainment": 1,
-        "hygiene": 1,
-        "sanity": 1,
-        "social": 1,
-        "temperature": 0,
-        "Hunger": 0.06,
-        "Thirst": 0.18
-      },
+      "decay_rates": {"Hunger": 0.06, "Thirst": 0.18},
       "body_state": {
         "arm_left": {
           "sensitivity": 0.3
@@ -1707,16 +1661,7 @@
         "occult"
       ],
       "discovered_items": [],
-      "decay_rates": {
-        "bladder": 1,
-        "energy": 1,
-        "entertainment": 1,
-        "hygiene": 1,
-        "sanity": 1,
-        "social": 1,
-        "Hunger": 0.06,
-        "Thirst": 0.18
-      },
+      "decay_rates": {"Hunger": 0.06, "Thirst": 0.18},
       "body_state": {
         "arm_left": {
           "sensitivity": 0.3
@@ -2036,16 +1981,7 @@
         "evidence"
       ],
       "discovered_items": [],
-      "decay_rates": {
-        "bladder": 1,
-        "energy": 1,
-        "entertainment": 1,
-        "hygiene": 1,
-        "sanity": 1,
-        "social": 1,
-        "Hunger": 0.06,
-        "Thirst": 0.18
-      },
+      "decay_rates": {"Hunger": 0.06, "Thirst": 0.18},
       "body_state": {
         "arm_left": {
           "sensitivity": 0.3
@@ -2349,16 +2285,7 @@
         "key"
       ],
       "discovered_items": [],
-      "decay_rates": {
-        "bladder": 1,
-        "energy": 1,
-        "entertainment": 1,
-        "hygiene": 1,
-        "sanity": 1,
-        "social": 1,
-        "Hunger": 0.06,
-        "Thirst": 0.18
-      },
+      "decay_rates": {"Hunger": 0.06, "Thirst": 0.18},
       "body_state": {
         "arm_left": {
           "sensitivity": 0.3
@@ -2630,17 +2557,7 @@
         "candle"
       ],
       "discovered_items": [],
-      "decay_rates": {
-        "Bladder": 0,
-        "bladder": 1,
-        "energy": 1,
-        "entertainment": 1,
-        "hygiene": 1,
-        "sanity": 1,
-        "social": 1,
-        "Hunger": 0.06,
-        "Thirst": 0.18
-      },
+      "decay_rates": {"Hunger": 0.06, "Thirst": 0.18},
       "body_state": {
         "arm_left": {
           "sensitivity": 0.3

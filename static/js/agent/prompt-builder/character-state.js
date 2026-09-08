@@ -321,6 +321,18 @@ const foodish = areaItems.filter(it =>
         if (!vitals || vitals[key] === undefined || vitals[key] === null) return '';
         const T = window.VitalThresholds;
         const v = Number(vitals[key]) || 0;
+        // Declared ABOVE the switch: a case-jump skips statements that
+        // precede the matched case label, so consts placed between cases
+        // stay in the temporal dead zone for Hunger/Thirst.
+        const threatNote = scene?.hasThreat
+            ? ' (but a hostile presence is in the room — flee/defend first, eat only if safe)'
+            : '';
+        const eatCmd = (names) => (names || []).length
+            ? `EAT your ${names.join(' or ')}`
+            : 'FIND SOMETHING TO EAT NOW';
+        const drinkCmd = (names) => (names || []).length
+            ? `DRINK your ${names.join(' or ')}`
+            : 'FIND SOMETHING TO DRINK NOW';
         switch (key) {
             case 'Energy':
                 if (v <= 0) return 'You are collapsing from exhaustion — your legs buckle and your vision blurs.';
@@ -328,21 +340,8 @@ const foodish = areaItems.filter(it =>
                 if (v < T.WARNING) return 'You are getting tired. A yawn escapes you.';
                 return '';
             // drives (task-337): high value = urgent, 0 = satisfied.
-            // Maslow (physiological base): when hunger/threat is critical the
-            // body demands action, so the moodlet is IMPERATIVE and names the
-            // exact thing to do — "EAT your granola_bar or FIND SOMETHING TO
-            // EAT NOW". The old descriptive lines ("Your stomach growls
-            // loudly") told the agent a fact it already knew without telling
-            // it what to do, which is why nobody ever ate.
-            const threatNote = scene?.hasThreat
-                ? ' (but a hostile presence is in the room — flee/defend first, eat only if safe)'
-                : '';
-            const eatCmd = (names) => names.length
-                ? `EAT your ${names.join(' or ')}`
-                : 'FIND SOMETHING TO EAT NOW';
-            const drinkCmd = (names) => names.length
-                ? `DRINK your ${names.join(' or ')}`
-                : 'FIND SOMETHING TO DRINK NOW';
+            // Maslow (physiological base): the imperative moodlets live in
+            // the Hunger/Thirst cases below.
             case 'Hunger':
                 if (v >= 100) return `You are STARVING — your body cannot hold you up. ${eatCmd(scene?.carriedFood)}${threatNote}.`;
                 if (v > T.WARNING) return `You are very hungry and it is draining you. ${eatCmd(scene?.carriedFood || scene?.foodNames)}${threatNote}.`;
@@ -426,11 +425,24 @@ const foodish = areaItems.filter(it =>
         if (!player?.vitals) return '';
         const vitalsData = player.vitals;
         const scene = _vitalsScene(state, charName, player);
+        // Horror/undead flags (is_slasher, and any future "no physiological
+        // needs" trait): these characters don't eat, drink, sleep, or get
+        // tired. The engine already skips their vital decay (tick_manager
+        // continues past the vitals loop for is_slasher), so the prompt
+        // shouldn't contradict that by nagging them to find food — a murder
+        // hobo whose every turn starts with "EAT your granola_bar" is a
+        // hobo who never gets to the murder. Health still reports.
+        const traits = player.traits || {};
+        const noPhysNeeds = traits.is_slasher === true
+            || traits.undead === true
+            || traits.no_physiological_needs === true;
         const order = ['Energy', 'Hunger', 'Thirst', 'Hygiene', 'Social', 'Bladder',
                        'Sanity', 'Entertainment', 'Temperature'];
         const parts = [];
         for (const key of order) {
             if (vitalsData[key] !== undefined) {
+                // Physiological drives are meaningless to a slasher/undead.
+                if (noPhysNeeds && (key === 'Hunger' || key === 'Thirst')) continue;
                 const desc = describeVital(vitalsData, key, scene);
                 if (desc) parts.push(desc);
             }
