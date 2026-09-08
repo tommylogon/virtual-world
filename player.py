@@ -80,11 +80,20 @@ class Player:
             "Entertainment": 100, "Temperature": 37.0
         }
 
-        # Per-character decay rate overrides (defaults match engine baseline)
+        # Per-character decay rate overrides. Defaults match the engine
+        # baseline in virtual_world_engine.py — real-world-scaled per-minute
+        # rates (1 tick = 1 in-game minute): ~3 weeks without food, ~3 days
+        # without water. The old 1/tick values starved everyone in ~15-25
+        # minutes regardless of the food in their pockets.
         self.decay_rates = {
-            "Hunger": 1, "Thirst": 1, "Energy": 1, "Social": 1,
+            "Hunger": 0.06, "Thirst": 0.18, "Energy": 1, "Social": 1,
             "Hygiene": 1, "Bladder": 1, "Sanity": 1, "Entertainment": 1
         }
+        # Fractional accumulator for sub-1/tick drive decay (mansion: Hunger
+        # 0.06/min, Thirst 0.18/min). int() truncation would drop the whole
+        # increment most ticks, so the drives would barely move; this carries
+        # the leftover over so the real-world rate actually accrues.
+        self._decay_accum = {}
 
         # Per-body-part numeric state (task-253 body-part taxonomy). Flat dict
         # keyed by region id from engine/body_parts.py: each region has a base

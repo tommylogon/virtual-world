@@ -425,6 +425,42 @@ CONDITION_DEFINITIONS = {
         }, "stack": "noop", "default_duration": None,
         "excludes": [],
     },
+    # ── Sanity-triggered breakdown (task-353 §5, sanity branch) ──────────
+    # Low Sanity is NOT a death sentence (it never drains HP) — it makes the
+    # character more dangerous, exactly as you'd expect: paranoia makes you
+    # attack first, hallucinations make you misread the room. These are the
+    # named conditions behind the === YOUR MIND === prompt tiers.
+    "paranoid": {
+        "name": "Paranoid",
+        "description": "Every shadow has a face. Friends look like enemies and every sound is a threat.",
+        "blocks_actions": False, "blocks_movement": False, "blocks_speech": False,
+        "auto_fail_checks": [], "auto_fail_saves": [],
+        "attack_mod": 1, "defense_mod": -2, "speed_mult": 1.0,
+        "movement_mode": None, "drops_held_items": False,
+        "periodic": {"Sanity": -1}, "ends_on": ["comfort", "rest", "socialize"],
+        "known": True, "symptoms": {
+            5: "You keep glancing over your shoulder, sure someone is watching.",
+            3: "Their smile doesn't reach their eyes. You know what they're really planning.",
+            1: "The walls are listening. You shouldn't say anything out loud.",
+        }, "stack": "refresh", "default_duration": 30,
+        "excludes": ["hallucinating"],
+    },
+    "hallucinating": {
+        "name": "Hallucinating",
+        "description": "Reality is slipping through your fingers. You can't trust what you see or hear.",
+        "blocks_actions": False, "blocks_movement": False, "blocks_speech": False,
+        "auto_fail_checks": ["perception", "concentration", "willpower"],
+        "auto_fail_saves": [],
+        "attack_mod": 2, "defense_mod": -3, "speed_mult": 1.0,
+        "movement_mode": None, "drops_held_items": False,
+        "periodic": {"Sanity": -2}, "ends_on": ["comfort", "rest", "meditate"],
+        "known": True, "symptoms": {
+            5: "A voice whispers from the corner of the room — no one else seems to hear it.",
+            3: "The person standing in front of you isn't the person you remember.",
+            1: "The room breathes when you look away. Don't trust the exits.",
+        }, "stack": "refresh", "default_duration": 30,
+        "excludes": ["paranoid"],
+    },
     # ── Involuntary body-reaction flavor conditions (task-166) ──────────
     # Always-active flavor: applied by triggers/actions and read by the
     # involuntary-action speech/emote post-processor. Independent of the

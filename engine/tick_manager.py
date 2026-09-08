@@ -193,13 +193,24 @@ class TickManager:
 
             prev_vitals = p.vitals.copy()
             trait_multipliers = TraitSystem.get_vital_multipliers(p)
+            accum = getattr(p, "_decay_accum", None)
+            if accum is None:
+                accum = p._decay_accum = {}
             for stat, default_decay in self.player_manager.baseline_decay.items():
                 if stat in p.vitals and stat != "Temperature":
                     rate = p.decay_rates.get(stat, default_decay)
                     mult = trait_multipliers.get(stat, 1.0)
                     if is_drive(stat):
-                        # drives FILL toward 100 (starving/dehydrated at max)
-                        p.vitals[stat] = min(100, p.vitals[stat] + int(rate * mult))
+                        # drives FILL toward 100 (starving/dehydrated at max).
+                        # Fractional accumulator: sub-1/tick rates (Hunger
+                        # 0.06/min, Thirst 0.18/min) would vanish under int()
+                        # most ticks, so the leftover carries over and the
+                        # real-world rate actually accrues.
+                        accum[stat] = accum.get(stat, 0.0) + rate * mult
+                        step = int(accum[stat])
+                        accum[stat] -= step
+                        if step:
+                            p.vitals[stat] = min(100, p.vitals[stat] + step)
                     else:
                         p.vitals[stat] = max(0, p.vitals[stat] - int(rate * mult))
 
@@ -258,15 +269,24 @@ class TickManager:
                     self.player_manager.add_log_entry("Your vision swims... the world tilts... you collapse from exhaustion. You have passed out.")
 
             hp_loss = 0
-            # flipped drives: Hunger/Thirst max out at 100 (starving/dehydrated)
-            if p.vitals.get("Hunger", 0) >= 100:
-                hp_loss += 1
-            if p.vitals.get("Thirst", 0) >= 100:
-                hp_loss += 2
-            if p.vitals.get("Sanity", 1) <= 0:
-                hp_loss += 1
+            # Flipped drives: Hunger/Thirst max out at 100 (starving/dehydrated).
+            # HP only starts dropping AFTER a grace period at max — a person
+            # doesn't die the instant their stomach growls, and with the
+            # decay rates now real-world-scaled the drives spend a long time
+            # maxed while the character figures out where the food is. Without
+            # the grace + slow drain, maxed Hunger still killed in ~100 ticks.
+            for stat, grace, drain in (("Hunger", 60, 0.5), ("Thirst", 30, 1.0)):
+                if p.vitals.get(stat, 0) >= 100:
+                    key = f"_drive_maxed_{stat.lower()}"
+                    ticks = getattr(p, key, 0) + 1
+                    setattr(p, key, ticks)
+                    if ticks > grace:
+                        hp_loss += drain
+                else:
+                    if hasattr(p, f"_drive_maxed_{stat.lower()}"):
+                        setattr(p, f"_drive_maxed_{stat.lower()}", 0)
             if hp_loss > 0:
-                p.vitals["HP"] = max(0, p.vitals["HP"] - hp_loss)
+                p.vitals["HP"] = max(0, int(round(p.vitals["HP"] - hp_loss)))
 
             if p.vitals.get("Bladder", 0) >= 100 and prev_vitals.get("Bladder", 0) < 100:
                 p.vitals["Hygiene"] = max(0, p.vitals["Hygiene"] - 30)
@@ -297,8 +317,6 @@ class TickManager:
                     cause_parts.append("starvation")
                 if p.vitals.get("Thirst", 0) >= 100:
                     cause_parts.append("dehydration")
-                if p.vitals.get("Sanity", 0) <= 0:
-                    cause_parts.append("madness")
                 if p.vitals.get("Temperature", 37) < 30:
                     cause_parts.append("hypothermia")
                 if p.vitals.get("Temperature", 37) > 42:
@@ -448,6 +466,22 @@ class TickManager:
                         sanity_penalty += 1
                     if sanity_penalty > 0:
                         p.vitals["Sanity"] = max(0, p.vitals["Sanity"] - sanity_penalty)
+                    # task-353 §5 (sanity branch): low Sanity is NOT a death
+                    # sentence — it never drains HP. It makes the character
+                    # more dangerous instead: paranoid → attack first,
+                    # hallucinating → misread the room. Named conditions with
+                    # attack/defense mods, mirroring social_breakdown.
+                    sanity_val = p.vitals.get("Sanity", 100)
+                    if sanity_val < 25:
+                        if "hallucinating" not in p.conditions:
+                            p.add_condition("hallucinating")
+                    elif sanity_val < 50:
+                        if "paranoid" not in p.conditions:
+                            p.add_condition("paranoid")
+                    else:
+                        for cid in ("paranoid", "hallucinating"):
+                            if cid in p.conditions:
+                                p.remove_condition(cid)
                     area_temp = float(effective_temperature(float(env.get("temperature", 21)), bonuses,
                                                             wind_level=env.get("wind", "none"),
                                                             humidity=env.get("humidity", "dry")))

@@ -73,8 +73,17 @@ class VirtualWorld:
         # Auto-generate equipment descriptions on equip/unequip (False = manual only)
         self.auto_generate_descriptions = True
 
+        # Per-minute decay rates. 1 tick = 1 in-game minute (see the event
+        # log's "1m" stamps), so these are real-world-scaled: a healthy
+        # adult goes ~3 weeks without food and ~3 days without water.
+        #
+        # The old 1/tick values killed everyone in ~15-25 minutes — the
+        # teenagers in the mansion had granola bars and water bottles in
+        # their pockets and still starved, because the drive maxed out before
+        # they ever thought to eat. Hunger now takes ~7h to max from the
+        # scenario's starting 75, Thirst ~1.4h from 85 — long enough to act.
         self.baseline_decay = {
-            "Energy": 1, "Hunger": 1, "Thirst": 1,
+            "Energy": 1, "Hunger": 0.06, "Thirst": 0.18,
             "Social": 1, "Hygiene": 1,
             "Sanity": 1, "Entertainment": 1,
             "Mana": 0,

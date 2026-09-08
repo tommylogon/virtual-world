@@ -4,6 +4,42 @@ All notable changes to VirtualWorld. See `docs/virtualWorld/Scenario Workflows &
 
 ---
 
+## Unreleased — "Survival balance & Sanity breakdown" (2026-09-08)
+
+The mansion survival fix: teenagers were dying of starvation in ~45–63 in-universe minutes despite carrying granola bars and water bottles, because the drive decay was 1/tick, vitals were invisible to the agent, and the moodlets never told anyone *what to do*. Low Sanity was also still draining HP and being listed as a cause of death — going insane doesn't kill you, it makes you more dangerous.
+
+### 🍞 Survival rates → real-world scale
+- **Decay rates are now per-minute, not per-tick.** 1 tick = 1 in-game minute, so a healthy adult can now go ~3 weeks without food and ~3 days without water instead of ~15 minutes. Hunger 1→**0.06/min**, Thirst 1→**0.18/min** — applied in `virtual_world_engine.py`, `player.py`, and all 9 players in `data/scenarios/mansion.json` (the scenario was shipping lowercase `hunger`/`thirst` keys the tick loop silently ignored, so the values were never used).
+- **Fractional accumulator** in `engine/tick_manager.py`: sub-1/tick rates were vanishing under `int()` truncation, so the drives barely moved. The leftover now carries over tick-to-tick and the real rate actually accrues.
+- **Death slope softened.** Hunger/Thirst now drain HP only after a grace period at max (60m / 30m), then at 0.5/1.0 HP/tick instead of 1/2 — a real recovery window. HP stays an integer.
+
+### 🧠 Maslow-prioritized moodlets & plans
+- Hunger/Thirst tiers in `describeVitals` rewritten as **imperatives that name the exact carried item**: *"EAT your granola_bar or FIND SOMETHING TO EAT NOW"*, *"DRINK your water_bottle"*, falling back to *"FIND SOMETHING TO EAT NOW"* when nothing is carried. Threat-qualified so they don't contradict the existing `ThreatDetector` alert. Generic — driven by item tags and carried-item graph edges, no scenario-specific strings.
+- The plan prompt's critical-needs note now cites **Maslow's hierarchy** and requires the first plan step to satisfy the most urgent physiological need before exploration, investigation, or social goals.
+
+### 👻 Sanity makes you dangerous, not dead
+- **Removed the Sanity → HP drain** (`engine/tick_manager.py`) and dropped "madness" from the death-cause list. Sanity ≤ 0 has no physical consequence. Going psychotic, seeing friends as enemies, getting anxious or suicidal is bad for your health in the way that matters here: it makes you a worse fighter and a worse ally, not a corpse.
+- **Two new Sanity-triggered conditions** (`engine/player_conditions.py`), mutually exclusive, wired in the tick loop alongside `social_breakdown`:
+
+| Condition | Trigger | attack | defense | periodic | ends on |
+|---|---|---|---|---|---|
+| `paranoid` | Sanity < 50 | **+1** | −2 | Sanity −1 | comfort, rest, socialize |
+| `hallucinating` | Sanity < 25 | **+2** | −3 | Sanity −2 | comfort, rest, meditate |
+
+- **`buildInsanityContext` tiers rewritten as behavioral directives** — *"You are HALLUCINATING... Trust your instincts over your senses. Attack first, ask questions never"* / *"You are PARANOID... assume it's an attack"* — so the LLM steers toward the dangerous behavior instead of just narrating mood.
+- **`Involuntary` flavor** for both: paranoid → stutter speech + glance-around/white-knuckles emotes; hallucinating → ramble speech + stare-at-nothing/mutter-to-empty-corner emotes.
+
+### 🧪 Verification
+- `npm run lint` clean over all of `static/js/`.
+- All edited Python parses and imports; conditions load (38 total).
+- **233 condition/vital/tick/sanity tests pass.** 2,672 tests pass overall; the only failures are 56 pre-existing `tests/test_mcp_*.py` harness breakages (`'function' object has no attribute 'fn'`), which touch none of these files and were already broken before this change.
+
+### 🧰 Gotchas
+- The scenario's `decay_rates` keys were lowercase (`hunger`/`thirst`) while `Player.decay_rates` and the tick loop use capitalized `Hunger`/`Thirst` — so the scenario values were silently ignored and fell back to the engine default. Normalized to the canonical casing. If you hand-author `decay_rates` in a scenario, match the Player convention or they won't take effect.
+- `mansion.json` is the only scenario patched; other scenarios still ship the old 1/tick rates. Patch them when you re-run them.
+
+---
+
 ## 1.7.1 — "Self-healing JSON & dataset capture" (2026-09-07)
 
 The parse-failure follow-up: when heuristic JSON repair gives up, the LLM now fixes its own broken output (the sports-bra response had 5 stray closing braces — `19 {` vs `24 }` — unrecoverable by regex); and every request/response pair is now captured to IndexedDB so it can be exported as a chat-format JSONL fine-tuning dataset.

@@ -77,15 +77,21 @@ window.PlanManager = (() => {
                 : '';
 
             // task-92: critical vitals force the plan to address them first.
+            // Maslow's hierarchy of needs: physiological needs (hunger, thirst,
+            // sleep, safety) are the base of the pyramid and MUST be satisfied
+            // before the character can focus on exploration, investigation, or
+            // social goals. A plan that starts with "search the library" while
+            // the character is starving is wrong, however interesting the
+            // search is.
             const criticalNeedsList = PlanTracker.criticalNeeds(player?.vitals);
-            const needsNote = criticalNeedsList.length > 0
-                ? `\n\n=== CRITICAL NEEDS ===\nYou are suffering from: ${criticalNeedsList.join('; ')}.\nPRIORITIZE the most urgent need FIRST — the plan should address it before exploration or conversation. A short detour toward another goal is fine ONLY if you return to the urgent need immediately after. Don't let curiosity or a side-task stand between you and the pressing need.`
+            const maslowNote = criticalNeedsList.length > 0
+                ? `\n\n=== CRITICAL NEEDS (MASLOW — address these FIRST) ===\nYou are suffering from: ${criticalNeedsList.join('; ')}.\n\nThese are PHYSIOLOGICAL needs — the base of Maslow's hierarchy. They outrank every other goal: safety, exploration, investigation, and social connection can wait. Build the FIRST step of your plan around satisfying the most urgent need (eat your food, drink your water, find shelter, rest).\n\nA short detour toward another goal is fine ONLY if you return to the urgent need immediately after. Don't let curiosity or a side-task stand between you and the pressing need.`
                 : '';
 
             const prompt = `${roomContext}
 
 === YOUR STATE ===
-${vitals || 'No urgent physical needs.'}${emotion}${threatNote}${needsNote}
+${vitals || 'No urgent physical needs.'}${emotion}${threatNote}${maslowNote}
 
 ${memories || ''}
 ${lastResult ? `\n=== RECENTLY ===\n${_summaryLine(lastResult)}` : ''}

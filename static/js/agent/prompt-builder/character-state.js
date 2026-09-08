@@ -149,11 +149,16 @@ window.PromptBuilder = window.PromptBuilder || {};
     function buildInsanityContext(player) {
         if (!player?.vitals?.Sanity) return '';
         const sanityScore = player.vitals.Sanity;
+        // Low Sanity is NOT a death sentence — it never drains HP. It makes
+        // the character MORE DANGEROUS instead: paranoia makes them attack
+        // first, hallucinations make them misread the room. These tiers are
+        // behavioral directives, not just mood text — they steer the agent
+        // toward the dangerous behavior that matches their condition.
         const tiers = [
-            { max: 10, instructions: '=== YOUR MIND ===\nBarely holding it together. Every decision feels heavier than it should, and you keep second-guessing yourself.' },
-            { max: 25, instructions: '=== YOUR MIND ===\nNerves frayed raw. You flinch at small sounds and snap at small annoyances — your composure is shot.' },
-            { max: 50, instructions: '=== YOUR MIND ===\nYou feel strained and irritable. Patience is thin and everything grates on your nerves.' },
-            { max: 75, instructions: '=== YOUR MIND ===\nA low hum of unease you can\'t quite shake. You keep double-checking things.' }
+            { max: 10, instructions: '=== YOUR MIND ===\nYou are HALLUCINATING. Reality is slipping — you can\'t trust what you see or hear. The person in front of you may not be who you remember, and the exits may not lead where they say. Trust your instincts over your senses. Attack first, ask questions never.' },
+            { max: 25, instructions: '=== YOUR MIND ===\nYou are HALLUCINATING. Voices whisper from empty corners. Don\'t trust the room, don\'t trust the people, and don\'t trust your own eyes. If something feels wrong, it is wrong — react to it.' },
+            { max: 50, instructions: '=== YOUR MIND ===\nYou are PARANOID. Every shadow has a face and every friend looks like an enemy. Their smile doesn\'t reach their eyes. Keep your guard up, never turn your back, and answer coldly and briefly. If they move, assume it\'s an attack.' },
+            { max: 75, instructions: '=== YOUR MIND ===\nYou are PARANOID. A low hum of unease you can\'t shake. You keep double-checking things and glancing over your shoulder. Trust nothing you can\'t verify yourself.' }
         ];
         for (const tier of tiers) {
             if (sanityScore < tier.max) return '\n' + tier.instructions;
@@ -247,19 +252,59 @@ window.PromptBuilder = window.PromptBuilder || {};
             const a = it.properties?.actions;
             return Array.isArray(a) ? a.map(String) : String(a || '').split(',').map(s => s.trim().toLowerCase());
         };
-        const foodish = areaItems.filter(it =>
+const foodish = areaItems.filter(it =>
             tagsOf(it).includes('food') || actionsOf(it).includes('eat'));
         const drinkish = areaItems.filter(it =>
             tagsOf(it).includes('drink') || actionsOf(it).includes('drink'));
+        // What's already in your pockets — the thing you actually need to
+        // EAT or DRINK. Named, so the moodlet can say "eat your granola_bar".
+        // Generic: any food/drink-tagged carried item, any scenario. Carried
+        // items are graph EDGE_CARRYING edges, not a player.carrying field.
+        const carried = PromptBuilder?.carriedItemNodes
+            ? PromptBuilder.carriedItemNodes(charName)
+            : [];
+        const carriedFood = carried.filter(it =>
+            tagsOf(it).includes('food') || actionsOf(it).includes('eat'));
+        const carriedDrink = carried.filter(it =>
+            tagsOf(it).includes('drink') || actionsOf(it).includes('drink'));
+        // Is someone hostile in this room right now? Generic — mirrors the
+        // existing ThreatDetector.getThreatAlert (hostile trait, negative
+        // closeness, or this turn's attack events), but computed here from
+        // the same state so the moodlet can qualify its advice. Survival
+        // needs yield to danger: you don't stop to eat while a threat is
+        // present.
+        const allPlayers = state.players || {};
+        const turnEvents = state.turn_events || [];
+        let hasThreat = false;
+        let threatNames = [];
+        for (const person of others) {
+            const other = allPlayers[person.name];
+            if (!other) continue;
+            if (other.state === 'hidden' || other.state === 'stealthed') continue;
+            const met = typeof worldState?.hasMet === 'function'
+                ? worldState.hasMet(charName, person.name) : true;
+            const threatName = met ? person.name
+                : (other.description?.split(/[.,;]/)[0]?.trim() || 'A hostile figure');
+            if (other.traits?.hostile) { hasThreat = true; threatNames.push(threatName); continue; }
+            const closeness = other.relationships?.[charName]?.closeness;
+            if (closeness !== undefined && closeness < -20) { hasThreat = true; threatNames.push(threatName); continue; }
+            if (turnEvents.some(te => te.actor === person.name && te.action === 'attack')) {
+                hasThreat = true; threatNames.push(threatName); continue;
+            }
+        }
         return {
             company: others.length,
-            alone: others.length === 0,
+            others: others.map(o => o.name),
             inConversation,
             addressed,
-            noise: String(area?.environment?.noise || '').toLowerCase(),
-            areaTags: Array.isArray(area?.tags) ? area.tags : [],
             foodVisible: foodish.length > 0,
-            drinkVisible: drinkish.length > 0
+            drinkVisible: drinkish.length > 0,
+            foodNames: foodish.map(f => f.name),
+            drinkNames: drinkish.map(d => d.name),
+            carriedFood: carriedFood.map(f => f.name),
+            carriedDrink: carriedDrink.map(d => d.name),
+            hasThreat,
+            threatNames,
         };
     }
 
@@ -282,28 +327,31 @@ window.PromptBuilder = window.PromptBuilder || {};
                 if (v < T.CRITICAL) return 'You are exhausted. Every movement feels heavy.';
                 if (v < T.WARNING) return 'You are getting tired. A yawn escapes you.';
                 return '';
-            // drives (task-337): high value = urgent, 0 = satisfied
+            // drives (task-337): high value = urgent, 0 = satisfied.
+            // Maslow (physiological base): when hunger/threat is critical the
+            // body demands action, so the moodlet is IMPERATIVE and names the
+            // exact thing to do — "EAT your granola_bar or FIND SOMETHING TO
+            // EAT NOW". The old descriptive lines ("Your stomach growls
+            // loudly") told the agent a fact it already knew without telling
+            // it what to do, which is why nobody ever ate.
+            const threatNote = scene?.hasThreat
+                ? ' (but a hostile presence is in the room — flee/defend first, eat only if safe)'
+                : '';
+            const eatCmd = (names) => names.length
+                ? `EAT your ${names.join(' or ')}`
+                : 'FIND SOMETHING TO EAT NOW';
+            const drinkCmd = (names) => names.length
+                ? `DRINK your ${names.join(' or ')}`
+                : 'FIND SOMETHING TO DRINK NOW';
             case 'Hunger':
-                if (v >= 100) return 'You are starving — your stomach is a hollow knot of pain.';
-                if (v > T.WARNING) {
-                    if (scene?.foodVisible) return 'You are very hungry. Your stomach growls loudly — the food nearby is all you can think about.';
-                    return 'You are very hungry. Your stomach growls loudly.';
-                }
-                if (v > T.CRITICAL) {
-                    if (scene?.foodVisible) return 'You are hungry. The food you can see is all you can think about.';
-                    return 'You are hungry. Your stomach feels empty.';
-                }
+                if (v >= 100) return `You are STARVING — your body cannot hold you up. ${eatCmd(scene?.carriedFood)}${threatNote}.`;
+                if (v > T.WARNING) return `You are very hungry and it is draining you. ${eatCmd(scene?.carriedFood || scene?.foodNames)}${threatNote}.`;
+                if (v > T.CRITICAL) return `You are hungry. ${eatCmd(scene?.carriedFood || scene?.foodNames)}${threatNote}.`;
                 return '';
             case 'Thirst':
-                if (v >= 100) return 'You are dying of thirst — your throat is cracked and dry as ash.';
-                if (v > T.WARNING) {
-                    if (scene?.drinkVisible) return 'You are very thirsty. Your tongue sticks to the roof of your mouth — the drink nearby is all you can think about.';
-                    return 'You are very thirsty. Your tongue sticks to the roof of your mouth.';
-                }
-                if (v > T.CRITICAL) {
-                    if (scene?.drinkVisible) return 'You are thirsty. The drink you can see is all you can think about.';
-                    return 'You are thirsty. Your throat feels dry.';
-                }
+                if (v >= 100) return `You are DYING of thirst — your throat is cracked and dry. ${drinkCmd(scene?.carriedDrink)}${threatNote}.`;
+                if (v > T.WARNING) return `You are very thirsty and it is draining you. ${drinkCmd(scene?.carriedDrink || scene?.drinkNames)}${threatNote}.`;
+                if (v > T.CRITICAL) return `You are thirsty. ${drinkCmd(scene?.carriedDrink || scene?.drinkNames)}${threatNote}.`;
                 return '';
             case 'Hygiene':
                 if (v < T.CRITICAL) return 'You are filthy — grime and sweat cling to your skin.';

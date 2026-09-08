@@ -23,6 +23,8 @@ window.Involuntary = (() => {
         sick: { type: 'cough', chance: 0.35 },
         poisoned: { type: 'cough', chance: 0.40 },
         social_breakdown: { type: 'ramble', chance: 0.25 },
+        paranoid: { type: 'stutter', chance: 0.40 },
+        hallucinating: { type: 'ramble', chance: 0.45 },
     };
 
     // condition_id -> emote suffixes (also used for random generic flavor).
@@ -55,6 +57,16 @@ window.Involuntary = (() => {
         goosebumps: [
             '*goosebumps prickle over {their} skin*',
             '*{they} rub {their} arms against the goosebumps*',
+        ],
+        paranoid: [
+            '*{they} glance around, eyes darting*',
+            '*a nervous glance over {their} shoulder*',
+            '*{they} grip {their} weapon tighter, knuckles white*',
+        ],
+        hallucinating: [
+            '*{they} stare at something no one else can see*',
+            '*{they} mutter to an empty corner of the room*',
+            '*{their} gaze slides past the person in front of them*',
         ],
     };
 

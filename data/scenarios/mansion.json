@@ -107,11 +107,11 @@
         "bladder": 1,
         "energy": 1,
         "entertainment": 1,
-        "hunger": 1,
         "hygiene": 1,
         "sanity": 1,
         "social": 1,
-        "thirst": 1
+        "Hunger": 0.06,
+        "Thirst": 0.18
       },
       "body_state": {
         "arm_left": {
@@ -407,11 +407,11 @@
         "bladder": 1,
         "energy": 1,
         "entertainment": 1,
-        "hunger": 1,
         "hygiene": 1,
         "sanity": 1,
         "social": 1,
-        "thirst": 1
+        "Hunger": 0.06,
+        "Thirst": 0.18
       },
       "body_state": {
         "arm_left": {
@@ -782,11 +782,11 @@
         "bladder": 1,
         "energy": 1,
         "entertainment": 1,
-        "hunger": 1,
         "hygiene": 1,
         "sanity": 1,
         "social": 1,
-        "thirst": 1
+        "Hunger": 0.06,
+        "Thirst": 0.18
       },
       "body_state": {
         "arm_left": {
@@ -1084,11 +1084,11 @@
         "bladder": 1,
         "energy": 1,
         "entertainment": 1,
-        "hunger": 1,
         "hygiene": 1,
         "sanity": 1,
         "social": 1,
-        "thirst": 1
+        "Hunger": 0.06,
+        "Thirst": 0.18
       },
       "body_state": {
         "arm_left": {
@@ -1393,12 +1393,12 @@
         "bladder": 1,
         "energy": 1,
         "entertainment": 1,
-        "hunger": 1,
         "hygiene": 1,
         "sanity": 1,
         "social": 1,
         "temperature": 0,
-        "thirst": 1
+        "Hunger": 0.06,
+        "Thirst": 0.18
       },
       "body_state": {
         "arm_left": {
@@ -1598,7 +1598,7 @@
       "patrol_route": [],
       "patrol_index": 0,
       "feels_like": 19,
-      "current_carry_weight": 4.630000000000001,
+      "current_carry_weight": 4.63,
       "max_carry_capacity": 100.0,
       "at_way_id": null,
       "spatial_position": null
@@ -1711,11 +1711,11 @@
         "bladder": 1,
         "energy": 1,
         "entertainment": 1,
-        "hunger": 1,
         "hygiene": 1,
         "sanity": 1,
         "social": 1,
-        "thirst": 1
+        "Hunger": 0.06,
+        "Thirst": 0.18
       },
       "body_state": {
         "arm_left": {
@@ -1941,7 +1941,7 @@
       "patrol_route": [],
       "patrol_index": 0,
       "feels_like": 17,
-      "current_carry_weight": 4.389999999999999,
+      "current_carry_weight": 4.389999999999998,
       "max_carry_capacity": 100.0,
       "at_way_id": null,
       "spatial_position": null
@@ -2040,11 +2040,11 @@
         "bladder": 1,
         "energy": 1,
         "entertainment": 1,
-        "hunger": 1,
         "hygiene": 1,
         "sanity": 1,
         "social": 1,
-        "thirst": 1
+        "Hunger": 0.06,
+        "Thirst": 0.18
       },
       "body_state": {
         "arm_left": {
@@ -2353,11 +2353,11 @@
         "bladder": 1,
         "energy": 1,
         "entertainment": 1,
-        "hunger": 1,
         "hygiene": 1,
         "sanity": 1,
         "social": 1,
-        "thirst": 1
+        "Hunger": 0.06,
+        "Thirst": 0.18
       },
       "body_state": {
         "arm_left": {
@@ -2632,16 +2632,14 @@
       "discovered_items": [],
       "decay_rates": {
         "Bladder": 0,
-        "Hunger": 1,
-        "Thirst": 1,
         "bladder": 1,
         "energy": 1,
         "entertainment": 1,
-        "hunger": 1,
         "hygiene": 1,
         "sanity": 1,
         "social": 1,
-        "thirst": 1
+        "Hunger": 0.06,
+        "Thirst": 0.18
       },
       "body_state": {
         "arm_left": {
@@ -5957,10 +5955,14 @@
             "metal"
           ],
           "uses": -1,
-          "weight": 0.5
+          "weight": 0.5,
+          "ignored_issues": [
+            "mechanical_tag_missing_props"
+          ],
+          "_ignored_at": 1788810423.0726967
         },
         "created": 1784318436.3222942,
-        "updated": 1784318436.3222942
+        "updated": 1788810423.0726967
       },
       "item_candle_stub": {
         "id": "item_candle_stub",
@@ -6137,10 +6139,14 @@
             "furniture"
           ],
           "uses": -1,
-          "weight": 50
+          "weight": 50,
+          "ignored_issues": [
+            "mechanical_tag_missing_props"
+          ],
+          "_ignored_at": 1788810416.4445276
         },
         "created": 1784318436.318297,
-        "updated": 1788808679.0008378
+        "updated": 1788810416.4445276
       },
       "item_child_bed": {
         "id": "item_child_bed",
@@ -6240,7 +6246,6 @@
           "hidden": true,
           "skill_check": {},
           "tags": [
-            "clothing",
             "child",
             "evidence"
           ],
@@ -6248,7 +6253,7 @@
           "weight": 0.3
         },
         "created": 1784318436.3222942,
-        "updated": 1784318436.3222942
+        "updated": 1788810437.2929313
       },
       "item_christmas_decorations": {
         "id": "item_christmas_decorations",
@@ -6516,10 +6521,14 @@
             "container"
           ],
           "uses": -1,
-          "weight": 15
+          "weight": 15,
+          "ignored_issues": [
+            "mechanical_tag_missing_props"
+          ],
+          "_ignored_at": 1788810469.2517838
         },
         "created": 1784318436.3212945,
-        "updated": 1784318436.3212945
+        "updated": 1788810469.2517838
       },
       "item_crib": {
         "id": "item_crib",
@@ -6614,10 +6623,14 @@
             "container"
           ],
           "uses": -1,
-          "weight": 20
+          "weight": 20,
+          "ignored_issues": [
+            "mechanical_tag_missing_props"
+          ],
+          "_ignored_at": 1788810472.1554904
         },
         "created": 1784318436.3202963,
-        "updated": 1784318436.3202963
+        "updated": 1788810472.1554904
       },
       "item_dark cargo pants": {
         "id": "item_dark cargo pants",
@@ -6762,10 +6775,14 @@
             "container"
           ],
           "uses": -1,
-          "weight": 40
+          "weight": 40,
+          "ignored_issues": [
+            "mechanical_tag_missing_props"
+          ],
+          "_ignored_at": 1788810474.402883
         },
         "created": 1784318436.3192942,
-        "updated": 1784318436.3192942
+        "updated": 1788810474.402883
       },
       "item_diary": {
         "id": "item_diary",
@@ -6861,10 +6878,14 @@
             "container"
           ],
           "uses": -1,
-          "weight": 8
+          "weight": 8,
+          "ignored_issues": [
+            "mechanical_tag_missing_props"
+          ],
+          "_ignored_at": 1788810476.0315928
         },
         "created": 1784318436.3192942,
-        "updated": 1784318436.3192942
+        "updated": 1788810476.0315928
       },
       "item_duct tape jacket": {
         "id": "item_duct tape jacket",
@@ -7739,10 +7760,14 @@
             "container"
           ],
           "uses": -1,
-          "weight": 2
+          "weight": 2,
+          "ignored_issues": [
+            "mechanical_tag_missing_props"
+          ],
+          "_ignored_at": 1788810481.4545293
         },
         "created": 1784318436.3212945,
-        "updated": 1784318436.3212945
+        "updated": 1788810481.4545293
       },
       "item_iron_key": {
         "id": "item_iron_key",
@@ -7858,10 +7883,14 @@
             "furniture"
           ],
           "uses": -1,
-          "weight": 1
+          "weight": 1,
+          "ignored_issues": [
+            "mechanical_tag_missing_props"
+          ],
+          "_ignored_at": 1788810482.7324862
         },
         "created": 1784318436.3222942,
-        "updated": 1784318436.3222942
+        "updated": 1788810482.7324862
       },
       "item_journal": {
         "id": "item_journal",
@@ -7909,10 +7938,14 @@
             "sound_source"
           ],
           "uses": -1,
-          "weight": 1
+          "weight": 1,
+          "ignored_issues": [
+            "mechanical_tag_missing_props"
+          ],
+          "_ignored_at": 1788810483.982058
         },
         "created": 1784318436.3202963,
-        "updated": 1784318436.3202963
+        "updated": 1788810483.982058
       },
       "item_key_fragment": {
         "id": "item_key_fragment",
@@ -7985,10 +8018,12 @@
             "tool"
           ],
           "uses": -1,
-          "weight": 1.2
+          "weight": 1.2,
+          "damage": "1d4",
+          "damage_type": "slashing"
         },
         "created": 1784318436.3202963,
-        "updated": 1784318436.3202963
+        "updated": 1788810498.5725515
       },
       "item_lantern": {
         "id": "item_lantern",
@@ -8038,10 +8073,11 @@
             "artifact"
           ],
           "uses": -1,
-          "weight": 0.3
+          "weight": 0.3,
+          "damage": "1d4"
         },
         "created": 1784318436.3192942,
-        "updated": 1784318436.3192942
+        "updated": 1788810507.144552
       },
       "item_letter_servant": {
         "id": "item_letter_servant",
@@ -8292,10 +8328,11 @@
             "survival"
           ],
           "uses": 8,
-          "weight": 0.1
+          "weight": 0.1,
+          "light_level": "dim"
         },
         "created": 1784318436.318297,
-        "updated": 1785441521.3786707
+        "updated": 1788810076.782775
       },
       "item_matches_cellar": {
         "id": "item_matches_cellar",
@@ -9808,10 +9845,14 @@
             "top"
           ],
           "uses": 0,
-          "weight": 0.4
+          "weight": 0.4,
+          "ignored_issues": [
+            "library_mismatch"
+          ],
+          "_ignored_at": 1788812092.769483
         },
         "created": 1785495919.8672717,
-        "updated": 1785495919.8672724
+        "updated": 1788812092.769483
       },
       "item_stale_crackers": {
         "id": "item_stale_crackers",
@@ -9973,10 +10014,14 @@
             "jewelry"
           ],
           "uses": 0,
-          "weight": 0.03
+          "weight": 0.03,
+          "ignored_issues": [
+            "library_mismatch"
+          ],
+          "_ignored_at": 1788811664.1621017
         },
         "created": 1785487150.7707586,
-        "updated": 1785487150.7707589
+        "updated": 1788811664.1621017
       },
       "item_table": {
         "id": "item_table",
@@ -10346,10 +10391,14 @@
             "hair_accessory"
           ],
           "uses": 0,
-          "weight": 0.01
+          "weight": 0.01,
+          "ignored_issues": [
+            "library_mismatch"
+          ],
+          "_ignored_at": 1788811632.9198434
         },
         "created": 1785487161.203332,
-        "updated": 1785487340.5768375
+        "updated": 1788811632.9198434
       },
       "item_vanity": {
         "id": "item_vanity",
@@ -10982,76 +11031,6 @@
         },
         "created": 1786232695.0712535,
         "updated": 1786232695.0712545
-      },
-      "trigger_1788734085807_jzne": {
-        "id": "trigger_1788734085807_jzne",
-        "type": "logic_trigger",
-        "name": "on_take → ?",
-        "properties": {
-          "conditions": [],
-          "effects": [],
-          "fail_message": "",
-          "success_message": "",
-          "trigger_type": "on_take"
-        },
-        "created": 1788734085.8540366,
-        "updated": 1788734085.8540366
-      },
-      "trigger_1788734086428_s516": {
-        "id": "trigger_1788734086428_s516",
-        "type": "logic_trigger",
-        "name": "on_drop → ?",
-        "properties": {
-          "conditions": [],
-          "effects": [],
-          "fail_message": "",
-          "success_message": "",
-          "trigger_type": "on_drop"
-        },
-        "created": 1788734086.4710455,
-        "updated": 1788734086.4710455
-      },
-      "trigger_1788734394437_amtf": {
-        "id": "trigger_1788734394437_amtf",
-        "type": "logic_trigger",
-        "name": "on_examine → ?",
-        "properties": {
-          "conditions": [],
-          "effects": [],
-          "fail_message": "",
-          "success_message": "",
-          "trigger_type": "on_examine"
-        },
-        "created": 1788734394.483196,
-        "updated": 1788734394.483196
-      },
-      "trigger_1788734728868_trfi": {
-        "id": "trigger_1788734728868_trfi",
-        "type": "logic_trigger",
-        "name": "on_take → ?",
-        "properties": {
-          "conditions": [],
-          "effects": [],
-          "fail_message": "",
-          "success_message": "",
-          "trigger_type": "on_take"
-        },
-        "created": 1788734728.9159803,
-        "updated": 1788734728.9159803
-      },
-      "trigger_1788734729510_bjy5": {
-        "id": "trigger_1788734729510_bjy5",
-        "type": "logic_trigger",
-        "name": "on_drop → ?",
-        "properties": {
-          "conditions": [],
-          "effects": [],
-          "fail_message": "",
-          "success_message": "",
-          "trigger_type": "on_drop"
-        },
-        "created": 1788734729.5332696,
-        "updated": 1788734729.5332696
       },
       "trigger_1788735292324_6xeo": {
         "id": "trigger_1788735292324_6xeo",
@@ -13627,13 +13606,13 @@
           "conditions": {},
           "effects": [
             {
+              "type": "adjust_vital",
               "params": {
-                "amount": -30,
                 "stat": "Thirst",
-                "success_message": "The water is lukewarm and stale",
-                "target": "self"
-              },
-              "type": "adjust_vital"
+                "amount": -30,
+                "target": "self",
+                "success_message": "The water is lukewarm and stale"
+              }
             }
           ],
           "fail_message": "",
@@ -13646,7 +13625,7 @@
           ]
         },
         "created": 1788734383.5050378,
-        "updated": 1788734383.705037
+        "updated": 1788810234.3365166
       },
       "trigger_item_watering_can_on_take_0": {
         "id": "trigger_item_watering_can_on_take_0",
@@ -13704,10 +13683,16 @@
             "time": 1
           },
           "current_state": "hidden",
-          "description": "a concealed door behind a large wardrobe. the wardrobe has been moved recently — the dust trail is unmistakable."
+          "description": "a concealed door behind a large wardrobe. the wardrobe has been moved recently — the dust trail is unmistakable.",
+          "ignored_issues": [
+            "way_missing_cardinal",
+            "way_missing_pass_message",
+            "way_missing_view_direction"
+          ],
+          "_ignored_at": 1788810402.245212
         },
         "created": 1784318436.318297,
-        "updated": 1784318436.318297
+        "updated": 1788810402.245212
       },
       "way_cellar_basement_stairs": {
         "id": "way_cellar_basement_stairs",
@@ -14130,29 +14115,6 @@
         },
         "created": 1784318436.318297,
         "updated": 1784318436.318297
-      },
-      "trigger_1788775126630_9w9x": {
-        "id": "trigger_1788775126630_9w9x",
-        "type": "logic_trigger",
-        "name": "on_take → message",
-        "properties": {
-          "trigger_type": "on_take",
-          "target_name": "protein_bar",
-          "target_state": "",
-          "conditions": [],
-          "effects": [
-            {
-              "type": "message",
-              "params": {
-                "message": "You pocket the wrapped protein bar. It'll keep you going until your next proper meal."
-              }
-            }
-          ],
-          "success_message": "You take the protein bar.",
-          "fail_message": ""
-        },
-        "created": 1788775126.63538,
-        "updated": 1788775126.63538
       },
       "trigger_1788775127327_7vzb": {
         "id": "trigger_1788775127327_7vzb",
@@ -14604,6 +14566,638 @@
         },
         "created": 1788808734.5895457,
         "updated": 1788808734.5895457
+      },
+      "trigger_1788810108857_2y4h": {
+        "id": "trigger_1788810108857_2y4h",
+        "type": "logic_trigger",
+        "name": "on_examine → message",
+        "properties": {
+          "trigger_type": "on_examine",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [
+            {
+              "type": "uses_above",
+              "value": 0
+            }
+          ],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "A small cardboard box, faded and worn at the edges. The illustration of a raven is peeling, its wings spread as if in flight. You shake it gently — a dry, rapid rattle tells you there are still several matches inside."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788810108.9084272,
+        "updated": 1788810108.9084272
+      },
+      "trigger_1788810108857_cu2i": {
+        "id": "trigger_1788810108857_cu2i",
+        "type": "logic_trigger",
+        "name": "on_use → message",
+        "properties": {
+          "trigger_type": "on_use",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [
+            {
+              "type": "uses_above",
+              "value": 0
+            }
+          ],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You strike a match against the striker strip. The sulfur ignites with a sharp hiss, casting a brief, warm glow that dances across your fingertips."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": "The matchbox is empty — no more sparks to be had."
+        },
+        "created": 1788810108.9084272,
+        "updated": 1788810108.9084272
+      },
+      "trigger_1788810108857_uh5x": {
+        "id": "trigger_1788810108857_uh5x",
+        "type": "logic_trigger",
+        "name": "on_take → message",
+        "properties": {
+          "trigger_type": "on_take",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You pick up the matchbox. It’s lighter than you expected, the cardboard soft from handling. The raven’s eyes seem to follow you as you tuck it into your pocket."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788810108.9084272,
+        "updated": 1788810108.9084272
+      },
+      "trigger_1788810108857_g88m": {
+        "id": "trigger_1788810108857_g88m",
+        "type": "logic_trigger",
+        "name": "on_drop → message",
+        "properties": {
+          "trigger_type": "on_drop",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You set the matchbox down on the ground. It lands with a soft thud, the raven illustration now facing upward, staring blankly into the dim light."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788810108.9084272,
+        "updated": 1788810108.9084272
+      },
+      "trigger_1788810108857_dneo": {
+        "id": "trigger_1788810108857_dneo",
+        "type": "logic_trigger",
+        "name": "on_equip → message",
+        "properties": {
+          "trigger_type": "on_equip",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You slip the matchbox into your coat pocket. It settles against your ribs, a small, dry weight — always ready when you need fire."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788810108.9084272,
+        "updated": 1788810108.9084272
+      },
+      "trigger_1788810108857_che8": {
+        "id": "trigger_1788810108857_che8",
+        "type": "logic_trigger",
+        "name": "on_unequip → message",
+        "properties": {
+          "trigger_type": "on_unequip",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You remove the matchbox from your pocket and hold it in your hand. The raven’s image is smudged now, worn from travel and use."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788810108.9084272,
+        "updated": 1788810108.9084272
+      },
+      "trigger_1788810108857_4r2k": {
+        "id": "trigger_1788810108857_4r2k",
+        "type": "logic_trigger",
+        "name": "on_light → message",
+        "properties": {
+          "trigger_type": "on_light",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [
+            {
+              "type": "uses_above",
+              "value": 0
+            }
+          ],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You strike a match. The flame flares to life, steady and bright — a small beacon in the dark."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": "The matchbox is empty — no more sparks to be had."
+        },
+        "created": 1788810108.9084272,
+        "updated": 1788810108.9084272
+      },
+      "trigger_1788810108857_92dr": {
+        "id": "trigger_1788810108857_92dr",
+        "type": "logic_trigger",
+        "name": "on_toggle_off → set_state",
+        "properties": {
+          "trigger_type": "on_toggle_off",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [
+            {
+              "type": "state_equals",
+              "target": "self",
+              "value": "lit"
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_state",
+              "params": {
+                "node_id": "self",
+                "state": "unlit"
+              }
+            },
+            {
+              "type": "message",
+              "params": {
+                "message": "The match sputters and dies, leaving behind a wisp of smoke and the faint smell of sulfur."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788810108.9084272,
+        "updated": 1788810108.9084272
+      },
+      "trigger_1788810229252_l9u0": {
+        "id": "trigger_1788810229252_l9u0",
+        "type": "logic_trigger",
+        "name": "on_examine → message",
+        "properties": {
+          "trigger_type": "on_examine",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [
+            {
+              "type": "skill_check",
+              "skill": "Investigation",
+              "dc": 12
+            }
+          ],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You wipe away the dust. The crystal is clear but clouded with age. A dead moth floats on the surface of the stale water, its wings splayed like tiny, broken umbrellas."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788810229.294073,
+        "updated": 1788810229.294073
+      },
+      "trigger_1788810229252_9r6x": {
+        "id": "trigger_1788810229252_9r6x",
+        "type": "logic_trigger",
+        "name": "on_take → message",
+        "properties": {
+          "trigger_type": "on_take",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You lift the pitcher. It is heavier than it looks, sloshing the stale water against the crystal walls. The dead moth shifts, drifting slowly in the current."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788810229.294073,
+        "updated": 1788810229.294073
+      },
+      "trigger_1788810229252_hw5u": {
+        "id": "trigger_1788810229252_hw5u",
+        "type": "logic_trigger",
+        "name": "on_drop → message",
+        "properties": {
+          "trigger_type": "on_drop",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You set the pitcher back on the mantelpiece. A thin film of dust quickly begins to settle over its shoulders once more."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788810229.294073,
+        "updated": 1788810229.294073
+      },
+      "trigger_1788810543511_fn9r": {
+        "id": "trigger_1788810543511_fn9r",
+        "type": "logic_trigger",
+        "name": "on_use → message",
+        "properties": {
+          "trigger_type": "on_use",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You adjust the hair pin, sliding it deeper into your bangs. It holds your hair back, but the inverted cross stares up like an accusation."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788810543.5539522,
+        "updated": 1788810543.5539522
+      },
+      "trigger_1788810543511_wp18": {
+        "id": "trigger_1788810543511_wp18",
+        "type": "logic_trigger",
+        "name": "on_take → message",
+        "properties": {
+          "trigger_type": "on_take",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "As your fingers close around the pin, a faint chill climbs your wrist. You feel watched, as if the inverted cross has turned its gaze on you."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788810543.5539522,
+        "updated": 1788810543.5539522
+      },
+      "trigger_1788810543511_utv4": {
+        "id": "trigger_1788810543511_utv4",
+        "type": "logic_trigger",
+        "name": "on_drop → message",
+        "properties": {
+          "trigger_type": "on_drop",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You let the pin fall. It clinks against the floor, the inverted cross landing face-up, staring at the ceiling like a dead eye."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788810543.5539522,
+        "updated": 1788810543.5539522
+      },
+      "trigger_1788810543511_wesq": {
+        "id": "trigger_1788810543511_wesq",
+        "type": "logic_trigger",
+        "name": "on_equip → message",
+        "properties": {
+          "trigger_type": "on_equip",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You slide the pin into your hair. The silver cross rests against your scalp, cold and constant. You feel a subtle pressure, as if something is leaning closer."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788810543.5539522,
+        "updated": 1788810543.5539522
+      },
+      "trigger_1788810543511_gze7": {
+        "id": "trigger_1788810543511_gze7",
+        "type": "logic_trigger",
+        "name": "on_unequip → message",
+        "properties": {
+          "trigger_type": "on_unequip",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You pull the pin free. The chill recedes, but the weight of its gaze lingers in the air behind you."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788810543.5539522,
+        "updated": 1788810543.5539522
+      },
+      "trigger_1788811659501_oj6a": {
+        "id": "trigger_1788811659501_oj6a",
+        "type": "logic_trigger",
+        "name": "on_use → message",
+        "properties": {
+          "trigger_type": "on_use",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You hold the syringe up to the light. The pink liquid pulses softly, like a tiny heartbeat. You try to pry the seal open, but it's fused tight. Nothing happens."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788811659.5442967,
+        "updated": 1788811659.5442967
+      },
+      "trigger_1788811659501_9hir": {
+        "id": "trigger_1788811659501_9hir",
+        "type": "logic_trigger",
+        "name": "on_take → message",
+        "properties": {
+          "trigger_type": "on_take",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "As your fingers close around the necklace, the glow intensifies — just for a second. A faint, sweet smell like burnt sugar lingers in the air."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788811659.5442967,
+        "updated": 1788811659.5442967
+      },
+      "trigger_1788811659501_tuyr": {
+        "id": "trigger_1788811659501_tuyr",
+        "type": "logic_trigger",
+        "name": "on_drop → message",
+        "properties": {
+          "trigger_type": "on_drop",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You let the necklace fall. It lands with a soft clink, the glow dimming as it settles against the floor."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788811659.5442967,
+        "updated": 1788811659.5442967
+      },
+      "trigger_1788811659501_rj41": {
+        "id": "trigger_1788811659501_rj41",
+        "type": "logic_trigger",
+        "name": "on_equip → message",
+        "properties": {
+          "trigger_type": "on_equip",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You loop the necklace around your neck. The syringe rests against your collarbone, cool and faintly luminous beneath your clothes."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788811659.5442967,
+        "updated": 1788811659.5442967
+      },
+      "trigger_1788811659501_nrav": {
+        "id": "trigger_1788811659501_nrav",
+        "type": "logic_trigger",
+        "name": "on_unequip → message",
+        "properties": {
+          "trigger_type": "on_unequip",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You unclasp the necklace. The glow fades as it leaves your skin, returning to a quiet, inert trinket in your hand."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788811659.5442967,
+        "updated": 1788811659.5442967
+      },
+      "trigger_1788811683285_5t6g": {
+        "id": "trigger_1788811683285_5t6g",
+        "type": "logic_trigger",
+        "name": "on_use → message",
+        "properties": {
+          "trigger_type": "on_use",
+          "target_name": "stained work shirt",
+          "target_state": "normal",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You pull the shirt over your head. The fabric is cold and heavy, like wet wool. It clings to your skin, and for a moment, you feel the phantom ache of old cuts along your forearms."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788811683.3271844,
+        "updated": 1788811683.3271844
+      },
+      "trigger_1788811683285_ny63": {
+        "id": "trigger_1788811683285_ny63",
+        "type": "logic_trigger",
+        "name": "on_take → message",
+        "properties": {
+          "trigger_type": "on_take",
+          "target_name": "stained work shirt",
+          "target_state": "normal",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "As you lift it, a single drop of dark liquid falls from the hem — not blood, but something thicker. The air around you grows colder. You hear a faint, rhythmic thumping, like a heartbeat, just beneath your feet."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788811683.3271844,
+        "updated": 1788811683.3271844
+      },
+      "trigger_1788811683285_w7cd": {
+        "id": "trigger_1788811683285_w7cd",
+        "type": "logic_trigger",
+        "name": "on_drop → message",
+        "properties": {
+          "trigger_type": "on_drop",
+          "target_name": "stained work shirt",
+          "target_state": "normal",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You let it fall. The shirt lands with a soft thud, but does not lie flat — it curls slightly, as if recoiling from the floor. The thumping stops. The cold retreats."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788811683.3271844,
+        "updated": 1788811683.3271844
+      },
+      "trigger_1788811683285_t1bm": {
+        "id": "trigger_1788811683285_t1bm",
+        "type": "logic_trigger",
+        "name": "on_equip → message",
+        "properties": {
+          "trigger_type": "on_equip",
+          "target_name": "stained work shirt",
+          "target_state": "normal",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You pull it on. The sleeves slide over your arms, and the torn collar brushes your neck like a whisper. Your skin prickles where the bloodstains touch you — not pain, but memory. You feel watched."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788811683.3271844,
+        "updated": 1788811683.3271844
+      },
+      "trigger_1788811683285_u0hr": {
+        "id": "trigger_1788811683285_u0hr",
+        "type": "logic_trigger",
+        "name": "on_unequip → message",
+        "properties": {
+          "trigger_type": "on_unequip",
+          "target_name": "stained work shirt",
+          "target_state": "normal",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You peel it off. The fabric resists, clinging to your shoulders like a second skin. When it finally comes free, the air feels warmer — but you still feel the weight of its gaze, even in your hands."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1788811683.3271844,
+        "updated": 1788811683.3271844
       }
     },
     "edges": [
@@ -20118,75 +20712,30 @@
         }
       },
       {
-        "source": "inv_elena vance_protein_bar",
-        "target": "trigger_1788734085807_jzne",
-        "type": "triggers",
-        "properties": {
-          "conditions": [],
-          "effects": [],
-          "fail_message": "",
-          "success_message": "",
-          "trigger_type": "on_take"
-        }
-      },
-      {
-        "source": "inv_elena vance_protein_bar",
-        "target": "trigger_1788734086428_s516",
-        "type": "triggers",
-        "properties": {
-          "conditions": [],
-          "effects": [],
-          "fail_message": "",
-          "success_message": "",
-          "trigger_type": "on_drop"
-        }
-      },
-      {
         "source": "item_water_pitcher",
         "target": "trigger_item_water_pitcher_1788734383501_78wm",
         "type": "triggers",
         "properties": {
-          "conditions": [],
-          "effects": [],
+          "conditions": {},
+          "effects": [
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Thirst",
+                "amount": -30,
+                "target": "self",
+                "success_message": "The water is lukewarm and stale"
+              }
+            }
+          ],
           "fail_message": "",
-          "success_message": "",
-          "trigger_type": "on_drink"
-        }
-      },
-      {
-        "source": "item_water_pitcher",
-        "target": "trigger_1788734394437_amtf",
-        "type": "triggers",
-        "properties": {
-          "conditions": [],
-          "effects": [],
-          "fail_message": "",
-          "success_message": "",
-          "trigger_type": "on_examine"
-        }
-      },
-      {
-        "source": "item_energy_drink",
-        "target": "trigger_1788734728868_trfi",
-        "type": "triggers",
-        "properties": {
-          "conditions": [],
-          "effects": [],
-          "fail_message": "",
-          "success_message": "",
-          "trigger_type": "on_take"
-        }
-      },
-      {
-        "source": "item_energy_drink",
-        "target": "trigger_1788734729510_bjy5",
-        "type": "triggers",
-        "properties": {
-          "conditions": [],
-          "effects": [],
-          "fail_message": "",
-          "success_message": "",
-          "trigger_type": "on_drop"
+          "success_message": "The water is lukewarm and stale",
+          "trigger_type": [
+            "on_drink"
+          ],
+          "name": "",
+          "target_name": "",
+          "target_state": ""
         }
       },
       {
@@ -20275,27 +20824,6 @@
       },
       {
         "source": "inv_elena vance_protein_bar",
-        "target": "trigger_1788775126630_9w9x",
-        "type": "triggers",
-        "properties": {
-          "trigger_type": "on_take",
-          "target_name": "protein_bar",
-          "target_state": "",
-          "conditions": [],
-          "effects": [
-            {
-              "type": "message",
-              "params": {
-                "message": "You pocket the wrapped protein bar. It'll keep you going until your next proper meal."
-              }
-            }
-          ],
-          "success_message": "You take the protein bar.",
-          "fail_message": ""
-        }
-      },
-      {
-        "source": "inv_elena vance_protein_bar",
         "target": "trigger_1788775127327_7vzb",
         "type": "triggers",
         "properties": {
@@ -20369,60 +20897,6 @@
           "success_message": "You eat the protein bar.",
           "fail_message": "The protein bar is empty."
         }
-      },
-      {
-        "source": "player_elena_vance",
-        "target": "area_library",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_ghost",
-        "target": "area_basement",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_jake_halloway",
-        "target": "area_foyer",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_kayla_jenkins",
-        "target": "area_foyer",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_kyrie_johansen",
-        "target": "area_foyer",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_miki",
-        "target": "area_library",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_sammy_lopez",
-        "target": "area_foyer",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_the_butcher",
-        "target": "area_slaughterhouse",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_whiskers",
-        "target": "area_kitchen",
-        "type": "in",
-        "properties": {}
       },
       {
         "source": "item_candlestick",
@@ -20756,6 +21230,640 @@
               "params": {
                 "node_id": "self",
                 "state": "broken"
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_matches",
+        "target": "trigger_1788810108857_2y4h",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [
+            {
+              "type": "uses_above",
+              "value": 0
+            }
+          ],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "A small cardboard box, faded and worn at the edges. The illustration of a raven is peeling, its wings spread as if in flight. You shake it gently — a dry, rapid rattle tells you there are still several matches inside."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_matches",
+        "target": "trigger_1788810108857_cu2i",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_use",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [
+            {
+              "type": "uses_above",
+              "value": 0
+            }
+          ],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You strike a match against the striker strip. The sulfur ignites with a sharp hiss, casting a brief, warm glow that dances across your fingertips."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": "The matchbox is empty — no more sparks to be had."
+        }
+      },
+      {
+        "source": "item_matches",
+        "target": "trigger_1788810108857_uh5x",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_take",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You pick up the matchbox. It’s lighter than you expected, the cardboard soft from handling. The raven’s eyes seem to follow you as you tuck it into your pocket."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_matches",
+        "target": "trigger_1788810108857_g88m",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_drop",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You set the matchbox down on the ground. It lands with a soft thud, the raven illustration now facing upward, staring blankly into the dim light."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_matches",
+        "target": "trigger_1788810108857_dneo",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_equip",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You slip the matchbox into your coat pocket. It settles against your ribs, a small, dry weight — always ready when you need fire."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_matches",
+        "target": "trigger_1788810108857_che8",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_unequip",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You remove the matchbox from your pocket and hold it in your hand. The raven’s image is smudged now, worn from travel and use."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_matches",
+        "target": "trigger_1788810108857_4r2k",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_light",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [
+            {
+              "type": "uses_above",
+              "value": 0
+            }
+          ],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You strike a match. The flame flares to life, steady and bright — a small beacon in the dark."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": "The matchbox is empty — no more sparks to be had."
+        }
+      },
+      {
+        "source": "item_matches",
+        "target": "trigger_1788810108857_92dr",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_toggle_off",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [
+            {
+              "type": "state_equals",
+              "target": "self",
+              "value": "lit"
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_state",
+              "params": {
+                "node_id": "self",
+                "state": "unlit"
+              }
+            },
+            {
+              "type": "message",
+              "params": {
+                "message": "The match sputters and dies, leaving behind a wisp of smoke and the faint smell of sulfur."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_water_pitcher",
+        "target": "trigger_1788810229252_l9u0",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [
+            {
+              "type": "skill_check",
+              "skill": "Investigation",
+              "dc": 12
+            }
+          ],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You wipe away the dust. The crystal is clear but clouded with age. A dead moth floats on the surface of the stale water, its wings splayed like tiny, broken umbrellas."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_water_pitcher",
+        "target": "trigger_1788810229252_9r6x",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_take",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You lift the pitcher. It is heavier than it looks, sloshing the stale water against the crystal walls. The dead moth shifts, drifting slowly in the current."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_water_pitcher",
+        "target": "trigger_1788810229252_hw5u",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_drop",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You set the pitcher back on the mantelpiece. A thin film of dust quickly begins to settle over its shoulders once more."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "player_elena_vance",
+        "target": "area_library",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_ghost",
+        "target": "area_basement",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_jake_halloway",
+        "target": "area_foyer",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_kayla_jenkins",
+        "target": "area_foyer",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_kyrie_johansen",
+        "target": "area_foyer",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_miki",
+        "target": "area_library",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_sammy_lopez",
+        "target": "area_foyer",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_the_butcher",
+        "target": "area_slaughterhouse",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_whiskers",
+        "target": "area_kitchen",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_upside-down cross hair pin",
+        "target": "trigger_1788810543511_fn9r",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_use",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You adjust the hair pin, sliding it deeper into your bangs. It holds your hair back, but the inverted cross stares up like an accusation."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_upside-down cross hair pin",
+        "target": "trigger_1788810543511_wp18",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_take",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "As your fingers close around the pin, a faint chill climbs your wrist. You feel watched, as if the inverted cross has turned its gaze on you."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_upside-down cross hair pin",
+        "target": "trigger_1788810543511_utv4",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_drop",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You let the pin fall. It clinks against the floor, the inverted cross landing face-up, staring at the ceiling like a dead eye."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_upside-down cross hair pin",
+        "target": "trigger_1788810543511_wesq",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_equip",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You slide the pin into your hair. The silver cross rests against your scalp, cold and constant. You feel a subtle pressure, as if something is leaning closer."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_upside-down cross hair pin",
+        "target": "trigger_1788810543511_gze7",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_unequip",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You pull the pin free. The chill recedes, but the weight of its gaze lingers in the air behind you."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_syringe necklace",
+        "target": "trigger_1788811659501_oj6a",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_use",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You hold the syringe up to the light. The pink liquid pulses softly, like a tiny heartbeat. You try to pry the seal open, but it's fused tight. Nothing happens."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_syringe necklace",
+        "target": "trigger_1788811659501_9hir",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_take",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "As your fingers close around the necklace, the glow intensifies — just for a second. A faint, sweet smell like burnt sugar lingers in the air."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_syringe necklace",
+        "target": "trigger_1788811659501_tuyr",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_drop",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You let the necklace fall. It lands with a soft clink, the glow dimming as it settles against the floor."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_syringe necklace",
+        "target": "trigger_1788811659501_rj41",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_equip",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You loop the necklace around your neck. The syringe rests against your collarbone, cool and faintly luminous beneath your clothes."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_syringe necklace",
+        "target": "trigger_1788811659501_nrav",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_unequip",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You unclasp the necklace. The glow fades as it leaves your skin, returning to a quiet, inert trinket in your hand."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_stained work shirt",
+        "target": "trigger_1788811683285_5t6g",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_use",
+          "target_name": "stained work shirt",
+          "target_state": "normal",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You pull the shirt over your head. The fabric is cold and heavy, like wet wool. It clings to your skin, and for a moment, you feel the phantom ache of old cuts along your forearms."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_stained work shirt",
+        "target": "trigger_1788811683285_ny63",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_take",
+          "target_name": "stained work shirt",
+          "target_state": "normal",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "As you lift it, a single drop of dark liquid falls from the hem — not blood, but something thicker. The air around you grows colder. You hear a faint, rhythmic thumping, like a heartbeat, just beneath your feet."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_stained work shirt",
+        "target": "trigger_1788811683285_w7cd",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_drop",
+          "target_name": "stained work shirt",
+          "target_state": "normal",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You let it fall. The shirt lands with a soft thud, but does not lie flat — it curls slightly, as if recoiling from the floor. The thumping stops. The cold retreats."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_stained work shirt",
+        "target": "trigger_1788811683285_t1bm",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_equip",
+          "target_name": "stained work shirt",
+          "target_state": "normal",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You pull it on. The sleeves slide over your arms, and the torn collar brushes your neck like a whisper. Your skin prickles where the bloodstains touch you — not pain, but memory. You feel watched."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_stained work shirt",
+        "target": "trigger_1788811683285_u0hr",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_unequip",
+          "target_name": "stained work shirt",
+          "target_state": "normal",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You peel it off. The fabric resists, clinging to your shoulders like a second skin. When it finally comes free, the air feels warmer — but you still feel the weight of its gaze, even in your hands."
               }
             }
           ],
