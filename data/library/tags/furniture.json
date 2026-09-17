@@ -1,19 +1,26 @@
 {
   "id": "furniture",
   "name": "Furniture",
-  "description": "Functional or decorative furnishing for a room",
-  "category": "custom",
-  "color": "#996633",
+  "description": "Movable objects intended to support or contain items.",
+  "category": "role",
+  "color": "#f39c12",
   "icon": "🪑",
   "applies_to": [
-    "items",
-    "areas"
+    "item"
   ],
   "examples": [
     "table",
     "chair",
-    "bookshelf",
-    "bed",
-    "cabinet"
-  ]
+    "desk",
+    "shelf",
+    "wardrobe"
+  ],
+  "contexts": [
+    "placement",
+    "residential",
+    "shop",
+    "industrial",
+    "dungeon"
+  ],
+  "implies": []
 }

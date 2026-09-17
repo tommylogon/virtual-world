@@ -1,9 +1,27 @@
 {
   "name": "Library",
-  "description": "Auto-generated from agent memory",
-  "category": "custom",
-  "color": "#888888",
-  "icon": "🎗️",
-  "applies_to": [],
-  "examples": []
+  "description": "A collection of books or a room devoted to study.",
+  "category": "domain",
+  "color": "#3498db",
+  "icon": "📚",
+  "applies_to": [
+    "area",
+    "item"
+  ],
+  "examples": [
+    "private_library",
+    "public_library",
+    "archive"
+  ],
+  "contexts": [
+    "residential",
+    "industrial",
+    "dungeon",
+    "generic"
+  ],
+  "implies": [
+    "books",
+    "study"
+  ],
+  "id": "library"
 }

@@ -1,15 +1,27 @@
 {
   "id": "occult",
   "name": "Occult",
-  "description": "Supernatural, mystical, or forbidden knowledge.",
-  "category": "essence",
-  "color": "#4a235a",
+  "description": "Supernatural, arcane, or ritual-related subject matter.",
+  "category": "domain",
+  "color": "#8e44ad",
   "icon": "🔮",
   "applies_to": [
-    "items"
+    "area",
+    "item"
   ],
   "examples": [
-    "grimoire",
-    "crystal skull"
+    "ritual_chamber",
+    "cursed_tome",
+    "summoning_circle"
+  ],
+  "contexts": [
+    "dungeon",
+    "residential",
+    "industrial",
+    "generic"
+  ],
+  "implies": [
+    "magic",
+    "ritual"
   ]
 }

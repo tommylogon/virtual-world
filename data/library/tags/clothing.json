@@ -1,17 +1,26 @@
 {
   "id": "clothing",
   "name": "Clothing",
-  "description": "Wearable garment for covering, protection, or fashion",
-  "category": "mechanical",
-  "color": "#cc88cc",
+  "description": "Apparel and wearable fabric items.",
+  "category": "concept",
+  "color": "#9b59b6",
   "icon": "👕",
   "applies_to": [
-    "items"
+    "area",
+    "item"
   ],
   "examples": [
     "shirt",
-    "coat",
-    "trousers",
-    "dress"
-  ]
+    "dress",
+    "cloak",
+    "boots",
+    "hat"
+  ],
+  "contexts": [
+    "shop",
+    "residential",
+    "loot",
+    "dungeon"
+  ],
+  "implies": []
 }

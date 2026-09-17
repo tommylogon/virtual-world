@@ -1,0 +1,25 @@
+{
+  "name": "storage",
+  "description": "An item or furniture piece primarily used for keeping things.",
+  "category": "role",
+  "contexts": [
+    "placement",
+    "residential",
+    "shop",
+    "industrial",
+    "dungeon"
+  ],
+  "implies": [],
+  "applies_to": [
+    "item"
+  ],
+  "color": "#f39c12",
+  "icon": "🗄️",
+  "examples": [
+    "wardrobe",
+    "cupboard",
+    "locker",
+    "shelf"
+  ],
+  "id": "storage"
+}

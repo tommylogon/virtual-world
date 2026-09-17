@@ -1,0 +1,24 @@
+{
+  "id": "store",
+  "name": "Store",
+  "description": "Domain tag for a place that sells goods. Shared by the area, its display/storage furniture, and the items sold there.",
+  "category": "domain",
+  "color": "#e74c3c",
+  "icon": "🏪",
+  "applies_to": [
+    "area",
+    "item"
+  ],
+  "examples": [
+    "general_store",
+    "bookshop",
+    "boutique"
+  ],
+  "contexts": [
+    "shop",
+    "generic"
+  ],
+  "implies": [
+    "shop"
+  ]
+}

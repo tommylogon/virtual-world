@@ -7,7 +7,8 @@ wiki: "[[Items & Inventory/Items Overview]]"
 **Filed**: 2026-07-17  
 **Rewritten**: 2026-08-21 (concept draft â†’ implementation plan after equip_slots/tag groundwork landed)  
 **Priority**: Medium  
-**Status**: Planned â€” blocked by task-326, task-323, task-324
+**Status**: Planned â€” blocked by task-323 and task-324; consumed by
+task-398 deterministic structure generation
 
 ---
 
@@ -26,7 +27,7 @@ This is the hub task for the procedural population work. Satellites:
 | task-323 | Library lint validator (`tools/lint_library.py`) | â€” |
 | task-324 | Domain tag schema + area/furniture tagging pass | task-323 |
 | task-325 | Auto-dressing characters from interests | task-326 |
-| **task-9** | **Population engine (this task)** | **322, 323, 324** |
+| **task-9** | **Population engine (this task)** | **323, 324** |
 
 ## Current State (verified 2026-08-21)
 
@@ -80,19 +81,27 @@ Area  "Clothing Store"   tags: [store, clothing]
 
 ## Work Plan
 
-1. `engine/population.py` (new, <600 lines per file-size rule):
+1. Extract a public library/graph materialization service first. Route handlers
+   may call it, and `engine/population.py` may call it, but the engine must not
+   import a request-bound/private route helper such as `_spawn_library_item_node`.
+2. `engine/population.py` (new, <600 lines per file-size rule):
    - `plan_population(graph, area_id, rng) -> [Placement(item_lib_id, furniture_id, relation)]`
-   - `apply_population(...)` using `_spawn_library_item_node` + relation edges
+   - `apply_population(...)` using the public materialization service + relation edges
    - capacity tracking per furniture node (count existing `in`/`on` children)
-2. **Furniture seeding** â€” population of an *empty* area must spawn the display/
+   - candidate indexes and archetype/role/exclusion filters; do not repeatedly
+     scan the whole library or use raw tag overlap as sufficient relevance
+3. **Furniture seeding** â€” population of an *empty* area must spawn the display/
    storage furniture itself before filling it: select library items tagged
    `furniture` + role tag + domain tag âˆ© area domains, place 1â€“3 pieces via
    spatial edges (`at`/`beside` walls is fine for v1), then run item fill.
    Without this step only pre-furnished areas benefit.
-3. Route: `POST /api/populate/area/<node_id>` (density + seed params) in a routes module
-4. MCP tool exposure in `mcp_server.py` (`populate_area`)
-5. Editor button (area inspector) â€” thin UI pass, separate commit
-6. Tests: fixture graph with tagged empty area; assert furniture gets seeded,
+4. Route: `POST /api/populate/area/<node_id>` (density + seed params) in a routes module.
+   Expose a planning/preview path as well; task-398 must be able to present
+   unresolved tag pools and a graph-patch preview before applying a generated
+   building.
+5. MCP tool exposure in `mcp_server.py` (`populate_area`)
+6. Editor button (area inspector) â€” thin UI pass, separate commit
+7. Tests: fixture graph with tagged empty area; assert furniture gets seeded,
    relations chosen by role, idempotency, density cap (pattern:
    tests/test_item_actions.py fixtures)
 

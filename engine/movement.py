@@ -815,7 +815,7 @@ class MovementSystem:
             target_area = self._way_target_area_name(way_node, area_id)
             suffix = ""
             if target_area:
-                suffix = f' (say "go {matched_handle}" or "go {target_area}" when you\'re ready to pass).'
+                suffix = f' (use "go {matched_handle}" or "go {target_area}" to walk through the way to the other side).'
             return f"You walk over to the {label} and stop, right at it.{suffix}"
         # Item / person target
         msg = self._room_approach(area_id, target)

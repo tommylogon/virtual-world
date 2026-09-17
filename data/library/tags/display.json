@@ -1,0 +1,23 @@
+{
+  "id": "display",
+  "name": "Display",
+  "description": "A surface or fixture meant for presenting items.",
+  "category": "role",
+  "color": "#f39c12",
+  "icon": "🖼️",
+  "applies_to": [
+    "item"
+  ],
+  "examples": [
+    "shelf",
+    "rack",
+    "mannequin",
+    "table"
+  ],
+  "contexts": [
+    "placement",
+    "shop",
+    "generic"
+  ],
+  "implies": []
+}

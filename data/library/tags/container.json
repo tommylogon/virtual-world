@@ -1,17 +1,26 @@
 {
   "id": "container",
   "name": "Container",
-  "description": "Can hold other items inside it",
-  "category": "mechanical",
-  "color": "#cc8844",
+  "description": "An object that holds or encloses other items.",
+  "category": "role",
+  "color": "#f39c12",
   "icon": "📦",
   "applies_to": [
-    "items"
+    "item"
   ],
   "examples": [
-    "backpack",
     "chest",
-    "pouch",
-    "barrel"
-  ]
+    "box",
+    "cabinet",
+    "drawer",
+    "bag"
+  ],
+  "contexts": [
+    "placement",
+    "residential",
+    "shop",
+    "industrial",
+    "dungeon"
+  ],
+  "implies": []
 }

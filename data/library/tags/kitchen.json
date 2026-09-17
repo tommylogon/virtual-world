@@ -1,9 +1,26 @@
 {
   "name": "Kitchen",
-  "description": "Auto-generated from agent memory",
-  "category": "custom",
-  "color": "#888888",
-  "icon": "🎗️",
-  "applies_to": [],
-  "examples": []
+  "description": "A room or area for preparing and storing food.",
+  "category": "domain",
+  "color": "#e67e22",
+  "icon": "🍳",
+  "applies_to": [
+    "area",
+    "item"
+  ],
+  "examples": [
+    "home_kitchen",
+    "restaurant_kitchen",
+    "bakery"
+  ],
+  "contexts": [
+    "residential",
+    "industrial",
+    "generic"
+  ],
+  "implies": [
+    "food",
+    "cooking"
+  ],
+  "id": "kitchen"
 }
