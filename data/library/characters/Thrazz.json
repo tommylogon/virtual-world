@@ -1,0 +1,127 @@
+{
+  "name": "Thrazz",
+  "personality": "You are Thrazz, warchief of the Kraktooth tribe. Old, scarred, and politically sharp. You hold the camp together through fear, reputation, and spite. You are secretly insecure about Zikka's growing prestige, but you would never show it. You control war planning, punishment, and major decisions, and you resent depending on specialists you cannot dominate.",
+  "description": "An old, scarred goblin warchief with a heavy presence and sharper eyes.",
+  "base_description": "Old goblin warchief, heavily scarred, weathered, imposing. Carries himself like someone who expects obedience.",
+  "unknown_name": "",
+  "stats": {
+    "CHA": 13,
+    "CON": 10,
+    "DEX": 9,
+    "INT": 12,
+    "STR": 10,
+    "WIS": 11
+  },
+  "vitals": {
+    "Bladder": 60,
+    "Energy": 65,
+    "Entertainment": 30,
+    "HP": 85,
+    "Hunger": 45,
+    "Hygiene": 55,
+    "Max_HP": 100,
+    "Sanity": 80,
+    "Social": 70,
+    "Temperature": 37,
+    "Thirst": 50
+  },
+  "decay_rates": {
+    "Bladder": 1,
+    "Energy": 1,
+    "Entertainment": 1,
+    "Hunger": 1,
+    "Hygiene": 1,
+    "Sanity": 1,
+    "Social": 1,
+    "Thirst": 1
+  },
+  "skills": {
+    "Acrobatics": 0,
+    "Athletics": 1,
+    "Perception": 1,
+    "Persuasion": 1,
+    "Stealth": 0,
+    "Survival": 1
+  },
+  "traits": {},
+  "tags": [
+    "male",
+    "adult",
+    "goblin",
+    "chief"
+  ],
+  "interest_tags": [
+    "war",
+    "trophies",
+    "authority"
+  ],
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {},
+  "activity": null,
+  "current_area": "area_chiefs_pit",
+  "inventory": [],
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
+  },
+  "memories": [
+    {
+      "embedding": null,
+      "entity_ids": [],
+      "id": "mem_kraktooth_thrazz_1",
+      "importance": 7,
+      "location": "area_training_pit",
+      "source": "manual",
+      "tags": [
+        "prestige",
+        "rivalry"
+      ],
+      "text": "Zikka won another bout in the training pit. The tribe cheered for the chief's daughter, not the warchief.",
+      "tick": 0,
+      "timestamp": 0,
+      "type": "observation"
+    }
+  ],
+  "relationships": {
+    "Gribba": {
+      "closeness": 45,
+      "first_sighting": false
+    },
+    "Krikka": {
+      "closeness": 30,
+      "first_sighting": false
+    },
+    "Mikka": {
+      "closeness": 35,
+      "first_sighting": false
+    },
+    "Rikka": {
+      "closeness": 30,
+      "first_sighting": false
+    },
+    "Vekka": {
+      "closeness": 40,
+      "first_sighting": false
+    },
+    "Zikka": {
+      "closeness": 50,
+      "first_sighting": false
+    }
+  },
+  "behaviors": [],
+  "npc_behavior": "wander",
+  "npc_action_interval": 3,
+  "npc_state": "idle",
+  "simple_npc": false,
+  "recent_hearing": []
+}

@@ -1,0 +1,61 @@
+{
+  "active_player": "player_human_explorer",
+  "clock_start_hour": 6,
+  "clock_start_minute": 0,
+  "current_area": "area_camp_entrance_trail",
+  "game_time": "06:00:00",
+  "ghost_mode": false,
+  "narration_mode": "none",
+  "time_per_tick_minutes": 1,
+  "time_ticks": 0,
+  "turn_number": 0,
+  "turn_order": "sequential",
+  "world_state": {
+    "season": "summer",
+    "day": 1,
+    "weather": "clear",
+    "river_level": "normal",
+    "human_patrol_activity": "medium",
+    "wolf_activity": "medium",
+    "goblin_food_stock": 60,
+    "camp_mood": "tense but stable"
+  },
+  "population": {
+    "kraktooth": {
+      "adults": 31,
+      "young": 12,
+      "injured": 1,
+      "sick": 0
+    },
+    "eldenford": {
+      "adults": 45,
+      "young": 10,
+      "injured": 0,
+      "sick": 0
+    }
+  },
+  "events": [],
+  "world_lore": [
+    {
+      "id": "lore_kraktooth_1",
+      "category": "world",
+      "title": "Kraktooth Goblin Camp",
+      "content": "The Kraktooth tribe occupies a cave camp in the forested hills.",
+      "importance": 8,
+      "source": "manual",
+      "tags": [],
+      "tick_created": 0
+    }
+  ],
+  "schedules": {},
+  "simultaneous_mode": false,
+  "turn_interval_ms": 1000,
+  "simultaneous_act_limit": 3,
+  "knowledge": {
+    "known_locations": [],
+    "known_routes": [],
+    "known_dangers": [],
+    "known_resources": []
+  },
+  "world_events": []
+}

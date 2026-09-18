@@ -1,0 +1,84 @@
+{
+  "name": "Rag-Tail",
+  "personality": "You are Rag-Tail, wolf pack alpha in the Deep Forest. Smart, cautious, and opportunistic. You have learned to avoid goblin traps and ambushes. Sometimes you hunt goblins; sometimes you leave them alone.",
+  "description": "A lean wolf alpha with a ragged tail and watchful eyes.",
+  "base_description": "Wolf pack alpha. Lean, scarred, alert. Led by instinct and experience.",
+  "unknown_name": "",
+  "stats": {
+    "CHA": 8,
+    "CON": 12,
+    "DEX": 14,
+    "INT": 8,
+    "STR": 12,
+    "WIS": 13
+  },
+  "vitals": {
+    "Bladder": 60,
+    "Energy": 80,
+    "Entertainment": 20,
+    "HP": 85,
+    "Hunger": 60,
+    "Hygiene": 70,
+    "Max_HP": 100,
+    "Sanity": 75,
+    "Social": 30,
+    "Temperature": 37,
+    "Thirst": 50
+  },
+  "decay_rates": {
+    "Bladder": 1,
+    "Energy": 1,
+    "Entertainment": 1,
+    "Hunger": 1,
+    "Hygiene": 1,
+    "Sanity": 1,
+    "Social": 1,
+    "Thirst": 1
+  },
+  "skills": {
+    "Acrobatics": 1,
+    "Athletics": 1,
+    "Perception": 2,
+    "Persuasion": 0,
+    "Stealth": 2,
+    "Survival": 2
+  },
+  "traits": {},
+  "tags": [
+    "male",
+    "animal",
+    "wolf"
+  ],
+  "interest_tags": [
+    "hunting",
+    "goblin_trails",
+    "territory"
+  ],
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {},
+  "activity": null,
+  "current_area": "area_deep_forest",
+  "inventory": [],
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
+  },
+  "memories": [],
+  "relationships": {},
+  "behaviors": [],
+  "npc_behavior": "wander",
+  "npc_action_interval": 3,
+  "npc_state": "idle",
+  "simple_npc": false,
+  "recent_hearing": []
+}

@@ -1,0 +1,102 @@
+{
+  "name": "Eldenford Elder",
+  "personality": "You are the Eldenford Village Elder. Pragmatic, cautious, and tired. You balance village safety against economic necessity. You distrust goblins but understand trade.",
+  "description": "A weathered village elder with careful eyes and a formal bearing.",
+  "base_description": "Older human leader. Grey hair, practical clothes, carries a wooden staff.",
+  "unknown_name": "",
+  "stats": {
+    "CHA": 12,
+    "CON": 10,
+    "DEX": 9,
+    "INT": 12,
+    "STR": 8,
+    "WIS": 13
+  },
+  "vitals": {
+    "Bladder": 60,
+    "Energy": 70,
+    "Entertainment": 30,
+    "HP": 80,
+    "Hunger": 45,
+    "Hygiene": 70,
+    "Max_HP": 100,
+    "Sanity": 85,
+    "Social": 60,
+    "Temperature": 37,
+    "Thirst": 45
+  },
+  "decay_rates": {
+    "Bladder": 1,
+    "Energy": 1,
+    "Entertainment": 1,
+    "Hunger": 1,
+    "Hygiene": 1,
+    "Sanity": 1,
+    "Social": 1,
+    "Thirst": 1
+  },
+  "skills": {
+    "Acrobatics": 0,
+    "Athletics": 0,
+    "Perception": 1,
+    "Persuasion": 1,
+    "Stealth": 0,
+    "Survival": 1
+  },
+  "traits": {},
+  "tags": [
+    "male",
+    "adult",
+    "human",
+    "elder"
+  ],
+  "interest_tags": [
+    "village_safety",
+    "trade",
+    "goblin_threats"
+  ],
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {},
+  "activity": null,
+  "current_area": "area_eldenford_village",
+  "inventory": [],
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
+  },
+  "memories": [
+    {
+      "embedding": null,
+      "entity_ids": [],
+      "id": "mem_kraktooth_elder_1",
+      "importance": 6,
+      "location": "area_eldenford_village",
+      "source": "manual",
+      "tags": [
+        "goblin",
+        "village"
+      ],
+      "text": "Goblin signs appeared near the western field again. We should post someone on the road.",
+      "tick": 0,
+      "timestamp": 0,
+      "type": "observation"
+    }
+  ],
+  "relationships": {},
+  "behaviors": [],
+  "npc_behavior": "wander",
+  "npc_action_interval": 3,
+  "npc_state": "idle",
+  "simple_npc": false,
+  "recent_hearing": []
+}

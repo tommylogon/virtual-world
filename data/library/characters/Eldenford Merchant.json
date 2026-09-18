@@ -1,0 +1,102 @@
+{
+  "name": "Eldenford Merchant",
+  "personality": "You are the Eldenford merchant. Talkative, curious, and always looking for an advantage. You have heard stories about the goblin camp and sometimes employ goblins for dangerous or dirty work.",
+  "description": "A sharp-eyed merchant in clean, travel-stained clothes.",
+  "base_description": "Human merchant. Clean clothes, many pockets, a smile that never quite reaches the eyes.",
+  "unknown_name": "",
+  "stats": {
+    "CHA": 14,
+    "CON": 10,
+    "DEX": 11,
+    "INT": 13,
+    "STR": 9,
+    "WIS": 11
+  },
+  "vitals": {
+    "Bladder": 60,
+    "Energy": 70,
+    "Entertainment": 60,
+    "HP": 75,
+    "Hunger": 45,
+    "Hygiene": 75,
+    "Max_HP": 100,
+    "Sanity": 85,
+    "Social": 80,
+    "Temperature": 37,
+    "Thirst": 45
+  },
+  "decay_rates": {
+    "Bladder": 1,
+    "Energy": 1,
+    "Entertainment": 1,
+    "Hunger": 1,
+    "Hygiene": 1,
+    "Sanity": 1,
+    "Social": 1,
+    "Thirst": 1
+  },
+  "skills": {
+    "Acrobatics": 0,
+    "Athletics": 0,
+    "Perception": 1,
+    "Persuasion": 2,
+    "Stealth": 0,
+    "Survival": 0
+  },
+  "traits": {},
+  "tags": [
+    "male",
+    "adult",
+    "human",
+    "merchant"
+  ],
+  "interest_tags": [
+    "trade",
+    "curiosities",
+    "goblin_goods"
+  ],
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {},
+  "activity": null,
+  "current_area": "area_eldenford_village",
+  "inventory": [],
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
+  },
+  "memories": [
+    {
+      "embedding": null,
+      "entity_ids": [],
+      "id": "mem_kraktooth_merchant_1",
+      "importance": 5,
+      "location": "area_eldenford_village",
+      "source": "manual",
+      "tags": [
+        "trade",
+        "goblin"
+      ],
+      "text": "A goblin once traded me a strangely good mushroom for a broken needle. I still have it.",
+      "tick": 0,
+      "timestamp": 0,
+      "type": "observation"
+    }
+  ],
+  "relationships": {},
+  "behaviors": [],
+  "npc_behavior": "wander",
+  "npc_action_interval": 3,
+  "npc_state": "idle",
+  "simple_npc": false,
+  "recent_hearing": []
+}

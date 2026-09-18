@@ -1,0 +1,84 @@
+{
+  "name": "Old Iron-Back",
+  "personality": "You are Old Iron-Back, a large scarred bear in the Northern Hills. Mostly solitary. You have raided the goblin camp before. The goblins leave offerings to avoid provoking you.",
+  "description": "A massive old bear with scarred fur and heavy shoulders.",
+  "base_description": "Old bear. Massive, scarred, heavy. Moves with deliberate power.",
+  "unknown_name": "",
+  "stats": {
+    "CHA": 6,
+    "CON": 16,
+    "DEX": 10,
+    "INT": 6,
+    "STR": 16,
+    "WIS": 12
+  },
+  "vitals": {
+    "Bladder": 60,
+    "Energy": 70,
+    "Entertainment": 10,
+    "HP": 110,
+    "Hunger": 65,
+    "Hygiene": 70,
+    "Max_HP": 120,
+    "Sanity": 70,
+    "Social": 10,
+    "Temperature": 37,
+    "Thirst": 50
+  },
+  "decay_rates": {
+    "Bladder": 1,
+    "Energy": 1,
+    "Entertainment": 1,
+    "Hunger": 1,
+    "Hygiene": 1,
+    "Sanity": 1,
+    "Social": 1,
+    "Thirst": 1
+  },
+  "skills": {
+    "Acrobatics": 0,
+    "Athletics": 2,
+    "Perception": 1,
+    "Persuasion": 0,
+    "Stealth": 0,
+    "Survival": 1
+  },
+  "traits": {},
+  "tags": [
+    "male",
+    "animal",
+    "bear"
+  ],
+  "interest_tags": [
+    "food",
+    "territory",
+    "offerings"
+  ],
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {},
+  "activity": null,
+  "current_area": "area_northern_hills",
+  "inventory": [],
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
+  },
+  "memories": [],
+  "relationships": {},
+  "behaviors": [],
+  "npc_behavior": "wander",
+  "npc_action_interval": 3,
+  "npc_state": "idle",
+  "simple_npc": false,
+  "recent_hearing": []
+}

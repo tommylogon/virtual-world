@@ -1,0 +1,36 @@
+{
+  "name": "Camp Entrance",
+  "description": "A broad irregular crack in the rock, partly hidden by bushes and loose stones. Crude tripwires, warning marks, and the smell of smoke mark it as goblin territory.",
+  "tags": [
+    "exterior",
+    "cave_entrance",
+    "goblin_camp"
+  ],
+  "environment": {
+    "air": "stale",
+    "light": "dim",
+    "noise": "quiet",
+    "smell": "smoke, dirt, old meat",
+    "temperature": 16
+  },
+  "items": [],
+  "exits": [
+    {
+      "direction": "downward passage",
+      "target_room_hint": "Water Source",
+      "description": "A downward passage to the water source.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "down"
+    },
+    {
+      "direction": "into camp",
+      "target_room_hint": "Chief's Pit",
+      "description": "A narrow passage opening into the main cave chamber.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "in"
+    }
+  ],
+  "triggers": []
+}

@@ -1,0 +1,102 @@
+{
+  "name": "Eldenford Blacksmith",
+  "personality": "You are the Eldenford blacksmith. Gruff, practical, and proud of your work. You have lost tools to goblin raids and you know good metal when you see it.",
+  "description": "A broad, soot-stained blacksmith with calloused hands.",
+  "base_description": "Human blacksmith. Broad, soot-stained, calloused hands. Wears a leather apron.",
+  "unknown_name": "",
+  "stats": {
+    "CHA": 9,
+    "CON": 13,
+    "DEX": 10,
+    "INT": 10,
+    "STR": 12,
+    "WIS": 10
+  },
+  "vitals": {
+    "Bladder": 60,
+    "Energy": 70,
+    "Entertainment": 25,
+    "HP": 95,
+    "Hunger": 50,
+    "Hygiene": 55,
+    "Max_HP": 100,
+    "Sanity": 85,
+    "Social": 40,
+    "Temperature": 37,
+    "Thirst": 45
+  },
+  "decay_rates": {
+    "Bladder": 1,
+    "Energy": 1,
+    "Entertainment": 1,
+    "Hunger": 1,
+    "Hygiene": 1,
+    "Sanity": 1,
+    "Social": 1,
+    "Thirst": 1
+  },
+  "skills": {
+    "Acrobatics": 0,
+    "Athletics": 1,
+    "Perception": 1,
+    "Persuasion": 0,
+    "Stealth": 0,
+    "Survival": 0
+  },
+  "traits": {},
+  "tags": [
+    "male",
+    "adult",
+    "human",
+    "blacksmith"
+  ],
+  "interest_tags": [
+    "metal",
+    "tools",
+    "goblin_raids"
+  ],
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {},
+  "activity": null,
+  "current_area": "area_eldenford_village",
+  "inventory": [],
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
+  },
+  "memories": [
+    {
+      "embedding": null,
+      "entity_ids": [],
+      "id": "mem_kraktooth_blacksmith_1",
+      "importance": 5,
+      "location": "area_eldenford_village",
+      "source": "manual",
+      "tags": [
+        "goblin",
+        "theft"
+      ],
+      "text": "Goblins took three good nails and a hinge last week. I will recognize the work if I see it.",
+      "tick": 0,
+      "timestamp": 0,
+      "type": "observation"
+    }
+  ],
+  "relationships": {},
+  "behaviors": [],
+  "npc_behavior": "wander",
+  "npc_action_interval": 3,
+  "npc_state": "idle",
+  "simple_npc": false,
+  "recent_hearing": []
+}

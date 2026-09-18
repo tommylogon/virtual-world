@@ -1,0 +1,116 @@
+{
+  "name": "Training Pit",
+  "description": "A rough open chamber used for sparring, weapon practice, and trap avoidance training. The floor is scuffed, the walls are dented, and the noise level is almost always high.",
+  "tags": [
+    "interior",
+    "cave",
+    "goblin_camp",
+    "combat"
+  ],
+  "environment": {
+    "air": "fresh",
+    "light": "normal",
+    "noise": "loud",
+    "smell": "sweat, dust, iron",
+    "temperature": 17
+  },
+  "items": [
+    {
+      "name": "Rusty Hatchet",
+      "description": "A rusted hatchet with a loose handle.",
+      "actions": [
+        "take",
+        "drop",
+        "examine",
+        "equip",
+        "unequip"
+      ],
+      "uses": -1,
+      "weight": 3,
+      "current_state": "normal",
+      "tags": [
+        "weapon",
+        "tool",
+        "scrap"
+      ]
+    },
+    {
+      "name": "Spear",
+      "description": "A crude goblin spear with a sharpened tip.",
+      "actions": [
+        "take",
+        "drop",
+        "examine",
+        "equip",
+        "unequip"
+      ],
+      "uses": -1,
+      "weight": 3,
+      "current_state": "normal",
+      "tags": [
+        "weapon"
+      ]
+    },
+    {
+      "name": "Club",
+      "description": "A heavy wooden club.",
+      "actions": [
+        "take",
+        "drop",
+        "examine",
+        "equip",
+        "unequip"
+      ],
+      "uses": -1,
+      "weight": 4,
+      "current_state": "normal",
+      "tags": [
+        "weapon",
+        "blunt"
+      ]
+    },
+    {
+      "name": "Broken Shield",
+      "description": "A shattered wooden shield, barely held together by straps.",
+      "actions": [
+        "take",
+        "drop",
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 5,
+      "current_state": "normal",
+      "tags": [
+        "armor",
+        "scrap"
+      ]
+    },
+    {
+      "name": "Broken Trap",
+      "description": "A crude snare trap that has been sprung and broken.",
+      "actions": [
+        "take",
+        "drop",
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 3,
+      "current_state": "normal",
+      "tags": [
+        "trap",
+        "scrap"
+      ]
+    }
+  ],
+  "exits": [
+    {
+      "direction": "south passage",
+      "target_room_hint": "Prison Pens",
+      "description": "A passage to the prison pens.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "south"
+    }
+  ],
+  "triggers": []
+}

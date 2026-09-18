@@ -1,0 +1,102 @@
+{
+  "name": "Eldenford Farmer",
+  "personality": "You are an Eldenford farmer. Gruff, practical, and unimpressed by goblins. You lose livestock to raids, you know the forest and marsh, and you have traps, dogs, and a shotgun.",
+  "description": "A weatherbeaten farmer in worn work clothes, watching the tree line.",
+  "base_description": "Human farmer. Weatherbeaten, practical, suspicious. Wears worn work clothes and carries a shotgun.",
+  "unknown_name": "",
+  "stats": {
+    "CHA": 9,
+    "CON": 12,
+    "DEX": 10,
+    "INT": 9,
+    "STR": 11,
+    "WIS": 11
+  },
+  "vitals": {
+    "Bladder": 60,
+    "Energy": 75,
+    "Entertainment": 30,
+    "HP": 90,
+    "Hunger": 50,
+    "Hygiene": 60,
+    "Max_HP": 100,
+    "Sanity": 80,
+    "Social": 35,
+    "Temperature": 37,
+    "Thirst": 45
+  },
+  "decay_rates": {
+    "Bladder": 1,
+    "Energy": 1,
+    "Entertainment": 1,
+    "Hunger": 1,
+    "Hygiene": 1,
+    "Sanity": 1,
+    "Social": 1,
+    "Thirst": 1
+  },
+  "skills": {
+    "Acrobatics": 0,
+    "Athletics": 1,
+    "Perception": 1,
+    "Persuasion": 0,
+    "Stealth": 0,
+    "Survival": 1
+  },
+  "traits": {},
+  "tags": [
+    "male",
+    "adult",
+    "human",
+    "farmer"
+  ],
+  "interest_tags": [
+    "livestock",
+    "forest",
+    "traps"
+  ],
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {},
+  "activity": null,
+  "current_area": "area_abandoned_farm",
+  "inventory": [],
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
+  },
+  "memories": [
+    {
+      "embedding": null,
+      "entity_ids": [],
+      "id": "mem_kraktooth_farmer_1",
+      "importance": 5,
+      "location": "area_abandoned_farm",
+      "source": "manual",
+      "tags": [
+        "goblin",
+        "farm"
+      ],
+      "text": "Goblins raided the henhouse again. I set another snare near the coop.",
+      "tick": 0,
+      "timestamp": 0,
+      "type": "observation"
+    }
+  ],
+  "relationships": {},
+  "behaviors": [],
+  "npc_behavior": "wander",
+  "npc_action_interval": 3,
+  "npc_state": "idle",
+  "simple_npc": false,
+  "recent_hearing": []
+}

@@ -1,0 +1,20 @@
+{
+  "name": "Blackmarsh",
+  "description": "A hazardous wetland west of the camp. The ground is unstable, fog can lie low, and everything eats everything. Frogs, insects, snakes, poisonous plants, fish, and predators make it dangerous and resource-rich.",
+  "tags": [
+    "exterior",
+    "swamp",
+    "marsh",
+    "dangerous"
+  ],
+  "environment": {
+    "air": "humid",
+    "light": "dim",
+    "noise": "quiet",
+    "smell": "decay, frogs, rot",
+    "temperature": 18
+  },
+  "items": [],
+  "exits": [],
+  "triggers": []
+}

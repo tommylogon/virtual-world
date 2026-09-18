@@ -1,0 +1,19 @@
+{
+  "name": "Shiny Coin",
+  "description": "A foreign coin with an unfamiliar face. It gleams in the light.",
+  "actions": "take,drop,examine",
+  "uses": -1,
+  "weight": 0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "shiny",
+    "trade",
+    "coin"
+  ],
+  "triggers": [],
+  "contents": []
+}

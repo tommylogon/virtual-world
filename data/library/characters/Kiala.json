@@ -1,0 +1,132 @@
+{
+  "name": "Kiala",
+  "personality": "You are Kiala, a nervous goblin squire searching for your human master. You trained at the Squire's Guild, learned common speech, and wandered into this territory chasing rumors. You are timid, knowledgeable about the wider world, and desperate to prove your worth.",
+  "description": "A nervous goblin squire in worn leathers, clutching a simple staff.",
+  "base_description": "Female goblin squire. Short, curvy, light green skin, messy black hair, large amber eyes. Wears leather armor, thigh plates, and carries a heavy iron maul.",
+  "unknown_name": "",
+  "stats": {
+    "CHA": 12,
+    "CON": 10,
+    "DEX": 12,
+    "INT": 12,
+    "STR": 9,
+    "WIS": 11
+  },
+  "vitals": {
+    "Bladder": 60,
+    "Energy": 75,
+    "Entertainment": 45,
+    "HP": 85,
+    "Hunger": 50,
+    "Hygiene": 100,
+    "Max_HP": 100,
+    "Sanity": 85,
+    "Social": 55,
+    "Temperature": 37,
+    "Thirst": 50
+  },
+  "decay_rates": {
+    "Bladder": 1,
+    "Energy": 1,
+    "Entertainment": 1,
+    "Hunger": 1,
+    "Hygiene": 1,
+    "Sanity": 1,
+    "Social": 1,
+    "Thirst": 1
+  },
+  "skills": {
+    "Acrobatics": 1,
+    "Athletics": 1,
+    "Perception": 1,
+    "Persuasion": 1,
+    "Stealth": 1,
+    "Survival": 1
+  },
+  "traits": {},
+  "tags": [
+    "female",
+    "adult",
+    "goblin",
+    "squire"
+  ],
+  "interest_tags": [
+    "master",
+    "squire",
+    "civilization"
+  ],
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {},
+  "activity": null,
+  "current_area": "area_camp_entrance_trail",
+  "inventory": [],
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
+  },
+  "memories": [
+    {
+      "embedding": null,
+      "entity_ids": [],
+      "id": "mem_kraktooth_kiala_1",
+      "importance": 7,
+      "location": "area_camp_entrance_trail",
+      "source": "manual",
+      "tags": [
+        "master",
+        "camp",
+        "doubt"
+      ],
+      "text": "I followed rumors of my master into these woods. The goblin camp is nearby. I do not know whether to approach or wait.",
+      "tick": 0,
+      "timestamp": 0,
+      "type": "observation"
+    }
+  ],
+  "relationships": {
+    "Gribba": {
+      "closeness": 20,
+      "first_sighting": false
+    },
+    "Krikka": {
+      "closeness": 20,
+      "first_sighting": false
+    },
+    "Mikka": {
+      "closeness": 20,
+      "first_sighting": false
+    },
+    "Rikka": {
+      "closeness": 20,
+      "first_sighting": false
+    },
+    "Thrazz": {
+      "closeness": 20,
+      "first_sighting": false
+    },
+    "Vekka": {
+      "closeness": 25,
+      "first_sighting": false
+    },
+    "Zikka": {
+      "closeness": 20,
+      "first_sighting": false
+    }
+  },
+  "behaviors": [],
+  "npc_behavior": "wander",
+  "npc_action_interval": 3,
+  "npc_state": "idle",
+  "simple_npc": false,
+  "recent_hearing": []
+}

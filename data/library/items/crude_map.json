@@ -1,0 +1,18 @@
+{
+  "name": "Crude Map",
+  "description": "A rough map scratched onto bark. It shows trails, a river, and a few camp symbols.",
+  "actions": "take,drop,examine,read",
+  "uses": -1,
+  "weight": 1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "information",
+    "map"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,20 @@
+{
+  "name": "Sleeping Halls",
+  "description": "Hammocks, furs, blankets, and piles of leaves are scattered across the floor. Personal weapons, scraps, lucky objects, and stolen trinkets litter each sleeping spot.",
+  "tags": [
+    "interior",
+    "cave",
+    "goblin_camp",
+    "rest"
+  ],
+  "environment": {
+    "air": "musty",
+    "light": "dim",
+    "noise": "quiet",
+    "smell": "fur, sweat, damp cloth",
+    "temperature": 17
+  },
+  "items": [],
+  "exits": [],
+  "triggers": []
+}

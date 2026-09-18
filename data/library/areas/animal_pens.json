@@ -1,0 +1,20 @@
+{
+  "name": "Animal Pens",
+  "description": "Wolves, captured beasts, pigs, goats, and other useful animals are kept here. The goblins use fear, food, and conditioning. A particularly impressive animal becomes a status symbol.",
+  "tags": [
+    "interior",
+    "cave",
+    "goblin_camp",
+    "animals"
+  ],
+  "environment": {
+    "air": "fresh",
+    "light": "normal",
+    "noise": "busy",
+    "smell": "animal, straw, dung",
+    "temperature": 17
+  },
+  "items": [],
+  "exits": [],
+  "triggers": []
+}

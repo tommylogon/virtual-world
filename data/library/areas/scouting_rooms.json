@@ -1,0 +1,38 @@
+{
+  "name": "Scouting Rooms",
+  "description": "Crude maps are scratched into leather, bark, stone, and parchment. They mark patrols, trails, berry patches, dangerous monsters, and loot. The maps are practical, not geographic.",
+  "tags": [
+    "interior",
+    "cave",
+    "goblin_camp",
+    "information"
+  ],
+  "environment": {
+    "air": "stale",
+    "light": "dim",
+    "noise": "quiet",
+    "smell": "ink, leather, smoke",
+    "temperature": 16
+  },
+  "items": [
+    {
+      "name": "Crude Map",
+      "description": "A rough map scratched onto bark. It shows trails, a river, and a few camp symbols.",
+      "actions": [
+        "take",
+        "drop",
+        "examine",
+        "read"
+      ],
+      "uses": -1,
+      "weight": 1,
+      "current_state": "normal",
+      "tags": [
+        "information",
+        "map"
+      ]
+    }
+  ],
+  "exits": [],
+  "triggers": []
+}

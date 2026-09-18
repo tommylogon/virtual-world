@@ -1,0 +1,106 @@
+{
+  "name": "Camp Entrance Trail",
+  "description": "A narrow forest trail approaches a rocky hillside. The path is worn, partly concealed by undergrowth, and marked by faint goblin trail signs. The main camp entrance is close by.",
+  "tags": [
+    "exterior",
+    "forest",
+    "trail"
+  ],
+  "environment": {
+    "air": "fresh",
+    "light": "normal",
+    "noise": "quiet",
+    "smell": "pine, damp earth, faint wood smoke",
+    "temperature": 18
+  },
+  "items": [
+    {
+      "name": "Torch",
+      "description": "A simple wooden torch wrapped in oiled cloth.",
+      "actions": [
+        "light",
+        "take",
+        "drop",
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 1,
+      "current_state": "unlit",
+      "tags": [
+        "light",
+        "tool",
+        "fire"
+      ]
+    },
+    {
+      "name": "Knife",
+      "description": "A small hunting knife.",
+      "actions": [
+        "take",
+        "drop",
+        "examine",
+        "equip",
+        "unequip"
+      ],
+      "uses": -1,
+      "weight": 1,
+      "current_state": "normal",
+      "tags": [
+        "weapon",
+        "tool"
+      ]
+    },
+    {
+      "name": "Water Skin",
+      "description": "A leather water skin, half full.",
+      "actions": [
+        "take",
+        "drop",
+        "examine",
+        "drink"
+      ],
+      "uses": 3,
+      "weight": 2,
+      "current_state": "half",
+      "tags": [
+        "drink",
+        "container"
+      ]
+    },
+    {
+      "name": "Bread",
+      "description": "A small loaf of coarse bread.",
+      "actions": [
+        "take",
+        "drop",
+        "examine",
+        "eat"
+      ],
+      "uses": 1,
+      "weight": 1,
+      "current_state": "fresh",
+      "tags": [
+        "food"
+      ]
+    }
+  ],
+  "exits": [
+    {
+      "direction": "north trail",
+      "target_room_hint": "Camp Entrance",
+      "description": "A worn forest trail climbing toward the concealed cave entrance.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "north"
+    },
+    {
+      "direction": "west into forest",
+      "target_room_hint": "Deep Forest",
+      "description": "A trail continuing into dense woodland.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "west"
+    }
+  ],
+  "triggers": []
+}

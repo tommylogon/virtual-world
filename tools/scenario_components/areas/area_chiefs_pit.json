@@ -1,0 +1,26 @@
+{
+  "name": "Chief's Pit",
+  "properties": {
+    "description": "The largest cave chamber. A central fire burns low, surrounded by stones, crude tables, bones, and hanging meat. This is where the tribe eats, argues, and listens to the chief.",
+    "environment": {
+      "light": "normal",
+      "temperature": 19.0,
+      "air": "smoky",
+      "smell": "smoke, meat, damp fur",
+      "noise": "lively"
+    },
+    "human_description": "A large cave chamber dominated by a central fire. Crude tables, bones, and hanging meat suggest a communal living space.",
+    "goblin_description": "Kob-Kamp. Center of everything. Fire, food, arguments, meetings. Best place to see and be seen.",
+    "goblin_knowledge": {
+      "known_as": "Kob-Kamp",
+      "importance": "highest",
+      "common_activities": ["eating", "arguing", "trading", "gambling", "fighting", "storytelling"]
+    },
+    "features": ["central_fire", "stone_seats", "cooking_racks", "weapon_racks", "scrap_piles"],
+    "possible_items": ["coins", "bones", "food", "stolen_clothing", "broken_weapons", "drinking_vessels"],
+    "possible_encounters": ["goblin_argument", "goblin_fight", "trading_goblins", "chief_addressing_tribe", "young_goblins_playing"],
+    "tags": ["interior", "cave", "goblin_camp", "social"],
+    "floor": 0,
+    "central_gravity_enabled": false
+  }
+}

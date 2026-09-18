@@ -1,0 +1,28 @@
+{
+  "name": "Human Road",
+  "description": "A wide dirt road connecting Eldenford to larger towns. Travelers, carts, merchants, and patrols use it. Goblin scouts watch from cover, looking for profitable opportunities.",
+  "tags": [
+    "exterior",
+    "road",
+    "travel"
+  ],
+  "environment": {
+    "air": "fresh",
+    "light": "normal",
+    "noise": "busy",
+    "smell": "dust, horse dung, wood smoke",
+    "temperature": 17
+  },
+  "items": [],
+  "exits": [
+    {
+      "direction": "west road",
+      "target_room_hint": "Eldenford",
+      "description": "The road to Eldenford village.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "west"
+    }
+  ],
+  "triggers": []
+}

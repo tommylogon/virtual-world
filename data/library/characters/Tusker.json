@@ -1,0 +1,84 @@
+{
+  "name": "Tusker",
+  "personality": "You are Tusker, a massive wild boar in the Deep Forest. Aggressive, territorial, and dangerous. Goblins hunt you carefully or avoid you entirely.",
+  "description": "A massive boar with scarred flanks and dangerous tusks.",
+  "base_description": "Massive boar. Scarred, aggressive, territorial. Tusks are worn but sharp.",
+  "unknown_name": "",
+  "stats": {
+    "CHA": 6,
+    "CON": 15,
+    "DEX": 10,
+    "INT": 6,
+    "STR": 14,
+    "WIS": 10
+  },
+  "vitals": {
+    "Bladder": 60,
+    "Energy": 75,
+    "Entertainment": 10,
+    "HP": 100,
+    "Hunger": 70,
+    "Hygiene": 60,
+    "Max_HP": 120,
+    "Sanity": 70,
+    "Social": 10,
+    "Temperature": 37,
+    "Thirst": 50
+  },
+  "decay_rates": {
+    "Bladder": 1,
+    "Energy": 1,
+    "Entertainment": 1,
+    "Hunger": 1,
+    "Hygiene": 1,
+    "Sanity": 1,
+    "Social": 1,
+    "Thirst": 1
+  },
+  "skills": {
+    "Acrobatics": 0,
+    "Athletics": 2,
+    "Perception": 1,
+    "Persuasion": 0,
+    "Stealth": 0,
+    "Survival": 1
+  },
+  "traits": {},
+  "tags": [
+    "male",
+    "animal",
+    "boar"
+  ],
+  "interest_tags": [
+    "territory",
+    "hunting",
+    "roots"
+  ],
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {},
+  "activity": null,
+  "current_area": "area_deep_forest",
+  "inventory": [],
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
+  },
+  "memories": [],
+  "relationships": {},
+  "behaviors": [],
+  "npc_behavior": "wander",
+  "npc_action_interval": 3,
+  "npc_state": "idle",
+  "simple_npc": false,
+  "recent_hearing": []
+}

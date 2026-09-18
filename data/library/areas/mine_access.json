@@ -1,0 +1,20 @@
+{
+  "name": "Mine Access",
+  "description": "Narrow, unstable tunnels lead deeper beneath the hill. Water drips, rock creaks, and the air grows thinner. The goblins follow whatever looks useful rather than mining systematically.",
+  "tags": [
+    "interior",
+    "cave",
+    "goblin_camp",
+    "underground"
+  ],
+  "environment": {
+    "air": "thin",
+    "light": "pitch_black",
+    "noise": "dripping water",
+    "smell": "rock, water, minerals",
+    "temperature": 12
+  },
+  "items": [],
+  "exits": [],
+  "triggers": []
+}

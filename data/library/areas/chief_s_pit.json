@@ -1,0 +1,80 @@
+{
+  "name": "Chief's Pit",
+  "description": "The largest cave chamber. A central fire burns low, surrounded by stones, crude tables, bones, and hanging meat. This is where the tribe eats, argues, and listens to the chief.",
+  "tags": [],
+  "environment": {
+    "air": "smoky",
+    "light": "normal",
+    "noise": "lively",
+    "smell": "smoke, meat, damp fur",
+    "temperature": 19
+  },
+  "items": [],
+  "exits": [
+    {
+      "direction": "east passage",
+      "target_room_hint": "Sleeping Halls",
+      "description": "A passage to the sleeping halls.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "east"
+    },
+    {
+      "direction": "north passage",
+      "target_room_hint": "Chief's Den",
+      "description": "A narrower passage leading to the chief's chamber.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "north"
+    },
+    {
+      "direction": "northeast passage",
+      "target_room_hint": "Workshop",
+      "description": "A passage to the workshop.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "northeast"
+    },
+    {
+      "direction": "northwest passage",
+      "target_room_hint": "Scouting Rooms",
+      "description": "A passage to the scouting rooms.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "northwest"
+    },
+    {
+      "direction": "south passage",
+      "target_room_hint": "Nursery",
+      "description": "A passage to the nursery.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "south"
+    },
+    {
+      "direction": "southeast passage",
+      "target_room_hint": "Training Pit",
+      "description": "A noisy passage leading to the training pit.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "southeast"
+    },
+    {
+      "direction": "southwest passage",
+      "target_room_hint": "Shaman Lair",
+      "description": "A strange-smelling passage to the shaman's chamber.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "southwest"
+    },
+    {
+      "direction": "west passage",
+      "target_room_hint": "Cooking Area",
+      "description": "A warm passage leading to the cooking area.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "west"
+    }
+  ],
+  "triggers": []
+}

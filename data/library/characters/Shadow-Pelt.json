@@ -1,0 +1,84 @@
+{
+  "name": "Shadow-Pelt",
+  "personality": "You are Shadow-Pelt, worg pack leader near the Raven River. Intelligent, dangerous, and competitive. You sometimes compete with goblins for food and territory.",
+  "description": "A large dark worg with intelligent eyes and a lean build.",
+  "base_description": "Worg pack leader. Dark fur, intelligent eyes, lean and fast.",
+  "unknown_name": "",
+  "stats": {
+    "CHA": 8,
+    "CON": 13,
+    "DEX": 14,
+    "INT": 8,
+    "STR": 13,
+    "WIS": 12
+  },
+  "vitals": {
+    "Bladder": 60,
+    "Energy": 85,
+    "Entertainment": 20,
+    "HP": 90,
+    "Hunger": 65,
+    "Hygiene": 70,
+    "Max_HP": 100,
+    "Sanity": 75,
+    "Social": 30,
+    "Temperature": 37,
+    "Thirst": 50
+  },
+  "decay_rates": {
+    "Bladder": 1,
+    "Energy": 1,
+    "Entertainment": 1,
+    "Hunger": 1,
+    "Hygiene": 1,
+    "Sanity": 1,
+    "Social": 1,
+    "Thirst": 1
+  },
+  "skills": {
+    "Acrobatics": 1,
+    "Athletics": 1,
+    "Perception": 2,
+    "Persuasion": 0,
+    "Stealth": 2,
+    "Survival": 2
+  },
+  "traits": {},
+  "tags": [
+    "male",
+    "animal",
+    "worg"
+  ],
+  "interest_tags": [
+    "hunting",
+    "territory",
+    "goblin_trails"
+  ],
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {},
+  "activity": null,
+  "current_area": "area_raven_river",
+  "inventory": [],
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
+  },
+  "memories": [],
+  "relationships": {},
+  "behaviors": [],
+  "npc_behavior": "wander",
+  "npc_action_interval": 3,
+  "npc_state": "idle",
+  "simple_npc": false,
+  "recent_hearing": []
+}

@@ -1,0 +1,20 @@
+{
+  "name": "Food Storage",
+  "description": "Stone shelves, hanging racks, pits, sealed pots, and leather bags hold dried meat, mushrooms, berries, and spices. Some stores are hidden in secondary chambers known only to a few goblins.",
+  "tags": [
+    "interior",
+    "cave",
+    "goblin_camp",
+    "food"
+  ],
+  "environment": {
+    "air": "stale",
+    "light": "dim",
+    "noise": "quiet",
+    "smell": "dried meat, mushrooms, spices",
+    "temperature": 14
+  },
+  "items": [],
+  "exits": [],
+  "triggers": []
+}

@@ -1,0 +1,18 @@
+{
+  "name": "Berries",
+  "description": "A handful of wild berries.",
+  "actions": "take,drop,examine,eat",
+  "uses": 2,
+  "weight": 1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "food",
+    "plant"
+  ],
+  "triggers": [],
+  "contents": []
+}

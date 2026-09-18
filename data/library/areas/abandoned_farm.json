@@ -1,0 +1,20 @@
+{
+  "name": "Abandoned Farm",
+  "description": "A deserted human farm southeast of the camp. Old grain, vegetables, tools, barrels, rope, nails, wood, furniture, cloth, and chicken coops remain. Rats nest in the buildings. The goblins raid it repeatedly.",
+  "tags": [
+    "exterior",
+    "ruins",
+    "human",
+    "loot"
+  ],
+  "environment": {
+    "air": "stale",
+    "light": "normal",
+    "noise": "quiet",
+    "smell": "rot, straw, old food",
+    "temperature": 17
+  },
+  "items": [],
+  "exits": [],
+  "triggers": []
+}

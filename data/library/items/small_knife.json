@@ -1,0 +1,19 @@
+{
+  "name": "Knife",
+  "actions": "take,drop,examine,equip,unequip",
+  "contents": [],
+  "current_state": "normal",
+  "damage": 0,
+  "defense": 0,
+  "description": "A small hunting knife.",
+  "insulation": 0,
+  "light_level": "dim",
+  "tags": [
+    "weapon",
+    "tool"
+  ],
+  "triggers": [],
+  "uses": -1,
+  "weight": 1,
+  "damage_type": "piercing"
+}

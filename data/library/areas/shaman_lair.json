@@ -1,0 +1,29 @@
+{
+  "name": "Shaman Lair",
+  "description": "The shaman's chamber feels different from the rest. Symbols, bones, feathers, painted stones, strange plants, and relics cover the walls. Shelves hold herbs, potions, powders, and objects nobody else is allowed to touch.",
+  "tags": [
+    "interior",
+    "cave",
+    "goblin_camp",
+    "magic"
+  ],
+  "environment": {
+    "air": "musty",
+    "light": "dim",
+    "noise": "quiet",
+    "smell": "herbs, smoke, something sweet and wrong",
+    "temperature": 16
+  },
+  "items": [],
+  "exits": [
+    {
+      "direction": "east passage",
+      "target_room_hint": "Healing Area",
+      "description": "A small passage to the healing area.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "east"
+    }
+  ],
+  "triggers": []
+}

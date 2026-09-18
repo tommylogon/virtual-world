@@ -1,0 +1,20 @@
+{
+  "name": "Storage Caves",
+  "description": "Wood, stone, clay, spare supplies, and building materials are stacked here. Some caches are hidden in side chambers. The air is cool and dry.",
+  "tags": [
+    "interior",
+    "cave",
+    "goblin_camp",
+    "storage"
+  ],
+  "environment": {
+    "air": "stale",
+    "light": "dim",
+    "noise": "quiet",
+    "smell": "wood, stone, dust",
+    "temperature": 13
+  },
+  "items": [],
+  "exits": [],
+  "triggers": []
+}

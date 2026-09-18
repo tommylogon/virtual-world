@@ -1,0 +1,19 @@
+{
+  "name": "Northern Hills",
+  "description": "Rocky hills north of the camp. Stone, iron ore, caves, goats, and hidden paths are found here. The terrain is rough and offers both shelter and exposure.",
+  "tags": [
+    "exterior",
+    "hills",
+    "wild"
+  ],
+  "environment": {
+    "air": "fresh",
+    "light": "normal",
+    "noise": "quiet",
+    "smell": "pine, rock, goat",
+    "temperature": 13
+  },
+  "items": [],
+  "exits": [],
+  "triggers": []
+}

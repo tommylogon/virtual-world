@@ -1,0 +1,15 @@
+{
+  "name": "Rusty Hatchet",
+  "current_area": "area_training_pit",
+  "properties": {
+    "description": "A rusted hatchet with a loose handle.",
+    "actions": ["take", "drop", "examine", "equip"],
+    "weight": 3,
+    "tags": ["weapon", "tool", "scrap"],
+    "current_state": "poor",
+    "damage_dice": "1d6",
+    "damage": 3,
+    "damage_type": "slashing",
+    "equip_slots": ["hand"]
+  }
+}

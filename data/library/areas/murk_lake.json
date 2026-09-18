@@ -1,0 +1,29 @@
+{
+  "name": "Murk Lake",
+  "description": "A broad, swampy lake southwest of the camp. Reeds, dead trees, islands, and stagnant pools cover the shoreline. The water is murky. Fish, frogs, snakes, and rare plants are found here.",
+  "tags": [
+    "exterior",
+    "swamp",
+    "lake",
+    "water"
+  ],
+  "environment": {
+    "air": "humid",
+    "light": "normal",
+    "noise": "quiet",
+    "smell": "mud, decay, frogs",
+    "temperature": 18
+  },
+  "items": [],
+  "exits": [
+    {
+      "direction": "west through marsh",
+      "target_room_hint": "Blackmarsh",
+      "description": "A trail through the marsh.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "west"
+    }
+  ],
+  "triggers": []
+}

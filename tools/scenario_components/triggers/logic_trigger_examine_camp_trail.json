@@ -1,0 +1,18 @@
+{
+  "name": "Trail Discovery",
+  "properties": {
+    "event": "on_examine",
+    "target": "area_camp_entrance_trail",
+    "once": true,
+    "conditions": [],
+    "conditions_logic": "and",
+    "effects": [
+      {
+        "type": "message",
+        "params": {
+          "message": "Among the undergrowth you find faint goblin trail marks and a discarded shiv."
+        }
+      }
+    ]
+  }
+}

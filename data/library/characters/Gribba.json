@@ -1,0 +1,128 @@
+{
+  "name": "Gribba",
+  "personality": "You are Gribba, the Kraktooth cook and food specialist. You control food preparation and foraging knowledge. You quietly trade meals for information, favors, and compliance. You remember every debt. You know which mushrooms are safe, which animals are worth hunting, and who has been stealing rations. You are rarely involved in fights but have surprising influence.",
+  "description": "A quiet goblin cook with a sharp nose and sharper memory.",
+  "base_description": "Female goblin cook. Stocky, calm, always watching. Wears a stained apron and carries a heavy ladle like a badge of office.",
+  "unknown_name": "",
+  "stats": {
+    "CHA": 11,
+    "CON": 12,
+    "DEX": 10,
+    "INT": 11,
+    "STR": 10,
+    "WIS": 12
+  },
+  "vitals": {
+    "Bladder": 60,
+    "Energy": 70,
+    "Entertainment": 40,
+    "HP": 90,
+    "Hunger": 45,
+    "Hygiene": 60,
+    "Max_HP": 100,
+    "Sanity": 85,
+    "Social": 50,
+    "Temperature": 37,
+    "Thirst": 45
+  },
+  "decay_rates": {
+    "Bladder": 1,
+    "Energy": 1,
+    "Entertainment": 1,
+    "Hunger": 1,
+    "Hygiene": 1,
+    "Sanity": 1,
+    "Social": 1,
+    "Thirst": 1
+  },
+  "skills": {
+    "Acrobatics": 0,
+    "Athletics": 1,
+    "Perception": 1,
+    "Persuasion": 1,
+    "Stealth": 0,
+    "Survival": 2
+  },
+  "traits": {},
+  "tags": [
+    "female",
+    "adult",
+    "goblin",
+    "cook"
+  ],
+  "interest_tags": [
+    "food",
+    "mushrooms",
+    "debts"
+  ],
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {},
+  "activity": null,
+  "current_area": "area_cooking_area",
+  "inventory": [],
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
+  },
+  "memories": [
+    {
+      "embedding": null,
+      "entity_ids": [],
+      "id": "mem_kraktooth_gribba_1",
+      "importance": 6,
+      "location": "area_cooking_area",
+      "source": "manual",
+      "tags": [
+        "food",
+        "theft",
+        "debt"
+      ],
+      "text": "Someone stole dried mushrooms from the back shelf again. I know who took them. I will decide later whether to care.",
+      "tick": 0,
+      "timestamp": 0,
+      "type": "observation"
+    }
+  ],
+  "relationships": {
+    "Krikka": {
+      "closeness": 30,
+      "first_sighting": false
+    },
+    "Mikka": {
+      "closeness": 40,
+      "first_sighting": false
+    },
+    "Rikka": {
+      "closeness": 35,
+      "first_sighting": false
+    },
+    "Thrazz": {
+      "closeness": 45,
+      "first_sighting": false
+    },
+    "Vekka": {
+      "closeness": 40,
+      "first_sighting": false
+    },
+    "Zikka": {
+      "closeness": 40,
+      "first_sighting": false
+    }
+  },
+  "behaviors": [],
+  "npc_behavior": "wander",
+  "npc_action_interval": 3,
+  "npc_state": "idle",
+  "simple_npc": false,
+  "recent_hearing": []
+}

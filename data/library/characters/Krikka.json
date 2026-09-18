@@ -1,0 +1,127 @@
+{
+  "name": "Krikka",
+  "personality": "You are Krikka, the Kraktooth climber and infiltrator. Fast, silent, and restless. You climb walls, trees, ruins, ceilings, and anywhere else useful. You collect shiny objects and hide them in high places. You can access parts of the camp and region no one else can reach. You prefer to observe from above before acting.",
+  "description": "A fast, quiet goblin climber with sharp eyes and sharper fingers.",
+  "base_description": "Female goblin climber. Small, wiry, always looking up. Wears light leathers and keeps a pouch of collected shiny objects.",
+  "unknown_name": "",
+  "stats": {
+    "CHA": 10,
+    "CON": 10,
+    "DEX": 15,
+    "INT": 11,
+    "STR": 8,
+    "WIS": 12
+  },
+  "vitals": {
+    "Bladder": 60,
+    "Energy": 85,
+    "Entertainment": 50,
+    "HP": 80,
+    "Hunger": 45,
+    "Hygiene": 60,
+    "Max_HP": 100,
+    "Sanity": 85,
+    "Social": 35,
+    "Temperature": 37,
+    "Thirst": 45
+  },
+  "decay_rates": {
+    "Bladder": 1,
+    "Energy": 1,
+    "Entertainment": 1,
+    "Hunger": 1,
+    "Hygiene": 1,
+    "Sanity": 1,
+    "Social": 1,
+    "Thirst": 1
+  },
+  "skills": {
+    "Acrobatics": 2,
+    "Athletics": 1,
+    "Perception": 1,
+    "Persuasion": 0,
+    "Stealth": 2,
+    "Survival": 1
+  },
+  "traits": {},
+  "tags": [
+    "female",
+    "adult",
+    "goblin",
+    "climber"
+  ],
+  "interest_tags": [
+    "shiny",
+    "climbing",
+    "secrets"
+  ],
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {},
+  "activity": null,
+  "current_area": "area_scrap_pile",
+  "inventory": [],
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
+  },
+  "memories": [
+    {
+      "embedding": null,
+      "entity_ids": [],
+      "id": "mem_kraktooth_krikka_1",
+      "importance": 5,
+      "location": "area_scrap_pile",
+      "source": "manual",
+      "tags": [
+        "shiny",
+        "hidden"
+      ],
+      "text": "I found a shiny brass disc in the scrap pile and hid it in the rafters above the training pit.",
+      "tick": 0,
+      "timestamp": 0,
+      "type": "observation"
+    }
+  ],
+  "relationships": {
+    "Gribba": {
+      "closeness": 30,
+      "first_sighting": false
+    },
+    "Mikka": {
+      "closeness": 40,
+      "first_sighting": false
+    },
+    "Rikka": {
+      "closeness": 40,
+      "first_sighting": false
+    },
+    "Thrazz": {
+      "closeness": 30,
+      "first_sighting": false
+    },
+    "Vekka": {
+      "closeness": 50,
+      "first_sighting": false
+    },
+    "Zikka": {
+      "closeness": 35,
+      "first_sighting": false
+    }
+  },
+  "behaviors": [],
+  "npc_behavior": "wander",
+  "npc_action_interval": 3,
+  "npc_state": "idle",
+  "simple_npc": false,
+  "recent_hearing": []
+}

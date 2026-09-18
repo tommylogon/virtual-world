@@ -1,0 +1,28 @@
+{
+  "name": "Raven River",
+  "description": "A river cutting through the eastern territory. It provides fish, clay, driftwood, and a travel corridor. Humans follow it, and so do goblins, which makes it both useful and dangerous.",
+  "tags": [
+    "exterior",
+    "river",
+    "water"
+  ],
+  "environment": {
+    "air": "fresh",
+    "light": "normal",
+    "noise": "flowing water",
+    "smell": "water, mud, fish",
+    "temperature": 16
+  },
+  "items": [],
+  "exits": [
+    {
+      "direction": "hidden riverside route",
+      "target_room_hint": "Camp Entrance",
+      "description": "A narrow, concealed path climbing toward the camp.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "west"
+    }
+  ],
+  "triggers": []
+}

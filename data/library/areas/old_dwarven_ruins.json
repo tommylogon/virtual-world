@@ -1,0 +1,20 @@
+{
+  "name": "Old Dwarven Ruins",
+  "description": "Crumbling dwarven stonework, broken tools, old mechanisms, and scattered metal litter these ruins. They are a major source of scavengable materials, but they may still contain traps, unstable passages, or residual dangers.",
+  "tags": [
+    "exterior",
+    "ruins",
+    "dwarven",
+    "dangerous"
+  ],
+  "environment": {
+    "air": "stale",
+    "light": "normal",
+    "noise": "quiet",
+    "smell": "stone, rust, old mortar",
+    "temperature": 15
+  },
+  "items": [],
+  "exits": [],
+  "triggers": []
+}

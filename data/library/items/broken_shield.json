@@ -1,0 +1,18 @@
+{
+  "name": "Broken Shield",
+  "description": "A shattered wooden shield, barely held together by straps.",
+  "actions": "take,drop,examine",
+  "uses": -1,
+  "weight": 5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 1,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "armor",
+    "scrap"
+  ],
+  "triggers": [],
+  "contents": []
+}

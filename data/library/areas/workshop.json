@@ -1,0 +1,64 @@
+{
+  "name": "Workshop",
+  "description": "Broken swords, bent nails, wire, rope, gears, springs, glue, pitch, and scrap metal cover the tables and shelves. This is where things are taken apart and made to do something else.",
+  "tags": [
+    "interior",
+    "cave",
+    "goblin_camp",
+    "craft"
+  ],
+  "environment": {
+    "air": "musty",
+    "light": "normal",
+    "noise": "quiet",
+    "smell": "metal, oil, glue",
+    "temperature": 17
+  },
+  "items": [
+    {
+      "name": "Pry Bar",
+      "description": "A bent iron pry bar, useful for opening things.",
+      "actions": [
+        "take",
+        "drop",
+        "examine",
+        "equip",
+        "unequip"
+      ],
+      "uses": -1,
+      "weight": 4,
+      "current_state": "normal",
+      "tags": [
+        "tool",
+        "metal"
+      ]
+    },
+    {
+      "name": "Rope",
+      "description": "A length of coarse rope.",
+      "actions": [
+        "take",
+        "drop",
+        "examine"
+      ],
+      "uses": -1,
+      "weight": 3,
+      "current_state": "normal",
+      "tags": [
+        "tool",
+        "climb"
+      ]
+    }
+  ],
+  "exits": [
+    {
+      "direction": "east passage",
+      "target_room_hint": "Scrap Pile",
+      "description": "A passage to the scrap pile.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "east"
+    }
+  ],
+  "triggers": []
+}

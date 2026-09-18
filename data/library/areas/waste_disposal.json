@@ -1,0 +1,19 @@
+{
+  "name": "Waste Disposal",
+  "description": "A downstream chamber where refuse, bones, ash, and rotten material are dumped. It is not hygienic by human standards, but it is positioned so water carries some waste away from the living areas.",
+  "tags": [
+    "interior",
+    "cave",
+    "goblin_camp"
+  ],
+  "environment": {
+    "air": "foul",
+    "light": "dim",
+    "noise": "quiet",
+    "smell": "rot, dung, ash",
+    "temperature": 14
+  },
+  "items": [],
+  "exits": [],
+  "triggers": []
+}

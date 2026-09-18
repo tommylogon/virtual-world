@@ -1,0 +1,60 @@
+{
+  "name": "Thrazz",
+  "current_area": "area_chiefs_pit",
+  "properties": {
+    "description": "An old, scarred goblin warchief with a heavy presence and sharper eyes.",
+    "personality": "You are Thrazz, warchief of the Kraktooth tribe. Old, scarred, and politically sharp.",
+    "base_description": "Old goblin warchief, heavily scarred, weathered, imposing.",
+    "stats": {
+      "STR": 10,
+      "DEX": 9,
+      "CON": 10,
+      "INT": 12,
+      "WIS": 11,
+      "CHA": 13
+    },
+    "skills": {
+      "Acrobatics": 0,
+      "Athletics": 1,
+      "Perception": 1,
+      "Persuasion": 1,
+      "Stealth": 0,
+      "Survival": 1
+    },
+    "vitals": {
+      "Bladder": 60,
+      "Energy": 65,
+      "Entertainment": 30,
+      "HP": 85,
+      "Hunger": 45,
+      "Hygiene": 55,
+      "Max_HP": 100,
+      "Sanity": 80,
+      "Social": 70,
+      "Thirst": 50,
+      "Temperature": 37.0
+    },
+    "tags": ["male", "adult", "goblin", "chief"],
+    "emotion": {
+      "current": "neutral",
+      "description": "Thrazz looks stern and watchful.",
+      "intensity": 0.0
+    },
+    "traits": {},
+    "interest_tags": ["war", "trophies", "authority"],
+    "autonomy": true,
+    "simple_npc": false,
+    "memories": [],
+    "relationships": {},
+    "decay_rates": {
+      "Bladder": 1,
+      "Energy": 1,
+      "Entertainment": 1,
+      "Hunger": 1,
+      "Hygiene": 1,
+      "Sanity": 1,
+      "Social": 1,
+      "Thirst": 1
+    }
+  }
+}

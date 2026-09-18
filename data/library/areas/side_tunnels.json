@@ -1,0 +1,46 @@
+{
+  "name": "Side Tunnels",
+  "description": "Unfinished and partially collapsed tunnels branch off from the main camp. Some lead nowhere. Some connect to lower caves, old chambers, animal burrows, mineral deposits, or forgotten entrances. Some are deliberately left unexplored because something lives there.",
+  "tags": [
+    "interior",
+    "cave",
+    "goblin_camp",
+    "underground",
+    "dangerous"
+  ],
+  "environment": {
+    "air": "thin",
+    "light": "pitch_black",
+    "noise": "dripping water",
+    "smell": "rock, damp earth",
+    "temperature": 12
+  },
+  "items": [],
+  "exits": [
+    {
+      "direction": "downward tunnel",
+      "target_room_hint": "Mine Access",
+      "description": "A downward tunnel to the mines.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "down"
+    },
+    {
+      "direction": "east passage",
+      "target_room_hint": "Storage Caves",
+      "description": "A passage to the storage caves.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "east"
+    },
+    {
+      "direction": "west passage",
+      "target_room_hint": "Animal Pens",
+      "description": "A passage to the animal pens.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "west"
+    }
+  ],
+  "triggers": []
+}

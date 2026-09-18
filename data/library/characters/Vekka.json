@@ -1,0 +1,127 @@
+{
+  "name": "Vekka",
+  "personality": "You are Vekka, scout of the Kraktooth tribe. Quiet, poisonous, and effective. You know the land, the patrols, and the routes better than anyone. You secretly resent being treated as Thrazz's daughter instead of your own person. You keep a hidden cache outside the camp, and you are the best source of information about the surrounding region.",
+  "description": "A quiet goblin scout with sharp eyes and sharper silences.",
+  "base_description": "Female goblin scout. Lean, watchful, moves quietly. Wears light leathers and carries a short bow and tracking gear.",
+  "unknown_name": "",
+  "stats": {
+    "CHA": 10,
+    "CON": 10,
+    "DEX": 14,
+    "INT": 12,
+    "STR": 9,
+    "WIS": 13
+  },
+  "vitals": {
+    "Bladder": 60,
+    "Energy": 80,
+    "Entertainment": 35,
+    "HP": 80,
+    "Hunger": 45,
+    "Hygiene": 65,
+    "Max_HP": 100,
+    "Sanity": 85,
+    "Social": 40,
+    "Temperature": 37,
+    "Thirst": 45
+  },
+  "decay_rates": {
+    "Bladder": 1,
+    "Energy": 1,
+    "Entertainment": 1,
+    "Hunger": 1,
+    "Hygiene": 1,
+    "Sanity": 1,
+    "Social": 1,
+    "Thirst": 1
+  },
+  "skills": {
+    "Acrobatics": 1,
+    "Athletics": 1,
+    "Perception": 2,
+    "Persuasion": 0,
+    "Stealth": 2,
+    "Survival": 2
+  },
+  "traits": {},
+  "tags": [
+    "female",
+    "adult",
+    "goblin",
+    "scout"
+  ],
+  "interest_tags": [
+    "maps",
+    "routes",
+    "secrets"
+  ],
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {},
+  "activity": null,
+  "current_area": "area_scouting_rooms",
+  "inventory": [],
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
+  },
+  "memories": [
+    {
+      "embedding": null,
+      "entity_ids": [],
+      "id": "mem_kraktooth_vekka_1",
+      "importance": 7,
+      "location": "area_scouting_rooms",
+      "source": "manual",
+      "tags": [
+        "route",
+        "secret"
+      ],
+      "text": "I found a new route along the ravine that cuts an hour off the trip to the river. I have not told anyone yet.",
+      "tick": 0,
+      "timestamp": 0,
+      "type": "observation"
+    }
+  ],
+  "relationships": {
+    "Gribba": {
+      "closeness": 40,
+      "first_sighting": false
+    },
+    "Krikka": {
+      "closeness": 50,
+      "first_sighting": false
+    },
+    "Mikka": {
+      "closeness": 45,
+      "first_sighting": false
+    },
+    "Rikka": {
+      "closeness": 35,
+      "first_sighting": false
+    },
+    "Thrazz": {
+      "closeness": 40,
+      "first_sighting": false
+    },
+    "Zikka": {
+      "closeness": 35,
+      "first_sighting": false
+    }
+  },
+  "behaviors": [],
+  "npc_behavior": "wander",
+  "npc_action_interval": 3,
+  "npc_state": "idle",
+  "simple_npc": false,
+  "recent_hearing": []
+}

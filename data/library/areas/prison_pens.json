@@ -1,0 +1,20 @@
+{
+  "name": "Prison Pens",
+  "description": "Crude cages made of wood, rope, and iron bars. Captives, traders, animals, or undecided prisoners are kept here. The area also serves as temporary storage for loot and interesting objects.",
+  "tags": [
+    "interior",
+    "cave",
+    "goblin_camp",
+    "restricted"
+  ],
+  "environment": {
+    "air": "foul",
+    "light": "dim",
+    "noise": "quiet",
+    "smell": "dirt, sweat, waste",
+    "temperature": 15
+  },
+  "items": [],
+  "exits": [],
+  "triggers": []
+}

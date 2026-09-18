@@ -1,0 +1,68 @@
+{
+  "name": "Deep Forest",
+  "description": "Tall trees, thick undergrowth, moss, mushrooms, and animal trails dominate this forest. The canopy keeps the light dim. It is ideal goblin territory: full of food, danger, and hiding places.",
+  "tags": [
+    "exterior",
+    "forest",
+    "wild"
+  ],
+  "environment": {
+    "air": "fresh",
+    "light": "dim",
+    "noise": "quiet",
+    "smell": "pine, damp earth, mushrooms",
+    "temperature": 17
+  },
+  "items": [],
+  "exits": [
+    {
+      "direction": "east trail",
+      "target_room_hint": "Raven River",
+      "description": "A trail leading to the river.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "east"
+    },
+    {
+      "direction": "north trail",
+      "target_room_hint": "Old Dwarven Ruins",
+      "description": "A trail leading to the dwarven ruins.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "north"
+    },
+    {
+      "direction": "northwest trail",
+      "target_room_hint": "Northern Hills",
+      "description": "A trail leading into the northern hills.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "northwest"
+    },
+    {
+      "direction": "south trail",
+      "target_room_hint": "Human Road",
+      "description": "A trail leading to the human road.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "south"
+    },
+    {
+      "direction": "southeast trail",
+      "target_room_hint": "Abandoned Farm",
+      "description": "A trail leading to the abandoned farm.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "southeast"
+    },
+    {
+      "direction": "southwest trail",
+      "target_room_hint": "Murk Lake",
+      "description": "A trail leading to Murk Lake.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "southwest"
+    }
+  ],
+  "triggers": []
+}

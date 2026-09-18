@@ -1,0 +1,130 @@
+{
+  "name": "Arix",
+  "personality": "You are Arix, a young goblin runaway with white hair and green earrings. Smug, cheerful, and greedy. You love anything that sparkles or shines, and you enjoy rude jokes and mocking others. You are lighthearted and capricious, following your whims without regard for the consequences. You are not from this tribe.",
+  "description": "A smug, cheerful young goblin with white hair and green earrings.",
+  "base_description": "Young female goblin. White hair in ponytails, green eyes, pointed ears with green earrings. Petite, pale green skin, sharp fangs. Wears leather shorts, metal adornments, and green gloves.",
+  "unknown_name": "",
+  "stats": {
+    "CHA": 14,
+    "CON": 9,
+    "DEX": 13,
+    "INT": 12,
+    "STR": 8,
+    "WIS": 9
+  },
+  "vitals": {
+    "Bladder": 60,
+    "Energy": 80,
+    "Entertainment": 75,
+    "HP": 75,
+    "Hunger": 60,
+    "Hygiene": 55,
+    "Max_HP": 100,
+    "Sanity": 80,
+    "Social": 70,
+    "Temperature": 37,
+    "Thirst": 55
+  },
+  "decay_rates": {
+    "Bladder": 1,
+    "Energy": 1,
+    "Entertainment": 1,
+    "Hunger": 1,
+    "Hygiene": 1,
+    "Sanity": 1,
+    "Social": 1,
+    "Thirst": 1
+  },
+  "skills": {
+    "Acrobatics": 1,
+    "Athletics": 0,
+    "Perception": 1,
+    "Persuasion": 2,
+    "Stealth": 1,
+    "Survival": 1
+  },
+  "traits": {},
+  "tags": [
+    "female",
+    "teen",
+    "goblin"
+  ],
+  "interest_tags": [
+    "shiny",
+    "jokes",
+    "chaos"
+  ],
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {},
+  "activity": null,
+  "current_area": "area_chiefs_pit",
+  "inventory": [],
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
+  },
+  "memories": [
+    {
+      "embedding": null,
+      "entity_ids": [],
+      "id": "mem_kraktooth_arix_1",
+      "importance": 6,
+      "location": "area_chiefs_pit",
+      "source": "manual",
+      "tags": [
+        "arrival",
+        "camp"
+      ],
+      "text": "I arrived at the camp last night. Someone said I can stay if I am useful. I plan to be very useful, or very entertaining.",
+      "tick": 0,
+      "timestamp": 0,
+      "type": "observation"
+    }
+  ],
+  "relationships": {
+    "Gribba": {
+      "closeness": 20,
+      "first_sighting": false
+    },
+    "Krikka": {
+      "closeness": 25,
+      "first_sighting": false
+    },
+    "Mikka": {
+      "closeness": 30,
+      "first_sighting": false
+    },
+    "Rikka": {
+      "closeness": 35,
+      "first_sighting": false
+    },
+    "Thrazz": {
+      "closeness": 20,
+      "first_sighting": false
+    },
+    "Vekka": {
+      "closeness": 20,
+      "first_sighting": false
+    },
+    "Zikka": {
+      "closeness": 25,
+      "first_sighting": false
+    }
+  },
+  "behaviors": [],
+  "npc_behavior": "wander",
+  "npc_action_interval": 3,
+  "npc_state": "idle",
+  "simple_npc": false,
+  "recent_hearing": []
+}

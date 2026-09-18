@@ -1,0 +1,18 @@
+{
+  "name": "Broken Trap",
+  "description": "A crude snare trap that has been sprung and broken.",
+  "actions": "take,drop,examine",
+  "uses": -1,
+  "weight": 3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "trap",
+    "scrap"
+  ],
+  "triggers": [],
+  "contents": []
+}

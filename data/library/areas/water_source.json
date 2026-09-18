@@ -1,0 +1,29 @@
+{
+  "name": "Water Source",
+  "description": "A natural underground pool fed by a slow seep. The water is cold, clear, and extraordinarily valuable. The goblins fill skins, barrels, and pots here.",
+  "tags": [
+    "interior",
+    "cave",
+    "goblin_camp",
+    "water"
+  ],
+  "environment": {
+    "air": "damp",
+    "light": "dim",
+    "noise": "dripping water",
+    "smell": "wet stone, water",
+    "temperature": 11
+  },
+  "items": [],
+  "exits": [
+    {
+      "direction": "downstream passage",
+      "target_room_hint": "Waste Disposal",
+      "description": "A downstream passage to waste disposal.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "downstream"
+    }
+  ],
+  "triggers": []
+}

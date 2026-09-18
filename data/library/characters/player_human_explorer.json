@@ -1,0 +1,102 @@
+{
+  "name": "player_human_explorer",
+  "personality": "You are a human explorer in the forest. You are cautious, observant, and practical. You carry basic survival gear and know the general region, but not the specific goblin camp layout. You have no fixed goal beyond exploration and survival.",
+  "description": "A traveler in practical forest gear, alert and watchful.",
+  "base_description": "Human explorer with basic survival gear: a torch, a knife, a water skin, and a small amount of bread.",
+  "unknown_name": "",
+  "stats": {
+    "CHA": 10,
+    "CON": 11,
+    "DEX": 12,
+    "INT": 12,
+    "STR": 10,
+    "WIS": 11
+  },
+  "vitals": {
+    "Bladder": 60,
+    "Energy": 80,
+    "Entertainment": 50,
+    "HP": 100,
+    "Hunger": 55,
+    "Hygiene": 70,
+    "Max_HP": 100,
+    "Sanity": 90,
+    "Social": 40,
+    "Temperature": 37,
+    "Thirst": 50
+  },
+  "decay_rates": {
+    "Bladder": 1,
+    "Energy": 1,
+    "Entertainment": 1,
+    "Hunger": 1,
+    "Hygiene": 1,
+    "Sanity": 1,
+    "Social": 1,
+    "Thirst": 1
+  },
+  "skills": {
+    "Acrobatics": 1,
+    "Athletics": 1,
+    "Perception": 1,
+    "Persuasion": 1,
+    "Stealth": 1,
+    "Survival": 1
+  },
+  "traits": {},
+  "tags": [
+    "human",
+    "adult",
+    "explorer"
+  ],
+  "interest_tags": [
+    "goblin_camp",
+    "forest",
+    "survival"
+  ],
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {},
+  "activity": null,
+  "current_area": "area_camp_entrance_trail",
+  "inventory": [],
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
+  },
+  "memories": [
+    {
+      "embedding": null,
+      "entity_ids": [],
+      "id": "mem_kraktooth_human_1",
+      "importance": 6,
+      "location": "area_camp_entrance_trail",
+      "source": "manual",
+      "tags": [
+        "trail",
+        "camp",
+        "goblin"
+      ],
+      "text": "I found a narrow forest trail marked with crude goblin signs. The camp entrance is close.",
+      "tick": 0,
+      "timestamp": 0,
+      "type": "observation"
+    }
+  ],
+  "relationships": {},
+  "behaviors": [],
+  "npc_behavior": "wander",
+  "npc_action_interval": 3,
+  "npc_state": "idle",
+  "simple_npc": false,
+  "recent_hearing": []
+}

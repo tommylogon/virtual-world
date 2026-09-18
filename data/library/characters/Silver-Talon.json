@@ -1,0 +1,84 @@
+{
+  "name": "Silver-Talon",
+  "personality": "You are Silver-Talon, a large raven that nests near the camp entrance. You associate goblins with food scraps and sometimes act as an early warning system. Vekka has trained you to carry small messages.",
+  "description": "A large raven with a distinctive silver marking on one talon.",
+  "base_description": "Large raven. Black plumage, one silver-talon mark, intelligent eyes.",
+  "unknown_name": "",
+  "stats": {
+    "CHA": 8,
+    "CON": 10,
+    "DEX": 15,
+    "INT": 8,
+    "STR": 6,
+    "WIS": 12
+  },
+  "vitals": {
+    "Bladder": 60,
+    "Energy": 90,
+    "Entertainment": 30,
+    "HP": 40,
+    "Hunger": 70,
+    "Hygiene": 80,
+    "Max_HP": 50,
+    "Sanity": 70,
+    "Social": 20,
+    "Temperature": 37,
+    "Thirst": 60
+  },
+  "decay_rates": {
+    "Bladder": 1,
+    "Energy": 1,
+    "Entertainment": 1,
+    "Hunger": 1,
+    "Hygiene": 1,
+    "Sanity": 1,
+    "Social": 1,
+    "Thirst": 1
+  },
+  "skills": {
+    "Acrobatics": 2,
+    "Athletics": 0,
+    "Perception": 2,
+    "Persuasion": 0,
+    "Stealth": 1,
+    "Survival": 1
+  },
+  "traits": {},
+  "tags": [
+    "animal",
+    "bird",
+    "raven"
+  ],
+  "interest_tags": [
+    "food_scraps",
+    "messages",
+    "camp"
+  ],
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {},
+  "activity": null,
+  "current_area": "area_camp_entrance",
+  "inventory": [],
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
+  },
+  "memories": [],
+  "relationships": {},
+  "behaviors": [],
+  "npc_behavior": "wander",
+  "npc_action_interval": 3,
+  "npc_state": "idle",
+  "simple_npc": false,
+  "recent_hearing": []
+}

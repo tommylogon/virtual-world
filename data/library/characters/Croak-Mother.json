@@ -1,0 +1,84 @@
+{
+  "name": "Croak-Mother",
+  "personality": "You are Croak-Mother, a large ancient frog in the Blackmarsh. You are locally legendary. The shaman may have dealings with you. Your health indicates the marsh's overall condition.",
+  "description": "An enormous frog with ancient, knowing eyes.",
+  "base_description": "Ancient large frog. Massive, slow, and unnervingly intelligent.",
+  "unknown_name": "",
+  "stats": {
+    "CHA": 6,
+    "CON": 14,
+    "DEX": 8,
+    "INT": 6,
+    "STR": 10,
+    "WIS": 12
+  },
+  "vitals": {
+    "Bladder": 60,
+    "Energy": 60,
+    "Entertainment": 10,
+    "HP": 70,
+    "Hunger": 50,
+    "Hygiene": 60,
+    "Max_HP": 100,
+    "Sanity": 65,
+    "Social": 10,
+    "Temperature": 20,
+    "Thirst": 70
+  },
+  "decay_rates": {
+    "Bladder": 1,
+    "Energy": 1,
+    "Entertainment": 1,
+    "Hunger": 1,
+    "Hygiene": 1,
+    "Sanity": 1,
+    "Social": 1,
+    "Thirst": 1
+  },
+  "skills": {
+    "Acrobatics": 0,
+    "Athletics": 0,
+    "Perception": 1,
+    "Persuasion": 0,
+    "Stealth": 1,
+    "Survival": 1
+  },
+  "traits": {},
+  "tags": [
+    "female",
+    "animal",
+    "frog"
+  ],
+  "interest_tags": [
+    "marsh",
+    "spirits",
+    "health"
+  ],
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {},
+  "activity": null,
+  "current_area": "area_blackmarsh",
+  "inventory": [],
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
+  },
+  "memories": [],
+  "relationships": {},
+  "behaviors": [],
+  "npc_behavior": "wander",
+  "npc_action_interval": 3,
+  "npc_state": "idle",
+  "simple_npc": false,
+  "recent_hearing": []
+}

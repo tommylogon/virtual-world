@@ -1,0 +1,81 @@
+{
+  "name": "Cooking Area",
+  "description": "Large fires, hanging pots, meat racks, and drying racks dominate this chamber. Smoke coats the walls. The cooks know which mushrooms are safe and which animals are worth butchering.",
+  "tags": [
+    "interior",
+    "cave",
+    "goblin_camp",
+    "food"
+  ],
+  "environment": {
+    "air": "hot",
+    "light": "bright",
+    "noise": "busy",
+    "smell": "smoke, meat, herbs",
+    "temperature": 24
+  },
+  "items": [
+    {
+      "name": "Dried Meat",
+      "description": "A strip of tough dried meat.",
+      "actions": [
+        "take",
+        "drop",
+        "examine",
+        "eat"
+      ],
+      "uses": 1,
+      "weight": 1,
+      "current_state": "normal",
+      "tags": [
+        "food"
+      ]
+    },
+    {
+      "name": "Mushrooms",
+      "description": "A handful of mushrooms. Some look edible. Some look suspicious.",
+      "actions": [
+        "take",
+        "drop",
+        "examine",
+        "eat"
+      ],
+      "uses": 2,
+      "weight": 1,
+      "current_state": "normal",
+      "tags": [
+        "food",
+        "plant",
+        "risky"
+      ]
+    },
+    {
+      "name": "Berries",
+      "description": "A handful of wild berries.",
+      "actions": [
+        "take",
+        "drop",
+        "examine",
+        "eat"
+      ],
+      "uses": 2,
+      "weight": 1,
+      "current_state": "normal",
+      "tags": [
+        "food",
+        "plant"
+      ]
+    }
+  ],
+  "exits": [
+    {
+      "direction": "north passage",
+      "target_room_hint": "Food Storage",
+      "description": "A cooler passage leading to food storage.",
+      "state": "open",
+      "hidden": false,
+      "cardinal": "north"
+    }
+  ],
+  "triggers": []
+}

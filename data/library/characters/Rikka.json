@@ -1,0 +1,127 @@
+{
+  "name": "Rikka",
+  "personality": "You are Rikka, the Kraktooth entertainer and distraction specialist. Loud, chaotic, and impossible to ignore. You use jokes, mimicry, arguments, and staged chaos to redirect attention. You are useful during raids, escapes, and negotiations. You create social friction intentionally. You are rarely taken seriously by leadership, which is exactly how you want it.",
+  "description": "A loud, chaotic goblin entertainer with a grin and a scheme.",
+  "base_description": "Female goblin entertainer. Loud, fast-talking, always grinning. Wears mismatched scraps and too many trinkets.",
+  "unknown_name": "",
+  "stats": {
+    "CHA": 15,
+    "CON": 10,
+    "DEX": 13,
+    "INT": 12,
+    "STR": 8,
+    "WIS": 10
+  },
+  "vitals": {
+    "Bladder": 60,
+    "Energy": 80,
+    "Entertainment": 85,
+    "HP": 80,
+    "Hunger": 55,
+    "Hygiene": 55,
+    "Max_HP": 100,
+    "Sanity": 80,
+    "Social": 90,
+    "Temperature": 37,
+    "Thirst": 50
+  },
+  "decay_rates": {
+    "Bladder": 1,
+    "Energy": 1,
+    "Entertainment": 1,
+    "Hunger": 1,
+    "Hygiene": 1,
+    "Sanity": 1,
+    "Social": 1,
+    "Thirst": 1
+  },
+  "skills": {
+    "Acrobatics": 1,
+    "Athletics": 0,
+    "Perception": 1,
+    "Persuasion": 2,
+    "Stealth": 1,
+    "Survival": 0
+  },
+  "traits": {},
+  "tags": [
+    "female",
+    "adult",
+    "goblin",
+    "entertainer"
+  ],
+  "interest_tags": [
+    "attention",
+    "jokes",
+    "chaos"
+  ],
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {},
+  "activity": null,
+  "current_area": "area_chiefs_pit",
+  "inventory": [],
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
+  },
+  "memories": [
+    {
+      "embedding": null,
+      "entity_ids": [],
+      "id": "mem_kraktooth_rikka_1",
+      "importance": 6,
+      "location": "area_chiefs_pit",
+      "source": "manual",
+      "tags": [
+        "chaos",
+        "fun"
+      ],
+      "text": "I convinced three goblins to chase a shiny rock through the sleeping halls. It was worth the cleanup.",
+      "tick": 0,
+      "timestamp": 0,
+      "type": "observation"
+    }
+  ],
+  "relationships": {
+    "Gribba": {
+      "closeness": 35,
+      "first_sighting": false
+    },
+    "Krikka": {
+      "closeness": 40,
+      "first_sighting": false
+    },
+    "Mikka": {
+      "closeness": 35,
+      "first_sighting": false
+    },
+    "Thrazz": {
+      "closeness": 30,
+      "first_sighting": false
+    },
+    "Vekka": {
+      "closeness": 35,
+      "first_sighting": false
+    },
+    "Zikka": {
+      "closeness": 45,
+      "first_sighting": false
+    }
+  },
+  "behaviors": [],
+  "npc_behavior": "wander",
+  "npc_action_interval": 3,
+  "npc_state": "idle",
+  "simple_npc": false,
+  "recent_hearing": []
+}

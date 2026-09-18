@@ -1,0 +1,20 @@
+{
+  "name": "Scrap Pile",
+  "description": "A chamber that looks like garbage until you notice the useful things buried in it: rusty swords, broken wheels, wire, bones, bits of armor, copper, iron, and mechanisms nobody has examined yet.",
+  "tags": [
+    "interior",
+    "cave",
+    "goblin_camp",
+    "storage"
+  ],
+  "environment": {
+    "air": "musty",
+    "light": "dim",
+    "noise": "quiet",
+    "smell": "rust, old oil, decay",
+    "temperature": 15
+  },
+  "items": [],
+  "exits": [],
+  "triggers": []
+}

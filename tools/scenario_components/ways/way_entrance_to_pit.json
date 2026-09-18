@@ -1,0 +1,13 @@
+{
+  "name": "entrance passage",
+  "properties": {
+    "description": "A narrow passage opening into the main cave chamber with firelight ahead.",
+    "pass_message": "You slip through the concealed entrance into the camp.",
+    "area_from": "area_camp_entrance",
+    "area_to": "area_chiefs_pit",
+    "current_state": "open",
+    "hidden": false,
+    "tags": ["passage", "cave"],
+    "cost": {}
+  }
+}

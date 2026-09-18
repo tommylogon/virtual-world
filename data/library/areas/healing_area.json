@@ -1,0 +1,55 @@
+{
+  "name": "Healing Area",
+  "description": "A small chamber associated with the shaman. Bandages, herbs, splints, needles, thread, potions, and crude surgical tools are stored here. Treatment is pragmatic: keep the injured goblin alive long enough to heal.",
+  "tags": [
+    "interior",
+    "cave",
+    "goblin_camp",
+    "medicine"
+  ],
+  "environment": {
+    "air": "stale",
+    "light": "dim",
+    "noise": "quiet",
+    "smell": "herbs, blood, alcohol",
+    "temperature": 17
+  },
+  "items": [
+    {
+      "name": "Healing Herbs",
+      "description": "A bundle of herbs used for basic treatment.",
+      "actions": [
+        "take",
+        "drop",
+        "examine",
+        "use"
+      ],
+      "uses": 1,
+      "weight": 1,
+      "current_state": "normal",
+      "tags": [
+        "medicine",
+        "plant"
+      ]
+    },
+    {
+      "name": "Healing Potion",
+      "description": "A small vial of red liquid. It smells medicinal.",
+      "actions": [
+        "take",
+        "drop",
+        "examine",
+        "use"
+      ],
+      "uses": 1,
+      "weight": 1,
+      "current_state": "normal",
+      "tags": [
+        "magic",
+        "medicine"
+      ]
+    }
+  ],
+  "exits": [],
+  "triggers": []
+}
