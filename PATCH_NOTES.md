@@ -89,3 +89,10 @@ Massive working-tree sweep covering environment/time/weather engine work, trigge
 ## Net Change
 - 37 files modified, ~20k insertions, ~16k deletions.
 - No secrets or credentials detected in diff.
+
+## Scenarios — Kraktooth Goblin Camp
+- **`data/scenarios/kraktooth_goblin_camp.json`** — patched validation failures:
+  - Added `pass_message` to all 29 ways.
+  - Added `max_weight_capacity: 5` to `item_water_skin`.
+  - Added `equip_slots: ["torso", "hand_left", "hand_right"]` to `item_broken_shield`.
+- **Validation**: `python tools/validate_scenario.py --input data/scenarios/kraktooth_goblin_camp.json` now passes.

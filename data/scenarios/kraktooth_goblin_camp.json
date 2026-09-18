@@ -4453,7 +4453,8 @@
           "area_to": "area_camp_entrance",
           "cost": {},
           "current_state": "open",
-          "description": "A worn forest trail climbing toward the concealed cave entrance."
+          "description": "A worn forest trail climbing toward the concealed cave entrance.",
+          "pass_message": "You step off the forest trail onto the hidden approach to the goblin camp entrance."
         }
       },
       "way_entrance_to_pit": {
@@ -4465,7 +4466,8 @@
           "area_to": "area_chiefs_pit",
           "cost": {},
           "current_state": "open",
-          "description": "A narrow passage opening into the main cave chamber."
+          "description": "A narrow passage opening into the main cave chamber.",
+          "pass_message": "You pass through the camp entrance and into the main gathering pit."
         }
       },
       "way_pit_to_den": {
@@ -4477,7 +4479,8 @@
           "area_to": "area_chiefs_den",
           "cost": {},
           "current_state": "open",
-          "description": "A narrower passage leading to the chief's chamber."
+          "description": "A narrower passage leading to the chief's chamber.",
+          "pass_message": "You climb toward the chief's den overlooking the camp."
         }
       },
       "way_pit_to_sleeping": {
@@ -4489,7 +4492,8 @@
           "area_to": "area_sleeping_halls",
           "cost": {},
           "current_state": "open",
-          "description": "A passage to the sleeping halls."
+          "description": "A passage to the sleeping halls.",
+          "pass_message": "You move from the pit to the sleeping halls."
         }
       },
       "way_pit_to_nursery": {
@@ -4501,7 +4505,8 @@
           "area_to": "area_nursery",
           "cost": {},
           "current_state": "open",
-          "description": "A passage to the nursery."
+          "description": "A passage to the nursery.",
+          "pass_message": "You head into the nursery area."
         }
       },
       "way_pit_to_cooking": {
@@ -4513,7 +4518,8 @@
           "area_to": "area_cooking_area",
           "cost": {},
           "current_state": "open",
-          "description": "A warm passage leading to the cooking area."
+          "description": "A warm passage leading to the cooking area.",
+          "pass_message": "You walk toward the cooking area."
         }
       },
       "way_cooking_to_storage": {
@@ -4525,7 +4531,8 @@
           "area_to": "area_food_storage",
           "cost": {},
           "current_state": "open",
-          "description": "A cooler passage leading to food storage."
+          "description": "A cooler passage leading to food storage.",
+          "pass_message": "You pass into the food storage."
         }
       },
       "way_pit_to_workshop": {
@@ -4537,7 +4544,8 @@
           "area_to": "area_workshop",
           "cost": {},
           "current_state": "open",
-          "description": "A passage to the workshop."
+          "description": "A passage to the workshop.",
+          "pass_message": "You enter the workshop."
         }
       },
       "way_workshop_to_scrap": {
@@ -4549,7 +4557,8 @@
           "area_to": "area_scrap_pile",
           "cost": {},
           "current_state": "open",
-          "description": "A passage to the scrap pile."
+          "description": "A passage to the scrap pile.",
+          "pass_message": "You move from the workshop to the scrap pile."
         }
       },
       "way_pit_to_training": {
@@ -4561,7 +4570,8 @@
           "area_to": "area_training_pit",
           "cost": {},
           "current_state": "open",
-          "description": "A noisy passage leading to the training pit."
+          "description": "A noisy passage leading to the training pit.",
+          "pass_message": "You step into the training pit."
         }
       },
       "way_training_to_prison": {
@@ -4573,7 +4583,8 @@
           "area_to": "area_prison_pens",
           "cost": {},
           "current_state": "open",
-          "description": "A passage to the prison pens."
+          "description": "A passage to the prison pens.",
+          "pass_message": "You go from the training pit to the prison pens."
         }
       },
       "way_pit_to_shaman": {
@@ -4585,7 +4596,8 @@
           "area_to": "area_shaman_lair",
           "cost": {},
           "current_state": "open",
-          "description": "A strange-smelling passage to the shaman's chamber."
+          "description": "A strange-smelling passage to the shaman's chamber.",
+          "pass_message": "You enter the shaman's lair."
         }
       },
       "way_shaman_to_healing": {
@@ -4597,7 +4609,8 @@
           "area_to": "area_healing_area",
           "cost": {},
           "current_state": "open",
-          "description": "A small passage to the healing area."
+          "description": "A small passage to the healing area.",
+          "pass_message": "You move into the healing area."
         }
       },
       "way_pit_to_scouting": {
@@ -4609,7 +4622,8 @@
           "area_to": "area_scouting_rooms",
           "cost": {},
           "current_state": "open",
-          "description": "A passage to the scouting rooms."
+          "description": "A passage to the scouting rooms.",
+          "pass_message": "You enter the scouting rooms."
         }
       },
       "way_side_to_mine": {
@@ -4621,7 +4635,8 @@
           "area_to": "area_mine_access",
           "cost": {},
           "current_state": "open",
-          "description": "A downward tunnel to the mines."
+          "description": "A downward tunnel to the mines.",
+          "pass_message": "You follow the side tunnel toward mine access."
         }
       },
       "way_side_to_storage": {
@@ -4633,7 +4648,8 @@
           "area_to": "area_storage_caves",
           "cost": {},
           "current_state": "open",
-          "description": "A passage to the storage caves."
+          "description": "A passage to the storage caves.",
+          "pass_message": "You follow the side tunnel toward the storage caves."
         }
       },
       "way_side_to_animals": {
@@ -4645,7 +4661,8 @@
           "area_to": "area_animal_pens",
           "cost": {},
           "current_state": "open",
-          "description": "A passage to the animal pens."
+          "description": "A passage to the animal pens.",
+          "pass_message": "You follow the side tunnel toward the animal pens."
         }
       },
       "way_entrance_to_water": {
@@ -4657,7 +4674,8 @@
           "area_to": "area_water_source",
           "cost": {},
           "current_state": "open",
-          "description": "A downward passage to the water source."
+          "description": "A downward passage to the water source.",
+          "pass_message": "You move from the camp entrance toward the water source."
         }
       },
       "way_water_to_waste": {
@@ -4669,7 +4687,8 @@
           "area_to": "area_waste_disposal",
           "cost": {},
           "current_state": "open",
-          "description": "A downstream passage to waste disposal."
+          "description": "A downstream passage to waste disposal.",
+          "pass_message": "You move from the water source toward waste disposal."
         }
       },
       "way_trail_to_forest": {
@@ -4681,7 +4700,8 @@
           "area_to": "area_deep_forest",
           "cost": {},
           "current_state": "open",
-          "description": "A trail continuing into dense woodland."
+          "description": "A trail continuing into dense woodland.",
+          "pass_message": "You step from the camp trail back into the deep forest."
         }
       },
       "way_forest_to_river": {
@@ -4693,7 +4713,8 @@
           "area_to": "area_raven_river",
           "cost": {},
           "current_state": "open",
-          "description": "A trail leading to the river."
+          "description": "A trail leading to the river.",
+          "pass_message": "You move through the forest toward the Raven River."
         }
       },
       "way_forest_to_murk": {
@@ -4705,7 +4726,8 @@
           "area_to": "area_murk_lake",
           "cost": {},
           "current_state": "open",
-          "description": "A trail leading to Murk Lake."
+          "description": "A trail leading to Murk Lake.",
+          "pass_message": "You push through the trees toward Murk Lake."
         }
       },
       "way_murk_to_blackmarsh": {
@@ -4717,7 +4739,8 @@
           "area_to": "area_blackmarsh",
           "cost": {},
           "current_state": "open",
-          "description": "A trail through the marsh."
+          "description": "A trail through the marsh.",
+          "pass_message": "You wade from Murk Lake into the Blackmarsh."
         }
       },
       "way_forest_to_ruins": {
@@ -4729,7 +4752,8 @@
           "area_to": "area_old_dwarven_ruins",
           "cost": {},
           "current_state": "open",
-          "description": "A trail leading to the dwarven ruins."
+          "description": "A trail leading to the dwarven ruins.",
+          "pass_message": "You hike through the forest toward the old dwarven ruins."
         }
       },
       "way_forest_to_farm": {
@@ -4741,7 +4765,8 @@
           "area_to": "area_abandoned_farm",
           "cost": {},
           "current_state": "open",
-          "description": "A trail leading to the abandoned farm."
+          "description": "A trail leading to the abandoned farm.",
+          "pass_message": "You walk through the forest toward the abandoned farm."
         }
       },
       "way_forest_to_road": {
@@ -4753,7 +4778,8 @@
           "area_to": "area_human_road",
           "cost": {},
           "current_state": "open",
-          "description": "A trail leading to the human road."
+          "description": "A trail leading to the human road.",
+          "pass_message": "You break out of the forest onto the old human road."
         }
       },
       "way_road_to_eldenford": {
@@ -4765,7 +4791,8 @@
           "area_to": "area_eldenford_village",
           "cost": {},
           "current_state": "open",
-          "description": "The road to Eldenford village."
+          "description": "The road to Eldenford village.",
+          "pass_message": "You follow the road toward Eldenford village."
         }
       },
       "way_forest_to_hills": {
@@ -4777,7 +4804,8 @@
           "area_to": "area_northern_hills",
           "cost": {},
           "current_state": "open",
-          "description": "A trail leading into the northern hills."
+          "description": "A trail leading into the northern hills.",
+          "pass_message": "You climb from the forest into the northern hills."
         }
       },
       "way_river_to_camp_tunnel": {
@@ -4789,7 +4817,8 @@
           "area_to": "area_camp_entrance",
           "cost": {},
           "current_state": "open",
-          "description": "A narrow, concealed path climbing toward the camp."
+          "description": "A narrow, concealed path climbing toward the camp.",
+          "pass_message": "You follow the concealed river tunnel back toward camp."
         }
       },
       "character_player_human_explorer": {
@@ -5042,7 +5071,8 @@
             "drink"
           ],
           "current_state": "half",
-          "uses": 3
+          "uses": 3,
+          "max_weight_capacity": 5
         }
       },
       "item_bread": {
@@ -5162,7 +5192,12 @@
             "examine"
           ],
           "defense": 1,
-          "condition": "broken"
+          "condition": "broken",
+          "equip_slots": [
+            "torso",
+            "hand_left",
+            "hand_right"
+          ]
         }
       },
       "item_dried_meat": {
