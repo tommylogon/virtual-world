@@ -204,16 +204,31 @@ def build_trigger_edges(triggers: List[dict]) -> List[dict]:
     return edges
 
 
-def build_scenario(components_dir: Path, runtime_overrides: dict) -> dict:
-    areas = [normalize_area(a) for _, a in load_component_dir(components_dir, "areas")]
-    ways_raw = [w for _, w in load_component_dir(components_dir, "ways")]
-    items = [normalize_item(i) for _, i in load_component_dir(components_dir, "items")]
-    characters = [normalize_character(c, {a["id"] for a in areas}) for _, c in load_component_dir(components_dir, "characters")]
-    triggers = [normalize_trigger(t, set()) for _, t in load_component_dir(components_dir, "triggers")]
+def load_components_with_ids(base: Path, kind: str) -> List[dict]:
+    """Load component files, using the filename stem as the node id.
 
-    all_node_ids = {n["id"] for n in areas + ways_raw + items + characters + triggers}
+    Component filenames are authored with the canonical id (e.g.
+    ``area_chiefs_pit.json``); deriving the id from the display name instead
+    makes punctuation-sensitive names ("Chief's Pit") drift from the ids the
+    ways/characters reference.
+    """
+    entries = []
+    for stem, data in load_component_dir(base, kind):
+        data.setdefault("id", stem)
+        entries.append(data)
+    return entries
+
+
+def build_scenario(components_dir: Path, runtime_overrides: dict) -> dict:
+    areas = [normalize_area(a) for a in load_components_with_ids(components_dir, "areas")]
+    ways_raw = load_components_with_ids(components_dir, "ways")
+    items = [normalize_item(i) for i in load_components_with_ids(components_dir, "items")]
+    characters = [normalize_character(c, {a["id"] for a in areas}) for c in load_components_with_ids(components_dir, "characters")]
+    triggers_raw = load_components_with_ids(components_dir, "triggers")
+
+    all_node_ids = {n["id"] for n in areas + ways_raw + items + characters + triggers_raw}
     ways = [normalize_way(w, {a["id"] for a in areas}) for w in ways_raw]
-    triggers = [normalize_trigger(t, all_node_ids) for t in triggers]
+    triggers = [normalize_trigger(t, all_node_ids) for t in triggers_raw]
 
     nodes = {}
     for area in areas:

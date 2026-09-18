@@ -14,7 +14,8 @@
     "heat_source",
     "warmth",
     "fire",
-    "furniture"
+    "furniture",
+    "cooking"
   ],
   "triggers": [
     {

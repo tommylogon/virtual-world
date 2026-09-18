@@ -4,7 +4,9 @@
   "tags": [
     "exterior",
     "cave_entrance",
-    "goblin_camp"
+    "goblin_camp",
+    "entrance",
+    "guard"
   ],
   "environment": {
     "air": "stale",

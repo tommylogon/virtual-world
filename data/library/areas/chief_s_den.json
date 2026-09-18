@@ -1,7 +1,11 @@
 {
   "name": "Chief's Den",
   "description": "A smaller chamber overlooking part of the settlement. Better furs, trophies, weapons, and stolen objects are heaped here. The walls bear crude victory markings.",
-  "tags": [],
+  "tags": [
+    "goblin_camp",
+    "social",
+    "storage"
+  ],
   "environment": {
     "air": "stale",
     "light": "dim",

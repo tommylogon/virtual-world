@@ -10,7 +10,9 @@
   "light_level": "dim",
   "tags": [
     "weapon",
-    "tool"
+    "tool",
+    "armory",
+    "guard"
   ],
   "triggers": [],
   "uses": -1,

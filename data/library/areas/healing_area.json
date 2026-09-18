@@ -5,7 +5,8 @@
     "interior",
     "cave",
     "goblin_camp",
-    "medicine"
+    "medicine",
+    "medical"
   ],
   "environment": {
     "air": "stale",

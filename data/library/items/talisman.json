@@ -13,7 +13,8 @@
     "talisman",
     "occult",
     "jewelry",
-    "artifact"
+    "artifact",
+    "shrine"
   ],
   "triggers": [
     {

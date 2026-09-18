@@ -1,7 +1,11 @@
 {
   "name": "Chief's Pit",
   "description": "The largest cave chamber. A central fire burns low, surrounded by stones, crude tables, bones, and hanging meat. This is where the tribe eats, argues, and listens to the chief.",
-  "tags": [],
+  "tags": [
+    "goblin_camp",
+    "social",
+    "cooking"
+  ],
   "environment": {
     "air": "smoky",
     "light": "normal",

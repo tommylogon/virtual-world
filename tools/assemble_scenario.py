@@ -42,6 +42,7 @@ def build_scenario_from_components(
     target_areas = int(constraints.get("areas", 0))
     target_ways = int(constraints.get("ways", 0))
     target_characters = int(constraints.get("characters", 0))
+    target_items = int(constraints.get("items", 0))
 
     if seed:
         scenario = json.loads(json.dumps(seed))
@@ -125,8 +126,8 @@ def build_scenario_from_components(
                     break
             print(f"Imported {imported} areas from library")
 
-    # Supplement items from library only if under target or missing
-    if library_dir:
+    # Supplement items from library only if a target is set and unmet
+    if library_dir and target_items and len(existing_items) < target_items:
         item_dir = library_dir / "items"
         if item_dir.exists():
             placed = 0
@@ -164,10 +165,12 @@ def build_scenario_from_components(
                 if area_candidates:
                     edges.append({"source": item_id, "target": area_candidates[0], "type": "in", "properties": {}})
                 placed += 1
+                if len(existing_items) + placed >= target_items:
+                    break
             print(f"Imported {placed} items from library")
 
-    # Supplement characters from library only if under target or missing
-    if library_dir:
+    # Supplement characters from library only if a target is set and unmet
+    if library_dir and target_characters and len(existing_characters) < target_characters:
         char_dir = library_dir / "characters"
         if char_dir.exists():
             placed = 0
@@ -216,6 +219,8 @@ def build_scenario_from_components(
                         "memories": entry.get("memories", []),
                     }
                 placed += 1
+                if len(existing_characters) + placed >= target_characters:
+                    break
             print(f"Imported {placed} characters from library")
 
     # Supplement ways from library only if under target or missing

@@ -11,7 +11,9 @@
   "damage_type": "piercing",
   "insulation": 0,
   "tags": [
-    "weapon"
+    "weapon",
+    "armory",
+    "guard"
   ],
   "triggers": [],
   "contents": []

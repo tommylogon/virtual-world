@@ -14,7 +14,8 @@
     "furniture",
     "metal",
     "laboratory",
-    "heavy"
+    "heavy",
+    "display"
   ],
   "triggers": [
     {

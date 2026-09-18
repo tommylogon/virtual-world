@@ -6,7 +6,8 @@
     "cave",
     "goblin_camp",
     "underground",
-    "dangerous"
+    "dangerous",
+    "storage"
   ],
   "environment": {
     "air": "thin",

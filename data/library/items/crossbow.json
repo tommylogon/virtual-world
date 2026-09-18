@@ -9,7 +9,10 @@
   "defense": 0,
   "damage": 0,
   "insulation": 0,
-  "tags": [],
+  "tags": [
+    "armory",
+    "guard"
+  ],
   "triggers": [
     {
       "trigger_type": "on_examine",

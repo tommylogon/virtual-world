@@ -13,7 +13,9 @@
     "toy",
     "container",
     "child",
-    "furniture"
+    "furniture",
+    "storage",
+    "nursery"
   ],
   "triggers": [
     {

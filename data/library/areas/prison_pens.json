@@ -5,7 +5,8 @@
     "interior",
     "cave",
     "goblin_camp",
-    "restricted"
+    "restricted",
+    "prison"
   ],
   "environment": {
     "air": "foul",

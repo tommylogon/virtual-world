@@ -9249,7 +9249,9 @@
         "name": " Streetlight",
         "properties": {
           "description": "A weathered steel lamppost rising from the cracked sidewalk, its bent arm holding a glass-encased bulb that casts an orange film over everything. The housing is chipped and someone has spray-painted a crude arrow pointing toward Main Street on the pole itself. A plastic bag flaps against the fixture where the wind catches it.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": 1,
           "weight": 0.4,
           "current_state": "normal",
@@ -9321,7 +9323,12 @@
         "name": "ace_bandage",
         "properties": {
           "description": "a rolled elastic bandage. kyrie keeps it in case someone twists an ankle.",
-          "actions": "examine,use,take,drop",
+          "actions": [
+            "examine",
+            "use",
+            "take",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.1,
           "current_state": "normal",
@@ -9391,7 +9398,9 @@
         "name": "altar",
         "properties": {
           "description": "a stone altar draped in dusty black cloth. a shallow depression in the shape of a skull sits at its center, lined with faded runes. this is where the crystal skull belongs — the altar in the crypt, just as the journal said. when placed here, it might break the curse... or seal it forever.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 200,
           "current_state": "normal",
@@ -9467,7 +9476,12 @@
         "name": "Antiseptic Vial",
         "properties": {
           "description": "",
-          "actions": "examine,take,use",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.1,
           "current_state": "hidden",
@@ -9490,7 +9504,12 @@
         "name": "Antitoxin Draught",
         "properties": {
           "description": "A cloudy yellow draught with a bitter, astringent bite. It flushes every poison from the system.",
-          "actions": "examine,take,drink,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drink",
+            "drop"
+          ],
           "uses": 2,
           "weight": 0.3,
           "current_state": "normal",
@@ -9536,7 +9555,13 @@
         "name": "apple",
         "properties": {
           "description": "A crisp red apple, still cool from the cellar. Juicy and fresh.",
-          "actions": "examine,take,use,eat,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "eat",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.2,
           "current_state": "normal",
@@ -9603,7 +9628,9 @@
         "name": "apple_core",
         "properties": {
           "description": "a dried apple core someone left here decades ago. brown and shriveled, not edible.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0.02,
           "current_state": "normal",
@@ -9626,7 +9653,11 @@
         "name": "apple_tree",
         "properties": {
           "description": "a small apple tree with a few shriveled but edible apples on the lower branches. the tree looks ancient but stubbornly clings to life.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": 3,
           "weight": 1,
           "current_state": "normal",
@@ -9651,7 +9682,10 @@
         "name": "apron",
         "properties": {
           "description": "a leather butcher's apron, stiff with dried blood. the stench is overwhelming.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
           "weight": 2,
           "current_state": "normal",
@@ -9695,7 +9729,11 @@
         "name": "augustus_letter",
         "properties": {
           "description": "a folded letter from inside the sarcophagus: 'if you're reading this, the curse has taken me as it took the others. i write this in the dark, trapped in my own tomb, waiting for the end. i should never have brought the skull here. it whispers constantly now. it wants eleanor — the real eleanor, my little girl. it wants to use her body. i thought i was protecting my family. i've doomed us all. if you carry the skull, know this: placing it on the altar will free eleanor's spirit. but something else will be released too. choose wisely. — augustus blackwood, october 31st, 1891, 3:17 am'",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.02,
           "current_state": "normal",
@@ -9721,7 +9759,12 @@
         "name": "Smelling Salts",
         "properties": {
           "description": "A tiny tin of sharp, pungent salts. A whiff snaps the mind back to the present.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 3,
           "weight": 0.05,
           "current_state": "normal",
@@ -9768,7 +9811,15 @@
         "name": "Backpack",
         "properties": {
           "description": "A Backpack holds up to 30 kilos within 1 cubic foot. It can also serve as a saddlebag.",
-          "actions": "examine,take,open,close,unequip,equip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "open",
+            "close",
+            "unequip",
+            "equip",
+            "drop"
+          ],
           "uses": -1,
           "weight": 5,
           "current_state": "closed",
@@ -9791,7 +9842,15 @@
         "name": "Backpack 1",
         "properties": {
           "description": "A Backpack holds up to 30 kilos within 1 cubic foot. It can also serve as a saddlebag.",
-          "actions": "examine,take,open,close,unequip,equip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "open",
+            "close",
+            "unequip",
+            "equip",
+            "drop"
+          ],
           "uses": -1,
           "weight": 5,
           "current_state": "closed",
@@ -9822,7 +9881,13 @@
         "name": "Baja Blast Cup",
         "properties": {
           "description": "a large cup of neon-teal Baja Blast sweating a ring onto the laminate, straw bent at a defeatist angle. tastes like carbonated turquoise and bad decisions, and it is delicious.",
-          "actions": "examine,take,use,drink,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drink",
+            "drop"
+          ],
           "uses": 2,
           "weight": 0.5,
           "current_state": "normal",
@@ -9856,7 +9921,14 @@
         "name": "Ball Gag",
         "properties": {
           "description": "A leather strap with a hard rubber ball secured between the jaws. Fastened behind the head, it prevents speech.",
-          "actions": "examine,take,use,equip,unequip",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.2,
           "current_state": "normal",
@@ -9921,7 +9993,12 @@
         "name": "Clean Bandages",
         "properties": {
           "description": "your average bandage",
-          "actions": "examine,take,use",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.1,
           "current_state": "hidden",
@@ -9944,7 +10021,9 @@
         "name": "barrel",
         "properties": {
           "description": "a large oak barrel. it smells strongly of vinegar — whatever wine was in here has long since turned. but the barrel itself is solid, and the iron bands are intact.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 50,
           "current_state": "normal",
@@ -9969,7 +10048,10 @@
         "name": "bed",
         "properties": {
           "description": "a grand four-poster bed with moth-eaten velvet curtains. the mattress is surprisingly comfortable despite its age — the feathers have settled into a perfect contour.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
           "weight": 100,
           "current_state": "normal",
@@ -9992,7 +10074,10 @@
         "name": "bed_g1",
         "properties": {
           "description": "a narrow iron bed with a thin, stained mattress. the sheets are yellowed with age. someone slept here recently — the pillow is dented.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
           "weight": 30,
           "current_state": "normal",
@@ -10015,7 +10100,12 @@
         "name": "Bitterweed Tonic",
         "properties": {
           "description": "A foul-tasting herbal tonic that scours sickness from the gut. The worse it tastes, the better it works.",
-          "actions": "examine,take,drink,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drink",
+            "drop"
+          ],
           "uses": 2,
           "weight": 0.2,
           "current_state": "normal",
@@ -10061,7 +10151,14 @@
         "name": "black basketball shorts",
         "properties": {
           "description": "black mesh basketball shorts with the waistband rolled once for a tighter fit. they hit mid-thigh and allow full range of motion. a small logo is barely visible on the left leg, worn smooth.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.3,
           "current_state": "normal",
@@ -10102,7 +10199,14 @@
         "name": "black choker",
         "properties": {
           "description": "a thin black velvet choker with a small silver heart pendant. the clasp is a little finicky — you have to hook it at just the right angle.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.02,
           "current_state": "normal",
@@ -10143,7 +10247,14 @@
         "name": "black cotton panties",
         "properties": {
           "description": "simple black cotton panties. no frills, no lace. practical.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.03,
           "current_state": "normal",
@@ -10166,7 +10277,14 @@
         "name": "black crop top",
         "properties": {
           "description": "a thin black cotton crop top that stops above the navel, showing off a flat stomach. the fabric is thin enough that the faint shadows of your breasts are visible beneath it. no bra — you don't need the hassle.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.15,
           "current_state": "normal",
@@ -10206,7 +10324,14 @@
         "name": "black ear cuff earrings",
         "properties": {
           "description": "a set of black metal ear cuffs that clip onto the upper cartilage of both ears. no piercings required.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.02,
           "current_state": "normal",
@@ -10247,7 +10372,14 @@
         "name": "black hair tie",
         "properties": {
           "description": "a simple black elastic hair tie, stretched from daily use. elena uses it to keep her dark hair pulled back during investigations.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.01,
           "current_state": "normal",
@@ -10303,7 +10435,14 @@
         "name": "black high-cut thong",
         "properties": {
           "description": "a black high-cut thong that peeks past the waistband of the short shorts. you don't exactly hide it.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.03,
           "current_state": "normal",
@@ -10327,7 +10466,14 @@
         "name": "black hollow star hair pin",
         "properties": {
           "description": "a small black hollow star bobby pin, worn on the left side of blunt bangs.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.01,
           "current_state": "normal",
@@ -10368,7 +10514,14 @@
         "name": "Black Short Shorts",
         "properties": {
           "description": "Tight black denim short shorts. They ride up constantly, but they're broken in and comfortable. A small frayed edge at the hem gives them character.",
-          "actions": "examine,take,use,equip,unequip",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.3,
           "current_state": "normal",
@@ -10408,7 +10561,14 @@
         "name": "Blackout Goggles",
         "properties": {
           "description": "Tight-fitting goggles with thick, opaque black lenses. The rubber strap is stretched but still holds. When you pull them on, the world goes dark.",
-          "actions": "examine,take,use,equip,unequip",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.2,
           "current_state": "normal",
@@ -10473,7 +10633,12 @@
         "name": "Blinding Dust",
         "properties": {
           "description": "A fine chalky powder, almost white. A handful in the face and the world goes dark.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 2,
           "weight": 0.1,
           "current_state": "normal",
@@ -10520,7 +10685,9 @@
         "name": "blood_stains",
         "properties": {
           "description": "dark, ancient blood stains cover the floor and walls. some are recent.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0,
           "current_state": "normal",
@@ -10544,7 +10711,13 @@
         "name": "Blue Butterfly Earring",
         "properties": {
           "description": "a tiny dangling blue butterfly on a fine hook, its clasp bent from wherever it spent the last few hours. cheap metal gone dull, but kept like something priceless. it belongs to somebody's mom.",
-          "actions": "examine,take,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.01,
           "current_state": "hidden",
@@ -10583,7 +10756,11 @@
         "name": "blue_ribbon",
         "properties": {
           "description": "a faded blue silk ribbon tied in a lover's knot. it has been here for over a century, yet the silk is still soft and untorn.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.01,
           "current_state": "normal",
@@ -10603,7 +10780,9 @@
         "name": "boarded_window",
         "properties": {
           "description": "the window is boarded from the outside — someone didn't want anyone looking in. or didn't want anyone climbing out.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0,
           "current_state": "normal",
@@ -10646,7 +10825,11 @@
         "name": "bone",
         "properties": {
           "description": "a human femur bone lying on the floor near a shattered sarcophagus lid. it's old and brittle.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 1.5,
           "current_state": "normal",
@@ -10672,7 +10855,9 @@
         "name": "bones",
         "properties": {
           "description": "scattered bones on the floor — some animal, some human. one skull has a neat hole drilled through the crown.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 5,
           "current_state": "normal",
@@ -10698,7 +10883,12 @@
         "name": "Book",
         "properties": {
           "description": "You book of case information. ",
-          "actions": "examine,take,read,drop",
+          "actions": [
+            "examine",
+            "take",
+            "read",
+            "drop"
+          ],
           "uses": -1,
           "weight": 5,
           "current_state": "closed",
@@ -10738,7 +10928,11 @@
         "name": "Religious book",
         "properties": {
           "description": "sacred text dedicated to Elistra, the Goddess of Care",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 1.2,
           "current_state": "normal",
@@ -10778,7 +10972,11 @@
         "name": "book of cryptograph",
         "properties": {
           "description": "A academic book of cryptography",
-          "actions": "examine,take",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 1.2,
           "current_state": "hidden",
@@ -10816,7 +11014,12 @@
         "name": "book of curses and history",
         "properties": {
           "description": "A academic book of the history and curses of the world",
-          "actions": "examine,take,use",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": -1,
           "weight": 1.2,
           "current_state": "hidden",
@@ -10857,7 +11060,12 @@
         "name": "Books of Mathematics and Magic",
         "properties": {
           "description": "A stack of three leather-bound textbooks, their covers embossed with geometric patterns and astral symbols. The pages are filled with dense theorems and mystical incantations.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 1,
           "weight": 1.5,
           "current_state": "normal",
@@ -10912,7 +11120,9 @@
         "name": "bookshelf_item",
         "properties": {
           "description": "one shelf contains a series of identical books: 'arcane heraldry: volumes i through xiv.' they're all the same book republished with different covers. the shelf behind them is hollow — it's a door.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 30,
           "current_state": "normal",
@@ -10936,7 +11146,10 @@
         "name": "booth chair",
         "properties": {
           "description": "a cracked plastic booth chair in faded teal, bolted to the floor beside the table. the seat has a faint 'property of taco bell' decal worn nearly off.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
           "weight": 8,
           "current_state": "normal",
@@ -10960,7 +11173,9 @@
         "name": "Booth Table",
         "properties": {
           "description": "a laminate booth table by the window, bolted to the bench on one side. crumbs, a wad of napkins, and two trays of tacos arranged like a peace summit.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 40,
           "current_state": "normal",
@@ -10982,7 +11197,12 @@
         "name": "boxed_shell_cases",
         "properties": {
           "description": "sealed cardboard cases of hard taco shells on the storage shelf, stamped with a January best-by date that management recycles out of rotation every inventory.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": -1,
           "weight": 8,
           "current_state": "normal",
@@ -11006,7 +11226,14 @@
         "name": "boxer briefs",
         "properties": {
           "description": "grey boxer briefs. functional, slightly stretched out. not your best pair, but they're clean. mostly.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.08,
           "current_state": "normal",
@@ -11029,7 +11256,12 @@
         "name": "Brass Key",
         "properties": {
           "description": "a small brass key hidden under a loose stone near eleanor's grave. the stone was recently disturbed.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.1,
           "current_state": "normal",
@@ -11072,7 +11304,11 @@
         "name": "brass_key_2",
         "properties": {
           "description": "a small brass key on the floor near the table, half-hidden in shadow. it's identical to the one from the graveyard.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.1,
           "current_state": "normal",
@@ -11095,7 +11331,14 @@
         "name": "Brass Spyglass",
         "properties": {
           "description": "Old brass telescope, tarnished with age. Hairline crack in the lens but still functional. Acquired from a dead soldier near the Galtian border. Worn on a leather cord around the neck or tucked into a pocket.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.4,
           "current_state": "normal",
@@ -11120,7 +11363,12 @@
         "name": "Bravery Charm",
         "properties": {
           "description": "A small iron charm shaped like a sunburst, warm against the palm. It steadies the heart against fear.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 5,
           "weight": 0.1,
           "current_state": "normal",
@@ -11165,7 +11413,12 @@
         "name": "bread_plate",
         "properties": {
           "description": "a dusty plate with the dried remains of bread rolls, now rock-hard. not appetizing, but technically edible if you're desperate enough.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.3,
           "current_state": "normal",
@@ -11188,7 +11441,9 @@
         "name": "broken_key",
         "properties": {
           "description": "a brass key that has been ritually broken in half and bound with an occult heat-seal. the two halves, when joined, form a complete key. the tag reads: 'eleanor's hope chest — never to be opened.'",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0.1,
           "current_state": "normal",
@@ -11232,7 +11487,11 @@
         "name": "Broken Trap",
         "properties": {
           "description": "A crude snare trap that has been sprung and broken.",
-          "actions": "take,drop,examine",
+          "actions": [
+            "take",
+            "drop",
+            "examine"
+          ],
           "uses": -1,
           "weight": 3,
           "current_state": "normal",
@@ -11255,7 +11514,14 @@
         "name": "Galser Office of Justice Brooch",
         "properties": {
           "description": "Small, simple silver brooch bearing the crest of the Galser Office of Justice—a balanced scale over a shield. Hidden, pinned to the inside of his coat lining. A private reminder of who he was and what he lost.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.1,
           "current_state": "normal",
@@ -11280,7 +11546,12 @@
         "name": "Bundle of Candles",
         "properties": {
           "description": "Three beeswax candles, tightly bound with a thin string. They exude a faint honey scent.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 3,
           "weight": 0.2,
           "current_state": "normal",
@@ -11366,7 +11637,9 @@
         "name": "Frost-Crusted Berry Bush",
         "properties": {
           "description": "A thorny bush brimming with ripe berries that can be eaten for nourishment.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": 4,
           "weight": 2,
           "current_state": "normal",
@@ -11414,7 +11687,10 @@
         "name": "Button 7",
         "properties": {
           "description": "A big red button that says push me",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
           "weight": 0.5,
           "current_state": "normal",
@@ -11457,7 +11733,12 @@
         "name": "cabinet_key",
         "properties": {
           "description": "A small brass key with a faded label: 'PANTRY'. It looks like it would fit the kitchen cabinet lock.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.05,
           "current_state": "normal",
@@ -11479,7 +11760,9 @@
         "name": "calling_cards",
         "properties": {
           "description": "a small silver tray on the entrance table. several yellowed calling cards sit on it: ",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0.1,
           "current_state": "normal",
@@ -11523,7 +11806,12 @@
         "name": "candle",
         "properties": {
           "description": "an unmarked black candle on a small table. it's unused but has been carved with tiny runes along its length.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 10,
           "weight": 0.3,
           "current_state": "normal",
@@ -11625,7 +11913,12 @@
         "name": "candle_21efe917",
         "properties": {
           "description": "a short, unused tallow candle on the table. it has never been lit.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 8,
           "weight": 0.2,
           "current_state": "normal",
@@ -11650,7 +11943,12 @@
         "name": "candle_attic",
         "properties": {
           "description": "a half-melted candle on a crate. the wax has formed a small pool around its base.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 5,
           "weight": 0.2,
           "current_state": "normal",
@@ -11675,7 +11973,11 @@
         "name": "candle_holder",
         "properties": {
           "description": "a brass wall sconce with a half-melted candle. the wax has dripped down in frozen rivulets. the candle was extinguished recently — the wick is still slightly warm.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.5,
           "current_state": "normal",
@@ -11700,7 +12002,12 @@
         "name": "candle_stub",
         "properties": {
           "description": "a candle stub on the bedside table, burned down to almost nothing. the wax is still slightly warm.",
-          "actions": "examine,take,drop,use",
+          "actions": [
+            "examine",
+            "take",
+            "drop",
+            "use"
+          ],
           "uses": 6,
           "weight": 0.05,
           "current_state": "normal",
@@ -11855,7 +12162,11 @@
         "name": "candlestick",
         "properties": {
           "description": "a heavy silver candlestick, one of a set of eight. this one is slightly bent, as if it was used to strike something. there's a dark stain near the base.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 2,
           "current_state": "normal",
@@ -11880,7 +12191,12 @@
         "name": "candy_jar",
         "properties": {
           "description": "a dusty jar of old hard candies on the dresser. they've crystallized over the decades but are still technically edible. the jar is shaped like a teddy bear.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 3,
           "weight": 0.4,
           "current_state": "normal",
@@ -11904,7 +12220,11 @@
         "name": "canned_food",
         "properties": {
           "description": "Several jars of preserved vegetables and pickled eggs. Still good.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 1,
           "current_state": "normal",
@@ -11924,7 +12244,12 @@
         "name": "canned_peaches",
         "properties": {
           "description": "a jar of preserved peaches. the seal looks intact. the liquid inside is cloudy but the peaches themselves look surprisingly edible.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.8,
           "current_state": "normal",
@@ -11948,7 +12273,14 @@
         "name": "cargo shorts",
         "properties": {
           "description": "olive drab cargo shorts with six pockets. there's a mysterious dark stain on the right cargo pocket — you have no idea what it is and you're afraid to ask. the knees are frayed.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.5,
           "current_state": "normal",
@@ -11988,7 +12320,11 @@
         "name": "Cash Register",
         "properties": {
           "description": "unit 001 facing the dining room, touchscreen smeared with grease, credit reader worn silver on the side. the drawer is shut. tyler guards it with his life, or at least his continued employment.",
-          "actions": "examine,open,close",
+          "actions": [
+            "examine",
+            "open",
+            "close"
+          ],
           "uses": -1,
           "weight": 15,
           "current_state": "closed",
@@ -12014,7 +12350,10 @@
         "name": "Cauldron",
         "properties": {
           "description": "A heavy iron cauldron sits on the stove, filled with cold, thick soup.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
           "weight": 0.1,
           "current_state": "normal",
@@ -12076,7 +12415,10 @@
         "name": "chandelier",
         "properties": {
           "description": "a crystal chandelier thick with cobwebs. it creaks ominously above you, swaying slightly despite no draft.",
-          "actions": "use,examine",
+          "actions": [
+            "use",
+            "examine"
+          ],
           "uses": -1,
           "weight": 50,
           "current_state": "normal",
@@ -12153,7 +12495,12 @@
         "name": "cheese_shred",
         "properties": {
           "description": "a third-pan of shredded cheddar blend in the make line, the orange dust of a thousand vanished burritos clinging to the rim. a stray shred has aliased its way into the cheese pump and stayed there for weeks.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": -1,
           "weight": 2,
           "current_state": "normal",
@@ -12177,7 +12524,10 @@
         "name": "child_bed",
         "properties": {
           "description": "a small wooden bed with a faded quilt patterned with stars and moons. the pillow is dented. the sheets are cold, but they smell faintly of lavender soap.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
           "weight": 20,
           "current_state": "normal",
@@ -12201,7 +12551,11 @@
         "name": "child_diary",
         "properties": {
           "description": "a child's leather diary, the pages yellowed and crumbly. the recurring phrase, written over and over in different colors of ink: 'the skull watches. the skull waits. eleanor is lonely. she wants me to play with her but she's not real anymore. mother says don't go near the study. but the skull calls me at night.' the final entry: 'tonight she's going to show me how to fly.'",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.2,
           "current_state": "normal",
@@ -12228,7 +12582,11 @@
         "name": "child_drawings",
         "properties": {
           "description": "several children's drawings pinned to the wall, yellowed and faded. most show a happy family. but one drawing stands out: a stick-figure family of eight, with one figure — the smallest — drawn in heavy black crayon and crossed out violently. beneath it, in a child's unsteady handwriting: 'eleanor is lonely. she wants a friend. i don't want to go with her.'",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.05,
           "current_state": "normal",
@@ -12253,7 +12611,11 @@
         "name": "child_dress_item",
         "properties": {
           "description": "a small white child's dress, size for a three-year-old. the hem is stained with something dark that has long since dried to brown. no dress this small belongs in the master bedroom.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.3,
           "current_state": "normal",
@@ -12297,7 +12659,9 @@
         "name": "christmas_decorations",
         "properties": {
           "description": "a box of old christmas decorations: tinsel, glass ornaments, and a small wooden angel with chipped paint. the angel's face has been worn smooth, but beneath the base, someone carved: 'save us.'",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 3,
           "current_state": "normal",
@@ -12320,7 +12684,12 @@
         "name": "Clarity Draught",
         "properties": {
           "description": "A bright, bitter draught that cuts through enchantment like cold water through fog.",
-          "actions": "examine,take,drink,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drink",
+            "drop"
+          ],
           "uses": 2,
           "weight": 0.3,
           "current_state": "normal",
@@ -12367,7 +12736,14 @@
         "name": "cleaver",
         "properties": {
           "description": "a massive meat cleaver, its blade stained dark with old blood and rust. the weight of it speaks of years of brutal work.",
-          "actions": "examine,use,take,drop,equip,unequip",
+          "actions": [
+            "examine",
+            "use",
+            "take",
+            "drop",
+            "equip",
+            "unequip"
+          ],
           "uses": -1,
           "weight": 3,
           "current_state": "normal",
@@ -12398,7 +12774,9 @@
         "name": "cleaver_rack",
         "properties": {
           "description": "an empty rack that once held butcher's tools. only one remains — and it's in the butcher's hand.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 10,
           "current_state": "normal",
@@ -12422,7 +12800,16 @@
         "name": "Clockwork Prosthetic (Left Leg)",
         "properties": {
           "description": "A marvel of Galser engineering. Dull brass with steel joints, segmented plates that click and whir with each step. Small inspection panel on calf. Faint artificer's rune etched into ankle. Cold to the touch, requires regular oiling. The metal foot is shaped for balance, boot bolted directly onto it.",
-          "actions": "examine,take,use,equip,unequip,repair,oil,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "repair",
+            "oil",
+            "drop"
+          ],
           "uses": -1,
           "weight": 4.5,
           "current_state": "normal",
@@ -12448,7 +12835,9 @@
         "name": "coat_rack",
         "properties": {
           "description": "a tall mahogany coat rack",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 15,
           "current_state": "normal",
@@ -12491,7 +12880,9 @@
         "name": "Coats",
         "properties": {
           "description": "3 sets of winter coats hanging by the entrace door",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0.1,
           "current_state": "normal",
@@ -12529,7 +12920,10 @@
         "name": "coffee",
         "properties": {
           "description": "black coffee. he drinks it constantly.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": 1,
           "weight": 0.2,
           "current_state": "normal",
@@ -12549,7 +12943,9 @@
         "name": "coffee_grinder",
         "properties": {
           "description": "an old hand-crank coffee grinder on the counter. there are still coffee beans inside — they've carbonized over the decades but might still produce something drinkable.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 2,
           "current_state": "normal",
@@ -12573,7 +12969,14 @@
         "name": "compression shorts",
         "properties": {
           "description": "black spandex compression shorts worn under the basketball shorts. they prevent chafing during training and hold everything in place.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.1,
           "current_state": "normal",
@@ -12596,7 +12999,14 @@
         "name": "compression sports bra",
         "properties": {
           "description": "a tight black compression sports bra. minimal padding, maximum support. built for wrestling and heavy lifting.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.12,
           "current_state": "normal",
@@ -12636,7 +13046,10 @@
         "name": "cot",
         "properties": {
           "description": "a narrow cot with a thin, stained mattress. a rough wool blanket is folded at the foot. the pillow has a deep impression, as if someone slept here very recently.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
           "weight": 15,
           "current_state": "normal",
@@ -12659,7 +13072,14 @@
         "name": "cotton briefs",
         "properties": {
           "description": "plain black cotton briefs. comfortable and practical.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.05,
           "current_state": "normal",
@@ -12682,7 +13102,14 @@
         "name": "Cotton Panties",
         "properties": {
           "description": "Simple white cotton panties with a small pink bow at the waistband. Clean and unremarkable.",
-          "actions": "examine,take,use,equip,unequip",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.03,
           "current_state": "normal",
@@ -12705,7 +13132,14 @@
         "name": "cotton training bra",
         "properties": {
           "description": "a simple white cotton training bra. barely needed, but you wear it out of habit. the elastic is slightly stretched.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.05,
           "current_state": "normal",
@@ -12728,7 +13162,12 @@
         "name": "crackers",
         "properties": {
           "description": "a tin of stale crackers, now soft from humidity. disgusting, but technically edible and filling.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 2,
           "weight": 0.3,
           "current_state": "normal",
@@ -12752,7 +13191,9 @@
         "name": "crate",
         "properties": {
           "description": "a wooden crate stamped 'provisions — 1889'. nailed shut. the wood is swollen with moisture. you'd need a tool to open it.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 15,
           "current_state": "normal",
@@ -12797,7 +13238,10 @@
         "name": "Create Flame",
         "properties": {
           "description": "A simple spell that conjures a small, flickering flame in your hand. The flame is harmless to you but can be used to ignite kindling or light a torch.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
           "weight": 0.1,
           "current_state": "normal",
@@ -12846,7 +13290,9 @@
         "name": "crib",
         "properties": {
           "description": "an old wooden crib with a threadbare blanket. a worn stuffed rabbit lies inside, one button eye missing. the crib rocks slightly on its own.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 15,
           "current_state": "normal",
@@ -12870,7 +13316,12 @@
         "name": "Crossbow",
         "properties": {
           "description": "A compact crossbow, meticulously maintained and loaded with a single bolt. The wood is darkened with age, but the string is taut and the mechanism is clean. It looks effective, if only you had a clear shot.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 1,
           "weight": 3,
           "current_state": "normal",
@@ -12953,7 +13404,11 @@
         "name": "Crushed Monster Can",
         "properties": {
           "description": "an empty original green monster can, crushed lengthwise in a grip that had feelings about today. sticky still. claw marks in the aluminum where the tab gave up.",
-          "actions": "examine,drop,take",
+          "actions": [
+            "examine",
+            "drop",
+            "take"
+          ],
           "uses": 0,
           "weight": 0.05,
           "current_state": "normal",
@@ -12976,7 +13431,11 @@
         "name": "crystal_skull",
         "properties": {
           "description": "a perfectly carved skull made of clear crystal, slightly larger than a human skull. it pulses with an eerie inner light. touching it sends a chill through your entire body. tiny fractures spiderweb through its surface, as if it's been dropped. when you hold it, you hear a faint, distorted whisper.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 2,
           "current_state": "normal",
@@ -13085,7 +13544,11 @@
         "name": "crystal_skull_aa62bcdb",
         "properties": {
           "description": "a skull carved from a single piece of crystal. it pulses with a faint, internal light, and when you hold it, you hear a child's voice whisper 'mama?' in your mind. this is the source of the curse - the key to breaking it lies in the crypt.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 2,
           "current_state": "normal",
@@ -13110,7 +13573,10 @@
         "name": "Culdron",
         "properties": {
           "description": "A culdron on the stove\n",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
           "weight": 0.1,
           "current_state": "normal",
@@ -13168,7 +13634,9 @@
         "name": "cupboard",
         "properties": {
           "description": "a wooden cupboard. inside, dusty plates and a few intact glasses. a jar of what looks like pickled vegetables sits on the top shelf — the seal is still intact.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 20,
           "current_state": "normal",
@@ -13193,7 +13661,12 @@
         "name": "dairy_case",
         "properties": {
           "description": "a vented plastic dairy case of bagged shredded cheese and half-and-half, tagged with a sticker two weeks past its date. every bag is bloated in the same polite way.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": -1,
           "weight": 6,
           "current_state": "normal",
@@ -13217,7 +13690,14 @@
         "name": "dark cargo pants",
         "properties": {
           "description": "dark charcoal cargo pants with reinforced knees and six pockets. stained with mud and chalk dust from previous investigations.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.8,
           "current_state": "normal",
@@ -13258,7 +13738,14 @@
         "name": "dark trousers",
         "properties": {
           "description": "heavy dark cotton trousers, stiff with old blood and grime. the knees are stained black. a leather belt with a rusted buckle holds them up.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.8,
           "current_state": "normal",
@@ -13298,7 +13785,12 @@
         "name": "Deathcap Elixir",
         "properties": {
           "description": "A dark vial of thick liquid that smells of earth and rot. The label warns of nothing.",
-          "actions": "examine,take,drink,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drink",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.3,
           "current_state": "normal",
@@ -13345,7 +13837,9 @@
         "name": "dead_vine",
         "properties": {
           "description": "a thick, dead vine that has grown through a broken window. it's woody and brown, but when you touch it, it feels... warm. alive.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 5,
           "current_state": "normal",
@@ -13389,7 +13883,14 @@
         "name": "denim cut-offs",
         "properties": {
           "description": "light blue denim cut-off shorts with the hem rolled up once. they're short but not too short — you'd never wear anything that bold. the button is slightly loose.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.3,
           "current_state": "normal",
@@ -13429,7 +13930,14 @@
         "name": "Denim Shorts",
         "properties": {
           "description": "Light blue denim shorts that ride up your thighs. The hem is frayed and the button is slightly loose. They're your favorite pair — broken in perfectly.",
-          "actions": "examine,take,use,equip,unequip",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.4,
           "current_state": "normal",
@@ -13469,7 +13977,12 @@
         "name": "deposit_wallet",
         "properties": {
           "description": "a brown canvas deposit wallet stuffed with small bills and a rubber band, its clasp half-broken. the receipt tape pokes out showing a running total that ends abruptly.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.5,
           "current_state": "open",
@@ -13492,7 +14005,11 @@
         "name": "desk",
         "properties": {
           "description": "A heavy oak desk with a locked drawer on the right side. The lock is small and ornate â€” a brass key might fit it.",
-          "actions": "examine,open,close",
+          "actions": [
+            "examine",
+            "open",
+            "close"
+          ],
           "uses": -1,
           "weight": 60,
           "current_state": "locked",
@@ -13572,7 +14089,10 @@
         "name": "Brass Desk Lamp",
         "properties": {
           "description": "A brass desk lamp with a green glass shade.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
           "weight": 2,
           "current_state": "unlit",
@@ -13597,7 +14117,11 @@
         "name": "diary",
         "properties": {
           "description": "a leather diary with the initials 'c.b.' — cordelia blackwood's diary. the final entry reads: 'the skull must never be moved. it holds the spirit of the firstborn, little eleanor. augustus refuses to listen. the spirit in the study grows stronger each night. tonight it spoke to me — it said we would all be together forever. i'm so frightened.'",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.5,
           "current_state": "normal",
@@ -13624,7 +14148,9 @@
         "name": "Dining table",
         "properties": {
           "description": "A dinner table with 4 sets of porselain plates and cuttlery, 4 chairs around the table.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 50,
           "current_state": "normal",
@@ -13664,7 +14190,9 @@
         "name": "dirt_path",
         "properties": {
           "description": "the dirt path leading from the garden gate to the mausoleum is well-worn. despite the overgrown garden, this path has been used recently. footprints in the damp earth — a woman's shoes, narrow heels, size six or seven.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0,
           "current_state": "normal",
@@ -13687,7 +14215,12 @@
         "name": "disposable_hand_soap",
         "properties": {
           "description": "an off-brand pump bottle of hand soap on the women's sink counter, its label half-peeled, topped with a smeared cap no one replaces.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.4,
           "current_state": "normal",
@@ -13710,7 +14243,12 @@
         "name": "Disruptor Bell",
         "properties": {
           "description": "A small brass bell that rings sharp and discordant. It jars the attention loose from whatever has it.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 5,
           "weight": 0.2,
           "current_state": "normal",
@@ -13786,7 +14324,11 @@
         "name": "doll",
         "properties": {
           "description": "a porcelain doll with cracked, vacant eyes that seem to stare directly through you. its dress is old-fashioned, lace-trimmed. one arm is broken, revealing the hollow porcelain interior. something is stuffed inside.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.5,
           "current_state": "normal",
@@ -13858,7 +14400,9 @@
         "name": "drawer",
         "properties": {
           "description": "a small drawer containing a diary, a silver letter opener, and a strange compass that doesn't point north.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 8,
           "current_state": "normal",
@@ -13883,7 +14427,14 @@
         "name": "Dried Flower Crown (Crushed)",
         "properties": {
           "description": "A simple crown of dried wildflowers, woven together with grass. It's badly crushed and missing several blooms, but Lyrie refuses to take it off—it was a gift from a child in her village. She forgets it's on her head half the time, and it sheds petals wherever she goes.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.1,
           "current_state": "normal",
@@ -13909,7 +14460,14 @@
         "name": "duct tape jacket",
         "properties": {
           "description": "an ancient denim jacket held together by duct tape. the tape is silver on one sleeve, black on the other, and there's a patch on the back covering a hole. it's technically tied around your waist most of the time.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 1,
           "current_state": "normal",
@@ -13966,7 +14524,9 @@
         "name": "dust",
         "properties": {
           "description": "a thick layer of dust covers everything. no one has been here in months",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0,
           "current_state": "normal",
@@ -14015,7 +14575,9 @@
         "name": "dust_scattered",
         "properties": {
           "description": "the floor of the secret study is covered in a fine layer of dust — except for a single set of footprints leading to the pedestal and back. small footprints, like a child's bare feet.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0,
           "current_state": "normal",
@@ -14035,7 +14597,9 @@
         "name": "Dusty Bookshelf",
         "properties": {
           "description": "A large oak bookshelf overflowing with ancient texts. One book appears slightly crooked.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": 1,
           "weight": 15,
           "current_state": "normal",
@@ -14076,7 +14640,12 @@
         "name": "dusty overcoat",
         "properties": {
           "description": " a single dusty overcoat.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": -1,
           "weight": 1,
           "current_state": "normal",
@@ -14115,7 +14684,12 @@
         "name": "Ear Balm",
         "properties": {
           "description": "A waxy balm in a small tin. Massaged into the ears, it soothes the ringing away.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 3,
           "weight": 0.1,
           "current_state": "normal",
@@ -14159,7 +14733,10 @@
         "name": "earbuds",
         "properties": {
           "description": "tangled earbuds. could help amplify quiet sounds if plugged into something.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
           "weight": 0.05,
           "current_state": "normal",
@@ -14212,7 +14789,14 @@
         "name": "Elixir of Insight",
         "properties": {
           "description": "A shimmering blue liquid in a crystal vial. It glows faintly in the dark.",
-          "actions": "examine,take,use,eat,drink",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "eat",
+            "drink",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.1,
           "current_state": "normal",
@@ -14232,7 +14816,10 @@
         "name": "emf_reader",
         "properties": {
           "description": "a handheld emf meter. it can detect electromagnetic fields. currently sitting at a steady 0.5 mg.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": 15,
           "weight": 0.4,
           "current_state": "normal",
@@ -14278,7 +14865,8 @@
             "examine",
             "use",
             "take",
-            "toggle"
+            "toggle",
+            "drop"
           ],
           "uses": -1,
           "weight": 1,
@@ -14360,7 +14948,12 @@
         "name": "Energizing Brew",
         "properties": {
           "description": "A steaming, bitter brew that smells of dark roasted herbs. It pours warmth and strength back into tired bones.",
-          "actions": "examine,take,drink,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drink",
+            "drop"
+          ],
           "uses": 3,
           "weight": 0.3,
           "current_state": "normal",
@@ -14406,7 +14999,11 @@
         "name": "energy drink",
         "properties": {
           "description": "a neon-green energy drink. the label reads 'maximum chaos' in aggressive letters. warm, but probably still effective.",
-          "actions": "examine,use,drink",
+          "actions": [
+            "examine",
+            "use",
+            "drink"
+          ],
           "uses": 1,
           "weight": 0.3,
           "current_state": "normal",
@@ -14458,9 +15055,16 @@
         "name": "EVA Suit",
         "properties": {
           "description": "A full-body environmental vacuum suit. Sealed joints, reinforced visor, integrated climate control. Protects against vacuum exposure and extreme temperatures. The chest plate has a faded NASA-style logo and the name 'Kowalski' stenciled on the collar.",
-          "actions": "examine,take,use,equip,unequip",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": -1,
-          "weight": 8.0,
+          "weight": 8,
           "current_state": "normal",
           "hidden": false,
           "light_level": "dim",
@@ -14489,7 +15093,12 @@
         "name": "Everflame Ember",
         "properties": {
           "description": "A tiny, flickering flame that hovers in your palm, radiating warmth and a soft golden light. It is sustained by magic and will burn for about 15 minutes.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.1,
           "current_state": "unlit",
@@ -14550,7 +15159,12 @@
         "name": "Everflame Ember_edb78c95",
         "properties": {
           "description": "A tiny, flickering flame that hovers in your palm, radiating warmth and a soft golden light. It is sustained by magic and will burn for about 15 minutes.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 2,
           "weight": 0.1,
           "current_state": "lit",
@@ -14611,7 +15225,12 @@
         "name": "Expensive Vanity",
         "properties": {
           "description": "An ornate vanity table with a large mirror, its surface inlaid with mother-of-pearl. The drawers are carved with intricate patterns, but one seems slightly different.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 1,
           "weight": 20,
           "current_state": "normal",
@@ -14684,7 +15303,12 @@
         "name": "Eyewash Flask",
         "properties": {
           "description": "A slim flask of cool, clear liquid. Rinse the eyes and the grit of blindness washes away.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 3,
           "weight": 0.2,
           "current_state": "normal",
@@ -14729,7 +15353,14 @@
         "name": "fabric bandage",
         "properties": {
           "description": "a fabric adhesive bandage wrapped around the left forearm, covering a nasty purple bruise from a string slap during archery. it's wrapped tight and clean.",
-          "actions": "examine,take,use,unequip,drop,equip",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "unequip",
+            "drop",
+            "equip"
+          ],
           "uses": 1,
           "weight": 0.02,
           "current_state": "worn",
@@ -14785,7 +15416,14 @@
         "name": "faded black band tee",
         "properties": {
           "description": "a faded black t-shirt with a cracked and peeling logo of a band no one remembers. the collar is stretched out and the hem is uneven. it's been through approximately a thousand wash cycles.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.2,
           "current_state": "normal",
@@ -14825,7 +15463,14 @@
         "name": "faded green tank top",
         "properties": {
           "description": "a faded olive-green tank top that's seen better days. the left strap is slightly twisted, and the fabric clings to the definition in your arms and shoulders. built for movement, not fashion.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.2,
           "current_state": "normal",
@@ -14882,7 +15527,9 @@
         "name": "family_photo",
         "properties": {
           "description": "a daguerreotype on the sideboard showing the blackwood family: augustus, eleanor, and five children ranging from a teenager to a baby. the youngest child — a girl of about three — has a blank, blurred face, as if she moved during the exposure. but photography in 1891 required sitting still for minutes.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0.5,
           "current_state": "normal",
@@ -14928,7 +15575,9 @@
         "name": "family_plot",
         "properties": {
           "description": "a cluster of smaller headstones bearing the blackwood name. the children: 'thomas, age 12. — elizabeth, age 10. — james, age 8. — margaret, age 6. — eleanor the younger, age 3.' but these graves are empty — they were never buried here. the stones were placed as memorials.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0,
           "current_state": "normal",
@@ -14974,7 +15623,12 @@
         "name": "Fascinating Timepiece",
         "properties": {
           "description": "A gleaming brass pocket watch with whirling cogs and a hypnotic ticking. Stare too long and you forget the world.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 5,
           "weight": 0.2,
           "current_state": "normal",
@@ -15021,7 +15675,12 @@
         "name": "Fatigue Dust",
         "properties": {
           "description": "A grey powder that saps strength from the air. Breathing it in leaves your limbs like lead.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 2,
           "weight": 0.2,
           "current_state": "normal",
@@ -15068,7 +15727,14 @@
         "name": "field jacket",
         "properties": {
           "description": "a faded olive canvas field jacket with multiple pockets. the elbows are worn thin and one button is missing, replaced with a safety pin. it smells faintly of coffee and basement dust.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 1.5,
           "current_state": "normal",
@@ -15141,7 +15807,10 @@
         "name": "fireplace",
         "properties": {
           "description": "A stone fireplace, cold and dark. A pile of ash sits in the hearth. A poker rests against the hearth, waiting to stir the embers.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
           "weight": 50,
           "current_state": "off",
@@ -15212,7 +15881,14 @@
         "name": "Fireplace Poker",
         "properties": {
           "description": "A wrought-iron poker, its tip blackened by ancient soot. The handle is wrapped in frayed leather. It seems unnaturally cold to the touch.",
-          "actions": "examine,take,use,equip,unequip",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.8,
           "current_state": "normal",
@@ -15236,7 +15912,12 @@
         "name": "Flash Powder",
         "properties": {
           "description": "A fist-sized pouch of glittering grey powder. Toss it and it bursts with a blinding crack of light.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 3,
           "weight": 0.2,
           "current_state": "normal",
@@ -15283,7 +15964,10 @@
         "name": "flashlight",
         "properties": {
           "description": "a compact led flashlight. bright enough to see where you are going. battery at about 80%.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": 30,
           "weight": 0.3,
           "current_state": "normal",
@@ -15346,7 +16030,9 @@
         "name": "flour",
         "properties": {
           "description": "a burlap sack of flour, half full. tiny holes suggest mice have been at it. the flour has clumped but is still usable.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 5,
           "current_state": "normal",
@@ -15370,7 +16056,9 @@
         "name": "flowers",
         "properties": {
           "description": "a patch of wilted roses, their petals brown and curling. but one bush defies the decay — a single red rose bush blooms vibrantly, as if it's june instead of october.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0.5,
           "current_state": "normal",
@@ -15415,7 +16103,10 @@
         "name": "fountain",
         "properties": {
           "description": "a stone fountain with a weeping angel statue, its face worn smooth by time and weather. the basin holds dark water, leaves, and a surprising amount of moss. something glints at the bottom.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
           "weight": 200,
           "current_state": "normal",
@@ -15459,7 +16150,14 @@
         "name": "Frayed Friendship Bracelet",
         "properties": {
           "description": "A simple, frayed friendship bracelet made of woven green and brown threads, tied loosely around Lyrie's left wrist. It was given to her by her best friend before the 'incident' that almost got her exiled. She never takes it off, even though it's coming apart. The green has faded, and one of the knots is coming undone.",
-          "actions": "examine,take,use,equip,unequip",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0,
           "current_state": "normal",
@@ -15485,7 +16183,11 @@
         "name": "Frozen Berries",
         "properties": {
           "description": "A handful of frost-crusted berries, plucked from the bush. They're icy, sweet, and surprisingly edible.",
-          "actions": "take,eat,drop",
+          "actions": [
+            "take",
+            "eat",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.1,
           "current_state": "normal",
@@ -15509,7 +16211,12 @@
         "name": "Frozen Corpse",
         "properties": {
           "description": "The body of a hunter, frozen solid. ",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 1,
           "weight": 50,
           "current_state": "normal",
@@ -15585,7 +16292,9 @@
         "name": "garden_bench",
         "properties": {
           "description": "a stone bench under a gnarled oak, overlooking the garden. someone left a thermos here long ago. the oak's roots have grown around the bench's legs.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 100,
           "current_state": "normal",
@@ -15609,7 +16318,11 @@
         "name": "gardener's notebook",
         "properties": {
           "description": "a water-damaged gardener's notebook. the last entry: 'october 30th — strange lights in the study again tonight. the missus says it is nothing, but i have worked here 20 years. i know what i saw. the skull. i found a sketch of it in the master's private papers. and i found where it goes — the altar in the crypt below the graveyard. tomorrow i am leaving. i do not care if they dock my pay.' the notebook ends there.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.3,
           "current_state": "normal",
@@ -15633,7 +16346,11 @@
         "name": "garnet_ring",
         "properties": {
           "description": "a delicate gold ring set with a small garnet. inside: 'forever, a.b.' — augustus blackwood's gift to someone who wasn't his wife.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.02,
           "current_state": "normal",
@@ -15657,7 +16374,9 @@
         "name": "ghostly_figure",
         "properties": {
           "description": "at the far end of the hall, near the portrait, you catch a glimpse of something in your peripheral vision. a young girl in a white nightgown, standing perfectly still. when you turn to look directly, she's gone.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0,
           "current_state": "normal",
@@ -15701,7 +16420,11 @@
         "name": "glasses_case",
         "properties": {
           "description": "a leather case containing reading glasses. the prescription might still work. a small brass plate reads: 'property of professor aldridge — university of london, occult studies department.'",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.2,
           "current_state": "normal",
@@ -15746,7 +16469,11 @@
         "name": "gold_coins",
         "properties": {
           "description": "A small pile of gold coins bearing the crest of Rocheveron. They clink satisfyingly.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.5,
           "current_state": "normal",
@@ -15766,7 +16493,9 @@
         "name": "grandfather_clock",
         "properties": {
           "description": "An old grandfather clock ticks steadily in the corner. It is tall  with an intricately carved wooden face. The pendulum swings steadily. The glass door is slightly ajar.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 80,
           "current_state": "normal",
@@ -15805,7 +16534,11 @@
         "name": "granola_bar",
         "properties": {
           "description": "a slightly crushed granola bar. chocolate chip. stale but edible.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.5,
           "current_state": "normal",
@@ -15850,7 +16583,14 @@
         "name": "Green Tunic",
         "properties": {
           "description": "A simple, finely woven tunic of forest green linen. It bears no adornment but feels sturdy and comfortable.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.3,
           "current_state": "normal",
@@ -15930,7 +16670,14 @@
         "name": "grey-black striped hoodie",
         "properties": {
           "description": "a thick striped hoodie in alternating shades of grey and light black. worn unzipped over the tank top. the sleeves are too long — you push them up to your elbows. smells faintly of monster energy.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.9,
           "current_state": "normal",
@@ -16003,7 +16750,14 @@
         "name": "grey-black striped thigh-high",
         "properties": {
           "description": "a single thick striped thigh-high in grey and black. the left leg's companion to the torn black stocking on the right. mismatched on purpose. or laziness. hard to tell.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.12,
           "current_state": "normal",
@@ -16044,7 +16798,14 @@
         "name": "grey tank top",
         "properties": {
           "description": "a loose grey tank top that exposes a strip of midriff. the fabric is soft from years of washing. no bra underneath — you don't bother.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.2,
           "current_state": "normal",
@@ -16101,7 +16862,12 @@
         "name": "Grounding Cordial",
         "properties": {
           "description": "A clear cordial that tastes of clean water and cold air. One sip steadies the reeling mind.",
-          "actions": "examine,take,drink,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drink",
+            "drop"
+          ],
           "uses": 3,
           "weight": 0.2,
           "current_state": "normal",
@@ -16147,7 +16913,12 @@
         "name": "Guiding Cane",
         "properties": {
           "description": "A sturdy wooden walking cane, worn smooth at the grip. Tapped ahead of you, it reads the ground and the air — a blind traveller's best friend for finding their way.",
-          "actions": "examine,take,drop,use",
+          "actions": [
+            "examine",
+            "take",
+            "drop",
+            "use"
+          ],
           "uses": -1,
           "weight": 0.6,
           "current_state": "normal",
@@ -16171,7 +16942,12 @@
         "name": "hair_tie",
         "properties": {
           "description": "a black elastic hair tie. stretchy, durable. kayla always keeps a spare.",
-          "actions": "examine,use,take,drop",
+          "actions": [
+            "examine",
+            "use",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.01,
           "current_state": "normal",
@@ -16222,7 +16998,11 @@
         "name": "hairbrush",
         "properties": {
           "description": "a silver hairbrush with long strands of gray hair tangled in the bristles. not eleanor's hair — this is darker, coarser. a servant's?",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.3,
           "current_state": "normal",
@@ -16244,7 +17024,12 @@
         "name": "Half-Full Waterskin",
         "properties": {
           "description": "A leather waterskin, about half full of fresh water.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.5,
           "current_state": "normal",
@@ -16283,7 +17068,16 @@
         "name": "hand lamp",
         "properties": {
           "description": "A hand Lamp that burns Oil as fuel  and casts Bright Light",
-          "actions": "examine,take,use,light,extinguish,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "light",
+            "extinguish",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 60,
           "weight": 1,
           "current_state": "unlit",
@@ -16308,7 +17102,12 @@
         "name": "Hand-Painted Toy Soldier",
         "properties": {
           "description": "A small wooden soldier with chipped paint, a faded red coat, and a tiny musket. His eyes are still bright.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.2,
           "current_state": "normal",
@@ -16386,7 +17185,12 @@
         "name": "Hanging Dried Meats",
         "properties": {
           "description": "Strips of dried, salted meat hanging from hooks. They look preserved and edible.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 3,
           "weight": 0.2,
           "current_state": "normal",
@@ -16459,7 +17263,9 @@
         "name": "headphones",
         "properties": {
           "description": "studio-quality headphones. essential for his radio show.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0.3,
           "current_state": "normal",
@@ -16479,7 +17285,9 @@
         "name": "headstone",
         "properties": {
           "description": "a weathered headstone, older than the others: 'eleanor blackwood, 1847-1891. may her soul find peace. forgive us, eleanor.' the date is unusual — she died the same year the family vanished. fresh lilies lie at its base.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 500,
           "current_state": "normal",
@@ -16505,7 +17313,12 @@
         "name": "Heartseed Elixir",
         "properties": {
           "description": "A blood-red phial that warms in the hand. One drop on the lips of the fallen and the heart remembers how to beat. Use it on the fallen — they can't reach for it themselves.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.3,
           "current_state": "normal",
@@ -16551,7 +17364,14 @@
         "name": "heavy black boots",
         "properties": {
           "description": "massive steel-toed black leather boots, caked with dried mud and something darker. the soles are thick and leave deep impressions. they add an inch to an already towering frame.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 2.5,
           "current_state": "normal",
@@ -16591,9 +17411,16 @@
         "name": "heavy_club",
         "properties": {
           "description": "A thick wooden club wrapped in leather at the grip. Heavy, crude, and devastating when it connects.",
-          "actions": "examine,take,use,equip,unequip",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": -1,
-          "weight": 3.0,
+          "weight": 3,
           "current_state": "normal",
           "hidden": false,
           "light_level": "dim",
@@ -16647,7 +17474,14 @@
         "name": "Heavy Fur-Lined Coat",
         "properties": {
           "description": "Thick, hooded coat of weathered grey-brown wool, lined with matted animal fur. Hem brushes mid-thigh. Left sleeve tear repaired with crude stitches. Left chest pocket lined with softer fabric—currently occupied by a small mouseling named Runt. Smells of woodsmoke, damp wool, and clockwork oil.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": -1,
           "weight": 3.5,
           "current_state": "normal",
@@ -16680,7 +17514,12 @@
         "name": "Helping Hand Brace",
         "properties": {
           "description": "A firm leather strap with a grip — brace yourself against it and haul yourself upright in a heartbeat.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 5,
           "weight": 0.5,
           "current_state": "normal",
@@ -16725,7 +17564,11 @@
         "name": "hidden_note_doll",
         "properties": {
           "description": "a tiny scrap of paper that was hidden inside the broken doll: 'the skull is in the study. take it to mother's grave. she'll know what to do. — e.' the handwriting is a child's, but the message is clear.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.01,
           "current_state": "normal",
@@ -16752,7 +17595,9 @@
         "name": "hidden_shelf",
         "properties": {
           "description": "one of the wine racks is shallower than the others. behind it, a small recess holds a single leather-bound book. the title: 'rituals of binding and release.'",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0,
           "current_state": "normal",
@@ -16797,7 +17642,14 @@
         "name": "hiking boots",
         "properties": {
           "description": "scuffed brown leather hiking boots with aggressive treads. broken in perfectly, though the left sole is starting to separate at the toe.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 1.2,
           "current_state": "normal",
@@ -16837,7 +17689,12 @@
         "name": "Homemade Soap Bar",
         "properties": {
           "description": "A fragrant bar of homemade soap, shaped into a delicate flower. The scent of lavender and chamomile is faint but pleasant.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 5,
           "weight": 0.3,
           "current_state": "normal",
@@ -16890,7 +17747,14 @@
         "name": "hook",
         "properties": {
           "description": "a meat hook, rusted and sharp. it swings slowly even in still air.",
-          "actions": "examine,use,take,drop,equip,unequip",
+          "actions": [
+            "examine",
+            "use",
+            "take",
+            "drop",
+            "equip",
+            "unequip"
+          ],
           "uses": -1,
           "weight": 1,
           "current_state": "normal",
@@ -16920,7 +17784,13 @@
         "name": "Horror Mask",
         "properties": {
           "description": "A bone-white mask with hollow eyes and a too-wide grin. Wearing it, the world seems to loom and whisper.",
-          "actions": "examine,take,use,wear,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "wear",
+            "drop"
+          ],
           "uses": 5,
           "weight": 0.3,
           "current_state": "normal",
@@ -16968,7 +17838,13 @@
         "name": "Cheesy Burrito",
         "properties": {
           "description": "a flour burrito swaddled in foil, filled with beans and a wedge of cheese that refuses to melt. heavy in the hand, quiet in the heart, borderline for food-safety.",
-          "actions": "examine,take,use,eat,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "eat",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.35,
           "current_state": "normal",
@@ -17001,7 +17877,12 @@
         "name": "Hush Tonic",
         "properties": {
           "description": "A pale violet tonic that eases forced wakefulness. A sip and the relentless alertness finally loosens its grip — sleep follows quickly.",
-          "actions": "examine,take,drink,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drink",
+            "drop"
+          ],
           "uses": 3,
           "weight": 0.2,
           "current_state": "normal",
@@ -17049,7 +17930,9 @@
         "name": "incense_burner",
         "properties": {
           "description": "a brass incense burner on a small shelf. the ashes inside are cold but smell of frankincense and something unfamiliar — something acrid.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 2,
           "current_state": "normal",
@@ -17076,7 +17959,12 @@
         "name": "Ink",
         "properties": {
           "description": "Ink comes in a 1-ounce bottle, which provides enough ink to write about 500 pages.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 500,
           "weight": 0,
           "current_state": "normal",
@@ -17101,7 +17989,12 @@
         "name": "Ink Pen",
         "properties": {
           "description": "Using Ink, an Ink Pen is used to write or draw.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0,
           "current_state": "normal",
@@ -17125,7 +18018,13 @@
         "name": "water_bottle",
         "properties": {
           "description": "a half-full plastic water bottle. lukewarm but clean.",
-          "actions": "use,drink,take,drop,examine",
+          "actions": [
+            "use",
+            "drink",
+            "take",
+            "drop",
+            "examine"
+          ],
           "uses": 2,
           "weight": 0.5,
           "current_state": "normal",
@@ -17208,7 +18107,11 @@
         "name": "iron_key",
         "properties": {
           "description": "a heavy iron key with a skull-shaped bow. hidden behind some papers on the desk under a map of the mansion grounds.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.5,
           "current_state": "normal",
@@ -17251,7 +18154,14 @@
         "name": "iron_shortsword",
         "properties": {
           "description": "A battered but serviceable shortsword. Good edge, solid grip. The leather wrapping on the handle is dark with sweat and age.",
-          "actions": "examine,take,use,equip,unequip",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": -1,
           "weight": 1.5,
           "current_state": "normal",
@@ -17279,7 +18189,12 @@
         "name": "jar_of_honey",
         "properties": {
           "description": "a glass jar of crystallized honey. honey never spoils. it's still perfectly edible, though you'll need to scrape it out.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.6,
           "current_state": "normal",
@@ -17304,7 +18219,12 @@
         "name": "jerky",
         "properties": {
           "description": "a strip of dried meat hanging from a hook above the hearth. it's old but well-preserved by the dry air. still edible, if you're not squeamish.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.1,
           "current_state": "normal",
@@ -17328,7 +18248,9 @@
         "name": "jewelry_box",
         "properties": {
           "description": "a small wooden box inlaid with mother-of-pearl. it's locked with a tiny brass lock — the kind that takes a very small key.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 1,
           "current_state": "normal",
@@ -17374,7 +18296,11 @@
         "name": "journal",
         "properties": {
           "description": "a leather-bound journal. the final entry, written in shaky handwriting: 'the skull is the key. take it to the altar in the crypt beneath the graveyard. but be warned — the doors will seal behind those who dare disturb the firstborn's rest. i have seen what happens to those who try to leave. god forgive me, i cannot stay. — augustus blackwood, october 30th, 1891'",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.4,
           "current_state": "normal",
@@ -17400,7 +18326,14 @@
         "name": "Jumpsuit",
         "properties": {
           "description": "A sleek, form-fitting jumpsuit made of a stretchy, breathable fabric. It has several utility pockets and a sturdy zipper. It looks comfortable and practical.",
-          "actions": "examine,take,use,equip,unequip",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.5,
           "current_state": "normal",
@@ -17473,7 +18406,9 @@
         "name": "kettle",
         "properties": {
           "description": "an old kettle. it's empty but the spout still whistles faintly when you touch it, as if echoing a sound from another time.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 1,
           "current_state": "normal",
@@ -17498,7 +18433,11 @@
         "name": "key_fragment",
         "properties": {
           "description": "half of a broken brass key. the teeth are intricate and finely crafted. someone deliberately broke this key in half. the other half must be somewhere in the mansion.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.05,
           "current_state": "normal",
@@ -17522,7 +18461,11 @@
         "name": "key_fragment_2",
         "properties": {
           "description": "the other half of a broken brass key. the break is clean, matching the fragment you found in the watering can. together, they would form a complete key.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.05,
           "current_state": "normal",
@@ -17566,7 +18509,12 @@
         "name": "kindling",
         "properties": {
           "description": "A small bundle of dry twigs, perfect for starting a fire.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.3,
           "current_state": "normal",
@@ -17606,7 +18554,12 @@
         "name": "Knockout Cloth",
         "properties": {
           "description": "A folded cloth reeking of sweet chloroform. One press over the mouth and nose and the world goes away.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 2,
           "weight": 0.1,
           "current_state": "normal",
@@ -17653,7 +18606,14 @@
         "name": "running shoes",
         "properties": {
           "description": "lightweight black running shoes with laces double-knotted. the soles have grip left in them, and the mesh is intact. someone here takes care of their gear.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.7,
           "current_state": "normal",
@@ -17693,7 +18653,10 @@
         "name": "Lab Table",
         "properties": {
           "description": "A heavy stainless-steel worktable",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
           "weight": 80,
           "current_state": "normal",
@@ -17735,7 +18698,10 @@
         "name": "lamp",
         "properties": {
           "description": "A brass desk lamp with a green glass shade. It casts a warm pool of light across the desk.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
           "weight": 2,
           "current_state": "unlit",
@@ -17776,7 +18742,11 @@
         "name": "lantern",
         "properties": {
           "description": "an old oil lantern hanging from a nail by the stairs. empty, but the wick is intact. if you had oil, it would work perfectly.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.5,
           "current_state": "normal",
@@ -17802,7 +18772,12 @@
         "name": "Large Wooden Bathtub",
         "properties": {
           "description": "A large wooden bathtub, its surface damp and worn. The water inside is still and cold.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": -1,
           "weight": 50,
           "current_state": "normal",
@@ -17863,7 +18838,12 @@
         "name": "Leather-bound Journal",
         "properties": {
           "description": "A frozen journal clutched in the hunter's icy grip. The cover is frosted and the pages are stuck together, but the final entry may be legible.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.3,
           "current_state": "normal",
@@ -17918,7 +18898,10 @@
         "name": "leftovers",
         "properties": {
           "description": "last night's dinner, reheated.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": 1,
           "weight": 0.3,
           "current_state": "normal",
@@ -17938,7 +18921,12 @@
         "name": "letter",
         "properties": {
           "description": "A yellowed, handwritten letter, the ink faded with age.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.05,
           "current_state": "normal",
@@ -17978,7 +18966,11 @@
         "name": "letter_opener",
         "properties": {
           "description": "a silver letter opener with an ornate serpent handle. it's surprisingly sharp. the serpent's eyes are tiny rubies.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.3,
           "current_state": "normal",
@@ -18009,7 +19001,11 @@
         "name": "letter_servant",
         "properties": {
           "description": "a crumpled but legible letter: 'to whoever finds this — i, james blackwood, head of staff at blackwood manor, write this in desperation. the skull in the study whispers to me at night. it knows my name. it calls me when no one else is around. i saw it move of its own accord. the master is obsessed. the missus weeps constantly. the children are afraid. something terrible is going to happen. i'm leaving tonight. god have mercy on whoever reads this. — j. blackwood, october 30th, 1891'",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.02,
           "current_state": "normal",
@@ -18035,7 +19031,12 @@
         "name": "Letter to the King",
         "properties": {
           "description": "A sealed letter addressed to King Nicolas . It appears to detail a nefarious plot involving the princesses' sixteenth birthday.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.1,
           "current_state": "normal",
@@ -18075,7 +19076,11 @@
         "name": "Letters",
         "properties": {
           "description": "Several letters adressed to sir Valerius",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.1,
           "current_state": "normal",
@@ -18113,7 +19118,12 @@
         "name": "Letters to the Wife's Family",
         "properties": {
           "description": "A bundle of sealed letters addressed to the wife's family.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.2,
           "current_state": "normal",
@@ -18153,7 +19163,12 @@
         "name": "Light Stone",
         "properties": {
           "description": "A pretty stone.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.5,
           "current_state": "normal",
@@ -18209,7 +19224,12 @@
         "name": "lighter",
         "properties": {
           "description": "a cheap plastic lighter. about half full of fluid. reliable for lighting things on fire.",
-          "actions": "examine,use,take,drop",
+          "actions": [
+            "examine",
+            "use",
+            "take",
+            "drop"
+          ],
           "uses": 39,
           "weight": 0.05,
           "current_state": "normal",
@@ -18234,7 +19254,14 @@
         "name": "Lightweight Linen Shirt",
         "properties": {
           "description": "Once a crisp, off-white Galser-issue shirt, now faded to greyish beige from desert sun. Soft collar, frayed cuffs. One mismatched black button replaces the missing second-from-top. Faint ink stain on the left sleeve.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.8,
           "current_state": "normal",
@@ -18258,7 +19285,11 @@
         "name": "lip_gloss",
         "properties": {
           "description": "cherry-flavored lip gloss. probably not useful for survival, but it makes kayla feel more human.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.02,
           "current_state": "normal",
@@ -18281,7 +19312,9 @@
         "name": "locked_cabinet",
         "properties": {
           "description": "A wall-mounted pantry cabinet with a sturdy brass lock. The keyhole suggests a small cabinet key would fit.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 15,
           "current_state": "normal",
@@ -18303,7 +19336,9 @@
         "name": "locked_chest",
         "properties": {
           "description": "A sturdy iron-bound chest with a heavy padlock. The lock looks like it would accept a brass key.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 20,
           "current_state": "normal",
@@ -18328,7 +19363,9 @@
         "name": "locker",
         "properties": {
           "description": "a small metal locker. inside: a neatly folded servant's uniform and a crumpled letter. a silver crucifix hangs from a nail inside — identical to the one from the garden fountain.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 10,
           "current_state": "normal",
@@ -18353,7 +19390,11 @@
         "name": "locket",
         "properties": {
           "description": "a tarnished silver locket containing a miniature portrait of a young woman and a lock of dark hair. the initials 'e.b.' are engraved on the inside. not eleanor blackwood the elder — eleanor the younger.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.05,
           "current_state": "normal",
@@ -18378,7 +19419,12 @@
         "name": "Lockpick Set",
         "properties": {
           "description": "A small leather roll of fine steel picks and tension wrenches. Built to open whatever holds you.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 5,
           "weight": 0.2,
           "current_state": "normal",
@@ -18423,7 +19469,10 @@
         "name": "Loose Floorboard",
         "properties": {
           "description": "A floorboard that protrudes slightly from the rest, as if it can be pressed down or pried up.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": 1,
           "weight": 0.5,
           "current_state": "normal",
@@ -18462,7 +19511,12 @@
         "name": "Loosening Throat Tonic",
         "properties": {
           "description": "A warm, honeyed tonic that loosens a locked throat. A sip and your voice returns.",
-          "actions": "examine,take,drink,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drink",
+            "drop"
+          ],
           "uses": 3,
           "weight": 0.2,
           "current_state": "normal",
@@ -18507,7 +19561,11 @@
         "name": "love_letters",
         "properties": {
           "description": "a bundle of letters tied with a faded silk ribbon. the handwriting is elegant and desperate. 'my dearest augustus, i cannot bear another night in that cold house while she lies in the next room. the child we made deserves more than this secret. — m.'",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.2,
           "current_state": "normal",
@@ -18533,7 +19591,12 @@
         "name": "Love Philter",
         "properties": {
           "description": "A rose-scented pink potion that shimmers in the light. One sip and your heart opens to whoever is near.",
-          "actions": "examine,take,drink,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drink",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.3,
           "current_state": "normal",
@@ -18580,7 +19643,10 @@
         "name": "lullaby_box",
         "properties": {
           "description": "a small music box with a dancing ballerina. when opened, it plays a haunting, beautiful lullaby. the tune is strangely soothing, and as it plays, the whispers in the walls seem to harmonize with it.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
           "weight": 0.4,
           "current_state": "normal",
@@ -18647,7 +19713,14 @@
         "name": "Lumber Axe",
         "properties": {
           "description": "A sturdy axe. It can cut through wood or ice, ",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": -1,
           "weight": 7,
           "current_state": "normal",
@@ -18793,7 +19866,14 @@
         "name": "Gold Hoop Earrings (Slightly Bent)",
         "properties": {
           "description": "A pair of delicate gold hoop earrings, inherited from Lyrie's grandmother. One of them is slightly bent out of shape—she snagged it on her tunic and hasn't managed to straighten it yet. They catch the light beautifully, though Lyrie sometimes forgets she's wearing them and tries to put on other earrings too.",
-          "actions": "examine,take,use,equip,unequip",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.1,
           "current_state": "normal",
@@ -18821,7 +19901,14 @@
         "name": "Soft Linen Shift",
         "properties": {
           "description": "A simple, loose-fitting underdress of undyed linen, soft from many washings. There's a small, clumsily-darned hole near the hem where Lyrie caught it on a branch. Smells faintly of wildflowers and hearth smoke.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.4,
           "current_state": "normal",
@@ -18847,7 +19934,14 @@
         "name": "Small Polishing Kit (For Toenails)",
         "properties": {
           "description": "A small, neatly-organized wooden box containing nail polish, files, and a polishing cloth. Lyrie carries it everywhere and will excuse herself to tend to her toes if she notices a chip. She takes immense pride in her toenails, even if she forgets almost everything else.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.3,
           "current_state": "normal",
@@ -18872,7 +19966,15 @@
         "name": "Stuffed Satchel (Overstuffed, Always Open)",
         "properties": {
           "description": "A worn leather satchel, slung over one shoulder and perpetually overstuffed with everything Lyrie might need—and a great deal she doesn't. The strap has been tied and re-tied where it snapped. Contents spill out constantly: pressed flowers, lost buttons, half-eaten apples, crumpled notes, a broken comb, and at least three rocks she thought were 'pretty.' The flap never stays closed.",
-          "actions": "examine,take,use,equip,unequip,rummage",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "rummage",
+            "drop"
+          ],
           "uses": -1,
           "weight": 1.5,
           "current_state": "normal",
@@ -18902,7 +20004,14 @@
         "name": "Wooden Hair Pin (With Loose Ribbon)",
         "properties": {
           "description": "A simple, hand-carved wooden hair pin, slightly crooked—Lyrie made it herself after losing her last one. Tied to it is a faded green ribbon that constantly works its way loose, leaving her messy red hair to tumble down around her face. She's always pushing strands out of her eyes.",
-          "actions": "examine,take,use,equip,unequip",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.1,
           "current_state": "normal",
@@ -18928,7 +20037,12 @@
         "name": "Manacles",
         "properties": {
           "description": "Heavy iron cuffs joined by a short chain. They lock with a dull click and don't open without the key.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 1,
           "weight": 1.5,
           "current_state": "normal",
@@ -18974,7 +20088,11 @@
         "name": "margaret_letters",
         "properties": {
           "description": "a bundle of love letters between margaret holloway and james blackwood (the head of staff, not the patriarch). their story was forbidden — a servant and a woman who was augustus's mistress. the letters tell a tragic story of love, fear, and a plan to escape together that never came to pass.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.1,
           "current_state": "normal",
@@ -19000,7 +20118,14 @@
         "name": "matches",
         "properties": {
           "description": "a small box of matches has fallen from the coat pocket — a matchbox with a faded illustration of a raven. it rattles — there are several inside.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 8,
           "weight": 0.1,
           "current_state": "normal",
@@ -19026,7 +20151,12 @@
         "name": "matches_cellar",
         "properties": {
           "description": "a box of matches on a shelf near the stairs, somehow still dry. about a dozen inside.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 12,
           "weight": 0.1,
           "current_state": "normal",
@@ -19052,7 +20182,12 @@
         "name": "Matte Black Nail Polish",
         "properties": {
           "description": "A small bottle of matte black nail polish, chipped at the edges from nervous picking. About a third empty.",
-          "actions": "examine,take,use",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 10,
           "weight": 0.05,
           "current_state": "normal",
@@ -19116,7 +20251,9 @@
         "name": "meat_hooks",
         "properties": {
           "description": "rows of rusted meat hooks hanging from the ceiling. they clink together softly, though there's no breeze.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 30,
           "current_state": "normal",
@@ -19141,7 +20278,10 @@
         "name": "medicine_cabinet",
         "properties": {
           "description": "A small wooden cabinet mounted on the wall near the stove. Inside: a vial of antiseptic and some bandages.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": 1,
           "weight": 3,
           "current_state": "normal",
@@ -19219,7 +20359,15 @@
         "name": "The Memorandum (Leather Notebook)",
         "properties": {
           "description": "Worn, leather-bound notebook with tattered pages, stuffed with loose papers, charcoal rubbings, pressed desert flowers, and notes. Covers are scarred, binding loose. When not in use, it's tucked into a pocket. Always within reach.",
-          "actions": "examine,take,use,read,write,sketch,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "read",
+            "write",
+            "sketch",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.6,
           "current_state": "normal",
@@ -19244,7 +20392,11 @@
         "name": "Miki's Phone",
         "properties": {
           "description": "a phone in a cracked case plastered with anime stickers, screen showing 47 unread discord pings and a tinder notification she keeps not-swiping away.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.2,
           "current_state": "normal",
@@ -19267,7 +20419,9 @@
         "name": "mirror_bath",
         "properties": {
           "description": "a cracked mirror hanging crookedly. your reflection fractures into unsettling, fragmented versions of yourself. one fragment doesn't move when you do.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 10,
           "current_state": "normal",
@@ -19312,7 +20466,14 @@
         "name": "mismatched socks",
         "properties": {
           "description": "one white sock with a grey heel, one black sock with a hole in the big toe. you didn't notice this morning. or you didn't care.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.05,
           "current_state": "normal",
@@ -19352,7 +20513,9 @@
         "name": "moldy_sandwich",
         "properties": {
           "description": "a forgotten sandwich on a small table. it's green and fuzzy with age. definitely do not eat this.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0.2,
           "current_state": "normal",
@@ -19375,7 +20538,9 @@
         "name": "mouse_nest",
         "properties": {
           "description": "a small nest of shredded cloth and dried grass in the corner of a shelf. tiny bones are scattered around it — mouse bones, thankfully.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0.1,
           "current_state": "normal",
@@ -19419,7 +20584,12 @@
         "name": "multitool",
         "properties": {
           "description": "a red swiss army-style multitool with knife, pliers, screwdriver, and bottle opener. this thing has gotten jake out of more jams than he would admit.",
-          "actions": "examine,use,take,drop",
+          "actions": [
+            "examine",
+            "use",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.4,
           "current_state": "normal",
@@ -19443,7 +20613,12 @@
         "name": "music_box",
         "properties": {
           "description": "a small, dented music box. when wound, it plays a hauntingly beautiful but sad lullaby. the melody fills you with a strange sense of peace — and loss.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.3,
           "current_state": "normal",
@@ -19509,7 +20684,12 @@
         "name": "Mystery Cream Sauce",
         "properties": {
           "description": "a small sealed cup of something cream-colored that arrived unrequested. it is either chipotle ranch or a biohazard. there is exactly one way to find out and it involves trust.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.05,
           "current_state": "normal",
@@ -19531,7 +20711,12 @@
         "name": "Neutralizing Draught",
         "properties": {
           "description": "A chalky white draught that binds to toxins and snuffs them out. The taste is like clean ash.",
-          "actions": "examine,take,drink,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drink",
+            "drop"
+          ],
           "uses": 2,
           "weight": 0.3,
           "current_state": "normal",
@@ -19577,7 +20762,9 @@
         "name": "nightstand",
         "properties": {
           "description": "a small table with a broken lamp and a single drawer. the drawer contains a bible and a pair of reading glasses.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 5,
           "current_state": "normal",
@@ -19602,7 +20789,14 @@
         "name": "Noise-Cancelling Headphones",
         "properties": {
           "description": "Over-ear headphones with thick padded cups. When you turn them on, the world goes quiet — no ambient hum, no distant footsteps, no breathing but your own.",
-          "actions": "examine,take,use,equip,unequip",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.4,
           "current_state": "normal",
@@ -19667,7 +20861,9 @@
         "name": "notebook",
         "properties": {
           "description": "elena's investigation notebook. filled with observations about the blackwood case.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0.2,
           "current_state": "normal",
@@ -19709,7 +20905,9 @@
         "name": "oak_tree",
         "properties": {
           "description": "a massive, ancient oak tree, its branches spreading like protective arms over the garden. the bark is gnarled and covered in moss. at eye level, someone has carved a small heart with the initials 'a.b.' and 'm.'",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0,
           "current_state": "normal",
@@ -19734,7 +20932,13 @@
         "name": "Oil",
         "properties": {
           "description": "You can douse a creature, object, or space with Oil or use it as fuel. A flask burns for 6 hours in a Lamp or Lantern.",
-          "actions": "examine,take,use,throw,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "throw",
+            "drop"
+          ],
           "uses": 1,
           "weight": 1,
           "current_state": "normal",
@@ -19759,7 +20963,11 @@
         "name": "oil_can",
         "properties": {
           "description": "a small can of lamp oil tucked behind a barrel, nearly hidden in the shadows. it's about half full.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.8,
           "current_state": "normal",
@@ -19785,7 +20993,12 @@
         "name": "oil_lamp",
         "properties": {
           "description": "an old oil lamp under the sink. still has some oil in it, and the wick is intact. it would provide good light.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 20,
           "weight": 0.8,
           "current_state": "normal",
@@ -19812,7 +21025,11 @@
         "name": "old_newspaper",
         "properties": {
           "description": "a crumbling newspaper from 1891. headline: 'blackwood family vanishes — no trace found. entire household of seven disappears overnight. the door was barred from the inside. police baffled.'",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.1,
           "current_state": "normal",
@@ -19837,7 +21054,11 @@
         "name": "old_photo_album",
         "properties": {
           "description": "a leather photo album filled with faded photographs of the blackwood family through the generations. the last few pages are empty, except for one photograph tucked loose: a baby's handprint in dark ink, with the date 'october 31st, 1891' written beneath.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 1.2,
           "current_state": "normal",
@@ -19862,7 +21083,10 @@
         "name": "Old Stone Well",
         "properties": {
           "description": "A circular stone well, half-frozen and weathered. The wooden crank creaks as if in pain, and the broken bucket lies shattered at its base. Peering into the dark shaft, you see only stale air and a faded ribbon tied to the crank.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
           "weight": 0,
           "current_state": "normal",
@@ -19915,7 +21139,9 @@
         "name": "other_graves",
         "properties": {
           "description": "the other headstones mark the graves of servants and distant relatives. the most recent is dated 1889. one grave catches your eye — a small, simple stone with no name, only a date: 'october 31st, 1891.' the same day the family vanished.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0,
           "current_state": "normal",
@@ -19941,7 +21167,14 @@
         "name": "oversized arctic monkeys tee",
         "properties": {
           "description": "an oversized arctic monkeys t-shirt that hangs past your hips like a dress. the sleeves slide down to expose tan shoulders. it smells faintly of jake's jacket from being tied around his waist once. you secretly love that.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.25,
           "current_state": "normal",
@@ -19997,7 +21230,11 @@
         "name": "Painting",
         "properties": {
           "description": "A painting hang above the mantlepiece.   in a silver frame. A family stands in front of this very house, smiling. ",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.2,
           "current_state": "normal",
@@ -20037,7 +21274,9 @@
         "name": "painting_attic",
         "properties": {
           "description": "a portrait of a young woman with sad, knowing eyes, propped against the wall. the nameplate is missing. there's writing on the back: 'margaret holloway, 1850-1891. beloved. forgotten.'",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 5,
           "current_state": "normal",
@@ -20062,7 +21301,12 @@
         "name": "Painting of the Wandering Forests of Vald",
         "properties": {
           "description": "A breathtaking painting depicting the ancient, shifting forests of Vald. The trees seem to move ever so slightly when you look away, and the underbrush glows with faint luminescence. The frame is aged oak, intricately carved with leaves and vines.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 0,
           "weight": 2,
           "current_state": "normal",
@@ -20136,7 +21380,9 @@
         "name": "Panel",
         "properties": {
           "description": "Good morning Jon! Welcome to task 1. before we begin. tell me waht you see, who you are, and what you remember?",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0.1,
           "current_state": "normal",
@@ -20156,7 +21402,12 @@
         "name": "paper_products",
         "properties": {
           "description": "a dispenser box of napkins and two unopened packs of paper cups on the storage shelf, one pack bearing a hand-drawn star and the initials 'ED' in marker from a shift that no longer all work there.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": -1,
           "weight": 3,
           "current_state": "normal",
@@ -20179,7 +21430,12 @@
         "name": "Paralysis Venom",
         "properties": {
           "description": "A glass syringe filled with milky venom. It locks every muscle rigid within seconds.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.2,
           "current_state": "normal",
@@ -20227,7 +21483,12 @@
         "name": "Parchment",
         "properties": {
           "description": "several sheets of parcement. One sheet of Parchment can hold about 250 handwritten words.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 10,
           "weight": 0,
           "current_state": "normal",
@@ -20252,7 +21513,9 @@
         "name": "pedestal",
         "properties": {
           "description": "a stone pedestal covered in runes that glow with residual energy. in the center, a skull-shaped depression. the symbols are a warning: 'who bears the skull bears the burden. who returns it finds peace.'",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 100,
           "current_state": "normal",
@@ -20276,7 +21539,11 @@
         "name": "pencil",
         "properties": {
           "description": "a chewed-up no. 2 pencil. the eraser is long gone. the wood is dented with teeth marks — jake nervous habit.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.05,
           "current_state": "normal",
@@ -20296,7 +21563,13 @@
         "name": "phone",
         "properties": {
           "description": "jake smartphone. the screen is cracked but functional. his camera roll is full of blurry photos of the mansion entrance, screenshots of a creepy forum post where he found this place, and approximately 400 memes. no signal, obviously.",
-          "actions": "examine,take,drop,equip,unequip",
+          "actions": [
+            "examine",
+            "take",
+            "drop",
+            "equip",
+            "unequip"
+          ],
           "uses": 30,
           "weight": 0.2,
           "current_state": "lit",
@@ -20319,7 +21592,11 @@
         "name": "Old Photograph",
         "properties": {
           "description": "A faded family photograph in a silver frame. Dated Autumn 1987 on the back.",
-          "actions": "examine,take",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.2,
           "current_state": "normal",
@@ -20342,7 +21619,12 @@
         "name": "pickled_vegetables",
         "properties": {
           "description": "a sealed jar of pickled vegetables from 1891. the seal is intact — technically still preserved and edible. they smell strongly of vinegar and herbs.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 2,
           "weight": 0.8,
           "current_state": "normal",
@@ -20428,7 +21710,12 @@
         "name": "Pink Nail Polish",
         "properties": {
           "description": "A small bottle of soft pink nail polish, slightly chipped on the brush. About half full.",
-          "actions": "examine,take,use",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 8,
           "weight": 0.05,
           "current_state": "normal",
@@ -20492,7 +21779,14 @@
         "name": "pink star twintail band",
         "properties": {
           "description": "a black elastic band holding the right twintail in place, adorned with a small pink plastic star.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.01,
           "current_state": "normal",
@@ -20533,7 +21827,12 @@
         "name": "Plague Miasma",
         "properties": {
           "description": "A clinging, invisible sickness carried on your clothes and breath. It spreads to everyone nearby.",
-          "actions": "examine,take,use",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0,
           "current_state": "normal",
@@ -20610,7 +21909,9 @@
         "name": "plant",
         "properties": {
           "description": "a withered fern in a clay pot. it crumbles to dust when touched. beneath the dust, something glints in the soil.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 2,
           "current_state": "normal",
@@ -20654,7 +21955,11 @@
         "name": "pocket_watch",
         "properties": {
           "description": "a silver pocket watch from the wardrobe, wrapped in a handkerchief. engraved: 'property of j. blackwood, head of staff.' the watch has stopped at 3:17 am — the exact same time as the pocket watch in guest area 2.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.2,
           "current_state": "normal",
@@ -20699,7 +22004,13 @@
         "name": "Poison 1",
         "properties": {
           "description": "A bottle of poison",
-          "actions": "examine,take,use,drink,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drink",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.3,
           "current_state": "normal",
@@ -20745,7 +22056,9 @@
         "name": "porch",
         "properties": {
           "description": "the wide wooden porch creaks under your feet. a broken rocking chair sits near the door, swaying slightly in the breeze. the night sky is clear, stars visible above the tree line.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0,
           "current_state": "normal",
@@ -20769,7 +22082,10 @@
         "name": "portable_charger",
         "properties": {
           "description": "a small power bank for her phone. about 30% charged.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": 3,
           "weight": 0.2,
           "current_state": "normal",
@@ -20827,7 +22143,9 @@
         "name": "portrait",
         "properties": {
           "description": "above the mantel hangs a portrait of augustus blackwood — a stern man with cold, calculating eyes. the nameplate reads 'augustus blackwood, 1835-1891'. but the paint seems... fresher than 130 years old.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 50,
           "current_state": "normal",
@@ -20872,7 +22190,9 @@
         "name": "portrait_e2e1ec7b",
         "properties": {
           "description": "A portrait of Eleanor Blackwood — the matriarch, not the child. Her eyes are sharp and calculating. A small plaque reads: 'Eleanor Blackwood, 1847-1891. May her soul find peace.' There's a crack running diagonally across the canvas, as if the painting was slashed and repaired.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 50,
           "current_state": "normal",
@@ -20896,7 +22216,9 @@
         "name": "portrait_f665a200",
         "properties": {
           "description": "a portrait of eleanor blackwood — the matriarch, not the child. her eyes are sharp and calculating. a small plaque reads: 'eleanor blackwood, 1847-1891. may her soul find peace.' there's a crack running diagonally across the canvas, as if the painting was slashed and repaired.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 50,
           "current_state": "normal",
@@ -20941,7 +22263,9 @@
         "name": "portrait_hall",
         "properties": {
           "description": "a painting of augustus blackwood in his prime. his cold, calculating eyes follow you around the room. the nameplate reads: 'augustus blackwood, 1835-1891, patriarch of blackwood manor.' there's a crack in the canvas — deliberate, not from age.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 20,
           "current_state": "normal",
@@ -20986,7 +22310,13 @@
         "name": "protein_bar",
         "properties": {
           "description": "a dry, chalky protein bar. tastes like cardboard and determination.",
-          "actions": "examine,use,eat,take,drop",
+          "actions": [
+            "examine",
+            "use",
+            "eat",
+            "take",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.15,
           "current_state": "normal",
@@ -21030,7 +22360,9 @@
         "name": "Puddle of Urine",
         "properties": {
           "description": "A dark puddle of urine spreading across the floor, reeking sharply.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0.1,
           "current_state": "normal",
@@ -21053,7 +22385,9 @@
         "name": "railing",
         "properties": {
           "description": "a rusted iron railing that creaks ominously when you lean on it. it's not safe, but it's held for 130 years. one section is wrapped with a faded ribbon — a woman's hair ribbon, blue silk.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 200,
           "current_state": "normal",
@@ -21097,7 +22431,10 @@
         "name": "rain_barrel",
         "properties": {
           "description": "a barrel catching rainwater through a broken pane. the water is murky with leaf litter but could be filtered through cloth.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
           "weight": 50,
           "current_state": "normal",
@@ -21123,7 +22460,12 @@
         "name": "Rations of Dried Meat",
         "properties": {
           "description": "A strip of tough, salted meat. It's edible, if not exactly gourmet.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 3,
           "weight": 0.5,
           "current_state": "normal",
@@ -21164,7 +22506,14 @@
         "name": "Reinforced Wool Trousers",
         "properties": {
           "description": "Dark grey wool trousers, reinforced with leather patches on both knees. Right leg standard fit; left leg sewn wider and reinforced to accommodate clockwork prosthetic. Worn leather belt with brass buckle, buckle engraved with faded Galser Office of Justice symbol.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": -1,
           "weight": 1.5,
           "current_state": "normal",
@@ -21189,7 +22538,9 @@
         "name": "remains",
         "properties": {
           "description": "tattered clothing and personal effects of previous victims. a faded driver's license from 1978. a child's shoe. a wedding ring.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 1,
           "current_state": "normal",
@@ -21235,7 +22586,12 @@
         "name": "Revival Salts",
         "properties": {
           "description": "A tin of sharp, pungent salts that cut through any fog of unconsciousness like a blade. Press them under a fallen companion's nose.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 3,
           "weight": 0.05,
           "current_state": "normal",
@@ -21307,7 +22663,9 @@
         "name": "rocking_chair",
         "properties": {
           "description": "a small wooden rocking chair, old and worn. it rocks gently on its own, though the air is still. the wood is warm to the touch, as if someone just stood up.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 5,
           "current_state": "normal",
@@ -21331,7 +22689,9 @@
         "name": "rocking_horse",
         "properties": {
           "description": "a wooden rocking horse with a faded red leather saddle. it rocks gently as you pass, though no one touched it. one of its painted eyes seems to follow you. the rockers creak rhythmically, slowly coming to a stop.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 10,
           "current_state": "normal",
@@ -21375,7 +22735,9 @@
         "name": "root",
         "properties": {
           "description": "a thick, pale root has pushed through the cellar wall and snakes across the floor. it's warm to the touch, and when you press your ear to it, you can hear a faint, rhythmic pulsing — like a heartbeat far beneath the earth.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0,
           "current_state": "normal",
@@ -21419,7 +22781,12 @@
         "name": "Rotten Meat",
         "properties": {
           "description": "A slab of meat crawling with flies, grey-green and rancid. The smell alone turns the stomach.",
-          "actions": "examine,take,eat,drop",
+          "actions": [
+            "examine",
+            "take",
+            "eat",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.3,
           "current_state": "normal",
@@ -21466,7 +22833,12 @@
         "name": "rubber band",
         "properties": {
           "description": "a thick rubber band jake fidgets with when he is nervous. it got at least 47 different uses, none of them practical. twanging it helps him think.",
-          "actions": "examine,use,take,drop",
+          "actions": [
+            "examine",
+            "use",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.05,
           "current_state": "normal",
@@ -21514,7 +22886,9 @@
         "name": "rug",
         "properties": {
           "description": "a faded persian rug covering most of the floor. ",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 10,
           "current_state": "normal",
@@ -21557,7 +22931,12 @@
         "name": "Runt the Mouseling (Companion)",
         "properties": {
           "description": "A small, shivering mouseling found near a Galtian military camp. Lives in the fur-lined left chest pocket of Kaelen's coat. Often pokes its head out to observe. Weighs almost nothing, but carries the weight of Kaelen's soft spot for strays.",
-          "actions": "examine,talk,feed,pet",
+          "actions": [
+            "examine",
+            "talk",
+            "feed",
+            "pet"
+          ],
           "uses": -1,
           "weight": 0.1,
           "current_state": "normal",
@@ -21581,7 +22960,9 @@
         "name": "sarcophagus",
         "properties": {
           "description": "a stone sarcophagus bearing the name 'augustus blackwood (1835-1891)'. the lid is heavy but slightly ajar. scratch marks — long, desperate scratch marks — cover the inside of the lid. he was buried alive.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 500,
           "current_state": "normal",
@@ -21627,7 +23008,11 @@
         "name": "Sauce Packet Caddie",
         "properties": {
           "description": "a wire caddie holding the sacred canon: mild, fire, diablo, and one packet labeled only MYSTERY with a Sharpie question mark. the words on each packet try too hard and somehow earn it.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.3,
           "current_state": "normal",
@@ -21649,7 +23034,12 @@
         "name": "schedule_clipboard",
         "properties": {
           "description": "a clipboard holding the weekly scheduling sheet, its corners perforated with the outlines of a hundred different pens. one name has been whited-out and re-added three times in two different hands.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.4,
           "current_state": "normal",
@@ -21673,7 +23063,12 @@
         "name": "seasoned_beef_pan",
         "properties": {
           "description": "a third-pan of seasoned ground beef sitting in the make line, its surface a fine gray lustre. the smell is right; the color is not, and everyone has chosen not to read that text.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": -1,
           "weight": 3,
           "current_state": "normal",
@@ -21697,7 +23092,9 @@
         "name": "secret_drawer",
         "properties": {
           "description": "beneath the cot, a floorboard is loose. lifting it reveals a small hollow containing a bundle of letters tied with string, a small pouch of coins, and a faded photograph of a woman.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0,
           "current_state": "normal",
@@ -21744,7 +23141,9 @@
         "name": "shelves",
         "properties": {
           "description": "rows of wooden shelves lined with glass jars. most contain preserved fruits and vegetables - peaches, green beans, pickles. but a few jars hold things that make you look away: a human heart, floating in amber fluid. a row of fingers, each labeled with a name. and one jar, larger than the rest, containing a crystal skull that seems to glow faintly in the dim light.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0,
           "current_state": "normal",
@@ -21767,7 +23166,9 @@
         "name": "Shoes",
         "properties": {
           "description": "3 sets of shooes",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0.1,
           "current_state": "normal",
@@ -21807,7 +23208,14 @@
         "name": "Short Forest Cape",
         "properties": {
           "description": "A short, forest-green cape that rustles like leaves in the wind. Light and practical, it offers subtle camouflage among the trees.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.3,
           "current_state": "normal",
@@ -21915,7 +23323,11 @@
         "name": "shovel",
         "properties": {
           "description": "a rusty shovel leaning against a gnarled, ancient oak tree. the blade is caked with dried earth that crumbles when you touch it.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 3,
           "current_state": "normal",
@@ -21940,7 +23352,9 @@
         "name": "sideboard",
         "properties": {
           "description": "a mahogany sideboard with crystal decanters. one decanter contains a dark, syrupy liquid. on a platter beside it, the desiccated remains of a roast meal — from 1891.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 30,
           "current_state": "normal",
@@ -21965,7 +23379,13 @@
         "name": "Silencing Candle",
         "properties": {
           "description": "A black candle that burns with no smoke. When lit, sound dies in the room — even your own voice.",
-          "actions": "examine,take,use,light,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "light",
+            "drop"
+          ],
           "uses": 3,
           "weight": 0.2,
           "current_state": "normal",
@@ -22013,7 +23433,12 @@
         "name": "silver_candle",
         "properties": {
           "description": "a thick candle in a silver holder on the sideboard, untouched. the wax is pristine, as if placed here yesterday.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 15,
           "weight": 0.8,
           "current_state": "normal",
@@ -22040,7 +23465,11 @@
         "name": "silver_crucifix",
         "properties": {
           "description": "a small silver crucifix, tarnished by years underwater. it's still intact. the back is engraved: 'sanctuary — 1889.'",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.2,
           "current_state": "normal",
@@ -22065,7 +23494,11 @@
         "name": "silver_key",
         "properties": {
           "description": "a small silver key hidden under the pillow. it's cold to the touch and hums faintly.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.05,
           "current_state": "normal",
@@ -22089,7 +23522,11 @@
         "name": "silver_ring",
         "properties": {
           "description": "a tarnished silver ring on the altar. inscription: 'for my beloved eleanor, forever in death as in life. — a.b.' it's identical to the garnet ring found in the conservatory, except this one holds a small diamond.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.05,
           "current_state": "normal",
@@ -22115,7 +23552,10 @@
         "name": "sink",
         "properties": {
           "description": "a deep stone sink with a dripping faucet. the tap still works — water flows, brown with rust at first, then clear. the water is cold and clean. when the water runs, the dripping sound continues from elsewhere.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
           "weight": 50,
           "current_state": "normal",
@@ -22139,7 +23579,10 @@
         "name": "sink_bath",
         "properties": {
           "description": "a porcelain pedestal sink. the tap still works — the water runs brown at first, then clear. the water is ice cold.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
           "weight": 40,
           "current_state": "normal",
@@ -22163,7 +23606,12 @@
         "name": "Slick Oil",
         "properties": {
           "description": "A greasy bottle of near-black oil. A coat of this on the skin and nothing holds you for long.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 2,
           "weight": 0.4,
           "current_state": "normal",
@@ -22208,7 +23656,12 @@
         "name": "Small Angel Statue (Ramiel's Charge)",
         "properties": {
           "description": "A small, intricately carved stone statue of an angel with outspread wings. The base is inscribed with 'Ramiel's Charge'. The statue feels cool to the touch.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.3,
           "current_state": "normal",
@@ -22247,7 +23700,11 @@
         "name": "small_key",
         "properties": {
           "description": "a small brass key hidden behind a loose floorboard near margaret's portrait. it's old and caked with dust.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.05,
           "current_state": "normal",
@@ -22270,7 +23727,12 @@
         "name": "Small Oil Tin (For Prosthetic)",
         "properties": {
           "description": "A small, dented tin container holding clockwork oil. Essential for maintaining the prosthetic leg, preventing painful grinding and stiffness. Carried in a coat pocket.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 5,
           "weight": 0.3,
           "current_state": "normal",
@@ -22296,9 +23758,14 @@
         "name": "Snare Trap",
         "properties": {
           "description": "A coiled spring-trap with steel jaws and a rusted chain. Set it and step back — it grabs whatever trips it.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 1,
-          "weight": 2.0,
+          "weight": 2,
           "current_state": "normal",
           "hidden": false,
           "light_level": "dim",
@@ -22342,7 +23809,14 @@
         "name": "sneakers",
         "properties": {
           "description": "a pair of well-worn running sneakers. still have some miles left.",
-          "actions": "examine,use,take,drop,unequip,equip",
+          "actions": [
+            "examine",
+            "use",
+            "take",
+            "drop",
+            "unequip",
+            "equip"
+          ],
           "uses": -1,
           "weight": 1,
           "current_state": "normal",
@@ -22385,7 +23859,11 @@
         "name": "soap",
         "properties": {
           "description": "a dried-out bar of soap on the edge of the tub. it still smells faintly of lavender.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.1,
           "current_state": "normal",
@@ -22408,7 +23886,12 @@
         "name": "Spellbook ",
         "properties": {
           "description": "A dusty spellbook bound in cracked leather. The pages are filled with intricate arcane symbols; one spell is circled in red ink.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.5,
           "current_state": "normal",
@@ -22458,7 +23941,9 @@
         "name": "spice_rack",
         "properties": {
           "description": "a rack of dried herbs and spices. most are faded and useless. but a jar labeled 'rosemary' still has a faint, pleasant scent.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 3,
           "current_state": "normal",
@@ -22481,7 +23966,14 @@
         "name": "sports bra",
         "properties": {
           "description": "a plain black sports bra, functional and worn. not fashionable, but it stays put when climbing through windows.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.15,
           "current_state": "normal",
@@ -22521,7 +24013,14 @@
         "name": "stained work shirt",
         "properties": {
           "description": "a once-white cotton work shirt, now permanently brown and red from old blood. the sleeves are rolled to the elbows, revealing scarred forearms. the collar is torn.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.4,
           "current_state": "normal",
@@ -22561,7 +24060,12 @@
         "name": "stale_crackers",
         "properties": {
           "description": "a half-eaten pack of crackers on the bedside table. stale but still edible. a bite has been taken from one.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.15,
           "current_state": "normal",
@@ -22585,7 +24089,9 @@
         "name": "statue",
         "properties": {
           "description": "a small stone statue of a cherub hidden among the overgrown bushes, its face chipped away. someone deliberately defaced it.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 30,
           "current_state": "normal",
@@ -22609,7 +24115,9 @@
         "name": "stethoscope",
         "properties": {
           "description": "her stethoscope from work.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0.3,
           "current_state": "normal",
@@ -22629,7 +24137,14 @@
         "name": "Stirrup Socks",
         "properties": {
           "description": "Knee-high wool socks with a strap that runs under the arch of your foot, leaving your toes and heel completely bare. They keep your calves warm while your feet stay free.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.2,
           "current_state": "normal",
@@ -22705,7 +24220,11 @@
         "name": "Stone tablet with Rune",
         "properties": {
           "description": "A sturdy stone table with a glowing rune carved into its surface. It radiates a pleasant warmth, making the outhouse comfortable despite the cold outside.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.5,
           "current_state": "lit",
@@ -22773,7 +24292,9 @@
         "name": "stove",
         "properties": {
           "description": "a cast-iron stove, still faintly warm to the touch. impossible — there's no fuel, no fire. a kettle sits on top, and when you touch it, you could swear you hear a faint whistling from somewhere far away.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 80,
           "current_state": "normal",
@@ -22819,7 +24340,14 @@
         "name": "Stovepipe Leather Boots (Pair)",
         "properties": {
           "description": "Dark brown leather boots rising to mid-calf. Right boot is standard issue, worn and scuffed. Left boot has been cut and modified to fit around the clockwork prosthetic, with reinforced sole and oiled leather flap covering the joint. Heels worn unevenly, caked with dried mud.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": -1,
           "weight": 2,
           "current_state": "normal",
@@ -22844,7 +24372,11 @@
         "name": "strange_compass",
         "properties": {
           "description": "a brass compass in the desk drawer. the needle doesn't point north — it points toward the fireplace, no matter where you stand. there must be something magnetic behind it.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.2,
           "current_state": "normal",
@@ -22889,7 +24421,11 @@
         "name": "stuffed_rabbit",
         "properties": {
           "description": "a worn stuffed rabbit with one button eye missing. it feels unnaturally cold, and when you hold it, you hear a faint child's whisper: 'don't leave me here alone.'",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.2,
           "current_state": "normal",
@@ -22960,7 +24496,14 @@
         "name": "syringe necklace",
         "properties": {
           "description": "a necklace made from black string, holding a mini glass syringe filled with bright pink liquid. the liquid glows faintly. it's sealed shut — you can't actually inject anything with it.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.03,
           "current_state": "normal",
@@ -23001,7 +24544,9 @@
         "name": "table",
         "properties": {
           "description": "a long table set for a meal that never came. seven place settings — one for each family member. one place setting at the head of the table is disturbed, the chair pushed back as if someone left in a hurry. the plate is cracked.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 80,
           "current_state": "normal",
@@ -23044,7 +24589,9 @@
         "name": "table_35eb71c1",
         "properties": {
           "description": "A wrought-iron table with a cracked glass top. A water-damaged notebook lies on it, pages bloated with moisture.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 15,
           "current_state": "normal",
@@ -23068,7 +24615,9 @@
         "name": "table_8625c82c",
         "properties": {
           "description": "a wrought-iron table with a cracked glass top. a water-damaged notebook lies on it, pages bloated with moisture.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 15,
           "current_state": "normal",
@@ -23091,7 +24640,12 @@
         "name": "Register Drawer",
         "properties": {
           "description": "the cash drawer under unit 001. a float of twenties, a roll of quarters, and a post-it that says DO NOT count drawer during rush in aggressive caps.",
-          "actions": "examine,search,take,drop",
+          "actions": [
+            "examine",
+            "search",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 3,
           "current_state": "closed",
@@ -23114,7 +24668,13 @@
         "name": "Steamed Meal (Holding Chute)",
         "properties": {
           "description": "a bagged order abandoned in the pickup shelf, going lukewarm under the heat lamp. the receipt curling at the edge says NO ONE HAS COME FOR THIS in the language of forgotten food.",
-          "actions": "examine,take,use,eat,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "eat",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.5,
           "current_state": "normal",
@@ -23147,7 +24707,12 @@
         "name": "Tainted Brew",
         "properties": {
           "description": "A murky, bitter drink that smells faintly of copper and ash. Probably not water.",
-          "actions": "examine,take,drink,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drink",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.3,
           "current_state": "normal",
@@ -23194,7 +24759,12 @@
         "name": "tainted_wine",
         "properties": {
           "description": "a dusty bottle of wine hidden behind the fireplace. the label reads 'blackwood reserve 1887'. the liquid inside is dark and smells vinegary — but also metallic, like blood.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 1,
           "weight": 1,
           "current_state": "normal",
@@ -23240,7 +24810,10 @@
         "name": "talisman",
         "properties": {
           "description": "a small obsidian pendant miki bought at a spiritual shop. she claims it wards off evil spirits.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
           "weight": 0.05,
           "current_state": "normal",
@@ -23367,7 +24940,9 @@
         "name": "teacup",
         "properties": {
           "description": "a cold cup of tea, long abandoned. the liquid inside has turned black with age, and a dark ring stains the porcelain. there's lipstick on the rim.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0.3,
           "current_state": "normal",
@@ -25412,7 +26987,12 @@
         "name": "thermos",
         "properties": {
           "description": "an old thermos on the bench wedged between the roots. inside: cold but still drinkable tea, though it tastes of oak and earth now.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 2,
           "weight": 0.8,
           "current_state": "normal",
@@ -25438,7 +27018,12 @@
         "name": "Thunder Horn",
         "properties": {
           "description": "A dented brass horn. Blowing it produces a blast that rings in the ears for a long while.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 5,
           "weight": 0.8,
           "current_state": "normal",
@@ -25485,7 +27070,12 @@
         "name": "Tinderbox",
         "properties": {
           "description": "A Tinderbox is a small container holding flint, fire steel, and tinder used to kindle a fire. Using it to light a Candle, Lamp, Lantern, or Torch takes a Bonus Action. Lighting any other fire takes 1 minute.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": -1,
           "weight": 1,
           "current_state": "normal",
@@ -25509,7 +27099,11 @@
         "name": "tiny_key",
         "properties": {
           "description": "a tiny brass key barely larger than your thumb. it was hidden inside the cracked vase — taped to the inner wall.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.02,
           "current_state": "normal",
@@ -25552,7 +27146,10 @@
         "name": "Toilet",
         "properties": {
           "description": "A standard white porcelain toilet bolted to the floor, tank against the wall, chrome flush lever worn shiny in the middle. The seat is the cheap open-front commercial kind, and the water level sits suspiciously high, like it's always one flush from making a point.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
           "weight": 50,
           "current_state": "normal",
@@ -25614,7 +27211,14 @@
         "name": "torn black thigh-high stocking",
         "properties": {
           "description": "a single black thigh-high stocking with a small tear near the knee. the elastic band at the top keeps it from slipping.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.1,
           "current_state": "normal",
@@ -25655,7 +27259,9 @@
         "name": "towel",
         "properties": {
           "description": "a damp, musty towel hanging from a rack. it's gray with age but still has some absorbency.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0.3,
           "current_state": "normal",
@@ -25678,7 +27284,9 @@
         "name": "toy_box",
         "properties": {
           "description": "a small wooden toy box in the corner, painted with fading circus animals. the lid is heavy. inside: a collection of old toys, all broken or damaged. a doll with no head. a horse with no legs. a jack-in-the-box that won't open.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 8,
           "current_state": "normal",
@@ -25724,7 +27332,11 @@
         "name": "toy_soldiers",
         "properties": {
           "description": "lead toy soldiers arranged in a battle formation around a tiny replica of a crystal skull, made from painted glass. the soldiers point their rifles at the tiny skull, as if trying to protect something from it.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.8,
           "current_state": "normal",
@@ -25748,7 +27360,12 @@
         "name": "Tripwire Grease",
         "properties": {
           "description": "A tin of slick, dark grease. Spread it on the floor and watch whoever steps on it go flying.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 3,
           "weight": 0.4,
           "current_state": "normal",
@@ -25794,7 +27411,9 @@
         "name": "trunk",
         "properties": {
           "description": "a large steamer trunk with a rusty latch and reinforced corners. it's locked with a heavy padlock. the nameplate reads: 'e. blackwood — personal effects.' something inside is tapping against the lid.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 20,
           "current_state": "normal",
@@ -25839,7 +27458,9 @@
         "name": "tub",
         "properties": {
           "description": "a claw-foot tub with an inch of grimy water at the bottom. the water is dark and still. a ring of scum marks the high-water line — someone took a bath here, and recently. the water isn't cold enough.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 80,
           "current_state": "normal",
@@ -25883,7 +27504,10 @@
         "name": "typewriter",
         "properties": {
           "description": "An old Remington typewriter. A half-finished page is still rolled in: 'The old house keeps its secrets well. Only those who look closely will find what lies beneath...'",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
           "weight": 8,
           "current_state": "normal",
@@ -25920,7 +27544,11 @@
         "name": "unlabeled_vial",
         "properties": {
           "description": "a small glass vial of dark, oily liquid. it smells of herbs and something metallic. there's no label, but a piece of paper is tucked under the string around its neck: 'for the pain. three drops only.'",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": 3,
           "weight": 0.1,
           "current_state": "normal",
@@ -25985,7 +27613,12 @@
         "name": "Unlit Torch",
         "properties": {
           "description": "A wooden torch wrapped with cloth, ready to be lit but currently unlit.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.5,
           "current_state": "normal",
@@ -26007,7 +27640,14 @@
         "name": "upside-down cross hair pin",
         "properties": {
           "description": "a small silver upside-down cross bobby pin, worn on the right side of blunt bangs.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.01,
           "current_state": "normal",
@@ -26128,7 +27768,9 @@
         "name": "vanity",
         "properties": {
           "description": "a wooden vanity with a cracked, spotted mirror. a silver hairbrush and jewelry box sit on it, exactly as they were left. the mirror reflects strangely — your image seems to move a split second after you do.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 20,
           "current_state": "normal",
@@ -26174,7 +27816,9 @@
         "name": "vase",
         "properties": {
           "description": "a cracked porcelain vase on a side table. it's empty and smells faintly of old flowers. a hairline fracture runs down its side.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 3,
           "current_state": "normal",
@@ -26214,7 +27858,9 @@
         "name": "wall_carvings",
         "properties": {
           "description": "the walls of the crypt are carved with scenes of angels and demons in battle. one panel shows a figure holding a skull aloft while a family cowers. the message beneath: 'the firstborn's spirit guards the threshold. take her, and the door closes forever.'",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0,
           "current_state": "normal",
@@ -26239,7 +27885,9 @@
         "name": "wardrobe_attic",
         "properties": {
           "description": "a tall, ornate wardrobe with a cracked mirror. inside: moth-eaten fur coats, a wedding dress yellowed with age, and a small box containing a child's christening gown and a lock of baby hair.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 30,
           "current_state": "normal",
@@ -26264,7 +27912,9 @@
         "name": "wardrobe_g1",
         "properties": {
           "description": "a tall wooden wardrobe containing moth-eaten coats and a single man's suit. in the pocket of the suit: a train ticket stub, dated october 31st, 1891. the return portion is unused.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 25,
           "current_state": "normal",
@@ -26289,7 +27939,9 @@
         "name": "wardrobe_master",
         "properties": {
           "description": "a massive armoire filled with victorian-era clothing: suits, dresses, and a single child's dress that doesn't belong. the dress is small, white, and stained with something dark at the hem.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 60,
           "current_state": "normal",
@@ -26314,7 +27966,13 @@
         "name": "Warm Crunchy Taco",
         "properties": {
           "description": "a crunchy taco in its foil cradle, shell already cracking along one side, lettuce escaping. structurally compromised but emotionally supportive.",
-          "actions": "examine,take,use,eat,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "eat",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.15,
           "current_state": "normal",
@@ -26347,7 +28005,10 @@
         "name": "Wash Basin",
         "properties": {
           "description": "A simple wooden wash basin filled with warm water.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": -1,
           "weight": 15,
           "current_state": "normal",
@@ -26406,7 +28067,12 @@
         "name": "water_carboy",
         "properties": {
           "description": "a large glass carboy of drinking water, half full. the glass stopper is still sealed with wax. the water inside is perfectly clear.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 5,
           "weight": 5,
           "current_state": "normal",
@@ -26433,7 +28099,10 @@
         "name": "water_glass",
         "properties": {
           "description": "a nightstand glass with stale but drinkable water. a ring of sediment circles the bottom.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": 1,
           "weight": 0.3,
           "current_state": "normal",
@@ -26460,7 +28129,12 @@
         "name": "water_jug",
         "properties": {
           "description": "a ceramic jug filled with stale but drinkable water. the clay keeps it cool.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 3,
           "weight": 2,
           "current_state": "normal",
@@ -26487,7 +28161,13 @@
         "name": "water_pitcher",
         "properties": {
           "description": "A clay pitcher filled with cool, clear water. Condensation beads on the surface.",
-          "actions": "examine,use,take,drink,drop",
+          "actions": [
+            "examine",
+            "use",
+            "take",
+            "drink",
+            "drop"
+          ],
           "uses": 3,
           "weight": 1,
           "current_state": "normal",
@@ -26552,7 +28232,11 @@
         "name": "watering_can",
         "properties": {
           "description": "a rusty watering can. empty. when you pick it up, something rattles inside — a small object.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 1.5,
           "current_state": "normal",
@@ -26599,7 +28283,14 @@
         "name": "Waxed Canvas Vest",
         "properties": {
           "description": "Sturdy oiled canvas vest, dark brown, scarred from travel. Four front pockets (two large enough for notebooks). One pocket is permanently ink-stained. Leather toggles worn smooth. Right shoulder patched with darker canvas.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": -1,
           "weight": 1.2,
           "current_state": "normal",
@@ -26624,7 +28315,12 @@
         "name": "Wheel of Cheese",
         "properties": {
           "description": "A large wheel of aged cheese, wrapped in a coarse cloth. It smells pungent and earthy, promising a rich flavor.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 3,
           "weight": 2,
           "current_state": "normal",
@@ -26696,7 +28392,11 @@
         "name": "white_feather",
         "properties": {
           "description": "a single white feather, impossibly clean and fresh in this dusty old mansion. it's warm to the touch.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.01,
           "current_state": "normal",
@@ -26721,7 +28421,9 @@
         "name": "wilting_lilies",
         "properties": {
           "description": "fresh lilies at eleanor's grave. they can't be more than a day old. but no one has been here in 130 years. who left them?",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 0.3,
           "current_state": "normal",
@@ -26766,7 +28468,12 @@
         "name": "wine",
         "properties": {
           "description": "a crystal decanter filled with what looks like wine. it smells vinegary and medicinal.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 1,
           "weight": 1.5,
           "current_state": "normal",
@@ -26791,7 +28498,11 @@
         "name": "wine_bottle",
         "properties": {
           "description": "a dusty bottle of vintage wine. the label reads 'blackwood reserve 1882'. it might still be drinkable. the cork is intact.",
-          "actions": "examine,take,drop",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 1.2,
           "current_state": "normal",
@@ -26816,7 +28527,9 @@
         "name": "wine_case",
         "properties": {
           "description": "a wooden case containing six bottles of rare port, all intact. worth a fortune to a collector.",
-          "actions": "examine",
+          "actions": [
+            "examine"
+          ],
           "uses": -1,
           "weight": 8,
           "current_state": "normal",
@@ -26841,7 +28554,12 @@
         "name": "Wine Cask",
         "properties": {
           "description": "A large oak cask filled with a deep red wine. The wood is stained dark with age, and a faint, sweet aroma wafts from the bunghole.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 50,
           "weight": 50,
           "current_state": "normal",
@@ -26926,7 +28644,12 @@
         "name": "Wooden Outhouse Seat",
         "properties": {
           "description": "A worn wooden seat with a hole, from which sounds of running water echo deep below.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 1,
           "weight": 0.5,
           "current_state": "normal",
@@ -26986,7 +28709,12 @@
         "name": "Wooden Toy Boat",
         "properties": {
           "description": "A small, intricately carved wooden boat resting on the windowsill. Its paint is faded but the craftsmanship is evident.",
-          "actions": "examine,take,use,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
           "uses": 0,
           "weight": 0.2,
           "current_state": "normal",
@@ -27057,7 +28785,14 @@
         "name": "Wool Blend Undershirt & Drawers",
         "properties": {
           "description": "Worn soft from years of use, this practical undergarment is a coarse wool and cotton blend. The drawstrings have been replaced twice, once with leather cord, once with twine. Faintly smells of woodsmoke. Frayed but clean hems.",
-          "actions": "examine,take,use,equip,unequip,drop",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
           "uses": -1,
           "weight": 0.5,
           "current_state": "normal",
@@ -27081,7 +28816,10 @@
         "name": "Worn Leather Armchair",
         "properties": {
           "description": "A faded leather armchair sits before the cold hearth, its cracked surface bearing the dark stains of countless restless nights. The cushion sinks slightly.",
-          "actions": "examine,use",
+          "actions": [
+            "examine",
+            "use"
+          ],
           "uses": 1,
           "weight": 45,
           "current_state": "normal",
@@ -27148,7 +28886,12 @@
         "name": "wrench",
         "properties": {
           "description": "a heavy adjustable wrench. kyrie knows how to use it — both for fixing things and, if necessary, for other purposes.",
-          "actions": "examine,use,take,drop",
+          "actions": [
+            "examine",
+            "use",
+            "take",
+            "drop"
+          ],
           "uses": -1,
           "weight": 1.5,
           "current_state": "normal",
@@ -37498,6 +39241,6 @@
       ]
     }
   ],
-  "_scenario_name": "kraktooth_goblin_camp",
+  "_scenario_name": "kraktooth_goblin_camp_assembled",
   "persist": true
 }

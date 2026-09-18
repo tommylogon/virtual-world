@@ -5,7 +5,9 @@
     "interior",
     "cave",
     "goblin_camp",
-    "magic"
+    "magic",
+    "shrine",
+    "occult"
   ],
   "environment": {
     "air": "musty",

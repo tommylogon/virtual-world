@@ -13,7 +13,9 @@
     "weapon",
     "knife",
     "metal",
-    "tool"
+    "tool",
+    "armory",
+    "guard"
   ],
   "triggers": [],
   "contents": []

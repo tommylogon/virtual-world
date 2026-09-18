@@ -5,7 +5,8 @@
     "interior",
     "cave",
     "goblin_camp",
-    "storage"
+    "storage",
+    "workshop"
   ],
   "environment": {
     "air": "musty",

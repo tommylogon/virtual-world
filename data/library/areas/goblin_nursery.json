@@ -150,7 +150,8 @@
     "interior",
     "cave",
     "goblin_camp",
-    "young"
+    "young",
+    "nursery"
   ],
   "triggers": []
 }

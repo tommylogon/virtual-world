@@ -13,7 +13,11 @@
     "meat",
     "hook",
     "tool",
-    "metal"
+    "metal",
+    "furniture",
+    "display",
+    "cooking",
+    "food"
   ],
   "triggers": [],
   "contents": []

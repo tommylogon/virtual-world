@@ -10,7 +10,8 @@
   "damage": 0,
   "insulation": 0,
   "tags": [
-    "furniture"
+    "furniture",
+    "display"
   ],
   "triggers": [],
   "contents": []

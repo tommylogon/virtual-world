@@ -5,7 +5,9 @@
     "interior",
     "cave",
     "goblin_camp",
-    "combat"
+    "combat",
+    "training",
+    "armory"
   ],
   "environment": {
     "air": "fresh",

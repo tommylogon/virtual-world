@@ -136,7 +136,7 @@
         ]
       },
       "perceived_conditions": {},
-      "current_area": "area_camp_entrance_trail",
+      "current_area": "Camp Entrance Trail",
       "current_carry_weight": 0,
       "max_carry_capacity": 30,
       "feels_like": 18,
@@ -248,7 +248,7 @@
         ]
       },
       "perceived_conditions": {},
-      "current_area": "area_chiefs_pit",
+      "current_area": "Chief's Pit",
       "current_carry_weight": 0,
       "max_carry_capacity": 30,
       "feels_like": 19,
@@ -385,7 +385,7 @@
         ]
       },
       "perceived_conditions": {},
-      "current_area": "area_training_pit",
+      "current_area": "Training Pit",
       "current_carry_weight": 0,
       "max_carry_capacity": 30,
       "feels_like": 17,
@@ -522,7 +522,7 @@
         ]
       },
       "perceived_conditions": {},
-      "current_area": "area_scouting_rooms",
+      "current_area": "Scouting Rooms",
       "current_carry_weight": 0,
       "max_carry_capacity": 30,
       "feels_like": 16,
@@ -659,7 +659,7 @@
         ]
       },
       "perceived_conditions": {},
-      "current_area": "area_workshop",
+      "current_area": "Workshop",
       "current_carry_weight": 0,
       "max_carry_capacity": 30,
       "feels_like": 17,
@@ -796,7 +796,7 @@
         ]
       },
       "perceived_conditions": {},
-      "current_area": "area_cooking_area",
+      "current_area": "Cooking Area",
       "current_carry_weight": 0,
       "max_carry_capacity": 30,
       "feels_like": 24,
@@ -934,7 +934,7 @@
         ]
       },
       "perceived_conditions": {},
-      "current_area": "area_chiefs_pit",
+      "current_area": "Chief's Pit",
       "current_carry_weight": 0,
       "max_carry_capacity": 30,
       "feels_like": 19,
@@ -1071,7 +1071,7 @@
         ]
       },
       "perceived_conditions": {},
-      "current_area": "area_scrap_pile",
+      "current_area": "Scrap Pile",
       "current_carry_weight": 0,
       "max_carry_capacity": 30,
       "feels_like": 15,
@@ -1208,7 +1208,7 @@
         ]
       },
       "perceived_conditions": {},
-      "current_area": "area_chiefs_pit",
+      "current_area": "Chief's Pit",
       "current_carry_weight": 0,
       "max_carry_capacity": 30,
       "feels_like": 19,
@@ -1348,7 +1348,7 @@
         ]
       },
       "perceived_conditions": {},
-      "current_area": "area_camp_entrance_trail",
+      "current_area": "Camp Entrance Trail",
       "current_carry_weight": 0,
       "max_carry_capacity": 30,
       "feels_like": 18,
@@ -1489,7 +1489,7 @@
         ]
       },
       "perceived_conditions": {},
-      "current_area": "area_camp_entrance_trail",
+      "current_area": "Camp Entrance Trail",
       "current_carry_weight": 0,
       "max_carry_capacity": 30,
       "feels_like": 18,
@@ -1601,7 +1601,7 @@
         ]
       },
       "perceived_conditions": {},
-      "current_area": "area_prison_pens",
+      "current_area": "Prison Pens",
       "current_carry_weight": 0,
       "max_carry_capacity": 30,
       "feels_like": 15,
@@ -1713,7 +1713,7 @@
         ]
       },
       "perceived_conditions": {},
-      "current_area": "area_eldenford_village",
+      "current_area": "Eldenford",
       "current_carry_weight": 0,
       "max_carry_capacity": 30,
       "feels_like": 18,
@@ -1825,7 +1825,7 @@
         ]
       },
       "perceived_conditions": {},
-      "current_area": "area_eldenford_village",
+      "current_area": "Eldenford",
       "current_carry_weight": 0,
       "max_carry_capacity": 30,
       "feels_like": 20,
@@ -1937,7 +1937,7 @@
         ]
       },
       "perceived_conditions": {},
-      "current_area": "area_eldenford_village",
+      "current_area": "Eldenford",
       "current_carry_weight": 0,
       "max_carry_capacity": 30,
       "feels_like": 18,
@@ -2049,7 +2049,7 @@
         ]
       },
       "perceived_conditions": {},
-      "current_area": "area_human_road",
+      "current_area": "Human Road",
       "current_carry_weight": 0,
       "max_carry_capacity": 30,
       "feels_like": 17,
@@ -2161,7 +2161,7 @@
         ]
       },
       "perceived_conditions": {},
-      "current_area": "area_abandoned_farm",
+      "current_area": "Abandoned Farm",
       "current_carry_weight": 0,
       "max_carry_capacity": 30,
       "feels_like": 17,
@@ -2273,7 +2273,7 @@
         ]
       },
       "perceived_conditions": {},
-      "current_area": "area_deep_forest",
+      "current_area": "Deep Forest",
       "current_carry_weight": 0,
       "max_carry_capacity": 30,
       "feels_like": 17,
@@ -2367,7 +2367,7 @@
         ]
       },
       "perceived_conditions": {},
-      "current_area": "area_northern_hills",
+      "current_area": "Northern Hills",
       "current_carry_weight": 0,
       "max_carry_capacity": 30,
       "feels_like": 13,
@@ -2461,7 +2461,7 @@
         ]
       },
       "perceived_conditions": {},
-      "current_area": "area_deep_forest",
+      "current_area": "Deep Forest",
       "current_carry_weight": 0,
       "max_carry_capacity": 30,
       "feels_like": 17,
@@ -2555,7 +2555,7 @@
         ]
       },
       "perceived_conditions": {},
-      "current_area": "area_raven_river",
+      "current_area": "Raven River",
       "current_carry_weight": 0,
       "max_carry_capacity": 30,
       "feels_like": 16,
@@ -2649,7 +2649,7 @@
         ]
       },
       "perceived_conditions": {},
-      "current_area": "area_camp_entrance",
+      "current_area": "Camp Entrance",
       "current_carry_weight": 0,
       "max_carry_capacity": 30,
       "feels_like": 16,
@@ -2743,7 +2743,7 @@
         ]
       },
       "perceived_conditions": {},
-      "current_area": "area_blackmarsh",
+      "current_area": "Blackmarsh",
       "current_carry_weight": 0,
       "max_carry_capacity": 30,
       "feels_like": 18,
@@ -6273,139 +6273,139 @@
         }
       },
       {
-        "source": "player_human_explorer",
+        "source": "character_player_human_explorer",
         "target": "area_camp_entrance_trail",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "Thrazz",
+        "source": "character_thrazz",
         "target": "area_chiefs_pit",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "Zikka",
+        "source": "character_zikka",
         "target": "area_training_pit",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "Vekka",
+        "source": "character_vekka",
         "target": "area_scouting_rooms",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "Mikka",
+        "source": "character_mikka",
         "target": "area_workshop",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "Gribba",
+        "source": "character_gribba",
         "target": "area_cooking_area",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "Rikka",
+        "source": "character_rikka",
         "target": "area_chiefs_pit",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "Krikka",
+        "source": "character_krikka",
         "target": "area_scrap_pile",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "Arix",
+        "source": "character_arix",
         "target": "area_chiefs_pit",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "Kiala",
+        "source": "character_kiala",
         "target": "area_camp_entrance_trail",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "Belne",
+        "source": "character_belne",
         "target": "area_camp_entrance_trail",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "Leslie",
+        "source": "character_leslie",
         "target": "area_prison_pens",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "Eldenford Elder",
+        "source": "character_eldenford_elder",
         "target": "area_eldenford_village",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "Eldenford Blacksmith",
+        "source": "character_eldenford_blacksmith",
         "target": "area_eldenford_village",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "Eldenford Merchant",
+        "source": "character_eldenford_merchant",
         "target": "area_eldenford_village",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "Eldenford Road Guard Captain",
+        "source": "character_eldenford_guard",
         "target": "area_human_road",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "Eldenford Farmer",
+        "source": "character_eldenford_farmer",
         "target": "area_abandoned_farm",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "Rag-Tail",
+        "source": "character_rag_tail",
         "target": "area_deep_forest",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "Old Iron-Back",
+        "source": "character_old_iron_back",
         "target": "area_northern_hills",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "Tusker",
+        "source": "character_tusker",
         "target": "area_deep_forest",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "Shadow-Pelt",
+        "source": "character_shadow_pelt",
         "target": "area_raven_river",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "Silver-Talon",
+        "source": "character_silver_talon",
         "target": "area_camp_entrance",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "Croak-Mother",
+        "source": "character_croak_mother",
         "target": "area_blackmarsh",
         "type": "in",
         "properties": {}
@@ -6543,25 +6543,25 @@
         "properties": {}
       },
       {
-        "source": "player_human_explorer",
+        "source": "character_player_human_explorer",
         "target": "item_torch",
         "type": "carrying",
         "properties": {}
       },
       {
-        "source": "player_human_explorer",
+        "source": "character_player_human_explorer",
         "target": "item_knife",
         "type": "carrying",
         "properties": {}
       },
       {
-        "source": "player_human_explorer",
+        "source": "character_player_human_explorer",
         "target": "item_water_skin",
         "type": "carrying",
         "properties": {}
       },
       {
-        "source": "player_human_explorer",
+        "source": "character_player_human_explorer",
         "target": "item_bread",
         "type": "carrying",
         "properties": {}

@@ -34,17 +34,31 @@ def validate_areas(nodes: dict, issues: list):
                 issues.append(f"Area {area_id} missing environment.{key}.")
 
 
+def _area_keys(nodes: dict):
+    """Area node ids AND display names.
+
+    The engine resolves areas by display name (engine/room_perception.py), while
+    graph tooling often references the node id. Accept either so the validator
+    matches runtime behaviour instead of only one authoring style.
+    """
+    ids = {nid for nid, n in nodes.items() if n.get("type") == "area"}
+    names = {n.get("name") for nid, n in nodes.items()
+             if n.get("type") == "area" and n.get("name")}
+    return ids, names
+
+
 def validate_ways(nodes: dict, edges: list, issues: list):
     ways = {nid: n for nid, n in nodes.items() if n.get("type") == "way"}
+    area_ids, area_names = _area_keys(nodes)
     for way_id, node in ways.items():
         props = node.get("properties", {})
         if not props.get("pass_message"):
             issues.append(f"Way {way_id} has no pass_message.")
         area_from = props.get("area_from")
         area_to = props.get("area_to")
-        if area_from and area_from not in nodes:
+        if area_from and area_from not in area_ids and area_from not in area_names:
             issues.append(f"Way {way_id} area_from '{area_from}' missing.")
-        if area_to and area_to not in nodes:
+        if area_to and area_to not in area_ids and area_to not in area_names:
             issues.append(f"Way {way_id} area_to '{area_to}' missing.")
     connection_targets = {e.get("target") for e in edges if e.get("type") == "connection"}
     for way_id in ways:
@@ -96,10 +110,10 @@ def validate_triggers(nodes: dict, edges: list, issues: list):
 
 
 def validate_players(players: dict, nodes: dict, issues: list):
-    area_ids = {nid for nid, n in nodes.items() if n.get("type") == "area"}
+    area_ids, area_names = _area_keys(nodes)
     for player_name, player in players.items():
         current_area = player.get("current_area")
-        if current_area and current_area not in area_ids:
+        if current_area and current_area not in area_ids and current_area not in area_names:
             issues.append(f"Player '{player_name}' is in missing area '{current_area}'.")
 
 

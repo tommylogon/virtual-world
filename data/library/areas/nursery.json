@@ -1,7 +1,10 @@
 {
   "name": "nursery",
   "description": "a small child's nursery frozen in time. a wooden rocking horse stands in the corner, its painted eyes strangely lifelike. toys are scattered across the floor as if a child just finished playing — but the dust says otherwise. the room is unnaturally cold, at least ten degrees colder than the hallway. faint whispers seem to come from the walls, speaking in a language you don't recognize.",
-  "tags": [],
+  "tags": [
+    "goblin_camp",
+    "nursery"
+  ],
   "environment": {
     "air": "cold",
     "light": 20,

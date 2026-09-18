@@ -14,7 +14,9 @@
     "corpse",
     "organic",
     "occult",
-    "evidence"
+    "evidence",
+    "shrine",
+    "guard"
   ],
   "triggers": [],
   "contents": []

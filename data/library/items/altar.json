@@ -13,7 +13,10 @@
     "altar",
     "ritual",
     "occult",
-    "stone"
+    "stone",
+    "furniture",
+    "display",
+    "shrine"
   ],
   "triggers": [
     {

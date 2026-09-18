@@ -5,7 +5,8 @@
     "interior",
     "cave",
     "goblin_camp",
-    "underground"
+    "underground",
+    "mining"
   ],
   "environment": {
     "air": "thin",

@@ -5,7 +5,8 @@
     "interior",
     "cave",
     "goblin_camp",
-    "information"
+    "information",
+    "scouting"
   ],
   "environment": {
     "air": "stale",
