@@ -21,6 +21,7 @@ Key facts:
 from typing import Optional, List, Dict, Any
 
 from graph import Node, Edge, EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED
+from vital_rates import change
 
 
 #: player condition applied when an activity starts (None = none).
@@ -37,17 +38,20 @@ ACTIVITY_CONDITIONS: Dict[str, Optional[str]] = {
     "lying down": "busy",
 }
 
-#: per-tick vital regeneration while an activity is active.
-#: Values are tuned against baseline decay (Energy -1/tick) so restful
-#: activities NET positive.
-ACTIVITY_REGEN: Dict[str, Dict[str, int]] = {
-    "sleeping": {"Energy": 0},   # handled by tick_manager state logic (+3 → net +2)
-    "resting": {"Energy": 2},    # net +1
+#: per-minute vital regeneration while an activity is active (see
+#: vital_rates — the world clock is 1 in-game minute per tick). Tuned against
+#: the per-minute baseline Energy drain (0.104/min): sleeping is the real
+#: recovery (~+0.20/min net), resting/lying down slow the drain, bathing
+#: cleans fast. Whole units land via the fractional accumulator, so
+#: short activities may show no change for a few ticks.
+ACTIVITY_REGEN: Dict[str, Dict[str, float]] = {
+    "sleeping": {"Energy": 0},      # handled by tick_manager (SLEEP_ENERGY_REGEN)
+    "resting": {"Energy": 0.15},    # net ~+0.05/min vs baseline drain
     "waiting": {},
-    "meditating": {"Sanity": 2},  # net +1
-    "bathing": {"Hygiene": 5},
-    "sitting": {"Energy": 2},     # net +1
-    "lying down": {"Energy": 3},  # net +2
+    "meditating": {"Sanity": 0.05},
+    "bathing": {"Hygiene": 1.5},
+    "sitting": {"Energy": 0.06},    # slows the drain, does not restore
+    "lying down": {"Energy": 0.25},  # faster than sitting/resting, slower than sleep
 }
 
 #: human-readable labels
@@ -258,11 +262,11 @@ class ActivitySystem:
         activity["elapsed_ticks"] = activity.get("elapsed_ticks", 0) + 1
         outputs = []
 
-        # Vital regen
+        # Vital regen (per-minute; fractional steps carry between ticks)
         for stat, amount in ACTIVITY_REGEN.get(activity_type, {}).items():
             if stat in player.vitals:
                 before = player.vitals[stat]
-                player.vitals[stat] = min(100, player.vitals[stat] + amount)
+                change(player, stat, amount)
                 if player.vitals[stat] > before and stat == "Hygiene" and activity_type == "bathing":
                     outputs.append(f"You scrub yourself clean. Hygiene {player.vitals[stat]}%.")
 

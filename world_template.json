@@ -106,14 +106,15 @@
       ],
       "discovered_items": [],
       "decay_rates": {
-        "Bladder": 1,
-        "Energy": 1,
-        "Entertainment": 1,
-        "Hunger": 1,
-        "Hygiene": 1,
-        "Sanity": 1,
-        "Social": 1,
-        "Thirst": 1
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.07,
+        "Hunger": 0.0034,
+        "Hygiene": 0.05,
+        "Sanity": 0.005,
+        "Social": 0.05,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "body_state": {
         "head": {
@@ -416,14 +417,15 @@
       ],
       "discovered_items": [],
       "decay_rates": {
-        "Bladder": 1,
-        "Energy": 1,
-        "Entertainment": 1,
-        "Hunger": 1,
-        "Hygiene": 1,
-        "Sanity": 1,
-        "Social": 1,
-        "Thirst": 1
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.07,
+        "Hunger": 0.0034,
+        "Hygiene": 0.05,
+        "Sanity": 0.005,
+        "Social": 0.05,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "body_state": {
         "head": {
@@ -790,14 +792,15 @@
       "interest_tags": [],
       "discovered_items": [],
       "decay_rates": {
-        "Bladder": 1,
-        "Energy": 1,
-        "Entertainment": 1,
-        "Hunger": 1,
-        "Hygiene": 1,
-        "Sanity": 1,
-        "Social": 1,
-        "Thirst": 1
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.07,
+        "Hunger": 0.0034,
+        "Hygiene": 0.05,
+        "Sanity": 0.005,
+        "Social": 0.05,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "body_state": {
         "head": {

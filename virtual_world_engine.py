@@ -5,6 +5,7 @@
 from item import Item
 from area import Area
 from player import Player, CONDITION_DEFINITIONS
+from vital_rates import BASELINE_DECAY
 import time
 import logging
 import random
@@ -75,23 +76,19 @@ class VirtualWorld:
 
         # Per-minute decay rates. 1 tick = 1 in-game minute, so these are
         # real-world-scaled from a FULL meter: a healthy adult reaches the
-        # starvation edge at ~3 weeks (Hunger 0.0034/min) and the dehydration
-        # edge at ~3 days (Thirst 0.0250/min); Energy drains over a ~16h
-        # waking day (0.104/min). These rates are sub-1, so they depend on
-        # the fractional accumulator in TickManager.tick_turn() — int()
-        # alone would truncate them to zero every tick.
-        #
-        # The tick_manager HUNGER/THIRST grace + HP-drain constants are
-        # tuned against these rates so total time-to-death lands near the
-        # 3-week / 3-day targets.
+        # starvation edge at ~3 weeks, the dehydration edge at ~3 days, and
+        # Energy empties over a ~16h waking day. Single source of truth is
+        # vital_rates.BASELINE_DECAY — sub-1 rates there depend on the
+        # fractional accumulator in TickManager.tick_turn(); int() alone
+        # would truncate them to zero. The tick_manager Hunger/Thirst
+        # grace + HP-drain constants are tuned against these rates so total
+        # time-to-death lands near the 3-week / 3-day targets.
         self.baseline_decay = {
-            "Energy": 0.104, "Hunger": 0.0034, "Thirst": 0.0250,
-            "Social": 1, "Hygiene": 1,
-            "Sanity": 1, "Entertainment": 1,
-            "Mana": 0,
+            **BASELINE_DECAY,
             # Pleasure system (task-207/208): decay only touches players that
             # carry the vitals (mature_content on). Arousal ebbs slowly,
             # Stimulation drains at a medium rate, Pleasure fades fastest.
+            # Still per-tick; not yet folded into the per-minute scale.
             "Arousal": 1, "Stimulation": 2, "Pleasure": 3
         }
         self.game_logger = GameLogger()

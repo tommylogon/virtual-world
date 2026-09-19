@@ -162,7 +162,12 @@ def test_resting_regen_energy(world):
     hero = world.player_manager.players["Hero"]
     hero.vitals["Energy"] = 40
     world.activities.start_activity("Hero", "resting")
-    world.activities.tick_activity("Hero")
+    # Per-minute rates: resting is 0.15/min, so a whole point lands on the
+    # 7th tick (0.15 x 7 = 1.05) and the second on the 14th. No baseline
+    # decay runs in this mock harness, so the activity regen is the whole
+    # delta.
+    for _ in range(14):
+        world.activities.tick_activity("Hero")
     assert hero.vitals["Energy"] == 42
 
 
@@ -170,7 +175,9 @@ def test_meditating_regen_sanity(world):
     hero = world.player_manager.players["Hero"]
     hero.vitals["Sanity"] = 30
     world.activities.start_activity("Hero", "meditating")
-    world.activities.tick_activity("Hero")
+    # 0.05/min: one point every 20 ticks, so 40 ticks yields +2.
+    for _ in range(40):
+        world.activities.tick_activity("Hero")
     assert hero.vitals["Sanity"] == 32
 
 
@@ -299,7 +306,16 @@ def test_integration_rest_persists_across_ticks():
     world.tick_turn()
     assert player.activity is not None  # still resting
     assert world.time_ticks == 1
-    assert player.vitals["Energy"] == 41  # decay -1 + regen +2 = net +1
+
+    # Per-minute model: resting (0.15/min) modestly outpaces the 0.104/min
+    # baseline drain, so Energy holds or creeps up rather than dropping in a
+    # single tick. Exact ticks-to-+1 is covered by test_resting_regen_energy.
+    start = player.vitals["Energy"]
+    for _ in range(20):
+        if player.activity is None:
+            break
+        world.tick_turn()
+    assert player.vitals["Energy"] >= start
 
 
 def test_integration_sleep_wakes_via_command():
@@ -317,7 +333,11 @@ def test_integration_sleep_wakes_via_command():
 
     world.tick_turn()
     assert player.activity is not None
-    assert player.vitals["Energy"] == 32  # decay -1 + sleeping +3
+    # Sleeping nets ~+0.20 Energy/min (0.30 regen − 0.104 baseline), so a
+    # whole point lands after ~6 ticks rather than the old +2 in one tick.
+    for _ in range(10):
+        world.tick_turn()
+    assert player.vitals["Energy"] >= 31
 
     out = world.wake()
     assert player.activity is None

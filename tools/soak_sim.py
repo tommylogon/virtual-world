@@ -80,6 +80,8 @@ def main():
                     help="drop each player's baked decay_rates so engine defaults apply")
     ap.add_argument("--override", default="", help="per-player decay overrides, e.g. 'Energy=0,Thirst=0'")
     ap.add_argument("--apply-trait", default="", help="apply a trait by tag, e.g. 'goblin=high_metabolism'")
+    ap.add_argument("--set", dest="set_vitals", default="",
+                    help="seed every player's starting vitals, e.g. 'Thirst=0,Hunger=0,Energy=100'")
     ap.add_argument("--neutral-environment", action="store_true",
                     help="in-memory only: force every area to a benign 37C/fresh/quiet environment "
                          "so cold- and air-driven per-tick drains do not confound the decay measurement")
@@ -118,6 +120,12 @@ def main():
             for tag, trait_id in trait_spec.items():
                 if tag in tags:
                     p.traits[trait_id] = True
+
+    set_vitals = parse_kv_pairs(args.set_vitals)
+    if set_vitals:
+        for p in players.values():
+            for stat, val in set_vitals.items():
+                p.vitals[stat] = val
 
     if args.neutral_environment:
         # 20C sits inside the engine's 5..35 "neutral" band, so core temp

@@ -3,6 +3,8 @@ import re
 import time
 import uuid
 
+from vital_rates import BASELINE_DECAY, BLADDER_FILL
+
 class Player:
     def sync_vitals_with_tags(self):
         """Add or remove Mana vital based on 'magic' tag."""
@@ -80,18 +82,15 @@ class Player:
             "Entertainment": 100, "Temperature": 37.0
         }
 
-        # Per-character decay rate overrides. Defaults match the engine
-        # baseline in virtual_world_engine.py — real-world-scaled per-minute
-        # rates (1 tick = 1 in-game minute): from a FULL meter a healthy adult
-        # reaches the starvation edge at ~3 weeks (Hunger 0.0034) and the
-        # dehydration edge at ~3 days (Thirst 0.0250); Energy drains over a
-        # ~16h waking day (0.104). Sub-1 rates rely on the fractional
-        # accumulator in TickManager.tick_turn() — int() alone would round
-        # them to zero. Goblins get the faster `high_metabolism` trait.
-        self.decay_rates = {
-            "Hunger": 0.0034, "Thirst": 0.0250, "Energy": 0.104, "Social": 1,
-            "Hygiene": 1, "Bladder": 1, "Sanity": 1, "Entertainment": 1
-        }
+        # Per-character decay rate overrides. Defaults mirror
+        # vital_rates.BASELINE_DECAY (the single source of truth) — real-world
+        # per-minute rates: from a FULL meter a healthy adult reaches the
+        # starvation edge at ~3 weeks, the dehydration edge at ~3 days, and
+        # Energy empties over a ~16h waking day. Sub-1 rates rely on the
+        # fractional accumulator in TickManager.tick_turn(). Bladder has its
+        # own thirst-modulated fill in tick_manager. Goblins get the faster
+        # `high_metabolism` trait.
+        self.decay_rates = {**BASELINE_DECAY, "Bladder": BLADDER_FILL}
         # Fractional accumulator for sub-1/tick drive decay (mansion: Hunger
         # 0.06/min, Thirst 0.18/min). int() truncation would drop the whole
         # increment most ticks, so the drives would barely move; this carries
