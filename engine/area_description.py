@@ -113,6 +113,23 @@ class AreaDescription:
         so the author sees their own hidden passages. Game-facing callers
         (prompts, look, scene) must keep the default filtered view.
         """
+        # task-407: authoring exits (include_hidden=True) are purely
+        # graph-derived, so they are safe to cache and invalidate on graph
+        # revision. The game-facing view depends on per-player discovery
+        # state and is deliberately NOT cached.
+        cache = None
+        cache_key = None
+        if include_hidden:
+            rev = self.graph.get_revision()
+            if getattr(self, "_exits_cache_rev", None) != rev:
+                self._exits_cache = {}
+                self._exits_cache_rev = rev
+            cache = self._exits_cache
+            cache_key = str(area_name).lower()
+            hit = cache.get(cache_key)
+            if hit is not None:
+                return dict(hit)
+
         area_node = resolve_area_node(self.graph, area_name)
         area_id = area_node.id if area_node is not None else None
         if not area_id:
@@ -160,6 +177,8 @@ class AreaDescription:
                                 exit_data["cardinal"] = edge.properties["cardinal"]
                             exits[label] = exit_data
                             break
+        if cache is not None:
+            cache[cache_key] = dict(exits)
         return exits
 
     def get_area_description(self) -> str:

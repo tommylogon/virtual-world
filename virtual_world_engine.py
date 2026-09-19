@@ -969,17 +969,22 @@ class VirtualWorld:
         return get_moon_phase(self.game_day)
 
     def _fire_turn_triggers(self, trigger_type: str):
-        """task-234: fire ``on_turn_start`` / ``on_turn_end`` triggers on every
-        area, way, and character node that has one attached."""
-        for node in list(self.graph.nodes.values()):
-            if node.type not in ("area", "way", "character"):
+        """task-234/406: fire ``on_turn_start`` / ``on_turn_end`` triggers.
+
+        task-406: driven by the graph's trigger-event index, so only nodes that
+        actually own such a trigger are visited (any node type — items and ways
+        included), instead of sweeping every node each turn.
+        """
+        for source_id in self.graph.get_trigger_sources(trigger_type):
+            node = self.graph.get_node(source_id)
+            if node is None:
                 continue
             try:
                 outputs = self.triggers._execute_triggers(node, trigger_type, game_state=self)
                 for out in outputs:
                     self.add_log_entry(out)
             except Exception as e:
-                logger.warning("[triggers] %s on %s: %s", trigger_type, node.id, e)
+                logger.warning("[triggers] %s on %s: %s", trigger_type, source_id, e)
 
     def _fire_time_triggers(self):
         """task-234: one-shot time-of-day & moon triggers — on_dawn, on_dusk,
@@ -998,14 +1003,15 @@ class VirtualWorld:
         }
         cache = self._time_trigger_cache
         bucket = self.game_day
-        for node in list(self.graph.nodes.values()):
-            if node.type not in ("area", "way", "character"):
+        for trigger_type, active in checks.items():
+            if not active:
                 continue
-            for trigger_type, active in checks.items():
-                if not active:
-                    continue
-                key = (node.id, trigger_type)
+            for source_id in self.graph.get_trigger_sources(trigger_type):
+                key = (source_id, trigger_type)
                 if cache.get(key) == bucket:
+                    continue
+                node = self.graph.get_node(source_id)
+                if node is None:
                     continue
                 cache[key] = bucket
                 try:
@@ -1013,7 +1019,7 @@ class VirtualWorld:
                     for out in outputs:
                         self.add_log_entry(out)
                 except Exception as e:
-                    logger.warning("[triggers] %s on %s: %s", trigger_type, node.id, e)
+                    logger.warning("[triggers] %s on %s: %s", trigger_type, source_id, e)
         if len(cache) > 400:
             for key in list(cache)[:len(cache) - 200]:
                 cache.pop(key, None)

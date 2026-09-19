@@ -6,7 +6,7 @@ Next available numbers for new task/bug files.
 
 | Type | Highest number | Next available |
 |------|---------------|----------------|
-| task | 396           | 397            |
+| task | 415           | 416            |
 | bug  | 35            | 36             |
 
 ## Naming convention
@@ -46,6 +46,14 @@ links forced it):
 - Filed 2026-09-07 (inprogress): task-393 (validator triage panel, ui),
   task-394 (graph search freeze + center, graph), task-395 (way-orientation bulk-fix, graph)
 - Filed 2026-09-07 (todo): task-396 (AI trigger prompt examples, triggers)
+- Filed 2026-09-19 (todo, long-horizon simulation): task-406 (trigger event
+  index + lazy context, triggers), task-407 (graph edge indexing/case/exits
+  cache, graph), task-408 (goblin scenario node dedup + data integrity, world),
+  task-409 (background schedules/work/social, characters), task-410 (food
+  renewal/foraging, gameplay), task-411 (attention budget/fidelity tiers,
+  world), task-412 (promotion/demotion + trace consolidation, characters),
+  task-413 (tick perf baseline/guard, testing), task-414 (batch advance +
+  non-blocking human, gameplay), task-415 (long-horizon observer mode, ui)
 
 ## Known historical duplicates (all terminal â€” left as-is)
 

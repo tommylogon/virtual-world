@@ -113,14 +113,18 @@ class LightingSystem:
                 total += light
                 best = max(best, light)
 
+        # task-407 perf: one pass over the area's contents instead of two
+        # identical EDGE_IN scans, and one tuple lookup for carried+equipped
+        # instead of two calls per character.
         for edge in self.graph.get_edges_for_target(area_id, EDGE_IN):
-            add_item(self.graph.get_node(edge.source))
-
-        for edge in self.graph.get_edges_for_target(area_id, EDGE_IN):
-            pnode = self.graph.get_node(edge.source)
-            if pnode and pnode.type == "character":
-                for ce in self.graph.get_edges_for_target(pnode.id, EDGE_CARRYING) + \
-                         self.graph.get_edges_for_target(pnode.id, EDGE_EQUIPPED):
+            node = self.graph.get_node(edge.source)
+            if node is None:
+                continue
+            if node.type == "item":
+                add_item(node)
+            elif node.type == "character":
+                for ce in self.graph.get_edges_for_target(
+                        node.id, (EDGE_CARRYING, EDGE_EQUIPPED)):
                     add_item(self.graph.get_node(ce.source))
 
         return min(100, total), min(100, best)

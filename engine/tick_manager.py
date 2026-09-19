@@ -691,6 +691,28 @@ class TickManager:
                             self.player_manager.add_log_entry(o)
                     self.graph.remove_node(item_node.id)
 
+        # ── task-406: standing items ──
+        # The loops above only tick carried/equipped items and lit/on items in
+        # a room, so a plain item owning an on_tick trigger (a bush, a nest, a
+        # shrine) never ticked. Fire it here, exactly once, skipping anything
+        # the loops above already handled — carried/equipped items and lit/on
+        # items keep their existing paths and are not double-fired.
+        for source_id in self.graph.get_trigger_sources("on_tick"):
+            item_node = self.graph.get_node(source_id)
+            if item_node is None or item_node.type != "item":
+                continue
+            if item_node.properties.get("current_state") in ("lit", "on"):
+                continue
+            if (self.graph.get_edges_for_source(item_node.id, EDGE_CARRYING)
+                    or self.graph.get_edges_for_source(item_node.id, EDGE_EQUIPPED)):
+                continue
+            tick_outputs = self.trigger_system._execute_triggers(
+                item_node, "on_tick", game_state=self.gs
+            )
+            if tick_outputs:
+                for o in tick_outputs:
+                    self.player_manager.add_log_entry(o)
+
         self.advance_clock(1)
 
         # task-227/229/234: apply the forecast baseline + GM override countdown
