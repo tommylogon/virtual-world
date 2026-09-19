@@ -200,19 +200,22 @@ class TickManager:
                 if stat in p.vitals and stat != "Temperature":
                     rate = p.decay_rates.get(stat, default_decay)
                     mult = trait_multipliers.get(stat, 1.0)
+                    # Fractional accumulator for sub-1/tick rates (Hunger
+                    # 0.0034/min, Thirst 0.0250/min, Energy 0.104/min).
+                    # int() alone would truncate them to zero every tick, so
+                    # the leftover carries over and the real-world rate
+                    # actually accrues. Integer rates are unaffected: the step
+                    # lands every tick and the accumulator stays at ~0.
+                    accum[stat] = accum.get(stat, 0.0) + rate * mult
+                    step = int(accum[stat])
+                    accum[stat] -= step
+                    if not step:
+                        continue
                     if is_drive(stat):
                         # drives FILL toward 100 (starving/dehydrated at max).
-                        # Fractional accumulator: sub-1/tick rates (Hunger
-                        # 0.06/min, Thirst 0.18/min) would vanish under int()
-                        # most ticks, so the leftover carries over and the
-                        # real-world rate actually accrues.
-                        accum[stat] = accum.get(stat, 0.0) + rate * mult
-                        step = int(accum[stat])
-                        accum[stat] -= step
-                        if step:
-                            p.vitals[stat] = min(100, p.vitals[stat] + step)
+                        p.vitals[stat] = min(100, p.vitals[stat] + step)
                     else:
-                        p.vitals[stat] = max(0, p.vitals[stat] - int(rate * mult))
+                        p.vitals[stat] = max(0, p.vitals[stat] - step)
 
             # Affect drift toward baseline (task-96) — cheap no-op until the
             # character's emotion map has been touched.
@@ -275,7 +278,11 @@ class TickManager:
             # decay rates now real-world-scaled the drives spend a long time
             # maxed while the character figures out where the food is. Without
             # the grace + slow drain, maxed Hunger still killed in ~100 ticks.
-            for stat, grace, drain in (("Hunger", 60, 0.5), ("Thirst", 30, 1.0)):
+            # Grace + drain are tuned against the calibrated fill rates so
+            # total time-to-death from a FULL meter lands near the target:
+            # Thirst ~3 days (4000 fill + 60 grace + 200 drain), Hunger
+            # ~3 weeks (29412 fill + 360 grace + 1000 drain).
+            for stat, grace, drain in (("Hunger", 360, 0.10), ("Thirst", 60, 0.50)):
                 if p.vitals.get(stat, 0) >= 100:
                     key = f"_drive_maxed_{stat.lower()}"
                     ticks = getattr(p, key, 0) + 1

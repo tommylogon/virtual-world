@@ -82,11 +82,14 @@ class Player:
 
         # Per-character decay rate overrides. Defaults match the engine
         # baseline in virtual_world_engine.py — real-world-scaled per-minute
-        # rates (1 tick = 1 in-game minute): ~3 weeks without food, ~3 days
-        # without water. The old 1/tick values starved everyone in ~15-25
-        # minutes regardless of the food in their pockets.
+        # rates (1 tick = 1 in-game minute): from a FULL meter a healthy adult
+        # reaches the starvation edge at ~3 weeks (Hunger 0.0034) and the
+        # dehydration edge at ~3 days (Thirst 0.0250); Energy drains over a
+        # ~16h waking day (0.104). Sub-1 rates rely on the fractional
+        # accumulator in TickManager.tick_turn() — int() alone would round
+        # them to zero. Goblins get the faster `high_metabolism` trait.
         self.decay_rates = {
-            "Hunger": 0.06, "Thirst": 0.18, "Energy": 1, "Social": 1,
+            "Hunger": 0.0034, "Thirst": 0.0250, "Energy": 0.104, "Social": 1,
             "Hygiene": 1, "Bladder": 1, "Sanity": 1, "Entertainment": 1
         }
         # Fractional accumulator for sub-1/tick drive decay (mansion: Hunger
