@@ -52,6 +52,44 @@ character did. See `docs/design/long-horizon-simulation-progress.md`.
   updated to the per-minute model. **2828 passing** (excluding pre-existing,
   unrelated `test_mcp_*` failures).
 
+### ⚡ Trigger/edge indexing and background scale (tasks 406/407)
+- **`graph.py`** — a trigger-event index (`get_trigger_sources`) plus edge
+  indexes keyed on lowercased source/target. Turn/time trigger sweeps now visit
+  **only** nodes that own that trigger (any node type) instead of every node,
+  and edge lookups no longer scan the whole edge list or call `.lower()` per
+  edge. A `_revision` counter drives cache invalidation; a length check lazily
+  rebuilds if code mutates `edges` directly.
+- **Standing items can tick** — `engine/tick_manager.py` now fires `on_tick` for
+  items that are neither carried/equipped nor lit/on (a bush, nest, shrine),
+  exactly once, without disturbing the existing carried/lit paths.
+- **Cheaper trigger execution** — `_execute_triggers` fetches trigger edges and
+  type-filters them before building its template context, and resolves the
+  current area by id instead of reading the legacy `current_area` property
+  (which rebuilt an `Area` plus its exits on every access).
+- **Authoring exits cached** — `build_exits_for_area(include_hidden=True)` is
+  memoised by graph revision. The game-facing view depends on per-player
+  discovery state and is deliberately **not** cached.
+- **Lighting** — `_item_light_stats` makes one pass over an area's contents
+  instead of two, and one tuple lookup for carried+equipped.
+- **Scenario cleanup** — deleted four generated goblin byproduct scenarios
+  (`*_assembled`, `*_populated`, `*_generated`, `*_generated_connected`); one
+  goblin scenario remains.
+- **Measured** — a one-week (10,080-tick) background soak now runs in **9m49s
+  (17.1 ticks/s), 23/23 alive** (was ~6–9 ticks/s). Full suite **2831 passing** —
+  four fewer than before only because `tests/test_data_no_mojibake.py` is
+  parametrized over every scenario JSON and four files were deleted.
+- **Not yet playable at speed** — the browser is still the metronome (~2s/step,
+  one `tick_turn` per roster wrap). Server-side batch advance is task-414.
+
+### 🧰 Gotchas (this pass)
+- The interactive ~2s step delay is **UI pacing, not a rate limit**. Rate
+  limiting is `RateLimiter` (`agent-engine.js:412–425`, driven by
+  `config.rpmLimit`); the sleep predates it. Keep it for readability, make it
+  configurable, and use 0 in headless/batch paths.
+- The camp's 11 authored triggers are **dead data**: written as
+  `logic_trigger → area` edges with `event` on the node, but the runtime matches
+  `trigger_type` on the edge with the owner as source. None of them fire.
+
 ---
 
 ## Unreleased — "Survival balance & Sanity breakdown" (2026-09-08)

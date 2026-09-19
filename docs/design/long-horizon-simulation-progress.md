@@ -156,22 +156,96 @@ alive → 22/23** after the priority fix. Tests: `tests/test_background_simulati
 ## 6. Test status
 
 Full suite excluding `test_mcp_*` (pre-existing `'function' object has no
-attribute` failures, unrelated): **2835 passing, 0 failures**. (The combat
+attribute` failures, unrelated): **2831 passing, 0 failures**. (The combat
 suite has a pre-existing flaky RNG test that fails intermittently.)
+
+Four fewer than the earlier 2835 because `tests/test_data_no_mojibake.py` is
+parametrized over every scenario JSON and four obsolete goblin byproducts were
+deleted — not a loss of coverage.
 
 ## 7. Open issues
 
-- **Scenario graph is fragmented and mis-id'd.** Way edges reference sanitized
-  area ids (`area_chiefs_pit`) while area node ids keep the punctuation
-  (`area_chief's_pit`), so strict-id pathfinding returns None from most areas.
-  A normalized-name navigator now compensates inside the background runner, but
-  **6 of 30 areas still cannot reach any water source**: Abandoned Farm, Animal
-  Pens, Blackmarsh, Mine Access, Side Tunnels, Storage Caves. Characters there
-  will die of thirst regardless of behavior. This is a scenario data repair
-  (fix way endpoints and/or link/tag the stranded areas), not engine logic.
+- **Scenario graph ids are still inconsistent.** `tools/repair_way_links.py`
+  symmetrized way links and connected Side Tunnels ↔ Water Source, so all **30/30
+  areas are reachable** (verified via `include_hidden=True`); the earlier "6
+  stranded areas" is resolved. Remaining: way/area endpoints should be canonical
+  at authoring time so strict-id pathfinding needs no normalized-name
+  compensator.
+- **Duplicate character nodes.** The canonical goblin scenario has **46 character
+  nodes for 23 players**. 22 are bare-named orphans (0 edges, referenced
+  nowhere); the extra is a `player_human_explorer` / `player_player_human_explorer`
+  artifact. Raw JSON node **keys do not match their `id` fields**, so dedupe must
+  go through `WorldGraph` with an orphan proof, not raw JSON surgery (task-408).
+- **The camp's 11 authored triggers are dead data.** They are
+  `logic_trigger → area` edges with `event` on the node; the runtime matches
+  `trigger_type` on the edge with the owner as source, and nothing flips them at
+  load. Folder-authoring must emit the modern shape (task-408).
+- **Food is at the edge.** One-week soak survivors average Hunger **84.7**
+  (max 100 — starvation end of the drive scale). The camp cannot feed itself
+  over a month (task-410).
 - Background characters currently only **survive** (eat/drink/sleep); they have
-  no schedules, work, or social behavior yet.
-- **Social/Entertainment** can still bottom out for isolated characters within
-  ~12h; expected to be fed by Phase 2 behaviors rather than tuned further.
+  no schedules, work, or social behavior yet. Soak shows Social 0.1, Sanity 0,
+  Hygiene 0, Entertainment 0 (task-409).
 - **Cross-zone roaming** remains the hardest seam (see reversibility contract).
 - **MCP test failures** are pre-existing and unrelated to this work.
+
+## 8. Performance pass (2026-09-19) — tasks 406, 407
+
+The blocker found by profiling was **not** the LLM: it was trigger/exit
+plumbing. Per tick the engine swept all ~106 nodes calling `_execute_triggers`,
+which built a full template context *before* checking for a match, and that
+context read the legacy `current_area` property — rebuilding an `Area` and its
+exits on every access, by scanning all edges and lowercasing every endpoint
+(~876 exit rebuilds and ~1M `str.lower()` per tick). The camp has **zero**
+tick/time triggers, so all of it was waste.
+
+**Task 406 — trigger dispatch**
+- `graph.get_trigger_sources(type)`: event index over `triggers` edges that
+  carry a `trigger_type`. `_fire_turn_triggers` / `_fire_time_triggers` now
+  iterate only trigger owners, of any node type.
+- Standing items (not carried, not lit) now get `on_tick`, once, without
+  double-firing the carried/lit paths — the prerequisite for growth triggers.
+- `_execute_triggers` fetches edges and type-filters before building context,
+  and reads the area by id instead of the `current_area` property.
+
+**Task 407 — graph lookups**
+- Edges indexed by lowercased source/target; lookups are O(degree) with no
+  per-edge `.lower()`. `_revision` drives cache invalidation; a length check
+  lazily rebuilds if external code mutates `edges` directly.
+- `build_exits_for_area(include_hidden=True)` cached by revision (authoring path
+  only — the game view depends on player discovery state).
+- Lighting scan collapsed from two passes to one.
+
+**Measured**
+- One-week (10,080-tick) background soak: **9m49s → 17.1 ticks/s, 23/23 alive,
+  0 deaths** (was ~6–9 t/s; a week used to be unreachable interactively at
+  ~128h of browser-driven wall clock). Trace 4,459; memories 17.
+- Full suite: **2831 passing**, 0 failures (the 4-file delta is the mojibake
+  parametrization, not coverage).
+- Post-fix profile hot spots: `lighting.get_ambient_light` (~33%, now trimmed),
+  the call volume of `get_edges_for_target`, background `move_to_area`, and
+  `Player.state`. The old trigger/exit cost is gone from the hot path.
+
+**What this does and does not change for playing**
+- *Simulating/observing* the world: materially better — weeks are now minutes
+  headless, triggers cost nothing when unused, and objects can act over time.
+- *Interactive play*: essentially unchanged. The browser still drives one
+  character at a time with a hardcoded ~2s step and one `tick_turn` per full
+  roster wrap. The 2s sleep is UI pacing, not a rate limit (that is
+  `RateLimiter`); it should be configurable and skipped when a step already took
+  longer. Making the world playable at speed is **task-414**.
+
+## 9. What's left (task map)
+
+| # | Area | What | Status |
+|---|---|---|---|
+| 406 | triggers | event index, standing-item ticks, lazy context | review |
+| 407 | graph | edge indexes, exits cache, lighting pass | review |
+| 408 | world | consolidate scenario, dedupe nodes, canonical ids, folders→JSON | todo |
+| 409 | characters | background schedules + daily reflection + coarse social | todo |
+| 410 | gameplay | plant growth → food renewal, week supply | todo |
+| 411 | world | attention budget / fidelity tiers | todo |
+| 412 | characters | promotion/demotion + trace→memory consolidation | todo |
+| 413 | testing | tick-perf baseline + regression guard | todo |
+| 414 | gameplay | server-side `advance(N)` + non-blocking human | todo |
+| 415 | ui | long-horizon observer mode | cancelled (deferred) |

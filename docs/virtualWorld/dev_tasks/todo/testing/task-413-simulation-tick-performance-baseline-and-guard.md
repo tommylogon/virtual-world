@@ -50,3 +50,21 @@ visits, exit rebuilds, or `.lower()` calls.
 
 - Run the command before/after task-406/task-407 and record the delta.
 - Temporarily revert one fix to confirm the guard trips.
+
+## Baseline — 2026-09-19 (after tasks 406/407)
+
+- Command: `python tools/soak_sim.py --ticks 10080 --background-all --progress-seconds 1`
+- Result: **10,080 ticks (7 in-game days) in 9m49s → 17.1 ticks/s**, 23/23 alive,
+  0 deaths. Trace 4,459 entries; memories 17; graph 130 nodes.
+- Pre-fix reference: ~6–9 ticks/s, with the trigger/exit path responsible for
+  ~187s of 247s in a 100-tick profile (~876 exit rebuilds and ~1M `str.lower()`
+  per tick).
+- Post-fix profile top costs: `lighting.get_ambient_light` (trimmed),
+  `get_edges_for_target` call volume, background `move_to_area`,
+  `Player.state`. The trigger/exit cost is gone from the hot path.
+- Full suite: 2831 passing (0 failures) excluding pre-existing `test_mcp_*`.
+
+Follow-ups spotted by the profile (candidates for a next pass): memoise
+`_item_light_stats`/`get_ambient_light` with explicit lit-state invalidation,
+reduce `Player.state` cost, and stop `remove_edge` from triggering a full edge
+index rebuild.

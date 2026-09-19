@@ -64,7 +64,10 @@ added in `314d74b` (1.2.0, off by default) with no design note. It is separate
 from the real throttle, `static/js/agent/rate-limiter.js`, enforced inside
 `step()` at `agent-engine.js:412–425` from `config.rpmLimit`. Keep it for
 readability, but make it **configurable**; the batch path uses no delay rather
-than removing the sleep.
+than removing the sleep. It is **not needed** for correctness (each `step()` is
+awaited) or for rate limiting. Two refinements: skip the delay when the step
+already took longer than it (an LLM call is its own pacing), and expose it as a
+setting (default ~2s, `0` = fast-forward).
 
 ## Non-blocking human
 
