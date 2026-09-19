@@ -215,6 +215,21 @@ class Player:
         # List of {text, tick, timestamp, importance (1-10), type, embedding (optional)}
         self.memories = []
 
+        # === TRACE (objective history) ===
+        # Bounded list of plain dicts written by engine.trace — the mechanical
+        # "what happened and why" record. Distinct from subjective memories;
+        # see docs/design/trace-format.md.
+        self.trace_log = []
+
+        # === SIMULATION FIDELITY (task-399) ===
+        # simulation_mode is a runtime fidelity, orthogonal to
+        # controller/autonomy/simple_npc: "active" runs the normal LLM/simple
+        # loop, "background" runs the deterministic survival runner instead.
+        # next_due_tick is when the background runner should next consider
+        # them, so background work is event-scheduled, not a per-tick scan.
+        self.simulation_mode = "active"
+        self.next_due_tick = 0
+
         self.sync_vitals_with_tags()
 
     # ── Backward-compatible state property ──────────────────────────
@@ -761,6 +776,9 @@ class Player:
             "discovered_items": list(self.discovered_items),
             "patrol_route": list(getattr(self, "patrol_route", [])),
             "patrol_index": getattr(self, "patrol_index", 0),
+            "trace": [dict(e) for e in getattr(self, "trace_log", [])],
+            "simulation_mode": getattr(self, "simulation_mode", "active"),
+            "next_due_tick": int(getattr(self, "next_due_tick", 0)),
         }
 
     def _relationships_to_dict(self):

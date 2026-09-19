@@ -112,3 +112,27 @@ so no action is resolved twice.
 - A general economy, relationship simulation, or full offscreen combat system.
 - Replacing existing LLM or simple-NPC loops.
 - Background simulation across physically unloaded graph chunks (task-401).
+
+## Progress — 2026-09-19
+
+Foundation landed (see `docs/design/long-horizon-simulation-progress.md`):
+
+- **The append-only facts log exists** as `engine/trace.py` (`record / recent /
+  since / summarize_window / rollup / load / to_list`), bounded at 200 entries
+  with salient-first retention. It round-trips through `Player.to_dict` /
+  `_deserialize_player` and is wired to need tier crossings, deaths, and
+  resolved actions. This is the objective substrate the "bounded subjective
+  background memory" is summarized from — code writes the trace, the LLM writes
+  memory, never the reverse (see `docs/design/trace-format.md`).
+- **`docs/design/reversibility-contract.md`** defines what must stay live while
+  backgrounded, the promote/demote handoffs, and the invariants across the seam.
+- Vitals were recalibrated to a true per-minute scale (`vital_rates.py`) so a
+  multi-day background span is survivable and needs actually move.
+
+Still to build for this task:
+
+1. `engine/background_simulation.py` — process only **due** characters
+   (`next_due_tick`), deterministic/seeded over schedule + needs + traits,
+   writing the trace with reasons. Survival behaviors (eat/drink/sleep/work).
+2. `simulation_mode: active | background`, with atomic activate/offload at a
+   tick; `trace.summarize_window` builds the promotion catch-up summary.

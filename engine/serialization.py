@@ -244,6 +244,13 @@ class WorldSerializer:
         if "Energy" in p.vitals:
             p.vitals["Energy"] = max(0, min(100, p.vitals["Energy"]))
         p.decay_rates = pdata.get("decay_rates", p.decay_rates)
+        from engine.trace import load as _trace_load
+        _trace_load(p, pdata.get("trace"))
+        p.simulation_mode = pdata.get("simulation_mode", "active")
+        try:
+            p.next_due_tick = int(pdata.get("next_due_tick", 0) or 0)
+        except (TypeError, ValueError):
+            p.next_due_tick = 0
         p.body_state = pdata.get("body_state", p.body_state)
         p.skills = pdata.get("skills", {})
         p.state = pdata.get("state", "awake")

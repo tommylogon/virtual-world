@@ -2,9 +2,11 @@ import logging
 from graph import EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED
 from player import BLOCKING_CONDITIONS
 from engine.vitals import is_drive
+from engine.trace import record as trace_record
 from vital_rates import (
     change,
     BLADDER_FILL,
+    BLADDER_HYGIENE_PENALTY,
     ENV_STALE_ENERGY,
     ENV_HUMID_HYGIENE,
     ENV_TOXIC_HP,
@@ -58,6 +60,11 @@ class TickManager:
         target = player or self.player_manager.player
         if not target:
             return
+        if action_name:
+            trace_record(
+                target, getattr(self.player_manager, "time_ticks", 0), "act",
+                f"action:{action_name}", why="", area=target.current_area,
+                tags=["act"])
         base = self.player_manager.ACTION_COSTS.get(action_name, {})
         cost = dict(base)
         if override_cost:
@@ -326,7 +333,7 @@ class TickManager:
                 p.vitals["HP"] = max(0, int(round(p.vitals["HP"] - hp_loss)))
 
             if p.vitals.get("Bladder", 0) >= 100 and prev_vitals.get("Bladder", 0) < 100:
-                p.vitals["Hygiene"] = max(0, p.vitals["Hygiene"] - 30)
+                p.vitals["Hygiene"] = max(0, p.vitals["Hygiene"] - BLADDER_HYGIENE_PENALTY)
 
             for stat in ["Energy", "Hunger", "Thirst", "Social", "Hygiene"]:
                 val = p.vitals.get(stat)
@@ -341,12 +348,22 @@ class TickManager:
                                     msg += " " + need_advice[stat]
                                 if pname == self.player_manager.active_player:
                                     self.player_manager.add_log_entry(msg)
+                                trace_record(
+                                    p, self.player_manager.time_ticks, "need",
+                                    f"{stat} crossed {t}",
+                                    why=f"needs:{stat.lower()}",
+                                    area=p.current_area, tags=["need"])
                         elif prev > t and val <= t:
                             msg = get_need_message(stat, t)
                             if stat in need_advice and val <= 50:
                                 msg += " " + need_advice[stat]
                             if pname == self.player_manager.active_player:
                                 self.player_manager.add_log_entry(msg)
+                            trace_record(
+                                p, self.player_manager.time_ticks, "need",
+                                f"{stat} fell to {t}",
+                                why=f"needs:{stat.lower()}",
+                                area=p.current_area, tags=["need"])
 
             if p.vitals.get("HP", 0) <= 0:
                 cause_parts = []
@@ -361,6 +378,10 @@ class TickManager:
                 cause_of_death = " and ".join(cause_parts) if cause_parts else "unknown causes"
 
                 p.state = "dead"
+                trace_record(
+                    p, self.player_manager.time_ticks, "death",
+                    f"died of {cause_of_death}",
+                    why="cause:death", area=p.current_area, salient=True)
                 self.player_manager.add_log_entry(f"[{pname}] GAME OVER: You have died from {cause_of_death}.")
                 self.gs._spawn_body_item(pname, cause_of_death)
 
@@ -690,6 +711,15 @@ class TickManager:
 
         if not skip_npcs:
             self.npc_behaviors.process_simple_npcs()
+            # Background fidelity (task-399): deterministic, scheduled survival
+            # for characters whose scope isn't actively observed. No LLM.
+            try:
+                if not hasattr(self, "_background_sim"):
+                    from engine.background_simulation import BackgroundSimulation
+                    self._background_sim = BackgroundSimulation(self.gs)
+                self._background_sim.process_due()
+            except Exception as e:
+                logger.warning("[tick] background_simulation: %s", e)
 
         # ── Delayed events now due (task-90) ──
         # Fired AFTER the clock advances, so an event scheduled 5 ticks from

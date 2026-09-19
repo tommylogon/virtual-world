@@ -4,6 +4,56 @@ All notable changes to VirtualWorld. See `docs/virtualWorld/Scenario Workflows &
 
 ---
 
+## Unreleased — "Long-horizon simulation: Phase 0 + trace" (2026-09-19)
+
+Groundwork for running a scenario for weeks of in-game time with every
+character a real agent. Two things made that impossible: vitals were still on
+session timescales outside the drives (environment/regen/comfort vitals killed
+everyone in ~2 hours), and there was no objective record of what a background
+character did. See `docs/design/long-horizon-simulation-progress.md`.
+
+### ⏳ Vitals on a true per-minute scale
+- **`vital_rates.py`** — new single source of truth for per-minute rates (1 tick
+  = 1 in-game minute). From a full meter: Hunger ~3 weeks, Thirst ~3 days, Energy
+  ~16h; Social/Hygiene/Entertainment ~1–2 days; Sanity ~14 days. `change()` is a
+  fractional accumulator so sub-1 rates actually accrue.
+- **All environmental/temperature/social/sanity/bladder/sleep/HP-regen effects**
+  in `engine/tick_manager.py` routed through it and rescaled; `engine/activities.py`
+  activity regen rescaled too. Cold/heat now measured per minute, heat correctly
+  *raises* Thirst (drive), and HP regen no longer outpaces starvation.
+- **`tools/migrate_decay_rates.py`** — new: re-bakes per-player `decay_rates`
+  (baked rates override engine defaults, so the calibration was otherwise
+  invisible). Applied to `world_template.json` and the goblin scenario.
+- **`data/library/traits/high_metabolism.json`** — new goblin trait (Hunger ×2,
+  Thirst ×1.5, Energy ×1.3).
+
+### 🧾 Objective character trace (task-399 foundation)
+- **`engine/trace.py`** — new append-only, code-written history per character:
+  `record / recent / since / summarize_window / rollup / load / to_list`, capped
+  at 200 entries with salient-first retention. Wired into need tier crossings
+  (`why="needs:*"`), deaths (salient), and resolved actions. Round-trips through
+  `Player.to_dict` / `_deserialize_player`.
+- **Design contracts** — `docs/design/reversibility-contract.md` (one state
+  model, two decision policies; what must stay live while backgrounded) and
+  `docs/design/trace-format.md` (entry schema, kinds, reason tags, trace→memory).
+
+### 🌦 Scenario fixes
+- **Kraktooth forecast** rewritten from a perpetual blizzard (`temperature_mod`
+  -15, light -12) to a clear → overcast → rain day cycle. The frozen baseline was
+  killing every exterior character with hypothermia within ~11 game-hours.
+
+### 🧪 Tooling & tests
+- **`tools/soak_sim.py`** — headless long-run harness with live progress
+  (bar/ETA/ticks-per-second/deaths), day/week/month wall-clock projections,
+  survival breakdown, `--debug-hp`, `--neutral-environment` (now clears weather
+  too), `--engine-decay`, `--override`, `--set`, `--apply-trait`, `--report`.
+  Measured ~6–9 ticks/s with 23 characters → a game week ≈ 18–29 min.
+- `tests/test_trace.py` (new); `test_activities.py` / `test_social_company.py`
+  updated to the per-minute model. **2828 passing** (excluding pre-existing,
+  unrelated `test_mcp_*` failures).
+
+---
+
 ## Unreleased — "Survival balance & Sanity breakdown" (2026-09-08)
 
 The mansion survival fix: teenagers were dying of starvation in ~45–63 in-universe minutes despite carrying granola bars and water bottles, because the drive decay was 1/tick, vitals were invisible to the agent, and the moodlets never told anyone *what to do*. Low Sanity was also still draining HP and being listed as a cause of death — going insane doesn't kill you, it makes you more dangerous.

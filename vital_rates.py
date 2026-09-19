@@ -31,15 +31,18 @@ BASELINE_DECAY = {
     "Energy": 0.104,
     "Hunger": 0.0034,
     "Thirst": 0.0250,
-    "Social": 0.05,
-    "Hygiene": 0.05,
+    "Social": 0.020,
+    "Hygiene": 0.020,
     "Sanity": 0.005,
-    "Entertainment": 0.07,
+    "Entertainment": 0.030,
     "Mana": 0.0,
 }
 
 # Bladder is not in BASELINE_DECAY — it has its own thirst-modulated fill.
+# Filling every ~4h is realistic; the hygiene cost of each event is what
+# must stay modest or Hygiene crashes four times a day.
 BLADDER_FILL = 0.42
+BLADDER_HYGIENE_PENALTY = 8.0
 
 # ── Environmental per-minute effects ────────────────────────────────────
 ENV_STALE_ENERGY = 0.02
@@ -66,9 +69,9 @@ HP_REGEN = 0.02                # ~1.2/hr while well-fed, hydrated, sane
 SLEEP_ENERGY_REGEN = 0.30      # net ~+0.20/min after baseline Energy drain
 
 # ── Social / sanity coupling ────────────────────────────────────────────
-SOCIAL_COMPANY_GAIN = 0.05
-SOCIAL_ALONE_DRAIN = 0.05      # extra beyond baseline while alone
-SOCIAL_ISOLATION_EXTRA = 0.05  # after 5 consecutive alone-ticks
+SOCIAL_COMPANY_GAIN = 0.030
+SOCIAL_ALONE_DRAIN = 0.020     # extra beyond baseline while alone
+SOCIAL_ISOLATION_EXTRA = 0.020  # after 5 consecutive alone-ticks
 SANITY_PENALTY_SOCIAL_LOW = 0.005
 SANITY_PENALTY_SOCIAL_VERY_LOW = 0.010
 SANITY_PENALTY_ENT_LOW = 0.005

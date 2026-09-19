@@ -323,7 +323,7 @@
       "items": [],
       "floor": 0,
       "properties": {
-        "central_gravity_enabled": false,
+        "central_gravity_enabled": true,
         "description": "A narrow forest trail approaches a rocky hillside. The path is worn, partly concealed by undergrowth, and marked by faint goblin trail signs. The main camp entrance is close by.",
         "environment": {
           "air": "fresh",
@@ -455,7 +455,7 @@
       "items": [],
       "floor": 0,
       "properties": {
-        "central_gravity_enabled": false,
+        "central_gravity_enabled": true,
         "description": "Tall trees, thick undergrowth, moss, mushrooms, and animal trails dominate this forest. The canopy keeps the light dim. It is ideal goblin territory: full of food, danger, and hiding places.",
         "environment": {
           "air": "fresh",
@@ -487,7 +487,7 @@
       "items": [],
       "floor": 0,
       "properties": {
-        "central_gravity_enabled": false,
+        "central_gravity_enabled": true,
         "description": "A chamber kept for the smallest goblins. Low hammocks, fur piles, broken toys, sticks, stones, and scattered tools create a chaotic but supervised space.",
         "environment": {
           "air": "warm",
@@ -521,7 +521,7 @@
       "items": [],
       "floor": 0,
       "properties": {
-        "central_gravity_enabled": false,
+        "central_gravity_enabled": true,
         "description": "A wide dirt road connecting Eldenford to larger towns. Travelers, carts, merchants, and patrols use it. Goblin scouts watch from cover, looking for profitable opportunities.",
         "environment": {
           "air": "fresh",
@@ -586,7 +586,7 @@
       "items": [],
       "floor": 0,
       "properties": {
-        "central_gravity_enabled": false,
+        "central_gravity_enabled": true,
         "description": "Rocky hills north of the camp. Stone, iron ore, caves, goats, and hidden paths are found here. The terrain is rough and offers both shelter and exposure.",
         "environment": {
           "air": "fresh",
@@ -651,7 +651,7 @@
       "items": [],
       "floor": 0,
       "properties": {
-        "central_gravity_enabled": false,
+        "central_gravity_enabled": true,
         "description": "A river cutting through the eastern territory. It provides fish, clay, driftwood, and a travel corridor. Humans follow it, and so do goblins, which makes it both useful and dangerous.",
         "environment": {
           "air": "fresh",
@@ -752,7 +752,7 @@
       "items": [],
       "floor": 0,
       "properties": {
-        "central_gravity_enabled": false,
+        "central_gravity_enabled": true,
         "description": "Hammocks, furs, blankets, and piles of leaves are scattered across the floor. Personal weapons, scraps, lucky objects, and stolen trinkets litter each sleeping spot.",
         "environment": {
           "air": "musty",
@@ -887,7 +887,7 @@
       "items": [],
       "floor": 0,
       "properties": {
-        "central_gravity_enabled": false,
+        "central_gravity_enabled": true,
         "description": "Broken swords, bent nails, wire, rope, gears, springs, glue, pitch, and scrap metal cover the tables and shelves. This is where things are taken apart and made to do something else.",
         "environment": {
           "air": "musty",
@@ -990,7 +990,7 @@
       "items": [],
       "floor": 0,
       "properties": {
-        "central_gravity_enabled": false,
+        "central_gravity_enabled": true,
         "description": "A narrow forest trail approaches a rocky hillside. The path is worn, partly concealed by undergrowth, and marked by faint goblin trail signs. The main camp entrance is close by.",
         "environment": {
           "air": "fresh",
@@ -1122,7 +1122,7 @@
       "items": [],
       "floor": 0,
       "properties": {
-        "central_gravity_enabled": false,
+        "central_gravity_enabled": true,
         "description": "Tall trees, thick undergrowth, moss, mushrooms, and animal trails dominate this forest. The canopy keeps the light dim. It is ideal goblin territory: full of food, danger, and hiding places.",
         "environment": {
           "air": "fresh",
@@ -1154,7 +1154,7 @@
       "items": [],
       "floor": 0,
       "properties": {
-        "central_gravity_enabled": false,
+        "central_gravity_enabled": true,
         "description": "A chamber kept for the smallest goblins. Low hammocks, fur piles, broken toys, sticks, stones, and scattered tools create a chaotic but supervised space.",
         "environment": {
           "air": "warm",
@@ -1188,7 +1188,7 @@
       "items": [],
       "floor": 0,
       "properties": {
-        "central_gravity_enabled": false,
+        "central_gravity_enabled": true,
         "description": "A wide dirt road connecting Eldenford to larger towns. Travelers, carts, merchants, and patrols use it. Goblin scouts watch from cover, looking for profitable opportunities.",
         "environment": {
           "air": "fresh",
@@ -1253,7 +1253,7 @@
       "items": [],
       "floor": 0,
       "properties": {
-        "central_gravity_enabled": false,
+        "central_gravity_enabled": true,
         "description": "Rocky hills north of the camp. Stone, iron ore, caves, goats, and hidden paths are found here. The terrain is rough and offers both shelter and exposure.",
         "environment": {
           "air": "fresh",
@@ -1318,7 +1318,7 @@
       "items": [],
       "floor": 0,
       "properties": {
-        "central_gravity_enabled": false,
+        "central_gravity_enabled": true,
         "description": "A river cutting through the eastern territory. It provides fish, clay, driftwood, and a travel corridor. Humans follow it, and so do goblins, which makes it both useful and dangerous.",
         "environment": {
           "air": "fresh",
@@ -1419,7 +1419,7 @@
       "items": [],
       "floor": 0,
       "properties": {
-        "central_gravity_enabled": false,
+        "central_gravity_enabled": true,
         "description": "Hammocks, furs, blankets, and piles of leaves are scattered across the floor. Personal weapons, scraps, lucky objects, and stolen trinkets litter each sleeping spot.",
         "environment": {
           "air": "musty",
@@ -1554,7 +1554,7 @@
       "items": [],
       "floor": 0,
       "properties": {
-        "central_gravity_enabled": false,
+        "central_gravity_enabled": true,
         "description": "Broken swords, bent nails, wire, rope, gears, springs, glue, pitch, and scrap metal cover the tables and shelves. This is where things are taken apart and made to do something else.",
         "environment": {
           "air": "musty",
@@ -1632,7 +1632,7 @@
         "type": "area",
         "name": "Camp Entrance Trail",
         "properties": {
-          "central_gravity_enabled": false,
+          "central_gravity_enabled": true,
           "description": "A narrow forest trail approaches a rocky hillside. The path is worn, partly concealed by undergrowth, and marked by faint goblin trail signs. The main camp entrance is close by.",
           "environment": {
             "air": "fresh",
@@ -1732,7 +1732,7 @@
         "type": "area",
         "name": "Deep Forest",
         "properties": {
-          "central_gravity_enabled": false,
+          "central_gravity_enabled": true,
           "description": "Tall trees, thick undergrowth, moss, mushrooms, and animal trails dominate this forest. The canopy keeps the light dim. It is ideal goblin territory: full of food, danger, and hiding places.",
           "environment": {
             "air": "fresh",
@@ -1756,7 +1756,7 @@
         "type": "area",
         "name": "Nursery",
         "properties": {
-          "central_gravity_enabled": false,
+          "central_gravity_enabled": true,
           "description": "A chamber kept for the smallest goblins. Low hammocks, fur piles, broken toys, sticks, stones, and scattered tools create a chaotic but supervised space.",
           "environment": {
             "air": "warm",
@@ -1782,7 +1782,7 @@
         "type": "area",
         "name": "Human Road",
         "properties": {
-          "central_gravity_enabled": false,
+          "central_gravity_enabled": true,
           "description": "A wide dirt road connecting Eldenford to larger towns. Travelers, carts, merchants, and patrols use it. Goblin scouts watch from cover, looking for profitable opportunities.",
           "environment": {
             "air": "fresh",
@@ -1831,7 +1831,7 @@
         "type": "area",
         "name": "Northern Hills",
         "properties": {
-          "central_gravity_enabled": false,
+          "central_gravity_enabled": true,
           "description": "Rocky hills north of the camp. Stone, iron ore, caves, goats, and hidden paths are found here. The terrain is rough and offers both shelter and exposure.",
           "environment": {
             "air": "fresh",
@@ -1880,7 +1880,7 @@
         "type": "area",
         "name": "Raven River",
         "properties": {
-          "central_gravity_enabled": false,
+          "central_gravity_enabled": true,
           "description": "A river cutting through the eastern territory. It provides fish, clay, driftwood, and a travel corridor. Humans follow it, and so do goblins, which makes it both useful and dangerous.",
           "environment": {
             "air": "fresh",
@@ -1957,7 +1957,7 @@
         "type": "area",
         "name": "Sleeping Halls",
         "properties": {
-          "central_gravity_enabled": false,
+          "central_gravity_enabled": true,
           "description": "Hammocks, furs, blankets, and piles of leaves are scattered across the floor. Personal weapons, scraps, lucky objects, and stolen trinkets litter each sleeping spot.",
           "environment": {
             "air": "musty",
@@ -2060,7 +2060,7 @@
         "type": "area",
         "name": "Workshop",
         "properties": {
-          "central_gravity_enabled": false,
+          "central_gravity_enabled": true,
           "description": "Broken swords, bent nails, wire, rope, gears, springs, glue, pitch, and scrap metal cover the tables and shelves. This is where things are taken apart and made to do something else.",
           "environment": {
             "air": "musty",
@@ -2079,7 +2079,7 @@
           ]
         },
         "created": 1789781342.5282054,
-        "updated": 1789781342.5282059
+        "updated": 1789781581.687618
       },
       "item_camp_entrance_bone": {
         "id": "item_camp_entrance_bone",
