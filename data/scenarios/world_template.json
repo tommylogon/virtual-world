@@ -1,4 +1,5 @@
 {
+  "_scenario_name": "world_template",
   "active_player": "Kaelen Voss",
   "areas": {
     "Abandoned Hunter's Cabin": {
@@ -8869,6 +8870,7 @@
   },
   "item_registry": {},
   "narration_mode": "none",
+  "persist": true,
   "players": {
     "Kaelen Voss": {
       "activity": null,
@@ -10585,7 +10587,5 @@
       "tick_created": 8,
       "title": "Rocheveron"
     }
-  ],
-  "_scenario_name": "world_template",
-  "persist": true
+  ]
 }

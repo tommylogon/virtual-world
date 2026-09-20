@@ -324,8 +324,34 @@ class WorldSerializer:
         data.pop("delayed_events", None)
         for pdata in data.get("players", {}).values():
             pdata.pop("recent_hearing", None)
+        # task-222, continued: a saved world is graph-only. `rooms` is a
+        # byte-identical duplicate of `areas` (the same dict was written to
+        # both keys); `ways` and `item_registry` are legacy attrs that only the
+        # loader ever populates and nothing reads. Writing them cost ~27% of
+        # the file and churned on every save.
+        data.pop("rooms", None)
+        data.pop("ways", None)
+        data.pop("item_registry", None)
         self.strip_redundant_exits(data)
+        self.strip_derived_area_fields(data)
         return data
+
+    @staticmethod
+    def strip_derived_area_fields(data):
+        """Drop per-area values that duplicate the graph node or are recomputed
+        at runtime: `properties` is a verbatim copy of the node's properties,
+        `ambient_light`/`light_description` are recomputed from light sources
+        each tick, and `items` is always empty (placement lives in the graph's
+        `in` edges). `description`/`environment`/`floor` are kept because the
+        scenario-changed fingerprint in routes/saveload.py compares them."""
+        for key in ("areas", "rooms"):
+            rooms = data.get(key, {}) or {}
+            for room in rooms.values():
+                if isinstance(room, dict):
+                    room.pop("properties", None)
+                    room.pop("ambient_light", None)
+                    room.pop("light_description", None)
+                    room.pop("items", None)
 
     @staticmethod
     def strip_redundant_exits(data):
