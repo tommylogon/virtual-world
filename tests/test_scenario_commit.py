@@ -49,7 +49,11 @@ def test_commit_creates_scenario_file(app, client, tmp_path):
     assert os.path.exists(path)
     with open(path, encoding="utf-8") as f:
         saved = json.load(f)
-    assert "areas" in saved and "players" in saved
+    # The committed file is graph-only (task-222): areas live as graph nodes,
+    # not as a duplicated `areas` map.
+    assert "players" in saved and "graph" in saved
+    assert "areas" not in saved and "rooms" not in saved
+    assert any(n.get("type") == "area" for n in saved["graph"]["nodes"].values())
     assert app.world._scenario_source == path
     assert getattr(app.world, "_commit_seq", 0) == getattr(app.world, "_edit_seq", 0)
 

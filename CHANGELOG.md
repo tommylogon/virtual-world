@@ -4,6 +4,100 @@ All notable changes to VirtualWorld. See `docs/virtualWorld/Scenario Workflows &
 
 ---
 
+## Unreleased — "One Copy of Every Truth" (2026-09-20)
+
+A saved world was carrying the same facts three times over, the natural-language
+editor was quietly discarding failed edits while burning its entire context, and
+a locked door was treated as more soundproof than a closed one. This pass makes
+the graph the single source of truth, gives the NL editor an honest ledger, and
+fixes the two bugs that stopped a saved background map from ever coming back.
+
+### 🗃 Scenario files are graph-only — 28% smaller
+A saved scenario held `areas`, `rooms` **and** `graph.nodes`, all describing the
+same world. `rooms` was a byte-identical duplicate of `areas` (the same dict
+assigned to two keys), and every `areas` entry carried a verbatim copy of its
+node's `properties`, plus `ambient_light`/`light_description` recomputed each tick
+and an `items` list that was always empty. Every remaining field was audited:
+**nothing in `areas` was unique** — `name` is `node.name`, and
+`description`/`environment`/`floor` are `node.properties`.
+
+- **`to_scenario_dict()` no longer writes** `areas`, `rooms`, `ways` or
+  `item_registry`. The goblin camp drops **455,567 → 322,407 bytes (−28%, ~131 KB)**
+  with identical reload behaviour (31 areas, 23 players, descriptions intact).
+- **…but the live payload keeps them.** ~20 frontend call sites read
+  `worldState.areas` (agent-engine, agent-lens, inspector, item-library/placement,
+  graph/layout-engine), so the projection stays in `/api/state` and only the *file*
+  is stripped. `tests/test_scenario_graph_only.py` locks both directions so a
+  future tidy-up cannot collapse the wrong one.
+- **The Changes panel now reads areas from the graph**, exactly as it already did
+  for items and ways — areas had simply never been migrated. Its fingerprint also
+  drops `exits`, which every written payload strips: that made it a constant on
+  the live side and a false "changed" for any older file still carrying a copy.
+- **`_scenario_name` round-trips again.** Every save dropped it, so a restored file
+  was "unnamed" — and because the name is what keys the local background-map cache,
+  that single omission made a saved map unloadable. An empty name is now omitted
+  rather than written as `""`, which `data.get(...) or ...` reads as "unnamed" and
+  would let it outrank a real name.
+
+### 🧠 The NL editor needed an honest ledger
+- **A partially-failed Apply threw away the failures.** `/api/graph/batch` answers
+  `207 partial` with `applied[]`/`errors[]`; the editor showed the errors and then
+  cleared *every* op it had sent, so edits that never applied vanished with no way
+  to retry. Only ops the server reports as applied are cleared now, and the toast
+  says how many are still staged. A regression harness drives the real
+  `StagingBuffer` through success / partial / total-failure / selective-apply and
+  both replay paths (23 checks).
+- **Context pruning had disabled itself.** `prune()` reset the counters it then
+  guarded on, so the next call handed back the *entire* transcript: at iteration 90
+  the model received **179 messages** while the tracker claimed ~1,004 tokens, and
+  `overLimit` read false forever. Metadata is now keyed by message identity instead
+  of array position, the window is measured from the array actually being sent, and
+  critical retention is bounded newest-first. The same loop now sends **29**.
+- **The `[Summary: N earlier turns omitted]` marker never fired** — it was gated on
+  index 0 being dropped, but index 0 is the system prompt and always kept, so
+  dropped turns disappeared with no signal to the model.
+- **Errors were invisible.** `turn:end` fires from `finally` and reset the badge to
+  "Ready" immediately after the error handler set "Error", and the message was
+  never rendered in the chat. Both fixed, plus the hardcoded `round x/10` label
+  that the 100-round cap had made a lie.
+- **The ghost preview never panned for spawns** — the spotlight looked up
+  `nlghost_<parent_id>` while the ghost was created as `nlghost_spawn_<op_id>`.
+- **`get_background_map`** tool added, so the agent knows a reference map exists
+  (path, transform, opacity, lock) without pretending it can see the pixels. The
+  catalog is **24 tools**; the header claimed 20 and was already wrong at 23.
+
+### 🔊 A lock is not soundproofing
+`get_way_barrier`'s own contract treats closed/blocked/locked as one "solid state"
+for a per-door `sound_barrier` override, but the defaults disagreed: a locked door
+blocked **2** where a closed one blocked **1**. A lock is a latch on a door that is
+already closed, so `sound.way_locked` and `sound.way_blocked` are now **1**
+(`hidden` stays 2). Behaviour change: a shout carries through a locked door, and a
+scream carries through an open+closed+locked chain — the loudest channel is no
+longer stopped by a latch. The value was duplicated in four places, including a JS
+mirror in `turn-feed.js` that would otherwise have disagreed with the engine.
+
+### 🗺 …and why the background map would not come back
+Two defects, both upstream of the image itself:
+- **The scenario name never reached the client.** `_serialize_world()` omitted
+  `_scenario_name`, so `/api/state` never carried it and the client only knew the
+  name if it had set it that session. `graph-background.js:_scenarioIdentity()`
+  returns `null` without a name, and the local cache is consulted only for a named
+  scenario — so a locally-held map was **never** restored.
+- **The two "which scenario am I" functions disagreed.** `_scenarioKey()` accepted
+  the `body.dataset.scenarioName` fallback that Save/Export Scenario writes;
+  `_scenarioIdentity()` did not. The key is now derived from the identity, so they
+  cannot diverge.
+
+### 📋 Filed for next
+`task-416` area-major tick iteration · `task-417` co-presence gate for coarse
+meetings (amends `task-409 §4`, which would otherwise pair characters on opposite
+sides of the map) · `task-418` awareness channels replacing `radius_hops` ·
+`task-419` one `at` per character + anchor budget · `task-420` a single
+relationship write path · `task-421` light barrier parity with sound · `task-422`
+NL editor budget controls; `bug-36` `moveNode` called for absent nodes.
+
+---
+
 ## Unreleased — "Long-horizon simulation: Phase 0 + trace" (2026-09-19 → 09-20)
 
 Groundwork for running a scenario for weeks of in-game time with every

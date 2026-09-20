@@ -219,6 +219,11 @@ class WorldSerializer:
             "narration_mode": self.legacy.narration_mode,
             "ghost_mode": self.legacy.ghost_mode,
             "mature_content": getattr(self.legacy, "mature_content", False),
+            # The scenario's own name. Without this a saved file cannot be
+            # identified on reload (routes fall back to "unnamed"), and the
+            # frontend's _scenarioIdentity() — which gates the local
+            # background-map cache — always sees null.
+            "_scenario_name": getattr(self.legacy, "_scenario_name", None),
             "world_lore": self.legacy.world_lore,
             "calendar_config": getattr(self.legacy, "calendar_config", None),
             "forecast_schedule": getattr(self.legacy, "forecast_schedule", None),
@@ -324,34 +329,32 @@ class WorldSerializer:
         data.pop("delayed_events", None)
         for pdata in data.get("players", {}).values():
             pdata.pop("recent_hearing", None)
-        # task-222, continued: a saved world is graph-only. `rooms` is a
-        # byte-identical duplicate of `areas` (the same dict was written to
-        # both keys); `ways` and `item_registry` are legacy attrs that only the
-        # loader ever populates and nothing reads. Writing them cost ~27% of
-        # the file and churned on every save.
+        # task-222, continued: a saved world is graph-only, so nothing here is
+        # a second copy of data already carried by `graph.nodes`:
+        #   - `areas` / `rooms` are projections the loader never reads
+        #     (LegacyCompat rebuilds them from the graph), and `rooms` was the
+        #     same dict written twice — 13% of the file, byte for byte.
+        #   - `ways` / `item_registry` were legacy attrs only the loader
+        #     populated and nothing consumed.
+        # Every field of an `areas` entry that mattered already lives on the
+        # node (`name`, `description`, `environment`, `floor`, `properties`);
+        # `ambient_light`/`light_description` are recomputed each tick and
+        # `items` was always empty (placement is the graph's `in` edges).
+        #
+        # The LIVE payload (to_dict) keeps all of them: the frontend reads
+        # worldState.areas / .ways (agent-engine, agent-lens, inspector,
+        # item-library/placement, graph/layout-engine).
+        data.pop("areas", None)
         data.pop("rooms", None)
         data.pop("ways", None)
         data.pop("item_registry", None)
+        # Omit an empty name rather than writing "": the load path tests
+        # `data.get('_scenario_name') or data.get('name')`, so an empty string
+        # reads as "unnamed" and silently outranks a real name.
+        if not data.get("_scenario_name"):
+            data.pop("_scenario_name", None)
         self.strip_redundant_exits(data)
-        self.strip_derived_area_fields(data)
         return data
-
-    @staticmethod
-    def strip_derived_area_fields(data):
-        """Drop per-area values that duplicate the graph node or are recomputed
-        at runtime: `properties` is a verbatim copy of the node's properties,
-        `ambient_light`/`light_description` are recomputed from light sources
-        each tick, and `items` is always empty (placement lives in the graph's
-        `in` edges). `description`/`environment`/`floor` are kept because the
-        scenario-changed fingerprint in routes/saveload.py compares them."""
-        for key in ("areas", "rooms"):
-            rooms = data.get(key, {}) or {}
-            for room in rooms.values():
-                if isinstance(room, dict):
-                    room.pop("properties", None)
-                    room.pop("ambient_light", None)
-                    room.pop("light_description", None)
-                    room.pop("items", None)
 
     @staticmethod
     def strip_redundant_exits(data):
@@ -397,6 +400,13 @@ class WorldSerializer:
             self.legacy.area_presence = {}
         self.legacy.log_revision = data.get("log_revision", 0)
         self.legacy.narration_mode = data.get("narration_mode", "none")
+        # Round-trip the scenario's name so a saved file stays identifiable
+        # without the load route having to re-derive it.
+        self.legacy._scenario_name = (
+            data.get("_scenario_name")
+            or getattr(self.legacy, "_scenario_name", None)
+            or ""
+        )
         self.legacy.ghost_mode = data.get("ghost_mode", False)
         self.legacy.mature_content = data.get("mature_content", False)
         self.legacy.speech_log.clear()

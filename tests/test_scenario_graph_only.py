@@ -25,25 +25,17 @@ def _world():
 class TestFilePayloadIsGraphOnly:
     def test_duplicate_and_legacy_keys_absent(self):
         scenario = _world().to_scenario_dict()
+        assert "areas" not in scenario
         assert "rooms" not in scenario
         assert "ways" not in scenario
         assert "item_registry" not in scenario
 
-    def test_derived_area_fields_absent(self):
+    def test_area_data_lives_only_on_the_graph_node(self):
+        """Nothing in `areas` was unique — the node already carries it, which is
+        where routes/saveload.py's diff fingerprint now reads it from."""
         scenario = _world().to_scenario_dict()
-        assert scenario.get("areas"), "areas must still be present for the wizard/fingerprint"
-        for name, entry in scenario["areas"].items():
-            assert "properties" not in entry, name
-            assert "ambient_light" not in entry, name
-            assert "light_description" not in entry, name
-            assert "items" not in entry, name
-
-    def test_fingerprint_fields_survive(self):
-        """routes/saveload.py compares description/environment to detect changes."""
-        entry = _world().to_scenario_dict()["areas"]["Room A"]
-        assert "description" in entry
-        assert "environment" in entry
-        assert "floor" in entry
+        node = scenario["graph"]["nodes"]["area_room_a"]
+        assert node["properties"].get("description") == "First room."
 
     def test_graph_is_still_the_source_of_truth(self):
         scenario = _world().to_scenario_dict()
@@ -57,6 +49,33 @@ class TestFilePayloadIsGraphOnly:
         reloaded.load_from_dict(scenario)
         assert len(reloaded.areas) == len(world.areas)
         assert reloaded.graph.get_node("area_room_a") is not None
+
+
+class TestScenarioNameRoundTrips:
+    """The name gates the frontend's local background-map cache
+    (static/js/graph/graph-background.js `_scenarioIdentity`), so losing it on
+    save made a saved map unloadable."""
+
+    def test_name_is_written_to_the_file_payload(self):
+        world = _world()
+        world._scenario_name = "my_scenario"
+        assert world.to_scenario_dict()["_scenario_name"] == "my_scenario"
+
+    def test_name_survives_a_reload(self):
+        world = _world()
+        world._scenario_name = "my_scenario"
+        reloaded = VirtualWorld()
+        reloaded.load_from_dict(world.to_scenario_dict())
+        assert reloaded._scenario_name == "my_scenario"
+
+    def test_unnamed_world_does_not_invent_a_name(self):
+        reloaded = VirtualWorld()
+        reloaded.load_from_dict(_world().to_scenario_dict())
+        assert not reloaded._scenario_name
+
+    def test_unnamed_payload_omits_the_key_entirely(self):
+        """An empty string would read as "unnamed" and outrank a real name."""
+        assert "_scenario_name" not in _world().to_scenario_dict()
 
 
 class TestLivePayloadKeepsBackCompat:

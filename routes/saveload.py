@@ -360,7 +360,7 @@ def register_saveload_routes(app):
         """Structural diff between the live world and its scenario source.
 
         Groups: added_areas / removed_areas / changed_areas (description,
-        environment, exits) / added_players / removed_players /
+        environment) / added_players / removed_players /
         added_items / removed_items / changed_items / added_ways /
         removed_ways / changed_ways. Rides on a canonical fingerprint —
         no storage format changes.
@@ -376,21 +376,40 @@ def register_saveload_routes(app):
             return jsonify({"source": source, "groups": {}, "warning": "source unreadable"})
         cur = world.to_scenario_dict()
 
-        def fingerprint(d, name):
-            a = (d.get('areas') or {}).get(name) or {}
+        # Areas come from the graph node set, like items/ways below. Legacy
+        # template payloads (areas but no graph) still fall back to the `areas`
+        # map so a template-sourced world diffs correctly.
+        #
+        # `exits` is deliberately NOT part of the fingerprint: every written
+        # payload has it stripped, so it was a constant on the live side and a
+        # false "changed" for any older file that still carried a copy.
+        def area_index(d):
+            idx = {}
+            nodes = (d.get('graph') or {}).get('nodes') or {}
+            for nd in nodes.values():
+                if isinstance(nd, dict) and nd.get('type') == 'area' and nd.get('name'):
+                    props = nd.get('properties')
+                    idx[str(nd['name'])] = props if isinstance(props, dict) else {}
+            if idx:
+                return idx
+            for name, a in (d.get('areas') or {}).items():
+                idx[str(name)] = a if isinstance(a, dict) else {}
+            return idx
+
+        def fingerprint(idx, name):
+            a = idx.get(name) or {}
             env = a.get('environment') or {}
             return json.dumps({
                 "description": a.get("description", ""),
                 "environment": {k: env.get(k) for k in ("light", "temperature", "air", "smell", "noise")},
-                "exits": a.get("exits") or {},
             }, sort_keys=True, default=str)
 
-        src_areas = set(str(k) for k in (src.get('areas') or {}))
-        cur_areas = set(str(k) for k in (cur.get('areas') or {}))
+        src_idx, cur_idx = area_index(src), area_index(cur)
+        src_areas, cur_areas = set(src_idx), set(cur_idx)
         added = sorted(cur_areas - src_areas)
         removed = sorted(src_areas - cur_areas)
         common = src_areas & cur_areas
-        changed = sorted(n for n in common if fingerprint(src, n) != fingerprint(cur, n))
+        changed = sorted(n for n in common if fingerprint(src_idx, n) != fingerprint(cur_idx, n))
 
         def player_names(d):
             if "players" in d:

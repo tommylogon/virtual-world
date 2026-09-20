@@ -50,21 +50,28 @@
         return (typeof graphManager !== 'undefined' && graphManager && graphManager.network) || null;
     }
 
-    function _scenarioKey() {
-        const raw = (typeof worldState !== 'undefined' && worldState && worldState.data) || {};
-        return raw._scenario_name || (document.body && document.body.dataset && document.body.dataset.scenarioName) || 'default';
-    }
-
     /**
      * The scenario's identity, or null when the world has no name.
      *
      * The IndexedDB cache is keyed on this. An unnamed scenario returns null so
      * the cache is NOT consulted at all — otherwise every unnamed scenario would
      * share the 'default' slot and a map added in one would appear in the next.
+     *
+     * Must accept the same fallbacks as _scenarioKey(): the body dataset is how
+     * Save/Export Scenario records the name (ui/saveload-view.js), so ignoring
+     * it here left the identity null and silently disabled the cached map.
      */
     function _scenarioIdentity() {
         const raw = (typeof worldState !== 'undefined' && worldState && worldState.data) || {};
-        return String(raw._scenario_name || '').trim() || null;
+        const name = raw._scenario_name
+            || (document.body && document.body.dataset && document.body.dataset.scenarioName)
+            || '';
+        return String(name).trim() || null;
+    }
+
+    /** Cache key — derived from the identity so the two cannot disagree. */
+    function _scenarioKey() {
+        return _scenarioIdentity() || 'default';
     }
 
     /** Drop all background state WITHOUT persisting it (scenario changed). */
