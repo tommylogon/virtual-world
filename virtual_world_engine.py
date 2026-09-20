@@ -139,6 +139,9 @@ class VirtualWorld:
             "transition_table": {},
         }
         self.forecast_override = None
+        # Graph background map (image path + transform). Presentation-only world
+        # state, persisted so a layout travels with the scenario file.
+        self.graph_background = {}
         self._forecast_sched_obj = None
         self._forecast_last_entry_key = None
         self._forecast_last_minute = None

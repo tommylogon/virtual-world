@@ -181,6 +181,17 @@ window.GraphFocus = {
         if (ds) present = ids.filter(id => ds.get(id) !== null);
         if (!present.length) { GraphFocus._fitToSearchMatches(); return; }
 
+        // Respect frozen nodes: a node with physics disabled belongs to the
+        // user's hand-made layout, so clustering must not drag it off. Only
+        // movable matches take part in the grid.
+        if (ds) {
+            present = present.filter((id) => {
+                const n = ds.get(id);
+                return !n || n.physics !== false;
+            });
+        }
+        if (!present.length) { GraphFocus._fitToSearchMatches(); return; }
+
         // Save current layout (only for nodes we're about to move).
         try { GraphFocus._savedPositions = network.getPositions(present); } catch (e) { GraphFocus._savedPositions = null; }
         try { GraphFocus._savedView = { position: network.getViewPosition(), scale: network.getScale() }; } catch (e) { GraphFocus._savedView = null; }
@@ -268,14 +279,17 @@ window.GraphFocus = {
      */
     _kickClusterPhysics() {
         if (!graphManager.network) return;
+        // NEVER spin up the solver when the user has physics off: the kick would
+        // re-settle a hand-made layout (stabilize() moves nodes even though the
+        // toggle is off). The cluster is arranged by explicit moveNode() calls,
+        // so it does not need the solver at all.
+        if (graphManager._physicsEnabled === false) return;
         const nodes = graphManager.network.body?.data?.nodes;
         if (!nodes) return;
-        const wasEnabled = graphManager._physicsEnabled !== false;
         graphManager.network.setOptions({ physics: { enabled: true } });
         try {
             graphManager.network.stabilize(60);
         } catch (e) { /* ignore */ }
-        if (!wasEnabled) graphManager.network.setOptions({ physics: { enabled: false } });
     },
 
     /**

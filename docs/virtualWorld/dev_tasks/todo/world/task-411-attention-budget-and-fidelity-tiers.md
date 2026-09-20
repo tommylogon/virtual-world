@@ -12,6 +12,14 @@ priority: medium
 **Spec:** `docs/design/long-horizon-simulation-progress.md` §1;
 `docs/design/reversibility-contract.md`.
 
+> **Amended by task-418.** `radius_hops` is superseded. In a text/graph world
+> a hop radius is an arbitrary spatial fiction whose only real job is bounding
+> cost; attendance now derives from **awareness channels** (sound first,
+> reusing `engine/sound.py`'s per-way barriers), plus co-presence, recency and
+> hooks. Keep the anchors, cap, and eviction determinism from this task;
+> treat `radius_hops` / `hysteresis` as retired. task-418 is authoritative for
+> the attended-set selection.
+
 ## Where this sits (not the timeskip simulator)
 
 Three separate things, easy to conflate:

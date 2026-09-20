@@ -336,6 +336,67 @@ def handle_upload_node_image(app, node_id):
     return jsonify({"status": "success", "image": url})
 
 
+def handle_upload_background_image(app):
+    """Upload the graph's background map image.
+
+    Saves a real FILE under ``static/images/backgrounds`` and returns its path —
+    mirroring handle_upload_node_image. Deliberately NOT base64-in-the-scenario:
+    a 2 MB map would add ~2.7 MB of text to the world file on every commit.
+    """
+    upload = request.files.get('file')
+    if not upload or not upload.filename:
+        return jsonify({"error": "No file provided (field 'file')"}), 400
+
+    allowed = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp'}
+    ext = (upload.filename.rsplit('.', 1)[-1] if '.' in upload.filename else '').lower()
+    if ext not in allowed:
+        return jsonify({
+            "error": f"Unsupported image type '{ext or 'unknown'}'. Allowed: {', '.join(sorted(allowed))}.",
+        }), 400
+
+    try:
+        images_dir = os.path.join(app.root_path, 'static', 'images', 'backgrounds')
+        os.makedirs(images_dir, exist_ok=True)
+        safe_base = secure_filename(os.path.splitext(upload.filename)[0]) or 'background'
+        filename = f"{safe_base}-{int(time.time() * 1000)}.{ext}"
+        upload.save(os.path.join(images_dir, filename))
+    except Exception as exc:
+        logger.warning("Background image save failed: %s", exc)
+        return jsonify({"error": "Could not save image on server."}), 500
+
+    url = f"/static/images/backgrounds/{filename}"
+    return jsonify({"status": "success", "image": url})
+
+
+def handle_save_background(app):
+    """Persist the background map's path + transform on the world.
+
+    Presentation-only state (like `world_lore`): it lives at the scenario's top
+    level so a laid-out map travels with the file and can be committed.
+    """
+    data = request.get_json(silent=True) or {}
+    background = dict(getattr(app.world, 'graph_background', None) or {})
+
+    if 'image' in data:
+        image = data.get('image')
+        background['image'] = str(image) if image else None
+    for key in ('rect', 'crop'):
+        if key in data:
+            value = data.get(key)
+            background[key] = value if isinstance(value, dict) else None
+    for key in ('rotation', 'opacity'):
+        if key in data:
+            try:
+                background[key] = float(data[key])
+            except (TypeError, ValueError):
+                pass
+    if 'locked' in data:
+        background['locked'] = bool(data['locked'])
+
+    app.world.graph_background = background
+    return jsonify({"status": "success", "graph_background": background})
+
+
 def handle_move_item_node(app, node_id):
     data = request.get_json()
     node = app.world.graph.get_node(node_id)

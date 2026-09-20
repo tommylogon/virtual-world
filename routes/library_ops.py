@@ -218,6 +218,27 @@ def handle_library_all(app):
     return jsonify(result)
 
 
+#: Node properties that describe where a node sits on the CANVAS, not the thing
+#: itself. They must never reach a library template, or every world laid out over
+#: a map would leak its coordinates into the archetype.
+PRESENTATION_ONLY_PROPERTIES = ('x', 'y')
+
+
+def _strip_presentation_properties(entry):
+    """Copy *entry* without its canvas-only properties (x/y)."""
+    if not isinstance(entry, dict):
+        return entry
+    props = entry.get('properties')
+    if not isinstance(props, dict):
+        return entry
+    cleaned = {k: v for k, v in props.items() if k not in PRESENTATION_ONLY_PROPERTIES}
+    if len(cleaned) == len(props):
+        return entry
+    entry = dict(entry)
+    entry['properties'] = cleaned
+    return entry
+
+
 def handle_library_create_or_update(app, registry_type):
     if registry_type not in REGISTRY_TYPES:
         return jsonify({"error": f"Unknown registry type: {registry_type}"}), 400
@@ -227,10 +248,10 @@ def handle_library_create_or_update(app, registry_type):
     filename = f"{registry_type}.json"
     registry = load_registry(app.config['DATA_DIR'], filename)
     if 'data' in data:
-        registry[data['id']] = data['data']
+        registry[data['id']] = _strip_presentation_properties(data['data'])
     else:
         entry_data = {k: v for k, v in data.items() if k != 'id'}
-        registry[data['id']] = entry_data
+        registry[data['id']] = _strip_presentation_properties(entry_data)
     save_registry(app.config['DATA_DIR'], filename, registry)
 
     warnings = []

@@ -214,6 +214,19 @@ class ApiClient {
         return ApiClient.updateNode(nodeId, { properties: { image: null } });
     }
 
+    /** Upload the graph's background map; returns { image: '/static/images/backgrounds/…' }. */
+    static async uploadBackgroundImage(file) {
+        const form = new FormData();
+        form.append('file', file);
+        const resp = await fetch('/api/graph/background/image', { method: 'POST', body: form });
+        return resp.json();
+    }
+
+    /** Persist the background map's path + transform on the world (scenario-level). */
+    static async saveGraphBackground(background) {
+        return ApiClient.post('/api/graph/background', background);
+    }
+
     static async renameNode(nodeId, newId) {
         return ApiClient.post(`/api/graph/node/${encodeURIComponent(nodeId)}/rename`, { new_id: newId });
     }

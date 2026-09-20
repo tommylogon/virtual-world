@@ -40,6 +40,31 @@ window.VitalThresholds = (() => {
     // Sanity has extra granularity (progressive insanity tiers).
     const SANITY_SHATTERED = 10;
 
+    // ── Blood-temperature bands (mirror of engine/traits.py) ──────────────
+    // Absent trait ⇒ warm-blooded, which reproduces the historic thresholds.
+    const TEMPERATURE_BANDS = {
+        warm_blooded: { normal: 37, cold_mild: 35, cold_severe: 33, heat_mild: 38, heat_severe: 40, heat_critical: 42, cold_floor: 25, heat_ceiling: 45 },
+        cold_blooded: { normal: 22, cold_mild: 16, cold_severe: 12, heat_mild: 30, heat_severe: 34, heat_critical: 36, cold_floor: 6, heat_ceiling: 38 },
+        hot_blooded: { normal: 40, cold_mild: 36, cold_severe: 32, heat_mild: 43, heat_severe: 46, heat_critical: 48, cold_floor: 24, heat_ceiling: 52 },
+    };
+
+    /**
+     * Resolve a character's temperature band from their traits.
+     * Accepts a player object, a traits map, or a character name.
+     */
+    function temperatureBand(playerOrTraits) {
+        let traits = playerOrTraits;
+        if (typeof playerOrTraits === 'string') {
+            traits = window.worldState?.data?.players?.[playerOrTraits]?.traits;
+        } else if (playerOrTraits && playerOrTraits.traits) {
+            traits = playerOrTraits.traits;
+        }
+        traits = traits || {};
+        if (traits.hot_blooded) return { ...TEMPERATURE_BANDS.hot_blooded, label: 'hot-blooded' };
+        if (traits.cold_blooded) return { ...TEMPERATURE_BANDS.cold_blooded, label: 'cold-blooded' };
+        return { ...TEMPERATURE_BANDS.warm_blooded, label: 'warm-blooded' };
+    }
+
     // ── Hover explanations (task-129) ─────────────────────────────────
     // "What does this vital do" one-liners for the inspector / turn-panel
     // tooltips. Polarity-aware; the human NL prose still comes from
@@ -54,7 +79,7 @@ window.VitalThresholds = (() => {
         Social: 'drains alone, refills with company.',
         Hygiene: 'drains with grime — wash up.',
         Entertainment: 'drains with monotony — seek something new.',
-        Temperature: 'comfort band 35-37°C — below is hypothermia, above is heat stroke.',
+        Temperature: 'core temperature — the comfort band depends on species (cold-blooded, warm-blooded, hot-blooded).',
         Mana: 'spent casting — rest to recover.',
     };
 
@@ -105,6 +130,9 @@ window.VitalThresholds = (() => {
         DRIVE_MILD,
         SOCIAL_MILD,
         SANITY_SHATTERED,
+
+        TEMPERATURE_BANDS,
+        temperatureBand,
 
         explain,
         healthyLine,

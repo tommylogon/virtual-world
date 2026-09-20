@@ -323,7 +323,7 @@ const foodish = areaItems.filter(it =>
      * @param {Object} [scene] - Optional scene facts from _vitalsScene (task-327)
      * @returns {string} First-person NL description, or '' if healthy/undefined
      */
-    function describeVital(vitals, key, scene) {
+    function describeVital(vitals, key, scene, band) {
         if (!vitals || vitals[key] === undefined || vitals[key] === null) return '';
         const thresholds = window.VitalThresholds;
         const value = Number(vitals[key]) || 0;
@@ -403,14 +403,22 @@ const foodish = areaItems.filter(it =>
                 if (value < 25) return 'You\'re bored. Routine feels stifling. You\'re drawn to try something different — anything to break the monotony.';
                 if (value < 50) return 'You\'re starting to get bored. Consider doing something new or going somewhere else.';
                 return '';
-            case 'Temperature':
-                if (value < 33) return 'You are shivering uncontrollably — hypothermia is setting in. Your fingers are numb.';
-                if (value < 35) return 'You are shivering violently from the cold. Your teeth chatter.';
-                if (value < 36) return 'You are cold and shivering. A chill runs through you.';
-                if (value > 42) return 'The heat is overwhelming — you are about to collapse. The world swims before your eyes.';
-                if (value > 40) return 'You are dangerously overheated. Sweat pours down your face.';
-                if (value > 38) return 'You are feeling very hot. You wipe sweat from your brow.';
+            case 'Temperature': {
+                // Species bands (engine/traits.py): a cold-blooded frog is
+                // comfortable at 22 °C, so the prose must follow THEIR band, not
+                // a fixed human scale. Defaults are the historic warm-blooded
+                // numbers, so nothing changes for characters without the trait.
+                const tempBand = band || window.VitalThresholds?.temperatureBand?.() || {
+                    normal: 37, cold_mild: 35, cold_severe: 33, heat_mild: 38, heat_severe: 40, heat_critical: 42,
+                };
+                if (value < tempBand.cold_severe) return 'You are shivering uncontrollably — hypothermia is setting in. Your fingers are numb.';
+                if (value < tempBand.cold_mild) return 'You are shivering violently from the cold. Your teeth chatter.';
+                if (value < tempBand.normal - 1) return 'You are cold and shivering. A chill runs through you.';
+                if (value > tempBand.heat_critical) return 'The heat is overwhelming — you are about to collapse. The world swims before your eyes.';
+                if (value > tempBand.heat_severe) return 'You are dangerously overheated. Sweat pours down your face.';
+                if (value > tempBand.heat_mild) return 'You are feeling very hot. You wipe sweat from your brow.';
                 return '';
+            }
             default:
                 return '';
         }
@@ -444,18 +452,20 @@ const foodish = areaItems.filter(it =>
             || traits.no_physiological_needs === true;
         const order = ['Energy', 'Hunger', 'Thirst', 'Hygiene', 'Social', 'Bladder',
                        'Sanity', 'Entertainment', 'Temperature'];
+        // Species temperature band so the prose matches this character's body.
+        const temperatureBand = window.VitalThresholds?.temperatureBand?.(player);
         const parts = [];
         for (const key of order) {
             if (vitalsData[key] !== undefined) {
                 // Physiological drives are meaningless to a slasher/undead.
                 if (noPhysNeeds && (key === 'Hunger' || key === 'Thirst')) continue;
-                const desc = describeVital(vitalsData, key, scene);
+                const desc = describeVital(vitalsData, key, scene, temperatureBand);
                 if (desc) parts.push(desc);
             }
         }
         for (const key of Object.keys(vitalsData)) {
             if (key.startsWith('Max_') || order.includes(key)) continue;
-            const desc = describeVital(vitalsData, key, scene);
+            const desc = describeVital(vitalsData, key, scene, temperatureBand);
             if (desc) parts.push(desc);
         }
         // Deliberately NO baseline-reporting line: a neutral state stays silent

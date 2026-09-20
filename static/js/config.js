@@ -53,6 +53,9 @@ class ConfigManager {
         this.matureContent = (await storage.getConfig('mature_content')) === 'true';
         // Raw LLM exchange capture opt-in (task-405): feeds the LLM inspector
         this.showRawLLM = (await storage.getConfig('show_raw_llm')) === 'true';
+        // End-of-turn memory opt-in: memories are normally written at the START
+        // of a character's turn, so asking for one at the END is optional.
+        this.endOfTurnMemory = (await storage.getConfig('end_of_turn_memory')) === 'true';
         this.manualMode = (await storage.getConfig('manual_mode')) === 'true';
 
         // Invalid-action auto-retry (task-361): when an agent action fails, give
@@ -134,6 +137,7 @@ class ConfigManager {
         await storage.setConfig('ghost_mode', this.ghostMode ? 'true' : 'false');
         await storage.setConfig('mature_content', this.matureContent ? 'true' : 'false');
         await storage.setConfig('show_raw_llm', this.showRawLLM ? 'true' : 'false');
+        await storage.setConfig('end_of_turn_memory', this.endOfTurnMemory ? 'true' : 'false');
         await storage.setConfig('rpm_limit', String(this.rpmLimit));
         await storage.setConfig('tpm_limit', String(this.tpmLimit));
         await storage.setConfig('filter_thoughts', this.filterThoughts ? 'true' : 'false');
@@ -207,6 +211,7 @@ class ConfigManager {
         this.ghostMode = document.getElementById('agent-ghost-mode')?.checked ?? this.ghostMode;
         this.matureContent = document.getElementById('agent-mature-content')?.checked ?? this.matureContent;
         this.showRawLLM = document.getElementById('agent-show-raw-llm')?.checked ?? this.showRawLLM;
+        this.endOfTurnMemory = document.getElementById('agent-end-of-turn-memory')?.checked ?? this.endOfTurnMemory;
         this.manualMode = document.getElementById('agent-manual-mode')?.checked ?? this.manualMode;
         this.autoRetryInvalid = document.getElementById('agent-auto-retry-invalid')?.checked ?? this.autoRetryInvalid;
         this.simultaneousMode = document.getElementById('agent-simultaneous-mode')?.checked ?? this.simultaneousMode;

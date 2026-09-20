@@ -261,6 +261,18 @@ window.GraphNetwork = {
                         const len = wayNode.properties?.edge_length;
                         if (len && len > 0) edgeLength = len;
                     }
+                    // Dynamic default: a connection edge is only as long as its
+                    // labels need. A short name ("west") stays tight; a long one
+                    // ("northwest passage") gets room — so edges stop being
+                    // stretched to the global spring length. A per-way
+                    // `edge_length` property still wins.
+                    if (!edgeLength) {
+                        // Size to the label actually drawn along the edge: an
+                        // unlabelled edge can be short, a long one needs room.
+                        // Capped so a two-sided label can't stretch the layout.
+                        const labelLength = String(edgeLabel || '').length;
+                        edgeLength = Math.min(130, Math.max(45, 35 + labelLength * 3.2));
+                    }
                 } else if (GRAPH_ATTACH_EDGE_TYPES.has(edgeType)) {
                     // Item → parent attachment edges (in/on/under/behind/beside/
                     // at/carrying/equipped): shorter springs so children hug
@@ -517,6 +529,14 @@ window.GraphNetwork = {
             // physics stays out of that pull while the rest keeps simulating.
             physics: nodeData.properties?.central_gravity_enabled !== false
         };
+
+        // Saved layout: a node whose x/y were persisted to the world (right-click
+        // → 🗺 → 💾 Save layout) loads back in place instead of being freshly
+        // simulated. Whether it then HOLDS is the job of the physics lock.
+        if (typeof nodeData.properties?.x === 'number' && typeof nodeData.properties?.y === 'number') {
+            nodeConfig.x = nodeData.properties.x;
+            nodeConfig.y = nodeData.properties.y;
+        }
 
         // Way nodes: color by state
         if (nodeData.type === 'way') {

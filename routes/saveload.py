@@ -753,6 +753,51 @@ def register_saveload_routes(app):
             "committed_at": committed_at,
         })
 
+    @app.route('/api/scenario/name', methods=['POST'])
+    def scenario_set_name():
+        """Name the live world.
+
+        The name is not cosmetic: it drives the top-bar chip, the per-scenario
+        browser cache key, and — most importantly — WHERE a commit writes. A
+        world booted from a shared source (e.g. the boot template) would
+        otherwise commit straight back into that file. When the current source
+        has a different basename the save target is repointed to
+        ``<name>.json``; an existing file is never overwritten (the previous
+        target is kept and a warning returned).
+        """
+        world = app.world
+        body = request.get_json(force=True, silent=True) or {}
+        name = str(body.get('name') or '').strip()
+        if not name:
+            return jsonify({"error": "Missing 'name'"}), 400
+
+        safe = ''.join(c if (c.isalnum() or c in ' _-') else '_' for c in name).strip() or 'unnamed'
+        world._scenario_name = safe
+
+        source = getattr(world, '_scenario_source', None)
+        current = os.path.splitext(os.path.basename(source))[0] if source else None
+        result = {"status": "success", "name": safe, "source": source or ""}
+
+        if current != safe:
+            scenarios_dir = os.path.join(app.config['DATA_DIR'], 'scenarios')
+            target = os.path.join(scenarios_dir, f"{safe}.json")
+            target_is_source = bool(source) and os.path.abspath(target) == os.path.abspath(source)
+            if os.path.exists(target) and not target_is_source:
+                result["warning"] = (
+                    f"'{safe}.json' already exists — commits keep writing to "
+                    f"{os.path.basename(source) if source else 'the current target'}."
+                )
+            else:
+                try:
+                    os.makedirs(scenarios_dir, exist_ok=True)
+                    world._scenario_source = target
+                    result["source"] = target
+                except OSError as exc:
+                    result["warning"] = f"Could not set the save target: {exc}"
+
+        logger.info("Scenario named '%s' (save target: %s)", safe, getattr(world, '_scenario_source', None))
+        return jsonify(result)
+
     @app.route('/api/scenario/commit', methods=['POST'])
     def scenario_commit():
         """Write the live world into the scenario source (undo not needed —

@@ -8,7 +8,10 @@ priority: high
 # task-412: Promotion/demotion and trace→memory consolidation
 
 **Filed:** 2026-09-19  
-**Depends on:** task-399 (background runner), task-411 (attention tiers).  
+**Depends on:** task-399 (background runner), task-411 (attention tiers),
+task-418 (attended set), task-420 (one relationship write path).
+Without task-420 the foreground and background tiers write relationship state
+through different paths, so a tier change can jump the value.  
 **Spec:** `docs/design/reversibility-contract.md`, `docs/design/trace-format.md`.
 
 ## Goal

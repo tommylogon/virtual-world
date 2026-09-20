@@ -223,6 +223,7 @@ class WorldSerializer:
             "calendar_config": getattr(self.legacy, "calendar_config", None),
             "forecast_schedule": getattr(self.legacy, "forecast_schedule", None),
             "forecast_override": getattr(self.legacy, "forecast_override", None),
+            "graph_background": getattr(self.legacy, "graph_background", None),
             "delayed_events": self.legacy.delayed_events.to_dict()
         }
 
@@ -406,6 +407,9 @@ class WorldSerializer:
         self.legacy.ways = data.get("ways", {})
         self.legacy.item_registry = data.get("item_registry", {})
         self.legacy.world_lore = data.get("world_lore", [])
+        # Graph background map: image path + transform (presentation only).
+        background = data.get("graph_background")
+        self.legacy.graph_background = background if isinstance(background, dict) else {}
         # task-228/227: calendar + forecast persist through saves.
         if isinstance(data.get("calendar_config"), dict):
             defaults = getattr(self.legacy, "calendar_config", None) or {}

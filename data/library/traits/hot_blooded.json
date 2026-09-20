@@ -1,0 +1,10 @@
+{
+  "id": "hot_blooded",
+  "name": "Hot-Blooded",
+  "description": "Dragonoid metabolism: runs hot (comfortable around 40C), shrugs off cold that would kill a human, and overheats in extreme heat.",
+  "category": "physical",
+  "params": null,
+  "effects": {
+    "temperature_band": "hot_blooded"
+  }
+}

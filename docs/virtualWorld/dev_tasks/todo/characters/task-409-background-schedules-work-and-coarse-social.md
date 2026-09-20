@@ -49,6 +49,10 @@ behaviour auditable.
    existing goal unchanged.
 4. **Coarse meetings.** Deterministic from relationships + traits + vitals +
    seeded RNG; apply symmetric relationship deltas; never fabricate items.
+   **Amended by task-417:** the pairing pass runs **per area over co-present
+   characters**. As written here the rule has no spatial constraint and would
+   pair characters in different areas. task-417 is authoritative for this step.
+   Deltas are written through `apply_relationship_delta` (task-420).
 5. **Deferral rules.** Combat, ambiguous theft/trade, a blocked/locked route, a
    trigger needing precise surroundings, or an encounter marked
    `requires_active` stop and request scope activation.

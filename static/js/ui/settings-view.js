@@ -69,6 +69,7 @@ window.SettingsView = (() => {
         setChecked('agent-simultaneous-mode', config.simultaneousMode);
         setChecked('agent-structured-output', config.structuredOutput);
         setChecked('agent-show-raw-llm', config.showRawLLM);
+        setChecked('agent-end-of-turn-memory', config.endOfTurnMemory);
 
         // Graph settings
         setVal('graph-spring-length', String(config.graphSpringLength || 100));

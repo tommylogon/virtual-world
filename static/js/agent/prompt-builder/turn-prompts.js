@@ -24,23 +24,22 @@
  *   Phase      | Output fields                              | Consumed by
  *   -----------|----------------------------------------------|--------------------------------------
  *   reaction   | action,item,target,speech,volume,emote,       action-executor.js, memory-store.js
- *              | (memory if includeMemory)
- *   observe    | inner_monologue                                fed into decide phase's `inner` param
- *   decide     | action,say,emote                               action-executor.js
+ *              | (memory if config.endOfTurnMemory)
  *   react      | inner_monologue,speech,volume,emote,memory     action-executor.js, memory-store.js
  *   dash       | action,target OR action:"wait"                 action-executor.js (mid-sprint chain)
  * ---------------------------------------------------------------------------
  *
- * NOTE ("reaction" phase): `includeMemory` is accepted but the original code
- * never wired MEMORY_INSTRUCTION_REACTION into the returned prompt text even
- * when true — the model got the "memory" field in its JSON schema with no
- * instructions for how to fill it in. Preserved as-is (see commented-out line
- * below) since fixing it changes model behavior — uncomment to wire it in.
+ * RESOLVED (2026-09-20) — "reaction" phase memory: `includeMemory` used to add
+ * the "memory" field to the JSON schema while never explaining how to fill it.
+ * It is now wired, and OPT-IN: memory is normally written at the START of a
+ * character's turn, so end-of-turn memory requires Settings → "End-of-turn
+ * memory" (`config.endOfTurnMemory`). Off by default.
  *
- * NOTE ("decide" phase): unlike the other three phases, buildDecisionPrompt
- * does not receive relationshipNL as a parameter — it recomputes it internally
- * via buildRelationshipContext. Preserved for behavioral parity with the
- * original; worth unifying the calling convention if you touch this again.
+ * REMOVED (2026-09-20): `buildObservationPrompt` and `buildDecisionPrompt` were
+ * dead exports — defined, exported, and never called. The live turn-start call is
+ * `buildReactionPrompt`, which covers both think and decide (see task-350). Both
+ * builders and their exports were deleted; `git log` has them if the phase split
+ * is ever revived.
  */
 
 window.PromptBuilder = window.PromptBuilder || {};
@@ -110,19 +109,20 @@ window.PromptBuilder = window.PromptBuilder || {};
         const context = PromptBuilder.buildContextBlock(player, ctx,
             ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'size', 'activity', 'grappled', 'ghost', 'dead']);
 
-        // const memoryInstruction = includeMemory ? PromptBuilder.MEMORY_INSTRUCTION_REACTION : '';
-        // — see file-header NOTE: currently unused, matching original behavior.
+        // End-of-turn memory is OPTIONAL (memories normally come at turn START).
+        const wantMemory = includeMemory && config.endOfTurnMemory === true;
+        const memoryInstruction = wantMemory ? PromptBuilder.MEMORY_INSTRUCTION_REACT : '';
 
         const schemaFields = ['inner_monologue', 'action_use_on', 'speech', 'volume', 'emote'];
         if (includeFeelings) schemaFields.push('emotion_toward', 'learned_names');
-        if (includeMemory) schemaFields.push('memory', 'emotion_toward', 'learned_names');
+        if (wantMemory) schemaFields.push('memory', 'emotion_toward', 'learned_names');
 
         const head = PromptBuilder.assembleMessageHead(parts, context, memoryNL);
 
         return `${head}${last}
 
 First, think about what's happening around you (inner_monologue). Then decide what you do, what you say out loud, and your body language (emote) — all in ONE response. The action will be executed by the system and its result comes back in the next message — do not assume the outcome of your action in your inner monologue or speech.
-${PromptBuilder.EMOTE_RULES_REACTION}
+${PromptBuilder.EMOTE_RULES_REACTION}${memoryInstruction}
 
 Follow the ACTION STRUCTURE and SPEECH & VOLUME rules above in the system prompt — action/item/target fields, speech in "speech" with its volume in "volume", emote as a field on any action.
 Your context's === AVAILABLE ACTIONS === section lists the actions you can take beyond what your surroundings already offer — use those verbs and act on what it names.
@@ -134,88 +134,6 @@ If you say nothing but still emote:
 {"inner_monologue":"...","action":"wait","speech":null,"volume":null,"item":null,"target":null,"emote":"shivers and hugs their shoulders","memory":null,"emotion":null,"learned_names":[]}
 If you have no emote, omit it:
 {"inner_monologue":"...","action":"look","target":"the archway","speech":null,"volume":null,"item":null,"emote":null,"memory":null,"emotion":null,"learned_names":[]}`;
-    }
-
-    /**
-     * Build the observation prompt (reactive mode, think phase) — just inner monologue.
-     * The character observes what happened and thinks about it.
-     * @param {Object} player - Player data object
-     * @param {Object} parts - Room context parts (buildRoomContextParts result)
-     * @param {string} vitalsNL - Natural language vitals description
-     * @param {string} emotionNL - Emotion context string
-     * @param {string} relationshipNL - Relationship context string (relationships now live in the People list)
-     * @param {string} memoryNL - Memory context string
-     * @param {string} lastResult - Last action result text
-     * @returns {string} Observation prompt string
-     */
-    function buildObservationPrompt(player, parts, vitalsNL, emotionNL, relationshipNL, memoryNL, lastResult) {
-        const last = lastResult
-            ? `\n\n=== JUST HAPPENED ===\n${PromptBuilder.frameSelfSpeech(player.name, lastResult)}`
-            : '';
-        const observeQuestion = lastResult
-            ? 'Based on what has happened this turn, what do you think or react to it?'
-            : 'What do you think about your current situation?';
-        const planGuide = PromptBuilder.buildPlanGuide(player, 'observe');
-
-        const ctx = { phase: 'observe', vitalsNL, emotionNL, relationshipNL, memoryNL };
-        const context = PromptBuilder.buildContextBlock(player, ctx,
-            ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'ghost', 'dead']);
-
-        const head = PromptBuilder.assembleMessageHead(parts, context, memoryNL);
-
-        return `${head}${last}
-
-${observeQuestion}${planGuide}
-
-=== OBSERVE RULES ===
-- Scan the 'People here' list carefully. If someone appears hostile, dangerous, or unfamiliar, your inner_monologue MUST acknowledge them first before anything else.
-
-Respond ONLY raw JSON:
-${PromptBuilder.buildJsonExample(['inner_monologue'])}`;
-    }
-
-    /**
-     * Build the decision prompt (reactive mode, decide phase) — turn thoughts into action.
-     * The character decides what to do based on their observations, plan, and state.
-     * @param {Object} player - Player data object
-     * @param {Object} parts - Room context parts (buildRoomContextParts result)
-     * @param {string} vitalsNL - Natural language vitals description
-     * @param {string} emotionNL - Emotion context string
-     * @param {string} inner - Inner monologue from observation phase
-     * @param {string} memoryNL - Memory context string
-     * @param {string} lastResult - Last action result text
-     * @returns {string} Decision prompt string
-     */
-    function buildDecisionPrompt(player, parts, vitalsNL, emotionNL, inner, memoryNL, lastResult) {
-        const planGuide = PromptBuilder.buildPlanGuide(player, 'decide');
-        const lastResultNL = (lastResult && lastResult.trim())
-            ? `\n=== LAST ACTION RESULT ===\n${PromptBuilder.frameSelfSpeech(player.name, lastResult.trim())}`
-            : '';
-
-        // See file-header NOTE: decide phase recomputes relationshipNL itself.
-        const relationshipNL = PromptBuilder.buildRelationshipContext(player, player.name);
-
-        const ctx = { phase: 'decide', vitalsNL, emotionNL, relationshipNL, memoryNL };
-        const context = PromptBuilder.buildContextBlock(player, ctx,
-            ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'size', 'ghost', 'dead']);
-
-        const head = PromptBuilder.assembleMessageHead(parts, context, memoryNL);
-
-        return `${head}${lastResultNL}\n\n=== YOUR THOUGHTS ===\n${inner || 'None'}
-
-Your inner monologue has already been handled in the previous phase. This phase is DECIDE only — decide what you do and how you do it, but you cannot determine the outcome. The result of your action will be handled in the next prompt.${planGuide}
-Action should be a command of what you do, based on the allowed actions list. 
-Say something out loud by putting your line in exactly ONE of these volume fields — pick the volume that fits the situation:
-  whisper — only your current room hears it
-  say — heard in adjacent rooms through open doors
-  sing — like say, but you're singing it (carries through open doors)
-  shout — passes through a closed door and carries a few rooms
-  scream — carries the furthest — even through two closed doors
-${PromptBuilder.EMOTE_RULES_DECIDE}
-Do not put speech or emote inside the action field — they have their own fields.
-
-Respond ONLY raw JSON (every field shown, null what you don't need):
-${PromptBuilder.buildJsonExample(['full_action'])}`;
     }
 
     /**
@@ -337,8 +255,6 @@ ${PromptBuilder.buildJsonExample(['full_action'])}`;
     Object.assign(window.PromptBuilder, {
         assembleMessageHead,
         buildReactionPrompt,
-        buildObservationPrompt,
-        buildDecisionPrompt,
         buildResultReactionPrompt,
         buildDashFollowUpPrompt,
         buildChainFollowUpPrompt,

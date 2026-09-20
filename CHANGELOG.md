@@ -270,6 +270,50 @@ reports **0**, and the 11 previously-dead triggers fire.
     contract guard now steps over.
   - Convention and conversion recipe: `docs/design/typescript-migration.md`.
 
+### 🗺️ Graph layout durability + adaptive edges
+- **Node positions persist to the WORLD.** 🗺 → **Save layout to world** (and
+  locking) writes each node's `properties.x`/`y` through a single atomic
+  `POST /api/graph/batch` — so a layout survives reloads, travels with the
+  scenario file, and is one undo step. `buildNodeConfig()` seeds `x`/`y` from
+  those properties on load. **`x`/`y` never reach library templates** —
+  `handle_library_create_or_update` strips presentation-only properties, and the
+  template-refresh paths already build explicit key lists, so a refresh cannot
+  clear a node's saved position either. `tests/test_library_presentation_keys.py`
+  locks both the helper and the route.
+- **Background map stored as a FILE, not base64.** New
+  `POST /api/graph/background/image` saves to `static/images/backgrounds/…`, and
+  the path plus transform (rect/rotation/crop/opacity/locked) lives in a new
+  scenario-level `graph_background` block, serialized like `world_lore`.
+  Embedding the map as base64 would have added ~2.7 MB to the scenario per
+  commit for a 2 MB image; IndexedDB remains a local fallback for maps never
+  uploaded.
+- **Search no longer wrecks hand-made layouts.** `graph/focus.js` called
+  `network.moveNode()` on *every* match regardless of `physics: false`, and
+  `_kickClusterPhysics()` switched global physics on and ran `stabilize(60)`
+  even when physics was off — re-settling the whole layout. Frozen nodes are now
+  excluded from the cluster grid, and the kick is skipped entirely when physics
+  is disabled.
+- **Adaptive connection edges.** Area↔way edges size to the label actually
+  drawn: `clamp(45…130, 35 + 3.2 × labelLength)`, so unlabelled edges stay tight
+  and long names get room without stretching the map. A per-way `edge_length`
+  property still overrides.
+
+### 🌍 Scenario naming + per-scenario isolation
+- **The top-bar name is now real.** The click-to-rename chip only ever wrote
+  `document.body.dataset.scenarioName` — never the server — so the name was
+  cosmetic, vanished on reload, and even keyed the graph-background cache. New
+  **`POST /api/scenario/name`** sets `world._scenario_name` and, when the source
+  file has a different basename, **repoints the commit target** to
+  `data/scenarios/<name>.json` — so a world booted from the boot template stops
+  committing into `world_template.json`. Existing files are never clobbered.
+  The chip updates immediately and reverts if the server rejects the name.
+- **Graph backgrounds are per-scenario.** Loading a different world left the
+  previous world's map on screen, and the IndexedDB fallback keyed unnamed
+  scenarios to one shared `default` slot. The **world is now authoritative**:
+  every state refresh re-derives the background (clearing it when the world has
+  none), the local cache is consulted only for a *named* scenario, and a
+  previous world's physics freeze is undone rather than inherited.
+
 ---
 
 ## Unreleased — "Survival balance & Sanity breakdown" (2026-09-08)

@@ -30,6 +30,8 @@
     const HANDLE = 10;
 
     const state = {
+        physicsDisabledByLock: false,                 // did WE freeze physics for a lock?
+        imagePath: null,                              // /static/images/backgrounds/… (in the world)
         image: null,                                  // HTMLImageElement
         rect: null,                                   // {x, y, width, height} in graph space
         rotation: 0,                                  // degrees
@@ -53,12 +55,66 @@
         return raw._scenario_name || (document.body && document.body.dataset && document.body.dataset.scenarioName) || 'default';
     }
 
+    /**
+     * The scenario's identity, or null when the world has no name.
+     *
+     * The IndexedDB cache is keyed on this. An unnamed scenario returns null so
+     * the cache is NOT consulted at all — otherwise every unnamed scenario would
+     * share the 'default' slot and a map added in one would appear in the next.
+     */
+    function _scenarioIdentity() {
+        const raw = (typeof worldState !== 'undefined' && worldState && worldState.data) || {};
+        return String(raw._scenario_name || '').trim() || null;
+    }
+
+    /** Drop all background state WITHOUT persisting it (scenario changed). */
+    function reset() {
+        state.image = null;
+        state.imagePath = null;
+        state.rect = null;
+        state.rotation = 0;
+        state.crop = { x: 0, y: 0, w: 1, h: 1 };
+        state.opacity = OPACITY_DEFAULT;
+        state.locked = false;
+        state.positions = {};
+        state.editing = false;
+        state.cropping = false;
+        _render();
+        _updateHint();
+    }
+
+    /**
+     * Persist the map's path + transform on the WORLD (scenario-level), so it
+     * travels with the file and can be committed. Debounced: drags call this on
+     * pointer-up, not per frame.
+     */
+    let _worldSaveTimer = null;
+    function saveToWorld(immediate = false) {
+        if (typeof ApiClient === 'undefined' || !ApiClient.saveGraphBackground) return;
+        const payload = {
+            image: state.imagePath || null,
+            rect: state.rect,
+            rotation: state.rotation,
+            crop: state.crop,
+            opacity: state.opacity,
+            locked: state.locked,
+        };
+        const post = () => {
+            ApiClient.saveGraphBackground(payload).catch(() => { /* local copy still has it */ });
+        };
+        clearTimeout(_worldSaveTimer);
+        if (immediate) { post(); return; }
+        _worldSaveTimer = setTimeout(post, 400);
+    }
+
     async function _persist() {
         if (typeof storage === 'undefined' || !storage || !state.key) return;
         try {
             await storage.set(STORE, state.key, {
                 key: state.key,
-                image: state.image ? state.image.src : null,
+                // Store the PATH when we have one — never duplicate a big base64
+                // blob that already lives on the server.
+                image: state.imagePath || (state.image ? state.image.src : null),
                 rect: state.rect,
                 rotation: state.rotation,
                 crop: state.crop,
@@ -81,17 +137,34 @@
 
     async function _restore() {
         state.key = _scenarioKey();
-        if (typeof storage === 'undefined' || !storage) return;
-        let record = null;
-        try { record = await storage.get(STORE, state.key); } catch (e) { return; }
-        if (!record) return;
+        const identity = _scenarioIdentity();
+        // The WORLD copy wins — it travels with the scenario and can be
+        // committed. IndexedDB is only a local fallback, and only for a NAMED
+        // scenario: with no name there is no way to tell two worlds apart, so
+        // showing a cached map would leak it into the next scenario.
+        let record = (typeof worldState !== 'undefined' && worldState?.data?.graph_background) || null;
+        if (!record && identity && typeof storage !== 'undefined' && storage) {
+            try { record = await storage.get(STORE, state.key); } catch (e) { record = null; }
+        }
+        if (!record) {
+            // This world has no background of its own — show NOTHING rather than
+            // leaving the previous scenario's map on screen. (No-op when we are
+            // already clear, so frequent state updates stay cheap.)
+            if (state.image || state.rect) reset();
+            return;
+        }
         if (typeof record.opacity === 'number') state.opacity = record.opacity;
         if (typeof record.rotation === 'number') state.rotation = record.rotation;
         if (record.crop && typeof record.crop.w === 'number') state.crop = record.crop;
         state.locked = !!record.locked;
         state.positions = record.positions || {};
         state.rect = record.rect || null;
-        if (record.image) await _setImageSrc(record.image);
+        if (record.image) {
+            const src = String(record.image);
+            // A server path travels with the world; a data: URL is a local copy.
+            state.imagePath = src.startsWith('/static/') ? src : null;
+            await _setImageSrc(src);
+        }
     }
 
     /* ── view sync ─────────────────────────────────────────────────────── */
@@ -335,6 +408,7 @@
             document.removeEventListener('mousemove', onMove);
             document.removeEventListener('mouseup', onUp);
             _persist();
+            saveToWorld();
         };
         document.addEventListener('mousemove', onMove);
         document.addEventListener('mouseup', onUp);
@@ -342,23 +416,53 @@
 
     /* ── public actions ────────────────────────────────────────────────── */
 
-    async function addFromFile(file) {
-        if (!file) return;
-        const src = await new Promise((resolve) => {
+    /** Read a File as a data URL (the local fallback when upload is unavailable). */
+    function _readFileAsDataUrl(file) {
+        return new Promise((resolve) => {
             const reader = new FileReader();
             reader.onload = () => resolve(String(reader.result || ''));
             reader.onerror = () => resolve('');
             reader.readAsDataURL(file);
         });
-        if (!src) return;
-        if (!(await _setImageSrc(src))) return;
+    }
+
+    async function addFromFile(file) {
+        if (!file) return;
+
+        // 1. Upload the FILE, so the world stores a path rather than a
+        //    multi-megabyte base64 blob inside the scenario JSON.
+        let src = null;
+        if (typeof ApiClient !== 'undefined' && ApiClient.uploadBackgroundImage) {
+            try {
+                const result = await ApiClient.uploadBackgroundImage(file);
+                if (result && result.image) {
+                    state.imagePath = result.image;
+                    src = result.image;
+                }
+            } catch (e) { /* fall through to the local copy */ }
+        }
+        // 2. Fallback: keep it browser-local if the upload failed.
+        if (!src) {
+            src = await _readFileAsDataUrl(file);
+            state.imagePath = null;
+        }
+        if (!src || !(await _setImageSrc(src))) return;
+
         state.rotation = 0;
         state.crop = { x: 0, y: 0, w: 1, h: 1 };
         state.editing = true;
         state.cropping = false;
         fitToNodes();
         _render();
-        try { events.log('🗺 Background image added — drag to move, corners to resize, top dot to rotate.', 'system-msg'); } catch (e) { /* ignore */ }
+        saveToWorld(true);
+        try {
+            events.log(
+                state.imagePath
+                    ? '🗺 Background map uploaded — saved to the world as a file path.'
+                    : '🗺 Background image added (local only — upload failed).',
+                'system-msg',
+            );
+        } catch (e) { /* ignore */ }
     }
 
     function _pickFile() {
@@ -396,6 +500,7 @@
         state.rect = { x: cx - iw / 2, y: cy - ih / 2, width: iw, height: ih };
         _render();
         _persist();
+        saveToWorld();
     }
 
     function setEditing(on) {
@@ -416,6 +521,7 @@
         state.opacity = Math.max(0, Math.min(1, Number(value)));
         _render();
         _persist();
+        saveToWorld();
     }
 
     function removeImage() {
@@ -423,8 +529,10 @@
         state.rect = null;
         state.editing = false;
         state.cropping = false;
+        state.imagePath = null;
         _render();
         _persist();
+        saveToWorld(true);
     }
 
     function _capturePositions() {
@@ -446,22 +554,68 @@
     function setLocked(locked) {
         state.locked = !!locked;
         const net = _network();
-        if (net) {
-            if (state.locked) { _applyPositions(); _capturePositions(); }
-            net.setOptions({ physics: { enabled: !state.locked } });
-        }
-        if (typeof graphManager !== 'undefined' && graphManager) {
-            graphManager._physicsEnabled = !state.locked;
-        }
+        if (state.locked) { _applyPositions(); _capturePositions(); }
+        _applyLockState(net);
         _persist();
+        saveToWorld();
+        // Locking is the moment a layout becomes intentional — persist it.
+        if (state.locked) persistPositionsToWorld();
+    }
+
+    /**
+     * Write every node's canvas position into the world as `properties.x`/`y`.
+     *
+     * This is what makes a layout durable: it survives reloads, travels with the
+     * scenario file, and can be committed — unlike the browser-local copy in
+     * IndexedDB. One atomic batch request, so it is one undo step.
+     */
+    async function persistPositionsToWorld() {
+        const net = _network();
+        if (!net || typeof ApiClient === 'undefined' || !ApiClient.batchGraph) return { saved: 0 };
+        let positions = {};
+        try { positions = net.getPositions(); } catch (e) { return { saved: 0 }; }
+
+        const ops = [];
+        for (const id of Object.keys(positions)) {
+            const position = positions[id];
+            if (!position) continue;
+            ops.push({
+                type: 'update_node',
+                payload: {
+                    node_id: id,
+                    patch: {
+                        properties: {
+                            x: Math.round(position.x * 10) / 10,
+                            y: Math.round(position.y * 10) / 10,
+                        },
+                    },
+                },
+            });
+        }
+        if (!ops.length) return { saved: 0 };
+        try {
+            const result = await ApiClient.batchGraph(ops);
+            const failures = result && result.errors ? result.errors.length : 0;
+            try {
+                events.log(
+                    `💾 Layout saved to the world: ${ops.length} node position(s)` +
+                    (failures ? `, ${failures} failed` : '') + '.',
+                    failures ? 'error-msg' : 'system-msg',
+                );
+            } catch (e) { /* ignore */ }
+            return { saved: ops.length, failures };
+        } catch (e) {
+            try { events.log('💾 Layout save failed — see the console.', 'error-msg'); } catch (err) { /* ignore */ }
+            return { saved: 0 };
+        }
     }
 
     function savePositions() {
         _capturePositions();
         _persist();
-        try {
-            events.log(`💾 Graph layout saved (${Object.keys(state.positions).length} nodes)`, 'system-msg');
-        } catch (e) { /* ignore */ }
+        const count = Object.keys(state.positions).length;
+        try { events.log(`💾 Graph layout captured (${count} nodes)`, 'system-msg'); } catch (e) { /* ignore */ }
+        persistPositionsToWorld();
     }
 
     /* ── on-canvas hint (only while editing) ───────────────────────────── */
@@ -506,7 +660,7 @@
         }
         rows.push(sep);
         rows.push(item('lock', state.locked ? '🔓 Unlock nodes' : '🔒 Lock nodes', state.locked));
-        rows.push(item('save', '💾 Save node layout'));
+        rows.push(item('save', '💾 Save layout to world'));
         menu.innerHTML = rows.join('');
         menu.style.display = 'block';
         menu.style.left = ev.clientX + 'px';
@@ -551,16 +705,46 @@
             window.addEventListener('resize', sync);
         }
         await _restore();
+        _applyLockState(net);
+        _render();
+
+        // The WORLD is authoritative: whenever it is (re)fetched — including
+        // after loading a different scenario — re-derive the background from it
+        // instead of leaving whatever was on screen. Loading the camp after a
+        // map was added elsewhere must NOT show that other world's map.
+        if (typeof appEvents !== 'undefined' && appEvents && appEvents.on) {
+            appEvents.on('state:updated', () => { _onWorldRefetched(); });
+        }
+    }
+
+    /** Re-apply physics for the current lock state, undoing our own freeze. */
+    function _applyLockState(net) {
         if (state.locked) {
             if (net) net.setOptions({ physics: { enabled: false } });
             if (typeof graphManager !== 'undefined' && graphManager) graphManager._physicsEnabled = false;
+            state.physicsDisabledByLock = true;
+        } else if (state.physicsDisabledByLock) {
+            // WE froze physics for the previous world's lock — undo it, so a new
+            // scenario doesn't inherit the old one's frozen layout.
+            if (net) net.setOptions({ physics: { enabled: true } });
+            if (typeof graphManager !== 'undefined' && graphManager) graphManager._physicsEnabled = true;
+            state.physicsDisabledByLock = false;
         }
+    }
+
+    /** The world was refetched: restore (or clear) this world's background. */
+    async function _onWorldRefetched() {
+        // Never stomp an edit in progress — a debounced save is still in flight.
+        if (state.editing) return;
+        await _restore();
+        _applyLockState(_network());
         if (Object.keys(state.positions).length) _applyPositions();
         _render();
     }
 
     window.GraphBackground = {
         init,
+        reset,
         addFromFile,
         showCanvasMenu,
         fitToNodes,
@@ -569,6 +753,7 @@
         setOpacity,
         setLocked,
         savePositions,
+        persistPositionsToWorld,
         removeImage,
         _state: state,
     };

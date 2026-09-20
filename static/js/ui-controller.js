@@ -176,7 +176,12 @@ class UIController {
             if (vitals.Bladder >= 85) alerts.push({ type: 'warning', name, text: `${name}: Bladder full (${vitals.Bladder}%)` });
             if (vitals.Sanity <= 15) alerts.push({ type: 'warning', name, text: `${name}: Losing sanity (${vitals.Sanity})` });
             if (vitals.Entertainment <= 15) alerts.push({ type: 'warning', name, text: `${name}: Bored (${vitals.Entertainment})` });
-            if (vitals.Temperature !== undefined && (vitals.Temperature < 34 || vitals.Temperature > 40)) alerts.push({ type: 'danger', name, text: `${name}: Critical body temp (${vitals.Temperature}°C)` });
+            // Species-aware: a cold-blooded frog at 20°C is comfortable, not critical.
+            const tempBand = window.VitalThresholds?.temperatureBand?.(p);
+            if (vitals.Temperature !== undefined && tempBand
+                    && (vitals.Temperature < tempBand.cold_mild - 1 || vitals.Temperature > tempBand.heat_severe)) {
+                alerts.push({ type: 'danger', name, text: `${name}: Critical body temp (${vitals.Temperature}°C)` });
+            }
         }
         // Click an alert to select & inspect the affected agent.
         window.Lit.render(alerts.length === 0

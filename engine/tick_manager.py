@@ -378,9 +378,10 @@ class TickManager:
                     cause_parts.append("starvation")
                 if p.vitals.get("Thirst", 0) >= 100:
                     cause_parts.append("dehydration")
-                if p.vitals.get("Temperature", 37) < 30:
+                death_band = TraitSystem.get_temperature_band(p)
+                if p.vitals.get("Temperature", death_band["normal"]) < death_band["cold_critical"]:
                     cause_parts.append("hypothermia")
-                if p.vitals.get("Temperature", 37) > 42:
+                if p.vitals.get("Temperature", death_band["normal"]) > death_band["heat_critical"]:
                     cause_parts.append("heat stroke")
                 cause_of_death = " and ".join(cause_parts) if cause_parts else "unknown causes"
 
@@ -553,34 +554,36 @@ class TickManager:
                     area_temp = float(effective_temperature(float(env.get("temperature", 21)), bonuses,
                                                             wind_level=env.get("wind", "none"),
                                                             humidity=env.get("humidity", "dry")))
-                    core_temp = p.vitals.get("Temperature", 37.0)
-                    if area_temp < 5:
-                        drift = (5 - area_temp) * 0.02
-                        p.vitals["Temperature"] = max(25.0, core_temp - drift)
-                    elif area_temp > 35:
-                        drift = (area_temp - 35) * 0.02
-                        p.vitals["Temperature"] = min(45.0, core_temp + drift)
+                    band = TraitSystem.get_temperature_band(p)
+                    core_temp = p.vitals.get("Temperature", band["normal"])
+                    if area_temp < band["ambient_cold"]:
+                        drift = (band["ambient_cold"] - area_temp) * band["drift_rate"]
+                        p.vitals["Temperature"] = max(band["cold_floor"], core_temp - drift)
+                    elif area_temp > band["ambient_hot"]:
+                        drift = (area_temp - band["ambient_hot"]) * band["drift_rate"]
+                        p.vitals["Temperature"] = min(band["heat_ceiling"], core_temp + drift)
                     else:
-                        if core_temp < 36.5:
-                            p.vitals["Temperature"] = min(37.0, core_temp + 0.1)
-                        elif core_temp > 37.5:
-                            p.vitals["Temperature"] = max(37.0, core_temp - 0.1)
+                        if core_temp < band["normal"] - 0.5:
+                            p.vitals["Temperature"] = min(band["normal"], core_temp + band["converge_rate"])
+                        elif core_temp > band["normal"] + 0.5:
+                            p.vitals["Temperature"] = max(band["normal"], core_temp - band["converge_rate"])
 
-            core_temp = p.vitals.get("Temperature", 37.0)
-            if core_temp < 37 and core_temp >= 35:
+            band = TraitSystem.get_temperature_band(p)
+            core_temp = p.vitals.get("Temperature", band["normal"])
+            if core_temp < band["normal"] and core_temp >= band["cold_mild"]:
                 change(p, "Energy", -COLD_MILD_ENERGY)
-            elif core_temp < 35 and core_temp >= 33:
+            elif core_temp < band["cold_mild"] and core_temp >= band["cold_severe"]:
                 change(p, "Energy", -COLD_SEVERE_ENERGY)
                 change(p, "HP", -COLD_SEVERE_HP)
-            elif core_temp < 33:
+            elif core_temp < band["cold_severe"]:
                 change(p, "HP", -COLD_CRITICAL_HP)
-            elif core_temp > 37 and core_temp <= 38:
+            elif core_temp > band["normal"] and core_temp <= band["heat_mild"]:
                 # Heat dehydrates: Thirst is a drive, so this RAISES it.
                 change(p, "Thirst", HEAT_MILD_THIRST)
-            elif core_temp > 38 and core_temp <= 40:
+            elif core_temp > band["heat_mild"] and core_temp <= band["heat_severe"]:
                 change(p, "HP", -HEAT_MODERATE_HP)
                 change(p, "Thirst", HEAT_MODERATE_THIRST)
-            elif core_temp > 40:
+            elif core_temp > band["heat_severe"]:
                 change(p, "HP", -HEAT_SEVERE_HP)
 
             # Sleep regen toward full (~8h from empty once baseline drain nets out)

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Deep Forest — from 1 node to fully detailed</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2330; --line:#30363d;
+    --text:#e6edf3; --muted:#8b949e; --dim:#6e7681;
+    --area:#58a6ff; --scope:#a371f7; --feature:#3fb950; --pool:#d29922;
+    --spawn:#f778ba; --ghost:#484f58; --warn:#f85149;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font:14px/1.5 ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  header{padding:18px 24px 10px; border-bottom:1px solid var(--line)}
+  h1{margin:0 0 4px; font-size:19px}
+  header p{margin:0; color:var(--muted); font-size:13px}
+  .wrap{display:grid; grid-template-columns:1fr 260px; gap:0; min-height:calc(100vh - 78px)}
+  .stage{padding:20px 24px 40px; overflow:auto}
+  .side{border-left:1px solid var(--line); background:var(--panel); padding:16px}
+  .side h3{font-size:11px; text-transform:uppercase; letter-spacing:.6px; color:var(--dim); margin:0 0 8px}
+
+  .ladder{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:18px}
+  .ladder button{
+    background:var(--panel2); color:var(--muted); border:1px solid var(--line);
+    padding:6px 11px; border-radius:999px; cursor:pointer; font-size:12px;
+  }
+  .ladder button.on{background:var(--area); border-color:var(--area); color:#00121f; font-weight:600}
+  .ladder button:hover:not(.on){border-color:var(--area); color:var(--text)}
+
+  .blurb{margin:0 0 18px; color:var(--muted); max-width:760px; font-size:13px}
+  .blurb b{color:var(--text)}
+
+  .cards{display:flex; flex-wrap:wrap; gap:10px}
+  .card{
+    border:1px solid var(--line); background:var(--panel); border-radius:8px;
+    padding:10px 12px; min-width:150px; position:relative;
+  }
+  .card .k{font-size:10px; text-transform:uppercase; letter-spacing:.5px; color:var(--dim)}
+  .card .n{font-weight:600; margin-top:2px}
+  .card .m{font-size:11px; color:var(--muted); margin-top:3px}
+  .card.area{border-left:3px solid var(--area)}
+  .card.scope{border-left:3px solid var(--scope)}
+  .card.feature{border-left:3px solid var(--feature)}
+  .card.pool{border-left:3px solid var(--pool)}
+  .card.spawn{border-left:3px solid var(--spawn)}
+  .card.ghost{border-left:3px solid var(--ghost); opacity:.6; border-style:dashed}
+
+  .rowlabel{font-size:11px; text-transform:uppercase; letter-spacing:.6px; color:var(--dim); margin:20px 0 8px}
+  .arrows{color:var(--dim); align-self:center; font-size:18px; padding:0 2px}
+
+  .legend{display:flex; gap:14px; flex-wrap:wrap; font-size:11px; color:var(--muted); margin-top:24px; padding-top:12px; border-top:1px solid var(--line)}
+  .dot{display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:5px; vertical-align:middle}
+
+  .demo{border:1px solid var(--line); border-radius:8px; background:var(--panel); padding:14px; margin-top:6px; max-width:720px}
+  .demo .line{font-family:ui-monospace,Consolas,monospace; font-size:12px; color:var(--muted); margin-top:10px; min-height:18px}
+  .demo .chip{
+    display:inline-block; background:#2a1d33; border:1px solid var(--spawn); color:var(--spawn);
+    border-radius:999px; padding:2px 9px; font-size:11px; margin:3px 4px 0 0;
+  }
+  .btn{
+    background:var(--pool); border:none; color:#1a1200; font-weight:700;
+    padding:7px 14px; border-radius:6px; cursor:pointer; font-size:12px;
+  }
+  .btn:disabled{opacity:.4; cursor:not-allowed}
+  .stat{font-family:ui-monospace,Consolas,monospace; font-size:12px}
+  .stat b{color:var(--text)}
+
+  .note{font-size:11px; color:var(--dim); margin-top:10px; line-height:1.5}
+  .meter{font-family:ui-monospace,Consolas,monospace; font-size:12px; color:var(--text)}
+  .meter span{color:var(--muted)}
+  hr{border:none; border-top:1px solid var(--line); margin:16px 0}
+
+  .pipe{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:6px}
+  .pnode{border:1px solid var(--line); background:var(--panel2); border-radius:6px; padding:8px 12px; font-size:12px}
+  .pnode.ai{border-color:var(--scope)} .pnode.det{border-color:var(--feature)} .pnode.run{border-color:var(--area)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Deep Forest — from one node to fully detailed</h1>
+  <p>One real area node at the top. Everything below it is either a scope card, a feature node, a resource pool, or spawned on demand. Click through the zoom.</p>
+</header>
+
+<div class="wrap">
+  <div class="stage">
+    <div class="ladder" id="ladder"></div>
+    <p class="blurb" id="blurb"></p>
+    <div id="stage"></div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--scope)"></i>scope (no node, a card)</span>
+      <span><i class="dot" style="background:var(--area)"></i>real area node</span>
+      <span><i class="dot" style="background:var(--feature)"></i>feature node (interactable)</span>
+      <span><i class="dot" style="background:var(--pool)"></i>resource pool (one node)</span>
+      <span><i class="dot" style="background:var(--spawn)"></i>spawned on demand</span>
+      <span><i class="dot" style="background:var(--ghost)"></i>unmade / not materialized</span>
+    </div>
+  </div>
+
+  <div class="side">
+    <h3>At this zoom</h3>
+    <p class="meter" id="meter"></p>
+    <hr>
+    <h3>In the graph</h3>
+    <div id="inGraph" class="note"></div>
+    <h3 style="margin-top:16px">Only described</h3>
+    <div id="described" class="note"></div>
+    <hr>
+    <h3>Who does what</h3>
+    <div class="pipe">
+      <div class="pnode ai">LLM<span class="note"><br>authors the recipe,<br>once</span></div>
+      <div class="arrows">&rarr;</div>
+      <div class="pnode det">deterministic<span class="note"><br>recipe + seed<br>makes the nodes</span></div>
+      <div class="arrows">&rarr;</div>
+      <div class="pnode run">runtime<span class="note"><br>walks it, spawns<br>on demand</span></div>
+    </div>
+    <p class="note">The LLM is never in a tick. It writes the <b>recipe</b>; the recipe writes the world; the sim just runs.</p>
+  </div>
+</div>
+
+<script>
+const LEVELS = [
+  {
+    tab:"World",
+    blurb:"Zoomed all the way out. <b>Nothing here is an area node.</b> These are scope cards — id, kind, state, counts. The goblin camp campaign already sits inside one.",
+    meter:"0 nodes fetched",
+    inGraph:"Nothing. The zoomed-out view is scope metadata only.",
+    described:"Camp, its 30 areas, its 23 goblins — as counts on a card.",
+    render(){
+      return `
+        <div class="rowlabel">Root scope</div>
+        <div class="cards">
+          ${card("scope","Campaign","Kraktooth Goblin Camp","campaign &middot; materialized")}
+        </div>
+        <div class="rowlabel">Child scopes</div>
+        <div class="cards">
+          ${card("area","Settlement","Chief's Pit, Sleeping Halls, Nursery&hellip;","30 areas &middot; 23 characters")}
+          ${card("scope","Wilderness","<b>Deep Forest</b>","unmade detail &middot; 1 area today")}
+          ${card("area","Water","Murk Lake, Raven River","2 areas")}
+        </div>
+        <p class="note">Deep Forest appears here as a card, not as a graph of trees. That is the whole point: a million-node world stays cheap because you fetch only the scope you open.</p>`;
+    }
+  },
+  {
+    tab:"Deep Forest scope",
+    blurb:"Opening Deep Forest asks the server for <b>this scope's projection only</b> (<code>depth</code>, <code>include_items</code>). The existing area node becomes the <b>Perimeter</b> — so the ways that already lead into it from Blackmarsh, Raven River and Northern Hills stay valid and untouched.",
+    meter:"1 real area + 1 card set",
+    inGraph:"area_deep_forest (perimeter) + its 3 existing boundary ways.",
+    described:"The five interior zones — they are unmade until generated.",
+    render(){
+      return `
+        <div class="rowlabel">Real, already in the camp</div>
+        <div class="cards">
+          ${card("area","area_deep_forest","Deep Forest &mdash; Perimeter","light: dim &middot; ways: Blackmarsh, Raven River, Northern Hills")}
+        </div>
+        <div class="rowlabel">Unmade zones (recipe pending)</div>
+        <div class="cards">
+          ${card("ghost","zone","Understory","unmade")}
+          ${card("ghost","zone","Interior","unmade")}
+          ${card("ghost","zone","Water Margin","unmade")}
+          ${card("ghost","zone","High Ground","unmade")}
+          ${card("ghost","zone","Cave","unmade")}
+        </div>
+        <p class="note">One click later, "Generate" appears on this card — but only because a recipe exists. Rendered cards never fabricate nodes.</p>`;
+    }
+  },
+  {
+    tab:"Interior",
+    blurb:"Deep Forest Interior is a <b>real area node</b>, exactly like Chief's Pit. Normal ways, normal light, normal triggers. No special forest system. That is deliberate — nothing in movement or the sim changes.",
+    meter:"2 real area nodes",
+    inGraph:"area_deep_forest_interior, plus the way from Perimeter.",
+    described:"Its features, below, before they are generated.",
+    render(){
+      return `
+        <div class="rowlabel">Walkable areas</div>
+        <div class="cards">
+          ${card("area","area_deep_forest","Perimeter","you enter the forest here")}
+          <div class="arrows">&harr;</div>
+          ${card("area","area_deep_forest_interior","Interior","under a closed canopy")}
+          <div class="arrows">&harr;</div>
+          ${card("ghost","zone","Water Margin","next")}
+        </div>
+        <p class="note">The forest is not a special thing. It is areas and ways, like everywhere else, just more of them.</p>`;
+    }
+  },
+  {
+    tab:"Interior detail",
+    blurb:"Now the interesting layer. The area holds <b>features</b> (real, interactable) and <b>pools</b> (one node standing in for many things). This is where the 300-item forest list lives — as a recipe vocabulary, not as 300 nodes.",
+    meter:"6 nodes, not 300",
+    inGraph:"6 nodes: den, hive, thicket, trail, cabin, snare line.",
+    described:"Every bush, every tree, every track, every scat — rendered as prose from the pool.",
+    render(){
+      return `
+        <div class="rowlabel">Features &mdash; real nodes you can touch</div>
+        <div class="cards">
+          ${card("feature","feature","bear_den","spawns a bear on approach")}
+          ${card("feature","feature","beehive","harvest honey &rarr; stings")}
+          ${card("pool","pool","berry_thicket","pool: 12 berries &middot; regrows spring")}
+          ${card("feature","feature","game_trail","leads to Water Source")}
+          ${card("feature","feature","old_cabin","loot + a journal")}
+          ${card("feature","feature","snare_line","the camp's trap line")}
+        </div>
+        <p class="note">Six nodes. A player standing here still <i>sees</i> a dense forest: the description layer renders "berry bushes," "fallen oak," "deer tracks" from these six plus the area's prose. The prose is free; the nodes are the interactable core.</p>`;
+    }
+  },
+  {
+    tab:"The bush",
+    interactive:true,
+    blurb:"Your exact idea. <b>One node</b> for the berry thicket. It is <b>described</b> as many bushes. When someone forages, it <b>spawns</b> real berry items &mdash; a few, bounded by the pool &mdash; then depletes.",
+    meter:"1 node &rarr; 3 spawned",
+    inGraph:"item_berry_thicket (1 node, a count it is worth).",
+    described:"Plural \"berry bushes\" in the look text, for as many as the pool implies.",
+    render(){
+      return `
+        <div class="rowlabel">The one node</div>
+        <div class="cards">
+          ${card("pool","item","item_berry_thicket","tags: forage, food, seasonal &middot; abundance: high")}
+        </div>
+        <div class="demo">
+          <div class="stat">berries left: <b id="left">12</b> &nbsp;&middot;&nbsp; spawned this visit: <b id="spawned">0</b></div>
+          <div style="margin-top:10px">
+            <button class="btn" id="forage">Forage the bushes</button>
+          </div>
+          <div class="line" id="log">&gt; look&hellip; "You push through berry bushes, heavy with fruit."</div>
+          <div id="chips"></div>
+          <p class="note">"Berries" only become <b>item</b> nodes when someone actually picks them. Walk away and the pool simply regrows. You never author a bush per bush.</p>
+        </div>`;
+    },
+    after(){
+      let left=12, spawned=0;
+      const $=id=>document.getElementById(id);
+      const log=msg=>{ $("log").innerHTML="&gt; "+msg; };
+      $("forage").onclick=()=>{
+        if(left<=0){ log("The bushes are bare. Nothing left worth picking &mdash; they will fruit again in season."); return; }
+        const n=Math.min(3,left);
+        left-=n; spawned+=n;
+        $("left").textContent=left; $("spawned").textContent=spawned;
+        for(let i=0;i<n;i++){
+          const c=document.createElement("span");
+          c.className="chip"; c.textContent="item_berry_"+(spawned-i);
+          $("chips").prepend(c);
+        }
+        log("forage &rarr; spawned "+n+" &times; item_berry &middot; pool "+left+" left");
+        $("forage").textContent = left>0 ? "Forage again" : "Pool depleted";
+      };
+    }
+  }
+];
+
+function card(kind,type,name,meta){
+  return `<div class="card ${kind}">
+    <div class="k">${type}</div>
+    <div class="n">${name}</div>
+    <div class="m">${meta}</div>
+  </div>`;
+}
+
+const ladder=document.getElementById("ladder");
+const stage=document.getElementById("stage");
+LEVELS.forEach((lv,i)=>{
+  const b=document.createElement("button");
+  b.textContent=(i+1)+". "+lv.tab;
+  b.onclick=()=>show(i);
+  ladder.appendChild(b);
+});
+
+function show(i){
+  const lv=LEVELS[i];
+  [...ladder.children].forEach((b,j)=>b.classList.toggle("on",j===i));
+  document.getElementById("blurb").innerHTML=lv.blurb;
+  stage.innerHTML=lv.render();
+  document.getElementById("meter").textContent=lv.meter;
+  document.getElementById("inGraph").textContent=lv.inGraph;
+  document.getElementById("described").textContent=lv.described;
+  if(lv.after) lv.after();
+}
+show(0);
+</script>
+</body>
+</html>
