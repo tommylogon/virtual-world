@@ -22,6 +22,7 @@ window.NLEditorAgent = (() => {
             const CWM = typeof ContextWindowManager !== 'undefined' ? ContextWindowManager : (typeof window !== 'undefined' ? window.ContextWindowManager : null);
             this.contextManager = CWM ? new CWM({ maxTokens: 6000, maxMessages: 30, recentTurnCount: 8 }) : { prune: m => m, addMessage: () => {}, reset: () => {} };
             this.busy = false;
+            this.maxIterations = 100;
             this.listeners = [];
         }
 
@@ -90,7 +91,7 @@ You build, modify, and flesh out scenario areas, items, ways (doors/connections)
 2. **STAGING FIREWALL**:
    - Every mutation (\`create_node\`, \`update_node\`, \`delete_node\`, \`attach\`, \`detach\`, \`connect_areas\`, \`spawn_library_item\`, \`populate_area\`, \`link_to_library\`) stages changes in a local buffer.
    - The user will inspect the staged changes before applying. Ghost previews show them on the map as dashed nodes.
-   - Read tools (\`search_graph_nodes\`, \`get_node\`, \`list_world_summary\`) can see your newly staged entities immediately.
+   - Read tools (\`search_graph_nodes\`, \`get_node\`, \`list_world_summary\`, \`get_background_map\`) can see your newly staged entities immediately.
 3. **SELECTION AWARENESS**: when the user says "this room", "this node", "the selected area" etc., use the Selected node reported in LIVE WORLD CONTEXT — do not ask for its name.
 4. **VALID TAGS & SCHEMAS**:
    - Use only valid mechanic tags: \`light_source\`, \`heat_source\`, \`sound_source\`, \`toggleable\`, \`insulation\`, \`armor\`, \`clothing\`, \`weapon\`, \`resistance\`, \`container\`, \`electric\`, \`two_handed\`.
@@ -133,6 +134,15 @@ ${worldSummary}
                 } else {
                     out += '- Selected node: none — when a target is ambiguous, use search_graph_nodes or request_clarification.\n';
                 }
+                const bg = (typeof window !== 'undefined' && window.GraphBackground?._state) || null;
+                if (bg && bg.imagePath) {
+                    const r = bg.rect
+                        ? ` placed at ${Math.round(bg.rect.x)},${Math.round(bg.rect.y)} spanning ${Math.round(bg.rect.width)}×${Math.round(bg.rect.height)} graph units`
+                        : '';
+                    out += `- Background map image: ${bg.imagePath}${r}${bg.locked ? ' (layout locked)' : ''}. You know this image exists but cannot see its pixels — call get_background_map for its transform.\n`;
+                } else {
+                    out += '- Background map image: none set for this scenario.\n';
+                }
             } catch (e) { /* context is best-effort */ }
             return out + '\n';
         }
@@ -167,13 +177,13 @@ ${worldSummary}
             this.contextManager.addMessage(userMsg, { importance: 1 });
             this._notify('message:added', userMsg);
 
-            let maxIterations = 10;
             let currentIteration = 0;
             let finalAssistantResponse = '';
             let suspended = false;
+            let turnError = null;
 
             try {
-                while (currentIteration < maxIterations) {
+                while (currentIteration < this.maxIterations) {
                     currentIteration++;
                     const pruned = this.contextManager.prune(this.messages);
 
@@ -259,18 +269,24 @@ ${worldSummary}
                 }
             } catch (err) {
                 console.error('NL Editor agent error:', err);
+                turnError = err.message;
                 const errorMsg = { role: 'system', content: `[Error: ${err.message}]` };
                 this.messages.push(errorMsg);
                 this._notify('error', { error: err.message });
             } finally {
                 this.busy = false;
-                this._notify('turn:end', { response: finalAssistantResponse, stagedCount: this.staging.getOps().length });
+                this._notify('turn:end', {
+                    response: finalAssistantResponse,
+                    stagedCount: this.staging.getOps().length,
+                    error: turnError
+                });
             }
 
             return {
                 messages: this.messages,
                 response: finalAssistantResponse,
-                stagedOps: this.staging.getOps()
+                stagedOps: this.staging.getOps(),
+                error: turnError
             };
         }
     }

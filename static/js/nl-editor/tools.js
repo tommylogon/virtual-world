@@ -1,10 +1,10 @@
 /**
  * tools.js — Tool catalog and Overlay Graph View for Natural-Language Editor (task-387).
  *
- * Implements the 20 catalog tools with an OverlayGraphView that seamlessly
+ * Implements the 24 catalog tools with an OverlayGraphView that seamlessly
  * merges live worldState with uncommitted staged operations.
  *
- * @module nl-editor/tools — the 20-tool catalog + overlay graph view
+ * @module nl-editor/tools — the 24-tool catalog + overlay graph view
  * @contributes NLEditorTools + OverlayGraphView: merge live worldState with uncommitted staged ops
  * @powers what the NL agent can actually do, previewed against the real graph
  * @relates called by agent-loop.js; reads staging.js
@@ -214,6 +214,14 @@ window.NLEditorTools = (() => {
             function: {
                 name: 'list_world_summary',
                 description: 'Get a concise summary of all rooms, landmarks, and currently staged operations.',
+                parameters: { type: 'object', properties: {} }
+            }
+        },
+        {
+            type: 'function',
+            function: {
+                name: 'get_background_map',
+                description: 'Get the scenario background map image (if one is set): its file path, position and size on the graph, opacity, and lock state. Check this before describing or editing spatial layout, so a hand-drawn map can be respected.',
                 parameters: { type: 'object', properties: {} }
             }
         },
@@ -790,6 +798,22 @@ window.NLEditorTools = (() => {
                     }
                     case 'list_world_summary': {
                         return { summary: this.overlay.listWorldSummary() };
+                    }
+                    case 'get_background_map': {
+                        const bg = (typeof window !== 'undefined' && window.GraphBackground?._state) || null;
+                        if (!bg || (!bg.imagePath && !bg.image)) {
+                            return { has_background: false, note: 'No background map image is set for this scenario.' };
+                        }
+                        return {
+                            has_background: true,
+                            image_path: bg.imagePath || null,
+                            inline_image_loaded: !bg.imagePath && !!bg.image,
+                            rect: bg.rect || null,
+                            rotation: bg.rotation ?? null,
+                            opacity: bg.opacity ?? null,
+                            locked: !!bg.locked,
+                            note: 'A flat reference image rendered under the node graph. Its pixels are not visible to you — use it for layout context only.'
+                        };
                     }
                     case 'search_library_areas': {
                         const q = (args.query || '').toLowerCase().trim();

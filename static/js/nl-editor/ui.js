@@ -170,6 +170,15 @@ window.NLEditorUI = (() => {
             this.chatList.scrollTop = this.chatList.scrollHeight;
         }
 
+        appendErrorMessage(text) {
+            if (!this.chatList || !text) return;
+            const bubble = document.createElement('div');
+            bubble.style.cssText = 'align-self:flex-start;max-width:88%;background:rgba(248,81,73,0.12);border:1px solid var(--red,#f85149);color:var(--red,#f85149);padding:6px 10px;border-radius:8px;font-size:11px;line-height:1.4;';
+            bubble.textContent = `⚠ ${text}`;
+            this.chatList.appendChild(bubble);
+            this.chatList.scrollTop = this.chatList.scrollHeight;
+        }
+
         appendToolEvent(name, result) {
             if (!this.chatList) return;
             const chip = document.createElement('div');

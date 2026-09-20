@@ -41,7 +41,7 @@ window.NLEditor = (() => {
                         this.ui.setStatus('Thinking...', true);
                         break;
                     case 'llm:calling':
-                        this.ui.setStatus(`Thinking (round ${data.iteration}/10)…`, true);
+                        this.ui.setStatus(`Thinking (round ${data.iteration}/${this.agent.maxIterations})…`, true);
                         break;
                     case 'message:added':
                         if (data.role === 'user') {
@@ -63,7 +63,7 @@ window.NLEditor = (() => {
                         this.ui.setStatus('Waiting for choice', false);
                         break;
                     case 'turn:end':
-                        this.ui.setStatus('Ready', false);
+                        this.ui.setStatus(data?.error ? 'Error' : 'Ready', false);
                         // Refresh ghost previews; auto-pan when this turn staged
                         // something new ("here's what I just drafted").
                         if (typeof NLEditorGhosts !== 'undefined' && NLEditorGhosts?.refresh) {
@@ -72,6 +72,7 @@ window.NLEditor = (() => {
                         break;
                     case 'error':
                         this.ui.setStatus('Error', false);
+                        this.ui.appendErrorMessage(data?.error);
                         break;
                     case 'session:reset':
                         if (this.ui.chatList) this.ui.chatList.innerHTML = '';
@@ -117,7 +118,7 @@ window.NLEditor = (() => {
                 this.agent.resetSession();
             } else if (res.errors && res.errors.length > 0) {
                 if (typeof toastError === 'function') {
-                    toastError(`Apply partially failed: ${res.errors.join(', ')}`);
+                    toastError(`Apply partially failed — ${res.remaining ?? 0} op(s) still staged: ${res.errors.join(', ')}`);
                 }
             }
             if (typeof NLEditorGhosts !== 'undefined') NLEditorGhosts?.refresh();
@@ -134,7 +135,7 @@ window.NLEditor = (() => {
                 this.agent.resetSession();
             } else if (res.errors && res.errors.length > 0) {
                 if (typeof toastError === 'function') {
-                    toastError(`Apply partially failed: ${res.errors.join(', ')}`);
+                    toastError(`Apply partially failed — ${res.remaining ?? 0} op(s) still staged: ${res.errors.join(', ')}`);
                 }
             }
             if (typeof NLEditorGhosts !== 'undefined') NLEditorGhosts?.refresh();

@@ -228,34 +228,52 @@ window.NLEditorGhosts = (() => {
         }
     }
 
+    /** Ghost overlay id for an op. Mirrors refresh(): creations and ways use
+     *  their minted id, spawns use the op id because the server mints the node. */
+    function _ghostIdFor(op) {
+        const p = op.payload || {};
+        switch (op.type) {
+            case 'create_node': return p.node?.id ? `${NODE_PREFIX}${p.node.id}` : null;
+            case 'connect_areas': return p.way_id ? `${NODE_PREFIX}${p.way_id}` : null;
+            case 'spawn_library_item': return `${NODE_PREFIX}spawn_${op.id}`;
+            default: return null;
+        }
+    }
+
+    /** Live-graph node the newest op concerns, when one exists. */
+    function _liveTargetId(op) {
+        const p = op.payload || {};
+        switch (op.type) {
+            case 'create_node': return p.node?.id || null;
+            case 'spawn_library_item': return p.parent_id || null;
+            case 'connect_areas': return p.area_a_id || null;
+            case 'update_node':
+            case 'delete_node':
+            case 'link_to_library': return p.node_id || null;
+            case 'attach':
+            case 'detach': return p.to_id || null;
+            default: return null;
+        }
+    }
+
     /** Gently pan the camera to the newest staged op's target. */
     function _spotlight(ops) {
         const net = _net();
         if (!net || ops.length === 0) return;
         const newest = ops[ops.length - 1];
-        const p = newest.payload || {};
-        let targetId = null;
-        switch (newest.type) {
-            case 'create_node': targetId = p.node?.id || null; break;
-            case 'spawn_library_item': targetId = p.parent_id || null; break;
-            case 'connect_areas': targetId = p.area_a_id || null; break;
-            case 'update_node':
-            case 'delete_node':
-            case 'link_to_library': targetId = p.node_id || null; break;
-            case 'attach':
-            case 'detach': targetId = p.to_id || null; break;
-        }
-        if (!targetId) return;
         try {
-            if (graphManager?.nodes?.has(targetId)) {
-                graphManager.focusNode(targetId);
-            } else {
-                const ghostId = `${NODE_PREFIX}${targetId}`;
+            const ghostId = _ghostIdFor(newest);
+            if (ghostId) {
                 const pos = net.getPositions([ghostId]);
                 if (pos && pos[ghostId]) {
                     net.moveTo({ position: pos[ghostId], scale: 1.25, animation: { duration: 500, easingFunction: 'easeInOutQuad' } });
                     net.selectNodes([ghostId]);
+                    return;
                 }
+            }
+            const targetId = _liveTargetId(newest);
+            if (targetId && graphManager?.nodes?.has(targetId)) {
+                graphManager.focusNode(targetId);
             }
         } catch (e) { /* camera pan must never throw */ }
     }
