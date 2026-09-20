@@ -73,7 +73,7 @@ window.TurnFeed = (() => {
     // Speech penetration vs accumulated way barriers decides who hears a line.
     const SOUND = {
         speech: { whisper: 0, normal: 1, sing: 1, shout: 2, scream: 3 },
-        barrier: { open: 0.5, closed: 1, locked: 2, blocked: 2, hidden: 2 },
+        barrier: { open: 0.5, closed: 1, locked: 1, blocked: 1, hidden: 2 },
         seeThrough: 0.75,
         noise: { silent: 0, quiet: 0, normal: 1, loud: 2, chaotic: 2 },
     };

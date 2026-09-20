@@ -27,8 +27,8 @@ def _way_barriers() -> Dict[str, float]:
     return {
         "open": _config_get_float("sound.way_open", 0.5),
         "closed": _config_get_float("sound.way_closed", 1),
-        "locked": _config_get_float("sound.way_locked", 2),
-        "blocked": _config_get_float("sound.way_blocked", 2),
+        "locked": _config_get_float("sound.way_locked", 1),
+        "blocked": _config_get_float("sound.way_blocked", 1),
         "hidden": _config_get_float("sound.way_hidden", 2),
     }
 

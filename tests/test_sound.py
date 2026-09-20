@@ -139,15 +139,15 @@ class TestWayBarrier:
         way.properties = {"current_state": "closed"}
         assert get_way_barrier(way) == 1
     
-    def test_locked_door_barrier_two(self):
+    def test_locked_door_barrier_one(self):
         way = MagicMock()
         way.properties = {"current_state": "locked"}
-        assert get_way_barrier(way) == 2
+        assert get_way_barrier(way) == 1
     
-    def test_blocked_door_barrier_two(self):
+    def test_blocked_door_barrier_one(self):
         way = MagicMock()
         way.properties = {"current_state": "blocked"}
-        assert get_way_barrier(way) == 2
+        assert get_way_barrier(way) == 1
     
     def test_hidden_door_barrier_two(self):
         way = MagicMock()
@@ -231,11 +231,12 @@ class TestSpeechPropagation:
         # Shout (pen=2) through closed door (bar=1) reaches room_b
         assert "area_room_b" in result
     
-    def test_shout_blocked_by_locked_door(self, graph, areas, ways):
+    def test_shout_through_locked_door(self, graph, areas, ways):
         connect_areas(graph, areas, ways)
         result = get_areas_hearing_speech("area_room_b", "shout", graph, areas)
-        # Shout (pen=2) blocked by locked door (bar=2)
-        assert "area_room_c" not in result
+        # A lock is a latch on an already-closed door: bar=1, same as closed.
+        # Shout (pen=2) - 1 = 1, so room_c hears it.
+        assert "area_room_c" in result
     
     def test_scream_reaches_three_areas(self, graph, areas, ways):
         connect_areas(graph, areas, ways)
@@ -249,15 +250,16 @@ class TestSpeechPropagation:
         assert "area_room_b" in result
         assert "area_room_c" in result
     
-    def test_scream_blocked_by_two_closed_doors(self, graph, areas, ways):
+    def test_scream_carries_through_three_solid_doors(self, graph, areas, ways):
         connect_areas(graph, areas, ways)
-        # hallway->room_a open, room_a->room_b closed, room_b->room_c closed
+        # hallway->room_a open(0.5), room_a->room_b closed(1), room_b->room_c locked(1)
         result = get_areas_hearing_speech("area_hallway", "scream", graph, areas)
-        # Scream (pen=3) through open(0) + closed(1) + closed(1) = 2 barriers
-        # 3 - 2 = 1, so reaches room_b but not room_c
+        # Scream (pen=3) - 2.5 accumulated = 0.5, so the loudest channel reaches all
+        # three. Locked is bar=1 now (a latch adds no acoustic mass), so room_c is
+        # no longer cut off — only the quietest channels are stopped by a door chain.
         assert "area_room_a" in result
         assert "area_room_b" in result
-        assert "area_room_c" not in result
+        assert "area_room_c" in result
 
 
 class TestAmbientNoise:

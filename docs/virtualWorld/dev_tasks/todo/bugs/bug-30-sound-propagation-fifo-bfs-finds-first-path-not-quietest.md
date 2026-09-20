@@ -5,7 +5,9 @@
 ## Found
 
 `engine/sound.py:177-218`: BFS accumulates barrier weights per way
-(open 0.5 / see-through 0.75 / closed 1 / locked·blocked·hidden 2) — good
+(open 0.5 / see-through 0.75 / closed 1 / locked·blocked 1 / hidden 2 — locked
+and blocked were lowered from 2 to 1 on 2026-09-20: a lock is a latch on an
+already-closed door and adds no acoustic mass) — good
 model — but the traversal is plain FIFO breadth-first. FIFO visits in
 insertion order and a node once, so the FIRST route to reach an area wins, not
 the route with the lowest accumulated damping. A nearer path through two
