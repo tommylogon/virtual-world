@@ -21,7 +21,11 @@ def create_app(config=None):
     # Default configuration
     app.config.update({
         'DATA_DIR': os.path.join(os.path.dirname(__file__), 'data'),
+        # Local single-user tool: pick up template edits on refresh instead of
+        # serving a Jinja-cached copy until the next restart.
+        'TEMPLATES_AUTO_RELOAD': True,
     })
+    app.jinja_env.auto_reload = True
 
     # Override with any passed config
     if config:

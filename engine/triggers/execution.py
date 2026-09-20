@@ -562,6 +562,15 @@ class ExecutionMixin:
             if not conditions_pass:
                 continue
 
+            # ── Fire-once triggers (legacy `once`) ──
+            # A discovery trigger must not re-fire on every examine — that
+            # would repeat its message and duplicate its spawned items.
+            once_node = self.graph.get_node(trigger_edge.target)
+            if once_node is not None:
+                once_props = once_node.properties or {}
+                if once_props.get("once") and once_props.get("fired"):
+                    continue
+
             # ── Execute all effects in order ──
             for effect in effects_list:
                 effect_type = effect.get("type", "message")
@@ -617,5 +626,9 @@ class ExecutionMixin:
                         game_state=game_state,
                     )
                 )
+
+            # Mark a `once` trigger as spent after it actually ran.
+            if once_node is not None and (once_node.properties or {}).get("once"):
+                once_node.properties["fired"] = True
 
         return outputs

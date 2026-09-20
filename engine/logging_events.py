@@ -18,6 +18,9 @@ class GameLogger:
     when they need to log or query events.
     """
 
+    _MAX_TURN_EVENTS = 2000
+    """Upper bound on the current-turn event buffer (see ``record_turn_event``)."""
+
     def __init__(self):
         # ── Game log (recent text entries shown in the UI) ────────────
         self.game_log: list[str] = []
@@ -37,6 +40,10 @@ class GameLogger:
         self.turn_events: list[dict] = []
         """Events that occurred during the current turn.  Filtered at the
         start of each new turn to keep only current-turn entries."""
+
+        self._turn_events_turn: Optional[int] = None
+        """Which turn ``turn_events`` currently holds; lets the prune run once
+        per turn instead of on every append."""
 
         self.turn_number: int = 0
         """Monotonically increasing turn counter."""
@@ -85,21 +92,34 @@ class GameLogger:
         turn:
             Current turn number.  Defaults to ``self.turn_number``.
         """
+        current_turn = turn or self.turn_number
         event = {
             "tick": tick,
-            "turn": turn or self.turn_number,
+            "turn": current_turn,
             "actor": actor_name,
             "action": action_type,
             "description": description,
             "area": area_name,
         }
+        # Prune prior-turn events only when the turn actually changes. The old
+        # code rebuilt the whole buffer on every append, which is O(n) per
+        # event and O(n^2) over a headless run where the turn never advances
+        # (turn_events grew to ~17k in a one-week soak).
+        if self._turn_events_turn != current_turn:
+            self.turn_events = [
+                e for e in self.turn_events if e["turn"] == current_turn
+            ]
+            self._turn_events_turn = current_turn
         self.turn_events.append(event)
-        # Prune events from prior turns
-        self.turn_events = [e for e in self.turn_events if e["turn"] == (turn or self.turn_number)]
+        # Hard cap so a turn that never ends cannot grow the buffer (and the
+        # per-area reads that scan it) without bound.
+        if len(self.turn_events) > self._MAX_TURN_EVENTS:
+            del self.turn_events[: len(self.turn_events) - self._MAX_TURN_EVENTS]
 
     def clear_turn_events(self):
         """Clear the event buffer and advance the turn counter."""
         self.turn_events.clear()
+        self._turn_events_turn = None
         self.turn_number += 1
 
     def get_turn_events_for_area(

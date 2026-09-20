@@ -193,7 +193,7 @@ class AreaDescription:
 
         env = self.player_manager.current_area.environment
         area_id = self.get_current_area_id()
-        ambient_light = self.lighting.get_ambient_light(area_id, env) if area_id else self.lighting.get_light_int(env, 80)
+        ambient_light = self.lighting.get_ambient_light(area_id) if area_id else self.lighting.get_light_int(env, 80)
         light_level = self.lighting.light_to_level(ambient_light)
 
         # task-133: light level flavors what you PERCEIVE. Pitch black still

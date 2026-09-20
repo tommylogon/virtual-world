@@ -181,6 +181,13 @@ class TickManager:
         # task-191: perishable items decay toward spoiled, one tick at a time.
         self._tick_item_freshness()
 
+        # task-407: compute every area's effective light once for this tick,
+        # so per-render light reads don't rescan every room.
+        try:
+            self.lighting.recompute_area_lights()
+        except Exception as e:
+            logger.warning("[tick] area light recompute: %s", e)
+
         # Incapacitated grapplers let go of everyone they're holding
         # (unconscious/dead/paralysed etc. — can't keep a grip while down),
         # then run the edge⇔condition grapple sync (orphan cleanup + desync repair).
@@ -435,7 +442,7 @@ class TickManager:
                     humidity = env.get("humidity", "dry")
                     if humidity == "humid":
                         change(p, "Hygiene", -ENV_HUMID_HYGIENE)
-                    light = self.lighting.get_ambient_light(area_node.id, env)
+                    light = self.lighting.get_ambient_light(area_node.id)
                     if light < 20:
                         change(p, "Sanity", -ENV_DARK_SANITY)
                     others_here = [n for n, op in self.player_manager.players.items() if op.current_area == player_area_name and n != pname and op.state != "dead" and not self.gs.is_undead_ghost(n)]

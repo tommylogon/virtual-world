@@ -4,7 +4,7 @@
  * Stores: config, profiles, item library, character histories
  */
 class StorageProvider {
-    constructor(dbName = 'VirtualWorldDB', version = 3) {
+    constructor(dbName = 'VirtualWorldDB', version = 4) {
         this.dbName = dbName;
         this.version = version;
         this._db = null;
@@ -50,6 +50,12 @@ class StorageProvider {
                 // Version 3: LLM request/response dataset for fine-tuning export
                 if (!db.objectStoreNames.contains('llm_dataset')) {
                     db.createObjectStore('llm_dataset', { keyPath: 'key' });
+                }
+                // Version 4: raw HTTP exchanges (status/headers/usage) for the
+                // LLM Inspector (task-405). Authorization headers are redacted
+                // before storing.
+                if (!db.objectStoreNames.contains('llm_raw_exchanges')) {
+                    db.createObjectStore('llm_raw_exchanges', { keyPath: 'key' });
                 }
             };
             req.onsuccess = (e) => {

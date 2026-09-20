@@ -81,3 +81,24 @@ Implemented.
 
 Verified: full suite 2835 passed (excluding pre-existing `test_mcp_*`); the
 trigger/exit cost that dominated the old profile is gone from the hot path.
+
+### Second pass — 2026-09-19 (lighting + edge moves)
+
+- `remove_edge` / `remove_edges_for_node` now unindex only the removed edges
+  (`_unindex_edge`) instead of rebuilding every index; `triggers` edges still
+  rebuild because the trigger index is a set of sources.
+- `retarget_edge(edge, new_type, new_target, properties)` added: one operation
+  for a pure move. Unequip uses it (`equipped` → `carrying`) instead of
+  remove + add.
+- `engine/items/take_drop_actions.py`: direct `self.graph.edges.remove(...)`
+  calls replaced with `graph.remove_edge(...)` so the indexes stay correct.
+- `engine/lighting.py`: effective light is `max(base, best_item)` (the summed
+  form was dead arithmetic the ceiling discarded), and every area's light is
+  recomputed once per tick into a revision-keyed stamp read by the hot paths.
+- Measured: one-week soak **56s → 181 ticks/s** (was 9m49s / 17.1 t/s), 23/23
+  alive, identical vitals/trace (behaviour unchanged). Suite runtime 78s → ~25s.
+- **Done (third pass):** take/drop now capture and retarget their placement
+  edge in place, and their capacity/hand checks run before any mutation so a
+  failed take cannot orphan the item. `logging_events.record_turn_event` was
+  also rebuilding the whole turn-event list per append (O(n²) headless); it now
+  prunes only on turn change and caps at 2,000.

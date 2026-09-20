@@ -45,6 +45,8 @@ class ConfigManager {
         this.ghostMode = (await storage.getConfig('ghost_mode')) === 'true';
         // Mature content opt-in (task-206): gates the pleasure/arousal subsystem
         this.matureContent = (await storage.getConfig('mature_content')) === 'true';
+        // Raw LLM exchange capture opt-in (task-405): feeds the LLM inspector
+        this.showRawLLM = (await storage.getConfig('show_raw_llm')) === 'true';
         this.manualMode = (await storage.getConfig('manual_mode')) === 'true';
 
         // Invalid-action auto-retry (task-361): when an agent action fails, give
@@ -125,6 +127,7 @@ class ConfigManager {
         await storage.setConfig('reactive_mode', this.reactiveMode ? 'true' : 'false');
         await storage.setConfig('ghost_mode', this.ghostMode ? 'true' : 'false');
         await storage.setConfig('mature_content', this.matureContent ? 'true' : 'false');
+        await storage.setConfig('show_raw_llm', this.showRawLLM ? 'true' : 'false');
         await storage.setConfig('rpm_limit', String(this.rpmLimit));
         await storage.setConfig('tpm_limit', String(this.tpmLimit));
         await storage.setConfig('filter_thoughts', this.filterThoughts ? 'true' : 'false');
@@ -197,6 +200,7 @@ class ConfigManager {
         this.reactiveMode = document.getElementById('agent-reactive-mode')?.checked ?? this.reactiveMode;
         this.ghostMode = document.getElementById('agent-ghost-mode')?.checked ?? this.ghostMode;
         this.matureContent = document.getElementById('agent-mature-content')?.checked ?? this.matureContent;
+        this.showRawLLM = document.getElementById('agent-show-raw-llm')?.checked ?? this.showRawLLM;
         this.manualMode = document.getElementById('agent-manual-mode')?.checked ?? this.manualMode;
         this.autoRetryInvalid = document.getElementById('agent-auto-retry-invalid')?.checked ?? this.autoRetryInvalid;
         this.simultaneousMode = document.getElementById('agent-simultaneous-mode')?.checked ?? this.simultaneousMode;
@@ -389,8 +393,17 @@ class ConfigManager {
                 apiKey: 'not-needed', apiBase: 'http://localhost:1234/v1', model: '',
                 streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
             },
+            // DeepSeek is OpenAI-format compatible; base_url https://api.deepseek.com
+            // also works (the /v1 suffix is what the OpenAI SDK-style calls here
+            // expect). Current model names are `deepseek-flash` and
+            // `deepseek-v4-pro`; deepseek-v4-flash / deepseek-chat /
+            // deepseek-reasoner are retired legacy aliases.
             'DeepSeek': {
-                apiKey: liveKey, apiBase: 'https://api.deepseek.com/v1', model: 'deepseek-v4-flash',
+                apiKey: liveKey, apiBase: 'https://api.deepseek.com/v1', model: 'deepseek-flash',
+                streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
+            },
+            'DeepSeek (V4 Pro)': {
+                apiKey: liveKey, apiBase: 'https://api.deepseek.com/v1', model: 'deepseek-v4-pro',
                 streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
             },
             'Groq': {

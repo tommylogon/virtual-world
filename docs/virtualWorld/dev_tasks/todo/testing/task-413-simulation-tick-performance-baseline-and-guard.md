@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: testing
 priority: medium
 ---
@@ -54,8 +54,35 @@ visits, exit rebuilds, or `.lower()` calls.
 ## Baseline — 2026-09-19 (after tasks 406/407)
 
 - Command: `python tools/soak_sim.py --ticks 10080 --background-all --progress-seconds 1`
-- Result: **10,080 ticks (7 in-game days) in 9m49s → 17.1 ticks/s**, 23/23 alive,
-  0 deaths. Trace 4,459 entries; memories 17; graph 130 nodes.
+- Result (first pass): 10,080 ticks (7 in-game days) in 9m49s → 17.1 ticks/s.
+- Result (second pass: lighting stamp/max + cheap edge moves): **10,080 ticks in
+  ~56s → 181 ticks/s**, 23/23 alive, 0 deaths. Trace 4,459 entries; memories 17;
+  graph 130 nodes. Survivor vitals identical to the slower run.
+- Rate decline was diagnosed: `GameLogger.record_turn_event` rebuilt the whole
+  `turn_events` list per append (O(n²) headless, ~17k entries). Fixed with
+  turn-change pruning + a 2,000 cap. After the fix, profile call counts are flat
+  early vs late (~2%); `record_turn_event` is out of the top 12.
+- Absolute timings vary with host load (a week measured 56s one session, 71s in
+  another where every early figure was ~2× slower) — compare call counts, not
+  just wall time.
+
+## Progress — 2026-09-19
+
+Guard built as `tests/test_perf_guards.py` (9 tests). It asserts *shape*, not
+wall time:
+
+- `GameLogger.turn_events` stays capped and prunes on turn change (the O(n²)
+  buffer fix).
+- `remove_edge` unindexes one edge and does **not** call `_rebuild_indexes`.
+- A direct `graph.edges.append(...)` is still found by the indexed lookups
+  (lazy rebuild), so effect handlers that bypass `add_edge` stay correct.
+- `_fire_turn_triggers` executes **zero** nodes when nothing owns the trigger,
+  and exactly the owner when something does.
+- Lighting: many dim sources do not stack (brightest wins), and the per-tick
+  stamp is used until a graph mutation invalidates it.
+
+Verified the guard bites: with the cap disabled, `turn_events` reaches 5,000 and
+`test_turn_events_are_capped` fails. Full suite: **2840 passing**.
 - Pre-fix reference: ~6–9 ticks/s, with the trigger/exit path responsible for
   ~187s of 247s in a 100-tick profile (~876 exit rebuilds and ~1M `str.lower()`
   per tick).

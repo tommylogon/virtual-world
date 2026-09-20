@@ -1,0 +1,39 @@
+{
+  "name": "Template: Grant Memory",
+  "description": "Template item demonstrating the 'grant_memory' trigger effect. Use me when on the ground or in your hands; the wired on_use trigger shows the effect. Place me by importing from the library (library browser -> Item -> Import to World).",
+  "tags": [
+    "template",
+    "demo"
+  ],
+  "actions": [
+    "examine",
+    "use"
+  ],
+  "uses": -1,
+  "max_uses": 0,
+  "weight": 0.1,
+  "current_state": "normal",
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "type": "grant_memory",
+          "params": {
+            "target": "self",
+            "memory": {
+              "text": "[template:grant_memory] The template plants a memory.",
+              "importance": 3,
+              "tags": [
+                "template"
+              ],
+              "type": "observation",
+              "source": "trigger"
+            },
+            "message": "[template:grant_memory] A new memory takes hold."
+          }
+        }
+      ]
+    }
+  ]
+}

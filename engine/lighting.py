@@ -137,20 +137,15 @@ class LightingSystem:
         tags = node.properties.get("tags", [])
         return "outdoor" in tags
 
-    def get_ambient_light(self, area_id: str, env: Optional[Dict] = None, hour: Optional[int] = None) -> int:
-        """Get effective light for a area, considering its own sources,
-        lit items in the area, plus spill from adjacent areas through open ways.
+    def _own_light(self, area_id: str, env: Dict, hour: Optional[int]) -> int:
+        """Area's own effective light: authored/time-of-day base vs the
+        brightest single lit item.
 
-        Outdoor areas (task-230): when an hour is available via ``hour_provider``,
-        the area's base light follows the time-of-day curve. An explicitly
-        authored ``environment.light`` acts as a FLOOR (a magically lit glade
-        stays bright at midnight); otherwise the curve fully drives the base.
+        task-407: the effective light is the **brightest source**, never the
+        sum. Four dim torches read as one dim torch, not a laser — so this is
+        ``max(base, best_item)``, and the old ``base + sum`` arithmetic (which
+        the ceiling then discarded anyway) is gone.
         """
-        if env is None:
-            node = self.graph.get_node(area_id)
-            if not node:
-                return 80
-            env = node.properties.get("environment", {})
         explicit = isinstance(env, dict) and "light" in env
         own = self.get_light_int(env, 80)
 
@@ -181,30 +176,92 @@ class LightingSystem:
                         bonus = bonus // 2
                     own = min(100, own + bonus)
 
-        own_items, own_best = self._item_light_stats(area_id)
-        # Brightness CEILING: the effective light never exceeds the strongest
-        # single source in play (area's own authored light, or the brightest
-        # lit item). Stacking normal-level items can't make an area "bright",
-        # and no pile of dim embers ever becomes a laser.
-        own = min(100, min(own + own_items, max(own, own_best)))
+        best = self._item_light_stats(area_id)[1]
+        return max(own, best)
 
+    def _neighbour_light(self, area_id: str) -> int:
+        """A neighbour's light for spill purposes: its authored/curved base vs
+        its brightest lit item (no recursion into further spill)."""
+        node = self.graph.get_node(area_id)
+        if not node:
+            return 0
+        env = node.properties.get("environment", {})
+        return max(self.get_light_int(env, 80), self._item_light_stats(area_id)[1])
+
+    def _best_spill(self, area_id: str) -> int:
         best_spill = 0
         for edge in self.graph.get_edges_for_source(area_id, EDGE_CONNECTION):
             door = self.graph.get_node(edge.target)
             if door and door.type == "way" and (door.properties.get("current_state") == "open" or door.properties.get("see_through")):
                 for conn in self.graph.get_edges_for_source(door.id, EDGE_CONNECTION):
                     if conn.target != area_id:
-                        other = self.graph.get_node(conn.target)
-                        if other:
-                            o_env = other.properties.get("environment", {})
-                            o_own = self.get_light_int(o_env, 80)
-                            o_items, o_best = self._item_light_stats(conn.target)
-                            o_light = min(100, min(o_own + o_items, max(o_own, o_best)))
-                            spill = max(0, int(o_light * _spill_factor()))
-                            if spill > best_spill:
-                                best_spill = spill
+                        o_light = min(100, self._neighbour_light(conn.target))
+                        spill = max(0, int(o_light * _spill_factor()))
+                        if spill > best_spill:
+                            best_spill = spill
                         break
-        return max(own, best_spill)
+        return best_spill
+
+    def recompute_area_lights(self, hour: Optional[int] = None) -> None:
+        """Compute every area's effective light once per tick (task-407).
+
+        Two passes over areas: first each area's own light and brightest item,
+        then spill from neighbours' stored values — so no neighbour is scanned
+        twice. ``get_ambient_light`` returns this stamp when called without an
+        explicit env/hour and the graph has not changed since.
+        """
+        areas = [n for n in self.graph.nodes.values() if n.type == "area"]
+        own: Dict[str, int] = {}
+        best_items: Dict[str, int] = {}
+        authored: Dict[str, int] = {}
+        for node in areas:
+            env = node.properties.get("environment", {}) or {}
+            own[node.id] = self._own_light(node.id, env, hour)
+            best_items[node.id] = self._item_light_stats(node.id)[1]
+            authored[node.id] = self.get_light_int(env, 80)
+
+        result: Dict[str, int] = {}
+        for node in areas:
+            best_spill = 0
+            for edge in self.graph.get_edges_for_source(node.id, EDGE_CONNECTION):
+                door = self.graph.get_node(edge.target)
+                if door and door.type == "way" and (
+                        door.properties.get("current_state") == "open"
+                        or door.properties.get("see_through")):
+                    for conn in self.graph.get_edges_for_source(door.id, EDGE_CONNECTION):
+                        if conn.target == node.id:
+                            continue
+                        if conn.target in authored:
+                            o_light = min(100, max(authored[conn.target], best_items.get(conn.target, 0)))
+                            best_spill = max(best_spill, int(o_light * _spill_factor()))
+                        break
+            result[node.id] = max(own[node.id], best_items.get(node.id, 0), best_spill)
+
+        self._area_light = result
+        self._area_light_rev = self.graph.get_revision()
+
+    def get_ambient_light(self, area_id: str, env: Optional[Dict] = None, hour: Optional[int] = None) -> int:
+        """Get effective light for a area, considering its own sources,
+        lit items in the area, plus spill from adjacent areas through open ways.
+
+        Outdoor areas (task-230): when an hour is available via ``hour_provider``,
+        the area's base light follows the time-of-day curve. An explicitly
+        authored ``environment.light`` acts as a FLOOR (a magically lit glade
+        stays bright at midnight); otherwise the curve fully drives the base.
+        """
+        if env is None and hour is None:
+            cache = getattr(self, "_area_light", None)
+            if cache is not None and getattr(self, "_area_light_rev", None) == self.graph.get_revision():
+                hit = cache.get(area_id)
+                if hit is not None:
+                    return hit
+        if env is None:
+            node = self.graph.get_node(area_id)
+            if not node:
+                return 80
+            env = node.properties.get("environment", {})
+        own = self._own_light(area_id, env, hour)
+        return max(own, self._best_spill(area_id))
 
     def can_see_in_dark(self, player_manager, player_name=None) -> bool:
         """Check if a player can see in darkness (ghost, dark_vision trait, or slasher)."""

@@ -30,7 +30,7 @@ The `_getDefaultProfiles()` method in `config.js:275` defines built-in profiles:
 'OpenAI (GPT-4.1-mini)': { apiBase: 'https://api.openai.com/v1', model: 'gpt-4.1-mini' },
 'OpenAI (GPT-4o)':       { apiBase: 'https://api.openai.com/v1', model: 'gpt-4o' },
 'LM Studio (Local)':     { apiBase: 'http://localhost:1234/v1', model: '' },
-'DeepSeek':              { apiBase: 'https://api.deepseek.com/v1', model: 'deepseek-v4-flash' },
+'DeepSeek':              { apiBase: 'https://api.deepseek.com/v1', model: 'deepseek-flash' },
 'Groq':                  { apiBase: 'https://api.groq.com/openai/v1', model: 'llama3-70b-8192' },
 ```
 
@@ -102,7 +102,7 @@ Returns a hardcoded list of suggested models per provider:
 | Provider base URL | Models |
 |-------------------|--------|
 | `openai` | `gpt-4.1-mini`, `gpt-4o`, `gpt-4o-mini`, `o1`, `o3-mini` |
-| `deepseek` | `deepseek-v4-flash`, `deepseek-chat`, `deepseek-reasoner` |
+| `deepseek` | `deepseek-flash`, `deepseek-v4-pro` (legacy: `deepseek-v4-flash`, `deepseek-chat`, `deepseek-reasoner`) |
 | `groq` | `llama3-70b-8192`, `llama3-8b-8192`, `mixtral-8x7b-32768`, `gemma2-9b-it` |
 | `openrouter` | `openai/gpt-4o`, `anthropic/claude-3.5-sonnet`, `google/gemini-2.0-flash-001`, `meta-llama/llama-3.3-70b-instruct`, `deepseek/deepseek-chat` |
 | `localhost` / `127.0.0.1` | `local-model` |

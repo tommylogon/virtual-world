@@ -235,6 +235,43 @@ tick/time triggers, so all of it was waste.
   `RateLimiter`); it should be configurable and skipped when a step already took
   longer. Making the world playable at speed is **task-414**.
 
+**Second pass (same day) — lighting and edge moves.**
+- `get_ambient_light` now uses `max(base, best_item)` instead of
+  `min(base + sum_items, max(base, best_item))`. The sum was dead arithmetic the
+  ceiling discarded: four torches never out-shone one. Effective light is the
+  brightest source, full stop.
+- Every area's light is computed **once per tick** (`recompute_area_lights`) and
+  read from a stamp, instead of rescanning the room plus neighbours on every
+  access. The stamp is keyed to graph revision, and `toggleable_items` /
+  burn-out still compute fresh on their own paths.
+- `graph.remove_edge` / `remove_edges_for_node` now unindex just the removed
+  edges instead of rebuilding every index (trigger edges still rebuild, since
+  the trigger index is a set of sources).
+- `graph.retarget_edge` added: unequip moves its edge in place (`equipped` →
+  `carrying`) instead of remove + add. Take/drop still remove + add, but its
+  direct `graph.edges.remove(...)` bypasses were replaced with graph calls.
+  **Follow-up:** retarget take/drop placement edges too (task-407 note).
+
+Measured after the second pass: one-week soak **56s → 181 ticks/s** (was 9m49s /
+17.1 t/s after the first pass), 23/23 alive, and **identical survivor vitals and
+trace count** — behaviour unchanged. Test suite runtime fell 78s → ~25s.
+
+**Third pass — the accumulating cost was the turn-event buffer.**
+Profiling early vs late ticks (200 vs 9,500) showed `get_edges_for_target`,
+`condition_has_condition`, `get_state`, lighting and temperature all flat, but
+`GameLogger.record_turn_event` went 0.086s → 0.987s for the *same* call count.
+Cause: it rebuilt the whole `turn_events` list on every append, and a headless
+run never calls `clear_turn_events`, so the buffer grew to ~17,000 — O(n²) across
+the run. It now prunes only when the turn changes and caps the buffer at 2,000.
+After the fix, call counts are flat early vs late (~2% drift) and
+`record_turn_event` is out of the hot list. The residual is periodic hourly work
+plus host-load variance.
+
+Also in this pass: take/drop capture their placement edge and retarget it
+(player on take, room on drop) instead of remove + add, and the capacity/hand
+checks now run **before** any mutation, so a failed take can no longer orphan
+the item.
+
 ## 9. What's left (task map)
 
 | # | Area | What | Status |
@@ -246,6 +283,6 @@ tick/time triggers, so all of it was waste.
 | 410 | gameplay | plant growth → food renewal, week supply | todo |
 | 411 | world | attention budget / fidelity tiers | todo |
 | 412 | characters | promotion/demotion + trace→memory consolidation | todo |
-| 413 | testing | tick-perf baseline + regression guard | todo |
+| 413 | testing | tick-perf baseline + regression guard | review (`tests/test_perf_guards.py`) |
 | 414 | gameplay | server-side `advance(N)` + non-blocking human | todo |
 | 415 | ui | long-horizon observer mode | cancelled (deferred) |

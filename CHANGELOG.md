@@ -69,15 +69,39 @@ character did. See `docs/design/long-horizon-simulation-progress.md`.
 - **Authoring exits cached** — `build_exits_for_area(include_hidden=True)` is
   memoised by graph revision. The game-facing view depends on per-player
   discovery state and is deliberately **not** cached.
-- **Lighting** — `_item_light_stats` makes one pass over an area's contents
-  instead of two, and one tuple lookup for carried+equipped.
+- **Lighting** — effective light is now explicitly the **brightest single
+  source** (`max`), not a sum: the old `own + items` was computed and then
+  discarded by the brightness ceiling anyway (four dim torches never out-shone
+  one torch). Every area's light is recomputed **once per tick** into a stamp
+  the render/tick paths read, instead of rescanning the room and its neighbours
+  on every access; `_item_light_stats` also collapsed from two content passes
+  to one. `graph.retarget_edge` was added, and unequip now moves its edge in
+  place instead of remove + add.
 - **Scenario cleanup** — deleted four generated goblin byproduct scenarios
   (`*_assembled`, `*_populated`, `*_generated`, `*_generated_connected`); one
   goblin scenario remains.
-- **Measured** — a one-week (10,080-tick) background soak now runs in **9m49s
-  (17.1 ticks/s), 23/23 alive** (was ~6–9 ticks/s). Full suite **2831 passing** —
-  four fewer than before only because `tests/test_data_no_mojibake.py` is
-  parametrized over every scenario JSON and four files were deleted.
+- **The turn-event buffer was O(n²).** `GameLogger.record_turn_event`
+  (`engine/logging_events.py`) rebuilt the whole buffer on *every* append. The
+  browser clears it each turn, but a headless run never calls
+  `clear_turn_events`, so it grew to ~17,000 and each append scanned all of it —
+  the real cause of a 265 → 135 ticks/s decline across a week. It now prunes only
+  when the turn changes and hard-caps the buffer at 2,000.
+- **Take/drop move edges instead of remove + add.** Placement edges are
+  captured, then retargeted onto the player (take) or back into the room (drop),
+  the way unequip already was. A failed take no longer orphans the item, because
+  the capacity/hand checks now run before any graph mutation.
+- **Regression guard** — `tests/test_perf_guards.py` asserts the *shape* of the
+  hot paths (buffer bounds, index usage, trigger-sweep scope, brightest-source
+  lighting, stamp invalidation) instead of wall-clock time. Verified to fail
+  when a fix is reverted.
+- **Measured** — a one-week (10,080-tick) background soak runs in **~56s
+  (181 ticks/s), 23/23 alive** (roughly 56–71s depending on host load) — down
+  from ~6–9 ticks/s and from 9m49s after the first pass. Survivor vitals and
+  trace are identical to the slower run, so this is pure speed. After the
+  logging fix, function-call counts are flat early vs late in a run. Full suite
+  **2831 passing** — four fewer than before only because
+  `tests/test_data_no_mojibake.py` is parametrized over every scenario JSON and
+  four files were deleted.
 - **Not yet playable at speed** — the browser is still the metronome (~2s/step,
   one `tick_turn` per roster wrap). Server-side batch advance is task-414.
 
@@ -89,6 +113,66 @@ character did. See `docs/design/long-horizon-simulation-progress.md`.
 - The camp's 11 authored triggers are **dead data**: written as
   `logic_trigger → area` edges with `event` on the node, but the runtime matches
   `trigger_type` on the edge with the owner as source. None of them fire.
+
+### 🔬 LLM Inspector — raw request/response capture (task-405)
+- `shared/dataset-collector.js` gains `captureRaw` / `getAllRaw` / `clearRaw` /
+  `countRaw` over a new IndexedDB store `llm_raw_exchanges` (DB version 4). It
+  stores the full request body, response status/headers/raw body, duration, and
+  usage. **Authorization/API-key headers are redacted** before storage, and the
+  store is capped at 200 entries.
+- `llm-client.js` captures after `resp.json()` (non-streaming), after
+  `_handleStream` (streaming), and on error responses (400/429/500) so provider
+  error shapes are visible.
+- New `ui/llm-inspector.js`: a floating **🔬 LLM inspector** panel with
+  per-entry expand, a usage line (including `reasoning_tokens`), **Copy
+  request / Copy response**, filters by label and status, body search, and
+  Clear. Entries survive reload.
+- New Settings toggle **🔬 Show Raw LLM** (`config.showRawLLM`, default off) —
+  capture is opt-in.
+
+### 🐛 Fixes (settings + active character + DeepSeek)
+- **Settings silently reset four toggles.** `populateForm()` never restored
+  `agent-mature-content`, `agent-auto-retry-invalid`, `agent-simultaneous-mode`,
+  or `agent-structured-output`, so they rendered unchecked and the next Save
+  wrote them back as `false`. All four are now restored on form load (and a new
+  guard audits that every settings checkbox is covered).
+- **"No agent selected" after refresh.** `config.controllingPlayer` is
+  client-only and not persisted, while the header's `Active:` comes from the
+  server's `active_player`. `step()` and `startRun()` now fall back to the
+  server's active player instead of refusing to run.
+- **DeepSeek model names.** Profile + model dropdown updated to
+  `deepseek-flash` and `deepseek-v4-pro`; `deepseek-v4-flash`, `deepseek-chat`,
+  and `deepseek-reasoner` are retired aliases. Thinking is enabled by default at
+  `high`, so the disable path is explicit, and effort `none` now means "thinking
+  off" rather than being sent as an invalid `reasoning_effort`.
+
+### 🗺️ Scenario authoring fixes + two engine effects
+The camp's trigger validator reported **78 issues across 45 nodes**; it now
+reports **0**, and the 11 previously-dead triggers fire.
+
+- **Triggers (11).** Authored as `logic_trigger -> owner` with the event on the
+  node — a shape the runtime never matches, so none fired. They now use
+  `owner -> logic_trigger` with `trigger_type` on the edge, and their legacy
+  flat fields migrate into `effects[]` (`message`, `spawn_items`,
+  `grant_memory`).
+- **`grant_memory` effect (new).** Adds a memory entry to the target player via
+  `Player.add_memory`. Registered in `EFFECT_TYPES` with an editor template
+  (`data/library/items/template_grant_memory.json`).
+- **`once` triggers (new).** A trigger node with `once: true` fires exactly
+  once (`fired` persists on the node). Without it the camp's discovery triggers
+  repeated their message and duplicated their spawned items.
+- **Effect aliases.** `decrement_uses` → `adjust_uses {delta:-1}` and
+  `roll_condition` → `save` (with `on_success`/`on_fail` wrapped as lists) —
+  both were unknown effect types that silently did nothing.
+- **Ways.** Every bidirectional way had only one authored side, so the reverse
+  exit fell back to the way name and read backwards (*"passage to scouting
+  rooms"* from inside the rooms). Reverse sides now carry the opposite cardinal,
+  a direction label, and a view of the far area.
+- **Weapons.** Club / Knife / Rusty Hatchet / Spear had `damage_dice` but no
+  `damage`, so combat silently used a flat 5; `damage` now mirrors the dice.
+- **Tooling.** `tools/fix_scenario_authoring.py` (dry-run by default) applies
+  all of the above; `tests/test_camp_trigger_wiring.py` locks the wiring, the
+  once gate, and `grant_memory`.
 
 ---
 

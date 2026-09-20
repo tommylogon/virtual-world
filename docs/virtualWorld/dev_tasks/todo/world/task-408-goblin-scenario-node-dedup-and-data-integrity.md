@@ -111,3 +111,29 @@ Other verified facts:
 - A reachability test using strict ids only.
 - `tools/soak_sim.py` 2-day check.
 - Compile-twice-equals test for the folder authoring format.
+
+## Progress — 2026-09-20 (authoring fixes)
+
+The trigger validator went from **78 issues / 45 nodes → 0 issues**, and the 11
+dead triggers now fire. Applied with `tools/fix_scenario_authoring.py`
+(dry-run by default):
+
+- **Triggers**: inverted the 11 legacy `logic_trigger -> owner` edges to
+  `owner -> logic_trigger` with `trigger_type` on the edge; migrated flat
+  `message` / `spawn_items` / `grant_memory` into `effects[]`.
+- **Ways**: filled the missing reverse-side `cardinal` / `direction` /
+  `visible_in_direction` (the cause of the backwards exit labels) and the one
+  missing `pass_message`.
+- **Weapons**: added `damage` (mirrored from `damage_dice`) to Club, Knife,
+  Rusty Hatchet, Spear.
+- **Effect aliases**: `decrement_uses` → `adjust_uses {delta:-1}`,
+  `roll_condition` → `save` (list branches).
+- **Engine**: new `grant_memory` effect + `once` fire-once gate (both were
+  needed to make the discovery triggers safe — without `once` they duplicated
+  their spawned items on every examine).
+- **Tests**: `tests/test_camp_trigger_wiring.py`.
+
+Still open in this task: dedupe the 46→23 character nodes, canonicalize
+way/area endpoint ids at authoring time, attach `high_metabolism`, add a
+`name`/`meta.title` (the app currently labels the file `world_template`), and
+the folder-authoring → compiled-JSON format.

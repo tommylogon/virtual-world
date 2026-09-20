@@ -381,7 +381,12 @@ class AgentEngine {
     async step() {
         if (this._checkCancel()) return;
         config.busy = true;
-        let charName = config.controllingPlayer;
+        // config.controllingPlayer is client-only and not persisted, but the
+        // header's "Active:" comes from the server's active_player — so after a
+        // refresh they disagree. Fall back to the server's active player rather
+        // than refusing to run with "no agent selected".
+        let charName = config.controllingPlayer || worldState.data?.active_player || null;
+        if (charName) config.controllingPlayer = charName;
         if (config.turnBased && this.turnQueue.length === 0) TurnQueue.initialize();
         if (config.turnBased && this.turnQueue.length === 0) {
             config.running = false; config.busy = false; VW?.ui?.updateButtons();
@@ -850,7 +855,12 @@ class AgentEngine {
             if (this.turnQueue.length === 0) { events.log("No characters.", "error-msg"); return; }
             config.controllingPlayer = this.turnQueue[this.currentTurnIndex] || this.turnQueue[0];
         }
-        else { if (!config.controllingPlayer) { events.log("No character selected.", "error-msg"); return; } }
+        else {
+            if (!config.controllingPlayer) {
+                config.controllingPlayer = worldState.data?.active_player || null;
+            }
+            if (!config.controllingPlayer) { events.log("No character selected.", "error-msg"); return; }
+        }
         config.stepsRun = 0;
         const maxInput = document.getElementById('sim-max-steps');
         config.maxSteps = maxInput ? parseInt(maxInput.value) || 0 : 0;

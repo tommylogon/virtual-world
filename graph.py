@@ -167,6 +167,23 @@ class WorldGraph:
         self._indexed_edge_count = len(self.edges)
         self._revision += 1
 
+    def _unindex_edge(self, edge: Edge):
+        """Remove one edge from the derived indexes (task-407).
+
+        Falls back to nothing for the trigger index, which is a set of sources;
+        callers that touch ``triggers`` edges rebuild instead.
+        """
+        src = str(edge.source).lower()
+        tgt = str(edge.target).lower()
+        lst = self._edges_by_source.get(src)
+        if lst is not None:
+            self._edges_by_source[src] = [e for e in lst if e is not edge]
+        lst = self._edges_by_target.get(tgt)
+        if lst is not None:
+            self._edges_by_target[tgt] = [e for e in lst if e is not edge]
+        if edge.type in SPATIAL_EDGE_TYPES:
+            self._spatial_edges = [e for e in self._spatial_edges if e is not edge]
+
     def remove_edge(self, source: str, target: str, edge_type: str):
         self._ensure_indexes()
         key_s = str(source).lower()
@@ -179,7 +196,47 @@ class WorldGraph:
             return
         doomed_ids = {id(e) for e in doomed}
         self.edges = [e for e in self.edges if id(e) not in doomed_ids]
-        self._rebuild_indexes()
+        if edge_type == EDGE_TRIGGERS:
+            # Trigger index is a set of sources — rebuild rather than guess.
+            self._rebuild_indexes()
+            return
+        for e in doomed:
+            self._unindex_edge(e)
+        self._indexed_edge_count = len(self.edges)
+        self._revision += 1
+
+    def retarget_edge(self, edge: Edge, new_type: Optional[str] = None,
+                      new_target: Optional[str] = None,
+                      properties: Optional[Dict] = None):
+        """Move an edge to a new type/target **in place** (task-407).
+
+        One graph operation instead of ``remove_edge`` + ``add_edge`` for a
+        pure move (take / drop / equip hand swaps): the source is unchanged, so
+        only the target/type indexes are touched. ``properties`` replaces the
+        edge's properties when given (e.g. clearing a slot on equip→carry).
+        """
+        self._ensure_indexes()
+        if not any(e is edge for e in self.edges):
+            return
+        if edge.type == EDGE_TRIGGERS or new_type == EDGE_TRIGGERS:
+            if new_type is not None:
+                edge.type = new_type
+            if new_target is not None:
+                edge.target = new_target
+            if properties is not None:
+                edge.properties = properties
+            self._rebuild_indexes()
+            return
+        self._unindex_edge(edge)
+        if new_type is not None:
+            edge.type = new_type
+        if new_target is not None:
+            edge.target = new_target
+        if properties is not None:
+            edge.properties = properties
+        self._index_edge(edge)
+        self._indexed_edge_count = len(self.edges)
+        self._revision += 1
 
     def remove_edges_for_node(self, node_id: str, edge_type: str):
         """Remove every edge of *edge_type* touching *node_id* (as source or target).
@@ -187,16 +244,28 @@ class WorldGraph:
         Used to sever dangling connection edges when an item's ownership state
         changes (equip / unequip / drop).
         """
+        self._ensure_indexes()
         node_lower = str(node_id).lower()
-        before = len(self.edges)
-        self.edges = [
-            e for e in self.edges
-            if not (e.type == edge_type
-                    and (str(e.source).lower() == node_lower
-                         or str(e.target).lower() == node_lower))
-        ]
-        if len(self.edges) != before:
+        doomed_ids = set()
+        doomed = []
+        for e in self._edges_by_source.get(node_lower, ()):
+            if e.type == edge_type and id(e) not in doomed_ids:
+                doomed_ids.add(id(e))
+                doomed.append(e)
+        for e in self._edges_by_target.get(node_lower, ()):
+            if e.type == edge_type and id(e) not in doomed_ids:
+                doomed_ids.add(id(e))
+                doomed.append(e)
+        if not doomed:
+            return
+        self.edges = [e for e in self.edges if id(e) not in doomed_ids]
+        if edge_type == EDGE_TRIGGERS:
             self._rebuild_indexes()
+            return
+        for e in doomed:
+            self._unindex_edge(e)
+        self._indexed_edge_count = len(self.edges)
+        self._revision += 1
 
     def get_node(self, node_id: str) -> Optional[Node]:
         resolved = self._resolve_id(node_id)

@@ -379,22 +379,49 @@ class TakeDropActionsMixin:
             return "\n".join(trigger_outputs) if trigger_outputs else f"The {_display_name(item_name)} is gone."
 
         self._stamp_last_relation(item_node)
-
-        if was_in_container:
-            for ce in list(self.graph.get_edges_for_source(item_node_id, EDGE_IN)):
-                self.graph.edges.remove(ce)
-            for etype in (EDGE_ON, EDGE_UNDER, EDGE_BEHIND, EDGE_BESIDE, EDGE_AT):
-                for ce in list(self.graph.get_edges_for_source(item_node_id, etype)):
-                    self.graph.edges.remove(ce)
-        else:
-            if spatial_relation and spatial_surface_id:
-                self.graph.remove_edge(item_node_id, spatial_surface_id, spatial_relation)
-            else:
-                self.graph.remove_edge(item_node_id, area_id, EDGE_IN)
-            for etype in (EDGE_ON, EDGE_UNDER, EDGE_BEHIND, EDGE_BESIDE, EDGE_AT):
-                for ce in list(self.graph.get_edges_for_source(item_node_id, etype)):
-                    self.graph.edges.remove(ce)
         player_id = player_manager._player_node_id(player_manager.active_player)
+
+        # task-407: capture the item's placement edge(s) but do NOT remove them
+        # yet. On success the primary edge is retargeted onto the player; the
+        # checks below can still raise, and a failed take must leave the item
+        # exactly where it was (the old code removed it first and could orphan
+        # the item).
+        placement_edges = []
+        if was_in_container:
+            placement_edges.extend(self.graph.get_edges_for_source(item_node_id, EDGE_IN))
+        elif spatial_relation and spatial_surface_id:
+            placement_edges.extend(
+                e for e in self.graph.get_edges_for_source(item_node_id, spatial_relation)
+                if str(e.target).lower() == str(spatial_surface_id).lower()
+            )
+        else:
+            placement_edges.extend(
+                e for e in self.graph.get_edges_for_source(item_node_id, EDGE_IN)
+                if str(e.target).lower() == str(area_id).lower()
+            )
+        for etype in (EDGE_ON, EDGE_UNDER, EDGE_BEHIND, EDGE_BESIDE, EDGE_AT):
+            for ce in self.graph.get_edges_for_source(item_node_id, etype):
+                if not any(x is ce for x in placement_edges):
+                    placement_edges.append(ce)
+
+        def _place_on_player(edge_type, properties=None):
+            """Move one captured placement edge onto the player, or add one if
+            the item had no placement edge (task-407)."""
+            if placement_edges:
+                self.graph.retarget_edge(
+                    placement_edges.pop(0),
+                    new_type=edge_type,
+                    new_target=player_id,
+                    properties=properties or {},
+                )
+            else:
+                self.graph.add_edge(Edge(
+                    source=item_node_id,
+                    target=player_id,
+                    type=edge_type,
+                    properties=properties or {},
+                ))
+
         cap_error = self._check_player_capacity(player_manager, float(item_node.properties.get("weight", 0) or 0))
         if cap_error:
             raise ValueError(cap_error)
@@ -428,12 +455,12 @@ class TakeDropActionsMixin:
 
                 if two_handed:
                     for hand in ["hand_right", "hand_left"]:
-                        self.graph.add_edge(Edge(source=item_node_id, target=player_id, type=EDGE_EQUIPPED, properties={"slot": hand}))
+                        _place_on_player(EDGE_EQUIPPED, {"slot": hand})
                         player.equipped.setdefault(hand, []).append(item_node_id)
                     self.graph.remove_edges_for_node(item_node_id, EDGE_CONNECTION)
                     hand_used = "hand_left and hand_right"
                 elif free_hand:
-                    self.graph.add_edge(Edge(source=item_node_id, target=player_id, type=EDGE_EQUIPPED, properties={"slot": free_hand}))
+                    _place_on_player(EDGE_EQUIPPED, {"slot": free_hand})
                     player.equipped.setdefault(free_hand, []).append(item_node_id)
                     self.graph.remove_edges_for_node(item_node_id, EDGE_CONNECTION)
                     hand_used = free_hand
@@ -441,22 +468,27 @@ class TakeDropActionsMixin:
                     for hand in ["hand_right", "hand_left"]:
                         if player.equipped.get(hand):
                             old_item_id = player.equipped[hand].pop()
-                            self.graph.remove_edge(old_item_id, player_id, EDGE_EQUIPPED)
-                            self.graph.add_edge(Edge(source=old_item_id, target=player_id, type=EDGE_CARRYING))
+                            for ee in list(self.graph.get_edges_for_source(old_item_id, EDGE_EQUIPPED)):
+                                self.graph.retarget_edge(ee, new_type=EDGE_CARRYING, properties={})
                             self.graph.remove_edges_for_node(old_item_id, EDGE_CONNECTION)
                             old_item = self.graph.get_node(old_item_id)
                             if old_item:
                                 self._exec_triggers(old_item, "on_unequip")
                                 stashed_item = old_item.name
-                            self.graph.add_edge(Edge(source=item_node_id, target=player_id, type=EDGE_EQUIPPED, properties={"slot": hand}))
+                            _place_on_player(EDGE_EQUIPPED, {"slot": hand})
                             player.equipped.setdefault(hand, []).append(item_node_id)
                             self.graph.remove_edges_for_node(item_node_id, EDGE_CONNECTION)
                             hand_used = hand
                             break
             else:
-                self.graph.add_edge(Edge(source=item_node_id, target=player_id, type=EDGE_CARRYING))
+                _place_on_player(EDGE_CARRYING)
         else:
             self.graph.add_edge(Edge(source=item_node_id, target=player_id, type=EDGE_CARRYING))
+
+        # Any placement edges beyond the one retargeted onto the player are
+        # genuine leftovers — drop them now that placement succeeded.
+        for e in placement_edges:
+            self.graph.remove_edge(e.source, e.target, e.type)
 
         self._register_item_discovery(player_manager, item_node.name)
 
@@ -530,14 +562,23 @@ class TakeDropActionsMixin:
 
         trigger_outputs = self._exec_triggers(item_node, "on_drop") if item_node else []
 
-        self.graph.remove_edge(item_node_id, player_id, EDGE_CARRYING)
+        # task-407: dropping is a move, not a remove + add. Keep the holding
+        # edge (carrying and/or equipped) and retarget it to the area unless
+        # `_restore_last_relation` already recreated a spatial relation.
+        hold = self.graph.get_edges_for_source(item_node_id, EDGE_CARRYING) + \
+            self.graph.get_edges_for_source(item_node_id, EDGE_EQUIPPED)
         self.graph.remove_edges_for_node(item_node_id, EDGE_CONNECTION)
         area_id = player_manager._get_current_area_id()
-        if item_node:
-            restored = self._restore_last_relation(item_node, player_manager, area_id)
-            if not restored:
-                self.graph.add_edge(Edge(source=item_node_id, target=area_id, type=EDGE_IN))
-        else:
+        restored = self._restore_last_relation(item_node, player_manager, area_id) if item_node else False
+        if hold:
+            if restored:
+                for e in hold:
+                    self.graph.remove_edge(e.source, e.target, e.type)
+            else:
+                self.graph.retarget_edge(hold[0], new_type=EDGE_IN, new_target=area_id, properties={})
+                for e in hold[1:]:
+                    self.graph.remove_edge(e.source, e.target, e.type)
+        elif not restored:
             self.graph.add_edge(Edge(source=item_node_id, target=area_id, type=EDGE_IN))
 
         p_check = player_manager.players.get(player_manager.active_player)
@@ -567,9 +608,12 @@ class TakeDropActionsMixin:
         ]
         if not held_edges:
             raise ValueError(f"The {_display_name(item_name)} isn't in your hands.")
-        for edge in held_edges:
-            self.graph.edges.remove(edge)
-        self.graph.add_edge(Edge(source=item_node.id, target=player_id, type=EDGE_CARRYING))
+        # task-407: unequip is a pure type move (item → same player), so
+        # retarget the existing edge in place instead of remove + add.
+        primary = held_edges[0]
+        self.graph.retarget_edge(primary, new_type=EDGE_CARRYING, properties={})
+        for edge in held_edges[1:]:
+            self.graph.remove_edge(edge.source, edge.target, edge.type)
         self.graph.remove_edges_for_node(item_node.id, EDGE_CONNECTION)
         player = player_manager.players.get(player_manager.active_player)
         if player:
