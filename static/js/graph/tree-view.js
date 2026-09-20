@@ -4,7 +4,11 @@
  * Clicking an area, item, way, or player moves the camera to that node and opens
  * the inspector. References the global graphManager singleton.
  *
- * @module GraphTreeView
+ * @module graph/tree-view — the left-panel world outline
+ * @contributes GraphTreeView: interactive tree of rooms, exits, items, and players
+ * @powers clicking through the world outline to move the camera and open the inspector
+ * @relates reads worldState; drives graphManager camera + VW.inspector
+ * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
 // Lazy lit-html tag: window.Lit is only available at call time (deferred module
 // bootstrap), not at parse time. Unique per file so top-level consts never collide.

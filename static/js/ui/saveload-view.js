@@ -11,6 +11,12 @@
  *   - window.WorldExport.saveFileWithDialog (for downloadWorld)
  *   - Global: toastSuccess, toastError, toastInfo (from ui-helpers.js)
  *   - DOM elements: #save-game-list, #save-game-name-input, #load-game-modal, etc.
+ *
+ * @module ui/saveload-view — save/load game UI
+ * @contributes SaveLoadView: save list, save/load/delete, named saves
+ * @powers keeping and restoring your world (extracted from main.js)
+ * @relates uses api + events + config; delegates downloads to shared WorldExport
+ * @docs docs/virtualWorld/UI & Settings/
  */
 
 const saveLoadViewTag = (strings, ...values) => window.Lit.html(strings, ...values);

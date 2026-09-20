@@ -10,6 +10,12 @@
  *        AgentMemory.storeMemory(charName, text, importance, type, tick, entity_ids)
  *
  * Load this AFTER agent-engine.js in index.html (references VW.agent and globals).
+ *
+ * @module agent/memory-manager — the agent memory write path
+ * @contributes AgentMemory.storeMemory() + reflect() (LLM summarization into reflection memories)
+ * @powers what characters remember, and when they reflect on it
+ * @relates writes the backend Player.memories[]; read back by prompt-builder/memory-context.js
+ * @docs docs/virtualWorld/AI & Narration/Memory System.md
  */
 
 window.AgentMemory = (() => {

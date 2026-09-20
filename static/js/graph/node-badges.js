@@ -6,7 +6,11 @@
  * Skip badges when GraphNetwork.loadGraphData already encodes the trait via
  * node color/border (see NODE_GRAPH_VISUALS below).
  *
- * @module NodeBadges
+ * @module graph/node-badges — compact label indicators
+ * @contributes NodeBadges: mechanic badges + tag-library icons in node labels, formatLabel(), legendHtml()
+ * @powers the at-a-glance emoji badges on graph nodes (capped so labels stay readable)
+ * @relates used by GraphNetwork.buildNodeConfig; reads the tag library
+ * @docs docs/virtualWorld/Library System/Tags System.md
  */
 window.NodeBadges = {
     MAX_TRAIT_BADGES: 5,

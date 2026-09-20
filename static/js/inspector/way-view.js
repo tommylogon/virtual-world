@@ -2,6 +2,12 @@
  * InspectorWayView — Way inspector (showWay, reconnectWays)
  * Extracted from inspector.js for modularity.
  * task-216: renders lit-html TemplateResults through InspectorPanel (single panel owner).
+ *
+ * @module inspector/way-view — the way (door/passage) inspector
+ * @contributes InspectorWayView: showWay, state, cardinal/direction, connections, reconnectWays
+ * @powers inspecting and editing doors/passages and what they connect
+ * @relates renders through InspectorPanel; delegates to way-view-connections + way-view-triggers
+ * @docs docs/virtualWorld/World Building/Doors & Connections.md
  */
 window.InspectorWayView = (() => {
     const wayView = {};

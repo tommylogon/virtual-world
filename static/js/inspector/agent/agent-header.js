@@ -1,6 +1,12 @@
 /**
  * InspectorAgentHeader — header, status row, emotion selector, vitals
  * Extracted from agent-view.js for modularity.
+ *
+ * @module inspector/agent/agent-header — the agent inspector's header block
+ * @contributes InspectorAgentHeader: name/status row, emotion selector, vitals readout
+ * @powers the top of the character inspector
+ * @relates renders through InspectorPanel; used by inspector/agent-view.js
+ * @docs docs/virtualWorld/UI & Settings/Inspector Panels.md
  */
 
 window.InspectorAgentHeader = (() => {

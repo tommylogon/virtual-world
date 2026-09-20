@@ -1,4 +1,4 @@
-﻿# Bug 24 â€” Way menu gates Go/Open on requires:"none" (panel-only)
+﻿# Bug 24 — Way menu gates Go/Open on requires:"none" (panel-only)
 
 **Status:** Done — confirmed by Tommy 2026-08-30.
 hardening, 1 new unit test, full suite 1121 passed. Browser E2E pending.
@@ -6,7 +6,7 @@ hardening, 1 new unit test, full suite 1121 passed. Browser E2E pending.
 ## Found
 
 2026-08-24 taco_bell playtest: the men's restroom door menu showed only
-Examine + a DISABLED "Go men's restroom â†’ â€¦ â€” requires none". No Open
+Examine + a DISABLED "Go men's restroom â†’ … — requires none". No Open
 entry. Typed `go men's restroom` worked fine the whole time.
 
 ## Why
@@ -23,12 +23,12 @@ a gate: Go disabled ("requires none"), Open/Close suppressed
 - `engine/scene_snapshot.py`: normalize none-like requires
   ("none"/"nothing"/"no", case-insensitive) to `""` in the ways payload.
 - `static/js/agent/turn-scene-view.js`: new `requiresGate()` helper used
-  by buildWayMenu, the exit hover card, and the â›° marker â€” same
+  by buildWayMenu, the exit hover card, and the â›° marker — same
   normalization client-side (defense in depth for stale payloads).
 
 ## Tests
 
-`tests/test_scene_snapshot.py::test_requires_none_is_not_a_gate` â€” a way
+`tests/test_scene_snapshot.py::test_requires_none_is_not_a_gate` — a way
 with `requires: "none"` ships `"requires": ""` in the scene payload.
 
 ## Verification

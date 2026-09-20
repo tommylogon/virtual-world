@@ -16,6 +16,12 @@
  * call time only) and BEFORE agent-engine.js in index.html.
  *
  * Cross-file calls use PromptBuilder.<fn>(...).
+ *
+ * @module prompt-builder/contextual-actions — the "=== AVAILABLE ACTIONS ===" block
+ * @contributes computeItemActions, buildAvailableActionsBlock, carriedItemNodes, useOnTargetName, gating helpers
+ * @powers per-turn verb availability — only verbs not already bracketed in the room context
+ * @relates uses helpers.js; complements room-context.js; gates are guidance, the backend resolves leniently
+ * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
 
 window.PromptBuilder = window.PromptBuilder || {};

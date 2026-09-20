@@ -12,6 +12,12 @@
  *
  * Pure presentation — no state of its own; every render takes `state` from
  * `/api/state` (worldState.data) and refreshes on state:updated.
+ *
+ * @module sky-scape — the engine-driven Sky Clock UI
+ * @contributes SkyScape: top-bar time/date/moon/weather line + the World Sky modal stage
+ * @powers seeing the sky state the engine computes (task-228/229/234)
+ * @relates pure presentation over /api/state; refreshes on state:updated
+ * @docs docs/design/sky-widget-reconciled.md
  */
 
 window.SkyScape = (() => {

@@ -6,6 +6,12 @@
  * They access instance properties (this.selectedId, this._targetArea,
  * this._multiSelect, this._checkedIds, this.data)
  * and delegate methods (this.renderList(), this.close()).
+ *
+ * @module item-library/placement — placing library items into the world
+ * @contributes ItemLibraryPlacement (mixed into ItemLibrary): place into rooms/containers/characters, multi-spawn
+ * @powers moving selected library items into the live world
+ * @relates runs on an ItemLibrary instance; calls the item placement APIs
+ * @docs docs/virtualWorld/Library System/
  */
 
 window.ItemLibraryPlacement = {

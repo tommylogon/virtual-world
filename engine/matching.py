@@ -486,6 +486,43 @@ class NameMatching:
         if len(alias_matches) > 1:
             return None, alias_matches
 
+        # 2c. Appearance-label tier — the label a character is listed under in
+        # the scene before you have met them ("the woman", "the tall man in
+        # green"). The prompt hands the actor that label, so targeting by it has
+        # to resolve; otherwise "approach the woman" fails against a stranger
+        # standing right there. Only applies to characters the viewer has not
+        # met (once met, the real name is what the scene shows).
+        viewer = self.gs.players.get(self.gs.active_player) if self.gs.active_player else None
+        label_matches = []
+        for p in same_area:
+            if viewer is not None and hasattr(viewer, "has_met") and viewer.has_met(p):
+                continue
+            player = self.gs.players.get(p)
+            try:
+                label = str(player.unknown_display_name() or "").strip().lower()
+            except Exception:
+                label = ""
+            if not label:
+                continue
+            if (label == input_lower
+                    or re.search(r'(?<!\w)' + re.escape(input_lower) + r'(?!\w)', label)
+                    or re.search(r'(?<!\w)' + re.escape(label) + r'(?!\w)', input_lower)):
+                label_matches.append(p)
+                continue
+            words = [
+                w for w in re.findall(r"[a-z]+", input_lower)
+                if len(w) >= 4 and w not in CHARACTER_DESCRIPTION_STOPWORDS
+            ]
+            if words and all(re.search(r'(?<!\w)' + re.escape(w) + r'(?!\w)', label) for w in words):
+                label_matches.append(p)
+        if len(label_matches) == 1:
+            self._fuzzy_match_note = (
+                f"matched '{input_str}' as character '{label_matches[0]}' (appearance label match)"
+            )
+            return label_matches[0], []
+        if len(label_matches) > 1:
+            return None, label_matches
+
         # 3. Fuzzy name match (tight cutoff — only accept a clear single winner)
         scored = difflib.get_close_matches(input_lower, [p.lower() for p in same_area], n=1, cutoff=0.6)
         if scored:

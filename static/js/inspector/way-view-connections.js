@@ -1,6 +1,12 @@
 /**
  * InspectorWayViewConnections — Connection editing for way inspector
  * Extracted from way-view.js for modularity.
+ *
+ * @module inspector/way-view-connections — connection editing for the way inspector
+ * @contributes InspectorWayViewConnections: add/remove/reconnect the areas a way joins
+ * @powers fixing a way's endpoints (the authoring half of graph reachability)
+ * @relates called by way-view; writes through the graph API
+ * @docs docs/virtualWorld/World Building/Doors & Connections.md
  */
 window.InspectorWayViewConnections = (() => {
     const C = {};

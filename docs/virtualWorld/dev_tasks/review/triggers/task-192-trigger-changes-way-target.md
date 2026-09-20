@@ -26,8 +26,8 @@ Want elevators/vehicles/portals that repoint connections dynamically. A way curr
 
 ## Files
 
-- `engine/trigger_system.py` â€” new trigger type that repoints a way's connections
-- `engine/effects.py` â€” effect that rewires edges off a way node
-- `graph.py` â€” helper for reconnecting connection edges safely
-- `virtual_world_engine.py` â€” wiring the new trigger/effect into the engine
+- `engine/trigger_system.py` — new trigger type that repoints a way's connections
+- `engine/effects.py` — effect that rewires edges off a way node
+- `graph.py` — helper for reconnecting connection edges safely
+- `virtual_world_engine.py` — wiring the new trigger/effect into the engine
 

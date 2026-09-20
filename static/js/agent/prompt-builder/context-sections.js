@@ -15,6 +15,12 @@
  * `ctx` is a small per-call bag of the strings a section might need
  * (vitalsNL, emotionNL, relationshipNL, memoryNL, phase, ...). See the top of
  * each builder in turn-prompts.js for exactly what it passes in.
+ *
+ * @module prompt-builder/context-sections — the "=== YOUR STATE ===" fragment registry
+ * @contributes CONTEXT_SECTIONS (vitals, emotion, insanity, trait, size, ghost/dead…), buildContextBlock(), buildPlanGuide()
+ * @powers "what's in the state block, in what order" as a diffable one-line key list per phase
+ * @relates sections call back into character-state.js builders; consumed by turn-prompts.js
+ * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
 
 window.PromptBuilder = window.PromptBuilder || {};

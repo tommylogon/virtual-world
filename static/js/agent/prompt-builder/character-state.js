@@ -7,6 +7,12 @@
  * merge into window.PromptBuilder — see helpers.js header for the pattern.
  *
  * Cross-file calls use PromptBuilder.<fn>(...).
+ *
+ * @module prompt-builder/character-state — the "=== YOUR STATE ===" builders
+ * @contributes emotion/relationship/insanity/encumbrance/trait/size/perceived/plan fragments + describeVital(s)
+ * @powers the vitals, mood, and relationship text a character sees about itself each turn
+ * @relates reads all tier numbers from agent/vital-thresholds.js; composed by context-sections.js
+ * @docs docs/virtualWorld/Characters/Vitals System.md
  */
 
 window.PromptBuilder = window.PromptBuilder || {};
@@ -319,8 +325,8 @@ const foodish = areaItems.filter(it =>
      */
     function describeVital(vitals, key, scene) {
         if (!vitals || vitals[key] === undefined || vitals[key] === null) return '';
-        const T = window.VitalThresholds;
-        const v = Number(vitals[key]) || 0;
+        const thresholds = window.VitalThresholds;
+        const value = Number(vitals[key]) || 0;
         // Declared ABOVE the switch: a case-jump skips statements that
         // precede the matched case label, so consts placed between cases
         // stay in the temporal dead zone for Hunger/Thirst.
@@ -335,39 +341,39 @@ const foodish = areaItems.filter(it =>
             : 'FIND SOMETHING TO DRINK NOW';
         switch (key) {
             case 'Energy':
-                if (v <= 0) return 'You are collapsing from exhaustion — your legs buckle and your vision blurs.';
-                if (v < T.CRITICAL) return 'You are exhausted. Every movement feels heavy.';
-                if (v < T.WARNING) return 'You are getting tired. A yawn escapes you.';
+                if (value <= 0) return 'You are collapsing from exhaustion — your legs buckle and your vision blurs.';
+                if (value < thresholds.CRITICAL) return 'You are exhausted. Every movement feels heavy.';
+                if (value < thresholds.WARNING) return 'You are getting tired. A yawn escapes you.';
                 return '';
             // drives (task-337): high value = urgent, 0 = satisfied.
             // Maslow (physiological base): the imperative moodlets live in
             // the Hunger/Thirst cases below.
             case 'Hunger':
-                if (v >= 100) return `You are STARVING — your body cannot hold you up. ${eatCmd(scene?.carriedFood)}${threatNote}.`;
-                if (v > T.WARNING) return `You are very hungry and it is draining you. ${eatCmd(scene?.carriedFood || scene?.foodNames)}${threatNote}.`;
-                if (v > T.CRITICAL) return `You are hungry. ${eatCmd(scene?.carriedFood || scene?.foodNames)}${threatNote}.`;
+                if (value >= 100) return `You are STARVING — your body cannot hold you up. ${eatCmd(scene?.carriedFood)}${threatNote}.`;
+                if (value > thresholds.WARNING) return `You are very hungry and it is draining you. ${eatCmd(scene?.carriedFood || scene?.foodNames)}${threatNote}.`;
+                if (value > thresholds.CRITICAL) return `You are hungry. ${eatCmd(scene?.carriedFood || scene?.foodNames)}${threatNote}.`;
                 return '';
             case 'Thirst':
-                if (v >= 100) return `You are DYING of thirst — your throat is cracked and dry. ${drinkCmd(scene?.carriedDrink)}${threatNote}.`;
-                if (v > T.WARNING) return `You are very thirsty and it is draining you. ${drinkCmd(scene?.carriedDrink || scene?.drinkNames)}${threatNote}.`;
-                if (v > T.CRITICAL) return `You are thirsty. ${drinkCmd(scene?.carriedDrink || scene?.drinkNames)}${threatNote}.`;
+                if (value >= 100) return `You are DYING of thirst — your throat is cracked and dry. ${drinkCmd(scene?.carriedDrink)}${threatNote}.`;
+                if (value > thresholds.WARNING) return `You are very thirsty and it is draining you. ${drinkCmd(scene?.carriedDrink || scene?.drinkNames)}${threatNote}.`;
+                if (value > thresholds.CRITICAL) return `You are thirsty. ${drinkCmd(scene?.carriedDrink || scene?.drinkNames)}${threatNote}.`;
                 return '';
             case 'Hygiene':
-                if (v < T.CRITICAL) return 'You are filthy — grime and sweat cling to your skin.';
-                if (v < T.WARNING) return 'You are dirty. Your clothes smell of sweat and exertion.';
+                if (value < thresholds.CRITICAL) return 'You are filthy — grime and sweat cling to your skin.';
+                if (value < thresholds.WARNING) return 'You are dirty. Your clothes smell of sweat and exertion.';
                 return '';
             case 'Social':
                 // Context-aware (task-327): isolation wording must not contradict
                 // an occupied room, a conversation, or a noisy scene.
                 // task-353 §5: behavioral gate flags steer the LLM's action
                 // choices, not just narration.
-                if (v < T.CRITICAL) {
+                if (value < thresholds.CRITICAL) {
                     const base = (scene && !scene.alone)
                         ? 'The loneliness is crushing even with people around — it feels like no one is truly there with you.'
                         : 'The loneliness is crushing. You desperately wish someone was here.';
                     return base + ' [social_need: desperate][social_breakdown: your mind is fraying from isolation]';
                 }
-                if (v < T.WARNING) {
+                if (value < thresholds.WARNING) {
                     let base = '';
                     if (scene && scene.addressed) base = 'You hang on their words a little too much.';
                     else if (scene && !scene.alone) base = 'Being around people feels harder than it should today.';
@@ -375,35 +381,35 @@ const foodish = areaItems.filter(it =>
                     else base = 'You feel isolated. The silence presses in around you.';
                     return base + ' [social_need: desperate: find people, speak, connect]';
                 }
-                if (v < T.WARNING) {
+                if (value < thresholds.SOCIAL_MILD) {
                     return 'You are getting lonely. [social_need: moderate: consider speaking to someone]';
                 }
                 return '';
             case 'Bladder':
-                if (v >= T.BLADDER_URGENT) return 'You are about to burst — you desperately need a bathroom.';
-                if (v >= T.BLADDER_WARN) return 'Your bladder is uncomfortably full. You shift your weight.';
-                if (v >= T.BLADDER_MILD) return 'You could use a bathroom soon. A mild pressure builds.';
+                if (value >= thresholds.BLADDER_URGENT) return 'You are about to burst — you desperately need a bathroom.';
+                if (value >= thresholds.BLADDER_WARN) return 'Your bladder is uncomfortably full. You shift your weight.';
+                if (value >= thresholds.BLADDER_MILD) return 'You could use a bathroom soon. A mild pressure builds.';
                 return '';
             case 'Sanity':
                 // Task-328: neutral stress curve — composure erosion, never
                 // madness/horror imagery (that belongs to named conditions).
-                if (v < T.SANITY_SHATTERED) return 'Barely holding it together. Every decision feels heavier than it should, and you keep second-guessing yourself.';
-                if (v < T.CRITICAL) return 'Nerves frayed raw. You flinch at small sounds and snap at small annoyances.';
-                if (v < T.WARNING) return 'You feel strained and irritable. Patience is thin and everything grates.';
-                if (v < 75) return 'A creeping sense that something is off, even if you can\'t name it.';
+                if (value < thresholds.SANITY_SHATTERED) return 'Barely holding it together. Every decision feels heavier than it should, and you keep second-guessing yourself.';
+                if (value < thresholds.CRITICAL) return 'Nerves frayed raw. You flinch at small sounds and snap at small annoyances.';
+                if (value < thresholds.WARNING) return 'You feel strained and irritable. Patience is thin and everything grates.';
+                if (value < 75) return 'A creeping sense that something is off, even if you can\'t name it.';
                 return '';
             case 'Entertainment':
-                if (v < 10) return 'You\'re desperate for stimulation. Staying in place any longer is unbearable. Take action — go, examine, or use.';
-                if (v < 25) return 'You\'re bored. Routine feels stifling. You\'re drawn to try something different — anything to break the monotony.';
-                if (v < 50) return 'You\'re starting to get bored. Consider doing something new or going somewhere else.';
+                if (value < 10) return 'You\'re desperate for stimulation. Staying in place any longer is unbearable. Take action — go, examine, or use.';
+                if (value < 25) return 'You\'re bored. Routine feels stifling. You\'re drawn to try something different — anything to break the monotony.';
+                if (value < 50) return 'You\'re starting to get bored. Consider doing something new or going somewhere else.';
                 return '';
             case 'Temperature':
-                if (v < 33) return 'You are shivering uncontrollably — hypothermia is setting in. Your fingers are numb.';
-                if (v < 35) return 'You are shivering violently from the cold. Your teeth chatter.';
-                if (v < 36) return 'You are cold and shivering. A chill runs through you.';
-                if (v > 42) return 'The heat is overwhelming — you are about to collapse. The world swims before your eyes.';
-                if (v > 40) return 'You are dangerously overheated. Sweat pours down your face.';
-                if (v > 38) return 'You are feeling very hot. You wipe sweat from your brow.';
+                if (value < 33) return 'You are shivering uncontrollably — hypothermia is setting in. Your fingers are numb.';
+                if (value < 35) return 'You are shivering violently from the cold. Your teeth chatter.';
+                if (value < 36) return 'You are cold and shivering. A chill runs through you.';
+                if (value > 42) return 'The heat is overwhelming — you are about to collapse. The world swims before your eyes.';
+                if (value > 40) return 'You are dangerously overheated. Sweat pours down your face.';
+                if (value > 38) return 'You are feeling very hot. You wipe sweat from your brow.';
                 return '';
             default:
                 return '';

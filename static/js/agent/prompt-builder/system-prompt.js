@@ -12,6 +12,12 @@
  * PromptBuilder.EMOTE_RULES_SYSTEM).
  *
  * Cross-file calls use PromptBuilder.<fn>(...).
+ *
+ * @module prompt-builder/system-prompt — the static character system prompt
+ * @contributes buildCharacterSystemPrompt / buildReactSystemPrompt (+ shared _loreHeader/_brevityRule helpers)
+ * @powers the standing rules every character is given (ACTIONS, emote voice, speech, JSON rules, lore)
+ * @relates needs schema-fragments.js loaded first (EMOTE_RULES_SYSTEM); per-verb availability lives in contextual-actions.js
+ * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
 
 window.PromptBuilder = window.PromptBuilder || {};
@@ -97,7 +103,21 @@ For a speech-only turn, omit "action". If you say nothing, set "speech": null. T
 
 `;
 
-/**
+    /** World-lore header shared by both system prompts ('' when there is no lore). */
+    function _loreHeader() {
+        const lore = worldState.data?.world_lore || [];
+        if (!lore.length) return '';
+        const lines = lore.map(entry => `[${entry.category || 'general'}] ${entry.title}: ${entry.content}`);
+        return `\n=== WORLD LORE (common knowledge) ===\n${lines.join('\n')}\n`;
+    }
+
+    /** Brevity instruction; `tail` names the fields this phase is allowed to emit. */
+    function _brevityRule(softMaxTokens, tail) {
+        const limit = softMaxTokens || config.maxTokens || 512;
+        return `\n\n=== RESPONSE LENGTH ===\nKeep your response under ${limit} tokens. Be concise — ${tail}`;
+    }
+
+    /**
      * Build the character system prompt — the core personality and rules prompt
      * that defines how the character should behave and what commands are available.
      * @param {string} charName - Character name
@@ -109,16 +129,8 @@ For a speech-only turn, omit "action". If you say nothing, set "speech": null. T
         if (!player) throw new Error(`buildCharacterSystemPrompt: player is null for "${charName}" — call site should validate before caching history`);
         const dead = player.state === 'dead';
 
-        // Inject world lore (common knowledge shared by all)
-        let prompt = '';
-        const lore = worldState.data?.world_lore || [];
-        if (lore.length > 0) {
-            const loreLines = lore.map(entry => `[${entry.category || 'general'}] ${entry.title}: ${entry.content}`);
-            prompt += `\n=== WORLD LORE (common knowledge) ===\n${loreLines.join('\n')}\n`;
-        }
-
-        const effectiveSoftLimit = softMaxTokens || config.maxTokens || 512;
-        const brevityRule = `\n\n=== RESPONSE LENGTH ===\nKeep your response under ${effectiveSoftLimit} tokens. Be concise — inner monologue, speech, and action should be brief and natural.`;
+        let prompt = _loreHeader();
+        const brevityRule = _brevityRule(softMaxTokens, 'inner monologue, speech, and action should be brief and natural.');
 
         const parts = [
             ACTIONS_CORE,
@@ -143,15 +155,8 @@ For a speech-only turn, omit "action". If you say nothing, set "speech": null. T
      */
     function buildReactSystemPrompt(charName, player, softMaxTokens) {
         if (!player) throw new Error(`buildReactSystemPrompt: player is null for "${charName}"`);
-        let prompt = '';
-        const lore = worldState.data?.world_lore || [];
-        if (lore.length > 0) {
-            const loreLines = lore.map(entry => `[${entry.category || 'general'}] ${entry.title}: ${entry.content}`);
-            prompt += `\n=== WORLD LORE (common knowledge) ===\n${loreLines.join('\n')}\n`;
-        }
-
-        const effectiveSoftLimit = softMaxTokens || config.maxTokens || 512;
-        const brevityRule = `\n\n=== RESPONSE LENGTH ===\nKeep your response under ${effectiveSoftLimit} tokens. Be concise — inner monologue, speech, and emote should be brief and natural.`;
+        let prompt = _loreHeader();
+        const brevityRule = _brevityRule(softMaxTokens, 'inner monologue, speech, and emote should be brief and natural.');
 
         const parts = [
             `\n=== REACT MODE ===\nThis is the instant after your own action resolved. You cannot take new actions in this phase — respond only with inner_monologue, speech (rarely), emote, memory, and emotion.`,

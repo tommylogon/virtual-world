@@ -8,6 +8,12 @@
  *
  * Exposed as `window.EmbeddingClient`. Every call degrades gracefully: any
  * failure returns null and callers fall back to keyword-only recall.
+ *
+ * @module shared/embedding-client — embeddings for semantic memory
+ * @contributes window.EmbeddingClient (OpenAI-compatible /embeddings); returns null on any failure
+ * @powers meaning-based memory recall when Semantic Memory is enabled in Settings
+ * @relates configured from config.embed*; the backend only ever receives finished vectors
+ * @docs docs/virtualWorld/AI & Narration/Memory System.md
  */
 (() => {
     'use strict';

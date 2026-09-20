@@ -1,6 +1,12 @@
 /**
  * DiffModal — Reusable conflict-resolution modal for world↔library sync.
  *
+ * @module shared/diff-modal — world↔library conflict resolution
+ * @contributes DiffModal.show(current, incoming, sections, options) → update / duplicate / cancel, with per-entry selection
+ * @powers choosing exactly which library sections (or individual entries) overwrite a world node
+ * @relates used by template-sync and the item-library refresh flows
+ * @docs docs/virtualWorld/Library System/diff-modal.md
+ *
  * Shows a section-by-section comparison between the current (on-disk library)
  * entry and the incoming (world) payload. The user picks which sections to
  * update, saves as a duplicate, or cancels.

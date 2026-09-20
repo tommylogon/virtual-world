@@ -4,7 +4,11 @@
  * tooltip building, physics toggling, legend rendering, and node filtering.
  * Extracted from graph-manager.js. References the global graphManager singleton.
  *
- * @module GraphNetwork
+ * @module graph/network-manager — vis.js Network construction and data loading
+ * @contributes GraphNetwork: options, loadGraphData, applyVisibility, legend/tags, node configs
+ * @powers the graph canvas itself — layout physics, filtering, tooltips, node badges
+ * @relates driven by graph-manager; collaborators in static/js/graph/*
+ * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
 // Lazy lit-html tag: window.Lit is only available at call time (deferred module
 // bootstrap), not at parse time. Unique per file so top-level consts never collide.

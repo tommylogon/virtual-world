@@ -6,6 +6,12 @@
  * task-216: HTML-producing functions return lit-html TemplateResults
  * (via window.Lit.html) instead of strings, so consumers can nest them
  * in their own templates without escaping issues.
+ *
+ * @module inspector/helpers — shared inspector field/section builders
+ * @contributes InspectorHelpers: field/row builders, tag editor, common sections (lit-html templates)
+ * @powers consistent forms and validation across every inspector view
+ * @relates used by all inspector/* views; reads worldState + api + events directly
+ * @docs docs/virtualWorld/UI & Settings/Inspector Panels.md
  */
 
 window.InspectorHelpers = (() => {

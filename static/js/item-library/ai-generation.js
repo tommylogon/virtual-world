@@ -5,6 +5,12 @@
  * These methods operate via .call(this) where this is an ItemLibrary instance.
  * They access instance properties (this.data, this._targetArea, this.selectedId)
  * and delegate methods (this._refreshEditorWithTriggers(), this._renderContentsSection(), etc.)
+ *
+ * @module item-library/ai-generation — AI item generation and improvement
+ * @contributes ItemLibraryAI (mixed into ItemLibrary via .call(this)): generate/improve prompts and parsing
+ * @powers the "✨ Generate" and "✨ Improve" actions for library items
+ * @relates uses shared/ai-generator + shared/json-schemas; runs on an ItemLibrary instance
+ * @docs docs/virtualWorld/Library System/
  */
 
 window.ItemLibraryAI = {

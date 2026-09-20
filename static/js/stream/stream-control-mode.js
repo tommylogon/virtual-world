@@ -4,6 +4,12 @@
  * Extracted from event-stream.js for size compliance; lives on the events
  * API because the UI invokes it from the stream/roster surfaces.
  * Loaded BEFORE event-stream.js.
+ *
+ * @module stream/control-mode — character control mode cycling
+ * @contributes StreamControlMode: cycle avatar / agent / observer control for a character
+ * @powers switching who you are controlling from the stream and roster surfaces
+ * @relates lives on the events API; loaded before event-stream.js
+ * @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
  */
 class StreamControlMode {
     constructor(bus) {

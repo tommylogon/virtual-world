@@ -1,5 +1,11 @@
 /**
  * agent-lens.js — Left-panel preview of area/agent prompt context (task-219).
+ *
+ * @module agent-lens — prompt-context preview
+ * @contributes AgentLens: renders the exact area/agent prompt context an LLM would receive
+ * @powers the preview used to debug what a character actually sees before it acts
+ * @relates reuses agent/prompt-builder; reads worldState
+ * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  * Reuses PromptBuilder; preview-only way state overrides are not persisted.
  */
 

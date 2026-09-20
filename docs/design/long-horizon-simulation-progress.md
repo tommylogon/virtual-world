@@ -125,14 +125,19 @@ Every decision writes a trace entry with a reason tag. `simulation_mode` and
 `next_due_tick` are serialized. A 2-day, 23-character soak went from **3/23
 alive → 22/23** after the priority fix. Tests: `tests/test_background_simulation.py`.
 
-### Next: schedules, promotion/demotion, and a data repair
+### Next: schedules, promotion/demotion, and scenario hygiene
 
-1. **Scenario graph repair** (blocker) — see Open issues: 6 areas can't reach
-   any resource, and way edges reference sanitized area ids.
-2. Promotion/demotion — `trace.summarize_window` builds the LLM catch-up
-   summary on promotion; demotion rolls the foreground span into the trace
-   (reversibility contract).
-3. Schedules/work so background characters do more than survive.
+These are filed as tasks — see §9 for the current map.
+
+1. **Background schedules / work / coarse social** (task-409) so background
+   characters do more than survive.
+2. **Promotion/demotion** (task-412) — `trace.summarize_window` builds the LLM
+   catch-up summary on promotion; demotion rolls the foreground span into the
+   trace (reversibility contract).
+3. **Scenario hygiene** (task-408) — reachability is now fixed (30/30, see §7);
+   what remains is de-duplicating the 46→23 character nodes, canonical
+   way/area ids at authoring time, and giving the scenario a `name`.
+4. **Food renewal** (task-410) so a month does not starve the camp.
 
 ## 5. Files touched this pass
 
@@ -156,12 +161,12 @@ alive → 22/23** after the priority fix. Tests: `tests/test_background_simulati
 ## 6. Test status
 
 Full suite excluding `test_mcp_*` (pre-existing `'function' object has no
-attribute` failures, unrelated): **2831 passing, 0 failures**. (The combat
-suite has a pre-existing flaky RNG test that fails intermittently.)
+attribute` failures, unrelated): **2879 passing, 0 failures**. The combat suite
+has a pre-existing flaky RNG test that can fail intermittently.
 
-Four fewer than the earlier 2835 because `tests/test_data_no_mojibake.py` is
-parametrized over every scenario JSON and four obsolete goblin byproducts were
-deleted — not a loss of coverage.
+The exact total moves with `tests/test_data_no_mojibake.py`, which is
+parametrized over every JSON under `data/` — adding or deleting a scenario,
+template, or tag file shifts it by one. Compare failures, not the total.
 
 ## 7. Open issues
 

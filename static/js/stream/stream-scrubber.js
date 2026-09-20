@@ -4,6 +4,12 @@
  * A sticky strip showing the shape of the session: one segment per top-level
  * entry, colored by dominant kind (teal=speech/thought, red=error/crisis,
  * blue=action). Click anywhere to jump; a purple head tracks scroll position.
+ *
+ * @module stream/stream-scrubber — timeline minimap
+ * @contributes StreamScrubber: per-entry colour segments, click-to-jump, scroll head
+ * @powers navigating a long session's stream at a glance
+ * @relates loaded before event-stream.js
+ * @docs docs/virtualWorld/UI & Settings/Event Log Export.md
  */
 class StreamScrubber {
     constructor(bus) {

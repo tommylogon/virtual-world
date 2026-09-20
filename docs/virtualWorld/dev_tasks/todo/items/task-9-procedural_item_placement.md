@@ -7,7 +7,7 @@ wiki: "[[Items & Inventory/Items Overview]]"
 **Filed**: 2026-07-17  
 **Rewritten**: 2026-08-21 (concept draft â†’ implementation plan after equip_slots/tag groundwork landed)  
 **Priority**: Medium  
-**Status**: Planned â€” blocked by task-323 and task-324; consumed by
+**Status**: Planned — blocked by task-323 and task-324; consumed by
 task-398 deterministic structure generation
 
 ---
@@ -23,8 +23,8 @@ This is the hub task for the procedural population work. Satellites:
 
 | Task | Role | Depends on |
 |------|------|-----------|
-| task-326 | Character interest-tag data pass (+ dup char cleanup) | â€” |
-| task-323 | Library lint validator (`tools/lint_library.py`) | â€” |
+| task-326 | Character interest-tag data pass (+ dup char cleanup) | — |
+| task-323 | Library lint validator (`tools/lint_library.py`) | — |
 | task-324 | Domain tag schema + area/furniture tagging pass | task-323 |
 | task-325 | Auto-dressing characters from interests | task-326 |
 | **task-9** | **Population engine (this task)** | **323, 324** |
@@ -35,7 +35,7 @@ This is the hub task for the procedural population work. Satellites:
 - âœ… Item tags lowercased/deduped; 204 distinct item tags exist
 - âœ… `_spawn_library_item_node` (routes/library_routes.py:130) transfers `tags`,
   `equip_slots`, materializes `contents` recursively **with per-child spatial
-  relations** (`_content_relation`: in/on/under/beside/behind/at) â€” old gap #2 is FIXED
+  relations** (`_content_relation`: in/on/under/beside/behind/at) — old gap #2 is FIXED
 - âœ… MCP tool `build_item_from_library` + route `library_place_item` exist
 - âš ï¸ Areas: only 23/58 library areas have tags, and current values are *setting*
   flavored (`fantasy`, `school`), not domain flavored (`store`, `clothing`)
@@ -43,7 +43,7 @@ This is the hub task for the procedural population work. Satellites:
 
 ## Design: The Tag Chain
 
-Same domain tag at all three levels â€” matching is plain set intersection:
+Same domain tag at all three levels — matching is plain set intersection:
 
 ```
 Area  "Clothing Store"   tags: [store, clothing]
@@ -64,7 +64,7 @@ Area  "Clothing Store"   tags: [store, clothing]
 
 - Edge choice by furniture role: `display` â†’ `on` (fallback `beside` when full);
   `container` â†’ `in`; bare floors/tables without role â†’ `at`/`on` sparingly.
-- Surface items are already reachable by `take` (graph.py edge expansion) â€” no
+- Surface items are already reachable by `take` (graph.py edge expansion) — no
   engine change needed for reachability.
 - Density knobs (per-area item counts) read from `engine/runtime_config.py`
   DEFAULTS + SCHEMA so the Engine Config UI picks them up (see AGENTS.md gotcha).
@@ -73,11 +73,11 @@ Area  "Clothing Store"   tags: [store, clothing]
 
 ### Out of scope (later phases)
 
-- LLM-hybrid selection ("what fits a Blizzard clearing?") â€” phase 2, after the
+- LLM-hybrid selection ("what fits a Blizzard clearing?") — phase 2, after the
   deterministic chain works.
-- NPC equipment generation from room context (guardsâ†’armor) â€” belongs with
+- NPC equipment generation from room context (guardsâ†’armor) — belongs with
   task-325 auto-dressing once this lands.
-- Co-occurrence statistics â€” needs populated-world data first.
+- Co-occurrence statistics — needs populated-world data first.
 
 ## Work Plan
 
@@ -90,9 +90,9 @@ Area  "Clothing Store"   tags: [store, clothing]
    - capacity tracking per furniture node (count existing `in`/`on` children)
    - candidate indexes and archetype/role/exclusion filters; do not repeatedly
      scan the whole library or use raw tag overlap as sufficient relevance
-3. **Furniture seeding** â€” population of an *empty* area must spawn the display/
+3. **Furniture seeding** — population of an *empty* area must spawn the display/
    storage furniture itself before filling it: select library items tagged
-   `furniture` + role tag + domain tag âˆ© area domains, place 1â€“3 pieces via
+   `furniture` + role tag + domain tag âˆ© area domains, place 1–3 pieces via
    spatial edges (`at`/`beside` walls is fine for v1), then run item fill.
    Without this step only pre-furnished areas benefit.
 4. Route: `POST /api/populate/area/<node_id>` (density + seed params) in a routes module.
@@ -100,7 +100,7 @@ Area  "Clothing Store"   tags: [store, clothing]
    unresolved tag pools and a graph-patch preview before applying a generated
    building.
 5. MCP tool exposure in `mcp_server.py` (`populate_area`)
-6. Editor button (area inspector) â€” thin UI pass, separate commit
+6. Editor button (area inspector) — thin UI pass, separate commit
 7. Tests: fixture graph with tagged empty area; assert furniture gets seeded,
    relations chosen by role, idempotency, density cap (pattern:
    tests/test_item_actions.py fixtures)

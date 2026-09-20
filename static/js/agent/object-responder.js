@@ -11,6 +11,12 @@
  *   4. falls back to the effect's `fallback_message` when no key / failure.
  *
  * Cooldown is enforced server-side (one pending request per node at a time).
+ *
+ * @module agent/object-responder — browser-side lines for `llm_respond`
+ * @contributes ObjectResponder: watch llm_pending → generate a line via llmClient → POST /api/llm_respond
+ * @powers talking objects (a magic mirror that speaks), heard and remembered by nearby agents
+ * @relates uses llm-client + api; falls back to the effect's fallback_message on failure
+ * @docs docs/virtualWorld/Rules Engine/
  */
 window.ObjectResponder = (() => {
   'use strict';

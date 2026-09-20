@@ -8,6 +8,12 @@
  *
  * Matches entities by `library_id` first, then by name-derived slug, then by
  * display name.
+ *
+ * @module world-sync — the "Sync World → Library" list
+ * @contributes WorldSync: per-entity status (new/diff/synced) + routing into the single-entity save flow
+ * @powers promoting world edits back into the library as templates
+ * @relates matches by library_id → name slug → display name; DiffModal via the save flow
+ * @docs docs/virtualWorld/Library System/
  */
 const worldSyncTag = (strings, ...values) => window.Lit.html(strings, ...values);
 

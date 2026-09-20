@@ -2,9 +2,10 @@
 
 This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game engine for AI beings. This wiki documents every system, how it works, how it's wired, and where the code lives.
 
-> **Main repo**: `F:\AI\viwo\virtual-world`  
-> **Code conventions**: See `AGENTS.md` (referenced here but not present in this checkout)  
-> **Design specs**: `docs/superpowers/specs/`
+> **Repo**: this vault lives inside the game repo, under `docs/virtualWorld/`.  
+> **Code conventions**: `AGENTS.md` is referenced by the project config but is not present in this checkout.  
+> **Design specs**: `docs/superpowers/specs/`  
+> **Code map**: `docs/design/js-module-index.md` — what each front-end module contributes (generated).
 
 ---
 

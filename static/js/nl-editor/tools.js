@@ -3,6 +3,12 @@
  *
  * Implements the 20 catalog tools with an OverlayGraphView that seamlessly
  * merges live worldState with uncommitted staged operations.
+ *
+ * @module nl-editor/tools — the 20-tool catalog + overlay graph view
+ * @contributes NLEditorTools + OverlayGraphView: merge live worldState with uncommitted staged ops
+ * @powers what the NL agent can actually do, previewed against the real graph
+ * @relates called by agent-loop.js; reads staging.js
+ * @docs docs/virtualWorld/dev_tasks/done/graph/task-387-natural-language-editor-mode.md
  */
 
 window.NLEditorTools = (() => {

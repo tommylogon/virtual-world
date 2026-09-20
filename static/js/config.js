@@ -1,5 +1,11 @@
 /**
  * ConfigManager — Settings and profile management with IndexedDB persistence
+ *
+ * @module config — user settings, saved API profiles, and `toLLMConfig()`
+ * @contributes the `config` singleton: model/keys, thinking, graph physics, UI toggles
+ * @powers the Settings modal, profile switching, model picker, and every feature flag
+ * @relates persists via storage.js; read by llm-client, graph, agent, and the UI
+ * @docs docs/virtualWorld/UI & Settings/Settings & Configuration.md
  */
 class ConfigManager {
     constructor() {

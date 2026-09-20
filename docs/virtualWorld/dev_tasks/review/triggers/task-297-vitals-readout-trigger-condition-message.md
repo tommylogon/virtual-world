@@ -17,7 +17,7 @@ New triggers and conditions for using vitals readout as a condition, and getting
 
 - The condition half already exists: `vital`, `vital_above`, `vital_below`, `temperature_above/below`, `area_temp` are implemented in `engine/trigger_system.py`.
 - What's missing is the readout-as-message half: a message template placeholder (e.g. `{vital:Thirst}`) so an item's `message` effect can print a current vital value.
-- Small completion of the existing system â€” no new condition machinery needed.
+- Small completion of the existing system — no new condition machinery needed.
 
 ## Related
 

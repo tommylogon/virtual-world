@@ -3,6 +3,12 @@
  *
  * Renders the side panel chat stream, staged ops tray, interactive clarification
  * buttons, and Cmd-L palette overlay.
+ *
+ * @module nl-editor/ui — the NL editor's UI components
+ * @contributes NLEditorUI: chat stream, staged-ops tray, clarification buttons, Cmd-L palette
+ * @powers interacting with the natural-language editor
+ * @relates renders the nl-editor panel; driven by index.js
+ * @docs docs/virtualWorld/dev_tasks/done/graph/task-387-natural-language-editor-mode.md
  */
 
 window.NLEditorUI = (() => {

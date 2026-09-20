@@ -1,10 +1,17 @@
 /**
  * StorageProvider — IndexedDB-based persistent storage
  * Replaces localStorage with async, quota-unlimited storage.
- * Stores: config, profiles, item library, character histories
+ * Stores: config, profiles, item_library, character_histories, settings, event_log,
+ *         llm_dataset, llm_raw_exchanges (LLM inspector), graph_assets (graph map)
+ *
+ * @module storage — the IndexedDB persistence layer (with a localStorage fallback)
+ * @contributes StorageProvider: get/set/getAll/clear per named object store
+ * @powers settings persistence, save games, dataset + LLM inspector, graph map overlays
+ * @relates consumed by config.js and most feature modules; no dependencies of its own
+ * @docs none
  */
 class StorageProvider {
-    constructor(dbName = 'VirtualWorldDB', version = 4) {
+    constructor(dbName = 'VirtualWorldDB', version = 5) {
         this.dbName = dbName;
         this.version = version;
         this._db = null;
@@ -56,6 +63,11 @@ class StorageProvider {
                 // before storing.
                 if (!db.objectStoreNames.contains('llm_raw_exchanges')) {
                     db.createObjectStore('llm_raw_exchanges', { keyPath: 'key' });
+                }
+                // Version 5: per-scenario graph background image + node layout
+                // (map overlay behind the vis.js graph).
+                if (!db.objectStoreNames.contains('graph_assets')) {
+                    db.createObjectStore('graph_assets', { keyPath: 'key' });
                 }
             };
             req.onsuccess = (e) => {

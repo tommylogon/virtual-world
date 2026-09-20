@@ -6,6 +6,12 @@
  * that the chosen verb is actually allowed.
  *
  * Load BEFORE agent-engine.js.
+ *
+ * @module agent/action-normalizer — LLM action → backend command translation
+ * @contributes ActionNormalizer: field→command-string mapping plus verb validation
+ * @powers turning the LLM's structured action JSON into a command the engine can execute
+ * @relates used by agent-engine; mirrors the verb list advertised in the system prompt
+ * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
 
 window.ActionNormalizer = (() => {

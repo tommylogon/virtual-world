@@ -1,6 +1,12 @@
 /**
  * InspectorMemory — Character memory management (structured memories, flat world knowledge)
  * Extracted from inspector.js for modularity.
+ *
+ * @module inspector/memory-view — character memory management
+ * @contributes InspectorMemory: structured memories + flat world knowledge, edit/delete/importance
+ * @powers inspecting and correcting what a character remembers
+ * @relates renders through InspectorPanel; mirrors the memory-manager store
+ * @docs docs/virtualWorld/AI & Narration/Memory System.md
  */
 
 window.InspectorMemory = (() => {

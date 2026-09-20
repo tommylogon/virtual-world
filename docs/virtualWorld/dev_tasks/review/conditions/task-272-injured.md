@@ -6,7 +6,7 @@ group: Conditions
 
 **Filed**: 2026-08-17
 **Priority**: High
-**Status**: Planned â€” task-190 (More Conditions) + task-253 (body-part targeted injuries)
+**Status**: Planned — task-190 (More Conditions) + task-253 (body-part targeted injuries)
 **Source**: Proposed (not yet in `player.py`)
 
 ---
@@ -48,17 +48,17 @@ A wounded body part (light/moderate/severe). Uses `level` for severity and `ends
 - **Combat**: `attack_mod` penalty that scales with `level` (via `level_*` fields or per-instance override).
 - **Movement**: a leg injury â†’ `speed_mult`/`movement_mode` scaling; an arm injury â†’ attack/use penalties.
 - **Periodic**: light healing-drag or Energy cost based on `level`.
-- **Lifecycle**: `stack: "refresh"` â€” re-injuring the same part bumps level toward severe. Ends on `fix` (bandaging/healing) â€” per-instance `ends_on` (a `fix` ends only the injured instance).
+- **Lifecycle**: `stack: "refresh"` — re-injuring the same part bumps level toward severe. Ends on `fix` (bandaging/healing) — per-instance `ends_on` (a `fix` ends only the injured instance).
 
 ## Perception
 
-`known: True` â€” the agent knows they're hurt; `symptoms` scale with severity.
+`known: True` — the agent knows they're hurt; `symptoms` scale with severity.
 
 ## Integration points space
 
-- `engine/player.py` â€” `CONDITION_DEFINITIONS` entry (leverage `level_periodic`, `level_speed_mult` like `exhausted`).
-- Tie to **body-part targets** (task-253: body-part targeted injuries) â€” the injury should reference which part.
-- `engine/movement.py` â€” leg-injury movement gating.
+- `engine/player.py` — `CONDITION_DEFINITIONS` entry (leverage `level_periodic`, `level_speed_mult` like `exhausted`).
+- Tie to **body-part targets** (task-253: body-part targeted injuries) — the injury should reference which part.
+- `engine/movement.py` — leg-injury movement gating.
 - Healing: `ends_on: ["fix"]` wired to bandage/heal actions and the `end_condition` effect.
 
 ## Testing (proposed)
@@ -73,5 +73,5 @@ A wounded body part (light/moderate/severe). Uses `level` for severity and `ends
 - Body-part registry: does the injury track a specific part (source/part field), and which actions/checks that part gates?
 - Relationship to **bleeding**: `injured` for long-term healing, `bleeding` for acute HP loss, or combined?
 - Is "severe injury" just a high `level`, or a separate condition (e.g. a broken bone â†’ `prone` with `ends_on: ["fix"]`)?
-- `speed_mult 0.95` baseline vs. level-scaled â€” decide.
+- `speed_mult 0.95` baseline vs. level-scaled — decide.
 

@@ -6,6 +6,12 @@
  * description + tags), then optionally imports its template items into the
  * room. The new room is NOT connected to anything — use the graph to wire
  * ways to it.
+ *
+ * @module ui/room-template-palette — New Room from Template
+ * @contributes RoomTemplatePalette: list library areas, create a room from one (+ optional template items)
+ * @powers starting a room from an authored library area (task-381)
+ * @relates POST /api/build/area; the new room is left unconnected for you to wire up
+ * @docs docs/virtualWorld/Templates/
  */
 window.RoomTemplatePalette = (() => {
   'use strict';

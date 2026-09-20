@@ -1,6 +1,12 @@
 /**
  * WorldState — Reactive state management
  * Fetches world state from the backend and notifies listeners
+ *
+ * @module world-state — reactive cache of the server's `/api/state` payload
+ * @contributes the `worldState` singleton: data, fetch/poll, getNode/players/areas helpers
+ * @powers every panel's view of the world (graph, inspector, agent list, turn panel)
+ * @relates fetches via api.js and the `/api/events` SSE stream; emits `state:updated`
+ * @docs none
  */
 class WorldState {
     constructor() {

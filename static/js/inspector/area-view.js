@@ -2,6 +2,12 @@
  * InspectorAreaView — Area inspector (showArea, improveRoomWithAI, environment editing)
  * Extracted from inspector.js for modularity.
  * task-216: renders lit-html TemplateResults through InspectorPanel (single panel owner).
+ *
+ * @module inspector/area-view — the area (room) inspector
+ * @contributes InspectorAreaView: description/environment/light/noise editing, AI room improvement
+ * @powers inspecting and editing a room and its exits
+ * @relates renders through InspectorPanel; uses inspector/helpers + way-authoring
+ * @docs docs/virtualWorld/World Building/Rooms & Areas.md
  */
 
 window.InspectorAreaView = (() => {

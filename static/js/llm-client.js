@@ -1,6 +1,12 @@
 /**
  * LLMClient — OpenAI-compatible API calls with streaming support
  * Handles URL normalization, auth, retry logic, streaming, and error handling.
+ *
+ * @module llm-client — the provider client (Chat Completions / Responses)
+ * @contributes LLMClient.chat/chatWithTools: retries, streaming, JSON repair, thinking/reasoning controls, raw-capture hook
+ * @powers all character and narration LLM calls, plus the 🔬 LLM inspector's raw exchanges
+ * @relates configured from config.toLLMConfig(); feeds dataset-collector.captureRaw
+ * @docs docs/virtualWorld/AI & Narration/LLM Providers.md
  */
 class LLMClient {
     constructor() {

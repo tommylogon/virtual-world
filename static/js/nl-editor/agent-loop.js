@@ -3,6 +3,12 @@
  *
  * Runs tool-calling conversation turns against LLMClient, constructs system prompts
  * with library-first guidance, and handles clarifications and staging.
+ *
+ * @module nl-editor/agent-loop — the NL editor's multi-turn ReAct loop
+ * @contributes NLEditorAgent: tool-calling turns, library-first system prompts, clarification + staging
+ * @powers the natural-language editor conversation (task-387)
+ * @relates drives tools.js; results are buffered by staging.js
+ * @docs docs/virtualWorld/dev_tasks/done/graph/task-387-natural-language-editor-mode.md
  */
 
 window.NLEditorAgent = (() => {

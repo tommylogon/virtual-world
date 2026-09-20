@@ -27,7 +27,7 @@ when adding a new task or bug.
 
 ## Renumber pass 2026-08-30
 
-Duplicate ids resolved â€” canonical/reference-bearing files kept their numbers; the
+Duplicate ids resolved — canonical/reference-bearing files kept their numbers; the
 duplicate side was renumbered (open/in-review sides; done-side renames only where wiki
 links forced it):
 
@@ -55,7 +55,7 @@ links forced it):
   task-413 (tick perf baseline/guard, testing), task-414 (batch advance +
   non-blocking human, gameplay), task-415 (long-horizon observer mode, ui)
 
-## Known historical duplicates (all terminal â€” left as-is)
+## Known historical duplicates (all terminal — left as-is)
 
 - bug-12: `done/bugs/bug_12-virtual-world-mcp-broken.md` +
   `cancelled/bug-12-error message on something.md`

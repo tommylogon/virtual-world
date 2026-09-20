@@ -7,6 +7,12 @@
  * NUMBERS live here.
  *
  * Load BEFORE character-state.js and plan-tracker.js.
+ *
+ * @module agent/vital-thresholds — the single source for vitals tier numbers
+ * @contributes CRITICAL/WARNING, BLADDER_*, DRIVE_*, SOCIAL_MILD, SANITY_SHATTERED, isCritical(), hoverText()
+ * @powers "what counts as urgent" prose tiers, the replan trigger, and vital tooltips
+ * @relates consumed by character-state.js + plan-tracker.js; describeVital prose stays in PromptBuilder
+ * @docs docs/virtualWorld/Characters/Vitals System.md
  */
 
 window.VitalThresholds = (() => {
@@ -25,6 +31,11 @@ window.VitalThresholds = (() => {
     const DRIVE_URGENT = 90;
     const DRIVE_WARN = 75;
     const DRIVE_MILD = 50;
+
+    // Social is a LOW-is-urgent vital; its mild "getting lonely" tier. (The
+    // character-state prose used to repeat the WARNING check here, which made
+    // the mild tier unreachable — see SOCIAL_MILD usage in character-state.js.)
+    const SOCIAL_MILD = 65;
 
     // Sanity has extra granularity (progressive insanity tiers).
     const SANITY_SHATTERED = 10;
@@ -89,13 +100,25 @@ window.VitalThresholds = (() => {
         BLADDER_URGENT,
         BLADDER_WARN,
         BLADDER_MILD,
+        DRIVE_URGENT,
+        DRIVE_WARN,
+        DRIVE_MILD,
+        SOCIAL_MILD,
         SANITY_SHATTERED,
 
         explain,
         healthyLine,
         hoverText,
 
-        /** True when the vital is past its critical threshold (task-92). */
+        /**
+         * True when the vital is past its critical threshold (task-92).
+         * Deliberately covers only the SURVIVAL-critical vitals:
+         *   drives (Hunger/Thirst) and Bladder — high is urgent;
+         *   Energy/Sanity/Social — low is urgent.
+         * HP is excluded (death is handled by the engine, not a tier),
+         * Temperature is a band (see character-state prose), and
+         * Hygiene/Entertainment are comfort-only — they never force a replan.
+         */
         isCritical(key, value) {
             if (value === undefined || value === null) return false;
             switch (key) {

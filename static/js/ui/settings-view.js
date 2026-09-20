@@ -9,6 +9,12 @@
  *   - window.VW (global namespace, for VW.ui.populateModelSelect)
  *   - Global: toastInfo, toastError (from ui-helpers.js)
  *   - DOM elements: #api-base-input, #api-key-input, #agent-model-select, #agent-model, etc.
+ *
+ * @module ui/settings-view — the Settings / profile UI
+ * @contributes SettingsView: populate/save the settings form, profile switch/save/delete, connection test
+ * @powers the ⚙️ Settings modal (extracted from main.js)
+ * @relates writes through config; calls VW.ui.populateModelSelect; toasts from ui-helpers.js
+ * @docs docs/virtualWorld/UI & Settings/Settings & Configuration.md
  */
 
 window.SettingsView = (() => {

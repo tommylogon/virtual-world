@@ -3,6 +3,12 @@
  * task-216: renders lit-html templates via InspectorPanel / window.Lit.render.
  * The editor modal and action cards are TemplateResults with @click handlers;
  * inline on* attribute handlers are gone.
+ *
+ * @module inspector/behaviors-view — the scripted-NPC behaviour editor
+ * @contributes InspectorBehaviors: behaviour list, action cards, trigger/interval/priority config
+ * @powers authoring what `simple_npc` characters do without the LLM
+ * @relates renders through InspectorPanel; opens shared/trigger-graph for the node editor
+ * @docs docs/virtualWorld/Characters/NPC Behavior System.md
  */
 
 window.InspectorBehaviors = (() => {

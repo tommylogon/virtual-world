@@ -4,14 +4,17 @@
     "playwright": "^1.61.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.0.0",
     "acorn": "^8.18.0",
     "acorn-walk": "^8.3.5",
-    "@eslint/js": "^9.0.0",
     "eslint": "^9.0.0",
-    "globals": "^16.0.0"
+    "globals": "^16.0.0",
+    "typescript": "^7.0.2"
   },
   "scripts": {
     "lint": "eslint static/js/",
-    "lint:fix": "eslint --fix static/js/"
+    "lint:fix": "eslint --fix static/js/",
+    "typecheck": "tsc -p tsconfig.check.json",
+    "build:ts": "tsc -p tsconfig.json"
   }
 }

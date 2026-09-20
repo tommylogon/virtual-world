@@ -2744,36 +2744,36 @@
         "type": "in"
       },
       {
+        "properties": {
+          "trigger_type": "on_examine"
+        },
         "source": "area_camp_entrance_trail",
         "target": "logic_trigger_examine_camp_trail",
-        "type": "triggers",
-        "properties": {
-          "trigger_type": "on_examine"
-        }
+        "type": "triggers"
       },
       {
-        "source": "area_camp_entrance",
-        "target": "logic_trigger_enter_camp_entrance",
-        "type": "triggers",
         "properties": {
           "trigger_type": "on_enter"
-        }
+        },
+        "source": "area_camp_entrance",
+        "target": "logic_trigger_enter_camp_entrance",
+        "type": "triggers"
       },
       {
-        "source": "area_shaman_lair",
-        "target": "logic_trigger_examine_shaman_lair",
-        "type": "triggers",
         "properties": {
           "trigger_type": "on_examine"
-        }
+        },
+        "source": "area_shaman_lair",
+        "target": "logic_trigger_examine_shaman_lair",
+        "type": "triggers"
       },
       {
-        "source": "area_scrap_pile",
-        "target": "logic_trigger_examine_scrap_pile",
-        "type": "triggers",
         "properties": {
           "trigger_type": "on_search"
-        }
+        },
+        "source": "area_scrap_pile",
+        "target": "logic_trigger_examine_scrap_pile",
+        "type": "triggers"
       },
       {
         "properties": {},
@@ -2800,60 +2800,60 @@
         "type": "carrying"
       },
       {
-        "source": "item_torch",
-        "target": "logic_trigger_light_torch",
-        "type": "triggers",
         "properties": {
           "trigger_type": "on_light"
-        }
+        },
+        "source": "item_torch",
+        "target": "logic_trigger_light_torch",
+        "type": "triggers"
       },
       {
-        "source": "item_water_skin",
-        "target": "logic_trigger_drink_water",
-        "type": "triggers",
         "properties": {
           "trigger_type": "on_drink"
-        }
+        },
+        "source": "item_water_skin",
+        "target": "logic_trigger_drink_water",
+        "type": "triggers"
       },
       {
+        "properties": {
+          "trigger_type": "on_eat"
+        },
         "source": "item_bread",
         "target": "logic_trigger_eat_bread",
-        "type": "triggers",
-        "properties": {
-          "trigger_type": "on_eat"
-        }
+        "type": "triggers"
       },
       {
+        "properties": {
+          "trigger_type": "on_eat"
+        },
         "source": "item_mushrooms",
         "target": "logic_trigger_eat_mushrooms",
-        "type": "triggers",
-        "properties": {
-          "trigger_type": "on_eat"
-        }
+        "type": "triggers"
       },
       {
+        "properties": {
+          "trigger_type": "on_use"
+        },
         "source": "item_healing_herbs",
         "target": "logic_trigger_use_healing_herbs",
-        "type": "triggers",
-        "properties": {
-          "trigger_type": "on_use"
-        }
+        "type": "triggers"
       },
       {
+        "properties": {
+          "trigger_type": "on_use"
+        },
         "source": "item_healing_potion",
         "target": "logic_trigger_use_healing_potion",
-        "type": "triggers",
-        "properties": {
-          "trigger_type": "on_use"
-        }
+        "type": "triggers"
       },
       {
-        "source": "item_crude_map",
-        "target": "logic_trigger_read_crude_map",
-        "type": "triggers",
         "properties": {
           "trigger_type": "on_read"
-        }
+        },
+        "source": "item_crude_map",
+        "target": "logic_trigger_read_crude_map",
+        "type": "triggers"
       },
       {
         "properties": {},
@@ -3459,8 +3459,8 @@
       },
       {
         "properties": {
-          "direction": "deep passage",
           "cardinal": "east",
+          "direction": "deep passage",
           "visible_in_direction": "A natural underground pool fed by a slow seep."
         },
         "source": "area_side_tunnels",
@@ -3475,8 +3475,8 @@
       },
       {
         "properties": {
-          "direction": "side passage",
           "cardinal": "west",
+          "direction": "side passage",
           "visible_in_direction": "Unfinished and partially collapsed tunnels branch off from the main camp."
         },
         "source": "area_water_source",
@@ -5492,6 +5492,7 @@
             "equip",
             "unequip"
           ],
+          "damage": "1d6",
           "damage_dice": "1d6",
           "damage_type": "blunt",
           "description": "A heavy wooden club.",
@@ -5502,8 +5503,7 @@
             "weapon",
             "blunt"
           ],
-          "weight": 4,
-          "damage": "1d6"
+          "weight": 4
         },
         "type": "item",
         "updated": 1789781679.8466463
@@ -5612,6 +5612,7 @@
             "equip",
             "unequip"
           ],
+          "damage": "1d4",
           "damage_dice": "1d4",
           "damage_type": "piercing",
           "description": "A small hunting knife.",
@@ -5622,8 +5623,7 @@
             "weapon",
             "tool"
           ],
-          "weight": 1,
-          "damage": "1d4"
+          "weight": 1
         },
         "type": "item",
         "updated": 1789781679.8466642
@@ -5712,6 +5712,7 @@
             "unequip"
           ],
           "condition": "poor",
+          "damage": "1d6",
           "damage_dice": "1d6",
           "damage_type": "slashing",
           "description": "A rusted hatchet with a loose handle.",
@@ -5723,8 +5724,7 @@
             "tool",
             "scrap"
           ],
-          "weight": 3,
-          "damage": "1d6"
+          "weight": 3
         },
         "type": "item",
         "updated": 1789781679.8466775
@@ -5762,6 +5762,7 @@
             "equip",
             "unequip"
           ],
+          "damage": "1d8",
           "damage_dice": "1d8",
           "damage_type": "piercing",
           "description": "A crude goblin spear with a sharpened tip.",
@@ -5771,8 +5772,7 @@
           "tags": [
             "weapon"
           ],
-          "weight": 3,
-          "damage": "1d8"
+          "weight": 3
         },
         "type": "item",
         "updated": 1789781679.8466847
@@ -5862,18 +5862,18 @@
             },
             {
               "params": {
+                "delta": -1,
                 "message": "The water skin is lighter now.",
-                "node_id": "item_water_skin",
-                "delta": -1
+                "node_id": "item_water_skin"
               },
               "type": "adjust_uses"
             },
             {
-              "type": "message",
               "params": {
                 "message": "You drink cool water from the skin.",
                 "success_message": "You drink cool water from the skin."
-              }
+              },
+              "type": "message"
             }
           ],
           "once": false,
@@ -5912,11 +5912,11 @@
               "type": "remove_item"
             },
             {
-              "type": "message",
               "params": {
                 "message": "You eat the coarse bread. It fills your stomach.",
                 "success_message": "You eat the coarse bread. It fills your stomach."
-              }
+              },
+              "type": "message"
             }
           ],
           "once": false,
@@ -5965,11 +5965,11 @@
               "type": "save"
             },
             {
-              "type": "message",
               "params": {
                 "message": "You eat the mushrooms. They taste earthy and slightly bitter.",
                 "success_message": "You eat the mushrooms. They taste earthy and slightly bitter."
-              }
+              },
+              "type": "message"
             }
           ],
           "once": false,
@@ -5983,19 +5983,16 @@
         "id": "logic_trigger_enter_camp_entrance",
         "name": "Camp Entrance Warning",
         "properties": {
-          "once": true,
           "effects": [
             {
-              "type": "message",
               "params": {
                 "message": "As you slip through the concealed entrance, the smell of smoke and old meat confirms this is an active goblin camp.",
                 "success_message": "As you slip through the concealed entrance, the smell of smoke and old meat confirms this is an active goblin camp."
-              }
+              },
+              "type": "message"
             },
             {
-              "type": "grant_memory",
               "params": {
-                "target": "self",
                 "memory": {
                   "id": "mem_kraktooth_entrance_1",
                   "importance": 7,
@@ -6009,10 +6006,13 @@
                   "tick": 0,
                   "timestamp": 0,
                   "type": "observation"
-                }
-              }
+                },
+                "target": "self"
+              },
+              "type": "grant_memory"
             }
           ],
+          "once": true,
           "trigger_type": "on_enter"
         },
         "type": "logic_trigger",
@@ -6023,25 +6023,22 @@
         "id": "logic_trigger_examine_camp_trail",
         "name": "Trail Discovery",
         "properties": {
-          "once": true,
           "effects": [
             {
-              "type": "message",
               "params": {
                 "message": "Among the undergrowth you find faint goblin trail marks and a discarded shiv.",
                 "success_message": "Among the undergrowth you find faint goblin trail marks and a discarded shiv."
-              }
+              },
+              "type": "message"
             },
             {
-              "type": "spawn_item",
               "params": {
                 "item_id": "item_shiny_coin"
-              }
+              },
+              "type": "spawn_item"
             },
             {
-              "type": "grant_memory",
               "params": {
-                "target": "self",
                 "memory": {
                   "id": "mem_kraktooth_trail_1",
                   "importance": 5,
@@ -6055,10 +6052,13 @@
                   "tick": 0,
                   "timestamp": 0,
                   "type": "observation"
-                }
-              }
+                },
+                "target": "self"
+              },
+              "type": "grant_memory"
             }
           ],
+          "once": true,
           "trigger_type": "on_examine"
         },
         "type": "logic_trigger",
@@ -6069,31 +6069,28 @@
         "id": "logic_trigger_examine_scrap_pile",
         "name": "Scrap Discovery",
         "properties": {
-          "once": true,
           "effects": [
             {
-              "type": "message",
               "params": {
                 "message": "Buried under rusted scrap you find a still-shiny coin and a serviceable pry bar.",
                 "success_message": "Buried under rusted scrap you find a still-shiny coin and a serviceable pry bar."
-              }
+              },
+              "type": "message"
             },
             {
-              "type": "spawn_item",
               "params": {
                 "item_id": "item_shiny_coin"
-              }
+              },
+              "type": "spawn_item"
             },
             {
-              "type": "spawn_item",
               "params": {
                 "item_id": "item_pry_bar"
-              }
+              },
+              "type": "spawn_item"
             },
             {
-              "type": "grant_memory",
               "params": {
-                "target": "self",
                 "memory": {
                   "id": "mem_kraktooth_scrap_1",
                   "importance": 4,
@@ -6107,10 +6104,13 @@
                   "tick": 0,
                   "timestamp": 0,
                   "type": "observation"
-                }
-              }
+                },
+                "target": "self"
+              },
+              "type": "grant_memory"
             }
           ],
+          "once": true,
           "trigger_type": "on_search"
         },
         "type": "logic_trigger",
@@ -6121,25 +6121,22 @@
         "id": "logic_trigger_examine_shaman_lair",
         "name": "Shamanic Discovery",
         "properties": {
-          "once": true,
           "effects": [
             {
-              "type": "message",
               "params": {
                 "message": "You notice a small charm made of bone and red thread. It hums faintly when you touch it.",
                 "success_message": "You notice a small charm made of bone and red thread. It hums faintly when you touch it."
-              }
+              },
+              "type": "message"
             },
             {
-              "type": "spawn_item",
               "params": {
                 "item_id": "item_healing_potion"
-              }
+              },
+              "type": "spawn_item"
             },
             {
-              "type": "grant_memory",
               "params": {
-                "target": "self",
                 "memory": {
                   "id": "mem_kraktooth_shaman_1",
                   "importance": 5,
@@ -6153,10 +6150,13 @@
                   "tick": 0,
                   "timestamp": 0,
                   "type": "observation"
-                }
-              }
+                },
+                "target": "self"
+              },
+              "type": "grant_memory"
             }
           ],
+          "once": true,
           "trigger_type": "on_examine"
         },
         "type": "logic_trigger",
@@ -6184,11 +6184,11 @@
               "type": "adjust_vital"
             },
             {
-              "type": "message",
               "params": {
                 "message": "The torch catches with a sharp hiss, casting warm light.",
                 "success_message": "The torch catches with a sharp hiss, casting warm light."
-              }
+              },
+              "type": "message"
             }
           ],
           "once": false,
@@ -6227,11 +6227,11 @@
               "type": "grant_memory"
             },
             {
-              "type": "message",
               "params": {
                 "message": "The crude map shows trails, a river, a lake, and several camp symbols. Some paths are marked as dangerous.",
                 "success_message": "The crude map shows trails, a river, a lake, and several camp symbols. Some paths are marked as dangerous."
-              }
+              },
+              "type": "message"
             }
           ],
           "once": false,
@@ -6263,11 +6263,11 @@
               "type": "remove_item"
             },
             {
-              "type": "message",
               "params": {
                 "message": "You apply the healing herbs to your wounds.",
                 "success_message": "You apply the healing herbs to your wounds."
-              }
+              },
+              "type": "message"
             }
           ],
           "once": false,
@@ -6299,11 +6299,11 @@
               "type": "remove_item"
             },
             {
-              "type": "message",
               "params": {
                 "message": "You drink the red liquid. It tastes of iron and herbs.",
                 "success_message": "You drink the red liquid. It tastes of iron and herbs."
-              }
+              },
+              "type": "message"
             }
           ],
           "once": false,
@@ -6946,6 +6946,7 @@
   "item_registry": {},
   "mature_content": false,
   "narration_mode": "none",
+  "persist": true,
   "players": {
     "Arix": {
       "activity": null,
@@ -15286,6 +15287,5 @@
       "tick_created": 0,
       "title": "Wild Animals"
     }
-  ],
-  "persist": true
+  ]
 }

@@ -11,7 +11,7 @@ group: Triggers
 
 ## Idea
 
-Condition to check if self has an item in a relationship, or if an item has another item of a certain relationship type. Example: if a coat has an item inside (`in` edge), an effect makes the `pocket` param message say "the pocket is bulging" â€” else "the pockets are empty".
+Condition to check if self has an item in a relationship, or if an item has another item of a certain relationship type. Example: if a coat has an item inside (`in` edge), an effect makes the `pocket` param message say "the pocket is bulging" — else "the pockets are empty".
 
 ## Notes
 

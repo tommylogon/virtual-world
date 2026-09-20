@@ -15,6 +15,12 @@
  * says "not a recap of the room". Left as two constants pending a decision —
  * search this file for "FLAG:" to find it. If it should be one string, just
  * delete one constant and repoint its usage in turn-prompts.js.
+ *
+ * @module prompt-builder/schema-fragments — shared prompt text + JSON schema fragments
+ * @contributes EMOTE_RULES_* / MEMORY_INSTRUCTION_* constants, JSON_FIELDS, buildJsonExample()
+ * @powers consistent wording and response schema across every prompt phase
+ * @relates loaded before turn-prompts.js + system-prompt.js; used by both
+ * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
 
 window.PromptBuilder = window.PromptBuilder || {};

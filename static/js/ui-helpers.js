@@ -1,4 +1,10 @@
-// ui-helpers.js — Shared UI utility functions for toast, tooltips, and select enhancements
+/**
+ * @module ui-helpers — shared UI utilities
+ * @contributes toast/notify helpers (Notyf) plus tooltip and select-enhancement helpers
+ * @powers consistent toasts and dropdowns across every panel
+ * @relates leaf utility used app-wide (saveload-view, settings-view, engine-config-view, …)
+ * @docs none
+ */
 
 // ─── Notyf Toast Notifications ───
 let _notyf = null;

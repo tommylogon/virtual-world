@@ -8,6 +8,12 @@
  * uses its comfort-band thresholds; Mana is static purple.
  *
  * Load AFTER world-state.js, BEFORE any consumer.
+ *
+ * @module shared/vital-color — polarity-aware vital bar colours
+ * @contributes VitalColor: colour + percent for a vital (drives invert, Temperature band, Mana purple)
+ * @powers the vital bars in the inspector and the human turn panel's You strip
+ * @relates reads vital_polarity from /api/state
+ * @docs docs/virtualWorld/Characters/Vitals System.md
  */
 
 window.VitalColor = (() => {
@@ -22,46 +28,46 @@ window.VitalColor = (() => {
      * Used for the inspector's quiet-dim, not for bar colors.
      */
     function level(vitals, key) {
-        const v = vitals || {};
-        const n = Number(v[key]) || 0;
+        const values = vitals || {};
+        const value = Number(values[key]) || 0;
         if (key === 'Mana') return 'ok';
         if (key === 'Temperature') {
-            if (n < 33 || n > 40) return 'bad';
-            if (n < 35 || n > 39) return 'warn';
+            if (value < 33 || value > 40) return 'bad';
+            if (value < 35 || value > 39) return 'warn';
             return 'ok';
         }
-        if (key === 'HP' && v.Max_HP) {
-            const pct = (n / v.Max_HP) * 100;
+        if (key === 'HP' && values.Max_HP) {
+            const pct = (value / values.Max_HP) * 100;
             return pct <= 20 ? 'bad' : (pct <= 35 ? 'warn' : 'ok');
         }
         const isDrive = (window.worldState?.data?.vital_polarity || {})[key] === 'drive';
-        if (isDrive) return n >= 85 ? 'bad' : (n >= 60 ? 'warn' : 'ok');
-        return n <= 15 ? 'bad' : (n <= 30 ? 'warn' : 'ok');
+        if (isDrive) return value >= 85 ? 'bad' : (value >= 60 ? 'warn' : 'ok');
+        return value <= 15 ? 'bad' : (value <= 30 ? 'warn' : 'ok');
     }
 
     function bar(vitals, key) {
-        const v = vitals || {};
-        const n = Number(v[key]) || 0;
+        const values = vitals || {};
+        const value = Number(values[key]) || 0;
         if (key === 'Mana') return '#7c5cfc';
         if (key === 'Temperature') {
-            return n < 33 ? BAD : (n < 35 ? '#58a6ff' : (n <= 39 ? GOOD : (n <= 40 ? MID : BAD)));
+            return value < 33 ? BAD : (value < 35 ? '#58a6ff' : (value <= 39 ? GOOD : (value <= 40 ? MID : BAD)));
         }
         const isDrive = (window.worldState?.data?.vital_polarity || {})[key] === 'drive';
-        if (isDrive) return n > 50 ? BAD : (n > 20 ? MID : GOOD);
-        return n > 50 ? GOOD : (n > 20 ? MID : BAD);
+        if (isDrive) return value > 50 ? BAD : (value > 20 ? MID : GOOD);
+        return value > 50 ? GOOD : (value > 20 ? MID : BAD);
     }
 
     /** Fill percentage 0-100. Temperature maps the 25-45°C window. */
     function percent(vitals, key) {
-        const v = vitals || {};
-        const n = Number(v[key]) || 0;
+        const values = vitals || {};
+        const value = Number(values[key]) || 0;
         if (key === 'Temperature') {
-            return Math.max(0, Math.min(100, ((n - 25) / 20) * 100));
+            return Math.max(0, Math.min(100, ((value - 25) / 20) * 100));
         }
         let max = 100;
-        if (key === 'HP' && v.Max_HP) max = v.Max_HP;
-        if (key === 'Mana' && v.Max_Mana) max = v.Max_Mana;
-        return Math.max(0, Math.min(100, (n / max) * 100));
+        if (key === 'HP' && values.Max_HP) max = values.Max_HP;
+        if (key === 'Mana' && values.Max_Mana) max = values.Max_Mana;
+        return Math.max(0, Math.min(100, (value / max) * 100));
     }
 
     function suffix(key) {

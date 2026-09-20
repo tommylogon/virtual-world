@@ -13,6 +13,12 @@
  *   } else {
  *       // result.error = error message
  *   }
+ *
+ * @module shared/ai-generator — the shared LLM call + parse pattern
+ * @contributes AIGenerator.generate(userPrompt, systemMessage, opts) → { success, data, raw, error }
+ * @powers every AI authoring feature (scenario wizard, item/room improve, trigger suggest)
+ * @relates wraps llm-client + shared/json-utils + shared/json-schemas; used across the UI
+ * @docs docs/virtualWorld/AI & Narration/LLM Providers.md
  */
 
 const AIGenerator = {

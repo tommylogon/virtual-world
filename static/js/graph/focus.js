@@ -18,7 +18,11 @@
  *      does NOT move the matches, for spatial reasoning ("where does food
  *      live?").
  *
- * @module GraphFocus
+ * @module graph/focus — search reveal + camera/physics focus
+ * @contributes GraphFocus: freeze hidden nodes, cluster matches in a grid, keep-in-place mode, camera framing
+ * @powers the graph search — surfacing matches, gathering them, and restoring layout on clear
+ * @relates works with GraphProjector for visibility; driven by the graph search box
+ * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
 window.GraphFocus = {
 

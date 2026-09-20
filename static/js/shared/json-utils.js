@@ -2,6 +2,12 @@
  * Shared JSON parsing utilities.
  * Many functions across the codebase strip ```json code fences and extract JSON.
  * This centralises that pattern.
+ *
+ * @module shared/json-utils — JSON extraction and repair
+ * @contributes code-fence stripping, JSON extraction, repairJSON()
+ * @powers parsing messy LLM output everywhere (agent turns, AI generators, triggers)
+ * @relates leaf utility; used by agent/response-parser + shared/ai-generator + shared/json-schemas
+ * @docs none
  */
 
 /** Extract the top-level JSON value (object OR array) from arbitrary text.

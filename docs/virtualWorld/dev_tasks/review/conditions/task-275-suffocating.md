@@ -6,14 +6,14 @@ group: Conditions
 
 **Filed**: 2026-08-17
 **Priority**: Medium
-**Status**: Planned â€” task-190 (More Conditions)
+**Status**: Planned — task-190 (More Conditions)
 **Source**: Proposed (not yet in `player.py`)
 
 ---
 
 ## Purpose
 
-Can't breathe â€” drowning, choking, airless area. A hard, urgent gate with a short lethal countdown.
+Can't breathe — drowning, choking, airless area. A hard, urgent gate with a short lethal countdown.
 
 ## Proposed schema
 
@@ -32,29 +32,29 @@ Can't breathe â€” drowning, choking, airless area. A hard, urgent gate with
         3: "You're going to black out.",
     },
     "stack": "noop",
-    "default_duration": 4,   # short â€” lethal if not treated
+    "default_duration": 4,   # short — lethal if not treated
     "excludes": [],
 }
 ```
 
 ## Behavior breakdown (proposed)
 
-- **Gates**: `blocks_actions: True` â€” you can't do much while suffocating; speech blocked (can't talk underwater). Movement stays possible (struggle toward air).
+- **Gates**: `blocks_actions: True` — you can't do much while suffocating; speech blocked (can't talk underwater). Movement stays possible (struggle toward air).
 - **Saves/checks**: auto-fails CON saves.
 - **Combat**: `defense_mod -3` (helpless-ish while choking).
 - **Movement**: `speed_mult 0.5` (struggling).
-- **Periodic**: heavy HP + Energy drain â€” designed **lethal quickly** if the condition isn't broken (`default_duration 4` then collapse).
+- **Periodic**: heavy HP + Energy drain — designed **lethal quickly** if the condition isn't broken (`default_duration 4` then collapse).
 - **Lifecycle**: `stack: "noop"` (already suffocating); ends on reaching air / breathing / `breath_of_air` spell or effect; otherwise the countdown runs out.
 
 ## Perception
 
-`known: True` â€” agent knows they can't breathe.
+`known: True` — agent knows they can't breathe.
 
 ## Integration points space
 
-- `engine/player.py` â€” `CONDITION_DEFINITIONS` entry.
+- `engine/player.py` — `CONDITION_DEFINITIONS` entry.
 - **Air/area design** (task-130 air/vacuum area effects cancelled/considered): underwater, flooded, or airless areas apply it via triggers (`on_enter`, `on_tick`, area `air` property).
-- `engine/conditions.py` â€” `BLOCKING_CONDITIONS` (blocks actions), `process_tick`.
+- `engine/conditions.py` — `BLOCKING_CONDITIONS` (blocks actions), `process_tick`.
 - Rescue: drag to surface, `breath_of_air`-style effect ending it.
 
 ## Testing (proposed)
@@ -66,8 +66,8 @@ Can't breathe â€” drowning, choking, airless area. A hard, urgent gate with
 
 ## Open questions / things to work out
 
-- What triggers it â€” an `air`/area property, submersion state, or gameplay items (choke hold, gas)? Tie to the air/vacuum area modeling.
+- What triggers it — an `air`/area property, submersion state, or gameplay items (choke hold, gas)? Tie to the air/vacuum area modeling.
 - Should suffocation pause recovery/countdown while able to take a breath, or is it all-or-nothing?
-- Default `4` ticks with `HP -4` â€” confirm lethality target (fast but survivable with prompt rescue).
+- Default `4` ticks with `HP -4` — confirm lethality target (fast but survivable with prompt rescue).
 - Any interactions with `wet`/`unconscious` (blacking out).
 

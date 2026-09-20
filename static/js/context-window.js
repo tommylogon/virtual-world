@@ -1,5 +1,11 @@
 /**
  * ContextWindowManager — LLM context pruning and token management
+ *
+ * @module context-window — context pruning and token budgeting
+ * @contributes ContextWindowManager: token accounting and history pruning for chat contexts
+ * @powers keeping prompts within the model window instead of overflowing
+ * @relates used by the agent/LLM call paths that carry conversation history
+ * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
 class ContextWindowManager {
     constructor(options = {}) {

@@ -1,6 +1,12 @@
 /**
  * AgentEngine — Character agent loop, turn management, and LLM orchestration
  * With thought->act->react, rest-skip, rate limiter, planning, and memory reflection
+ *
+ * @module agent-engine — the character agent loop and turn management
+ * @contributes AgentEngine: per-character step pipeline, phases, planning, reflection, abort
+ * @powers autonomous character turns and the Run / Step once / Cancel controls
+ * @relates uses llm-client + api + agent/prompt-builder; supports human-turn-composer
+ * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
 
 const NOOP_VERBS = ['wait', 'nothing', 'pause', 'stay'];
@@ -138,8 +144,8 @@ class AgentEngine {
     }
 
     async _speakLine(charName, player, speech, volume = 'say', target = null) {
-        const v = volume || 'say';
-        events.trackPhase(charName, 'speech', { speech, volume: v, target });
+        const spokenVolume = volume || 'say';
+        events.trackPhase(charName, 'speech', { speech, volume: spokenVolume, target });
         events.trackAction(charName, null, speech, null, '');
         // task-166: involuntary interruptions (hiccups, stutters, coughs) —
         // flavor only, never replaces the intended line. Runs BEFORE the text
@@ -148,8 +154,8 @@ class AgentEngine {
         if (injected) speech = injected;
         // Directed whisper (task-248): "whisper to <name>: text" reaches only
         // the target; the rest of the room sees the gesture, not the words.
-        const directed = v === 'whisper' && target;
-        const command = directed ? `whisper to ${target}: ${speech}` : `${v} ${speech}`;
+        const directed = spokenVolume === 'whisper' && target;
+        const command = directed ? `whisper to ${target}: ${speech}` : `${spokenVolume} ${speech}`;
         try {
             const data = await ApiClient.action(command, charName);
             const output = (data && data.output) || '';
@@ -161,11 +167,11 @@ class AgentEngine {
                 // task-340: whispered lines get a distinct locked row in the stream.
                 events.log(`🔒 ${player.name} → ${target}: "${speech}"`, "msg-whisper");
             } else {
-                events.log(`[${player.name}] ${ActionNormalizer.volVerb(v)}: "${speech}"`, "msg-speech");
+                events.log(`[${player.name}] ${ActionNormalizer.volVerb(spokenVolume)}: "${speech}"`, "msg-speech");
             }
             worldState.fetch();
         } catch (err) {
-            events.log(`[${player.name}] ${ActionNormalizer.volVerb(v)}: "${speech}"`, "msg-speech");
+            events.log(`[${player.name}] ${ActionNormalizer.volVerb(spokenVolume)}: "${speech}"`, "msg-speech");
             worldState.fetch();
         }
     }

@@ -7,6 +7,12 @@
  * provider error shapes. Authorization headers are redacted at capture time.
  *
  * Capture is opt-in via Settings → "Show Raw LLM" (config.showRawLLM).
+ *
+ * @module ui/llm-inspector — the raw LLM exchange inspector
+ * @contributes the 🔬 floating panel: expand per entry, usage line, copy request/response, filters, clear
+ * @powers debugging exactly what was sent to and returned by the provider (task-405)
+ * @relates reads dataset-collector's llm_raw_exchanges store; gated by config.showRawLLM
+ * @docs docs/virtualWorld/AI & Narration/LLM Providers.md
  */
 (() => {
     let _btn = null;

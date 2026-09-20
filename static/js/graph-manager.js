@@ -1,5 +1,15 @@
 /**
- * GraphManager — vis.js network graph, context menu, and graph API operations
+ * GraphManager — graph-view facade: the single `graphManager` singleton the rest of
+ * the app talks to. The heavy lifting lives in static/js/graph/* (GraphNetwork,
+ * GraphEventHandlers, GraphContextMenu, GraphProjection, GraphFocus, GraphOverlays,
+ * GraphLayoutEngine). Many methods here are thin, deprecated delegates kept so
+ * existing callers and HTML onclick handlers keep working.
+ *
+ * @module graph-manager — graph view facade + shared graph state
+ * @contributes `graphManager`: network handle, node map, filters, reveal/bulk/floor state
+ * @powers the graph view — rendering, context menus, search/focus, overlays, authoring
+ * @relates delegates to static/js/graph/*; reads worldState; used by inspector + nl-editor
+ * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
 const graphManagerHtmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
 
@@ -33,6 +43,7 @@ class GraphManager {
 
     async init() {
         await GraphNetwork.init();
+        if (window.GraphBackground) await window.GraphBackground.init();
         await this._applyEngineConfigDefaults();
     }
 

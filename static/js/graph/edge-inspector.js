@@ -1,3 +1,10 @@
+/**
+ * @module graph/edge-inspector — the edge property editor
+ * @contributes EdgeInspector: render/edit an edge's type and properties (add/delete props)
+ * @powers editing what an edge means — e.g. making a connection one-way, renaming a way
+ * @relates opened from GraphContextMenu; writes through the graph API and re-renders
+ * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
+ */
 const EdgeInspector = (() => {
     // Lazy tag: window.Lit only exists at call time (deferred module bootstrap).
     const htmlTag = (strings, ...values) => window.Lit.html(strings, ...values);

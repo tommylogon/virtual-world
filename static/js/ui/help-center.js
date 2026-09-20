@@ -16,6 +16,12 @@
  * while you're clicking around.
  *
  * Load AFTER event-bus.js (mandatory), any time before user interaction.
+ *
+ * @module ui/help-center — help, coach tips, and guided tours
+ * @contributes HelpCenter: tip registry, smart triggers, spotlight, tours, and the Help index modal
+ * @powers the contextual onboarding layer (❓ top bar / F1)
+ * @relates listens on appEvents 'inspector:view' + [data-help] clicks; seen flags in localStorage
+ * @docs docs/virtualWorld/UI & Settings/
  */
 
 window.HelpCenter = (() => {

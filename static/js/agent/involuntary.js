@@ -7,6 +7,12 @@
  * character conditions (frightened → stutter, cold → shiver, sick/poisoned
  * → cough) plus a low random baseline so life happens even without a
  * trigger condition.
+ *
+ * @module agent/involuntary — involuntary speech/emote flavour
+ * @contributes Involuntary: hiccup/burp/yelp/stutter injection from conditions + a small random baseline
+ * @powers the "*a hiccup catches her off guard*" moments in agent output
+ * @relates called by agent-engine when framing speech/emotes; never replaces the intended action
+ * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
 window.Involuntary = (() => {
     'use strict';

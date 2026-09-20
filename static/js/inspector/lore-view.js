@@ -4,6 +4,12 @@
  * writing #inspector-panel directly. Inline on* handlers are real @click
  * closures; interpolated values are auto-escaped by lit-html, so the old
  * `esc()` dance is gone.
+ *
+ * @module inspector/lore-view — world lore editor
+ * @contributes InspectorLore: list / add / edit / delete lore entries
+ * @powers editing the common-knowledge lore every character receives in its system prompt
+ * @relates renders through InspectorPanel; lore is read by prompt-builder/system-prompt.js
+ * @docs docs/virtualWorld/World Building/
  */
 
 window.InspectorLore = (() => {

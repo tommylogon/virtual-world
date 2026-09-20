@@ -5,7 +5,7 @@ group: Gameplay
 
 **Filed**: 2026-08-21  
 **Priority**: Medium  
-**Status**: Planned â€” blocked by task-326 (needs healthy interest tags)
+**Status**: Planned — blocked by task-326 (needs healthy interest tags)
 
 ---
 
@@ -20,7 +20,7 @@ underwearâ†’baseâ†’outer, and equip through the existing EquipmentSyst
 
 - âœ… All 60 wearable library items have `equip_slots` (tools/fix_item_equipment.py)
 - âœ… EquipmentSystem supports layered slot stacks with max_depth
-  (engine/equipment.py:23 â€” torso 5 deep, legs 4, feet 3...) â€” layering is just
+  (engine/equipment.py:23 — torso 5 deep, legs 4, feet 3...) — layering is just
   stack order; Miki's saved `equipped` dict proves the model works
 - âœ… `is_exposed()` / coverage logic exists in engine/body_parts.py (outer layer,
   coverage â‰¥ 0.8 = covered)
@@ -56,7 +56,7 @@ items by subcategory tag (`underwear` â†’ first, `top`/`bottom` â†’ mi
    interest budget (`accessory`, `jewelry`, `hair_accessory` are cheap wins)
 3. Weather gate: area temperature / forecast below threshold â†’ require
    `insulation`-tagged outer layer (ties into task-215 environmental clothing
-   effects â€” coordinate, don't duplicate)
+   effects — coordinate, don't duplicate)
 4. Deterministic option: seedable RNG; seed stored so an outfit can be regenerated
 
 ### Fit limits (honest scope)
@@ -74,7 +74,7 @@ goal using engine/size.py tiers.
      (respect task-146's takeâ†’hands flow once it lands)
 2. Route `POST /api/dress/<player_id>` (params: formality? seed? weather override)
    + MCP tool `dress_character`
-3. Editor affordance later (character inspector button) â€” separate commit
+3. Editor affordance later (character inspector button) — separate commit
 4. Tests: fixture character + library subset; assert slot coverage, layer order,
    insulation gating, idempotency (dressing twice doesn't double-stack)
 

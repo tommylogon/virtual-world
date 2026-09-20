@@ -13,6 +13,12 @@
  * Darkness: when scene.area.dark is true the chips degrade client-side.
  *
  * Load AFTER api.js, BEFORE human-turn-composer.js.
+ *
+ * @module agent/turn-scene-view — scene-first chips for the turn panel
+ * @contributes TurnSceneView: GET /api/scene/<char> → clickable area/people/things/ways chips + draft-filling menus
+ * @powers seeing and choosing what's around you without spending the turn (hover = free look)
+ * @relates feeds human-turn-composer via onDraft; shares the context-menu helper with turn-you-strip
+ * @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
  */
 
 window.TurnSceneView = (() => {

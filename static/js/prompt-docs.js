@@ -1,4 +1,10 @@
-// prompt-docs.js — Shared LLM prompt documentation for item generation
+/**
+ * @module prompt-docs — shared prompt text for generation features
+ * @contributes VW.PromptDocs: the ITEM_GENERATION_SYSTEM prompt (schema-aware authoring instructions)
+ * @powers the AI item generator's system prompt, kept in one place
+ * @relates consumed by the item library's AI generation path
+ * @docs docs/virtualWorld/Library System/
+ */
 window.VW = window.VW || {};
 VW.PromptDocs = {
     ITEM_GENERATION_SYSTEM: `You are a procedural item enhancer for a text adventure game. The item data schema supports:

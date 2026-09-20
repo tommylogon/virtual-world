@@ -4,7 +4,7 @@ All notable changes to VirtualWorld. See `docs/virtualWorld/Scenario Workflows &
 
 ---
 
-## Unreleased — "Long-horizon simulation: Phase 0 + trace" (2026-09-19)
+## Unreleased — "Long-horizon simulation: Phase 0 + trace" (2026-09-19 → 09-20)
 
 Groundwork for running a scenario for weeks of in-game time with every
 character a real agent. Two things made that impossible: vitals were still on
@@ -173,6 +173,102 @@ reports **0**, and the 11 previously-dead triggers fire.
 - **Tooling.** `tools/fix_scenario_authoring.py` (dry-run by default) applies
   all of the above; `tests/test_camp_trigger_wiring.py` locks the wiring, the
   once gate, and `grant_memory`.
+
+### 👁️ Human panel perception + stranger targeting
+- **"Since your turn" no longer leaks the world.** `agent/turn-feed.js`
+  subscribed to the global `events` log, and `digest()` returned *everything*
+  logged since the last turn — so the human saw other characters acting in other
+  areas, written in second person as if it were their own action. `event-stream.js`
+  now carries the acting character on the `log` bus payload (explicit actor,
+  else the open turn card's actor; system rows stay unattributed), and both the
+  digest and the "What happened" feed filter to what the viewer could perceive:
+  their own rows plus rows acted by characters in the same room.
+- **Audio propagation through ways.** Speech in *other* areas is now included
+  when it carries. The panel mirrors `engine/sound.py` exactly — BFS from the
+  speaker's area accumulating per-way barriers (`sound.speech_*` 0/1/1/2/3 for
+  whisper/normal/sing/shout/scream; `sound.way_open` 0.5, see-through 0.75,
+  closed 1, locked/blocked/hidden 2; ambient noise dampening at the origin) and
+  a room hears the line when `penetration - accumulated > 0`. So a shout through
+  a closed door carries, normal speech carries through an open passage, and a
+  whisper stays private. Uses the model's default values — a customised Engine
+  Config override is not read by the panel yet.
+- **Unmet characters can be targeted by the label the scene shows.**
+  `matching.py _match_character_name` gained an appearance-label tier, so a
+  stranger resolves by their `unknown_display_name()` ("the woman") — exact,
+  partial, or significant-word match, with ambiguity still returning candidates.
+  Previously `approach the woman` failed with *"There's no 'woman' here to
+  approach."* while the scene listed her. Once met, the real name is what matches.
+- Tests: `tests/test_stranger_targeting.py`.
+
+### 🗺️ Graph map background — right-click + on-canvas handles
+- **Right-click empty canvas** → 🗺 menu: **Add background image…**, then
+  **Edit image**, **✂ Crop**, **⤢ Fit to nodes**, **🎚 Opacity…**, **🗑 Remove
+  image**, plus **🔒 Lock nodes** and **💾 Save node layout**. No permanent
+  toolbar — the map is opt-in per right-click.
+- **Manipulate on the canvas**: drag the image to move, corner handles scale it
+  about its centre, the top dot rotates it, and in crop mode the amber inner
+  edges crop it (crop is a normalised source window, so cropping enlarges the
+  kept region to fill the frame). A small hint chip appears while editing, with
+  opacity and Done.
+- Rendering: an `<img>` layer is inserted as the **first child** of
+  `#graph-container`, so it paints beneath the (transparent) vis canvas — nodes
+  draw over the map and the map never covers the legend. It is kept glued to the
+  view transform on every `afterDrawing` (`translate(centre) scale(s)
+  translate(-viewPos)`), so it pans and zooms with the graph. A second,
+  above-canvas handle layer is `pointer-events: none` except on the handles, so
+  normal graph interaction is untouched when not editing.
+- Persisted per scenario in IndexedDB (`graph_assets`, DB version 5): image data
+  URL, rect, rotation, crop, opacity, lock flag, and node positions. Locking
+  freezes physics and applies the saved positions.
+- Caveat: the storage key is the scenario `_scenario_name` (falling back to
+  `default`), so until the camp scenario carries a `name` (task-408) its layout
+  is filed under the boot name.
+
+### 📚 Front-end module documentation sweep
+- Every non-vendor module under `static/js` (**133**) now opens with a
+  `@module` / `@contributes` / `@powers` / `@relates` / `@docs` contract, so
+  "what does this file contribute and what feature does it power?" is answerable
+  without reading the file.
+- `tools/js_module_index.py` generates `docs/design/js-module-index.md`
+  (module · purpose · file · contributes · powers · docs), and `--check` **fails
+  on any new module missing the contract**. The legacy baseline was retired as
+  files were documented and is now empty.
+- Bugs found by the sweep (all fixed): an **unreachable `Social` tier** in
+  `prompt-builder/character-state.js` (the `[social_need: moderate]` cue never
+  fired — two identical `if (v < WARNING)` branches), and `agent/vital-thresholds.js`
+  not exporting its own `DRIVE_*` constants. Also: the duplicated lore/brevity
+  block in `system-prompt.js` extracted to shared helpers, stale counts in the
+  `prompt-builder/index.js` manifest, and missing headers on `event-bus.js`,
+  `graph/layout-engine.js`, and `graph/edge-inspector.js`.
+- Docs health: `tools/fix_docs_mojibake.py` repaired **233** cp1252 sequences
+  across 34 files, and `tests/test_docs_no_mojibake.py` now guards **all** of
+  `docs/` (previously only `data/` was checked). `_Index.md`'s stale hardcoded
+  repo path was corrected.
+- Open decisions raised by the sweep are collected in
+  `docs/design/pending-confirmations.md`.
+
+### 🧼 Readable locals + TypeScript toolchain
+- **163 cryptic single-letter locals renamed** across 11 files (`v` / `T` / `n` →
+  `value` / `thresholds` / `vitals` …). Worst offender:
+  `prompt-builder/character-state.js: describeVital`, where `v < T.WARNING`
+  became `value < thresholds.WARNING`. Loop indices and coordinates (`i`, `x`)
+  are still fine; the convention is documented.
+- **TypeScript adopted, incrementally** (`.js` and `.ts` coexist; the app works
+  at every step):
+  - `tsconfig.json` (`npm run build:ts`) compiles `static/js/**/*.ts` → `.js`
+    beside the source — `strict`, `noEmitOnError`, comments preserved.
+  - `tsconfig.check.json` (`npm run typecheck`) parses **every** JS + TS with
+    `noEmit`; JS opts into checking per file via `// @ts-check`.
+  - Converted files stay **classic scripts** (no `import`/`export`) and use
+    ambient globals in `static/js/types/globals.d.ts`, so the `<script>` load
+    order is unchanged.
+  - First module converted: `agent/rate-limiter.ts` → generated
+    `rate-limiter.js` (doc header + module contract preserved, `window.RateLimiter`
+    intact). `npm run typecheck` is clean across all 133 modules.
+  - TS 7 notes: `module: "none"` and `alwaysStrict` were removed (using
+    `esnext`), and emitted files begin with `"use strict";`, which the module
+    contract guard now steps over.
+  - Convention and conversion recipe: `docs/design/typescript-migration.md`.
 
 ---
 

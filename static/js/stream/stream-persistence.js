@@ -4,6 +4,12 @@
  * task-340: persistence cap raised 500 → 2000 (the DOM keeps 5000, so a
  * reload used to silently drop 90% of scrollback). Area filter now survives
  * reloads too. Extracted from event-stream.js; loaded BEFORE it.
+ *
+ * @module stream/stream-persistence — IndexedDB round-trip for the stream
+ * @contributes save/restore of the event stream (cap 2000) + the persisted area filter
+ * @powers keeping your scrollback across reloads
+ * @relates uses storage; loaded before event-stream.js
+ * @docs docs/virtualWorld/UI & Settings/Event Log Export.md
  */
 class StreamPersistence {
     constructor(bus) {

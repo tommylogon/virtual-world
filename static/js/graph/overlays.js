@@ -9,7 +9,11 @@
  * every edge per lit item — the main perf hot-spot in the old monolithic
  * version.
  *
- * @module GraphOverlays
+ * @module graph/overlays — the ambient visual overlays
+ * @contributes GraphOverlays: light/heat/sound/trigger/cardinal recolouring + cached computeAmbientLight
+ * @powers the graph's overlay modes and their legends
+ * @relates driven by GraphNetwork.applyOverlay; reads worldState + area environments
+ * @docs docs/virtualWorld/Environment/Light System.md
  */
 window.GraphOverlays = {
 

@@ -10,6 +10,12 @@
  *
  * Dirty tracking is a server-side counter (edit_seq vs commit_seq) — the
  * chip polls /api/scenario/status on state updates, debounced.
+ *
+ * @module ui/scenario-status — source status chip + one-click Commit
+ * @contributes ScenarioStatus: dirty indicator (edit_seq vs commit_seq) + 💾 Commit / 🌀 Restart
+ * @powers knowing whether the live world has drifted from its source, and committing it
+ * @relates polls /api/scenario/status; POST /api/scenario/commit
+ * @docs docs/virtualWorld/Scenario Workflows & UI Audit.md
  */
 
 window.ScenarioStatus = (() => {

@@ -6,14 +6,14 @@ group: Conditions
 
 **Filed**: 2026-08-17
 **Priority**: Medium
-**Status**: Planned â€” task-190 (More Conditions)
+**Status**: Planned — task-190 (More Conditions)
 **Source**: Proposed (not yet in `player.py`)
 
 ---
 
 ## Purpose
 
-Dangerous cold â€” the body's temperature drops. Built from the sickness family: escalating, symptom-driven, drains vitals, becomes lethal if untreated. Closely tied to `wet` and the temperature/insulation system.
+Dangerous cold — the body's temperature drops. Built from the sickness family: escalating, symptom-driven, drains vitals, becomes lethal if untreated. Closely tied to `wet` and the temperature/insulation system.
 
 ## Proposed schema
 
@@ -51,17 +51,17 @@ Dangerous cold â€” the body's temperature drops. Built from the sickness fa
 - **Movement**: `level_speed_mult` drops with severity (0.9 â†’ 0.3).
 - **Periodic**: escalating Energy + HP drain (level-scaled, like `exhausted`).
 - **Onset & driver**: temperature system â†’ once body temp crosses a threshold, apply `hypothermia`; `wet` accelerates it; insulation/warmth (fire, shelter, dry clothes) reverses it toward `ends_on: ["warm"]`.
-- **Lifecycle**: `stack: "refresh"` â€” sustained cold bumps level toward 3; ends on warming up / shelter / removing wet clothes. `default_duration: None` (persistent until warmed).
+- **Lifecycle**: `stack: "refresh"` — sustained cold bumps level toward 3; ends on warming up / shelter / removing wet clothes. `default_duration: None` (persistent until warmed).
 
 ## Perception
 
-`known: True` â€” symptom scaling with severity.
+`known: True` — symptom scaling with severity.
 
 ## Integration points space
 
-- `engine/player.py` â€” `CONDITION_DEFINITIONS` entry (leverage `level_periodic`/`level_speed_mult`).
-- Temperature/insulation system â€” the driver (see `task-215 environmental-clothing-effects`, `wet`, environment temperature).
-- `engine/movement.py` â€” severe-speed gating.
+- `engine/player.py` — `CONDITION_DEFINITIONS` entry (leverage `level_periodic`/`level_speed_mult`).
+- Temperature/insulation system — the driver (see `task-215 environmental-clothing-effects`, `wet`, environment temperature).
+- `engine/movement.py` — severe-speed gating.
 - Warming actions: fire near, shelter, dry clothes, hot food.
 - Sickness family: reuse the `sick` composition/disease pattern per task-190 ("a sickness condition built from the sickness family").
 
@@ -78,5 +78,5 @@ Dangerous cold â€” the body's temperature drops. Built from the sickness fa
 - What is the body/temperature model that decides **when** hypothermia applies (needs the temperature/insulation system up first, ties to `wet`)?
 - Separate mild "chilled" â†’ `hypothermia`, or all one condition with levels?
 - Recovery speed and whether a heat source is required vs. gradual outdoor warming.
-- Composition with `unconscious` at severe level (collapse) â€” who applies it?
+- Composition with `unconscious` at severe level (collapse) — who applies it?
 

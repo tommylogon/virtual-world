@@ -24,6 +24,12 @@
  * Usage:
  *   ItemLibraryTriggerSuggester.suggest({ name, description, tags, actions, uses })
  *   → [{ trigger_type, conditions, effects, ... }, ...]
+ *
+ * @module item-library/consumable-triggers — heuristic trigger suggester
+ * @contributes ItemLibraryTriggerSuggester.suggest() (offline, no AI) + suggestForNode() for ways/areas
+ * @powers the "⚡ Suggest" button on items — correct trigger STRUCTURE per action/tag
+ * @relates leaves prose to trigger-suggest-ai; results are reviewed via trigger-suggest-diff
+ * @docs docs/virtualWorld/Rules Engine/
  */
 window.ItemLibraryTriggerSuggester = (() => {
     // ── Action → trigger type map ─────────────────────────────────────

@@ -12,6 +12,12 @@
  *     allowFreeText: false,         // false = only listed options can be committed
  *     onChange: (value) => { ... }
  *   });
+ *
+ * @module shared/search-select — searchable single-value select
+ * @contributes SearchSelect(container, { options, value, inputClass, onChange, allowFreeText })
+ * @powers picking one entity (a way, an item) in editor forms with type-to-filter
+ * @relates sibling of tag-multiselect; used by the trigger and inspector editors
+ * @docs none
  */
 
 // Lazy tag: window.Lit only exists at call time (deferred module bootstrap).

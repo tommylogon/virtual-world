@@ -1,5 +1,11 @@
 /**
  * narration-ui.js — Narration Mode Toggle UI
+ *
+ * @module narration-ui — the narration mode selector
+ * @contributes NarrationUI: the none / player / ai toggle and its wiring
+ * @powers turning area narration on or off and choosing who writes it
+ * @relates output feeds area descriptions, recent events, and the turn log consumed by prompts
+ * @docs docs/virtualWorld/AI & Narration/
  * 
  * Provides a 3-way toggle for narration mode:
  *   - "none": Static descriptions only (default)

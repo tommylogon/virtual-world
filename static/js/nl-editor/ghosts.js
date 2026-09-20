@@ -11,6 +11,12 @@
  * Re-applies itself after every graph data reload (hook in loadGraphData) and
  * on staging changes, and can auto-pan the camera to the newest staged target
  * when a turn finishes with fresh ops ("Here's what I just drafted").
+ *
+ * @module nl-editor/ghosts — live preview of staged operations
+ * @contributes NLEditorGhosts: dashed ghost nodes/edges for create/update/delete/attach/detach, auto-pan
+ * @powers seeing what the NL editor drafted before anything is applied
+ * @relates hooks GraphNetwork.loadGraphData; reads staging.js
+ * @docs docs/virtualWorld/dev_tasks/done/graph/task-387-natural-language-editor-mode.md
  */
 
 window.NLEditorGhosts = (() => {

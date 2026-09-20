@@ -1,5 +1,11 @@
 /**
  * InspectorAgentView — Full agent inspector (showAgent + all agent-related methods)
+ *
+ * @module inspector/agent-view — the full character inspector
+ * @contributes InspectorAgentView: Inventory/Bio/Advanced tabs, paperdoll, traits, relationships, memories
+ * @powers clicking a character to inspect and edit them, their timeline, and export
+ * @relates uses inspector/helpers + paperdoll-view + memory-view + behaviors-view
+ * @docs docs/virtualWorld/UI & Settings/Inspector Panels.md
  * Extracted from inspector.js for modularity.
  * Tabs: Inventory (paperdoll on top + gear below), Bio (personality, appearance,
  * stats/skills/traits, relationships, memories), Advanced (graph physics,

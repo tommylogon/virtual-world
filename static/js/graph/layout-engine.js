@@ -1,3 +1,10 @@
+/**
+ * @module graph/layout-engine — cardinal-based area placement
+ * @contributes window.GraphLayoutEngine.applyCardinalLayout(nodesObj)
+ * @powers arranging areas geographically from their exits (cardinal layout / improved layout)
+ * @relates reads worldState.areas + exit cardinals; moves nodes on graphManager.network
+ * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
+ */
 window.GraphLayoutEngine = {
     applyCardinalLayout(nodesObj) {
         if (!graphManager.network) return;

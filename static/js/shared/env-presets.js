@@ -11,6 +11,12 @@
  *   env editors use, so every apply inherits the existing undo snapshots.
  * - Zone scopes: the current area, the current area + neighbours reachable
  *   through open ways, or every area in the world.
+ *
+ * @module shared/env-presets — named environment presets + zone apply
+ * @contributes EnvPresets: saved presets (localStorage) and apply to area / neighbours / whole world
+ * @powers authoring environments quickly ("Arctic: -12° bright fresh") with undo-safe writes
+ * @relates writes through api.updateNode — the same path as the inspector's env editors
+ * @docs docs/virtualWorld/Environment/
  */
 window.EnvPresets = (() => {
     'use strict';

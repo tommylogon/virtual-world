@@ -11,6 +11,12 @@
  * The selector lists every entry in the node type's library registry, preselects
  * the node's current `library_id`, and Refresh shows the DiffModal (only checked
  * sections overwrite) before calling /api/library/refresh-to-world.
+ *
+ * @module shared/template-sync — the "Library Template" footer pattern
+ * @contributes InspectorTemplateSync: template selector + Refresh-from-Library (via DiffModal) + Save
+ * @powers keeping ways/areas/characters in sync with their library templates (task-295)
+ * @relates used by the node inspectors; calls /api/library/refresh-to-world
+ * @docs docs/virtualWorld/Library System/
  */
 window.InspectorTemplateSync = (() => {
   const esc = (text) => (text || '').replace(/"/g, '&quot;').replace(/'/g, '\\\'');

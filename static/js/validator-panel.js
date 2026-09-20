@@ -14,6 +14,12 @@
  *     ("done" = no actionable issues on the node).
  *
  * Exposed as `VW.validatorPanel` and `window.ValidatorPanel` (for onclick).
+ *
+ * @module validator-panel — the World Issues triage panel
+ * @contributes ValidatorPanel: group by node or code, jump / quick-fix / remove / dismiss, Fix all, progress
+ * @powers cleaning up a scenario's authoring issues from the UI (task-393)
+ * @relates uses /api/triggers/validate; dismissals are stored on the node
+ * @docs docs/virtualWorld/Scenario Workflows & UI Audit.md
  */
 (() => {
     const validatorPanelTag = (strings, ...values) => window.Lit.html(strings, ...values);

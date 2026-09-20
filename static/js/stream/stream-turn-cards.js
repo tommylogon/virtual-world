@@ -2,6 +2,12 @@
  * stream-turn-cards.js — turn card grouping for the event stream
  *
  * Extracted from event-stream.js (task-340). Loaded BEFORE event-stream.js.
+ *
+ * @module stream/stream-turn-cards — turn card grouping
+ * @contributes StreamTurnCards: group log entries into per-character turn cards
+ * @powers the collapsible turn cards in the event stream
+ * @relates loaded before event-stream.js
+ * @docs docs/virtualWorld/UI & Settings/Event Log Export.md
  */
 class StreamTurnCards {
     constructor(bus) {

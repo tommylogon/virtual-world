@@ -1,5 +1,11 @@
 /**
  * turn-feed.js — "What happened" feed + since-your-turn digest for the
+ *
+ * @module agent/turn-feed — the human panel's feed and turn digest
+ * @contributes a viewer-scoped ring buffer of log rows, digest rendering, and audio propagation
+ * @powers the "since your turn" summary: your own rows, your room, and speech that carries
+ * @relates subscribes to event-stream's log bus; rendered by human-turn-composer
+ * @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
  * human turn panel (task-333 full redesign; digest = task-334 lane 2).
  *
  * Subscribes to the app event bus ('log' emissions from event-stream.js)
@@ -28,10 +34,150 @@ window.TurnFeed = (() => {
         events.on('log', (data) => {
             const text = String((data && data.text) ?? '').trim();
             if (!text) return;
-            _ring.push({ text, className: (data && data.className) || '', seq: ++_seq });
+            _ring.push({
+                text,
+                className: (data && data.className) || '',
+                actor: (data && data.actor) || null,
+                seq: ++_seq,
+            });
             if (_ring.length > MAX) _ring.shift();
         });
         _installed = true;
+    }
+
+    /* ── viewer scoping ─────────────────────────────────────────────── */
+
+    // The feed and the "since your turn" digest must only show what the human
+    // could perceive: their own rows plus rows acted by characters standing in
+    // the same area. Otherwise the panel leaks the whole world (task-333).
+    function _viewerName() {
+        if (typeof config !== 'undefined' && config && config.controllingPlayer) {
+            return config.controllingPlayer;
+        }
+        if (typeof worldState !== 'undefined' && worldState && worldState.data
+                && worldState.data.active_player) {
+            return worldState.data.active_player;
+        }
+        return null;
+    }
+
+    function _areaOf(name) {
+        if (!name || name === 'World') return null;
+        const players = (typeof worldState !== 'undefined' && worldState && worldState.data)
+            ? worldState.data.players : null;
+        const p = players ? players[name] : null;
+        return (p && p.current_area) || null;
+    }
+
+    // Sound model mirrored from engine/sound.py + engine/runtime_config.py.
+    // Speech penetration vs accumulated way barriers decides who hears a line.
+    const SOUND = {
+        speech: { whisper: 0, normal: 1, sing: 1, shout: 2, scream: 3 },
+        barrier: { open: 0.5, closed: 1, locked: 2, blocked: 2, hidden: 2 },
+        seeThrough: 0.75,
+        noise: { silent: 0, quiet: 0, normal: 1, loud: 2, chaotic: 2 },
+    };
+
+    function _barrierFor(wayProps) {
+        const props = wayProps || {};
+        const state = props.current_state || 'open';
+        if (state === 'closed' || state === 'blocked' || state === 'locked') {
+            const custom = parseFloat(props.sound_barrier);
+            if (!isNaN(custom)) return custom;                 // per-door acoustic mass
+        }
+        if (props.see_through) return SOUND.seeThrough;        // windows/grates
+        const barrier = SOUND.barrier[state];
+        return barrier != null ? barrier : SOUND.barrier.open;
+    }
+
+    function _noiseLevel(areaNode) {
+        const env = (areaNode && areaNode.properties && areaNode.properties.environment) || {};
+        const key = String(env.noise || 'quiet').toLowerCase();
+        const noiseLevel = SOUND.noise[key];
+        return noiseLevel != null ? noiseLevel : 0;                              // item absorption not modelled here
+    }
+
+    /** Areas whose occupants can hear *volume* speech from *originAreaName*.
+     *  Mirrors engine/sound.py propagate_sound(): BFS accumulating barriers; a
+     *  neighbour hears when penetration - accumulated > 0, and the path keeps
+     *  propagating with the accumulated total. */
+    function _areasHearingFrom(originAreaName, volume) {
+        const graph = (typeof worldState !== 'undefined' && worldState) ? worldState.graph : null;
+        if (!graph || !originAreaName) return [];
+        const nodes = graph.nodes || {};
+        const edges = graph.edges || [];
+        const norm = (s) => String(s || '').toLowerCase();
+        let originId = null;
+        for (const [id, n] of Object.entries(nodes)) {
+            if (n && n.type === 'area' && norm(n.name) === norm(originAreaName)) { originId = id; break; }
+        }
+        if (!originId) return [];
+        const key = volume === 'say' ? 'normal' : volume;
+        const speech = SOUND.speech[key] != null ? SOUND.speech[key] : 1;
+        const penetration = speech - _noiseLevel(nodes[originId]);
+        if (penetration <= 0) return [];                       // sound never leaves the room
+        const heard = [];
+        const visited = new Set([originId]);
+        const queue = [[originId, 0]];
+        while (queue.length) {
+            const [curId, accumulated] = queue.shift();
+            for (const edge of edges) {
+                if (edge.type !== 'connection' || edge.source !== curId) continue;
+                const way = nodes[edge.target];
+                if (!way || way.type !== 'way') continue;
+                let nextId = null;
+                for (const e2 of edges) {
+                    if (e2.type === 'connection' && e2.source === edge.target && e2.target !== curId) {
+                        nextId = e2.target;
+                        break;
+                    }
+                }
+                if (!nextId || visited.has(nextId)) continue;
+                const acc = accumulated + _barrierFor(way.properties || {});
+                if (penetration - acc > 0) {
+                    visited.add(nextId);
+                    heard.push(nodes[nextId] ? nodes[nextId].name : nextId);
+                    queue.push([nextId, acc]);
+                }
+            }
+        }
+        return heard;
+    }
+
+    function _viewerContext() {
+        const viewer = _viewerName();
+        return { viewer, viewerArea: _areaOf(viewer), audible: new Map() };
+    }
+
+    function _actorAudibleToViewer(actorArea, volume, ctx) {
+        if (!actorArea || !ctx.viewerArea) return false;
+        const cacheKey = actorArea + '|' + volume;
+        if (!ctx.audible.has(cacheKey)) {
+            ctx.audible.set(cacheKey, _areasHearingFrom(actorArea, volume));
+        }
+        return ctx.audible.get(cacheKey).indexOf(ctx.viewerArea) !== -1;
+    }
+
+    function _perceivableByViewer(entry, ctx) {
+        if (!entry || !entry.actor || entry.actor === 'World') return true; // engine/world rows
+        ctx = ctx || _viewerContext();
+        if (!ctx.viewer) return true;                                       // cannot scope
+        if (entry.actor === ctx.viewer) return true;                        // your own turn
+        const actorArea = _areaOf(entry.actor);
+        if (!actorArea || !ctx.viewerArea) return false;
+        if (actorArea === ctx.viewerArea) return true;                      // same room
+        // Audio propagation: speech carries through ways per the sound model
+        // (whispers are penetration 0, so they stay private).
+        const parsed = parseEntry(entry);
+        if (parsed && parsed.type === 'speech') {
+            return _actorAudibleToViewer(actorArea, parsed.volume || 'say', ctx);
+        }
+        return false;
+    }
+
+    function _scopedRing() {
+        const ctx = _viewerContext();
+        return _ring.filter((e) => _perceivableByViewer(e, ctx));
     }
 
     /* ── structured parsing ─────────────────────────────────────────── */
@@ -293,10 +439,10 @@ window.TurnFeed = (() => {
         return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    function renderStructured(host, limit = 14) {
+    function renderStructured(host, limit = 14, entries = null) {
         install();
         host.textContent = '';
-        const tail = _ring.slice(-limit);
+        const tail = (entries || _scopedRing()).slice(-limit);
         if (!tail.length) {
             const empty = document.createElement('div');
             empty.className = 'tfd-line tfd-empty';
@@ -459,7 +605,7 @@ window.TurnFeed = (() => {
     function renderDetailedFeed(host, limit = 14) {
         install();
         host.textContent = '';
-        const tail = _ring.slice(-limit);
+        const tail = _scopedRing().slice(-limit);
         if (!tail.length) {
             const empty = document.createElement('div');
             empty.className = 'tfd-line tfd-empty';
@@ -585,7 +731,8 @@ window.TurnFeed = (() => {
     /** Entries logged since the last markTurnEnd() — the turn-start digest. */
     function digest() {
         install();
-        return _ring.filter((e) => e.seq > _digestMark);
+        const ctx = _viewerContext();
+        return _ring.filter((e) => e.seq > _digestMark && _perceivableByViewer(e, ctx));
     }
 
     function clearDigest() { _digestMark = _seq; }

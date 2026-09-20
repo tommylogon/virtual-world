@@ -9,6 +9,12 @@
  *
  * Wire: GET /api/scenarios (now carries health), POST /api/scenarios/<name>
  * for open, GET /api/triggers/validate for the live audit.
+ *
+ * @module ui/scenario-health — scenario health dashboard
+ * @contributes ScenarioHealth: per-file health scan (parse, trigger edges, dangling targets, missing text) + stats
+ * @powers spotting a broken scenario before you load it (task-385)
+ * @relates uses /api/scenarios + /api/triggers/validate; Open follows ScenarioManager semantics
+ * @docs docs/virtualWorld/Scenario Workflows & UI Audit.md
  */
 window.ScenarioHealth = (() => {
   'use strict';

@@ -3,7 +3,11 @@
  * Provides right-click context menus with actions tailored to node types.
  * Extracted from graph-manager.js. References the global graphManager singleton.
  *
- * @module GraphContextMenu
+ * @module graph/context-menu — right-click menus for graph nodes and edges
+ * @contributes GraphContextMenu: per-type items (inspect/edit/duplicate/delete, add item/character/trigger)
+ * @powers the graph's right-click actions on areas, items, ways, and characters
+ * @relates driven by GraphEventHandlers.onContext; delegates to GraphNodeOps + the inspector
+ * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
 const contextMenuHtmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
 

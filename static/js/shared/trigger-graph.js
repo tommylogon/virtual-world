@@ -1,6 +1,12 @@
 /**
  * TriggerGraph — Node-based visual trigger editor (ComfyUI-style).
  *
+ * @module shared/trigger-graph — the node-graph editor for triggers/behaviours
+ * @contributes TriggerGraph.show(): trigger/condition/effect (or behaviour/action/state) nodes with wires + onSave
+ * @powers the ComfyUI-style visual editor used for triggers and NPC behaviours
+ * @relates used by item-library + inspector/behaviors-view + shared/trigger-editor
+ * @docs docs/virtualWorld/Rules Engine/
+ *
  * Usage:
  *   TriggerGraph.show({ mode: 'trigger'|'behavior', graph: {nodes, wires}, onSave: (graph) => {} });
  *
@@ -1220,9 +1226,9 @@ window.TriggerGraph = (() => {
 
     function _loadViewport() {
         try {
-            const v = JSON.parse(localStorage.getItem(_vpStoreKey()) || 'null');
-            if (!v || typeof v.k !== 'number') return null;
-            return { x: +v.x || 0, y: +v.y || 0, k: Math.min(TG_ZOOM_MAX, Math.max(TG_ZOOM_MIN, v.k)) };
+            const savedViewport = JSON.parse(localStorage.getItem(_vpStoreKey()) || 'null');
+            if (!savedViewport || typeof savedViewport.k !== 'number') return null;
+            return { x: +savedViewport.x || 0, y: +savedViewport.y || 0, k: Math.min(TG_ZOOM_MAX, Math.max(TG_ZOOM_MIN, savedViewport.k)) };
         } catch (e) { return null; }
     }
 

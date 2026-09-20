@@ -3,7 +3,11 @@
  * Provides create, delete, duplicate operations for graph nodes and edges.
  * Extracted from graph-manager.js. References the global graphManager singleton.
  *
- * @module GraphNodeOps
+ * @module graph/node-operations — node/edge CRUD for the graph
+ * @contributes GraphNodeOps: create/delete/duplicate nodes and edges
+ * @powers adding and removing areas/items/ways/characters and their connections
+ * @relates called by GraphContextMenu + GraphEventHandlers; writes through the graph API
+ * @docs docs/virtualWorld/World Building/Graph System.md
  */
 // Lazy lit-html tag: window.Lit is only available at call time (deferred module
 // bootstrap), not at parse time. Unique per file so top-level consts never collide.

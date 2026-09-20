@@ -1,6 +1,12 @@
 /**
  * TriggerTypes — single source of truth for trigger editor dropdowns.
  * Used by item-library.js, inspector.js, and trigger-editor consumers.
+ *
+ * @module shared/trigger-types — trigger dropdown vocabulary
+ * @contributes TriggerTypes: trigger / condition / effect type lists for the editors
+ * @powers consistent trigger-type choices across item-library, inspector, and trigger-editor
+ * @relates single source of truth; mirrors the engine's EFFECT_TYPES and condition sets
+ * @docs docs/virtualWorld/Rules Engine/
  */
 window.TriggerTypes = {
     TRIGGER_TYPES: [

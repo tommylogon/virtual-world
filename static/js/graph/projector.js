@@ -8,7 +8,11 @@
  * monolith so the filtering logic is unit-testable and toggles never need a
  * full rebuild.
  *
- * @module GraphProjector
+ * @module graph/projector — the pure "what should be visible" model
+ * @contributes GraphProjector.computeVisibleNodeIds() + applyVisibility() (no vis.js calls in the model)
+ * @powers floor / inhabited / items / triggers / revealed / search filtering of the graph
+ * @relates used by GraphNetwork.applyVisibility; side-effect-free so the rules stay testable
+ * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
 window.GraphProjector = {
 

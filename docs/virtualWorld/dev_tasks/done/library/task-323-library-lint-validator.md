@@ -5,7 +5,7 @@ group: Library
 
 **Filed**: 2026-08-21  
 **Priority**: High  
-**Status**: In Progress â€” implementing `tools/lint_library.py` (2026-08-21)
+**Status**: In Progress — implementing `tools/lint_library.py` (2026-08-21)
 
 ---
 
@@ -17,32 +17,32 @@ singleton tags, broken `contents` references, and sparse area tags. Script-first
 optional route integration later.
 
 This is the regression guard for task-326 (interest pass) and task-324 (domain
-tagging), and a quality gate for task-9 (population engine reads tags â€” garbage
+tagging), and a quality gate for task-9 (population engine reads tags — garbage
 tags in, garbage rooms out).
 
 ## Checks (all observed as real problems)
 
-1. **Dead interest tags** â€” character `interest_tags` matching zero item tags.
+1. **Dead interest tags** — character `interest_tags` matching zero item tags.
    Found 61/125 dead (49%) in the 2026-08-21 survey; satsuki/uzume/nia/nina/pam
-   were 5â€“6/6 dead.
-2. **Wearable missing equip_slots** â€” items tagged `clothing`/`armor` without
+   were 5–6/6 dead.
+2. **Wearable missing equip_slots** — items tagged `clothing`/`armor` without
    `equip_slots`. Was 50/60 before tools/fix_item_equipment.py; must stay 0.
-3. **Tag case drift** â€” same tag in multiple casings across items/areas
+3. **Tag case drift** — same tag in multiple casings across items/areas
    (`Container` vs `container`, `Consumable` vs `consumable` were live bugs).
-4. **Singleton tags** â€” item tags appearing on exactly one item (`berry`,
-   `necklace`, `guitar`) â€” each is either a typo or an under-connected concept;
+4. **Singleton tags** — item tags appearing on exactly one item (`berry`,
+   `necklace`, `guitar`) — each is either a typo or an under-connected concept;
    report, don't auto-fix.
-5. **Broken contents refs** â€” library item `contents` pointing at missing
+5. **Broken contents refs** — library item `contents` pointing at missing
    library ids (currently only a runtime warning at spawn time,
    routes/library_routes.py:179).
-6. **Area tag coverage** â€” library areas with no tags (35/58 as of survey);
+6. **Area tag coverage** — library areas with no tags (35/58 as of survey);
    informational for task-324.
 
 ## Work Plan
 
 1. `tools/lint_library.py`:
    - Loads `data/library/{items,characters,areas}/*.json`
-   - Runs checks 1â€“6; exit code 1 on errors (checks 1â€“3, 5), warnings only for
+   - Runs checks 1–6; exit code 1 on errors (checks 1–3, 5), warnings only for
      4 and 6
    - `--check <name>` to run a single check; default all
    - Output: per-file lines + summary counts (grep-friendly)
@@ -59,7 +59,7 @@ tags in, garbage rooms out).
 ## Verification
 
 - Run against current tree: expects **0 errors** after task-326 lands
-  (before that, check 1 reports the known dead tags â€” useful as a worklist)
+  (before that, check 1 reports the known dead tags — useful as a worklist)
 - Deliberately break a copy of one file â†’ lint catches it â†’ restore
 
 ## Dependencies

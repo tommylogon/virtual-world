@@ -1,6 +1,12 @@
 /**
  * human-turn-composer.js — the human turn PANEL (task-333 full redesign)
  *
+ * @module agent/human-turn-composer — the panel you play a character from
+ * @contributes HumanTurnComposer: scene view, feed/digest, You strip, composer (do/say/emote/memory), phases
+ * @powers actually taking a turn as a character, plus guest interjection
+ * @relates uses turn-feed + turn-scene-view + api (action submit) + agent-engine state
+ * @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
+ *
  * Scene-first three-zone layout matching
  * docs/design/human-turn-panel-v2-mockup.html (v2.7):
  *

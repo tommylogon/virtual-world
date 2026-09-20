@@ -9,6 +9,12 @@
  * Dependencies:
  *   - window.Lit (lit-html bootstrap, deferred module — safe to reference lazy)
  *   - Global toast helpers (toastInfo, toastError from ui-helpers.js)
+ *
+ * @module ui/engine-config-view — the Engine Config settings tab
+ * @contributes EngineConfigView: renders and saves the tunable engine constants (sound/heat/light)
+ * @powers live tuning of engine numbers from Settings — schema comes from the backend (task-304)
+ * @relates uses /api/settings/engine_config; toast globals from ui-helpers.js
+ * @docs docs/virtualWorld/UI & Settings/Engine Config.md
  */
 window.EngineConfigView = (() => {
     'use strict';

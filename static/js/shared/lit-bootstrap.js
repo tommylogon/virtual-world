@@ -11,6 +11,12 @@
  * ONE deferred load; the inspector files themselves stay classic scripts
  * and reference `window.Lit` only inside functions (never at parse time),
  * so there is no async race.
+ *
+ * @module shared/lit-bootstrap — the deferred lit-html bootstrap
+ * @contributes stamps html / render / directives onto window.Lit for classic scripts
+ * @powers every template-rendering view (the ONLY deferred module load; avoids the async race)
+ * @relates must load before any view renders; classic scripts read window.Lit at call time only
+ * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
 import { html, svg, render, nothing, noChange } from 'lit-html';
 import { classMap } from 'lit-html/directives/class-map.js';

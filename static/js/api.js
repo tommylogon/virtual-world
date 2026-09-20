@@ -1,5 +1,11 @@
 /**
  * ApiClient — Backend HTTP calls for the VirtualWorld engine
+ *
+ * @module api — the single HTTP client for every UI → engine call
+ * @contributes ApiClient.* (actions, graph CRUD, items, saves, scenario ops) + runAction
+ * @powers every button/panel that talks to the Flask engine, and the graph's data fetches
+ * @relates used by world-state, graph, inspector, item library, agent-engine, main
+ * @docs none
  */
 class ApiClient {
     /** Generic POST helper */

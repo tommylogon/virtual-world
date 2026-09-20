@@ -1,6 +1,12 @@
 /**
  * UIController — Renders left panel: agent list, vitals, alerts, turn info
  * Also handles initialization of form controls
+ *
+ * @module ui-controller — the left-hand roster panel
+ * @contributes UIController: agent list, per-agent vitals bars, alerts, turn info, form init
+ * @powers the agent list you click to select/inspect a character, and its vitals readout
+ * @relates reads worldState; drives agent selection used by the turn panel and inspector
+ * @docs none
  */
 const uiControllerHtmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
 
@@ -159,18 +165,18 @@ class UIController {
         if (!alertEl) return;
         const alerts = [];
         for (const [name, p] of Object.entries(state.players || {})) {
-            const v = p.vitals || {};
-            const maxHp = v.Max_HP || 100;
+            const vitals = p.vitals || {};
+            const maxHp = vitals.Max_HP || 100;
             const hpCriticalThreshold = Math.max(1, Math.floor(maxHp * 0.2));
-            if (v.HP > 0 && v.HP <= hpCriticalThreshold) alerts.push({ type: 'error', name, text: `${name}: HP critical (${v.HP})` });
-            else if (v.HP === 0) alerts.push({ type: 'error', name, text: `${name}: DEAD` });
-            if (v.Energy <= 15) alerts.push({ type: 'warning', name, text: `${name}: Exhausted (${v.Energy})` });
-            if (v.Hunger >= 85) alerts.push({ type: 'warning', name, text: `${name}: Starving (${v.Hunger})` });
-            if (v.Thirst >= 85) alerts.push({ type: 'warning', name, text: `${name}: Dehydrated (${v.Thirst})` });
-            if (v.Bladder >= 85) alerts.push({ type: 'warning', name, text: `${name}: Bladder full (${v.Bladder}%)` });
-            if (v.Sanity <= 15) alerts.push({ type: 'warning', name, text: `${name}: Losing sanity (${v.Sanity})` });
-            if (v.Entertainment <= 15) alerts.push({ type: 'warning', name, text: `${name}: Bored (${v.Entertainment})` });
-            if (v.Temperature !== undefined && (v.Temperature < 34 || v.Temperature > 40)) alerts.push({ type: 'danger', name, text: `${name}: Critical body temp (${v.Temperature}°C)` });
+            if (vitals.HP > 0 && vitals.HP <= hpCriticalThreshold) alerts.push({ type: 'error', name, text: `${name}: HP critical (${vitals.HP})` });
+            else if (vitals.HP === 0) alerts.push({ type: 'error', name, text: `${name}: DEAD` });
+            if (vitals.Energy <= 15) alerts.push({ type: 'warning', name, text: `${name}: Exhausted (${vitals.Energy})` });
+            if (vitals.Hunger >= 85) alerts.push({ type: 'warning', name, text: `${name}: Starving (${vitals.Hunger})` });
+            if (vitals.Thirst >= 85) alerts.push({ type: 'warning', name, text: `${name}: Dehydrated (${vitals.Thirst})` });
+            if (vitals.Bladder >= 85) alerts.push({ type: 'warning', name, text: `${name}: Bladder full (${vitals.Bladder}%)` });
+            if (vitals.Sanity <= 15) alerts.push({ type: 'warning', name, text: `${name}: Losing sanity (${vitals.Sanity})` });
+            if (vitals.Entertainment <= 15) alerts.push({ type: 'warning', name, text: `${name}: Bored (${vitals.Entertainment})` });
+            if (vitals.Temperature !== undefined && (vitals.Temperature < 34 || vitals.Temperature > 40)) alerts.push({ type: 'danger', name, text: `${name}: Critical body temp (${vitals.Temperature}°C)` });
         }
         // Click an alert to select & inspect the affected agent.
         window.Lit.render(alerts.length === 0

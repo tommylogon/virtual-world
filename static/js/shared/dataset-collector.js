@@ -11,6 +11,12 @@
  * fine-tuning wants positive examples (clean JSON) AND negative ones (the
  * broken output + the corrected target) so a tiny model learns to emit valid
  * JSON in the exact shapes the app's prompts demand.
+ *
+ * @module shared/dataset-collector — dataset capture + raw exchange store
+ * @contributes DatasetCollector.capture / captureRaw / getAll / getAllRaw / clearRaw + the 🧪 export panel
+ * @powers the fine-tuning dataset export and the 🔬 LLM inspector's raw exchanges
+ * @relates hooks llm-client.chat(); persists via storage (llm_dataset, llm_raw_exchanges)
+ * @docs docs/virtualWorld/UI & Settings/Event Log Export.md
  */
 window.DatasetCollector = (() => {
     const STORE = 'llm_dataset';
@@ -96,10 +102,10 @@ window.DatasetCollector = (() => {
         const out = {};
         try {
             Object.keys(headers || {}).forEach(k => {
-                const v = String(headers[k]);
+                const headerValue = String(headers[k]);
                 if (/^(authorization|api[-_]key|x-api[-_]key)$/i.test(k)) {
-                    const prefix = /^Bearer\s+/i.test(v) ? 'Bearer ' : '';
-                    out[k] = prefix + v.replace(/^Bearer\s+/i, '').slice(0, 6) + '…REDACTED';
+                    const prefix = /^Bearer\s+/i.test(headerValue) ? 'Bearer ' : '';
+                    out[k] = prefix + headerValue.replace(/^Bearer\s+/i, '').slice(0, 6) + '…REDACTED';
                 } else {
                     out[k] = headers[k];
                 }
