@@ -1,6 +1,7 @@
 # task-436 — Task durations, and removing `ACTION_COSTS.time`
 
-**Status:** todo
+**Status:** in progress — steps 1–3 done; step 4 (`_action_time_consumed`) and
+steps 5–6 (task durations, flow model) remain.
 **Area:** gameplay / time
 **Depends on:** [[Simulation Model]] (the timeframe-and-flow model)
 **Related:** task-352 (action economy), task-414 (batch advance), task-131 (stateful actions over time), task-244 (human turn parameters)
@@ -71,6 +72,30 @@ Deleting `time` is **not** a mechanical removal:
   the flag is meaningless — it should be deleted and the caller should advance
   unconditionally, **but that is a clock-semantics change and must be verified
   against `rest`/sleep**, which sets the flag deliberately at `:993`.
+
+## Progress — steps 1–3 done
+
+`ACTION_COSTS` no longer carries `time`. Energy costs are absolute (`fumble` is
+`energy: 6`, the 6 it always cost as 3 x `time: 2`), and "does this action take a
+minute" is now the explicit `consumes_time` field, defaulting to false when absent
+— matching the old absent-or-zero-`time` behaviour.
+
+Verified **behaviour-preserving** by running a probe across `move`, `fumble`,
+`open`, `take` and `look` against both the working tree and `HEAD`: identical
+energy deltas and identical flag values in every case.
+
+Two things the probe settled that this task had guessed at:
+
+- `engine/movement.py`'s two overrides became `{"energy": N, "consumes_time":
+  False}`, and `tests/test_traits.py` followed.
+- **The data audit came back negative** — no `cost` block in `data/scenarios/*.json`
+  or `data/library/**` carries `time`, so there is no data migration.
+- The flag is read from the **world** (`world._action_time_consumed`), not from
+  `PlayerManager`, despite `apply_action` assigning through
+  `self.player_manager`. Worth clearing up when the flag is deleted.
+
+New: `tests/test_action_costs.py` pins the split, including a structural check
+that no cost entry regains a `time` key.
 
 ## Plan
 

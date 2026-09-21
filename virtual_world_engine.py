@@ -107,14 +107,20 @@ class VirtualWorld:
         self.add_log_entry(" - WARNING: Environmental conditions affect your needs. Pay attention to temperature, air, noise, and smell!")
 
         self.ACTION_COSTS = {
-            "move": {"time": 1, "energy": 1},
-            "open": {"time": 0, "energy": 1},
-            "close": {"time": 0, "energy": 1},
-            "look": {"time": 1, "energy": 0},
-            "use": {"time": 1, "energy": 1},
-            "take": {"time": 1, "energy": 1},
-            "drop": {"time": 1, "energy": 0},
-            "fumble": {"time": 2, "energy": 3}, 
+            # Energy costs are ABSOLUTE, not per-minute rates. They used to be
+            # multiplied by a `time` field that did double duty as a clock
+            # advance flag; task-436 splits those, so `fumble` now carries the 6
+            # it always cost (3 x time:2) and `consumes_time` says plainly
+            # whether the action takes a minute. An absent `consumes_time` means
+            # no minute, matching the old absent/zero-`time` behaviour.
+            "move": {"energy": 1, "consumes_time": True},
+            "open": {"energy": 1},
+            "close": {"energy": 1},
+            "look": {"energy": 0, "consumes_time": True},
+            "use": {"energy": 1, "consumes_time": True},
+            "take": {"energy": 1, "consumes_time": True},
+            "drop": {"energy": 0, "consumes_time": True},
+            "fumble": {"energy": 6, "consumes_time": True},
         }
         self._action_time_consumed = False
 

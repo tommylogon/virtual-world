@@ -137,20 +137,17 @@ class TickManager:
             except Exception as e:
                 logger.warning("[tick] wind/flood cost: %s", e)
         vitals_map = {k.lower(): k for k in target.vitals.keys()}
-        time_ticks = int(cost.get("time", 0))
         for k, v in list(cost.items()):
             lk = str(k).lower()
-            if lk == "time":
-                continue
             if lk in vitals_map:
                 key = vitals_map[lk]
-                delta = int(v)
-                total_delta = delta * (time_ticks if time_ticks > 0 else 1)
-                target.vitals[key] = max(0, min(100, target.vitals[key] - total_delta))
-        if time_ticks > 0:
-            self.player_manager._action_time_consumed = True
-        else:
-            self.player_manager._action_time_consumed = False
+                target.vitals[key] = max(0, min(100, target.vitals[key] - int(v)))
+        # task-436: vital costs are absolute. They used to be multiplied by a
+        # `time` field, which meant `move: {energy: 1}` cost 1 but
+        # `fumble: {energy: 3, time: 2}` cost 6 — the table's numbers read as
+        # totals while acting as per-minute rates. Whether an action takes a
+        # minute is now its own field rather than a side effect of that one.
+        self.player_manager._action_time_consumed = bool(cost.get("consumes_time", False))
 
     def advance_clock(self, ticks=1):
         """Advance the game clock by the given number of ticks.
