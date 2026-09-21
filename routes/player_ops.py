@@ -165,13 +165,11 @@ def handle_map_player_emotions(app, name):
     if toward and dim_deltas:
         speaker = _resolve_other(app, name, toward)
         if speaker:
-            if speaker not in player.relationships:
-                player.relationships[speaker] = {
-                    "closeness": 0,
-                    "last_interaction_tick": getattr(app.world, "time_ticks", 0),
-                    "interaction_count": 0,
-                    "first_sighting": True,
-                }
+            from engine.relationships import ensure_relationship
+            rel, created = ensure_relationship(
+                player, speaker, getattr(app.world, "time_ticks", 0))
+            if created:
+                rel["first_sighting"] = True
             drive_deltas = {}
             rel_scale = float(runtime_config.get("emotion.rel_scale", 0.25))
             for dim, delta in dim_deltas.items():

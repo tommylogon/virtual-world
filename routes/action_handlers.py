@@ -1114,15 +1114,11 @@ def handle_take_action(app):
                         char_name, _ = world._match_character_name(person_part)
                         if char_name:
                             player = world.player_manager.get_active_player_obj()
-                            if char_name not in player.relationships:
-                                player.relationships[char_name] = {
-                                    "closeness": 0,
-                                    "last_interaction_tick": world.time_ticks,
-                                    "interaction_count": 0,
-                                    "label": label
-                                }
-                            else:
-                                player.relationships[char_name]["label"] = label
+                            # `label` is a declaration, not a measurement, so it
+                            # writes no closeness (task-420) — only the record.
+                            from engine.relationships import ensure_relationship
+                            rel, _ = ensure_relationship(player, char_name, world.time_ticks)
+                            rel["label"] = label
                             add_output(f"You now consider {char_name} your {label}.")
                         else:
                             add_output("You don't see anyone by that name.")

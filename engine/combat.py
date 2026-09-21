@@ -4,8 +4,11 @@ Handles player-vs-player attacks, weapon discovery, and combat resolution.
 """
 
 import random
+import logging
 from typing import Optional, List
 from graph import Node, EDGE_CARRYING, EDGE_EQUIPPED
+
+logger = logging.getLogger(__name__)
 
 
 WEAPON_KEYWORDS = [
@@ -156,13 +159,19 @@ class CombatSystem:
                 self.skills.add_log_entry(f"[COMBAT] {attacker_name} is too afraid to attack {target_name}.")
                 return f"{attacker_name} trembles — {block}"
 
-        # Decrease target's relationship toward the attacker — catches the "psychotic friend" betrayal case
-        target_rel = target.relationships.get(attacker_name, {"closeness": 0})
-        target_rel["closeness"] = max(-100, target_rel["closeness"] - 30)
-        target_rel["last_interaction_tick"] = getattr(self.skills, 'time_ticks', 0)
-        target_rel.setdefault("interaction_count", 0)
-        target_rel["interaction_count"] += 1
-        target.relationships[attacker_name] = target_rel
+        # Decrease target's relationship toward the attacker — catches the "psychotic friend" betrayal case.
+        # Through the one write path (task-420) so the cause is recorded: a
+        # beating and a shared meal both move the same scalar, and only the
+        # trace can tell them apart afterwards.
+        try:
+            from engine.relationships import apply_relationship_delta
+            apply_relationship_delta(
+                target, attacker_name, -30, "combat",
+                tick=getattr(self.skills, 'time_ticks', 0),
+                area_id=getattr(target, "current_area", "") or "",
+            )
+        except Exception as e:
+            logger.warning("[combat] relationship delta %s: %s", attacker_name, e)
 
         area_name = target.current_area
 

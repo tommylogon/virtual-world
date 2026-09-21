@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: done
 area: characters
 priority: medium
 ---
@@ -11,6 +11,46 @@ priority: medium
 **Depends on:** task-417 (co-presence meetings).  
 **Prerequisite for:** task-412 (promotion/demotion handoff).  
 **Relates:** task-350 (`engine/derive.py`), task-409.
+
+## Outcome (2026-09-21)
+
+Done. `engine/relationships.py` holds the single mutation path:
+
+- `apply_relationship_delta(player, other, delta, cause, tick, area_id)` — the
+  only writer of `closeness`. Clamps in one place, stamps
+  `last_interaction_tick`/`interaction_count`, and records the cause on the trace
+  as `why="social:<cause>"` with `delta={closeness, cause, with}`.
+- `apply_symmetric_delta(a, b, delta, cause)` — symmetry is a property of the
+  *call*, so a meeting cannot be applied to one side by accident. Each side still
+  gets its own trace entry, because each side's history is its own.
+- `closeness_band` / `band_at_least` / `BAND_LABELS` — the band ladder was inline
+  in `Player.get_relationship_nl`; it is now defined once and the prose calls it,
+  so a band-gated rule can never disagree with the wording about the edges.
+  `band_at_least` is the gate task-423 needs for `flirt`/`confide` (the Diary's
+  `has_relationship: {min_quality}`).
+- `ensure_relationship(player, other, tick)` → `(record, created)`. Creating a
+  record is not the same as feeling something: no closeness, no novelty.
+
+Refactored callers: `player.update_relationship` (cause `dialogue`),
+`player.register_first_meeting`, `player.felt_toward`, `player.get_relationship_nl`,
+`engine/combat.py` (cause `combat`, was an inline inline `-30`), the `label`
+command (writes `label`, not closeness — a declaration is not a measurement), and
+the felt-toward route. `engine/derive.py` turned out to be a *reader* only, so it
+needed no change.
+
+Guarded by `tests/test_relationships.py::test_relationships_are_written_only_through_the_one_path`,
+which scans `engine/`, `routes/` and `player.py` for `relationships[...] = ` and
+allows exactly two elsewhere: the bulk import in `routes/player_ops.py` (a
+payload replacing the store — deserialization, not a mutation). 32 tests.
+
+### Deliberately left alone
+
+`_grant_meeting_entertainment` is a **second Entertainment path for meeting
+someone**, and since task-425 pays character novelty through perception it now
+double-pays when a character walks into a room. Folding it into the novelty curve
+needs the name → character-node-id mapping that task-423 establishes when it
+populates `entity_ids` with `[actor_id, target_id, area_id]`, so it is recorded
+there rather than half-fixed here.
 
 ## Problem
 

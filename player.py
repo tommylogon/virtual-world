@@ -356,11 +356,10 @@ class Player:
             return False
         # Ensure a relationship record exists so this person shows up in
         # derived profiles and later name-learning can clear the stranger flag.
-        if other_name not in self.relationships:
-            self.relationships[other_name] = {
-                "closeness": 0, "last_interaction_tick": tick,
-                "interaction_count": 0, "first_sighting": True,
-            }
+        from engine.relationships import ensure_relationship
+        rel, created = ensure_relationship(self, other_name, tick)
+        if created:
+            rel["first_sighting"] = True
         dim, factor = self._FELT_TO_DIM[key]
         # Per-point magnitude: a 10/10 feeling lands a tag of ~2.5, which the
         # reducer multiplies by importance, leaving a real mark on the profile.
@@ -472,13 +471,9 @@ class Player:
         """
         if other_name in self.relationships:
             return False
-        self.relationships[other_name] = {
-            "closeness": 0,
-            "last_interaction_tick": tick,
-            "interaction_count": 0,
-            "first_sighting": True,
-            "label": ""
-        }
+        from engine.relationships import ensure_relationship
+        ensure_relationship(self, other_name, tick, label="")
+        self.relationships[other_name]["first_sighting"] = True
         self._grant_meeting_entertainment()
         return True
 
@@ -595,19 +590,18 @@ class Player:
 
         First meeting with a character grants an Entertainment novelty boost
         (mirrors the area-visit/item-discovery boosts in task-136).
+
+        Goes through `engine/relationships.py` — the one writer of closeness
+        (task-420), so the change carries a cause and clamps in one place.
         """
-        if other_name not in self.relationships:
-            self.relationships[other_name] = {
-                "closeness": 0,
-                "last_interaction_tick": tick,
-                "interaction_count": 0,
-                "label": ""
-            }
+        from engine.relationships import apply_relationship_delta, ensure_relationship
+        _, created = ensure_relationship(self, other_name, tick)
+        if created:
             self._grant_meeting_entertainment()
-        rel = self.relationships[other_name]
-        rel["closeness"] = max(-100, min(100, rel["closeness"] + sentiment_change))
-        rel["last_interaction_tick"] = tick
-        rel["interaction_count"] += 1
+        apply_relationship_delta(
+            self, other_name, sentiment_change, "dialogue",
+            tick=tick, area_id=getattr(self, "current_area", "") or "",
+        )
 
     #: Familiarity's damping on relationship decay. 0.15 means six prior
     #: interactions halve the rate — shared history should not evaporate.
@@ -653,33 +647,14 @@ class Player:
         return changed
 
     def get_relationship_nl(self, other_name: str) -> str:
-        """Return a natural language description of the relationship."""
-        rel = self.relationships.get(other_name)
-        if not rel:
-            return f"{self.name} has never met {other_name}."
-        closeness = rel["closeness"]
-        label = (rel.get("label") or "").strip()
-        if label:
-            return f"{self.name} considers {other_name} their {label} (closeness: {closeness}/100)."
-        if closeness <= -75:
-            desc = "mortal enemy"
-        elif closeness <= -50:
-            desc = "enemy"
-        elif closeness <= -25:
-            desc = "rival"
-        elif closeness < 0:
-            desc = "unfriendly"
-        elif closeness == 0:
-            desc = "neutral"
-        elif closeness <= 25:
-            desc = "acquaintance"
-        elif closeness <= 50:
-            desc = "friend"
-        elif closeness <= 75:
-            desc = "close friend"
-        else:
-            desc = "inseparable"
-        return f"{self.name} considers {other_name} a {desc} (closeness: {closeness}/100)."
+        """Return a natural language description of the relationship.
+
+        The band ladder lives in engine/relationships.py so band-gated game
+        rules (task-423's flirt/confide gates) cannot disagree with this prose
+        about where the boundaries are.
+        """
+        from engine.relationships import describe
+        return describe(self, other_name)
 
     def add_memory(self, text: str, tick: int, importance: int = 5, memory_type: str = "observation", tags=None, source: str = "auto", entity_ids=None, location: str = "", salience: int = 0):
         """Add a memory entry. Importance 1-10, higher = more significant.

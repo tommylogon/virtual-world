@@ -15,6 +15,33 @@ path), task-409 (background runner).
 (`github.com/tommylogon/Aura`, `Diary/`) — the same design already proven at
 day granularity. Borrow the machinery, replace the chooser.
 
+## Status notes (2026-09-21)
+
+- **task-420 is done** — `engine/relationships.py` is the one write path, and
+  `band_at_least()` / `closeness_band()` exist for this task's outcome table and
+  its `flirt`/`confide` gates.
+- **task-417 is absorbed here.** Its gate (same area, both background, capped per
+  in-game day, deterministic pairing) is a *component* of this task, not a
+  separate deliverable — building it standalone would mean implementing pairing
+  twice, since the mature form replaces the "symmetric meeting" with an action and
+  an outcome. Do them together.
+- **Blocked on task-431.** The scenario bakes `decay_rates.Social = 0.050` against
+  an engine default of `0.020` and a company gain of `0.030`, so Social falls even
+  in constant company: a week soak ends with all 23 characters in
+  `social_breakdown` + `hallucinating`. With `--engine-decay`, Social pegs at
+  99.2. Either way the passive gain currently dominates this task's Social deltas
+  — one way they land on an impossible vital, the other on a capped one. task-431
+  decides that balance; this task's *relationship*, *memory* and *trace* work is
+  independent of it and can proceed.
+- **Fold `_grant_meeting_entertainment` in.** It is a second Entertainment path
+  for meeting someone, and since task-425 pays character novelty through
+  perception it double-pays when a character walks into a room. This task
+  populates `entity_ids` with `[actor_id, target_id, area_id]`, which is where the
+  name → character-node-id mapping it needs gets settled. (Related known gap:
+  a character walking into a room the *player* is already in is not perceived by
+  the player, because `observe_area` only runs for the mover — a perception
+  trigger, deferred by task-425's non-goals.)
+
 ## Goal
 
 Two co-present background characters pick a social action; rules, relationship
