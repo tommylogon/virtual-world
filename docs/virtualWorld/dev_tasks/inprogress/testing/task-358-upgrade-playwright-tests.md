@@ -3,6 +3,39 @@ group: Tech Debt & Testing
 ---
 # Task 358: Upgrade Playwright Tests — Actually Test Things
 
+## State (verified 2026-09-21) — partial; the file's own "In Progress (partial)" is accurate
+
+**Landed (Phases 1-2), claims verified:**
+- `tools/test_helpers.cjs` exists (103 lines) and exports exactly what the file
+  says — `startSession`, `checkConsoleErrors`, `switchTab`, `showAgent`, `api`,
+  `getState`, `gameCmd` (`:94-103`), with `pageerror` plus filtered
+  `console.error` capture (`:29-35`).
+- `tools/test_regressions.cjs` exists (181 lines), requires the helper (`:8`), and
+  covers the ten bug reports it lists (settings tabs `:24-41`, trigger editor
+  `:44-76`, generate-from-equipment `:79-96`, turn advance `:99-107`, max-steps
+  `:110-122`, initiative order `:125-139`, HP display `:142-156`, dropdown
+  readability `:159-172`).
+- `tools/test_all.cjs` has error capture, the final "No JS/console errors" check
+  and `browser.close()` — **but it re-implements the helper inline rather than
+  requiring it**, so the "wired via the helper" framing is wrong for this file.
+
+**Not done (Phases 3-5), all verified absent:**
+- **Phase 3 (persistence):** no `page.reload(...)` anywhere in `tools/` — not
+  started, not merely "basic".
+- **Phase 4 (error boundaries):** no `page.route(...)` anywhere in `tools/`.
+- **Phase 5:** no `--suite` flag and no JUnit output anywhere.
+- The helper has **2 adopters of 28 `.cjs` files** (`test_regressions.cjs`,
+  `test_trigger_search_select.cjs`); 15 files have their own inline `pageerror`
+  capture and roughly ten have none. The file's "remaining ~12 files" understates
+  this.
+
+**False claims:** the Project Structure section names `tools/test_ways.cjs`, which
+**does not exist**; "~434 Playwright tests across 12 files" is stale — `tools/`
+holds 28 `.cjs` files.
+
+**Note:** the `153/153` and `14/14` pass counts are point-in-time and were not
+re-run here (they need a browser); nothing in the repo contradicts them.
+
 **Status**: In Progress (partial)  
 **Priority**: High  
 **Filed**: 2026-07-24  

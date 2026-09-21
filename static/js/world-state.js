@@ -202,6 +202,35 @@ class WorldState {
         return inventory;
     }
 
+    /**
+     * Character's item node **ids** by edge type — the id-based sibling of
+     * `getInventory`, which returns display names.
+     *
+     * Use this for anything that has to *identify* or compare items. Names are
+     * not identity: three mages can each know a "Fireball", a camp can hold two
+     * items called "Bag", and `getInventory` collapses them into one string. A
+     * caller that compares names will both wrongly hide a distinct item and
+     * wrongly offer one that is already held.
+     *
+     * @param {string} charName
+     * @param {string[]} [edgeTypes] defaults to carrying, equipped and known
+     * @returns {string[]} node ids, in edge order, deduplicated by id
+     */
+    getInventoryIds(charName, edgeTypes) {
+        const charNodeId = `player_${charName.replace(/\s+/g, '_')}`;
+        const types = edgeTypes || ['carrying', 'equipped', 'known'];
+        const ids = [];
+        const seen = new Set();
+        for (const edge of this.graph?.edges || []) {
+            if (edge.target !== charNodeId || !types.includes(edge.type)) continue;
+            if (seen.has(edge.source)) continue;
+            seen.add(edge.source);
+            const itemNode = this.getNode(edge.source);
+            if (itemNode && itemNode.type === 'item') ids.push(edge.source);
+        }
+        return ids;
+    }
+
     /** Look up a node by its identifier (name or ID) */
     getNodeByIdentifier(name) {
         if (!this.graph?.nodes) return null;

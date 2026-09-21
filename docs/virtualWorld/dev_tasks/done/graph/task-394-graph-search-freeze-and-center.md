@@ -1,11 +1,39 @@
 ---
 type: task
-status: inprogress
+status: done
 area: graph
 priority: high
 ---
 
 # task-394: graph-search-freeze-and-cluster
+
+## Outcome (verified 2026-09-21)
+
+Closed. Everything the task describes is implemented in
+`static/js/graph/focus.js`, whose module docstring names this task (`:2, 9-25`):
+
+- Freeze the hidden set (`physics:false`) and restore on clear:
+  `_parkHiddenSet` `:113-130`, `_restoreParkedPhysics` `:150-164`.
+- Cluster matches: save positions + viewport, lay out a bounded grid centred on
+  the viewport via `moveNode`, settle, restore — `_clusterResults` `:171-214`,
+  `_unCluster` `:217-237`.
+- "Keep in place" checkbox, persisted in localStorage
+  (`graph-search-keep-in-place`): `isKeepInPlace` `:81-83`, `setKeepInPlace`
+  `:91-101`, sync `:320-351`; markup `templates/index.html:201-204`.
+- `_fitToSearchMatches` retained for the keep-in-place path `:243-272`.
+- Visibility plumbing it depends on: `network-manager.js:358,372`.
+
+**Corrections to this file's own claims:** the visible set is computed in
+`network-manager.js`, not `projector.js`; the checkbox input is
+`templates/index.html:202` (201 is its label); and the shipped cluster is an
+explicit `moveNode` grid rather than a force-directed settle —
+`_kickClusterPhysics` returns early when physics is off (`:286`), which is the
+keep-in-place case.
+
+**Outstanding, deliberately not blocking closure:** the manual browser pass the
+task lists, and `bug-36` — an open, unfixed guard for `moveNode` being called for
+absent node ids, which is the same code (`focus.js:_unCluster :220-226`). Filed
+separately; closing this task does not close that bug.
 
 **Filed**: 2026-09-07
 **Status**: In Progress — freeze + cluster + restore + keep-in-place landed 2026-09-07; manual browser pass pending.

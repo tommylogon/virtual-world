@@ -124,6 +124,39 @@ def test_examine_resolves_known_ability():
     assert found.id == flame.id
 
 
+def test_known_edge_survives_save_load():
+    """The task's own Verification requires a serialization round-trip: a known
+    ability is world state, so it must not evaporate on save/load."""
+    from app import create_app
+
+    world = create_app({"TESTING": True}).world
+    name = world.active_player
+    node_id = world.player_manager.get_player_node_id(name)
+    # A name the boot world cannot already have: it ships intrinsic abilities
+    # (including a "Create Flame"), and a collision would shadow this node.
+    flame = Node(id="item_whisper_of_ash", type="item", name="Whisper of Ash", properties={
+        "actions": ["examine", "use"],
+        "tags": ["fire", "spell", "magic"],
+    })
+    world.graph.add_node(flame)
+    world.graph.add_edge(Edge(source=flame.id, target=node_id, type=EDGE_KNOWN))
+    assert world.player_manager.find_item_node("Whisper of Ash") is not None
+
+    reloaded = create_app({"TESTING": True}).world
+    reloaded.load_from_dict(world.to_dict())
+
+    surviving = [e for e in reloaded.graph.edges
+                 if e.source == flame.id and e.target == node_id
+                 and e.type == EDGE_KNOWN]
+    assert surviving, "the known edge did not survive save/load"
+    # And it still resolves as knowledge rather than as a carried item.
+    found = reloaded.player_manager.find_item_node("Whisper of Ash")
+    assert found is not None and found.id == flame.id
+    carrying = [e for e in reloaded.graph.edges
+                if e.source == flame.id and e.type == EDGE_CARRYING]
+    assert not carrying
+
+
 def test_autocomplete_includes_known_abilities():
     from engine.autocomplete import get_autocomplete_options
 

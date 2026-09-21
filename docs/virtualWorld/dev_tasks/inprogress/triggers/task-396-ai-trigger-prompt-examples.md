@@ -7,6 +7,46 @@ priority: high
 
 # task-396: ai-trigger-prompt-examples
 
+## State (verified 2026-09-21) — partial, not closable
+
+**Note on the file's nature:** Parts 1-4 (lines 56-367) are a reference catalog of
+trigger types, conditions and effects with worked JSON examples. It is a
+**reference document first and a spec second** — the only verification text is the
+prose checklist at 383-388, and there are no acceptance criteria or test commands.
+
+**Landed:**
+- The generator's system prompt is no longer a bare schema. It is now a
+  descriptive catalog with trigger types, conditions, effects, hard rules, a
+  category instinct and **three worked examples** (food, tainted drink, haunted
+  take) — `static/js/shared/trigger-suggest-ai.js:32-146`; examples at `:136-144`
+  match Parts 4.4/4.5/4.8.
+- It is genuinely wired into trigger generation: `AIGenerator.generate(buildPrompt(...), buildSystem(kind), ...)`
+  at `:188`, consumed by `static/js/item-library/ai-generation.js:344` and
+  `static/js/inspector/trigger-helpers.js:430`.
+- The ground rule about `on_light` is real, not just documented: it fires as a
+  companion to `on_toggle_on` in `engine/toggleable_items.py:72-77`, registered at
+  `engine/triggers/constants.py:20`.
+
+**Not done:**
+- **The prompt embeds a condensed subset, not "every trigger type, condition and
+  effect"** as Part 5 requires (`:373-381`). Missing trigger types include
+  `on_use_progressive`, `on_look`, `on_search`, `on_spoil`, `on_auto_open`,
+  `on_fail_jump`/`on_fail_climb`, `on_turn_start`/`on_turn_end`
+  (`engine/triggers/constants.py:12-39`); a long list of conditions and effects is
+  also absent (`save_throw`, `area_temp`, `time_of_day`, `item_relationship`,
+  `apply_area_status`, `set_wet`, `llm_respond`, `scry`, `spawn_character`,
+  `rename`, `adjust_environment`, …). Either the catalogs get completed or Part 5
+  is rewritten to describe the deliberate subset.
+- **No tests.** A grep of `tests/` for this module finds nothing, so none of the
+  verification assertions at `:385-388` exist.
+- No server route and no library data of example prompts — the examples are
+  hardcoded in the JS module, with no shared JSON catalog.
+
+**Stale premise to correct:** the "Why the current prompt fails" section
+(`:18-20`) describes a prompt that "dumps a schema … with a single empty example"
+leaving `effects` empty. That is the pre-fix state; the current prompt mandates
+non-empty effects and prose in `params.message` and ships three examples.
+
 **Filed**: 2026-09-07
 **Status**: In Progress — this is the *reference catalog* the trigger AI prompt
 must embed: every trigger type, condition, and effect with a plain-language

@@ -1974,19 +1974,28 @@ Respond with ONLY a JSON object: {"tags": ["magic","books","jewelry"]} — the t
      * @param {string} charName - Character name
      */
     AV._showAddItemPicker = async function(charName) {
-        const allItems = worldState.getInventory(charName);
+        // Held items are identified by ID (see getInventoryIds): a name
+        // comparison hides distinct same-named items and re-offers held ones.
+        const heldIds = new Set(worldState.getInventoryIds(charName));
         const playerNodeId = `player_${charName.replace(/\s+/g, '_')}`;
         const currentArea = worldState.players[charName]?.current_area || '';
 
         const graphNodes = Object.entries(worldState.graph?.nodes || {})
             .filter(([id, node]) => node.type === 'item')
-            .filter(([id]) => !allItems.includes(id));
+            .filter(([id]) => !heldIds.has(id));
 
         const libraryData = await ApiClient.getLibraryItems().catch(() => ({}));
-        const graphNames = new Set(graphNodes.map(([, n]) => n.name.toLowerCase()));
+        // A library entry is "already here" when a world node records it as its
+        // source (`properties.library_id`), which is identity by id rather than
+        // by display name.
+        const placedLibraryIds = new Set();
+        for (const node of Object.values(worldState.graph?.nodes || {})) {
+            if (node?.type !== 'item') continue;
+            const libId = node.properties?.library_id;
+            if (libId) placedLibraryIds.add(String(libId));
+        }
         const libraryNodes = Object.entries(libraryData)
-            .filter(([id, item]) => !allItems.includes(id) && !allItems.includes(item.name))
-            .filter(([id, item]) => !graphNames.has((item.name || id).toLowerCase()));
+            .filter(([id]) => !placedLibraryIds.has(String(id)));
 
         function getItemTags(source, item, node) {
             const raw = source === 'graph' ? node?.properties?.tags : item?.tags || item?.properties?.tags;
@@ -2047,7 +2056,19 @@ Respond with ONLY a JSON object: {"tags": ["magic","books","jewelry"]} — the t
     };
 
     AV._showAddKnownAbilityPicker = function(charName) {
-        const allItems = worldState.getInventory(charName);
+        // Identification is by ID, never by name: three characters can each know
+        // a "Fireball" and a camp can hold two items called "Bag", so a name
+        // comparison both hides distinct items and re-offers held ones.
+        const heldIds = new Set(worldState.getInventoryIds(charName));
+        // Library entries are not world nodes yet, so the id that matters is the
+        // provenance link a placed node records (`properties.library_id`, the key
+        // world-sync matches on first).
+        const placedLibraryIds = new Set();
+        for (const node of Object.values(worldState.graph?.nodes || {})) {
+            if (node?.type !== 'item') continue;
+            const libId = node.properties?.library_id;
+            if (libId) placedLibraryIds.add(String(libId));
+        }
         const playerNodeId = `player_${charName.replace(/\s+/g, '_')}`;
         const currentArea = worldState.players[charName]?.current_area || '';
         const INTRINSIC = new Set(['spell', 'ability', 'innate', 'intrinsic', 'power']);
@@ -2055,7 +2076,7 @@ Respond with ONLY a JSON object: {"tags": ["magic","books","jewelry"]} — the t
         const graphNodes = Object.entries(worldState.graph?.nodes || {})
             .filter(([id, node]) => {
                 if (node.type !== 'item') return false;
-                if (allItems.includes(id)) return false;
+                if (heldIds.has(id)) return false;
                 const tags = (node.properties?.tags || []);
                 const tagSet = Array.isArray(tags) ? tags.map(t => String(t).toLowerCase()) : String(tags).toLowerCase().split(',');
                 return [...tagSet].some(t => INTRINSIC.has(t));
@@ -2065,8 +2086,7 @@ Respond with ONLY a JSON object: {"tags": ["magic","books","jewelry"]} — the t
         const libraryData = ApiClient.libraryCache?.items || {};
         const libraryNodes = Object.entries(libraryData)
             .filter(([id, item]) => {
-                const name = item.name || id;
-                if (allItems.includes(name)) return false;
+                if (placedLibraryIds.has(String(id))) return false;
                 const tags = item.tags || item.properties?.tags || [];
                 const tagSet = Array.isArray(tags) ? tags.map(t => String(t).toLowerCase()) : String(tags).toLowerCase().split(',');
                 return [...tagSet].some(t => INTRINSIC.has(t));
@@ -2077,7 +2097,7 @@ Respond with ONLY a JSON object: {"tags": ["magic","books","jewelry"]} — the t
             const lower = name.toLowerCase();
             const isLib = source === 'library';
             const badge = isLib ? agentViewTag`<span style="font-size:9px;color:var(--text-muted);margin-left:4px;">(library)</span>` : '';
-            return agentViewTag`<div data-name=${lower} data-tags=${tagsStr} style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border);">
+            return agentViewTag`<div data-name=${lower} data-tags=${tagsStr} data-node-id=${id} style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border);">
                 <span style="font-size:11px;">✨ ${name}${badge}</span>
                 <button class="btn btn-sm btn-blue" @click=${(e) => {
                     e.currentTarget.closest('.modal-overlay').remove();
@@ -2139,28 +2159,39 @@ Respond with ONLY a JSON object: {"tags": ["magic","books","jewelry"]} — the t
     };
 
     AV._showContainerPicker = function(charName, itemName, itemId) {
-        const inventory = worldState.getInventory(charName);
         const player = worldState.players[charName];
         const equipped = player?.equipped || {};
-        const equippedContainers = Object.values(equipped)
-            .flat()
-            .filter(id => id && !String(id).startsWith('__'))
-            .map(id => worldState.getNodeByIdentifier(id))
-            .filter(node => node && node.type === 'item');
-        const allContainers = [...inventory, ...equippedContainers.map(node => node.name)];
-        const uniqueContainers = [...new Set(allContainers)];
-        const containers = uniqueContainers.filter(name => {
-            const node = worldState.getNodeByIdentifier(name);
-            const tags = node?.properties?.tags || [];
-            return Array.isArray(tags) && tags.some(tag => String(tag).toLowerCase() === 'container');
-        });
+        // Containers are identified by node ID. Deduplicating by name merged two
+        // distinct containers that happen to share one ("Bag"), and
+        // `getNodeByIdentifier(name)` then resolved to whichever came first — so
+        // "put in Bag" could target the wrong one.
+        const candidates = [];
+        const seen = new Set();
+        const addCandidate = (nodeId) => {
+            if (!nodeId || String(nodeId).startsWith('__')) return;
+            if (seen.has(nodeId)) return;
+            const node = worldState.getNode(nodeId) || worldState.getNodeByIdentifier(nodeId);
+            if (!node || node.type !== 'item') return;
+            const tags = node.properties?.tags || [];
+            const list = Array.isArray(tags) ? tags : String(tags).toLowerCase().split(',');
+            if (!list.some(tag => String(tag).toLowerCase() === 'container')) return;
+            seen.add(nodeId);
+            candidates.push({ id: nodeId, name: node.name });
+        };
+
+        for (const nodeId of worldState.getInventoryIds(charName)) addCandidate(nodeId);
+        for (const slot of Object.values(equipped)) {
+            for (const nodeId of (Array.isArray(slot) ? slot : [slot])) addCandidate(nodeId);
+        }
+        const containers = candidates;
 
         const items = containers.length
-            ? containers.map(name => agentViewTag`<div data-name="${name.toLowerCase()}" style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border);">
-                <span style="font-size:11px;">📦 ${name}</span>
-                <button class="btn btn-sm btn-blue" @click=${(e) => { e.currentTarget.closest('.modal-overlay').remove(); runAction(`put ${itemName} in ${name}`, charName); }}>Put in</button>
+            ? containers.map(c => agentViewTag`<div data-name="${c.name.toLowerCase()}" data-node-id="${c.id}" style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border);">
+                <span style="font-size:11px;">📦 ${c.name}</span>
+                <button class="btn btn-sm btn-blue" @click=${(e) => { e.currentTarget.closest('.modal-overlay').remove(); runAction(`put ${itemName} in ${c.name}`, charName); }}>Put in</button>
             </div>`)
             : [agentViewTag`<div style="font-size:11px;color:var(--text-muted);padding:8px;">No containers in inventory.</div>`];
+
 
         const picker = document.createElement('div');
         picker.className = 'modal-overlay';

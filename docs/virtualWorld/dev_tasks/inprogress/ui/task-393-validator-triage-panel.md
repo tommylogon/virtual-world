@@ -7,6 +7,44 @@ priority: high
 
 # task-393: validator-triage-panel
 
+## State (verified 2026-09-21) — partial, not closable
+
+Core triage mechanics are genuinely landed; three deliverables are absent and
+three claims in this file no longer match the code.
+
+**Landed:** group-by-node / group-by-code with a persisted toggle
+(`static/js/validator-panel.js:257-291`, `:348-349`); scrollable list with a
+pinned count (`:309-310`, count updated `:312-320`, markup
+`templates/index.html:139,142`); `empty_trigger` collapsing plus a batched
+"Remove all empty" (`:423-448`, `:144-166`, button `:397-400`); dismiss-until-edited
+via per-node `ignored_issues` with the engine filter and resurfacing
+(`engine/trigger_validator.py:184-219`, route `routes/triggers.py:24-51`, UI
+`:127-137`); mechanical-default fix-all (`:232-255`, button `:468-469`) and the
+way delegation to task-395 (`:202-229,465-467`); a progress bar (`:356-379`).
+
+**Not done:**
+1. **`library_mismatch` "mark instance as intended"** — no such action exists
+   anywhere.
+2. **The `library_mismatch` recalibration is not done, and this file's claim about
+   it is false.** It says the code fires "only on mechanical field drift … not
+   `light_level`/`contents`", but `LIBRARY_SYNC_PROPS` still includes
+   `light_level`, `target_temperature`, `heating_rate`, `contents` and `aliases`
+   (`engine/trigger_validator.py:147-151`), the severity is still `warning`
+   (`:728`), and a test explicitly asserts a `light_level` mismatch is reported
+   (`tests/test_trigger_validator.py:428-439`).
+3. **The derived-progress definition does not match.** The file specifies
+   planner-covered / `trigger_reviewed: true` / `ignored_issues`; the shipped bar
+   is `audited − distinct source_node_ids with issues` (`:356-379`).
+   `trigger_reviewed` appears nowhere in source. Either implement the intended
+   definition or amend this section to the one that shipped.
+4. No separate default-collapsed `info` section (grouping sorts by worst severity
+   `:293-300`, but info rows render inline).
+5. Manual browser pass.
+
+**Also unsupported:** the verification claim that the `ignored_issues` filter and
+resurfacing were "verified via ad-hoc run" — no committed test references
+`ignored_issues` or `_ignored_at`.
+
 **Filed**: 2026-09-07
 **Status**: In Progress — backend ignore filtering + route + panel rewrite landed 2026-09-07; manual browser pass pending.
 

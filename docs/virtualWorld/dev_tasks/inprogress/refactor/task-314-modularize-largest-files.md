@@ -1,5 +1,62 @@
 # Task 314 — Modularize the largest files
 
+## State (verified 2026-09-21) — partial; not closable, and several files regrew
+
+Verified by measuring every candidate in the current tree rather than trusting the
+file, whose own line counts are historical and now misleading.
+
+**Landed (real splits, verified by the original file shrinking and the package
+existing):**
+- `engine/trigger_system.py` → `engine/triggers/` (host now 112 lines, composes
+  mixins; `condition_tree.py` 678, `execution.py` 634, `evaluation.py` 124, …).
+- `engine/effects.py` → `engine/effect_handlers/` (host 517, merges 13 HANDLERS).
+- `engine/item_actions.py` → `engine/items/` (facade 159; `take_drop_actions.py`
+  686, `use_actions.py` 501, …).
+- The routes quartet: `action.py` → `routes/action_handlers.py`,
+  `library_routes.py` → `library_ops.py`, `graph.py` → `graph_ops.py`,
+  `players.py` → `player_ops.py`.
+- `static/js/graph/network-manager.js` → `projector.js`, `overlays.js`,
+  `tooltips.js`, `focus.js`.
+- `static/js/inspector/way-view.js` → `way-view-triggers.js` +
+  `way-view-connections.js`, and the "URGENT" wiring is fixed —
+  `templates/index.html:1075-1077` loads all three.
+- **Not credited in the file:** `engine/serialization.py` (503) now imports
+  `serialization_template` (273) and `serialization_legacy` (156), which the
+  Wave-2 table listed as "NOT started"; and `engine/player_conditions.py` (841)
+  was extracted from `player.py`.
+
+**Not landed, and mostly larger than when filed:**
+
+| File | Now | Was (audit) |
+|---|---:|---:|
+| `engine/traits.py` | 1096 | 934 |
+| `engine/movement.py` | 1098 | 639 |
+| `engine/tick_manager.py` | 1104 | 533 |
+| `engine/matching.py` | 697 | — |
+| `engine/equipment.py` | 754 | — |
+| `engine/trigger_validator.py` | 821 | — |
+| `static/js/inspector/agent-view.js` | 2245 | 1736 |
+| `static/js/shared/trigger-graph.js` | 2116 | 1399 |
+| `static/js/shared/trigger-editor.js` | 2022 | 1571 |
+| `static/js/item-library.js` | 1401 | — |
+| `static/js/main.js` | 1060 | — |
+| `tests/test_trigger_system.py` | 2724 | — (still one module, 14 classes) |
+
+Also unresolved: `static/js/inspector/agent/agent-header.js` (165 lines) is an
+orphan with no `<script>` tag in `templates/index.html`.
+
+**Fixed here while triaging:** the item split left two dead facade wrappers that
+would have raised `NameError` — `_get_effective_weight` and
+`_sum_container_contents` called `_node_effective_weight` /
+`_sum_container_contents` from `engine/items/carry_weight.py` without importing
+them (and the second shadowed the module function's own name inside the method).
+No callers existed, which is why the suite stayed green; both wrappers are
+removed.
+
+**False/stale claims:** the header says `virtual_world_engine.py` was "slimmed to
+a facade (756 now)" — it is 1313; `agent-engine.js` "currently 752" — it is 1181.
+The "URGENT, first action next session" item is long resolved.
+
 **Priority**: Medium
 **Status**: In Progress (wave 1 landed 2026-08-26: trigger_system, effects, routes quartet. Wave 2 in flight: player/traits redo, facade trim, runner-ups, JS trio, test split.)
 

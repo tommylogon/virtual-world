@@ -5,6 +5,47 @@ wiki: "[[Rules Engine/Triggers & Effects]]"
 
 # Trigger Graph Editor — Node-Based Blueprint System
 
+## State (verified 2026-09-21) — Phase 1 shipped; Phases 2-3 open. Not closable.
+
+**Phase 1 is genuinely implemented** (the file's "12 of 12" is honest, bar one
+false entry): node renderer and sockets, drag-to-connect, right-click context menu
+with search, inline field editing, SVG bezier wires, serialize/deserialize,
+blueprint save/load/export/import, inspector and library-editor integration, and
+compile-to-engine — all in `static/js/shared/trigger-graph.js` (`_serializeGraph`
+`:1622`, `compileToEngine` `:1984`, `compileToBehaviors` `:1832`, blueprint I/O
+`:1667-1765`, sockets/wires `:1299-1503`). The blueprint storage claim is accurate:
+`POST /api/library/triggers` (`routes/library_routes.py:48-60`, `triggers` in
+`REGISTRY_TYPES` `routes/library_ops.py:16`) writing per-entry files under
+`data/library/triggers/` (`routes/helpers.py:155-202`). The six seeded template
+blueprints exist (the directory now holds nine files — the six templates plus
+three scratch ones).
+
+**One Phase-1 claim is false:** `reduce_uses` does not exist anywhere in the
+codebase (grep finds it only in generated docs and this file). The effect registry
+has `adjust_uses` only (`engine/effect_handlers/equipment.py:182`,
+`engine/triggers/constants.py:75,115`), and it accepts a negative delta
+(`:75-78`), so `reduce_uses` is either redundant or never added.
+
+**Phase 2 — Blueprint Library: partially done by accident.** The two unticked
+checkboxes (directory exists, templates seeded) are actually satisfied. What
+remains is the **dedicated searchable blueprint browser** — today there is only
+the in-editor `_loadBlueprint` picker (`trigger-graph.js:1714-1750`, a raw floating
+div).
+
+**Phase 3 — Engine Integration: not started.** No Python handles blueprints at
+all (`grep blueprint *.py` → 0 hits). Specifically missing: runtime compile of a
+blueprint to graph edges and trigger nodes; condition branching (YES/NO) compiled
+to engine conditions — `_traceGraph` (`:2082-2113`) AND-folds conditions and keeps
+only a NO-branch message as `fail_message`, dropping every other NO effect; and
+AND/OR/NOT logic in branches — `compileToEngine` always emits `{operator:'and'}`
+(`:1996`). Those latter two are also recorded as task-388 defects #9-#11.
+
+**Relationship to task-388:** task-388 supersedes this editor's **UI/UX** work
+(pan/zoom now exists at `:1113-1219`, so this file's "no pan/zoom" complaints are
+stale) but explicitly leaves this task's Phase 2 browser and Phase 3 runtime
+compile open. So this task is not superseded as a whole; its residual scope is
+real and currently unowned.
+
 **Filed**: 2026-07-27  
 **Priority**: High  
 **Status**: In Progress (Phase 1 mostly complete)  

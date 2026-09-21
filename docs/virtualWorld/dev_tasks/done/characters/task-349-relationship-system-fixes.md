@@ -1,11 +1,34 @@
 ---
 type: task
-status: inprogress
+status: done
 area: characters
 priority: high
 ---
 
 # task-349: Relationship system hardening
+
+## Outcome (verified 2026-09-21)
+
+Closed. Every checkmarked deliverable in "Code fixes (this task)" is present in
+the repo — verified by reading the code, not by trusting the checkbox:
+
+- Full record serialized: `player.py:995-996` writes `last_interaction_tick` and
+  `first_sighting` (the task's line pointer is stale, the code is real).
+- `relationshipGuidance()` >75 directive: `static/js/agent/prompt-builder/character-state.js:145`.
+- Label tier alignment: `character-state.js:66` ends at `inseparable`; guidance
+  tiers (`:134-146`) use the same `-75/-50/-25/0/25/50/75` ladder, with a comment
+  naming this task.
+- Symmetric give: `engine/items/transfer_actions.py:62-70` moves both sides by +5.
+
+Two of its "Design follow-ups (not in this task)" have since landed elsewhere, so
+the file now *looks* stale rather than open: time-based decay exists
+(`tests/test_relationship_decay.py`), and deriving relationships from experience
+is task-350 (`engine/derive.py`).
+
+**Since superseded in part:** the *write* path this task hardened is now
+`engine/relationships.py` — one mutation path for closeness, with a recorded
+cause (task-420). The hardening here (symmetric give, full serialization, aligned
+tiers) is carried forward; the ad-hoc write sites it touched are gone.
 
 Audit of the relationship system (see [[Characters/Relationships System]]). Closeness only moves via
 speech (+2), give (+5), and combat (-30); several save/label/guidance defects found.

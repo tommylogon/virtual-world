@@ -1,11 +1,52 @@
 ---
 type: task
-status: inprogress
+status: done
 area: graph
 priority: medium
 ---
 
 # task-395: way-orientation-authoring
+
+## Outcome (verified 2026-09-21)
+
+Closed for its four code deliverables; one follow-up split out.
+
+- **`fix_way_orientation` is gone** — a repo-wide grep finds it only in
+  `CHANGELOG.md` prose. No route, no caller.
+- **`clear_way_fix_fields`** implemented at `routes/graph_ops.py:674-712`,
+  dispatched through `_apply_batch_op` (`:571`, loop `:774-791`). It removes only
+  exact minted templates — `"You pass through <name>."` (`:694`),
+  `"A glimpse of <source> beyond."` (`:702`), and a `cardinal == "north"` when
+  the edge direction is not a real cardinal (`:706`) — so authored prose is safe
+  by construction.
+- **Severity downgrade** to `info`: `engine/trigger_validator.py:620,631,639`,
+  with the why documented at `:598-608`.
+- **Panel button**: `static/js/validator-panel.js:202-229` runs the cleanup batch
+  (`:205`), then opens the existing per-way "✨ Improve with AI" flow
+  (`window.InspectorWayView.improveWayWithAI`, `static/js/inspector/way-view.js:937`).
+  The validator-panel button reads "✨ AI-write ways" (`validator-panel.js:467`).
+- **Data is clean**: way library files carry `"pass_message": ""`, a repo-wide
+  grep for `A glimpse of` in `data/` returns nothing, and `You pass through`
+  survives only as legitimate authored prose.
+
+**Corrections to this file's own claims:** the movement fallback is
+`engine/movement.py:780-783`, not `:743-749`; the area-description default is
+`engine/area_description.py:563`, not `:509-549`; and the improve-Way entry point
+is `way-view.js:937`, not `:931`.
+
+**Two gaps, one fixed here and one split out:**
+
+1. *Fixed:* the new cleanup op had **no test**. Added
+   `tests/test_way_orientation_cleanup.py`, which pins that it removes only the
+   exact minted templates and leaves authored `pass_message` / `cardinal` /
+   `visible_in_direction` alone.
+2. *Split out:* the claim "No bulk op writes way data anymore" is **false at the
+   repo level** — offline generators still mint the exact template
+   (`tools/build_scenario.py:80-81`, `tools/assemble_scenario.py:239`,
+   `tools/sync_scenario_to_library.py:147`, `tools/generate_scenario.py:212`), and
+   `tools/fix_scenario_authoring.py:78-79` writes a near-variant that
+   `clear_way_fix_fields`' exact-string match will *not* remove. Filed as
+   **task-435**.
 
 **Filed**: 2026-09-07
 **Status**: In Progress — reworked 2026-09-07 after engine review. The original

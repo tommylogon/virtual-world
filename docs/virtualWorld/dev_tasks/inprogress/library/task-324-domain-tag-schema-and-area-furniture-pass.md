@@ -3,6 +3,42 @@ group: Library
 ---
 # Domain Tag Schema + Area/Furniture Tagging Pass
 
+## State (verified 2026-09-21) — partial, not closable
+
+**Landed:** the nine missing tag files under `data/library/tags/` with the schema
+this task specifies (`store.json:5,21-23`, `display.json:5`,
+`clothing.json:1-26` matching the task's own example verbatim); the
+`tools/tag_domains.py` script (dry-run by default, `:201-205`); the `display` role
+tag applied across the furniture items (`shelves.json:15`, `table.json:15`,
+`desk.json:17`, `bookshelf_item.json:16`, `fireplace.json:18`, and others); and a
+**goblin-camp** area-domain pass (`tools/tag_domains.py:52-75`, e.g.
+`data/library/areas/shaman_lair.json:8-10` getting `shrine`, `occult`).
+
+**Not done — this is the bulk of the task:**
+- **The area domain backfill is a goblin-camp pass, not the all-areas pass this
+  task requires** (`:121-123`). ~33 area files still carry an empty top-level
+  `tags: []`, including the ones the task names explicitly — the literal `library`
+  and `kitchen` areas (`data/library/areas/library.json:4`, `kitchen.json:140`) —
+  plus `pantry`, `cellar`, `study`, `wine_cellar`, `conservatory`, `crypt`,
+  `graveyard`, `dining_area`, `living_room`, `master_bedroom` and others.
+- **The verification targets are unmet:** "60/60 areas have tags" and
+  "509 + 9 = 518 registered tags" (`:130-134`). `tools/lint_library.py:125-131`
+  (`area_tag_gaps`) would still warn on the untagged areas above.
+- **The docs convention is absent:** step 4 (`:126`) asks for it in
+  `docs/virtualWorld/Library System/`; there is no domain/role-tag convention doc.
+- Minor: `tools/tag_domains.py:13` advertises `--domains goblin` but argparse only
+  defines `--apply`.
+
+**Not superseded** — downstream work depends on this and says so:
+`docs/virtualWorld/dev_tasks/mujeeroth-scale-plan.md:22` lists task-324 as
+unstarted, and `todo/world/task-400-...md:28-30` / `task-398-...md:90-92` state
+the Pines areas "have no domain tags" and forbid assuming the backfill exists.
+
+**Suggested next slice:** apply the domain table to the mansion/Pines area
+library (the ~33 empty ones), extend `tools/tag_domains.py`'s table beyond the
+goblin camp, then write the convention doc. The tag files and script already
+exist, so this is a data pass plus documentation, not new machinery.
+
 **Filed**: 2026-08-21  
 **Priority**: Medium  
 **Status**: Planned — blocked by task-323 (lint should validate the result)
