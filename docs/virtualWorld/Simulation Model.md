@@ -67,6 +67,23 @@ characters, at all four levels, use the same clock and the same flows.
 > which turns a 30-minute turn into thirty eat/drink/socialise cycles — 1,440
 > actions per character per day. The timeframe-and-flow model replaces it.
 
+### Resolution order
+
+"Every character acts in the timeframe" implies the outcome should not depend on
+the order they are processed in — otherwise whoever goes first gets the food, the
+bed and the clear path for no in-world reason.
+
+Today it does depend on it, and invisibly: the frontend queue has a chosen order
+(sequential / random / initiative) but `process_due`, the social pass and the
+simple NPCs each iterate a *different* order, with the background tier using dict
+insertion order. Reversing the roster alone moved a one-week soak's Energy by 4
+points. So the resolution order is world state and belongs to the engine, resolved
+once, seeded, stored per timeframe, keyed by **id**, and then read by both the
+simulation and the UI. `simultaneous` is the fourth mode on that same dial —
+resolve against a snapshot and commit together — not a separate axis.
+
+See **task-437**.
+
 ## Survival: slack and emptiness
 
 Survival is not a battery you must keep full. It is **maintenance with slack**:
