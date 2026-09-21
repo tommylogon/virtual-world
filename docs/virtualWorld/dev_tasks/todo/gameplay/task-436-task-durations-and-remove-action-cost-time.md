@@ -1,8 +1,9 @@
 # task-436 — Task durations, and removing `ACTION_COSTS.time`
 
 **Status:** steps 1–6 done — the per-turn action budget is replaced by the
-timeframe-and-flow model. One open follow-up: `served` is per turn, so residual
-resolution dependence remains in long turns (see the final section).
+timeframe-and-flow model. One substantial follow-up identified: **long tasks must
+span turns as activities** (see the final section), which is what would make T=1
+and T=15 agree exactly. Two cheaper attempts were tried and measured worse.
 **Area:** gameplay / time
 **Depends on:** [[Simulation Model]] (the timeframe-and-flow model)
 **Related:** task-352 (action economy), task-414 (batch advance), task-131 (stateful actions over time), task-244 (human turn parameters)
@@ -107,14 +108,38 @@ Better across the board at equal survival (23/23). A long timeframe can chain
 Resolution independence, new model, T=1 vs T=15 over the same game week: survival
 23/23 both, Hunger 34.2 both, Thirst 17.3 / 16.5, HP 96.8 / 97.7.
 
-### Residual resolution dependence — open
+### Residual resolution dependence — open, root cause identified
 
-Energy still differs by ~10 points between T=1 and T=15 (67.1 vs 77.3), in the
-direction of long turns being *kinder*. `served` resets each turn, so at T=1 a
-character may repeat a task across fifteen turns that at T=15 they may do only
-once per timeframe. Closing this needs the timeframe to become the unit of
-memory for `served`, not the turn — i.e. a notion of "the current 15 minutes"
-independent of how the clock is being sliced. Worth its own task if it matters.
+Energy still differs between resolutions (T=1 67.1 against T=15 77.3). The first
+explanation offered here — "`served` resets per turn" — was a guess, and two
+attempts to fix it on that basis were made and **both measured worse**, so both
+were reverted:
+
+1. **Gate on the action's own duration instead of `served`.** Made it worse:
+   Energy 64.0 / 75.6, Thirst 17.6 / 12.1. Gating on duration is far too
+   permissive — it lets a character above the thirst threshold drink every two
+   minutes.
+2. **A `TASK_COOLDOWN_MINUTES` routine table** (eat 240, drink 45, wash 480, …).
+   Also worse: Energy 60.7 / 80.3, Hygiene 55.8 / 69.3, against 67.1 / 77.3 and
+   77.8 / 74.3 for `served`. More "realistic" intervals, worse convergence, and
+   plausibly worse play (goblins washing twice a day sit at Hygiene 56).
+
+**The actual root cause is an overdraft, not the gating.** At T=1 the timeframe is
+one minute, `eat` reports 10, and the loop spends it anyway — so a character
+performs fifteen whole tasks in fifteen minutes at T=1, while at T=15 the
+timeframe only admits the two or three that fit. The binding constraint at T=15
+is the timeframe itself, which is why no cooldown value could reconcile them.
+
+**The fix is therefore the one the model already implies:** a task longer than the
+remaining timeframe must **span turns as an activity**, exactly as eight hours of
+sleep is 480 turns at 1 min/tick and 32 at 15. `p.activity` exists for this and
+the flow loop already breaks when it is set — what is missing is that
+`_consume_here`, `_relieve`, `_wash`, `_recreate` and `_recuperate` do not use it.
+Until then, T=1 overdrafts every task cost and reads as the *unrealistic*
+resolution; T=15's numbers should be treated as the reference.
+
+`served` is kept as the shipping rule: it is the best-measured of the three, and
+being turn-scoped it is also the simplest to reason about.
 
 ### Cost
 
