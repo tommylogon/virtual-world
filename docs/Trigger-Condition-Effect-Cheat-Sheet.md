@@ -118,7 +118,7 @@ Complete reference for VirtualWorld engine behaviors and triggers.
 | `apply_condition` | Apply condition | `condition`, `target`, `duration`, `source` | ✅ | 🔴 Both |
 | `remove_condition` | Remove condition | `condition`, `target` | ✅ | 🔴 Both |
 | `set_parameter` | Set node parameter | `node_id`, `key`, `value` | ✅ | 🔵 Triggers |
-| `adjust_parameter` | Delta to parameter | `node_id`, `key`, `delta` | ✅ | 🔵 Triggers |
+| `adjust_parameter` | Delta to parameter | `node_id`, `key`, `delta`, `per` (`"minute"` scales the delta by the tick's game time) | ✅ | 🔵 Triggers |
 | `surface_memory` | Force memory recall | `tags`, `salience_boost` | ✅ | 🟢 Behaviors |
 | `suppress_memory` | Block memory recall | `keywords`, `duration` | ✅ | 🟢 Behaviors |
 | `unblock_memory` | Lift memory block | `tags` | ✅ | 🟢 Behaviors |

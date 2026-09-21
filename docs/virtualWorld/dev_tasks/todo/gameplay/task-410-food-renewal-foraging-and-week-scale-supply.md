@@ -80,6 +80,31 @@ Both are implemented in `engine/triggers/condition_tree.py`, registered in
 `engine/trigger_validator.py`, and covered by
 `tests/test_gauge_trigger_conditions.py`.
 
+## Slices (widened 2026-09-21: this is renewable world sources, not only food)
+
+A **spawner is a renewable source that produces entities without consuming
+itself.** Two independent axes — trigger (`on_tick` passive vs `on_use` active)
+and product (item vs character):
+
+|  | produces an item | produces a character |
+|---|---|---|
+| `on_tick` | berry bush, mushroom log | rabbit hole, deer trail |
+| `on_use` | fishing spot, snare → caught rabbit | — |
+
+1. **Passive item sources** — plants. **DONE** (see below): no engine work beyond
+   the two conditions and the `per: "minute"` mode.
+2. **Active item sources** — fishing spot, snare: `on_use` + `skill_check` →
+   `spawn_item`. No new engine work; data only.
+3. **`tagged_count` condition** — count tagged entities in an area. Required for
+   slice 4: `contains_count` counts items *inside* a node, but a rabbit hole's
+   rabbits are loose, so nothing caps them and an `on_tick` spawner floods the map.
+4. **Character sources** — library creature templates (rabbit, deer), spawn cap,
+   and a **death path that yields a carcass**. A cap without a death path is a
+   dead end: the fourth rabbit ends the population forever. Kill/hunt resolves on
+   the creature; the carcass is what a dead creature drops — do **not** give a
+   trail a direct "survival check → carcass" shortcut, or the node becomes a meat
+   dispenser the moment the player watches it.
+
 ## Changes
 
 1. Implement the plant pattern with `parameters.growth` + `adjust_parameter`
@@ -104,6 +129,39 @@ Both are implemented in `engine/triggers/condition_tree.py`, registered in
   cleanly at 100.
 - Deterministic under a fixed seed; spawned food is trace-visible.
 - Plant items remain intact (not removed) as their counters move.
+
+## Slice 1 result (2026-09-21)
+
+Five berry bushes authored into the camp via `tools/add_renewable_sources.py`
+(3 in Deep Forest, 1 at the Water Source, 1 on the Camp Entrance Trail). Each is
+an untagged standing item with `parameters.growth`, a `parameter_reached` gate at
+100, a `contains_count` cap of 10, and `per: "minute"` on the increment so growth
+measures game time rather than ticks.
+
+```
+                 before plants      after
+ 1 min/tick:   23/23 alive        23/23 alive
+15 min/tick:   21/23 (2 starved)  23/23 alive
+ food over a week:  4 -> 0           4 -> 50
+ hungriest alive:   100              49
+```
+
+Identical at 1 and 15 min/tick, which is the point.
+
+Two blockers found and fixed on the way, both broader than plants:
+
+- **`_find_consumable` only saw items with an `in` edge to the area**, so food in
+  any container was unreachable and the background tier could starve beside a full
+  store. It now traverses every spatial relation (`in`/`on`/`under`/`behind`/
+  `beside`/`at`) plus one level of nesting, and `_areas_with` (which decides where
+  a forager *travels*) does the same — otherwise nobody walks to the forest.
+- **`_is_consumable`'s action fallback accepted `eat` OR `drink`**, so a hungry
+  character ate a water skin and Hunger was satisfied. Intent is now threaded
+  from the need/consume kind, so food is not drink.
+
+Also: `_spawn_library_item_node` was dropping `parameters` entirely, so any
+gauge-carrying item lost its counter at placement, and it now accepts an explicit
+`node_id` so authored placement gets stable, re-runnable ids.
 
 ## Non-goals
 

@@ -148,7 +148,7 @@ class BackgroundSimulation:
     # ───────────────────────────── actions ─────────────────────────────────
 
     def _consume_here(self, p, tags, kind):
-        node = self._find_consumable(p, tags)
+        node = self._find_consumable(p, tags, verb=self._verb_for_need(kind))
         if not node:
             return False
         props = node.properties or {}
@@ -186,8 +186,17 @@ class BackgroundSimulation:
                area=p.current_area, tags=["need"])
         self.gs.add_log_entry(f"[{p.name}] settles down to sleep.")
 
+    @staticmethod
+    def _verb_for_need(need):
+        """The action a search is really for, so a drink is not counted as food.
+
+        Accepts both vocabularies in use: needs are `thirst`/`hunger` and the
+        consume kind is `drink`/`eat`.
+        """
+        return "drink" if str(need).lower() in ("thirst", "drink") else "eat"
+
     def _travel_toward(self, p, tags, need):
-        step = self._target_step(p, tags)
+        step = self._target_step(p, tags, verb=self._verb_for_need(need))
         if not step:
             return False
         target_name, direction = step
@@ -210,7 +219,29 @@ class BackgroundSimulation:
 
     # ───────────────────────────── lookups ─────────────────────────────────
 
-    def _find_consumable(self, p, tags):
+    #: Spatial relations a forager can reach *through*. An area holds things in,
+    #: on, under, behind, beside or at it, and an item can hold the same ways —
+    #: berries in a bush, bread on a table, a pouch beside a log.
+    REACHABLE_RELATIONS = ("in", "on", "under", "behind", "beside", "at")
+
+    def _spatial_items(self, container_id):
+        """Items *container_id* holds by any spatial relation."""
+        graph = self.gs.graph
+        for rel in self.REACHABLE_RELATIONS:
+            for edge in graph.get_edges_for_target(container_id, rel):
+                node = graph.get_node(edge.source)
+                if node is not None and node.type == "item":
+                    yield node
+
+    def _find_consumable(self, p, tags, depth=1, verb=None):
+        """Nearest edible thing the character can actually reach.
+
+        Carried first, then anything the area holds by a spatial relation, then
+        ONE level into what those hold. Before this it only looked at items with
+        an ``in`` edge to the area, so food in a container — berries on a bush, a
+        larder, a basket — was invisible and the background tier could starve
+        beside a full store.
+        """
         graph = self.gs.graph
         player_id = self.gs._player_node_id(p.name)
         area_id = (self.gs.area_node_id(p.current_area)
@@ -219,28 +250,40 @@ class BackgroundSimulation:
         for e in graph.edges:
             if e.type == EDGE_CARRYING and e.target == player_id:
                 node = graph.get_node(e.source)
-                if node and self._is_consumable(node, tags):
+                if node and self._is_consumable(node, tags, verb):
                     return node
-        if area_id:
-            for e in graph.edges:
-                if e.type == EDGE_IN and e.target == area_id:
-                    node = graph.get_node(e.source)
-                    if node and self._is_consumable(node, tags):
+        if not area_id:
+            return None
+        for node in self._spatial_items(area_id):
+            if self._is_consumable(node, tags, verb):
+                return node
+        if depth > 0:
+            for holder in self._spatial_items(area_id):
+                for node in self._spatial_items(holder.id):
+                    if self._is_consumable(node, tags, verb):
                         return node
         return None
 
-    def _is_consumable(self, node, tags):
+    def _is_consumable(self, node, tags, verb=None):
+        """Can this node satisfy the search?
+
+        The tag branch is inherently intent-specific (FOOD_TAGS vs DRINK_TAGS).
+        The action branch must be too: it used to accept an item carrying EITHER
+        an `eat` or a `drink` action, so a hungry character would eat a water
+        skin and Hunger was satisfied.
+        """
         props = node.properties or {}
         if props.get("current_state") == "hidden":
             return False
         node_tags = {str(t).lower() for t in (props.get("tags", []) or [])}
         if set(tags) & node_tags:
             return True
+        if not verb:
+            return False
         actions = props.get("actions", [])
         if isinstance(actions, str):
             actions = [a.strip() for a in actions.split(",")]
-        verbs = {str(a).lower() for a in (actions or [])}
-        return bool(verbs & {"eat", "drink"})
+        return verb in {str(a).lower() for a in (actions or [])}
 
     # ── navigation ────────────────────────────────────────────────────────
     # Way edges in the scenario reference sanitized area ids (e.g.
@@ -275,7 +318,7 @@ class BackgroundSimulation:
             return node.id
         return self._norm_area_table().get(self._norm(area_id_or_name))
 
-    def _target_step(self, p, tags):
+    def _target_step(self, p, tags, verb=None):
         """Nearest area holding ``tags`` reachable from the character's area.
 
         Returns ``(area_name, exit_label)`` or None. BFS walks the engine's own
@@ -283,7 +326,7 @@ class BackgroundSimulation:
         connect), which guarantees the returned label is one
         ``movement.move_to_area`` will accept.
         """
-        areas = self._areas_with(tags)
+        areas = self._areas_with(tags, verb)
         start = p.current_area
         if not start or not areas:
             return None
@@ -315,28 +358,33 @@ class BackgroundSimulation:
         ntags = {str(t).lower() for t in (node.properties.get("tags", []) or [])}
         return "water" in ntags
 
-    def _areas_with(self, tags):
-        key = tuple(tags)
+    def _areas_with(self, tags, verb=None):
+        """Areas from which the character could satisfy this need.
+
+        Reaches into containers exactly like `_find_consumable` does: a berry on
+        a bush makes the forest a food area, otherwise nobody would ever travel
+        to where the renewed supply actually is.
+        """
+        key = (tuple(tags), verb)
         if key in self._areas_cache:
             return self._areas_cache[key]
         areas = set()
-        graph = self.gs.graph
         want = {str(t).lower() for t in tags}
-        for node in graph.nodes.values():
+        for node in self.gs.graph.nodes.values():
             if node.type != "area":
                 continue
             # an area can itself be the resource (water sources, larders)
             ntags = {str(t).lower() for t in (node.properties.get("tags", []) or [])}
             if want & ntags:
                 areas.add(node.name)
-        for e in graph.edges:
-            if e.type != EDGE_IN:
                 continue
-            tgt = graph.get_node(e.target)
-            if not tgt or tgt.type != "area":
-                continue
-            src = graph.get_node(e.source)
-            if src and self._is_consumable(src, tags):
-                areas.add(tgt.name)
+            for held in self._spatial_items(node.id):
+                if self._is_consumable(held, tags, verb):
+                    areas.add(node.name)
+                    break
+                if any(self._is_consumable(inner, tags, verb)
+                       for inner in self._spatial_items(held.id)):
+                    areas.add(node.name)
+                    break
         self._areas_cache[key] = areas
         return areas

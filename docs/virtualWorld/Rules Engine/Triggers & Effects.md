@@ -81,7 +81,7 @@ list from `static/js/shared/trigger-types.js` (single source of truth for the UI
 | `spawn_item` | Creates an item node in the current room; optional `current_state` param overrides the library item's spawn state (e.g. spawn a pre-lit ember) | `handle_spawn_item` |
 | `spawn_character` | Spawns a character from a library entry into a target area (ambushes, arrivals) | `handle_spawn_character` |
 | `add_tag` / `remove_tag` | Adds/removes a tag on a target node (pairs with `target_tag`-based effects) | handlers |
-| `set_parameter` / `adjust_parameter` | Set or increment a named parameter on a node (`params` system, task-203) | parameter handlers |
+| `set_parameter` / `adjust_parameter` | Set or increment a named parameter on a node (`params` system, task-203). `adjust_parameter` accepts `per: "minute"` to scale the delta by the tick's game-time length — without it, a gauge on an `on_tick` trigger counts ticks, so a plant growing `+1` matures in 100 minutes in a one-minute world and 25 hours in a fifteen-minute one. | parameter handlers |
 | `surface_memory` | Forces memories matching a tag/keyword back into a character's recall block | memory handler |
 | `suppress_memory` | Blocks recall of matching memories (curses, trauma) | memory handler |
 | `unblock_memory` | Lifts a `suppress_memory` block | memory handler |

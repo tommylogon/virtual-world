@@ -107,9 +107,14 @@ def _materialize_trigger_nodes(graph, node_id, trigger_data):
     ))
 
 
-def _spawn_library_item_node(app, item_id, lib_item, container_id=None):
+def _spawn_library_item_node(app, item_id, lib_item, container_id=None, node_id=None):
     item_name = lib_item.get('name', item_id)
-    node_id = f"item_{item_name}_{int(time.time()*1000)}_{random.randint(0, 999)}".lower()
+    if not node_id:
+        # Generated ids embed the display name (lowercased, spaces included) plus
+        # a timestamp and random suffix, so they are neither stable nor
+        # re-derivable. Authored placement (tools/add_renewable_sources.py)
+        # passes its own deterministic id instead.
+        node_id = f"item_{item_name}_{int(time.time()*1000)}_{random.randint(0, 999)}".lower()
     props = {
         "description": lib_item.get('description', ''),
         "actions": normalize_item_actions(lib_item.get('actions', 'examine,take,use')),
@@ -134,6 +139,10 @@ def _spawn_library_item_node(app, item_id, lib_item, container_id=None):
         "resistances": lib_item.get('resistances', {}),
         "image": lib_item.get('image') or None,
     }
+    # Gauges (task-410: a plant's `growth` counter). Without this the counter is
+    # dropped at placement, so the item's own triggers can never see it.
+    if lib_item.get('parameters'):
+        props["parameters"] = dict(lib_item['parameters'])
     graph = app.world.graph
     node = Node(id=node_id, type='item', name=item_name, properties=props)
     graph.add_node(node)

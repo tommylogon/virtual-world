@@ -10077,6 +10077,526 @@
         },
         "created": 1789781679.8468356,
         "updated": 1789922611.815246
+      },
+      "bush_of_berries_deep_forest_1": {
+        "id": "bush_of_berries_deep_forest_1",
+        "type": "item",
+        "name": "Frost-Crusted Berry Bush",
+        "properties": {
+          "description": "A thorny bush brimming with ripe berries. It regrows if you leave it alone, and its fruit can be picked and eaten.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 2.0,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "vegetation",
+            "plant",
+            "forage"
+          ],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "bush_of_berries",
+          "defense": 0,
+          "damage": 0,
+          "insulation": 0,
+          "resistances": {},
+          "image": null,
+          "parameters": {
+            "growth": 0
+          }
+        },
+        "created": 1789987932.3303483,
+        "updated": 1789987932.3303487
+      },
+      "trigger_bush_of_berries_deep_forest_1_on_tick_1789987932330_989": {
+        "id": "trigger_bush_of_berries_deep_forest_1_on_tick_1789987932330_989",
+        "type": "logic_trigger",
+        "name": "on_tick → adjust_parameter",
+        "properties": {
+          "trigger_type": "on_tick",
+          "target_name": "",
+          "effect_type": "adjust_parameter",
+          "effect_params": {
+            "key": "growth",
+            "delta": 1,
+            "per": "minute"
+          },
+          "condition": {
+            "type": "parameter_reached",
+            "key": "growth",
+            "value": 100,
+            "op": "lt"
+          }
+        },
+        "created": 1789987932.3304303,
+        "updated": 1789987932.3304307
+      },
+      "trigger_bush_of_berries_deep_forest_1_on_tick_1789987932330_679": {
+        "id": "trigger_bush_of_berries_deep_forest_1_on_tick_1789987932330_679",
+        "type": "logic_trigger",
+        "name": "on_tick → spawn_item",
+        "properties": {
+          "trigger_type": "on_tick",
+          "target_name": "",
+          "effects": [
+            {
+              "type": "spawn_item",
+              "params": {
+                "item_id": "berries",
+                "into": "container",
+                "message": "Ripe berries cluster on the bush."
+              }
+            },
+            {
+              "type": "set_parameter",
+              "params": {
+                "key": "growth",
+                "value": 0
+              }
+            }
+          ],
+          "conditions": [
+            {
+              "type": "parameter_reached",
+              "key": "growth",
+              "value": 100
+            },
+            {
+              "type": "contains_count",
+              "value": 10,
+              "op": "lt",
+              "target": "berries"
+            }
+          ]
+        },
+        "created": 1789987932.3304687,
+        "updated": 1789987932.330469
+      },
+      "bush_of_berries_deep_forest_2": {
+        "id": "bush_of_berries_deep_forest_2",
+        "type": "item",
+        "name": "Frost-Crusted Berry Bush",
+        "properties": {
+          "description": "A thorny bush brimming with ripe berries. It regrows if you leave it alone, and its fruit can be picked and eaten.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 2.0,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "vegetation",
+            "plant",
+            "forage"
+          ],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "bush_of_berries",
+          "defense": 0,
+          "damage": 0,
+          "insulation": 0,
+          "resistances": {},
+          "image": null,
+          "parameters": {
+            "growth": 0
+          }
+        },
+        "created": 1789987932.3328717,
+        "updated": 1789987932.3328722
+      },
+      "trigger_bush_of_berries_deep_forest_2_on_tick_1789987932332_791": {
+        "id": "trigger_bush_of_berries_deep_forest_2_on_tick_1789987932332_791",
+        "type": "logic_trigger",
+        "name": "on_tick → adjust_parameter",
+        "properties": {
+          "trigger_type": "on_tick",
+          "target_name": "",
+          "effect_type": "adjust_parameter",
+          "effect_params": {
+            "key": "growth",
+            "delta": 1,
+            "per": "minute"
+          },
+          "condition": {
+            "type": "parameter_reached",
+            "key": "growth",
+            "value": 100,
+            "op": "lt"
+          }
+        },
+        "created": 1789987932.3329382,
+        "updated": 1789987932.3329384
+      },
+      "trigger_bush_of_berries_deep_forest_2_on_tick_1789987932332_806": {
+        "id": "trigger_bush_of_berries_deep_forest_2_on_tick_1789987932332_806",
+        "type": "logic_trigger",
+        "name": "on_tick → spawn_item",
+        "properties": {
+          "trigger_type": "on_tick",
+          "target_name": "",
+          "effects": [
+            {
+              "type": "spawn_item",
+              "params": {
+                "item_id": "berries",
+                "into": "container",
+                "message": "Ripe berries cluster on the bush."
+              }
+            },
+            {
+              "type": "set_parameter",
+              "params": {
+                "key": "growth",
+                "value": 0
+              }
+            }
+          ],
+          "conditions": [
+            {
+              "type": "parameter_reached",
+              "key": "growth",
+              "value": 100
+            },
+            {
+              "type": "contains_count",
+              "value": 10,
+              "op": "lt",
+              "target": "berries"
+            }
+          ]
+        },
+        "created": 1789987932.3329632,
+        "updated": 1789987932.3329632
+      },
+      "bush_of_berries_deep_forest_3": {
+        "id": "bush_of_berries_deep_forest_3",
+        "type": "item",
+        "name": "Frost-Crusted Berry Bush",
+        "properties": {
+          "description": "A thorny bush brimming with ripe berries. It regrows if you leave it alone, and its fruit can be picked and eaten.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 2.0,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "vegetation",
+            "plant",
+            "forage"
+          ],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "bush_of_berries",
+          "defense": 0,
+          "damage": 0,
+          "insulation": 0,
+          "resistances": {},
+          "image": null,
+          "parameters": {
+            "growth": 0
+          }
+        },
+        "created": 1789987932.3341832,
+        "updated": 1789987932.334184
+      },
+      "trigger_bush_of_berries_deep_forest_3_on_tick_1789987932334_400": {
+        "id": "trigger_bush_of_berries_deep_forest_3_on_tick_1789987932334_400",
+        "type": "logic_trigger",
+        "name": "on_tick → adjust_parameter",
+        "properties": {
+          "trigger_type": "on_tick",
+          "target_name": "",
+          "effect_type": "adjust_parameter",
+          "effect_params": {
+            "key": "growth",
+            "delta": 1,
+            "per": "minute"
+          },
+          "condition": {
+            "type": "parameter_reached",
+            "key": "growth",
+            "value": 100,
+            "op": "lt"
+          }
+        },
+        "created": 1789987932.3342917,
+        "updated": 1789987932.3342917
+      },
+      "trigger_bush_of_berries_deep_forest_3_on_tick_1789987932334_148": {
+        "id": "trigger_bush_of_berries_deep_forest_3_on_tick_1789987932334_148",
+        "type": "logic_trigger",
+        "name": "on_tick → spawn_item",
+        "properties": {
+          "trigger_type": "on_tick",
+          "target_name": "",
+          "effects": [
+            {
+              "type": "spawn_item",
+              "params": {
+                "item_id": "berries",
+                "into": "container",
+                "message": "Ripe berries cluster on the bush."
+              }
+            },
+            {
+              "type": "set_parameter",
+              "params": {
+                "key": "growth",
+                "value": 0
+              }
+            }
+          ],
+          "conditions": [
+            {
+              "type": "parameter_reached",
+              "key": "growth",
+              "value": 100
+            },
+            {
+              "type": "contains_count",
+              "value": 10,
+              "op": "lt",
+              "target": "berries"
+            }
+          ]
+        },
+        "created": 1789987932.334312,
+        "updated": 1789987932.3343122
+      },
+      "bush_of_berries_water_source_1": {
+        "id": "bush_of_berries_water_source_1",
+        "type": "item",
+        "name": "Frost-Crusted Berry Bush",
+        "properties": {
+          "description": "A thorny bush brimming with ripe berries. It regrows if you leave it alone, and its fruit can be picked and eaten.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 2.0,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "vegetation",
+            "plant",
+            "forage"
+          ],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "bush_of_berries",
+          "defense": 0,
+          "damage": 0,
+          "insulation": 0,
+          "resistances": {},
+          "image": null,
+          "parameters": {
+            "growth": 0
+          }
+        },
+        "created": 1789987933.0349898,
+        "updated": 1789987933.0349903
+      },
+      "trigger_bush_of_berries_water_source_1_on_tick_1789987933035_702": {
+        "id": "trigger_bush_of_berries_water_source_1_on_tick_1789987933035_702",
+        "type": "logic_trigger",
+        "name": "on_tick → adjust_parameter",
+        "properties": {
+          "trigger_type": "on_tick",
+          "target_name": "",
+          "effect_type": "adjust_parameter",
+          "effect_params": {
+            "key": "growth",
+            "delta": 1,
+            "per": "minute"
+          },
+          "condition": {
+            "type": "parameter_reached",
+            "key": "growth",
+            "value": 100,
+            "op": "lt"
+          }
+        },
+        "created": 1789987933.035164,
+        "updated": 1789987933.0351646
+      },
+      "trigger_bush_of_berries_water_source_1_on_tick_1789987933035_405": {
+        "id": "trigger_bush_of_berries_water_source_1_on_tick_1789987933035_405",
+        "type": "logic_trigger",
+        "name": "on_tick → spawn_item",
+        "properties": {
+          "trigger_type": "on_tick",
+          "target_name": "",
+          "effects": [
+            {
+              "type": "spawn_item",
+              "params": {
+                "item_id": "berries",
+                "into": "container",
+                "message": "Ripe berries cluster on the bush."
+              }
+            },
+            {
+              "type": "set_parameter",
+              "params": {
+                "key": "growth",
+                "value": 0
+              }
+            }
+          ],
+          "conditions": [
+            {
+              "type": "parameter_reached",
+              "key": "growth",
+              "value": 100
+            },
+            {
+              "type": "contains_count",
+              "value": 10,
+              "op": "lt",
+              "target": "berries"
+            }
+          ]
+        },
+        "created": 1789987933.0352106,
+        "updated": 1789987933.0352108
+      },
+      "bush_of_berries_camp_entrance_trail_1": {
+        "id": "bush_of_berries_camp_entrance_trail_1",
+        "type": "item",
+        "name": "Frost-Crusted Berry Bush",
+        "properties": {
+          "description": "A thorny bush brimming with ripe berries. It regrows if you leave it alone, and its fruit can be picked and eaten.",
+          "actions": [
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 2.0,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "vegetation",
+            "plant",
+            "forage"
+          ],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "bush_of_berries",
+          "defense": 0,
+          "damage": 0,
+          "insulation": 0,
+          "resistances": {},
+          "image": null,
+          "parameters": {
+            "growth": 0
+          }
+        },
+        "created": 1789987933.590791,
+        "updated": 1789987933.5907917
+      },
+      "trigger_bush_of_berries_camp_entrance_trail_1_on_tick_1789987933590_750": {
+        "id": "trigger_bush_of_berries_camp_entrance_trail_1_on_tick_1789987933590_750",
+        "type": "logic_trigger",
+        "name": "on_tick → adjust_parameter",
+        "properties": {
+          "trigger_type": "on_tick",
+          "target_name": "",
+          "effect_type": "adjust_parameter",
+          "effect_params": {
+            "key": "growth",
+            "delta": 1,
+            "per": "minute"
+          },
+          "condition": {
+            "type": "parameter_reached",
+            "key": "growth",
+            "value": 100,
+            "op": "lt"
+          }
+        },
+        "created": 1789987933.5908532,
+        "updated": 1789987933.5908535
+      },
+      "trigger_bush_of_berries_camp_entrance_trail_1_on_tick_1789987933590_625": {
+        "id": "trigger_bush_of_berries_camp_entrance_trail_1_on_tick_1789987933590_625",
+        "type": "logic_trigger",
+        "name": "on_tick → spawn_item",
+        "properties": {
+          "trigger_type": "on_tick",
+          "target_name": "",
+          "effects": [
+            {
+              "type": "spawn_item",
+              "params": {
+                "item_id": "berries",
+                "into": "container",
+                "message": "Ripe berries cluster on the bush."
+              }
+            },
+            {
+              "type": "set_parameter",
+              "params": {
+                "key": "growth",
+                "value": 0
+              }
+            }
+          ],
+          "conditions": [
+            {
+              "type": "parameter_reached",
+              "key": "growth",
+              "value": 100
+            },
+            {
+              "type": "contains_count",
+              "value": 10,
+              "op": "lt",
+              "target": "berries"
+            }
+          ]
+        },
+        "created": 1789987933.5908785,
+        "updated": 1789987933.5908787
       }
     },
     "edges": [
@@ -11627,6 +12147,336 @@
         "target": "area_camp_entrance_trail",
         "type": "in",
         "properties": {}
+      },
+      {
+        "source": "bush_of_berries_deep_forest_1",
+        "target": "area_deep_forest",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "bush_of_berries_deep_forest_1",
+        "target": "trigger_bush_of_berries_deep_forest_1_on_tick_1789987932330_989",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_tick",
+          "target_name": "",
+          "effect_type": "adjust_parameter",
+          "effect_params": {
+            "key": "growth",
+            "delta": 1,
+            "per": "minute"
+          },
+          "condition": {
+            "type": "parameter_reached",
+            "key": "growth",
+            "value": 100,
+            "op": "lt"
+          }
+        }
+      },
+      {
+        "source": "bush_of_berries_deep_forest_1",
+        "target": "trigger_bush_of_berries_deep_forest_1_on_tick_1789987932330_679",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_tick",
+          "target_name": "",
+          "effects": [
+            {
+              "type": "spawn_item",
+              "params": {
+                "item_id": "berries",
+                "into": "container",
+                "message": "Ripe berries cluster on the bush."
+              }
+            },
+            {
+              "type": "set_parameter",
+              "params": {
+                "key": "growth",
+                "value": 0
+              }
+            }
+          ],
+          "conditions": [
+            {
+              "type": "parameter_reached",
+              "key": "growth",
+              "value": 100
+            },
+            {
+              "type": "contains_count",
+              "value": 10,
+              "op": "lt",
+              "target": "berries"
+            }
+          ]
+        }
+      },
+      {
+        "source": "bush_of_berries_deep_forest_2",
+        "target": "area_deep_forest",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "bush_of_berries_deep_forest_2",
+        "target": "trigger_bush_of_berries_deep_forest_2_on_tick_1789987932332_791",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_tick",
+          "target_name": "",
+          "effect_type": "adjust_parameter",
+          "effect_params": {
+            "key": "growth",
+            "delta": 1,
+            "per": "minute"
+          },
+          "condition": {
+            "type": "parameter_reached",
+            "key": "growth",
+            "value": 100,
+            "op": "lt"
+          }
+        }
+      },
+      {
+        "source": "bush_of_berries_deep_forest_2",
+        "target": "trigger_bush_of_berries_deep_forest_2_on_tick_1789987932332_806",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_tick",
+          "target_name": "",
+          "effects": [
+            {
+              "type": "spawn_item",
+              "params": {
+                "item_id": "berries",
+                "into": "container",
+                "message": "Ripe berries cluster on the bush."
+              }
+            },
+            {
+              "type": "set_parameter",
+              "params": {
+                "key": "growth",
+                "value": 0
+              }
+            }
+          ],
+          "conditions": [
+            {
+              "type": "parameter_reached",
+              "key": "growth",
+              "value": 100
+            },
+            {
+              "type": "contains_count",
+              "value": 10,
+              "op": "lt",
+              "target": "berries"
+            }
+          ]
+        }
+      },
+      {
+        "source": "bush_of_berries_deep_forest_3",
+        "target": "area_deep_forest",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "bush_of_berries_deep_forest_3",
+        "target": "trigger_bush_of_berries_deep_forest_3_on_tick_1789987932334_400",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_tick",
+          "target_name": "",
+          "effect_type": "adjust_parameter",
+          "effect_params": {
+            "key": "growth",
+            "delta": 1,
+            "per": "minute"
+          },
+          "condition": {
+            "type": "parameter_reached",
+            "key": "growth",
+            "value": 100,
+            "op": "lt"
+          }
+        }
+      },
+      {
+        "source": "bush_of_berries_deep_forest_3",
+        "target": "trigger_bush_of_berries_deep_forest_3_on_tick_1789987932334_148",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_tick",
+          "target_name": "",
+          "effects": [
+            {
+              "type": "spawn_item",
+              "params": {
+                "item_id": "berries",
+                "into": "container",
+                "message": "Ripe berries cluster on the bush."
+              }
+            },
+            {
+              "type": "set_parameter",
+              "params": {
+                "key": "growth",
+                "value": 0
+              }
+            }
+          ],
+          "conditions": [
+            {
+              "type": "parameter_reached",
+              "key": "growth",
+              "value": 100
+            },
+            {
+              "type": "contains_count",
+              "value": 10,
+              "op": "lt",
+              "target": "berries"
+            }
+          ]
+        }
+      },
+      {
+        "source": "bush_of_berries_water_source_1",
+        "target": "area_water_source",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "bush_of_berries_water_source_1",
+        "target": "trigger_bush_of_berries_water_source_1_on_tick_1789987933035_702",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_tick",
+          "target_name": "",
+          "effect_type": "adjust_parameter",
+          "effect_params": {
+            "key": "growth",
+            "delta": 1,
+            "per": "minute"
+          },
+          "condition": {
+            "type": "parameter_reached",
+            "key": "growth",
+            "value": 100,
+            "op": "lt"
+          }
+        }
+      },
+      {
+        "source": "bush_of_berries_water_source_1",
+        "target": "trigger_bush_of_berries_water_source_1_on_tick_1789987933035_405",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_tick",
+          "target_name": "",
+          "effects": [
+            {
+              "type": "spawn_item",
+              "params": {
+                "item_id": "berries",
+                "into": "container",
+                "message": "Ripe berries cluster on the bush."
+              }
+            },
+            {
+              "type": "set_parameter",
+              "params": {
+                "key": "growth",
+                "value": 0
+              }
+            }
+          ],
+          "conditions": [
+            {
+              "type": "parameter_reached",
+              "key": "growth",
+              "value": 100
+            },
+            {
+              "type": "contains_count",
+              "value": 10,
+              "op": "lt",
+              "target": "berries"
+            }
+          ]
+        }
+      },
+      {
+        "source": "bush_of_berries_camp_entrance_trail_1",
+        "target": "area_camp_entrance_trail",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "bush_of_berries_camp_entrance_trail_1",
+        "target": "trigger_bush_of_berries_camp_entrance_trail_1_on_tick_1789987933590_750",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_tick",
+          "target_name": "",
+          "effect_type": "adjust_parameter",
+          "effect_params": {
+            "key": "growth",
+            "delta": 1,
+            "per": "minute"
+          },
+          "condition": {
+            "type": "parameter_reached",
+            "key": "growth",
+            "value": 100,
+            "op": "lt"
+          }
+        }
+      },
+      {
+        "source": "bush_of_berries_camp_entrance_trail_1",
+        "target": "trigger_bush_of_berries_camp_entrance_trail_1_on_tick_1789987933590_625",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_tick",
+          "target_name": "",
+          "effects": [
+            {
+              "type": "spawn_item",
+              "params": {
+                "item_id": "berries",
+                "into": "container",
+                "message": "Ripe berries cluster on the bush."
+              }
+            },
+            {
+              "type": "set_parameter",
+              "params": {
+                "key": "growth",
+                "value": 0
+              }
+            }
+          ],
+          "conditions": [
+            {
+              "type": "parameter_reached",
+              "key": "growth",
+              "value": 100
+            },
+            {
+              "type": "contains_count",
+              "value": 10,
+              "op": "lt",
+              "target": "berries"
+            }
+          ]
+        }
       }
     ]
   },
@@ -11634,7 +12484,7 @@
   "narration_mode": "none",
   "ghost_mode": false,
   "mature_content": true,
-  "_scenario_name": "",
+  "_scenario_name": "kraktooth_goblin_camp",
   "world_lore": [
     {
       "category": "world",

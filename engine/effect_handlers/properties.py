@@ -2,6 +2,8 @@
 
 import time
 
+from vital_rates import tick_minutes
+
 
 def handle_set_parameter(self, params, context, item_node=None, target_item_node=None, game_state=None):
     """Set a key in a target node's ``parameters`` dict to an explicit value.
@@ -51,6 +53,12 @@ def handle_adjust_parameter(self, params, context, item_node=None, target_item_n
     except (ValueError, TypeError):
         current = 0
     delta = int(params.get("delta", 0))
+    # `per: "minute"` scales the step by the tick's game-time length, so a gauge
+    # on an `on_tick` trigger measures GAME TIME rather than ticks. Without it a
+    # plant growing +1/tick matures in 100 minutes in a one-minute world and in
+    # 25 hours in a fifteen-minute one.
+    if str(params.get("per", "")).lower() == "minute":
+        delta = int(round(delta * tick_minutes(game_state)))
     params_dict[key] = current + delta
     target_node.updated = time.time()
     message = params.get(
