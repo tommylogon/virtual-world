@@ -417,7 +417,10 @@ CONDITION_DEFINITIONS = {
         "auto_fail_checks": [], "auto_fail_saves": [],
         "attack_mod": -2, "defense_mod": -2, "speed_mult": 1.0,
         "movement_mode": None, "drops_held_items": False,
-        "periodic": {"Sanity": -1}, "ends_on": ["socialize", "comfort"],
+        # No Sanity drain: it used to be -1/min against a 0.005/min baseline —
+        # 200x, and a condition that drains the meter causing it can only
+        # maintain itself. The behavioural penalty is the cost.
+        "periodic": {}, "ends_on": ["socialize", "comfort"],
         "known": False, "symptoms": {
             5: "You talk to yourself without meaning to.",
             3: "You'd say anything to have company right now.",
@@ -453,7 +456,11 @@ CONDITION_DEFINITIONS = {
         "auto_fail_saves": [],
         "attack_mod": 2, "defense_mod": -3, "speed_mult": 1.0,
         "movement_mode": None, "drops_held_items": False,
-        "periodic": {"Sanity": -2}, "ends_on": ["comfort", "rest", "meditate"],
+        # No Sanity drain, for the same reason as social_breakdown: -2/min was
+        # 400x the baseline and -2880/day, so a character who reached this could
+        # never climb back out however well they lived. Low Sanity *causes* the
+        # condition; the condition must not then hold Sanity down.
+        "periodic": {}, "ends_on": ["comfort", "rest", "meditate"],
         "known": True, "symptoms": {
             5: "A voice whispers from the corner of the room — no one else seems to hear it.",
             3: "The person standing in front of you isn't the person you remember.",

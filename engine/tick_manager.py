@@ -31,6 +31,8 @@ from vital_rates import (
     SANITY_PENALTY_SOCIAL_VERY_LOW,
     SANITY_PENALTY_ENT_LOW,
     SANITY_PENALTY_ENT_VERY_LOW,
+    SANITY_COMPANY_GAIN,
+    SANITY_COMPANY_MIN_SOCIAL,
     LEGACY_PER_TICK,
 )
 
@@ -576,6 +578,12 @@ class TickManager:
                         sanity_penalty += SANITY_PENALTY_ENT_LOW
                     if sanity_penalty > 0:
                         self._decay(p, "Sanity", -sanity_penalty)
+                    elif social >= SANITY_COMPANY_MIN_SOCIAL and others_here:
+                        # The mirror of the penalty above (task-432): being
+                        # connected steadies the mind. Sanity had drains from five
+                        # places and no source at all, so every character went mad
+                        # on a fixed schedule.
+                        self._decay(p, "Sanity", SANITY_COMPANY_GAIN * social_mult)
                     # task-353 §5 (sanity branch): low Sanity is NOT a death
                     # sentence — it never drains HP. It makes the character
                     # more dangerous instead: paranoid → attack first,

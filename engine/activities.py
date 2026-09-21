@@ -45,8 +45,16 @@ ACTIVITY_CONDITIONS: Dict[str, Optional[str]] = {
 #: cleans fast. Whole units land via the fractional accumulator, so
 #: short activities may show no change for a few ticks.
 ACTIVITY_REGEN: Dict[str, Dict[str, float]] = {
-    "sleeping": {"Energy": 0},      # handled by tick_manager (SLEEP_ENERGY_REGEN)
-    "resting": {"Energy": 0.15},    # net ~+0.05/min vs baseline drain
+    # Sleep is the primary Sanity source (task-432). The rate is sized against
+    # what Sanity actually loses in a camp: 7.2/day passive plus the dark-room
+    # penalty (the goblin camp is a cave, `ENV_DARK_SANITY` is up to 28.8/day), so
+    # roughly 20/day of inflow. A night is ~8h, and 0.025/min over 480 minutes is
+    # ~12 — enough that a character who sleeps holds steady or recovers slowly,
+    # and one kept awake slides. Nothing used to restore Sanity at all, so every
+    # character went mad on a fixed schedule; the first attempt at 0.10/min
+    # overshot and pegged the whole camp at 100 within a week.
+    "sleeping": {"Sanity": 0.025},  # Energy handled by tick_manager (SLEEP_ENERGY_REGEN)
+    "resting": {"Energy": 0.15, "Sanity": 0.05},  # net ~+0.05/min Energy vs baseline drain
     "waiting": {},
     "meditating": {"Sanity": 0.05},
     "bathing": {"Hygiene": 1.5},

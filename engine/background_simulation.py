@@ -46,6 +46,12 @@ ENERGY_THRESHOLD = 30     # resource: low = tired
 BLADDER_THRESHOLD = 60    # drive: high = needs to go; well before it maxes at 100
 HYGIENE_THRESHOLD = 40    # resource: low = filthy; go wash
 ENTERTAINMENT_THRESHOLD = 40  # resource: low = bored; go do something
+#: resource: low = unravelling; rest a while. This is the "rest" half of the
+#: task-432 sources — see `_recuperate` for why it is a bounded *rest* rather
+#: than sleep.
+SANITY_THRESHOLD = 40
+#: How long one recuperative rest lasts, in game minutes.
+SANITY_REST_MINUTES = 60
 
 MEAL_RESTORE = 45         # Hunger (drive) reduced by this when eating
 DRINK_RESTORE = 50        # Thirst (drive) reduced by this when drinking
@@ -184,6 +190,13 @@ class BackgroundSimulation:
             if self._travel_toward(p, BATH_TAGS, "hygiene"):
                 return
 
+        # Steadying the mind. Above boredom because a low-Sanity character is a
+        # danger to others rather than merely unhappy, but below every survival
+        # need: nothing here kills you.
+        if v.get("Sanity", 100) <= SANITY_THRESHOLD:
+            if self._recuperate(p):
+                return
+
         # Boredom last: it is the only need here that nothing kills you for
         # ignoring, so it must never outrank food, water, sleep or relief.
         if v.get("Entertainment", 100) <= ENTERTAINMENT_THRESHOLD:
@@ -262,6 +275,35 @@ class BackgroundSimulation:
                why="needs:entertainment", area=p.current_area, tags=["need"])
         self.gs.add_log_entry(
             f"[{p.name}] finds some entertainment in the {p.current_area}.")
+        return True
+
+    def _recuperate(self, p):
+        """Rest a while to steady the mind (task-432).
+
+        Sleep is Sanity's main source, but `_tick_sleeping` wakes a character the
+        moment Energy is full — *before* it checks any duration — so sleep cannot
+        help anybody who is not exhausted, and gating Sanity recovery on Energy
+        meant a character whose day costs little Energy never slept and never
+        recovered. Resting is duration-based, so it works at full Energy.
+
+        Deliberately a bounded block: `_act` skips anyone mid-activity, so a
+        sprawling rest would stop them eating and drinking. One hour is enough to
+        matter and short enough to be safe.
+        """
+        if p.activity:
+            return False
+        try:
+            minutes_per_tick = float(getattr(self.gs, "time_per_tick_minutes", 1) or 1)
+        except (TypeError, ValueError):
+            minutes_per_tick = 1.0
+        duration = max(1, int(round(SANITY_REST_MINUTES / max(0.001, minutes_per_tick))))
+        try:
+            self.gs.activities.start_activity(p.name, "resting", duration_ticks=duration)
+        except Exception:
+            return False
+        record(p, self.gs.time_ticks, "act", f"rested in {p.current_area}",
+               why="needs:sanity", area=p.current_area, tags=["need"])
+        self.gs.add_log_entry(f"[{p.name}] stops to steady themselves.")
         return True
 
     def _wash_amount(self, fixture, default=BATH_HYGIENE):

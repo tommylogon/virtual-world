@@ -87,6 +87,15 @@ SLEEP_ENERGY_REGEN = 0.30      # net ~+0.20/min after baseline Energy drain
 SOCIAL_COMPANY_GAIN = 0.020
 SOCIAL_ALONE_DRAIN = 0.020     # extra beyond baseline while alone
 SOCIAL_ISOLATION_EXTRA = 0.020  # after 5 consecutive alone-ticks
+
+# ── Sanity sources ──────────────────────────────────────────────────────
+# Sanity used to have none: five drains and no inflow, so an authored 65-90 ran
+# out on a fixed schedule and *every* character in a camp ended a week
+# hallucinating. Sleep is the primary source (see ACTIVITY_REGEN), this is the
+# social half — the mirror of SANITY_PENALTY_SOCIAL_LOW, so being connected
+# steadies a character and isolation unsteadies them.
+SANITY_COMPANY_GAIN = 0.004    # per minute while Social is healthy
+SANITY_COMPANY_MIN_SOCIAL = 70  # the Social level above which company steadies you
 SANITY_PENALTY_SOCIAL_LOW = 0.005
 SANITY_PENALTY_SOCIAL_VERY_LOW = 0.010
 SANITY_PENALTY_ENT_LOW = 0.005
