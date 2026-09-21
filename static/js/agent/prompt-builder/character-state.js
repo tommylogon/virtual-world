@@ -84,9 +84,8 @@ window.PromptBuilder = window.PromptBuilder || {};
         if (!player?.relationships || !otherName) return '';
         const relationshipObj = player.relationships[otherName];
         if (!relationshipObj || relationshipObj.closeness === undefined) return '';
-        // N5: near-zero closeness is not a relationship worth labeling —
-        // "a neutral" rendered as garbage; silence reads better ("the woman",
-        // no label). The behavioral guidance line still applies separately.
+        const label = (relationshipObj.label || '').trim();
+        if (label) return withArticle(label);
         if (Math.abs(relationshipObj.closeness) <= 10) return '';
         return withArticle(relationshipTypeName(relationshipObj.closeness));
     }
@@ -115,6 +114,10 @@ window.PromptBuilder = window.PromptBuilder || {};
                 const read = relationshipObj.summary;
                 const sign = (relationshipObj.consent !== undefined && relationshipObj.consent <= -0.3) ? ' (you would pull away)' : (relationshipObj.consent >= 0.3 ? ' (you would let them close)' : '');
                 return `${charName} reads ${anon} as ${relationshipObj.role}: ${read}${sign}`;
+            }
+            const label = (relationshipObj.label || '').trim();
+            if (label) {
+                return `${charName} considers ${anon} their ${label} (${closeness}/100) — ${relationshipGuidance(closeness)}`;
             }
             // task-94: closeness gates behavior, not just decoration — each
             // tier carries a short directive for how to act toward them.

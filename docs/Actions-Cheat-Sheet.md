@@ -142,6 +142,8 @@ Complete reference for every action verb in VirtualWorld.
 | `bribe` | — | ❌ | No `social.*` verb |
 | `follow` | `lead`, `accompany` | ❌ | No `social.follow` verb |
 | `trade` | `barter`, `swap` | ⚠️ | Alias for `give` |
+| `name` | — | ✅ | Set a personal alias on a character or item |
+| `label` | — | ✅ | Set a relationship label for a person |
 
 ---
 
@@ -220,7 +222,7 @@ Complete reference for every action verb in VirtualWorld.
 | `inventory` | `inv`, `i` | ✅ | `get_inventory` |
 | `find` | — | ✅ | Alias/helper for search |
 | `split` | — | ✅ | `crafting.split_item` |
-
+| `guess time` | — | ✅ | Survival check vs weather-based DC; reveals moon phase at night |
 ---
 
 ## 16. System / Info

@@ -151,6 +151,12 @@ def get_autocomplete_options(vw, verb: str, prefix: str = "", character_name: st
         for cname in area_chars:
             _add(cname)
 
+    elif verb in ('name', 'label'):
+        for cname in area_chars:
+            _add(cname)
+        for item in room_items + carried_items:
+            _add(item.properties.get('name') or item.id)
+
     elif verb in ('go', 'walk', 'move', 'enter'):
         for way in room_ways:
             _add(way.properties.get('name') or way.id)

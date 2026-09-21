@@ -467,6 +467,74 @@ def handle_take_action(app):
                     )
                 world._add_entertainment_gain(5)
 
+        elif cmd.startswith("guess time"):
+            area_id = world._get_current_area_id()
+            if not area_id:
+                add_output("You can't guess the time in an empty void.")
+            else:
+                area_node = world.graph.get_node(area_id)
+                env = (area_node.properties or {}).get("environment", {}) if area_node else {}
+                weather = str(env.get("weather", "clear")).lower()
+
+                weather_dc = {
+                    "clear": 10, "sunny": 10,
+                    "cloudy": 15, "overcast": 15,
+                    "rainy": 18, "stormy": 20,
+                    "foggy": 18, "snowy": 18, "windy": 16
+                }.get(weather, 15)
+
+                skill = "Survival"
+                try:
+                    success, total, message = world.skills.skill_check(skill, weather_dc)
+                except Exception:
+                    success, total, message = False, 0, ""
+
+                hour = world.current_game_hour()
+                minute = int(world.total_game_minutes() % 60)
+                exact_time = f"{hour:02d}:{minute:02d}"
+
+                if total >= weather_dc + 10:
+                    if 5 <= hour < 19:
+                        add_output(f"The sun's position is clear to you. It's {exact_time}.")
+                    else:
+                        add_output(f"The stars and moon give it away. It's {exact_time}.")
+                elif success:
+                    if minute < 15:
+                        add_output(f"It's just after {hour:02d}:00.")
+                    elif minute < 45:
+                        add_output(f"It's around {exact_time}.")
+                    else:
+                        next_hour = (hour + 1) % 24
+                        add_output(f"It's almost {next_hour:02d}:00.")
+                    if hour >= 19 or hour < 5:
+                        try:
+                            moon = world.current_moon_phase()
+                            moon_name = moon.get("name", "")
+                            moon_icon = moon.get("icon", "")
+                            moon_labels = {
+                                "new_moon": "new moon",
+                                "crescent": "waxing crescent",
+                                "quarter": "first quarter",
+                                "gibbous": "waxing gibbous",
+                                "full_moon": "full moon",
+                                "waning": "waning",
+                                "blood_moon": "blood moon"
+                            }
+                            if moon_name and moon_icon:
+                                add_output(f"The moon is {moon_labels.get(moon_name, moon_name)} tonight. {moon_icon}")
+                        except Exception:
+                            pass
+                elif total >= max(1, weather_dc - 5):
+                    if 5 <= hour < 19:
+                        add_output(f"You squint at the sky and guess it's sometime around {exact_time}, but you're not certain.")
+                    else:
+                        add_output(f"You try to read the stars but the darkness confuses you. It's sometime around {exact_time}, maybe.")
+                else:
+                    if 5 <= hour < 19:
+                        add_output("It's daytime, you think. Probably around the middle of the day, but you can't be more specific than that.")
+                    else:
+                        add_output("It's night. Somewhere around the middle of the night, probably. You have no better idea.")
+
         elif cmd.startswith("find"):
             area_id = world._get_current_area_id()
             if not area_id:
@@ -960,6 +1028,104 @@ def handle_take_action(app):
                 if resolved:
                     target = resolved
             add_output(world._grapple_release(world.active_player, target))
+
+        elif cmd.startswith("name "):
+            rest = cmd[5:].strip()
+            alias = None
+            if " as " in rest:
+                target_part, alias = rest.rsplit(" as ", 1)
+            else:
+                parts = rest.rsplit(" ", 1)
+                if len(parts) == 2:
+                    target_part, alias = parts
+                else:
+                    target_part = rest
+                    alias = None
+            if not target_part or not alias:
+                add_output("Usage: name <target> <alias>  (or: name <target> as <alias>)")
+            else:
+                area_id = world._get_current_area_id()
+                if not area_id:
+                    add_output("You can't name things in an empty void.")
+                else:
+                    char_name, _ = world._match_character_name(target_part)
+                    if char_name:
+                        node_id = world._player_node_id(char_name)
+                        node = world.graph.get_node(node_id)
+                        if node:
+                            aliases = node.properties.get("aliases", [])
+                            if isinstance(aliases, str):
+                                aliases = [a.strip() for a in aliases.split(",") if a.strip()]
+                            low_aliases = [a.lower() for a in aliases]
+                            if alias.lower() not in low_aliases:
+                                aliases.append(alias)
+                                node.properties["aliases"] = aliases
+                                add_output(f"You start calling {char_name} '{alias}'.")
+                            else:
+                                add_output(f"{char_name} is already known as '{alias}'.")
+                        else:
+                            add_output("You can't name that.")
+                    else:
+                        item_name = world._match_item_name(target_part)
+                        if item_name:
+                            found = None
+                            for edge in world.graph.get_edges_for_target(area_id, EDGE_IN):
+                                node = world.graph.get_node(edge.source)
+                                if node and node.type == "item" and node.name == item_name:
+                                    found = node
+                                    break
+                            if found is None:
+                                player_id = world._player_node_id(world.active_player)
+                                for edge in world.graph.get_edges_for_target(player_id, 'carrying') + world.graph.get_edges_for_target(player_id, 'equipped'):
+                                    node = world.graph.get_node(edge.source)
+                                    if node and node.type == "item" and node.name == item_name:
+                                        found = node
+                                        break
+                            if found:
+                                aliases = found.properties.get("aliases", [])
+                                if isinstance(aliases, str):
+                                    aliases = [a.strip() for a in aliases.split(",") if a.strip()]
+                                low_aliases = [a.lower() for a in aliases]
+                                if alias.lower() not in low_aliases:
+                                    aliases.append(alias)
+                                    found.properties["aliases"] = aliases
+                                    add_output(f"You start calling the {item_name} '{alias}'.")
+                                else:
+                                    add_output(f"The {item_name} is already known as '{alias}'.")
+                            else:
+                                add_output("You can't name that.")
+                        else:
+                            add_output("You don't see anyone or anything by that name.")
+
+        elif cmd.startswith("label "):
+            rest = cmd[6:].strip()
+            parts = rest.rsplit(" ", 1)
+            if len(parts) != 2:
+                add_output("Usage: label <person> <relationship>")
+            else:
+                person_part, label = parts
+                if not person_part or not label:
+                    add_output("Usage: label <person> <relationship>")
+                else:
+                    area_id = world._get_current_area_id()
+                    if not area_id:
+                        add_output("You can't label relationships in an empty void.")
+                    else:
+                        char_name, _ = world._match_character_name(person_part)
+                        if char_name:
+                            player = world.player_manager.get_active_player_obj()
+                            if char_name not in player.relationships:
+                                player.relationships[char_name] = {
+                                    "closeness": 0,
+                                    "last_interaction_tick": world.time_ticks,
+                                    "interaction_count": 0,
+                                    "label": label
+                                }
+                            else:
+                                player.relationships[char_name]["label"] = label
+                            add_output(f"You now consider {char_name} your {label}.")
+                        else:
+                            add_output("You don't see anyone by that name.")
 
         elif cmd.startswith(("bind ", "enchant ")):
             # task-242: agents author item triggers at runtime.

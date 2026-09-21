@@ -39,6 +39,7 @@ def register_world_lore_routes(app):
             "tick_created": app.world.time_ticks,
             "importance": data.get("importance", 3),
             "tags": data.get("tags", []),
+            "allowed_tags": data.get("allowed_tags", []),
             "source": data.get("source", "manual")
         }
         lore.append(entry)
@@ -52,7 +53,7 @@ def register_world_lore_routes(app):
         lore = getattr(app.world, 'world_lore', [])
         for entry in lore:
             if entry.get("id") == entry_id:
-                for key in ["title", "content", "category", "importance", "tags"]:
+                for key in ["title", "content", "category", "importance", "tags", "allowed_tags"]:
                     if key in data:
                         entry[key] = data[key]
                 app.world.world_lore = lore

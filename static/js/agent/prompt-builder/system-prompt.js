@@ -104,11 +104,18 @@ For a speech-only turn, omit "action". If you say nothing, set "speech": null. T
 `;
 
     /** World-lore header shared by both system prompts ('' when there is no lore). */
-    function _loreHeader() {
+    function _loreHeader(player) {
         const lore = worldState.data?.world_lore || [];
         if (!lore.length) return '';
-        const lines = lore.map(entry => `[${entry.category || 'general'}] ${entry.title}: ${entry.content}`);
-        return `\n=== WORLD LORE (common knowledge) ===\n${lines.join('\n')}\n`;
+        const charTags = (player?.tags || []).map(t => String(t).toLowerCase());
+        const visible = lore.filter(entry => {
+            const allowed = (entry.allowed_tags || []);
+            if (!allowed.length) return true;
+            return allowed.some(t => charTags.includes(String(t).toLowerCase()));
+        });
+        if (!visible.length) return '';
+        const lines = visible.map(entry => `[${entry.category || 'general'}] ${entry.title}: ${entry.content}`);
+        return `\n=== WORLD LORE ===\n${lines.join('\n')}\n`;
     }
 
     /** Brevity instruction; `tail` names the fields this phase is allowed to emit. */
@@ -129,7 +136,7 @@ For a speech-only turn, omit "action". If you say nothing, set "speech": null. T
         if (!player) throw new Error(`buildCharacterSystemPrompt: player is null for "${charName}" — call site should validate before caching history`);
         const dead = player.state === 'dead';
 
-        let prompt = _loreHeader();
+        let prompt = _loreHeader(player);
         const brevityRule = _brevityRule(softMaxTokens, 'inner monologue, speech, and action should be brief and natural.');
 
         const parts = [
@@ -155,7 +162,7 @@ For a speech-only turn, omit "action". If you say nothing, set "speech": null. T
      */
     function buildReactSystemPrompt(charName, player, softMaxTokens) {
         if (!player) throw new Error(`buildReactSystemPrompt: player is null for "${charName}"`);
-        let prompt = _loreHeader();
+        let prompt = _loreHeader(player);
         const brevityRule = _brevityRule(softMaxTokens, 'inner monologue, speech, and emote should be brief and natural.');
 
         const parts = [

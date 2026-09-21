@@ -797,6 +797,7 @@ window.InspectorAgentView = (() => {
                     <input type="range" min="-100" max="100" value="${closeness}" class="rel-slider" data-agent="${agentName}" data-other="${otherName}" style="flex:1;height:4px;accent-color:${relColor};">
                     <span style="font-size:10px;color:var(--text-muted);min-width:28px;text-align:right;" class="rel-val">${closeness}</span>
                     <span style="font-size:9px;color:var(--text-dim);min-width:70px;" class="rel-label">${closenessDesc}</span>
+                    <input type="text" class="rel-label-input" data-agent="${agentName}" data-other="${otherName}" value="${relationship.label || ''}" placeholder="label (e.g. mom, brother)" style="width:80px;font-size:9px;padding:1px 3px;">
                     <label title="Tick if you know their name (first_sighting=false)" style="display:flex;align-items:center;gap:2px;font-size:9px;color:var(--text-dim);cursor:pointer;">
                         <input type="checkbox" class="rel-known" data-agent="${agentName}" data-other="${otherName}" ${relationship.first_sighting ? '' : 'checked'}> name
                     </label>
@@ -1242,6 +1243,18 @@ window.InspectorAgentView = (() => {
                 const existing = worldState.players?.[agent]?.relationships?.[other] || {};
                 ApiClient.updateCharacter(agent, {
                     relationships: { [other]: { closeness: existing.closeness || 0, last_interaction_tick: worldState.data?.time_ticks || 0, interaction_count: existing.interaction_count || 0, first_sighting: !knowsName } }
+                }).then(() => worldState.fetch());
+            });
+        });
+
+        panel.querySelectorAll('.rel-label-input').forEach(input => {
+            input.addEventListener('change', function() {
+                const agent = this.dataset.agent;
+                const other = this.dataset.other;
+                const label = this.value.trim();
+                const existing = worldState.players?.[agent]?.relationships?.[other] || {};
+                ApiClient.updateCharacter(agent, {
+                    relationships: { [other]: { closeness: existing.closeness || 0, last_interaction_tick: worldState.data?.time_ticks || 0, interaction_count: existing.interaction_count || 0, first_sighting: existing.first_sighting ?? false, label: label } }
                 }).then(() => worldState.fetch());
             });
         });
