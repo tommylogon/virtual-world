@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: done
 area: gameplay
 priority: low
 ---
@@ -10,6 +10,25 @@ priority: low
 **Filed:** 2026-09-21  
 **Relates:** task-389/390 (the newer behaviour phases), task-406 (standing-item
 tick), `engine/npc_behaviors.py`.
+
+## Outcome (2026-09-21)
+
+Done. `_interval_ticks(gs, minutes)` in `engine/npc_behaviors.py` converts an
+authored interval from **game minutes** to whole ticks, and both sites use it:
+
+- `behaviors[].interval` (`process_simple_npcs`, the per-behaviour gate)
+- `npc_action_interval` (the legacy wander/flee fallback)
+
+Quantised to the nearest tick with a floor of one, because a tick is the smallest
+step the scheduler has: at 15 min/tick an authored "20 minutes" becomes one tick
+(15 minutes), which is as close as it can get. **At the default 1 min/tick an
+authored value's meaning is unchanged**, so nothing in existing content shifts —
+and nothing in the shipped data uses either field anyway (`rg` finds no authored
+`"interval"` or `"npc_action_interval"` in `data/` or `world_template.json`),
+which is exactly why the divergence went unnoticed.
+
+`tests/test_npc_behavior_intervals.py` pins the unit, the floor (a short interval
+must not become "never"), and the junk fallback.
 
 ## Problem
 
