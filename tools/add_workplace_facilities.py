@@ -2,16 +2,24 @@
 
 Measured first: 16 scheduled characters produced 388 hops of schedule travel and
 only 53 work blocks over three days, and their Hygiene/Social/Entertainment
-collapsed (48.8 vs 69.2 off). The cause is arithmetic. A background character
-takes one action per `DECISION_MINUTES` (10 game minutes), so a day is about 96
-actions — and every survival need is served by walking somewhere: food at the
-Cooking Area, water at the Water Source, the latrine at Waste Disposal, a wash at
-Raven River. A working day of *twelve* 30-minute blocks cannot fit alongside those
-errands, so the schedule loses and the errands also get slower.
+collapsed (48.8 vs 69.2 off). The diagnosis at the time was arithmetic — that a
+background character takes one action per 10 game minutes, leaving ~96 actions a
+day, and that a working day of twelve 30-minute blocks cannot fit alongside the
+survival errands.
 
-The fix is where the facilities are, not how the journey is walked. A settlement
-puts water, a latrine and somewhere to wash where people actually work; this camp
-put them all in one corner, so every worker crosses the map several times a day.
+**That diagnosis was wrong, and this tool is kept with the caveat rather than
+used.** The real cause was that the background tier was on a different clock from
+the live one (see `ACTIONS_PER_TURN` in engine/background_simulation.py — it is now
+one action per turn, matching live play). Worse, this pass *made things worse* and
+was reverted: tagging work areas `latrine`/`water` broke the no-schedule baseline
+too (Hygiene 69.2 → 24.4), because **area tags are not neutral** — they are what
+`_areas_with` consults for *every* need search, so tagging the work areas
+redirected where the whole camp travelled for every need. Any future use of this
+must be measured against a schedule-less baseline, not just the scheduled run.
+
+The intended shape remains reasonable in principle: a settlement puts water, a
+latrine and somewhere to wash where people actually work, rather than in one
+corner. It just cannot be applied as a local data tweak.
 
 Two mechanisms, chosen because neither consumes anything:
 

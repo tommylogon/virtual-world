@@ -80,25 +80,32 @@ def test_due_scheduling_defers_action():
     p.next_due_tick = 0               # now due
     w.tick_turn()
     assert p.vitals["Hunger"] <= 40   # acted
-    # Pacing is now a game-minute action credit, not a rescheduled tick.
-    assert getattr(p, "_action_credit", 1.0) < 1.0
+    # No banking: a turn is one action, so nothing accumulates while deferred.
+    # (A backlog would let a character who waited dump many actions at once.)
+    assert getattr(p, "_action_credit", 1.0) <= 1.0
 
 
-def test_decision_rate_is_tick_length_independent():
-    """The whole point of the action credit: a background character gets the
-    same number of decisions per game hour at any time_per_tick_minutes. Gating
-    on ticks gave a 15-minute world a fifteenth as many decisions per hour, and
-    characters starved with food in reach.
+def test_a_background_character_acts_once_per_turn():
+    """One action per turn, like every other character (task-409).
+
+    This replaces the old contract — "the same number of decisions per game hour
+    at any tick length" — which put the background tier on a different clock from
+    the live one: at a 1-minute turn it acted ten times less often than the
+    player, and the two only agreed around T=10 by coincidence.
+
+    Driven through `process_due` with the character kept available, because over
+    real turns the *activity* durations legitimately differ in turns (eight hours
+    of sleep is 480 turns at 1 min/tick and 32 at 15), and that would make the
+    counts differ for a reason that has nothing to do with the action budget.
     """
     from engine.background_simulation import BackgroundSimulation
 
-    def decisions(minutes_per_tick, total_minutes):
+    def actions_in(turns, minutes_per_tick):
         w = _world()
         w.time_per_tick_minutes = minutes_per_tick
         p = _bg_player(w, Thirst=50, Hunger=50, Energy=90)
         p.next_due_tick = 0
         bgs = BackgroundSimulation(w)
-        w.tick_manager._background_sim = bgs
         calls = []
         real = bgs._act
 
@@ -108,14 +115,70 @@ def test_decision_rate_is_tick_length_independent():
             return _real(name, player)
 
         bgs._act = counting
-        for _ in range(int(round(total_minutes / minutes_per_tick))):
-            w.tick_turn()
+        for _ in range(turns):
+            p.activity = None          # keep the budget the only variable
+            bgs.process_due()
+            w.time_ticks += 1
         return len(calls)
 
-    one_minute = decisions(1, 600)
-    fifteen_minute = decisions(15, 600)
-    assert one_minute > 0, "the fixture must actually make decisions"
-    assert abs(one_minute - fifteen_minute) <= 2, (one_minute, fifteen_minute)
+    for minutes_per_tick in (1, 5, 15):
+        assert actions_in(10, minutes_per_tick) == 10, minutes_per_tick
+
+
+def test_a_deferred_character_banks_nothing():
+    """`next_due_tick` in the future means no action and no backlog."""
+    from engine.background_simulation import BackgroundSimulation
+
+    w = _world()
+    p = _bg_player(w, Thirst=50, Hunger=50, Energy=90)
+    p.next_due_tick = 10_000
+    bgs = BackgroundSimulation(w)
+    calls = []
+    real = bgs._act
+
+    def counting(name, player, _real=real):
+        if name == p.name:
+            calls.append(w.time_ticks)
+        return _real(name, player)
+
+    bgs._act = counting
+    for _ in range(10):
+        p.activity = None
+        bgs.process_due()
+        w.time_ticks += 1
+    assert calls == []
+
+    # Release it: it takes one action, not ten.
+    p.next_due_tick = 0
+    p.activity = None
+    bgs.process_due()
+    assert len(calls) == 1
+
+
+def test_a_sleeping_character_takes_no_action_and_banks_nothing():
+    """Mid-activity means no decision, and no backlog to dump on waking."""
+    from engine.background_simulation import BackgroundSimulation
+
+    w = _world()
+    p = _bg_player(w, Thirst=50, Hunger=50, Energy=90)
+    p.next_due_tick = 0
+    p.activity = {"type": "sleeping", "started_at_tick": 0}
+
+    bgs = BackgroundSimulation(w)
+    w.tick_manager._background_sim = bgs
+    calls = []
+    real = bgs._act
+
+    def counting(name, player, _real=real):
+        if name == p.name:
+            calls.append(w.time_ticks)
+        return _real(name, player)
+
+    bgs._act = counting
+    for _ in range(5):
+        w.tick_turn()
+    assert calls == []
+    assert getattr(p, "_action_credit", 1.0) <= 1.0
 
 
 def test_background_sleeps_when_tired():
