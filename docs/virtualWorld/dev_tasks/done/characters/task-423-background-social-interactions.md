@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: done
 area: characters
 priority: medium
 ---
@@ -14,6 +14,102 @@ path), task-409 (background runner).
 **Reference implementation:** the author's own `Aura/Diary`
 (`github.com/tommylogon/Aura`, `Diary/`) — the same design already proven at
 day granularity. Borrow the machinery, replace the chooser.
+
+## Outcome (2026-09-21)
+
+Done, together with task-417 (the gate is a component of this pass, not a
+separate deliverable). `engine/background_social.py`, plus
+`engine/social_text.py` for the templated prose, and a `run_social_pass` call at
+the end of `BackgroundSimulation.process_due` so conversations happen where the
+characters actually ended up.
+
+**Measured, one week, 23 background characters, 23/23 alive at both tick
+lengths:**
+
+| | 1 min/tick | 15 min/tick |
+|---|---|---|
+| Social | **78.9** (11–100) | **78.6** (4–100) |
+| Hygiene | 79.3 | 75.4 |
+| Entertainment | 44.7 | 46.1 |
+
+Social was 0 before task-431 and 37 with company-maintenance alone; interactions
+are now the thing that fills it, which is the decision task-431 recorded.
+
+### Design correction: the blocking `conversing` activity is gone
+
+§4 specified "a short activity on both participants (a conversation, default ~10
+game minutes) that consumes their action credit and blocks other actions",
+because "without this a character takes ~1,000 interactions a week and the
+memory/relationship churn is meaningless".
+
+The daily cap (task-417) already does that job — measured at 6.2 social
+memories/character/day at 15 min/tick and 6.7 at 1 min/tick — while the activity
+**broke the survival ladder at short ticks**:
+
+| 1 day, 1 min/tick | with activity | without |
+|---|---|---|
+| Hygiene | **28.0** | 70.3 |
+| Entertainment | **11.3** | 38.1 |
+
+A 10-game-minute conversation is 10 ticks at 1 min/tick, and a blocked character
+cannot eat, sleep or wash; worse, a conversation pays enough Entertainment that
+the "seek amusement" need stops firing (`needs:entertainment` 68 → 6 in a day),
+so the camp slowly stopped looking after itself. At 15 min/tick the duration
+rounded to **one tick** and never blocked a decision — the damage was completely
+invisible there, which is exactly how it first showed up as unexplained
+Hygiene 13.7 in a short-tick soak.
+
+So the **cap is the bound** and the spreader is a `SOCIAL_COOLDOWN_MINUTES = 90`
+game-minute cooldown, which is tick-length independent by construction. Both are
+tested: the cooldown blocks an immediate second interaction and spaces the day's
+allowance out instead of letting it burst.
+
+**Trap worth remembering:** `ACTIVITY_INTERRUPTIBLE` is the set `_tick` calls
+`_maybe_end_by_duration` for. A type missing from it never expires —
+`elapsed_ticks` runs past `duration_ticks` forever and the character is stuck
+`busy`. Adding `conversing` without it made every character permanently busy and
+they died of exhaustion inside two in-game days. `activities.py` now says so at
+the set.
+
+### What is implemented
+
+- `ACTIONS` — `chat`, `joke`, `compliment`, `tease`, `confide`, `flirt`,
+  `apologise`, `bully`, each with a DC, a band gate, per-side vital bases, and a
+  `hostile_variant` for the cold-band reading.
+- `action_weights` — from traits (`social_gain`, `impatient`, `patient`,
+  `hostile`, `attention_seeker`), the closeness band and need pressure.
+  `ignore_weight` is the separate "they don't engage" draw; **`ignore` costs
+  nothing**, not even the cap, because charging for it would spend an introvert's
+  budget on the behaviour that defines them.
+- `resolve_tier` — d20 + Persuasion + band modifier vs the DC, mapped to the six
+  Diary tiers, with natural 1 and 20 pinned to the ends. Seeded per
+  `(actor, target, tick, action)`, so a replay reproduces the same history.
+- `_reading` — the load-bearing sign rule: a `tease` between friends reads
+  positive for both sides, the same tease at low closeness is an attack on the
+  target, and `bully` is never warm however well it lands.
+- Failure tiers are damped relative to success (`TIER_SCALE`), or a camp becomes
+  monotonically miserable because every bid that misses still costs both sides.
+- One event → **two memories** ("I teased Vekka…" / "Rikka teased me…"), both with
+  `entity_ids = [actor, target, area]` and `source="background"`, plus a trace
+  entry per side with `why="social:<action>"`, and relationship deltas through
+  `apply_relationship_delta` (task-420).
+- `perform(..., action=...)` can force an action — for scripted interactions and
+  for tests that must not depend on the seed.
+
+### Not done here
+
+**`_grant_meeting_entertainment` still double-pays.** It is a second Entertainment
+path for meeting someone, and since task-425 pays character novelty through
+perception, a character walking into a room pays twice. Folding it into the
+novelty curve needs a stable name → character-node-id mapping on `Player` (the
+pass here populates `entity_ids` with node ids, but the novelty call site cannot
+resolve one from a bare name). Filed as **task-434**. Invisible in a background
+soak — the rendering paths that call it only fire for the attended player — so it
+matters for a human session, not for these numbers.
+
+Also still true, and not this task's business: a character walking into a room the
+*player* is already in is not perceived by the player, because `observe_area` only
+runs for the mover (task-425's deferred perception trigger).
 
 ## Status notes (2026-09-21)
 
