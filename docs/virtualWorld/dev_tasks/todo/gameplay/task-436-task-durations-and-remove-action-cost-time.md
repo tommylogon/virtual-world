@@ -43,6 +43,23 @@ else:
   `routes/action_handlers.py:212` and set at `engine/tick_manager.py:993` (rest).
   Declared at `virtual_world_engine.py:119`.
 
+## `time: 0` is a call-site idiom, and may be in the data
+
+`time` is not only a table field. Because `apply_action` treats it as
+`cost.get("time", 0)`, an **absent or zero** `time` means *absolute cost, no clock
+advance*, while `time >= 1` means *multiply the cost, and advance*. Call sites rely
+on that:
+
+- `engine/movement.py:754` — `{"energy": encumbrance_cost, "time": 0}`
+- `engine/movement.py:830` — `{"energy": 4, "time": 0}`
+- `tests/test_traits.py:134` — `{"energy": 2, "time": 0}`
+- `engine/movement.py:1029` — passes `way_node.properties.get("cost", {})` through,
+  so **way cost blocks in scenario data may carry `time`** and need auditing
+
+So the removal is: fold the multiplier into absolute costs, introduce an explicit
+`consumes_time` field (default preserving today's absent-means-false behaviour),
+update those call sites, and sweep `cost` blocks in `data/scenarios/*.json`.
+
 ## Therefore
 
 Deleting `time` is **not** a mechanical removal:
