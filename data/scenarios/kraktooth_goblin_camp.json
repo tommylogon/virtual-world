@@ -8003,7 +8003,8 @@
           "tags": [
             "interior",
             "cave",
-            "goblin_camp"
+            "goblin_camp",
+            "latrine"
           ],
           "x": 771,
           "y": 281
@@ -10115,11 +10116,11 @@
             "growth": 0
           }
         },
-        "created": 1789987932.3303483,
-        "updated": 1789987932.3303487
+        "created": 1789989624.3312042,
+        "updated": 1789989624.3312047
       },
-      "trigger_bush_of_berries_deep_forest_1_on_tick_1789987932330_989": {
-        "id": "trigger_bush_of_berries_deep_forest_1_on_tick_1789987932330_989",
+      "trigger_bush_of_berries_deep_forest_1_on_tick_1789989624331_468": {
+        "id": "trigger_bush_of_berries_deep_forest_1_on_tick_1789989624331_468",
         "type": "logic_trigger",
         "name": "on_tick → adjust_parameter",
         "properties": {
@@ -10138,11 +10139,11 @@
             "op": "lt"
           }
         },
-        "created": 1789987932.3304303,
-        "updated": 1789987932.3304307
+        "created": 1789989624.3312683,
+        "updated": 1789989624.3312685
       },
-      "trigger_bush_of_berries_deep_forest_1_on_tick_1789987932330_679": {
-        "id": "trigger_bush_of_berries_deep_forest_1_on_tick_1789987932330_679",
+      "trigger_bush_of_berries_deep_forest_1_on_tick_1789989624331_631": {
+        "id": "trigger_bush_of_berries_deep_forest_1_on_tick_1789989624331_631",
         "type": "logic_trigger",
         "name": "on_tick → spawn_item",
         "properties": {
@@ -10179,8 +10180,8 @@
             }
           ]
         },
-        "created": 1789987932.3304687,
-        "updated": 1789987932.330469
+        "created": 1789989624.3312967,
+        "updated": 1789989624.331297
       },
       "bush_of_berries_deep_forest_2": {
         "id": "bush_of_berries_deep_forest_2",
@@ -10219,11 +10220,11 @@
             "growth": 0
           }
         },
-        "created": 1789987932.3328717,
-        "updated": 1789987932.3328722
+        "created": 1789989624.3322668,
+        "updated": 1789989624.332267
       },
-      "trigger_bush_of_berries_deep_forest_2_on_tick_1789987932332_791": {
-        "id": "trigger_bush_of_berries_deep_forest_2_on_tick_1789987932332_791",
+      "trigger_bush_of_berries_deep_forest_2_on_tick_1789989624332_40": {
+        "id": "trigger_bush_of_berries_deep_forest_2_on_tick_1789989624332_40",
         "type": "logic_trigger",
         "name": "on_tick → adjust_parameter",
         "properties": {
@@ -10242,11 +10243,11 @@
             "op": "lt"
           }
         },
-        "created": 1789987932.3329382,
-        "updated": 1789987932.3329384
+        "created": 1789989624.3322995,
+        "updated": 1789989624.3322997
       },
-      "trigger_bush_of_berries_deep_forest_2_on_tick_1789987932332_806": {
-        "id": "trigger_bush_of_berries_deep_forest_2_on_tick_1789987932332_806",
+      "trigger_bush_of_berries_deep_forest_2_on_tick_1789989624332_337": {
+        "id": "trigger_bush_of_berries_deep_forest_2_on_tick_1789989624332_337",
         "type": "logic_trigger",
         "name": "on_tick → spawn_item",
         "properties": {
@@ -10283,8 +10284,8 @@
             }
           ]
         },
-        "created": 1789987932.3329632,
-        "updated": 1789987932.3329632
+        "created": 1789989624.3323162,
+        "updated": 1789989624.3323164
       },
       "bush_of_berries_deep_forest_3": {
         "id": "bush_of_berries_deep_forest_3",
@@ -10323,11 +10324,11 @@
             "growth": 0
           }
         },
-        "created": 1789987932.3341832,
-        "updated": 1789987932.334184
+        "created": 1789989624.3332193,
+        "updated": 1789989624.3332195
       },
-      "trigger_bush_of_berries_deep_forest_3_on_tick_1789987932334_400": {
-        "id": "trigger_bush_of_berries_deep_forest_3_on_tick_1789987932334_400",
+      "trigger_bush_of_berries_deep_forest_3_on_tick_1789989624333_926": {
+        "id": "trigger_bush_of_berries_deep_forest_3_on_tick_1789989624333_926",
         "type": "logic_trigger",
         "name": "on_tick → adjust_parameter",
         "properties": {
@@ -10346,11 +10347,11 @@
             "op": "lt"
           }
         },
-        "created": 1789987932.3342917,
-        "updated": 1789987932.3342917
+        "created": 1789989624.333248,
+        "updated": 1789989624.333248
       },
-      "trigger_bush_of_berries_deep_forest_3_on_tick_1789987932334_148": {
-        "id": "trigger_bush_of_berries_deep_forest_3_on_tick_1789987932334_148",
+      "trigger_bush_of_berries_deep_forest_3_on_tick_1789989624333_775": {
+        "id": "trigger_bush_of_berries_deep_forest_3_on_tick_1789989624333_775",
         "type": "logic_trigger",
         "name": "on_tick → spawn_item",
         "properties": {
@@ -10387,8 +10388,8 @@
             }
           ]
         },
-        "created": 1789987932.334312,
-        "updated": 1789987932.3343122
+        "created": 1789989624.3332627,
+        "updated": 1789989624.3332627
       },
       "bush_of_berries_water_source_1": {
         "id": "bush_of_berries_water_source_1",
@@ -10427,11 +10428,11 @@
             "growth": 0
           }
         },
-        "created": 1789987933.0349898,
-        "updated": 1789987933.0349903
+        "created": 1789989624.9787397,
+        "updated": 1789989624.97874
       },
-      "trigger_bush_of_berries_water_source_1_on_tick_1789987933035_702": {
-        "id": "trigger_bush_of_berries_water_source_1_on_tick_1789987933035_702",
+      "trigger_bush_of_berries_water_source_1_on_tick_1789989624978_203": {
+        "id": "trigger_bush_of_berries_water_source_1_on_tick_1789989624978_203",
         "type": "logic_trigger",
         "name": "on_tick → adjust_parameter",
         "properties": {
@@ -10450,11 +10451,11 @@
             "op": "lt"
           }
         },
-        "created": 1789987933.035164,
-        "updated": 1789987933.0351646
+        "created": 1789989624.978788,
+        "updated": 1789989624.9787881
       },
-      "trigger_bush_of_berries_water_source_1_on_tick_1789987933035_405": {
-        "id": "trigger_bush_of_berries_water_source_1_on_tick_1789987933035_405",
+      "trigger_bush_of_berries_water_source_1_on_tick_1789989624978_833": {
+        "id": "trigger_bush_of_berries_water_source_1_on_tick_1789989624978_833",
         "type": "logic_trigger",
         "name": "on_tick → spawn_item",
         "properties": {
@@ -10491,8 +10492,8 @@
             }
           ]
         },
-        "created": 1789987933.0352106,
-        "updated": 1789987933.0352108
+        "created": 1789989624.9788053,
+        "updated": 1789989624.9788055
       },
       "bush_of_berries_camp_entrance_trail_1": {
         "id": "bush_of_berries_camp_entrance_trail_1",
@@ -10531,11 +10532,11 @@
             "growth": 0
           }
         },
-        "created": 1789987933.590791,
-        "updated": 1789987933.5907917
+        "created": 1789989625.5763988,
+        "updated": 1789989625.5763996
       },
-      "trigger_bush_of_berries_camp_entrance_trail_1_on_tick_1789987933590_750": {
-        "id": "trigger_bush_of_berries_camp_entrance_trail_1_on_tick_1789987933590_750",
+      "trigger_bush_of_berries_camp_entrance_trail_1_on_tick_1789989625576_717": {
+        "id": "trigger_bush_of_berries_camp_entrance_trail_1_on_tick_1789989625576_717",
         "type": "logic_trigger",
         "name": "on_tick → adjust_parameter",
         "properties": {
@@ -10554,11 +10555,11 @@
             "op": "lt"
           }
         },
-        "created": 1789987933.5908532,
-        "updated": 1789987933.5908535
+        "created": 1789989625.5764704,
+        "updated": 1789989625.5764706
       },
-      "trigger_bush_of_berries_camp_entrance_trail_1_on_tick_1789987933590_625": {
-        "id": "trigger_bush_of_berries_camp_entrance_trail_1_on_tick_1789987933590_625",
+      "trigger_bush_of_berries_camp_entrance_trail_1_on_tick_1789989625576_891": {
+        "id": "trigger_bush_of_berries_camp_entrance_trail_1_on_tick_1789989625576_891",
         "type": "logic_trigger",
         "name": "on_tick → spawn_item",
         "properties": {
@@ -10595,8 +10596,118 @@
             }
           ]
         },
-        "created": 1789987933.5908785,
-        "updated": 1789987933.5908787
+        "created": 1789989625.576498,
+        "updated": 1789989625.5764983
+      },
+      "wash_spot_water_source_1": {
+        "id": "wash_spot_water_source_1",
+        "type": "item",
+        "name": "Wash Spot",
+        "properties": {
+          "description": "A slow eddy you can wade into and scrub yourself clean. Using it takes off the grime.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 0.1,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "bathing",
+            "wash",
+            "fixture"
+          ],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "wash_spot",
+          "defense": 0,
+          "damage": 0,
+          "insulation": 0,
+          "resistances": {},
+          "image": null
+        },
+        "created": 1789989626.1593971,
+        "updated": 1789989626.1593978
+      },
+      "trigger_wash_spot_water_source_1_on_use_1789989626159_452": {
+        "id": "trigger_wash_spot_water_source_1_on_use_1789989626159_452",
+        "type": "logic_trigger",
+        "name": "on_use → adjust_vital",
+        "properties": {
+          "trigger_type": "on_use",
+          "target_name": "",
+          "effect_type": "adjust_vital",
+          "effect_params": {
+            "stat": "Hygiene",
+            "amount": 70,
+            "target": "self"
+          }
+        },
+        "created": 1789989626.1594906,
+        "updated": 1789989626.1594908
+      },
+      "wash_spot_raven_river_1": {
+        "id": "wash_spot_raven_river_1",
+        "type": "item",
+        "name": "Wash Spot",
+        "properties": {
+          "description": "A slow eddy you can wade into and scrub yourself clean. Using it takes off the grime.",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "uses": -1,
+          "weight": 0.1,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "bathing",
+            "wash",
+            "fixture"
+          ],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "wash_spot",
+          "defense": 0,
+          "damage": 0,
+          "insulation": 0,
+          "resistances": {},
+          "image": null
+        },
+        "created": 1789989626.740704,
+        "updated": 1789989626.740705
+      },
+      "trigger_wash_spot_raven_river_1_on_use_1789989626740_748": {
+        "id": "trigger_wash_spot_raven_river_1_on_use_1789989626740_748",
+        "type": "logic_trigger",
+        "name": "on_use → adjust_vital",
+        "properties": {
+          "trigger_type": "on_use",
+          "target_name": "",
+          "effect_type": "adjust_vital",
+          "effect_params": {
+            "stat": "Hygiene",
+            "amount": 70,
+            "target": "self"
+          }
+        },
+        "created": 1789989626.7407963,
+        "updated": 1789989626.7407966
       }
     },
     "edges": [
@@ -12156,7 +12267,7 @@
       },
       {
         "source": "bush_of_berries_deep_forest_1",
-        "target": "trigger_bush_of_berries_deep_forest_1_on_tick_1789987932330_989",
+        "target": "trigger_bush_of_berries_deep_forest_1_on_tick_1789989624331_468",
         "type": "triggers",
         "properties": {
           "trigger_type": "on_tick",
@@ -12177,7 +12288,7 @@
       },
       {
         "source": "bush_of_berries_deep_forest_1",
-        "target": "trigger_bush_of_berries_deep_forest_1_on_tick_1789987932330_679",
+        "target": "trigger_bush_of_berries_deep_forest_1_on_tick_1789989624331_631",
         "type": "triggers",
         "properties": {
           "trigger_type": "on_tick",
@@ -12222,7 +12333,7 @@
       },
       {
         "source": "bush_of_berries_deep_forest_2",
-        "target": "trigger_bush_of_berries_deep_forest_2_on_tick_1789987932332_791",
+        "target": "trigger_bush_of_berries_deep_forest_2_on_tick_1789989624332_40",
         "type": "triggers",
         "properties": {
           "trigger_type": "on_tick",
@@ -12243,7 +12354,7 @@
       },
       {
         "source": "bush_of_berries_deep_forest_2",
-        "target": "trigger_bush_of_berries_deep_forest_2_on_tick_1789987932332_806",
+        "target": "trigger_bush_of_berries_deep_forest_2_on_tick_1789989624332_337",
         "type": "triggers",
         "properties": {
           "trigger_type": "on_tick",
@@ -12288,7 +12399,7 @@
       },
       {
         "source": "bush_of_berries_deep_forest_3",
-        "target": "trigger_bush_of_berries_deep_forest_3_on_tick_1789987932334_400",
+        "target": "trigger_bush_of_berries_deep_forest_3_on_tick_1789989624333_926",
         "type": "triggers",
         "properties": {
           "trigger_type": "on_tick",
@@ -12309,7 +12420,7 @@
       },
       {
         "source": "bush_of_berries_deep_forest_3",
-        "target": "trigger_bush_of_berries_deep_forest_3_on_tick_1789987932334_148",
+        "target": "trigger_bush_of_berries_deep_forest_3_on_tick_1789989624333_775",
         "type": "triggers",
         "properties": {
           "trigger_type": "on_tick",
@@ -12354,7 +12465,7 @@
       },
       {
         "source": "bush_of_berries_water_source_1",
-        "target": "trigger_bush_of_berries_water_source_1_on_tick_1789987933035_702",
+        "target": "trigger_bush_of_berries_water_source_1_on_tick_1789989624978_203",
         "type": "triggers",
         "properties": {
           "trigger_type": "on_tick",
@@ -12375,7 +12486,7 @@
       },
       {
         "source": "bush_of_berries_water_source_1",
-        "target": "trigger_bush_of_berries_water_source_1_on_tick_1789987933035_405",
+        "target": "trigger_bush_of_berries_water_source_1_on_tick_1789989624978_833",
         "type": "triggers",
         "properties": {
           "trigger_type": "on_tick",
@@ -12420,7 +12531,7 @@
       },
       {
         "source": "bush_of_berries_camp_entrance_trail_1",
-        "target": "trigger_bush_of_berries_camp_entrance_trail_1_on_tick_1789987933590_750",
+        "target": "trigger_bush_of_berries_camp_entrance_trail_1_on_tick_1789989625576_717",
         "type": "triggers",
         "properties": {
           "trigger_type": "on_tick",
@@ -12441,7 +12552,7 @@
       },
       {
         "source": "bush_of_berries_camp_entrance_trail_1",
-        "target": "trigger_bush_of_berries_camp_entrance_trail_1_on_tick_1789987933590_625",
+        "target": "trigger_bush_of_berries_camp_entrance_trail_1_on_tick_1789989625576_891",
         "type": "triggers",
         "properties": {
           "trigger_type": "on_tick",
@@ -12476,6 +12587,48 @@
               "target": "berries"
             }
           ]
+        }
+      },
+      {
+        "source": "wash_spot_water_source_1",
+        "target": "area_water_source",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "wash_spot_water_source_1",
+        "target": "trigger_wash_spot_water_source_1_on_use_1789989626159_452",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_use",
+          "target_name": "",
+          "effect_type": "adjust_vital",
+          "effect_params": {
+            "stat": "Hygiene",
+            "amount": 70,
+            "target": "self"
+          }
+        }
+      },
+      {
+        "source": "wash_spot_raven_river_1",
+        "target": "area_raven_river",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "wash_spot_raven_river_1",
+        "target": "trigger_wash_spot_raven_river_1_on_use_1789989626740_748",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_use",
+          "target_name": "",
+          "effect_type": "adjust_vital",
+          "effect_params": {
+            "stat": "Hygiene",
+            "amount": 70,
+            "target": "self"
+          }
         }
       }
     ]

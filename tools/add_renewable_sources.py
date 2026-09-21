@@ -34,6 +34,23 @@ DEFAULT_PLANTS = [
     ("bush_of_berries", "Camp Entrance Trail", 1),
 ]
 
+#: Service fixtures — items that provide an action rather than produce anything.
+#: A wash spot is `use`d to clean up and never depletes (`uses: -1`). Tagged
+#: `bathing`, NOT `water`: `DRINK_TAGS` contains "water" and `_consume_here`
+#: deletes a node it consumes, so a thirsty goblin would drink the fixture and
+#: destroy it. The water AREAS already carry `water` for drinking.
+DEFAULT_FIXTURES = [
+    ("wash_spot", "Water Source", 1),
+    ("wash_spot", "Raven River", 1),
+]
+
+#: Tags that give a place a service. The camp has an area named "Waste Disposal"
+#: but nothing marked it usable, so `relieve` treated it as open ground — and the
+#: background tier had no relief step at all, which pinned everyone's Hygiene at 0.
+DEFAULT_AREA_TAGS = {
+    "Waste Disposal": ["latrine"],
+}
+
 
 def area_node_id(name):
     return "area_" + name.lower().replace("'", "").replace(" ", "_")
@@ -75,8 +92,25 @@ def main():
     app.world._scenario_name = stem
 
     before = len(app.world.graph.nodes)
+
+    # Service tags on areas (a latrine, a river) come first: a fixture with no
+    # place to belong is just clutter.
+    for area_name, tags in DEFAULT_AREA_TAGS.items():
+        aid = area_node_id(area_name)
+        node = app.world.graph.get_node(aid)
+        if node is None:
+            print("  ! no such area for tags: %s" % area_name)
+            continue
+        current = list(node.properties.get("tags") or [])
+        added = [t for t in tags if t not in current]
+        if added:
+            node.properties["tags"] = current + added
+            print("  # tagged %-22s +%s" % (area_name, ",".join(added)))
+        else:
+            print("  = %-28s already tagged" % area_name)
+
     placed = 0
-    for item_id, area_name, count in DEFAULT_PLANTS:
+    for item_id, area_name, count in DEFAULT_PLANTS + DEFAULT_FIXTURES:
         aid = area_node_id(area_name)
         if app.world.graph.get_node(aid) is None:
             print("  ! no such area: %s (%s)" % (area_name, aid))

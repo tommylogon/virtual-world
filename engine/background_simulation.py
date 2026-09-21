@@ -43,9 +43,17 @@ DRINK_TAGS = ("drink", "water", "beverage")
 THIRST_THRESHOLD = 45     # drive: high = parched; act before it gets urgent
 HUNGER_THRESHOLD = 50     # drive: high = starving
 ENERGY_THRESHOLD = 30     # resource: low = tired
+BLADDER_THRESHOLD = 60    # drive: high = needs to go; well before it maxes at 100
+HYGIENE_THRESHOLD = 40    # resource: low = filthy; go wash
 
 MEAL_RESTORE = 45         # Hunger (drive) reduced by this when eating
 DRINK_RESTORE = 50        # Thirst (drive) reduced by this when drinking
+
+#: A relief site: an area tag (a latrine) or a fixture standing in the area.
+RELIEF_TAGS = ("latrine", "toilet", "privy", "restroom", "bathroom")
+#: A washing site: an area tag (a river) or a fixture (a wash spot, a shower).
+BATH_TAGS = ("bathing", "wash", "shower", "bath", "washing")
+BATH_HYGIENE = 70         # fallback when a fixture does not author its own amount
 
 DECISION_MINUTES = 10     # game minutes between background decisions
 MAX_ACTIONS_PER_TICK = 4  # bound so a very long tick cannot run away
@@ -145,7 +153,98 @@ class BackgroundSimulation:
             if self._travel_toward(p, FOOD_TAGS, "hunger"):
                 return
 
+        if v.get("Bladder", 0) >= BLADDER_THRESHOLD:
+            if self._relieve(p):
+                return
+            if self._travel_toward(p, RELIEF_TAGS, "bladder"):
+                return
+            # Nowhere to go. The engine already docks Hygiene when the meter
+            # maxes, which is the honest outcome for a camp with no latrine.
+            return
+
+        if v.get("Hygiene", 100) <= HYGIENE_THRESHOLD:
+            if self._wash(p):
+                return
+            if self._travel_toward(p, BATH_TAGS, "hygiene"):
+                return
+
     # ───────────────────────────── actions ─────────────────────────────────
+
+    def _service_here(self, p, tags):
+        """(offered, fixture_item) for a service in the character's area.
+
+        A service can come from the area itself (a latrine room, a river) or
+        from a fixture standing in it (a wash spot, a shower). Fixtures are
+        standing items, which task-406's on_tick path already supports.
+        """
+        if not p.current_area:
+            return False, None
+        area_id = self.gs.area_node_id(p.current_area)
+        node = self.gs.graph.get_node(area_id) if area_id else None
+        if node is not None and self._has_tag(node, tags):
+            return True, None
+        if area_id:
+            for item in self._spatial_items(area_id):
+                if self._has_tag(item, tags):
+                    return True, item
+        return False, None
+
+    @staticmethod
+    def _has_tag(node, tags):
+        node_tags = {str(t).lower() for t in (node.properties.get("tags") or [])}
+        return bool(set(tags) & node_tags)
+
+    def _relieve(self, p):
+        offered, _ = self._service_here(p, RELIEF_TAGS)
+        if not offered:
+            return False
+        p.vitals["Bladder"] = 0
+        record(p, self.gs.time_ticks, "act", f"relieved themselves in {p.current_area}",
+               why="needs:relieve", area=p.current_area, tags=["need"])
+        self.gs.add_log_entry(f"[{p.name}] relieves themselves.")
+        return True
+
+    def _wash(self, p):
+        offered, fixture = self._service_here(p, BATH_TAGS)
+        if not offered:
+            return False
+        amount = self._wash_amount(fixture)
+        p.vitals["Hygiene"] = max(0, min(100, p.vitals.get("Hygiene", 0) + amount))
+        record(p, self.gs.time_ticks, "act", f"washed in {p.current_area}",
+               why="needs:wash", area=p.current_area, tags=["need"])
+        self.gs.add_log_entry(f"[{p.name}] washes up.")
+        return True
+
+    def _wash_amount(self, fixture, default=BATH_HYGIENE):
+        """The Hygiene a fixture grants, read from its authored `adjust_vital`.
+
+        Read rather than hardcoded so the library entry stays the single source
+        of truth for how much washing helps.
+        """
+        if fixture is None:
+            return default
+        for edge in self.gs.graph.get_edges_for_source(fixture.id):
+            if edge.type != "triggers":
+                continue
+            trigger = self.gs.graph.get_node(edge.target)
+            if trigger is None:
+                continue
+            props = trigger.properties or {}
+            candidates = list(props.get("effects") or [])
+            if props.get("effect_type"):
+                candidates.append({"type": props.get("effect_type"),
+                                   "params": props.get("effect_params") or {}})
+            for effect in candidates:
+                if effect.get("type") != "adjust_vital":
+                    continue
+                params = effect.get("params") or {}
+                if str(params.get("stat", "")).lower() != "hygiene":
+                    continue
+                try:
+                    return int(params.get("amount", default))
+                except (TypeError, ValueError):
+                    return default
+        return default
 
     def _consume_here(self, p, tags, kind):
         node = self._find_consumable(p, tags, verb=self._verb_for_need(kind))
