@@ -23,8 +23,13 @@ class PlayerManager:
     # ── Player Node ID ──────────────────────────────────────────────────
 
     def get_player_node_id(self, player_name: str) -> str:
-        """Build the graph node ID for a player."""
-        return f"player_{player_name}".replace(' ', '_')
+        """Build the graph node ID for a player.
+
+        Delegates to `Player.node_id_for` so there is one definition of the
+        convention (task-434): relationships key by name and observation memories
+        key by node id, and anything crossing between them must not re-derive it.
+        """
+        return Player.node_id_for(player_name)
 
     # ── Registration ─────────────────────────────────────────────────────
 

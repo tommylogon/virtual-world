@@ -236,6 +236,12 @@ class TickManager:
             if p.state == "dead":
                 continue
 
+            # Keep each character's clock in step with the world's, so anything
+            # that converts an authored game-minute window into tick deltas
+            # (novelty's recovery window, social's cooldown) does not silently
+            # measure in the wrong unit after the tick length changes.
+            p.minutes_per_tick = self.gs.time_per_tick_minutes or 1.0
+
             p.reset_turn_state(self.player_manager.time_ticks)
 
             if p.has_condition("unconscious"):

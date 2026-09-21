@@ -152,20 +152,24 @@ class MovementSystem:
         Subjects already known pay nothing: freshness is 0 for anything seen
         within the recovery window, so loitering and bouncing earn no credit
         while a genuinely stale place pays again.
+
+        Pays the **freshness `observe_area` reported**, not a recomputed one. That
+        distinction is the whole point of it reporting one: observing refreshes the
+        tick this would otherwise read, so calling `grant()` here measured 0 for
+        every subject on every arrival — which is exactly what this did, and why
+        perceived novelty never paid anything until it was caught.
         """
         freshness_map = (perception or {}).get("freshness") or {}
         if not freshness_map:
             return 0
         try:
-            from engine.novelty import grant
+            from engine.novelty import grant_freshness
         except Exception:
             return 0
-        tick = self.gs.time_ticks
         total = 0
+        tick = self.gs.time_ticks
         for subject_id, fresh in freshness_map.items():
-            if fresh <= 0:
-                continue
-            total += grant(player, subject_id, tick)
+            total += grant_freshness(player, fresh, tick)
         return total
 
     def _get_encumbrance_energy_cost(self) -> int:

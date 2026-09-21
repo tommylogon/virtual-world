@@ -44,6 +44,21 @@ RECOVERY_KEY = "entertainment.novelty_recovery_minutes"
 #: keeps paying.
 DEFAULT_RECOVERY_MINUTES = 120
 
+#: Total novelty a character can earn per in-game day, whatever it sees.
+#:
+#: **This is the bound that actually matters.** The recovery window alone guards
+#: *bouncing* (two rooms, no credit) but not *roaming*: with 31 areas a character
+#: revisits a given one only after about five hours, so every arrival was a fresh
+#: area and every arrival paid — a fresh subject per action against 43/day of
+#: decay is unbounded. Measured with only the area subject paying and social
+#: switched off, a single day still pinned Entertainment at 81 average.
+#:
+#: Deliberately below Entertainment's daily decay (~43), so novelty is a top-up
+#: and *things* — the authored recreational fixtures — are what hold the meter
+#: up. This is task-425's "diminishing returns within a day" option, which the
+#: measurement showed was needed alongside the window, not instead of it.
+NOVELTY_DAILY_BUDGET = 30
+
 
 def recovery_minutes() -> float:
     """Game minutes for a subject to become fully fresh again."""
@@ -66,17 +81,59 @@ def _traits(player):
     )
 
 
+def _minutes_per_tick(player) -> float:
+    """The tick length this player's clock runs at.
+
+    Observation memories are stamped with a **tick**, so a window expressed in
+    game minutes has to be converted before it is compared against a tick delta.
+    Getting this wrong is not subtle: at 15 min/tick a "2 hour" window divided
+    against ticks is 30 hours, which silently stopped short-tick camps from
+    re-earning novelty and showed up as a 59-vs-89 Entertainment split between
+    the 15 and 1 min/tick soaks.
+    """
+    try:
+        minutes = float(getattr(player, "minutes_per_tick", 1.0) or 1.0)
+    except (TypeError, ValueError):
+        return 1.0
+    return minutes if minutes > 0 else 1.0
+
+
+def effective_window(player) -> float:
+    """The recovery window in **ticks**, after traits.
+
+    Derived from ``entertainment.novelty_recovery_minutes`` and the player's tick
+    length, so the window is the same amount of *game time* whatever the tick.
+    Only the window is trait-adjusted: `wanderlust` re-enchants twice as fast, so
+    it recovers on half the window. That is how the old `+3 on re-entry`
+    behaviour survives the curve.
+    """
+    try:
+        minutes = recovery_minutes()
+    except (TypeError, ValueError):
+        minutes = float(DEFAULT_RECOVERY_MINUTES)
+    _, _, wanderlust = _traits(player)
+    if wanderlust:
+        minutes = minutes / 2.0
+    ticks = minutes / _minutes_per_tick(player)
+    return ticks if ticks > 0 else float(DEFAULT_RECOVERY_MINUTES)
+
+
 def freshness(player, subject_id: str, tick: int, *, window: float | None = None) -> float:
     """How fresh ``subject_id`` is to *player* at *tick*, 0.0-1.0.
 
     Never experienced = 1.0 (full novelty). The recovered *fraction* is squared
     so a short gap is worth almost nothing and only a real absence pays — see the
     module docstring for why a linear ramp was a farm.
+
+    This is the *raw* measure, in ticks — the window argument, and
+    ``effective_window`` by default, is already a tick count derived from game
+    minutes. Callers that observe and pay in one step must measure before they
+    refresh (see ``grant_freshness``).
     """
     if player is None:
         return 0.0
     try:
-        span = float(window) if window else recovery_minutes()
+        span = float(window) if window else effective_window(player)
     except (TypeError, ValueError):
         span = float(DEFAULT_RECOVERY_MINUTES)
     if span <= 0:
@@ -97,38 +154,88 @@ def freshness(player, subject_id: str, tick: int, *, window: float | None = None
 
 def novelty_bonus(player, subject_id: str, tick: int, *, maximum: int = NOVELTY_MAX,
                   window: float | None = None) -> int:
-    """Entertainment to grant for experiencing ``subject_id`` (0 when stale).
+    """Entertainment for experiencing ``subject_id`` (0 when stale).
 
-    Trait scaling lives here so every subject kind reads the same rule:
-    ``curious`` gets half again as much, ``homebody`` gets nothing, and
-    ``wanderlust`` re-enchants twice as fast (it recovers on half the window),
-    which is how the old ``+3 on re-entry`` behaviour survives the curve.
+    Shorthand for measuring freshness and paying it in one step, for callers whose
+    subject has **not** just been observed. A caller that observes and pays
+    together — the arrival path — must use ``grant_freshness`` with the value
+    ``observe_area`` reported instead, because this re-reads the tick that
+    observing just wrote and would return 0.
     """
-    curious, homebody, wanderlust = _traits(player)
+    if player is None:
+        return 0
+    if window is None:
+        window = effective_window(player)
+    return _pay(player, maximum, freshness(player, subject_id, tick, window=window), tick)
+
+
+def _day_index(player, tick) -> int:
+    """The in-game day a tick falls in, at this character's tick length."""
+    try:
+        from engine.tick_manager import MINUTES_PER_DAY
+        minutes_per_day = float(MINUTES_PER_DAY)
+    except Exception:
+        minutes_per_day = 1440.0
+    try:
+        minutes = float(tick) * _minutes_per_tick(player)
+    except (TypeError, ValueError):
+        return 0
+    return int(minutes // max(1.0, minutes_per_day))
+
+
+def novelty_budget_remaining(player, tick) -> float:
+    """Novelty this character may still earn today. Rolls over on the in-game day."""
+    day = _day_index(player, tick)
+    if getattr(player, "_novelty_day", None) != day:
+        player._novelty_day = day
+        player._novelty_spent = 0
+    spent = float(getattr(player, "_novelty_spent", 0) or 0)
+    return max(0.0, float(NOVELTY_DAILY_BUDGET) - spent)
+
+
+def _pay(player, maximum, fresh, tick) -> int:
+    """Trait scaling, the daily budget, and the clamp — shared by both paths."""
+    if player is None or fresh is None or fresh <= 0:
+        return 0
+    if "Entertainment" not in getattr(player, "vitals", {}):
+        return 0
+    curious, homebody, _ = _traits(player)
     if homebody:
         return 0
-    span = window if window else recovery_minutes()
-    if wanderlust:
-        span = float(span) / 2.0
-    gained = round(int(maximum) * freshness(player, subject_id, tick, window=span))
+    gained = round(int(maximum) * float(fresh))
     if curious:
         gained = int(gained * 1.5)
-    return max(0, gained)
+    gained = min(max(0, gained), int(novelty_budget_remaining(player, tick)))
+    if gained:
+        player._novelty_spent = float(getattr(player, "_novelty_spent", 0) or 0) + gained
+        player.vitals["Entertainment"] = min(
+            100, player.vitals.get("Entertainment", 0) + gained)
+    return gained
+
+
+def grant_freshness(player, fresh, tick, *, maximum: int = NOVELTY_MAX) -> int:
+    """Pay a freshness value that was **already measured**.
+
+    The arrival path needs this: ``observe_area`` measures each subject's
+    freshness *before* refreshing the observation (that is the whole reason it
+    reports one), so a caller that instead recomputed it would read the tick the
+    observation had just written and pay 0 — which is exactly what
+    ``_grant_arrival_entertainment`` did, silently, so perceived novelty never
+    paid anything.
+    """
+    return _pay(player, maximum, fresh, tick)
 
 
 def grant(player, subject_id: str, tick: int, *, maximum: int = NOVELTY_MAX,
           window: float | None = None) -> int:
-    """Apply the novelty bonus for a subject to the player's Entertainment.
+    """Measure the subject's novelty now and pay it.
 
     Returns the amount granted so callers can decide whether the experience was
     worth narrating (a stale subject grants nothing and is not news).
+
+    For a subject that was just observed, use ``grant_freshness`` with the
+    freshness the observation reported.
     """
     if player is None or not subject_id:
         return 0
-    if "Entertainment" not in getattr(player, "vitals", {}):
-        return 0
-    gained = novelty_bonus(player, subject_id, tick, maximum=maximum, window=window)
-    if gained:
-        player.vitals["Entertainment"] = min(
-            100, player.vitals.get("Entertainment", 0) + gained)
-    return gained
+    return novelty_bonus(player, subject_id, tick, maximum=maximum, window=window)

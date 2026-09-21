@@ -71,12 +71,29 @@ def test_observe_area_records_the_area_and_its_contents():
 
     result = observe_area(cook, gs)
 
-    assert result["seen"] == 3  # area + bread + scout
+    assert result["seen"] == 2  # area + bread; the ledger is hidden
     assert cook.has_seen("area_pantry")
     assert cook.has_seen("item_bread")
-    assert cook.has_seen("character_scout")
     assert not cook.has_seen("item_ledger")  # hidden until discovered
-    assert result["novel"] == ["area_pantry", "item_bread", "character_scout"]
+    assert result["novel"] == ["area_pantry", "item_bread"]
+
+
+def test_observe_area_ignores_people_so_meetings_are_the_only_payer():
+    """People are claimed by register_first_meeting, not by sight (task-434).
+
+    If arrival stamped them too, the meeting grant would read a tick this had just
+    refreshed and pay nothing — and paying on sight saturates Entertainment,
+    because a crowded camp re-observes everyone on every arrival.
+    """
+    g = make_graph()
+    gs = GameState(g)
+    cook = make_player()
+    cook.vitals = {"Entertainment": 50}
+
+    result = observe_area(cook, gs)
+
+    assert "character_scout" not in result["freshness"]
+    assert not cook.has_seen("character_scout")
 
 
 def test_observation_carries_entity_id_place_and_kind():
@@ -200,7 +217,6 @@ def test_darkvision_sees_in_the_dark():
     observe_area(cook, gs)
 
     assert cook.has_seen("item_bread")
-    assert cook.has_seen("character_scout")
 
 
 def test_an_asleep_character_does_not_observe_the_room():
@@ -251,3 +267,66 @@ def test_eviction_removes_the_subject_from_the_index(monkeypatch):
     for subject in ("area_pantry", "item_bread", "character_scout"):
         if not cook.has_seen(subject):
             assert subject not in cook.memory_index
+
+
+# ── task-434: meeting a person pays once, and only the meeting pays ──────
+
+
+def make_graph_with_real_character_node(name="Scout"):
+    """The camp's character nodes are named by `Player.node_id_for`, and the
+    meeting grant keys on exactly that id."""
+    from player import Player
+    g = WorldGraph()
+    g.add_node(Node(id="area_pantry", type="area", name="Pantry"))
+    g.add_node(Node(id=Player.node_id_for(name), type="character", name=name))
+    g.add_edge(Edge(source=Player.node_id_for(name), target="area_pantry",
+                    type=EDGE_IN))
+    return g
+
+
+def _perceive_and_grant(player, gs):
+    """The real arrival path: `observe_area` reports novelty, and movement's
+    `_grant_arrival_entertainment` is what pays it."""
+    from engine.movement import MovementSystem
+    mover = MovementSystem.__new__(MovementSystem)
+    mover.gs = gs
+    perception = observe_area(player, gs)
+    mover._grant_arrival_entertainment(player, perception)
+    return perception
+
+
+def test_arriving_where_someone_stands_does_not_pay_for_them():
+    """Only the meeting pays, so there is no second path to double-pay with."""
+    from engine.novelty import NOVELTY_MAX
+    g = make_graph_with_real_character_node()
+    gs = GameState(g)
+    cook = make_player()
+    cook.vitals = {"Entertainment": 50}
+
+    perception = _perceive_and_grant(cook, gs)
+
+    assert perception["freshness"] == {"area_pantry": 1.0}
+    assert cook.vitals["Entertainment"] == 50 + NOVELTY_MAX  # the room only
+
+
+def test_meeting_pays_once_and_only_once():
+    from engine.novelty import NOVELTY_MAX
+    cook = make_player()
+    cook.vitals = {"Entertainment": 50}
+
+    cook.register_first_meeting("Scout", tick=0)
+    assert cook.vitals["Entertainment"] == 50 + NOVELTY_MAX
+    after = cook.vitals["Entertainment"]
+
+    cook.register_first_meeting("Scout", tick=1)
+    assert cook.vitals["Entertainment"] == after
+
+
+def test_a_meeting_records_an_observation_of_that_person():
+    """So "have I met this person" is a lookup, and a re-meet inside the window
+    cannot pay again through the novelty path."""
+    cook = make_player()
+    cook.vitals = {"Entertainment": 50}
+    cook.register_first_meeting("Scout", tick=7)
+    assert cook.has_seen("player_Scout")
+    assert cook.observation_tick("player_Scout") == 7

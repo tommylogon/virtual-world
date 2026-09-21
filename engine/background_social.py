@@ -110,17 +110,25 @@ NARRATIVE_TAGS = {
 #: with; the per-side dicts are the effect of a plain **success** (the tier scale
 #: multiplies them); `hostile_variant` replaces the target's reading when the
 #: band is cold.
+#:
+#: **A conversation is Social, not Entertainment.** Only the genuinely
+#: entertaining actions (`joke`, `tease`, `flirt`) pay Entertainment, and only a
+#: little. Six conversations a day at the original +2-4 each was ~40/day of
+#: Entertainment on top of what arrival novelty and the recreational fixtures
+#: already give, against 43/day of decay — enough to pin the meter at 100, which
+#: made the authored fixtures decorative and the need meaningless. Social is the
+#: primary output of an interaction; amusement is a side effect of the fun ones.
 ACTIONS = {
     "chat": {
         "dc": 8, "min_band": "unfriendly",
-        "actor": {"Social": 3, "Entertainment": 1},
-        "target": {"Social": 3, "Entertainment": 1},
+        "actor": {"Social": 3, "Entertainment": 0},
+        "target": {"Social": 3, "Entertainment": 0},
         "rel_actor": 1, "rel_target": 1,
     },
     "joke": {
         "dc": 11, "min_band": "unfriendly",
-        "actor": {"Social": 3, "Entertainment": 3},
-        "target": {"Social": 2, "Entertainment": 3},
+        "actor": {"Social": 3, "Entertainment": 2},
+        "target": {"Social": 2, "Entertainment": 2},
         "rel_actor": 1, "rel_target": 1,
         "hostile_variant": {
             "target": {"Social": -2, "Entertainment": -2},
@@ -129,8 +137,8 @@ ACTIONS = {
     },
     "compliment": {
         "dc": 9, "min_band": "unfriendly",
-        "actor": {"Social": 2, "Entertainment": 1},
-        "target": {"Social": 3, "Entertainment": 3},
+        "actor": {"Social": 2, "Entertainment": 0},
+        "target": {"Social": 3, "Entertainment": 1},
         "rel_actor": 1, "rel_target": 2,
         "hostile_variant": {
             "target": {"Social": -1, "Entertainment": 0},
@@ -139,8 +147,8 @@ ACTIONS = {
     },
     "tease": {
         "dc": 10, "min_band": "unfriendly",
-        "actor": {"Social": 3, "Entertainment": 3},
-        "target": {"Social": 2, "Entertainment": 2},
+        "actor": {"Social": 3, "Entertainment": 2},
+        "target": {"Social": 2, "Entertainment": 1},
         "rel_actor": 1, "rel_target": 1,
         "hostile_variant": {
             "target": {"Social": -3, "Entertainment": -2},
@@ -149,27 +157,27 @@ ACTIONS = {
     },
     "confide": {
         "dc": 13, "min_band": CONFIDE_BAND,
-        "actor": {"Social": 4, "Entertainment": 2},
-        "target": {"Social": 4, "Entertainment": 3},
+        "actor": {"Social": 4, "Entertainment": 0},
+        "target": {"Social": 4, "Entertainment": 1},
         "rel_actor": 2, "rel_target": 3,
     },
     "flirt": {
         "dc": 14, "min_band": FLIRT_BAND,
-        "actor": {"Social": 3, "Entertainment": 4},
-        "target": {"Social": 3, "Entertainment": 4},
+        "actor": {"Social": 3, "Entertainment": 2},
+        "target": {"Social": 3, "Entertainment": 2},
         "rel_actor": 2, "rel_target": 3,
     },
     "apologise": {
         "dc": 7, "min_band": "unfriendly",
         "actor": {"Social": 1, "Entertainment": 0},
-        "target": {"Social": 2, "Entertainment": 1},
+        "target": {"Social": 2, "Entertainment": 0},
         "rel_actor": 1, "rel_target": 3,
     },
     "bully": {
         "dc": 9, "min_band": "unfriendly",
         # A bully is never a warm event, however well it lands for the actor.
-        "actor": {"Social": -1, "Entertainment": 2},
-        "target": {"Social": -4, "Entertainment": -3},
+        "actor": {"Social": -1, "Entertainment": 1},
+        "target": {"Social": -4, "Entertainment": -2},
         "rel_actor": 0, "rel_target": -3,
     },
 }

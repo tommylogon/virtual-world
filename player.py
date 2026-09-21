@@ -63,8 +63,29 @@ class Player:
                         "sensitized", "satisfied"):
                 self.conditions.pop(cid, None)
 
+    @staticmethod
+    def node_id_for(name: str) -> str:
+        """The graph node id for a character named ``name``.
+
+        The single definition of the convention — `PlayerManager.get_player_node_id`
+        delegates here, and `Player.node_id` is derived from it at construction.
+        Observation memories key a subject by node id (task-403) and relationships
+        key by *name*, so anything that needs to cross between the two (e.g. the
+        meeting novelty grant, task-434) must use this rather than re-deriving
+        the string, which is how the two would drift.
+        """
+        return f"player_{name}".replace(" ", "_")
+
     def __init__(self, name="Traveler"):
         self.name = name
+        # Derived, not persisted: it must follow a rename the same way the graph
+        # node does, and the deserializer builds Players without going through
+        # PlayerManager.add_player.
+        self.node_id = self.node_id_for(name)
+        # Game minutes per tick, refreshed by the tick loop. Novelty windows are
+        # authored in game minutes but compared against tick deltas, so the
+        # conversion has to happen somewhere that knows both.
+        self.minutes_per_tick = 1.0
         # task-316 foundation: stable opaque identity. Display names stay the
         # addressing surface (same-named characters are allowed); the id is the
         # anchor the full id-backed re-key will use. 8 hex chars, survives
@@ -474,7 +495,7 @@ class Player:
         from engine.relationships import ensure_relationship
         ensure_relationship(self, other_name, tick, label="")
         self.relationships[other_name]["first_sighting"] = True
-        self._grant_meeting_entertainment()
+        self._grant_meeting_entertainment(other_name, tick)
         return True
 
     def has_met(self, other_name: str) -> bool:
@@ -568,21 +589,35 @@ class Player:
                 return label
         return "the stranger"
 
-    def _grant_meeting_entertainment(self):
-        """Entertainment boost the first time a character meets someone new."""
-        if "Entertainment" not in self.vitals:
-            return
-        try:
-            from engine.traits import TraitSystem
-        except ImportError:
-            base_boost = 10
-        else:
-            base_boost = 10
-            if TraitSystem.has_effect(self, "curious"):
-                base_boost = int(base_boost * 1.5)
-            if TraitSystem.has_effect(self, "homebody"):
-                base_boost = 0
-        self.vitals["Entertainment"] = min(100, self.vitals.get("Entertainment", 50) + base_boost)
+    def _grant_meeting_entertainment(self, other_name: str = "", tick: int = 0) -> int:
+        """Entertainment the first time this character meets someone new.
+
+        Routed through the shared novelty curve (task-425) keyed on the other
+        character's *node id*, so meeting somebody is the **person** subject of
+        the same mechanic that covers places and things.
+
+        It both **reads and records** the observation, which is what makes it
+        idempotent with perception in either order (task-434): perception records
+        the character on arrival and pays, so a later meeting reads a fresh tick
+        and pays nothing — and a meeting that happens first records, so a later
+        perception pays nothing. This used to be a separate flat +10 that
+        double-paid with the perception grant.
+
+        Note the ordering inside: the grant reads the tick *before* the record
+        refreshes it, exactly as `observe_area` computes freshness before
+        refreshing.
+        """
+        if "Entertainment" not in self.vitals or not other_name:
+            return 0
+        from engine.novelty import grant
+        subject = self.node_id_for(other_name)
+        gained = grant(self, subject, tick)
+        self.record_observation(
+            subject, f"You have met {other_name}.", tick, kind="character",
+            tags=["met"], importance=5,
+            location=getattr(self, "current_area", "") or "",
+        )
+        return gained
 
     def update_relationship(self, other_name: str, tick: int, sentiment_change: int = 0):
         """Update relationship closeness with another character.
@@ -597,7 +632,7 @@ class Player:
         from engine.relationships import apply_relationship_delta, ensure_relationship
         _, created = ensure_relationship(self, other_name, tick)
         if created:
-            self._grant_meeting_entertainment()
+            self._grant_meeting_entertainment(other_name, tick)
         apply_relationship_delta(
             self, other_name, sentiment_change, "dialogue",
             tick=tick, area_id=getattr(self, "current_area", "") or "",

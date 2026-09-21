@@ -1,8 +1,13 @@
 """Observation memories — what a character has seen (task-403).
 
-One *live* observation memory per subject: the area the character is standing
-in, each item it can see there, and each character standing there. The memory
-carries who/what/where/when, and the subject's graph id in ``entity_ids``.
+One *live* observation memory per subject: the area the character is standing in
+and each item it can see there. The memory carries who/what/where/when, and the
+subject's graph id in ``entity_ids``.
+
+**People are not part of this.** A character is stamped when it is *met*
+(``Player.register_first_meeting``), which is also what pays for meeting someone;
+see ``perceivable_subjects`` for why sighting them on arrival is both redundant
+with that and a saturating Entertainment source.
 
 Re-seeing a subject refreshes that memory **in place**
 (``Player.record_observation``) rather than appending another one, so the store
@@ -32,12 +37,8 @@ every arrival as stale.
 
 from __future__ import annotations
 
-from engine.novelty import freshness
-from engine.room_perception import (
-    characters_in_area,
-    resolve_area_node,
-    visible_area_items,
-)
+from engine.novelty import effective_window, freshness
+from engine.room_perception import resolve_area_node, visible_area_items
 
 AREA = "area"
 ITEM = "item"
@@ -88,8 +89,20 @@ def _item_tags(node) -> list:
 def perceivable_subjects(player, gs, area_node):
     """Yield ``(subject_id, kind, text, tags)`` for everything perceptible.
 
-    The area itself is yielded by the caller: a character always knows which
-    room it is standing in, even in the dark.
+    **The area itself is not yielded here** — the caller records it
+    unconditionally, because a character always knows which room it is standing
+    in, even in the dark.
+
+    **Characters present are deliberately not yielded either.** They are stamped
+    by `Player.register_first_meeting` instead, which is what pays for meeting
+    someone (task-434). If arrival stamped them too, the meeting grant would read
+    a tick this had just refreshed and pay nothing — and paying on *sight*
+    instead saturates the meter, because a crowded camp re-observes five to ten
+    people on every arrival and their observations go stale again within the
+    recovery window. Measured: arrival paying for people pinned camp
+    Entertainment at 87 avg / 100 max with the authored recreational fixtures
+    never firing; leaving people to the meeting path settles it mid-range and the
+    fixtures matter again.
     """
     area_name = area_node.name
     for node in visible_area_items(gs.graph, area_node.id, player=player):
@@ -97,12 +110,6 @@ def perceivable_subjects(player, gs, area_node):
             node.id, ITEM,
             f"You have seen {node.name} in the {area_name}.",
             _item_tags(node),
-        )
-    for node in characters_in_area(gs.graph, area_node.id, exclude_name=player.name):
-        yield (
-            node.id, CHARACTER,
-            f"You have met {node.name} in the {area_name}.",
-            [],
         )
 
 
@@ -132,7 +139,8 @@ def observe_area(player, gs, tick=None) -> dict:
     # with the lights out, and this is the subject novelty/Entertainment uses.
     if not player.has_seen(area_id):
         result["novel"].append(area_id)
-    result["freshness"][area_id] = freshness(player, area_id, now)
+    result["freshness"][area_id] = freshness(player, area_id, now,
+                                             window=effective_window(player))
     player.record_observation(
         area_id, f"You have been in the {area_node.name}.", now,
         kind=AREA, location=area_node.name, importance=IMPORTANCE[AREA],
@@ -145,7 +153,8 @@ def observe_area(player, gs, tick=None) -> dict:
     for subject_id, kind, text, tags in perceivable_subjects(player, gs, area_node):
         if not player.has_seen(subject_id):
             result["novel"].append(subject_id)
-        result["freshness"][subject_id] = freshness(player, subject_id, now)
+        result["freshness"][subject_id] = freshness(player, subject_id, now,
+                                                    window=effective_window(player))
         player.record_observation(
             subject_id, text, now, kind=kind, tags=tags,
             location=area_node.name, importance=IMPORTANCE.get(kind, 3),

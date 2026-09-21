@@ -18,11 +18,18 @@ task-425 was blocked on (`entity_ids` populated — was 0/17 — plus a per-subj
 index) now exists:
 
 - `engine/observation.py` records one **live observation memory per subject**:
-  the area the character stands in, each item it can see there, each character
-  standing there. Perception is not re-implemented — it reuses
-  `engine/room_perception` (the shared prompt/panel source of truth), and the
-  area itself is recorded unconditionally while its *contents* need light
+  the area the character stands in and each item it can see there. Perception is
+  not re-implemented — it reuses `engine/room_perception` (the shared
+  prompt/panel source of truth), and the area itself is recorded
+  unconditionally while its *contents* need light
   (`can_perceive`: dead/unconscious/asleep see nothing, darkvision counts).
+
+  **People are deliberately not observed here** (changed 2026-09-21, task-434): a
+  character is claimed by `Player.register_first_meeting`, which is also what
+  pays for meeting them. If arrival stamped them too, the meeting grant would read
+  a tick this had just refreshed and pay nothing — and paying on *sight* saturated
+  Entertainment, because a crowded camp re-observes five to ten people on every
+  arrival and they go stale again within the novelty window.
 - `Player.record_observation` refreshes that memory **in place** rather than
   appending, so the store is bounded by *subjects*, not by visits. Measured:
   **908 memories after 10,080 ticks (1 min/tick) vs 912 after 672 ticks

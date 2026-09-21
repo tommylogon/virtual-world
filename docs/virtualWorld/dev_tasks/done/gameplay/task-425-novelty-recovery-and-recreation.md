@@ -16,9 +16,48 @@ priority: high
 ## Outcome (2026-09-21)
 
 Done. Entertainment is no longer pinned at 0, and it settles rather than
-pegging: a background week ends at **40.1 avg / 25 min / 50 max at 15 min/tick**
-and **39.3 / 24 / 50 at 1 min/tick**, 23/23 alive. The two tick lengths agreeing
-is the property that matters — the source is measured in game minutes.
+pegging.
+
+### Corrected after the fact (while fixing task-434)
+
+The rest of this section is the design as first built. Four things about it were
+wrong, all found by fixing one unrelated double-pay and following the thread:
+
+1. **Perceived novelty never paid anything.** `_grant_arrival_entertainment`
+   called `grant()`, which recomputes freshness from the tick `observe_area` had
+   just refreshed — so it measured 0 for every subject on every arrival. The
+   entertainment the soaks showed came from the fixtures and (later) social
+   conversations. My tests here checked `grant` and `observe_area` separately and
+   never the composition.
+2. **The window was measured in the wrong unit.** `freshness` compared a tick
+   delta against a window authored in *game minutes*, so the 2-hour window was 2
+   hours only at 1 min/tick; at 15 min/tick it was 30 hours. `Player.minutes_per_tick`
+   is now refreshed by the tick loop and the window derived in ticks.
+3. **The window guards bouncing but not roaming, so it was not the farm guard.**
+   With 31 areas a character revisits one only after ~5 hours, so every arrival is
+   a fresh subject and pays: a fresh subject per action against 43/day of decay is
+   unbounded. Measured with only the area subject paying and social off, one day
+   still pinned Entertainment at 81. **`NOVELTY_DAILY_BUDGET = 30`** now bounds it —
+   the "diminishing returns within a day" option this task listed and I did not
+   take. The measurement says the window alone is insufficient; the two work
+   together.
+4. **People came off the arrival path.** Paying for characters on sight saturated
+   the meter (a crowded camp re-observes 5-10 people per arrival, all going stale
+   within the window): 87 avg / 100 max with the authored fixtures never firing.
+   `observe_area` now records the **area and its items** only; a person is claimed
+   by `register_first_meeting` (task-434), which is what pays for meeting them. The
+   "item novelty is paid on perception" decision below still stands for items.
+
+Entertainment now settles mid-range instead of pinned at either end:
+
+| | 1 min/tick | 15 min/tick |
+|---|---|---|
+| Entertainment | **49.1** (40-68) | **50.1** (29-70) |
+| Social | 81.4 | 81.4 |
+
+**As first built** (superseded by the numbers above), a background week ended at
+**40.1 avg / 25 min / 50 max at 15 min/tick** and **39.3 / 24 / 50 at 1 min/tick**,
+23/23 alive — which the two tick lengths agreeing made look healthy.
 
 - `engine/novelty.py` — one curve for three subjects, `NOVELTY_MAX = 15`,
   `curious` ×1.5, `homebody` 0, `wanderlust` recovers on half the window (which
