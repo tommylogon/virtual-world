@@ -36,6 +36,12 @@ ACTIVITY_CONDITIONS: Dict[str, Optional[str]] = {
     "bathing": "busy",
     "sitting": "busy",
     "lying down": "busy",
+    # task-409 — a scheduled character working at its trade. Deliberately a
+    # SHORT block (see WORK_MINUTES): `_act` skips anyone mid-activity, so a long
+    # block is a long time not eating, drinking or relieving. A conversation
+    # taught that lesson the hard way — one that rounded to a single tick at
+    # 15 min/tick looked harmless there and cost the camp its hygiene at 1.
+    "working": "busy",
 }
 
 #: per-minute vital regeneration while an activity is active (see
@@ -60,6 +66,11 @@ ACTIVITY_REGEN: Dict[str, Dict[str, float]] = {
     "bathing": {"Hygiene": 1.5},
     "sitting": {"Energy": 0.06},    # slows the drain, does not restore
     "lying down": {"Energy": 0.25},  # faster than sitting/resting, slower than sleep
+    # Work restores nothing. Energy's baseline drain is the cost of a working day;
+    # adding an extra drain here would have to be re-tuned against every other
+    # Energy source, and the visible signal (being at the forge, working) does not
+    # need it.
+    "working": {},
 }
 
 #: human-readable labels
@@ -71,6 +82,7 @@ ACTIVITY_LABELS: Dict[str, str] = {
     "bathing": "bathing",
     "sitting": "sitting",
     "lying down": "lying down",
+    "working": "working",
 }
 
 #: activities that block taking most other actions (speech/look/etc. allowed)
@@ -79,7 +91,7 @@ ACTIVITY_BLOCKING = {"sleeping", "bathing"}
 #: activities that consume the character's turn (agent loop / simple NPCs skip)
 ACTIVITY_SKIP_TURNS = {
     "sleeping", "resting", "waiting", "meditating",
-    "bathing", "sitting", "lying down",
+    "bathing", "sitting", "lying down", "working",
 }
 
 #: activities that end automatically when the character does anything else
@@ -89,7 +101,8 @@ ACTIVITY_SKIP_TURNS = {
 #: `elapsed_ticks` runs past `duration_ticks` forever and the character is stuck
 #: `busy` — which reads downstream as a mysterious refusal to eat, sleep or wash.
 #: Add every timed activity to this set.
-ACTIVITY_INTERRUPTIBLE = {"resting", "waiting", "meditating", "sitting", "lying down"}
+ACTIVITY_INTERRUPTIBLE = {"resting", "waiting", "meditating", "sitting", "lying down",
+                          "working"}
 
 #: commands allowed while a blocking activity is active
 _ALLOWED_WHILE_BLOCKED = {

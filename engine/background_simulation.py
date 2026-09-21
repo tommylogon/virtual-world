@@ -46,6 +46,12 @@ ENERGY_THRESHOLD = 30     # resource: low = tired
 BLADDER_THRESHOLD = 60    # drive: high = needs to go; well before it maxes at 100
 HYGIENE_THRESHOLD = 40    # resource: low = filthy; go wash
 ENTERTAINMENT_THRESHOLD = 40  # resource: low = bored; go do something
+#: How long one work block lasts, in game minutes (task-409). Short on purpose:
+#: `_act` skips anyone mid-activity, so this is the longest a working character
+#: can go without eating, drinking or relieving itself. See the block comment on
+#: `working` in activities.py for why a long block is a trap.
+WORK_MINUTES = 30
+
 #: resource: low = unravelling; rest a while. This is the "rest" half of the
 #: task-432 sources — see `_recuperate` for why it is a bounded *rest* rather
 #: than sleep.
@@ -196,6 +202,13 @@ class BackgroundSimulation:
         if v.get("Sanity", 100) <= SANITY_THRESHOLD:
             if self._recuperate(p):
                 return
+
+        # What the day says to do, once every survival need is satisfied
+        # (task-409). Above boredom, so a full character works at its trade
+        # instead of milling about; below hunger and thirst, so a smith still
+        # breaks off to eat.
+        if self._pursue_schedule(p):
+            return
 
         # Boredom last: it is the only need here that nothing kills you for
         # ignoring, so it must never outrank food, water, sleep or relief.
@@ -412,6 +425,86 @@ class BackgroundSimulation:
         self.gs.add_log_entry(f"[{p.name}] heads {direction} toward {target_name}.")
         return True
 
+    def _pursue_schedule(self, p):
+        """Walk to and carry out the step the clock is in (task-409).
+
+        This is what a character does with time that no survival need claims:
+        go to the place its day says it should be, and get on with it. It runs
+        *after* every survival need, so a smith still breaks off to eat, drink or
+        sleep, and *before* boredom, so a full character works rather than
+        milling about.
+
+        Returns True when it did something, so `_act` stops for this decision.
+        """
+        from engine.schedule import BLOCKING_ACTIVITIES, current_step, minutes_of_day
+        if not getattr(p, "schedule", None):
+            return False
+        step = current_step(p.schedule, minutes_of_day(self.gs))
+        if not step:
+            return False
+
+        # Get there first. Standing in the wrong room and "working" is no day.
+        area = step.get("area")
+        if area and p.current_area != area:
+            return self._travel_to_area(p, area, "schedule")
+
+        activity = BLOCKING_ACTIVITIES.get(step["activity"])
+        if activity:
+            return self._start_blocking_activity(p, activity, step["activity"],
+                                                 WORK_MINUTES)
+        # `socialise`, `patrol`, `guard` and `roam` need nothing beyond being
+        # present: company is handled by the social pass, and the others are
+        # satisfied by the travel itself.
+        return False
+
+    def _travel_to_area(self, p, area_name, reason):
+        """One hop toward a *named* area, reusing the need-travel path."""
+        step = self._target_step(p, None, areas={area_name})
+        if not step:
+            return False
+        target_name, direction = step
+        if not direction:
+            return False
+        old_active = self.gs.active_player
+        self.gs.active_player = p.name
+        try:
+            self.gs.movement.move_to_area(direction)
+        except Exception as e:
+            logger.warning("[background] schedule travel %s (%s): %s",
+                           p.name, direction, e)
+            return False
+        finally:
+            self.gs.active_player = old_active
+        record(p, self.gs.time_ticks, "move",
+               f"travelled {direction} toward {target_name}",
+               why=f"{reason}:travel", area=p.current_area, tags=["travel"])
+        self.gs.add_log_entry(f"[{p.name}] heads {direction} toward {target_name}.")
+        return True
+
+    def _start_blocking_activity(self, p, activity, reason, minutes):
+        """Start a short, interruptible activity expressed in GAME MINUTES.
+
+        Short is the point: `_act` skips anyone mid-activity, so the duration is
+        the longest a character can go without eating, drinking or relieving
+        itself. Long blocks are tick-length traps too — one that rounds to a
+        single tick at 15 min/tick looks harmless and is not.
+        """
+        if p.activity:
+            return False
+        try:
+            minutes_per_tick = float(getattr(self.gs, "time_per_tick_minutes", 1) or 1)
+        except (TypeError, ValueError):
+            minutes_per_tick = 1.0
+        duration = max(1, int(round(minutes / max(0.001, minutes_per_tick))))
+        try:
+            self.gs.activities.start_activity(p.name, activity, duration_ticks=duration)
+        except Exception:
+            return False
+        record(p, self.gs.time_ticks, "act", f"{reason} in {p.current_area}",
+               why=f"schedule:{reason}", area=p.current_area, tags=["schedule"])
+        self.gs.add_log_entry(f"[{p.name}] gets on with {reason}.")
+        return True
+
     # ───────────────────────────── lookups ─────────────────────────────────
 
     #: Spatial relations a forager can reach *through*. An area holds things in,
@@ -513,15 +606,19 @@ class BackgroundSimulation:
             return node.id
         return self._norm_area_table().get(self._norm(area_id_or_name))
 
-    def _target_step(self, p, tags, verb=None):
+    def _target_step(self, p, tags, verb=None, areas=None):
         """Nearest area holding ``tags`` reachable from the character's area.
 
         Returns ``(area_name, exit_label)`` or None. BFS walks the engine's own
         exits (``include_hidden=True`` so authoring-hidden passages still
         connect), which guarantees the returned label is one
         ``movement.move_to_area`` will accept.
+
+        ``areas`` overrides the tag lookup with an explicit set of area names —
+        what a schedule needs, since a step names its destination directly rather
+        than describing it by tags (task-409).
         """
-        areas = self._areas_with(tags, verb)
+        areas = set(areas) if areas else self._areas_with(tags, verb)
         start = p.current_area
         if not start or not areas:
             return None

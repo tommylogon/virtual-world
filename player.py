@@ -86,6 +86,10 @@ class Player:
         # authored in game minutes but compared against tick deltas, so the
         # conversion has to happen somewhere that knows both.
         self.minutes_per_tick = 1.0
+        # Authored daily schedule (task-409): [{start:"HH:MM", activity, area,
+        # fallback}]. Empty means "no schedule" — pure need-driven behaviour,
+        # which is what every character did before schedules existed.
+        self.schedule = []
         # task-316 foundation: stable opaque identity. Display names stay the
         # addressing surface (same-named characters are allowed); the id is the
         # anchor the full id-backed re-key will use. 8 hex chars, survives

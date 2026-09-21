@@ -156,6 +156,7 @@ class WorldSerializer:
             "activity": getattr(p, 'activity', None),
             "memories": getattr(p, 'memories', []),
             "memory_index": dict(getattr(p, 'memory_index', {}) or {}),
+            "schedule": list(getattr(p, 'schedule', []) or []),
             "simple_npc": getattr(p, 'simple_npc', False),
             "autonomy": getattr(p, 'autonomy', True),
             "npc_behavior": getattr(p, 'npc_behavior', 'wander'),
@@ -299,6 +300,11 @@ class WorldSerializer:
         rel_data = pdata.get("relationships", {})
         if isinstance(rel_data, dict):
             p.relationships = dict(rel_data)
+        # Authored daily schedule (task-409). Normalised on load so a
+        # hand-edited or legacy file cannot put a malformed step into the day.
+        from engine.schedule import normalize as _normalize_schedule
+        p.schedule = _normalize_schedule(pdata.get("schedule"))
+
         mem_data = pdata.get("memories", [])
         if isinstance(mem_data, list):
             for m in mem_data:
