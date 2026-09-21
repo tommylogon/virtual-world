@@ -1,7 +1,6 @@
 # task-436 — Task durations, and removing `ACTION_COSTS.time`
 
-**Status:** in progress — steps 1–3 done; step 4 (`_action_time_consumed`) and
-steps 5–6 (task durations, flow model) remain.
+**Status:** in progress — steps 1–4 done; steps 5–6 (task durations, flow model) remain.
 **Area:** gameplay / time
 **Depends on:** [[Simulation Model]] (the timeframe-and-flow model)
 **Related:** task-352 (action economy), task-414 (batch advance), task-131 (stateful actions over time), task-244 (human turn parameters)
@@ -72,6 +71,33 @@ Deleting `time` is **not** a mechanical removal:
   the flag is meaningless — it should be deleted and the caller should advance
   unconditionally, **but that is a clock-semantics change and must be verified
   against `rest`/sleep**, which sets the flag deliberately at `:993`.
+
+## Progress — steps 1–4 done
+
+**Step 4 corrected this task's own premise.** The plan said to delete
+`_action_time_consumed` because it would become uniformly true and therefore
+meaningless. That was wrong. The flag had **two** sources, and only one was the
+`time` field:
+
+- `apply_action` set it from `cost["time"]` — the part that made *which* actions
+  moved the clock an accident of the cost table. Removed.
+- `rest()` sets it because `rest` loops `tick_turn` once per minute **itself**. It
+  is the guard that stops the per-action layer adding a second minute on top of
+  the hours just spent. Deleting it would have made a 60-minute rest cost 61.
+
+So it was renamed `_clock_advanced_by_task` — its name now describes what it
+guards rather than its old source — and it survives. Making `_ensure_tick`
+unconditional (the obvious reading of "delete the flag") would have been a
+silent off-by-one on every sleep. Caught by reading `rest()` before editing it,
+and pinned by `test_rest_advances_the_clock_itself_and_is_marked_as_having_done_so`.
+
+`ACTION_COSTS` entries are now bare `{"energy": N}`; the `consumes_time` field
+this task added in step 1 was **also** removed, since it existed only to feed the
+flag.
+
+Full suite: 3186 passed. The 6 failures in `test_social_company.py` and
+`test_tick_time_scaling.py` are pre-existing and order-dependent — they fail with
+and without these changes, and a different subset fails each run.
 
 ## Progress — steps 1–3 done
 

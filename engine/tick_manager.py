@@ -145,9 +145,9 @@ class TickManager:
         # task-436: vital costs are absolute. They used to be multiplied by a
         # `time` field, which meant `move: {energy: 1}` cost 1 but
         # `fumble: {energy: 3, time: 2}` cost 6 — the table's numbers read as
-        # totals while acting as per-minute rates. Whether an action takes a
-        # minute is now its own field rather than a side effect of that one.
-        self.player_manager._action_time_consumed = bool(cost.get("consumes_time", False))
+        # totals while acting as per-minute rates. Whether the action advanced
+        # the clock is no longer this function's business: every atomic action
+        # takes a minute, so the caller advances unconditionally.
 
     def advance_clock(self, ticks=1):
         """Advance the game clock by the given number of ticks.
@@ -987,7 +987,7 @@ class TickManager:
             self.gs.item_actions.drop_held_items(self.gs, player.name)
         except Exception as e:
             logger.warning("[tick] rest drop_held_items %s: %s", player.name, e)
-        self.player_manager._action_time_consumed = True
+        self.player_manager._clock_advanced_by_task = True
         for _ in range(ticks):
             self.tick_turn(skip_npcs=True)
         player.conditions.pop("unconscious", None)

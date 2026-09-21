@@ -751,7 +751,7 @@ class MovementSystem:
             self.gs.apply_action("move", exit_cost, player=self.gs.player)
             encumbrance_cost = self._get_encumbrance_energy_cost()
             if encumbrance_cost:
-                self.gs.apply_action("move", {"energy": encumbrance_cost, "consumes_time": False}, player=self.gs.player)
+                self.gs.apply_action("move", {"energy": encumbrance_cost}, player=self.gs.player)
         # Fire on_enter triggers on the door (e.g., auto-close behind player,
         # fear saves on "fleshy orifice" doors) — game_state so save gates work
         enter_outputs = self.triggers._execute_triggers(
@@ -827,7 +827,7 @@ class MovementSystem:
 
         # Scaled energy surcharge for sprinting (beyond the normal exit cost)
         if self.gs.player.state != "dead":
-            self.gs.apply_action("move", {"energy": 4, "consumes_time": False}, player=self.gs.player)
+            self.gs.apply_action("move", {"energy": 4}, player=self.gs.player)
         return hop
 
     def approach(self, target_input: str) -> str:

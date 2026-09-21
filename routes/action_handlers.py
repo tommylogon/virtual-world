@@ -209,7 +209,6 @@ def handle_take_action(app):
     if 'character' in data:
         world.player_manager.active_player = data['character']
     output_lines = []
-    world._action_time_consumed = False
     was_movement = False
     was_look = False
     failed = False

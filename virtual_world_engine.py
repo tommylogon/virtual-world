@@ -108,21 +108,24 @@ class VirtualWorld:
 
         self.ACTION_COSTS = {
             # Energy costs are ABSOLUTE, not per-minute rates. They used to be
-            # multiplied by a `time` field that did double duty as a clock
-            # advance flag; task-436 splits those, so `fumble` now carries the 6
-            # it always cost (3 x time:2) and `consumes_time` says plainly
-            # whether the action takes a minute. An absent `consumes_time` means
-            # no minute, matching the old absent/zero-`time` behaviour.
-            "move": {"energy": 1, "consumes_time": True},
+            # multiplied by a `time` field that also decided whether the action
+            # advanced the clock; task-436 removed that overload, so `fumble`
+            # carries the 6 it always cost (3 x time:2) and every atomic action
+            # takes one minute, unconditionally.
+            "move": {"energy": 1},
             "open": {"energy": 1},
             "close": {"energy": 1},
-            "look": {"energy": 0, "consumes_time": True},
-            "use": {"energy": 1, "consumes_time": True},
-            "take": {"energy": 1, "consumes_time": True},
-            "drop": {"energy": 0, "consumes_time": True},
-            "fumble": {"energy": 6, "consumes_time": True},
+            "look": {"energy": 0},
+            "use": {"energy": 1},
+            "take": {"energy": 1},
+            "drop": {"energy": 0},
+            "fumble": {"energy": 6},
         }
-        self._action_time_consumed = False
+        # Set by a *task* that advances the clock for its own duration (rest,
+        # sleep) so the per-action layer does not add a minute on top. task-436
+        # renamed it from `_action_time_consumed`, which described its old
+        # `time`-derived source rather than what it actually guards.
+        self._clock_advanced_by_task = False
 
         # World lore: shared list of structured lore entries
         self.world_lore = []

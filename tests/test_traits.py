@@ -131,7 +131,7 @@ class TestTraitWiring:
         p = world.player_manager.get_player(world.active_player)
         p.vitals["Energy"] = 50
         p.traits["sprinter"] = True
-        world.apply_action("move", {"energy": 2, "consumes_time": False}, player=p)
+        world.apply_action("move", {"energy": 2}, player=p)
         assert p.vitals["Energy"] == 49  # 2 - 1 (sprinter), floor 0
 
     def test_carry_capacity_blocks_heavy_take(self):
