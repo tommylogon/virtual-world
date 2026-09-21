@@ -1,6 +1,7 @@
 import random
 import time
 import uuid
+import logging
 from typing import Optional
 
 from graph import EDGE_CONNECTION, EDGE_IN, EDGE_ON, EDGE_UNDER, EDGE_BEHIND, EDGE_BESIDE, EDGE_AT, Edge, Node, WorldGraph
@@ -13,6 +14,8 @@ from engine.beyond_visibility import normalize_visible_items
 from engine.character_spatial import get_character_at_way, get_spatial_position_data
 from engine.serialization_template import TemplateLoader
 from engine.serialization_legacy import LegacyLoader
+
+logger = logging.getLogger(__name__)
 
 
 def _body_region_catalog():
@@ -152,6 +155,7 @@ class WorldSerializer:
             "relationships": getattr(p, 'relationships', {}),
             "activity": getattr(p, 'activity', None),
             "memories": getattr(p, 'memories', []),
+            "memory_index": dict(getattr(p, 'memory_index', {}) or {}),
             "simple_npc": getattr(p, 'simple_npc', False),
             "autonomy": getattr(p, 'autonomy', True),
             "npc_behavior": getattr(p, 'npc_behavior', 'wander'),
@@ -304,7 +308,20 @@ class WorldSerializer:
                     m["entity_ids"] = []
                 if "source" not in m:
                     m["source"] = "auto"
+                m.setdefault("location", "")
             p.memories = list(mem_data)
+        # The observation index is derived, so rebuild it from the memories
+        # rather than trusting a stored copy: an older save has no index at all,
+        # and a hand-edited one could point at a memory that no longer exists.
+        p.memory_index = {}
+        stored_index = pdata.get("memory_index")
+        if isinstance(stored_index, dict):
+            p.memory_index = {str(k): str(v) for k, v in stored_index.items()}
+        by_id = {m.get("id"): m for m in p.memories}
+        for subject, entry_id in list(p.memory_index.items()):
+            entry = by_id.get(entry_id)
+            if entry is None or entry.get("superseded_by"):
+                p.memory_index.pop(subject, None)
         p.simple_npc = pdata.get("simple_npc", False)
         p.autonomy = pdata.get("autonomy", True)
         p.npc_behavior = pdata.get("npc_behavior", "wander")
@@ -458,3 +475,15 @@ class WorldSerializer:
         self.legacy._forecast_sched_obj = None
         from engine.event_queue import DelayedEventQueue
         self.legacy.delayed_events = DelayedEventQueue.from_dict(data.get("delayed_events", []))
+
+        # Perception at load (task-403): a character knows the room it is
+        # standing in from the moment it is there. Observations are otherwise
+        # written on arrival, so without this pass the one area a character
+        # could never remember would be the one it started in — and task-425's
+        # novelty would pay for it again on the first re-entry.
+        try:
+            from engine.observation import observe_area
+            for p in self.player_manager.players.values():
+                observe_area(p, self.legacy)
+        except Exception as e:
+            logger.warning("[observation] initial pass failed: %s", e)

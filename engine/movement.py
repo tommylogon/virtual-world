@@ -2,6 +2,7 @@
 
 import re
 import time
+import logging
 from typing import Optional, Dict, Any
 
 from graph import Node, Edge, EDGE_CONNECTION, EDGE_TRIGGERS, EDGE_CARRYING, EDGE_EQUIPPED, EDGE_IN
@@ -9,6 +10,8 @@ from engine.room_perception import normalize_requires
 from engine.traits import TraitSystem
 from engine.size import size_tier, size_tier_from_name
 from engine.conditions import effective_speed
+
+logger = logging.getLogger(__name__)
 
 # Movement kind → flavor line. The `time` part of a way's cost is a DURATION
 # hint for the future stateful-action system (task-131), not per-action clock
@@ -690,6 +693,17 @@ class MovementSystem:
                         "on_player_enter_area",
                         {"player_area": target_area_node.name}
                     )
+
+        # Perceive the area just entered (task-403): one live observation per
+        # subject — the area, what it holds, who is standing in it — refreshed
+        # in place rather than appended per visit. Task-425 reads these ticks
+        # for novelty; the visited_areas test below is the last surviving copy
+        # of the old set-based novelty and retires with it.
+        try:
+            from engine.observation import observe_area
+            observe_area(self.gs.player, self.gs)
+        except Exception as e:  # perception must never break movement
+            logger.warning("[observation] %s: %s", self.gs.active_player, e)
 
         # Entertainment boost for area entry
         player = self.gs.player

@@ -227,6 +227,12 @@ class Player:
         # === MEMORY STORE ===
         # List of {text, tick, timestamp, importance (1-10), type, embedding (optional)}
         self.memories = []
+        # subject graph id -> id of the live observation memory about it
+        # (engine/observation.py). Takes "which memory is about this subject?"
+        # out of the memory list, so a subject does not have to be found by
+        # scanning for it, and it is how a character knows what it has and has
+        # not seen.
+        self.memory_index = {}
 
         # === TRACE (objective history) ===
         # Bounded list of plain dicts written by engine.trace — the mechanical
@@ -675,13 +681,17 @@ class Player:
             desc = "inseparable"
         return f"{self.name} considers {other_name} a {desc} (closeness: {closeness}/100)."
 
-    def add_memory(self, text: str, tick: int, importance: int = 5, memory_type: str = "observation", tags=None, source: str = "auto"):
+    def add_memory(self, text: str, tick: int, importance: int = 5, memory_type: str = "observation", tags=None, source: str = "auto", entity_ids=None, location: str = "", salience: int = 0):
         """Add a memory entry. Importance 1-10, higher = more significant.
 
         tags: list[str] — optional keyword labels for targeting via trigger effects.
+        entity_ids: list[str] — graph node ids this memory is about (a subject),
+            used by the observation index and the retrieval entity boost.
+        location: str — the area the memory happened in.
         source: str — provenance label (auto/manual/trigger/...).
+        Returns the stored entry so callers can index it.
         """
-        self.memories.append({
+        entry = {
             "id": str(uuid.uuid4())[:8],
             "text": text,
             "tick": tick,
@@ -690,12 +700,104 @@ class Player:
             "type": memory_type,
             "tags": list(tags) if tags else [],
             "source": source,
-            "salience_override": 0,
+            "entity_ids": [str(e) for e in (entity_ids or []) if e],
+            "location": location or "",
+            "salience_override": salience,
             "suppressions": [],
-        })
+        }
+        self.memories.append(entry)
         limit = _memory_limit()
         if limit and len(self.memories) > limit:
             self._trim_memories(limit)
+        return entry
+
+    def record_observation(self, subject_id: str, text: str, tick: int, kind: str = "",
+                           tags=None, importance: int = 4, location: str = "",
+                           source: str = "observation") -> dict:
+        """Record seeing ``subject_id`` now, refreshing its live observation.
+
+        ONE live observation per subject, updated in place: re-seeing the pantry
+        updates the memory that already describes it rather than appending a
+        second one. That is what keeps the store bounded by *subjects* instead
+        of by visits — a week of wandering does not become thousands of
+        observations — and it makes "when did I last see this?" a single lookup.
+
+        The trace is the history; this holds the current belief.
+        """
+        existing = self.observation_memory(subject_id)
+        if existing is not None:
+            existing["text"] = text
+            existing["tick"] = tick
+            existing["timestamp"] = time.time()
+            existing["location"] = location or existing.get("location", "")
+            existing["visits"] = int(existing.get("visits", 1)) + 1
+            if tags:
+                existing["tags"] = sorted(set(existing.get("tags", [])) | set(tags))
+            self.memory_index[str(subject_id)] = existing["id"]
+            return existing
+
+        entry = self.add_memory(
+            text, tick, importance=importance, memory_type="observation",
+            tags=(["observed"] + ([kind] if kind else []) + list(tags or [])),
+            source=source, entity_ids=[subject_id], location=location,
+        )
+        entry["kind"] = kind
+        entry["visits"] = 1
+        self.memory_index[str(subject_id)] = entry["id"]
+        return entry
+
+    def observation_memory(self, subject_id: str):
+        """The live observation memory about ``subject_id``, or None.
+
+        Falls back to a scan when the index has no entry (an old save, or a
+        memory written outside ``record_observation``) so the index can never
+        silently disagree with the store; the scan repairs it.
+        """
+        key = str(subject_id)
+        if not key:
+            return None
+        entry_id = self.memory_index.get(key)
+        if entry_id:
+            for m in self.memories:
+                if m.get("id") == entry_id and not m.get("superseded_by"):
+                    return m
+        found = None
+        for m in self.memories:
+            if m.get("superseded_by"):
+                continue
+            if key in (m.get("entity_ids") or []):
+                found = m
+        if found is not None:
+            self.memory_index[key] = found["id"]
+        return found
+
+    def observation_tick(self, subject_id: str):
+        """Game tick this subject was last seen (None = never)."""
+        entry = self.observation_memory(subject_id)
+        return entry.get("tick") if entry else None
+
+    def has_seen(self, subject_id: str) -> bool:
+        """True when the character has a live observation of ``subject_id``.
+
+        The novelty test (task-425): absence means "never been", because every
+        sighting refreshes or creates the observation.
+        """
+        return self.observation_memory(subject_id) is not None
+
+    def supersede_observation(self, subject_id: str, reason: str = "") -> bool:
+        """Retire the observation of a subject that no longer exists as seen.
+
+        The belief was replaced (the bread was eaten, the door was unlocked) and
+        nothing new took its place, so recall must stop surfacing it. This is
+        the only path that adds to the supersede chain — sightings refresh in
+        place, they do not chain.
+        """
+        entry = self.observation_memory(str(subject_id))
+        if entry is None:
+            return False
+        entry["superseded_by"] = reason or "gone"
+        self.memory_index.pop(str(subject_id), None)
+        return True
 
     def _trim_memories(self, limit: int):
         """Drop the least worth keeping when a retention cap is configured.
@@ -703,6 +805,10 @@ class Player:
         Authored memories (``source == "manual"``) are the character's backstory,
         so they go last — a busy week of generated social chatter must not push
         the hand-written past out of the character.
+
+        An evicted subject also leaves the observation index, so the character
+        genuinely no longer knows it. Forgetting therefore re-enchants the world
+        (task-425): a place it can no longer remember is novel again.
         """
         while len(self.memories) > limit:
             victim = 0
@@ -710,7 +816,10 @@ class Player:
                 if memory.get("source") != "manual":
                     victim = index
                     break
-            self.memories.pop(victim)
+            gone = self.memories.pop(victim)
+            for subject in (gone.get("entity_ids") or []):
+                if self.memory_index.get(str(subject)) == gone.get("id"):
+                    self.memory_index.pop(str(subject), None)
 
     def suppress_memory(self, tags=None, keywords: str = "", duration: int = 1, scope: str = "self") -> list:
         """Mark matching memories as inaccessible for `duration` turns.
@@ -772,7 +881,9 @@ class Player:
     def get_relevant_memories(self, query: str, max_results: int = 5) -> list:
         """Keyword-based memory retrieval respecting suppressions and salience.
 
-        Memories with an active suppression are excluded.
+        Memories with an active suppression are excluded, and so are superseded
+        observations — a belief that was replaced by a later one must not still
+        be recallable (task-403).
         Recalled memories get a reinforce bump (+1 importance, cap 10).
         """
         if not self.memories:
@@ -784,7 +895,7 @@ class Player:
 
         scored = []
         for m in self.memories:
-            if m.get("suppressions"):
+            if m.get("suppressions") or m.get("superseded_by"):
                 continue
             text_clean = re.sub(r'[^\w\s]', '', m.get("text", "").lower())
             text_words = set(text_clean.split())
@@ -851,6 +962,7 @@ class Player:
             "hidden": bool(getattr(self, "hidden", False)),
             "visited_areas": list(self.visited_areas),
             "discovered_items": list(self.discovered_items),
+            "memory_index": dict(self.memory_index),
             "patrol_route": list(getattr(self, "patrol_route", [])),
             "patrol_index": getattr(self, "patrol_index", 0),
             "trace": [dict(e) for e in getattr(self, "trace_log", [])],

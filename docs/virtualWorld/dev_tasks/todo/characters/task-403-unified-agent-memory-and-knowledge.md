@@ -11,6 +11,50 @@ priority: high
 **Depends on:** task-324 (domain tags feed population queries), task-399
 (background simulation needs memory consolidation)
 
+## Progress
+
+**Slice 1 — observation memories (done, 2026-09-21).** The prerequisite
+task-425 was blocked on (`entity_ids` populated — was 0/17 — plus a per-subject
+index) now exists:
+
+- `engine/observation.py` records one **live observation memory per subject**:
+  the area the character stands in, each item it can see there, each character
+  standing there. Perception is not re-implemented — it reuses
+  `engine/room_perception` (the shared prompt/panel source of truth), and the
+  area itself is recorded unconditionally while its *contents* need light
+  (`can_perceive`: dead/unconscious/asleep see nothing, darkvision counts).
+- `Player.record_observation` refreshes that memory **in place** rather than
+  appending, so the store is bounded by *subjects*, not by visits. Measured:
+  **908 memories after 10,080 ticks (1 min/tick) vs 912 after 672 ticks
+  (15 min/tick)** — fifteen times the game time, the same number of memories.
+- `Player.memory_index` (`subject_id -> memory_id`) takes "which memory is about
+  this subject?" out of the memory list entirely, so it does not have to be found
+  by scanning for a matching `entity_ids` entry. `has_seen` /
+  `observation_tick` / `supersede_observation` read it; `observation_memory`
+  returns `None` and falls back to a scan when the index has no usable entry, and
+  the scan **repairs** the index — so the index can never silently disagree with
+  the store. (Resolving the id back to the entry is still one pass; that is
+  cheap next to the subject scan it removes, and a second id→entry map would be
+  another structure to keep in sync with three writers.)
+- `add_memory` now accepts `entity_ids` / `location` / `salience` and returns
+  the entry; the index, `superseded_by` and an evicted subject's index entry all
+  round-trip (`engine/serialization.py`) and are rebuilt on load.
+- `superseded_by` retires a belief that was replaced (the bread was eaten) so
+  recall stops surfacing it. Sightings *refresh*; they do not chain.
+- Wired: on area entry (`engine/movement.py`, which the background tier also
+  passes through — `_travel_toward` swaps `gs.active_player`) and once per
+  character at load, since nothing is observed without a move and the starting
+  area must not be the one place a character can never remember.
+- Cost: **~5%** of a background week (measured by alternating A/B with warm-up;
+  cProfile agrees). A first measurement of 43% was a cold-start artifact — the
+  first run paid import/parse costs.
+- Tests: `tests/test_observation_memory.py` (14), plus round-trip and load-time
+  cases in `tests/test_serialization.py`. Soak unchanged: 23/23 alive, vitals
+  identical to baseline at 1 and 15 min/tick.
+
+Still open below (the `AgentMind` facade, preconceived knowledge, need-driven
+retrieval, memory traits, memory decay).
+
 ## Goal
 
 Collect the scattered knowledge systems already present in the codebase into
@@ -182,7 +226,14 @@ For each memory in `player.memories`:
 
 ## Files
 
-- `engine/agent_memory.py` (new)
+- `engine/agent_memory.py` (new — the `AgentMind` facade; still to do)
+- `engine/observation.py` (new — slice 1: perception → observation memories)
+- `player.py` (slice 1: `memory_index`, `record_observation`,
+  `observation_memory`, `observation_tick`, `has_seen`,
+  `supersede_observation`, `add_memory` entity_ids/location/salience)
+- `engine/movement.py` (slice 1: observe on area entry)
+- `engine/serialization.py` (slice 1: `memory_index` + `superseded_by`
+  round-trip, index rebuild, load-time perception pass)
 - `engine/traits.py` (add cognitive traits)
 - `engine/tick_manager.py` (add memory decay pass)
 - `data/library/traits/*.json` (new trait files)

@@ -90,3 +90,101 @@ def test_legacy_list_conditions_load():
     reloaded = world2.player_manager.get_player(pname)
     assert set(reloaded.conditions) == {"awake", "poisoned", "blind"}
     assert reloaded.conditions["poisoned"][0]["duration"] == 10
+
+
+def test_observation_memory_and_index_survive_save_load():
+    """task-403: who/what/where/when and the subject index round-trip."""
+    world = VirtualWorld()
+    pname = world.active_player
+    player = world.player_manager.get_player(pname)
+    player.record_observation(
+        "item_dried_meat", "You have seen Dried Meat in the Pantry.", 12,
+        kind="item", tags=["food"], location="Pantry",
+    )
+
+    data = world.to_scenario_dict()
+    entry = data["players"][pname]["memory_index"]["item_dried_meat"]
+
+    world2 = VirtualWorld()
+    world2.load_from_dict(data)
+    reloaded = world2.player_manager.get_player(pname)
+    assert reloaded.memory_index["item_dried_meat"] == entry
+    assert reloaded.has_seen("item_dried_meat")
+    assert reloaded.observation_tick("item_dried_meat") == 12
+    mem = reloaded.observation_memory("item_dried_meat")
+    assert mem["entity_ids"] == ["item_dried_meat"]
+    assert mem["location"] == "Pantry"
+    assert mem["kind"] == "item"
+
+
+def test_a_stale_index_entry_is_dropped_on_load():
+    """A stored index must never point at a memory that is not there."""
+    world = VirtualWorld()
+    pname = world.active_player
+    world.player_manager.get_player(pname).record_observation(
+        "area_pantry", "You have been in the Pantry.", 3, kind="area")
+    data = world.to_scenario_dict()
+    data["players"][pname]["memory_index"]["area_ghost"] = "does_not_exist"
+
+    world2 = VirtualWorld()
+    world2.load_from_dict(data)
+    reloaded = world2.player_manager.get_player(pname)
+    assert "area_ghost" not in reloaded.memory_index
+    assert reloaded.has_seen("area_pantry")
+
+
+def test_a_superseded_observation_is_not_indexed_on_load():
+    world = VirtualWorld()
+    pname = world.active_player
+    player = world.player_manager.get_player(pname)
+    player.record_observation("item_bread", "You have seen Bread.", 1, kind="item")
+    assert player.supersede_observation("item_bread", reason="eaten")
+
+    data = world.to_scenario_dict()
+    world2 = VirtualWorld()
+    world2.load_from_dict(data)
+    reloaded = world2.player_manager.get_player(pname)
+    assert "item_bread" not in reloaded.memory_index
+    assert not reloaded.has_seen("item_bread")
+
+
+def test_index_is_rebuilt_for_a_save_written_before_the_index_existed():
+    """Legacy saves carry observations with entity_ids but no memory_index."""
+    world = VirtualWorld()
+    pname = world.active_player
+    player = world.player_manager.get_player(pname)
+    player.record_observation("area_kitchen", "You have been in the Kitchen.", 2,
+                              kind="area")
+    data = world.to_scenario_dict()
+    data["players"][pname].pop("memory_index", None)
+
+    world2 = VirtualWorld()
+    world2.load_from_dict(data)
+    reloaded = world2.player_manager.get_player(pname)
+    assert reloaded.has_seen("area_kitchen")
+    assert reloaded.memory_index["area_kitchen"]
+
+
+def test_the_starting_area_is_observed_at_load():
+    """Nothing is observed without a move, so the starting area must be
+    recorded at load — otherwise it is the one place a character can never
+    remember, and novelty would pay for it again on the first re-entry."""
+    from graph import Node
+
+    world = VirtualWorld()
+    pname = world.active_player
+    world.graph.add_node(Node(id="area_pantry", type="area", name="Pantry"))
+    world.player_manager.get_player(pname).current_area = "Pantry"
+
+    data = world.to_scenario_dict()
+    # Strip every memory: the only way the area can end up known is the load pass.
+    for pdata in data["players"].values():
+        pdata["memories"] = []
+        pdata["memory_index"] = {}
+
+    world2 = VirtualWorld()
+    world2.load_from_dict(data)
+    reloaded = world2.player_manager.get_player(pname)
+    assert reloaded.current_area == "Pantry"
+    assert reloaded.has_seen("area_pantry")
+    assert reloaded.observation_tick("area_pantry") == data["time_ticks"]

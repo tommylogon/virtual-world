@@ -72,45 +72,61 @@ decided) so the tuning lives with the other rates.
 
 `visited_areas` and `discovered_items` are **sets** today. Rather than grow them
 into name→tick maps, take `last_enjoyed[subject]` from the **observation memory**
-about that subject — `{subjects, verb, object_id, area_id, tick, supersedes}` —
-which already carries who/what/where/when. Then:
+about that subject, which already carries who/what/where/when. Then:
 
 ```
-last_enjoyed(subject) = newest non-superseded observation memory about subject
+last_enjoyed(subject) = the tick of the live observation memory about subject
 ```
 
 and the recovery curve reads that timestamp. `visited_areas` and
 `discovered_items` are **deleted** rather than migrated: two more parallel
 structures gone, which is the same move as `areas`/`rooms` and `entity_ids`.
 
-**Mandatory condition — one observation per subject, superseded, not one per
-visit.** Absence of a memory must mean "never been", never "went but didn't
-record it". So entering an area (or seeing an item) **supersedes** the previous
-observation for that subject instead of appending a new one:
+**The observation memory already exists** (task-403 slice 1, 2026-09-21) — this
+dependency is met, so the shape below is what is actually on `Player`, not a
+proposal:
 
-- volume stays bounded by *subjects*, not by visits (a week of wandering does not
-  become thousands of memories);
-- "when did I last see this" is a single lookup, not a scan;
-- the trace remains the history (bounded, salient-first) while the memory holds the
-  current belief — the existing trace/memory split.
+| need | read this |
+|---|---|
+| last seen | `player.observation_tick(subject_id)` → tick or `None` |
+| has seen | `player.has_seen(subject_id)` |
+| the memory | `player.observation_memory(subject_id)` → `{entity_ids: [subject_id], location, kind, tick, visits, tags, text, superseded_by?}` |
+| subject index | `player.memory_index` (`subject_id → memory_id`) |
 
-**Depends on:** the observation-memory work (`entity_ids` populated — currently
-0/17 — plus a per-subject latest index or the memory graph). Without an index,
-every area entry is an O(memories) scan, and memories are uncapped now.
+`kind` is `"area"` / `"item"` / `"character"`, which is the subject kind.
+Recording is `player.record_observation(subject_id, text, tick, kind=..., location=...)`,
+and it **refreshes in place** — sightings do not chain, so volume stays bounded
+by subjects. `supersede_observation(subject_id, reason)` retires a belief that
+was replaced and is the only path that sets `superseded_by`.
+
+Measured boundedness (task-403): 908 memories after a week at 1 min/tick vs 912
+after a week at 15 min/tick — 15x the game time, the same count.
+
+Novelty therefore no longer needs its own write path: entering an area is
+already an observation (`engine/movement.py`), and item discovery can record one
+too. `novelty_bonus(subject, tick)` only has to *read* `observation_tick` and
+scale it — plus scale the trait multipliers.
+
+**Note on what "supersede instead of append" turned into.** The original sketch
+had each visit supersede the previous observation; implementation refreshes the
+one memory in place, which achieves the same bound with a smaller structure. The
+trace remains the history (bounded, salient-first) while the memory holds the
+current belief — the existing trace/memory split.
 
 **Emergent bonus, and one caveat.** Forgetting re-enchants the world: an area a
 character can no longer remember becomes novel again, which is a lovely
-consequence of the coupling and worth keeping. The caveat is the coupling itself —
-suppression, eviction and deliberate forgetting now move a vitals system, so that
-has to be stated rather than discovered.
+consequence of the coupling and worth keeping — `Player._trim_memories` drops the
+evicted subject from `memory_index` so this falls out for free. The caveat is the
+coupling itself — suppression, eviction and deliberate forgetting now move a
+vitals system, so that has to be stated rather than discovered.
 
 ## Changes
 
 1. **Delete** `visited_areas` and `discovered_items`; derive last-seen from
-   observation memories (requires `entity_ids` + a per-subject index — see
-   "Derive the timestamps" above).
+   observation memories (the index they needed now exists — see above).
 2. Novelty helper (one place): `novelty_bonus(subject, tick)` returning the scaled
-   bonus, and superseding the subject's observation memory rather than appending.
+   bonus. Recording is already handled by `Player.record_observation`; this only
+   reads `observation_tick`.
 3. `movement.py` area entry and the item discovery path use it, replacing the
    `was_new` / `wanderlust` branches. Keep the trait scaling (`curious` ×1.5,
    `homebody` 0).
@@ -127,9 +143,9 @@ has to be stated rather than discovered.
 - A background week soak at 1 and 15 min/tick ends with **Entertainment above 0**
   and settling, not pinned at 0.
 - Item interaction pays on the same curve; a first-ever discovery still pays full.
-- A subject with **no** observation memory pays full novelty; a visit supersedes
-  the previous observation rather than appending a second one (volume stays
-  bounded by subjects).
+- A subject with **no** observation memory pays full novelty; a visit refreshes
+  the previous observation in place rather than appending a second one (volume
+  stays bounded by subjects — already true, see task-403 slice 1).
 - An old save carrying `visited_areas`/`discovered_items` loads without error and
   pays novelty from memory instead (the stale sets are ignored, so the first visit
   after upgrading pays full — the generous reading).
