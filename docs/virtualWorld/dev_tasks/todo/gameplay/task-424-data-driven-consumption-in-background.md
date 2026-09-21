@@ -11,6 +11,38 @@ priority: medium
 **Depends on:** task-410 (renewable sources — the same `_find_consumable` path).  
 **Relates:** `engine/items/consume_actions.py`, `engine/background_simulation.py`.
 
+## Scoping notes (2026-09-21, measured)
+
+Two things this task did not know, both of which change its shape. It is **three
+pieces, not one**, and the first piece on its own is invisible.
+
+**1. Almost nothing authors its own consumption.** Of ~40 edible/drinkable library
+items, only six have an `on_eat`/`on_drink` trigger (`rations_of_dried_meat`,
+`water_pitcher`, `wheel_of_cheese`, and three Taco Bell items). The rest are
+tag-only, and `_consume_item` accepts them on the tag alone — so with the authored
+path they would fire no effect and never deplete: an infinite loaf. The hardcoded
+depletion is currently the *only* thing making camp food finite.
+
+**2. The camp places five consumables**, not a sprawling inventory:
+`item_berries`, `item_bread`, `item_dried_meat`, `item_mushrooms` (food) and
+`item_water_skin` (drink) — and none of them has a trigger today. So the data pass
+is small and tractable, and it is what makes the change *visible*; the code half
+alone would leave the camp on the fallback and change nothing observable.
+
+**3. "A glass empties and persists" needs a mechanism that does not exist yet.**
+`uses` reaching 0 is handled generically in the *use* path
+(`items/use_actions.py`, which detaches the item from its area) and for **lit**
+items (`tick_manager` fires `on_depleted` under `if is_lit`) — but **not** in the
+consume path. `_consume_item` relies on the item calling `adjust_uses`. So a
+drinkable container cannot currently author "at 0 charges, become empty and stay
+in the world" through consumption: that generic depletion hook is part of this
+task, and the acceptance item about the empty glass depends on it.
+
+Suggested order: the code delegation (a) → the generic `uses == 0 → on_depleted /
+set_state` hook (c) → the data pass on the five camp consumables (b). Only then
+retire `MEAL_RESTORE`/`DRINK_RESTORE`, and the soak should be unchanged because
+until (b) lands every camp item is still on the fallback.
+
 ## Problem
 
 Consumption has two mechanisms that disagree:
