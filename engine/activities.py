@@ -92,6 +92,9 @@ ACTIVITY_BLOCKING = {"sleeping", "bathing"}
 ACTIVITY_SKIP_TURNS = {
     "sleeping", "resting", "waiting", "meditating",
     "bathing", "sitting", "lying down", "working",
+    # task-436: a background task whose duration outran its timeframe spans
+    # turns, and must occupy them like any other turn-consuming activity.
+    "eating", "drinking", "relieving", "washing", "recreating", "recuperating",
 }
 
 #: activities that end automatically when the character does anything else
@@ -102,7 +105,11 @@ ACTIVITY_SKIP_TURNS = {
 #: `busy` — which reads downstream as a mysterious refusal to eat, sleep or wash.
 #: Add every timed activity to this set.
 ACTIVITY_INTERRUPTIBLE = {"resting", "waiting", "meditating", "sitting", "lying down",
-                          "working"}
+                          "working",
+                          # task-436: the same trap applies to every one of
+                          # these; leaving one out strands the character busy.
+                          "eating", "drinking", "relieving", "washing",
+                          "recreating", "recuperating"}
 
 #: commands allowed while a blocking activity is active
 _ALLOWED_WHILE_BLOCKED = {
@@ -292,6 +299,9 @@ class ActivitySystem:
         # Vital regen (per-minute, scaled to the tick length; fractional steps
         # carry between ticks)
         minutes = tick_minutes(self.world)
+        # Elapsed *game time*, so a duration authored in minutes means the same
+        # thing at a 1-minute turn and a 30-minute one (task-436).
+        activity["elapsed_minutes"] = activity.get("elapsed_minutes", 0.0) + minutes
         for stat, amount in ACTIVITY_REGEN.get(activity_type, {}).items():
             if stat in player.vitals:
                 before = player.vitals[stat]
@@ -308,6 +318,23 @@ class ActivitySystem:
 
         return "\n".join(outputs) if outputs else None
 
+    @staticmethod
+    def _duration_elapsed(activity: dict) -> bool:
+        """Has the activity's authored duration run out?
+
+        Two units, deliberately. ``duration_ticks`` counts *turns* and predates
+        the author-in-game-minutes rule; ``duration_minutes`` counts game time
+        and is what a task must use if its length is to mean the same thing at a
+        1-minute turn and a 30-minute one (task-436). An activity may use either,
+        or neither, in which case it ends on its own condition (energy full,
+        hygiene clean).
+        """
+        if activity.get("duration_minutes") is not None:
+            return activity.get("elapsed_minutes", 0.0) >= activity["duration_minutes"]
+        if activity.get("duration_ticks") is not None:
+            return activity.get("elapsed_ticks", 0) >= activity["duration_ticks"]
+        return False
+
     def _tick_sleeping(self, player, activity: dict, outputs: List[str]):
         energy = player.vitals.get("Energy", 100)
         if energy >= 100:
@@ -315,11 +342,10 @@ class ActivitySystem:
             outputs.append("You wake fully rested.")
             return
         # Natural timer (sleep <minutes>): wake when elapsed time runs out
-        if activity.get("duration_ticks") is not None:
-            if activity.get("elapsed_ticks", 0) >= activity["duration_ticks"]:
-                self.end_activity(player.name, reason="finished")
-                outputs.append("Your sleep is over.")
-                return
+        if self._duration_elapsed(activity):
+            self.end_activity(player.name, reason="finished")
+            outputs.append("Your sleep is over.")
+            return
 
     def _tick_bathing(self, player, activity: dict, outputs: List[str]):
         hygiene = player.vitals.get("Hygiene", 100)
@@ -334,16 +360,14 @@ class ActivitySystem:
                     outputs.append(dressed)
             except ValueError:
                 pass
-        elif activity.get("duration_ticks") is not None:
-            if activity.get("elapsed_ticks", 0) >= activity["duration_ticks"]:
-                self.end_activity(player.name, reason="finished")
-                outputs.append("You finish bathing.")
+        elif self._duration_elapsed(activity):
+            self.end_activity(player.name, reason="finished")
+            outputs.append("You finish bathing.")
 
     def _maybe_end_by_duration(self, player, activity: dict, outputs: List[str]):
-        if activity.get("duration_ticks") is not None:
-            if activity.get("elapsed_ticks", 0) >= activity["duration_ticks"]:
-                self.end_activity(player.name, reason="finished")
-                outputs.append("You finish.")
+        if self._duration_elapsed(activity):
+            self.end_activity(player.name, reason="finished")
+            outputs.append("You finish.")
 
     # ─────────────────────────── wake / interrupt ───────────────────────────
 

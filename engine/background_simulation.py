@@ -167,7 +167,7 @@ class BackgroundSimulation:
             served = set()  # tasks already done in THIS timeframe (not travel)
             while remaining > 0:
                 try:
-                    used = self._act(name, p, served)
+                    used = self._act(name, p, served, remaining)
                 except Exception as e:  # never let one character stall the turn
                     logger.warning("[background] %s: %s", name, e)
                     break
@@ -189,7 +189,40 @@ class BackgroundSimulation:
 
     # ───────────────────────────── decisions ───────────────────────────────
 
-    def _act(self, name, p, served=None):
+    def _begin_task(self, p, activity_type, duration, remaining):
+        """A task longer than what is left of the timeframe spans turns.
+
+        A ten-minute meal cannot happen inside a one-minute turn. Without this
+        the cost is **overdrawn**: the meal resolves instantly, so a fine-grained
+        clock lets a character perform fifteen whole tasks in fifteen minutes
+        while a coarse one admits only the two or three that fit. That asymmetry
+        is the residual resolution dependence this fixes.
+
+        The activity is authored in **minutes**, so however the clock is sliced
+        the character is eating for ten minutes: ten turns at a 1-minute turn,
+        most of one turn at fifteen. `process_due` skips anyone mid-activity and
+        `ActivitySystem.tick_activity` ends it — and the type must be listed in
+        `ACTIVITY_INTERRUPTIBLE` or it never expires and strands them busy.
+        """
+        if duration <= remaining:
+            return  # it fits in what is left; just spend the minutes
+        if p.activity:
+            # A helper already opened an activity for this task (`_recuperate`
+            # starts a `resting` block, `_pursue_schedule` a `working` one).
+            # Overwriting it would discard that duration — and for `resting` it
+            # silently replaced a correctly minute-converted one with ours.
+            return
+        p.activity = {
+            "type": activity_type,
+            "started_at_tick": self.gs.time_ticks,
+            "target_item": None,
+            "duration_minutes": float(duration),
+            "elapsed_minutes": 0.0,
+            "elapsed_ticks": 0,
+            "visible": True,
+        }
+
+    def _act(self, name, p, served=None, remaining=None):
         """Take the character's next action in this turn's flow.
 
         Returns the **minutes the action took**, or ``None`` if nothing was due —
@@ -203,9 +236,15 @@ class BackgroundSimulation:
         was long. Travel is deliberately **not** recorded: a walk is progress, so
         a character keeps stepping toward food until they reach it, at one minute
         a step.
+
+        ``remaining`` is how much of the timeframe is left. A task longer than
+        that does not resolve instantly — it starts an activity and spans turns,
+        so its cost is the same game time at any clock resolution.
         """
         if served is None:
             served = set()
+        if remaining is None:
+            remaining = minutes_in_turn(self.gs)
         if p.activity:
             return None  # mid-activity (e.g. sleeping) — leave them to it
         if p.state == "unconscious":
@@ -234,9 +273,11 @@ class BackgroundSimulation:
                        area=p.current_area, tags=["need"])
                 self.gs.add_log_entry(f"[{p.name}] drinks from {p.current_area}.")
                 served.add("drink")
+                self._begin_task(p, "drinking", TASK_MINUTES["drink"], remaining)
                 return TASK_MINUTES["drink"]
             if "drink" not in served and self._consume_here(p, DRINK_TAGS, "drink"):
                 served.add("drink")
+                self._begin_task(p, "drinking", TASK_MINUTES["drink"], remaining)
                 return TASK_MINUTES["drink"]
             if self._travel_toward(p, DRINK_TAGS, "thirst"):
                 return TASK_MINUTES["travel"]
@@ -250,6 +291,7 @@ class BackgroundSimulation:
         if hunger >= HUNGER_THRESHOLD:
             if "eat" not in served and self._consume_here(p, FOOD_TAGS, "eat"):
                 served.add("eat")
+                self._begin_task(p, "eating", TASK_MINUTES["eat"], remaining)
                 return TASK_MINUTES["eat"]
             if self._travel_toward(p, FOOD_TAGS, "hunger"):
                 return TASK_MINUTES["travel"]
@@ -257,6 +299,7 @@ class BackgroundSimulation:
         if v.get("Bladder", 0) >= BLADDER_THRESHOLD:
             if "relieve" not in served and self._relieve(p):
                 served.add("relieve")
+                self._begin_task(p, "relieving", TASK_MINUTES["relieve"], remaining)
                 return TASK_MINUTES["relieve"]
             if self._travel_toward(p, RELIEF_TAGS, "bladder"):
                 return TASK_MINUTES["travel"]
@@ -267,6 +310,7 @@ class BackgroundSimulation:
         if v.get("Hygiene", 100) <= HYGIENE_THRESHOLD:
             if "wash" not in served and self._wash(p):
                 served.add("wash")
+                self._begin_task(p, "washing", TASK_MINUTES["wash"], remaining)
                 return TASK_MINUTES["wash"]
             if self._travel_toward(p, BATH_TAGS, "hygiene"):
                 return TASK_MINUTES["travel"]
@@ -277,6 +321,7 @@ class BackgroundSimulation:
         if v.get("Sanity", 100) <= SANITY_THRESHOLD:
             if "recuperate" not in served and self._recuperate(p):
                 served.add("recuperate")
+                self._begin_task(p, "recuperating", TASK_MINUTES["recuperate"], remaining)
                 return TASK_MINUTES["recuperate"]
 
         # What the day says to do, once every survival need is satisfied
@@ -292,6 +337,7 @@ class BackgroundSimulation:
         if v.get("Entertainment", 100) <= ENTERTAINMENT_THRESHOLD:
             if "recreate" not in served and self._recreate(p):
                 served.add("recreate")
+                self._begin_task(p, "recreating", TASK_MINUTES["recreate"], remaining)
                 return TASK_MINUTES["recreate"]
             if self._travel_toward(p, RECREATION_TAGS, "entertainment"):
                 return TASK_MINUTES["travel"]

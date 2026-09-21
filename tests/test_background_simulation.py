@@ -304,3 +304,63 @@ def test_areas_with_detects_food_area():
     from engine.background_simulation import BackgroundSimulation, FOOD_TAGS
     sim = BackgroundSimulation(w)
     assert AREA in sim._areas_with(FOOD_TAGS)
+
+
+def test_a_task_longer_than_the_timeframe_spans_turns():
+    """A ten-minute meal cannot happen inside a one-minute turn.
+
+    Without this the cost is overdrawn — the meal resolves instantly, so a
+    fine-grained clock lets a character perform fifteen whole tasks in fifteen
+    minutes while a coarse one admits only the two or three that fit. At T=1 the
+    meal starts an activity authored in **minutes**, so it costs ten minutes of
+    game time however the clock is sliced.
+    """
+    w = _world()
+    w.time_per_tick_minutes = 1
+    p = _bg_player(w, Thirst=10, Hunger=90, Energy=90)
+    p.vitals["Entertainment"] = 100
+    p.next_due_tick = 0
+    _add_item(w, AREA, "dried meat", ["food"], ["eat"])
+
+    w.tick_turn()
+    assert p.activity is not None, "a 10-minute meal fit inside a 1-minute turn"
+    assert p.activity["type"] == "eating"
+    assert p.activity["duration_minutes"] == 10
+
+    # It occupies the turns it needs, then releases. A type missing from
+    # ACTIVITY_INTERRUPTIBLE would never expire and strand the character busy.
+    for _ in range(20):
+        w.tick_turn()
+        if p.activity is None:
+            break
+    assert p.activity is None, "the meal never ended — character stuck busy"
+
+
+def test_a_task_that_fits_does_not_start_an_activity():
+    """At a 15-minute turn the same meal is part of the turn, not a span."""
+    w = _world()
+    w.time_per_tick_minutes = 15
+    p = _bg_player(w, Thirst=10, Hunger=90, Energy=90)
+    p.vitals["Entertainment"] = 100
+    p.next_due_tick = 0
+    _add_item(w, AREA, "dried meat", ["food"], ["eat"])
+
+    w.tick_turn()
+    assert p.activity is None, "a task that fits should not span turns"
+    assert p.vitals["Hunger"] <= 50
+
+
+def test_every_task_activity_can_expire():
+    """The trap the ACTIVITY_INTERRUPTIBLE comment warns about.
+
+    `_tick` only calls `_maybe_end_by_duration` for members of that set, so a
+    task activity missing from it runs its elapsed time past its duration
+    forever and the character is stuck `busy` — which downstream reads as a
+    mysterious refusal to eat, sleep or wash.
+    """
+    from engine.activities import ACTIVITY_INTERRUPTIBLE, ACTIVITY_SKIP_TURNS
+
+    for kind in ("eating", "drinking", "relieving", "washing", "recreating",
+                 "recuperating"):
+        assert kind in ACTIVITY_INTERRUPTIBLE, f"{kind} would never expire"
+        assert kind in ACTIVITY_SKIP_TURNS, f"{kind} would not occupy a turn"

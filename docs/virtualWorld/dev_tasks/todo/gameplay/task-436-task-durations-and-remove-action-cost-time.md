@@ -1,9 +1,12 @@
 # task-436 — Task durations, and removing `ACTION_COSTS.time`
 
-**Status:** steps 1–6 done — the per-turn action budget is replaced by the
-timeframe-and-flow model. One substantial follow-up identified: **long tasks must
-span turns as activities** (see the final section), which is what would make T=1
-and T=15 agree exactly. Two cheaper attempts were tried and measured worse.
+**Status:** done, except one measured residual. The per-turn action budget is
+replaced by the timeframe-and-flow model, `ACTION_COSTS.time` is gone, and tasks
+longer than their timeframe now span turns as minute-authored activities. T=1 and
+T=15 agree on survival and Hunger and within ~2.5 points on five further vitals;
+**Energy remains ~10 apart and its cause is not identified** (see the final
+sections). Two earlier gating attempts measured worse and were reverted — do not
+repeat them.
 **Area:** gameplay / time
 **Depends on:** [[Simulation Model]] (the timeframe-and-flow model)
 **Related:** task-352 (action economy), task-414 (batch advance), task-131 (stateful actions over time), task-244 (human turn parameters)
@@ -108,38 +111,69 @@ Better across the board at equal survival (23/23). A long timeframe can chain
 Resolution independence, new model, T=1 vs T=15 over the same game week: survival
 23/23 both, Hunger 34.2 both, Thirst 17.3 / 16.5, HP 96.8 / 97.7.
 
-### Residual resolution dependence — open, root cause identified
+### Resolution dependence — root cause fixed; Energy gap remains
 
-Energy still differs between resolutions (T=1 67.1 against T=15 77.3). The first
-explanation offered here — "`served` resets per turn" — was a guess, and two
-attempts to fix it on that basis were made and **both measured worse**, so both
+**Fixed.** The overdraft is gone: a task longer than what is left of the timeframe
+now starts an activity authored in **minutes** (`_begin_task`), so a ten-minute
+meal costs ten minutes of game time and occupies ten turns at a T=1 clock, most of
+one turn at T=15. `ActivitySystem` gained `elapsed_minutes` / `duration_minutes`
+alongside the legacy tick-based fields, and the task activity types were added to
+`ACTIVITY_INTERRUPTIBLE` and `ACTIVITY_SKIP_TURNS` — the former being mandatory,
+since a type missing from it never expires and strands the character busy.
+
+Two traps hit while doing it, both worth knowing:
+
+- `_begin_task` must not overwrite an activity a helper already opened.
+  `_recuperate` starts a `resting` block with its duration correctly converted
+  from minutes, and clobbering it broke `test_a_low_sanity_character_rests`.
+- `duration_ticks` is a **turn** count and is the same unit trap this task exists
+  to remove. `_recuperate` divides `SANITY_REST_MINUTES` by the tick length to get
+  ticks, which is correct; anything else authoring `duration_ticks` directly is not.
+
+**Measured, one game week, T=1 against T=15** (23/23 alive at both):
+
+| | T=1 | T=15 |
+| --- | --- | --- |
+| Hunger | 34.2 | 34.2 |
+| HP | 96.8 | 96.2 |
+| Sanity | 83.3 | 82.0 |
+| Entertainment | 39.2 | 40.5 |
+| Social | 77.6 | 75.2 |
+| Thirst | 17.5 | 15.0 |
+| Hygiene | 78.4 | 72.9 |
+| **Energy** | **65.8** | **76.1** |
+
+Five of eight agree within ~2.5 points. **Energy is consistently ~10 apart across
+every variant tried** (67.1/77.3, 61.9/73.7, 65.8/76.1), so it is a real remaining
+mechanism rather than run-to-run noise — but its cause is **not** identified, and
+the two earlier guesses about this area were both wrong. Do not repeat them. Sleep
+is already open-ended (it ends at Energy 100, not on a duration), so the next
+suspect is condition-based wake granularity: a wake test evaluated once per turn
+oversleeps by up to T minutes, which a coarse clock cannot avoid without moving the
+check inside the timeframe.
+
+`served` remains the shipping intra-turn rule: best-measured of the three gating
+schemes tried, and the simplest to reason about.
+
+### The two gating experiments that failed (do not repeat)
+
+Both were attempts to fix the resolution gap *before* it was understood, by
+changing how a task is gated rather than how it is timed. Both measured worse and
 were reverted:
 
-1. **Gate on the action's own duration instead of `served`.** Made it worse:
-   Energy 64.0 / 75.6, Thirst 17.6 / 12.1. Gating on duration is far too
-   permissive — it lets a character above the thirst threshold drink every two
-   minutes.
+1. **Gate on the action's own duration instead of `served`.** Energy 64.0 / 75.6,
+   Thirst 17.6 / 12.1. Far too permissive — it lets a character above the thirst
+   threshold drink every two minutes.
 2. **A `TASK_COOLDOWN_MINUTES` routine table** (eat 240, drink 45, wash 480, …).
-   Also worse: Energy 60.7 / 80.3, Hygiene 55.8 / 69.3, against 67.1 / 77.3 and
-   77.8 / 74.3 for `served`. More "realistic" intervals, worse convergence, and
-   plausibly worse play (goblins washing twice a day sit at Hygiene 56).
+   Energy 60.7 / 80.3, Hygiene 55.8 / 69.3, against 67.1 / 77.3 and 77.8 / 74.3 for
+   `served`. More "realistic" intervals, worse convergence, and plausibly worse
+   play (goblins washing twice a day sit at Hygiene 56).
 
-**The actual root cause is an overdraft, not the gating.** At T=1 the timeframe is
-one minute, `eat` reports 10, and the loop spends it anyway — so a character
-performs fifteen whole tasks in fifteen minutes at T=1, while at T=15 the
-timeframe only admits the two or three that fit. The binding constraint at T=15
-is the timeframe itself, which is why no cooldown value could reconcile them.
-
-**The fix is therefore the one the model already implies:** a task longer than the
-remaining timeframe must **span turns as an activity**, exactly as eight hours of
-sleep is 480 turns at 1 min/tick and 32 at 15. `p.activity` exists for this and
-the flow loop already breaks when it is set — what is missing is that
-`_consume_here`, `_relieve`, `_wash`, `_recreate` and `_recuperate` do not use it.
-Until then, T=1 overdrafts every task cost and reads as the *unrealistic*
-resolution; T=15's numbers should be treated as the reference.
-
-`served` is kept as the shipping rule: it is the best-measured of the three, and
-being turn-scoped it is also the simplest to reason about.
+The gap was never a gating problem: at T=1 the timeframe is one minute, `eat`
+reports 10, and the loop spent it anyway — so a character performed fifteen whole
+tasks in fifteen minutes at T=1 while T=15 admitted only the two or three that fit.
+The binding constraint at T=15 was the timeframe, which is why no cooldown value
+could reconcile them.
 
 ### Cost
 
