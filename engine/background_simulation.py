@@ -73,31 +73,40 @@ BATH_HYGIENE = 70         # fallback when a fixture does not author its own amou
 RECREATION_TAGS = ("recreation",)
 ENTERTAINMENT_RESTORE = 15  # fallback when a fixture does not author its own amount
 
-#: One action per **game minute** — a turn of T minutes holds T ticks (task-409).
+#: Minutes each background action takes. A turn is a *timeframe*, and these fill
+#: it, so the number of actions per turn is **emergent** rather than budgeted: a
+#: character does what fits and stops as soon as nothing is due (task-436).
 #:
-#: A tick is an action and its consequences; a turn is `time_per_tick_minutes`
-#: minutes, so a turn holds that many actions. This is *not* a rate constant and
-#: must not be confused with the LLM **decision** cadence, which is one per turn
-#: per focused character and is the thing that costs money. A deterministic
-#: character spends its whole turn; an LLM decides once and the engine resolves
-#: the ticks. Earlier the same loop used a decision every 10 game minutes, which
-#: put the background tier on a different clock from the live one (at the camp's
-#: 1-minute turn it acted ten times less often than the player, and the two agreed
-#: only around T=10 by coincidence).
-def actions_per_turn(gs) -> int:
-    """Actions a character may take in one turn: one per game minute.
+#: This is not a rate constant and must not be confused with the LLM **decision**
+#: cadence, which is one per turn per focused character and is the thing that
+#: costs money. A deterministic character fills its whole timeframe; an LLM
+#: decides once and the engine resolves the rest.
+#:
+#: `travel` is a single step, so a walk legitimately repeats until the timeframe
+#: runs out. Every other entry is a task: once done it is not repeated in the
+#: same timeframe, which is what stops a 30-minute turn from becoming thirty
+#: meals. This replaces the old per-turn action *budget* (`actions_per_turn`),
+#: which handed out one action per game minute and so assumed actions had no
+#: duration — making long turns frantic as well as wasteful.
+TASK_MINUTES = {
+    "drink": 2,
+    "eat": 10,
+    "relieve": 5,
+    "wash": 5,
+    "recreate": 15,
+    "recuperate": 30,
+    "work": 30,
+    "travel": 1,   # one step; repeats until the timeframe is full
+    "sleep": 1,    # lying down — the sleeping activity occupies what follows
+}
 
-    DEBT (task-436): this is the superseded *budget* model. [[Simulation Model]]
-    defines a turn as a timeframe that a character fills with an action flow whose
-    length is emergent from the durations of its actions. Budgeting one-minute
-    actions with no durations gives a 30-minute turn thirty actions — and ~1,440
-    actions per character per game day. Replace with task durations.
-    """
+
+def minutes_in_turn(gs) -> float:
+    """The timeframe one turn covers, in game minutes: what a flow must fill."""
     try:
-        minutes = float(tick_minutes(gs))
+        return max(1.0, float(tick_minutes(gs)))
     except Exception:
-        minutes = 1.0
-    return max(1, int(round(minutes)))
+        return 1.0
 
 
 class BackgroundSimulation:
@@ -110,19 +119,27 @@ class BackgroundSimulation:
     # ───────────────────────────── entry point ─────────────────────────────
 
     def process_due(self):
-        """Spend every character's turn — deterministically, for the characters
-        that do not have a decision of their own this turn.
+        """Fill every character's timeframe — deterministically, for the
+        characters that do not have a decision of their own this turn.
 
-        A turn is T game minutes and holds T actions (one per minute), and every
-        character gets the same T. A background character spends all T here. A
-        focused character has already spent its first action on its LLM decision,
-        so only the remaining T-1 are spent here — without that, a focused goblin
-        would do one thing and stand still for fourteen minutes at a 15-minute
-        turn while its background twin did fifteen things. The human's own
-        character is never puppeted: its remaining minutes are the player's.
+        A turn is a *timeframe* of T game minutes, and a character fills it with
+        an action flow: each action consumes its `TASK_MINUTES` duration until the
+        timeframe is full or nothing is due. The number of actions is therefore
+        emergent — one at a 1-minute turn, and at 15 minutes the four or five
+        things that actually fit. It is not a budget handed out per turn.
 
-        A character mid-activity (sleeping) or unconscious neither decides nor
-        banks, so a long sleep cannot leave a backlog to dump on waking.
+        The loop stops as soon as `_act` reports nothing to do, which is the
+        common case: a fed, rested character spends a whole turn doing nothing at
+        all. That is the point — survival is infrastructure, not a treadmill.
+
+        A focused character has already spent its decision, which was this turn's
+        first minute, so it flows for the remainder. Beyond that, an LLM-driven
+        character and a deterministic one differ in who chose, not in how much
+        time they get. The human's own character is never puppeted: its minutes
+        are the player's.
+
+        A character mid-activity (sleeping) or unconscious is skipped entirely, so
+        a long sleep cannot leave a backlog to dump on waking.
         """
         try:
             human = self.gs.active_player
@@ -136,36 +153,29 @@ class BackgroundSimulation:
             if p.state == "dead":
                 continue
             if p.activity or p.state == "unconscious":
-                continue  # committed to a duration; no decisions, no banking
+                continue  # committed to a duration; nothing to spend
 
             # An explicit "not before" tick (a save, a tool, a delayed event)
-            # defers the character entirely — it grants no action *and* banks
-            # nothing, so a long deferral cannot turn into a burst on arrival.
+            # defers the character entirely. Nothing is banked, so a long
+            # deferral cannot turn into a burst when it lifts.
             if self.gs.time_ticks < getattr(p, "next_due_tick", 0):
-                p._action_credit = 0.0
                 continue
 
-            budget = actions_per_turn(self.gs)
+            remaining = minutes_in_turn(self.gs)
             if focused:
-                budget -= 1  # the LLM decision was this turn's first action
-            if budget <= 0:
-                continue
-
-            credit = getattr(p, "_action_credit", 0.0) or 0.0
-            credit = min(credit + budget, budget)
-
-            spent = 0
-            while credit >= 1.0 and spent < budget:
+                remaining -= 1.0  # its decision was this turn's first minute
+            served = set()  # tasks already done in THIS timeframe (not travel)
+            while remaining > 0:
                 try:
-                    self._act(name, p)
-                except Exception as e:  # never let one character stall the tick
+                    used = self._act(name, p, served)
+                except Exception as e:  # never let one character stall the turn
                     logger.warning("[background] %s: %s", name, e)
                     break
-                credit -= 1.0
-                spent += 1
+                if not used:
+                    break  # nothing is due; the rest of the timeframe passes
+                remaining -= used
                 if p.activity or p.state == "unconscious":
-                    break  # a duration started; stop spending this tick
-            p._action_credit = credit
+                    break  # a duration took over; it owns the rest of the turn
 
         # Social pass last (task-423): after everyone has moved and acted, so a
         # conversation happens where the characters actually ended up. Pairs per
@@ -179,11 +189,27 @@ class BackgroundSimulation:
 
     # ───────────────────────────── decisions ───────────────────────────────
 
-    def _act(self, name, p):
+    def _act(self, name, p, served=None):
+        """Take the character's next action in this turn's flow.
+
+        Returns the **minutes the action took**, or ``None`` if nothing was due —
+        which is the common case and ends the flow, letting the rest of the
+        timeframe pass quietly. The caller fills a timeframe with these, so an
+        action's duration is what limits how many fit in a turn.
+
+        ``served`` is the set of tasks already done *in this timeframe*. A task
+        is not repeated once done — otherwise a character whose meal did not fully
+        clear their hunger would eat again, and again, as many times as the turn
+        was long. Travel is deliberately **not** recorded: a walk is progress, so
+        a character keeps stepping toward food until they reach it, at one minute
+        a step.
+        """
+        if served is None:
+            served = set()
         if p.activity:
-            return  # mid-activity (e.g. sleeping) — leave them to it
+            return None  # mid-activity (e.g. sleeping) — leave them to it
         if p.state == "unconscious":
-            return  # collapsed; the engine's recovery path handles waking
+            return None  # collapsed; the engine's recovery path handles waking
 
         v = p.vitals
         thirst = v.get("Thirst", 0)
@@ -195,7 +221,8 @@ class BackgroundSimulation:
         # (the exact failure the 2-day soak showed).
         if energy <= 15:
             self._sleep(p)
-            return
+            served.add("sleep")
+            return TASK_MINUTES["sleep"]
 
         if thirst >= THIRST_THRESHOLD:
             # The scenario models natural water as an AREA tag ("water") you
@@ -206,59 +233,70 @@ class BackgroundSimulation:
                        f"drank from {p.current_area}", why="needs:drink",
                        area=p.current_area, tags=["need"])
                 self.gs.add_log_entry(f"[{p.name}] drinks from {p.current_area}.")
-                return
-            if self._consume_here(p, DRINK_TAGS, "drink"):
-                return
+                served.add("drink")
+                return TASK_MINUTES["drink"]
+            if "drink" not in served and self._consume_here(p, DRINK_TAGS, "drink"):
+                served.add("drink")
+                return TASK_MINUTES["drink"]
             if self._travel_toward(p, DRINK_TAGS, "thirst"):
-                return
-            return
+                return TASK_MINUTES["travel"]
+            return None  # no water within reach; nothing else to try for it
 
         if energy <= ENERGY_THRESHOLD:
             self._sleep(p)
-            return
+            served.add("sleep")
+            return TASK_MINUTES["sleep"]
 
         if hunger >= HUNGER_THRESHOLD:
-            if self._consume_here(p, FOOD_TAGS, "eat"):
-                return
+            if "eat" not in served and self._consume_here(p, FOOD_TAGS, "eat"):
+                served.add("eat")
+                return TASK_MINUTES["eat"]
             if self._travel_toward(p, FOOD_TAGS, "hunger"):
-                return
+                return TASK_MINUTES["travel"]
 
         if v.get("Bladder", 0) >= BLADDER_THRESHOLD:
-            if self._relieve(p):
-                return
+            if "relieve" not in served and self._relieve(p):
+                served.add("relieve")
+                return TASK_MINUTES["relieve"]
             if self._travel_toward(p, RELIEF_TAGS, "bladder"):
-                return
+                return TASK_MINUTES["travel"]
             # Nowhere to go. The engine already docks Hygiene when the meter
             # maxes, which is the honest outcome for a camp with no latrine.
-            return
+            return None
 
         if v.get("Hygiene", 100) <= HYGIENE_THRESHOLD:
-            if self._wash(p):
-                return
+            if "wash" not in served and self._wash(p):
+                served.add("wash")
+                return TASK_MINUTES["wash"]
             if self._travel_toward(p, BATH_TAGS, "hygiene"):
-                return
+                return TASK_MINUTES["travel"]
 
         # Steadying the mind. Above boredom because a low-Sanity character is a
         # danger to others rather than merely unhappy, but below every survival
         # need: nothing here kills you.
         if v.get("Sanity", 100) <= SANITY_THRESHOLD:
-            if self._recuperate(p):
-                return
+            if "recuperate" not in served and self._recuperate(p):
+                served.add("recuperate")
+                return TASK_MINUTES["recuperate"]
 
         # What the day says to do, once every survival need is satisfied
         # (task-409). Above boredom, so a full character works at its trade
         # instead of milling about; below hunger and thirst, so a smith still
         # breaks off to eat.
-        if self._pursue_schedule(p):
-            return
+        if "work" not in served and self._pursue_schedule(p):
+            served.add("work")
+            return TASK_MINUTES["work"]
 
         # Boredom last: it is the only need here that nothing kills you for
         # ignoring, so it must never outrank food, water, sleep or relief.
         if v.get("Entertainment", 100) <= ENTERTAINMENT_THRESHOLD:
-            if self._recreate(p):
-                return
+            if "recreate" not in served and self._recreate(p):
+                served.add("recreate")
+                return TASK_MINUTES["recreate"]
             if self._travel_toward(p, RECREATION_TAGS, "entertainment"):
-                return
+                return TASK_MINUTES["travel"]
+
+        return None  # nothing is due — the rest of the timeframe passes quietly
 
     # ───────────────────────────── actions ─────────────────────────────────
 

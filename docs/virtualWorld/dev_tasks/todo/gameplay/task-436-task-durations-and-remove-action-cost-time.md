@@ -1,6 +1,8 @@
 # task-436 — Task durations, and removing `ACTION_COSTS.time`
 
-**Status:** in progress — steps 1–4 done; steps 5–6 (task durations, flow model) remain.
+**Status:** steps 1–6 done — the per-turn action budget is replaced by the
+timeframe-and-flow model. One open follow-up: `served` is per turn, so residual
+resolution dependence remains in long turns (see the final section).
 **Area:** gameplay / time
 **Depends on:** [[Simulation Model]] (the timeframe-and-flow model)
 **Related:** task-352 (action economy), task-414 (batch advance), task-131 (stateful actions over time), task-244 (human turn parameters)
@@ -71,6 +73,54 @@ Deleting `time` is **not** a mechanical removal:
   the flag is meaningless — it should be deleted and the caller should advance
   unconditionally, **but that is a clock-semantics change and must be verified
   against `rest`/sleep**, which sets the flag deliberately at `:993`.
+
+## Progress — steps 5–6 done (the flow model)
+
+`actions_per_turn` (the per-turn action *budget*) is replaced by `minutes_in_turn`
+(the timeframe) plus `TASK_MINUTES` (each action's duration). `process_due` fills
+the timeframe: each action consumes its duration until the timeframe is full or
+`_act` reports nothing to do. `TASK_MINUTES["travel"]` is 1, so a walk repeats and
+fills a timeframe; every other task is longer and is recorded in `served`, so a
+task is done **once per timeframe**. The `_action_credit` banking machinery is
+gone entirely: nothing accumulates.
+
+### Correction: this task overstated the bug
+
+Steps 1–4 were motivated by "a 30-minute turn becomes thirty meals, ~1,440 actions
+per character per day". **That was wrong.** `_act` returns early when no need is
+past its threshold, so the old budget burned `T` *passes through the need ladder*
+but produced roughly the same *actions*. The 1,440 figure was passes, not actions.
+Measured over one game week at 15 min/turn, the old model gave 23/23 alive with
+the same average Hunger (34.2) as the new one.
+
+The old model was therefore not broken so much as **incoherent**: it granted
+actions per turn rather than filling a duration, and it re-ran the whole ladder
+once per game minute whether or not anything was due.
+
+### Measured effect (one game week, Kraktooth camp, `--background-all`)
+
+Vitals at 15 min/turn, old vs new: Energy 69.8 → **77.3**, Sanity 80.4 → **85.9**,
+Social 75.8 → **81.0**, Hygiene 72.0 → **74.3**, Entertainment 40.2 → **42.5**.
+Better across the board at equal survival (23/23). A long timeframe can chain
+*different* tasks within one turn instead of repeatedly re-checking one need.
+
+Resolution independence, new model, T=1 vs T=15 over the same game week: survival
+23/23 both, Hunger 34.2 both, Thirst 17.3 / 16.5, HP 96.8 / 97.7.
+
+### Residual resolution dependence — open
+
+Energy still differs by ~10 points between T=1 and T=15 (67.1 vs 77.3), in the
+direction of long turns being *kinder*. `served` resets each turn, so at T=1 a
+character may repeat a task across fifteen turns that at T=15 they may do only
+once per timeframe. Closing this needs the timeframe to become the unit of
+memory for `served`, not the turn — i.e. a notion of "the current 15 minutes"
+independent of how the clock is being sliced. Worth its own task if it matters.
+
+### Cost
+
+Coarser turns are much cheaper for the same game time: one game week took 17s at
+15 min/turn against 2m43s at 1 min/turn (~2s/day vs ~23s/day), because the flow is
+entered once per timeframe instead of once per game minute.
 
 ## Progress — steps 1–4 done
 

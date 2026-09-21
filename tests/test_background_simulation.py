@@ -124,69 +124,104 @@ def test_due_scheduling_defers_action():
     p.next_due_tick = 0               # now due
     w.tick_turn()
     assert p.vitals["Hunger"] <= 40   # acted
-    # No banking: a turn is one action, so nothing accumulates while deferred.
-    # (A backlog would let a character who waited dump many actions at once.)
-    assert getattr(p, "_action_credit", 1.0) <= 1.0
+    # No banking: the flow fills one timeframe and nothing accumulates while
+    # deferred. (A backlog would let a character who waited dump many actions at
+    # once — and the credit accumulator that used to allow for that is gone.)
+    assert not hasattr(p, "_action_credit")
 
 
-def test_actions_per_turn_is_an_interim_approximation():
-    """DEBT — this pins the superseded model, not the target one (task-436).
+def test_a_satisfied_character_does_nothing_at_any_turn_length():
+    """The flow stops when nothing is due — which is the common case.
 
-    [[Simulation Model]] supersedes a per-turn *budget* of actions: a turn is a
-    timeframe, and a character fills it with an action flow whose length is
-    **emergent** from the durations of the actions in it. The budget below
-    assumes one-minute actions with no durations, which is why a 30-minute turn
-    becomes thirty actions — and therefore ~1,440 actions per character per game
-    day. That is the number that makes a camp look frenzied at long turns.
-
-    The assertion is kept so the arithmetic is visible and so that implementing
-    the flow model makes this test **fail loudly** and force the rewrite. Do not
-    treat `30/30/30` as a requirement; treat it as the current interim limit.
-    See `dev_tasks/todo/gameplay/task-436-task-durations-and-remove-action-cost-time.md`.
-
-    It replaced an older contract — "the same number of decisions per game hour
-    at any tick length" — which put the background tier on a different clock from
-    the live one: at a 1-minute turn it acted ten times less often than the
-    player, and the two only agreed around T=10 by coincidence.
+    A fed, rested, entertained character spends its whole timeframe doing
+    nothing at all. This is what makes a long turn quiet rather than frantic,
+    and it is precisely what the superseded per-turn action *budget* got wrong:
+    that granted one action per game minute whether or not anything needed
+    doing, so a 30-minute turn was thirty passes through the need ladder.
     """
     from engine.background_simulation import BackgroundSimulation
 
-    def actions_in(game_minutes, minutes_per_tick):
+    for minutes_per_tick in (1, 5, 15, 30):
         w = _world()
         w.time_per_tick_minutes = minutes_per_tick
-        p = _bg_player(w, Thirst=50, Hunger=50, Energy=90)
+        p = _bg_player(w, Thirst=10, Hunger=10, Energy=90)
+        p.vitals["Bladder"] = 0
+        p.vitals["Hygiene"] = 100
+        p.vitals["Sanity"] = 100
+        p.vitals["Entertainment"] = 100
         p.next_due_tick = 0
         bgs = BackgroundSimulation(w)
         calls = []
         real = bgs._act
 
-        def counting(name, player, _real=real):
+        def counting(name, player, served=None, _real=real):
             if name == p.name:
-                calls.append(w.time_ticks)
-            return _real(name, player)
+                calls.append(1)
+            return _real(name, player, served)
 
         bgs._act = counting
-        turns = max(1, int(round(game_minutes / minutes_per_tick)))
-        for _ in range(turns):
-            p.activity = None          # keep the budget the only variable
-            bgs.process_due()
-            w.time_ticks += 1
-        return len(calls)
+        w.tick_turn()
 
-    # Interim: one action per game minute, so 30 minutes is 30 actions at 1, 5 or
-    # 15 min/turn. A span that divides evenly by every turn length, because a
-    # character cannot take a fraction of a turn (20 minutes is 1.33 turns at 15).
-    for minutes_per_tick in (1, 5, 15):
-        assert actions_in(30, minutes_per_tick) == 30, minutes_per_tick
+        assert calls == [], (
+            f"T={minutes_per_tick}: acted {len(calls)} times with nothing due"
+        )
 
-    # The consequence, stated so the debt is legible rather than implied: at the
-    # camp's 1-minute turn this is 1,440 actions per character per game day.
-    assert actions_in(30, 1) * 48 == 1_440
+
+def test_a_hungry_character_eats_once_per_turn_at_every_turn_length():
+    """The load-bearing invariant: behaviour is a function of **game time**, not
+    of how much game time a turn happens to cover.
+
+    A meal is a task, so it is done once per timeframe. Under the old budget a
+    15-minute turn was an opportunity to eat fifteen times, which is why the
+    camp looked frenzied at long turns and calm at short ones.
+    """
+    from engine.background_simulation import BackgroundSimulation
+
+    for minutes_per_tick in (1, 5, 15, 30):
+        w = _world()
+        w.time_per_tick_minutes = minutes_per_tick
+        # Hunger well above the threshold, and a meal that will not fully clear
+        # it — the exact case that used to repeat once per iteration.
+        p = _bg_player(w, Thirst=10, Hunger=95, Energy=90)
+        p.vitals["Bladder"] = 0
+        p.vitals["Hygiene"] = 100
+        p.vitals["Sanity"] = 100
+        p.vitals["Entertainment"] = 100
+        p.next_due_tick = 0
+        _add_item(w, AREA, "dried meat", ["food"], ["eat"])
+        _add_item(w, AREA, "hard bread", ["food"], ["eat"])
+
+        bgs = BackgroundSimulation(w)
+        assert not hasattr(bgs, "_action_credit")
+        w.tick_turn()
+
+        meals = [e for e in p.trace_log if e.get("why") == "needs:eat"]
+        assert len(meals) == 1, (
+            f"T={minutes_per_tick}: ate {len(meals)} times in one turn"
+        )
+
+
+def test_a_walk_repeats_within_a_turn_but_a_meal_does_not():
+    """Travel is progress, so it is the one action that fills a timeframe.
+
+    A character walking toward food takes one step per minute, so a 15-minute
+    turn is fifteen steps — that is the whole point of `TASK_MINUTES["travel"]`
+    being 1 while the other tasks are longer. `served` deliberately excludes
+    travel for exactly this reason.
+    """
+    from engine.background_simulation import BackgroundSimulation, TASK_MINUTES
+
+    assert TASK_MINUTES["travel"] == 1
+    # Sleep is the other one-minute entry: it only gets the character lying down,
+    # and the sleeping activity owns whatever follows. Every real task is longer,
+    # which is what stops it repeating inside one timeframe.
+    for task in ("eat", "drink", "relieve", "wash", "recreate", "recuperate", "work"):
+        assert TASK_MINUTES[task] > 1, task
 
 
 def test_a_deferred_character_banks_nothing():
     """`next_due_tick` in the future means no action and no backlog."""
-    from engine.background_simulation import BackgroundSimulation, actions_per_turn
+    from engine.background_simulation import BackgroundSimulation, minutes_in_turn
 
     w = _world()
     p = _bg_player(w, Thirst=50, Hunger=50, Energy=90)
@@ -195,10 +230,10 @@ def test_a_deferred_character_banks_nothing():
     calls = []
     real = bgs._act
 
-    def counting(name, player, _real=real):
+    def counting(name, player, served=None, _real=real):
         if name == p.name:
             calls.append(w.time_ticks)
-        return _real(name, player)
+        return _real(name, player, served)
 
     bgs._act = counting
     for _ in range(10):
@@ -207,11 +242,14 @@ def test_a_deferred_character_banks_nothing():
         w.time_ticks += 1
     assert calls == []
 
-    # Release it: it spends the turn it now has, not a backlog of ten turns.
+    # Release it: it fills the timeframe it now has, not a backlog of ten turns.
     p.next_due_tick = 0
     p.activity = None
     bgs.process_due()
-    assert len(calls) == actions_per_turn(w)
+    # Each action consumes at least a minute, so no flow can contain more than
+    # the timeframe's worth of them. Ten turns of deferral cannot become one
+    # turn of ten actions.
+    assert len(calls) <= minutes_in_turn(w)
     assert len(calls) < 10
 
 
@@ -229,16 +267,16 @@ def test_a_sleeping_character_takes_no_action_and_banks_nothing():
     calls = []
     real = bgs._act
 
-    def counting(name, player, _real=real):
+    def counting(name, player, served=None, _real=real):
         if name == p.name:
             calls.append(w.time_ticks)
-        return _real(name, player)
+        return _real(name, player, served)
 
     bgs._act = counting
     for _ in range(5):
         w.tick_turn()
     assert calls == []
-    assert getattr(p, "_action_credit", 1.0) <= 1.0
+    assert not hasattr(p, "_action_credit")
 
 
 def test_background_sleeps_when_tired():
