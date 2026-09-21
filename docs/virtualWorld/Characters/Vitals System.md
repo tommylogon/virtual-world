@@ -2,39 +2,62 @@
 
 Vitals are numeric meters (0-100, except Temperature) that track a character's physical and mental state. They decay over time and must be maintained through actions like eating, drinking, resting, and socializing.
 
+> **All rates on this page are per in-game MINUTE, not per tick.** The engine
+> scales them by the tick's length (`world.time_per_tick_minutes`, see
+> `vital_rates.tick_minutes`), so a 15-minute tick applies fifteen minutes of
+> decay. The table below used to read "decay per tick" with whole numbers, from
+> before the 2026-09 per-minute recalibration; a scenario that bakes rates in the
+> old per-tick scale is caught by `tests/test_decay_rate_bake.py`.
+
 ## Vitals Reference
 
-| Vital | Default | Min | Max | Decay/Tick | Critical at 0 |
+| Vital | Default | Min | Max | Decay/min | Critical at 0 |
 |-------|---------|-----|-----|------------|----------------|
 | `HP` | 100 | 0 | Max_HP | 0 (damage only) | Death |
 | `Max_HP` | 100 | — | — | — | — |
-| `Energy` | 100 | 0 | 100 | 1 | Unconscious → Death (after 3x) |
-| `Hunger` | 100 | 0 | 100 | 1 | HP -1/tick |
-| `Thirst` | 100 | 0 | 100 | 1 | HP -2/tick |
-| `Hygiene` | 100 | 0 | 100 | 1 | — |
-| `Social` | 100 | 0 | 100 | 1 | Sanity penalty |
-| `Bladder` | 0 | 0 | 100 | — (fills +1/tick) | Hygiene -30 when hitting 100 |
-| `Sanity` | 100 | 0 | 100 | 1 | HP -1/tick |
-| `Entertainment` | 100 | 0 | 100 | 1 | Sanity penalty |
+| `Energy` | 100 | 0 | 100 | 0.104 | Unconscious → Death (after 3x) |
+| `Hunger` | 100 | 0 | 100 | 0.0034 | HP damage (starvation) |
+| `Thirst` | 100 | 0 | 100 | 0.0250 | HP damage (dehydration) |
+| `Hygiene` | 100 | 0 | 100 | 0.020 | — |
+| `Social` | 100 | 0 | 100 | 0.020 | Sanity penalty |
+| `Bladder` | 0 | 0 | 100 | — (fills at 0.42/min) | Hygiene penalty crossing 60 |
+| `Sanity` | 100 | 0 | 100 | 0.005 | **never damages HP** — see below |
+| `Entertainment` | 100 | 0 | 100 | 0.030 | Sanity penalty |
 | `Temperature` | 37.0 | ~25 | ~45 | — | HP/Energy damage at extremes |
+
+(`vital_rates.BASELINE_DECAY` is the authority. From a full meter: Hunger reaches
+the starvation edge in ~3 weeks, Thirst the dehydration edge in ~3 days, Energy
+empties over a ~16h waking day, and Social/Hygiene/Entertainment run on a ~1-2 day
+cycle.)
 
 (`player.py:60-67`)
 
 ## Baseline Decay
 
-Every tick, `tick_turn()` (`tick_manager.py:64-318`) applies baseline decay to all non-dead, non-slasher characters:
+Every tick, `tick_turn()` applies baseline decay to all non-dead, non-slasher
+characters through a single helper, `TickManager._decay(player, stat, amount,
+minutes=...)`:
 
 ```python
-for stat, default_decay in self.player_manager.baseline_decay.items():
-    if stat in p.vitals and stat != "Temperature":
-        rate = p.decay_rates.get(stat, default_decay)
-        mult = trait_multipliers.get(stat, 1.0)
-        p.vitals[stat] = max(0, p.vitals[stat] - int(rate * mult))
+rate = p.decay_rates.get(stat, BASELINE_DECAY.get(stat, 0.0))
+mult = trait_multipliers.get(stat, 1.0)
+self._decay(p, stat, -rate * mult)      # minutes defaults to tick_minutes(gs)
 ```
 
-Bladder is **not** in `baseline_decay` — it fills toward 100 separately (see [Bladder = 100](#bladder--100-full)).
-
-Each stat decays by its `decay_rate × vital_multiplier` per tick. Bladder is the exception — it fills instead of decays (see below). Characters can override decay rates per-stat via `decay_rates` (`player.py:69-73`).
+- **Rates are per in-game minute** and `_decay` scales them by the tick length, so
+  the same numbers mean the same thing at 1 minute/tick and at 15. Sub-unit steps
+  accumulate per character per vital, so a 0.0034/min drain still lands as whole
+  points.
+- **One helper** means every per-minute effect in the tick — baseline decay,
+  condition periodics, activity regen, temperature drift — converts identically.
+  Anything measuring time that does *not* go through it (or does not convert
+  itself) is a bug waiting for someone to change the tick length; `npc_behaviors`
+  intervals and the novelty recovery window were both exactly that.
+- **Per-character override:** `decay_rates` on the player wins over the default.
+  This is why a stale bake in a scenario can silently disable a mechanic — see
+  `tests/test_decay_rate_bake.py` and task-431.
+- Bladder is **not** in `BASELINE_DECAY` — it fills toward 100 separately (see
+  [Bladder](#bladder--100-full)).
 
 ## Critical Vitals Effects
 
@@ -65,43 +88,94 @@ When Energy reaches 0:
 2. Exhaustion count increments
 3. On 3rd exhaustion: character dies from "exposure" (`tick_manager.py:128-137`)
 
-### Hungry = 0, Thirst = 0, Sanity = 0
+### Hunger = 0, Thirst = 0
 
-Each causes HP damage per tick:
-- Hunger = 0: -1 HP/tick
-- Thirst = 0: -2 HP/tick
-- Sanity = 0: -1 HP/tick
+Each causes HP damage:
+- Hunger = 0: HP damage, cause "starvation"
+- Thirst = 0: HP damage, cause "dehydration"
 
-(`tick_manager.py:141-149`)
+Starvation grace and damage are counted in **game minutes**, so the grace period
+is the same span of game time whatever the tick length.
+
+### Sanity = 0 does **not** damage HP
+
+Being at 0 Sanity is deliberately **not** a death sentence, and this is easy to
+get wrong from the code: `sanity <= 0` appears in the *cause of death* string
+builder, so a character who happens to die while mad is recorded as having died of
+"madness" — but Sanity never drains HP itself.
+
+What low Sanity does instead is make the character **dangerous**. Below 25 it
+applies the `paranoid` → `hallucinating` condition line, which carries
+attack/defence modifiers rather than a health cost, mirroring `social_breakdown`
+(task-353 §5).
+
+**Sanity has sources** (task-432 — it used to have five drains and no inflow, so
+every character went mad on a fixed schedule):
+
+| Source | Rate | Where |
+|---|---|---|
+| Sleeping | +0.025/min | `activities.ACTIVITY_REGEN["sleeping"]` — the primary source |
+| Resting | +0.05/min | `ACTIVITY_REGEN["resting"]` |
+| Meditating | +0.05/min | `ACTIVITY_REGEN["meditating"]` |
+| Company | +0.004/min while Social ≥ 70 | `tick_manager`, `SANITY_COMPANY_GAIN` — the mirror of the isolation penalty |
+
+A night's sleep (~12 points) exceeds the passive daily drain (~7) but not by a
+wide margin — deliberately, so rest matters and a character who is kept awake
+slides. Background characters rest for `SANITY_REST_MINUTES` when Sanity is low
+(see [Activities & States](Activities%20&%20States.md)).
 
 ### Bladder = 100 (Full)
 
-Bladder is unique — it **fills** over time instead of decaying: 0 = empty (relieved), 100 = full (need to go). On the tick it first hits 100, it triggers a -30 Hygiene penalty (`tick_manager.py:161-162`).
+Bladder is unique — it **fills** over time instead of decaying: 0 = empty
+(relieved), 100 = full (need to go).
 
-Fill rate is influenced by Thirst:
-- Thirst &gt; 75 (well hydrated): +2/tick
-- Thirst 25–75: +1/tick (normal)
-- Thirst &lt; 25 (dehydrated): +0/tick (body conserves water)
+Fill rate is `BLADDER_FILL` (0.42/min), modulated by Thirst so a dehydrated body
+conserves water. Crossing `BLADDER_THRESHOLD` (60) applies the Hygiene penalty
+once; see `vital_rates.py`.
 
 ### Low Social / Low Entertainment
 
-Both cause Sanity penalties:
-- Social < 25: -2 Sanity/tick; < 50: -1 Sanity/tick
-- Entertainment < 25: -2 Sanity/tick; < 50: -1 Sanity/tick
+Both cause Sanity penalties (per minute):
 
-(`tick_manager.py:221-231`)
+- Social < 25: -0.005; < 50: -0.005 (`SANITY_PENALTY_SOCIAL_VERY_LOW` / `_LOW`)
+- Entertainment < 25 / < 50: the same shape via `SANITY_PENALTY_ENT_*`
 
-### Entertainment Gains (novelty, task-136)
+The mirror also exists: **company above 70 Social adds** `SANITY_COMPANY_GAIN`
+rather than subtracting, so being connected steadies a character — but it is
+smaller than the passive drain, so company alone is a steadying influence rather
+than a source (task-432).
 
-Entertainment rises naturally from novelty, tracked per character via `visited_areas` and `discovered_items` sets:
+### Entertainment Is Paid by Novelty
 
-| Source | Base boost | Where |
-|--------|-----------|-------|
-| First visit to an area | +15 | `movement.py:226-240` |
-| First discovery of an item (examine/take) | +8 | `item_actions.py:_register_item_discovery` |
-| First meeting a new character | +10 | `player.py:register_first_meeting` / `update_relationship` |
+Entertainment rises from **novelty** — a per-subject recovery curve, not the old
+`visited_areas` / `discovered_items` sets (task-425):
 
-Trait modifiers: `curious` ×1.5, `homebody` 0. All boosts clamp at 100. Repeated visits/discoveries/meetings give nothing (set-based diminishing returns). Per-tick modifiers: `impatient` −3 when energetic, `patient` +1, `adventurous` +2 in unfamiliar areas, `no_entertainment_decay` (from `adventurous`) cancels decay (`tick_manager.py:127-143`).
+```text
+freshness = clamp((now - last_experienced) / recovery, 0, 1) ** 2
+bonus     = round(NOVELTY_MAX * freshness)
+```
+
+- Subjects: **areas** (paid on arrival) and **items** (paid on first examination or
+  take). A **person** is paid by `register_first_meeting`, not on sight — see below.
+- `NOVELTY_MAX` 15, recovery window `entertainment.novelty_recovery_minutes`
+  (default 120 game minutes), trait scaling `curious` ×1.5 / `homebody` 0 /
+  `wanderlust` recovers on half the window.
+- The curve is **squared** so a short gap is worth almost nothing: a two-room
+  bounce pays nothing, which a linear ramp did not manage.
+- A **daily budget** (`NOVELTY_DAILY_BUDGET` 30, below Entertainment's ~43/day
+  decay) bounds it, because the window alone guards bouncing but not *roaming*: a
+  character with 31 areas to visit sees a "fresh" one on every arrival.
+- Recovery reads the subject's live observation memory (`Player.observation_tick`,
+  task-403). **Absence of a memory means "never experienced"** and pays full.
+
+**Authored sources are what hold the meter up**, not novelty: recreational
+fixtures (`recreation`-tagged items with an authored `on_use → adjust_vital
+Entertainment`) such as a drum, dice or a fire, plus `meditating`. A background
+character seeks one when Entertainment drops to
+`ENTERTAINMENT_THRESHOLD` (40).
+
+Per-tick modifiers: `impatient` −3 when energetic, `patient` +1, `adventurous` +2
+in unfamiliar areas, `no_entertainment_decay` (from `adventurous`) cancels decay.
 
 ## Vitals Need Messages
 
@@ -162,11 +236,22 @@ Body temperature effects:
 
 ### Rest / Sleep
 
-The `rest()` command (`tick_manager.py:325-341`):
-1. Sets player state to "sleeping" for N ticks
-2. Each sleeping tick: Energy +3 (`tick_manager.py:261-262`)
-3. Awakens after the rest period
-4. Returns energy restored and current energy
+Activities restore vitals through `activities.ACTIVITY_REGEN`, whose values are
+**per game minute** and scaled by the tick length like every other rate:
+
+| Activity | Restores |
+|---|---|
+| `sleeping` | Sanity +0.025/min; Energy handled by `tick_manager` (`SLEEP_ENERGY_REGEN`) |
+| `resting` | Energy +0.15/min, Sanity +0.05/min |
+| `meditating` | Sanity +0.05/min |
+| `bathing` | Hygiene +1.5/min |
+| `sitting` / `lying down` | Energy, slower than rest |
+
+A sleeping character wakes when Energy is full, on damage, a loud noise (WIS save),
+or when a duration elapses. **Wake-on-full-Energy is checked before the duration**,
+so sleep cannot be used to rest at full Energy — that is why the background tier
+uses a bounded *rest* to recover Sanity rather than sleep (task-432). See
+[Activities & States](Activities%20&%20States.md) for the full activity model.
 
 ### Unconscious Recovery
 

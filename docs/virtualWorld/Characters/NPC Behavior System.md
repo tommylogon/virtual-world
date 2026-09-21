@@ -1,5 +1,19 @@
 # NPC Behavior System
 
+> Area: characters · source: engine/npc_behaviors.py, engine/background_simulation.py,
+> engine/background_social.py
+
+## Background tier (task-399, task-423)
+
+Characters with `simulation_mode == "background"` are not driven by
+`npc_behaviors` — they run through `engine/background_simulation.py`, a
+deterministic, LLM-free survival loop with an action-credit budget
+(`DECISION_MINUTES` 10 per decision, at most `MAX_ACTIONS_PER_TICK` 4), and an
+`engine/background_social.py` pass that pairs co-present characters for social
+interactions once per tick, **per area**. See
+[Relationships System](Relationships%20System.md) for the social pass and
+[Vitals System](Vitals%20System.md) for what the survival loop maintains.
+
 VirtualWorld supports two NPC paradigms: **LLM-driven agents** (no `simple_npc` flag, driven by the agent engine) and **simple NPCs** (`simple_npc = True`, driven by scripted behaviors). This document covers the simple NPC system.
 
 ## The `simple_npc` Flag
@@ -90,17 +104,29 @@ Does nothing — NPC stays in place.
 
 ### Action Interval
 
-Both the `npc_action_interval` field and per-behavior `interval` control how often NPCs act:
+Both the `npc_action_interval` field and per-behavior `interval` control how often
+NPCs act. **They are authored in game MINUTES**, not tick counts (task-428):
 
 ```python
-interval = getattr(player, 'npc_action_interval', 3)
-if self.gs.time_ticks % interval != 0:
+interval_ticks = _interval_ticks(self.gs, behavior.get("interval", 1) or 1)
+if interval_ticks > 1 and self.gs.time_ticks % interval_ticks != 0:
     continue
 ```
 
-(`npc_behaviors.py:79-80`)
+`_interval_ticks` divides the authored minutes by `world.time_per_tick_minutes` and
+rounds to the nearest tick, with a floor of one (a tick is the smallest step the
+scheduler has, so at 15 min/tick an authored "20 minutes" becomes one tick). An
+interval of 1 means "every game minute", which is every tick at the default tick
+length.
 
-Default interval: 3 ticks. An interval of 1 means act every tick.
+These were **raw tick counts**, so their meaning silently depended on the tick
+length: at 15 min/tick an authored "every 5" fired every 75 game minutes, and a
+legacy wanderer moved once every 45 minutes instead of every 3. Every other
+time-measuring thing in the engine is in game units and scales; this was the last
+one that did not. Nothing in the shipped data authors either field, which is why
+the divergence went unnoticed.
+
+Default interval: 3 game minutes.
 
 ## Behavior Definitions Format
 

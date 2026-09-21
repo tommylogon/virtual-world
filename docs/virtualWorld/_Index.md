@@ -24,10 +24,10 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 | [[Characters/Characters Overview\|Characters Overview]] | Player class, 3 character types, import/export, registry, library format |
 | [[Characters/Traits System\|Traits System]] | Trait definitions, library format, how traits modify gameplay |
 | [[Characters/Skills System\|Skills System]] | Skill checks, progression, action resolution, combat integration |
-| [[Characters/Vitals System\|Vitals System]] | HP, energy, hunger, thirst, sanity, decay per tick, death, ghost mode |
+| [[Characters/Vitals System\|Vitals System]] | HP, energy, hunger, thirst, sanity, decay per **game minute**, Sanity sources, Entertainment novelty, death, ghost mode |
 | [[Characters/Equipment Loadouts\|Equipment Loadouts]] | Per-character generated equipment lists by slot |
-| [[Characters/NPC Behavior System\|NPC Behavior System]] | Simple NPCs, behavior types, action intervals, LLM agent vs scripted |
-| [[Characters/Relationships System\|Relationships System]] | Closeness model, what moves it (speak/give/combat), labels, guidance, grapple modifier |
+| [[Characters/NPC Behavior System\|NPC Behavior System]] | Simple NPCs, behavior types, action intervals (game minutes), the background tier, LLM agent vs scripted |
+| [[Characters/Relationships System\|Relationships System]] | Closeness model, the one mutation path, bands, what moves it, background social interactions, labels, grapple modifier |
 | [[Characters/Emotion & Affect System\|Emotion & Affect System]] | Multi-dimensional affect map, semantic emotion mapping, mental-vital coupling, relationship valence, self- & social-recall re-feel |
 
 ## [[Items & Inventory/Items Overview|📦 Items & Inventory]]

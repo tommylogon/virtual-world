@@ -8,7 +8,7 @@ VirtualWorld has an in-game clock driven by a tick-based time system. Each playe
 
 | Term | Definition |
 |------|-----------|
-| **tick** | A unit of game time. Each tick = `time_per_tick_minutes` (default: 5 minutes). `time_ticks` is a monotonically increasing counter. `advance_clock(1)` advances time by 1 tick. |
+| **tick** | A unit of game time. Each tick = `time_per_tick_minutes` (engine default: 1 minute; `world_template.json` boots at 5). `time_ticks` is a monotonically increasing counter. `advance_clock(1)` advances time by 1 tick. |
 | **tick_turn()** | The full processing cycle that runs when a turn ends. Calls `conditions.process_tick()`, vitals decay, environmental effects, heat propagation, sound sources, NPC behavior, then `advance_clock(1)`. This is what `/api/turn/apply` invokes. |
 | **turn** | One complete player action cycle: player takes action → `tick_turn()` runs → `/api/turn/clear` increments `turn_number`. One turn = one `tick_turn()` call = +1 tick = +5 game minutes. |
 | **turn_number** | An integer incremented by `clear_turn_events()` AFTER `tick_turn()` completes. Used for logging, event tracking, and turn-gated conditions. |
@@ -39,6 +39,32 @@ return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 ```
 
 Time wraps at midnight (24-hour clock). Output format: `"HH:MM:SS"` (seconds always 0).
+
+### Convention: author game MINUTES, convert to ticks at the boundary
+
+A tick is a *configurable* number of game minutes, so any value that measures time
+must be authored in game minutes and converted where the world is known.
+`vital_rates.tick_minutes(world)` is the single reader of
+`time_per_tick_minutes` for rate scaling, and `TickManager._decay` scales every
+per-minute effect through it.
+
+This is a recurring source of bugs: a value silently measured in ticks keeps
+working at the default 1-minute tick and breaks at any other length, and a long
+tick can *hide* it entirely — a 10-minute duration rounds to one 15-minute tick,
+so the damage is invisible at 15 min/tick and shows up as an unexplained
+regression at 1.
+
+| Converted correctly | Converted wrongly, and what it cost |
+|---|---|
+| vital decay, condition durations and periodics, activity regen | **scenario `decay_rates`** baked at the old per-tick scale (`tools/migrate_decay_rates.py`, `tests/test_decay_rate_bake.py`) |
+| body-temperature drift and converge | **novelty recovery window** compared a tick delta against a minute span, so a "2 hour" window was 30 hours at 15 min/tick |
+| background action credit, plant growth | **`npc_behaviors` intervals** were raw tick counts (task-428) |
+| social cooldown, the novelty daily budget | **condition drains** applied per minute at per-tick magnitudes (task-432) |
+
+Where conversion is not possible at the moment of use — a value compared against a
+*stored* tick stamp — the pattern is to give the thing that compares them the tick
+length: `Player.minutes_per_tick` is kept in step by the tick loop so novelty
+windows can be derived from game minutes.
 
 ### Date Tracking
 

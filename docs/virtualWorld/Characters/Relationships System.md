@@ -1,10 +1,10 @@
 # Relationships System
 
-> Type: system · area: characters · status: accurate as-of 2026-08 · source: player.py, engine/speech.py, engine/combat.py, engine/items/transfer_actions.py, static/js/agent/prompt-builder/character-state.js
+> Type: system · area: characters · status: accurate as-of 2026-09 · source: engine/relationships.py, player.py, engine/speech.py, engine/combat.py, engine/items/transfer_actions.py, engine/background_social.py, static/js/agent/prompt-builder/character-state.js
 
-Relationships are the social state each character tracks toward every other character they've met. They drive **display labels**, **behavioral guidance injected into the prompt**, and a **grapple modifier**. They are *not* automatically derived from memories — they are mutated by a small set of authored *events*, or seeded manually.
+Relationships are the social state each character tracks toward every other character they've met. They drive **display labels**, **behavioral guidance injected into the prompt**, a **grapple modifier**, and — since task-423 — **whether two characters will socialise, and how it lands**. They are *not* automatically derived from memories — they are mutated by authored *events*.
 
-## Data model (Player.relationships, player.py:134)
+## Data model (Player.relationships, player.py)
 
 ```text
 relationships = {
@@ -12,35 +12,93 @@ relationships = {
         "closeness": -100..100,   # -100 sworn enemy - 0 neutral - 100 inseparable
         "last_interaction_tick": int,
         "interaction_count": int,
+        "label": str,             # authored declaration ("my brother"); never decayed
         "first_sighting": bool    # "name unknown" - stranger/masked label until met/spoken
     }
 }
 ```
 
-- **closeness** clamps to [-100, +100] (player.py:439).
-- **first_sighting** is set True when seen but not yet introduced; it flips off once the name is known (via speech / name-tag read). It drives the stranger label (area_description.py:282-287, scene_snapshot.py:112-114).
+- **closeness** clamps to [-100, +100] — in **one** place, `clamp_closeness`.
+- **first_sighting** is set True when seen but not yet introduced; it flips off once the name is known (via speech / name-tag read). It drives the stranger label (area_description.py, scene_snapshot.py).
+- **label** is a *declaration*, not a measurement, so nothing decays it and the `label` command writes it directly without touching closeness.
 
-## The mutation method — update_relationship(other, tick, sentiment_change) (player.py:424)
+## The one mutation path — engine/relationships.py (task-420)
 
-The single write-path for closeness. On first contact it creates the entry and grants an **Entertainment novelty boost** (_grant_meeting_entertainment(), mirrored from area/item-discovery boosts, task-136). Then:
+Every gameplay writer used to touch this dict itself (combat, the foreground loop,
+first-meeting registration, the `label` command), so no **cause** was recorded — a
+delta from a beating looked identical to one from a shared meal — and the two
+fidelity tiers could disagree about how the scalar evolves, which is how a value
+could jump at a promotion/demotion.
+
+`apply_relationship_delta(player, other, delta, cause, tick, area_id)` is now the
+only writer of `closeness`:
 
 ```text
-rel["closeness"] = clamp(-100, 100, rel["closeness"] + sentiment_change)
+rel["closeness"] = clamp_closeness(rel["closeness"] + delta)
 rel["last_interaction_tick"] = tick
 rel["interaction_count"] += 1
+trace: kind="relationship", why="social:<cause>", delta={closeness, cause, with}
 ```
 
-The docstring documents sentiment_change: -20..+20 per interaction, but that full range is **never used** — see the call sites below.
+- `apply_symmetric_delta(a, b, delta, cause)` makes symmetry a property of the
+  *call*, so a meeting cannot be applied to one side by accident. Each side still
+  gets its own trace entry, because each side's history is its own.
+- `ensure_relationship(player, other, tick) -> (record, created)` — creating a
+  record is not the same as *feeling* something: it moves no closeness and grants
+  no novelty.
+- `closeness_band` / `band_at_least` / `BAND_LABELS` — the band ladder (mortal
+  enemy → inseparable) lives here and `Player.get_relationship_nl` calls it, so
+  band-gated rules cannot disagree with the prompt's wording about the edges.
+- The doctrine is pinned by a test that scans `engine/`, `routes/` and `player.py`
+  for `relationships[...] = ` and allows exactly two elsewhere, both payload
+  imports in `routes/player_ops.py` (deserialization, not a mutation).
 
-## What actually affects relationships (the only mutation call-sites)
+## What actually affects relationships
 
-| Event | File | Delta | Symmetric? |
-|-------|------|-------|-----------|
-| **Speak to someone** (a directed speech line) | engine/speech.py:217,220 | **+2** both directions | yes |
-| **Give an item** to a character | engine/items/transfer_actions.py:65 | **+5** | **no** - only the *recipient* grows (+5 toward giver); the giver's sentiment is unchanged |
-| **Attack / damage** someone | engine/combat.py:110 | **-30** (min -100) | no - only the *target's* closeness toward the attacker drops |
+| Event | File | Delta | Cause |
+|-------|------|-------|-------|
+| **Speak to someone** (a directed line) | engine/speech.py | +2 both directions | `dialogue` |
+| **Give an item** | engine/items/transfer_actions.py | +5 — only the *recipient* grows toward the giver | `dialogue` |
+| **Attack / damage** someone | engine/combat.py | −30 — only the *target's* closeness toward the attacker drops | `combat` |
+| **Background social action** | engine/background_social.py | per action and tier, **per side** | the action name |
+| **`label <person> <relationship>`** | routes/action_handlers.py | none — writes `label` only | — |
 
-That's the whole set — **three mutation points**. Everything else only *reads* closeness (grapple modifier engine/grapple.py:61-69, prompt guidance, labels).
+## Background social interactions (task-423)
+
+Two co-present background characters pick an action, and **each side records its
+own outcome**: Rikka teases Vekka and Rikka's memory reads "I teased Vekka" with
+closeness up, while Vekka's reads "Rikka teased me" with closeness down.
+
+- **The gate:** same area (there is no distance in this world model, so nothing
+  else would stop two characters on opposite sides of the camp from meeting),
+  both `simulation_mode == "background"`, both conscious and not mid-activity.
+  **An attended character is never paired** — their social life belongs to the LLM
+  loop.
+- **Cap:** `MEETINGS_PER_CHARACTER_PER_DAY` 6, rolled over on the in-game day, plus
+  a `SOCIAL_COOLDOWN_MINUTES` 90 cooldown between one character's interactions.
+  The cap is the bound; there is deliberately no blocking "conversation" activity
+  (task-423's outcome explains the measurement that removed it).
+- **Selection** is a weighted draw, never argmax: from traits (`social_gain`,
+  `impatient`, `patient`, `hostile`, `attention_seeker`), the closeness band and
+  need pressure. `ignore` is the separate "they don't engage" draw and costs
+  nothing, not even the cap.
+- **Outcome** is a d20 + Persuasion + band modifier against the action's DC,
+  mapped to six tiers, seeded per `(actor, target, tick, action)` so a replay
+  reproduces the same history.
+- **The sign rule** is load-bearing: a `tease` between friends reads positive for
+  both sides, the same tease at low closeness is an attack on the target, and
+  `bully` is never warm however well it lands.
+- Both sides get a **templated memory** (`engine/social_text.py`) tagged with
+  `entity_ids = [actor, target, area]` — which is what makes "every memory Vekka
+  has about Rikka" a lookup rather than a keyword search.
+
+## Meeting novelty
+
+A first meeting grants Entertainment through the **shared novelty curve**
+(task-434), keyed on the other character's node id (`Player.node_id_for`). It both
+*reads* and *records* the observation, which is what makes it idempotent in either
+order with perception — walking into a room holding a stranger and having one walk
+in later both pay exactly once. It used to be a separate flat +10 that double-paid.
 
 ## Natural-language labels (two parallel systems — slight drift)
 
