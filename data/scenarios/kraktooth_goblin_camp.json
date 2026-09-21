@@ -73,12 +73,13 @@
       "decay_rates": {
         "Bladder": 0.42,
         "Energy": 0.104,
-        "Entertainment": 0.07,
+        "Entertainment": 0.03,
         "Hunger": 0.0034,
-        "Hygiene": 0.05,
+        "Hygiene": 0.02,
         "Sanity": 0.005,
-        "Social": 0.05,
-        "Thirst": 0.025
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "body_state": {
         "arm_left": {
@@ -371,12 +372,13 @@
       "decay_rates": {
         "Bladder": 0.42,
         "Energy": 0.104,
-        "Entertainment": 0.07,
+        "Entertainment": 0.03,
         "Hunger": 0.0034,
-        "Hygiene": 0.05,
+        "Hygiene": 0.02,
         "Sanity": 0.005,
-        "Social": 0.05,
-        "Thirst": 0.025
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "body_state": {
         "arm_left": {
@@ -639,12 +641,13 @@
       "decay_rates": {
         "Bladder": 0.42,
         "Energy": 0.104,
-        "Entertainment": 0.07,
+        "Entertainment": 0.03,
         "Hunger": 0.0034,
-        "Hygiene": 0.05,
+        "Hygiene": 0.02,
         "Sanity": 0.005,
-        "Social": 0.05,
-        "Thirst": 0.025
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "body_state": {
         "arm_left": {
@@ -891,12 +894,13 @@
       "decay_rates": {
         "Bladder": 0.42,
         "Energy": 0.104,
-        "Entertainment": 0.07,
+        "Entertainment": 0.03,
         "Hunger": 0.0034,
-        "Hygiene": 0.05,
+        "Hygiene": 0.02,
         "Sanity": 0.005,
-        "Social": 0.05,
-        "Thirst": 0.025
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "body_state": {
         "arm_left": {
@@ -1160,12 +1164,13 @@
       "decay_rates": {
         "Bladder": 0.42,
         "Energy": 0.104,
-        "Entertainment": 0.07,
+        "Entertainment": 0.03,
         "Hunger": 0.0034,
-        "Hygiene": 0.05,
+        "Hygiene": 0.02,
         "Sanity": 0.005,
-        "Social": 0.05,
-        "Thirst": 0.025
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "body_state": {
         "arm_left": {
@@ -1429,12 +1434,13 @@
       "decay_rates": {
         "Bladder": 0.42,
         "Energy": 0.104,
-        "Entertainment": 0.07,
+        "Entertainment": 0.03,
         "Hunger": 0.0034,
-        "Hygiene": 0.05,
+        "Hygiene": 0.02,
         "Sanity": 0.005,
-        "Social": 0.05,
-        "Thirst": 0.025
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "body_state": {
         "arm_left": {
@@ -1698,12 +1704,13 @@
       "decay_rates": {
         "Bladder": 0.42,
         "Energy": 0.104,
-        "Entertainment": 0.07,
+        "Entertainment": 0.03,
         "Hunger": 0.0034,
-        "Hygiene": 0.05,
+        "Hygiene": 0.02,
         "Sanity": 0.005,
-        "Social": 0.05,
-        "Thirst": 0.025
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "body_state": {
         "arm_left": {
@@ -1967,12 +1974,13 @@
       "decay_rates": {
         "Bladder": 0.42,
         "Energy": 0.104,
-        "Entertainment": 0.07,
+        "Entertainment": 0.03,
         "Hunger": 0.0034,
-        "Hygiene": 0.05,
+        "Hygiene": 0.02,
         "Sanity": 0.005,
-        "Social": 0.05,
-        "Thirst": 0.025
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "body_state": {
         "arm_left": {
@@ -2236,12 +2244,13 @@
       "decay_rates": {
         "Bladder": 0.42,
         "Energy": 0.104,
-        "Entertainment": 0.07,
+        "Entertainment": 0.03,
         "Hunger": 0.0034,
-        "Hygiene": 0.05,
+        "Hygiene": 0.02,
         "Sanity": 0.005,
-        "Social": 0.05,
-        "Thirst": 0.025
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "body_state": {
         "arm_left": {
@@ -2531,12 +2540,13 @@
       "decay_rates": {
         "Bladder": 0.42,
         "Energy": 0.104,
-        "Entertainment": 0.07,
+        "Entertainment": 0.03,
         "Hunger": 0.0034,
-        "Hygiene": 0.05,
+        "Hygiene": 0.02,
         "Sanity": 0.005,
-        "Social": 0.05,
-        "Thirst": 0.025
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "body_state": {
         "arm_left": {
@@ -2830,12 +2840,13 @@
       "decay_rates": {
         "Bladder": 0.42,
         "Energy": 0.104,
-        "Entertainment": 0.07,
+        "Entertainment": 0.03,
         "Hunger": 0.0034,
-        "Hygiene": 0.05,
+        "Hygiene": 0.02,
         "Sanity": 0.005,
-        "Social": 0.05,
-        "Thirst": 0.025
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "body_state": {
         "arm_left": {
@@ -3124,12 +3135,13 @@
       "decay_rates": {
         "Bladder": 0.42,
         "Energy": 0.104,
-        "Entertainment": 0.07,
+        "Entertainment": 0.03,
         "Hunger": 0.0034,
-        "Hygiene": 0.05,
+        "Hygiene": 0.02,
         "Sanity": 0.005,
-        "Social": 0.05,
-        "Thirst": 0.025
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "body_state": {
         "arm_left": {
@@ -3393,12 +3405,13 @@
       "decay_rates": {
         "Bladder": 0.42,
         "Energy": 0.104,
-        "Entertainment": 0.07,
+        "Entertainment": 0.03,
         "Hunger": 0.0034,
-        "Hygiene": 0.05,
+        "Hygiene": 0.02,
         "Sanity": 0.005,
-        "Social": 0.05,
-        "Thirst": 0.025
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "body_state": {
         "arm_left": {
@@ -3686,12 +3699,13 @@
       "decay_rates": {
         "Bladder": 0.42,
         "Energy": 0.104,
-        "Entertainment": 0.07,
+        "Entertainment": 0.03,
         "Hunger": 0.0034,
-        "Hygiene": 0.05,
+        "Hygiene": 0.02,
         "Sanity": 0.005,
-        "Social": 0.05,
-        "Thirst": 0.025
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "body_state": {
         "arm_left": {
@@ -3937,12 +3951,13 @@
       "decay_rates": {
         "Bladder": 0.42,
         "Energy": 0.104,
-        "Entertainment": 0.07,
+        "Entertainment": 0.03,
         "Hunger": 0.0034,
-        "Hygiene": 0.05,
+        "Hygiene": 0.02,
         "Sanity": 0.005,
-        "Social": 0.05,
-        "Thirst": 0.025
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "body_state": {
         "arm_left": {
@@ -4189,12 +4204,13 @@
       "decay_rates": {
         "Bladder": 0.42,
         "Energy": 0.104,
-        "Entertainment": 0.07,
+        "Entertainment": 0.03,
         "Hunger": 0.0034,
-        "Hygiene": 0.05,
+        "Hygiene": 0.02,
         "Sanity": 0.005,
-        "Social": 0.05,
-        "Thirst": 0.025
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "body_state": {
         "arm_left": {
@@ -4482,12 +4498,13 @@
       "decay_rates": {
         "Bladder": 0.42,
         "Energy": 0.104,
-        "Entertainment": 0.07,
+        "Entertainment": 0.03,
         "Hunger": 0.0034,
-        "Hygiene": 0.05,
+        "Hygiene": 0.02,
         "Sanity": 0.005,
-        "Social": 0.05,
-        "Thirst": 0.025
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "body_state": {
         "arm_left": {
@@ -4733,12 +4750,13 @@
       "decay_rates": {
         "Bladder": 0.42,
         "Energy": 0.104,
-        "Entertainment": 0.07,
+        "Entertainment": 0.03,
         "Hunger": 0.0034,
-        "Hygiene": 0.05,
+        "Hygiene": 0.02,
         "Sanity": 0.005,
-        "Social": 0.05,
-        "Thirst": 0.025
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "body_state": {
         "arm_left": {
@@ -4985,12 +5003,13 @@
       "decay_rates": {
         "Bladder": 0.42,
         "Energy": 0.104,
-        "Entertainment": 0.07,
+        "Entertainment": 0.03,
         "Hunger": 0.0034,
-        "Hygiene": 0.05,
+        "Hygiene": 0.02,
         "Sanity": 0.005,
-        "Social": 0.05,
-        "Thirst": 0.025
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "body_state": {
         "arm_left": {
@@ -5278,12 +5297,13 @@
       "decay_rates": {
         "Bladder": 0.42,
         "Energy": 0.104,
-        "Entertainment": 0.07,
+        "Entertainment": 0.03,
         "Hunger": 0.0034,
-        "Hygiene": 0.05,
+        "Hygiene": 0.02,
         "Sanity": 0.005,
-        "Social": 0.05,
-        "Thirst": 0.025
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "body_state": {
         "arm_left": {
@@ -5530,12 +5550,13 @@
       "decay_rates": {
         "Bladder": 0.42,
         "Energy": 0.104,
-        "Entertainment": 0.07,
+        "Entertainment": 0.03,
         "Hunger": 0.0034,
-        "Hygiene": 0.05,
+        "Hygiene": 0.02,
         "Sanity": 0.005,
-        "Social": 0.05,
-        "Thirst": 0.025
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "body_state": {
         "arm_left": {
@@ -5824,12 +5845,13 @@
       "decay_rates": {
         "Bladder": 0.42,
         "Energy": 0.104,
-        "Entertainment": 0.07,
+        "Entertainment": 0.03,
         "Hunger": 0.0034,
-        "Hygiene": 0.05,
+        "Hygiene": 0.02,
         "Sanity": 0.005,
-        "Social": 0.05,
-        "Thirst": 0.025
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "body_state": {
         "arm_left": {
@@ -6117,12 +6139,13 @@
       "decay_rates": {
         "Bladder": 0.42,
         "Energy": 0.104,
-        "Entertainment": 0.07,
+        "Entertainment": 0.03,
         "Hunger": 0.0034,
-        "Hygiene": 0.05,
+        "Hygiene": 0.02,
         "Sanity": 0.005,
-        "Social": 0.05,
-        "Thirst": 0.025
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "body_state": {
         "arm_left": {

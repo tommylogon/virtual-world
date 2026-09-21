@@ -1724,14 +1724,15 @@
       "behaviors": [],
       "current_area": "Cedar Park",
       "decay_rates": {
-        "Bladder": 1,
-        "Energy": 1,
-        "Entertainment": 1,
-        "Hunger": 1,
-        "Hygiene": 1,
-        "Sanity": 1,
-        "Social": 1,
-        "Thirst": 1
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "description": "Massive male bear furry, 220cm, three hundred kilos of thick brown fur. Broad flat muzzle, small dark eyes, small round ears. Huge paws with long claws. Plantigrade legs. Wears a worn plaid shirt undone over his chest.",
       "emotion": {
@@ -1823,14 +1824,15 @@
       "behaviors": [],
       "current_area": "Feral Quarter Market",
       "decay_rates": {
-        "Bladder": 1,
-        "Energy": 1,
-        "Entertainment": 1,
-        "Hunger": 1,
-        "Hygiene": 1,
-        "Sanity": 1,
-        "Social": 1,
-        "Thirst": 1
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "description": "Tall hyena woman, 185cm, broad-shouldered, sloping back. Patchwork dark-brown and tan fur, rounded twitchy ears. Powerful bone-crushing jaws, long muzzle. Thick bristly tail. Digitigrade legs ending in heavy clawed feet. Wears a stained market vest and a worn black tee.",
       "emotion": {
@@ -1923,14 +1925,15 @@
       "behaviors": [],
       "current_area": "Boardwalk Pier",
       "decay_rates": {
-        "Bladder": 1,
-        "Energy": 1,
-        "Entertainment": 1,
-        "Hunger": 1,
-        "Hygiene": 1,
-        "Sanity": 1,
-        "Social": 1,
-        "Thirst": 1
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "description": "Enormous shark scalie, 2m long. Slate-grey rough skin, paler belly. Three parallel gill slits on each side of the neck. Wide mouth with rows of serrated teeth, depthless black eyes. No legs, just a massive finned tail. Wears a ripped wetsuit top, nothing below.",
       "emotion": {
@@ -2021,14 +2024,15 @@
       "behaviors": [],
       "current_area": "Jake's Apartment",
       "decay_rates": {
-        "Bladder": 1,
-        "Energy": 1,
-        "Entertainment": 1,
-        "Hunger": 1,
-        "Hygiene": 1,
-        "Sanity": 1,
-        "Social": 1,
-        "Thirst": 1
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "description": "177cm, slim but solid, broad shoulders, medium-length wavy brown hair in a loose man-bun. Seagreen eyes with flecks of gold behind rectangular glasses. Defined jaw, light beard, fair skin that flushes easily. Muted hoodie, worn sneakers, overstuffed backpack.",
       "emotion": {
@@ -2104,14 +2108,15 @@
       "behaviors": [],
       "current_area": "Rooftop",
       "decay_rates": {
-        "Bladder": 1,
-        "Energy": 1,
-        "Entertainment": 1,
-        "Hunger": 1,
-        "Hygiene": 1,
-        "Sanity": 1,
-        "Social": 1,
-        "Thirst": 1
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "description": "Lean crow furry, 162cm. Iridescent black feathers on arms, back of neck, lower legs. Digitigrade legs ending in taloned feet. Short glossy feather tail. Human-shaped face, sharp cheekbones, sleek black beak, bright crow-black eyes. Wears an oversized grey hoodie, nothing below the waist but feathers and the small vertical slit of her cloaca.",
       "emotion": {
@@ -2204,14 +2209,15 @@
       "behaviors": [],
       "current_area": "The Burrow Cafe",
       "decay_rates": {
-        "Bladder": 1,
-        "Energy": 1,
-        "Entertainment": 1,
-        "Hunger": 1,
-        "Hygiene": 1,
-        "Sanity": 1,
-        "Social": 1,
-        "Thirst": 1
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "description": "Catgirl halfie, short, agile. Human face and skin, with orange tabby-striped ears on top of her head, sharp canines, feline eyes. A long expressive striped tail. Dressed smart in a fitted blazer and pencil skirt. Small claws on her human hands.",
       "emotion": {
@@ -2303,14 +2309,15 @@
       "behaviors": [],
       "current_area": "Greenway Grocery",
       "decay_rates": {
-        "Bladder": 1,
-        "Energy": 1,
-        "Entertainment": 1,
-        "Hunger": 1,
-        "Hygiene": 1,
-        "Sanity": 1,
-        "Social": 1,
-        "Thirst": 1
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "description": "130cm rabbit furry. Warm grey-brown fur, lighter on her belly. Absurdly long ears that droop when frustrated, a fluffy white cottonball tail, twitchy pink nose, big dark eyes, prominent front teeth. Digitigrade furred legs and paw-feet in custom pink sneakers. Wears a cropped pink fleecy hoodie, nothing on her lower half but fur, the small vertical slit of her vulva visible between her thighs when she shifts.",
       "emotion": {

@@ -2396,14 +2396,15 @@
       },
       "current_area": "Millwood_Public_School",
       "decay_rates": {
-        "Hunger": 1,
-        "Thirst": 1,
-        "Hygiene": 1,
-        "Energy": 1,
-        "Social": 1,
-        "Bladder": 1,
-        "Sanity": 1,
-        "Entertainment": 1
+        "Hunger": 0.0034,
+        "Thirst": 0.025,
+        "Hygiene": 0.02,
+        "Energy": 0.104,
+        "Social": 0.02,
+        "Bladder": 0.42,
+        "Sanity": 0.005,
+        "Entertainment": 0.03,
+        "Mana": 0.0
       },
       "emotion": {
         "current": "neutral",
@@ -2494,14 +2495,15 @@
       },
       "current_area": "Millwood_Public_School",
       "decay_rates": {
-        "Hunger": 1,
-        "Thirst": 1,
-        "Hygiene": 1,
-        "Energy": 1,
-        "Social": 1,
-        "Bladder": 1,
-        "Sanity": 1,
-        "Entertainment": 1
+        "Hunger": 0.0034,
+        "Thirst": 0.025,
+        "Hygiene": 0.02,
+        "Energy": 0.104,
+        "Social": 0.02,
+        "Bladder": 0.42,
+        "Sanity": 0.005,
+        "Entertainment": 0.03,
+        "Mana": 0.0
       },
       "emotion": {
         "current": "neutral",

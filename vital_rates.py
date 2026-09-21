@@ -72,7 +72,19 @@ HP_REGEN = 0.02                # ~1.2/hr while well-fed, hydrated, sane
 SLEEP_ENERGY_REGEN = 0.30      # net ~+0.20/min after baseline Energy drain
 
 # ── Social / sanity coupling ────────────────────────────────────────────
-SOCIAL_COMPANY_GAIN = 0.030
+# Company is MAINTENANCE, not a source. The gain deliberately equals the Social
+# baseline, so standing near people stops the rot (net 0/min) without filling
+# the meter — what actually builds Social is *interacting* with them (task-423's
+# background social actions, and the foreground conversation loop).
+#
+# It used to be 0.030, which filled Social from mere co-presence: +0.010/min is
+# +14.4/day with nothing competing, so Social pegged at 100 in a week and every
+# social action landed on a capped vital. Raising it above the baseline is
+# therefore a design change, not a tuning nudge — `social_gain` traits scale this
+# in BOTH directions, and an extrovert (x2) exceeding the baseline is intended:
+# being among people genuinely nourishes them, while an introvert (x0) is
+# unaffected by the crowd.
+SOCIAL_COMPANY_GAIN = 0.020
 SOCIAL_ALONE_DRAIN = 0.020     # extra beyond baseline while alone
 SOCIAL_ISOLATION_EXTRA = 0.020  # after 5 consecutive alone-ticks
 SANITY_PENALTY_SOCIAL_LOW = 0.005

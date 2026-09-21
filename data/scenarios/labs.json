@@ -6301,14 +6301,15 @@
       "current_area": "Task 7",
       "current_carry_weight": 0,
       "decay_rates": {
-        "Bladder": 1,
-        "Energy": 1,
-        "Entertainment": 1,
-        "Hunger": 1,
-        "Hygiene": 1,
-        "Sanity": 1,
-        "Social": 1,
-        "Thirst": 1
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "description": "A tall man with a military-style buzzcut, a crooked nose, and intense, calculating hazel eyes. He stands completely unadorned, the full expanse of his fit, athletic form on display. His broad chest rises and falls in steady, measured breaths, the lean muscles of his torso and thighs drawn in clean, powerful lines. Below his flat stomach, his cock rests soft and heavy against his thigh, its base smooth and freshly shaved, leaving nothing to interrupt the pure, naked silhouette of his body.",
       "emotion": {
@@ -6402,14 +6403,15 @@
       "current_area": "Task 17",
       "current_carry_weight": 0,
       "decay_rates": {
-        "Bladder": 1,
-        "Energy": 1,
-        "Entertainment": 1,
-        "Hunger": 1,
-        "Hygiene": 1,
-        "Sanity": 1,
-        "Social": 1,
-        "Thirst": 1
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "description": "A fit woman with short, unevenly chopped dark hair, a jagged scar through her left eyebrow, and piercing grey eyes. She stands bare and unadorned, her slender frame carrying a dancer's lithe strength beneath a soft, fair complexion. The gentle, natural weight of her breasts rests against her chest, their curves rising and falling with each quiet breath. Below, her thighs part over a perfectly smooth, hairless mound, her skin left immaculately bare and flawless from hip to hip. Her jaw is set in a hard line, and her striking eyes constantly scan the environment, giving her resting face a look of permanent suspicion.",
       "emotion": {
@@ -6503,14 +6505,15 @@
       "current_area": "Task 18",
       "current_carry_weight": 0,
       "decay_rates": {
-        "Bladder": 1,
-        "Energy": 1,
-        "Entertainment": 1,
-        "Hunger": 1,
-        "Hygiene": 1,
-        "Sanity": 1,
-        "Social": 1,
-        "Thirst": 1
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "description": "A fit woman with short, unevenly chopped dark hair, a jagged scar through her left eyebrow, and piercing grey eyes. She stands bare and unadorned, her slender frame carrying a dancer's lithe strength beneath a soft, fair complexion. The gentle, natural weight of her breasts rests against her chest, their curves rising and falling with each quiet breath. Below, her thighs part over a perfectly smooth, hairless mound, her skin left immaculately bare and flawless from hip to hip. Her jaw is set in a hard line, and her striking eyes constantly scan the environment, giving her resting face a look of permanent suspicion.",
       "emotion": {
@@ -6604,14 +6607,15 @@
       "current_area": "Task 3 - area 3 open door",
       "current_carry_weight": 0,
       "decay_rates": {
-        "Bladder": 1,
-        "Energy": 1,
-        "Entertainment": 1,
-        "Hunger": 1,
-        "Hygiene": 1,
-        "Sanity": 1,
-        "Social": 1,
-        "Thirst": 1
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "description": "A sharp, hawk-like gaze burns from calculating hazel eyes beneath a military buzzcut, his crooked nose lending a brutal asymmetry to a face of hard, carved angles. The unzipped torso of a matte-black jumpsuit hangs open from his broad shoulders, its sleeves shoved past his elbows to bare powerful forearms, while the rest of his fit, athletic form stands in stark, unadorned contrast. Below the flat plains of his stomach, his soft, heavy cock rests against his thigh, its smooth-shaved base completing a purely naked silhouette that moves with slow, measured breaths.",
       "emotion": {
@@ -6705,14 +6709,15 @@
       "current_area": "Task 3 - area 3 closed door",
       "current_carry_weight": 0,
       "decay_rates": {
-        "Bladder": 1,
-        "Energy": 1,
-        "Entertainment": 1,
-        "Hunger": 1,
-        "Hygiene": 1,
-        "Sanity": 1,
-        "Social": 1,
-        "Thirst": 1
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "description": "He stands completely unadorned, the full expanse of his fit, athletic form on display. His broad chest rises and falls in the flickering light, the lean muscles of his torso and thighs drawn in clean, powerful lines. Below his flat stomach, his cock rests soft and heavy against his thigh, its base smooth and freshly shaved, leaving nothing to interrupt the pure, naked silhouette of his body.",
       "emotion": {
@@ -6806,14 +6811,15 @@
       "current_area": "Task 2",
       "current_carry_weight": 1,
       "decay_rates": {
-        "Bladder": 1,
-        "Energy": 1,
-        "Entertainment": 1,
-        "Hunger": 1,
-        "Hygiene": 1,
-        "Sanity": 1,
-        "Social": 1,
-        "Thirst": 1
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "description": "A sharp, hawk-like gaze burns from calculating hazel eyes beneath a military buzzcut, his crooked nose lending a brutal asymmetry to a face of hard, carved angles. The unzipped torso of a matte-black jumpsuit hangs open from his broad shoulders, its sleeves shoved past his elbows to bare powerful forearms, while the rest of his fit, athletic form stands in stark, unadorned contrast. Below the flat plains of his stomach, his soft, heavy cock rests against his thigh, its smooth-shaved base completing a purely naked silhouette that moves with slow, measured breaths.",
       "emotion": {
@@ -6923,14 +6929,15 @@
       "current_area": "Task 2",
       "current_carry_weight": 1,
       "decay_rates": {
-        "Bladder": 1,
-        "Energy": 1,
-        "Entertainment": 1,
-        "Hunger": 1,
-        "Hygiene": 1,
-        "Sanity": 1,
-        "Social": 1,
-        "Thirst": 1
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "description": "A jagged scar slices through her left eyebrow, splitting the dark, unevenly chopped hair above a pair of piercing grey eyes that sweep the room with unrelenting suspicion. The form-fitting jumpsuit clings to her lithe, dancer's frame, its sleek fabric zipped snugly over the soft rise of her breasts and the flat plane of her stomach, contrasting sharply with the bare, flawless skin of her neck and hands. Her jaw sets in a hard line as she stands barefoot, the suit's material stretching taut across her hips and thighs, every line of her body coiled with quiet, watchful tension.",
       "emotion": {
@@ -7040,14 +7047,15 @@
       "current_area": "Task 7",
       "current_carry_weight": 0,
       "decay_rates": {
-        "Bladder": 1,
-        "Energy": 1,
-        "Entertainment": 1,
-        "Hunger": 1,
-        "Hygiene": 1,
-        "Sanity": 1,
-        "Social": 1,
-        "Thirst": 1
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "description": "A tall man with a military-style buzzcut, a crooked nose, and intense, calculating hazel eyes. He stands completely unadorned, the full expanse of his fit, athletic form on display. His broad chest rises and falls in steady, measured breaths, the lean muscles of his torso and thighs drawn in clean, powerful lines. Below his flat stomach, his cock rests soft and heavy against his thigh, its base smooth and freshly shaved, leaving nothing to interrupt the pure, naked silhouette of his body.",
       "emotion": {

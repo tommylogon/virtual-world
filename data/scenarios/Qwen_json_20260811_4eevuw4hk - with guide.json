@@ -2728,14 +2728,15 @@
       },
       "current_area": "Halloway House Kitchen",
       "decay_rates": {
-        "Hunger": 1,
-        "Thirst": 1,
-        "Hygiene": 1,
-        "Energy": 1,
-        "Social": 1,
-        "Bladder": 1,
-        "Sanity": 1,
-        "Entertainment": 1
+        "Hunger": 0.0034,
+        "Thirst": 0.025,
+        "Hygiene": 0.02,
+        "Energy": 0.104,
+        "Social": 0.02,
+        "Bladder": 0.42,
+        "Sanity": 0.005,
+        "Entertainment": 0.03,
+        "Mana": 0.0
       },
       "emotion": {
         "current": "anxious",
@@ -2824,14 +2825,15 @@
       },
       "current_area": "Halloway House Kitchen",
       "decay_rates": {
-        "Hunger": 1,
-        "Thirst": 1,
-        "Hygiene": 1,
-        "Energy": 1,
-        "Social": 1,
-        "Bladder": 1,
-        "Sanity": 1,
-        "Entertainment": 1
+        "Hunger": 0.0034,
+        "Thirst": 0.025,
+        "Hygiene": 0.02,
+        "Energy": 0.104,
+        "Social": 0.02,
+        "Bladder": 0.42,
+        "Sanity": 0.005,
+        "Entertainment": 0.03,
+        "Mana": 0.0
       },
       "emotion": {
         "current": "vulnerable",
@@ -2921,14 +2923,15 @@
       },
       "current_area": "Halloway House Kitchen",
       "decay_rates": {
-        "Hunger": 1,
-        "Thirst": 1,
-        "Hygiene": 1,
-        "Energy": 1,
-        "Social": 1,
-        "Bladder": 1,
-        "Sanity": 1,
-        "Entertainment": 1
+        "Hunger": 0.0034,
+        "Thirst": 0.025,
+        "Hygiene": 0.02,
+        "Energy": 0.104,
+        "Social": 0.02,
+        "Bladder": 0.42,
+        "Sanity": 0.005,
+        "Entertainment": 0.03,
+        "Mana": 0.0
       },
       "emotion": {
         "current": "alert",
@@ -3017,14 +3020,15 @@
       },
       "current_area": "The Woods",
       "decay_rates": {
-        "Hunger": 2,
-        "Thirst": 0,
-        "Hygiene": 0,
-        "Energy": 1,
-        "Social": 0,
-        "Bladder": 0,
-        "Sanity": 0,
-        "Entertainment": 0
+        "Hunger": 0.0034,
+        "Thirst": 0.025,
+        "Hygiene": 0.02,
+        "Energy": 0.104,
+        "Social": 0.02,
+        "Bladder": 0.42,
+        "Sanity": 0.005,
+        "Entertainment": 0.03,
+        "Mana": 0.0
       },
       "emotion": {
         "current": "hunting",

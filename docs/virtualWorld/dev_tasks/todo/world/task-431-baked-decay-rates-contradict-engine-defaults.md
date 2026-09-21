@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: done
 area: world
 priority: high
 ---
@@ -12,6 +12,56 @@ priority: high
 (task-423 recon).  
 **Relates:** task-410 (food-limited survival), task-423 (social), task-425
 (Entertainment), `tools/migrate_decay_rates.py`.
+
+## Outcome (2026-09-21)
+
+**Decision: the bake was stale, re-baked from the engine defaults.** The user's
+call, on the evidence that three of eight vitals had drifted *upward* while five
+matched exactly, and that the baked Social value silently disabled a shipped
+mechanic (`SOCIAL_COMPANY_GAIN` 0.030 could never beat a 0.050 baseline).
+
+Two changes:
+
+1. **Re-baked every scenario** with `tools/migrate_decay_rates.py --all` — 93
+   player records across 15 files. This turned up a second, larger class of drift
+   the camp probe had hidden: **thirteen scenarios baked the legacy `1` for every
+   vital** (the pre-2026-09 per-tick scale), which the per-minute engine applies
+   as −1/min — vitals empty in about a hundred minutes. Those are fixed too.
+   Verified mechanically that **only** `decay_rates` changed and every value
+   equals the canonical default (17 JSON files, all clean). Three files the tool
+   touched were reverted as semantic no-ops: `autosave.json`,
+   `combat_pit.json`, `corsair.json` had an empty or absent `decay_rates`, which
+   already means "use the engine defaults" — filling them would add churn *and*
+   freeze the values against future recalibration.
+2. **`SOCIAL_COMPANY_GAIN` 0.030 → 0.020**, equal to the Social baseline. The
+   user's second decision: company is *maintenance* (it stops the rot), and
+   **interaction is the source** (task-423). It was 0.030 against a 0.020
+   baseline, and mere co-presence therefore filled Social.
+
+Measured, one week, 23 background characters:
+
+| | before | after |
+|---|---|---|
+| Social (15 min/tick) | 0 / 0 / 0 | **37 / 0 / 77** |
+| Social (1 min/tick) | 0 / 0 / 0 | **34.3 / 0 / 80** |
+| `social_breakdown` | **23 of 23** | **3 of 23** |
+| Entertainment | 40.1 | 45.3 |
+
+The two tick lengths agreeing is the property that matters.
+
+### Not fixed here, and worth knowing
+
+**Sanity is still 0 for all 23 characters**, and it is *not* the Social coupling:
+with Social and Entertainment pinned at 100 for a whole week it is still 0/0/0
+with all 23 `hallucinating`. Sanity is a meter with five drains and **no source**
+(baseline 7.2/day alone empties an authored 65-90 in ~11 days). Filed as
+**task-432**.
+
+A regression guard now exists:
+`tests/test_decay_rate_bake.py` fails if any scenario bakes a rate that
+contradicts an engine default, with a `DOCUMENTED_DRIFT` allowlist for deliberate
+per-scenario values, plus a test pinning `SOCIAL_COMPANY_GAIN <= baseline` so
+co-presence cannot silently become the source again.
 
 ## Problem
 

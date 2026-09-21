@@ -1,15 +1,18 @@
 """Company-aware Social need (task: decay must care about company).
 
-Being alone drains Social FASTER than baseline; company feeds it. The
-`social_gain` trait effect (extrovert: 2, introvert: 0) scales both
-directions. Built on a VirtualWorld() plus a real area node so the whole
-per-tick environment block runs.
+Being alone drains Social FASTER than baseline; company stops the rot. The
+`social_gain` trait effect (extrovert: 2, introvert: 0) scales both directions.
+Built on a VirtualWorld() plus a real area node so the whole per-tick
+environment block runs.
 
-Rates are per in-game minute (see vital_rates): baseline Social drains
-0.05/min, alone adds 0.05/min (plus 0.05/min isolation after 5 consecutive
-alone-ticks), company adds 0.05/min. Fractional rates mean a single tick
-usually moves nothing, so these tests run a span of ticks and compare
-outcomes rather than asserting one tick's integer.
+Rates are per in-game minute and now come from the engine defaults (task-431
+re-baked the scenario, which used to carry 0.05 for Social against a 0.020
+default): baseline Social drains 0.020/min, alone adds 0.020/min (plus 0.020/min
+isolation after 5 consecutive alone-ticks), and company adds exactly the
+baseline — **maintenance, not a source** (task-431 decision). Interaction is
+what fills Social (task-423). Fractional rates mean a single tick usually moves
+nothing, so these tests run a span of ticks and compare outcomes rather than
+asserting one tick's integer.
 """
 import sys
 from pathlib import Path
@@ -76,12 +79,12 @@ def test_alone_social_decays_faster_than_baseline():
 
 
 def test_company_social_is_fed_every_tick():
-    """Company gain roughly cancels the baseline drain: Social holds steady.
+    """Company gain cancels the baseline drain: Social holds steady.
 
-    Pinned to a one-minute tick because that is the calibration this asserts.
-    The boot world runs at 5 minutes/tick, where both the drain and the gain
-    are scaled up and the baked Social rate (0.05/min here) outweighs the
-    company gain (0.03/min) — see tests/test_tick_time_scaling.py for scaling.
+    This is the task-431 decision, not an accident — `SOCIAL_COMPANY_GAIN` equals
+    the Social baseline on purpose. Company is *maintenance*: it stops the rot.
+    Filling the meter is interaction's job (task-423). See
+    tests/test_decay_rate_bake.py::test_company_is_maintenance_not_a_source.
     """
     world = _world()
     world.time_per_tick_minutes = 1
@@ -92,6 +95,24 @@ def test_company_social_is_fed_every_tick():
     _run(world)
     assert p1.vitals["Social"] >= 79
     assert p2.vitals["Social"] >= 79
+
+
+def test_company_alone_does_not_fill_social():
+    """A long stretch of constant company must not peg Social at 100.
+
+    It used to: gain 0.030 against a 0.020 baseline is +14.4/day with nothing
+    competing, so a week of merely standing near people filled the meter and made
+    every social action land on a capped vital.
+    """
+    world = _world()
+    world.time_per_tick_minutes = 1
+    p1 = _place(world, "Kaelen Voss")
+    p2 = _place(world, "Other", AREA)
+    p1.vitals["Social"] = 50
+    p2.vitals["Social"] = 50
+    _run(world, 600)  # ten in-game hours of company
+    assert p1.vitals["Social"] <= 55, "company filled Social on its own"
+    assert p2.vitals["Social"] <= 55
 
 
 def test_extrovert_alone_craves_company_more():

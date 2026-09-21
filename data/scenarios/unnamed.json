@@ -1666,14 +1666,15 @@
       "current_area": "Millwood Public Schools",
       "current_carry_weight": 0,
       "decay_rates": {
-        "Bladder": 1,
-        "Energy": 1,
-        "Entertainment": 1,
-        "Hunger": 1,
-        "Hygiene": 1,
-        "Sanity": 1,
-        "Social": 1,
-        "Thirst": 1
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "description": "18 years old, 175cm, 71kg, slim build. Seagreen eyes with golden/amber flecks, short stiff hair, glasses (for double vision, rarely worn). Style is utilitarian—hoodies and jeans. Chaotic, unfiltered, oscillates between shy and hyperactively silly. Fiercely intelligent but socially oblivious. Uses sexual humor and bad puns to deflect and connect. Deeply loyal, asks permission, respects boundaries despite impulsive nature. Known as the 'weird kid.' Powers: Electromagnetism.",
       "emotion": {
@@ -1791,14 +1792,15 @@
       "current_area": "Millwood Public Schools",
       "current_carry_weight": 0,
       "decay_rates": {
-        "Bladder": 1,
-        "Energy": 1,
-        "Entertainment": 1,
-        "Hunger": 1,
-        "Hygiene": 1,
-        "Sanity": 1,
-        "Social": 1,
-        "Thirst": 1
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "description": "18 years old, long black hair, white skin, skinny build, 5'4\", 100 lbs, blue-violet eyes, waifish face. Likes hairbands, skimpy dresses/skirts, and high heels. Flirty and fun on the surface, deeply conflicted underneath. Presents as a 'good girl' but harbors extreme kinks and a hypersexual, submissive, masochistic side. Intelligent, insightful, fiercely protective. Powers: Invisibility (often triggered by anxiety) and violet-hued forcefields.",
       "emotion": {
