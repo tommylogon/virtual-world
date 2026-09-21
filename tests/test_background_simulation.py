@@ -100,7 +100,7 @@ def test_a_background_character_acts_once_per_turn():
     """
     from engine.background_simulation import BackgroundSimulation
 
-    def actions_in(turns, minutes_per_tick):
+    def actions_in(game_minutes, minutes_per_tick):
         w = _world()
         w.time_per_tick_minutes = minutes_per_tick
         p = _bg_player(w, Thirst=50, Hunger=50, Energy=90)
@@ -115,19 +115,26 @@ def test_a_background_character_acts_once_per_turn():
             return _real(name, player)
 
         bgs._act = counting
+        turns = max(1, int(round(game_minutes / minutes_per_tick)))
         for _ in range(turns):
             p.activity = None          # keep the budget the only variable
             bgs.process_due()
             w.time_ticks += 1
         return len(calls)
 
+    # One action per game minute: 30 minutes is 30 actions at 1, 5 or 15 min/turn.
+    # (A span that divides evenly by every turn length, because a character cannot
+    # take a fraction of a turn — 20 minutes is 1.33 turns at 15.) This is the
+    # invariant that makes fast-forward and live play the same world, and it is the
+    # opposite of a fixed one-per-turn budget, which would give 30 actions at
+    # 1 min/turn and 2 at 15.
     for minutes_per_tick in (1, 5, 15):
-        assert actions_in(10, minutes_per_tick) == 10, minutes_per_tick
+        assert actions_in(30, minutes_per_tick) == 30, minutes_per_tick
 
 
 def test_a_deferred_character_banks_nothing():
     """`next_due_tick` in the future means no action and no backlog."""
-    from engine.background_simulation import BackgroundSimulation
+    from engine.background_simulation import BackgroundSimulation, actions_per_turn
 
     w = _world()
     p = _bg_player(w, Thirst=50, Hunger=50, Energy=90)
@@ -148,11 +155,12 @@ def test_a_deferred_character_banks_nothing():
         w.time_ticks += 1
     assert calls == []
 
-    # Release it: it takes one action, not ten.
+    # Release it: it spends the turn it now has, not a backlog of ten turns.
     p.next_due_tick = 0
     p.activity = None
     bgs.process_due()
-    assert len(calls) == 1
+    assert len(calls) == actions_per_turn(w)
+    assert len(calls) < 10
 
 
 def test_a_sleeping_character_takes_no_action_and_banks_nothing():

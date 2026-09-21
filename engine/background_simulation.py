@@ -73,27 +73,24 @@ BATH_HYGIENE = 70         # fallback when a fixture does not author its own amou
 RECREATION_TAGS = ("recreation",)
 ENTERTAINMENT_RESTORE = 15  # fallback when a fixture does not author its own amount
 
-#: Actions a background character takes per **turn** — one, like every other
-#: character (task-409).
+#: One action per **game minute** — a turn of T minutes holds T ticks (task-409).
 #:
-#: This used to be a decision every ``DECISION_MINUTES`` of game time, which put
-#: the background tier on a different clock from the live one:
-#:
-#:   turn length   background actions/turn   live actions/turn
-#:   1 minute      0.1                       1-2
-#:   5 minutes     0.5                       1-2
-#:   15 minutes    1.5                       1-2
-#:
-#: So in live play at a 1-minute turn background characters acted *ten times less
-#: often* than the player, and at 15 minutes slightly more; the two agreed only
-#: around T=10, by coincidence. A turn is one round in which every character acts
-#: — the background tier must spend that turn the same way, or the two tiers live
-#: in different worlds and promotion between them changes the character.
-ACTIONS_PER_TURN = 1
-#: Guard on actions within one turn. One, because a turn is one action per
-#: character; a character who was mid-activity neither decides nor banks, so
-#: nothing needs to accumulate.
-MAX_ACTIONS_PER_TICK = 1
+#: A tick is an action and its consequences; a turn is `time_per_tick_minutes`
+#: minutes, so a turn holds that many actions. This is *not* a rate constant and
+#: must not be confused with the LLM **decision** cadence, which is one per turn
+#: per focused character and is the thing that costs money. A deterministic
+#: character spends its whole turn; an LLM decides once and the engine resolves
+#: the ticks. Earlier the same loop used a decision every 10 game minutes, which
+#: put the background tier on a different clock from the live one (at the camp's
+#: 1-minute turn it acted ten times less often than the player, and the two agreed
+#: only around T=10 by coincidence).
+def actions_per_turn(gs) -> int:
+    """Actions a character may take in one turn: one per game minute."""
+    try:
+        minutes = float(tick_minutes(gs))
+    except Exception:
+        minutes = 1.0
+    return max(1, int(round(minutes)))
 
 
 class BackgroundSimulation:
@@ -129,10 +126,11 @@ class BackgroundSimulation:
                 continue
 
             credit = getattr(p, "_action_credit", 0.0) or 0.0
-            credit = min(credit + ACTIONS_PER_TURN, MAX_ACTIONS_PER_TICK)
+            budget = actions_per_turn(self.gs)
+            credit = min(credit + budget, budget)
 
             spent = 0
-            while credit >= 1.0 and spent < MAX_ACTIONS_PER_TICK:
+            while credit >= 1.0 and spent < budget:
                 try:
                     self._act(name, p)
                 except Exception as e:  # never let one character stall the tick
