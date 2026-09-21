@@ -23,5 +23,6 @@
   "emotion.recall_spike_scale": 0.25,
   "graph.physics_enabled": true,
   "graph.show_items": true,
-  "graph.show_only_inhabited": false
+  "graph.show_only_inhabited": false,
+  "memory.max_per_character": 0
 }

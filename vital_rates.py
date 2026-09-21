@@ -1,9 +1,12 @@
 """Canonical per-minute vital rates for long-horizon simulation.
 
-VirtualWorld's core clock is one in-game minute per tick (the engine default
-and what every long-run scenario pins ``time_per_tick_minutes`` to). Every
-rate in this module is therefore expressed **per in-game minute** — not per
-tick-as-a-session-beat, which is what the pre-2026-09 tuning assumed.
+Every rate in this module is expressed **per in-game minute** — not per
+tick-as-a-session-beat, which is what the pre-2026-09 tuning assumed. A tick is
+``world.time_per_tick_minutes`` of game time, which a scenario or the live
+Engine Config can set to anything, so callers pass that length as ``minutes``
+and the effect scales with it: a 15-minute tick drains 15 minutes' worth. Left
+unscaled, decay and the clock disagree the moment the tick stops being a
+minute — a 15-minute world would starve everyone 15x too slowly.
 
 Fractional rates are applied through :func:`change`, a per-player per-stat
 accumulator that carries the leftover between ticks. Sub-1 rates vanish under
@@ -84,20 +87,44 @@ SANITY_PENALTY_ENT_VERY_LOW = 0.010
 LEGACY_PER_TICK = 0.05
 
 
-def change(player, stat, per_minute, *, cap=None, floor=0):
+def tick_minutes(world, default: float = 1.0) -> float:
+    """How much game time one tick covers, tolerating junk from config/saves.
+
+    The single place that reads ``time_per_tick_minutes`` for rate scaling, so
+    the engine and the activity system cannot coerce it differently.
+    """
+    try:
+        minutes = abs(float(getattr(world, "time_per_tick_minutes", default) or default))
+    except (TypeError, ValueError):
+        return default
+    return minutes or default
+
+
+def change(player, stat, per_minute, *, minutes=1, cap=None, floor=0):
     """Accumulate a per-minute change and apply whole units when they land.
 
-    ``per_minute`` is signed (negative drains, positive restores/fills).
+    ``per_minute`` is signed (negative drains, positive restores/fills) and
+    ``minutes`` is how much game time this tick covers — normally
+    ``world.time_per_tick_minutes``. Pass it from every caller that is not
+    already iterating minutes, or the effect silently freezes at the 1-minute
+    rate while the clock runs faster.
+
     Returns the integer step actually applied this tick (0 most ticks for
     fractional rates), so callers can log or branch on real change.
     """
     vitals = getattr(player, "vitals", None)
     if not vitals or stat not in vitals or not per_minute:
         return 0
+    try:
+        minutes = abs(float(minutes))
+    except (TypeError, ValueError):
+        minutes = 1.0
+    if not minutes:
+        return 0
     accum = getattr(player, "_rate_accum", None)
     if accum is None:
         accum = player._rate_accum = {}
-    accum[stat] = accum.get(stat, 0.0) + per_minute
+    accum[stat] = accum.get(stat, 0.0) + per_minute * minutes
     step = int(accum[stat])
     accum[stat] -= step
     if not step:

@@ -76,8 +76,15 @@ def test_alone_social_decays_faster_than_baseline():
 
 
 def test_company_social_is_fed_every_tick():
-    """Company gain cancels the baseline drain: Social holds roughly steady."""
+    """Company gain roughly cancels the baseline drain: Social holds steady.
+
+    Pinned to a one-minute tick because that is the calibration this asserts.
+    The boot world runs at 5 minutes/tick, where both the drain and the gain
+    are scaled up and the baked Social rate (0.05/min here) outweighs the
+    company gain (0.03/min) — see tests/test_tick_time_scaling.py for scaling.
+    """
     world = _world()
+    world.time_per_tick_minutes = 1
     p1 = _place(world, "Kaelen Voss")
     p2 = _place(world, "Other", AREA)
     p1.vitals["Social"] = 80

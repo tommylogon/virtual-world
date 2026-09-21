@@ -1,10 +1,18 @@
 """Deterministic background survival runner (task-399).
 
 Characters with ``simulation_mode == "background"`` do not run the LLM loop.
-Instead this module makes a *coarse, scheduled, deterministic* decision when
-the character is due (``next_due_tick``), executing it against the **same**
-Player/graph state so the character stays the same person (see
+Instead this module makes *coarse, deterministic* decisions against the
+**same** Player/graph state so the character stays the same person (see
 docs/design/reversibility-contract.md).
+
+Decisions are paced by an **action credit** measured in game minutes, not
+ticks: a character is entitled to one decision per ``DECISION_MINUTES`` of
+game time, and a tick grants ``time_per_tick_minutes / DECISION_MINUTES`` of
+credit. At 1 min/tick that is one decision per 10 ticks (the old fixed
+interval); at 15 min/tick it is ~1.5 decisions per tick, so a character takes
+the same number of decisions per game hour whatever the tick length. Gating on
+ticks instead meant a 15-minute world gave everyone a fifteenth as many
+decisions per hour and they starved while food was in reach.
 
 v1 scope — survival only:
     drink when thirsty, eat when hungry, sleep when tired, travel one hop
@@ -25,6 +33,7 @@ from collections import deque
 
 from graph import EDGE_IN, EDGE_CARRYING
 from engine.trace import record
+from vital_rates import tick_minutes
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +47,8 @@ ENERGY_THRESHOLD = 30     # resource: low = tired
 MEAL_RESTORE = 45         # Hunger (drive) reduced by this when eating
 DRINK_RESTORE = 50        # Thirst (drive) reduced by this when drinking
 
-DECISION_INTERVAL = 10    # base ticks between background decisions
+DECISION_MINUTES = 10     # game minutes between background decisions
+MAX_ACTIONS_PER_TICK = 4  # bound so a very long tick cannot run away
 
 
 class BackgroundSimulation:
@@ -51,19 +61,43 @@ class BackgroundSimulation:
     # ───────────────────────────── entry point ─────────────────────────────
 
     def process_due(self):
-        """Handle every background character whose next_due_tick has arrived."""
+        """Spend each background character's accrued action credit.
+
+        Credit accrues in game minutes, so the number of decisions per game
+        hour is the same at any ``time_per_tick_minutes``. A character who is
+        mid-activity (sleeping) or unconscious neither decides nor banks
+        credit, so a long sleep cannot leave a backlog to dump on waking.
+        """
+        gain = tick_minutes(self.gs) / DECISION_MINUTES
         for name, p in list(self.gs.players.items()):
             if getattr(p, "simulation_mode", "active") != "background":
                 continue
             if p.state == "dead":
                 continue
-            if self.gs.time_ticks < getattr(p, "next_due_tick", 0):
-                continue
-            try:
-                self._act(name, p)
-            except Exception as e:  # never let one character stall the tick
-                logger.warning("[background] %s: %s", name, e)
-            p.next_due_tick = self.gs.time_ticks + self._interval(p)
+            if p.activity or p.state == "unconscious":
+                continue  # committed to a duration; no decisions, no banking
+
+            credit = getattr(p, "_action_credit", None)
+            if credit is None:
+                # First sighting: act at once (the old next_due_tick == 0 path),
+                # unless a save/tool set an explicit "not before" tick. Starting
+                # at a random fraction instead would both delay the first
+                # decision and permanently shorten every later interval.
+                credit = 0.0 if self.gs.time_ticks < getattr(p, "next_due_tick", 0) else 1.0
+            credit = min(credit + gain, MAX_ACTIONS_PER_TICK)
+
+            spent = 0
+            while credit >= 1.0 and spent < MAX_ACTIONS_PER_TICK:
+                try:
+                    self._act(name, p)
+                except Exception as e:  # never let one character stall the tick
+                    logger.warning("[background] %s: %s", name, e)
+                    break
+                credit -= 1.0
+                spent += 1
+                if p.activity or p.state == "unconscious":
+                    break  # a duration started; stop spending this tick
+            p._action_credit = credit
 
     # ───────────────────────────── decisions ───────────────────────────────
 
@@ -306,8 +340,3 @@ class BackgroundSimulation:
                 areas.add(tgt.name)
         self._areas_cache[key] = areas
         return areas
-
-    def _interval(self, p):
-        """Small deterministic jitter so the camp doesn't act in lockstep."""
-        seed = f"{getattr(p, 'id', p.name)}:{self.gs.time_ticks}"
-        return DECISION_INTERVAL + random.Random(seed).randint(0, 4)

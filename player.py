@@ -5,6 +5,23 @@ import uuid
 
 from vital_rates import BASELINE_DECAY, BLADDER_FILL
 
+MEMORY_LIMIT_KEY = "memory.max_per_character"
+
+
+def _memory_limit() -> int:
+    """Configured per-character memory cap; 0 or unset means keep everything.
+
+    Imported lazily: player.py is reached through ``engine/__init__.py``, so a
+    module-level ``from engine.runtime_config import config`` would re-enter the
+    package while it is still initialising.
+    """
+    try:
+        from engine.runtime_config import config
+        return max(0, int(config.get(MEMORY_LIMIT_KEY, 0) or 0))
+    except Exception:
+        return 0
+
+
 class Player:
     def sync_vitals_with_tags(self):
         """Add or remove Mana vital based on 'magic' tag."""
@@ -91,11 +108,6 @@ class Player:
         # own thirst-modulated fill in tick_manager. Goblins get the faster
         # `high_metabolism` trait.
         self.decay_rates = {**BASELINE_DECAY, "Bladder": BLADDER_FILL}
-        # Fractional accumulator for sub-1/tick drive decay (mansion: Hunger
-        # 0.06/min, Thirst 0.18/min). int() truncation would drop the whole
-        # increment most ticks, so the drives would barely move; this carries
-        # the leftover over so the real-world rate actually accrues.
-        self._decay_accum = {}
 
         # Per-body-part numeric state (task-253 body-part taxonomy). Flat dict
         # keyed by region id from engine/body_parts.py: each region has a base
@@ -130,7 +142,8 @@ class Player:
         # concurrent instances per condition (5 vials of poison = 5 `poisoned`
         # instances). Each instance: {duration, source, level, periodic, ends_on,
         # symptoms, known} where the optional fields override the catalog default.
-        # duration = ticks remaining (None = until countered/removed).
+        # duration = game minutes remaining (None = until countered/removed).
+        # Scaled to the tick length by engine/conditions.py:process_tick.
         self.conditions = {"awake": [{"duration": None, "source": None, "level": 0}]}
         # Track discovered exits: set of (area_name, direction) tuples
         self.discovered_exits = set()
@@ -457,7 +470,8 @@ class Player:
             "closeness": 0,
             "last_interaction_tick": tick,
             "interaction_count": 0,
-            "first_sighting": True
+            "first_sighting": True,
+            "label": ""
         }
         self._grant_meeting_entertainment()
         return True
@@ -580,7 +594,8 @@ class Player:
             self.relationships[other_name] = {
                 "closeness": 0,
                 "last_interaction_tick": tick,
-                "interaction_count": 0
+                "interaction_count": 0,
+                "label": ""
             }
             self._grant_meeting_entertainment()
         rel = self.relationships[other_name]
@@ -588,12 +603,58 @@ class Player:
         rel["last_interaction_tick"] = tick
         rel["interaction_count"] += 1
 
+    #: Familiarity's damping on relationship decay. 0.15 means six prior
+    #: interactions halve the rate — shared history should not evaporate.
+    RELATIONSHIP_DECAY_FAMILIARITY = 0.15
+
+    def decay_relationships(self, elapsed_days: float, per_day: float) -> int:
+        """Drift closeness toward 0 for relationships left unmaintained.
+
+        Deliberately safe on authored data: the step can never cross zero
+        (strength protects itself), shared history damps the rate through
+        `interaction_count`, and an authored `label` ("my brother") is a
+        declaration rather than a measurement, so it is never touched — only the
+        computed closeness moves.
+
+        Sub-1 daily steps accumulate per relationship the way vitals do, or a
+        0.5/day rate would round to nothing every day.
+
+        Returns the number of relationships that moved.
+        """
+        if elapsed_days <= 0 or per_day <= 0:
+            return 0
+        accum = getattr(self, "_rel_decay_accum", None)
+        if accum is None:
+            accum = self._rel_decay_accum = {}
+        changed = 0
+        for name, rel in self.relationships.items():
+            closeness = rel.get("closeness", 0)
+            if not isinstance(closeness, (int, float)) or not closeness:
+                accum.pop(name, None)
+                continue
+            damping = 1.0 / (
+                1.0 + self.RELATIONSHIP_DECAY_FAMILIARITY
+                * float(rel.get("interaction_count", 0) or 0)
+            )
+            accum[name] = accum.get(name, 0.0) + per_day * elapsed_days * damping
+            step = int(accum[name])
+            if not step:
+                continue
+            accum[name] -= step
+            step = min(abs(closeness), step)
+            rel["closeness"] = closeness - step if closeness > 0 else closeness + step
+            changed += 1
+        return changed
+
     def get_relationship_nl(self, other_name: str) -> str:
         """Return a natural language description of the relationship."""
         rel = self.relationships.get(other_name)
         if not rel:
             return f"{self.name} has never met {other_name}."
         closeness = rel["closeness"]
+        label = (rel.get("label") or "").strip()
+        if label:
+            return f"{self.name} considers {other_name} their {label} (closeness: {closeness}/100)."
         if closeness <= -75:
             desc = "mortal enemy"
         elif closeness <= -50:
@@ -632,8 +693,24 @@ class Player:
             "salience_override": 0,
             "suppressions": [],
         })
-        if len(self.memories) > 200:
-            self.memories.pop(0)
+        limit = _memory_limit()
+        if limit and len(self.memories) > limit:
+            self._trim_memories(limit)
+
+    def _trim_memories(self, limit: int):
+        """Drop the least worth keeping when a retention cap is configured.
+
+        Authored memories (``source == "manual"``) are the character's backstory,
+        so they go last — a busy week of generated social chatter must not push
+        the hand-written past out of the character.
+        """
+        while len(self.memories) > limit:
+            victim = 0
+            for index, memory in enumerate(self.memories):
+                if memory.get("source") != "manual":
+                    victim = index
+                    break
+            self.memories.pop(victim)
 
     def suppress_memory(self, tags=None, keywords: str = "", duration: int = 1, scope: str = "self") -> list:
         """Mark matching memories as inaccessible for `duration` turns.
@@ -795,6 +872,7 @@ class Player:
                 "interaction_count": data.get("interaction_count", 0),
                 "last_interaction_tick": data.get("last_interaction_tick", 0),
                 "first_sighting": data.get("first_sighting", False),
+                "label": data.get("label", ""),
             }
             try:
                 from engine.derive import derive_person_profile

@@ -4,7 +4,7 @@ All notable changes to VirtualWorld. See `docs/virtualWorld/Scenario Workflows &
 
 ---
 
-## Unreleased — "One Copy of Every Truth" (2026-09-20)
+## Unreleased — "One Copy of Every Truth" (2026-09-20 → 09-21)
 
 A saved world was carrying the same facts three times over, the natural-language
 editor was quietly discarding failed edits while burning its entire context, and
@@ -87,6 +87,154 @@ Two defects, both upstream of the image itself:
   the `body.dataset.scenarioName` fallback that Save/Export Scenario writes;
   `_scenarioIdentity()` did not. The key is now derived from the identity, so they
   cannot diverge.
+
+### ⏱ Vital decay now scales with the tick's game time
+Every rate in `vital_rates` is *per in-game minute*, but `time_per_tick_minutes`
+is settable per scenario and live from Engine Config — and nothing multiplied by
+it. A tick applied one minute's worth of decay no matter how many minutes it
+covered, so the clock and the meters disagreed silently the moment the tick
+stopped being a minute.
+
+- **`vital_rates.change()` takes `minutes`**, and `tick_minutes(world)` is the one
+  place that reads `time_per_tick_minutes` (tolerating junk: `0`, `None` and
+  `"nonsense"` all fall back to 1, and a negative sign is treated as a typo).
+  `TickManager._decay()` routes every per-minute effect through it.
+- **The baseline loop uses the same accumulator as everything else.** It had its
+  own `_decay_accum` separate from `change()`'s `_rate_accum` — two parallel
+  implementations of the same idea, and a second source of truth per meter.
+- **The starvation grace is counted in minutes, not ticks.** It is a wall-clock
+  reprieve (360 min of hunger, 60 min of thirst); counted in ticks, a 15-minute
+  world would have stretched the 1-hour thirst grace into 15 hours. Damage past
+  the grace scales with the tick too (0.5 HP/min × 15 = 7.5 HP).
+- **`soak_sim.py`'s `TICKS_PER_DAY` was hardcoded to 1440** "at
+  time_per_tick_minutes == 1", so the day/week/month projections lied by exactly
+  the tick-length factor while `fmt_span` printed the real spans.
+
+Consequences worth knowing: the **boot `world_template.json` runs at 5
+min/tick**, so decay in the default world was running **5× too slow** (the
+kraktooth campaign pins 1, so its soak numbers are unaffected). The pleasure
+meters (`Arousal`/`Stimulation`/`Pleasure`) are in `baseline_decay` and were
+marked *"still per-tick; not yet folded into the per-minute scale"* — they are
+now folded in, so they drain 5× per tick in a 5-minute world and may want
+re-tuning. `tests/test_tick_time_scaling.py` covers the invariant (equal game
+time, equal decay, at 1/5/15-minute ticks); the pleasure and Social-company
+suites pin a one-minute tick because they assert per-minute calibration.
+
+### 🎟 Background decisions are paced in game minutes, not ticks
+Decay was only half the story. `engine/background_simulation.py` gated
+decisions on `DECISION_INTERVAL = 10` **ticks**, so at 15 min/tick a character
+decided every 150 minutes instead of every 10 and got a fifteenth as many
+decisions per game hour. A week soak at 15 min/tick killed everyone of
+exhaustion inside a day at first, then 3/23 once decay was scaled — with food
+in reach.
+
+- **Action credit replaces the tick interval.** Credit accrues at
+  `time_per_tick_minutes / DECISION_MINUTES` (10) and is spent one decision at
+  a time, capped at `MAX_ACTIONS_PER_TICK` (4). A busy or unconscious character
+  neither decides nor banks credit, so a long sleep cannot leave a backlog to
+  dump on waking. First sighting acts at once, and an explicit future
+  `next_due_tick` from a save or tool still defers.
+- **Measured invariant:** over the same 1,440 game minutes, 1 min/tick gives
+  78.2 decisions/hour and 15 min/tick gives 78.0 — identical within noise,
+  where it used to be 15x apart.
+- **Body-temperature drift is scaled too.** `drift`/`converge_rate` were
+  per-tick while the cold/heat damage they feed was per-minute, so a 15-minute
+  tick spent 15 minutes taking band damage per 1 minute of *leaving* the band.
+  That was killing poorly-sheltered and cold-blooded characters (Croak-Mother
+  in Blackmarsh at 8h15m). Fixed, and the death is gone.
+- **`soak_sim.py` gains `--minutes-per-tick`** (it previously only read the
+  value from the scenario, so the one thing worth tuning was the one thing you
+  could not vary) **and `--mature`**. Both the camp scenario and
+  `world_template.json` ship `mature_content: false`, and with it off
+  `sync_pleasure_vitals` *strips* Arousal/Stimulation/Pleasure and their decay
+  rates — so every soak so far ran a world missing that whole subsystem. With
+  `--mature` the sweep is unchanged (those meters start at 0 and do not feed
+  survival, and background characters never trip the cascade), but the run is
+  now the real world. Worth deciding whether the camp *should* ship it off: the
+  players carry `body_state`/`region_exposed` data that implies otherwise.
+
+Week soak, `--background-all`, same game week: **1 min/tick 23/23 alive**;
+**15 min/tick 21/23** in 9s instead of 70s, the two deaths being starvation at
+6d14h+ — the known finite-food issue (task-410), not the tick length. The
+1-minute result is unchanged, which is the point: `×1` scaling is a no-op.
+
+A tick-length sweep over the same game week is flat until the step gets
+coarse — **23/23 alive at 1, 2 and 5 min/tick**, then 21–22/23 at 15/30/60. The
+death is the *same character* (Silver-Talon) at every coarse step and the whole
+camp's food is consumed either way, so the tail is the finite-food problem
+(task-410), not the time scaling: at 1 min/tick the hungriest three end the
+week at Hunger 100 *alive*. Use ≤5 min/tick when tuning rates.
+
+### ⏳ Condition durations are game minutes
+`player.py` documented `duration = ticks remaining` and
+`engine/conditions.py` counted one down per tick, so a 5-minute `unconscious`
+lasted **75 game minutes** in a 15-minute world, `satisfied` 5 hours and
+`sensitized` 150 minutes.
+
+- **Durations and condition `periodic` drains are per game minute.**
+  `process_tick` counts down by the tick's minutes and routes periodics through
+  `vital_rates.change(..., minutes=…)`, so sub-1 periodics also stop truncating
+  to nothing (they were written straight into `vitals` before).
+- **`get_active_conditions` reports `minutes_remaining`** rather than
+  `ticks_remaining` — nothing consumed the old key.
+- **Save compatibility:** instances store a bare number, so a save written at
+  1 min/tick is byte-identical in meaning; at a longer tick an old value now
+  reads as minutes, which is the correct interpretation.
+- Verified: a 10-minute condition expires after 10 / 2 / 1 ticks at 1 / 5 / 10
+  minutes per tick (`tests/test_tick_time_scaling.py`).
+
+Re-running the sweep after this changed nothing (same deaths, same identities),
+which is the expected negative result: it confirms the remaining soak deaths are
+food-limited rather than a residue of tick-quantised time.
+
+Still tick-quantised and not yet converted: `npc_behaviors.npc_action_interval`
+(a second, older action scheduler).
+
+### 🧾 Character memories are no longer capped at 200
+`player.add_memory` silently dropped the **oldest** memory once a character
+passed 200 — a cap nobody chose, and FIFO, so a busy week of generated events
+would have pushed the hand-written backstory out first.
+
+- The cap is now `memory.max_per_character` (Engine Config → memory, default
+  **0 = unlimited**), read at call time like every other engine setting.
+- When a limit *is* set, eviction skips `source: "manual"` memories, so authored
+  backstory is the last thing to go rather than the first.
+- Verified: 600 generated memories all retained by default; with a cap of 50 the
+  total trims to 50 and **all 10 authored memories survive**.
+
+This matters for the background social work (task-423): at the measured decision
+rate a character accrues ~2–4 memories per game hour, which would have started
+evicting the authored past after roughly three game days.
+
+### 🔗 Relationships fade when nobody maintains them
+Closeness only ever moved on an event: `last_interaction_tick` was written in
+five places and **read in none**, so a pair that never met again kept its value
+forever and a week of simulation could only ratchet.
+
+- **`Player.decay_relationships()`** eases closeness toward 0 by elapsed game
+  days, driven from the tick loop **once per game day** — so a 1-minute world and
+  a 15-minute one drift identically, and the cost is daily rather than 23
+  characters × N relationships every tick.
+- **Safe on authored data, deliberately.** The step can never cross zero, shared
+  history damps the rate through `interaction_count` (the same counter that feeds
+  `derive.familiarity`, so six prior interactions roughly halve the drift), and an
+  authored `label` ("my brother") is a *declaration* rather than a measurement, so
+  it is never touched — only the computed closeness moves.
+- Sub-1 daily steps accumulate per relationship the way vitals do; a 0.5/day rate
+  would otherwise round to nothing every day.
+- Tunable at `relationship.decay_per_day` (Engine Config → relationship, default
+  0.5). Verified tick-length independent: 3 days at 1 min/tick and at 15 min/tick
+  land on the same closeness.
+
+### 🏷 Scenarios name themselves from the filename
+A blank `_scenario_name` is the failure mode that made saves land as "unnamed"
+and left the frontend's local background-map cache unreachable, since
+`_scenarioIdentity()` keys off the name. `world.set_scenario_source(path)` is now
+the one place that keeps source and name consistent: it derives the name from the
+filename stem when the world has none, never overwrites an existing name, and
+`None` clears the source only. All seven path-bearing assignments route through it.
+`_scenario_name` is also initialised in `VirtualWorld.__init__` instead of only
+appearing once something set it.
 
 ### 📋 Filed for next
 `task-416` area-major tick iteration · `task-417` co-presence gate for coarse

@@ -70,6 +70,7 @@ def test_active_mode_is_ignored():
 
 
 def test_due_scheduling_defers_action():
+    """An explicit future `next_due_tick` (saves, tools) still defers."""
     w = _world()
     p = _bg_player(w, Thirst=5, Hunger=80, Energy=90)
     p.next_due_tick = 10_000         # not due for a long time
@@ -79,7 +80,42 @@ def test_due_scheduling_defers_action():
     p.next_due_tick = 0               # now due
     w.tick_turn()
     assert p.vitals["Hunger"] <= 40   # acted
-    assert p.next_due_tick > w.time_ticks  # rescheduled
+    # Pacing is now a game-minute action credit, not a rescheduled tick.
+    assert getattr(p, "_action_credit", 1.0) < 1.0
+
+
+def test_decision_rate_is_tick_length_independent():
+    """The whole point of the action credit: a background character gets the
+    same number of decisions per game hour at any time_per_tick_minutes. Gating
+    on ticks gave a 15-minute world a fifteenth as many decisions per hour, and
+    characters starved with food in reach.
+    """
+    from engine.background_simulation import BackgroundSimulation
+
+    def decisions(minutes_per_tick, total_minutes):
+        w = _world()
+        w.time_per_tick_minutes = minutes_per_tick
+        p = _bg_player(w, Thirst=50, Hunger=50, Energy=90)
+        p.next_due_tick = 0
+        bgs = BackgroundSimulation(w)
+        w.tick_manager._background_sim = bgs
+        calls = []
+        real = bgs._act
+
+        def counting(name, player, _real=real):
+            if name == p.name:
+                calls.append(w.time_ticks)
+            return _real(name, player)
+
+        bgs._act = counting
+        for _ in range(int(round(total_minutes / minutes_per_tick))):
+            w.tick_turn()
+        return len(calls)
+
+    one_minute = decisions(1, 600)
+    fifteen_minute = decisions(15, 600)
+    assert one_minute > 0, "the fixture must actually make decisions"
+    assert abs(one_minute - fifteen_minute) <= 2, (one_minute, fifteen_minute)
 
 
 def test_background_sleeps_when_tired():

@@ -61,6 +61,30 @@ def test_existing_target_is_never_clobbered(tmp_path):
     assert getattr(app.world, "_scenario_source", None) != str(existing)
 
 
+def test_source_path_supplies_a_missing_name(tmp_path):
+    """A blank name is the failure mode that made saves land as "unnamed" and
+    left the frontend's background-map cache unreachable."""
+    world = create_app({"TESTING": True}).world
+    world._scenario_name = ""
+    world.set_scenario_source(str(tmp_path / "kraktooth_goblin_camp.json"))
+    assert world._scenario_name == "kraktooth_goblin_camp"
+
+
+def test_an_existing_name_beats_the_filename(tmp_path):
+    world = create_app({"TESTING": True}).world
+    world._scenario_name = "violet_parr_scenario"
+    world.set_scenario_source(str(tmp_path / "something_else.json"))
+    assert world._scenario_name == "violet_parr_scenario"
+
+
+def test_clearing_the_source_leaves_the_name_alone(tmp_path):
+    world = create_app({"TESTING": True}).world
+    world.set_scenario_source(str(tmp_path / "named_world.json"))
+    world.set_scenario_source(None)
+    assert world._scenario_source is None
+    assert world._scenario_name == "named_world"
+
+
 def test_missing_name_is_rejected(tmp_path):
     client, _app, _data_dir = _client(tmp_path)
     assert client.post('/api/scenario/name', json={}).status_code == 400

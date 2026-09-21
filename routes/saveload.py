@@ -40,7 +40,7 @@ def _restore_snapshot(app, state, source):
     """Replace app.world with a fresh instance loaded from a snapshot."""
     new_world = VirtualWorld()
     new_world.load_from_dict(state)
-    new_world._scenario_source = source
+    new_world.set_scenario_source(source)
     new_world.time_per_tick_minutes = getattr(app.world, 'time_per_tick_minutes', 5)
     app.world = new_world
     # Persist the restored state so a restart doesn't lose it (skip in tests)
@@ -105,7 +105,7 @@ def register_saveload_routes(app):
                 app.world.serializer.strip_redundant_exits(data)
                 with open(scenario_path, 'w', encoding='utf-8') as f:
                     json.dump(data, f, indent=2, ensure_ascii=False)
-                app.world._scenario_source = scenario_path
+                app.world.set_scenario_source(scenario_path)
                 app.world._scenario_name = scenario_name
                 app.world._commit_seq = getattr(app.world, '_edit_seq', 0)
                 logger.info(f"Saved loaded scenario to {scenario_path}")
@@ -140,7 +140,7 @@ def register_saveload_routes(app):
                 with open(template_path, 'r', encoding='utf-8-sig') as f:
                     template_data = json.load(f)
                 new_world.load_from_dict(template_data)
-                new_world._scenario_source = template_path
+                new_world.set_scenario_source(template_path)
                 logger.info(f"Reset world from {template_path}")
             else:
                 logger.warning("No scenario file found, using blank world")
@@ -809,7 +809,7 @@ def register_saveload_routes(app):
             else:
                 try:
                     os.makedirs(scenarios_dir, exist_ok=True)
-                    world._scenario_source = target
+                    world.set_scenario_source(target)
                     result["source"] = target
                 except OSError as exc:
                     result["warning"] = f"Could not set the save target: {exc}"
@@ -841,7 +841,7 @@ def register_saveload_routes(app):
         except Exception as e:
             logger.exception("Scenario commit failed")
             return jsonify({"error": str(e)}), 500
-        world._scenario_source = source
+        world.set_scenario_source(source)
         world._scenario_name = name
         world._commit_seq = getattr(world, '_edit_seq', 0)
         logger.info(f"Committed live world to scenario {source}")

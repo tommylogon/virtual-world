@@ -21,7 +21,7 @@ Key facts:
 from typing import Optional, List, Dict, Any
 
 from graph import Node, Edge, EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED
-from vital_rates import change
+from vital_rates import change, tick_minutes
 
 
 #: player condition applied when an activity starts (None = none).
@@ -262,11 +262,13 @@ class ActivitySystem:
         activity["elapsed_ticks"] = activity.get("elapsed_ticks", 0) + 1
         outputs = []
 
-        # Vital regen (per-minute; fractional steps carry between ticks)
+        # Vital regen (per-minute, scaled to the tick length; fractional steps
+        # carry between ticks)
+        minutes = tick_minutes(self.world)
         for stat, amount in ACTIVITY_REGEN.get(activity_type, {}).items():
             if stat in player.vitals:
                 before = player.vitals[stat]
-                change(player, stat, amount)
+                change(player, stat, amount, minutes=minutes)
                 if player.vitals[stat] > before and stat == "Hygiene" and activity_type == "bathing":
                     outputs.append(f"You scrub yourself clean. Hygiene {player.vitals[stat]}%.")
 

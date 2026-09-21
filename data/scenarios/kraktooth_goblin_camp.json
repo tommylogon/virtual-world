@@ -11633,7 +11633,7 @@
   "turn_number": 0,
   "narration_mode": "none",
   "ghost_mode": false,
-  "mature_content": false,
+  "mature_content": true,
   "_scenario_name": "",
   "world_lore": [
     {

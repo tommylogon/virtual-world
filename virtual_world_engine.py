@@ -6,6 +6,7 @@ from item import Item
 from area import Area
 from player import Player, CONDITION_DEFINITIONS
 from vital_rates import BASELINE_DECAY
+import os
 import time
 import logging
 import random
@@ -52,6 +53,7 @@ class VirtualWorld:
         self.time_ticks = 0
         self.time_per_tick_minutes = 1
         self._scenario_source = None
+        self._scenario_name = ""
         self.scenario_ended = False
         self._restart_requested = False
 
@@ -88,7 +90,9 @@ class VirtualWorld:
             # Pleasure system (task-207/208): decay only touches players that
             # carry the vitals (mature_content on). Arousal ebbs slowly,
             # Stimulation drains at a medium rate, Pleasure fades fastest.
-            # Still per-tick; not yet folded into the per-minute scale.
+            # These are per-minute like everything else in this loop and are
+            # scaled to the tick length by TickManager._decay, so at the
+            # default 1-minute tick they behave exactly as authored.
             "Arousal": 1, "Stimulation": 2, "Pleasure": 3
         }
         self.game_logger = GameLogger()
@@ -760,6 +764,20 @@ class VirtualWorld:
     # ─────────────────── Action Cost System ───────────────────
     def apply_action(self, action_name, override_cost=None, player=None):
         return self.tick_manager.apply_action(action_name, override_cost, player)
+
+    def set_scenario_source(self, path):
+        """Point the world at its source file, naming it from the filename.
+
+        One place keeps `_scenario_source` and `_scenario_name` consistent. A
+        blank name is what made saves land as "unnamed" and what made the
+        frontend's local background-map cache unreachable, since
+        `_scenarioIdentity()` keys off the name. Passing None just clears the
+        source — callers that also want to rename set the name explicitly.
+        """
+        self._scenario_source = path
+        if path and not str(getattr(self, "_scenario_name", "") or "").strip():
+            self._scenario_name = os.path.splitext(os.path.basename(path))[0]
+        return self._scenario_source
 
     def advance_clock(self, ticks=1):
         return self.tick_manager.advance_clock(ticks)

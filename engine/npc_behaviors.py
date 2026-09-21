@@ -67,7 +67,9 @@ class NPCBehaviorSystem:
                 b_trigger = behavior.get("trigger")
                 if b_trigger and b_trigger != trigger_type:
                     continue
-                interval = behavior.get("interval", 1)
+                # `or 1` guards a null in saved data: .get() only falls back when
+                # the key is ABSENT, and a serialized interval can be None.
+                interval = behavior.get("interval", 1) or 1
                 if interval > 1 and self.gs.time_ticks % interval != 0:
                     continue
                 conditions = behavior.get("conditions", {})
@@ -87,7 +89,11 @@ class NPCBehaviorSystem:
 
             # Legacy fallback (only in on_tick context)
             if not acted and trigger_type == "on_tick":
-                interval = getattr(player, 'npc_action_interval', 3)
+                # `or 3`: the attribute is often present as None (saved data
+                # writes null), and getattr's default only applies when it is
+                # absent — `time_ticks % None` used to raise and take the tick
+                # down with it.
+                interval = getattr(player, 'npc_action_interval', 3) or 3
                 if self.gs.time_ticks % interval != 0:
                     continue
                 behavior = getattr(player, 'npc_behavior', 'wander')

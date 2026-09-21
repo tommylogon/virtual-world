@@ -34,7 +34,17 @@ sys.path.insert(0, str(ROOT))
 
 from virtual_world_engine import VirtualWorld  # noqa: E402
 
-TICKS_PER_DAY = 1440  # at time_per_tick_minutes == 1
+MINUTES_PER_DAY = 1440
+
+
+def ticks_per_day(minutes_per_tick):
+    """Ticks in one game day at this world's tick length.
+
+    Vitals now scale with ``time_per_tick_minutes``, so a day is fewer ticks
+    when a tick is worth more minutes; hardcoding 1440 made the horizon
+    projections lie by exactly that factor.
+    """
+    return max(1, int(round(MINUTES_PER_DAY / max(1e-9, minutes_per_tick))))
 
 
 def parse_kv_pairs(spec):
@@ -105,6 +115,9 @@ def main():
     ap = argparse.ArgumentParser(description="VirtualWorld headless soak runner")
     ap.add_argument("--scenario", default="data/scenarios/kraktooth_goblin_camp.json")
     ap.add_argument("--ticks", type=int, default=10080, help="ticks to simulate (10080 = 1 week @ 1min/tick)")
+    ap.add_argument("--minutes-per-tick", type=float, default=None,
+                    help="override the scenario's time_per_tick_minutes; vitals scale to it, "
+                         "so one game week is 10080/N ticks (N=15 -> 672)")
     ap.add_argument("--engine-decay", action="store_true",
                     help="drop each player's baked decay_rates so engine defaults apply")
     ap.add_argument("--override", default="", help="per-player decay overrides, e.g. 'Energy=0,Thirst=0'")
@@ -113,6 +126,11 @@ def main():
                     help="seed every player's starting vitals, e.g. 'Thirst=0,Hunger=0,Energy=100'")
     ap.add_argument("--background-all", action="store_true",
                     help="run every character in background fidelity (deterministic survival runner, no LLM)")
+    ap.add_argument("--mature", action="store_true",
+                    help="in-memory only: turn mature_content on, which adds the "
+                         "Arousal/Stimulation/Pleasure vitals and their decay. The camp "
+                         "scenario ships with it off, so without this the soak runs a "
+                         "world missing that whole subsystem")
     ap.add_argument("--neutral-environment", action="store_true",
                     help="in-memory only: force every area to a benign 20C/fresh/quiet environment "
                          "so cold- and air-driven drains do not confound the decay measurement")
@@ -134,6 +152,8 @@ def main():
     world = VirtualWorld()
     world.load_from_dict(data)
 
+    if args.minutes_per_tick:
+        world.time_per_tick_minutes = args.minutes_per_tick
     minutes_per_tick = getattr(world, "time_per_tick_minutes", 1) or 1
     players = world.player_manager.players
 
@@ -160,6 +180,11 @@ def main():
         for p in players.values():
             p.simulation_mode = "background"
             p.next_due_tick = 0
+
+    if args.mature:
+        world.mature_content = True
+        for p in players.values():
+            p.sync_pleasure_vitals(True)
 
     set_vitals = parse_kv_pairs(args.set_vitals)
     if set_vitals:
@@ -305,9 +330,9 @@ def main():
         "wall_seconds": round(wall, 2),
         "ticks_per_second": round(ticks_per_sec, 1),
         "projected_wall_seconds": {
-            "1day": proj(1 * TICKS_PER_DAY),
-            "1week": proj(7 * TICKS_PER_DAY),
-            "1month": proj(30 * TICKS_PER_DAY),
+            "1day": proj(1 * ticks_per_day(minutes_per_tick)),
+            "1week": proj(7 * ticks_per_day(minutes_per_tick)),
+            "1month": proj(30 * ticks_per_day(minutes_per_tick)),
         },
         "characters": len(players),
         "deaths": len(deaths),

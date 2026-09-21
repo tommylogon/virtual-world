@@ -14,6 +14,7 @@ condition's longest finite duration (see ``Player.state_timer``).
 
 from typing import Dict, List, Optional
 
+from vital_rates import change, tick_minutes
 from engine.player_conditions import (
     CONDITION_DEFINITIONS, CONDITION_HIERARCHY, BLOCKING_CONDITIONS,
     CONDITION_EXCLUSIONS, PERIODIC_CONDITIONS, CONDITION_DEFAULT_TIMERS,
@@ -317,8 +318,8 @@ class ConditionsSystem:
                 continue
             for inst in instances:
                 entry = {"condition": c}
-                if isinstance(inst.get("duration"), int):
-                    entry["ticks_remaining"] = inst["duration"]
+                if isinstance(inst.get("duration"), (int, float)):
+                    entry["minutes_remaining"] = inst["duration"]
                 if inst.get("source"):
                     entry["source"] = inst["source"]
                 if inst.get("level"):
@@ -342,11 +343,18 @@ class ConditionsSystem:
         """Process per-instance durations and periodic effects for all players.
         Called from tick_turn().
 
+        Durations are **game minutes** and periodic effects are **per minute**,
+        so both scale with the tick's length exactly like vital decay. A
+        duration used to count down one per tick regardless of how much game
+        time a tick covered, which made a 5-minute unconsciousness last 75
+        minutes in a 15-minute world.
+
         - Drains SUMMED across every instance of a condition (4 poisons = 4x).
-        - Each instance's duration ticks down independently and expires alone.
+        - Each instance's duration counts down independently and expires alone.
         - ``unconscious`` is engine-managed: its countdown is owned by
           tick_manager (Energy recovery + wake), not this tick.
         """
+        minutes = tick_minutes(self.gs)
         engine_managed = {"unconscious"}
         for pname, player in list(self.player_manager.players.items()):
             if not player.conditions:
@@ -368,8 +376,10 @@ class ConditionsSystem:
                     # Arousal/Stimulation/Pleasure key into player.vitals.
                     if stat not in player.vitals:
                         continue
-                    current = player.vitals.get(stat, 0)
-                    player.vitals[stat] = max(0, current + amount)
+                    # Per-minute drain scaled to the tick, through the shared
+                    # accumulator (a sub-1 periodic used to truncate to nothing
+                    # and a 15-minute tick used to apply 1 minute of it).
+                    change(player, stat, amount, minutes=minutes, floor=0)
 
             # Decrement each timed instance's own duration; remove expired ones
             for cid, instances in list(player.conditions.items()):
@@ -381,7 +391,7 @@ class ConditionsSystem:
                     if duration is None or duration <= 0:
                         kept.append(inst)
                         continue
-                    inst["duration"] = duration - 1
+                    inst["duration"] = duration - minutes
                     if inst["duration"] > 0:
                         kept.append(inst)
                 if kept:

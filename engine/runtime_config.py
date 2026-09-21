@@ -65,6 +65,10 @@ DEFAULTS: dict = {
     "graph.physics_enabled": True,
     "graph.show_items": False,
     "graph.show_only_inhabited": True,
+    # player.py — per-character memory retention
+    "memory.max_per_character": 0,
+    # player.py — relationship drift toward neutral when unmaintained
+    "relationship.decay_per_day": 0.5,
 }
 
 #: Consuming modules read values at call time via config.get(); no module
@@ -76,6 +80,8 @@ _SECTION_DESCRIPTIONS: dict[str, str] = {
     "emotion": "Character affect (task-96) — per-tick drift toward baseline, LLM-declared feeling cap, memory-recall re-spike scaling",
     "graph": "Graph visualization — physics simulation, item visibility, area filtering",
     "forecast": "Weather forecast — scope of areas the schedule baseline is applied to (exterior | all)",
+    "memory": "Character memories — retention cap (0 = keep everything)",
+    "relationship": "Relationships — closeness drift toward neutral when nobody maintains the bond",
 }
 
 #: Default config file location, relative to this module file.
@@ -182,6 +188,8 @@ config = RuntimeConfig()
 #: Human-readable label + input kind for each key, used by the Engine Config
 #: UI to render the editor without hardcoding the key list in the frontend.
 SCHEMA: dict[str, dict] = {
+    "memory.max_per_character": {"section": "memory", "label": "Max memories per character (0 = unlimited)", "type": "number"},
+    "relationship.decay_per_day": {"section": "relationship", "label": "Closeness lost per unmaintained day", "type": "float"},
     "sound.speech_whisper": {"section": "sound", "label": "Whisper penetration", "type": "number"},
     "sound.speech_normal": {"section": "sound", "label": "Normal speech penetration", "type": "number"},
     "sound.speech_shout": {"section": "sound", "label": "Shout penetration", "type": "number"},
