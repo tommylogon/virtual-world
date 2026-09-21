@@ -75,6 +75,12 @@ ACTIVITY_SKIP_TURNS = {
 }
 
 #: activities that end automatically when the character does anything else
+#:
+#: Also the set that auto-ends when a duration elapses. **A type missing here
+#: never expires**: `_tick` only calls `_maybe_end_by_duration` for members, so
+#: `elapsed_ticks` runs past `duration_ticks` forever and the character is stuck
+#: `busy` — which reads downstream as a mysterious refusal to eat, sleep or wash.
+#: Add every timed activity to this set.
 ACTIVITY_INTERRUPTIBLE = {"resting", "waiting", "meditating", "sitting", "lying down"}
 
 #: commands allowed while a blocking activity is active

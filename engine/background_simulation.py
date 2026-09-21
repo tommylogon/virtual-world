@@ -113,6 +113,16 @@ class BackgroundSimulation:
                     break  # a duration started; stop spending this tick
             p._action_credit = credit
 
+        # Social pass last (task-423): after everyone has moved and acted, so a
+        # conversation happens where the characters actually ended up. Pairs per
+        # area, once per tick, and gives both sides a short conversing activity —
+        # which is why the loop above skips anyone mid-activity.
+        try:
+            from engine.background_social import run_social_pass
+            run_social_pass(self.gs)
+        except Exception as e:
+            logger.warning("[background] social pass: %s", e)
+
     # ───────────────────────────── decisions ───────────────────────────────
 
     def _act(self, name, p):

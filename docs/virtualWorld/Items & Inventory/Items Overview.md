@@ -212,11 +212,44 @@ is the **last resort**, so it can never block a genuine target.
 
 ### `use X on Y` target parsing
 
-`routes/action.py` takes the **full remainder after `on`** as the target — never a
+`routes/action_handlers.py` takes the **full remainder after `on`** as the target — never a
 single token — so `use create flame on dried flower crown` targets the whole crown
 instead of truncating to "dried". Quoted tokens after `on` are treated as an explicit
-target + optional params pair (e.g. `use quill on "letter" "some text"` → inscribe),
-tracked by `tokenize_command_detailed` (`routes/helpers.py`).
+target + optional params pair, tracked by `tokenize_command_detailed` (`routes/helpers.py`).
+
+### Writing / inscriptions (`use <tool> on "<target>" "<text>"`)
+
+A quoted token *after* the quoted target becomes `params`, which inscribes text onto the
+target item. **The target must be quoted**, and the first quoted token after `on` is taken
+as the target:
+
+- `use pen on paper "i wrote this"` → the target is `"i wrote this"`; nothing inscribes.
+- `use pen on "paper" "i wrote this"` → target `paper`, `params` `i wrote this`.
+
+When `params` is set, `engine/items/use_actions.py:266-277` appends
+`\n[Inscribed: "<text>"]` to the **target node's** `properties["description"]`, records a
+turn event, and **returns early — `on_use_on` triggers do not fire on that path**. The text
+lives in `node.properties`, so it is serialized with the graph, survives save and scenario
+export, and any character can read it with `examine` (`read` is an alias for `examine`).
+
+The authored alternative is an `on_use_on` trigger whose effect is `set_description` or
+`append_description`, with `{params}` in the value. `use_actions.py:283` seeds
+`{"params": <text>}` into the trigger context and `engine/triggers/execution.py` renders it.
+`set_description` / `append_description` target a **literal node id** (`"self"` does not
+resolve there), and `append_description` re-appends its fixed text on every fire.
+
+Current limits (see [[dev_tasks/review/items/task-53-use_item_with_parameters|task-53]] and
+[[dev_tasks/todo/items/task-433-character-inscription-persistent-notes|task-433]]):
+
+- **No gating**: nothing checks that the tool is a writing implement or the target is
+  writable — any tool+target pair inscribes if `params` is set. This is the origin of the
+  task-160 / task-363 accidental-inscribe cases (`use create flame on dried flower crown`).
+- **No structured record**: the text is appended to `description` with no author, tick, or
+  separation from authored prose.
+- **Agents cannot drive it**: the LLM structured action has no text field and the tool path
+  (`tools/game_tools.py:224`) drops `params`; AI narration that says "she wrote X" is
+  browser-only and never persists.
+- **Default `use <tool> on <target>`** with no quotes writes nothing.
 
 ## Container Items
 
@@ -313,4 +346,5 @@ The `weight` property exists on items (`Item.__init__`, `item.py`) but there is 
 - [[dev_tasks/review/environment/task-33-generate_item_room_context|task-33: Generate item room context]]
 - [[dev_tasks/review/triggers/task-34-generate_triggers_for_new_items|task-34: Generate triggers for new items]]
 - [[dev_tasks/review/items/task-53-use_item_with_parameters|task-53: Use item with parameters]]
+- [[dev_tasks/todo/items/task-433-character-inscription-persistent-notes|task-433: Agent-reachable inscription (task-53 follow-up)]]
 - [[bug_6-inspector-equip-slots-white-bg 1|bug-6: Inspector equip slots white bg]]
