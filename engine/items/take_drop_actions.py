@@ -37,30 +37,54 @@ def _display_name(name):
 class TakeDropActionsMixin:
     """take / drop / drop_held_items plus last-relation bookkeeping."""
 
-    def _register_item_discovery(self, player_manager, item_name: str):
-        """Grant an Entertainment novelty boost the first time a character
-        discovers an item (examine/take of something not seen before).
+    def _register_item_discovery(self, player_manager, item_node):
+        """Entertainment for meeting an item for the first time (task-425).
 
-        Mirrors the area-visit boost in movement.py: curious gets +50%,
-        homebody gets nothing. Returns True if the item was newly discovered.
+        Perception usually gets there first: walking into an area already
+        observed everything visible there (engine/observation.py), and those
+        items pay nothing here because the arrival already paid for them. This
+        is the fallback for an item perception could *not* see — one hidden until
+        examined, or taken out of a container.
+
+        The novelty curve is what makes "first time" a curve rather than a set
+        membership test: a thing left alone long enough is worth noticing again.
+
+        Returns True when the item was not already known.
         """
+        player = player_manager.player
+        subject_id = getattr(item_node, "id", None)
+        if player is None or not subject_id:
+            return False
+        if "Entertainment" not in getattr(player, "vitals", {}):
+            return False
+
         try:
-            from engine.traits import TraitSystem
+            from engine.novelty import grant
         except ImportError:
             return False
-        player = player_manager.player
-        if not player or "Entertainment" not in player.vitals or not item_name:
-            return False
-        if item_name in player.discovered_items:
-            return False
-        player.discovered_items.add(item_name)
-        base_boost = 8
-        if TraitSystem.has_effect(player, "curious"):
-            base_boost = int(base_boost * 1.5)
-        if TraitSystem.has_effect(player, "homebody"):
-            base_boost = 0
-        player.vitals["Entertainment"] = min(100, player.vitals.get("Entertainment", 50) + base_boost)
-        return True
+
+        tick = 0
+        world = getattr(self, "world", None)
+        if world is not None:
+            try:
+                tick = int(getattr(world, "time_ticks", 0) or 0)
+            except (TypeError, ValueError):
+                tick = 0
+        already_known = player.has_seen(subject_id)
+        props = getattr(item_node, "properties", None) or {}
+        item_tags = [str(t) for t in (props.get("tags") or [])]
+
+        gained = grant(player, subject_id, tick)
+        # Stamp it either way, so the next look within the window is not novel
+        # again — absence of an observation has to mean "never met".
+        player.record_observation(
+            subject_id, f"You have seen {item_node.name}.", tick,
+            kind="item", tags=item_tags, importance=3,
+            location=getattr(player, "current_area", "") or "",
+        )
+        # Kept in step for the prompt/inspector readers that still use the set.
+        player.discovered_items.add(getattr(item_node, "name", "") or subject_id)
+        return (not already_known) or gained > 0
 
     def _stamp_last_relation(self, item_node):
         """Record the item's current spatial relation before pickup."""
@@ -490,7 +514,7 @@ class TakeDropActionsMixin:
         for e in placement_edges:
             self.graph.remove_edge(e.source, e.target, e.type)
 
-        self._register_item_discovery(player_manager, item_node.name)
+        self._register_item_discovery(player_manager, item_node)
 
         p_check = player_manager.players.get(player_manager.active_player)
         if not (p_check and p_check.state == "dead"):

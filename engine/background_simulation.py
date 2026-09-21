@@ -45,6 +45,7 @@ HUNGER_THRESHOLD = 50     # drive: high = starving
 ENERGY_THRESHOLD = 30     # resource: low = tired
 BLADDER_THRESHOLD = 60    # drive: high = needs to go; well before it maxes at 100
 HYGIENE_THRESHOLD = 40    # resource: low = filthy; go wash
+ENTERTAINMENT_THRESHOLD = 40  # resource: low = bored; go do something
 
 MEAL_RESTORE = 45         # Hunger (drive) reduced by this when eating
 DRINK_RESTORE = 50        # Thirst (drive) reduced by this when drinking
@@ -54,6 +55,11 @@ RELIEF_TAGS = ("latrine", "toilet", "privy", "restroom", "bathroom")
 #: A washing site: an area tag (a river) or a fixture (a wash spot, a shower).
 BATH_TAGS = ("bathing", "wash", "shower", "bath", "washing")
 BATH_HYGIENE = 70         # fallback when a fixture does not author its own amount
+#: A recreational site: a fixture (a drum, a dice game, a fire) or an area that
+#: is itself the gathering place. The amount comes from the fixture's authored
+#: `adjust_vital Entertainment`, like washing.
+RECREATION_TAGS = ("recreation",)
+ENTERTAINMENT_RESTORE = 15  # fallback when a fixture does not author its own amount
 
 DECISION_MINUTES = 10     # game minutes between background decisions
 MAX_ACTIONS_PER_TICK = 4  # bound so a very long tick cannot run away
@@ -168,6 +174,14 @@ class BackgroundSimulation:
             if self._travel_toward(p, BATH_TAGS, "hygiene"):
                 return
 
+        # Boredom last: it is the only need here that nothing kills you for
+        # ignoring, so it must never outrank food, water, sleep or relief.
+        if v.get("Entertainment", 100) <= ENTERTAINMENT_THRESHOLD:
+            if self._recreate(p):
+                return
+            if self._travel_toward(p, RECREATION_TAGS, "entertainment"):
+                return
+
     # ───────────────────────────── actions ─────────────────────────────────
 
     def _service_here(self, p, tags):
@@ -215,11 +229,41 @@ class BackgroundSimulation:
         self.gs.add_log_entry(f"[{p.name}] washes up.")
         return True
 
+    def _recreate(self, p):
+        """Pass the time with something recreational (task-425).
+
+        Entertainment had no recurring source at all: novelty paid once per area
+        and once per item, ever, and `ACTIVITY_REGEN` has nothing recreational,
+        so a settled goblin's Entertainment decayed to 0 within a day and stayed
+        there. An authored fixture is what makes a camp lively.
+
+        The need gate is also the anti-spam: after using one, Entertainment sits
+        above the threshold for the better part of a day, so a character does not
+        stand at the drum beating it every ten minutes.
+        """
+        offered, fixture = self._service_here(p, RECREATION_TAGS)
+        if not offered:
+            return False
+        amount = self._fixture_amount(fixture, "entertainment",
+                                      default=ENTERTAINMENT_RESTORE)
+        p.vitals["Entertainment"] = max(
+            0, min(100, p.vitals.get("Entertainment", 0) + amount))
+        record(p, self.gs.time_ticks, "act", f"passed the time in {p.current_area}",
+               why="needs:entertainment", area=p.current_area, tags=["need"])
+        self.gs.add_log_entry(
+            f"[{p.name}] finds some entertainment in the {p.current_area}.")
+        return True
+
     def _wash_amount(self, fixture, default=BATH_HYGIENE):
-        """The Hygiene a fixture grants, read from its authored `adjust_vital`.
+        """The Hygiene a fixture grants (kept as a named wrapper for callers)."""
+        return self._fixture_amount(fixture, "hygiene", default)
+
+    def _fixture_amount(self, fixture, stat, default):
+        """The ``stat`` a fixture grants, read from its authored `adjust_vital`.
 
         Read rather than hardcoded so the library entry stays the single source
-        of truth for how much washing helps.
+        of truth for how much a fixture helps — the same rule for washing and for
+        recreation, so authoring a new fixture needs no engine change.
         """
         if fixture is None:
             return default
@@ -238,7 +282,7 @@ class BackgroundSimulation:
                 if effect.get("type") != "adjust_vital":
                     continue
                 params = effect.get("params") or {}
-                if str(params.get("stat", "")).lower() != "hygiene":
+                if str(params.get("stat", "")).lower() != str(stat).lower():
                     continue
                 try:
                     return int(params.get("amount", default))

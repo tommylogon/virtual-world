@@ -346,6 +346,20 @@ class WorldSerializer:
         data.pop("delayed_events", None)
         for pdata in data.get("players", {}).values():
             pdata.pop("recent_hearing", None)
+            # task-403/425: a scenario is authored content, so it carries no
+            # runtime *perception*. Merely loading a scenario observes every
+            # character's starting area (engine/observation.py), and saving it
+            # back would otherwise bake that into the file — 23 characters'
+            # worth of "you have been in Blackmarsh" written into the scenario
+            # and growing it by ~60KB on the first save, for state the loader
+            # regenerates anyway. `memory_index` is derived and goes with them;
+            # authored memories (`source: manual`, i.e. preconceived knowledge)
+            # stay. A savegame uses `to_dict()` and keeps everything.
+            pdata["memories"] = [
+                m for m in (pdata.get("memories") or [])
+                if m.get("source") != "observation"
+            ]
+            pdata.pop("memory_index", None)
         # task-222, continued: a saved world is graph-only, so nothing here is
         # a second copy of data already carried by `graph.nodes`:
         #   - `areas` / `rooms` are projections the loader never reads

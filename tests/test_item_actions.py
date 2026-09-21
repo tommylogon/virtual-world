@@ -312,52 +312,94 @@ class TestStealItem:
 
 
 class TestItemDiscovery:
-    """First-seen items grant an Entertainment novelty boost (task-136)."""
+    """First-seen items grant an Entertainment novelty boost (task-136), now on
+    the recovery curve (task-425): one subject, refreshed in place, worth 15 at
+    full freshness instead of 8 once ever.
 
-    def test_discover_new_item_boosts_entertainment(self, item_actions, player_manager):
-        """Examining/taking a never-seen item adds to discovered_items and boosts Entertainment."""
-        player_manager.player.vitals = {"Entertainment": 50}
-        player_manager.player.discovered_items = set()
+    These use a real Player because the curve reads the observation memory —
+    a MagicMock would answer every lookup with a truthy stub and prove nothing.
+    """
 
-        was_new = item_actions._register_item_discovery(player_manager, "Kindling")
+    @staticmethod
+    def _real_player(pm, entertainment=50):
+        from player import Player
+        hero = Player("Hero")
+        hero.vitals = {"Entertainment": entertainment}
+        pm.player = hero
+        return hero
+
+    def test_discover_new_item_boosts_entertainment(self, graph, player_manager, item_actions):
+        """A never-seen item pays full novelty and is marked discovered."""
+        hero = self._real_player(player_manager)
+        kindling = add_item(graph, "kindling")
+
+        was_new = item_actions._register_item_discovery(player_manager, kindling)
 
         assert was_new is True
-        assert "Kindling" in player_manager.player.discovered_items
-        assert player_manager.player.vitals["Entertainment"] == 58  # base boost 8
+        assert "kindling" in hero.discovered_items
+        assert hero.vitals["Entertainment"] == 65  # 50 + NOVELTY_MAX
+        assert hero.has_seen(kindling.id)
 
-    def test_rediscovering_item_gives_no_boost(self, item_actions, player_manager):
-        """Same item again: no double boost, no re-add."""
-        player_manager.player.vitals = {"Entertainment": 50}
-        player_manager.player.discovered_items = {"Kindling"}
+    def test_rediscovering_item_gives_no_boost(self, graph, player_manager, item_actions):
+        """Same item again within the window: no double boost."""
+        hero = self._real_player(player_manager)
+        kindling = add_item(graph, "kindling")
 
-        was_new = item_actions._register_item_discovery(player_manager, "Kindling")
+        item_actions._register_item_discovery(player_manager, kindling)
+        assert hero.vitals["Entertainment"] == 65
+
+        was_new = item_actions._register_item_discovery(player_manager, kindling)
 
         assert was_new is False
-        assert player_manager.player.vitals["Entertainment"] == 50
+        assert hero.vitals["Entertainment"] == 65
 
-    def test_discover_does_not_exceed_cap(self, item_actions, player_manager):
+    def test_a_stale_item_pays_again(self, graph, player_manager, item_actions):
+        """The set-based test could only ever pay once; the curve recovers."""
+        from engine.novelty import DEFAULT_RECOVERY_MINUTES
+        hero = self._real_player(player_manager)
+        kindling = add_item(graph, "kindling")
+        item_actions.world = MagicMock(time_ticks=0)
+
+        item_actions._register_item_discovery(player_manager, kindling)
+        assert hero.vitals["Entertainment"] == 65
+
+        item_actions.world.time_ticks = DEFAULT_RECOVERY_MINUTES
+        item_actions._register_item_discovery(player_manager, kindling)
+
+        assert hero.vitals["Entertainment"] == 80
+
+    def test_discover_does_not_exceed_cap(self, graph, player_manager, item_actions):
         """Entertainment boost is clamped at 100."""
-        player_manager.player.vitals = {"Entertainment": 98}
-        player_manager.player.discovered_items = set()
+        hero = self._real_player(player_manager, entertainment=98)
+        kindling = add_item(graph, "kindling")
 
-        item_actions._register_item_discovery(player_manager, "Kindling")
+        item_actions._register_item_discovery(player_manager, kindling)
 
-        assert player_manager.player.vitals["Entertainment"] == 100
+        assert hero.vitals["Entertainment"] == 100
+
+    def test_homebody_gains_nothing(self, graph, player_manager, item_actions):
+        hero = self._real_player(player_manager)
+        hero.traits = {"homebody": True}
+        kindling = add_item(graph, "kindling")
+
+        item_actions._register_item_discovery(player_manager, kindling)
+
+        assert hero.vitals["Entertainment"] == 50
+        assert hero.has_seen(kindling.id)  # still observed, just not enjoyed
 
     def test_examine_registers_discovery(self, graph, player_manager, item_actions):
         """Examine of a real area item marks it discovered."""
         add_player(graph, "Hero")
         add_item(graph, "kindling", properties={"description": "A bundle of dry twigs."})
         graph.add_edge(Edge(source="item_kindling", target="area_test", type=EDGE_IN))
-        player_manager.player.vitals = {"Entertainment": 50}
-        player_manager.player.discovered_items = set()
+        hero = self._real_player(player_manager)
         player_manager.lighting.can_see_in_dark = MagicMock(return_value=True)
         item_actions.matching._match_item_name = MagicMock(return_value="kindling")
 
         item_actions.get_item_desc(player_manager, "kindling")
 
-        assert "kindling" in player_manager.player.discovered_items
-        assert player_manager.player.vitals["Entertainment"] == 58
+        assert "kindling" in hero.discovered_items
+        assert hero.vitals["Entertainment"] == 65
 
     def test_examine_shows_remaining_uses(self, graph, player_manager, item_actions):
         """Examine of a consumable shows remaining uses and minutes."""

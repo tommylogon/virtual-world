@@ -1,0 +1,30 @@
+{
+  "name": "Story Fire",
+  "description": "A low fire banked with stones, kept burning for the telling of stories and the settling of arguments.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "equip_slots": [],
+  "tags": [
+    "recreation",
+    "fixture"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effect_type": "adjust_vital",
+      "effect_params": {
+        "stat": "Entertainment",
+        "amount": 12,
+        "target": "self"
+      },
+      "success_message": "You settle by the fire and let the talk wash over you."
+    }
+  ],
+  "contents": []
+}

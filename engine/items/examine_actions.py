@@ -238,7 +238,7 @@ class ExamineActionsMixin:
                     item_node = node
                     break
             if item_node:
-                self._register_item_discovery(player_manager, item_node.name)
+                self._register_item_discovery(player_manager, item_node)
                 from engine.character_spatial import set_position_examining_item
                 set_position_examining_item(self.graph, player_manager, target_name, item_node)
                 # Phase 3 — see_item save_on hook (e.g. hemophobic + blood/corpse)

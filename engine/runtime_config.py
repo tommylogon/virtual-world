@@ -69,6 +69,8 @@ DEFAULTS: dict = {
     "memory.max_per_character": 0,
     # player.py — relationship drift toward neutral when unmaintained
     "relationship.decay_per_day": 0.5,
+    # engine/novelty.py — Entertainment from fresh places/things/people
+    "entertainment.novelty_recovery_minutes": 120,
 }
 
 #: Consuming modules read values at call time via config.get(); no module
@@ -82,6 +84,7 @@ _SECTION_DESCRIPTIONS: dict[str, str] = {
     "forecast": "Weather forecast — scope of areas the schedule baseline is applied to (exterior | all)",
     "memory": "Character memories — retention cap (0 = keep everything)",
     "relationship": "Relationships — closeness drift toward neutral when nobody maintains the bond",
+    "entertainment": "Entertainment — how long a place, thing or person stays familiar before it is fresh (and entertaining) again",
 }
 
 #: Default config file location, relative to this module file.
@@ -190,6 +193,7 @@ config = RuntimeConfig()
 SCHEMA: dict[str, dict] = {
     "memory.max_per_character": {"section": "memory", "label": "Max memories per character (0 = unlimited)", "type": "number"},
     "relationship.decay_per_day": {"section": "relationship", "label": "Closeness lost per unmaintained day", "type": "float"},
+    "entertainment.novelty_recovery_minutes": {"section": "entertainment", "label": "Minutes before a place/thing/person is novel again", "type": "number"},
     "sound.speech_whisper": {"section": "sound", "label": "Whisper penetration", "type": "number"},
     "sound.speech_normal": {"section": "sound", "label": "Normal speech penetration", "type": "number"},
     "sound.speech_shout": {"section": "sound", "label": "Shout penetration", "type": "number"},

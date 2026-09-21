@@ -102,7 +102,9 @@ def test_observation_memory_and_index_survive_save_load():
         kind="item", tags=["food"], location="Pantry",
     )
 
-    data = world.to_scenario_dict()
+    # A savegame, not a scenario: a scenario is authored content and strips
+    # runtime perception (see test_a_scenario_save_carries_no_runtime_perception).
+    data = world.to_dict()
     entry = data["players"][pname]["memory_index"]["item_dried_meat"]
 
     world2 = VirtualWorld()
@@ -123,7 +125,7 @@ def test_a_stale_index_entry_is_dropped_on_load():
     pname = world.active_player
     world.player_manager.get_player(pname).record_observation(
         "area_pantry", "You have been in the Pantry.", 3, kind="area")
-    data = world.to_scenario_dict()
+    data = world.to_dict()
     data["players"][pname]["memory_index"]["area_ghost"] = "does_not_exist"
 
     world2 = VirtualWorld()
@@ -140,7 +142,7 @@ def test_a_superseded_observation_is_not_indexed_on_load():
     player.record_observation("item_bread", "You have seen Bread.", 1, kind="item")
     assert player.supersede_observation("item_bread", reason="eaten")
 
-    data = world.to_scenario_dict()
+    data = world.to_dict()
     world2 = VirtualWorld()
     world2.load_from_dict(data)
     reloaded = world2.player_manager.get_player(pname)
@@ -155,7 +157,7 @@ def test_index_is_rebuilt_for_a_save_written_before_the_index_existed():
     player = world.player_manager.get_player(pname)
     player.record_observation("area_kitchen", "You have been in the Kitchen.", 2,
                               kind="area")
-    data = world.to_scenario_dict()
+    data = world.to_dict()
     data["players"][pname].pop("memory_index", None)
 
     world2 = VirtualWorld()
@@ -188,3 +190,29 @@ def test_the_starting_area_is_observed_at_load():
     assert reloaded.current_area == "Pantry"
     assert reloaded.has_seen("area_pantry")
     assert reloaded.observation_tick("area_pantry") == data["time_ticks"]
+
+
+def test_a_scenario_save_carries_no_runtime_perception():
+    """Loading observes every character's starting area (task-403). Saving the
+    scenario back must not bake that into the file: `_save_scenario` persists
+    authorial content, and 23 characters' worth of "you have been in Blackmarsh"
+    is runtime state the loader regenerates anyway (~60KB on the first save)."""
+    from graph import Node
+
+    world = VirtualWorld()
+    pname = world.active_player
+    world.graph.add_node(Node(id="area_pantry", type="area", name="Pantry"))
+    player = world.player_manager.get_player(pname)
+    player.current_area = "Pantry"
+    player.add_memory("I was raised in the pantry.", 0, source="manual")
+    player.record_observation("area_pantry", "You have been in the Pantry.", 0,
+                              kind="area")
+
+    scenario = world.to_scenario_dict()["players"][pname]
+    assert [m["text"] for m in scenario["memories"]] == ["I was raised in the pantry."]
+    assert "memory_index" not in scenario
+
+    # A savegame is a complete snapshot, so it keeps both.
+    savegame = world.to_dict()["players"][pname]
+    assert len(savegame["memories"]) == 2
+    assert savegame["memory_index"]["area_pantry"]

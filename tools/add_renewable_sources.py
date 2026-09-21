@@ -39,9 +39,14 @@ DEFAULT_PLANTS = [
 #: `bathing`, NOT `water`: `DRINK_TAGS` contains "water" and `_consume_here`
 #: deletes a node it consumes, so a thirsty goblin would drink the fixture and
 #: destroy it. The water AREAS already carry `water` for drinking.
+#: The recreational fixtures (task-425) follow the same shape and carry the same
+#: warning: tagged `recreation`, never `food`, or `_consume_here` eats them.
 DEFAULT_FIXTURES = [
     ("wash_spot", "Water Source", 1),
     ("wash_spot", "Raven River", 1),
+    ("camp_drum", "Chief's Pit", 1),
+    ("knucklebones", "Camp Entrance", 1),
+    ("story_fire", "Cooking Area", 1),
 ]
 
 #: Tags that give a place a service. The camp has an area named "Waste Disposal"

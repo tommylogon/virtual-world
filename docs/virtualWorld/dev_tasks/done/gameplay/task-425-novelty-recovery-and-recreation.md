@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: done
 area: gameplay
 priority: high
 ---
@@ -12,6 +12,58 @@ priority: high
 (fixtures).  
 **Spec:** `engine/movement.py:694-708`, `engine/items/take_drop_actions.py:41`,
 `vital_rates.py` (Entertainment decay).
+
+## Outcome (2026-09-21)
+
+Done. Entertainment is no longer pinned at 0, and it settles rather than
+pegging: a background week ends at **40.1 avg / 25 min / 50 max at 15 min/tick**
+and **39.3 / 24 / 50 at 1 min/tick**, 23/23 alive. The two tick lengths agreeing
+is the property that matters — the source is measured in game minutes.
+
+- `engine/novelty.py` — one curve for three subjects, `NOVELTY_MAX = 15`,
+  `curious` ×1.5, `homebody` 0, `wanderlust` recovers on half the window (which
+  is how the old `+3 on re-entry` survives). Config
+  `entertainment.novelty_recovery_minutes` (default 120).
+- `observe_area` now reports each subject's **freshness measured before it
+  refreshes the observation** — that is why the curve is computed there and not
+  re-derived by the caller: an entry both refreshes the tick and earns novelty,
+  and reading the tick afterwards reports every arrival as already stale.
+- `movement.py` pays per subject the arrival made fresh (area, things, people)
+  instead of a flat "+15 for a new area"; the `was_new`/`wanderlust` branches are
+  gone. `visited_areas` is still written because spatial memory reads it.
+- Item discovery is the same curve. The old "+8 once ever" set test is gone.
+- Three authored fixtures (`camp_drum`, `knucklebones`, `story_fire`) placed by
+  `tools/add_renewable_sources.py` in Chief's Pit, Camp Entrance and Cooking
+  Area, plus a `_recreate` step in the background tier, which gates on need —
+  that gate is also the anti-spam.
+
+### Two decisions worth recording
+
+**Item novelty is paid on perception, not only on take/use.** The subject table
+below says "item — taking or using it", and the non-goal defers perceptual
+novelty "until the perception path can carry it". The perception path now carries
+it: entering an area observes what is visible there, so paying on take would pay
+**zero** — the entry already stamped the item. Paying at perception is strictly
+better and is what `observe_area` already computes. The take/examine path is kept
+as a fallback for items perception could not see: hidden until examined, or taken
+out of a container.
+
+**The curve is squared, not linear.** A linear ramp pays a little for any gap: a
+two-room bounce every 10 minutes earned +1 a hop, 6/hour against Entertainment's
+1.8/hour decay — the treadmill the window was meant to prevent, and the "window
+comparable to the decay time" reasoning further down was wrong about it. Squaring
+makes a short gap worth nothing (10 minutes of 120 pays 0; 40 minutes pays 2)
+while a real absence still pays in full. It also matches "rising toward +15"
+better: slow at first, then real.
+
+### Not done here
+
+`visited_areas` and `discovered_items` are **not deleted**, because they have
+consumers beyond novelty: spatial memory's known-route filter, the `adventurous`
+micro-modifier in `tick_manager`, `take_drop_actions`' bookkeeping, and three
+frontend readers (`room-context.js`, `memory-context.js`,
+`contextual-actions.js`). Both are still written, so those readers keep working.
+Retiring them is filed as **task-430**.
 
 ## Problem
 

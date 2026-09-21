@@ -22,10 +22,17 @@ darkvision is not observing its contents.
 This is the foundation task-425 needs: novelty/Entertainment reads
 ``observation_tick`` per subject instead of the ``visited_areas`` /
 ``discovered_items`` sets, and task-423 reuses the character observations.
+
+``observe_area`` reports each subject's **freshness** (task-425's novelty curve)
+and it is measured *before* the refresh. That is the whole reason it is reported
+from here rather than recomputed by the caller: an entry both refreshes the
+observation and earns novelty, and reading the tick afterwards would report
+every arrival as stale.
 """
 
 from __future__ import annotations
 
+from engine.novelty import freshness
 from engine.room_perception import (
     characters_in_area,
     resolve_area_node,
@@ -102,11 +109,13 @@ def perceivable_subjects(player, gs, area_node):
 def observe_area(player, gs, tick=None) -> dict:
     """Record what *player* currently perceives. Returns a small summary.
 
-    ``{"seen": int, "novel": [subject_id, ...]}`` — ``novel`` lists the subjects
-    this character had no observation of before, which is exactly the set a
-    first visit pays novelty for.
+    ``{"seen": int, "novel": [subject_id, ...], "freshness": {subject_id: float}}``
+    — ``novel`` lists the subjects this character had no observation of at all,
+    and ``freshness`` is each subject's novelty (task-425) **as it was before the
+    refresh**, so a caller can pay for the experience without the refresh having
+    already wiped the evidence.
     """
-    result = {"seen": 0, "novel": []}
+    result = {"seen": 0, "novel": [], "freshness": {}}
     if player is None or gs is None:
         return result
     area_name = getattr(player, "current_area", None)
@@ -123,6 +132,7 @@ def observe_area(player, gs, tick=None) -> dict:
     # with the lights out, and this is the subject novelty/Entertainment uses.
     if not player.has_seen(area_id):
         result["novel"].append(area_id)
+    result["freshness"][area_id] = freshness(player, area_id, now)
     player.record_observation(
         area_id, f"You have been in the {area_node.name}.", now,
         kind=AREA, location=area_node.name, importance=IMPORTANCE[AREA],
@@ -135,6 +145,7 @@ def observe_area(player, gs, tick=None) -> dict:
     for subject_id, kind, text, tags in perceivable_subjects(player, gs, area_node):
         if not player.has_seen(subject_id):
             result["novel"].append(subject_id)
+        result["freshness"][subject_id] = freshness(player, subject_id, now)
         player.record_observation(
             subject_id, text, now, kind=kind, tags=tags,
             location=area_node.name, importance=IMPORTANCE.get(kind, 3),

@@ -1,0 +1,30 @@
+{
+  "name": "Knucklebones",
+  "description": "A worn set of knucklebones and a scratched patch of dirt to toss them on. Someone is always willing to take a wager.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "equip_slots": [],
+  "tags": [
+    "recreation",
+    "fixture"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effect_type": "adjust_vital",
+      "effect_params": {
+        "stat": "Entertainment",
+        "amount": 15,
+        "target": "self"
+      },
+      "success_message": "You rattle the knucklebones and throw, and the watching goblins lean in."
+    }
+  ],
+  "contents": []
+}
