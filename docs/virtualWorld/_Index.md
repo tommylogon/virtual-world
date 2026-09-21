@@ -9,6 +9,12 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 
 ---
 
+## [[Simulation Model|🧭 Core Model]]
+
+| Doc | What it covers |
+|-----|---------------|
+| [[Simulation Model\|Simulation Model]] | **Start here.** One entity at four processing levels (soak NPC / simple NPC / agent / human), cognition refines but never creates capability, attention-bounded scale, a turn as a *timeframe* filled by an action flow, survival by slack and emptiness rather than a drain rate, routine over hunt |
+
 ## [[World Building/Rooms & Areas|🏠 World Building]]
 
 | Doc | What it covers |

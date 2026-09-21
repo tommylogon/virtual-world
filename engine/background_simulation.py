@@ -85,7 +85,14 @@ ENTERTAINMENT_RESTORE = 15  # fallback when a fixture does not author its own am
 #: 1-minute turn it acted ten times less often than the player, and the two agreed
 #: only around T=10 by coincidence).
 def actions_per_turn(gs) -> int:
-    """Actions a character may take in one turn: one per game minute."""
+    """Actions a character may take in one turn: one per game minute.
+
+    DEBT (task-436): this is the superseded *budget* model. [[Simulation Model]]
+    defines a turn as a timeframe that a character fills with an action flow whose
+    length is emergent from the durations of its actions. Budgeting one-minute
+    actions with no durations gives a 30-minute turn thirty actions — and ~1,440
+    actions per character per game day. Replace with task durations.
+    """
     try:
         minutes = float(tick_minutes(gs))
     except Exception:
@@ -103,16 +110,29 @@ class BackgroundSimulation:
     # ───────────────────────────── entry point ─────────────────────────────
 
     def process_due(self):
-        """Give each background character its action for this turn.
+        """Spend every character's turn — deterministically, for the characters
+        that do not have a decision of their own this turn.
 
-        One action per turn, exactly like a live character — the turn is the unit
-        of agency, and a turn is the same amount of game time for everybody. A
-        character who is mid-activity (sleeping) or unconscious neither decides
-        nor banks, so a long sleep cannot leave a backlog to dump on waking.
+        A turn is T game minutes and holds T actions (one per minute), and every
+        character gets the same T. A background character spends all T here. A
+        focused character has already spent its first action on its LLM decision,
+        so only the remaining T-1 are spent here — without that, a focused goblin
+        would do one thing and stand still for fourteen minutes at a 15-minute
+        turn while its background twin did fifteen things. The human's own
+        character is never puppeted: its remaining minutes are the player's.
+
+        A character mid-activity (sleeping) or unconscious neither decides nor
+        banks, so a long sleep cannot leave a backlog to dump on waking.
         """
+        try:
+            human = self.gs.active_player
+        except Exception:
+            human = None
+
         for name, p in list(self.gs.players.items()):
-            if getattr(p, "simulation_mode", "active") != "background":
-                continue
+            focused = getattr(p, "simulation_mode", "active") != "background"
+            if focused and p is human:
+                continue  # the human's own minutes are theirs to spend
             if p.state == "dead":
                 continue
             if p.activity or p.state == "unconscious":
@@ -125,8 +145,13 @@ class BackgroundSimulation:
                 p._action_credit = 0.0
                 continue
 
-            credit = getattr(p, "_action_credit", 0.0) or 0.0
             budget = actions_per_turn(self.gs)
+            if focused:
+                budget -= 1  # the LLM decision was this turn's first action
+            if budget <= 0:
+                continue
+
+            credit = getattr(p, "_action_credit", 0.0) or 0.0
             credit = min(credit + budget, budget)
 
             spent = 0

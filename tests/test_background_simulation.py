@@ -59,14 +59,58 @@ def test_background_drinks_when_thirsty():
     assert any(e["why"] == "needs:drink" for e in p.trace_log)
 
 
-def test_active_mode_is_ignored():
+def test_a_focused_character_owes_nothing_at_a_one_minute_turn():
+    """At a 1-minute turn the decision *is* the whole turn.
+
+    The turn holds one action and the focused character's own LLM turn spent it,
+    so the deterministic tier has nothing left to spend. This is why the
+    asymmetry below is invisible at the camp's default turn length and only
+    appears when the turn gets longer.
+    """
     w = _world()
+    w.time_per_tick_minutes = 1
+    w.active_player = None
     p = _bg_player(w, Thirst=5, Hunger=80, Energy=90)
-    p.simulation_mode = "active"      # back to normal fidelity
+    p.simulation_mode = "active"      # focused: it has its own turn
     food = _add_item(w, AREA, "dried meat", ["food"], ["eat"])
     w.tick_turn()
-    assert p.vitals["Hunger"] > 70    # did not eat
+    assert p.vitals["Hunger"] > 70    # did not eat on top of its own decision
     assert w.graph.get_node(food.id) is not None
+
+
+def test_a_focused_character_spends_the_rest_of_a_long_turn():
+    """Its decision is its first action, not its whole turn.
+
+    At a 15-minute turn the decision costs one minute; the deterministic tier
+    spends the other fourteen, exactly as it does for a background character.
+    Without this a focused goblin did one thing and stood still for fourteen
+    minutes while its background twin did fifteen things (task-409).
+    """
+    w = _world()
+    w.time_per_tick_minutes = 15
+    w.active_player = None
+    p = _bg_player(w, Thirst=5, Hunger=80, Energy=90)
+    p.simulation_mode = "active"
+    _add_item(w, AREA, "dried meat", ["food"], ["eat"])
+    w.tick_turn()
+    assert p.vitals["Hunger"] <= 40, "focused character did not spend its turn"
+
+
+def test_the_humans_own_character_is_never_puppeted():
+    """The player's remaining minutes belong to the player.
+
+    The player character is focused like any other, but the engine must not
+    spend its turn for it — otherwise the world plays the game while the player
+    is deciding.
+    """
+    w = _world()
+    w.time_per_tick_minutes = 15
+    p = _bg_player(w, Thirst=5, Hunger=80, Energy=90)
+    p.simulation_mode = "active"
+    w.active_player = p              # this is the player's character
+    _add_item(w, AREA, "dried meat", ["food"], ["eat"])
+    w.tick_turn()
+    assert p.vitals["Hunger"] > 70, "player character acted on its own"
 
 
 def test_due_scheduling_defers_action():
@@ -85,18 +129,25 @@ def test_due_scheduling_defers_action():
     assert getattr(p, "_action_credit", 1.0) <= 1.0
 
 
-def test_a_background_character_acts_once_per_turn():
-    """One action per turn, like every other character (task-409).
+def test_actions_per_turn_is_an_interim_approximation():
+    """DEBT — this pins the superseded model, not the target one (task-436).
 
-    This replaces the old contract — "the same number of decisions per game hour
+    [[Simulation Model]] supersedes a per-turn *budget* of actions: a turn is a
+    timeframe, and a character fills it with an action flow whose length is
+    **emergent** from the durations of the actions in it. The budget below
+    assumes one-minute actions with no durations, which is why a 30-minute turn
+    becomes thirty actions — and therefore ~1,440 actions per character per game
+    day. That is the number that makes a camp look frenzied at long turns.
+
+    The assertion is kept so the arithmetic is visible and so that implementing
+    the flow model makes this test **fail loudly** and force the rewrite. Do not
+    treat `30/30/30` as a requirement; treat it as the current interim limit.
+    See `dev_tasks/todo/gameplay/task-436-task-durations-and-remove-action-cost-time.md`.
+
+    It replaced an older contract — "the same number of decisions per game hour
     at any tick length" — which put the background tier on a different clock from
     the live one: at a 1-minute turn it acted ten times less often than the
     player, and the two only agreed around T=10 by coincidence.
-
-    Driven through `process_due` with the character kept available, because over
-    real turns the *activity* durations legitimately differ in turns (eight hours
-    of sleep is 480 turns at 1 min/tick and 32 at 15), and that would make the
-    counts differ for a reason that has nothing to do with the action budget.
     """
     from engine.background_simulation import BackgroundSimulation
 
@@ -122,14 +173,15 @@ def test_a_background_character_acts_once_per_turn():
             w.time_ticks += 1
         return len(calls)
 
-    # One action per game minute: 30 minutes is 30 actions at 1, 5 or 15 min/turn.
-    # (A span that divides evenly by every turn length, because a character cannot
-    # take a fraction of a turn — 20 minutes is 1.33 turns at 15.) This is the
-    # invariant that makes fast-forward and live play the same world, and it is the
-    # opposite of a fixed one-per-turn budget, which would give 30 actions at
-    # 1 min/turn and 2 at 15.
+    # Interim: one action per game minute, so 30 minutes is 30 actions at 1, 5 or
+    # 15 min/turn. A span that divides evenly by every turn length, because a
+    # character cannot take a fraction of a turn (20 minutes is 1.33 turns at 15).
     for minutes_per_tick in (1, 5, 15):
         assert actions_in(30, minutes_per_tick) == 30, minutes_per_tick
+
+    # The consequence, stated so the debt is legible rather than implied: at the
+    # camp's 1-minute turn this is 1,440 actions per character per game day.
+    assert actions_in(30, 1) * 48 == 1_440
 
 
 def test_a_deferred_character_banks_nothing():

@@ -1,0 +1,86 @@
+# task-436 — Task durations, and removing `ACTION_COSTS.time`
+
+**Status:** todo
+**Area:** gameplay / time
+**Depends on:** [[Simulation Model]] (the timeframe-and-flow model)
+**Related:** task-352 (action economy), task-414 (batch advance), task-131 (stateful actions over time), task-244 (human turn parameters)
+
+## Why
+
+[[Simulation Model]] commits to two things:
+
+1. **Delete `ACTION_COSTS.time`** and `_action_time_consumed`. Atomic actions
+   (look, take, hit, open) are one minute; arbitrary per-action time multipliers
+   are legacy.
+2. **Duration belongs on tasks** — travelling a route, sleeping, working, waiting —
+   not on atomic actions. This is the seam where a player's ~20–40 actions absorb
+   the world's 1,440 minutes, and it is what makes a day pass in a believable
+   number of turns without any decay rate changing.
+
+## What `time` actually does today (verified)
+
+`ACTION_COSTS` (`virtual_world_engine.py:110-117`) gives each action a `time` and
+one or more vital costs. `apply_action` (`engine/tick_manager.py:140-153`) uses
+`time` for **two different jobs**:
+
+```python
+time_ticks = int(cost.get("time", 0))
+...
+total_delta = delta * (time_ticks if time_ticks > 0 else 1)   # job 1: multiplier
+target.vitals[key] = max(0, min(100, target.vitals[key] - total_delta))
+if time_ticks > 0:
+    self.player_manager._action_time_consumed = True           # job 2: flag
+else:
+    self.player_manager._action_time_consumed = False
+```
+
+- **Job 1 — drain multiplier.** The `energy` values are *per-minute rates*, not
+  totals. `move: {time: 1, energy: 1}` → 1 energy, but `fumble: {time: 2,
+  energy: 3}` → **6** energy.
+- **Job 2 — time-consumed flag.** `open`/`close` have `time: 0` and so
+  deliberately consume no clock time. Read at `tools/game_tools.py:101`
+  (`if not getattr(world, '_action_time_consumed', False)`), also reset at
+  `routes/action_handlers.py:212` and set at `engine/tick_manager.py:993` (rest).
+  Declared at `virtual_world_engine.py:119`.
+
+## Therefore
+
+Deleting `time` is **not** a mechanical removal:
+
+- Every multi-tick action's vital cost silently halves unless the magnitudes are
+  folded into the cost table (e.g. `fumble` becomes `energy: 6`, not `3`).
+- Which actions consume clock time changes. Under the new model every atomic
+  action takes one minute, so `_action_time_consumed` becomes uniformly true and
+  the flag is meaningless — it should be deleted and the caller should advance
+  unconditionally, **but that is a clock-semantics change and must be verified
+  against `rest`/sleep**, which sets the flag deliberately at `:993`.
+
+## Plan
+
+1. Fold the multiplier into the cost table so vital costs are **absolute**:
+   `move {energy: 1}`, `look {energy: 0}`, `use {energy: 1}`, `take {energy: 1}`,
+   `drop {energy: 0}`, `fumble {energy: 6}`, `open`/`close` `{energy: 1}` (open/close
+   now cost the minute they always took narratively).
+2. Delete `time` from every `ACTION_COSTS` entry and drop the multiplier at
+   `engine/tick_manager.py:140-149`.
+3. Delete `_action_time_consumed` (declaration, both setters, the reader) and have
+   the caller advance the clock unconditionally — **after** confirming `rest()`
+   still advances exactly once for a sleep of N minutes.
+4. Add **duration to tasks**, which is the actual feature: `travel` (a route),
+   `sleep`/`rest`, `work` (a shift), `wait`. Duration is a property of the task,
+   not a fudge factor on an atomic action.
+5. Replace the per-turn action *budget* (`actions_per_turn = T` in
+   `engine/background_simulation.py`) with the flow model: a turn is a timeframe,
+   an action flow fills it, and the number of actions is emergent.
+
+## Acceptance
+
+- A soak at 1, 5 and 15 minutes-per-turn produces the same character behaviour at
+  the same **game-day** — same meals, same sleeps, same deaths (if any).
+- `rest(60)` advances the clock by exactly 60 game minutes, once.
+- No character takes ~1,440 actions per game day.
+
+## Notes
+
+`docs/virtualWorld/dev_tasks/cancelled/task-14-action_costs_to_time.md` shows this
+was intuited before and never landed.
