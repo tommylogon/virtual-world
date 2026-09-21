@@ -28,6 +28,8 @@ from .trigger_system import TRIGGER_TYPES, EFFECT_TYPES
 CONDITION_TYPES = {
     "uses_reached",
     "uses_above",
+    "parameter_reached",
+    "contains_count",
     "has_item",
     "has_items",
     "state_equals",

@@ -45,17 +45,48 @@ paths. Instead use the existing generic counter effect:
 which is purpose-built for gauges and works on any node type. `uses` stays what
 it is for actual consumables.
 
-### Dependency on task-406
+### Dependency on task-406 — SATISFIED
 
-A plant standing in a room is not carried and not lit/on, so **today it is never
-ticked** (`engine/tick_manager.py` only ticks carried/equipped and lit/on items).
-The growth trigger therefore requires task-406's standing-item tick path.
+A plant standing in a room is not carried and not lit/on, so it used to never be
+ticked (`tick_manager` only ticked carried/equipped and lit/on items). **task-406
+landed**: `engine/tick_manager.py:745-757` now fires standing-item `on_tick`
+triggers exactly once, skipping anything the carried/equipped and lit/on loops
+already handled, so there is no double-fire. The growth trigger is buildable now.
+
+### Tag trap: the plant must not be tagged as food
+
+Consumption mechanics do **not** consult tags — `_consume_here`
+(`engine/background_simulation.py`) decrements `count` if >1, else `uses` if >1,
+and otherwise **removes the node**; `handle_consume_item` and crafting remove at
+`uses <= 0`. Tags only decide how consumption *finds* a target
+(`FOOD_TAGS`/`DRINK_TAGS`).
+
+So if the bush itself carried a `food` tag, a hungry character would try to eat
+the bush and the plant would be deleted. The **plant stays untagged**; only its
+**produce** carries the food tags, and produce stacks as `count: N` (a handful
+consumed one at a time, the node removed on the last one).
+
+### Gating conditions (added 2026-09-21)
+
+The mechanism needed two condition types that did not exist:
+
+- `parameter_reached` — compares a gauge in the node's `parameters` dict
+  (`key`, `value`, `op`, default `gte`). There was only `uses_reached`, which keys
+  on `uses` — the very field that must not hold the counter.
+- `contains_count` — counts what a container holds, optionally filtered by
+  name/id. `op: "lt"` is the produce cap.
+
+Both are implemented in `engine/triggers/condition_tree.py`, registered in
+`engine/trigger_validator.py`, and covered by
+`tests/test_gauge_trigger_conditions.py`.
 
 ## Changes
 
 1. Implement the plant pattern with `parameters.growth` + `adjust_parameter`
-   (+1 per tick), a `growth >= 100` condition, `spawn_item` into the plant,
-   `set_parameter growth 0`, and a `< 10 produce` cap.
+   (+1 per tick), a `growth >= 100` condition (`parameter_reached`), `spawn_item`
+   into the plant (`into: "container"`), `set_parameter growth 0`, and a
+   `< 10 produce` cap (`contains_count` with `op: "lt"`). The plant itself carries
+   **no** food tags; only its produce does.
 2. Reconcile consumption against per-minute need rates (`vital_rates.py`): a
    character at Hunger ~3 weeks needs only a small amount per day.
 3. Renewal uses existing spawn/consume rules, is capped, deterministic under a

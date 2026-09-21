@@ -58,6 +58,8 @@ Complete reference for VirtualWorld engine behaviors and triggers.
 | `has_items` | Player has ALL items | `value` (list) | ✅ | 🔴 Both |
 | `random_chance` | True X% of the time | `value` (0-100) or `chance` (0.0-1.0) | ✅ | 🔴 Both |
 | `uses_reached` | Item uses ≤ N | `value` (int) | ✅ | 🔵 Triggers |
+| `parameter_reached` | Gauge in `parameters` vs `value` (default `op` gte) | `key` (str), `value` (num), `op` (`gt`/`gte`/`lt`/`lte`/`eq`) | ✅ | 🔵 Triggers |
+| `contains_count` | Items the node contains vs `value` (default `op` gte) | `value` (num), `op`, `relation` (default `in`), `target` (name/id filter) | ✅ | 🔵 Triggers |
 | `uses_above` | Item uses > N | `value` (int) | ✅ | 🔵 Triggers |
 | `state_equals` | Node's `current_state` matches | `target`, `value` | ✅ | 🔴 Both |
 | `skill_check` | Skill check succeeds | `skill`, `dc` | ✅ | 🔴 Both |

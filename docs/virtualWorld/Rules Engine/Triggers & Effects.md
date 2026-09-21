@@ -158,6 +158,8 @@ Individual trigger conditions are evaluated by `_evaluate_trigger_condition()` (
 | Condition Type | Parameters | Description |
 |---|---|---|
 | `uses_reached` | `value` (int) | True when item uses ≤ value |
+| `parameter_reached` | `key` (str), `value` (num), `op` (default `gte`) | Compares a gauge in the node's `parameters` dict. Counters live here, not in `uses`, because `uses` is remaining charges — a gauge that starts at 0 would read as depleted and hit the `<= 0` removal paths. Used by plant growth (task-410). |
+| `contains_count` | `value` (num), `op` (default `gte`), `relation` (default `in`), `target` (optional name/id filter) | Counts what a container holds. `op: "lt"` is "has room for more" — the produce cap on a plant. |
 | `uses_above` | `value` (int) | True when item uses > value |
 | `has_item` | `value` (item name) | True if player has item in inventory |
 | `has_items` | `value` (list) | True if player has ALL specified items |
