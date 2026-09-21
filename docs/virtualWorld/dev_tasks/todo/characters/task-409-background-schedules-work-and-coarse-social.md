@@ -77,6 +77,60 @@ a broken schedule — and not a regression worth shipping.
 
 Slice 2 (the capped daily reflection) is unaffected and still open.
 
+**Second round — both attempted fixes failed, and the reason is arithmetic.**
+
+1. **Committing the errand.** Hypothesis: journeys are walked one hop per decision
+   and every routine need crossing restarts them, so characters never arrive. Added
+   `CRITICAL_*` levels and a committed-journey guard (a scheduled errand runs to
+   arrival unless a need is critical). **Result: 388 → 381 travels, 53 → 45 work
+   blocks.** No effect — the hypothesis was wrong, and the change was reverted
+   rather than kept as unproven complexity.
+
+2. **Co-locating facilities with work.** Hypothesis: work sites have no food,
+   water, latrine or wash, so every need is a cross-camp round trip. Added
+   `latrine`/`water`/`recreation` area tags to 11 work areas and 4 wash basins
+   (`tools/add_workplace_facilities.py`). **This made things worse, including the
+   no-schedule baseline** — Hygiene 69.2 → **24.4** with schedules *disabled*, and
+   48.8 → **7.9** with them on, and two characters died of exhaustion. Reverted.
+
+   The lesson is worth more than the change: **area tags are not neutral.** They
+   are what `_areas_with` consults for *every* need search, so tagging the work
+   areas `water` and `latrine` changed where the entire camp travels for every
+   need — not just where workers drink. A "co-locate the facilities" pass cannot
+   be evaluated as a local data tweak.
+
+**The actual blocker is the action budget.** A background character takes one
+action per `DECISION_MINUTES` (10 game minutes), so a day is about **96 actions**
+per character. Survival need service is not cheap in actions: each is a *journey*
+of one hop per action, and the camp's food, water, latrine and wash are in
+different corners. A working day of twelve 30-minute blocks cannot fit beside
+those errands — and once schedule travel competes for the same budget, the
+errands slow down too, which is exactly what the numbers show (Hygiene and
+Entertainment collapse; `schedule:work` fires about once per character per day).
+
+So this is a **design decision, not a data tweak**:
+
+- **(a) More actions per day** — shorten `DECISION_MINUTES` or raise
+  `MAX_ACTIONS_PER_TICK`. Straightforward, but multiplies tick CPU across 23+
+  characters, and it treats the symptom: it makes the character *finer*-grained
+  when the goal is "supercharged simple NPCs".
+- **(b) Coarser need service** — bundle the errands. At 10-minute granularity a
+  character should not walk to the river, drink, walk back, then walk to the
+  latrine as three separate decisions; it makes **one "chores" trip** to a service
+  area and services several needs in a single action. This is what a coarse
+  simulation should already be doing, and it collapses roughly five errands into
+  one, freeing the budget for work. The camp's existing latrine/wash/food/water
+  areas already identify where a chores trip would go.
+- **(c) Drop the working day** — keep schedules only for *placement* (where a
+  character is by day and night, which is already an improvement and measured as
+  Energy-positive) and accept no work blocks.
+
+(b) is the recommended one: it fits 409's own "supercharged simple NPCs" framing,
+it is the change that makes the budget arithmetic work, and it does not trade CPU
+for the problem. It is also a change to the *survival model's granularity*, so it
+should be decided rather than assumed. Until then the schedule data stays out of
+the scenario and the engine remains as committed in slice 1.
+
 ## Goal
 
 Background characters behave like **supercharged simple NPCs**: a deterministic,
