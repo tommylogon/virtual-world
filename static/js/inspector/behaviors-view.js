@@ -38,6 +38,8 @@ window.InspectorBehaviors = (() => {
             { value: 'add_memory', label: '🧠 Add Memory', params: ['mem_text', 'mem_importance', 'mem_tags'] },
             { value: 'set_emotion', label: '😊 Set Emotion', params: ['emotion_name', 'emotion_intensity'] },
             { value: 'set_flag', label: '🚩 Set Flag', params: ['flag_key', 'flag_value'] },
+            { value: 'add_tag', label: '🏷️ Add Tag', params: ['tag_value', 'tag_target'] },
+            { value: 'remove_tag', label: '🏷️ Remove Tag', params: ['tag_value', 'tag_target'] },
             { value: 'hide_in', label: '📦 Hide In', params: ['hide_target'] },
             { value: 'hide_behind', label: '🫣 Hide Behind', params: ['hide_target'] },
             { value: 'hide_under', label: '⬇️ Hide Under', params: ['hide_target'] },
@@ -163,7 +165,12 @@ window.InspectorBehaviors = (() => {
             { value: 'proximity', label: 'Proximity', params: ['cond_max_areas'] },
             { value: 'npc_emotion_is', label: 'NPC Emotion Is', params: ['emotion_name', 'emotion_operator', 'emotion_value'] },
             { value: 'npc_is_hidden', label: 'NPC Is Hidden', params: ['hidden_value'] },
-            { value: 'character_has_tag', label: 'Character Has Tag', params: ['char_tag', 'char_tag_target'] }
+            { value: 'character_has_tag', label: 'Character Has Tag', params: ['char_tag', 'char_tag_target'] },
+            { value: 'player_has_tag', label: 'Player Has Item Tag', params: ['item_tag', 'item_tag_target'] },
+            { value: 'sight_holds', label: 'Sight: Target Holds Tag', params: ['item_tag', 'item_tag_target'] },
+            { value: 'smell_detected', label: 'Smell: Tag Detected', params: ['smell_tag', 'smell_range'] },
+            { value: 'sound_above', label: 'Sound Above Threshold', params: ['sound_threshold', 'sound_target'] },
+            { value: 'flag_equals', label: 'Flag Equals', params: ['flag_key', 'flag_value', 'flag_target'] }
         ];
     };
 
@@ -233,6 +240,8 @@ window.InspectorBehaviors = (() => {
         const emotionIntensity = action.intensity !== undefined ? action.intensity : 0.5;
         const flagKey = action.key || '';
         const flagValue = action.value !== undefined ? action.value : true;
+        const tagActionTag = action.tag || '';
+        const tagActionTarget = action.target || 'self';
         const hideTarget = action.target || '';
         const attackTarget = action.target || '';
         const attackWeapon = action.weapon || '';
@@ -495,6 +504,14 @@ window.InspectorBehaviors = (() => {
                     <div class="field beh-act-field" data-act="set_flag" style="display:${show('set_flag') ? 'block' : 'none'};">
                         <label>Value</label>
                         <input type="text" class="beh-act-flag-value" .value=${flagValue} placeholder="true" style="width:100%;">
+                    </div>
+                    <div class="field beh-act-field" data-act="add_tag,remove_tag" style="display:${show('add_tag,remove_tag') ? 'block' : 'none'};">
+                        <label>Tag</label>
+                        <input type="text" class="beh-act-tag-value" .value=${tagActionTag} placeholder="hostile, faction_guards..." style="width:100%;">
+                    </div>
+                    <div class="field beh-act-field" data-act="add_tag,remove_tag" style="display:${show('add_tag,remove_tag') ? 'block' : 'none'};">
+                        <label>Target</label>
+                        <input type="text" class="beh-act-tag-target" .value=${tagActionTarget} placeholder="self or a character name" style="width:100%;">
                     </div>
                     <div class="field beh-act-field" data-act="hide_in,hide_behind,hide_under" style="display:${show('hide_in,hide_behind,hide_under') ? 'block' : 'none'};">
                         <label>Target Item ID (must have "hideable" tag)</label>
@@ -985,6 +1002,52 @@ window.InspectorBehaviors = (() => {
                                      <option value="triggering" ?selected=${cond.target === 'triggering'}>Triggering character</option>
                                  </select>
                              </div>
+                             <div class="field beh-cond-field" data-cond="player_has_tag,sight_holds" style="display:${condType === 'player_has_tag' || condType === 'sight_holds' ? 'block' : 'none'};">
+                                 <label>Item Tag</label>
+                                 <input type="text" id="beh-cond-item-tag-${index}" .value=${cond.tag || cond.value || ''} placeholder="food, weapon, faction_guards..." style="width:100%;">
+                             </div>
+                             <div class="field beh-cond-field" data-cond="player_has_tag,sight_holds" style="display:${condType === 'player_has_tag' || condType === 'sight_holds' ? 'block' : 'none'};">
+                                 <label>Target</label>
+                                 <select id="beh-cond-item-tag-target-${index}" style="width:100%;">
+                                     <option value="player" ?selected=${(!cond.target || cond.target === 'player')}>Player</option>
+                                     <option value="self" ?selected=${cond.target === 'self'}>NPC (self)</option>
+                                 </select>
+                             </div>
+                             <div class="field beh-cond-field" data-cond="smell_detected" style="display:${condType === 'smell_detected' ? 'block' : 'none'};">
+                                 <label>Smell Tag</label>
+                                 <input type="text" id="beh-cond-smell-tag-${index}" .value=${cond.tag || cond.value || ''} placeholder="food, blood, smoke..." style="width:100%;">
+                             </div>
+                             <div class="field beh-cond-field" data-cond="smell_detected" style="display:${condType === 'smell_detected' ? 'block' : 'none'};">
+                                 <label>Range (areas away, 0 = same area)</label>
+                                 <input type="number" id="beh-cond-smell-range-${index}" .value=${cond.range !== undefined ? cond.range : 0} min="0" style="width:100%;">
+                             </div>
+                             <div class="field beh-cond-field" data-cond="sound_above" style="display:${condType === 'sound_above' ? 'block' : 'none'};">
+                                 <label>Threshold (0.0 - 1.0)</label>
+                                 <input type="number" id="beh-cond-sound-threshold-${index}" .value=${cond.threshold !== undefined ? cond.threshold : 0.5} min="0" max="1" step="0.1" style="width:100%;">
+                             </div>
+                             <div class="field beh-cond-field" data-cond="sound_above" style="display:${condType === 'sound_above' ? 'block' : 'none'};">
+                                 <label>Listener</label>
+                                 <select id="beh-cond-sound-target-${index}" style="width:100%;">
+                                     <option value="self" ?selected=${!cond.target || cond.target === 'self'}>NPC (self)</option>
+                                     <option value="player" ?selected=${cond.target === 'player'}>Player</option>
+                                 </select>
+                             </div>
+                             <div class="field beh-cond-field" data-cond="flag_equals" style="display:${condType === 'flag_equals' ? 'block' : 'none'};">
+                                 <label>Flag Key</label>
+                                 <input type="text" id="beh-cond-flag-key-${index}" .value=${cond.key || ''} placeholder="player_fed_me..." style="width:100%;">
+                             </div>
+                             <div class="field beh-cond-field" data-cond="flag_equals" style="display:${condType === 'flag_equals' ? 'block' : 'none'};">
+                                 <label>Expected Value</label>
+                                 <input type="text" id="beh-cond-flag-value-${index}" .value=${cond.value !== undefined ? cond.value : 'true'} placeholder="true" style="width:100%;">
+                             </div>
+                             <div class="field beh-cond-field" data-cond="flag_equals" style="display:${condType === 'flag_equals' ? 'block' : 'none'};">
+                                 <label>Target</label>
+                                 <select id="beh-cond-flag-target-${index}" style="width:100%;">
+                                     <option value="self" ?selected=${!cond.target || cond.target === 'self'}>NPC (self)</option>
+                                     <option value="player" ?selected=${cond.target === 'player'}>Player</option>
+                                     <option value="triggering" ?selected=${cond.target === 'triggering'}>Triggering character</option>
+                                 </select>
+                             </div>
                          </div>
                      </div>
 
@@ -1183,6 +1246,19 @@ window.InspectorBehaviors = (() => {
                  } else if (condType === 'character_has_tag') {
                      cond.tag = document.getElementById(`beh-cond-char-tag-${index}`)?.value || '';
                      cond.target = document.getElementById(`beh-cond-char-tag-target-${index}`)?.value || 'self';
+                 } else if (condType === 'player_has_tag' || condType === 'sight_holds') {
+                     cond.tag = document.getElementById(`beh-cond-item-tag-${index}`)?.value || '';
+                     cond.target = document.getElementById(`beh-cond-item-tag-target-${index}`)?.value || 'player';
+                 } else if (condType === 'smell_detected') {
+                     cond.tag = document.getElementById(`beh-cond-smell-tag-${index}`)?.value || '';
+                     cond.range = parseInt(document.getElementById(`beh-cond-smell-range-${index}`)?.value) || 0;
+                 } else if (condType === 'sound_above') {
+                     cond.threshold = parseFloat(document.getElementById(`beh-cond-sound-threshold-${index}`)?.value) || 0.5;
+                     cond.target = document.getElementById(`beh-cond-sound-target-${index}`)?.value || 'self';
+                 } else if (condType === 'flag_equals') {
+                     cond.key = document.getElementById(`beh-cond-flag-key-${index}`)?.value || '';
+                     cond.value = document.getElementById(`beh-cond-flag-value-${index}`)?.value || 'true';
+                     cond.target = document.getElementById(`beh-cond-flag-target-${index}`)?.value || 'self';
                  }
                 behavior.conditions = cond;
             }
@@ -1262,6 +1338,9 @@ window.InspectorBehaviors = (() => {
                  action.value = card.querySelector('.beh-act-flag-value')?.value || 'true';
                  if (action.value === 'true') action.value = true;
                  else if (action.value === 'false') action.value = false;
+              } else if (actType === 'add_tag' || actType === 'remove_tag') {
+                 action.tag = card.querySelector('.beh-act-tag-value')?.value || '';
+                 action.target = card.querySelector('.beh-act-tag-target')?.value || 'self';
               } else if (actType === 'hide_in' || actType === 'hide_behind' || actType === 'hide_under') {
                   action.target = card.querySelector('.beh-act-hide-target')?.value || '';
               } else if (actType === 'attack') {

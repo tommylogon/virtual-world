@@ -87,6 +87,14 @@ MOVE_COST_MOD = "move_cost_mod"
 #: multiplier on the player's carry-weight capacity (default 1.0)
 CARRY_CAPACITY_MOD = "carry_capacity_mod"
 
+#: task-214: flat adjustment to an NPC's perception DC when noticing another
+#: character's state/action. Negative = more observant, positive = oblivious.
+PERCEPTION_DC_MOD = "perception_dc_mod"
+
+#: task-214: how an NPC reacts to a perceived stimulus — "disapprove",
+#: "approach", or "ignore". Consumed by NPCBehaviorSystem.process_npc_reaction.
+NPC_REACTION = "npc_reaction"
+
 # ──────────────────────────────────────────────────────────────
 # Trait definitions
 # ──────────────────────────────────────────────────────────────
@@ -207,6 +215,23 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "effects": {SOCIAL_GAIN: 1},
         "conflicts": ["loner", "mute"],
     },
+    # ── task-214: reaction traits (how an NPC answers what it perceives) ──
+    "prudish": {
+        "name": "Prudish",
+        "description": "Open displays embarrass and offend you — you look away and disapprove.",
+        "category": "social",
+        "params": None,
+        "effects": {NPC_REACTION: "disapprove"},
+        "conflicts": ["open_minded", "exhibitionist"],
+    },
+    "open_minded": {
+        "name": "Open-Minded",
+        "description": "You take people as they are, and you're drawn toward what others hide.",
+        "category": "social",
+        "params": None,
+        "effects": {NPC_REACTION: "approach"},
+        "conflicts": ["prudish"],
+    },
     # ── Mature traits (task-213) — hidden from pickers unless mature_content ──
     # ``mature: True`` marks them for UI filtering. ``body_part_multipliers``
     # rides inside the standard ``effects`` dict and is consumed by the
@@ -273,6 +298,15 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "effects": {"single_track": True},
         "mature": True,
         "conflicts": [],
+    },
+    "attracted": {
+        "name": "Attracted",
+        "description": "Visible desire pulls at you — you can't help moving closer.",
+        "category": "social",
+        "params": None,
+        "effects": {NPC_REACTION: "approach", "drawn_to_arousal": True},
+        "mature": True,
+        "conflicts": ["prudish"],
     },
     "apathetic": {
         "name": "Apathetic",
@@ -456,6 +490,23 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "category": "mental",
         "params": None,
         "effects": {SKILL_CHECK_MOD: -1},
+    },
+    # ── task-214: perception traits (NPC notices what others miss) ──
+    "observant": {
+        "name": "Observant",
+        "description": "You read people and rooms. Notices what others miss.",
+        "category": "mental",
+        "params": None,
+        "effects": {PERCEPTION_DC_MOD: -5, SKILL_CHECK_MOD: {"Perception": 2}},
+        "conflicts": ["oblivious"],
+    },
+    "oblivious": {
+        "name": "Oblivious",
+        "description": "Subtle cues pass you by — you miss what others catch.",
+        "category": "mental",
+        "params": None,
+        "effects": {PERCEPTION_DC_MOD: 5},
+        "conflicts": ["observant"],
     },
     # ── Phase 3 — save_on event-hook example traits ──
     "claustrophobic": {

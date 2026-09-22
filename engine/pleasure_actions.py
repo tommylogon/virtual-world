@@ -268,4 +268,13 @@ def execute_intimacy_action(world, actor_name: str, verb: str, target_name: str,
         line += " " + _reaction_line(target_name, report["stim"], report["pain"])
     if report.get("overstimulated"):
         line += f" {target_name} is overwhelmed — it's too much."
+    # task-214: bystander NPCs notice the act (mature-gated inside).
+    try:
+        watchers = world.npc_behaviors.process_bystander_reactions(
+            actor_name, target_name, "intimacy",
+            {"verb": verb, "region": part["region"]})
+    except Exception:
+        watchers = []
+    if watchers:
+        line += " " + " ".join(watchers)
     return line

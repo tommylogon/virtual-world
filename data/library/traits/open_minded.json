@@ -1,0 +1,12 @@
+{
+  "name": "Open-Minded",
+  "description": "You take people as they are, and you're drawn toward what others hide.",
+  "category": "social",
+  "params": null,
+  "effects": {
+    "npc_reaction": "approach"
+  },
+  "conflicts": [
+    "prudish"
+  ]
+}

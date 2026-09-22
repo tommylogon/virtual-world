@@ -650,6 +650,94 @@ class ConditionTreeMixin:
                     tags = [t.strip() for t in tags.split(",")]
                 return any(str(t).lower() == needle for t in tags)
 
+            # --- Phase 2 NPC behavior conditions (task-390) ---
+
+            elif condition_type == "player_has_tag":
+                tag = str(conditions.get("tag") or conditions.get("value") or "").strip().lower()
+                if not tag or gs is None:
+                    return False
+                player = self._resolve_condition_player(conditions.get("target", "player"), gs)
+                if player is None:
+                    return False
+                return tag in self._player_item_tags(player, gs)
+
+            elif condition_type == "sight_holds":
+                # The NPC can see a tag on the target only when they share an
+                # area and the target is not hidden.
+                tag = str(conditions.get("tag") or conditions.get("value") or "").strip().lower()
+                if not tag or gs is None:
+                    return False
+                player = self._resolve_condition_player(conditions.get("target", "player"), gs)
+                if player is None:
+                    return False
+                if getattr(player, "hidden", False):
+                    return False
+                npc_area = context.get("npc_area")
+                if npc_area and getattr(player, "current_area", None) != npc_area:
+                    return False
+                return tag in self._player_item_tags(player, gs)
+
+            elif condition_type == "flag_equals":
+                key = str(conditions.get("key", "")).strip()
+                if not key or gs is None:
+                    return False
+                target = conditions.get("target", "self")
+                if target == "triggering":
+                    char = context.get("triggering_character")
+                else:
+                    char = self._resolve_condition_player(target, gs)
+                if char is None:
+                    return False
+                flags = getattr(char, "flags", None) or {}
+                actual = flags.get(key)
+                expected = conditions.get("value", True)
+                if isinstance(expected, str):
+                    low = expected.strip().lower()
+                    if low in ("true", "false"):
+                        expected = (low == "true")
+                    else:
+                        try:
+                            expected = float(low) if "." in low else int(low)
+                        except ValueError:
+                            pass
+                return actual == expected
+
+            elif condition_type == "sound_above":
+                try:
+                    threshold = float(conditions.get("threshold", conditions.get("value", 0.5)))
+                except (TypeError, ValueError):
+                    threshold = 0.5
+                # 0–1 authored threshold maps onto the engine's 0–3 levels.
+                raw_needed = threshold * 3.0 if threshold <= 1.0 else threshold
+                if gs is None:
+                    return False
+                player = self._resolve_condition_player(conditions.get("target", "self"), gs)
+                if player is None:
+                    return False
+                for entry in (getattr(player, "recent_hearing", None) or []):
+                    if self._recent_sound_strength(entry) >= raw_needed:
+                        return True
+                return False
+
+            elif condition_type == "smell_detected":
+                from engine.room_perception import visible_area_items
+                tag = str(conditions.get("tag") or conditions.get("value") or "").strip().lower()
+                if not tag:
+                    return False
+                try:
+                    rng = int(conditions.get("range", 0) or 0)
+                except (TypeError, ValueError):
+                    rng = 0
+                area_name = context.get("npc_area")
+                if not area_name and gs is not None:
+                    area_name = getattr(getattr(gs, "player", None), "current_area", None)
+                for area in self._areas_within(gs, area_name, rng):
+                    area_id = self._area_id(area)
+                    for node in visible_area_items(self.graph, area_id):
+                        if tag in self._condition_node_tags(node):
+                            return True
+                return False
+
             return False
 
         operator = conditions.get("operator")
@@ -676,3 +764,97 @@ class ConditionTreeMixin:
             return False
 
         return False
+
+    # ────────────────── task-390 condition helpers ──────────────────
+
+    @staticmethod
+    def _condition_node_tags(node) -> list:
+        """Normalised lowercase tag list for a graph node."""
+        if node is None or not getattr(node, "properties", None):
+            return []
+        tags = node.properties.get("tags", [])
+        if isinstance(tags, str):
+            tags = [t.strip() for t in tags.split(",")]
+        return [str(t).strip().lower() for t in tags if str(t).strip()]
+
+    def _player_item_tags(self, player, game_state) -> list:
+        """Tags of everything a character carries or wears (task-390)."""
+        if player is None:
+            return []
+        tags = []
+        for stack in (getattr(player, "equipped", None) or {}).values():
+            for item_id in stack or []:
+                node = self.graph.get_node(item_id) if item_id else None
+                tags.extend(self._condition_node_tags(node))
+        resolver = getattr(game_state, "_player_node_id", None)
+        if not callable(resolver):
+            pm = getattr(game_state, "player_manager", None)
+            resolver = getattr(pm, "get_player_node_id", None)
+        if callable(resolver):
+            try:
+                node_id = resolver(player.name)
+                for edge in self.graph.get_edges_for_target(node_id, EDGE_CARRYING):
+                    node = self.graph.get_node(edge.source)
+                    if node is not None and node.type == "item":
+                        tags.extend(self._condition_node_tags(node))
+            except Exception:
+                pass
+        return tags
+
+    def _area_id(self, area_name):
+        """Resolve an area name to its node id (canonical first, then scan)."""
+        if not area_name:
+            return None
+        from engine.node_ids import NodeIDHelper
+        candidate = NodeIDHelper.area_node_id(area_name)
+        if self.graph.get_node(candidate) is not None:
+            return candidate
+        for node in self.graph.nodes.values():
+            if node.type == "area" and node.name == area_name:
+                return node.id
+        return None
+
+    def _areas_within(self, game_state, area_name, range_areas: int) -> list:
+        """The area plus up to *range_areas* hops of neighbours (task-390 smell)."""
+        if not area_name:
+            return []
+        areas = [area_name]
+        seen = {area_name}
+        frontier = [area_name]
+        for _ in range(max(0, int(range_areas or 0))):
+            nxt = []
+            for area in frontier:
+                if game_state is None or not hasattr(game_state, "_build_exits_for_area"):
+                    break
+                try:
+                    exits = game_state._build_exits_for_area(area) or {}
+                except Exception:
+                    exits = {}
+                for exit_data in exits.values():
+                    target = exit_data.get("target")
+                    if target and target not in seen:
+                        seen.add(target)
+                        nxt.append(target)
+                        areas.append(target)
+            frontier = nxt
+            if not frontier:
+                break
+        return areas
+
+    @staticmethod
+    def _recent_sound_strength(entry) -> float:
+        """Raw 0–3 sound strength for a ``recent_hearing`` entry (−1 = unknown)."""
+        if not isinstance(entry, dict):
+            return -1.0
+        raw = entry.get("sound_level")
+        if raw is None:
+            raw = entry.get("strength")
+        if raw is None:
+            from engine.sound import SPEECH_LEVELS
+            raw = SPEECH_LEVELS.get(str(entry.get("speech_level", "")).lower())
+        if raw is None:
+            return -1.0
+        try:
+            return float(raw)
+        except (TypeError, ValueError):
+            return -1.0

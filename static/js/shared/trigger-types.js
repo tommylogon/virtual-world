@@ -39,6 +39,12 @@ window.TriggerTypes = {
         { value: 'has_items', label: '🎒 Has all items', group: 'item' },
         { value: 'has_trait', label: '⭐ Has trait', group: 'character' },
         { value: 'has_tag', label: '🏷️ Has tag', group: 'tag' },
+        // task-390: sensory / faction conditions (shared condition tree).
+        { value: 'player_has_tag', label: '🏷️ Holds item with tag', group: 'character' },
+        { value: 'sight_holds', label: '👁 Sight: target holds tag', group: 'character' },
+        { value: 'smell_detected', label: '👃 Smell: tag detected', group: 'area' },
+        { value: 'sound_above', label: '🔊 Sound above threshold', group: 'general' },
+        { value: 'flag_equals', label: '🚩 Flag equals', group: 'character' },
         { value: 'state_equals', label: '🔧 Node state equals', group: 'general' },
         { value: 'random_chance', label: '🎲 Random chance (%)', group: 'general' },
         { value: 'skill_check', label: '🎯 Skill check', group: 'character' },

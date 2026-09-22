@@ -279,6 +279,27 @@ class BehaviorMixin:
                         player.flags[key] = value
                         outputs.append(f"[{char_name}] flag set: {key} = {value}")
 
+                elif action_type in ("add_tag", "remove_tag"):
+                    # task-390: tag-based faction logic (e.g. a guard marks the
+                    # intruder hostile before attacking). Target self/npc or a
+                    # named character.
+                    tag = str(action.get("tag") or action.get("value") or "").strip()
+                    target = str(action.get("target", "self") or "self").strip()
+                    obj = player if target in ("", "self", "npc", char_name) else game_state.players.get(target)
+                    if tag and obj is not None:
+                        tags = getattr(obj, "tags", None)
+                        if not isinstance(tags, list):
+                            tags = [t.strip() for t in str(tags or "").split(",") if t.strip()]
+                            obj.tags = tags
+                        if action_type == "add_tag":
+                            if tag not in tags:
+                                tags.append(tag)
+                            outputs.append(f"[{char_name}] gains tag '{tag}'.")
+                        else:
+                            if tag in tags:
+                                tags.remove(tag)
+                            outputs.append(f"[{char_name}] loses tag '{tag}'.")
+
                 elif action_type == "hide_in":
                     target_id = action.get("target", "")
                     target_node = game_state.graph.get_node(target_id)
@@ -1061,6 +1082,16 @@ class BehaviorMixin:
                         outputs.append(f"[{char_name}] attempts to {action_type} {target_name}, but this world isn't mature.")
 
                 # ── Ghost ───────────────────────────────────────────────
+                elif action_type == "manifest":
+                    # task-309: a ghost becomes seen (and therefore targetable).
+                    # Visibility is a state, independent of mundane `hidden`.
+                    player.manifested = True
+                    outputs.append(f"[{char_name}] becomes visible.")
+
+                elif action_type == "vanish":
+                    player.manifested = False
+                    outputs.append(f"[{char_name}] fades from sight.")
+
                 elif action_type == "possess":
                     target_name = action.get("target", "")
                     if target_name:
