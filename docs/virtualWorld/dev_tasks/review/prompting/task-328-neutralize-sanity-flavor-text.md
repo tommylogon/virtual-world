@@ -1,7 +1,7 @@
 ---
 id: 328
 title: Neutralize Sanity Flavor Text (De-Horror, De-Madness)
-status: todo
+status: review
 priority: high
 created: 2026-08-23
 tags: [prompting, vitals, sanity, copy]

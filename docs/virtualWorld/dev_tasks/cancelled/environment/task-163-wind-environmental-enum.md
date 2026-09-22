@@ -1,7 +1,7 @@
 ---
 id: 163
 title: Wind as an Environmental Enum
-status: todo
+status: cancelled
 priority: low
 created: 2026-08-02
 tags: [environment, temperature, weather, propagation]

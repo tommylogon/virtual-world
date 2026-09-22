@@ -1,7 +1,7 @@
 ---
 id: 168
 title: Test Triggers in the Editor (Run Button)
-status: review
+status: done
 priority: medium
 created: 2026-08-02
 updated: 2026-08-05

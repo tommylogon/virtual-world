@@ -1,7 +1,7 @@
 ---
 id: 327
 title: Context-Aware Vitals Threshold Messages
-status: todo
+status: review
 priority: medium
 created: 2026-08-23
 tags: [prompting, agent-engine, vitals, ux]

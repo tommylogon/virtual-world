@@ -1,7 +1,7 @@
 ---
 group: Graph & Area UX
 type: task
-status: in_progress
+status: done
 area: ui
 priority: medium
 created: 2026-07-27

@@ -1,6 +1,6 @@
 ---
 type: task
-status: inprogress
+status: done
 area: triggers
 priority: high
 ---

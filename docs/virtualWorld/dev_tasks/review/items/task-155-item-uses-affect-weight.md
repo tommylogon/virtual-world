@@ -1,7 +1,7 @@
 ---
 id: 155
 title: Item Uses Affect Weight + Stackable Instances
-status: todo
+status: review
 priority: medium
 created: 2026-08-02
 tags: [items, weight, containers, realism, inventory, merging]
