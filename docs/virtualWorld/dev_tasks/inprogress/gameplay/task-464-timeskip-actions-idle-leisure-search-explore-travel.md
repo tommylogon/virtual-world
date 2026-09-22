@@ -249,6 +249,7 @@ get their normal consolidation.
 - [x] `POST /api/world/timeskip {intent, minutes|hours|turns, target, heading,
   watch_tags}` returning the summary; travel derives its span from the route.
 - [x] Frontend: "⏩ Wait / Timeskip…" menu item + dialog (intent, duration preset/custom, target, heading, watch tags) posts to the route, renders the summary and refreshes `worldState`.
+- [x] Concurrency: one skip at a time, and `/api/action`, `/api/turn/apply` and `/api/llm_respond` return 409 while a skip runs (`timeskip.is_running()`), so nothing interleaves with the skip's clock.
 - [ ] Progressive progress + Cancel while running (needs the job runner).
 - [ ] Long spans via a soak-runner-style job (the route caps at 1,440 min).
 - [ ] Leisure "buy from a vendor" and richer social behavior.

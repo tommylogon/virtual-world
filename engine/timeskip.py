@@ -74,6 +74,15 @@ class TimeskipResult:
         }
 
 
+def is_running() -> bool:
+    """True while a timeskip is advancing the world.
+
+    Mutating requests (action / turn / llm) should refuse rather than
+    interleave: a skip owns the clock for its span (task-464).
+    """
+    return _ACTIVE
+
+
 def advance(gs, minutes, *, intent="idle", target=None, watch_tags=(),
             heading=None, player=None) -> TimeskipResult:
     """Run a timeskip for the active character.

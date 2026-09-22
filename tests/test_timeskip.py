@@ -308,3 +308,15 @@ def test_timeskip_route_rejects_oversize():
     client = _client()
     resp = client.post("/api/world/timeskip", json={"intent": "idle", "minutes": 99999})
     assert resp.status_code == 400
+
+
+def test_mutating_routes_refuse_while_a_skip_runs():
+    client = _client()
+    timeskip._ACTIVE = True
+    try:
+        assert client.post("/api/action", json={"command": "look"}).status_code == 409
+        assert client.post("/api/turn/apply", json={}).status_code == 409
+        assert client.post("/api/llm_respond", json={}).status_code == 409
+    finally:
+        timeskip._ACTIVE = False
+    assert not timeskip.is_running()
