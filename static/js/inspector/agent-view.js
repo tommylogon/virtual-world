@@ -262,7 +262,7 @@ window.InspectorAgentView = (() => {
                 <h2 style="margin:0;font-size:16px;"><input type="text" value="${agentName}" onchange="ApiClient.updateCharacter('${agentName.replace(/'/g, "\\'")}',{name:this.value}).then(()=>worldState.fetch())" style="font-size:1em;background:transparent;border:1px solid var(--border);color:inherit;width:100%;"></h2>
                 ${nodeId ? `<div class="field" style="margin:1px 0 0;"><label style="font-size:9px;color:var(--text-muted);margin:0;">Node ID</label>
                     <div style="display:flex;gap:2px;align-items:center;">
-                        <input type="text" value="${escapedNodeId}" onchange="window.InspectorHelpers.renameNode('${escapedNodeId}',this.value)" style="font-size:10px;padding:1px 4px;background:transparent;border:1px solid transparent;color:var(--text-muted);width:100%;cursor:text;" title="Change node ID (lowercase, no spaces)">
+                        <input type="text" value="${escapedNodeId}" onchange="window.InspectorHelpers.renameNode('${escapedNodeId}',this.value)" style="font-size:10px;padding:1px 4px;background:transparent;border:1px solid transparent;color:var(--text-muted);flex:1;min-width:0;cursor:text;" title="Change node ID (lowercase, no spaces)">
                         <button class="btn btn-sm btn-ghost" onclick="InspectorHelpers.syncIdFromName('${escapedNodeId}','${agentName}')" title="Sync ID from name">🔄</button>
                     </div>
                 </div>` : ''}
