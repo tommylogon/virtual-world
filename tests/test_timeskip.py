@@ -394,6 +394,21 @@ def test_route_helpers_report_hop_duration():
     assert timeskip.route_hops(w, area, area) == 0
 
 
+class _ClockStub:
+    def __init__(self, minutes):
+        self._minutes = minutes
+
+    def total_game_minutes(self):
+        return self._minutes
+
+
+def test_minutes_until_named_times():
+    assert timeskip.minutes_until(_ClockStub(240), "dawn") == 120    # 04:00 -> 06:00
+    assert timeskip.minutes_until(_ClockStub(480), "dusk") == 600    # 08:00 -> 18:00
+    assert timeskip.minutes_until(_ClockStub(480), 6) == 1320        # next 06:00
+    assert timeskip.minutes_until(_ClockStub(0), "nope") is None
+
+
 # ───────────────────────── HTTP route ─────────────────────────────────────
 
 def _client():
@@ -433,6 +448,12 @@ def test_timeskip_route_rejects_unknown_intent():
 def test_timeskip_route_rejects_oversize():
     client = _client()
     resp = client.post("/api/world/timeskip", json={"intent": "idle", "minutes": 99999})
+    assert resp.status_code == 400
+
+
+def test_timeskip_route_rejects_unknown_until():
+    client = _client()
+    resp = client.post("/api/world/timeskip", json={"intent": "idle", "until": "tea"})
     assert resp.status_code == 400
 
 

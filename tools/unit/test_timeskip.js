@@ -40,3 +40,15 @@ test('timeskip watch tags split and trim', () => {
     assertEq(g.buildPayload({ intent: 'explore', customMinutes: 0, preset: '1h', tags: 'relic, treasure' }),
         { intent: 'explore', minutes: 60, watch_tags: ['relic', 'treasure'] });
 });
+
+test('timeskip until-dawn omits minutes and sends until', () => {
+    const g = window.Timeskip._internals;
+    assertEq(g.buildPayload({ intent: 'idle', customMinutes: 0, preset: 'until:dawn' }),
+        { intent: 'idle', until: 'dawn' });
+});
+
+test('timeskip an explicit duration beats an until preset', () => {
+    const g = window.Timeskip._internals;
+    assertEq(g.buildPayload({ intent: 'idle', customMinutes: 30, preset: 'until:dawn' }),
+        { intent: 'idle', minutes: 30 });
+});

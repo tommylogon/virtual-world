@@ -48,8 +48,12 @@ window.Timeskip = (() => {
         const payload = { intent: intent || 'idle' };
         const custom = Number(customMinutes) > 0 ? Math.round(Number(customMinutes)) : 0;
         const routedTravel = payload.intent === 'travel' && !!target && !custom;
+        const until = String(preset || '').indexOf('until:') === 0
+            ? String(preset).slice(6) : null;
         if (!routedTravel) {
-            payload.minutes = custom || presetMinutes(preset) || 120;
+            if (custom) payload.minutes = custom;
+            else if (until) payload.until = until;
+            else payload.minutes = presetMinutes(preset) || 120;
         }
         if (target) payload.target = target;
         if (heading) payload.heading = heading;

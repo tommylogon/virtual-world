@@ -237,6 +237,36 @@ def _busy(player) -> bool:
         getattr(player, "state", None) == "unconscious"
 
 
+#: Named times for an "until X" span (hour of day, 24h).
+UNTIL_HOURS = {
+    "dawn": 6, "morning": 8, "noon": 12, "dusk": 18, "night": 22, "midnight": 0,
+}
+
+
+def minutes_until(gs, when):
+    """Minutes from now until the next named time or hour, or None if unknown."""
+    if isinstance(when, str):
+        key = when.strip().lower()
+        if key in UNTIL_HOURS:
+            hour = UNTIL_HOURS[key]
+        else:
+            try:
+                hour = int(key)
+            except ValueError:
+                return None
+    else:
+        try:
+            hour = int(when)
+        except (TypeError, ValueError):
+            return None
+    try:
+        now = float(gs.total_game_minutes())
+    except Exception:
+        return None
+    target = (hour % 24) * 60
+    return int((target - (now % 1440)) % 1440)
+
+
 def _policy_step(gs, sim, player, intent, target, watch_tags, target_type, heading):
     """One minute of the standing-in policy. Returns a found node or None."""
     if intent == "idle":

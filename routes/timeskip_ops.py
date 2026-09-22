@@ -52,6 +52,11 @@ def handle_timeskip(app):
         if route is None:
             return jsonify({"error": f"No route to '{target}'"}), 400
         minutes = route
+    # "Until dawn/dusk/noon" derives the span from the world clock.
+    if minutes is None and data.get("until") is not None:
+        minutes = timeskip.minutes_until(world, data.get("until"))
+        if minutes is None:
+            return jsonify({"error": f"Unknown 'until' value '{data.get('until')}'"}), 400
     if minutes is None:
         return jsonify({"error": "Missing duration (minutes, hours or turns)"}), 400
 
