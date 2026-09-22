@@ -1,5 +1,5 @@
 /**
- * tools/unit/run.js — zero-dependency unit test runner for browser-global JS modules.
+ * tools/unit/run.cjs — zero-dependency unit test runner for browser-global JS modules.
  *
  * The sandbox's global object IS `window` (exactly like a browser classic
  * script), so modules written as `window.Foo = ...` resolve their bare
@@ -9,7 +9,7 @@
  *   test('name', () => { ... });
  *   assertEq(got, want, 'label');  assertTrue/assertFalse(v, 'label');
  *
- * Usage:  node tools/unit/run.js        (exit 0 = green, 1 = failures)
+ * Usage:  node tools/unit/run.cjs        (exit 0 = green, 1 = failures)
  */
 'use strict';
 
@@ -58,6 +58,7 @@ win.assertFalse = (value, label) => {
 
 // ── load production modules (browser-global style) ──
 load('static/js/shared/json-utils.js');
+load('static/js/shared/trigger-suggest-ai.js');
 load('static/js/agent/vital-thresholds.js');
 load('static/js/agent/action-normalizer.js');
 load('static/js/agent/response-parser.js');
