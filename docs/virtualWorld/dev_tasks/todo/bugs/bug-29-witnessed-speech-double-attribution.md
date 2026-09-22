@@ -1,6 +1,8 @@
 # Bug 29 — Same witnessed speech appears twice with different attributions
 
-**Status**: Todo — verify first; may be intentional lingering-ball behavior.
+**Status**: Todo — investigated 2026-09-22. The filed evidence does **not** show
+duplication (the two lines are different utterances), so this is most likely a
+false alarm. Keep open only pending a repro that pins a single event id twice.
 
 ## Found
 
@@ -24,6 +26,32 @@ a) Deliberate: an unanswered direct address lingers one extra turn so the ball
 b) Duplicate posting: the speech got recorded into both this-turn events and a
    "pending conversation" carry-over list.
 
+## Investigation — 2026-09-22 (code trace)
+
+`room-context.js` builds WITNESSED from two separate sources and dedupes them:
+
+- local `turn_events` (same area, other actors) → `witnessedLines`,
+- `player.recent_hearing` → `heardSpeech`, filtered by a `seenSpeechKeys` set
+  keyed `${speaker}|${text.toLowerCase()}` and a contains-match against local
+  narration (`room-context.js:603-693`).
+
+The two lines in the repro have **different text** ("...i like your whole chaos
+thing" vs "...you are really fun to hang out with, right?"), so they are two
+distinct utterances by the same speaker, not one event rendered twice. Different
+attribution per source (local event → `[the man]`; `recent_hearing` → `[Heard
+→ to you] a man's voice`) is expected behaviour.
+
+**Verdict:** the "double attribution" premise is unproven. To make this a real
+bug we need a repro where the *same* line (ideally same tick) appears under two
+attributions; the dedupe already keys on speaker+text, so the gap would be
+speaker-label instability (e.g. "the man" vs "jake halloway" vs "a man's voice"
+for one speaker), not duplicate posting.
+
+## Also noticed
+
+Line 1 shows the letter-scrambling corruption from bug-28's log
+("pleas edont", "cnormal"); same unexplained source, tracked there.
+
 ## Why investigate
 
 If (b), every directed-but-unanswered line double-charges prompt attention and
@@ -41,3 +69,4 @@ id or pin one attribution form for carried-over balls.
 
 Two-agent room: A says X to B; B's next TWO prompts contain exactly one entry
 for X each turn, attributed identically both times.
+

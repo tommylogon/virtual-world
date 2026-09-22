@@ -1,7 +1,13 @@
 # Bug 31 — Save-load filename path traversal + two adjacent hardening fixes
 
-**Status**: Todo — filed 2026-08-27 from code review. Local-only app, but these
-are ten-minute fixes that remove process-level footguns entirely.
+**Status**: Done — all three items verified resolved 2026-09-22 (fixed 2026-08-30).
+
+Verification (2026-09-22): `_safe_save_path` (`routes/saveload.py:52`) is used by
+load (`:334`), delete (`:349`) and rename (`:299`); `handle_get_state` returns a
+JSON 500 (`routes/action_handlers.py:141`); `app.run` gates debug on `VW_DEBUG`
+(`app.py:188`). Dev note answered: yes, before this fix a raw `..%2F..%2F`
+filename could have escaped the saves dir and let a caller delete files outside
+it; closed now.
 
 ## Found
 
