@@ -6606,6 +6606,7 @@
   },
   "mature_content": true,
   "narration_mode": "none",
+  "persist": true,
   "players": {
     "Arix": {
       "activity": null,
@@ -13006,6 +13007,5 @@
       "tick_created": 0,
       "title": "Wild Animals"
     }
-  ],
-  "persist": true
+  ]
 }

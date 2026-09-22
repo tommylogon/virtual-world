@@ -24,5 +24,7 @@
   "graph.physics_enabled": true,
   "graph.show_items": true,
   "graph.show_only_inhabited": false,
-  "memory.max_per_character": 0
+  "memory.max_per_character": 0,
+  "relationship.decay_per_day": 0.5,
+  "entertainment.novelty_recovery_minutes": 120
 }
