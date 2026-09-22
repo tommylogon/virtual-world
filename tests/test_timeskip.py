@@ -215,3 +215,75 @@ def test_duration_is_clamped(monkeypatch):
     res = timeskip.advance(w, 10 ** 9, intent="idle")
     assert res.ok
     assert res.elapsed_minutes <= 2
+
+
+# ───────────────────────── summary / memory ───────────────────────────────
+
+def test_skip_writes_exactly_one_memory():
+    w = _world()
+    hero = _safe(_hero(w))
+    before = len(getattr(hero, "memories", []) or [])
+    res = timeskip.advance(w, 4, intent="idle")
+    assert res.ok
+    memories = list(getattr(hero, "memories", []) or [])
+    assert len(memories) == before + 1
+    entry = memories[-1]
+    assert entry.get("source") == "timeskip"
+    assert "waited" in entry.get("text", "").lower()
+
+
+def test_no_memory_when_nothing_happened():
+    w = _world()
+    hero = _safe(_hero(w))
+    before = len(getattr(hero, "memories", []) or [])
+    timeskip.advance(w, 0, intent="idle")   # rejected: below minimum
+    assert len(getattr(hero, "memories", []) or []) == before
+
+
+# ───────────────────────── route planning ─────────────────────────────────
+
+def test_route_helpers_report_hop_duration():
+    w = _world()
+    hero = _safe(_hero(w))
+    area = hero.current_area
+    exits = w.build_exits_for_area(area, include_hidden=True) if area else {}
+    if not exits:
+        return  # fixture has no connected areas; nothing to measure
+    target = next(iter(exits.values()))["target"]
+    assert timeskip.route_hops(w, area, target) == 1
+    assert timeskip.travel_minutes(w, area, target) == timeskip.per_hop_minutes()
+    assert timeskip.route_hops(w, area, area) == 0
+
+
+# ───────────────────────── HTTP route ─────────────────────────────────────
+
+def _client():
+    from app import create_app
+    app = create_app({"TESTING": True})
+    hero = _safe(_hero(app.world))
+    try:
+        app.world.player_manager.set_active_player(hero.name)
+    except Exception:
+        pass
+    return app.test_client()
+
+
+def test_timeskip_route_runs_and_reports():
+    client = _client()
+    resp = client.post("/api/world/timeskip", json={"intent": "idle", "minutes": 2})
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["ok"] and data["elapsed_minutes"] == 2
+    assert data["clock_after"]
+
+
+def test_timeskip_route_rejects_unknown_intent():
+    client = _client()
+    resp = client.post("/api/world/timeskip", json={"intent": "dance", "minutes": 2})
+    assert resp.status_code == 400
+
+
+def test_timeskip_route_rejects_oversize():
+    client = _client()
+    resp = client.post("/api/world/timeskip", json={"intent": "idle", "minutes": 99999})
+    assert resp.status_code == 400

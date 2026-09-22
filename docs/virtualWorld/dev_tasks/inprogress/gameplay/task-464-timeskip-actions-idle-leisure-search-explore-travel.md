@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: inprogress
 area: gameplay
 priority: high
 ---
@@ -231,3 +231,28 @@ get their normal consolidation.
 - `engine/items/transfer_actions.py` — `steal_item` (the theft interrupt source).
 - `engine/soak_runner.py` / `tools/soak_sim.py` — the job + N-tick loop to mirror.
 - `routes/action_handlers.py:1129–1132` — the current `tick_turn()` call site.
+
+## Progress 2026-09-22 — engine + HTTP slice landed (in progress)
+
+`engine/timeskip.py`, `engine/interrupts.py`, `routes/timeskip_ops.py`,
+`POST /api/world/timeskip` (registered in `routes/action.py`), 25 tests.
+
+- [x] `advance(gs, minutes, intent=...)` for all five intents, minute-resolved
+  regardless of `time_per_tick_minutes` (restored afterwards), one skip at a
+  time, no stasis (vitals decay; idle can kill).
+- [x] Interrupts via task-466: death / threat / vital crossing / involuntary /
+  discovery / arrival hand control back at the tick boundary.
+- [x] Policies ride the soak tier's own decisions (`BackgroundSimulation`),
+  so a skip does what the same character would do unattended; zero LLM calls.
+- [x] Exactly one bounded `source:"timeskip"` memory built from deterministic
+  templates (task-412 slice); trace entry with a `timeskip:<intent>` why-tag.
+- [x] `POST /api/world/timeskip {intent, minutes|hours|turns, target, heading,
+  watch_tags}` returning the summary; travel derives its span from the route.
+- [ ] Frontend: intent entry points + duration dialog + progress/Cancel.
+- [ ] Long spans via a soak-runner-style job (the route caps at 1,440 min).
+- [ ] Leisure "buy from a vendor" and richer social behavior.
+- [ ] Explore frontier preference tied to generation (task-398).
+
+## Verification
+
+Full suite: 60 failed / 3356 passed (same 60 pre-existing). `tests/test_timeskip.py` → 25 passed.

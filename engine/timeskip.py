@@ -20,9 +20,10 @@ boundary. Normal play keeps the scenario's turn length.
 from __future__ import annotations
 
 import logging
+from collections import deque
 from dataclasses import dataclass, field
 
-from engine.background_simulation import BackgroundSimulation
+from engine.background_simulation import BackgroundSimulation, TASK_MINUTES
 from engine import interrupts as interrupts_mod
 from engine.trace import record, summarize_window
 
@@ -175,6 +176,7 @@ def advance(gs, minutes, *, intent="idle", target=None, watch_tags=(),
     except Exception:
         result.clock_after = ""
     result.lines = summarize_window(who, since_tick=start_tick, limit=40)
+    _write_memory(gs, who, result, intent, target)
     return result
 
 
@@ -272,6 +274,68 @@ def _move_heading(gs, player, heading):
     return False
 
 
+# ───────────────────────────── route planning ─────────────────────────────
+
+def per_hop_minutes() -> int:
+    """How long one way-step takes, in game minutes (the travel task)."""
+    return int(TASK_MINUTES.get("travel", 1))
+
+
+def _canon_area(gs, area):
+    if area is None:
+        return None
+    try:
+        return str(gs.area_node_id(area) or area)
+    except Exception:
+        return str(area)
+
+
+def _area_name(gs, area_id):
+    node = gs.graph.get_node(area_id) if area_id else None
+    return getattr(node, "name", None) or area_id
+
+
+def route_hops(gs, from_area, to_area):
+    """Fewest way-steps between two areas, or None if unreachable.
+
+    Used to turn "travel to a known place" into a real duration instead of an
+    arbitrary turn count: `route_hops * per_hop_minutes()` is the span a skip
+    needs (task-467).
+    """
+    start = _canon_area(gs, from_area)
+    goal = _canon_area(gs, to_area)
+    if not start or not goal:
+        return None
+    if start == goal:
+        return 0
+    seen = {start}
+    queue = deque([(start, 0)])
+    while queue:
+        current, depth = queue.popleft()
+        name = _area_name(gs, current)
+        try:
+            exits = gs.build_exits_for_area(name, include_hidden=True) or {}
+        except Exception:
+            exits = {}
+        for exit_data in exits.values():
+            target = _canon_area(gs, exit_data.get("target"))
+            if not target or target in seen:
+                continue
+            if target == goal:
+                return depth + 1
+            seen.add(target)
+            queue.append((target, depth + 1))
+    return None
+
+
+def travel_minutes(gs, from_area, to_area):
+    """Route duration in in-game minutes, or None when unreachable."""
+    hops = route_hops(gs, from_area, to_area)
+    if hops is None:
+        return None
+    return hops * per_hop_minutes()
+
+
 def _move(gs, player, label):
     old_active = getattr(gs, "active_player", None)
     try:
@@ -302,3 +366,32 @@ def _stamp_trace(gs, player, result, intent, start_tick):
                salient=result.interrupted)
     except Exception as e:
         logger.warning("[timeskip] trace: %s", e)
+
+
+def _write_memory(gs, player, result, intent, target):
+    """Exactly one bounded memory for the skip, so the next prompt knows what
+    happened (and that vitals moved). Built from deterministic templates over
+    recorded facts — no LLM (task-412 slice)."""
+    if result.elapsed_minutes <= 0:
+        return
+    area = getattr(player, "current_area", "") or "somewhere"
+    minutes = result.elapsed_minutes
+    templates = {
+        "idle": f"You waited {minutes} min in {area}.",
+        "leisure": f"You spent {minutes} min mingling in {area}.",
+        "search": f"You searched {area} for {target or 'something'} for {minutes} min.",
+        "explore": f"You explored for {minutes} min and reached {area}.",
+        "travel": f"You travelled for {minutes} min to {area}.",
+    }
+    text = templates.get(intent, f"You passed {minutes} min in {area}.")
+    if result.interrupted and result.interrupt:
+        detail = str(result.interrupt.get("detail", "")).strip()
+        if detail:
+            text = f"{text} {detail}"
+    try:
+        player.add_memory(text[:300], tick=getattr(gs, "time_ticks", 0),
+                          importance=6 if result.interrupted else 3,
+                          memory_type="observation", tags=["timeskip"],
+                          source="timeskip", location=area)
+    except Exception as e:
+        logger.warning("[timeskip] memory: %s", e)

@@ -17,6 +17,7 @@ from .action_handlers import (
     handle_apply_turn_decay,
     handle_clear_turn_events,
 )
+from .timeskip_ops import handle_timeskip
 
 logger = logging.getLogger(__name__)
 
@@ -62,3 +63,7 @@ def register_action_routes(app):
     @app.route('/api/turn/clear', methods=['POST'])
     def clear_turn_events():
         return handle_clear_turn_events(app)
+
+    @app.route('/api/world/timeskip', methods=['POST'])
+    def world_timeskip():
+        return handle_timeskip(app)
