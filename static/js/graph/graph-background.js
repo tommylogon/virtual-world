@@ -551,9 +551,15 @@
     function _applyPositions() {
         const net = _network();
         if (!net || !state.positions) return;
+        // Only move nodes still present in the rendered DataSet — saved layouts
+        // and IndexedDB records outlive world refetches, projections and
+        // filtered views. vis-network LOGS (never throws) on an unknown id, so
+        // the try/catch below can't silence it; skip those ids here (bug-36).
+        const live = new Set(net.body?.data?.nodes?.getIds?.() || []);
         for (const id of Object.keys(state.positions)) {
             const pos = state.positions[id];
             if (!pos) continue;
+            if (!live.has(id)) continue;
             try { net.moveNode(id, pos.x, pos.y); } catch (e) { /* node gone */ }
         }
     }

@@ -218,12 +218,16 @@ window.GraphFocus = {
         if (!graphManager.network || !GraphFocus._clusterActive) return;
         const network = graphManager.network;
         if (GraphFocus._savedPositions) {
-            const moves = [];
+            // _savedPositions is a snapshot of every node present when the
+            // cluster formed; a projection change or world refetch can leave ids
+            // that are no longer rendered. moveNode logs (not throws) for those,
+            // so filter against the live DataSet first (bug-36).
+            const live = new Set(network.body?.data?.nodes?.getIds?.() || []);
             for (const id in GraphFocus._savedPositions) {
+                if (!live.has(id)) continue;
                 const p = GraphFocus._savedPositions[id];
-                moves.push({ id, x: p.x, y: p.y });
+                network.moveNode(id, p.x, p.y);
             }
-            for (const m of moves) network.moveNode(m.id, m.x, m.y);
         }
         if (GraphFocus._savedView) {
             try { network.moveTo({ position: GraphFocus._savedView.position, scale: GraphFocus._savedView.scale, animation: true }); } catch (e) { /* ignore */ }
