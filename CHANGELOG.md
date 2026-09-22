@@ -1049,6 +1049,10 @@ moonlight descriptions. **2633 passing**.
 - Task vault: 227/228/229/231/232/234/378/379/387 — all implemented in this session.
 - Full suite at **2633 passing**.
 
+---
+
+## 1.2.0 — "Craft & Carry" (2026-08-31)
+
 Items stopped being cardboard props. Uses, durability, weight, freshness, stacking, crafting,
 teaching, auto-dressing, gated shortcuts — and a pile of the item/gameplay todo queue landed in
 one pass, tested with **2615 passing**.

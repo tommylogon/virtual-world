@@ -3,11 +3,18 @@
 This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game engine for AI beings. This wiki documents every system, how it works, how it's wired, and where the code lives.
 
 > **Repo**: this vault lives inside the game repo, under `docs/virtualWorld/`.  
-> **Code conventions**: `AGENTS.md` is referenced by the project config but is not present in this checkout.  
+> **Code conventions**: [`AGENTS.md`](../../AGENTS.md) at the repo root - layout, commands, testing baseline, and known gotchas.  
 > **Design specs**: `docs/superpowers/specs/`  
 > **Code map**: `docs/design/js-module-index.md` — what each front-end module contributes (generated).
 
 ---
+
+## [[History|📜 History]]
+
+| Doc | What it covers |
+|-----|---------------|
+| [[History\|History]] | The whole lineage: the 2025 Aura/APSE origins, the 2026-02-21 monorepo reorg, the July 2026 build-out and modularization, the 2026-08-26 public split, and how to re-derive any of it from git |
+| [[Patch Notes 2026-08-22 to 2026-09-22\|Patch Notes]] | The last 30 days written to be shared cold: time as a timeframe, the background tier, the identity refactor, one copy of every truth, structures, and the bugs killed |
 
 ## [[Simulation Model|🧭 Core Model]]
 
@@ -108,6 +115,10 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 - **API health check**: `GET /api/health` → `{"status":"ok"}`
 - **API restart**: `GET /api/restart` — resets world from `world_template.json`
 - **Game root**: `http://127.0.0.1:4444`
-- **Tests**: `node ../tools/test_all.cjs` (requires running server)
+- **Run the app**: `python app.py`
+- **Tests**: `python -m pytest -q` — baseline is ~3,239 passing with ~60 known pre-existing failures (see `AGENTS.md`); targeted run: `python -m pytest tests/test_<name>.py -q`
+- **JS lint / typecheck**: `npm run lint` · `npm run typecheck`
+- **Export-log lint**: `node tools/log_lint.cjs data/exports/<log>.txt` (or `npm run loglint -- <path>`)
+- **Dev tasks**: `python tools/tasks.py list` · `python tools/tasks.py validate`
 
-*Last updated: 2026-08-27*
+*Last updated: 2026-09-22*
