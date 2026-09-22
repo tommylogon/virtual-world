@@ -43,6 +43,13 @@ class AgentEngine {
         this._abortController = null;
         // task-101 experimental simultaneous mode: per-character act countdowns
         this._simCountdowns = {};
+        // task-166: per-character startle tracking. `_startleSeen` remembers
+        // which hearing entries already startled a character (so a shout does
+        // not yelp on every line forever); `_startleCache` lets the speech and
+        // the emote of the same turn agree, and resets each turn.
+        this._startleSeen = {};
+        this._startleCache = {};
+        this._startleCacheTurn = -1;
     }
 
     getHistory(charName) {
@@ -59,6 +66,37 @@ class AgentEngine {
         const area = worldState.data?.players?.[charName]?.current_area;
         if (!area) return '';
         return `area_${area.toLowerCase().replace(/\s+/g, '_')}`;
+    }
+
+    /**
+     * task-166: did a NEW sudden loud sound just land on this character?
+     * Reads `recent_hearing` (task-248/306) for shout/scream entries the
+     * character has not been startled by yet. The result is cached for the
+     * turn so a character's speech and emote share one startle.
+     */
+    _detectStartle(charName, player) {
+        if (!charName) return false;
+        if (this._startleCacheTurn !== this.turnNumber) {
+            this._startleCache = {};
+            this._startleCacheTurn = this.turnNumber;
+        }
+        if (charName in this._startleCache) return this._startleCache[charName];
+        if (!this._startleSeen[charName]) this._startleSeen[charName] = new Set();
+        const seen = this._startleSeen[charName];
+        const hearing = player?.recent_hearing || [];
+        const live = new Set();
+        let startled = false;
+        for (const h of hearing) {
+            if (!h) continue;
+            const key = `${h.tick ?? ''}|${h.speaker ?? ''}|${h.text ?? ''}|${h.speech_level ?? ''}`;
+            live.add(key);
+            if (seen.has(key)) continue;
+            if (h.speech_level === 'shout' || h.speech_level === 'scream') startled = true;
+        }
+        // Keep only entries still in the live buffer so the set stays bounded.
+        this._startleSeen[charName] = live;
+        this._startleCache[charName] = startled;
+        return startled;
     }
 
     initializeTurnQueue() {
@@ -150,7 +188,9 @@ class AgentEngine {
         // task-166: involuntary interruptions (hiccups, stutters, coughs) —
         // flavor only, never replaces the intended line. Runs BEFORE the text
         // is sent so the room and event stream both see the injected moment.
-        const injected = window.Involuntary?.speech ? window.Involuntary.speech(speech, player) : null;
+        // A sudden loud sound this turn raises a yelp (startle).
+        const startled = this._detectStartle(charName, player);
+        const injected = window.Involuntary?.speech ? window.Involuntary.speech(speech, player, { startled }) : null;
         if (injected) speech = injected;
         // Directed whisper (task-248): "whisper to <name>: text" reaches only
         // the target; the rest of the room sees the gesture, not the words.
@@ -180,7 +220,8 @@ class AgentEngine {
         try {
             // task-166: involuntary emote tail (a hiccup, a yelp, a shiver).
             const player = worldState.players?.[charName];
-            const injected = window.Involuntary?.emote ? window.Involuntary.emote(emote, player) : null;
+            const startled = this._detectStartle(charName, player);
+            const injected = window.Involuntary?.emote ? window.Involuntary.emote(emote, player, { startled }) : null;
             if (injected) emote = injected;
             const emoteResult = await ApiClient.emote(charName, emote);
             if (emoteResult?.description) {

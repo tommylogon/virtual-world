@@ -181,6 +181,39 @@ _BANDS: dict[str, tuple[str, str, str]] = {
         "A deep calm settles over you.",
         "You feel pleasantly calm.",
     ),
+    # Bands for the dimensions derive_from_vitals() spikes (task-142): without
+    # these, a derived mood falls back to the generic "You feel <dim> with
+    # unusual intensity." phrasing, which reads like a debug string.
+    "lonely": (
+        "You are achingly lonely — the quiet is a weight you cannot put down.",
+        "Loneliness sits heavy in you.",
+        "You feel a small, persistent loneliness.",
+    ),
+    "craving": (
+        "A raw craving gnaws at you — you can think of little else.",
+        "You are craving something badly.",
+        "A dull craving tugs at the edge of your thoughts.",
+    ),
+    "anxious": (
+        "Anxious dread coils tight in your chest.",
+        "You feel anxious, braced for something to go wrong.",
+        "A thread of anxiety runs under everything.",
+    ),
+    "uneasy": (
+        "You cannot settle — something feels wrong.",
+        "You feel uneasy, on edge.",
+        "A faint unease prickles at you.",
+    ),
+    "irritated": (
+        "You are thoroughly irritated — everything grates.",
+        "Irritation simmers just under the surface.",
+        "You feel a little irritated.",
+    ),
+    "melancholic": (
+        "A deep melancholy has settled over you.",
+        "You feel melancholic, weighed down.",
+        "A quiet melancholy colors your mood.",
+    ),
 }
 
 
@@ -277,6 +310,10 @@ def derive_from_vitals(vitals: dict, state: str = "") -> dict | None:
             moves.append(("anxious", 18))
         if _low("Entertainment", 25):
             moves.append(("melancholic", 16))
+        if _low("Social", 25):
+            # task-353 makes Social a real gate; loneliness is an affect state,
+            # not just a behavioural flag, so it contributes to the derived mood.
+            moves.append(("lonely", 20))
         if _low("Sanity", 25):
             moves.append(("anxious", 24))
         if temp < 35:

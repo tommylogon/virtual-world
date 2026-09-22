@@ -12,16 +12,16 @@ test('describeVital returns empty for missing or healthy vitals', () => {
 
 test('describeVital Hunger drive: low=fed, high=starving', () => {
     assertEq(PB.describeVital({ Hunger: 5 }, 'Hunger'), '', 'well-fed');
-    assertEq(PB.describeVital({ Hunger: 30 }, 'Hunger'), 'You are hungry. Your stomach feels empty.', 'mild hunger');
-    assertEq(PB.describeVital({ Hunger: 60 }, 'Hunger'), 'You are very hungry. Your stomach growls loudly.', 'urgent hunger');
-    assertEq(PB.describeVital({ Hunger: 100 }, 'Hunger'), 'You are starving — your stomach is a hollow knot of pain.', 'starving');
+    assertEq(PB.describeVital({ Hunger: 30 }, 'Hunger'), 'You are hungry. FIND SOMETHING TO EAT NOW.', 'mild hunger');
+    assertEq(PB.describeVital({ Hunger: 60 }, 'Hunger'), 'You are very hungry and it is draining you. FIND SOMETHING TO EAT NOW.', 'urgent hunger');
+    assertEq(PB.describeVital({ Hunger: 100 }, 'Hunger'), 'You are STARVING — your body cannot hold you up. FIND SOMETHING TO EAT NOW.', 'starving');
 });
 
 test('describeVital Thirst drive: low=hydrated, high=deadly', () => {
     assertEq(PB.describeVital({ Thirst: 5 }, 'Thirst'), '', 'hydrated');
-    assertEq(PB.describeVital({ Thirst: 30 }, 'Thirst'), 'You are thirsty. Your throat feels dry.', 'mild thirst');
-    assertEq(PB.describeVital({ Thirst: 80 }, 'Thirst'), 'You are very thirsty. Your tongue sticks to the roof of your mouth.', 'urgent thirst');
-    assertEq(PB.describeVital({ Thirst: 100 }, 'Thirst'), 'You are dying of thirst — your throat is cracked and dry as ash.', 'dying');
+    assertEq(PB.describeVital({ Thirst: 30 }, 'Thirst'), 'You are thirsty. FIND SOMETHING TO DRINK NOW.', 'mild thirst');
+    assertEq(PB.describeVital({ Thirst: 80 }, 'Thirst'), 'You are very thirsty and it is draining you. FIND SOMETHING TO DRINK NOW.', 'urgent thirst');
+    assertEq(PB.describeVital({ Thirst: 100 }, 'Thirst'), 'You are DYING of thirst — your throat is cracked and dry. FIND SOMETHING TO DRINK NOW.', 'dying');
 });
 
 test('describeVital Bladder drive: low=relieved, high=bursting', () => {

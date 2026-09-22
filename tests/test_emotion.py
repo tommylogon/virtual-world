@@ -9,7 +9,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from player import Player
 from engine.emotion import (
-    BASELINES, describe, dominant, decay, felt_from_llm, normalize, spike,
+    BASELINES, describe, dominant, decay, derive_from_vitals, felt_from_llm,
+    normalize, spike,
 )
 
 
@@ -99,6 +100,115 @@ class TestDescribe:
         key, dev = dominant(values)
         assert key == "angry"
         assert dev == pytest.approx(72.0)
+
+
+class TestDeriveFromVitals:
+    """task-142: mood derived from physical state when nothing explicit is set."""
+
+    HEALTHY = {"Energy": 100, "Hunger": 0, "Thirst": 0, "Bladder": 0,
+               "Sanity": 100, "Social": 100, "Entertainment": 100,
+               "Temperature": 37.0, "HP": 100}
+
+    def _derived(self, **overrides):
+        vitals = {**self.HEALTHY, **overrides}
+        return derive_from_vitals(vitals, "awake")
+
+    def test_healthy_is_silent(self):
+        assert derive_from_vitals(self.HEALTHY, "awake") is None
+
+    def test_missing_vitals_is_silent(self):
+        assert derive_from_vitals(None, "awake") is None
+
+    def test_state_dead_is_calm(self):
+        derived = derive_from_vitals(self.HEALTHY, "dead")
+        assert derived is not None
+        assert "calm" in describe(derived)
+
+    def test_sleeping_and_unconscious_are_silent(self):
+        assert derive_from_vitals(self.HEALTHY, "sleeping") is None
+        assert derive_from_vitals(self.HEALTHY, "unconscious") is None
+
+    def test_starving_reads_as_craving(self):
+        derived = self._derived(Hunger=80)
+        assert derived["craving"] > BASELINES["craving"]
+        assert "craving" in describe(derived)
+
+    def test_dehydrated_reads_as_anxious(self):
+        derived = self._derived(Thirst=80)
+        assert derived["anxious"] > BASELINES["anxious"]
+        assert "anxi" in describe(derived)
+
+    def test_exhausted_reads_as_irritated(self):
+        derived = self._derived(Energy=10)
+        assert derived["irritated"] > BASELINES["irritated"]
+        assert "irritat" in describe(derived)
+
+    def test_cold_reads_as_uneasy(self):
+        derived = self._derived(Temperature=34.0)
+        assert derived["uneasy"] > BASELINES["uneasy"]
+        assert "unease" in describe(derived)
+
+    def test_overheated_reads_as_irritated(self):
+        derived = self._derived(Temperature=39.0)
+        assert derived["irritated"] > BASELINES["irritated"]
+
+    def test_injured_reads_as_afraid(self):
+        derived = self._derived(HP=40)
+        assert derived["afraid"] > BASELINES["afraid"]
+
+    def test_isolated_reads_as_lonely(self):
+        derived = self._derived(Social=10)
+        assert derived["lonely"] > BASELINES["lonely"]
+        assert "loneliness" in describe(derived)
+
+    def test_full_bladder_reads_as_irritated(self):
+        derived = self._derived(Bladder=80)
+        assert derived["irritated"] > BASELINES["irritated"]
+
+    def test_signals_combine(self):
+        derived = self._derived(Hunger=80, Energy=10)
+        assert derived["craving"] > BASELINES["craving"]
+        assert derived["irritated"] > BASELINES["irritated"]
+
+    def test_every_derived_mood_has_hand_written_bands(self):
+        # A derived dimension must never fall through to the generic
+        # "You feel <dim> with unusual intensity." debug phrasing.
+        derived_moods = [
+            self._derived(Hunger=80),
+            self._derived(Energy=10),
+            self._derived(Temperature=34.0),
+            self._derived(HP=40),
+            self._derived(Social=10),
+            derive_from_vitals(self.HEALTHY, "dead"),
+        ]
+        for derived in derived_moods:
+            text = describe(derived)
+            assert "unusual intensity" not in text
+            assert "strong sense of" not in text
+
+
+class TestEmotionDescriptionDerivation:
+    """Player.emotions_description(): explicit affects win, vitals fill silence."""
+
+    def _starving_player(self):
+        p = Player()
+        p.vitals["Hunger"] = 90
+        return p
+
+    def test_explicit_emotion_wins_over_vitals(self):
+        p = self._starving_player()
+        p.spike_emotion("happy", 40)
+        text = p.emotions_description()
+        assert "genuinely happy" in text
+        assert "craving" not in text
+
+    def test_vitals_fill_silence(self):
+        p = self._starving_player()
+        text = p.emotions_description()
+        assert "craving" in text
+
+    def test_healthy_neutral_is_empty(self):
+        assert Player().emotions_description() == ""
 
 
 class TestLLMFelt:
