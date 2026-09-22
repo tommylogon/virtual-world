@@ -433,11 +433,15 @@ window.HumanTurnComposer = (() => {
         const text = (input.value || '').trim();
         if (!text || !_charName) return;
         input.value = '';
+        // bug-33: attribute the aside to a card for this character so the
+        // interjection and its result don't float in the bare stream above the
+        // next turn card.
+        events.beginActorTurn(_charName);
         events.log(`💬 ${_charName} interjected (turn not used): "${text}"`, 'msg-action');
         try {
             const data = await ApiClient.action('say ' + text, _charName);
             if (data?.output) {
-                events.log(data.output, 'system-msg');
+                events.log(data.output, 'msg-result', { outcome: data?.success !== false ? 'success' : 'failure' });
             } else if (data?.error) {
                 events.log(`❌ ${data.error}`, 'error-msg');
             }

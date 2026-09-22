@@ -336,6 +336,10 @@ class AgentEngine {
      * pipeline. Returns the action's result text (for the react phase).
      */
     async _executeHumanReply(charName, player, reply) {
+        // bug-33: a human turn has no agent phase marker to open the card, so
+        // open it here before speech/emote rows are emitted — otherwise they
+        // land in the bare stream above the next `act` phase marker.
+        events.beginActorTurn(charName);
         if (reply.speech) {
             await this._speakLine(charName, player, reply.speech, reply.speechVolume, reply.target);
         }

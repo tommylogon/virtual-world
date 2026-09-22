@@ -144,6 +144,19 @@ class EventBus {
         streamEl.setAttribute('data-style', style);
     }
 
+    /**
+     * Open (or reuse) the turn card for a human-controlled actor so rows they
+     * emit directly through /api/action (speech, emotes, interjections) group
+     * under their character instead of landing in the bare stream (bug-33).
+     * Safe to call repeatedly within one turn — a card for the same actor is
+     * reused, and the next phase marker starts a fresh one.
+     */
+    beginActorTurn(charName) {
+        const streamEl = document.getElementById('event-stream');
+        if (!streamEl || !charName) return;
+        this._cards.bodyFor(charName, streamEl);
+    }
+
     /** Log a message to the event stream — uses styled bubbles.
      *  meta (optional): {outcome:'success'|'failure'|'minor'} for results.
      *  actor (optional): explicit owner for rows that would otherwise inherit
