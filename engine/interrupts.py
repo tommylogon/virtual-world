@@ -40,6 +40,9 @@ HOSTILE_CONDITIONS = frozenset({
     "bleeding", "poisoned", "frightened", "petrified", "suffocating",
 })
 
+#: Turn-event action labels that are inherently hostile to the receiver.
+HOSTILE_ACTIONS = frozenset({"attack", "steal", "grapple", "stab", "hit", "kill"})
+
 #: Markers in the log / turn events that mean a hostile act happened to us.
 #: The theft path (`engine/items/transfer_actions.py`) logs "[Steal] ..." and a
 #: "notices" line, so both are covered without special-casing that module.
@@ -82,6 +85,7 @@ def snapshot(gs, player) -> dict:
     te_len = len(getattr(logger, "turn_events", []) or []) if logger else 0
 
     return {
+        "name": getattr(player, "name", ""),
         "vitals": vitals,
         "conditions": conditions,
         "hp": vitals.get("HP"),
@@ -124,7 +128,7 @@ def evaluate(before: dict, after: dict, *, events=(), watch_tags=(),
         return reasons
 
     if _threat(after, events):
-        detail = _threat_detail(events) or "Someone turns on you."
+        detail = _threat_detail(after, events) or "Someone turns on you."
         reasons.append(Interrupt("threat", "threat:attack", detail, True))
 
     new_conditions = after.get("conditions", set()) - before.get("conditions", set())
@@ -149,21 +153,53 @@ def evaluate(before: dict, after: dict, *, events=(), watch_tags=(),
 
 # ───────────────────────────── checks ─────────────────────────────────────
 
+def _relevant_events(after, events):
+    """Events that actually concern *this* character.
+
+    Turn events carry an area and actor, so another room's fight is filtered
+    out. Global log lines have neither, so they only count when they name the
+    character (e.g. the theft line "... steal X from <name>").
+    """
+    name = str(after.get("name", "") or "").lower()
+    area = after.get("area")
+    out = []
+    for event in events or []:
+        if not isinstance(event, dict):
+            continue
+        actor = event.get("actor")
+        event_area = event.get("area")
+        if actor is not None or event_area is not None:
+            if event_area and area and event_area != area:
+                continue
+            if name and str(actor or "").lower() == name:
+                continue
+            out.append(event)
+            continue
+        text = str(event.get("description", "")).lower()
+        if name and name not in text:
+            continue
+        out.append(event)
+    return out
+
+
 def _threat(after, events) -> bool:
     if after.get("conditions", set()) & HOSTILE_CONDITIONS:
         return True
-    for event in events or []:
+    for event in _relevant_events(after, events):
+        if str(event.get("action", "")).lower() in HOSTILE_ACTIONS:
+            return True
         low = str(event.get("description", "")).lower()
         if any(marker in low for marker in THREAT_MARKERS):
             return True
     return False
 
 
-def _threat_detail(events) -> str:
-    for event in events or []:
+def _threat_detail(after, events) -> str:
+    for event in _relevant_events(after, events):
         text = str(event.get("description", ""))
         low = text.lower()
-        if any(marker in low for marker in THREAT_MARKERS):
+        if str(event.get("action", "")).lower() in HOSTILE_ACTIONS or \
+                any(marker in low for marker in THREAT_MARKERS):
             return text.strip()
     return ""
 

@@ -62,6 +62,28 @@ def test_interrupt_threat_from_event_marker():
     assert any(r.kind == "threat" for r in reasons)
 
 
+def test_threat_ignores_another_area():
+    events = [{"actor": "Goblin", "area": "Cave", "action": "attack",
+               "description": "Goblin attacks the guard"}]
+    here = _snap(name="Hero", area="Camp")
+    assert not iv.evaluate(here, here, events=events)
+
+
+def test_threat_fires_for_a_hostile_action_here():
+    events = [{"actor": "Goblin", "area": "Camp", "action": "attack",
+               "description": "Goblin attacks you"}]
+    here = _snap(name="Hero", area="Camp")
+    reasons = iv.evaluate(here, here, events=events)
+    assert any(r.kind == "threat" for r in reasons)
+
+
+def test_threat_ignores_own_events():
+    events = [{"actor": "Hero", "area": "Camp", "action": "attack",
+               "description": "Hero attacks the goblin"}]
+    here = _snap(name="Hero", area="Camp")
+    assert not iv.evaluate(here, here, events=events)
+
+
 def test_interrupt_hostile_condition():
     reasons = iv.evaluate(_snap(), _snap(conditions={"grappled"}))
     assert any(r.why == "condition:grappled" for r in reasons)
