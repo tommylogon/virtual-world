@@ -285,7 +285,6 @@ class NameMatching:
         """
         if not input_str:
             return None
-        input_lower = input_str.lower().strip()
         player_id = self.gs._player_node_id(self.gs.active_player)
         area_id = self.gs._get_current_area_id()
 
@@ -323,7 +322,34 @@ class NameMatching:
                     if node and node.type == "item" and node.properties.get("current_state") != "hidden":
                         if node.name not in item_names:
                             item_names.append(node.name)
-        if not item_names:
+        return self._match_item_name_from(input_str, item_names)
+
+    def match_item_name_in_inventory(self, input_str: str, owner_id: str) -> Optional[str]:
+        """Tiered item-name resolution scoped to one character's worn/held items.
+
+        Unlike ``_match_item_name`` this never considers area items, so give can
+        only resolve what the giver actually carries and steal only what the
+        victim wears/holds (bug-35). Carried + equipped are both scanned, so a
+        worn item can be handed over. Sets ``_fuzzy_match_note`` on a non-exact
+        match (surfaced as a system message by the action route).
+        """
+        if not input_str or not owner_id:
+            return None
+        item_names = []
+        for edge_type in (EDGE_CARRYING, EDGE_EQUIPPED):
+            for edge in self.graph.get_edges_for_target(owner_id, edge_type):
+                node = self.graph.get_node(edge.source)
+                if node and node.type == "item" and node.name not in item_names:
+                    item_names.append(node.name)
+        return self._match_item_name_from(input_str, item_names)
+
+    def _match_item_name_from(self, input_str: str, item_names: List[str]) -> Optional[str]:
+        """Run the exact → substring → alias/description → fuzzy tiers over a
+        prepared candidate-name list. Sets ``_fuzzy_match_note`` on non-exact."""
+        if not input_str or not item_names:
+            return None
+        input_lower = input_str.lower().strip()
+        if not input_lower:
             return None
 
         # 1. Exact match (case-insensitive)
@@ -413,6 +439,12 @@ class NameMatching:
 
     # ────────────────────── Character Name Matching ──────────────────────
 
+    def _player_display_name(self, key: str) -> str:
+        """Display name for a registry key (task-446: keys are identities, names
+        are display; a duplicate key like 'Jon__a1b2c3' still displays 'Jon')."""
+        player = self.gs.players.get(key)
+        return getattr(player, "name", key) if player else key
+
     def _match_character_name(
         self,
         input_str: str,
@@ -449,8 +481,10 @@ class NameMatching:
         if not same_area:
             return None, []
 
-        # 1. Exact name
-        exact = [p for p in same_area if p.lower() == input_lower]
+        # 1. Exact name (compared against the DISPLAY name so two characters
+        #    named "Jon" surface as ambiguous instead of silently picking the
+        #    first — task-446).
+        exact = [p for p in same_area if self._player_display_name(p).lower() == input_lower]
         if len(exact) == 1:
             return exact[0], []
         if len(exact) > 1:
@@ -459,14 +493,14 @@ class NameMatching:
         # 2. Word-boundary substring on the name
         name_matches = []
         for p in same_area:
-            nl = p.lower()
+            nl = self._player_display_name(p).lower()
             if re.search(r'(?<!\w)' + re.escape(input_lower) + r'(?!\w)', nl):
                 name_matches.append(p)
                 continue
             if re.search(r'(?<!\w)' + re.escape(nl) + r'(?!\w)', input_lower):
                 name_matches.append(p)
         if len(name_matches) == 1:
-            self._fuzzy_match_note = f"matched '{input_str}' as character '{name_matches[0]}' (name match)"
+            self._fuzzy_match_note = f"matched '{input_str}' as character '{self._player_display_name(name_matches[0])}' (name match)"
             return name_matches[0], []
         if len(name_matches) > 1:
             return None, name_matches
@@ -481,7 +515,7 @@ class NameMatching:
                     alias_matches.append(p)
                     break
         if len(alias_matches) == 1:
-            self._fuzzy_match_note = f"matched '{input_str}' as character '{alias_matches[0]}' (alias match)"
+            self._fuzzy_match_note = f"matched '{input_str}' as character '{self._player_display_name(alias_matches[0])}' (alias match)"
             return alias_matches[0], []
         if len(alias_matches) > 1:
             return None, alias_matches
@@ -524,11 +558,13 @@ class NameMatching:
             return None, label_matches
 
         # 3. Fuzzy name match (tight cutoff — only accept a clear single winner)
-        scored = difflib.get_close_matches(input_lower, [p.lower() for p in same_area], n=1, cutoff=0.6)
+        scored = difflib.get_close_matches(
+            input_lower, [self._player_display_name(p).lower() for p in same_area], n=1, cutoff=0.6
+        )
         if scored:
             for p in same_area:
-                if p.lower() == scored[0]:
-                    self._fuzzy_match_note = f"matched '{input_str}' as character '{p}' (fuzzy match)"
+                if self._player_display_name(p).lower() == scored[0]:
+                    self._fuzzy_match_note = f"matched '{input_str}' as character '{self._player_display_name(p)}' (fuzzy match)"
                     return p, []
 
         # 4. Description-word matching
@@ -554,7 +590,7 @@ class NameMatching:
                 top = [p for c, p in scored_players if c == best_count]
                 if len(top) == 1:
                     self._fuzzy_match_note = (
-                        f"matched '{input_str}' as character '{top[0]}' (by description)"
+                        f"matched '{input_str}' as character '{self._player_display_name(top[0])}' (by description)"
                     )
                     return top[0], []
                 return None, top
@@ -575,7 +611,7 @@ class NameMatching:
                         for w in distinctive
                     ):
                         self._fuzzy_match_note = (
-                            f"matched '{input_str}' as character '{top[0]}' (by description)"
+                            f"matched '{input_str}' as character '{self._player_display_name(top[0])}' (by description)"
                         )
                         return top[0], []
                 if len(top) > 1:

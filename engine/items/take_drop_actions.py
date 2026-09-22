@@ -177,7 +177,10 @@ class TakeDropActionsMixin:
         player_id = player_manager._player_node_id(player_manager.active_player)
         wanted = item_name.lower().replace('_', ' ').replace('-', ' ').strip()
         if wanted:
-            for held_edge_type in (EDGE_CARRYING, EDGE_EQUIPPED):
+            # Equipped first: a worn item can carry a stale CARRYING edge (desync
+            # or a duplicate instance), and "already wearing" is the truthful
+            # message then (bug-25).
+            for held_edge_type in (EDGE_EQUIPPED, EDGE_CARRYING):
                 for edge in self.graph.get_edges_for_target(player_id, held_edge_type):
                     node = self.graph.get_node(edge.source)
                     if not node or node.type != "item":

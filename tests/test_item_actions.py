@@ -132,6 +132,7 @@ def item_actions(graph, player_manager):
         side_effect=lambda iid, aid: is_reachable(graph, f"player_{player_manager.active_player}", aid, iid)
     )
     ia.matching._match_item_name = MagicMock(return_value=None)
+    ia.matching.match_item_name_in_inventory = MagicMock(return_value=None)
     ia.matching._match_character_name = MagicMock(return_value=(None, []))
     ia.matching.resolve_exit = MagicMock(return_value=(None, None, ""))
     ia.matching.way_handle = MagicMock(return_value="door")
@@ -306,6 +307,19 @@ class TestStealItem:
         assert "slip" in result
         assert any(e.source == item.id for e in graph.get_edges_for_target("player_Hero", EDGE_CARRYING))
         assert not any(e.source == item.id for e in graph.get_edges_for_target("player_Bandit", EDGE_EQUIPPED))
+
+    def test_steal_misspelled_item_resolves_via_tiered_matcher(self, graph, player_manager, item_actions):
+        """bug-35: a misspelled steal target resolves through the matcher rather
+        than failing with "doesn't have ... to steal"."""
+        item, bandit = self._setup_steal(graph)
+        player_manager.players["Bandit"] = bandit
+        item_actions.matching.match_item_name_in_inventory = MagicMock(return_value="gold_coin")
+
+        with patch("engine.items.transfer_actions.random.randint", return_value=10):
+            result = item_actions.steal_item(player_manager, "gold cion", "Bandit")
+
+        assert "slip" in result
+        assert any(e.source == item.id for e in graph.get_edges_for_target("player_Hero", EDGE_CARRYING))
 
 
 # ═══════════════ TASK 136: ITEM DISCOVERY ENTERTAINMENT ═══════════════
@@ -699,6 +713,48 @@ class TestGiveItem:
         with pytest.raises(ValueError, match="isn't in the same area"):
             item_actions.give_item(player_manager, "key", "Elsewhere")
 
+    def test_give_misspelled_item_resolves_via_tiered_matcher(self, graph, player_manager, item_actions):
+        """bug-35: 'jumptuit' resolves to the carried Jumpsuit instead of a bare
+        "You aren't carrying" failure."""
+        add_player(graph, "Hero")
+        add_player(graph, "Lyrie")
+        jumpsuit = add_item(graph, "Jumpsuit")
+        graph.add_edge(Edge(source=jumpsuit.id, target="player_Hero", type=EDGE_CARRYING))
+        lyrie = MagicMock()
+        lyrie.name = "Lyrie"
+        lyrie.current_area = "Test"
+        lyrie.state = "awake"
+        player_manager.players["Lyrie"] = lyrie
+        # The real matcher would resolve the misspelling and set a note; the
+        # mocked one returns the canonical name.
+        item_actions.matching.match_item_name_in_inventory = MagicMock(return_value="Jumpsuit")
+
+        result = item_actions.give_item(player_manager, "jumptuit", "Lyrie")
+
+        assert "Jumpsuit" in result
+        assert any(e.source == jumpsuit.id for e in graph.get_edges_for_target("player_Lyrie", EDGE_CARRYING))
+
+    def test_give_worn_item_transfers_and_unequips(self, graph, player_manager, item_actions):
+        """A worn (equipped) item can be handed over; the equipped stack clears."""
+        add_player(graph, "Hero")
+        add_player(graph, "Lyrie")
+        jumpsuit = add_item(graph, "Jumpsuit")
+        graph.add_edge(Edge(source=jumpsuit.id, target="player_Hero", type=EDGE_EQUIPPED,
+                            properties={"slot": "torso"}))
+        player_manager.player.equipped = {"torso": [jumpsuit.id]}
+        lyrie = MagicMock()
+        lyrie.name = "Lyrie"
+        lyrie.current_area = "Test"
+        lyrie.state = "awake"
+        player_manager.players["Lyrie"] = lyrie
+
+        result = item_actions.give_item(player_manager, "Jumpsuit", "Lyrie")
+
+        assert "Jumpsuit" in result
+        assert any(e.source == jumpsuit.id for e in graph.get_edges_for_target("player_Lyrie", EDGE_CARRYING))
+        assert not any(e.source == jumpsuit.id for e in graph.get_edges_for_target("player_Hero", EDGE_EQUIPPED))
+        assert jumpsuit.id not in player_manager.player.equipped.get("torso", [])
+
 
 class TestSpatialReachability:
     def test_item_on_surface_is_reachable(self, graph):
@@ -811,6 +867,18 @@ class TestTakeAlreadyHeld:
         add_player(graph, "Hero")
         ring = add_item(graph, "ring")
         graph.add_edge(Edge(source=ring.id, target="player_Hero", type=EDGE_EQUIPPED))
+
+        result = item_actions.take_item(player_manager, "ring")
+
+        assert "already wearing" in result.lower()
+
+    def test_take_worn_item_with_stale_carry_edge_prefers_wearing(self, graph, player_manager, item_actions):
+        """bug-25: a worn item can also carry a stale CARRYING edge (desync or a
+        duplicate instance); take must report the truthful worn state."""
+        add_player(graph, "Hero")
+        ring = add_item(graph, "ring")
+        graph.add_edge(Edge(source=ring.id, target="player_Hero", type=EDGE_EQUIPPED))
+        graph.add_edge(Edge(source=ring.id, target="player_Hero", type=EDGE_CARRYING))
 
         result = item_actions.take_item(player_manager, "ring")
 
