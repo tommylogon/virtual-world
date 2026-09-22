@@ -449,3 +449,65 @@ class TestLibrarySyncWarnings:
                                         "actions": ["examine", "take"], "light_level": "dim",
                                         "description": "a torch"}))
         assert not [i for i in validator.validate() if i["code"].startswith("library_")]
+
+
+class TestIgnoredIssues:
+    """task-393: dismiss-until-edited filtering (`ignored_issues` / `_ignored_at`).
+
+    A node's ``ignored_issues`` hides those codes; a later edit to the node
+    (``node.updated > _ignored_at``) expires the dismissal so the issue
+    resurfaces. Committed here because the task file claimed this behaviour was
+    verified by an ad-hoc run, with no test in the repo referencing either field.
+    """
+
+    @staticmethod
+    def _issue(code, node_id):
+        return {"code": code, "severity": "warning", "source_node_id": node_id}
+
+    def test_dismissed_code_is_hidden(self, graph, validator):
+        item = add_item(graph, node_id="item_candy_jar", name="candy jar")
+        item.updated = 100.0
+        item.properties["ignored_issues"] = ["empty_trigger"]
+        item.properties["_ignored_at"] = 100.0
+        assert validator._filter_ignored([self._issue("empty_trigger", item.id)]) == []
+
+    def test_dismissal_expires_when_the_node_is_edited_after_it(self, graph, validator):
+        item = add_item(graph, node_id="item_candy_jar", name="candy jar")
+        item.properties["ignored_issues"] = ["empty_trigger"]
+        item.properties["_ignored_at"] = 100.0
+        item.updated = 101.0  # touched after the dismissal → resurface
+        kept = validator._filter_ignored([self._issue("empty_trigger", item.id)])
+        assert len(kept) == 1
+
+    def test_a_different_code_still_reports(self, graph, validator):
+        item = add_item(graph, node_id="item_candy_jar", name="candy jar")
+        item.updated = 100.0
+        item.properties["ignored_issues"] = ["empty_trigger"]
+        item.properties["_ignored_at"] = 100.0
+        kept = validator._filter_ignored([self._issue("library_mismatch", item.id)])
+        assert len(kept) == 1
+
+    def test_issue_without_a_source_node_is_kept(self, graph, validator):
+        issue = {"code": "empty_trigger", "severity": "warning"}
+        assert validator._filter_ignored([issue]) == [issue]
+
+    def test_issue_for_a_missing_node_is_kept(self, graph, validator):
+        kept = validator._filter_ignored([self._issue("empty_trigger", "item_gone")])
+        assert len(kept) == 1
+
+    def test_malformed_ignored_at_is_treated_as_epoch(self, graph, validator):
+        item = add_item(graph, node_id="item_candy_jar", name="candy jar")
+        item.updated = 0.0
+        item.properties["ignored_issues"] = ["empty_trigger"]
+        item.properties["_ignored_at"] = "not-a-number"
+        assert validator._filter_ignored([self._issue("empty_trigger", item.id)]) == []
+
+    def test_validate_hides_a_dismissed_code_end_to_end(self, graph, validator):
+        item = add_item(graph, node_id="item_candy_jar", name="candy jar")
+        add_trigger(graph, item.id, "trigger_candy_1",
+                    {"trigger_type": "on_use", "effects": []})
+        assert "empty_trigger" in [i["code"] for i in validator.validate()]
+
+        item.properties["ignored_issues"] = ["empty_trigger"]
+        item.properties["_ignored_at"] = item.updated
+        assert "empty_trigger" not in [i["code"] for i in validator.validate()]
