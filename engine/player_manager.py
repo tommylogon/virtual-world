@@ -184,20 +184,52 @@ class PlayerManager:
 
     # ── Area Queries ─────────────────────────────────────────────────────
 
-    def is_undead_ghost(self, player_name: str) -> bool:
-        """task-309: an NPC character tagged ``ghost``/``undead`` is an
-        invisible walker — omitted from room listings and social presence,
-        immune to vital decay, and untargetable by normal attacks."""
+    def is_undead(self, player_name: str) -> bool:
+        """task-309 (5e-aligned): ``undead`` tag — not alive. Skips vitals and
+        physiological needs, but is fully corporeal (a zombie is *not* invisible
+        and *not* untargetable)."""
         p = self.players.get(player_name)
         if p is None:
             return False
-        tags = getattr(p, "tags", None) or []
-        return "ghost" in tags or "undead" in tags
+        return "undead" in (getattr(p, "tags", None) or [])
+
+    def is_incorporeal(self, player_name: str) -> bool:
+        """task-309 (5e-aligned): ``ghost`` tag — intangible. Phases through
+        ways, and is unseen until it manifests. Visibility is a separate state
+        (see ``is_visible``); intangibility does not by itself stop targeting."""
+        p = self.players.get(player_name)
+        if p is None:
+            return False
+        return "ghost" in (getattr(p, "tags", None) or [])
+
+    def is_undead_ghost(self, player_name: str) -> bool:
+        """task-309 compat alias: undead *or* incorporeal.
+
+        Prefer ``is_undead`` / ``is_incorporeal`` / ``is_visible`` at call sites
+        — this broad check is kept for callers that mean "spectral entity" (e.g.
+        skipping vitals or social reactions)."""
+        return self.is_undead(player_name) or self.is_incorporeal(player_name)
+
+    def is_visible(self, player_name: str) -> bool:
+        """Can this character be seen (listed in a room, targeted) right now?
+
+        Mundane hiding always hides. A ``ghost`` is unseen until manifested —
+        a plain `undead` (zombie) is not affected.
+        """
+        p = self.players.get(player_name)
+        if p is None:
+            return False
+        if getattr(p, "hidden", False):
+            return False
+        if self.is_incorporeal(player_name) and not getattr(p, "manifested", False):
+            return False
+        return True
 
     def get_players_in_area(self, area_name: str = None, include_ghosts: bool = False) -> List[dict]:
         """Get players in a area. Excludes the active player by default.
         When include_ghosts is False, dead players in ghost mode are omitted,
-        and so are invisible undead-ghost NPCs (task-309)."""
+        and so is anyone not currently visible — hidden characters and
+        unmanifested ghosts (task-309)."""
         target_area = area_name
         if not target_area:
             active = self.get_active_player_obj()
@@ -213,7 +245,7 @@ class PlayerManager:
             if player_obj.current_area == target_area:
                 if player_obj.state == "dead" and self.ghost_mode and not include_ghosts:
                     continue
-                if not include_ghosts and self.is_undead_ghost(player_name):
+                if not include_ghosts and not self.is_visible(player_name):
                     continue
                 players_here.append({
                     "name": player_name,

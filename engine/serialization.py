@@ -129,6 +129,7 @@ class WorldSerializer:
             "tags": getattr(p, 'tags', []),
             "flags": dict(getattr(p, 'flags', {})),
             "hidden": bool(getattr(p, 'hidden', False)),
+            "manifested": bool(getattr(p, 'manifested', False)),
             "known": list(getattr(p, 'known', []) or []),
             "crafting_known": list(getattr(p, 'crafting_known', []) or []),
             "discovered_exits": list(getattr(p, 'discovered_exits', []) or []),
@@ -280,6 +281,7 @@ class WorldSerializer:
         p.sync_vitals_with_tags()
         p.flags = dict(pdata.get("flags", {}))
         p.hidden = bool(pdata.get("hidden", False))
+        p.manifested = bool(pdata.get("manifested", False))
         p.known = list(pdata.get("known", []) or [])
         p.crafting_known = list(pdata.get("crafting_known", []) or [])
         p.discovered_exits = {

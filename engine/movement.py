@@ -469,12 +469,12 @@ class MovementSystem:
                 if kind == "go":
                     kind = "crawl"
 
-        # ── task-309: undead-ghost NPCs phase through ways — locked, blocked,
+        # ── task-309: incorporeal characters phase through ways — locked, blocked,
         # closed, one-way, item-gated, and skill-gated passage are all
         # meaningless to them.
         phasing = False
         try:
-            phasing = self.gs.player_manager.is_undead_ghost(self.gs.player_manager.active_player or "")
+            phasing = self.gs.player_manager.is_incorporeal(self.gs.player_manager.active_player or "")
         except Exception:
             phasing = False
 
@@ -513,11 +513,11 @@ class MovementSystem:
                     "Get back up with 'stand' before moving on. A cane or a guide would help."
                 )
 
-        # ── task-309: undead-ghost NPCs phase through ways — locked, blocked,
+        # ── task-309: incorporeal characters phase through ways — locked, blocked,
         # closed, one-way, and skill-gated passage are all meaningless to them.
         phasing = False
         try:
-            phasing = self.gs.player_manager.is_undead_ghost(self.gs.player_manager.active_player or "")
+            phasing = self.gs.player_manager.is_incorporeal(self.gs.player_manager.active_player or "")
         except Exception:
             phasing = False
         skill_check_msg = ""

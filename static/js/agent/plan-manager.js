@@ -95,9 +95,12 @@ window.PlanManager = (() => {
             // Butcher to "eat your food" first is a distraction from the
             // murder. Filter those needs out for horror/undead traits.
             const pTraits = player?.traits || {};
+            const pTags = Array.isArray(player?.tags) ? player.tags : [];
             const noPhysNeeds = pTraits.is_slasher === true
                 || pTraits.undead === true
-                || pTraits.no_physiological_needs === true;
+                || pTraits.no_physiological_needs === true
+                || pTags.includes('undead')
+                || pTags.includes('ghost');
             const filteredNeeds = noPhysNeeds
                 ? criticalNeedsList.filter(n => !/^hunger|thirst|sleep/i.test(n))
                 : criticalNeedsList;

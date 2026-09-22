@@ -125,12 +125,13 @@ class CombatSystem:
         if not attacker or not target:
             return ""
 
-        # task-309: invisible undead-ghost NPCs can't be hit by normal attacks —
-        # the weapon passes through cold, intangible air.
+        # task-309 (5e-aligned): you can only strike what you can see. An unseen
+        # target — mundane hidden, or an unmanifested ghost — can't be aimed at;
+        # a manifested ghost is solid and hittable like any other creature.
         try:
-            if self.skills.player_manager.is_undead_ghost(target.name):
+            if not self.skills.player_manager.is_visible(target.name):
                 return (f"{attacker_name} swings at {target_name} — and the blow passes "
-                        f"straight through without resistance. {target_name} does not even flinch.")
+                        f"straight through empty air. {target_name} is not there to hit.")
         except Exception:
             pass
 
