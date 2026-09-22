@@ -153,8 +153,8 @@ window.HelpCenter = (() => {
             event: 'data-help',
             match: d => d === 'simultaneous',
             group: 'Advanced',
-            title: '⚠️ Simultaneous Mode is experimental',
-            body: '<b>Requires Turn-Based Mode OFF</b> — the two conflict (simultaneous ignores the turn queue entirely). With it on, every autonomous character acts on its own countdown: <b>Social</b> speeds it up, exhaustion and patient/sprinter traits shift it. The human does not auto-act — you play manually while NPCs run on their own cadence. Expect chaos, overlapping drama, and happy accidents.',
+            title: '⚠️ The simultaneous turn modes are experimental',
+            body: '<b>Sequential</b> / <b>Random</b> / <b>Initiative</b> walk the turn queue in that order (Turn-Based Mode). <b>Simultaneous</b> ignores the queue entirely: every autonomous character acts on its own countdown — <b>Social</b> speeds it up, exhaustion and patient/sprinter traits shift it. <b>Simultaneous per room</b> applies that per area: rooms resolve independently, while characters inside a room still act in order. The human never auto-acts — you play manually while NPCs run on their own cadence. Expect chaos, overlapping drama, and happy accidents.',
         },
         {
             id: 'autodress',

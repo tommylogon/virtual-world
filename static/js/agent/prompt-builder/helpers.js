@@ -110,10 +110,11 @@ window.PromptBuilder = window.PromptBuilder || {};
         if (worldState.hasMet(charName, targetName)) return true;
         const viewer = worldState.data?.players?.[charName];
         const known = new Set((viewer?.known || []).map(String));
+        const knownLower = new Set([...known].map(value => value.toLowerCase()));
         const targetSlug = String(targetName || '').toLowerCase().replace(/\s+/g, '_');
-        return known.has(String(targetName || ''))
-            || known.has('player_' + targetSlug)
-            || known.has('character_' + targetSlug);
+        return knownLower.has(String(targetName || '').toLowerCase())
+            || knownLower.has('player_' + targetSlug)
+            || knownLower.has('character_' + targetSlug);
     }
 
     /**

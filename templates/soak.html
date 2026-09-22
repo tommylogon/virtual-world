@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soak Lab — VirtualWorld</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/soak.css">
+</head>
+<body class="soak-body" data-app-version="{{ app_version or '' }}">
+
+<header class="soak-topbar">
+    <div class="soak-brand">
+        <span class="soak-brand-icon">🧪</span>
+        <span class="soak-brand-title">Soak Lab</span>
+        <span class="soak-brand-sub">long-horizon experiments</span>
+    </div>
+    <div class="soak-topbar-center">
+        <span id="soak-active-chip" class="soak-chip soak-chip-idle">idle</span>
+        <span id="soak-scenario-chip" class="soak-chip soak-chip-muted">—</span>
+    </div>
+    <div class="soak-top-actions">
+        <button type="button" id="soak-poll-pause" class="soak-btn soak-btn-ghost" title="Pause live updates (space)">⏸ Pause</button>
+        <button type="button" id="soak-refresh" class="soak-btn soak-btn-ghost" title="Refresh runs (r)">⟳ Refresh</button>
+        <a class="soak-btn soak-btn-ghost" href="/" title="Back to the world editor">← Editor</a>
+    </div>
+</header>
+
+<main class="soak-layout">
+    <!-- ───────── sidebar ───────── -->
+    <aside class="soak-sidebar">
+        <section class="soak-panel">
+            <h2 class="soak-panel-title">New run</h2>
+            <form id="soak-form" novalidate>
+                <div class="soak-field">
+                    <label for="soak-scenario">Scenario</label>
+                    <select id="soak-scenario"></select>
+                </div>
+                <div class="soak-grid-2">
+                    <div class="soak-field">
+                        <label for="soak-ticks">Ticks</label>
+                        <input type="number" id="soak-ticks" min="1" step="1">
+                    </div>
+                    <div class="soak-field">
+                        <label for="soak-minutes" title="Blank = use the scenario's time_per_tick_minutes">Minutes / tick</label>
+                        <input type="number" id="soak-minutes" min="0.1" step="0.1" placeholder="scenario">
+                    </div>
+                </div>
+                <div class="soak-horizon-row">
+                    <span class="soak-hint">Horizon:</span>
+                    <button type="button" class="soak-chipbtn" data-days="1">1 day</button>
+                    <button type="button" class="soak-chipbtn" data-days="7">1 week</button>
+                    <button type="button" class="soak-chipbtn" data-days="30">1 month</button>
+                    <span id="soak-horizon" class="soak-hint">—</span>
+                </div>
+                <div class="soak-grid-2">
+                    <div class="soak-field">
+                        <label for="soak-seed">Seed</label>
+                        <input type="number" id="soak-seed" step="1">
+                    </div>
+                    <div class="soak-field">
+                        <label for="soak-sample-every" title="0 = automatic (~500 samples over the run)">Sample every</label>
+                        <input type="number" id="soak-sample-every" min="0" step="1">
+                    </div>
+                </div>
+                <div class="soak-field">
+                    <label for="soak-label">Label <span class="soak-optional">(optional)</span></label>
+                    <input type="text" id="soak-label" placeholder="e.g. goblin camp, neutral, week 1">
+                </div>
+
+                <fieldset class="soak-fieldset">
+                    <legend>Options</legend>
+                    <label class="soak-check"><input type="checkbox" id="soak-engine-decay"> <span>Engine decay <em>drop baked rates</em></span></label>
+                    <label class="soak-check"><input type="checkbox" id="soak-neutral"> <span>Neutral environment <em>20C/fresh/quiet</em></span></label>
+                    <label class="soak-check"><input type="checkbox" id="soak-background-all"> <span>All background <em>deterministic, fast</em></span></label>
+                    <label class="soak-check"><input type="checkbox" id="soak-mature"> <span>Mature systems <em>arousal vitals</em></span></label>
+                    <label class="soak-check"><input type="checkbox" id="soak-debug-hp"> <span>Debug HP drops <em>verbose event log</em></span></label>
+                    <label class="soak-check"><input type="checkbox" id="soak-track-characters"> <span>Record per-character series <em>enables drill-down</em></span></label>
+                </fieldset>
+
+                <details class="soak-details">
+                    <summary>Advanced overrides</summary>
+                    <div class="soak-field">
+                        <label for="soak-overrides">Decay overrides <code>Energy=0,Thirst=0</code></label>
+                        <input type="text" id="soak-overrides" placeholder="Energy=0,Thirst=0">
+                    </div>
+                    <div class="soak-field">
+                        <label for="soak-set">Starting vitals <code>Hunger=0,Thirst=0</code></label>
+                        <input type="text" id="soak-set" placeholder="Hunger=99,Thirst=99">
+                    </div>
+                    <div class="soak-field">
+                        <label for="soak-traits">Traits by tag <code>goblin=high_metabolism</code></label>
+                        <input type="text" id="soak-traits" placeholder="goblin=high_metabolism">
+                    </div>
+                    <div class="soak-field">
+                        <label>Tracked vitals <span class="soak-optional">(per-character charts)</span></label>
+                        <div id="soak-track-vitals" class="soak-chips"></div>
+                    </div>
+                </details>
+
+                <div id="soak-form-error" class="soak-form-error" hidden></div>
+                <div class="soak-form-actions">
+                    <button type="submit" id="soak-start" class="soak-btn soak-btn-primary">▶ Start soak</button>
+                    <button type="button" id="soak-stop" class="soak-btn soak-btn-danger" disabled>■ Stop</button>
+                </div>
+                <div class="soak-hint soak-hint-small">Ctrl+Enter starts · Esc stops · Python: <code>tools/soak_sim.py</code></div>
+            </form>
+        </section>
+
+        <section class="soak-panel">
+            <h2 class="soak-panel-title">Presets</h2>
+            <div id="soak-presets" class="soak-preset-list"></div>
+        </section>
+
+        <section class="soak-panel">
+            <h2 class="soak-panel-title">Saved configs</h2>
+            <div id="soak-saved" class="soak-saved-list"></div>
+            <div class="soak-save-row">
+                <input type="text" id="soak-saved-name" placeholder="name this config…">
+                <button type="button" id="soak-save-config" class="soak-btn soak-btn-ghost" title="Save the current parameters">💾</button>
+            </div>
+        </section>
+
+        <section class="soak-panel">
+            <h2 class="soak-panel-title">Runs <span id="soak-run-count" class="soak-count">0</span></h2>
+            <div id="soak-run-list" class="soak-run-list"></div>
+        </section>
+    </aside>
+
+    <!-- ───────── main ───────── -->
+    <section class="soak-main">
+        <div id="soak-empty" class="soak-empty">
+            <div class="soak-empty-icon">🧪</div>
+            <h1>No run selected</h1>
+            <p>Pick a scenario and horizon on the left, then <strong>Start soak</strong>. Progress streams here live — charts, deaths, growth and exports.</p>
+            <p class="soak-hint">New here? Try the <strong>Neutral environment</strong> preset for a clean week-long run, or <strong>One game week</strong> for a horizon quick-pick.</p>
+        </div>
+
+        <div id="soak-dashboard" hidden>
+            <!-- progress -->
+            <div class="soak-progress-card">
+                <div class="soak-progress-head">
+                    <div>
+                        <span id="soak-run-title" class="soak-run-title">—</span>
+                        <span id="soak-status-chip" class="soak-chip">queued</span>
+                    </div>
+                    <div class="soak-progress-actions">
+                        <span id="soak-progress-clock" class="soak-mono">—</span>
+                    </div>
+                </div>
+                <div class="soak-progress-track"><div id="soak-progress-fill" class="soak-progress-fill"></div></div>
+                <div class="soak-progress-meta">
+                    <span id="soak-progress-pct" class="soak-stat-strong">0%</span>
+                    <span id="soak-progress-tick" class="soak-mono">tick 0 / 0</span>
+                    <span id="soak-progress-gamespan" class="soak-mono">0d00h00m</span>
+                </div>
+                <div class="soak-stat-grid">
+                    <div class="soak-stat"><span class="soak-stat-label">Rate</span><span id="soak-progress-rate" class="soak-stat-value">—</span><span id="soak-progress-rate-now" class="soak-stat-sub">—</span></div>
+                    <div class="soak-stat"><span class="soak-stat-label">Elapsed</span><span id="soak-progress-elapsed" class="soak-stat-value">—</span></div>
+                    <div class="soak-stat"><span class="soak-stat-label">ETA</span><span id="soak-progress-eta" class="soak-stat-value">—</span></div>
+                    <div class="soak-stat"><span class="soak-stat-label">Alive</span><span id="soak-progress-alive" class="soak-stat-value soak-green">—</span></div>
+                    <div class="soak-stat"><span class="soak-stat-label">Dead</span><span id="soak-progress-dead" class="soak-stat-value soak-red">—</span></div>
+                    <div class="soak-stat"><span class="soak-stat-label">Projected wall</span><span id="soak-progress-proj" class="soak-stat-value soak-proj">—</span><span class="soak-stat-sub">1d · 1w · 1mo</span></div>
+                </div>
+            </div>
+
+            <nav class="soak-tabs" role="tablist">
+                <button type="button" class="soak-tab active" data-tab="overview">Overview</button>
+                <button type="button" class="soak-tab" data-tab="vitals">Vitals</button>
+                <button type="button" class="soak-tab" data-tab="survival">Survival</button>
+                <button type="button" class="soak-tab" data-tab="growth">Growth</button>
+                <button type="button" class="soak-tab" data-tab="characters">Characters</button>
+                <button type="button" class="soak-tab" data-tab="events">Events</button>
+                <button type="button" class="soak-tab" data-tab="compare">Compare</button>
+                <button type="button" class="soak-tab" data-tab="export">Export</button>
+            </nav>
+
+            <div class="soak-panes">
+                <!-- OVERVIEW -->
+                <div class="soak-pane active" data-pane="overview">
+                    <div class="soak-card">
+                        <div class="soak-card-head"><h3>Vitals over time</h3>
+                            <span class="soak-hint">average across living characters</span></div>
+                        <div id="soak-overview-vitals" class="soak-chart-box"></div>
+                        <div id="soak-overview-vitals-legend" class="soak-legend"></div>
+                    </div>
+                    <div class="soak-row-2">
+                        <div class="soak-card">
+                            <div class="soak-card-head"><h3>Cause of death</h3></div>
+                            <div id="soak-overview-causes" class="soak-donut-box"></div>
+                            <div id="soak-overview-causes-legend" class="soak-legend soak-legend-stack"></div>
+                        </div>
+                        <div class="soak-card">
+                            <div class="soak-card-head"><h3>Deaths by area</h3></div>
+                            <div id="soak-overview-areas" class="soak-chart-box"></div>
+                        </div>
+                    </div>
+                    <div class="soak-card">
+                        <div class="soak-card-head"><h3>Vital drift</h3>
+                            <span class="soak-hint">first sample → latest sample (avg)</span></div>
+                        <div id="soak-overview-deltas" class="soak-delta-grid"></div>
+                    </div>
+                    <div id="soak-overview-alerts" class="soak-alerts"></div>
+                </div>
+
+                <!-- VITALS -->
+                <div class="soak-pane" data-pane="vitals">
+                    <div class="soak-card">
+                        <div class="soak-card-head"><h3>Vitals explorer</h3>
+                            <div class="soak-controls">
+                                <label>Value
+                                    <select id="soak-vital-mode">
+                                        <option value="avg">average</option>
+                                        <option value="min">min</option>
+                                        <option value="max">max</option>
+                                    </select>
+                                </label>
+                                <label class="soak-check-inline"><input type="checkbox" id="soak-vital-band" checked> min/max band</label>
+                                <label class="soak-check-inline"><input type="checkbox" id="soak-vital-pct"> % of start</label>
+                            </div>
+                        </div>
+                        <div id="soak-vital-metrics" class="soak-chips"></div>
+                        <div id="soak-vital-chart" class="soak-chart-box soak-chart-tall"></div>
+                    </div>
+                </div>
+
+                <!-- SURVIVAL -->
+                <div class="soak-pane" data-pane="survival">
+                    <div class="soak-row-2">
+                        <div class="soak-card">
+                            <div class="soak-card-head"><h3>Survival curve</h3>
+                                <span class="soak-hint">% of characters alive over game time</span></div>
+                            <div id="soak-survival-chart" class="soak-chart-box"></div>
+                        </div>
+                        <div class="soak-card">
+                            <div class="soak-card-head"><h3>Death times</h3>
+                                <span class="soak-hint">histogram of death ticks</span></div>
+                            <div id="soak-death-histogram" class="soak-chart-box"></div>
+                        </div>
+                    </div>
+                    <div class="soak-card">
+                        <div class="soak-card-head"><h3>Deaths <span id="soak-death-count" class="soak-count">0</span></h3>
+                            <input type="search" id="soak-death-search" class="soak-search" placeholder="filter by name / cause / area">
+                        </div>
+                        <div id="soak-deaths-table" class="soak-table-wrap"></div>
+                    </div>
+                </div>
+
+                <!-- GROWTH -->
+                <div class="soak-pane" data-pane="growth">
+                    <div class="soak-card">
+                        <div class="soak-card-head"><h3>World growth</h3>
+                            <div class="soak-controls">
+                                <label class="soak-check-inline"><input type="checkbox" id="soak-growth-log" checked> log scale</label>
+                            </div>
+                        </div>
+                        <div id="soak-growth-metrics" class="soak-chips"></div>
+                        <div id="soak-growth-chart" class="soak-chart-box soak-chart-tall"></div>
+                    </div>
+                    <div class="soak-row-2">
+                        <div class="soak-card">
+                            <div class="soak-card-head"><h3>Throughput</h3><span class="soak-hint">ticks per wall second</span></div>
+                            <div id="soak-throughput" class="soak-chart-box soak-chart-short"></div>
+                        </div>
+                        <div class="soak-card">
+                            <div class="soak-card-head"><h3>Growth totals</h3></div>
+                            <div id="soak-growth-table" class="soak-table-wrap"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CHARACTERS -->
+                <div class="soak-pane" data-pane="characters">
+                    <div class="soak-card">
+                        <div class="soak-card-head"><h3>Characters <span id="soak-char-count" class="soak-count">0</span></h3>
+                            <div class="soak-controls">
+                                <input type="search" id="soak-char-search" class="soak-search" placeholder="filter name / area / tag">
+                                <select id="soak-char-filter">
+                                    <option value="all">all</option>
+                                    <option value="alive">alive only</option>
+                                    <option value="dead">dead only</option>
+                                </select>
+                                <select id="soak-char-sort">
+                                    <option value="name">sort: name</option>
+                                    <option value="death">sort: death time</option>
+                                    <option value="hp">sort: HP</option>
+                                    <option value="hunger">sort: Hunger</option>
+                                    <option value="thirst">sort: Thirst</option>
+                                    <option value="energy">sort: Energy</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="soak-char-table" class="soak-table-wrap"></div>
+                    </div>
+                    <div id="soak-char-detail" class="soak-card" hidden>
+                        <div class="soak-card-head"><h3 id="soak-char-detail-title">Character</h3>
+                            <button type="button" id="soak-char-detail-close" class="soak-btn soak-btn-ghost soak-btn-sm">✕ Close</button></div>
+                        <div id="soak-char-detail-chart" class="soak-chart-box soak-chart-tall"></div>
+                        <div id="soak-char-detail-stats" class="soak-delta-grid"></div>
+                    </div>
+                </div>
+
+                <!-- EVENTS -->
+                <div class="soak-pane" data-pane="events">
+                    <div class="soak-card">
+                        <div class="soak-card-head"><h3>Live log <span id="soak-event-count" class="soak-count">0</span></h3>
+                            <div class="soak-controls">
+                                <input type="search" id="soak-event-search" class="soak-search" placeholder="filter text">
+                                <label class="soak-check-inline"><input type="checkbox" id="soak-event-autoscroll" checked> autoscroll</label>
+                            </div>
+                        </div>
+                        <div id="soak-event-kinds" class="soak-chips"></div>
+                        <div id="soak-events" class="soak-events"></div>
+                    </div>
+                </div>
+
+                <!-- COMPARE -->
+                <div class="soak-pane" data-pane="compare">
+                    <div class="soak-card">
+                        <div class="soak-card-head"><h3>Compare runs</h3>
+                            <div class="soak-controls">
+                                <label>Run A <select id="soak-compare-a"></select></label>
+                                <label>Run B <select id="soak-compare-b"></select></label>
+                                <label>Metric <select id="soak-compare-metric"></select></label>
+                                <button type="button" id="soak-compare-load" class="soak-btn soak-btn-primary soak-btn-sm">Compare</button>
+                            </div>
+                        </div>
+                        <div id="soak-compare-chart" class="soak-chart-box soak-chart-tall"></div>
+                        <div id="soak-compare-table" class="soak-table-wrap"></div>
+                    </div>
+                </div>
+
+                <!-- EXPORT -->
+                <div class="soak-pane" data-pane="export">
+                    <div class="soak-card">
+                        <div class="soak-card-head"><h3>Export data</h3></div>
+                        <div class="soak-export-grid">
+                            <button type="button" class="soak-btn soak-btn-ghost" data-export="report">⬇ Report (JSON)</button>
+                            <button type="button" class="soak-btn soak-btn-ghost" data-export="report-samples">⬇ Report + samples (JSON)</button>
+                            <button type="button" class="soak-btn soak-btn-ghost" data-export="samples">⬇ Samples (CSV)</button>
+                            <button type="button" class="soak-btn soak-btn-ghost" data-export="deaths">⬇ Deaths (CSV)</button>
+                            <button type="button" class="soak-btn soak-btn-ghost" data-export="characters">⬇ Characters (CSV)</button>
+                            <button type="button" class="soak-btn soak-btn-ghost" data-export="growth">⬇ Growth (CSV)</button>
+                        </div>
+                    </div>
+                    <div class="soak-card">
+                        <div class="soak-card-head"><h3>Reproduce in a terminal</h3>
+                            <button type="button" id="soak-copy-cli" class="soak-btn soak-btn-ghost soak-btn-sm">📋 Copy</button></div>
+                        <pre id="soak-cli" class="soak-pre"></pre>
+                    </div>
+                    <div class="soak-card">
+                        <div class="soak-card-head"><h3>Share this setup</h3>
+                            <button type="button" id="soak-copy-link" class="soak-btn soak-btn-ghost soak-btn-sm">🔗 Copy link</button></div>
+                        <p class="soak-hint">The link encodes the current parameters, so a reload or a teammate reopens the same experiment.</p>
+                    </div>
+                    <div class="soak-card">
+                        <div class="soak-card-head"><h3>Report preview</h3></div>
+                        <details class="soak-details"><summary>Show raw summary JSON</summary>
+                            <pre id="soak-json-preview" class="soak-pre soak-pre-scroll"></pre>
+                        </details>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div id="soak-toasts" class="soak-toasts"></div>
+
+<script src="/static/js/soak/soak-format.js"></script>
+<script src="/static/js/soak/soak-presets.js"></script>
+<script src="/static/js/soak/soak-api.js"></script>
+<script src="/static/js/soak/soak-charts.js"></script>
+<script src="/static/js/soak/soak-state.js"></script>
+<script src="/static/js/soak/soak-ui.js"></script>
+<script src="/static/js/soak/soak-app.js"></script>
+</body>
+</html>

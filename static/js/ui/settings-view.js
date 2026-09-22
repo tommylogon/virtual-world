@@ -66,7 +66,6 @@ window.SettingsView = (() => {
         // they rendered unchecked and the next save wrote them back as false.
         setChecked('agent-mature-content', config.matureContent);
         setChecked('agent-auto-retry-invalid', config.autoRetryInvalid);
-        setChecked('agent-simultaneous-mode', config.simultaneousMode);
         setChecked('agent-structured-output', config.structuredOutput);
         setChecked('agent-show-raw-llm', config.showRawLLM);
         setChecked('agent-end-of-turn-memory', config.endOfTurnMemory);
@@ -143,10 +142,6 @@ window.SettingsView = (() => {
         if (modelInput && config.model) {
             modelInput.value = config.model;
         }
-
-        // Turn settings visibility
-        var turnSettings = document.getElementById('turn-settings');
-        if (turnSettings) turnSettings.style.display = config.turnBased ? 'block' : 'none';
     }
 
     /**

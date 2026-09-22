@@ -14,6 +14,15 @@ import json
 import sys
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from engine.character_identity import (  # noqa: E402
+    collapse_character_identity,
+    canonical_character_node_id,
+)
+
 
 def load_json(path: Path):
     with open(path, "r", encoding="utf-8") as f:
@@ -83,6 +92,11 @@ def build_scenario_from_components(
             "knowledge": {},
             "world_events": [],
         }
+
+    # task-463: a seed scenario may still carry the authored character_<slug>
+    # node next to the runtime player_<Name> anchor. Collapse it here so the
+    # assembled file ships one node per character.
+    collapse_character_identity(scenario.get("graph") or {}, scenario.get("players") or {})
 
     nodes = scenario.setdefault("graph", {}).setdefault("nodes", {})
     edges = scenario.setdefault("graph", {}).setdefault("edges", [])
@@ -177,7 +191,7 @@ def build_scenario_from_components(
             for path in sorted(char_dir.glob("*.json")):
                 entry = load_json(path)
                 char_name = entry.get("name", path.stem)
-                char_id = f"character_{char_name.lower().replace(' ', '_').replace('-', '_')}"
+                char_id = canonical_character_node_id(char_name)
                 if char_id in nodes:
                     continue
                 area_candidates = [nid for nid in nodes if nodes[nid].get("type") == "area"]

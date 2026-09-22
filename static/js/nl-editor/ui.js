@@ -179,6 +179,19 @@ window.NLEditorUI = (() => {
             this.chatList.scrollTop = this.chatList.scrollHeight;
         }
 
+        /** Render the pre-Apply validation gate's findings (task-461). */
+        showValidationIssues(issues, blocked = false) {
+            if (!this.chatList || !issues || !issues.length) return;
+            const bubble = document.createElement('div');
+            bubble.style.cssText = 'align-self:flex-start;max-width:88%;background:rgba(210,153,34,0.12);border:1px solid #d29922;color:#d29922;padding:6px 10px;border-radius:8px;font-size:11px;line-height:1.5;white-space:pre-wrap;';
+            const shown = issues.slice(0, 8);
+            const lines = shown.map(i => `• op #${(i.index ?? 0) + 1}${i.type ? ` [${i.type}]` : ''}: ${i.message}`);
+            if (issues.length > shown.length) lines.push(`+${issues.length - shown.length} more`);
+            bubble.textContent = `${blocked ? '⛔ Apply blocked — fix these first:' : '⚠ Validation:'}\n${lines.join('\n')}`;
+            this.chatList.appendChild(bubble);
+            this.chatList.scrollTop = this.chatList.scrollHeight;
+        }
+
         appendToolEvent(name, result) {
             if (!this.chatList) return;
             const chip = document.createElement('div');
@@ -316,6 +329,23 @@ window.NLEditorUI = (() => {
 
             removeBtn.onclick = () => this.controller.staging.removeOp(op.id);
             row.appendChild(head);
+
+            // ── Property-level diff preview (task-461) ──
+            if (typeof NLEditorDiff !== 'undefined') {
+                let lines = [];
+                try {
+                    lines = NLEditorDiff.summaryLines(op, {
+                        nodes: (typeof worldState !== 'undefined' && worldState?.graph?.nodes) || {},
+                        creations: this.controller.staging.getStagedCreations(),
+                    });
+                } catch (e) { lines = []; }
+                if (lines.length) {
+                    const diffEl = document.createElement('div');
+                    diffEl.style.cssText = 'padding:0 6px 4px 24px;font-size:10px;color:var(--text-muted);line-height:1.5;white-space:pre-wrap;';
+                    diffEl.textContent = lines.join('\n');
+                    row.appendChild(diffEl);
+                }
+            }
 
             // ── Inline payload tweaker ──
             const editor = document.createElement('div');

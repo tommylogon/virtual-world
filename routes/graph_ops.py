@@ -279,10 +279,14 @@ def handle_update_node(app, node_id):
         return jsonify({"error": "Node not found"}), 404
 
     if 'properties' in data:
-        props = data['properties']
+        props = dict(data['properties'])
         if isinstance(props.get('actions'), (list, str)):
             props['actions'] = normalize_item_actions(props['actions'])
-        node.properties.update(props)
+        if node.type == 'character':
+            _merge_character_node_props(node, props)
+            _apply_character_node_props(app, node, props)
+        else:
+            node.properties = _merge_dict_props(node.properties, props)
     if 'name' in data:
         node.name = data['name']
     node.updated = time.time()
@@ -576,14 +580,209 @@ def handle_create_edge(app):
     return jsonify({"status": "success"})
 
 
+# ── Character node → live character sync ────────────────────────────────
+# A character's authoring record lives on its `character` graph node, but the
+# engine still drives a Player object. Mirror character-defining node fields
+# onto the live player so a node patch takes effect. Dict fields MERGE (adding
+# one trait must not drop the others); list fields replace.
+_CHARACTER_DICT_FIELDS = ('traits', 'stats', 'skills', 'vitals', 'decay_rates')
+_CHARACTER_LIST_FIELDS = ('tags', 'interest_tags')
+_CHARACTER_SCALAR_FIELDS = (
+    'personality', 'description', 'base_description', 'simple_npc', 'autonomy',
+    'npc_behavior', 'npc_action_interval', 'activity',
+)
+
+
+def _merge_character_node_props(node, props):
+    """Deep-merge a character node patch onto ``node.properties``.
+
+    Dict fields (traits, stats, vitals, ...) merge key-by-key so patching one
+    trait does not drop the others; everything else replaces as usual. Assigns
+    a NEW top-level dict rather than mutating in place: the undo snapshot holds
+    a reference to the old ``properties`` dict, so an in-place update would
+    corrupt the pre-edit snapshot."""
+    merged = dict(props)
+    for field in _CHARACTER_DICT_FIELDS:
+        incoming = props.get(field)
+        if isinstance(incoming, dict):
+            current = node.properties.get(field)
+            cur = dict(current) if isinstance(current, dict) else {}
+            cur.update(incoming)
+            merged[field] = cur
+    node.properties = {**node.properties, **merged}
+
+
+def _apply_character_node_props(app, node, props):
+    """Mirror a character node's authoring fields onto the live Player.
+
+    Returns True when a runtime player was found and updated; a no-op (False)
+    for a character node with no player yet (e.g. a freshly created node).
+    """
+    pm = getattr(app.world, 'player_manager', None)
+    if pm is None or not isinstance(props, dict):
+        return False
+    try:
+        key = pm.key_for_node_id(node.id)
+    except Exception:
+        key = None
+    key = key or node.name
+    player = pm.get_player(key) if key else None
+    if player is None:
+        return False
+
+    for field in _CHARACTER_DICT_FIELDS:
+        incoming = props.get(field)
+        if not isinstance(incoming, dict):
+            continue
+        current = getattr(player, field, None)
+        merged = dict(current) if isinstance(current, dict) else {}
+        merged.update(incoming)
+        setattr(player, field, merged)
+
+    for field in _CHARACTER_LIST_FIELDS:
+        if isinstance(props.get(field), (list, tuple)):
+            setattr(player, field, list(props[field]))
+
+    for field in _CHARACTER_SCALAR_FIELDS:
+        if field in props and not isinstance(props[field], (dict, list)):
+            setattr(player, field, props[field])
+
+    if 'tags' in props:
+        # The `magic` (and other) tags change vitals (see corrections memory).
+        try:
+            player.sync_vitals_with_tags()
+        except Exception:
+            pass
+
+    emo = props.get('emotion')
+    if isinstance(emo, dict):
+        player.emotion = str(emo.get('current') or getattr(player, 'emotion', 'neutral') or 'neutral')
+        try:
+            player.emotion_intensity = float(emo.get('intensity') or 0)
+        except (TypeError, ValueError):
+            player.emotion_intensity = 0.0
+
+    return True
+
+
 # ─────────────────────────── NL-Editor batch (task-387) ───────────────────────────
 
 _BATCH_PHASE = {
     'create_node': 0, 'spawn_library_item': 0, 'connect_areas': 0,
-    'update_node': 1, 'link_to_library': 1,
+    'update_node': 1, 'update_matching_nodes': 1, 'link_to_library': 1,
     'attach': 2, 'detach': 2,
     'delete_node': 3,
+    'library_upsert': 4, 'library_delete': 4,
 }
+
+
+def _merge_dict_props(existing, incoming):
+    """Fold a node patch in, merging dict-valued fields key-by-key.
+
+    Generic counterpart of ``_merge_character_node_props``: patching one key of
+    a dict field (an area's ``environment``, an item's nested config) must not
+    drop the others. Returns a NEW dict so an undo snapshot that references the
+    old ``properties`` object is not mutated through it.
+    """
+    merged = dict(existing)
+    for key, value in incoming.items():
+        current = merged.get(key)
+        if isinstance(value, dict) and isinstance(current, dict):
+            folded = dict(current)
+            folded.update(value)
+            merged[key] = folded
+        else:
+            merged[key] = value
+    return merged
+
+
+def _apply_node_patch(app, node, patch):
+    """Apply one ``update_node``-shaped patch to *node* (shared by batch ops)."""
+    patch = patch or {}
+    if patch.get('name'):
+        node.name = patch['name']
+    props = dict(patch.get('properties') or {})
+    # NL-editor agents hand over a FLAT property map ({description: ...});
+    # fold every non-reserved key into properties.
+    for k, v in patch.items():
+        if k in ('name', 'properties', 'id', 'type'):
+            continue
+        props[k] = v
+    if isinstance(props.get('actions'), (list, str)):
+        props['actions'] = normalize_item_actions(props['actions'])
+    if node.type == 'character':
+        _merge_character_node_props(node, props)
+        _apply_character_node_props(app, node, props)
+    else:
+        node.properties = _merge_dict_props(node.properties, props)
+    node.updated = time.time()
+    return {"status": "success"}
+
+
+def _node_has_tags(node, tags, require_all=True):
+    if not tags:
+        return True
+    node_tags = {str(t).lower() for t in ((node.properties or {}).get('tags') or [])}
+    wanted = {str(t).lower() for t in tags if t}
+    if not wanted:
+        return True
+    return wanted.issubset(node_tags) if require_all else bool(wanted & node_tags)
+
+
+def _select_nodes(graph, selector):
+    """Resolve a bulk selector to node objects, in deterministic id order.
+
+    Selector keys: ``kind``/``type``, ``tags``/``tag``,
+    ``require_all_tags`` (default true), ``area``/``area_id``,
+    ``name_contains``/``query``, and ``ids`` (an explicit list wins over the
+    filters — it is the reviewed affected-entity set).
+    """
+    selector = selector or {}
+    kind = str(selector.get('kind') or selector.get('type') or '').strip().lower()
+    name_contains = str(selector.get('name_contains') or selector.get('query') or '').strip().lower()
+    area = selector.get('area') or selector.get('area_id')
+    tags = list(selector.get('tags') or [])
+    if isinstance(selector.get('tag'), str):
+        tags.append(selector['tag'])
+    require_all = selector.get('require_all_tags', True)
+    explicit = selector.get('ids')
+
+    area_id = None
+    if area:
+        area_node = graph.get_node(area)
+        if area_node is None or area_node.type != 'area':
+            area_node = next(
+                (n for n in graph.nodes.values()
+                 if n.type == 'area' and str(n.name).lower() == str(area).lower()),
+                None,
+            )
+        if area_node is None:
+            return []
+        area_id = area_node.id
+
+    wanted = None
+    if explicit:
+        wanted = {str(i).lower() for i in explicit}
+
+    out = []
+    for nid in sorted(graph.nodes):
+        node = graph.nodes[nid]
+        if wanted is not None and nid.lower() not in wanted and str(node.id).lower() not in wanted:
+            continue
+        if kind and node.type != kind:
+            continue
+        if not _node_has_tags(node, tags, require_all):
+            continue
+        if name_contains and name_contains not in str(node.name or '').lower() and name_contains not in nid.lower():
+            continue
+        if area_id is not None:
+            if not any(
+                str(edge.target).lower() == area_id.lower()
+                for edge in graph.get_edges_for_source(node.id, EDGE_IN)
+            ):
+                continue
+        out.append(node)
+    return out
 
 
 def _apply_batch_op(app, optype, p):
@@ -665,27 +864,36 @@ def _apply_batch_op(app, optype, p):
         node = graph.get_node(p.get('node_id'))
         if not node:
             return {"error": f"Node '{p.get('node_id')}' not found"}
+        return _apply_node_patch(app, node, p.get('patch') or {})
+
+    if optype == 'update_matching_nodes':
         patch = p.get('patch') or {}
-        if 'name' in patch:
-            node.name = patch['name']
-        props = dict(patch.get('properties') or {})
-        # NL-editor agents hand over a FLAT property map ({description: ...});
-        # fold every non-reserved key into properties.
-        for k, v in patch.items():
-            if k in ('name', 'properties', 'id', 'type'):
-                continue
-            props[k] = v
-        if isinstance(props.get('actions'), (list, str)):
-            props['actions'] = normalize_item_actions(props['actions'])
-        node.properties.update(props)
-        node.updated = time.time()
-        return {"status": "success"}
+        if not patch:
+            return {"error": "update_matching_nodes needs a patch"}
+        selector = p.get('selector') or {}
+        # The reviewed affected list is authoritative when the editor supplied
+        # it; fall back to re-resolving the selector otherwise.
+        if p.get('matched_ids'):
+            selector = {**selector, 'ids': list(p['matched_ids'])}
+        targets = _select_nodes(graph, selector)
+        if not targets:
+            return {"error": "No nodes matched the selector", "matched": [], "updated": 0}
+        matched, failed = [], []
+        for node in targets:
+            try:
+                _apply_node_patch(app, node, patch)
+                matched.append(node.id)
+            except Exception as exc:
+                failed.append({"node_id": node.id, "error": str(exc)})
+        if failed and not matched:
+            return {"error": "Every matched node failed", "matched": [], "failed": failed}
+        return {"status": "success", "matched": matched, "updated": len(matched), "failed": failed}
 
     if optype == 'link_to_library':
         node = graph.get_node(p.get('node_id'))
         if not node:
             return {"error": f"Node '{p.get('node_id')}' not found"}
-        node.properties['template_id'] = p.get('library_id')
+        node.properties = {**node.properties, 'template_id': p.get('library_id')}
         node.updated = time.time()
         return {"status": "success"}
 
@@ -764,7 +972,71 @@ def _apply_batch_op(app, optype, p):
         graph.remove_node(node.id)
         return {"status": "success"}
 
+    if optype == 'library_upsert':
+        from routes.library_ops import write_library_entry, REGISTRY_TYPES
+        registry = p.get('registry_type') or p.get('registry')
+        entry_id = p.get('id')
+        entry = p.get('data') if isinstance(p.get('data'), dict) else p.get('entry')
+        if registry not in REGISTRY_TYPES:
+            return {"error": f"Unknown library registry '{registry}'"}
+        if not entry_id:
+            return {"error": "library_upsert needs 'id'"}
+        try:
+            warnings = write_library_entry(app, registry, entry_id, entry or {})
+        except ValueError as exc:
+            return {"error": str(exc)}
+        return {"status": "success", "registry_type": registry, "id": str(entry_id),
+                "warnings": warnings}
+
+    if optype == 'library_delete':
+        from routes.library_ops import delete_library_entry, REGISTRY_TYPES
+        registry = p.get('registry_type') or p.get('registry')
+        if registry not in REGISTRY_TYPES:
+            return {"error": f"Unknown library registry '{registry}'"}
+        if not p.get('id'):
+            return {"error": "library_delete needs 'id'"}
+        try:
+            existed = delete_library_entry(app, registry, p.get('id'))
+        except ValueError as exc:
+            return {"error": str(exc)}
+        if not existed:
+            return {"error": f"Library entry '{p.get('id')}' not found"}
+        return {"status": "success", "deleted": str(p.get('id'))}
+
     return {"error": f"Unknown op type '{optype}'"}
+
+
+def _validate_batch_ops(app, ops):
+    """Run the shared staged-op validator against the live world (task-461)."""
+    from engine.nl_editor_validation import validate_ops
+
+    try:
+        return validate_ops(
+            ops,
+            nodes=app.world.graph,
+            mature_content=bool(getattr(app.world, 'mature_content', False)),
+        )
+    except Exception as exc:  # validation must never break Apply
+        logger.warning("Batch validation failed: %s", exc)
+        return []
+
+
+def handle_graph_validate(app):
+    """Dry-run the staged-op validation for the editor's pre-Apply gate."""
+    from engine.nl_editor_validation import errors_only
+
+    data = request.get_json() or {}
+    ops = data.get('ops')
+    if not isinstance(ops, list):
+        return jsonify({"error": "ops must be an array"}), 400
+    validation = _validate_batch_ops(app, ops)
+    errors = errors_only(validation)
+    return jsonify({
+        "status": "invalid" if errors else "valid",
+        "validation": validation,
+        "error_count": len(errors),
+        "warning_count": len(validation) - len(errors),
+    })
 
 
 def handle_graph_batch(app):
@@ -780,6 +1052,20 @@ def handle_graph_batch(app):
     ops = data.get('ops')
     if not isinstance(ops, list) or not ops:
         return jsonify({"error": "ops must be a non-empty array"}), 400
+
+    # task-461: validate before touching anything. The editor opts into a hard
+    # gate with `strict_validation`; other callers get the issues as advisory
+    # data and keep the previous permissive behaviour.
+    validation = _validate_batch_ops(app, ops)
+    if data.get('strict_validation'):
+        from engine.nl_editor_validation import errors_only
+        blocking = errors_only(validation)
+        if blocking:
+            return jsonify({
+                "status": "invalid",
+                "validation": validation,
+                "errors": blocking,
+            }), 422
 
     # ONE pre-state snapshot for the whole batch (the after_request hook skips
     # this path), so a single Undo reverts the entire Apply.
@@ -813,6 +1099,7 @@ def handle_graph_batch(app):
         "status": "success" if ok else "partial",
         "applied": applied,
         "errors": errors,
+        "validation": validation,
     }), (200 if ok else 207)
 
 

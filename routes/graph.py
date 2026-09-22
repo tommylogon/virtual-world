@@ -21,6 +21,7 @@ from .graph_ops import (
     handle_delete_edge,
     handle_append_draft,
     handle_graph_batch,
+    handle_graph_validate,
     handle_upload_background_image,
     handle_save_background,
 )
@@ -116,3 +117,7 @@ def register_graph_routes(app):
     @app.route('/api/graph/batch', methods=['POST'])
     def graph_batch():
         return handle_graph_batch(app)
+
+    @app.route('/api/graph/batch/validate', methods=['POST'])
+    def graph_batch_validate():
+        return handle_graph_validate(app)

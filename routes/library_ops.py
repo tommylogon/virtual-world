@@ -260,32 +260,63 @@ def _strip_presentation_properties(entry):
     return entry
 
 
+def _entry_tag_warnings(app, entry):
+    raw_tags = entry.get('tags') if isinstance(entry, dict) else None
+    if isinstance(raw_tags, str):
+        raw_tags = [t.strip() for t in raw_tags.split(',') if t.strip()]
+    if isinstance(raw_tags, (list, tuple)):
+        try:
+            return validate_tags_on_save(list(raw_tags), app.config.get('DATA_DIR'))
+        except Exception as e:
+            return [f"Tag validation error: {e}"]
+    return []
+
+
+def write_library_entry(app, registry_type, entry_id, entry_data):
+    """Write one registry entry, shared by the HTTP route and the NL-editor batch.
+
+    Returns the tag warnings. Raises ``ValueError`` on invalid input so a batch
+    op can report it per op. ``save_registry`` never deletes, so this is an
+    upsert.
+    """
+    if registry_type not in REGISTRY_TYPES:
+        raise ValueError(f"Unknown registry type: {registry_type}")
+    if not entry_id or not str(entry_id).strip():
+        raise ValueError("Missing entry id")
+    if not isinstance(entry_data, dict):
+        raise ValueError("Entry data must be an object")
+    filename = f"{registry_type}.json"
+    registry = load_registry(app.config['DATA_DIR'], filename)
+    registry[str(entry_id)] = _strip_presentation_properties(entry_data)
+    save_registry(app.config['DATA_DIR'], filename, registry)
+    _reload_condition_catalog(registry_type)
+    return _entry_tag_warnings(app, registry.get(str(entry_id), {}))
+
+
+def delete_library_entry(app, registry_type, entry_id):
+    """Delete one registry entry. Returns True when it existed."""
+    if registry_type not in REGISTRY_TYPES:
+        raise ValueError(f"Unknown registry type: {registry_type}")
+    filename = f"{registry_type}.json"
+    registry = load_registry(app.config['DATA_DIR'], filename)
+    if str(entry_id) not in registry:
+        return False
+    delete_registry_entry(app.config['DATA_DIR'], filename, str(entry_id))
+    _reload_condition_catalog(registry_type)
+    return True
+
+
 def handle_library_create_or_update(app, registry_type):
     if registry_type not in REGISTRY_TYPES:
         return jsonify({"error": f"Unknown registry type: {registry_type}"}), 400
     data = request.get_json()
     if not data or 'id' not in data:
         return jsonify({"error": "Missing 'id' in payload"}), 400
-    filename = f"{registry_type}.json"
-    registry = load_registry(app.config['DATA_DIR'], filename)
-    if 'data' in data:
-        registry[data['id']] = _strip_presentation_properties(data['data'])
-    else:
-        entry_data = {k: v for k, v in data.items() if k != 'id'}
-        registry[data['id']] = _strip_presentation_properties(entry_data)
-    save_registry(app.config['DATA_DIR'], filename, registry)
-    _reload_condition_catalog(registry_type)
-
-    warnings = []
-    entry = registry.get(data['id'], {})
-    raw_tags = entry.get('tags')
-    if isinstance(raw_tags, str):
-        raw_tags = [t.strip() for t in raw_tags.split(',') if t.strip()]
-    if isinstance(raw_tags, (list, tuple)):
-        try:
-            warnings = validate_tags_on_save(list(raw_tags), app.config.get('DATA_DIR'))
-        except Exception as e:
-            warnings = [f"Tag validation error: {e}"]
+    entry_data = data['data'] if 'data' in data else {k: v for k, v in data.items() if k != 'id'}
+    try:
+        warnings = write_library_entry(app, registry_type, data['id'], entry_data)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
     return jsonify({"status": "success", "warnings": warnings})
 
 

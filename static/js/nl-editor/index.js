@@ -111,7 +111,12 @@ window.NLEditor = (() => {
         /** Apply staged mutations to live world */
         async apply() {
             const res = await this.staging.apply();
-            if (res.success) {
+            if (res.invalid) {
+                this.ui.showValidationIssues(res.validation || [], true);
+                if (typeof toastError === 'function') {
+                    toastError('Validation failed — nothing applied. Fix the flagged ops.');
+                }
+            } else if (res.success) {
                 if (typeof toastSuccess === 'function') {
                     toastSuccess(`Applied ${res.appliedCount} changes to world.`);
                 }
@@ -128,7 +133,12 @@ window.NLEditor = (() => {
         /** Apply only the checked staged ops; unchecked stay staged. */
         async applySelected(ids) {
             const res = await this.staging.apply(ids);
-            if (res.success) {
+            if (res.invalid) {
+                this.ui.showValidationIssues(res.validation || [], true);
+                if (typeof toastError === 'function') {
+                    toastError('Validation failed — nothing applied. Fix the flagged ops.');
+                }
+            } else if (res.success) {
                 if (typeof toastSuccess === 'function') {
                     toastSuccess(`Applied ${res.appliedCount} changes. ${this.staging.getOps().length} still staged.`);
                 }

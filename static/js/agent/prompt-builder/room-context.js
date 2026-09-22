@@ -153,8 +153,11 @@ window.PromptBuilder = window.PromptBuilder || {};
     function characterKnown(state, charName, otherName) {
         const p = state?.players?.[charName];
         const known = new Set((p?.known || []).map(String));
+        const knownLower = new Set([...known].map(value => value.toLowerCase()));
         const otherKey = String(otherName || '').toLowerCase().replace(/\s+/g, '_');
-        return known.has(String(otherName || '')) || known.has('player_' + otherKey) || known.has('character_' + otherKey);
+        return knownLower.has(String(otherName || '').toLowerCase())
+            || knownLower.has('player_' + otherKey)
+            || knownLower.has('character_' + otherKey);
     }
 
     function collectItemsInAreaByNames(areaName, allowedNames) {

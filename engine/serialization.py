@@ -14,6 +14,7 @@ from engine.beyond_visibility import normalize_visible_items
 from engine.character_spatial import get_character_at_way, get_spatial_position_data
 from engine.serialization_template import TemplateLoader
 from engine.serialization_legacy import LegacyLoader
+from engine.character_identity import collapse_character_identity, rewrite_known
 
 logger = logging.getLogger(__name__)
 
@@ -417,8 +418,15 @@ class WorldSerializer:
             self._template_loader.load(data)
             return
 
+        # task-463: collapse the authored character_<slug> node and the runtime
+        # player_<Name> anchor into one canonical node before the graph is built,
+        # and keep every retired id resolvable through the alias index.
+        aliases = {}
         if "graph" in data:
+            report = collapse_character_identity(data["graph"], data.get("players") or {})
+            aliases = report.get("aliases") or {}
             self.graph.load_from_dict(data["graph"])
+            self.graph.register_aliases(aliases)
             self._normalize_item_node_actions()
         else:
             self._legacy_loader.load(data)
@@ -458,6 +466,14 @@ class WorldSerializer:
             temp_players[pname] = p
 
         self.player_manager.players = temp_players
+        # task-463: an authored `known` list may name a retired character id
+        # ("character_arix"); move it onto the surviving identity.
+        if aliases:
+            for p in temp_players.values():
+                if getattr(p, "known", None):
+                    known, changed = rewrite_known(p.known, aliases)
+                    if changed:
+                        p.known = known
         # task-446: rebuild the id→key index and give duplicate-keyed players a
         # unique anchor after a bulk load. (self.player_manager here is the
         # world; the real manager hangs off it.)

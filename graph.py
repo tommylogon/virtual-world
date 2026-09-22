@@ -51,6 +51,10 @@ class WorldGraph:
         # Lowercase id → actual id, so lookups never break on case mismatches
         # ("Task 7" derived as area_Task_7 vs node id area_task_7).
         self._id_index: Dict[str, str] = {}
+        # Retired id → surviving id (task-463). When two identities for one
+        # character collapse into one node, authored references still mention
+        # the retired id; resolving it here keeps them from dangling.
+        self._id_aliases: Dict[str, str] = {}
         # task-407: edges indexed by lowercased endpoint so lookups never scan
         # the whole edge list (and never call .lower() per edge).
         self._edges_by_source: Dict[str, List[Edge]] = {}
@@ -74,7 +78,39 @@ class WorldGraph:
         """Resolve *node_id* to the stored key, case-insensitively."""
         if node_id in self.nodes:
             return node_id
-        return self._id_index.get(node_id.lower())
+        if not isinstance(node_id, str):
+            return None
+        lowered = node_id.lower()
+        resolved = self._id_index.get(lowered)
+        if resolved is not None:
+            return resolved
+        # task-463: a retired id (e.g. "character_arix") follows its alias to
+        # the surviving canonical node ("player_Arix").
+        alias = self._id_aliases.get(lowered)
+        if alias is None:
+            return None
+        if alias in self.nodes:
+            return alias
+        return self._id_index.get(alias.lower())
+
+    def register_alias(self, retired_id: str, surviving_id: str):
+        """Point a retired node id at its surviving node (task-463)."""
+        if not retired_id or not surviving_id:
+            return
+        retired = str(retired_id)
+        surviving = str(surviving_id)
+        if retired.lower() == surviving.lower():
+            return
+        self._id_aliases[retired.lower()] = surviving
+
+    def register_aliases(self, aliases: Dict[str, str]):
+        """Bulk form of :meth:`register_alias` (retired-id → surviving-id)."""
+        for retired, surviving in (aliases or {}).items():
+            self.register_alias(retired, surviving)
+
+    def aliases(self) -> Dict[str, str]:
+        """A copy of the retired-id → surviving-id alias map."""
+        return dict(self._id_aliases)
 
     # ── task-407: edge indexes ──────────────────────────────────────────
 
@@ -145,6 +181,9 @@ class WorldGraph:
             return
         self.nodes.pop(stored_id, None)
         self._id_index.pop(stored_id.lower(), None)
+        for alias, target in list(self._id_aliases.items()):
+            if target.lower() == stored_id.lower():
+                self._id_aliases.pop(alias, None)
         stored_lower = stored_id.lower()
         self.edges = [
             e for e in self.edges
@@ -415,6 +454,7 @@ class WorldGraph:
         self.nodes.clear()
         self.edges.clear()
         self._id_index.clear()
+        self._id_aliases.clear()
         self._edges_by_source.clear()
         self._edges_by_target.clear()
         self._spatial_edges.clear()
@@ -425,6 +465,7 @@ class WorldGraph:
     def load_from_dict(self, data: dict):
         self.nodes.clear()
         self.edges.clear()
+        self._id_aliases.clear()
         for node_id, ndata in data.get("nodes", {}).items():
             self.nodes[node_id] = Node(**ndata)
         for edata in data.get("edges", []):

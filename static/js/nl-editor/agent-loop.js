@@ -20,7 +20,7 @@ window.NLEditorAgent = (() => {
             this.router = toolRouter;
             this.messages = [];
             const CWM = typeof ContextWindowManager !== 'undefined' ? ContextWindowManager : (typeof window !== 'undefined' ? window.ContextWindowManager : null);
-            this.contextManager = CWM ? new CWM({ maxTokens: 6000, maxMessages: 30, recentTurnCount: 8 }) : { prune: m => m, addMessage: () => {}, reset: () => {} };
+            this.contextManager = CWM ? new CWM({ maxTokens: 60000, maxMessages: 30, recentTurnCount: 8 }) : { prune: m => m, addMessage: () => {}, reset: () => {} };
             this.busy = false;
             this.maxIterations = 100;
             this.listeners = [];
@@ -89,9 +89,9 @@ You build, modify, and flesh out scenario areas, items, ways (doors/connections)
    - Only call \`create_node\` for items if no existing library archetype fits.
    - For whole-room requests ("furnish this room", "turn this into an apothecary"), prefer \`populate_area\` in a single call.
 2. **STAGING FIREWALL**:
-   - Every mutation (\`create_node\`, \`update_node\`, \`delete_node\`, \`attach\`, \`detach\`, \`connect_areas\`, \`spawn_library_item\`, \`populate_area\`, \`link_to_library\`) stages changes in a local buffer.
+   - Every mutation (\`create_node\`, \`update_node\`, \`update_matching_nodes\`, \`delete_node\`, \`attach\`, \`detach\`, \`connect_areas\`, \`spawn_library_item\`, \`populate_area\`, \`link_to_library\`) stages changes in a local buffer.
    - The user will inspect the staged changes before applying. Ghost previews show them on the map as dashed nodes.
-   - Read tools (\`search_graph_nodes\`, \`get_node\`, \`list_world_summary\`, \`get_background_map\`) can see your newly staged entities immediately.
+   - Read tools (\`search_graph_nodes\`, \`list_nodes\`, \`get_node\`, \`list_world_summary\`, \`get_background_map\`) can see your newly staged entities immediately.
 3. **SELECTION AWARENESS**: when the user says "this room", "this node", "the selected area" etc., use the Selected node reported in LIVE WORLD CONTEXT — do not ask for its name.
 4. **VALID TAGS & SCHEMAS**:
    - Use only valid mechanic tags: \`light_source\`, \`heat_source\`, \`sound_source\`, \`toggleable\`, \`insulation\`, \`armor\`, \`clothing\`, \`weapon\`, \`resistance\`, \`container\`, \`electric\`, \`two_handed\`.
@@ -100,6 +100,12 @@ You build, modify, and flesh out scenario areas, items, ways (doors/connections)
 5. **INTERACTIVE CLARIFICATION**:
    - When a request is ambiguous or multiple options exist, call \`request_clarification\` with clear multiple-choice options for the user.
 6. **STYLE & TONE**: write descriptions, names, and dialogue consistent with the scenario theme and world lore below. Reuse lore vocabulary; never invent naming that contradicts it.
+7. **CHARACTERS — THE NODE IS THE RECORD**: a character's defining data lives on its \`character\` graph node and is patched with \`update_node\` (the patch map is flat). Recognised fields: \`traits\`, \`tags\`, \`interest_tags\`, \`stats\`, \`skills\`, \`vitals\`, \`decay_rates\`, \`personality\`, \`description\`, \`base_description\`, \`simple_npc\`, \`npc_behavior\`, \`npc_action_interval\`, \`emotion\`. Trait/dict patches MERGE, so existing values are kept. Example — give one character darkvision: \`update_node {"node_id":"...","patch":{"traits":{"dark_vision":true}}}\`.
+   - For a GROUP ("all goblins", "every character in the camp"), do NOT loop \`update_node\`: call \`update_matching_nodes {"selector":{"kind":"character","tags":["goblin"]},"patch":{...}}\`. The affected entities are resolved and listed for review before Apply.
+8. **TRAITS**: \`traits\` maps a registered trait id to \`true\` (or a parameter string). Call \`list_library_traits\` first — never invent trait ids. \`dark_vision\` and \`darkvision\` are both valid aliases.
+9. **FINDING THE CAST & CONTENTS**: \`list_nodes\` is the roster read — filter by \`kind\`, \`tags\`/\`tag\`, \`area\` (nodes with an \`in\` edge to it, i.e. "who is here"), or \`name_contains\`; it counts and pages. Use it before a bulk selector so the affected set is explicit. \`search_graph_nodes\` stays for fuzzy name/description search. Node ids are the storage keys; display names resolve at read time.
+10. **ARCHETYPES & LIBRARY**: use \`upsert_library_entry\` / \`delete_library_entry\` for archetype-level changes ("all goblins have darkvision" as a template). They stage like every other op and are validated before Apply (id slug, known fields, mature gate). Library changes do NOT touch already-spawned nodes — \`link_to_library\` and refresh push a template to the world. \`list_library_traits\` / \`search_library_*\` first to reuse real ids.
+11. **VALIDATION GATE**: Apply validates every staged op (node/endpoint existence, known trait ids, id slugs, bulk selectors). Errors block the whole Apply and are shown with the offending op index — fix the op (don't re-issue blind) and re-Apply.
 
 ${this._buildWorldContext()}
 ${worldSummary}

@@ -373,9 +373,12 @@ class AreaDescription:
                     name_known = not rel.get("first_sighting")
                 if not name_known and active_player_obj is not None:
                     try:
-                        viewer_known = set(getattr(active_player_obj, "known", None) or [])
-                        p_slug = "player_" + pname.lower().replace(" ", "_")
-                        if pname in viewer_known or p_slug in viewer_known or ("character_" + p_slug[len("player_"):]) in viewer_known:
+                        viewer_known = {
+                            str(entry) for entry in (getattr(active_player_obj, "known", None) or [])
+                        }
+                        viewer_known_lower = {entry.lower() for entry in viewer_known}
+                        canonical_id = str(self.player_manager.player_node_id(pname))
+                        if pname in viewer_known or canonical_id.lower() in viewer_known_lower:
                             name_known = True
                     except Exception:
                         name_known = False

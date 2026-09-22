@@ -23,6 +23,8 @@ const UNIT_DIR = __dirname;
 // The window object doubles as the vm global — browser semantics.
 const win = {
     console,
+    // browser globals used by shared helpers but absent from a bare vm context
+    URL, URLSearchParams,
     // stubs used by plan-tracker.js
     worldState: { data: { time_ticks: 0 } },
     events: { log: () => {}, trackPhase: () => {}, trackAction: () => {} },
@@ -60,6 +62,7 @@ win.assertFalse = (value, label) => {
 load('static/js/shared/json-utils.js');
 load('static/js/shared/trigger-suggest-ai.js');
 load('static/js/agent/vital-thresholds.js');
+load('static/js/agent/simultaneous.js');
 load('static/js/agent/action-normalizer.js');
 load('static/js/agent/response-parser.js');
 load('static/js/agent/plan-tracker.js');
@@ -67,10 +70,13 @@ load('static/js/agent/prompt-builder/character-state.js');
 load('static/js/agent/prompt-builder/conversation-context.js');
 load('static/js/context-window.js');
 load('static/js/nl-editor/staging.js');
+load('static/js/nl-editor/diff.js');
 load('static/js/nl-editor/tools.js');
 load('static/js/nl-editor/agent-loop.js');
 load('static/js/graph/graph-background.js');
 load('static/js/graph/graph-export.js');
+load('static/js/soak/soak-format.js');
+load('static/js/soak/soak-charts.js');
 
 // ── discover + run test files ──
 const testFiles = fs.readdirSync(UNIT_DIR).filter(f => /^test_.*\.js$/.test(f)).sort();

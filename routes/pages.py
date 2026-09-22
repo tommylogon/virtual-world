@@ -25,6 +25,11 @@ def register_pages_routes(app):
     def glm_template():
         return render_template('GLM_index.html')
 
+    @app.route('/soak')
+    def soak_page():
+        """Standalone analytics UI for the headless soak runner."""
+        return render_template('soak.html', app_version=APP_VERSION)
+
     @app.route('/deepseek')
     def deepseek_template():
         return render_template('deepseek_index.html')

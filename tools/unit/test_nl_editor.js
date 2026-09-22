@@ -112,6 +112,42 @@ test('OverlayGraphView queries uncommitted staged entities and respects deletion
     assertEq(deletedArea, null, 'deleted node should not be returned');
 });
 
+// ── Tag filtering + name resolution (regression tests) ──
+
+test('OverlayGraphView.searchNodes filters by tag (was: Set.some is not a function)', () => {
+    const staging = new NLEditorStaging.StagingBuffer();
+    const router = new NLEditorTools.ToolRouter(staging);
+    const overlay = router.overlay;
+
+    staging.addOp('create_node', {
+        node: { id: 'character_gribba_1', type: 'character', name: 'Gribba', properties: { tags: ['female', 'goblin'] } }
+    }, 'Create Gribba');
+    staging.addOp('create_node', {
+        node: { id: 'character_guard_1', type: 'character', name: 'Guard', properties: { tags: ['human'] } }
+    }, 'Create Guard');
+
+    const goblins = overlay.searchNodes('', 'character', ['goblin']);
+    assertEq(goblins.length, 1, 'one goblin-tagged character');
+    assertEq(goblins[0].name, 'Gribba');
+
+    const none = overlay.searchNodes('', 'character', ['dragon']);
+    assertEq(none.length, 0, 'unknown tag → no matches');
+});
+
+test('OverlayGraphView.getNode resolves a staged node by display name', () => {
+    const staging = new NLEditorStaging.StagingBuffer();
+    const router = new NLEditorTools.ToolRouter(staging);
+    const overlay = router.overlay;
+
+    staging.addOp('create_node', {
+        node: { id: 'character_thrazz_1', type: 'character', name: 'Thrazz', properties: {} }
+    }, 'Create Thrazz');
+
+    const byName = overlay.getNode('Thrazz');
+    assertTrue(byName !== null, 'display name resolves');
+    assertEq(byName.id, 'character_thrazz_1');
+});
+
 // ── Library response shape normalization (regression test) ──
 
 test('ToolRouter._registryToEntries normalizes dict, {items:[]}, and array shapes', () => {
@@ -190,4 +226,59 @@ test('AgentLoop._extractXmlToolCalls ignores unknown tags and returns empty with
     assertEq(agent._extractXmlToolCalls('just plain text, no tools here').length, 0, 'plain text → empty');
     assertEq(agent._extractXmlToolCalls('').length, 0, 'empty → empty');
     assertEq(agent._extractXmlToolCalls(null).length, 0, 'null → empty');
+});
+
+// ── Bulk selector + roster reads (task-458 / task-459) ──
+
+test('OverlayGraphView.matchNodes selects staged nodes by kind and tag', () => {
+    const staging = new NLEditorStaging.StagingBuffer();
+    const overlay = new NLEditorTools.ToolRouter(staging).overlay;
+
+    staging.addOp('create_node', { node: { id: 'character_grub', type: 'character', name: 'Grub', properties: { tags: ['goblin'] } } }, 'Grub');
+    staging.addOp('create_node', { node: { id: 'character_nub', type: 'character', name: 'Nub', properties: { tags: ['goblin', 'child'] } } }, 'Nub');
+    staging.addOp('create_node', { node: { id: 'character_sol', type: 'character', name: 'Sol', properties: { tags: ['human'] } } }, 'Sol');
+    staging.addOp('create_node', { node: { id: 'area_hall', type: 'area', name: 'Hall', properties: {} } }, 'Hall');
+
+    const goblins = overlay.matchNodes({ kind: 'character', tags: ['goblin'] });
+    assertEq(goblins.map(n => n.id), ['character_grub', 'character_nub']);
+
+    const any = overlay.matchNodes({ kind: 'character', tags: ['goblin', 'human'], require_all_tags: false });
+    assertEq(any.length, 3, 'any-tag match includes all three');
+
+    const none = overlay.matchNodes({ kind: 'character', tags: ['dragon'] });
+    assertEq(none.length, 0);
+});
+
+test('OverlayGraphView.matchNodes filters by area and explicit ids', () => {
+    const staging = new NLEditorStaging.StagingBuffer();
+    const overlay = new NLEditorTools.ToolRouter(staging).overlay;
+
+    staging.addOp('create_node', { node: { id: 'area_hall', type: 'area', name: 'Hall', properties: {} } }, 'Hall');
+    staging.addOp('create_node', { node: { id: 'character_grub', type: 'character', name: 'Grub', properties: {} } }, 'Grub');
+    staging.addOp('create_node', { node: { id: 'character_sol', type: 'character', name: 'Sol', properties: {} } }, 'Sol');
+    staging.addOp('attach', { from_id: 'character_grub', to_id: 'area_hall', relation: 'in' }, 'Grub in Hall');
+
+    const inHall = overlay.matchNodes({ kind: 'character', area: 'Hall' });
+    assertEq(inHall.map(n => n.id), ['character_grub']);
+
+    const explicit = overlay.matchNodes({ ids: ['character_sol'] });
+    assertEq(explicit.map(n => n.id), ['character_sol']);
+});
+
+test('OverlayGraphView previews a staged bulk patch on every matched node', () => {
+    const staging = new NLEditorStaging.StagingBuffer();
+    const overlay = new NLEditorTools.ToolRouter(staging).overlay;
+
+    staging.addOp('create_node', { node: { id: 'character_grub', type: 'character', name: 'Grub', properties: { traits: { hardy: true } } } }, 'Grub');
+    staging.addOp('create_node', { node: { id: 'character_nub', type: 'character', name: 'Nub', properties: {} } }, 'Nub');
+    staging.addOp('update_matching_nodes', {
+        selector: { kind: 'character' },
+        patch: { traits: { dark_vision: true } },
+        matched_ids: ['character_grub', 'character_nub'],
+    }, 'Bulk darkvision');
+
+    assertEq(overlay.getNode('character_grub').properties.traits.dark_vision, true);
+    assertEq(overlay.getNode('character_nub').properties.traits.dark_vision, true);
+    // Dict merge: the pre-existing trait survives the previewed patch.
+    assertEq(overlay.getNode('character_grub').properties.traits.hardy, true);
 });

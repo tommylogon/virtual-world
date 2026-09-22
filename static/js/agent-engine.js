@@ -41,8 +41,10 @@ class AgentEngine {
         this._stepping = false;
         this._cancelRequested = false;
         this._abortController = null;
-        // task-101 experimental simultaneous mode: per-character act countdowns
+        // task-101 experimental simultaneous modes: per-character act
+        // countdowns (global), and per-room countdowns (simultaneous_room).
         this._simCountdowns = {};
+        this._simRoomCountdowns = {};
     }
 
     getHistory(charName) {
@@ -880,7 +882,8 @@ class AgentEngine {
         // ("Step cancelled." firing on a fresh ▶ was the stale flag leaking).
         this._cancelRequested = false;
         (async () => { while (config.running) {
-            if (config.simultaneousMode) { await this._simultaneousStep(); }
+            if (window.VWSimultaneous.isRoomMode(config.simultaneousMode)) { await this._simultaneousRoomStep(); }
+            else if (config.simultaneousMode) { await this._simultaneousStep(); }
             else { await this.step(); }
             if (this._cancelRequested) { this.cancel(); break; }
             if (!config.turnBased && config.controllingPlayer && !config.simultaneousMode) { await TurnQueue.endTurn(); this._logActorTurnEvents(config.controllingPlayer); if (worldState.data) VW?.ui?.renderAll(worldState.data); }
@@ -890,12 +893,10 @@ class AgentEngine {
     }
 
     /**
-     * task-101 experimental simultaneous mode: every autonomous character has
-     * its own act countdown (derived from traits/vitals — high Social acts
-     * more often, impatient/sprinter faster, exhausted slower). Each engine
-     * tick decrements all countdowns; the first character ready processes its
-     * full turn through the normal per-character pipeline, then the countdown
-     * restarts. Chaos by design — sequential mode is untouched.
+     * task-101 "simultaneous": every autonomous character has its own act
+     * countdown. Each loop iteration decrements all countdowns; the first
+     * character ready processes its full turn through the normal per-character
+     * pipeline, then its countdown restarts. The human never auto-acts.
      */
     async _simultaneousStep() {
         if (!worldState.data) await worldState.fetch();
@@ -903,12 +904,10 @@ class AgentEngine {
         const names = Object.keys(players);
         for (const name of names) {
             if (this._simCountdowns[name] === undefined) {
-                this._simCountdowns[name] = this._cooldownFor(players[name]);
+                this._simCountdowns[name] = window.VWSimultaneous.cooldownFor(players[name]);
             }
         }
-        for (const name of names) {
-            if (this._simCountdowns[name] > 0) this._simCountdowns[name] -= 1;
-        }
+        window.VWSimultaneous.tickCountdowns(this._simCountdowns);
         const ready = names.filter(name => {
             const p = players[name];
             if (!p) return false;
@@ -918,7 +917,7 @@ class AgentEngine {
         });
         if (!ready.length) return;
         const charName = ready[0];
-        this._simCountdowns[charName] = this._cooldownFor(players[charName]);
+        this._simCountdowns[charName] = window.VWSimultaneous.cooldownFor(players[charName]);
         const prevControlling = config.controllingPlayer;
         config.controllingPlayer = charName;
         try {
@@ -929,18 +928,39 @@ class AgentEngine {
     }
 
     /**
-     * Act countdown for simultaneous mode: Social speeds it up, traits and
-     * exhaustion slow it down. Returns a tick count (3–15).
+     * task-101 "simultaneous per room": rooms resolve independently while
+     * characters inside a room still act in order. Each iteration decrements
+     * every room countdown; the first ready room runs its (autonomous, living)
+     * characters sequentially, then the room's countdown restarts. A room's
+     * cadence is its fastest member's.
      */
-    _cooldownFor(player) {
-        if (!player) return 8;
-        const traits = player.traits || {};
-        let c = 8 + Math.round((50 - (player.vitals?.Social ?? 50)) / 25);
-        if (traits.impatient) c -= 2;
-        if (traits.patient) c += 2;
-        if (traits.sprinter) c -= 1;
-        if ((player.vitals?.Energy ?? 100) < 35) c += 1;
-        return Math.max(3, Math.min(15, c));
+    async _simultaneousRoomStep() {
+        if (!worldState.data) await worldState.fetch();
+        const players = worldState.data?.players || {};
+        const rooms = window.VWSimultaneous.groupByRoom(players, {
+            isAutonomous: name => events.isAutonomous(name),
+            ghostMode: config.ghostMode,
+        });
+        for (const area of Object.keys(rooms)) {
+            if (this._simRoomCountdowns[area] === undefined) {
+                this._simRoomCountdowns[area] = window.VWSimultaneous.roomCooldown(rooms[area], players);
+            }
+        }
+        window.VWSimultaneous.tickCountdowns(this._simRoomCountdowns);
+        const area = window.VWSimultaneous.firstReadyRoom(rooms, this._simRoomCountdowns);
+        if (area === null) return;
+        const order = rooms[area];
+        this._simRoomCountdowns[area] = window.VWSimultaneous.roomCooldown(order, players);
+        const prevControlling = config.controllingPlayer;
+        try {
+            for (const charName of order) {
+                if (this._cancelRequested || !config.running) break;
+                config.controllingPlayer = charName;
+                await this.step();
+            }
+        } finally {
+            config.controllingPlayer = prevControlling;
+        }
     }
     stop(reason = 'Agent stopped.') {
         config.running = false; VW?.ui?.updateButtons(); events.log(reason, 'system-msg');
@@ -957,6 +977,8 @@ class AgentEngine {
         this.currentTurnIndex = 0;
         this.turnNumber = 0;
         this.initiativeRolls = {};
+        this._simCountdowns = {};
+        this._simRoomCountdowns = {};
     }
     nudge(charName, text) {
         if (!text || !charName) return;

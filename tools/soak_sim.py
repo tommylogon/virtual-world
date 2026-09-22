@@ -11,6 +11,10 @@ This is the "can the world run for weeks?" experiment. It deliberately makes
 no LLM calls; characters act only through the deterministic tick path
 (simple-NPC behaviors) or not at all.
 
+The loop itself lives in ``engine/soak_runner.py`` so the web UI at ``/soak``
+runs exactly the same code; this file is the CLI shell (arg parsing, live
+progress printing, report writing).
+
 Progress prints every --progress-seconds (live rate, ETA, deaths so far);
 the final report breaks down causes, survival, vitals and growth.
 
@@ -23,8 +27,7 @@ Usage:
 
 import argparse
 import json
-import random
-import statistics
+import signal
 import sys
 import time
 from pathlib import Path
@@ -32,77 +35,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from virtual_world_engine import VirtualWorld  # noqa: E402
-
-MINUTES_PER_DAY = 1440
-
-
-def ticks_per_day(minutes_per_tick):
-    """Ticks in one game day at this world's tick length.
-
-    Vitals now scale with ``time_per_tick_minutes``, so a day is fewer ticks
-    when a tick is worth more minutes; hardcoding 1440 made the horizon
-    projections lie by exactly that factor.
-    """
-    return max(1, int(round(MINUTES_PER_DAY / max(1e-9, minutes_per_tick))))
-
-
-def parse_kv_pairs(spec):
-    """'a=1,b=2' -> {'a': 1, 'b': 2} (values parsed as float when numeric)."""
-    out = {}
-    if not spec:
-        return out
-    for chunk in spec.split(","):
-        chunk = chunk.strip()
-        if not chunk:
-            continue
-        if "=" not in chunk:
-            raise SystemExit(f"Bad key=value chunk: {chunk!r}")
-        key, value = chunk.split("=", 1)
-        key, value = key.strip(), value.strip()
-        try:
-            out[key] = float(value)
-        except ValueError:
-            out[key] = value
-    return out
-
-
-def infer_cause(player):
-    v = player.vitals
-    if v.get("Thirst", 0) >= 100:
-        return "dehydration"
-    if v.get("Hunger", 0) >= 100:
-        return "starvation"
-    if v.get("Energy", 1) <= 0:
-        return "exhaustion"
-    if v.get("HP", 1) <= 0:
-        return "hp_loss"
-    return "unknown"
-
-
-def fmt_span(ticks, minutes_per_tick):
-    total_min = ticks * minutes_per_tick
-    days = int(total_min // 1440)
-    hours = int((total_min % 1440) // 60)
-    mins = int(total_min % 60)
-    return f"{days}d{hours:02d}h{mins:02d}m"
-
-
-def human_duration(seconds):
-    seconds = max(0, int(round(seconds)))
-    h, rem = divmod(seconds, 3600)
-    m, s = divmod(rem, 60)
-    if h:
-        return f"{h}h{m:02d}m{s:02d}s"
-    if m:
-        return f"{m}m{s:02d}s"
-    return f"{s}s"
-
-
-def progress_bar(frac, width=20):
-    frac = max(0.0, min(1.0, frac))
-    filled = int(frac * width)
-    return "[" + "#" * filled + "." * (width - filled) + "]"
+from engine.soak_runner import (  # noqa: E402
+    ROOT as RUNNER_ROOT,
+    SoakConfig,
+    SoakRun,
+    human_duration,
+    progress_bar,
+    resolve_scenario,
+    fmt_span,
+)
 
 
 def say(msg, end="\n"):
@@ -143,259 +84,125 @@ def main():
     ap.add_argument("--report", default="", help="write a JSON report to this path")
     args = ap.parse_args()
 
-    random.seed(args.seed)
+    # SoakConfig's field types want real dicts; parse_kv_pairs understands the
+    # raw flag strings, so let from_dict normalise them.
+    config = SoakConfig.from_dict({
+        "scenario": args.scenario,
+        "ticks": args.ticks,
+        "minutes_per_tick": args.minutes_per_tick,
+        "engine_decay": args.engine_decay,
+        "decay_overrides": args.override,
+        "starting_vitals": args.set_vitals,
+        "traits": args.apply_trait,
+        "background_all": args.background_all,
+        "mature": args.mature,
+        "neutral_environment": args.neutral_environment,
+        "debug_hp": args.debug_hp,
+        "seed": args.seed,
+    })
+    run = SoakRun(config)
 
-    scenario_path = ROOT / args.scenario
-    with open(scenario_path, "r", encoding="utf-8-sig") as fh:
-        data = json.load(fh)
-
-    world = VirtualWorld()
-    world.load_from_dict(data)
-
-    if args.minutes_per_tick:
-        world.time_per_tick_minutes = args.minutes_per_tick
-    minutes_per_tick = getattr(world, "time_per_tick_minutes", 1) or 1
-    players = world.player_manager.players
-
-    overrides = parse_kv_pairs(args.override)
-    trait_spec = parse_kv_pairs(args.apply_trait)
-    if isinstance(trait_spec, dict):
-        trait_spec = {str(k): str(v) for k, v in trait_spec.items()}
-
-    # --- apply experiment configuration (in-memory only) ---
-    if args.engine_decay or overrides:
-        for p in players.values():
-            if args.engine_decay:
-                p.decay_rates = {}
-            for stat, rate in overrides.items():
-                p.decay_rates[stat] = rate
-    if trait_spec:
-        for p in players.values():
-            tags = set(p.tags or [])
-            for tag, trait_id in trait_spec.items():
-                if tag in tags:
-                    p.traits[trait_id] = True
-
-    if args.background_all:
-        for p in players.values():
-            p.simulation_mode = "background"
-            p.next_due_tick = 0
-
-    if args.mature:
-        world.mature_content = True
-        for p in players.values():
-            p.sync_pleasure_vitals(True)
-
-    set_vitals = parse_kv_pairs(args.set_vitals)
-    if set_vitals:
-        for p in players.values():
-            for stat, val in set_vitals.items():
-                p.vitals[stat] = val
-
-    if args.neutral_environment:
-        # 20C sits inside the engine's 5..35 "neutral" band, so core temp
-        # holds at 37 and no hot/cold per-tick Energy/HP/Thirst effects fire.
-        benign = {
-            "light": "normal", "temperature": 20, "air": "fresh",
-            "smell": "neutral", "noise": "quiet", "wind": "none", "humidity": "dry",
-        }
-        for node in world.graph.nodes.values():
-            if node.type == "area":
-                node.properties["environment"] = dict(benign)
-        for p in players.values():
-            p.vitals["Temperature"] = 37.0
-        # Weather is re-applied every tick from forecast_schedule/override
-        # (world_template ships a baked snowy gale), which would overwrite the
-        # neutral environment above and freeze every exterior character. Clear
-        # both so "neutral" actually means neutral.
-        world.forecast_override = None
-        sched = getattr(world, "forecast_schedule", None)
-        if isinstance(sched, dict):
-            sched["entries"] = []
-            sched["current_state"] = "clear"
-            sched["transition_table"] = {}
-        world._forecast_sched_obj = None
-
-    start_vitals = {name: dict(p.vitals) for name, p in players.items()}
-    deaths = []
-    dead_seen = set()
-    cause_counts = {}
-
-    # --- experiment banner ---
-    say("=" * 72)
-    say("SOAK RUN")
-    say(f"  scenario        : {scenario_path.relative_to(ROOT)}")
-    say(f"  characters      : {len(players)}")
-    say(f"  horizon         : {args.ticks} ticks = {fmt_span(args.ticks, minutes_per_tick)} game time"
-        f" ({minutes_per_tick} min/tick)")
-    say(f"  engine decay    : {'on (baked rates dropped)' if args.engine_decay else 'off (scenario rates)'}")
-    if overrides:
-        say(f"  decay overrides : {overrides}")
-    if set_vitals:
-        say(f"  starting vitals : {set_vitals}")
-    if trait_spec:
-        say(f"  traits applied  : {trait_spec}")
-    say(f"  environment     : {'NEUTRAL (forced 20C/fresh/quiet)' if args.neutral_environment else 'as authored'}")
-    if args.background_all:
-        say("  fidelity        : ALL background (deterministic survival runner, no LLM)")
-    say(f"  seed            : {args.seed}")
-    say(f"  progress every  : {args.progress_seconds:g}s / {args.progress} ticks"
-        if (args.progress or args.progress_seconds) else "  progress        : off")
-    say("=" * 72)
-
-    t0 = time.perf_counter()
-    last_report = t0
-    last_tick = 0
-    deaths_at_last = 0
-    prev_hp = {name: p.vitals.get("HP") for name, p in players.items()}
-    # 0 means "off" for each channel; don't coerce to 1 or it prints every tick.
-    progress_ticks = args.progress if args.progress > 0 else args.ticks + 1
+    progress_ticks = args.progress if args.progress > 0 else config.ticks + 1
     progress_secs = max(args.progress_seconds, 0.0)
     progress_on = bool(args.progress or args.progress_seconds)
 
-    for i in range(1, args.ticks + 1):
-        world.tick_turn()
+    state = {"last_tick": 0, "last_report": time.perf_counter(), "banner": False,
+             "deaths_at_last": 0}
 
-        for name, p in players.items():
-            if name in dead_seen:
-                continue
-            if p.state == "dead":
-                dead_seen.add(name)
-                cause = infer_cause(p)
-                cause_counts[cause] = cause_counts.get(cause, 0) + 1
-                deaths.append({
-                    "name": name,
-                    "tick": i,
-                    "game_span": fmt_span(i, minutes_per_tick),
-                    "area": getattr(p, "current_area", None),
-                    "cause": cause,
-                    "hunger": p.vitals.get("Hunger"),
-                    "thirst": p.vitals.get("Thirst"),
-                    "energy": p.vitals.get("Energy"),
-                    "tags": list(p.tags or []),
-                })
+    def print_banner():
+        minutes = run.minutes_per_tick
+        say("=" * 72)
+        say("SOAK RUN")
+        say(f"  scenario        : {resolve_scenario(config.scenario).relative_to(RUNNER_ROOT)}")
+        say(f"  characters      : {run.character_count}")
+        say(f"  horizon         : {config.ticks} ticks = {fmt_span(config.ticks, minutes)} game time"
+            f" ({minutes:g} min/tick)")
+        say(f"  engine decay    : {'on (baked rates dropped)' if config.engine_decay else 'off (scenario rates)'}")
+        if config.decay_overrides:
+            say(f"  decay overrides : {config.decay_overrides}")
+        if config.starting_vitals:
+            say(f"  starting vitals : {config.starting_vitals}")
+        if config.traits:
+            say(f"  traits applied  : {config.traits}")
+        say(f"  environment     : {'NEUTRAL (forced 20C/fresh/quiet)' if config.neutral_environment else 'as authored'}")
+        if config.background_all:
+            say("  fidelity        : ALL background (deterministic survival runner, no LLM)")
+        say(f"  seed            : {config.seed}")
+        say(f"  progress every  : {args.progress_seconds:g}s / {args.progress} ticks"
+            if progress_on else "  progress        : off")
+        say("=" * 72)
 
-        if args.debug_hp:
-            for name, p in players.items():
-                hp = p.vitals.get("HP")
-                before = prev_hp.get(name)
-                if before is not None and hp is not None and hp < before:
-                    node = (world.graph.get_node(world.area_node_id(p.current_area))
-                            if p.current_area else None)
-                    env = node.properties.get("environment") if node else None
-                    conds = list((getattr(p, "conditions", None) or {}).keys())
-                    say(f"  [hp] t={i} {name} {before}->{hp} (-{before - hp})  "
-                        f"temp={p.vitals.get('Temperature')} area={p.current_area} "
-                        f"cond={conds} env={env}")
-                prev_hp[name] = hp
+    def on_tick(i):
+        if not state["banner"]:
+            print_banner()
+            state["banner"] = True
+        if not progress_on:
+            return
+        now = time.perf_counter()
+        if (i - state["last_tick"] >= progress_ticks
+                or (progress_secs and now - state["last_report"] >= progress_secs)):
+            new_deaths = len(run.deaths) - state["deaths_at_last"]
+            death_note = f" (+{new_deaths} now, {run.deaths_by_cause})" if new_deaths else ""
+            say(f"{progress_bar(i / config.ticks)} {100 * i / config.ticks:5.1f}%  "
+                f"tick {i:>7}/{config.ticks}  {fmt_span(i, run.minutes_per_tick):>10}  "
+                f"{run.ticks_per_second:,.1f} t/s (now {run.instant_tps:,.1f})  "
+                f"elapsed {human_duration(run.elapsed_s)}  ETA {human_duration(run.eta_s)}  "
+                f"alive {run.alive:>3} dead {run.dead:>3}{death_note}")
+            state["last_tick"] = i
+            state["last_report"] = now
+            state["deaths_at_last"] = len(run.deaths)
 
-        if progress_on and (i - last_tick >= progress_ticks
-                            or (progress_secs and time.perf_counter() - last_report >= progress_secs)):
-            now = time.perf_counter()
-            elapsed = now - t0
-            inst_rate = (i - last_tick) / max(now - last_report, 1e-9)
-            avg_rate = i / max(elapsed, 1e-9)
-            eta = (args.ticks - i) / max(avg_rate, 1e-9)
-            new_deaths = len(deaths) - deaths_at_last
-            death_note = f" (+{new_deaths} now, {cause_counts})" if new_deaths else ""
-            say(f"{progress_bar(i / args.ticks)} {100 * i / args.ticks:5.1f}%  "
-                f"tick {i:>7}/{args.ticks}  {fmt_span(i, minutes_per_tick):>10}  "
-                f"{avg_rate:,.1f} t/s (now {inst_rate:,.1f})  "
-                f"elapsed {human_duration(elapsed)}  ETA {human_duration(eta)}  "
-                f"alive {len(players) - len(dead_seen):>3} dead {len(dead_seen):>3}{death_note}")
-            last_tick = i
-            last_report = now
-            deaths_at_last = len(deaths)
+    # Ctrl+C asks the loop to stop at the next tick and finalise a partial
+    # report, instead of tearing down mid-tick with no summary.
+    try:
+        signal.signal(signal.SIGINT, lambda *_: run.cancel())
+    except (ValueError, AttributeError):
+        pass
+    run.execute(on_tick=on_tick)
+    if not state["banner"]:
+        print_banner()
 
-    wall = time.perf_counter() - t0
-    ticks_per_sec = args.ticks / max(wall, 1e-9)
-
-    # --- survivors + final vitals ---
-    survivors = [n for n in players if n not in dead_seen]
-    final = {n: dict(players[n].vitals) for n in survivors}
-
-    def stat_of(key, src, fn):
-        vals = [src[n][key] for n in src if src[n].get(key) is not None]
-        return round(fn(vals), 1) if vals else None
-
-    def proj(ticks):
-        return round(ticks / max(ticks_per_sec, 1e-9), 1)
-
-    death_ticks = [d["tick"] for d in deaths]
-    summary = {
-        "scenario": str(scenario_path.relative_to(ROOT)),
-        "ticks": args.ticks,
-        "game_span": fmt_span(args.ticks, minutes_per_tick),
-        "minutes_per_tick": minutes_per_tick,
-        "wall_seconds": round(wall, 2),
-        "ticks_per_second": round(ticks_per_sec, 1),
-        "projected_wall_seconds": {
-            "1day": proj(1 * ticks_per_day(minutes_per_tick)),
-            "1week": proj(7 * ticks_per_day(minutes_per_tick)),
-            "1month": proj(30 * ticks_per_day(minutes_per_tick)),
-        },
-        "characters": len(players),
-        "deaths": len(deaths),
-        "survivors": len(survivors),
-        "causes": cause_counts,
-        "death_ticks": {
-            "first": min(death_ticks) if death_ticks else None,
-            "median": int(statistics.median(death_ticks)) if death_ticks else None,
-            "last": max(death_ticks) if death_ticks else None,
-        },
-        "game_log_entries": len(getattr(world, "game_log", []) or []),
-        "turn_events": len(getattr(world, "turn_events", []) or []),
-        "delayed_events": len(getattr(world, "delayed_events", []) or []),
-        "graph_nodes": len(world.graph.nodes),
-        "total_memories": sum(len(getattr(p, "memories", []) or []) for p in players.values()),
-        "total_trace": sum(len(getattr(p, "trace_log", []) or []) for p in players.values()),
-        "survivor_vitals": {
-            k: {
-                "avg": stat_of(k, final, statistics.mean),
-                "min": stat_of(k, final, min),
-                "max": stat_of(k, final, max),
-            }
-            for k in ("Hunger", "Thirst", "Energy", "HP", "Social", "Hygiene", "Sanity", "Entertainment")
-        },
-    }
+    summary = run.summary
+    if not summary:
+        say(f"\n[soak] run failed: {run.error}")
+        return
 
     say("")
     say("=" * 72)
     say("SOAK RESULT")
     say("=" * 72)
-    say(f"  ran             : {args.ticks} ticks ({summary['game_span']}) in {human_duration(wall)}"
-        f"  ->  {ticks_per_sec:,.1f} ticks/s")
+    say(f"  ran             : {summary['ticks_completed']} ticks ({summary['game_span']})"
+        f" in {human_duration(summary['wall_seconds'])}  ->  {summary['ticks_per_second']:,.1f} ticks/s")
     say(f"  projected cost  : 1 day {human_duration(summary['projected_wall_seconds']['1day'])}"
         f" | 1 week {human_duration(summary['projected_wall_seconds']['1week'])}"
         f" | 1 month {human_duration(summary['projected_wall_seconds']['1month'])}")
     say(f"  survival        : {summary['survivors']}/{summary['characters']} alive,"
-        f" {summary['deaths']} dead  {cause_counts if cause_counts else ''}")
-    if death_ticks:
-        say(f"  death times     : first {fmt_span(min(death_ticks), minutes_per_tick)}"
-            f" | median {fmt_span(int(statistics.median(death_ticks)), minutes_per_tick)}"
-            f" | last {fmt_span(max(death_ticks), minutes_per_tick)}")
+        f" {summary['deaths']} dead  {summary['causes'] if summary['causes'] else ''}")
+    if summary["death_ticks"]["first"] is not None:
+        say(f"  death times     : first {fmt_span(summary['death_ticks']['first'], summary['minutes_per_tick'])}"
+            f" | median {fmt_span(summary['death_ticks']['median'], summary['minutes_per_tick'])}"
+            f" | last {fmt_span(summary['death_ticks']['last'], summary['minutes_per_tick'])}")
     say(f"  growth          : log {summary['game_log_entries']:,} |"
         f" turn_events {summary['turn_events']:,} | delayed {summary['delayed_events']:,} |"
         f" graph {summary['graph_nodes']:,} | memories {summary['total_memories']:,} |"
         f" trace {summary['total_trace']:,}")
 
-    if deaths:
+    if run.deaths:
         say("")
         say("  deaths (first 12):")
-        for d in deaths[:12]:
+        for d in run.deaths[:12]:
             say(f"    {d['game_span']:>10}  {d['name']:<22} {d['cause']:<12} "
                 f"H={d['hunger']} T={d['thirst']} E={d['energy']} @ {d['area']}")
 
-    if survivors:
+    if summary["survivor_vitals"]:
         say("")
         say("  survivor vitals (avg / min / max):")
         for k, v in summary["survivor_vitals"].items():
-            if v["avg"] is not None:
-                say(f"    {k:<14} {v['avg']:>6} / {v['min']:>6} / {v['max']:>6}")
+            say(f"    {k:<14} {v['avg']:>6} / {v['min']:>6} / {v['max']:>6}")
 
     if args.report:
         out = ROOT / args.report
-        out.write_text(json.dumps({"summary": summary, "deaths": deaths}, indent=2), encoding="utf-8")
+        out.write_text(json.dumps({"summary": summary, "deaths": run.deaths}, indent=2), encoding="utf-8")
         say(f"\n[soak] report written to {out}")
 
 

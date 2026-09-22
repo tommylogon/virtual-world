@@ -8,6 +8,8 @@ priority: medium
 # task-414: Server-side batch time advance and non-blocking human
 
 **Filed:** 2026-09-19  
+**Related:** task-464 (player-facing Fast-forward / Wait mode) builds the UX, human
+freeze, and "while you waited" summary on top of this transport.  
 **Depends on:** task-399 / task-409 (deterministic plan layer), task-411
 (attended set), task-412 (promotion boundary).  
 **Evidence:** `static/js/agent-engine.js:862–869`, `static/js/agent/turn-queue.js:151–158`,

@@ -190,9 +190,25 @@ window.NLEditorStaging = (() => {
             const opsPayload = targets.map(op => ({ type: op.type, payload: op.payload }));
             let batch;
             try {
-                batch = await ApiClient.post('/api/graph/batch', { ops: opsPayload });
+                batch = await ApiClient.post('/api/graph/batch', { ops: opsPayload, strict_validation: true });
             } catch (e) {
                 batch = null;
+            }
+            if (batch && batch.status === 'invalid') {
+                // task-461: the validation gate refused the batch — nothing was
+                // applied; keep every op staged and surface the findings.
+                const issues = batch.validation || [];
+                const messages = (batch.errors || issues)
+                    .map(er => er.message || er.error || String(er))
+                    .filter(Boolean);
+                return {
+                    success: false,
+                    invalid: true,
+                    appliedCount: 0,
+                    remaining: this.ops.length,
+                    validation: issues,
+                    errors: messages.length ? messages : ['Validation failed.'],
+                };
             }
             if (batch && typeof batch.status === 'string') {
                 await this._refreshWorld();
@@ -292,6 +308,17 @@ window.NLEditorStaging = (() => {
                             const ok = await ApiClient.updateNode(p.node_id, patch);
                             if (!ok) errors.push(`${op.summary}: node update rejected`);
                             else appliedIds.add(op.id);
+                            break;
+                        }
+                        case 'update_matching_nodes': {
+                            // Only the batch endpoint understands bulk selectors;
+                            // never drop the op silently on a stale server.
+                            errors.push(`${op.summary}: bulk update needs the batch endpoint`);
+                            break;
+                        }
+                        case 'library_upsert':
+                        case 'library_delete': {
+                            errors.push(`${op.summary}: library editing needs the batch endpoint`);
                             break;
                         }
                         case 'link_to_library': {

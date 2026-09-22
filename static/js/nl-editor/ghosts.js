@@ -203,15 +203,24 @@ window.NLEditorGhosts = (() => {
                 }
             }
 
-            // 6. update_node / delete_node → restyle live nodes (no ghost node).
+            // 6. update_node / update_matching_nodes / delete_node → restyle
+            //    live nodes (no ghost node).
             for (const op of ops) {
-                if (op.type !== 'update_node' && op.type !== 'delete_node') continue;
-                const nodeId = op.payload?.node_id;
-                if (!nodeId || !graphManager?._graphNodesObj?.[nodeId]) continue;
-                // Re-synced by loadGraphData if the node no longer exists.
-                if (op.type === 'delete_node') _liveStyleOverride(nodeId, DELETE_STYLE);
-                else _liveStyleOverride(nodeId, EDITED_STYLE);
-                liveStyledNodeIds.add(nodeId);
+                let ids = [];
+                if (op.type === 'update_node' || op.type === 'delete_node') {
+                    ids = [op.payload?.node_id];
+                } else if (op.type === 'update_matching_nodes') {
+                    ids = op.payload?.matched_ids || [];
+                } else {
+                    continue;
+                }
+                for (const nodeId of ids) {
+                    if (!nodeId || !graphManager?._graphNodesObj?.[nodeId]) continue;
+                    // Re-synced by loadGraphData if the node no longer exists.
+                    if (op.type === 'delete_node') _liveStyleOverride(nodeId, DELETE_STYLE);
+                    else _liveStyleOverride(nodeId, EDITED_STYLE);
+                    liveStyledNodeIds.add(nodeId);
+                }
             }
 
             if (ghostNodes.length) nodesDS.update(ghostNodes);
@@ -250,6 +259,7 @@ window.NLEditorGhosts = (() => {
             case 'update_node':
             case 'delete_node':
             case 'link_to_library': return p.node_id || null;
+            case 'update_matching_nodes': return (p.matched_ids || [])[0] || null;
             case 'attach':
             case 'detach': return p.to_id || null;
             default: return null;
