@@ -1,5 +1,6 @@
 ---
 group: Conditions
+status: done
 ---
 
 # Condition: Warming Up (`warming_up`)
