@@ -250,6 +250,10 @@ get their normal consolidation.
   watch_tags}` returning the summary; travel derives its span from the route.
 - [x] Frontend: "⏩ Wait / Timeskip…" menu item + dialog (intent, duration preset/custom, target, heading, watch tags) posts to the route, renders the summary and refreshes `worldState`.
 - [x] Concurrency: one skip at a time, and `/api/action`, `/api/turn/apply` and `/api/llm_respond` return 409 while a skip runs (`timeskip.is_running()`), so nothing interleaves with the skip's clock.
+- [x] Travel: the span derives from the route length, no-route and already-there are refused, and it continues through intermediate areas instead of stopping at the first doorway.
+- [x] Search modes: name (`target`), tag (`watch_tags`), "type" (`target_type` — the library has no type taxonomy, items are tagged); Explore defaults its watch tags to the character's own `interest_tags`.
+- [x] Spans can be `until dawn/dusk/noon/night/midnight` off the world clock.
+- [x] Summary appends notable world events (deaths, fights, arrivals) from turn events, filtered by area.
 - [ ] Progressive progress + Cancel while running (needs the job runner).
 - [ ] Long spans via a soak-runner-style job (the route caps at 1,440 min).
 - [ ] Leisure "buy from a vendor" and richer social behavior.
@@ -257,4 +261,4 @@ get their normal consolidation.
 
 ## Verification
 
-Full suite: 60 failed / 3356 passed (same 60 pre-existing). `tests/test_timeskip.py` → 25 passed.
+Full suite: 60 failed / 3378 passed (same 60 pre-existing). `tests/test_timeskip.py` → 41 passed; `tools/unit` → 126 passed.

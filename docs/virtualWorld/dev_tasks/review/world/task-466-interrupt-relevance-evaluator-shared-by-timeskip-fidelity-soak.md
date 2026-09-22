@@ -26,9 +26,10 @@ One deterministic relevance/interrupt evaluator shared by timeskip actions (task
 - [x] Death; threat (hostile condition or theft/attack marker in log + turn events); vital danger-band **crossings only** (drives above / resources below / HP); involuntary bladder; discovery by interest tag or name; arrival on travel.
 - [x] Consumed by `engine/timeskip.advance` as the interrupt that hands control back.
 - [ ] Wire the same evaluator into the attention/fidelity tiers (411/418) and soak deferral (399) — the reason it is shared.
+- [x] Events are filtered to the character's area and exclude their own actions; global log lines only count when they name the character, and `HOSTILE_ACTIONS` labels count without a marker. (Otherwise a fight elsewhere could interrupt a skip.)
 - [ ] Sound/awareness-channel inputs (task-418) beyond log/turn events.
 - [ ] A `salience` consumer for task-403 memory ranking.
 
 ## Verification
 
-`python -m pytest tests/test_timeskip.py -q` → 25 passed (8 pure evaluator cases).
+`python -m pytest tests/test_timeskip.py -q` → 41 passed (11 pure evaluator cases incl. area/actor filtering).
