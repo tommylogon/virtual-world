@@ -197,6 +197,7 @@ def advance(gs, minutes, *, intent="idle", target=None, watch_tags=(),
     except Exception:
         result.clock_after = ""
     result.lines = summarize_window(who, since_tick=start_tick, limit=40)
+    result.lines += _notable_lines(gs, start_tick, getattr(who, "current_area", ""))
     _write_memory(gs, who, result, intent, target)
     return result
 
@@ -384,6 +385,37 @@ def _move(gs, player, label):
 
 
 # ───────────────────────────── summary ────────────────────────────────────
+
+#: Turn-event actions worth surfacing in a skip summary wherever they happen.
+NOTABLE_ACTIONS = frozenset({
+    "death", "kill", "attack", "steal", "arrive", "arrival", "take", "give",
+})
+
+
+def _notable_lines(gs, since_tick, area="", limit=20):
+    """Readable world events during the skip: notable actions anywhere, plus
+    anything that happened in the character's own area. Read-only; the summary
+    should say who died or arrived, not just what the character did."""
+    logger = getattr(gs, "game_logger", None)
+    events = list(getattr(logger, "turn_events", []) or []) if logger else []
+    lines, seen = [], set()
+    for event in events:
+        if not isinstance(event, dict):
+            continue
+        try:
+            if int(event.get("tick", 0) or 0) < int(since_tick):
+                continue
+        except (TypeError, ValueError):
+            continue
+        action = str(event.get("action", "")).lower()
+        if action not in NOTABLE_ACTIONS and (event.get("area") or "") != area:
+            continue
+        text = str(event.get("description", "") or "").strip()
+        if text and text not in seen:
+            seen.add(text)
+            lines.append(text)
+    return lines[-limit:]
+
 
 def _stamp_trace(gs, player, result, intent, start_tick):
     why = f"timeskip:{intent}"

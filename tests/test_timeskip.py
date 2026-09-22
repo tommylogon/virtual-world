@@ -355,6 +355,30 @@ def test_no_memory_when_nothing_happened():
     assert len(getattr(hero, "memories", []) or []) == before
 
 
+class _EventsStub:
+    def __init__(self, events):
+        self.turn_events = events
+
+
+class _GSStub:
+    def __init__(self, events):
+        self.game_logger = _EventsStub(events)
+
+
+def test_notable_lines_filters_by_tick_notability_and_area():
+    gs = _GSStub([
+        {"tick": 4, "action": "move", "description": "Old move.", "area": "Cave"},
+        {"tick": 5, "action": "death", "description": "Goblin dies.", "area": "Cave"},
+        {"tick": 6, "action": "move", "description": "Someone passes by.", "area": "Camp"},
+        {"tick": 6, "action": "move", "description": "Far away move.", "area": "Cave"},
+    ])
+    lines = timeskip._notable_lines(gs, since_tick=5, area="Camp")
+    assert "Goblin dies." in lines          # notable anywhere
+    assert "Someone passes by." in lines     # anything in our area
+    assert "Old move." not in lines          # before the skip
+    assert "Far away move." not in lines     # elsewhere and not notable
+
+
 # ───────────────────────── route planning ─────────────────────────────────
 
 def test_route_helpers_report_hop_duration():
