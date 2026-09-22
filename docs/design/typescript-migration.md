@@ -1,8 +1,16 @@
 # TypeScript in the front end
 
-**Status:** adopted. Toolchain wired, first module converted
-(`static/js/agent/rate-limiter.ts`). Migration is **incremental** — `.js` and
-`.ts` coexist, and the app keeps working at every step.
+**Status:** adopted. Toolchain wired, two modules converted
+(`static/js/agent/rate-limiter.ts`, `static/js/graph/graph-background.ts`).
+Migration is **incremental** — `.js` and `.ts` coexist, and the app keeps working
+at every step.
+
+`graph-background` was converted out of the recommended order on purpose: it is
+views-adjacent, but it had just been rewritten (task-451) and its geometry,
+migration and hit-testing logic is exactly the kind that benefits from types. It
+also proved the ambient-globals route: `ApiClient` and `appEvents` were typed into
+`globals.d.ts` for the first time, and the unit runner keeps working because it
+loads the **emitted** `.js`.
 
 ## Why it can be incremental
 
@@ -78,7 +86,8 @@ Leaf → core → views (views are last: lit-html templates are the hardest to t
 2. Logic modules: `agent/action-normalizer.js`, `agent/response-parser.js`,
    `agent/plan-tracker.js`, `agent/rate-limiter.js` peers
 3. Services: `config.js`, `storage.js`, `world-state.js`, `api.js`, `llm-client.js`
-4. Views/last: `inspector/*`, `ui/*` (they read `window.Lit`)
+4. Views/last: `inspector/*`, `ui/*` (they read `window.Lit`) —
+   `graph/graph-background.js` ✅ **done** (converted early, see Status)
 
 Add `// @ts-check` to a `.js` file once its ambient globals are typed enough —
 that starts type-checking it without a rename.

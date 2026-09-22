@@ -466,7 +466,65 @@ The game loop engine (`virtual_world_engine.py`) delegates to 22 engine modules,
 
 The graph pattern means you can add new node types, edge types, or properties without schema migrations — just start writing and reading the new keys. It's flexible, but it means there's no compile-time checking that a room has a `description` or a door has a `current_state`. Those are conventions enforced by the engine code, not the data structure.
 
+## Map backgrounds
+
+A scenario can carry any number of reference images (a regional map, a floor plan, a
+sketch) drawn beneath the node graph. Right-click empty canvas → 🗺 to add one. All the
+arranging happens **above** the canvas, because the images paint in a layer beneath it
+and the vis canvas owns pointer events - nothing under the canvas can be clicked.
+
+### Storage
+
+The scenario block `graph_background` holds:
+
+    graph_background:
+      layers:
+        - id: bg-xxxxxxx        # stable per layer and across relayouts
+          label: Ground floor
+          image: /static/images/backgrounds/floor-1.png   # or a data: URL fallback
+          rect: { x, y, width, height }                   # graph space
+          rotation: 0            # degrees
+          crop: { x, y, w, h }   # normalised source window
+          opacity: 0.45
+          locked: false          # this image cannot be dragged
+          visible: true
+      positions: { nodeId: { x, y } }    # captured node layout
+      layoutLocked: false                # node physics freeze
+
+- Images are stored as **files** under `static/images/backgrounds/` and referenced by
+  path, so a multi-megabyte map never becomes base64 inside the scenario JSON. Only an
+  image whose upload failed falls back to a data URL in the block.
+- **Array order is z-order**: later layers draw on top.
+- `layoutLocked` is the old single-image `locked` (freeze node physics, apply the saved
+  positions). A legacy `{ image, rect, ... }` block migrates to a one-layer list on load,
+  and `locked` maps to `layoutLocked`, not to a layer lock.
+- Local fallback is the IndexedDB store `graph_assets`, keyed by the scenario name. The
+  world/file copy always wins; the cache only covers images never uploaded. An **empty
+  layer list means "no maps" and must clear the screen** - collapsing that into "no
+  record" was bug-39.
+
+### Arranging
+
+| Action | How |
+|---|---|
+| Select | click a map (topmost wins); **alt-click** cycles down through the stack |
+| Move | drag it; hold alt or shift to bypass snapping |
+| Scale | the corner handles; shift keeps the aspect ratio |
+| Rotate | the purple top dot; shift snaps to 15° |
+| Crop | ✂ Crop, then drag the amber inner handles |
+| Nudge | arrow keys (shift = 10 units) |
+| Opacity | the 🎚 slider in the on-canvas hint |
+| Order, visibility, lock, rename, delete | the layer panel, top right while editing |
+| Fit one layer to the nodes | right-click → ⤢ Fit to nodes |
+| Save the node layout | right-click → 💾 Save layout to world (one batched undo step) |
+
+Snapping pulls a layer's edges and centre onto the other layers and the node bounds, so
+two maps can be lined up without fighting the mouse. Handles are counter-scaled to a
+constant on-screen size, so they stay clickable when zoomed out.
+
 ## Related tasks
+
+- [[dev_tasks/inprogress/graph/task-451-multiple-background-images-per-scenario-with-easy-placement-and-layering|task-451: Multiple background images per scenario]]
 
 - [[task-100-graph-view-filters|task-100: Graph view filters]]
 - [[dev_tasks/done/graph/task-105-edge-refactor|task-105: Edge refactor (done)]]

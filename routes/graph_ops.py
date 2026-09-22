@@ -375,6 +375,24 @@ def handle_save_background(app):
     level so a laid-out map travels with the file and can be committed.
     """
     data = request.get_json(silent=True) or {}
+
+    # Multi-layer form (task-451): the client owns the whole block and replaces
+    # it. A scenario always serializes this key, so an EMPTY layer list has to
+    # persist as an empty list — that is what tells the client to clear, and
+    # losing it is bug-39.
+    if 'layers' in data:
+        raw_layers = data.get('layers')
+        layers = [l for l in raw_layers if isinstance(l, dict)] if isinstance(raw_layers, list) else []
+        positions = data.get('positions')
+        app.world.graph_background = {
+            'layers': layers,
+            'positions': positions if isinstance(positions, dict) else {},
+            'layoutLocked': bool(data.get('layoutLocked')),
+        }
+        return jsonify({"status": "success", "graph_background": app.world.graph_background})
+
+    # Legacy single-image form: partial merge, kept so an older client (or a
+    # hand-rolled request) still works.
     background = dict(getattr(app.world, 'graph_background', None) or {})
 
     if 'image' in data:

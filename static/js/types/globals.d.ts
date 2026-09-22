@@ -34,3 +34,16 @@ declare const storage: any;
 declare const VW: any;
 declare const TurnFeed: any;
 declare const PromptBuilder: any;
+
+/** ApiClient (api.js): the HTTP surface. Only the calls converted code makes. */
+declare const ApiClient: {
+    saveGraphBackground(background: unknown): Promise<unknown>;
+    uploadBackgroundImage(file: File): Promise<{ image?: string } | null>;
+    batchGraph(ops: unknown[]): Promise<{ errors?: unknown[] } | null>;
+};
+
+/** AppEventBus singleton (event-bus.js): `state:updated` and friends. */
+declare const appEvents: {
+    on(event: string, handler: (...args: unknown[]) => void): void;
+    off?(event: string, handler: (...args: unknown[]) => void): void;
+};
