@@ -207,7 +207,7 @@ def handle_spawn_character(self, params, context, item_node=None, game_state=Non
     if not char_id:
         return []
 
-    player_obj, _ = self._hydrate_character(char_id, params, game_state)
+    player_obj, lib_data = self._hydrate_character(char_id, params, game_state)
     if player_obj is None:
         return []
 
@@ -239,6 +239,23 @@ def handle_spawn_character(self, params, context, item_node=None, game_state=Non
 
     if area_name:
         game_state.set_player_area(player_obj.name, area_name)
+
+    # task-XXX: carry the library character's expression pack onto its node so
+    # a spawned character keeps its profile/full-body art for every emotion.
+    try:
+        pm = getattr(game_state, "player_manager", None)
+        resolver = (getattr(game_state, "get_player_node_id", None)
+                    or getattr(pm, "get_player_node_id", None))
+        node_id = (resolver(player_obj.name) if callable(resolver)
+                   else f"player_{player_obj.name}".replace(" ", "_"))
+        node = game_state.graph.get_node(node_id)
+        if node is not None:
+            for key in ("image", "profile_image", "expressions"):
+                value = (lib_data or {}).get(key)
+                if value:
+                    node.properties[key] = value
+    except Exception:
+        pass
 
     msg = params.get("message") or f"{player_obj.name} arrives!"
     return [self._render_template_fn(msg, context)]

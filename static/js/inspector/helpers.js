@@ -323,6 +323,174 @@ window.InspectorHelpers = (() => {
         if (graphManager) graphManager.loadGraphData();
     };
 
+    // ─────────────────── Expression Pack (SillyTavern-style) ───────────────────
+
+    /** Known expression keys, in display order. Custom keys append after. */
+    const EXPRESSION_ORDER = ['neutral', 'happy', 'sad', 'angry', 'afraid',
+        'surprised', 'disgusted', 'aroused', 'affectionate', 'ashamed',
+        'envious', 'calm'];
+    const EXPRESSION_ICONS = {
+        neutral: '😐', happy: '😊', sad: '😢', angry: '😠', afraid: '😨',
+        surprised: '😲', disgusted: '🤢', aroused: '😳', affectionate: '🥰',
+        ashamed: '😖', envious: '😒', calm: '😌',
+    };
+
+    H._exprCache = {};   // nodeId -> props (last rendered)
+    H._exprTab = {};     // nodeId -> 'profile' | 'full'
+
+    /** Normalise an arbitrary expression name to a filename-safe key. */
+    H.expressionKeySafe = function(value) {
+        return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    };
+
+    /** Resolve the image URL for one expression slot (with neutral fallbacks). */
+    H.expressionImageFor = function(props, kind, key) {
+        const expr = (props && props.expressions) || {};
+        const direct = (expr[key] || {})[kind];
+        if (direct) return direct;
+        if (key === 'neutral') {
+            return kind === 'profile'
+                ? (props.profile_image || props.image || '')
+                : (props.image || '');
+        }
+        return '';
+    };
+
+    /** Ordered expression keys: known emotions first, then custom (sorted). */
+    H.expressionKeys = function(props) {
+        const expr = (props && props.expressions) || {};
+        const present = new Set(['neutral', ...Object.keys(expr)]);
+        const known = EXPRESSION_ORDER.filter(k => present.has(k));
+        const custom = [...present].filter(k => !EXPRESSION_ORDER.includes(k)).sort();
+        return [...known, ...custom];
+    };
+
+    H._expressionRowsHtml = function(nodeId, props, kind) {
+        const escId = H.escId(nodeId);
+        return H.expressionKeys(props).map(key => {
+            const safeKey = H.expressionKeySafe(key);
+            const url = H.expressionImageFor(props, kind, key);
+            const icon = EXPRESSION_ICONS[key] || '🎭';
+            const label = H.esc(String(key).replace(/_/g, ' '));
+            const thumb = url
+                ? `<img src="${H.esc(url)}" alt="${label}" style="width:46px;height:46px;object-fit:cover;border-radius:6px;border:1px solid var(--border);">`
+                : `<div style="width:46px;height:46px;border-radius:6px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--text-muted);">none</div>`;
+            const clear = url
+                ? `<button class="btn btn-sm btn-danger" title="Remove" onclick="InspectorHelpers.clearExpressionImage('${escId}','${kind}','${safeKey}')">🗑</button>`
+                : '';
+            return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                ${thumb}
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:11px;">${icon} ${label}</div>
+                    <input type="file" accept="image/*" title="Upload ${label}" onchange="InspectorHelpers.setExpressionImage('${escId}','${kind}','${safeKey}',this)" style="font-size:10px;max-width:100%;">
+                </div>
+                ${clear}
+            </div>`;
+        }).join('');
+    };
+
+    H._refreshExpressionGrid = function(nodeId, kindOverride) {
+        const escId = H.escId(nodeId);
+        const kind = kindOverride || H._exprTab[nodeId] || 'profile';
+        const props = H._exprCache[nodeId] || {};
+        const grid = document.getElementById(`expr-grid-${escId}`);
+        if (grid) {
+            grid.dataset.kind = kind;
+            grid.innerHTML = H._expressionRowsHtml(nodeId, props, kind);
+        }
+        document.querySelectorAll(`#expr-section-${escId} .expr-tab`).forEach(btn => {
+            btn.classList.toggle('btn-blue', btn.dataset.kind === kind);
+        });
+    };
+
+    H.setExpressionTab = function(nodeId, kind) {
+        H._exprTab[nodeId] = kind;
+        H._refreshExpressionGrid(nodeId, kind);
+    };
+
+    /**
+     * Render the expression-pack gallery (Profile / Full-body tabs + a row per
+     * expression key). Live character art that follows the character's emotion.
+     * @param {string} nodeId - Graph node ID
+     * @param {object} props - Node properties (reads `expressions`, `image`, `profile_image`)
+     * @returns {string} HTML string
+     */
+    H.renderExpressionSection = function(nodeId, props = {}) {
+        const escId = H.escId(nodeId);
+        H._exprCache[nodeId] = props;
+        const kind = H._exprTab[nodeId] || 'profile';
+        const tab = (value, label) => {
+            const on = value === kind ? ' btn-blue' : '';
+            return `<button class="btn btn-sm expr-tab${on}" data-kind="${value}" onclick="InspectorHelpers.setExpressionTab('${escId}','${value}')">${label}</button>`;
+        };
+        return `<div class="inspector-section" id="expr-section-${escId}">
+            <h3>🎭 Expression Pack</h3>
+            <div style="display:flex;gap:4px;margin-bottom:6px;">
+                ${tab('profile', '🖼 Profile')}
+                ${tab('full', '🧍 Full body')}
+            </div>
+            <div id="expr-grid-${escId}" data-kind="${kind}">
+                ${H._expressionRowsHtml(nodeId, props, kind)}
+            </div>
+            <div style="display:flex;gap:4px;margin-top:6px;">
+                <input type="text" id="expr-new-${escId}" placeholder="add expression (happy, attack…)" style="flex:1;font-size:11px;">
+                <button class="btn btn-sm btn-green" onclick="InspectorHelpers.addExpressionKey('${escId}')">Add</button>
+            </div>
+            <div class="section-hint" style="margin-top:4px;">Profile is the character's avatar and follows their current emotion; full body is the portrait art. The "neutral" slot is the fallback.</div>
+        </div>`;
+    };
+
+    H.setExpressionImage = async function(nodeId, kind, key, inputEl) {
+        const file = inputEl && inputEl.files && inputEl.files[0];
+        if (!file) return;
+        const res = await api.uploadNodeImage(nodeId, file, kind, key);
+        if (res.error) {
+            events.log('Image upload failed: ' + res.error, 'error-msg');
+            return;
+        }
+        const props = H._exprCache[nodeId] || (H._exprCache[nodeId] = {});
+        props.expressions = res.expressions || props.expressions || {};
+        if (H.expressionKeySafe(key) === 'neutral') {
+            if (kind === 'profile') props.profile_image = res.image;
+            else props.image = res.image;
+        }
+        events.log('Expression image set.', 'system-msg');
+        H._refreshExpressionGrid(nodeId, kind);
+        if (graphManager) graphManager._lastSig = '';
+        worldState.fetch();
+        if (graphManager) graphManager.loadGraphData();
+    };
+
+    H.clearExpressionImage = async function(nodeId, kind, key) {
+        const res = await api.removeExpressionImage(nodeId, kind, key);
+        if (res.error) {
+            events.log('Remove failed: ' + res.error, 'error-msg');
+            return;
+        }
+        const props = H._exprCache[nodeId] || (H._exprCache[nodeId] = {});
+        props.expressions = res.expressions || {};
+        if (H.expressionKeySafe(key) === 'neutral') {
+            if (kind === 'profile') delete props.profile_image;
+            else delete props.image;
+        }
+        events.log('Expression image removed.', 'system-msg');
+        H._refreshExpressionGrid(nodeId, kind);
+        if (graphManager) graphManager._lastSig = '';
+        worldState.fetch();
+        if (graphManager) graphManager.loadGraphData();
+    };
+
+    H.addExpressionKey = function(nodeId) {
+        const input = document.getElementById(`expr-new-${H.escId(nodeId)}`);
+        const key = H.expressionKeySafe(input && input.value);
+        if (!key) return;
+        const props = H._exprCache[nodeId] || (H._exprCache[nodeId] = {});
+        props.expressions = props.expressions || {};
+        if (!props.expressions[key]) props.expressions[key] = {};
+        if (input) input.value = '';
+        H._refreshExpressionGrid(nodeId);
+    };
+
     /**
      * Render a field-lock toggle for AI Improve. Locked fields are preserved
      * during AI Improve/Refresh.

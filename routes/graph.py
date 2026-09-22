@@ -7,6 +7,7 @@ from .graph_ops import (
     handle_duplicate_node,
     handle_update_node,
     handle_upload_node_image,
+    handle_remove_node_image,
     handle_move_item_node,
     handle_rename_node,
     handle_delete_node,
@@ -48,6 +49,10 @@ def register_graph_routes(app):
     @app.route('/api/graph/node/<node_id>/image', methods=['POST'])
     def upload_node_image(node_id):
         return handle_upload_node_image(app, node_id)
+
+    @app.route('/api/graph/node/<node_id>/image/remove', methods=['POST'])
+    def remove_node_image(node_id):
+        return handle_remove_node_image(app, node_id)
 
     @app.route('/api/graph/background/image', methods=['POST'])
     def upload_graph_background():
