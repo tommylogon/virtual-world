@@ -68,6 +68,12 @@
     }
   ],
   "name": "Cellar",
-  "tags": [],
+  "tags": [
+    "interior",
+    "mansion",
+    "underground",
+    "storage",
+    "food"
+  ],
   "triggers": []
 }

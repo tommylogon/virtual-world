@@ -1,7 +1,14 @@
 {
   "name": "Eldenford",
   "description": "A human village with farms, houses, livestock, a smithy, an inn, a market, and guards. The villagers are suspicious of goblins but pragmatic about trade. The main road connects Eldenford to larger settlements.",
-  "tags": [],
+  "tags": [
+    "exterior",
+    "outdoor",
+    "settlement",
+    "trade",
+    "human",
+    "entrance"
+  ],
   "environment": {
     "air": "fresh",
     "light": "normal",

@@ -1,7 +1,12 @@
 {
   "name": "Hidden Panic Room",
   "description": "A low-ceilinged attic room, clearly retrofitted for emergencies. The walls are lined with padded fabric, and a single dim bulb casts a warm glow. The air is surprisingly fresh, vented from somewhere unseen. The space smells faintly of old wool blankets and melted candle wax. A small cot, a lantern, and a crate of bottled water sit in the corner.",
-  "tags": [],
+  "tags": [
+    "interior",
+    "mansion",
+    "shelter",
+    "storage"
+  ],
   "environment": {
     "air": "fresh",
     "light": "normal",

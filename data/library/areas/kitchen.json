@@ -137,6 +137,12 @@
     }
   ],
   "name": "Kitchen",
-  "tags": [],
+  "tags": [
+    "interior",
+    "mansion",
+    "kitchen",
+    "food",
+    "cooking"
+  ],
   "triggers": []
 }

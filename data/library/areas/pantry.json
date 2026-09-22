@@ -1,7 +1,13 @@
 {
   "name": "pantry",
   "description": "a small, narrow room lined with sagging shelves holding canned goods, jars of preserves, sacks of flour, and dried herbs hanging from the ceiling. the air is dry and smells of ancient spices. a few jars have broken, leaving a sticky residue on the floorboards. something scurries in the corner when you enter.",
-  "tags": [],
+  "tags": [
+    "interior",
+    "mansion",
+    "kitchen",
+    "food",
+    "storage"
+  ],
   "environment": {
     "air": "dry",
     "light": 30,

@@ -1,7 +1,12 @@
 {
   "name": "conservatory",
   "description": "a glass-walled room filled with the skeletons of dead plants in clay pots. the air is humid and thick, carrying the sweet-sickly smell of decaying vegetation. a wrought-iron table and chairs sit in the centre, rusted and listing. vines have crept through broken window panes, snaking across the floor like green tentacles. a door leads to the garden.",
-  "tags": [],
+  "tags": [
+    "interior",
+    "mansion",
+    "garden",
+    "plant"
+  ],
   "environment": {
     "air": "humid",
     "light": 70,

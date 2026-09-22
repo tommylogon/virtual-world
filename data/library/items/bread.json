@@ -9,7 +9,8 @@
   "insulation": 0,
   "light_level": "dim",
   "tags": [
-    "food"
+    "food",
+    "kitchen"
   ],
   "triggers": [
     {

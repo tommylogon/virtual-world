@@ -15,7 +15,8 @@
     "warmth",
     "fire",
     "furniture",
-    "cooking"
+    "cooking",
+    "kitchen"
   ],
   "triggers": [
     {

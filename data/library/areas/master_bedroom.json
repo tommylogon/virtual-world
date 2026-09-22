@@ -94,6 +94,11 @@
     }
   ],
   "name": "Master Bedroom",
-  "tags": [],
+  "tags": [
+    "interior",
+    "mansion",
+    "bedroom",
+    "sleeping"
+  ],
   "triggers": []
 }

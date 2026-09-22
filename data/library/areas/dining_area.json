@@ -1,7 +1,13 @@
 {
   "name": "dining area",
   "description": "a long mahogany table dominates the room, set with tarnished silverware and dusty china as if awaiting guests who never arrived. a grand chandelier hangs above, unlit. portraits of stern ancestors line the walls, their eyes seeming to track movement. a sideboard along the wall holds crystal decanters and serving platters. the faint smell of rotten food clings to the air, decades old.",
-  "tags": [],
+  "tags": [
+    "interior",
+    "mansion",
+    "dining",
+    "food",
+    "social"
+  ],
   "environment": {
     "air": "stale",
     "light": 30,

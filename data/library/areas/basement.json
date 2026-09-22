@@ -1,7 +1,12 @@
 {
   "name": "basement",
   "description": "a vast, shadowy basement stretching beneath the entire mansion. the ceiling is low, supported by rough-hewn stone pillars. cobwebs hang like curtains, and the floor is uneven flagstone, slick with moisture. a faint, cold draft moves through the space, carrying whispers that seem to come from nowhere. in the center of the room, a single shaft of moonlight pierces through a crack in the ceiling, illuminating a patch of floor where nothing grows. the walls are lined with old shelves holding jars of preserved things - fruits, vegetables, and things that were never food. at the far end, a child's rocking chair moves gently, though no one sits in it.",
-  "tags": [],
+  "tags": [
+    "interior",
+    "mansion",
+    "underground",
+    "storage"
+  ],
   "environment": {
     "air": "damp and cold",
     "light": 5,

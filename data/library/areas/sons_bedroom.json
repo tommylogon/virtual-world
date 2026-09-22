@@ -1,7 +1,12 @@
 {
   "name": "sons bedroom",
   "description": "A smaller room with a single bed pushed against the wall. A writing desk sits beneath the window, a half-melted candle on its surface. ",
-  "tags": [],
+  "tags": [
+    "interior",
+    "mansion",
+    "bedroom",
+    "sleeping"
+  ],
   "environment": {
     "air": "stale",
     "light": "dim",

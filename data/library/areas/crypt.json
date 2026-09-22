@@ -1,7 +1,13 @@
 {
   "name": "crypt",
   "description": "a cold, stone chamber beneath the mausoleum. the air is heavy and chill, tasting of dry bones and ancient dust. several stone sarcophagi line the walls, their lids carved with effigies of the blackwood dead. an altar stands at the far end, draped in dusty black cloth. the faintest green glow emanates from beneath the cloth. the temperature drops noticeably with each step toward the altar.",
-  "tags": [],
+  "tags": [
+    "interior",
+    "mansion",
+    "underground",
+    "occult",
+    "stone"
+  ],
   "environment": {
     "air": "cold",
     "light": 10,

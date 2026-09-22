@@ -14,7 +14,9 @@
     "documents",
     "evidence",
     "clue",
-    "portrait"
+    "portrait",
+    "library",
+    "paper"
   ],
   "triggers": [
     {

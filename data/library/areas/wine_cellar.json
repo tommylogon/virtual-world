@@ -1,7 +1,13 @@
 {
   "name": "wine cellar",
   "description": "a cool, dark room lined with racks of wine bottles, many caked with dust and cobwebs. a few have broken, their contents long since evaporated, leaving only dark stains on the stone floor. in the corner, a small table holds a single, unlit candle. the air is cool and smells of wine and ancient mold.",
-  "tags": [],
+  "tags": [
+    "interior",
+    "mansion",
+    "underground",
+    "storage",
+    "drink"
+  ],
   "environment": {
     "air": "cool",
     "light": 5,

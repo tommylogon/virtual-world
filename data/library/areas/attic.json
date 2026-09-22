@@ -1,7 +1,11 @@
 {
   "name": "attic",
   "description": "a cramped, oppressive attic under the eaves. old trunks and forgotten belongings fill the space — furniture draped in white sheets that look like ghosts in the dim light. a single bare bulb hangs from a rafter, but there's no power. the air is thick with dust and the sharp smell of mothballs. scratching sounds echo from the walls — not mice, something larger.",
-  "tags": [],
+  "tags": [
+    "interior",
+    "mansion",
+    "storage"
+  ],
   "environment": {
     "air": "dusty",
     "light": 10,

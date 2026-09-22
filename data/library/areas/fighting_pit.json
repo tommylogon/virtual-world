@@ -7,5 +7,10 @@
     "air": "dusty",
     "smell": "dust and blood",
     "noise": "dripping"
-  }
+  },
+  "tags": [
+    "training",
+    "social",
+    "underground"
+  ]
 }

@@ -68,6 +68,10 @@
     }
   ],
   "name": "Upstairs Hallway",
-  "tags": [],
+  "tags": [
+    "interior",
+    "mansion",
+    "social"
+  ],
   "triggers": []
 }

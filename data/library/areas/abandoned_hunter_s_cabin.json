@@ -36,6 +36,12 @@
     }
   ],
   "name": "Abandoned Hunter's Cabin",
-  "tags": [],
+  "tags": [
+    "exterior",
+    "outdoor",
+    "shelter",
+    "loot",
+    "storage"
+  ],
   "triggers": []
 }
