@@ -77,6 +77,7 @@ load('static/js/graph/graph-background.js');
 load('static/js/graph/graph-export.js');
 load('static/js/soak/soak-format.js');
 load('static/js/soak/soak-charts.js');
+load('static/js/ui/timeskip.js');
 
 // ── discover + run test files ──
 const testFiles = fs.readdirSync(UNIT_DIR).filter(f => /^test_.*\.js$/.test(f)).sort();

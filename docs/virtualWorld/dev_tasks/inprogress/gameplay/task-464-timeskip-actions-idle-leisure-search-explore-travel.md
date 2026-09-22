@@ -248,7 +248,8 @@ get their normal consolidation.
   templates (task-412 slice); trace entry with a `timeskip:<intent>` why-tag.
 - [x] `POST /api/world/timeskip {intent, minutes|hours|turns, target, heading,
   watch_tags}` returning the summary; travel derives its span from the route.
-- [ ] Frontend: intent entry points + duration dialog + progress/Cancel.
+- [x] Frontend: "⏩ Wait / Timeskip…" menu item + dialog (intent, duration preset/custom, target, heading, watch tags) posts to the route, renders the summary and refreshes `worldState`.
+- [ ] Progressive progress + Cancel while running (needs the job runner).
 - [ ] Long spans via a soak-runner-style job (the route caps at 1,440 min).
 - [ ] Leisure "buy from a vendor" and richer social behavior.
 - [ ] Explore frontier preference tied to generation (task-398).

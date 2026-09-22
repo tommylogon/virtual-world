@@ -47,6 +47,7 @@
                 <button class="dropdown-item" onclick="closeTopMenus();ScenarioManager.open()" role="menuitem">🗂 Scenario Manager…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();ScenarioHealth.open()" role="menuitem">🩺 Scenario Health…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();window.location.href='/soak'" role="menuitem">🧪 Soak Lab…</button>
+                <button class="dropdown-item" onclick="closeTopMenus();Timeskip.openDialog()" role="menuitem" title="Wait, mingle, search, explore or fast-travel for a span of game time">⏩ Wait / Timeskip…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();RoomTemplatePalette.open()" role="menuitem">🏗️ New Room from Template…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();SetupChecklist.open()" role="menuitem">🚀 Setup Checklist…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();saveScenarioToFile()" role="menuitem">📤 Export Scenario File…</button>
@@ -820,6 +821,68 @@
         </div>
     </div>
 
+    <!-- TIMESKIP MODAL -->
+    <div id="timeskip-modal" class="modal" style="display:none;">
+        <div class="modal-content" style="width:460px;">
+            <div class="modal-header">
+                <h3>⏩ Timeskip</h3>
+                <button class="modal-close" onclick="Timeskip.closeDialog()">&times;</button>
+            </div>
+            <div style="padding:16px 20px;display:flex;flex-direction:column;gap:14px;font-size:12px;color:var(--text);">
+                <div>
+                    <div style="font-weight:600;margin-bottom:6px;">Intent</div>
+                    <label style="display:flex;gap:8px;align-items:center;margin-bottom:5px;cursor:pointer;">
+                        <input type="radio" name="timeskip-intent" value="idle" checked> Wait here — do nothing; vitals keep running
+                    </label>
+                    <label style="display:flex;gap:8px;align-items:center;margin-bottom:5px;cursor:pointer;">
+                        <input type="radio" name="timeskip-intent" value="leisure"> Mingle / leisure — eat, drink, roam the area
+                    </label>
+                    <label style="display:flex;gap:8px;align-items:center;margin-bottom:5px;cursor:pointer;">
+                        <input type="radio" name="timeskip-intent" value="search"> Search — for an item (set a target or tags)
+                    </label>
+                    <label style="display:flex;gap:8px;align-items:center;margin-bottom:5px;cursor:pointer;">
+                        <input type="radio" name="timeskip-intent" value="explore"> Explore — head into the frontier
+                    </label>
+                    <label style="display:flex;gap:8px;align-items:center;cursor:pointer;">
+                        <input type="radio" name="timeskip-intent" value="travel"> Travel — to a known place, or a heading
+                    </label>
+                </div>
+                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                    <div style="font-weight:600;">For</div>
+                    <select id="timeskip-preset" style="padding:3px 6px;">
+                        <option value="30m">30 min</option>
+                        <option value="1h">1 hour</option>
+                        <option value="2h" selected>2 hours</option>
+                        <option value="4h">4 hours</option>
+                        <option value="8h">8 hours</option>
+                    </select>
+                    <span style="color:var(--text-muted);">or</span>
+                    <input id="timeskip-minutes" type="number" min="1" max="1440" placeholder="minutes" style="width:90px;padding:3px 6px;">
+                </div>
+                <div style="display:flex;gap:10px;">
+                    <div style="flex:1;">
+                        <div style="font-weight:600;margin-bottom:4px;">Target <span style="color:var(--text-muted);">(travel area / search item)</span></div>
+                        <input id="timeskip-target" type="text" placeholder="e.g. Water Source" style="width:100%;padding:3px 6px;">
+                    </div>
+                    <div style="width:110px;">
+                        <div style="font-weight:600;margin-bottom:4px;">Heading</div>
+                        <input id="timeskip-heading" type="text" placeholder="west" style="width:100%;padding:3px 6px;">
+                    </div>
+                </div>
+                <div>
+                    <div style="font-weight:600;margin-bottom:4px;">Watch tags <span style="color:var(--text-muted);">(comma separated — stop on discovery)</span></div>
+                    <input id="timeskip-tags" type="text" placeholder="relic, treasure" style="width:100%;padding:3px 6px;">
+                </div>
+                <div id="timeskip-status" style="color:var(--text-muted);min-height:14px;"></div>
+                <pre id="timeskip-result" style="display:none;max-height:180px;overflow:auto;white-space:pre-wrap;background:rgba(0,0,0,0.25);padding:8px;border-radius:4px;font-size:11px;margin:0;"></pre>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-green" id="timeskip-go" onclick="Timeskip.run()">⏩ Skip</button>
+                <button class="btn btn-secondary" onclick="Timeskip.closeDialog()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script>
     let _vitalModalPlayer = '';
     let _vitalModalName = '';
@@ -1137,6 +1200,7 @@
     <script src="/static/js/ui/undo-history.js"></script>
     <script src="/static/js/ui/scenario-manager.js"></script>
     <script src="/static/js/ui/recent-edits.js"></script>
+    <script src="/static/js/ui/timeskip.js"></script>
     <script src="/static/js/narration-ui.js"></script>
     <script src="/static/js/validator-panel.js"></script>
     <script src="/static/js/nl-editor/staging.js"></script>
