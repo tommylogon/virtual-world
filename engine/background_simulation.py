@@ -141,15 +141,15 @@ class BackgroundSimulation:
         A character mid-activity (sleeping) or unconscious is skipped entirely, so
         a long sleep cannot leave a backlog to dump on waking.
         """
-        try:
-            human = self.gs.active_player
-        except Exception:
-            human = None
-
         for name, p in list(self.gs.players.items()):
             focused = getattr(p, "simulation_mode", "active") != "background"
-            if focused and p is human:
-                continue  # the human's own minutes are theirs to spend
+            # Human-driven characters (autonomy False) are never puppeted: the
+            # player's minutes are theirs. This is the documented marker
+            # (player.py:194, event-stream.js:136). `gs.active_player` is a
+            # registry *key* (a string), so the old identity check against it
+            # never matched and the human was simulated behind the player's back.
+            if focused and getattr(p, "autonomy", True) is False:
+                continue
             if p.state == "dead":
                 continue
             if p.activity or p.state == "unconscious":
@@ -343,6 +343,53 @@ class BackgroundSimulation:
                 return TASK_MINUTES["travel"]
 
         return None  # nothing is due — the rest of the timeframe passes quietly
+
+    # ─────────────────── public policy hooks (task-464) ────────────────────
+    # The timeskip runner drives a *specific* character through these, instead
+    # of the roster sweep in `process_due`. Same decisions, same clock.
+
+    def take_action(self, p, served=None, remaining=1.0):
+        """One deterministic action for *p*. Returns minutes used or None."""
+        return self._act(p.name, p, served, remaining)
+
+    def step_toward_area(self, p, area_name, reason="timeskip"):
+        """One hop toward a named area."""
+        return self._travel_to_area(p, area_name, reason)
+
+    def step_toward_tags(self, p, tags, need="timeskip"):
+        """One hop toward the nearest area that satisfies *tags*."""
+        return self._travel_toward(p, tags, need)
+
+    def find_matching(self, p, *, tags=(), name=None):
+        """A reachable node matching a name (substring) or tag set."""
+        want = str(name).lower() if name else None
+        tag_set = {str(t).lower() for t in (tags or ())}
+        graph = self.gs.graph
+        player_id = self.gs._player_node_id(p.name)
+        area_id = (self.gs.area_node_id(p.current_area) if p.current_area else None)
+
+        candidates = []
+        for e in graph.edges:
+            if e.type == EDGE_CARRYING and e.target == player_id:
+                node = graph.get_node(e.source)
+                if node is not None:
+                    candidates.append(node)
+        if area_id:
+            held = list(self._spatial_items(area_id))
+            candidates.extend(held)
+            for holder in held:
+                candidates.extend(self._spatial_items(holder.id))
+
+        for node in candidates:
+            props = node.properties or {}
+            if props.get("current_state") == "hidden":
+                continue
+            node_tags = {str(t).lower() for t in (props.get("tags") or [])}
+            if want and (want in str(node.name).lower() or want == str(node.id).lower()):
+                return node
+            if tag_set and (tag_set & node_tags):
+                return node
+        return None
 
     # ───────────────────────────── actions ─────────────────────────────────
 

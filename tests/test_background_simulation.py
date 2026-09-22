@@ -107,6 +107,7 @@ def test_the_humans_own_character_is_never_puppeted():
     w.time_per_tick_minutes = 15
     p = _bg_player(w, Thirst=5, Hunger=80, Energy=90)
     p.simulation_mode = "active"
+    p.autonomy = False               # human-driven: the engine must not puppet it
     w.active_player = p              # this is the player's character
     _add_item(w, AREA, "dried meat", ["food"], ["eat"])
     w.tick_turn()
