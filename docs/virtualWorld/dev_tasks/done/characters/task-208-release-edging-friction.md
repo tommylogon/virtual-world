@@ -1,5 +1,6 @@
 ---
 group: Pleasure System
+status: done
 ---
 
 # Release Event, Edging & Clothing Friction

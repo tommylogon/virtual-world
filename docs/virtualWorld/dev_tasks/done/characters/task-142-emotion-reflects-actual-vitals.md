@@ -1,5 +1,6 @@
 ---
 group: Prompt & Narrative Quality
+status: done
 ---
 # Emotion Should Reflect Actual Vitals/State
 

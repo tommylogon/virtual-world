@@ -1,5 +1,6 @@
 ---
 group: Pleasure System
+status: done
 ---
 
 # Intimacy Verbs, Interact/Attack Distinction & Body-Part Targeting

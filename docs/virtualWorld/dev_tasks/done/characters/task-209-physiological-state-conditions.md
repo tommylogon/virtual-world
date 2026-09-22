@@ -1,5 +1,6 @@
 ---
 group: Pleasure System
+status: done
 ---
 
 # Arousal State Conditions & Threshold Triggers
