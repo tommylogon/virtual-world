@@ -3,7 +3,34 @@ group: Tech Debt & Testing
 ---
 # Task 358: Upgrade Playwright Tests — Actually Test Things
 
-## State (verified 2026-09-21) — partial; the file's own "In Progress (partial)" is accurate
+## Outcome (verified 2026-09-22) — Phases 1–2 closed; Phases 3–5 re-filed as task-444
+
+The foundation this task asked for (console-error capture, shared helper, and the ten
+bugs converted into real click-through regression tests) **landed**. The three remaining
+phases were never started, so they have been **re-filed as
+[[dev_tasks/todo/testing/task-444-playwright-persistence-and-error-boundaries|task-444]]**
+with the corrected counts.
+
+- **Phase 1 — landed.** `tools/test_helpers.cjs` (103 lines) exports `startSession`,
+  `checkConsoleErrors`, `switchTab`, `showAgent`, `api`, `getState`, `gameCmd`
+  (`:94-103`), with `pageerror` plus filtered `console.error` capture (`:29-35`).
+- **Phase 2 — landed.** `tools/test_regressions.cjs` (181 lines) requires the helper
+  (`:8`) and covers the ten filed bugs (settings tabs `:24-41`, trigger editor `:44-76`,
+  generate-from-equipment `:79-96`, turn advance `:99-107`, max-steps `:110-122`,
+  initiative order `:125-139`, HP display `:142-156`, dropdown readability `:159-172`).
+- **Phases 3–5 — not started, verified absent:** `grep 'page.reload' tools/` → 0 hits;
+  `grep 'page.route' tools/` → 0 hits; no `--suite` flag and no JUnit output anywhere.
+  → task-444.
+- **Corrected claims:** `tools/` holds **28** `.cjs` files, not 12; the helper is adopted
+  by **2** of them (`test_regressions.cjs`, `test_trigger_search_select.cjs`), not "wired
+  through the suite"; and `tools/test_ways.cjs` **does not exist** (named in the Project
+  Structure section below, now annotated). The `153/153` and `14/14` counts are
+  point-in-time and nothing in the repo contradicts them.
+- **Low-value item explicitly dropped:** wiring the helper into the remaining ~26 files.
+  This file itself called it "mechanical, low value" (line 192); task-444 lists it as a
+  non-goal.
+
+### Prior state (2026-09-21) — partial; the file's own "In Progress (partial)" is accurate
 
 **Landed (Phases 1-2), claims verified:**
 - `tools/test_helpers.cjs` exists (103 lines) and exports exactly what the file
@@ -44,6 +71,9 @@ re-run here (they need a browser); nothing in the repo contradicts them.
 ## The Problem
 
 We have ~434 Playwright tests across 12 files, but bugs still slip through because the tests check **presence** and **API responses** — not actual **UI interactions**. The 10 recently-filed bugs (typos, method name mismatches, missing constructor attrs, CSS issues) are all things a click-through test should have caught.
+
+> **Corrected 2026-09-22:** there are **28** `.cjs` files under `tools/`, not 12. The
+> "~434 tests" figure is unverified and stale; do not use it as a baseline.
 
 ## Test Pattern Analysis
 
@@ -170,7 +200,7 @@ New file: `virtual_world/tools/test_helpers.cjs` (shared helpers):
 Existing files get upgraded in-place rather than rewritten:
 - `test_all.cjs` — gets Phase 1 error capture + Phase 3 state verification
 - `test_ui.cjs` — gets Phase 2 click-through + Phase 4 error resilience
-- `test_ways.cjs` — gets Phase 3 state verification
+- ~~`test_ways.cjs`~~ — ⚠️ **does not exist** (corrected 2026-09-22); Phase 3 state verification moved to task-444
 
 ## Requirements
 - [x] Phase 1: Console error capture — `tools/test_helpers.cjs` created (`startSession`, `checkConsoleErrors`, `switchTab`, `showAgent`, `api`, `getState`, `gameCmd`); error capture (pageerror + console.error, filtering browser "Failed to load resource" noise) wired into `test_all.cjs`; `test_all.cjs` now closes the browser (runnable headless)

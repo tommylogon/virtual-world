@@ -7,7 +7,42 @@ priority: high
 
 # task-393: validator-triage-panel
 
-## State (verified 2026-09-21) — partial, not closable
+## Outcome (verified 2026-09-22) — closed; residuals re-filed as task-443
+
+The triage mechanics this task exists for are **landed and in use**, and the two open
+questions are now decided rather than deferred.
+
+**Decision 1 — derived progress: keep the shipped formula (amend section G).**
+The file specified planner-covered / `trigger_reviewed: true` / `ignored_issues`. But
+`trigger_reviewed` appears nowhere in source, and planner-covered needs the trigger-plan
+API. What shipped is
+`audited − distinct source_node_ids with issues` (`static/js/validator-panel.js:356-379`) —
+purely computed, cannot drift, which was the actual requirement. Section G is amended
+below; the richer definition stays available as a future enhancement, not an open loop.
+
+**Decision 2 — the unimplemented pieces are re-filed as task-443.**
+`library_mismatch` recalibration, the "mark instance as intended" action, the
+default-collapsed `info` section, and the manual browser pass are all absent. This file's
+claim that the recalibration was done was **false** — task-443 carries the corrected
+facts and the acceptance criteria.
+
+**The unsupported verification claim is now backed by a test.**
+This file claimed the `ignored_issues` filter and resurfacing were "verified via ad-hoc
+run" with no committed test. Added here:
+`tests/test_trigger_validator.py::TestIgnoredIssues` — 7 tests covering hide, expiry on
+edit, non-ignored codes, missing source node, a malformed `_ignored_at`, and an
+end-to-end `validate()` case. File: 48 passed.
+
+**Landed (unchanged from the note below):** group-by-node / group-by-code with a
+persisted toggle (`static/js/validator-panel.js:257-291`, `:348-349`); scrollable list with
+a pinned count (`:309-310`, `:312-320`, markup `templates/index.html:139,142`);
+`empty_trigger` collapsing plus batched "Remove all empty" (`:423-448`, `:144-166`,
+button `:397-400`); dismiss-until-edited via per-node `ignored_issues` with engine filter
+and resurfacing (`engine/trigger_validator.py:184-219`, route `routes/triggers.py:24-51`,
+UI `:127-137`); mechanical-default fix-all (`:232-255`, button `:468-469`) and way
+delegation to task-395; a progress bar (`:356-379`).
+
+### Prior state (2026-09-21) — partial, not closable
 
 Core triage mechanics are genuinely landed; three deliverables are absent and
 three claims in this file no longer match the code.
@@ -108,11 +143,20 @@ working set is small and always current.
   flow per user).
 
 ### G. Derived progress (layer-2)
-- A node is **done** when: planner-covered (all planned trigger types present under
-  `TriggerSuggestDiff.covered()`) OR `trigger_reviewed: true` OR `ignored_issues`
-  covers the outstanding codes.
+> **AMENDED 2026-09-22 — this is the definition that shipped, not the original one.**
+> The bar below was originally specified as planner-covered / `trigger_reviewed` /
+> `ignored_issues`; `trigger_reviewed` was never implemented and planner-covered needs the
+> trigger-plan API. The live definition is the shipped one — see the Outcome block.
+
+- A node is **done** when it has no undismissed issue:
+  `clean = total − distinct source_node_ids with issues`, computed live in
+  `static/js/validator-panel.js:356-379`.
 - Progress bar for the current filter: "trigger audit — 31/60 done". Purely
   computed, cannot drift.
+- *Original (unshipped) definition, kept for reference:* planner-covered (all planned
+  trigger types present under `TriggerSuggestDiff.covered()`) OR `trigger_reviewed: true`
+  OR `ignored_issues` covers the outstanding codes. Revisit only if the shipped bar proves
+  too coarse.
 
 ## Implementation notes
 

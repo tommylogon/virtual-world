@@ -1,6 +1,44 @@
 # Task 314 — Modularize the largest files
 
-## State (verified 2026-09-21) — partial; not closable, and several files regrew
+## Outcome (verified 2026-09-22) — reconciled and closed
+
+This was an open-ended chore, so it is closed by **reconciliation + re-scoping**, not by
+splitting every file.
+
+**Done here:**
+- **Re-measured every target** against the tree. The numbers below are 2026-08/09 history;
+  the 2026-09-22 measurements are in the table in this block and supersede them.
+- **The orphan is resolved.** `static/js/inspector/agent/agent-header.js` (165 lines) was
+  dead: `agent-view.js` still defines its own `_renderAgentHeader` / `_renderStatusRow`
+  (lines 255, 284) and calls them (lines 79-80), no `<script>` tag loaded the module, and
+  `InspectorAgentHeader` had no other reference anywhere in the repo. The module was
+  removed (its wave-2 split was abandoned and wiring the stale snapshot would have
+  regressed the live file), and its false row was deleted from
+  `docs/design/js-module-index.md`.
+- **Stale claims corrected** — see the corrected note below.
+- **Remaining splits re-filed as concrete, bounded tasks:** **task-440** (backend
+  runner-ups) and **task-441** (frontend giants + the trigger test module). Each carries
+  today's measured counts, the suggested seam, and its own acceptance criteria.
+
+**Re-measured 2026-09-22 (supersedes every line count in this file):**
+
+| File | Lines | File | Lines |
+|------|------:|------|------:|
+| `tests/test_trigger_system.py` | 2724 | `engine/trigger_validator.py` | 821 |
+| `static/js/inspector/agent-view.js` | 2276 | `engine/equipment.py` | 754 |
+| `static/js/shared/trigger-graph.js` | 2116 | `engine/matching.py` | 697 |
+| `static/js/shared/trigger-editor.js` | 2022 | `engine/effects.py` | 517 |
+| `static/js/item-library.js` | 1401 | `engine/serialization.py` | 509 |
+| `routes/graph_ops.py` | 1355 | `engine/item_actions.py` | 153 |
+| `virtual_world_engine.py` | 1322 | `engine/trigger_system.py` | 112 |
+| `routes/action_handlers.py` | 1301 | `engine/player_conditions.py` | 841 |
+| `static/js/agent-engine.js` | 1181 | `engine/tick_manager.py` | 1101 |
+| `routes/library_ops.py` | 1084 | `engine/movement.py` | 1098 |
+| `static/js/main.js` | 1060 | `engine/traits.py` | 1096 |
+
+Everything below this block is the historical 2026-08/09 record, kept for context.
+
+## Historical state (2026-09-21) — partial, not closable, several files regrew
 
 Verified by measuring every candidate in the current tree rather than trusting the
 file, whose own line counts are historical and now misleading.
@@ -42,8 +80,9 @@ existing):**
 | `static/js/main.js` | 1060 | — |
 | `tests/test_trigger_system.py` | 2724 | — (still one module, 14 classes) |
 
-Also unresolved: `static/js/inspector/agent/agent-header.js` (165 lines) is an
-orphan with no `<script>` tag in `templates/index.html`.
+Also unresolved: ~~`static/js/inspector/agent/agent-header.js` (165 lines) is an
+orphan with no `<script>` tag~~ — **resolved 2026-09-22: deleted** (dead duplicate; see
+the Outcome block).
 
 **Fixed here while triaging:** the item split left two dead facade wrappers that
 would have raised `NameError` — `_get_effective_weight` and
@@ -53,9 +92,11 @@ them (and the second shadowed the module function's own name inside the method).
 No callers existed, which is why the suite stayed green; both wrappers are
 removed.
 
-**False/stale claims:** the header says `virtual_world_engine.py` was "slimmed to
-a facade (756 now)" — it is 1313; `agent-engine.js` "currently 752" — it is 1181.
-The "URGENT, first action next session" item is long resolved.
+**False/stale claims (corrected 2026-09-22):** the header says
+`virtual_world_engine.py` was "slimmed to a facade (756 now)" — it is **1322**;
+`agent-engine.js` "currently 752" — it is **1181**. The "URGENT, first action next
+session" item is long resolved (`templates/index.html:1075-1077` loads all three
+way-view modules).
 
 **Priority**: Medium
 **Status**: In Progress (wave 1 landed 2026-08-26: trigger_system, effects, routes quartet. Wave 2 in flight: player/traits redo, facade trim, runner-ups, JS trio, test split.)

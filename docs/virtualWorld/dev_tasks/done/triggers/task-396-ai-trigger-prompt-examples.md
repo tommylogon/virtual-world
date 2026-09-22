@@ -7,7 +7,47 @@ priority: high
 
 # task-396: ai-trigger-prompt-examples
 
-## State (verified 2026-09-21) — partial, not closable
+## Outcome (verified 2026-09-22) — complete
+
+The prompt was already the deliverable; what was missing was anything verifying it.
+
+**Landed this pass:**
+- **`tools/unit/test_trigger_suggest_ai.js` — 16 tests** over the prompt's contract: the
+  five hard rules must be stated, and every WORKED EXAMPLE embedded in the prompt is
+  parsed and validated against those rules (non-empty `effects`; no `on_light` +
+  `on_toggle_on` pair; no `on_use` + consume pair; top-level `success_message` honest;
+  every effect type documented and carrying a `params` object; nested `save` branches
+  non-empty). `buildPrompt`'s plan / no-plan paths and node-context rendering are
+  covered too. This is the missing piece: a rule-violating example is the real
+  regression risk, because the model pattern-matches the examples, not the prose rules.
+- Four item/area-relevant trigger types the prompt omitted were added: `on_look`,
+  `on_search`, `on_spoil`, `on_use_progressive`.
+- **`tools/unit/run.js` → `tools/unit/run.cjs`.** The repo's `package.json` sets
+  `"type": "module"`, which broke the CommonJS runner outright (`ReferenceError: require
+  is not defined`). Node's own guidance is the `.cjs` extension. References in
+  `task-322` updated.
+- **Decision on the catalog question: document the deliberate subset** (Part 5 rewritten
+  below) rather than embedding every type/condition/effect. Rationale: what fixed the
+  empty-`effects` failure was the hard rules plus worked examples, not catalog
+  completeness, and this prompt targets a small local model where a larger prompt
+  degrades instruction-following. Expanding the catalogs stays available as a follow-up
+  if generations under-perform.
+
+**Verified:**
+- `node tools/unit/run.cjs` → **67 passed, 2 failed**; all 16 new tests pass. The 2
+  failures are pre-existing and unrelated: `test_describe_vital.js` expects
+  "Your stomach feels empty." / "Your throat feels dry." while `describeVital` now emits
+  the urgency form ("FIND SOMETHING TO EAT NOW.") — the same class of stale expectation
+  task-322 R6 already recorded once.
+
+**Deliberately out of scope:**
+- The LLM's *output* still cannot be unit-tested without a live model. The output
+  assertions in the old Verification section remain a manual check; their prompt-side
+  equivalents are now automated.
+- No server route and no shared JSON catalog of examples — the examples stay in the
+  module so they version with the prompt they anchor.
+
+### Prior state (2026-09-21) — partial, not closable
 
 **Note on the file's nature:** Parts 1-4 (lines 56-367) are a reference catalog of
 trigger types, conditions and effects with worked JSON examples. It is a
@@ -27,25 +67,18 @@ prose checklist at 383-388, and there are no acceptance criteria or test command
   companion to `on_toggle_on` in `engine/toggleable_items.py:72-77`, registered at
   `engine/triggers/constants.py:20`.
 
-**Not done:**
-- **The prompt embeds a condensed subset, not "every trigger type, condition and
-  effect"** as Part 5 requires (`:373-381`). Missing trigger types include
-  `on_use_progressive`, `on_look`, `on_search`, `on_spoil`, `on_auto_open`,
-  `on_fail_jump`/`on_fail_climb`, `on_turn_start`/`on_turn_end`
-  (`engine/triggers/constants.py:12-39`); a long list of conditions and effects is
-  also absent (`save_throw`, `area_temp`, `time_of_day`, `item_relationship`,
-  `apply_area_status`, `set_wet`, `llm_respond`, `scry`, `spawn_character`,
-  `rename`, `adjust_environment`, …). Either the catalogs get completed or Part 5
-  is rewritten to describe the deliberate subset.
-- **No tests.** A grep of `tests/` for this module finds nothing, so none of the
-  verification assertions at `:385-388` exist.
-- No server route and no library data of example prompts — the examples are
-  hardcoded in the JS module, with no shared JSON catalog.
+**Residual items — resolved 2026-09-22 (see Outcome above):**
+- *The condensed subset:* Part 5 now documents it as deliberate, and the four
+  item/area-relevant types it lacked (`on_look`, `on_search`, `on_spoil`,
+  `on_use_progressive`) were added to the prompt.
+- *No tests:* `tools/unit/test_trigger_suggest_ai.js` now covers the prompt contract
+  (16 tests).
+- *No server route / shared JSON catalog:* accepted — the examples live in the module
+  so they version with the prompt they anchor.
 
-**Stale premise to correct:** the "Why the current prompt fails" section
-(`:18-20`) describes a prompt that "dumps a schema … with a single empty example"
-leaving `effects` empty. That is the pre-fix state; the current prompt mandates
-non-empty effects and prose in `params.message` and ships three examples.
+**Premise corrected:** the section above is now marked historical. It described the
+pre-fix prompt; the current prompt mandates non-empty effects, puts prose in
+`params.message`, and ships three worked examples.
 
 **Filed**: 2026-09-07
 **Status**: In Progress — this is the *reference catalog* the trigger AI prompt
@@ -53,7 +86,11 @@ must embed: every trigger type, condition, and effect with a plain-language
 description AND a concrete example. Plus corrected archetypes (light/heat/sound/
 container) verified against the engine.
 
-## Why the current prompt fails (verified)
+## Why the prompt previously failed (historical — fixed 2026-09-07)
+
+> Kept for context only. This describes the prompt *before* the fix. The current prompt
+> mandates non-empty `effects`, sends prose into `effects[].params.message`, and ships
+> three worked examples — see the Outcome section above.
 
 The generator's system prompt dumps a **schema** (key names + param labels)
 with a single empty example (`effects: []`, `conditions: []`). A local 9B model
@@ -408,21 +445,43 @@ Skill gate goes in the **condition** (as you said), reveal in the effect:
 
 ---
 
-# PART 5 — What to embed in the code prompt
+# PART 5 — What the code prompt embeds (as shipped)
 
-### 1. **Full catalogs** (Parts 1–3) — every type/condition/effect with a
-   description AND example. Not just names.
-### 2. **Hard rules**: `effects` MUST be ≥1 per trigger; prose lives in
-   `effects[].params.message`/`params.success_message`; top-level
-   `success_message`/`fail_message` stay `""`; `on_light` fires as a companion
-   to `on_toggle_on` — never author both on the same item.
-### 3. **2–3 complete worked examples** from Part 4 (food, poison-with-save,
-   haunted-take) as style anchors.
-### 4. A line: "Match the style of the examples — vivid, concrete, second-person."
+**Decision (2026-09-22): the prompt embeds a deliberate subset, not the full catalogs**
+— see the Outcome section for why. What actually ships in
+`static/js/shared/trigger-suggest-ai.js`:
 
-## Verification (later)
+1. **Trigger types** — the full item-interaction set plus the movement and time families
+   an item/way/area can use. Excluded as engine-only / NPC-behaviour surfaces:
+   `on_auto_open`, `on_fail_jump` / `on_fail_climb`, `on_turn_start` / `on_turn_end`.
+   Parts 1–3 above remain the complete reference.
+2. **Conditions** — the fifteen an author needs: `uses_above`, `uses_reached`, `has_item`,
+   `has_items`, `is_equipped`, `skill_check`, `state_equals`, `random_chance`,
+   `sound_heard`, `speech_matches`, `temperature_below` / `_above`, `weather`, `vital`,
+   plus the `and` / `or` combiner. Engine-side ones (`save_throw`, `area_temp`,
+   `time_of_day`, `item_relationship`, …) stay out.
+3. **Effects** — the authoring set: `message`, `adjust_vital`, `heal`, `damage`, `save`,
+   `set_state`, `set_environment`, `unlock_way`, `spawn_item`, `give_item`,
+   `remove_item` / `consume_item`, `add_tag` / `remove_tag`, `set_parameter` /
+   `adjust_parameter`, `schedule_trigger`, `surface_memory`, `teleport`, `set_time`,
+   `set_weather`, `destroy_self`.
+4. **Hard rules** — effects ≥1 per trigger; prose in `effects[].params.message` /
+   `adjust_vital.success_message`; top-level `success_message` / `fail_message` stay
+   `""`; never pair `on_light` with `on_toggle_on`; never pair `on_use` with
+   `on_eat`/`on_drink`; heat sources are properties, not triggers; finite uses get
+   `uses_above: 0` plus a fail message.
+5. **Three worked examples** (food, tainted drink with a CON save, haunted take) as
+   style anchors, closing with "Match the style of the examples".
 
-- After embedding in `trigger-suggest-ai.js`: generate for a candlestick, poisoned
-  wine, fireplace; assert every trigger has non-empty `effects[]` and prose is
-  inside `params[].message`, not the top-level strings; no `on_light` + 
-  `on_toggle_on` pair on the same item; heat source has zero env triggers.
+**Expanding to the full catalogs is a deliberate, reversible choice** — do it only if
+generations under-perform, and re-run the prompt tests afterwards.
+
+## Verification
+
+- **Prompt side — automated.** `node tools/unit/run.cjs` →
+  `tools/unit/test_trigger_suggest_ai.js` (16 tests): the hard rules are stated, and
+  every embedded example is validated against them.
+- **Output side — manual, needs a live model.** Generate for a candlestick, poisoned
+  wine and a fireplace; assert every trigger has non-empty `effects[]`, prose lives in
+  `params[].message` and not the top-level strings, no `on_light` + `on_toggle_on` pair
+  on one item, and the heat source yields zero env triggers.
