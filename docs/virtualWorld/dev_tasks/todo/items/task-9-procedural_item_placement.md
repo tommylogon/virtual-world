@@ -7,8 +7,9 @@ wiki: "[[Items & Inventory/Items Overview]]"
 **Filed**: 2026-07-17  
 **Rewritten**: 2026-08-21 (concept draft â†’ implementation plan after equip_slots/tag groundwork landed)  
 **Priority**: Medium  
-**Status**: Planned — blocked by task-323 and task-324; consumed by
-task-398 deterministic structure generation
+**Status**: Todo — **unblocked**: task-323 and task-324 both landed (done). This is the
+population hub, consumed by task-398 (deterministic structure generation) and depended on
+by task-438 (NL-editor region decomposition, which needs `engine/population.py`).
 
 ---
 
