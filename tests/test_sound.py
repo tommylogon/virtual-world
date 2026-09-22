@@ -262,6 +262,77 @@ class TestSpeechPropagation:
         assert "area_room_c" in result
 
 
+class TestLeastDampedPath:
+    """The sound walk must use the CHEAPEST route, not the first route found.
+
+    bug-30: the old FIFO BFS marked an area visited on first touch, so a nearer
+    route through heavy doors could beat a slightly longer, mostly-open corridor.
+    """
+
+    def _build_diamond(self, graph, areas):
+        """room_a → room_b → room_c (one closed door) and
+        room_a → room_d → room_c (two open ways). The B route is reached first
+        in insertion order but is the more damped one."""
+        graph._edges_by_source = {}
+
+        def add_way(way_id, state):
+            way = MagicMock(spec=Node)
+            way.id = way_id
+            way.type = "way"
+            way.properties = {"current_state": state, "description": "door"}
+            graph.nodes[way_id] = way
+            return way
+
+        add_way("way_ab", "open")
+        add_way("way_bc", "closed")
+        add_way("way_ad", "open")
+        add_way("way_dc", "open")
+
+        def add_edge(source, target, direction=""):
+            edge = Edge(source=source, target=target, type="connection",
+                        properties={"direction": direction})
+            graph.edges.append(edge)
+            graph._edges_by_source.setdefault(source, []).append(edge)
+
+        # Insert the heavy B route FIRST so a FIFO flood reaches room_c through it.
+        add_edge("area_room_a", "way_ab", "east")
+        add_edge("way_ab", "area_room_b")
+        add_edge("area_room_b", "way_ab", "west")
+        add_edge("way_ab", "area_room_a")
+        add_edge("area_room_b", "way_bc", "south")
+        add_edge("way_bc", "area_room_c")
+        add_edge("area_room_c", "way_bc", "north")
+        add_edge("way_bc", "area_room_b")
+        # Cheaper D route second.
+        add_edge("area_room_a", "way_ad", "north")
+        add_edge("way_ad", "area_room_d")
+        add_edge("area_room_d", "way_ad", "south")
+        add_edge("way_ad", "area_room_a")
+        add_edge("area_room_d", "way_dc", "east")
+        add_edge("way_dc", "area_room_c")
+        add_edge("area_room_c", "way_dc", "west")
+        add_edge("way_dc", "area_room_d")
+
+    def test_quietest_route_wins_over_first_reached(self, graph, areas):
+        self._build_diamond(graph, areas)
+        result = get_areas_hearing_speech("area_room_a", "scream", graph, areas)
+        # B route: 0.5 + 1 (closed) = 1.5 → remaining 1.5
+        # D route: 0.5 + 0.5 (open) = 1.0 → remaining 2.0 (must win)
+        assert "area_room_c" in result
+        remaining, direction = result["area_room_c"]
+        assert remaining == 2.0
+        # Direction is the first hop of the winning route (A → D = north).
+        assert direction == "north"
+
+    def test_remaining_penetration_uses_best_route(self, graph, areas):
+        self._build_diamond(graph, areas)
+        # A shout (pen=2) through the B route would be 2 - 1.5 = 0.5; the D route
+        # gives 2 - 1.0 = 1.0. The result must reflect the louder channel.
+        result = get_areas_hearing_speech("area_room_a", "shout", graph, areas)
+        assert result["area_room_c"][0] == 1.0
+
+
+
 class TestAmbientNoise:
     def test_loud_room_reduces_speech(self, graph, areas, ways):
         connect_areas(graph, areas, ways)

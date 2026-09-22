@@ -4,8 +4,8 @@ Handles speech levels, sound source propagation, and ambient noise dampening
 using graph-scan approach similar to the lighting system.
 """
 from typing import List, Dict, Optional, Set, Tuple
-from collections import deque
-from graph import WorldGraph, Node, Edge, EDGE_CONNECTION
+import heapq
+from graph import WorldGraph, Node, Edge, EDGE_CONNECTION, EDGE_IN
 from engine.runtime_config import config as _config
 
 
@@ -60,8 +60,9 @@ def _config_get_float(key: str, default: float) -> float:
 
 
 # Backward-compat module names. Old importers (and tests) read these dicts /
-# constants directly; they now delegate to the config-backed helpers so values
-# stay live after an "Engine Config" save.
+# constants directly. They are import-time SNAPSHOTS: a live "Engine Config"
+# save does NOT mutate them. Engine code that must track config changes uses the
+# ``_speech_levels()`` / ``_way_barriers()`` / ``_noise_levels()`` helpers above.
 SPEECH_LEVELS = _speech_levels()
 WAY_BARRIERS = _way_barriers()
 NOISE_LEVELS = _noise_levels()
@@ -80,7 +81,9 @@ def get_way_barrier(way_node: Node) -> float:
 
     Returns:
         Barrier value: custom property (solid states), else 0.5 (open),
-        0.75 (see-through), 1 (closed), 2 (locked/blocked/hidden)
+        0.75 (see-through), 1 (closed/locked/blocked), 2 (hidden). A lock is a
+        latch on an already-closed door and adds no acoustic mass, so locked and
+        blocked share the closed value.
     """
     current_state = way_node.properties.get("current_state", "open")
 
@@ -120,7 +123,7 @@ def get_area_noise_level(area_node: Node, graph: WorldGraph) -> int:
     # Calculate sound absorption from items in area
     absorption = 0
     for edge in graph.edges:
-        if edge.target == area_node.id and edge.type == "in":
+        if edge.target == area_node.id and edge.type == EDGE_IN:
             item_node = graph.get_node(edge.source)
             if item_node and item_node.type == "item":
                 tags = [t.lower() for t in item_node.properties.get("tags", [])]
@@ -152,8 +155,11 @@ def propagate_sound(
 ) -> Dict[str, Tuple[int, str]]:
     """Propagate sound through the graph from origin area.
 
-    Uses BFS to find all areas that can hear the sound, tracking
-    accumulated barriers along each path.
+    Uses a least-cost (Dijkstra) walk to find every area that can hear the
+    sound, tracking the CHEAPEST cumulative barrier along any route. Sound is a
+    pressure wave: it takes every path, so the loudness a listener perceives is
+    set by the strongest (least-damped) route, not by whichever route a FIFO
+    flood-fill happened to reach first.
 
     The graph uses bidirectional ``EDGE_CONNECTION`` edges between
     areas and way (door) nodes:
@@ -174,13 +180,18 @@ def propagate_sound(
     if origin_area_id not in areas:
         return {}
 
-    # BFS: track (area_id, accumulated_barriers, direction)
-    queue = deque([(origin_area_id, 0, None)])
-    visited = {origin_area_id}
+    # Dijkstra on cumulative barrier: heap entries are
+    # (accumulated, tie_breaker, area_id, direction). The tie_breaker keeps the
+    # heap comparison from ever falling through to a str/None compare.
+    counter = 0
+    queue = [(0.0, counter, origin_area_id, None)]
+    best = {origin_area_id: 0.0}  # area_id -> cheapest accumulated barrier seen
     hearing_areas = {}
 
     while queue:
-        current_id, accumulated, direction = queue.popleft()
+        accumulated, _, current_id, direction = heapq.heappop(queue)
+        if accumulated > best.get(current_id, float("inf")):
+            continue  # stale heap entry — a cheaper route already won
 
         # Find ways connected to the current area
         for edge in graph.get_edges_for_source(current_id, EDGE_CONNECTION):
@@ -198,7 +209,7 @@ def propagate_sound(
                 neighbor_id = conn.target
                 neighbor_direction = edge.properties.get("direction", "")
 
-            if not neighbor_id or neighbor_id in visited:
+            if not neighbor_id:
                 continue
 
             # Calculate barrier for this way
@@ -207,16 +218,21 @@ def propagate_sound(
 
             # Sound can reach this area if penetration > accumulated barriers
             remaining_pen = penetration - new_accumulated
+            if remaining_pen <= 0:
+                continue
 
-            if remaining_pen > 0:
-                # Store the direction from origin (first hop direction)
-                final_direction = direction if direction else neighbor_direction
+            # Only re-expand when this route is quieter than any earlier one.
+            if new_accumulated >= best.get(neighbor_id, float("inf")):
+                continue
 
-                hearing_areas[neighbor_id] = (remaining_pen, final_direction)
-                visited.add(neighbor_id)
+            best[neighbor_id] = new_accumulated
+            # Store the direction from origin (first hop direction)
+            final_direction = direction if direction else neighbor_direction
+            hearing_areas[neighbor_id] = (remaining_pen, final_direction)
 
-                # Continue propagating if sound still has penetration
-                queue.append((neighbor_id, new_accumulated, final_direction))
+            counter += 1
+            heapq.heappush(
+                queue, (new_accumulated, counter, neighbor_id, final_direction))
 
     return hearing_areas
 
@@ -300,7 +316,7 @@ def get_sound_sources_in_area(area_id: str, graph: WorldGraph) -> List[Tuple[Nod
     sources = []
     
     for edge in graph.edges:
-        if edge.target == area_id and edge.type == "in":
+        if edge.target == area_id and edge.type == EDGE_IN:
             item_node = graph.get_node(edge.source)
             if not item_node or item_node.type != "item":
                 continue
