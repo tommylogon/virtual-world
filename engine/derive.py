@@ -163,7 +163,8 @@ def derive_person_profile(player, other_name: str) -> dict:
     """
     profile = _fresh()
     has_signal = False
-    rel = (getattr(player, "relationships", None) or {}).get(other_name)
+    from engine.relationships import get_relationship
+    rel = get_relationship(player, other_name)
     if rel:
         profile["closeness"] = clamp(float(rel.get("closeness", 0)))
         profile["familiarity"] = clamp(float(rel.get("interaction_count", 0)) * 2.0)

@@ -233,7 +233,7 @@ class GameLogger:
             f.write("=== PLAYERS ===\n")
             for pname, player_obj in players.items():
                 f.write(
-                    f"  {pname}: area={player_obj.current_area}, "
+                    f"  {getattr(player_obj, 'name', pname)}: area={player_obj.current_area}, "
                     f"state={player_obj.state}, "
                     f"HP={player_obj.vitals.get('HP', 0)}, "
                     f"Energy={player_obj.vitals.get('Energy', 0)}\n"

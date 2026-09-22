@@ -121,7 +121,8 @@ class GrappleSystem:
         target = self.player_manager.players.get(target_name)
         if not target:
             return 0
-        return (target.relationships or {}).get(grappler_name, {}).get("closeness", 0)
+        from engine.relationships import get_relationship
+        return (get_relationship(target, grappler_name) or {}).get("closeness", 0)
 
     def _grappler_grab_check(self, grappler_name: str, dc: int) -> tuple:
         """Grappler-side grab attempt (grappler rolls d20+Athletics vs DC)."""
@@ -142,16 +143,20 @@ class GrappleSystem:
         return self.player_manager.get_player_node_id(player_name)
 
     def _grappling_targets(self, grappler_name: str) -> List[str]:
-        """Names of players currently held by *grappler_name*.
+        """Identity keys of players currently held by *grappler_name*.
 
         Source of truth: the ``grappled`` edge (grappler node → target node).
+        The edge stores node ids, so resolve each target back to its identity
+        key (task-449) rather than its display name — two same-named characters
+        must not collapse to one.
         """
         grappler_node = self._player_node_id(grappler_name)
         names = []
         for edge in self.graph.get_edges_for_source(grappler_node, EDGE_GRAPPLED):
             node = self.graph.get_node(edge.target)
             if node and node.type == "character":
-                names.append(node.name)
+                key = self.player_manager.key_for_node_id(edge.target)
+                names.append(key or node.name)
         return names
 
     def _grappled_targets(self, grappler_name: str) -> List[str]:
@@ -159,12 +164,12 @@ class GrappleSystem:
         return self._grappling_targets(grappler_name)
 
     def _grappler_of(self, target_name: str) -> Optional[str]:
-        """Who holds *target_name* (None if nobody). Edge-driven lookup."""
+        """Identity key of whoever holds *target_name* (None if nobody)."""
         target_node = self._player_node_id(target_name)
         for edge in self.graph.get_edges_for_target(target_node, EDGE_GRAPPLED):
             node = self.graph.get_node(edge.source)
             if node and node.type == "character":
-                return node.name
+                return self.player_manager.key_for_node_id(edge.source) or node.name
         return None
 
     def _free_hands(self, grappler_name: str) -> int:

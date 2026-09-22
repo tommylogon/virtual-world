@@ -632,7 +632,7 @@ class MovementSystem:
                         break
             if not block:
                 feared_here = [
-                    pname for pname, p in list(self.gs.players.items())
+                    getattr(p, "name", pname) for pname, p in list(self.gs.players.items())
                     if p.state != "dead" and p.current_area == target_area_node.name
                 ]
                 for inst in self.gs.player.conditions.get("frightened", []):
@@ -926,7 +926,8 @@ class MovementSystem:
                 display = resolved
                 try:
                     player = self.player_manager.players.get(self.gs.active_player)
-                    rel = (player.relationships.get(resolved) or {}) if player else {}
+                    from engine.relationships import get_relationship
+                    rel = (get_relationship(player, resolved) or {}) if player else {}
                     if rel.get("first_sighting"):
                         other = self.gs.player_manager.players.get(resolved)
                         display = other.unknown_display_name() or resolved

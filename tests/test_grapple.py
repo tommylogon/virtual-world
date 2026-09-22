@@ -416,3 +416,64 @@ class TestExperienceDrivenGrab:
 
         assert mod_distrusted > mod_trusted, (
             f"distrusted {mod_distrusted} should be > trusted {mod_trusted}")
+
+class TestGrappleIdentity:
+    """task-449: grapple must key by identity, not display name."""
+
+    def _world(self):
+        world = VirtualWorld()
+        world.player_manager.players = {}
+        world.player_manager.active_player = None
+        world.movement.add_area(Area("Room A", "First room.", []))
+        g = Player("Grappler"); g.current_area = "Room A"; world.add_player(g)
+        a = Player("Jon"); a.current_area = "Room A"; world.add_player(a)
+        b = Player("Jon"); b.current_area = "Room A"; world.add_player(b)
+        world.set_active_player(g.name)
+        return world, g, a, b
+
+    def test_grab_targets_the_right_same_named_body(self):
+        world, g, a, b = self._world()
+        pm = world.player_manager
+        gkey, akey, bkey = pm.relationship_key(g), pm.relationship_key(a), pm.relationship_key(b)
+        assert akey != bkey  # two Jons, two identities
+
+        with patch.object(world.grapple, "_grappler_grab_check",
+                          return_value=(True, 12, "[Grab] ...")):
+            result = world._grapple_grab(gkey, bkey)
+
+        assert "grab hold" in result.lower()
+        assert b.has_condition("grappled")
+        assert not a.has_condition("grappled")  # the other Jon is untouched
+        assert world.grapple._grappling_targets(gkey) == [bkey]
+        assert world.grapple._grappler_of(bkey) == gkey
+        assert world.grapple._grappler_of(akey) is None
+
+    def test_release_only_releases_the_grappled_identity(self):
+        world, g, a, b = self._world()
+        pm = world.player_manager
+        gkey, akey, bkey = pm.relationship_key(g), pm.relationship_key(a), pm.relationship_key(b)
+        with patch.object(world.grapple, "_grappler_grab_check",
+                          return_value=(True, 12, "[Grab] ...")):
+            world._grapple_grab(gkey, bkey)
+
+        world.grapple.release(gkey, bkey)
+
+        assert not b.has_condition("grappled")
+        assert not a.has_condition("grappled")
+        assert world.grapple._grappling_targets(gkey) == []
+
+    def test_sync_repairs_the_right_body(self):
+        world, g, a, b = self._world()
+        pm = world.player_manager
+        gkey, bkey = pm.relationship_key(g), pm.relationship_key(b)
+        with patch.object(world.grapple, "_grappler_grab_check",
+                          return_value=(True, 12, "[Grab] ...")):
+            world._grapple_grab(gkey, bkey)
+        # Simulate the desync sync() repairs: edge present, condition missing.
+        b.remove_condition("grappled")
+        assert not a.has_condition("grappled")
+
+        world.grapple.sync()
+
+        assert b.has_condition("grappled")
+        assert not a.has_condition("grappled")

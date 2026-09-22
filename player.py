@@ -390,9 +390,11 @@ class Player:
         # reducer multiplies by importance, leaving a real mark on the profile.
         mag = intensity / 4.0
         importance = max(3, round(intensity))
-        tags = ["rel:" + other_name, dim + ":" + str(round(factor * mag, 2))]
+        rel_key = self._rel_key(other_name)
+        from engine.relationships import display_name as _rel_display
+        tags = ["rel:" + rel_key, dim + ":" + str(round(factor * mag, 2))]
         self.add_memory(
-            "I felt " + label + " toward " + other_name + ".", tick=tick,
+            "I felt " + label + " toward " + _rel_display(self, other_name, rel_key) + ".", tick=tick,
             importance=importance, memory_type="emotion", tags=tags, source="felt",
         )
         # Also nudge the live affect map so the mood reads this turn.
@@ -494,23 +496,30 @@ class Player:
         (the first sighting is anonymized); the flag is cleared on the next
         shared-area encounter, which is when the name is revealed.
         """
-        if other_name in self.relationships:
+        if self._rel_key(other_name) in self.relationships:
             return False
         from engine.relationships import ensure_relationship
         ensure_relationship(self, other_name, tick, label="")
-        self.relationships[other_name]["first_sighting"] = True
+        self.relationships[self._rel_key(other_name)]["first_sighting"] = True
         self._grant_meeting_entertainment(other_name, tick)
         return True
 
+    def _rel_key(self, other) -> str:
+        """Identity key a relationship with ``other`` is stored under (task-446)."""
+        manager = getattr(self, "player_manager", None)
+        if manager is not None and hasattr(manager, "relationship_key"):
+            return manager.relationship_key(other)
+        return str(getattr(other, "name", other) or "")
+
     def has_met(self, other_name: str) -> bool:
         """True when this character has met *other_name* (a relationship exists)."""
-        return other_name in self.relationships
+        return self._rel_key(other_name) in self.relationships
 
     def knows_name(self, other_name: str) -> bool:
         """True when this character has actually learned *other_name*'s name
         (heard it spoken, or read their name tag) — task-339. Recognition
         (having seen them) is NOT name knowledge."""
-        rel = self.relationships.get(other_name)
+        rel = self.relationships.get(self._rel_key(other_name))
         return rel is not None and not rel.get("first_sighting")
 
     def learn_name(self, other_name: str, tick: int) -> bool:
@@ -518,7 +527,7 @@ class Player:
         tag) — task-339. Registers the relationship if new and clears the
         name-unknown flag. Returns True only when this was new knowledge."""
         self.register_first_meeting(other_name, tick)
-        rel = self.relationships.get(other_name)
+        rel = self.relationships.get(self._rel_key(other_name))
         if rel is None:
             return False
         was_unknown = bool(rel.get("first_sighting"))
@@ -992,7 +1001,8 @@ class Player:
         truthful read synchronously (no extra fetch).
         """
         out = {}
-        for name, data in (self.relationships or {}).items():
+        for key, data in (self.relationships or {}).items():
+            display = data.get("name") or key
             entry = {
                 "closeness": data["closeness"],
                 "interaction_count": data.get("interaction_count", 0),
@@ -1002,7 +1012,7 @@ class Player:
             }
             try:
                 from engine.derive import derive_person_profile
-                prof = derive_person_profile(self, name)
+                prof = derive_person_profile(self, key)
                 entry["role"] = prof.get("role")
                 entry["consent"] = round(prof.get("consent", 0.0), 3)
                 entry["trust"] = round(prof.get("trust", 0.0), 1)
@@ -1011,7 +1021,7 @@ class Player:
                 entry["has_signal"] = bool(prof.get("_has_signal"))
             except Exception:
                 pass
-            out[name] = entry
+            out[display] = entry
         return out
 from engine.player_conditions import (
     CONDITION_DEFINITIONS,

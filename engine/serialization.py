@@ -239,6 +239,10 @@ class WorldSerializer:
 
     def _deserialize_player(self, pname, pdata):
         p = Player(pname)
+        # task-446: the registry key may be an id (duplicate display names), so
+        # the authoritative display name comes from the payload.
+        if pdata.get("name"):
+            p.name = pdata["name"]
         # task-316: restore the stable identity (fall back to a fresh id for
         # legacy saves that never had one).
         p.id = pdata.get("id") or p.id
@@ -454,6 +458,12 @@ class WorldSerializer:
             temp_players[pname] = p
 
         self.player_manager.players = temp_players
+        # task-446: rebuild the id→key index and give duplicate-keyed players a
+        # unique anchor after a bulk load. (self.player_manager here is the
+        # world; the real manager hangs off it.)
+        _pm = getattr(self.player_manager, "player_manager", None)
+        if _pm is not None and hasattr(_pm, "reindex"):
+            _pm.reindex()
         self.player_manager.active_player = data.get("active_player") or (next(iter(temp_players.keys())) if temp_players else None)
 
         for pname, p in self.player_manager.players.items():

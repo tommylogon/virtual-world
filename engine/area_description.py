@@ -368,7 +368,8 @@ class AreaDescription:
                 known = active_player_obj is not None and active_player_obj.has_met(pname)
                 name_known = False
                 if known:
-                    rel = active_player_obj.relationships.get(pname) or {}
+                    from engine.relationships import get_relationship
+                    rel = get_relationship(active_player_obj, pname) or {}
                     name_known = not rel.get("first_sighting")
                 if not name_known and active_player_obj is not None:
                     try:

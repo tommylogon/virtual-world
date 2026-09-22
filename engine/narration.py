@@ -382,7 +382,7 @@ class NarrationSystem:
             if player_obj.state != "dead":
                 characters.append(
                     {
-                        "name": pname,
+                        "name": getattr(player_obj, "name", pname),
                         "state": player_obj.state,
                         "personality": (
                             getattr(player_obj, "personality", "")[:200]

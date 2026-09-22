@@ -311,6 +311,8 @@ class VirtualWorld:
         return NodeIDHelper.area_node_id(name)
 
     def player_node_id(self, name: str) -> str:
+        if hasattr(self, 'player_manager') and self.player_manager is not None:
+            return self.player_manager.get_player_node_id(name)
         return NodeIDHelper.player_node_id(name)
 
     def item_node_id(self, name: str) -> str:
@@ -332,6 +334,8 @@ class VirtualWorld:
         return self.name_matcher._is_item_reachable(item_id, area_id)
 
     def _player_node_id(self, player_name: str) -> str:
+        if hasattr(self, 'player_manager') and self.player_manager is not None:
+            return self.player_manager.get_player_node_id(player_name)
         return NodeIDHelper.player_node_id(player_name)
 
     def _match_exit_direction(self, area_id: str, input_str: str) -> Optional[str]:

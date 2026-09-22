@@ -511,7 +511,7 @@ class Effects:
         if target in players:
             return players[target]
         target_lower = str(target).lower()
-        for name, p in players.items():
-            if str(name).lower() == target_lower:
+        for key, p in players.items():
+            if str(getattr(p, "name", key)).lower() == target_lower:
                 return p
         return None

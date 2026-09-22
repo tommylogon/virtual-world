@@ -143,7 +143,7 @@ class NPCBehaviorSystem:
                     self.gs.active_player = pname
                     try:
                         result = self.gs.movement.move_to_area(direction)
-                        msg = f"[NPC] {pname} wanders {direction} to {player.current_area}."
+                        msg = f"[NPC] {player.name} wanders {direction} to {player.current_area}."
                         self.gs.add_log_entry(msg)
                         self.gs.record_turn_event(pname, "move", msg, area_name=player.current_area)
                     except ValueError:
@@ -172,7 +172,7 @@ class NPCBehaviorSystem:
                     self.gs.active_player = pname
                     try:
                         result = self.gs.movement.move_to_area(direction)
-                        msg = f"[NPC] {pname} flees {direction} from a threat."
+                        msg = f"[NPC] {player.name} flees {direction} from a threat."
                         self.gs.add_log_entry(msg)
                         self.gs.record_turn_event(pname, "move", msg, area_name=player.current_area)
                     except ValueError:

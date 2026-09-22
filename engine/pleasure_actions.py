@@ -252,7 +252,8 @@ def execute_intimacy_action(world, actor_name: str, verb: str, target_name: str,
     region_label = (region_name(part["region"]) or (part["region"] or "").replace("_", " ")).lower()
     through = " through the clothing" if part["covered"] else ""
     closeness = 0.0
-    rel = (getattr(actor, "relationships", None) or {}).get(target_name) or {}
+    from engine.relationships import get_relationship
+    rel = get_relationship(actor, target_name) or {}
     try:
         closeness = float(rel.get("closeness", 0))
     except (TypeError, ValueError):

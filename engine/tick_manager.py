@@ -430,7 +430,7 @@ class TickManager:
                     p, self.player_manager.time_ticks, "death",
                     f"died of {cause_of_death}",
                     why="cause:death", area=p.current_area, salient=True)
-                self.player_manager.add_log_entry(f"[{pname}] GAME OVER: You have died from {cause_of_death}.")
+                self.player_manager.add_log_entry(f"[{getattr(p, 'name', pname)}] GAME OVER: You have died from {cause_of_death}.")
                 self.gs._spawn_body_item(pname, cause_of_death)
 
             player_area_name = p.current_area
@@ -665,7 +665,7 @@ class TickManager:
                     (TRAIT_DEFINITIONS.get(t) or {}).get("name", t) for t in acquired
                 )
                 if pname == self.player_manager.active_player:
-                    self.player_manager.add_log_entry(f"[{pname}] gained the {names} trait.")
+                    self.player_manager.add_log_entry(f"[{getattr(p, 'name', pname)}] gained the {names} trait.")
             trait_logs = TraitSystem.process_tick_effects(p, self.player_manager.time_ticks, area_node)
             for log_line in trait_logs:
                 if pname == self.player_manager.active_player:

@@ -312,7 +312,8 @@ def _rng(actor_name: str, target_name: str, tick: int, action: str) -> random.Ra
 
 
 def _closeness(player, other_name: str) -> float:
-    rel = (getattr(player, "relationships", None) or {}).get(other_name) or {}
+    from engine.relationships import get_relationship
+    rel = get_relationship(player, other_name) or {}
     try:
         return float(rel.get("closeness", 0) or 0)
     except (TypeError, ValueError):

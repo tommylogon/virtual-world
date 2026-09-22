@@ -111,6 +111,38 @@ def band_at_least(closeness, minimum: str) -> bool:
         return False
 
 
+def resolve_key(player, other) -> str:
+    """The identity key a relationship with ``other`` is stored under (task-446).
+
+    When the actor is registered, its manager resolves a name/uid/Player to the
+    unique registry key; for a unique name that key IS the name, so existing data
+    and tests are unaffected. Without a manager (unit-test Players) the ref is
+    used verbatim.
+    """
+    manager = getattr(player, "player_manager", None)
+    if manager is not None and hasattr(manager, "relationship_key"):
+        return manager.relationship_key(other)
+    if hasattr(other, "name"):
+        return getattr(other, "name", "") or ""
+    return str(other or "")
+
+
+def display_name(player, other, key: str) -> str:
+    """Human-readable label for the other party, for prose and prompts."""
+    if hasattr(other, "name"):
+        return getattr(other, "name", "") or key
+    manager = getattr(player, "player_manager", None)
+    if manager is not None and hasattr(manager, "display_name_of"):
+        return manager.display_name_of(key)
+    return key
+
+
+def get_relationship(player, other) -> Optional[dict]:
+    """Read the relationship record for ``other``, resolving its identity."""
+    store = getattr(player, "relationships", None) or {}
+    return store.get(resolve_key(player, other))
+
+
 def ensure_relationship(player, other_name: str, tick: int = 0,
                        label: str = "") -> tuple[dict, bool]:
     """The record for ``other_name``, created if absent. Returns (record, created).
@@ -121,16 +153,22 @@ def ensure_relationship(player, other_name: str, tick: int = 0,
     """
     if player is None or not other_name:
         return {}, False
-    existing = player.relationships.get(other_name)
+    key = resolve_key(player, other_name)
+    if not key:
+        return {}, False
+    existing = player.relationships.get(key)
     if existing is not None:
+        if not existing.get("name"):
+            existing["name"] = display_name(player, other_name, key)
         return existing, False
     record = {
         "closeness": 0,
         "last_interaction_tick": int(tick or 0),
         "interaction_count": 0,
         "label": label or "",
+        "name": display_name(player, other_name, key),
     }
-    player.relationships[other_name] = record
+    player.relationships[key] = record
     return record, True
 
 
@@ -148,6 +186,7 @@ def apply_relationship_delta(player, other_name: str, delta, cause: str,
     record, _ = ensure_relationship(player, other_name, tick or 0)
     if not record:
         return {}
+    label = display_name(player, other_name, resolve_key(player, other_name))
     amount = int(delta or 0)
     if amount:
         record["closeness"] = clamp_closeness(record.get("closeness", 0) + amount)
@@ -162,12 +201,12 @@ def apply_relationship_delta(player, other_name: str, delta, cause: str,
             from engine.trace import record as trace_record
             trace_record(
                 player, int(tick or 0), "relationship",
-                f"closeness toward {other_name} {amount:+d}",
+                f"closeness toward {label} {amount:+d}",
                 why=f"social:{cause}",
                 area=area_id or (getattr(player, "current_area", "") or ""),
-                tags=["rel:" + str(other_name), str(cause)],
+                tags=["rel:" + str(label), str(cause)],
                 delta={"closeness": amount, "cause": str(cause),
-                       "with": str(other_name)},
+                       "with": str(label)},
             )
         except Exception:
             pass
@@ -182,23 +221,22 @@ def apply_symmetric_delta(first, second, delta, cause: str,
     the *call*, not something a caller has to remember to do twice. Each side
     still gets its own trace entry, because each side's history is its own.
     """
-    apply_relationship_delta(first, getattr(second, "name", second), delta, cause,
-                             tick=tick, area_id=area_id)
-    apply_relationship_delta(second, getattr(first, "name", first), delta, cause,
-                             tick=tick, area_id=area_id)
+    apply_relationship_delta(first, second, delta, cause, tick=tick, area_id=area_id)
+    apply_relationship_delta(second, first, delta, cause, tick=tick, area_id=area_id)
 
 
 def describe(player, other_name: str) -> str:
     """One line of prose for a relationship, using the shared band ladder."""
-    rel = (getattr(player, "relationships", None) or {}).get(other_name)
+    rel = get_relationship(player, other_name)
     name = getattr(player, "name", "They")
+    other_label = (rel or {}).get("name") or display_name(player, other_name, resolve_key(player, other_name))
     if not rel:
-        return f"{name} has never met {other_name}."
+        return f"{name} has never met {other_label}."
     closeness = rel.get("closeness", 0)
     label = (rel.get("label") or "").strip()
     if label:
-        return (f"{name} considers {other_name} their {label} "
+        return (f"{name} considers {other_label} their {label} "
                 f"(closeness: {closeness}/100).")
-    return (f"{name} considers {other_name} a "
+    return (f"{name} considers {other_label} a "
             f"{BAND_LABELS[closeness_band(closeness)]} "
             f"(closeness: {closeness}/100).")

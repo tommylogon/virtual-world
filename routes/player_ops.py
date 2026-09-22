@@ -9,7 +9,9 @@ logger = logging.getLogger(__name__)
 
 def handle_get_players(app):
     return jsonify({
-        "players": list(app.world.players.keys()),
+        "players": [
+            getattr(p, "name", k) for k, p in app.world.players.items()
+        ],
         "active": app.world.active_player
     })
 
@@ -74,7 +76,9 @@ def handle_spike_emotion(app, name):
         return jsonify({
             "felt_toward": other,
             "emotions": player.emotions_map(),
-            "relationships": list(player.relationships.keys()),
+            "relationships": [
+                (v.get("name") or k) for k, v in (player.relationships or {}).items()
+            ],
         })
 
     try:
@@ -231,11 +235,12 @@ def _resolve_other(app, char_name, handle):
     # candidates: same area as char_name (or all players if area unknown), not self
     cands = []
     for pname, p in app.world.players.items():
-        if pname == char_name:
+        display = getattr(p, "name", pname)
+        if pname == char_name or display == char_name:
             continue
         if area is not None and getattr(p, "current_area", None) != area:
             continue
-        cands.append(pname)
+        cands.append(display)
     if not cands:
         return None
     # 1 exact
@@ -305,7 +310,8 @@ def handle_get_relationship_profiles(app, name):
             prof = derive_person_profile(player, other)
         except Exception:
             continue
-        profiles[other] = {
+        display = (player.relationships.get(other) or {}).get("name") or other
+        profiles[display] = {
             "summary": prof.get("summary"),
             "role": prof.get("role"),
             "consent": round(prof.get("consent", 0.0), 3),
@@ -344,7 +350,9 @@ def handle_learn_names(app, name):
             continue
         if player.learn_name(resolved, tick):
             learned.append(resolved)
-    return jsonify({"learned": learned, "relationships": list(player.relationships.keys())})
+    return jsonify({"learned": learned, "relationships": [
+        (v.get("name") or k) for k, v in (player.relationships or {}).items()
+    ]})
 
 
 def handle_get_conditions(app):
@@ -416,7 +424,9 @@ def handle_delete_player(app, name):
     return jsonify({
         "status": "deleted",
         "deleted": name,
-        "players": list(app.world.players.keys()),
+        "players": [
+            getattr(p, "name", k) for k, p in app.world.players.items()
+        ],
         "active": app.world.active_player
     })
 
@@ -592,22 +602,28 @@ def handle_update_player(app, name):
             if cid == "grappled":
                 try:
                     grapple = app.world.grapple
-                    held = grapple._grappling_targets(player.name)
-                    for held_name in held:
-                        grapple._remove_edge(player.name, held_name)
-                    grappler = grapple._grappler_of(player.name)
+                    # task-449: grapple edges are keyed by identity, not name.
+                    pkey = app.world.player_manager.relationship_key(player)
+                    held = grapple._grappling_targets(pkey)
+                    for held_key in held:
+                        grapple._remove_edge(pkey, held_key)
+                    grappler = grapple._grappler_of(pkey)
                     if grappler:
-                        grapple._remove_edge(grappler, player.name)
+                        grapple._remove_edge(grappler, pkey)
                 except Exception:
                     pass
     if "relationships" in data:
         rels = data["relationships"]
         if isinstance(rels, dict):
             for k, v in rels.items():
+                key = player._rel_key(k) if hasattr(player, "_rel_key") else k
                 if v is None:
-                    player.relationships.pop(k, None)
+                    player.relationships.pop(key, None)
                 else:
-                    player.relationships[k] = v
+                    if isinstance(v, dict) and not v.get("name"):
+                        v = dict(v)
+                        v["name"] = str(k)
+                    player.relationships[key] = v
 
     return jsonify({"status": "updated", "player": player.name})
 
@@ -651,10 +667,12 @@ def handle_import_player(app):
     relationships = data.get('relationships') or {}
     for other_name, rel_data in relationships.items():
         if isinstance(rel_data, dict):
-            player.relationships[other_name] = {
+            key = player._rel_key(other_name) if hasattr(player, "_rel_key") else other_name
+            player.relationships[key] = {
                 "closeness": rel_data.get('closeness', 0),
                 "last_interaction_tick": rel_data.get('last_interaction_tick', 0),
-                "interaction_count": rel_data.get('interaction_count', 0)
+                "interaction_count": rel_data.get('interaction_count', 0),
+                "name": other_name,
             }
 
     area_name = data.get('current_area')
