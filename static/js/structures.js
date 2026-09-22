@@ -1,5 +1,5 @@
 /**
- * Structure templates (task-357) — frontend.
+ * structures.js — structure templates, frontend (task-357).
  *
  * Capture a connected area group as a reusable, self-contained structure and
  * materialize saved structures into the running world. Backend:
@@ -7,6 +7,12 @@
  *
  * Kept dependency-free (plain DOM) so it can be loaded before/after the Lit
  * modules without ordering constraints.
+ *
+ * @module structures — capture and materialize reusable structure templates
+ * @contributes Structures: capture a region, list templates, materialize one into the world
+ * @powers task-357; the world builder's reusable buildings and room groups
+ * @relates engine/structures.py and routes/structures_ops.py; opened from the Game menu
+ * @docs docs/virtualWorld/World Building/Graph System.md
  */
 (function () {
     'use strict';
