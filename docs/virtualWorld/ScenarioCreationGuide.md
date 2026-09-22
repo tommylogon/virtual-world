@@ -210,7 +210,10 @@ All nodes share this shape:
     "npc_action_interval": 3,
     "npc_state": "idle",
     "behaviors": [],
-    "simple_npc": false
+    "simple_npc": false,
+    "image": "/static/images/nodes/<id>-full-neutral-<ts>.png",
+    "profile_image": "/static/images/nodes/<id>-profile-neutral-<ts>.png",
+    "expressions": { "happy": { "profile": "...", "full": "..." } }
   }
 }
 ```
@@ -220,6 +223,7 @@ All nodes share this shape:
 - `npc_behavior`: `"wander"`, `"flee"`, `"stationary"`, `"guard"`, `"follow"`, `"hunt"` — engine accepts arbitrary strings
 - `simple_npc`: `true` skips full vitals decay for background NPCs
 - `tags`: determines first-impression naming — `male` → "the man", `female` → "the woman", `animal` → species name, `child` → "the child"
+- `image` / `profile_image` / `expressions`: character art. `image` is the full-body neutral, `profile_image` the profile neutral, and `expressions` a SillyTavern-style pack keyed by emotion or action (each key holds `profile` and/or `full`). These are normally authored by uploading in the **Expression Pack** panel of the character inspector, not by hand — see [[UI & Settings/Inspector Panels#Character images & expression packs (user guide)]] and [[Characters/Character Images & Expression Packs]].
 
 ---
 

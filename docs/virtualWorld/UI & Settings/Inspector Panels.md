@@ -99,6 +99,31 @@ Features:
 - Save/export/import character cards (library integration)
 - Kill/remove character buttons
 - AI personality generation from text prompt (`_generatePersonality`, line 114)
+- **Expression pack** gallery under the character name (see below)
+
+### Character images & expression packs (user guide)
+
+Open a character (click them on the graph, or Characters list) — the
+**Expression Pack** panel sits right under their name, above the tabs.
+
+1. Choose the **Profile / Full body** tab. *Profile* is the small avatar;
+   *Full body* is the portrait art.
+2. Each row is one expression. Click the file picker on a row to upload that
+   image. Uploads save to `static/images/nodes/` and appear immediately.
+3. `neutral` is the fallback used when no matching expression exists — set it
+   first so the character always has a face.
+4. The known emotion rows (`happy`, `sad`, `angry`, `afraid`, `surprised`,
+   `disgusted`, `aroused`, `affectionate`, `ashamed`, `envious`, `calm`) are
+   always listed. The **avatar follows the character's current emotion**
+   automatically.
+5. To add an action key (for example `attack` or `sleeping`), type it in the
+   "add expression" field and press **Add**, then upload. Custom keys are stored
+   now; runtime selection of action keys is a future hook.
+6. Use the 🗑 button to remove a slot (this also deletes the file).
+
+The pack is saved with the character: "Save Character to Library" includes it,
+and spawning/importing the character brings the images back. See
+[[Characters/Character Images & Expression Packs]] for the data model and API.
 
 ### Way View (`InspectorWayView`)
 

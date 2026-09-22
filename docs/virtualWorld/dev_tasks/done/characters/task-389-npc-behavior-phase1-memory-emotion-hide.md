@@ -6,7 +6,7 @@ group: Characters
 
 **Filed**: 2026-09-02
 **Priority**: High
-**Status**: Idea
+**Status**: Done — the actions exist in `engine/triggers/behaviors.py` (`add_memory`, `set_emotion`, `set_flag`, `hide_in`/`hide_behind`/`hide_under`, `unhide`) and the matching conditions are in `engine/triggers/condition_tree.py`. Phase 2 (task-390) built on this. Kept in todo only as a record.
 
 ---
 
