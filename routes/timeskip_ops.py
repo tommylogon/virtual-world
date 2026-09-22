@@ -72,7 +72,8 @@ def handle_timeskip(app):
     try:
         result = timeskip.advance(
             world, int(round(requested)), intent=intent, target=target,
-            watch_tags=watch_tags, heading=data.get("heading"))
+            watch_tags=watch_tags, target_type=data.get("target_type"),
+            heading=data.get("heading"))
     except Exception as e:  # never 500 the world on a bad skip
         logger.exception("[timeskip] request failed")
         return jsonify({"error": str(e)}), 400

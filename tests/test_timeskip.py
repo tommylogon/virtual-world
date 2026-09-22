@@ -178,6 +178,26 @@ def test_involuntary_interrupts_a_wait():
     assert res.interrupt["kind"] == "involuntary"
 
 
+def test_skip_stops_on_a_threat_event(monkeypatch):
+    """A hostile event mid-skip hands control back (end-to-end wiring)."""
+    w = _world()
+    hero = _safe(_hero(w))
+    real = iv.events_since
+    state = {"n": 0}
+
+    def fake_events(gs, before):
+        state["n"] += 1
+        if state["n"] == 2:
+            return [{"actor": "Goblin", "area": hero.current_area,
+                     "action": "attack", "description": "Goblin attacks you"}]
+        return real(gs, before)
+
+    monkeypatch.setattr(iv, "events_since", fake_events)
+    res = timeskip.advance(w, 30, intent="idle")
+    assert res.interrupted
+    assert res.interrupt["kind"] == "threat"
+
+
 def test_search_finds_an_item_and_stops():
     w = _world()
     hero = _safe(_hero(w))
@@ -233,6 +253,24 @@ def test_explore_moves_through_an_exit():
     res = timeskip.advance(w, 10, intent="explore")
     assert res.elapsed_minutes >= 1
     assert hero.current_area != area
+
+
+class _InterestStub:
+    interest_tags = ["relic"]
+
+
+def test_explore_defaults_watch_tags_to_interest_tags():
+    assert timeskip._default_watch_tags(_InterestStub(), "explore", ()) == ("relic",)
+    assert timeskip._default_watch_tags(_InterestStub(), "idle", ()) == ()
+    assert timeskip._default_watch_tags(_InterestStub(), "explore", ("x",)) == ("x",)
+
+
+def test_search_by_type_matches_a_tag():
+    w = _world()
+    hero = _safe(_hero(w))
+    _add_item(w, hero.current_area, "rusty sword", ["weapon"])
+    res = timeskip.advance(w, 30, intent="search", target_type="weapon")
+    assert res.interrupted and res.interrupt["why"] == "search:found"
 
 
 def test_unknown_intent_is_rejected():
@@ -318,6 +356,14 @@ def test_timeskip_route_runs_and_reports():
     data = resp.get_json()
     assert data["ok"] and data["elapsed_minutes"] == 2
     assert data["clock_after"]
+
+
+def test_timeskip_route_accepts_target_type():
+    client = _client()
+    resp = client.post("/api/world/timeskip",
+                       json={"intent": "search", "minutes": 2, "target_type": "weapon"})
+    assert resp.status_code == 200
+    assert resp.get_json()["ok"]
 
 
 def test_timeskip_route_rejects_unknown_intent():

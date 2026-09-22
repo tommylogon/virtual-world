@@ -84,14 +84,16 @@ def is_running() -> bool:
 
 
 def advance(gs, minutes, *, intent="idle", target=None, watch_tags=(),
-            heading=None, player=None) -> TimeskipResult:
+            target_type=None, heading=None, player=None) -> TimeskipResult:
     """Run a timeskip for the active character.
 
     ``intent`` is one of :data:`INTENTS`. ``minutes`` is clamped to
     ``[MIN_MINUTES, MAX_MINUTES]``. ``target`` is an area name for travel or an
-    item name for search; ``watch_tags`` are interest tags that end the skip on
-    discovery. Returns a :class:`TimeskipResult`; the world is left at the exact
-    minute the skip stopped on.
+    item name for search; ``target_type`` is an item *tag* (items have no type
+    taxonomy — the library identifies them by tags). ``watch_tags`` are interest
+    tags that end the skip on discovery; Explore defaults them to the
+    character's own ``interest_tags``. Returns a :class:`TimeskipResult`; the
+    world is left at the exact minute the skip stopped on.
     """
     global _ACTIVE
 
@@ -119,6 +121,7 @@ def advance(gs, minutes, *, intent="idle", target=None, watch_tags=(),
                               reason="A timeskip is already running.")
 
     _ACTIVE = True
+    watch_tags = _default_watch_tags(who, intent, watch_tags)
     sim = BackgroundSimulation(gs)
     result = TimeskipResult(True, intent, requested)
     result.vitals_before = dict(getattr(who, "vitals", {}) or {})
@@ -138,7 +141,7 @@ def advance(gs, minutes, *, intent="idle", target=None, watch_tags=(),
             if getattr(who, "state", None) != "dead" and not _busy(who):
                 try:
                     found = _policy_step(gs, sim, who, intent, target,
-                                         watch_tags, heading)
+                                         watch_tags, target_type, heading)
                 except Exception as e:  # never let one step kill the skip
                     logger.warning("[timeskip] %s step: %s", intent, e)
                     found = None
@@ -210,12 +213,21 @@ def _resolve_active(gs):
     return None
 
 
+def _default_watch_tags(player, intent, watch_tags):
+    """Explore watches the character's own interests when none are given."""
+    if watch_tags:
+        return tuple(watch_tags)
+    if intent == "explore":
+        return tuple(getattr(player, "interest_tags", []) or ())
+    return ()
+
+
 def _busy(player) -> bool:
     return bool(getattr(player, "activity", None)) or \
         getattr(player, "state", None) == "unconscious"
 
 
-def _policy_step(gs, sim, player, intent, target, watch_tags, heading):
+def _policy_step(gs, sim, player, intent, target, watch_tags, target_type, heading):
     """One minute of the standing-in policy. Returns a found node or None."""
     if intent == "idle":
         return None  # do nothing, on purpose
@@ -225,12 +237,13 @@ def _policy_step(gs, sim, player, intent, target, watch_tags, heading):
         return None
 
     if intent == "search":
-        found = sim.find_matching(player, tags=watch_tags, name=target)
+        search_tags = tuple(watch_tags or ()) + ((target_type,) if target_type else ())
+        found = sim.find_matching(player, tags=search_tags, name=target)
         if found is not None:
             return found
         # Nothing here: drift toward an area that might hold it, else keep up
         # the maintenance a mingle would.
-        if watch_tags and sim.step_toward_tags(player, watch_tags, "search"):
+        if search_tags and sim.step_toward_tags(player, search_tags, "search"):
             return None
         sim.take_action(player, served=set(), remaining=1.0)
         return None
