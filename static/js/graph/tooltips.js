@@ -66,7 +66,7 @@ window.GraphTooltips = {
             if (traitLines.length) tip += `\n${traitLines.join('\n')}`;
         }
         if (nodeData.properties?.central_gravity_enabled === false) {
-            tip += '\nGraph gravity disabled (position locked)';
+            tip += '\nPhysics disabled (node stays in place)';
         }
         return tip;
     },

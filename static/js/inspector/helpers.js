@@ -21,7 +21,14 @@ window.InspectorHelpers = (() => {
     const htmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
 
     /**
-     * Build lit-html for per-node graph physics gravity control
+     * Build lit-html for the per-node graph physics control
+     *
+     * The checkbox is bound through `live()` rather than `?checked`: the user can
+     * change this control without a re-render, and lit only diffs the value it last
+     * *bound*, so a plain binding left the DOM showing the previously inspected
+     * node's state (bug-37). `live()` compares against the element's current
+     * property every render and rewrites it when they differ.
+     *
      * @param {string} nodeId - Graph node ID
      * @param {object} props - Node properties
      * @returns {TemplateResult}
@@ -31,12 +38,12 @@ window.InspectorHelpers = (() => {
         return htmlTag`<div class="inspector-section">
             <h3>Graph Physics</h3>
             <div class="field">
-                <label title="When off, this node is excluded from graph physics and stays in place.">
-                    <input type="checkbox" ?checked=${enabled}
+                <label title="When off, this node is excluded from graph physics and stays where it is.">
+                    <input type="checkbox" .checked=${window.Lit.live(enabled)}
                         @change=${(ev) => H.setCentralGravity(nodeId, ev.target.checked)}>
-                    Central pull enabled
+                    Physics enabled
                 </label>
-                <div class="section-hint" style="margin-top:4px;">Turn off to lock this node in place while the rest of the graph moves.</div>
+                <div class="section-hint" style="margin-top:4px;">Turn off to freeze this node in place while the rest of the graph settles.</div>
             </div>
         </div>`;
     };
