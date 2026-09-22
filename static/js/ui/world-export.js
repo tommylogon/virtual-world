@@ -29,11 +29,12 @@ window.WorldExport = (() => {
         if ('showSaveFilePicker' in window) {
             try {
                 var ext = suggestedName.split('.').pop();
-                var mime = ext === 'txt' ? 'text/plain' : 'application/json';
+                var mime = ext === 'txt' ? 'text/plain' : ext === 'png' ? 'image/png' : 'application/json';
+                var typeName = ext === 'txt' ? 'Text File' : ext === 'png' ? 'PNG Image' : 'JSON File';
                 var handle = await window.showSaveFilePicker({
                     suggestedName: suggestedName,
                     types: [{
-                        description: ext === 'txt' ? 'Text File' : 'JSON File',
+                        description: typeName,
                         accept: (function() { var obj = {}; obj[mime] = ['.' + ext]; return obj; })()
                     }]
                 });

@@ -113,6 +113,15 @@ interface NodeBounds {
     maxY: number;
 }
 
+/** A visible map layer, reduced to what a raster exporter needs to redraw it. */
+interface ExportLayer {
+    image: HTMLImageElement;
+    rect: GraphRect;
+    rotation: number;
+    crop: GraphCrop;
+    opacity: number;
+}
+
 /** The slice of the vis-network API this module uses. */
 interface GraphNetwork {
     getScale(): number;
@@ -1553,6 +1562,23 @@ interface BackgroundState {
         _render();
     }
 
+    /**
+     * Visible map layers, decoded and ready to rasterise. Exposed so the PNG
+     * exporter redraws exactly the maps on screen (crop, rotation and opacity
+     * included) without reaching into module state.
+     */
+    function getExportLayers(): ExportLayer[] {
+        return state.layers
+            .filter((layer): layer is MapLayer & { image: HTMLImageElement; rect: GraphRect } => !!(layer.visible && layer.image && layer.rect))
+            .map((layer) => ({
+                image: layer.image,
+                rect: { x: layer.rect.x, y: layer.rect.y, width: layer.rect.width, height: layer.rect.height },
+                rotation: layer.rotation,
+                crop: { x: layer.crop.x, y: layer.crop.y, w: layer.crop.w, h: layer.crop.h },
+                opacity: layer.opacity,
+            }));
+    }
+
     const api = {
         init,
         reset,
@@ -1574,6 +1600,7 @@ interface BackgroundState {
         savePositions,
         persistPositionsToWorld,
         removeImage,
+        getExportLayers,
         _state: state,
         // Pure logic exposed for tools/unit/run.cjs. Not a product API.
         _internals: {

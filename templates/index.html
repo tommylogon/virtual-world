@@ -198,6 +198,7 @@
                 <div class="toolbar-group" aria-label="Canvas controls">
                     <button class="toolbar-btn" id="btn-physics" onclick="graphManager.togglePhysics()" title="Toggle physics (freeze/unfreeze node positions)">⏸ Physics</button>
                     <button class="toolbar-btn" onclick="graphManager.fitView()" title="Zoom to fit all nodes">⊞ Fit</button>
+                    <button class="toolbar-btn" id="btn-export-png" onclick="GraphExport.openDialog()" title="Export the graph as a high-resolution PNG (map background included)">📷 PNG</button>
                     <input class="graph-search" type="text" id="graph-search" placeholder="🔍 Search nodes or tags..." oninput="graphManager.filterNodes(this.value)" onkeydown="if(event.key==='Enter'){GraphNetwork.settleSearch();}" onblur="GraphNetwork.settleSearch()" title="Filter graph nodes by name or tag">
                     <label class="toolbar-btn" style="display:inline-flex;align-items:center;gap:3px;cursor:pointer;font-size:10px;" title="Freeze hidden nodes but keep matches in place (for spatial review)">
                         <input type="checkbox" id="search-keep-in-place" style="margin:0;cursor:pointer;" onchange="GraphFocus.setKeepInPlace(this.checked); this.parentElement.classList.toggle('active', this.checked)">
@@ -236,6 +237,7 @@
                         <button class="dropdown-item" onclick="closeTopMenus();graphManager.toggleTagPanel()" role="menuitem" title="Toggle tag filter / indicators">🏷️ Tags</button>
                         <button class="dropdown-item" onclick="closeTopMenus();openWorldSync()" role="menuitem" title="Sync world entities to library">📋 Sync to Library</button>
                         <button class="dropdown-item" onclick="closeTopMenus();printWorld()" role="menuitem" title="Printer-friendly world summary">🖨️ Print</button>
+                        <button class="dropdown-item" onclick="closeTopMenus();GraphExport.openDialog()" role="menuitem" title="Export the graph as a high-resolution PNG">📷 Export PNG</button>
                     </div>
                 </div>
                 <div class="toolbar-spacer"></div>
@@ -780,6 +782,44 @@
         </div>
     </div>
 
+    <!-- GRAPH PNG EXPORT MODAL -->
+    <div id="graph-export-modal" class="modal" style="display:none;">
+        <div class="modal-content" style="width:420px;">
+            <div class="modal-header">
+                <h3>📷 Export graph as PNG</h3>
+                <button class="modal-close" onclick="GraphExport.closeDialog()">&times;</button>
+            </div>
+            <div style="padding:16px 20px;display:flex;flex-direction:column;gap:14px;font-size:12px;color:var(--text);">
+                <div>
+                    <div style="font-weight:600;margin-bottom:6px;">What to capture</div>
+                    <label style="display:flex;gap:8px;align-items:center;margin-bottom:5px;cursor:pointer;">
+                        <input type="radio" name="gexport-scope" value="graph" checked> Whole graph (fit all visible nodes)
+                    </label>
+                    <label style="display:flex;gap:8px;align-items:center;cursor:pointer;">
+                        <input type="radio" name="gexport-scope" value="view"> Current view (exact pan &amp; zoom)
+                    </label>
+                </div>
+                <div>
+                    <div style="font-weight:600;margin-bottom:6px;">Resolution</div>
+                    <label style="display:flex;gap:8px;align-items:center;margin-bottom:5px;cursor:pointer;">
+                        <input type="radio" name="gexport-scale" value="1"> 1× (screen)
+                    </label>
+                    <label style="display:flex;gap:8px;align-items:center;margin-bottom:5px;cursor:pointer;">
+                        <input type="radio" name="gexport-scale" value="2" checked> 2× (recommended)
+                    </label>
+                    <label style="display:flex;gap:8px;align-items:center;cursor:pointer;">
+                        <input type="radio" name="gexport-scale" value="3"> 3× (print)
+                    </label>
+                </div>
+                <div id="gexport-status" style="color:var(--text-muted);min-height:14px;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-green" id="gexport-go" onclick="GraphExport._submit()">🖼️ Export PNG</button>
+                <button class="btn btn-secondary" onclick="GraphExport.closeDialog()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script>
     let _vitalModalPlayer = '';
     let _vitalModalName = '';
@@ -1051,6 +1091,7 @@
     <script src="/static/js/graph/focus.js"></script>
     <script src="/static/js/graph/network-manager.js"></script>
     <script src="/static/js/graph/graph-background.js"></script>
+    <script src="/static/js/graph/graph-export.js"></script>
     <script src="/static/js/graph/edge-inspector.js"></script>
     <script src="/static/js/graph/event-handlers.js"></script>
     <script src="/static/js/graph-manager.js"></script>
