@@ -192,6 +192,27 @@ def test_travel_moves_along_a_way():
     assert hero.current_area != area
 
 
+def test_leisure_eats_when_hungry():
+    w = _world()
+    hero = _safe(_hero(w))
+    hero.vitals["Hunger"] = 80
+    _add_item(w, hero.current_area, "dried meat", ["food"])
+    timeskip.advance(w, 30, intent="leisure")
+    assert hero.vitals["Hunger"] <= 40, "leisure did not eat"
+
+
+def test_explore_moves_through_an_exit():
+    w = _world()
+    hero = _safe(_hero(w))
+    area = hero.current_area
+    exits = w.build_exits_for_area(area, include_hidden=True) if area else {}
+    if not exits:
+        return  # fixture has no connected areas
+    res = timeskip.advance(w, 10, intent="explore")
+    assert res.elapsed_minutes >= 1
+    assert hero.current_area != area
+
+
 def test_unknown_intent_is_rejected():
     w = _world()
     res = timeskip.advance(w, 10, intent="dance")

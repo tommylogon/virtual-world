@@ -84,6 +84,32 @@ resolve against a snapshot and commit together — not a separate axis.
 
 See **task-437**.
 
+### Timeskip actions
+
+The player can hand their character to a **deterministic policy for a span**:
+declare an intent and a duration, and the world advances minute by minute at
+maximum speed, interrupting back to the human the moment anything relevant
+happens. This is the controller swap this model already implies — same Player,
+same clock, same flows; only *who chooses* changes, and everyone else is already
+at soak fidelity.
+
+- **Intents:** `idle` (do nothing), `leisure` (eat/drink/roam), `search`,
+  `explore`, `travel` (a known route, or a heading toward a belief).
+- **No stasis, no protection.** Vitals decay and the environment applies; a wait
+  in a forest with no food or water can kill. The skip removes *decisions*, not
+  *consequences*.
+- A skip always advances **1-minute ticks** regardless of the scenario's
+  `time_per_tick_minutes` (which is restored afterwards), so interrupts land on a
+  minute boundary. Normal play keeps the frame dial.
+- Interrupt and promotion use the shared relevance evaluator (**task-466**):
+  death, threat, vital/condition crossing, involuntary action, discovery, arrival.
+- Zero LLM calls inside a skip; exactly one bounded memory is written on resume
+  (**task-412**). `sleep` is the existing precedent for a duration task with the
+  world ticking.
+
+See **task-464** (hub), **task-467** (belief travel + maps), **task-468**
+(background agendas that make interrupts actually happen).
+
 ## Survival: slack and emptiness
 
 Survival is not a battery you must keep full. It is **maintenance with slack**:
