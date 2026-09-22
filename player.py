@@ -58,9 +58,8 @@ class Player:
             for vital in ("Arousal", "Stimulation", "Pleasure"):
                 self.decay_rates.pop(vital, None)
             # The arousal state conditions are meaningless without the vitals.
-            for cid in ("warming_up", "aroused", "highly_aroused", "frantic",
-                        "overstimulated", "nipple_hard", "blushing", "wetness",
-                        "sensitized", "satisfied"):
+            # The id set is data (each condition's `mature` flag), not a list here.
+            for cid in MATURE_CONDITIONS:
                 self.conditions.pop(cid, None)
 
     @staticmethod
@@ -1030,10 +1029,13 @@ from engine.player_conditions import (
     PERIODIC_CONDITIONS,
     CONDITION_EXCLUSIONS,
     CONDITION_DEFAULT_TIMERS,
+    PERCEPTION_SKIP,
+    MATURE_CONDITIONS,
     _CONDITION_BASE,
     _condition_library_dir,
     _load_condition_library,
     seed_condition_library,
+    reload_condition_library,
     _normalize_instance,
     condition_has_condition,
     condition_add_condition,

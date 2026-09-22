@@ -190,10 +190,10 @@ def handle_library_entities(app):
 
 
 def _filter_mature_entries(app, registry_type, data):
-    """task-213: hide adult traits from library listings/pickers unless the
-    mature_content toggle is on. Definitions stay functional for characters
-    that already carry them."""
-    if registry_type != 'traits':
+    """task-213/462: hide adult traits/conditions from library listings/pickers
+    unless the mature_content toggle is on. Definitions stay functional for
+    characters that already carry them."""
+    if registry_type not in ('traits', 'conditions'):
         return data
     if getattr(app.world, 'mature_content', False):
         return data
@@ -203,6 +203,18 @@ def _filter_mature_entries(app, registry_type, data):
         key: value for key, value in data.items()
         if not (isinstance(value, dict) and value.get('mature'))
     }
+
+
+def _reload_condition_catalog(registry_type):
+    """task-462: conditions are the engine's runtime catalog — re-read the JSON
+    library after a write so edits take effect without an app restart."""
+    if registry_type != 'conditions':
+        return
+    try:
+        from engine.player_conditions import reload_condition_library
+        reload_condition_library()
+    except Exception as e:
+        logger.warning(f"Condition catalog reload failed: {e}")
 
 
 def handle_library_list(app, registry_type):
@@ -262,6 +274,7 @@ def handle_library_create_or_update(app, registry_type):
         entry_data = {k: v for k, v in data.items() if k != 'id'}
         registry[data['id']] = _strip_presentation_properties(entry_data)
     save_registry(app.config['DATA_DIR'], filename, registry)
+    _reload_condition_catalog(registry_type)
 
     warnings = []
     entry = registry.get(data['id'], {})
@@ -285,6 +298,7 @@ def handle_library_delete(app, registry_type, entry_id):
         return jsonify({"error": "Entry not found"}), 404
     del registry[entry_id]
     delete_registry_entry(app.config['DATA_DIR'], filename, entry_id)
+    _reload_condition_catalog(registry_type)
     return jsonify({"status": "deleted"})
 
 
@@ -306,6 +320,7 @@ def handle_library_rename(app, registry_type, entry_id):
     registry[new_id] = registry.pop(entry_id)
     save_registry(app.config['DATA_DIR'], filename, registry)
     delete_registry_entry(app.config['DATA_DIR'], filename, entry_id)
+    _reload_condition_catalog(registry_type)
     return jsonify({"status": "renamed", "old": entry_id, "new": new_id})
 
 

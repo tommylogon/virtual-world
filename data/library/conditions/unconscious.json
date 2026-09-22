@@ -26,5 +26,8 @@
   "default_duration": null,
   "excludes": [
     "awake"
-  ]
+  ],
+  "order": 2,
+  "perception_skip": false,
+  "mature": false
 }

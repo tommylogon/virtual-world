@@ -1,0 +1,31 @@
+{
+  "name": "Social Breakdown",
+  "description": "Desperate isolation. Behavior becomes erratic.",
+  "blocks_actions": false,
+  "blocks_movement": false,
+  "blocks_speech": false,
+  "auto_fail_checks": [],
+  "auto_fail_saves": [],
+  "attack_mod": -2,
+  "defense_mod": -2,
+  "speed_mult": 1.0,
+  "movement_mode": null,
+  "drops_held_items": false,
+  "periodic": {},
+  "ends_on": [
+    "socialize",
+    "comfort"
+  ],
+  "known": false,
+  "symptoms": {
+    "5": "You talk to yourself without meaning to.",
+    "3": "You'd say anything to have company right now.",
+    "1": "Reality feels thin when you talk to shadows."
+  },
+  "stack": "noop",
+  "default_duration": null,
+  "excludes": [],
+  "order": null,
+  "perception_skip": false,
+  "mature": false
+}

@@ -1,6 +1,6 @@
 {
-  "name": "Wet",
-  "description": "Soaked through. Wet clothing insulates far worse (and you're miserable).",
+  "name": "Goosebumps",
+  "description": "A chill raises the hairs on your skin.",
   "blocks_actions": false,
   "blocks_movement": false,
   "blocks_speech": false,
@@ -13,18 +13,18 @@
   "drops_held_items": false,
   "periodic": {},
   "ends_on": [
-    "dry",
-    "cure"
+    "warm_up",
+    "duration"
   ],
-  "known": true,
+  "known": false,
   "symptoms": {
-    "5": "Every thread clings. You're soaked to the bone.",
-    "3": "Water dribbles from your sleeves. The cold is in your bones."
+    "3": "The hairs on your arms stand on end.",
+    "1": "You can't shake the prickling on your skin."
   },
-  "stack": "refresh",
-  "default_duration": null,
+  "stack": "noop",
+  "default_duration": 5,
   "excludes": [],
-  "order": 12,
+  "order": null,
   "perception_skip": false,
   "mature": false
 }

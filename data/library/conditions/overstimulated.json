@@ -1,0 +1,32 @@
+{
+  "name": "Overstimulated",
+  "description": "Too much. Pleasure curdles into overload.",
+  "blocks_actions": false,
+  "blocks_movement": false,
+  "blocks_speech": false,
+  "auto_fail_checks": [],
+  "auto_fail_saves": [],
+  "attack_mod": -1,
+  "defense_mod": -1,
+  "speed_mult": 1.0,
+  "movement_mode": null,
+  "drops_held_items": false,
+  "periodic": {
+    "Pleasure": -3,
+    "Energy": -1
+  },
+  "ends_on": [
+    "duration"
+  ],
+  "known": false,
+  "symptoms": {
+    "3": "Sensitivity peaks turn to overshoot. Too much.",
+    "1": "Every touch is almost too intense to bear."
+  },
+  "stack": "refresh",
+  "default_duration": 5,
+  "excludes": [],
+  "mature": true,
+  "order": null,
+  "perception_skip": false
+}

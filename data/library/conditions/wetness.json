@@ -1,6 +1,6 @@
 {
-  "name": "Charmed",
-  "description": "Magically compelled by someone. You can't bring yourself to hurt them.",
+  "name": "Wetness",
+  "description": "Arousal makes itself physically known.",
   "blocks_actions": false,
   "blocks_movement": false,
   "blocks_speech": false,
@@ -11,14 +11,18 @@
   "speed_mult": 1.0,
   "movement_mode": null,
   "drops_held_items": false,
-  "periodic": {},
-  "ends_on": [],
+  "periodic": {
+    "Arousal": 2
+  },
+  "ends_on": [
+    "cool_down"
+  ],
   "known": false,
   "symptoms": {},
-  "stack": "noop",
-  "default_duration": null,
+  "stack": "refresh",
+  "default_duration": 15,
   "excludes": [],
-  "order": 21,
-  "perception_skip": false,
-  "mature": false
+  "mature": true,
+  "order": null,
+  "perception_skip": false
 }

@@ -11,8 +11,15 @@
   "speed_mult": 1.0,
   "movement_mode": null,
   "drops_held_items": false,
-  "periodic": {"HP": -2, "Hygiene": -1},
-  "ends_on": ["fix", "heal", "medicine"],
+  "periodic": {
+    "HP": -2,
+    "Hygiene": -1
+  },
+  "ends_on": [
+    "fix",
+    "heal",
+    "medicine"
+  ],
   "known": true,
   "symptoms": {
     "5": "The {body_part} is bleeding — warm blood soaks your skin.",
@@ -21,5 +28,19 @@
   },
   "stack": "accumulate",
   "default_duration": null,
-  "excludes": []
+  "excludes": [],
+  "level_periodic": {
+    "1": {
+      "HP": -1
+    },
+    "2": {
+      "HP": -2
+    },
+    "3": {
+      "HP": -3
+    }
+  },
+  "order": 14,
+  "perception_skip": false,
+  "mature": false
 }

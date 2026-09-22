@@ -1,6 +1,6 @@
 {
-  "name": "Wet",
-  "description": "Soaked through. Wet clothing insulates far worse (and you're miserable).",
+  "name": "Itch",
+  "description": "Unbearably itchy. You can't stop scratching.",
   "blocks_actions": false,
   "blocks_movement": false,
   "blocks_speech": false,
@@ -13,18 +13,20 @@
   "drops_held_items": false,
   "periodic": {},
   "ends_on": [
-    "dry",
-    "cure"
+    "scratch",
+    "cure",
+    "duration"
   ],
-  "known": true,
+  "known": false,
   "symptoms": {
-    "5": "Every thread clings. You're soaked to the bone.",
-    "3": "Water dribbles from your sleeves. The cold is in your bones."
+    "5": "You scratch at the itch without thinking.",
+    "3": "The itching is maddening. You rub the spot raw.",
+    "1": "Every nerve screams to scratch."
   },
   "stack": "refresh",
-  "default_duration": null,
+  "default_duration": 10,
   "excludes": [],
-  "order": 12,
+  "order": null,
   "perception_skip": false,
   "mature": false
 }

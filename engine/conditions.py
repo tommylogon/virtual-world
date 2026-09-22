@@ -18,6 +18,7 @@ from vital_rates import change, tick_minutes
 from engine.player_conditions import (
     CONDITION_DEFINITIONS, CONDITION_HIERARCHY, BLOCKING_CONDITIONS,
     CONDITION_EXCLUSIONS, PERIODIC_CONDITIONS, CONDITION_DEFAULT_TIMERS,
+    PERCEPTION_SKIP,
 )
 
 
@@ -117,8 +118,8 @@ def symptom_for(condition: str, instance: dict) -> Optional[str]:
     return None
 
 
-# conditions handled by dedicated prompt lines / system logic, not perception
-_PERCEPTION_SKIP = {"awake", "dead", "grappled"}
+# conditions handled by dedicated prompt lines / system logic, not perception:
+# derived from the catalog (`perception_skip` per condition), not hand-listed
 
 
 def frightened_block(player, source_type: str, source_id=None, source_name=None) -> Optional[str]:
@@ -159,7 +160,7 @@ def perceived_conditions(player) -> list:
     lines = []
     seen = set()
     for cid in CONDITION_HIERARCHY:
-        if cid in _PERCEPTION_SKIP:
+        if cid in PERCEPTION_SKIP:
             continue
         instances = player.conditions.get(cid) or []
         if not instances:

@@ -27,5 +27,8 @@
     "3": "You ache and your stomach churns.",
     "1": "Feverish and weak. You need to lie down."
   },
-  "excludes": []
+  "excludes": [],
+  "order": 10,
+  "perception_skip": false,
+  "mature": false
 }

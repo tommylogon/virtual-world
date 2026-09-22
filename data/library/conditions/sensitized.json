@@ -1,6 +1,6 @@
 {
-  "name": "Charmed",
-  "description": "Magically compelled by someone. You can't bring yourself to hurt them.",
+  "name": "Sensitized",
+  "description": "Edged and receptive. Every touch counts double.",
   "blocks_actions": false,
   "blocks_movement": false,
   "blocks_speech": false,
@@ -11,14 +11,19 @@
   "speed_mult": 1.0,
   "movement_mode": null,
   "drops_held_items": false,
-  "periodic": {},
-  "ends_on": [],
+  "periodic": {
+    "Stimulation": 1
+  },
+  "ends_on": [
+    "duration",
+    "release"
+  ],
   "known": false,
   "symptoms": {},
-  "stack": "noop",
-  "default_duration": null,
+  "stack": "accumulate",
+  "default_duration": 10,
   "excludes": [],
-  "order": 21,
-  "perception_skip": false,
-  "mature": false
+  "mature": true,
+  "order": null,
+  "perception_skip": false
 }

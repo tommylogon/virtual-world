@@ -4,7 +4,7 @@
 
 The Conditions System manages temporary status effects on characters. Conditions are identified by a canonical id (`"poisoned"`, `"blind"`, `"asleep"`, etc.) and modify a character's capabilities, apply periodic effects, and gate actions.
 
-The system lives in `engine/conditions.py` (class `ConditionsSystem`). The **editable source of truth is the data-driven library**: `data/library/conditions/*.json`, loaded into the in-memory catalog at import with a **merge-over-fallback** strategy — the hardcoded `CONDITION_DEFINITIONS` dict in `player.py` is only the fallback, so a truncated or corrupt library file can never wipe definitions. Edit conditions via the Library Browser's conditions section; each library file is one condition entry.
+The system lives in `engine/conditions.py` (class `ConditionsSystem`). The **editable source of truth is the data-driven library**: `data/library/conditions/*.json`, loaded into the in-memory catalog at import with a **merge-over-fallback** strategy — the hardcoded `CONDITION_DEFINITIONS` dict in `engine/player_conditions.py` is only the fallback, so a truncated or corrupt library file can never wipe definitions. Edit conditions via the Library Browser's conditions section; each library file is one condition entry. A write reloads the catalog in place (`reload_condition_library()`), so edits apply without a restart.
 
 Conditions are stored as **multi-instance lists**: `{condition_id: [instance, instance, ...]}`. Five vials of poison are five `poisoned` instances. Each instance carries optional overrides (`periodic`, `ends_on`, `symptoms`, `known`, gate fields). Drains sum across instances; gates and modifiers are presence-based.
 
@@ -54,6 +54,9 @@ Each entry in the condition catalog (library file or `player.py` fallback, `COND
                                # "noop" (grappled/restrained/blind/...: re-apply does nothing)
     "default_duration": None,   # ticks; None = permanent until countered/removed
     "excludes": [],             # condition ids removed when this one is applied (dead = set() removes everything)
+    "order": None,              # position in CONDITION_HIERARCHY; None = not in the hierarchy
+    "perception_skip": False,   # in the hierarchy but never rendered as a perception line (awake/dead/grappled)
+    "mature": False,            # hidden from library listings and stripped when mature_content is off
 }
 ```
 
@@ -78,24 +81,53 @@ Each entry in the condition catalog (library file or `player.py` fallback, `COND
 | `mute` | `blocks_speech` | None | `noop` |
 | `frightened` | `attack_mod` -2; source-type gates (`way`/`area`/`item`/`character`) | None | `noop` |
 | `charmed` | `known: False`; can't attack charmer | None | `noop` |
+| `wet` | thermal wetness (distinct from `wetness`); `symptoms` staged | None | `refresh` |
+| `injured` | body-part injury; `known: True` | None | `noop` |
+| `bleeding` | periodic HP drain by severity; `known: False` | None | `accumulate` |
+| `hypothermia` | cold exposure; periodic HP drain at depth; `known: False` | None | `refresh` |
+| `suffocating` | `blocks_actions`/`blocks_movement`; periodic HP drain | None | `accumulate` |
+| `petrified` | `blocks_actions`/`blocks_movement`/`blocks_speech` | None | `noop` |
+| `warming_up` | arousal 15–30; periodic `Stimulation +1`; `known: False`; **mature** | 20 | `refresh` |
+| `aroused` | arousal 30–50; `Stimulation +2`; auto-fail perception/concentration; −2/−2; **mature** | 20 | `refresh` |
+| `highly_aroused` | arousal 50–90; `Stimulation +3`, `Energy −2`; +willpower auto-fail; −3/−3; **mature** | 20 | `refresh` |
+| `frantic` | arousal 90+; `Stimulation +4`, `Energy −3`, `Sanity −2`; −5/−5; speed 0.9; **mature** | 15 | `refresh` |
+| `overstimulated` | `Pleasure −3`, `Energy −1`; applied on release; **mature** | 5 | `refresh` |
+| `nipple_hard` | periodic `Arousal +1`; `known: True`; **mature** | 15 | `refresh` |
+| `blushing` | cosmetic (no periodic); `known: True`; **mature** | 8 | `refresh` |
+| `wetness` | arousal wetness; periodic `Arousal +2`; `known: False`; **mature** | 15 | `refresh` |
+| `sensitized` | edging stack; periodic `Stimulation +1`; `known: False`; **mature** | 10 | `accumulate` |
+| `satisfied` | post-release calm; `known: False`; **mature** | 20 | `refresh` |
+| `social_breakdown` | low social; −2/−2; behavioural penalty only (no Sanity drain) | None | `noop` |
+| `paranoid` | `Sanity −1`; attack +1 / defense −2; excludes `hallucinating` | 30 | `refresh` |
+| `hallucinating` | auto-fail perception/concentration/willpower; +2/−3; excludes `paranoid` | 30 | `refresh` |
+| `itch` | involuntary flavor; `known: False`; read by the involuntary-action pass | 10 | `refresh` |
+| `goosebumps` | involuntary flavor; `known: False`; read by the involuntary-action pass | 5 | `noop` |
+
+**Mature conditions** (`warming_up` … `satisfied`) carry `"mature": true`; they are hidden from library listings/pickers while `world.mature_content` is off, and `Player.sync_pleasure_vitals` strips them when the toggle is turned off. They are deliberately **not** in `CONDITION_HIERARCHY` — the mature prompt path renders their first-person lines itself (gated on `config.matureContent`), so they never leak into the generic perception line.
 
 ### Derived Constants
 
-These are computed from the catalog in `player.py:228-250` — do not hardcode them elsewhere:
+These are computed from the catalog in `engine/player_conditions.py` — never hand-maintained, and rebuilt in place by `reload_condition_library()`:
 
 ```python
-CONDITION_HIERARCHY = ["dead", "unconscious", "paralysed", "stunned",
-    "grappled", "restrained", "prone", "busy", "exhausted",
-    "sick", "poisoned", "blind", "deaf", "frightened", "charmed", "awake"]
+# Ordering, perception-skip and mature gating are catalog DATA (per-condition JSON
+# fields `order`, `perception_skip`, `mature`), not separate hardcoded lists.
+CONDITION_HIERARCHY = [cid for cid, d in catalog if d["order"] is not None]  # sorted by order
 
-BLOCKING_CONDITIONS = frozenset(cid for cid, d in CONDITION_DEFINITIONS.items() if d["blocks_actions"])
+BLOCKING_CONDITIONS = {cid for cid, d in CONDITION_DEFINITIONS.items() if d["blocks_actions"]}
 
 PERIODIC_CONDITIONS = {cid: d["periodic"] for cid, d in CONDITION_DEFINITIONS.items() if d["periodic"]}
 
 CONDITION_EXCLUSIONS = {cid: set(d["excludes"]) for cid, d in CONDITION_DEFINITIONS.items()}
 
 CONDITION_DEFAULT_TIMERS = {cid: d["default_duration"] for cid, d in CONDITION_DEFINITIONS.items() if d["default_duration"] is not None}
+
+PERCEPTION_SKIP = {cid for cid, d in CONDITION_DEFINITIONS.items() if d["perception_skip"]}
+
+MATURE_CONDITIONS = {cid for cid, d in CONDITION_DEFINITIONS.items() if d["mature"]}
 ```
+
+`order` doubles as hierarchy membership: a condition with no `order` is excluded from the hierarchy (this is how the mature set and the mental/involuntary conditions stay out of the generic perception path). `seed_condition_library()` backfills a JSON file for every catalog entry without one and only ever *adds* missing keys to existing files; the library API calls `reload_condition_library()` after a write so edits apply without a restart.
 
 ## Player Methods
 

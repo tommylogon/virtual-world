@@ -1,6 +1,6 @@
 {
-  "name": "Busy",
-  "description": "Occupied with something. Interruptible.",
+  "name": "Nipple Hard",
+  "description": "Cold or aroused — their nipples stand out against the fabric.",
   "blocks_actions": false,
   "blocks_movement": false,
   "blocks_speech": false,
@@ -11,16 +11,19 @@
   "speed_mult": 1.0,
   "movement_mode": null,
   "drops_held_items": false,
-  "periodic": {},
+  "periodic": {
+    "Arousal": 1
+  },
   "ends_on": [
-    "stop"
+    "warm_up",
+    "cool_down"
   ],
   "known": true,
   "symptoms": {},
-  "stack": "noop",
-  "default_duration": null,
+  "stack": "refresh",
+  "default_duration": 15,
   "excludes": [],
-  "order": 8,
-  "perception_skip": false,
-  "mature": false
+  "mature": true,
+  "order": null,
+  "perception_skip": false
 }

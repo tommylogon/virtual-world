@@ -1,0 +1,39 @@
+{
+  "name": "Frantic",
+  "description": "Desperate for release. Reason is on hold.",
+  "blocks_actions": false,
+  "blocks_movement": false,
+  "blocks_speech": false,
+  "auto_fail_checks": [
+    "perception",
+    "concentration",
+    "willpower",
+    "self_control"
+  ],
+  "auto_fail_saves": [],
+  "attack_mod": -5,
+  "defense_mod": -5,
+  "speed_mult": 0.9,
+  "movement_mode": null,
+  "drops_held_items": false,
+  "periodic": {
+    "Stimulation": 4,
+    "Energy": -3,
+    "Sanity": -2
+  },
+  "ends_on": [
+    "release",
+    "cool_down"
+  ],
+  "known": true,
+  "symptoms": {
+    "3": "You need release. Nothing else matters.",
+    "1": "Your body screams for it."
+  },
+  "stack": "refresh",
+  "default_duration": 15,
+  "excludes": [],
+  "mature": true,
+  "order": null,
+  "perception_skip": false
+}

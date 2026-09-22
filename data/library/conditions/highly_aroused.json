@@ -1,0 +1,37 @@
+{
+  "name": "Highly Aroused",
+  "description": "Barely in control. Everything else fades.",
+  "blocks_actions": false,
+  "blocks_movement": false,
+  "blocks_speech": false,
+  "auto_fail_checks": [
+    "perception",
+    "concentration",
+    "willpower"
+  ],
+  "auto_fail_saves": [],
+  "attack_mod": -3,
+  "defense_mod": -3,
+  "speed_mult": 1.0,
+  "movement_mode": null,
+  "drops_held_items": false,
+  "periodic": {
+    "Stimulation": 3,
+    "Energy": -2
+  },
+  "ends_on": [
+    "release",
+    "cool_down"
+  ],
+  "known": false,
+  "symptoms": {
+    "3": "Every nerve is lit. Your breath comes short.",
+    "1": "You're shaking with need."
+  },
+  "stack": "refresh",
+  "default_duration": 20,
+  "excludes": [],
+  "mature": true,
+  "order": null,
+  "perception_skip": false
+}

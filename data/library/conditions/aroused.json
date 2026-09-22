@@ -1,0 +1,35 @@
+{
+  "name": "Aroused",
+  "description": "Distractingly stimulated. Focus slips.",
+  "blocks_actions": false,
+  "blocks_movement": false,
+  "blocks_speech": false,
+  "auto_fail_checks": [
+    "perception",
+    "concentration"
+  ],
+  "auto_fail_saves": [],
+  "attack_mod": -2,
+  "defense_mod": -2,
+  "speed_mult": 1.0,
+  "movement_mode": null,
+  "drops_held_items": false,
+  "periodic": {
+    "Stimulation": 2
+  },
+  "ends_on": [
+    "cool_down",
+    "relax"
+  ],
+  "known": false,
+  "symptoms": {
+    "3": "Your thoughts keep wandering to that touch.",
+    "1": "It's hard to focus on anything else."
+  },
+  "stack": "refresh",
+  "default_duration": 20,
+  "excludes": [],
+  "mature": true,
+  "order": null,
+  "perception_skip": false
+}

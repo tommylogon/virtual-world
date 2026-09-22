@@ -5,14 +5,23 @@
   "blocks_movement": true,
   "blocks_speech": false,
   "auto_fail_checks": [],
-  "auto_fail_saves": ["STR", "DEX"],
+  "auto_fail_saves": [
+    "STR",
+    "DEX"
+  ],
   "attack_mod": -3,
   "defense_mod": -5,
   "speed_mult": 0.0,
   "movement_mode": null,
   "drops_held_items": false,
-  "periodic": {"Energy": -3, "HP": -2},
-  "ends_on": ["breathe", "unblock"],
+  "periodic": {
+    "Energy": -3,
+    "HP": -2
+  },
+  "ends_on": [
+    "breathe",
+    "unblock"
+  ],
   "known": false,
   "symptoms": {
     "3": "Chest burning. Each gasp is needles.",
@@ -20,5 +29,8 @@
   },
   "stack": "refresh",
   "default_duration": 4,
-  "excludes": []
+  "excludes": [],
+  "order": 16,
+  "perception_skip": false,
+  "mature": false
 }

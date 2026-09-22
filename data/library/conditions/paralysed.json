@@ -22,5 +22,8 @@
   "symptoms": {},
   "stack": "noop",
   "default_duration": 3,
-  "excludes": []
+  "excludes": [],
+  "order": 3,
+  "perception_skip": false,
+  "mature": false
 }
