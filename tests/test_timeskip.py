@@ -279,6 +279,40 @@ def test_unknown_intent_is_rejected():
     assert not res.ok and "intent" in res.reason.lower()
 
 
+def test_travel_continues_through_an_intermediate_area():
+    """A route is a journey: only the destination ends it, not the first door."""
+    w = _world()
+    hero = _safe(_hero(w))
+    start = hero.current_area
+    target = None
+    for node in w.graph.nodes.values():
+        if node.type != "area" or node.name == start:
+            continue
+        if timeskip.route_hops(w, start, node.name) == 2:
+            target = node.name
+            break
+    if not target:
+        return  # fixture has no two-hop route
+    res = timeskip.advance(w, 120, intent="travel", target=target)
+    if res.interrupted and res.interrupt:
+        assert res.interrupt.get("why") != "discovery:area", "stopped at a doorway"
+    assert hero.current_area != start
+
+
+def test_travel_to_an_unreachable_place_is_rejected():
+    w = _world()
+    _safe(_hero(w))
+    res = timeskip.advance(w, 30, intent="travel", target="Nowhere At All")
+    assert not res.ok and "no route" in res.reason.lower()
+
+
+def test_travel_to_the_current_area_is_rejected():
+    w = _world()
+    hero = _safe(_hero(w))
+    res = timeskip.advance(w, 30, intent="travel", target=hero.current_area)
+    assert not res.ok and "already" in res.reason.lower()
+
+
 def test_only_one_skip_at_a_time():
     w = _world()
     timeskip._ACTIVE = True

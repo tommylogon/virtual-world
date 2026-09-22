@@ -259,15 +259,16 @@ def _discovery(before, after, *, watch_tags=(), target=None, intent=None) -> lis
                                      f"You notice {name}.", True))
 
     area_changed = before.get("area") and after.get("area") != before.get("area")
-    if area_changed and intent in ("travel", "explore"):
-        arrived = bool(target_low) and str(after.get("area")).lower() == target_low
-        reasons.append(Interrupt(
-            "arrival" if arrived else "discovery",
-            "arrival" if arrived else "discovery:area",
-            f"You arrive at {after.get('area')}." if arrived
-            else f"You reach {after.get('area')}.",
-            True,
-        ))
+    # Explore treats every new area as its point; travel only stops on the
+    # destination (intermediate hops are the journey, not an event) so a
+    # long route is not cut short at the first doorway.
+    if area_changed and intent == "explore":
+        reasons.append(Interrupt("discovery", "discovery:area",
+                                 f"You reach {after.get('area')}.", True))
+    if (area_changed and intent == "travel" and target_low
+            and str(after.get("area")).lower() == target_low):
+        reasons.append(Interrupt("arrival", "arrival",
+                                 f"You arrive at {after.get('area')}.", True))
     return reasons
 
 

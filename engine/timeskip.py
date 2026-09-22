@@ -116,6 +116,15 @@ def advance(gs, minutes, *, intent="idle", target=None, watch_tags=(),
         return TimeskipResult(False, intent, requested,
                               reason="The dead do not wait.")
 
+    if intent == "travel" and target:
+        hops = route_hops(gs, getattr(who, "current_area", None), target)
+        if hops is None:
+            return TimeskipResult(False, intent, requested,
+                                  reason=f"No route to '{target}'.")
+        if hops == 0:
+            return TimeskipResult(False, intent, requested,
+                                  reason="You are already there.")
+
     if _ACTIVE:
         return TimeskipResult(False, intent, requested,
                               reason="A timeskip is already running.")
