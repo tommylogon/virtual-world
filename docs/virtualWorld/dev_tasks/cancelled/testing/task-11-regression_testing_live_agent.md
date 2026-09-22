@@ -83,3 +83,23 @@ The default scenario should have a script covering:
 - `opencode_tools/test_runner.py` — new test runner script
 - `tests/test_scenarios.py` — or new test file
 - Scenario test scripts: one per scenario
+
+---
+
+## Resolution (2026-09-22) — retired
+
+The end-to-end regression intent is covered by existing suites, so the bespoke
+`scenario.json` + `test_runner.py` (`expect_contains`) flow is not being built:
+
+- **Live Playwright E2E** (drives the real server via `/api/action` and asserts):
+  `tools/test_full_e2e.cjs`, `tools/test_live.cjs`, `tools/test_all.cjs`,
+  `tools/test_commands.cjs`, `tools/test_doors.cjs`, `tools/test_regressions.cjs`.
+- **Long-horizon simulation:** `tools/soak_sim.py` + `engine/soak_runner.py`
+  (`tests/test_soak_runner.py`, `tests/test_soak_routes.py`, `tools/unit/test_soak.js`).
+- **Simple-NPC behaviour:** `tests/test_npc_behaviors.py`,
+  `tests/test_npc_behavior_intervals.py`.
+- **Play-export regression guards:** `tools/log_lint.cjs` (`tests/test_log_lint.py`).
+
+Note `tests/test_scenarios.py` covers scenario CRUD/import audit only, not this runner.
+Caveat: the Playwright suite needs a running server + Playwright and is not wired into
+`pytest`/CI, so the *automated* part of the intent is only partially covered.

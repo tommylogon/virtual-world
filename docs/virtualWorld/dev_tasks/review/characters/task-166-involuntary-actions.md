@@ -1,7 +1,7 @@
 ---
 id: 166
 title: Involuntary Actions (Hiccups, Burps, Yelps)
-status: todo
+status: review
 priority: low
 created: 2026-08-02
 tags: [characters, speech, emote, flavor]
@@ -58,3 +58,13 @@ The erogenous-zone design doc (§Additions #3) lists "body reactions" — gooseb
 - [[todo/gameplay/task-165-chance-to-stun-on-attack|task-165: Stun conditions]]
 - [[done/prompting/task-151-flavor-text-interaction-polish|task-151: Flavor text polish]]
 - `todo/pleasure/task-209-arousal-conditions.md` — arousal-linked body reactions (nipple hardening, blushing) live there; keep non-erotic reactions here
+
+## Gaps (2026-09-22 audit)
+
+Core module exists and is wired (`static/js/agent/involuntary.js`; non-blocking, injected
+before send from `static/js/agent-engine.js`), so this is in **review**, not done:
+
+- [ ] Situation triggers absent: loud sound / sudden damage → yelp, eating too fast → burp.
+- [ ] Trait-driven chance absent (`clumsy` / `nervous` boost); `nervous` currently only exists as an unrelated description string.
+- [ ] No automated coverage — nothing in `tests/` or `tools/unit/` exercises hiccup/burp/yelp/stutter.
+- [ ] `itch` / `goosebumps` conditions are defined (`engine/player_conditions.py`) but nothing applies them.
