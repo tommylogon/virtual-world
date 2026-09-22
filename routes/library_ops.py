@@ -13,7 +13,7 @@ from routes.helpers import load_registry, save_registry, delete_registry_entry, 
 
 logger = logging.getLogger(__name__)
 
-REGISTRY_TYPES = ['items', 'characters', 'areas', 'ways', 'traits', 'conditions', 'behaviours', 'tags', 'triggers']
+REGISTRY_TYPES = ['items', 'characters', 'areas', 'ways', 'traits', 'conditions', 'behaviours', 'tags', 'triggers', 'structures']
 
 RELATION_EDGE_TYPES = {
     "in": EDGE_IN,

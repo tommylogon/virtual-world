@@ -219,6 +219,7 @@ class GraphManager {
             items.push(graphManagerHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('create_character')}>✨ Create Character Here</div>`);
             items.push(graphManagerHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('create_trigger')}>⚡ Add Trigger Edge</div>`);
             items.push(graphManagerHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('save_area_to_lib')}>📚 Save to Library</div>`);
+            items.push(graphManagerHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('save_structure')}>📦 Save as Structure…</div>`);
         } else if (nodeData?.type === 'item') {
             items.push(graphManagerHtmlTag`<div class="context-menu-separator"></div>`);
             items.push(graphManagerHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('edit')}>✏️ Edit Item</div>`);
@@ -273,6 +274,11 @@ class GraphManager {
                 const areaName = t.nodeData?.name || name;
                 if (libraryBrowser?.saveAreaByName) libraryBrowser.saveAreaByName(areaName);
                 else events.log('Library browser not ready.', 'error-msg');
+                break;
+            }
+            case 'save_structure': {
+                if (VW?.structures?.openSaveDialog) VW.structures.openSaveDialog(t.nodeId, name);
+                else events.log('Structure module not loaded.', 'error-msg');
                 break;
             }
             case 'delete': this._deleteNode(t.nodeId); break;

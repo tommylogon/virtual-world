@@ -163,6 +163,7 @@ def register_routes(app):
     from routes.scene import register_scene_routes
     from routes.search import register_search_routes
     from routes.events import register_events_routes
+    from routes.structures import register_structures_routes
 
 
     register_health_routes(app)
@@ -181,6 +182,7 @@ def register_routes(app):
     register_triggers_routes(app)
     register_scene_routes(app)
     register_search_routes(app)
+    register_structures_routes(app)
 
 # For running directly (development)
 if __name__ == '__main__':
