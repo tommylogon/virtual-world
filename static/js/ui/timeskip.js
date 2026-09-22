@@ -34,34 +34,41 @@ window.Timeskip = (() => {
         return el ? el.value : null;
     }
 
-    /** Resolve the dialog's span in minutes (custom overrides the preset). */
-    function _minutes() {
-        const custom = _el('timeskip-minutes');
-        const value = custom ? Number(custom.value) : 0;
-        if (value > 0) return Math.round(value);
-        const preset = _el('timeskip-preset');
-        return presetMinutes(preset ? preset.value : DEFAULT_PRESET) || 120;
-    }
-
     function _text(id) {
         const el = _el(id);
         return el && el.value ? String(el.value).trim() : '';
     }
 
-    function _payload() {
-        const payload = {
-            intent: _selected('timeskip-intent') || 'idle',
-            minutes: _minutes(),
-        };
-        const target = _text('timeskip-target');
+    /**
+     * Build the request body. Travel to a target takes its span from the route
+     * (the server computes it) unless the user typed an explicit duration, so a
+     * long fast-travel is not cut short by a 2 h preset.
+     */
+    function _buildPayload({ intent, customMinutes, preset, target, heading, tags }) {
+        const payload = { intent: intent || 'idle' };
+        const custom = Number(customMinutes) > 0 ? Math.round(Number(customMinutes)) : 0;
+        const routedTravel = payload.intent === 'travel' && !!target && !custom;
+        if (!routedTravel) {
+            payload.minutes = custom || presetMinutes(preset) || 120;
+        }
         if (target) payload.target = target;
-        const heading = _text('timeskip-heading');
         if (heading) payload.heading = heading;
-        const tags = _text('timeskip-tags');
         if (tags) {
-            payload.watch_tags = tags.split(',').map((t) => t.trim()).filter(Boolean);
+            payload.watch_tags = String(tags).split(',').map((t) => t.trim()).filter(Boolean);
         }
         return payload;
+    }
+
+    function _payload() {
+        const preset = _el('timeskip-preset');
+        return _buildPayload({
+            intent: _selected('timeskip-intent') || 'idle',
+            customMinutes: _el('timeskip-minutes') ? _el('timeskip-minutes').value : 0,
+            preset: preset ? preset.value : DEFAULT_PRESET,
+            target: _text('timeskip-target'),
+            heading: _text('timeskip-heading'),
+            tags: _text('timeskip-tags'),
+        });
     }
 
     function openDialog() {
@@ -134,6 +141,6 @@ window.Timeskip = (() => {
         closeDialog,
         run,
         // Pure logic exposed for tools/unit/run.cjs. Not a product API.
-        _internals: { presetMinutes },
+        _internals: { presetMinutes, buildPayload: _buildPayload },
     };
 })();
