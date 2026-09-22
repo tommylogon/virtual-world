@@ -18,7 +18,15 @@ Project guidance for automated agents working in this repo.
 
 - Tests: `python -m pytest -q` (full suite, a few minutes).
   Targeted: `python -m pytest tests/test_<name>.py -q`.
-- JS lint: `npm run lint`. JS typecheck: `npm run typecheck`.
+- JS unit tests, browser-global modules in a Node sandbox (no server needed):
+  `node tools/unit/run.cjs` (or `npm run unit`). Drop a `tools/unit/test_<name>.js`
+  next to the others and it is discovered automatically; the runner's module list
+  at the top is where a module under test gets loaded. **Run this before committing
+  a front-end change** - it is not part of `npm run lint`.
+- JS module contract guard: `python tools/js_module_index.py --check` fails when a new
+  module lacks its `@module`/`@contributes` header; regenerate the index with `--write`.
+- JS lint: `npm run lint`. JS typecheck: `npm run typecheck` (see
+  `docs/design/typescript-migration.md`).
 - Export-log lint (regression guards over play sessions, no server needed):
   `node tools/log_lint.cjs data/exports/<log>.txt` (or `npm run loglint -- <path>`).
   Run it on the latest export before tagging/committing a release.

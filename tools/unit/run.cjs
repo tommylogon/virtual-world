@@ -69,6 +69,7 @@ load('static/js/context-window.js');
 load('static/js/nl-editor/staging.js');
 load('static/js/nl-editor/tools.js');
 load('static/js/nl-editor/agent-loop.js');
+load('static/js/graph/graph-background.js');
 
 // ── discover + run test files ──
 const testFiles = fs.readdirSync(UNIT_DIR).filter(f => /^test_.*\.js$/.test(f)).sort();

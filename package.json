@@ -16,6 +16,8 @@
     "lint:fix": "eslint --fix static/js/",
     "typecheck": "tsc -p tsconfig.check.json",
     "build:ts": "tsc -p tsconfig.json",
-    "loglint": "node tools/log_lint.cjs"
+    "loglint": "node tools/log_lint.cjs",
+    "unit": "node tools/unit/run.cjs",
+    "module:check": "python tools/js_module_index.py --check"
   }
 }
