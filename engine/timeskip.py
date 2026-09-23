@@ -485,18 +485,17 @@ def travel_minutes(gs, from_area, to_area):
 
 
 def _move(gs, player, label):
-    old_active = getattr(gs, "active_player", None)
-    try:
-        gs.active_player = player.name
-        gs.movement.move_to_area(label)
-    except Exception as e:
-        logger.warning("[timeskip] move %s (%s): %s", player.name, label, e)
+    """One hop, verb-aware and never fatal (task-475).
+
+    Uses the verb the way needs and rolls ordinary ground checks; a blocked or
+    failed crossing costs the turn rather than raising out of the policy.
+    """
+    from engine import traversal
+    result = traversal.hop(gs, player, label, roll_fn=None)
+    if not result.ok:
+        logger.info("[timeskip] %s can't take %s: %s",
+                    player.name, label, result.detail)
         return False
-    finally:
-        try:
-            gs.active_player = old_active
-        except Exception:
-            pass
     return True
 
 

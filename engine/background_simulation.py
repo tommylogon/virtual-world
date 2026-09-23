@@ -679,27 +679,63 @@ class BackgroundSimulation:
         """
         return "drink" if str(need).lower() in ("thirst", "drink") else "eat"
 
+    def _hop(self, p, target_name, direction, need=None, tags=None,
+             reason=None, depth=0):
+        """Cross one way toward *target_name* (task-475).
+
+        Uses the verb the way needs (crawl / climb / jump) and rolls ground that
+        is genuinely risky. A refusal costs the turn and nothing more: the way is
+        remembered so the next turn routes around it, and one alternative hop is
+        tried immediately as a detour.
+        """
+        from engine import traversal
+        area = p.current_area
+        why = f"{reason}:travel" if reason else f"needs:{need}"
+        result = traversal.hop(self.gs, p, direction)
+
+        if result.ok:
+            record(p, self.gs.time_ticks, "move",
+                   f"travelled {direction} toward {target_name}",
+                   why=why, area=p.current_area, tags=["travel"])
+            self.gs.add_log_entry(f"[{p.name}] heads {direction} toward {target_name}.")
+            return True
+
+        traversal.note_refusal(self.gs, p, area, direction)
+        if result.condition:
+            try:
+                self.gs.conditions.apply_condition(p.name, result.condition,
+                                                   source="traversal")
+            except Exception as e:
+                logger.warning("[background] %s condition: %s", p.name, e)
+        record(p, self.gs.time_ticks, "traversal", result.detail,
+               why=result.why, area=area, tags=["travel"])
+        self.gs.add_log_entry(
+            f"[{p.name}] can't take the {direction} ({result.detail}).")
+
+        # One detour: a different first hop toward the same goal, now that the
+        # refused way is on the avoid list.
+        if depth == 0:
+            step = self._target_step(
+                p, tags, verb=self._verb_for_need(need) if need else None,
+                areas={target_name} if not tags else None,
+                avoid=traversal.avoid(self.gs, p))
+            if step:
+                alt_name, alt_dir = step
+                if alt_dir and alt_dir != direction:
+                    return self._hop(p, alt_name, alt_dir, need=need, tags=tags,
+                                     reason=reason, depth=1)
+        return False
+
     def _travel_toward(self, p, tags, need):
-        step = self._target_step(p, tags, verb=self._verb_for_need(need))
+        from engine import traversal
+        step = self._target_step(p, tags, verb=self._verb_for_need(need),
+                                 avoid=traversal.avoid(self.gs, p))
         if not step:
             return False
         target_name, direction = step
         if not direction:
             return False
-        old_active = self.gs.active_player
-        self.gs.active_player = p.name
-        try:
-            self.gs.movement.move_to_area(direction)
-        except Exception as e:
-            logger.warning("[background] travel %s (%s): %s", p.name, direction, e)
-            return False
-        finally:
-            self.gs.active_player = old_active
-        record(p, self.gs.time_ticks, "move",
-               f"travelled {direction} toward {target_name}",
-               why=f"needs:{need}", area=p.current_area, tags=["travel"])
-        self.gs.add_log_entry(f"[{p.name}] heads {direction} toward {target_name}.")
-        return True
+        return self._hop(p, target_name, direction, need, tags)
 
     def _pursue_schedule(self, p):
         """Walk to and carry out the step the clock is in (task-409).
@@ -735,27 +771,15 @@ class BackgroundSimulation:
 
     def _travel_to_area(self, p, area_name, reason):
         """One hop toward a *named* area, reusing the need-travel path."""
-        step = self._target_step(p, None, areas={area_name})
+        from engine import traversal
+        step = self._target_step(p, None, areas={area_name},
+                                 avoid=traversal.avoid(self.gs, p))
         if not step:
             return False
         target_name, direction = step
         if not direction:
             return False
-        old_active = self.gs.active_player
-        self.gs.active_player = p.name
-        try:
-            self.gs.movement.move_to_area(direction)
-        except Exception as e:
-            logger.warning("[background] schedule travel %s (%s): %s",
-                           p.name, direction, e)
-            return False
-        finally:
-            self.gs.active_player = old_active
-        record(p, self.gs.time_ticks, "move",
-               f"travelled {direction} toward {target_name}",
-               why=f"{reason}:travel", area=p.current_area, tags=["travel"])
-        self.gs.add_log_entry(f"[{p.name}] heads {direction} toward {target_name}.")
-        return True
+        return self._hop(p, target_name, direction, reason=reason)
 
     def _start_blocking_activity(self, p, activity, reason, minutes):
         """Start a short, interruptible activity expressed in GAME MINUTES.
@@ -882,7 +906,7 @@ class BackgroundSimulation:
             return node.id
         return self._norm_area_table().get(self._norm(area_id_or_name))
 
-    def _target_step(self, p, tags, verb=None, areas=None):
+    def _target_step(self, p, tags, verb=None, areas=None, avoid=None):
         """Nearest area holding ``tags`` reachable from the character's area.
 
         Returns ``(area_name, exit_label)`` or None. BFS walks the engine's own
@@ -892,7 +916,9 @@ class BackgroundSimulation:
 
         ``areas`` overrides the tag lookup with an explicit set of area names —
         what a schedule needs, since a step names its destination directly rather
-        than describing it by tags (task-409).
+        than describing it by tags (task-409). ``avoid`` is a set of
+        ``(area, label)`` keys the character is routing around for now, so a way
+        that just turned them back is not retried every turn (task-475).
         """
         areas = set(areas) if areas else self._areas_with(tags, verb)
         start = p.current_area
@@ -909,6 +935,10 @@ class BackgroundSimulation:
                 return current, first
             for label, exit_data in self.gs.build_exits_for_area(
                     current, include_hidden=True).items():
+                if avoid:
+                    from engine.traversal import avoid_key
+                    if avoid_key(current, label) in avoid:
+                        continue
                 target = exit_data.get("target")
                 if target and target not in seen:
                     seen.add(target)
