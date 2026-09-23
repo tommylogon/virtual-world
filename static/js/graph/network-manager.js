@@ -625,7 +625,10 @@ window.GraphNetwork = {
                 ? NodeBadges.formatLabel(nodeData, GraphNetwork._tagMetaFor(nodeData))
                 : `${nodeData.name || nodeData.id}`,
             group: nodeData.type,
-            title: GraphNetwork.buildTooltip(nodeData),
+            // tippy renders the rich HTML tooltip on hoverNode; only fall back
+            // to vis-network's native (plain-text) title when tippy is absent,
+            // so the two never show at once.
+            title: typeof tippy === 'undefined' ? GraphNetwork.buildTooltip(nodeData) : undefined,
             // vis-network's central gravity is global. A node excluded from
             // physics stays out of that pull while the rest keeps simulating.
             // "Static" can be said either way: the inspector's Physics-enabled

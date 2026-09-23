@@ -5,8 +5,7 @@ group: Graph & Area UX
 
 **Filed**: 2026-07-30  
 **Priority**: Low  
-**Status**: Design  
-
+**Status**: Done  
 ---
 
 ## Summary

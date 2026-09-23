@@ -8,9 +8,9 @@
  * graph-manager.js doesn't matter.
  *
  * @module graph/tooltips — rich hover tooltips
- * @contributes GraphTooltips: per-type tooltip text/HTML, tippy binding, edge-hover follow tooltip
+ * @contributes GraphTooltips: per-type tooltip text/HTML, cursor-follow node/edge tooltips
  * @powers hovering a node or edge to read its details
- * @relates used by GraphNetwork; resolves graphManager + worldState lazily at call time
+ * @relates used by GraphNetwork; binds on the network's hoverNode/hoverEdge events
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
 window.GraphTooltips = {
@@ -30,7 +30,7 @@ window.GraphTooltips = {
             const vitals = player.vitals || {};
             const area = player.current_area || '?';
             const hpPct = vitals.HP && vitals.Max_HP ? Math.round((vitals.HP / vitals.Max_HP) * 100) : '?';
-            tip += `\n📍 ${area}\n❤️ HP ${vitals.HP||'?'} (${hpPct}%)\n⚡ Energy ${vitals.Energy||'?'}`;
+            tip += `\n📍 ${area}\n❤️ HP ${vitals.HP||'?'} (${hpPct}%)\n⚡ Energy ${vitals.Energy||'?'}\n🎭 State ${player.state || 'awake'}`;
         } else if (nodeData.type === 'area') {
             const area = worldState.areas?.[nodeData.name];
             if (area) {
@@ -38,6 +38,8 @@ window.GraphTooltips = {
                 const playersHere = Object.entries(worldState.players || {}).filter(([, playerData]) => playerData.current_area === nodeData.name).map(([playerName]) => playerName);
                 tip += `\n📦 ${items} items\n🧍 ${playersHere.join(', ') || 'no one here'}`;
             }
+            const areaEnvLines = GraphTooltips._envLines(nodeData, 'text');
+            if (areaEnvLines.length) tip += '\n' + areaEnvLines.join('\n');
             const areaTags = nodeData.properties?.tags || [];
             if (areaTags.length > 0) tip += `\n🏷️ ${areaTags.join(', ')}`;
         } else if (nodeData.type === 'item') {
@@ -46,6 +48,10 @@ window.GraphTooltips = {
             tip += `\n📦 ${desc || 'Item'}`;
             const itemState = props.current_state || 'normal';
             tip += `\n📌 ${itemState}`;
+            const weight = props.weight;
+            if (weight !== undefined && weight !== null) tip += `\n⚖️ Weight ${weight}`;
+            const slots = Array.isArray(props.equip_slots) ? props.equip_slots : (props.equip_slots ? [props.equip_slots] : []);
+            if (slots.length > 0) tip += `\n🎯 Equip slots ${slots.join(', ')}`;
             const tags = props.tags || [];
             if (tags.length > 0) tip += `\n🏷️ ${tags.join(', ')}`;
         } else if (nodeData.type === 'character') {
@@ -75,6 +81,71 @@ window.GraphTooltips = {
         return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     },
 
+    /** Qualitative label for a light value (numeric 0-100 or env enum string). */
+    _lightLabel(light) {
+        if (light === undefined || light === null || light === '') return null;
+        if (typeof light === 'number') {
+            if (light <= 20) return 'Pitch Black';
+            if (light <= 40) return 'Dim';
+            if (light <= 70) return 'Normal';
+            if (light <= 90) return 'Bright';
+            return 'Blinding';
+        }
+        const s = String(light).toLowerCase().replace(/_/g, ' ');
+        return s.charAt(0).toUpperCase() + s.slice(1);
+    },
+
+    /**
+     * Resolve environment properties for an area node.
+     * Prefers the node's own `properties.environment`, falling back to the
+     * live `worldState.areas[name]` record (which may also expose
+     * `ambient_light` computed by the engine).
+     */
+    _envInfo(nodeData) {
+        const props = nodeData.properties || {};
+        const nodeEnv = props.environment || {};
+        const area = worldState.areas?.[nodeData.name];
+        const areaEnv = area?.environment || {};
+        const env = { ...areaEnv, ...nodeEnv };
+        const temp = env.temperature;
+        const light = env.light !== undefined ? env.light : area?.ambient_light;
+        const air = env.air;
+        const noise = env.noise;
+        const smell = env.smell;
+        const humidity = env.humidity;
+        return {
+            hasAny: temp !== undefined || light !== undefined || !!air || !!noise || !!smell || humidity !== undefined,
+            temp, light, air, noise, smell, humidity,
+        };
+    },
+
+    /** Render environment lines for an area (shared by text + HTML builders). */
+    _envLines(nodeData, mode) {
+        const info = GraphTooltips._envInfo(nodeData);
+        if (!info.hasAny) return [];
+        const isHtml = mode === 'html';
+        const esc = GraphTooltips._escHtml;
+        const lines = [];
+        if (info.temp !== undefined && info.temp !== null && !isNaN(Number(info.temp))) {
+            const t = Math.round(Number(info.temp) * 10) / 10;
+            lines.push(isHtml ? `🌡️ Temp: <b>${t}°C</b>` : `🌡️ Temp ${t}°C`);
+        }
+        if (info.light !== undefined && info.light !== null) {
+            const ll = GraphTooltips._lightLabel(info.light);
+            if (isHtml) {
+                const num = typeof info.light === 'number' ? ` (${info.light})` : '';
+                lines.push(`💡 Light: <b>${esc(ll)}${num}</b>`);
+            } else {
+                lines.push(`💡 Light ${info.light}`);
+            }
+        }
+        if (info.air) lines.push(isHtml ? `🌬️ Air: <b>${esc(info.air)}</b>` : `🌬️ Air ${info.air}`);
+        if (info.noise) lines.push(isHtml ? `🔊 Noise: <b>${esc(info.noise)}</b>` : `🔊 Noise ${info.noise}`);
+        if (info.smell) lines.push(isHtml ? `👃 Smell: <b>${esc(info.smell)}</b>` : `👃 Smell ${info.smell}`);
+        if (info.humidity) lines.push(isHtml ? `💧 Humidity: <b>${esc(info.humidity)}</b>` : `💧 Humidity ${info.humidity}`);
+        return lines;
+    },
+
     buildTooltipHtml(nodeData) {
         const props = nodeData.properties || {};
         const esc = GraphTooltips._escHtml;
@@ -90,12 +161,19 @@ window.GraphTooltips = {
                 html += '<div style="margin:2px 0;">📦 Items: ' + items + '</div>';
                 html += '<div style="margin:2px 0;">🧍 Here: ' + (playersHere.join(', ') || 'none') + '</div>';
             }
+            GraphTooltips._envLines(nodeData, 'html').forEach(line => {
+                html += '<div style="margin:2px 0;">' + line + '</div>';
+            });
             const areaTags = props.tags || [];
             if (areaTags.length > 0) html += '<div style="margin:2px 0;">🏷️ ' + esc(areaTags.join(', ')) + '</div>';
         } else if (nodeData.type === 'item') {
             const desc = props.description || '';
             if (desc) html += '<div style="margin:2px 0;color:var(--text-muted);">' + esc(desc.substring(0, 80)) + (desc.length > 80 ? '...' : '') + '</div>';
             html += '<div style="margin:2px 0;">📌 State: ' + esc(props.current_state || 'normal') + '</div>';
+            const weight = props.weight;
+            if (weight !== undefined && weight !== null) html += '<div style="margin:2px 0;">⚖️ Weight: ' + esc(String(weight)) + '</div>';
+            const slots = Array.isArray(props.equip_slots) ? props.equip_slots : (props.equip_slots ? [props.equip_slots] : []);
+            if (slots.length > 0) html += '<div style="margin:2px 0;">🎯 Equip slots: ' + esc(slots.join(', ')) + '</div>';
             const tags = props.tags || [];
             if (tags.length > 0) html += '<div style="margin:2px 0;">🏷️ ' + esc(tags.join(', ')) + '</div>';
         } else if (nodeData.type === 'way') {
@@ -112,6 +190,7 @@ window.GraphTooltips = {
                 html += '<div style="margin:2px 0;">❤️ HP: ' + (vitals.HP || '?') + ' (' + hpPct + '%)</div>';
                 html += '<div style="margin:2px 0;">⚡ Energy: ' + (vitals.Energy || '?') + '</div>';
                 html += '<div style="margin:2px 0;">📍 ' + esc(player.current_area || '?') + '</div>';
+                html += '<div style="margin:2px 0;">🎭 State: ' + esc(player.state || 'awake') + '</div>';
             }
             const charTags = props.tags || [];
             if (charTags.length > 0) html += '<div style="margin:2px 0;">🏷️ ' + esc(charTags.join(', ')) + '</div>';
@@ -203,39 +282,69 @@ window.GraphTooltips = {
         });
     },
 
-    /** Attach per-node tippy tooltips (destroying any prior ones first). */
+    /**
+     * Bind the rich node hover tooltip.
+     *
+     * vis-network draws nodes to a canvas and exposes no per-node DOM
+     * element (`nodeObj.dom` is always undefined), so tippy cannot be bound
+     * directly to nodes. Instead we follow the cursor on the network's
+     * `hoverNode` event — the same pattern as the edge tooltip — rebuilding
+     * content from the latest world state on every hover so it never goes
+     * stale. GraphNetwork.buildNodeConfig omits the native plain-text
+     * `title` when tippy is present, so the two never show at once.
+     */
     attachNodeTooltips() {
         if (typeof tippy === 'undefined') return;
         if (!graphManager.network) return;
+        GraphTooltips._hideNodeHoverTippy();
+        if (graphManager._nodeHoverBound) return;
+        graphManager._nodeHoverBound = true;
 
-        const existing = document.querySelectorAll('.tippy-box[data-graph-tooltip]');
-        existing.forEach(el => { const inst = tippy.getInstance(el); if (inst) inst.destroy(); });
+        graphManager.network.on('hoverNode', (params) => {
+            GraphTooltips._hideNodeHoverTippy();
+            const nodeData = (typeof worldState.getNode === 'function' && worldState.getNode(params.node))
+                || graphManager.nodes.get(params.node);
+            if (!nodeData) return;
+            const html = GraphTooltips.buildTooltipHtml(nodeData);
+            if (!html) return;
+            const event = params.event || {};
+            try {
+                graphManager._nodeHoverTippy = tippy(document.createElement('div'), {
+                    content: html,
+                    allowHTML: true,
+                    placement: 'top',
+                    arrow: true,
+                    animation: 'shift-away',
+                    duration: [150, 100],
+                    maxWidth: 300,
+                    theme: 'light-border',
+                    trigger: 'manual',
+                    showOnCreate: true,
+                    appendTo: () => document.body,
+                    getReferenceClientRect: () => ({
+                        width: 0,
+                        height: 0,
+                        top: event.clientY,
+                        bottom: event.clientY,
+                        left: event.clientX,
+                        right: event.clientX,
+                    }),
+                });
+                graphManager._nodeHoverTippy.popper.setAttribute('data-graph-tooltip', '1');
+            } catch (e) { /* ignore */ }
+        });
 
-        if (graphManager.network.body && graphManager.network.body.nodes) {
-            Object.entries(graphManager.network.body.nodes).forEach(([nodeId, nodeObj]) => {
-                const dom = nodeObj && nodeObj.dom;
-                if (!dom) return;
-                const nodeData = graphManager.nodes.get(nodeId);
-                if (!nodeData) return;
-                const html = GraphTooltips.buildTooltipHtml(nodeData);
-                if (!html) return;
-                try {
-                    tippy(dom, {
-                        content: html,
-                        allowHTML: true,
-                        placement: 'top',
-                        arrow: true,
-                        animation: 'shift-away',
-                        duration: [200, 150],
-                        maxWidth: 300,
-                        delay: [200, 0],
-                        theme: 'light-border',
-                        onCreate(instance) {
-                            instance.popper.setAttribute('data-graph-tooltip', '1');
-                        }
-                    });
-                } catch (e) { /* ignore */ }
-            });
+        const hide = () => GraphTooltips._hideNodeHoverTippy();
+        graphManager.network.on('blurNode', hide);
+        graphManager.network.on('dragStart', hide);
+        graphManager.network.on('zoom', hide);
+    },
+
+    /** Destroy the active node hover tooltip, if any. */
+    _hideNodeHoverTippy() {
+        if (graphManager._nodeHoverTippy) {
+            graphManager._nodeHoverTippy.destroy();
+            graphManager._nodeHoverTippy = null;
         }
     }
 };
