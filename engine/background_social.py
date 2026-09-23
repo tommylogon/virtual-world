@@ -732,3 +732,86 @@ def _areas_with_background(gs) -> list:
             area_id = ""
         out.append((area_id, area_name))
     return out
+
+
+#: Third-person phrasing for the approach event line.
+APPROACH_VERBS = {
+    "chat": "strikes up a conversation with",
+    "joke": "jokes with",
+    "compliment": "compliments",
+    "tease": "teases",
+    "confide": "confides in",
+    "flirt": "flirts with",
+    "apologise": "apologises to",
+    "bully": "bullies",
+}
+
+
+def run_social_approach(gs, tick: Optional[int] = None) -> list:
+    """Let a background character reach the *player* (task-464/466/469).
+
+    The paired pass is deliberately background <-> background: an attended
+    character's social life belongs to its own loop. That left the player unable
+    to be approached at all, so a wait was socially inert. This is the one-way
+    seam: a co-located, available background character initiates a neutral
+    ``chat`` toward the active character, which writes a turn event a timeskip
+    evaluates as a social interrupt (and gives the player the memory).
+
+    Capped to one approach per turn, and the player's own cooldown applies so a
+    crowd cannot pile on.
+    """
+    if gs is None:
+        return []
+    if tick is None:
+        tick = getattr(gs, "time_ticks", 0)
+
+    try:
+        human = gs.get_active_player_obj()
+    except Exception:
+        human = None
+    if human is None or not getattr(human, "current_area", None):
+        return []
+    if getattr(human, "state", "") in ("dead", "unconscious"):
+        return []
+    if getattr(human, "_social_last_tick", None) is not None and \
+            not _off_cooldown(human, gs, tick):
+        return []
+
+    area_name = human.current_area
+    try:
+        area_id = gs.area_node_id(area_name)
+    except Exception:
+        area_id = None
+
+    present = []
+    for _name, player in (gs.player_manager.players or {}).items():
+        if player is human or getattr(player, "current_area", None) != area_name:
+            continue
+        if not is_background(player) or not is_available(player):
+            continue
+        if meetings_allowed(player, gs, tick) <= 0:
+            continue
+        if not _off_cooldown(player, gs, tick):
+            continue
+        present.append(player)
+    if not present:
+        return []
+
+    present.sort(key=lambda p: getattr(p, "name", ""))
+    actor = present[0]
+    outcome = perform(gs, actor, human, area_id, area_name, tick, action="chat")
+    if outcome is None:
+        return []
+    _record_meeting(gs, actor)
+    verb = APPROACH_VERBS.get(outcome.get("action", "chat"),
+                              f"{outcome.get('action', 'chat')}s")
+    line = f"{actor.name} {verb} {human.name}."
+    try:
+        gs.record_turn_event(actor.name, "social_approach", line, area_name=area_name)
+    except Exception:
+        pass
+    try:
+        gs.add_log_entry(f"[{actor.name}] {line}")
+    except Exception:
+        pass
+    return [outcome]

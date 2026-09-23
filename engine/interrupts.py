@@ -43,6 +43,9 @@ HOSTILE_CONDITIONS = frozenset({
 #: Turn-event action labels that are inherently hostile to the receiver.
 HOSTILE_ACTIONS = frozenset({"attack", "steal", "grapple", "stab", "hit", "kill"})
 
+#: Turn-event action the background social approach writes (engine/background_social).
+SOCIAL_APPROACH_ACTION = "social_approach"
+
 #: Markers in the log / turn events that mean a hostile act happened to us.
 #: The theft path (`engine/items/transfer_actions.py`) logs "[Steal] ..." and a
 #: "notices" line, so both are covered without special-casing that module.
@@ -144,6 +147,10 @@ def evaluate(before: dict, after: dict, *, events=(), watch_tags=(),
     reasons.extend(_vital_danger(before, after))
     reasons.extend(_involuntary(before, after))
 
+    approached = _social(after, events)
+    if approached:
+        reasons.append(Interrupt("social", "social:approach", approached, True))
+
     discovery = _discovery(before, after, watch_tags=watch_tags, target=target,
                            intent=intent)
     reasons.extend(discovery)
@@ -201,6 +208,14 @@ def _threat_detail(after, events) -> str:
         if str(event.get("action", "")).lower() in HOSTILE_ACTIONS or \
                 any(marker in low for marker in THREAT_MARKERS):
             return text.strip()
+    return ""
+
+
+def _social(after, events) -> str:
+    """Someone deliberately addressing the character (background social approach)."""
+    for event in _relevant_events(after, events):
+        if str(event.get("action", "")).lower() == SOCIAL_APPROACH_ACTION:
+            return str(event.get("description", "")).strip() or "Someone approaches you."
     return ""
 
 

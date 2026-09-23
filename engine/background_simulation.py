@@ -182,8 +182,9 @@ class BackgroundSimulation:
         # area, once per tick, and gives both sides a short conversing activity —
         # which is why the loop above skips anyone mid-activity.
         try:
-            from engine.background_social import run_social_pass
+            from engine.background_social import run_social_pass, run_social_approach
             run_social_pass(self.gs)
+            run_social_approach(self.gs)
         except Exception as e:
             logger.warning("[background] social pass: %s", e)
 
