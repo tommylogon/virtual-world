@@ -165,8 +165,19 @@ def handle_soak_declare(app):
 
 
 def handle_soak_cancel(app):
-    """DELETE /api/world/soak — drop the active character's soak order."""
-    player = app.world.get_active_player_obj()
+    """DELETE /api/world/soak[?character=Name] — drop a character's soak order.
+
+    Defaults to the active character; the roster's cancel button names the row's
+    character explicitly.
+    """
+    world = app.world
+    name = request.args.get("character")
+    if name:
+        player = (getattr(world, "players", None) or {}).get(name)
+        if player is None:
+            return jsonify({"error": f"No such character: {name}"}), 404
+    else:
+        player = world.get_active_player_obj()
     if player is None:
         return jsonify({"error": "No active character"}), 400
     return jsonify({"ok": soak.cancel(player)})

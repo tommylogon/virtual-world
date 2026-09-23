@@ -225,3 +225,24 @@ def test_state_payload_reports_the_soak_order_for_the_roster():
     soak = state["players"][hero.name]["soak"]
     assert soak and soak["intent"] == "travel"
     assert soak["remaining_minutes"] == 30
+
+
+def test_soak_can_be_cancelled_by_character_name():
+    app, hero, client = _client()
+    other = _spawn(app.world, "Borin", hero.current_area, human=True)
+    client.post("/api/world/soak", json={"intent": "idle", "minutes": 5})
+
+    # Cancelling a character with no order is a clean no-op, and does not touch
+    # the active character's order.
+    resp = client.delete("/api/world/soak?character=Borin")
+    assert resp.status_code == 200 and resp.get_json()["ok"] is False
+    assert hero.soak_order is not None
+
+    resp = client.delete("/api/world/soak?character=" + hero.name)
+    assert resp.get_json()["ok"] is True and hero.soak_order is None
+    assert other.soak_order is None
+
+
+def test_soak_cancel_rejects_an_unknown_character():
+    _app, _hero2, client = _client()
+    assert client.delete("/api/world/soak?character=Nobody").status_code == 404

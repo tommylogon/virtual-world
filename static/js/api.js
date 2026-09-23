@@ -33,6 +33,21 @@ class ApiClient {
         return resp.json();
     }
 
+    /**
+     * Declare a soak order for a character (task-481): they run on a policy for
+     * the span instead of taking attended turns.
+     */
+    static async declareSoak(payload) {
+        return this.post('/api/world/soak', payload);
+    }
+
+    /** Drop a character's soak order (defaults to the active character). */
+    static async cancelSoak(charName = null) {
+        const query = charName ? '?character=' + encodeURIComponent(charName) : '';
+        const resp = await fetch('/api/world/soak' + query, { method: 'DELETE' });
+        return resp.json().catch(() => ({}));
+    }
+
     /** Status-condition catalog (for the inspector's condition editor) */
     static async conditionsCatalog() {
         return this.get('/api/conditions');

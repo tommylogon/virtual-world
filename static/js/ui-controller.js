@@ -96,7 +96,8 @@ class UIController {
             if (soak) {
                 const soakLabels = { idle: 'wait', leisure: 'mingle', search: 'search', explore: 'explore', travel: 'travel' };
                 const left = Math.round(soak.remaining_minutes || 0);
-                soakText = uiControllerHtmlTag`<span class="initiative-status" title="Soaking — ${soak.intent}, ${left} min left" style="font-size:9px;color:#a371f7;margin-left:auto;font-weight:600;">⏩ ${soakLabels[soak.intent] || soak.intent} ${left}m</span>`;
+                const verb = soakLabels[soak.intent] || soak.intent;
+                soakText = uiControllerHtmlTag`<span class="initiative-status" title="Soaking — ${soak.intent}, ${left} min left" style="font-size:9px;color:#a371f7;margin-left:auto;font-weight:600;display:inline-flex;align-items:center;gap:3px;">⏩ ${verb} ${left}m <button type="button" class="soak-cancel" title="Cancel this soak order" @click=${(e) => { e.stopPropagation(); this.cancelSoak(name); }} style="background:none;border:0;color:#a371f7;cursor:pointer;padding:0 2px;font-size:9px;">✕</button></span>`;
             }
             if (!window.Lit) return; // startup race: first state:updated can arrive before Lit bootstrap
 
@@ -118,6 +119,19 @@ class UIController {
             listTemplate = uiControllerHtmlTag`${rows}<div style="padding:8px 12px;font-size:10px;color:var(--text-muted);">Turn-based mode is off — no initiative order. Toggle ⏭️ Turn-Based Mode below to show it.</div>`;
         }
         window.Lit.render(listTemplate, listEl);
+    }
+
+    /**
+     * Cancel a character's soak order from the roster row (task-481) and refresh
+     * so the badge and queue update.
+     */
+    async cancelSoak(name) {
+        try {
+            await ApiClient.cancelSoak(name);
+            await worldState.fetch();
+        } catch (err) {
+            console.error('Cancel soak failed:', err);
+        }
     }
 
     // --- Agent Overview ---

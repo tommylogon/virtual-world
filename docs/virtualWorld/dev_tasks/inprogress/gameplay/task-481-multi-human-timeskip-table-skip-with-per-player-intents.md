@@ -60,8 +60,9 @@ Confirmed decisions (2026-09-23):
       promoted character** and re-sorts keeping the current character current,
       and simultaneous modes do not use this queue at all
       (`TurnQueue.syncSoakPromotions`, driven from `reconcile()` on each fetch).
-- [ ] Cancel affordance (from the roster entry); the composer's timeskip button
-      could declare directly instead of opening the dialog.
+- [x] Cancel from the roster row: a ✕ on the soak badge calls
+      `DELETE /api/world/soak?character=<name>` (defaults to the active
+      character; 404 for an unknown name, clean no-op when there is no order).
 - [ ] Save/load: orders are deliberately transient; a reload abandons the order.
 
 ## Verification
