@@ -1,9 +1,9 @@
-﻿/**
+/**
  * Unit tests for graph/relative-layout.js (task-485).
  *
  * Positions must be derived from the relations, so the interesting cases are
  * the precedence rules (carried beats inside, worn beats inside), cycles, and
- * stability â€” the same graph must lay out the same way twice.
+ * stability — the same graph must lay out the same way twice.
  */
 
 const NODES = {
@@ -45,7 +45,7 @@ test('an item hangs off the area that holds it', () => {
 });
 
 test('a carried item follows the carrier, not the room it was left in', () => {
-    // item_bag BOTH sits in the cellar and is carried â€” the carrier wins.
+    // item_bag BOTH sits in the cellar and is carried — the carrier wins.
     assertEq(GraphRelativeLayout.parentOf('item_bag', EDGES, NODES), 'char_kael');
 });
 
@@ -143,7 +143,7 @@ test('a relation island with no area is left alone, not hung on', () => {
     assertEq(GraphRelativeLayout.layoutPositions(nodes, edges, {}), {});
 });
 
-test('apply() seeds children and leaves them dynamic (not pinned)', () => {
+test('apply() seeds children and keeps them out of the global solver', () => {
     const updated = [];
     const previousGraphManager = globalThis.graphManager;
     globalThis.graphManager = {
@@ -161,8 +161,10 @@ test('apply() seeds children and leaves them dynamic (not pinned)', () => {
         const count = GraphRelativeLayout.apply();
         assertEq(count, updated.length, 'returns what it placed');
         assertTrue(updated.every((u) => u.id !== 'area_hall'), 'areas untouched');
-        assertTrue(updated.every((u) => u.fixed === false && u.physics === true),
-            'children stay in the physics simulation');
+        // Not `fixed` (the player can drag them); simply not pulled by the global
+        // field, which is what would drag them to the middle.
+        assertTrue(updated.every((u) => u.fixed === false && u.physics === false),
+            'children stay out of the global solver');
         assertTrue(updated.some((u) => u.id === 'item_bag'), 'the carried bag was placed');
     } finally {
         globalThis.graphManager = previousGraphManager;
@@ -200,6 +202,72 @@ test('a child holds its offset from the parent and follows it', () => {
         assertTrue(Math.abs(positions.item_lamp.x) < 1, 'the lamp is back with the hall');
         assertTrue(Math.abs(positions.item_oil.x) < 60, 'the oil stayed in the lamp');
     } finally {
+        globalThis.graphManager = previousGraphManager;
+        GraphRelativeLayout._offsets = null;
+    }
+});
+
+test('an idle tick costs nothing and does not re-place anything', () => {
+    GraphRelativeLayout._offsets = null;
+    const moved = [];
+    const positions = { area_hall: { x: 0, y: 0 }, item_lamp: { x: 0, y: 58 } };
+    const previousGraphManager = globalThis.graphManager;
+    globalThis.graphManager = {
+        _graphNodesObj: NODES,
+        _graphEdgesArr: EDGES,
+        _physicsEnabled: true,
+        network: {
+            body: { nodes: positions, data: { nodes: { update: () => {} } } },
+            moveNode: (id, x, y) => { positions[id] = { x, y }; moved.push(id); },
+        },
+    };
+    try {
+        GraphRelativeLayout.apply();
+        moved.length = 0;
+        GraphRelativeLayout.follow();
+        const afterSettled = moved.length;
+        const second = GraphRelativeLayout.follow();
+        assertEq(second, 0, 'a settled graph re-places nothing');
+        assertEq(moved.length, afterSettled, 'no extra moveNode calls');
+    } finally {
+        globalThis.graphManager = previousGraphManager;
+        GraphRelativeLayout._offsets = null;
+    }
+});
+
+test('a big graph degrades by queueing the rest for the next tick', () => {
+    GraphRelativeLayout._offsets = null;
+    const nodes = { area_a: { type: 'area' } };
+    const edges = [];
+    for (let i = 0; i < 5; i++) {
+        nodes['item_' + i] = { type: 'item' };
+        edges.push({ type: 'in', source: 'item_' + i, target: 'area_a' });
+    }
+    const positions = { area_a: { x: 0, y: 0 } };
+    for (let i = 0; i < 5; i++) positions['item_' + i] = { x: 0, y: 0 };
+    const previousGraphManager = globalThis.graphManager;
+    const previousBudget = GraphRelativeLayout.FOLLOW_BUDGET;
+    globalThis.graphManager = {
+        _graphNodesObj: nodes,
+        _graphEdgesArr: edges,
+        _physicsEnabled: true,
+        network: {
+            body: { nodes: positions, data: { nodes: { update: () => {} } } },
+            moveNode: (id, x, y) => { positions[id] = { x, y }; },
+        },
+    };
+    try {
+        GraphRelativeLayout.apply();
+        GraphRelativeLayout.FOLLOW_BUDGET = 2;
+        const first = GraphRelativeLayout.follow();
+        assertTrue(first <= 2, 'first tick respects the budget');
+        assertTrue((GraphRelativeLayout._pendingParents || []).length > 0, 'the rest is queued');
+        GraphRelativeLayout.FOLLOW_BUDGET = previousBudget;
+        const second = GraphRelativeLayout.follow();
+        assertTrue(second > 0, 'the next tick continues');
+        assertEq(GraphRelativeLayout._pendingParents, null, 'the queue drains');
+    } finally {
+        GraphRelativeLayout.FOLLOW_BUDGET = previousBudget;
         globalThis.graphManager = previousGraphManager;
         GraphRelativeLayout._offsets = null;
     }

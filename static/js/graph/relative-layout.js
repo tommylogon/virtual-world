@@ -51,10 +51,15 @@ window.GraphRelativeLayout = {
     // Children stay dynamic: they hold a *relative* offset from their parent and
     // that offset is re-applied as the parent moves, so a dragged room carries
     // its contents while global central gravity can never stretch a child away
-    // (or drag it to the middle). Corrected every frame the simulation draws,
-    // with a timer as the floor for a settled network that stops redrawing.
-    FOLLOW_MS: 30,
+    // (or drag it to the middle). Corrected on a timer while the simulation is
+    // live (and immediately while a node is dragged) — never a full-graph walk
+    // per frame, and the timer sleeps as soon as there is nothing to do.
+    FOLLOW_MS: 120,
     FOLLOW_EPSILON: 0.5,
+    MOVE_EPSILON: 0.5,
+    // Most children re-placed in one tick; the rest are queued for the next tick,
+    // so a very large graph degrades gracefully instead of stalling a frame.
+    FOLLOW_BUDGET: 500,
 
     _edges() {
         const g = (typeof graphManager !== 'undefined' && graphManager) || {};
@@ -337,9 +342,13 @@ window.GraphRelativeLayout = {
             const target = offset && parentPos
                 ? { x: parentPos.x + offset.dx, y: parentPos.y + offset.dy }
                 : pos;
-            // Dynamic: no `fixed`, physics stays on — the follow pass is what
-            // keeps them with their parent.
-            updates.push({ id, x: target.x, y: target.y, fixed: false, physics: true });
+            // Out of the *global* solver, not out of the layout: central gravity
+            // is a field applied to every node every iteration, so a child left
+            // in it is dragged off its parent no matter how stiff its edge is
+            // (and keeping it back needs a per-frame sweep — the thing that does
+            // not scale). The parent is still physics-driven; the child follows
+            // it, and stays draggable (a drop re-records its offset).
+            updates.push({ id, x: target.x, y: target.y, fixed: false, physics: false });
         }
         if (updates.length) {
             try { network.body.data.nodes.update(updates); } catch (err) { /* ignore */ }
@@ -363,11 +372,19 @@ window.GraphRelativeLayout = {
     },
 
     /**
-     * Re-apply every child's offset against its parent's live position. This is
-     * what makes a room's contents follow it (physics moves the room, they track
-     * it) without ever letting a child drift off on its own. Runs on a timer
-     * because a settled vis network stops redrawing, so frame events are not
-     * enough.
+     * Re-apply children's offsets against their parents' live positions.
+     *
+     * Scaled deliberately — none of this is a per-frame walk of the whole graph:
+     *
+     *  - a tick only walks the **parents that have children** (no positions are
+     *    copied and no arrays rebuilt), and returns immediately when nothing has
+     *    moved;
+     *  - children are re-placed only for parents that actually moved;
+     *  - work is capped by `FOLLOW_BUDGET` per tick, with the remainder queued,
+     *    so a very large graph degrades to "contents trail the room slightly"
+     *    instead of stalling the frame;
+     *  - when physics is off and nothing is pending, the tick shuts the timer
+     *    down entirely until a drag or a stabilization wakes it.
      *
      * @returns {number} how many children were re-placed
      */
@@ -376,14 +393,97 @@ window.GraphRelativeLayout = {
         const network = g.network;
         if (!network || !network.body?.nodes || !this._offsets) return 0;
         const nodes = this._nodes();
-        const parents = this._parents(nodes, this._edges());
-        const positions = this._positions(network);
+        const edges = this._edges();
+        const children = this._childIndex(nodes, edges);
         const dragging = this._dragging || new Set();
-        let moved = 0;
+        const physicsOn = g._physicsEnabled !== false;
 
-        // Shallowest first, updating the local map as we go, so a nested child
-        // (oil inside a lamp inside a room) resolves against the place its parent
-        // just moved to rather than the stale position of this pass.
+        let work = this._pendingParents;
+        let forced = false;
+        this._pendingParents = null;
+        if (!work) {
+            const dirty = this._dirtyParents;
+            if (dirty && dirty.size) {
+                work = Array.from(dirty);
+                dirty.clear();
+                forced = true;
+            } else if (physicsOn) {
+                work = this._orderedParents(nodes, edges, children);
+            } else {
+                this._sleep();
+                return 0;
+            }
+        } else {
+            // Left over from a budget-exhausted tick: finish it even though the
+            // parent has not moved since (its children are the ones still behind).
+            forced = true;
+        }
+
+        const last = this._lastParentPos || (this._lastParentPos = new Map());
+        let budget = this.FOLLOW_BUDGET;
+        let moved = 0;
+        const deferred = [];
+        for (const parent of work) {
+            const kids = children[parent];
+            if (!kids || !kids.length) continue;
+            const body = network.body.nodes[parent];
+            if (!body) continue;
+            const px = body.x;
+            const py = body.y;
+            const prev = last.get(parent);
+            const parentMoved = !prev
+                || Math.abs(prev.x - px) > this.MOVE_EPSILON
+                || Math.abs(prev.y - py) > this.MOVE_EPSILON;
+            if (parentMoved) last.set(parent, { x: px, y: py });
+            // A parent that has not moved costs one comparison and nothing else.
+            if (!parentMoved && !forced) continue;
+            let exhausted = false;
+            for (const id of kids) {
+                if (dragging.has(id)) continue;
+                const offset = this._offsets[id];
+                if (!offset) continue;
+                const x = px + offset.dx;
+                const y = py + offset.dy;
+                const child = network.body.nodes[id];
+                if (child && Math.abs(child.x - x) <= this.FOLLOW_EPSILON
+                        && Math.abs(child.y - y) <= this.FOLLOW_EPSILON) {
+                    continue;
+                }
+                if (budget <= 0) { exhausted = true; break; }
+                budget--;
+                try {
+                    network.moveNode(id, x, y);
+                    moved++;
+                } catch (err) { /* ignore */ }
+            }
+            if (exhausted) { deferred.push(parent); break; }
+        }
+        if (deferred.length) this._pendingParents = deferred;
+        this.lastFollowed = moved;
+        return moved;
+    },
+
+    /** Parent -> [child ids] and the parent ids in depth order, both cached. */
+    _childIndex(nodes, edges) {
+        if (this._childCache && this._childCache.nodes === nodes && this._childCache.edges === edges) {
+            return this._childCache.map;
+        }
+        const parents = this._parents(nodes, edges);
+        const map = {};
+        for (const [id, parent] of Object.entries(parents)) {
+            if (!parent) continue;
+            (map[parent] = map[parent] || []).push(id);
+        }
+        this._childCache = { nodes, edges, map };
+        this._orderedCache = null;
+        return map;
+    },
+
+    /** Parents that have children, shallowest first, so nesting resolves in one tick. */
+    _orderedParents(nodes, edges, children) {
+        const map = children || this._childIndex(nodes, edges);
+        if (this._orderedCache && this._orderedCache.map === map) return this._orderedCache.ids;
+        const parents = this._parents(nodes, edges);
         const depthOf = (id) => {
             let depth = 0, current = parents[id];
             const seen = new Set();
@@ -394,31 +494,28 @@ window.GraphRelativeLayout = {
             }
             return depth;
         };
-        const ordered = Object.keys(this._offsets)
-            .filter((id) => nodes[id])
-            .sort((a, b) => depthOf(a) - depthOf(b) || (a < b ? -1 : 1));
+        const ids = Object.keys(map).sort((a, b) => depthOf(a) - depthOf(b) || (a < b ? -1 : 1));
+        this._orderedCache = { map, ids };
+        return ids;
+    },
 
-        for (const id of ordered) {
-            if (dragging.has(id)) continue;
-            const offset = this._offsets[id];
-            if (!offset) continue;
-            const parent = parents[id];
-            const parentPos = parent ? positions[parent] : null;
-            if (!parentPos) continue;
-            const x = parentPos.x + offset.dx;
-            const y = parentPos.y + offset.dy;
-            const now = positions[id];
-            if (now && Math.abs(now.x - x) <= this.FOLLOW_EPSILON && Math.abs(now.y - y) <= this.FOLLOW_EPSILON) {
-                continue;
-            }
-            try {
-                network.moveNode(id, x, y);
-                positions[id] = { x, y };
-                moved++;
-            } catch (err) { /* ignore */ }
+    /** Pause the follow timer until something wakes it (physics off and idle). */
+    _sleep() {
+        if (this._followTimer && typeof clearInterval === 'function') {
+            clearInterval(this._followTimer);
         }
-        this.lastFollowed = moved;
-        return moved;
+        this._followTimer = null;
+    },
+
+    /** Start following again — after a drag, a stabilization, or a physics toggle. */
+    _wake(dirty) {
+        if (dirty) {
+            this._dirtyParents = this._dirtyParents || new Set();
+            for (const id of [].concat(dirty)) this._dirtyParents.add(id);
+        }
+        if (!this._offsets) return;
+        if (typeof setInterval !== 'function') return;
+        if (!this._followTimer) this._followTimer = setInterval(() => this.follow(), this.FOLLOW_MS);
     },
 
     /**
@@ -445,28 +542,40 @@ window.GraphRelativeLayout = {
     },
 
     /**
-     * Follow the room: dragEnd re-seeds the blocks (and remembers any child the
-     * player moved); the timer keeps children on their parent's pattern while
-     * physics runs so nothing is stretched across the map.
+     * Follow the room: dragging re-places that node's contents live, dragEnd
+     * re-seeds the blocks (and remembers any child the player moved), and the
+     * timer keeps children on their parent's pattern while physics runs.
      */
     attach(network) {
         if (!network || network._relativeLayoutAttached) return;
         network._relativeLayoutAttached = true;
         this._dragging = new Set();
-        network.on('stabilizationIterationsDone', () => this.apply());
+        network.on('stabilizationIterationsDone', () => {
+            this.apply();
+            this._wake();
+        });
         network.on('dragStart', (params) => {
             for (const id of (params && params.nodes) || []) this._dragging.add(id);
+            // Keep the children moving with the node while it is being dragged.
+            this._wake();
+        });
+        network.on('drag', (params) => {
+            const dragged = (params && params.nodes) || [];
+            if (dragged.length) {
+                this._wake(dragged);
+                this.follow();
+            }
         });
         network.on('dragEnd', (params) => {
             const dragged = (params && params.nodes) || [];
             for (const id of dragged) this._dragging.delete(id);
-            if (dragged.length) this.rememberDrop(dragged);
+            if (dragged.length) {
+                this.rememberDrop(dragged);
+                this.apply();
+                this._wake(dragged);
+            }
         });
-        // Every drawn frame while the simulation is active, so the offset wins
-        // against central gravity instead of being tugged off between timer ticks.
-        network.on('afterDrawing', () => this.follow());
-        if (typeof setInterval === 'function' && !this._followTimer) {
-            this._followTimer = setInterval(() => this.follow(), this.FOLLOW_MS);
-        }
+        // Start following (idle ticks shut the timer down again on their own).
+        this._wake();
     },
 };
