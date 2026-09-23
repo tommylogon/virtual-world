@@ -76,6 +76,7 @@ load('static/js/nl-editor/tools.js');
 load('static/js/nl-editor/agent-loop.js');
 load('static/js/graph/graph-background.js');
 load('static/js/graph/graph-export.js');
+load('static/js/graph/relative-layout.js');
 load('static/js/soak/soak-format.js');
 load('static/js/soak/soak-charts.js');
 load('static/js/ui/timeskip.js');

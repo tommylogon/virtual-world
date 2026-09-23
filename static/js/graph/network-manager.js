@@ -31,6 +31,7 @@ window.GraphNetwork = {
 
         const options = GraphNetwork.buildOptions();
         graphManager.network = new vis.Network(container, { nodes: [], edges: [] }, options);
+        if (window.GraphRelativeLayout) window.GraphRelativeLayout.attach(graphManager.network);
 
         // Create legend overlay (after vis.js so it doesn't get cleared)
         graphManager._legendEl = document.createElement('div');
@@ -302,10 +303,18 @@ window.GraphNetwork = {
                 if (!newNodeIds.has(id)) continue;
                 graphManager.network.moveNode(id, pos.x, pos.y);
             }
-            // Apply cardinal-based area layout if enabled
-            if (graphManager._cardinalLayout && worldState.areas) {
-                GraphLayoutEngine.applyCardinalLayout(nodesObj);
-            }
+        // Apply cardinal-based area layout if enabled
+        if (graphManager._cardinalLayout && worldState.areas) {
+            GraphLayoutEngine.applyCardinalLayout(nodesObj);
+        }
+
+        // Items, characters and triggers sit relative to whatever holds them,
+        // derived fresh each load (task-485) — never a saved snapshot, so a
+        // carried item follows its carrier.
+        if (window.GraphRelativeLayout) {
+            try { window.GraphRelativeLayout.apply(); } catch (err) { /* ignore */ }
+        }
+
 
             if (wasPhysics) graphManager.network.setOptions({ physics: { enabled: true } });
 
