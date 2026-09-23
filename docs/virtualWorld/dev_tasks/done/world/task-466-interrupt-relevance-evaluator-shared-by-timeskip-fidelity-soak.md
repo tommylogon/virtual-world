@@ -1,6 +1,6 @@
 ---
 type: task
-status: review
+status: done
 area: world
 priority: high
 ---
@@ -33,3 +33,7 @@ One deterministic relevance/interrupt evaluator shared by timeskip actions (task
 ## Verification
 
 `python -m pytest tests/test_timeskip.py -q` → 41 passed (11 pure evaluator cases incl. area/actor filtering).
+
+## Review 2026-09-23 - shared evaluator closed
+
+Verified: `tests/test_timeskip.py` (41 passed) plus `tests/test_soak_chain.py` (5 passed) and the 289-passed soak/timeskip/fear/forage/loot/checks/skills/conditions slice. The soak-deferral consumer the shared evaluator was waiting for now lives in `engine/soak.py` promotion (`_promote_reason`). Remaining bullets are owned by other tasks: attention/fidelity tiers (task-411, task-418), sound/awareness channels (task-418), salience consumer for memory ranking (task-403). Closing.

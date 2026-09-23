@@ -1,6 +1,6 @@
 ---
 type: task
-status: inprogress
+status: done
 area: gameplay
 priority: high
 ---
@@ -265,3 +265,7 @@ get their normal consolidation.
 ## Verification
 
 Full suite: 60 failed / 3378 passed (same 60 pre-existing). `tests/test_timeskip.py` → 44 passed; `tools/unit` → 130 passed.
+
+## Review 2026-09-23 - core closed
+
+Core acceptance is evidenced in the Progress block above; `mode:"world"`/`mode:"character"` and the composer entry point are in place. Chain validated end to end by `tests/test_soak_chain.py` (5 passed) on the real `tick_turn` loop. The deferred extras moved to **task-482** (spans beyond the 1,440-min cap, leisure vendor purchases, explore frontier preference tied to generation); the composer quick-pick question was settled by task-481 (status belongs in the roster, not the composer, and cancel now lives there). Closing.

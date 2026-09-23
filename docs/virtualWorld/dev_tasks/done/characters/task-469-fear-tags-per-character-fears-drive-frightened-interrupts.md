@@ -1,6 +1,6 @@
 ---
 type: task
-status: review
+status: done
 area: characters
 priority: high
 ---
@@ -36,3 +36,7 @@ Replace the global hostile notion with per-character fear tags. Characters carry
 ## Verification
 
 `python -m pytest tests/test_fear.py -q` → 15 passed. Targeted regression (serialization, save/load, effects, triggers, identity, timeskip) → 274 passed. `tools/unit` → 130 passed. lint / typecheck / module-index clean.
+
+## Review 2026-09-23 - core closed
+
+Verified: `tests/test_fear.py` plus the soak-chain promotion case (`frightened` applied, order promoted, `soak_end` event). Remaining bullets: normal-play NPC fear behaviour (task-214/354), awareness channels as a fear source (task-418), and `frightened` tuning filed as **task-484**. Closing.

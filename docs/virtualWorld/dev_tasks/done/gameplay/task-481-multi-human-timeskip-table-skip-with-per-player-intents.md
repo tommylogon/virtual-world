@@ -1,6 +1,6 @@
 ---
 type: task
-status: inprogress
+status: done
 area: gameplay
 priority: medium
 ---
@@ -71,3 +71,7 @@ Confirmed decisions (2026-09-23):
 payload reporting the order for the roster). Targeted soak/background/timeskip/
 fear/checks → 111 passed. `tools/unit` → 133 passed (incl. 3 soak-queue cases).
 lint / typecheck / module-index clean.
+
+## Review 2026-09-23 - closed
+
+Verified: `tests/test_soak_orders.py` -> 16 passed and `tests/test_soak_chain.py` -> 5 passed on the real `tick_turn` loop (background pass -> policy -> time spent -> promotion -> resume memory -> `soak_end` event). Two things came out of that validation and are fixed here: a **search order now promotes on its find** (the policy result used to be dropped, unlike the blocking skip) and the roster row carries a **cancel** (`DELETE /api/world/soak?character=`). Orders stay transient by design, so the last box is a deliberate non-goal rather than open work. Closing.

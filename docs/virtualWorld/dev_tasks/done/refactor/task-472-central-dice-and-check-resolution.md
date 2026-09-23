@@ -1,6 +1,6 @@
 ---
 type: task
-status: review
+status: done
 area: refactor
 priority: high
 ---
@@ -64,3 +64,7 @@ Targeted checks/skills/conditions/foraging/movement/grapple → 241 passed.
 Also fixed a soak flake found here: `engine/foraging._candidate_entries` now
 restricts candidates to entries satisfying `want_tags`, so a food search cannot
 spawn a herb the character then cannot eat (15/15 repeat runs clean).
+
+## Review 2026-09-23 - landed, closed
+
+Verified: `tests/test_checks.py tests/test_skills.py` -> 63 passed (the 62 exact-math/message assertions unchanged), plus the 289-passed chain slice. Remaining bullets are owned: combat/grapple migration and the leftover literal DCs (task-477), prompt/narration surfacing (task-479), mutable abilities + proficiency (task-480). Closing.

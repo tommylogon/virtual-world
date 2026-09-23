@@ -1,6 +1,6 @@
 ---
 type: task
-status: review
+status: done
 area: gameplay
 priority: medium
 ---
@@ -41,3 +41,7 @@ foraging difficulty is ever wanted, the knob is `FORAGE_SKILL` / `FORAGE_DC`.
 
 `python -m pytest tests/test_foraging.py -q` → 5 passed. Targeted background/soak/
 timeskip regression → 133 passed.
+
+## Review 2026-09-23 - closed
+
+Verified: `tests/test_foraging.py` -> 5 passed, plus the 289-passed chain slice. No open bullets; the design note is intentional and the difficulty knobs (`FORAGE_SKILL` / `FORAGE_DC`) stay documented in the file. Closing.

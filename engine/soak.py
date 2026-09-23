@@ -124,9 +124,10 @@ def _step_one(gs, sim, player, order) -> None:
         return
 
     # 2. Run the policy for this turn.
+    found = None
     if not getattr(player, "activity", None) and \
             getattr(player, "state", "") != "unconscious":
-        timeskip.run_policy_step(
+        found = timeskip.run_policy_step(
             gs, sim, player, intent=order.get("intent", "idle"),
             target=order.get("target"), watch_tags=order.get("watch_tags") or (),
             target_type=order.get("target_type"), heading=order.get("heading"),
@@ -135,7 +136,14 @@ def _step_one(gs, sim, player, order) -> None:
     # 3. Spend the time.
     order["remaining_minutes"] = left - per
 
-    # 4. Anything that happened, arrived or was found this turn.
+    # 4. Anything that happened, arrived or was found this turn. A search that
+    #    turned up its target is a discovery exactly like it is for a blocking
+    #    skip, so hand control back rather than searching past it (the policy
+    #    result used to be dropped here).
+    if found is not None:
+        _promote(gs, player, order,
+                 ("discovery", f"You find {found.name}."))
+        return
     reason = _promote_reason(gs, player, order)
     if reason:
         _promote(gs, player, order, reason)

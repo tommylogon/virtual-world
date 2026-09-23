@@ -1,6 +1,6 @@
 ---
 type: task
-status: review
+status: done
 area: gameplay
 priority: medium
 ---
@@ -86,3 +86,7 @@ Curated wild pool (12): `wild_berries`, `bush_of_berries`, `edible_root`,
 To make any item findable, add `forage` to its tags — that is the whole authoring
 step alongside the area's biome tag. Remaining: more religion/history content
 (one relic today), and finer `tool`/`food` distribution.
+
+## Review 2026-09-23 - core closed
+
+Verified: `tests/test_search_loot.py` -> 6 passed, plus the forage/soak slice (289 passed) and the junk/strong-result rules in the two updates above. Remaining authoring/UX items (the `find <skill>` affordance, findable-here hints, and a per-area table override + JSON surface) are filed as **task-483**; grouped items are **task-473**. Closing.
