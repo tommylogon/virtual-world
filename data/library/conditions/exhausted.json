@@ -50,5 +50,10 @@
   "symptoms": {},
   "stack": "refresh",
   "default_duration": 5,
-  "excludes": []
+  "excludes": [],
+  "order": 9,
+  "perception_skip": false,
+  "mature": false,
+  "check_advantage": [],
+  "check_disadvantage": []
 }

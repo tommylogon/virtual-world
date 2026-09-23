@@ -948,10 +948,17 @@ body {
 .inspector-empty-icon { font-size: 36px; margin-bottom: 8px; }
 .inspector-empty p { margin: 4px 0; }
 .inspector-header {
-    display: flex; align-items: center; gap: 8px;
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
     padding: 12px 16px; background: var(--bg-inset);
     border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10;
 }
+/* The title/ID column must never collapse. Without a floor it is a
+   `flex: 1 1 0%` item competing with three non-shrinking action buttons in a
+   nowrap header, so it is crushed to whatever is left over: at a ~320px panel
+   that is ~44px, which clips the name to nothing and the node ID to a single
+   character ("a" out of "area_abandoned_hunter's_cabin") - bug-38. The floor
+   makes the header wrap the buttons onto their own line instead. */
+.inspector-header > div { min-width: 140px; }
 .inspector-header h2 { margin: 0; font-size: 16px; flex: 1; }
 .inspector-type-badge {
     font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px;

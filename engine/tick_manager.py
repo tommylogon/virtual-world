@@ -2,8 +2,56 @@ import logging
 from graph import EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED
 from player import BLOCKING_CONDITIONS
 from engine.vitals import is_drive
+from engine.trace import record as trace_record
+from vital_rates import (
+    change,
+    tick_minutes,
+    BLADDER_FILL,
+    BLADDER_HYGIENE_PENALTY,
+    ENV_STALE_ENERGY,
+    ENV_HUMID_HYGIENE,
+    ENV_TOXIC_HP,
+    ENV_ROT_HYGIENE,
+    ENV_DARK_SANITY,
+    ENV_PERFUME_ENTERTAINMENT,
+    COLD_MILD_ENERGY,
+    COLD_SEVERE_ENERGY,
+    COLD_SEVERE_HP,
+    COLD_CRITICAL_HP,
+    HEAT_MILD_THIRST,
+    HEAT_MODERATE_THIRST,
+    HEAT_MODERATE_HP,
+    HEAT_SEVERE_HP,
+    HP_REGEN,
+    SLEEP_ENERGY_REGEN,
+    SOCIAL_COMPANY_GAIN,
+    SOCIAL_ALONE_DRAIN,
+    SOCIAL_ISOLATION_EXTRA,
+    SANITY_PENALTY_SOCIAL_LOW,
+    SANITY_PENALTY_SOCIAL_VERY_LOW,
+    SANITY_PENALTY_ENT_LOW,
+    SANITY_PENALTY_ENT_VERY_LOW,
+    SANITY_COMPANY_GAIN,
+    SANITY_COMPANY_MIN_SOCIAL,
+    LEGACY_PER_TICK,
+)
 
 logger = logging.getLogger(__name__)
+
+MINUTES_PER_DAY = 1440
+
+
+def relationship_decay_per_day() -> float:
+    """Config: closeness a relationship loses per game day left unmaintained.
+
+    Read lazily: this module is reached through ``engine/__init__.py``, so a
+    module-level config import would re-enter the package while it initialises.
+    """
+    try:
+        from engine.runtime_config import config
+        return max(0.0, float(config.get("relationship.decay_per_day", 0.5) or 0.0))
+    except Exception:
+        return 0.5
 
 
 class TickManager:
@@ -20,6 +68,20 @@ class TickManager:
         self.npc_behaviors = npc_behaviors
         self._last_sound_sources = {}  # Track sound sources to avoid duplicate notifications
 
+    def minutes_per_tick(self) -> float:
+        """Game minutes one tick covers. Scenario- and Engine-Config-settable."""
+        return tick_minutes(self.gs)
+
+    def _decay(self, player, stat, per_minute, **kw):
+        """Apply a per-minute vital effect scaled to this world's tick length.
+
+        Every rate constant in vital_rates is per in-game minute, so a tick
+        covering 15 minutes must move a meter 15x. Routes through the single
+        accumulator in vital_rates; do not call change() directly for
+        per-minute effects or the clock and the meter will disagree.
+        """
+        return change(player, stat, per_minute, minutes=self.minutes_per_tick(), **kw)
+
     @staticmethod
     def _get_equipment_bonuses(player, graph):
         from engine.equipment_bonuses import aggregate_bonuses
@@ -30,6 +92,11 @@ class TickManager:
         target = player or self.player_manager.player
         if not target:
             return
+        if action_name:
+            trace_record(
+                target, getattr(self.player_manager, "time_ticks", 0), "act",
+                f"action:{action_name}", why="", area=target.current_area,
+                tags=["act"])
         base = self.player_manager.ACTION_COSTS.get(action_name, {})
         cost = dict(base)
         if override_cost:
@@ -70,20 +137,17 @@ class TickManager:
             except Exception as e:
                 logger.warning("[tick] wind/flood cost: %s", e)
         vitals_map = {k.lower(): k for k in target.vitals.keys()}
-        time_ticks = int(cost.get("time", 0))
         for k, v in list(cost.items()):
             lk = str(k).lower()
-            if lk == "time":
-                continue
             if lk in vitals_map:
                 key = vitals_map[lk]
-                delta = int(v)
-                total_delta = delta * (time_ticks if time_ticks > 0 else 1)
-                target.vitals[key] = max(0, min(100, target.vitals[key] - total_delta))
-        if time_ticks > 0:
-            self.player_manager._action_time_consumed = True
-        else:
-            self.player_manager._action_time_consumed = False
+                target.vitals[key] = max(0, min(100, target.vitals[key] - int(v)))
+        # task-436: vital costs are absolute. They used to be multiplied by a
+        # `time` field, which meant `move: {energy: 1}` cost 1 but
+        # `fumble: {energy: 3, time: 2}` cost 6 — the table's numbers read as
+        # totals while acting as per-minute rates. Whether the action advanced
+        # the clock is no longer this function's business: every atomic action
+        # takes a minute, so the caller advances unconditionally.
 
     def advance_clock(self, ticks=1):
         """Advance the game clock by the given number of ticks.
@@ -146,6 +210,13 @@ class TickManager:
         # task-191: perishable items decay toward spoiled, one tick at a time.
         self._tick_item_freshness()
 
+        # task-407: compute every area's effective light once for this tick,
+        # so per-render light reads don't rescan every room.
+        try:
+            self.lighting.recompute_area_lights()
+        except Exception as e:
+            logger.warning("[tick] area light recompute: %s", e)
+
         # Incapacitated grapplers let go of everyone they're holding
         # (unconscious/dead/paralysed etc. — can't keep a grip while down),
         # then run the edge⇔condition grapple sync (orphan cleanup + desync repair).
@@ -163,6 +234,12 @@ class TickManager:
         for pname, p in self.player_manager.players.items():
             if p.state == "dead":
                 continue
+
+            # Keep each character's clock in step with the world's, so anything
+            # that converts an authored game-minute window into tick deltas
+            # (novelty's recovery window, social's cooldown) does not silently
+            # measure in the wrong unit after the tick length changes.
+            p.minutes_per_tick = self.gs.time_per_tick_minutes or 1.0
 
             p.reset_turn_state(self.player_manager.time_ticks)
 
@@ -193,26 +270,30 @@ class TickManager:
 
             prev_vitals = p.vitals.copy()
             trait_multipliers = TraitSystem.get_vital_multipliers(p)
-            accum = getattr(p, "_decay_accum", None)
-            if accum is None:
-                accum = p._decay_accum = {}
+            # Baseline rates are per-minute, so a 15-minute tick drains 15
+            # minutes' worth. change() carries the sub-1 leftover (Hunger
+            # 0.0034/min, Thirst 0.0250/min, Energy 0.104/min) and scales by
+            # the tick length, so this is the single accumulator for meters.
             for stat, default_decay in self.player_manager.baseline_decay.items():
                 if stat in p.vitals and stat != "Temperature":
                     rate = p.decay_rates.get(stat, default_decay)
                     mult = trait_multipliers.get(stat, 1.0)
                     if is_drive(stat):
                         # drives FILL toward 100 (starving/dehydrated at max).
-                        # Fractional accumulator: sub-1/tick rates (Hunger
-                        # 0.06/min, Thirst 0.18/min) would vanish under int()
-                        # most ticks, so the leftover carries over and the
-                        # real-world rate actually accrues.
-                        accum[stat] = accum.get(stat, 0.0) + rate * mult
-                        step = int(accum[stat])
-                        accum[stat] -= step
-                        if step:
-                            p.vitals[stat] = min(100, p.vitals[stat] + step)
+                        self._decay(p, stat, rate * mult, cap=100)
                     else:
-                        p.vitals[stat] = max(0, p.vitals[stat] - int(rate * mult))
+                        self._decay(p, stat, -rate * mult, floor=0)
+
+            # Relationship drift: closeness eases toward 0 for bonds nobody
+            # maintains. Once per game DAY rather than per tick, so a 1-minute
+            # world and a 15-minute one drift identically and the cost is daily
+            # instead of 23 characters x N relationships every tick.
+            day = int(self.gs.total_game_minutes() // MINUTES_PER_DAY)
+            last_day = getattr(p, "_rel_decay_day", None)
+            if last_day != day:
+                if isinstance(last_day, int) and day > last_day:
+                    p.decay_relationships(day - last_day, relationship_decay_per_day())
+                p._rel_decay_day = day
 
             # Affect drift toward baseline (task-96) — cheap no-op until the
             # character's emotion map has been touched.
@@ -221,26 +302,28 @@ class TickManager:
 
             if TraitSystem.has_effect(p, "no_entertainment_decay"):
                 if "Entertainment" in p.vitals:
-                    p.vitals["Entertainment"] = min(100, p.vitals["Entertainment"] + int(p.decay_rates.get("Entertainment", 1)))
+                    self._decay(p, "Entertainment", p.decay_rates.get("Entertainment", 0.07))
 
             # Trait-driven Entertainment modifiers
             if "Entertainment" in p.vitals:
-                ent_mod = 0
+                ent_mod = 0.0
+                # Trait micro-modifiers were authored per-tick; scale to
+                # per-minute so a single trait can't swamp the meter.
                 if TraitSystem.has_effect(p, "impatient"):
                     if p.vitals.get("Energy", 100) > 80:
-                        ent_mod -= 3
+                        ent_mod -= 3 * LEGACY_PER_TICK
                 if TraitSystem.has_effect(p, "patient"):
-                    ent_mod += 1
+                    ent_mod += 1 * LEGACY_PER_TICK
                 if TraitSystem.has_effect(p, "adventurous") and p.current_area:
                     if p.current_area not in getattr(p, 'visited_areas', set()):
-                        ent_mod += 2
+                        ent_mod += 2 * LEGACY_PER_TICK
                 if ent_mod:
-                    p.vitals["Entertainment"] = max(0, min(100, p.vitals["Entertainment"] + ent_mod))
+                    self._decay(p, "Entertainment", ent_mod)
                 # task-213: sex_addict — Entertainment decays twice as fast
                 # when Arousal sits below 15 (the itch comes back fast).
                 if ("Arousal" in p.vitals and p.vitals.get("Arousal", 100) < 15
                         and TraitSystem.has_effect(p, "sex_addict")):
-                    p.vitals["Entertainment"] = max(0, p.vitals["Entertainment"] - 1)
+                    self._decay(p, "Entertainment", -1 * LEGACY_PER_TICK)
 
             # Bladder fills over time: 0 = empty (relieved), 100 = full (need to go)
             if "Bladder" in p.vitals:
@@ -249,7 +332,7 @@ class TickManager:
                 # liquid through you = slower bladder fill
                 base_fill = 2 if thirst < 25 else (0 if thirst > 75 else 1)
                 mult = trait_multipliers.get("Bladder", 1.0)
-                p.vitals["Bladder"] = min(100, p.vitals["Bladder"] + int(base_fill * mult))
+                self._decay(p, "Bladder", BLADDER_FILL * base_fill * mult)
 
             if p.vitals.get("Energy", 1) <= 0:
                 p.add_condition("unconscious", duration=5)
@@ -275,21 +358,29 @@ class TickManager:
             # decay rates now real-world-scaled the drives spend a long time
             # maxed while the character figures out where the food is. Without
             # the grace + slow drain, maxed Hunger still killed in ~100 ticks.
-            for stat, grace, drain in (("Hunger", 60, 0.5), ("Thirst", 30, 1.0)):
+            # Grace + drain are tuned against the calibrated fill rates so
+            # total time-to-death from a FULL meter lands near the target:
+            # Thirst ~3 days (4000 fill + 60 grace + 200 drain), Hunger
+            # ~3 weeks (29412 fill + 360 grace + 1000 drain).
+            # Grace and drain are per MINUTE, not per tick: grace is a
+            # wall-clock reprieve (360 min of hunger, 60 min of thirst), so a
+            # 15-minute tick must not stretch the 1-hour thirst grace into 15
+            # hours, and a starving character must take 15 minutes of damage.
+            minutes = self.minutes_per_tick()
+            for stat, grace, drain in (("Hunger", 360, 0.10), ("Thirst", 60, 0.50)):
+                key = f"_drive_maxed_{stat.lower()}"
                 if p.vitals.get(stat, 0) >= 100:
-                    key = f"_drive_maxed_{stat.lower()}"
-                    ticks = getattr(p, key, 0) + 1
-                    setattr(p, key, ticks)
-                    if ticks > grace:
-                        hp_loss += drain
-                else:
-                    if hasattr(p, f"_drive_maxed_{stat.lower()}"):
-                        setattr(p, f"_drive_maxed_{stat.lower()}", 0)
+                    maxed_minutes = getattr(p, key, 0) + minutes
+                    setattr(p, key, maxed_minutes)
+                    if maxed_minutes > grace:
+                        hp_loss += drain * minutes
+                elif hasattr(p, key):
+                    setattr(p, key, 0)
             if hp_loss > 0:
                 p.vitals["HP"] = max(0, int(round(p.vitals["HP"] - hp_loss)))
 
             if p.vitals.get("Bladder", 0) >= 100 and prev_vitals.get("Bladder", 0) < 100:
-                p.vitals["Hygiene"] = max(0, p.vitals["Hygiene"] - 30)
+                p.vitals["Hygiene"] = max(0, p.vitals["Hygiene"] - BLADDER_HYGIENE_PENALTY)
 
             for stat in ["Energy", "Hunger", "Thirst", "Social", "Hygiene"]:
                 val = p.vitals.get(stat)
@@ -304,12 +395,22 @@ class TickManager:
                                     msg += " " + need_advice[stat]
                                 if pname == self.player_manager.active_player:
                                     self.player_manager.add_log_entry(msg)
+                                trace_record(
+                                    p, self.player_manager.time_ticks, "need",
+                                    f"{stat} crossed {t}",
+                                    why=f"needs:{stat.lower()}",
+                                    area=p.current_area, tags=["need"])
                         elif prev > t and val <= t:
                             msg = get_need_message(stat, t)
                             if stat in need_advice and val <= 50:
                                 msg += " " + need_advice[stat]
                             if pname == self.player_manager.active_player:
                                 self.player_manager.add_log_entry(msg)
+                            trace_record(
+                                p, self.player_manager.time_ticks, "need",
+                                f"{stat} fell to {t}",
+                                why=f"needs:{stat.lower()}",
+                                area=p.current_area, tags=["need"])
 
             if p.vitals.get("HP", 0) <= 0:
                 cause_parts = []
@@ -317,14 +418,19 @@ class TickManager:
                     cause_parts.append("starvation")
                 if p.vitals.get("Thirst", 0) >= 100:
                     cause_parts.append("dehydration")
-                if p.vitals.get("Temperature", 37) < 30:
+                death_band = TraitSystem.get_temperature_band(p)
+                if p.vitals.get("Temperature", death_band["normal"]) < death_band["cold_critical"]:
                     cause_parts.append("hypothermia")
-                if p.vitals.get("Temperature", 37) > 42:
+                if p.vitals.get("Temperature", death_band["normal"]) > death_band["heat_critical"]:
                     cause_parts.append("heat stroke")
                 cause_of_death = " and ".join(cause_parts) if cause_parts else "unknown causes"
 
                 p.state = "dead"
-                self.player_manager.add_log_entry(f"[{pname}] GAME OVER: You have died from {cause_of_death}.")
+                trace_record(
+                    p, self.player_manager.time_ticks, "death",
+                    f"died of {cause_of_death}",
+                    why="cause:death", area=p.current_area, salient=True)
+                self.player_manager.add_log_entry(f"[{getattr(p, 'name', pname)}] GAME OVER: You have died from {cause_of_death}.")
                 self.gs._spawn_body_item(pname, cause_of_death)
 
             player_area_name = p.current_area
@@ -335,16 +441,17 @@ class TickManager:
                     bonuses = self._get_equipment_bonuses(p, self.graph)
                     air = env.get("air", "fresh")
                     if air == "stale":
-                        p.vitals["Energy"] = max(0, p.vitals["Energy"] - 1)
+                        self._decay(p, "Energy", -ENV_STALE_ENERGY)
                     elif air == "humid":
                         # task-353: humid air is physical discomfort, not social
                         # isolation — it saps Hygiene, never Social.
-                        p.vitals["Hygiene"] = max(0, p.vitals["Hygiene"] - 1)
+                        self._decay(p, "Hygiene", -ENV_HUMID_HYGIENE)
                     elif air == "toxic":
-                        dmg = 3
-                        resisted = resisted_damage(dmg, "toxic", bonuses)
-                        if resisted < dmg:
-                            p.vitals["HP"] = max(0, p.vitals["HP"] - (dmg - resisted))
+                        # Preserve the resistance ratio; scale the magnitude to
+                        # a per-minute rate (was 3/tick, a session-length hazard).
+                        resisted = resisted_damage(1, "toxic", bonuses)
+                        if resisted < 1:
+                            self._decay(p, "HP", -ENV_TOXIC_HP * (1 - resisted))
                     noise = env.get("noise", "quiet")
                     if noise in ["loud", "chaotic", "dripping", "scratches"]:
                         # Phase 3 — loud_noise save_on hook (paranoid, light sleepers)
@@ -365,20 +472,20 @@ class TickManager:
                             self.player_manager.add_log_entry(wake_msg)
                     smell = env.get("smell", "neutral")
                     if smell in ["mold", "rot", "rotting food", "ferment", "urine"]:
-                        p.vitals["Hygiene"] = max(0, p.vitals["Hygiene"] - 1)
+                        self._decay(p, "Hygiene", -ENV_ROT_HYGIENE)
                     elif smell == "perfume":
                         # task-353: perfume is a physical/sensory pleasure, not
                         # social connection — a lone character in a perfumed
                         # room is still alone. It boosts Entertainment instead.
-                        p.vitals["Entertainment"] = min(100, p.vitals["Entertainment"] + 1)
+                        self._decay(p, "Entertainment", ENV_PERFUME_ENTERTAINMENT)
                     # task-232: humid atmosphere is physical discomfort (task-353)
                     # — it saps Hygiene, distinct from the legacy air:"humid" check.
                     humidity = env.get("humidity", "dry")
                     if humidity == "humid":
-                        p.vitals["Hygiene"] = max(0, p.vitals["Hygiene"] - 1)
-                    light = self.lighting.get_ambient_light(area_node.id, env)
+                        self._decay(p, "Hygiene", -ENV_HUMID_HYGIENE)
+                    light = self.lighting.get_ambient_light(area_node.id)
                     if light < 20:
-                        p.vitals["Sanity"] = max(0, p.vitals["Sanity"] - 1)
+                        self._decay(p, "Sanity", -ENV_DARK_SANITY)
                     others_here = [n for n, op in self.player_manager.players.items() if op.current_area == player_area_name and n != pname and op.state != "dead" and not self.gs.is_undead_ghost(n)]
                     # ── Social need is company-aware ──
                     # Being with others feeds Social; being alone drains it
@@ -392,42 +499,43 @@ class TickManager:
                     try:
                         from engine.traits import TraitSystem, SOCIAL_GAIN, GROUP_ENERGY_DRAIN
                         raw_gain = TraitSystem.get_first_effect(p, SOCIAL_GAIN)
-                        social_gain = int(raw_gain) if raw_gain is not None else 1
+                        social_mult = float(raw_gain) if raw_gain is not None else 1.0
                         raw_drain = TraitSystem.get_first_effect(p, GROUP_ENERGY_DRAIN)
-                        group_drain = int(raw_drain) if raw_drain is not None else 0
+                        group_drain = float(raw_drain) if raw_drain is not None else 0.0
                     except Exception:
-                        social_gain = 1
-                        group_drain = 0
-                    social_gain = max(0, social_gain)
+                        social_mult = 1.0
+                        group_drain = 0.0
+                    social_mult = max(0.0, social_mult)
                     is_loner = "loner" in (p.traits or {})
                     social_cause = ""
                     if len(others_here) > 0:
                         p._alone_ticks = 0
                         # task-353: introverts / loners get no presence gain.
-                        if social_gain > 0:
-                            p.vitals["Social"] = min(100, p.vitals["Social"] + social_gain)
+                        if social_mult > 0:
+                            self._decay(p, "Social", SOCIAL_COMPANY_GAIN * social_mult)
                             social_cause = f"with company ({', '.join(others_here[:3])})"
                         # task-353 §1: GROUP_ENERGY_DRAIN — crowds sap energy
-                        # (introvert -2, default 0, extrovert/loner 0).
+                        # (introvert -2, default 0, extrovert/loner 0). Legacy
+                        # per-tick trait magnitude, scaled to per-minute.
                         if group_drain and len(others_here) >= 3:
-                            p.vitals["Energy"] = max(0, p.vitals["Energy"] + group_drain)
+                            self._decay(p, "Energy", group_drain * LEGACY_PER_TICK)
                     else:
                         # task-353: loner reverses the isolation penalty — being
                         # alone restores their social well-being.
                         if is_loner:
-                            p.vitals["Social"] = min(100, p.vitals["Social"] + 1)
+                            self._decay(p, "Social", SOCIAL_COMPANY_GAIN)
                             p._alone_ticks = 0
                             social_cause = f"enjoying solitude in {player_area_name}"
                         else:
-                            if social_gain > 0:
-                                p.vitals["Social"] = max(0, p.vitals["Social"] - social_gain)
+                            if social_mult > 0:
+                                self._decay(p, "Social", -SOCIAL_ALONE_DRAIN * social_mult)
                             # task-353 §1: isolation timer — after 5 consecutive
-                            # alone-ticks, Social decay accelerates by an extra
-                            # -1/tick. Introverts (social_gain 0) are exempt.
+                            # alone-ticks, Social decay accelerates. Introverts
+                            # (social_mult 0) are exempt.
                             alone_ticks = getattr(p, "_alone_ticks", 0) + 1
                             p._alone_ticks = alone_ticks
-                            if social_gain > 0 and alone_ticks >= 5:
-                                p.vitals["Social"] = max(0, p.vitals["Social"] - 1)
+                            if social_mult > 0 and alone_ticks >= 5:
+                                self._decay(p, "Social", -SOCIAL_ISOLATION_EXTRA * social_mult)
                                 social_cause = f"isolated in {player_area_name}"
                             else:
                                 social_cause = f"alone in {player_area_name}"
@@ -447,25 +555,32 @@ class TickManager:
                     if social_cause and pname == self.player_manager.active_player:
                         try:
                             name = getattr(p, "name", None) or pname
-                            signed = social_gain if len(others_here) > 0 else -social_gain
+                            signed = (SOCIAL_COMPANY_GAIN if len(others_here) > 0
+                                      else -SOCIAL_ALONE_DRAIN)
                             self.player_manager.add_log_entry(
-                                f"[{name}] Social {signed:+d} — {social_cause}."
+                                f"[{name}] Social {signed:+.2f}/min — {social_cause}."
                             )
                         except Exception as e:
                             logger.warning("[tick] social log %s: %s", pname, e)
                     social = p.vitals.get("Social", 100)
                     ent = p.vitals.get("Entertainment", 100)
-                    sanity_penalty = 0
+                    sanity_penalty = 0.0
                     if social < 25:
-                        sanity_penalty += 2
+                        sanity_penalty += SANITY_PENALTY_SOCIAL_VERY_LOW
                     elif social < 50:
-                        sanity_penalty += 1
+                        sanity_penalty += SANITY_PENALTY_SOCIAL_LOW
                     if ent < 25:
-                        sanity_penalty += 2
+                        sanity_penalty += SANITY_PENALTY_ENT_VERY_LOW
                     elif ent < 50:
-                        sanity_penalty += 1
+                        sanity_penalty += SANITY_PENALTY_ENT_LOW
                     if sanity_penalty > 0:
-                        p.vitals["Sanity"] = max(0, p.vitals["Sanity"] - sanity_penalty)
+                        self._decay(p, "Sanity", -sanity_penalty)
+                    elif social >= SANITY_COMPANY_MIN_SOCIAL and others_here:
+                        # The mirror of the penalty above (task-432): being
+                        # connected steadies the mind. Sanity had drains from five
+                        # places and no source at all, so every character went mad
+                        # on a fixed schedule.
+                        self._decay(p, "Sanity", SANITY_COMPANY_GAIN * social_mult)
                     # task-353 §5 (sanity branch): low Sanity is NOT a death
                     # sentence — it never drains HP. It makes the character
                     # more dangerous instead: paranoid → attack first,
@@ -485,37 +600,47 @@ class TickManager:
                     area_temp = float(effective_temperature(float(env.get("temperature", 21)), bonuses,
                                                             wind_level=env.get("wind", "none"),
                                                             humidity=env.get("humidity", "dry")))
-                    core_temp = p.vitals.get("Temperature", 37.0)
-                    if area_temp < 5:
-                        drift = (5 - area_temp) * 0.02
-                        p.vitals["Temperature"] = max(25.0, core_temp - drift)
-                    elif area_temp > 35:
-                        drift = (area_temp - 35) * 0.02
-                        p.vitals["Temperature"] = min(45.0, core_temp + drift)
+                    band = TraitSystem.get_temperature_band(p)
+                    core_temp = p.vitals.get("Temperature", band["normal"])
+                    # Drift and convergence are per-minute, like the cold/heat
+                    # damage they feed below. Left unscaled, a 15-minute tick
+                    # spent 15 minutes taking band damage per 1 minute of
+                    # leaving the band — which killed poorly-sheltered and
+                    # cold-blooded characters.
+                    minutes = self.minutes_per_tick()
+                    if area_temp < band["ambient_cold"]:
+                        drift = (band["ambient_cold"] - area_temp) * band["drift_rate"] * minutes
+                        p.vitals["Temperature"] = max(band["cold_floor"], core_temp - drift)
+                    elif area_temp > band["ambient_hot"]:
+                        drift = (area_temp - band["ambient_hot"]) * band["drift_rate"] * minutes
+                        p.vitals["Temperature"] = min(band["heat_ceiling"], core_temp + drift)
                     else:
-                        if core_temp < 36.5:
-                            p.vitals["Temperature"] = min(37.0, core_temp + 0.1)
-                        elif core_temp > 37.5:
-                            p.vitals["Temperature"] = max(37.0, core_temp - 0.1)
+                        if core_temp < band["normal"] - 0.5:
+                            p.vitals["Temperature"] = min(band["normal"], core_temp + band["converge_rate"] * minutes)
+                        elif core_temp > band["normal"] + 0.5:
+                            p.vitals["Temperature"] = max(band["normal"], core_temp - band["converge_rate"] * minutes)
 
-            core_temp = p.vitals.get("Temperature", 37.0)
-            if core_temp < 37 and core_temp >= 35:
-                p.vitals["Energy"] = max(0, p.vitals["Energy"] - 1)
-            elif core_temp < 35 and core_temp >= 33:
-                p.vitals["Energy"] = max(0, p.vitals["Energy"] - 2)
-                p.vitals["HP"] = max(0, p.vitals["HP"] - 1)
-            elif core_temp < 33:
-                p.vitals["HP"] = max(0, p.vitals["HP"] - 3)
-            elif core_temp > 37 and core_temp <= 38:
-                p.vitals["Thirst"] = max(0, p.vitals["Thirst"] - 1)
-            elif core_temp > 38 and core_temp <= 40:
-                p.vitals["HP"] = max(0, p.vitals["HP"] - 1)
-            elif core_temp > 40:
-                p.vitals["HP"] = max(0, p.vitals["HP"] - 3)
+            band = TraitSystem.get_temperature_band(p)
+            core_temp = p.vitals.get("Temperature", band["normal"])
+            if core_temp < band["normal"] and core_temp >= band["cold_mild"]:
+                self._decay(p, "Energy", -COLD_MILD_ENERGY)
+            elif core_temp < band["cold_mild"] and core_temp >= band["cold_severe"]:
+                self._decay(p, "Energy", -COLD_SEVERE_ENERGY)
+                self._decay(p, "HP", -COLD_SEVERE_HP)
+            elif core_temp < band["cold_severe"]:
+                self._decay(p, "HP", -COLD_CRITICAL_HP)
+            elif core_temp > band["normal"] and core_temp <= band["heat_mild"]:
+                # Heat dehydrates: Thirst is a drive, so this RAISES it.
+                self._decay(p, "Thirst", HEAT_MILD_THIRST)
+            elif core_temp > band["heat_mild"] and core_temp <= band["heat_severe"]:
+                self._decay(p, "HP", -HEAT_MODERATE_HP)
+                self._decay(p, "Thirst", HEAT_MODERATE_THIRST)
+            elif core_temp > band["heat_severe"]:
+                self._decay(p, "HP", -HEAT_SEVERE_HP)
 
-            # Sleep regen toward full (net +2 after baseline decay)
+            # Sleep regen toward full (~8h from empty once baseline drain nets out)
             if p.activity and p.activity.get("type") == "sleeping" and "Energy" in p.vitals:
-                p.vitals["Energy"] = min(100, p.vitals["Energy"] + 3)
+                self._decay(p, "Energy", SLEEP_ENERGY_REGEN)
 
             # ── Persistent activities progress one step per tick (task-131) ──
             if p.activity:
@@ -540,7 +665,7 @@ class TickManager:
                     (TRAIT_DEFINITIONS.get(t) or {}).get("name", t) for t in acquired
                 )
                 if pname == self.player_manager.active_player:
-                    self.player_manager.add_log_entry(f"[{pname}] gained the {names} trait.")
+                    self.player_manager.add_log_entry(f"[{getattr(p, 'name', pname)}] gained the {names} trait.")
             trait_logs = TraitSystem.process_tick_effects(p, self.player_manager.time_ticks, area_node)
             for log_line in trait_logs:
                 if pname == self.player_manager.active_player:
@@ -557,9 +682,8 @@ class TickManager:
             if (p.vitals.get("Energy", 0) > 25 and p.vitals.get("Hunger", 0) > 25 and
                 p.vitals.get("Thirst", 0) > 25 and p.vitals.get("Sanity", 0) > 25 and
                 p.vitals.get("HP", 100) < 100 and 35 <= p.vitals.get("Temperature", 37) <= 39):
-                regen_base = 1
-                regen_mult = TraitSystem.get_hp_regen_multiplier(p)
-                p.vitals["HP"] = min(100, p.vitals["HP"] + max(1, int(regen_base * regen_mult)))
+                regen_mult = float(TraitSystem.get_hp_regen_multiplier(p) or 1.0)
+                self._decay(p, "HP", HP_REGEN * max(1.0, regen_mult))
 
             if p.state != "dead":
                 player_node_id = self.player_manager._player_node_id(pname)
@@ -629,6 +753,28 @@ class TickManager:
                             self.player_manager.add_log_entry(o)
                     self.graph.remove_node(item_node.id)
 
+        # ── task-406: standing items ──
+        # The loops above only tick carried/equipped items and lit/on items in
+        # a room, so a plain item owning an on_tick trigger (a bush, a nest, a
+        # shrine) never ticked. Fire it here, exactly once, skipping anything
+        # the loops above already handled — carried/equipped items and lit/on
+        # items keep their existing paths and are not double-fired.
+        for source_id in self.graph.get_trigger_sources("on_tick"):
+            item_node = self.graph.get_node(source_id)
+            if item_node is None or item_node.type != "item":
+                continue
+            if item_node.properties.get("current_state") in ("lit", "on"):
+                continue
+            if (self.graph.get_edges_for_source(item_node.id, EDGE_CARRYING)
+                    or self.graph.get_edges_for_source(item_node.id, EDGE_EQUIPPED)):
+                continue
+            tick_outputs = self.trigger_system._execute_triggers(
+                item_node, "on_tick", game_state=self.gs
+            )
+            if tick_outputs:
+                for o in tick_outputs:
+                    self.player_manager.add_log_entry(o)
+
         self.advance_clock(1)
 
         # task-227/229/234: apply the forecast baseline + GM override countdown
@@ -649,6 +795,24 @@ class TickManager:
 
         if not skip_npcs:
             self.npc_behaviors.process_simple_npcs()
+            # Background fidelity (task-399): deterministic, scheduled survival
+            # for characters whose scope isn't actively observed. No LLM.
+            try:
+                if not hasattr(self, "_background_sim"):
+                    from engine.background_simulation import BackgroundSimulation
+                    self._background_sim = BackgroundSimulation(self.gs)
+                self._background_sim.process_due()
+            except Exception as e:
+                logger.warning("[tick] background_simulation: %s", e)
+
+            # Per-character soak orders (task-481): a human who declared "go west
+            # for an hour" runs on a policy each turn, exactly like an agent or a
+            # distant NPC, and is promoted back when something demands attention.
+            try:
+                from engine.soak import apply_orders
+                apply_orders(self.gs)
+            except Exception as e:
+                logger.warning("[tick] soak orders: %s", e)
 
         # ── Delayed events now due (task-90) ──
         # Fired AFTER the clock advances, so an event scheduled 5 ticks from
@@ -832,7 +996,7 @@ class TickManager:
             self.gs.item_actions.drop_held_items(self.gs, player.name)
         except Exception as e:
             logger.warning("[tick] rest drop_held_items %s: %s", player.name, e)
-        self.player_manager._action_time_consumed = True
+        self.player_manager._clock_advanced_by_task = True
         for _ in range(ticks):
             self.tick_turn(skip_npcs=True)
         player.conditions.pop("unconscious", None)

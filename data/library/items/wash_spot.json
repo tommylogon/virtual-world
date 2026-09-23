@@ -1,0 +1,31 @@
+{
+  "name": "Wash Spot",
+  "description": "A slow eddy you can wade into and scrub yourself clean. Using it takes off the grime.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "equip_slots": [],
+  "tags": [
+    "bathing",
+    "wash",
+    "fixture"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effect_type": "adjust_vital",
+      "effect_params": {
+        "stat": "Hygiene",
+        "amount": 70,
+        "target": "self"
+      },
+      "success_message": "You scrub yourself clean in the cold water."
+    }
+  ],
+  "contents": []
+}

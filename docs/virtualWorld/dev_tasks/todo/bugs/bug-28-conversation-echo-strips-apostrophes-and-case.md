@@ -1,6 +1,8 @@
 # Bug 28 — === CONVERSATION === echoes characters' own speech mangled (apostrophes stripped, lowercased)
 
-**Status**: Todo — filed 2026-08-27 from export-log review.
+**Status**: Todo — investigated 2026-09-22, not reproducible from current code.
+Needs a live repro before any fix; likely obsolete after the conversation-context
+refactor.
 
 ## Found
 
@@ -46,3 +48,30 @@ apostrophes survive.
 
 New play session, speak a line containing apostrophes + capitals → next
 decide-phase CONVERSATION block matches the spoken text verbatim.
+
+## Investigation — 2026-09-22 (code trace, no repro)
+
+Traced the whole path and found **no transform that strips apostrophes or
+lowercases**:
+
+- `engine/speech.py:207-215` builds the hearing event with `"text": speech_text`
+  verbatim; `:272` copies `dict(event)` into each listener's `recent_hearing`.
+- `static/js/agent/prompt-builder/conversation-context.js:117-131`
+  (`ownRecentSpeech`) only trims + dedupes (`toLowerCase` is used solely as the
+  dedupe key, never written back).
+- Involuntary speech (`static/js/agent/involuntary.js`) only stutters the first
+  letter or splices `*hic*` fragments — it does not lowercase or strip `'`.
+
+So the mangled text in the report must have been the text actually broadcast at
+that tick, not a corruption introduced while building the prompt. Two candidate
+explanations: (a) the refactor since 2026-08-27 removed the old builder that did
+this, making the bug obsolete; (b) the model emitted the mangled line itself and
+the "original" quoted in the report came from a different source.
+
+**Related oddity:** the same taco_bell log shows a *different* corruption shape —
+`please don't` → `pleas edont`, `normal` → `cnormal` (bug-29's local line). That
+is letter scrambling, not apostrophe/lowercase normalisation, and no such pass
+exists in the code either. If either corruption is still live, capture the raw
+`/api/action` request body and the `recent_hearing` entry side by side — that
+separates an upstream text bug from a prompt-builder bug.
+

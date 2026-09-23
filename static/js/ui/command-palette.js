@@ -7,6 +7,12 @@
  *   - left-panel tabs (Agents / Outline / Lens / Issues)
  *
  * Keyboard: Ctrl+K (or ⌘K) open · ↑↓ navigate · Enter run · Esc close.
+ *
+ * @module ui/command-palette — Ctrl+K fuzzy command palette
+ * @contributes CommandPalette: fuzzy search over graph nodes, menu actions, and left-panel tabs
+ * @powers keyboard-first navigation and commands (task-370)
+ * @relates navigates the graph + opens the inspector; runs toolbar actions
+ * @docs docs/virtualWorld/UI & Settings/
  */
 
 window.CommandPalette = (() => {
@@ -16,6 +22,7 @@ window.CommandPalette = (() => {
     const TAB_NAMES = { '🧍 Agents': 'Agents', '🗺️ Outline': 'Outline', '👁 Lens': 'Lens', '🛠 Issues': 'Issues', '✨ NL Editor': 'NL Editor' };
 
     const ACTIONS = [
+        { icon: '⏩', label: 'Timeskip… (wait / mingle / search / explore / travel)', run: () => window.Timeskip?.openDialog() },
         { icon: '✨', label: 'Natural-Language Editor (Cmd+L / Ctrl+L)', run: () => window.NLEditor?.openPanel() },
         { icon: '💾', label: 'Save Game', run: () => saveGame() },
         { icon: '📂', label: 'Load Game…', run: () => { document.getElementById('load-game-modal').style.display = 'flex'; loadGameList(); } },

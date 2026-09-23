@@ -123,12 +123,6 @@ class ItemActions(
             )
         return None
 
-    def _get_effective_weight(self, node, is_equipped=False, container_mod=1.0) -> float:
-        return _node_effective_weight(node, is_equipped=is_equipped, container_mod=container_mod)
-
-    def _sum_container_contents(self, container_id: str, container_mod: float) -> float:
-        return _sum_container_contents(self.graph, container_id, container_mod)
-
     def _sum_carry_weight(self, player_id: str) -> float:
         return sum_carry_weight(self.graph, player_id)
 

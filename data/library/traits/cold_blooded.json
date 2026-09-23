@@ -1,0 +1,10 @@
+{
+  "id": "cold_blooded",
+  "name": "Cold-Blooded",
+  "description": "Reptilian or amphibian metabolism: comfortable near ambient temperature (around 22C), slow to warm, and quickly endangered by cold.",
+  "category": "physical",
+  "params": null,
+  "effects": {
+    "temperature_band": "cold_blooded"
+  }
+}

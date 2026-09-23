@@ -83,8 +83,8 @@ Way/door sound barrier costs (accumulated along a path; sound stops when barrier
 |-----|---------|---------|
 | `sound.way_open` | 0.5 | Open doorway |
 | `sound.way_closed` | 1 | Closed door |
-| `sound.way_locked` | 2 | Locked door |
-| `sound.way_blocked` | 2 | Blocked door |
+| `sound.way_locked` | 1 | Locked door |
+| `sound.way_blocked` | 1 | Blocked door |
 | `sound.way_hidden` | 2 | Hidden door |
 | `sound.way_see_through` | 0.75 | Window/grate (see-through) |
 

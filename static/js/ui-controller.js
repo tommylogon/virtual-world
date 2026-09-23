@@ -1,6 +1,12 @@
 /**
  * UIController — Renders left panel: agent list, vitals, alerts, turn info
  * Also handles initialization of form controls
+ *
+ * @module ui-controller — the left-hand roster panel
+ * @contributes UIController: agent list, per-agent vitals bars, alerts, turn info, form init
+ * @powers the agent list you click to select/inspect a character, and its vitals readout
+ * @relates reads worldState; drives agent selection used by the turn panel and inspector
+ * @docs none
  */
 const uiControllerHtmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
 
@@ -85,6 +91,14 @@ class UIController {
             const statusText = ord
                 ? uiControllerHtmlTag`<span class="initiative-status" style="font-size:9px;color:${ord.statusColor};margin-left:auto;font-weight:${ord.isCurrent ? '600' : '400'};">${ord.statusStr}</span>`
                 : '';
+            const soak = p.soak;
+            let soakText = '';
+            if (soak) {
+                const soakLabels = { idle: 'wait', leisure: 'mingle', search: 'search', explore: 'explore', travel: 'travel' };
+                const left = Math.round(soak.remaining_minutes || 0);
+                const verb = soakLabels[soak.intent] || soak.intent;
+                soakText = uiControllerHtmlTag`<span class="initiative-status" title="Soaking — ${soak.intent}, ${left} min left" style="font-size:9px;color:#a371f7;margin-left:auto;font-weight:600;display:inline-flex;align-items:center;gap:3px;">⏩ ${verb} ${left}m <button type="button" class="soak-cancel" title="Cancel this soak order" @click=${(e) => { e.stopPropagation(); this.cancelSoak(name); }} style="background:none;border:0;color:#a371f7;cursor:pointer;padding:0 2px;font-size:9px;">✕</button></span>`;
+            }
             if (!window.Lit) return; // startup race: first state:updated can arrive before Lit bootstrap
 
             rows.push(uiControllerHtmlTag`<div class="agent-item ${isSelected ? 'selected' : ''} ${statusClass === 'stuck' ? 'stuck' : ''}" @click=${() => selectAgent(name)} style="${isSimpleNpc ? 'opacity:0.85;cursor:pointer;' : ''}">
@@ -95,7 +109,7 @@ class UIController {
                     ? uiControllerHtmlTag`<span class="agent-location" title="Focus area in graph" @click=${(e) => { e.stopPropagation(); if (window.graphManager) graphManager._selectRoom(p.current_area); }} style="cursor:pointer;text-decoration:underline dotted;">${p.current_area}</span>`
                     : uiControllerHtmlTag`<span class="agent-location">?</span>`}
                 <div class="agent-need-bar"><div class="agent-need-fill" style="width:${lowestVital}%; background:${vitalColor}"></div></div>
-                ${statusText}
+                ${soakText || statusText}
             </div>`);
         }
         let listTemplate;
@@ -105,6 +119,19 @@ class UIController {
             listTemplate = uiControllerHtmlTag`${rows}<div style="padding:8px 12px;font-size:10px;color:var(--text-muted);">Turn-based mode is off — no initiative order. Toggle ⏭️ Turn-Based Mode below to show it.</div>`;
         }
         window.Lit.render(listTemplate, listEl);
+    }
+
+    /**
+     * Cancel a character's soak order from the roster row (task-481) and refresh
+     * so the badge and queue update.
+     */
+    async cancelSoak(name) {
+        try {
+            await ApiClient.cancelSoak(name);
+            await worldState.fetch();
+        } catch (err) {
+            console.error('Cancel soak failed:', err);
+        }
     }
 
     // --- Agent Overview ---
@@ -159,18 +186,23 @@ class UIController {
         if (!alertEl) return;
         const alerts = [];
         for (const [name, p] of Object.entries(state.players || {})) {
-            const v = p.vitals || {};
-            const maxHp = v.Max_HP || 100;
+            const vitals = p.vitals || {};
+            const maxHp = vitals.Max_HP || 100;
             const hpCriticalThreshold = Math.max(1, Math.floor(maxHp * 0.2));
-            if (v.HP > 0 && v.HP <= hpCriticalThreshold) alerts.push({ type: 'error', name, text: `${name}: HP critical (${v.HP})` });
-            else if (v.HP === 0) alerts.push({ type: 'error', name, text: `${name}: DEAD` });
-            if (v.Energy <= 15) alerts.push({ type: 'warning', name, text: `${name}: Exhausted (${v.Energy})` });
-            if (v.Hunger >= 85) alerts.push({ type: 'warning', name, text: `${name}: Starving (${v.Hunger})` });
-            if (v.Thirst >= 85) alerts.push({ type: 'warning', name, text: `${name}: Dehydrated (${v.Thirst})` });
-            if (v.Bladder >= 85) alerts.push({ type: 'warning', name, text: `${name}: Bladder full (${v.Bladder}%)` });
-            if (v.Sanity <= 15) alerts.push({ type: 'warning', name, text: `${name}: Losing sanity (${v.Sanity})` });
-            if (v.Entertainment <= 15) alerts.push({ type: 'warning', name, text: `${name}: Bored (${v.Entertainment})` });
-            if (v.Temperature !== undefined && (v.Temperature < 34 || v.Temperature > 40)) alerts.push({ type: 'danger', name, text: `${name}: Critical body temp (${v.Temperature}°C)` });
+            if (vitals.HP > 0 && vitals.HP <= hpCriticalThreshold) alerts.push({ type: 'error', name, text: `${name}: HP critical (${vitals.HP})` });
+            else if (vitals.HP === 0) alerts.push({ type: 'error', name, text: `${name}: DEAD` });
+            if (vitals.Energy <= 15) alerts.push({ type: 'warning', name, text: `${name}: Exhausted (${vitals.Energy})` });
+            if (vitals.Hunger >= 85) alerts.push({ type: 'warning', name, text: `${name}: Starving (${vitals.Hunger})` });
+            if (vitals.Thirst >= 85) alerts.push({ type: 'warning', name, text: `${name}: Dehydrated (${vitals.Thirst})` });
+            if (vitals.Bladder >= 85) alerts.push({ type: 'warning', name, text: `${name}: Bladder full (${vitals.Bladder}%)` });
+            if (vitals.Sanity <= 15) alerts.push({ type: 'warning', name, text: `${name}: Losing sanity (${vitals.Sanity})` });
+            if (vitals.Entertainment <= 15) alerts.push({ type: 'warning', name, text: `${name}: Bored (${vitals.Entertainment})` });
+            // Species-aware: a cold-blooded frog at 20°C is comfortable, not critical.
+            const tempBand = window.VitalThresholds?.temperatureBand?.(p);
+            if (vitals.Temperature !== undefined && tempBand
+                    && (vitals.Temperature < tempBand.cold_mild - 1 || vitals.Temperature > tempBand.heat_severe)) {
+                alerts.push({ type: 'danger', name, text: `${name}: Critical body temp (${vitals.Temperature}°C)` });
+            }
         }
         // Click an alert to select & inspect the affected agent.
         window.Lit.render(alerts.length === 0

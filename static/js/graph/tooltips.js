@@ -7,7 +7,11 @@
  * `worldState` globals lazily (resolved at call time), so load order against
  * graph-manager.js doesn't matter.
  *
- * @module GraphTooltips
+ * @module graph/tooltips — rich hover tooltips
+ * @contributes GraphTooltips: per-type tooltip text/HTML, tippy binding, edge-hover follow tooltip
+ * @powers hovering a node or edge to read its details
+ * @relates used by GraphNetwork; resolves graphManager + worldState lazily at call time
+ * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
 window.GraphTooltips = {
 
@@ -62,7 +66,7 @@ window.GraphTooltips = {
             if (traitLines.length) tip += `\n${traitLines.join('\n')}`;
         }
         if (nodeData.properties?.central_gravity_enabled === false) {
-            tip += '\nGraph gravity disabled (position locked)';
+            tip += '\nPhysics disabled (node stays in place)';
         }
         return tip;
     },

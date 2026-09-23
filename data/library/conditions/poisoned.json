@@ -26,5 +26,10 @@
     "3": "Cold sweat. Your gut cramps and your head swims.",
     "1": "Everything spins. Your limbs feel wrong."
   },
-  "excludes": []
+  "excludes": [],
+  "order": 11,
+  "perception_skip": false,
+  "mature": false,
+  "check_advantage": [],
+  "check_disadvantage": []
 }

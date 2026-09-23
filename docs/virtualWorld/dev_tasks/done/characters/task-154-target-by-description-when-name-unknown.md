@@ -1,7 +1,7 @@
 ---
 id: 154
 title: Target by Description When Name Unknown
-status: review
+status: done
 priority: high
 created: 2026-08-02
 updated: 2026-08-03

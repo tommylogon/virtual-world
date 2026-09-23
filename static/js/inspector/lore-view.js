@@ -4,6 +4,12 @@
  * writing #inspector-panel directly. Inline on* handlers are real @click
  * closures; interpolated values are auto-escaped by lit-html, so the old
  * `esc()` dance is gone.
+ *
+ * @module inspector/lore-view — world lore editor
+ * @contributes InspectorLore: list / add / edit / delete lore entries
+ * @powers editing the common-knowledge lore every character receives in its system prompt
+ * @relates renders through InspectorPanel; lore is read by prompt-builder/system-prompt.js
+ * @docs docs/virtualWorld/World Building/
  */
 
 window.InspectorLore = (() => {
@@ -45,6 +51,9 @@ window.InspectorLore = (() => {
                 const tagsChip = entry.tags?.length
                     ? htmlTag`<div style="margin-top:4px;font-size:10px;color:var(--text-dim);">🏷️ ${entry.tags.join(', ')}</div>`
                     : null;
+                const allowedChip = entry.allowed_tags?.length
+                    ? htmlTag`<div style="margin-top:2px;font-size:10px;color:var(--text-accent);">🔒 ${entry.allowed_tags.join(', ')}</div>`
+                    : null;
                 return htmlTag`<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:8px;margin-bottom:6px;">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:4px;">
                         <div style="flex:1;min-width:0;">
@@ -55,6 +64,7 @@ window.InspectorLore = (() => {
                             </div>
                             <div style="margin-top:4px;font-size:11px;color:var(--text);">${entry.content || ''}</div>
                             ${tagsChip}
+                            ${allowedChip}
                         </div>
                         <div style="display:flex;gap:2px;flex-shrink:0;">
                             <button class="btn btn-sm" @click=${() => L.editLoreEntry(id)} style="font-size:9px;padding:1px 4px;" title="Edit">✏️</button>
@@ -134,6 +144,10 @@ window.InspectorLore = (() => {
                         <label style="font-size:10px;">Tags (comma-separated)</label>
                         <input type="text" id="lore-editor-tags" value="${existing?.tags ? existing.tags.join(', ') : ''}" style="width:100%;font-size:11px;" placeholder="character:King_Aldric, location:Rocheveron">
                     </div>
+                    <div style="flex:2;min-width:120px;">
+                        <label style="font-size:10px;">Allowed Tags (who can see this)</label>
+                        <input type="text" id="lore-editor-allowed-tags" value="${existing?.allowed_tags ? existing.allowed_tags.join(', ') : ''}" style="width:100%;font-size:11px;" placeholder="human, guard, goblin">
+                    </div>
                 </div>
                 <div style="display:flex;gap:4px;justify-content:flex-end;">
                     <button class="btn btn-sm btn-ghost" @click=${() => L._closeLoreEditor()}>Cancel</button>
@@ -167,12 +181,14 @@ window.InspectorLore = (() => {
         const importance = parseInt(document.getElementById('lore-editor-importance')?.value) || 3;
         const tagsRaw = document.getElementById('lore-editor-tags')?.value || '';
         const tags = tagsRaw.split(',').map(t => t.trim()).filter(Boolean);
+        const allowedRaw = document.getElementById('lore-editor-allowed-tags')?.value || '';
+        const allowed_tags = allowedRaw.split(',').map(t => t.trim()).filter(Boolean);
 
         try {
             if (entryId) {
-                await ApiClient.updateWorldLoreEntry(entryId, { title, content, category, importance, tags });
+                await ApiClient.updateWorldLoreEntry(entryId, { title, content, category, importance, tags, allowed_tags });
             } else {
-                await ApiClient.addWorldLoreEntry({ title, content, category, importance, tags });
+                await ApiClient.addWorldLoreEntry({ title, content, category, importance, tags, allowed_tags });
             }
             L._closeLoreEditor();
             L.renderWorldLore();

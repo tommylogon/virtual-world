@@ -10,22 +10,22 @@
  * (rather than merged into one "generic" version) so each variant is easy to
  * find and edit without accidentally changing a different phase's wording.
  *
- * FLAG — probable copy/paste drift, not an intentional difference:
- * MEMORY_INSTRUCTION_REACTION says "not a recap"; MEMORY_INSTRUCTION_REACT
- * says "not a recap of the room". Left as two constants pending a decision —
- * search this file for "FLAG:" to find it. If it should be one string, just
- * delete one constant and repoint its usage in turn-prompts.js.
+ * RESOLVED (2026-09-20): MEMORY_INSTRUCTION_REACTION and MEMORY_INSTRUCTION_REACT
+ * were the same instruction with one word's difference ("not a recap" vs "not a
+ * recap of the room"). They are now a single MEMORY_INSTRUCTION_REACT constant.
+ *
+ * @module prompt-builder/schema-fragments — shared prompt text + JSON schema fragments
+ * @contributes EMOTE_RULES_* / MEMORY_INSTRUCTION_* constants, JSON_FIELDS, buildJsonExample()
+ * @powers consistent wording and response schema across every prompt phase
+ * @relates loaded before turn-prompts.js + system-prompt.js; used by both
+ * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
 
 window.PromptBuilder = window.PromptBuilder || {};
 (() => {
     'use strict';
 
-    const MEMORY_INSTRUCTION_REACTION =
-        `
-memory is your subjective 1-3 sentence memory based on what just happened — your takeaway, not a recap. Set its importance 1-10 (10 = life-changing). Threats, secrets, discoveries, and meaningful people rank high. Add 1-3 single-word tags (fear, trust, mystery) — never names, items, or places. If the memory is about a specific person, add "emotions": {"who":"<what you call them>","why":"<one short line>","data":{...}} where "data" keys are one of fear, affection, disgust, anger, trust, envy, familiarity, respect, closeness, each a small value -5..+5 telling how this changed how you feel toward THAT person (+ = more of it). A scary encounter: {"fear":2,"affection":-3}. Omit "emotions" when the memory is not about someone.`;
-
-    // FLAG: differs from MEMORY_INSTRUCTION_REACTION only by "of the room" — see file header.
+    // Shared by the reaction and react phases (they were duplicates — see header).
     const MEMORY_INSTRUCTION_REACT =
         `
 memory is your subjective 1-3 sentence memory based on what just happened — your takeaway, not a recap of the room. Set its importance 1-10 (10 = life-changing). Threats, secrets, discoveries, and meaningful people rank high. Add 1-3 single-word tags (fear, trust, mystery) — never names, items, or places. If the memory is about a specific person, add "emotions": {"who":"<what you call them>","why":"<one short line>","data":{...}} where "data" keys are one of fear, affection, disgust, anger, trust, envy, familiarity, respect, closeness, each a small value -5..+5 telling how this changed how you feel toward THAT person (+ = more of it). A scary encounter: {"fear":2,"affection":-3}. Omit "emotions" when the memory is not about someone.`;
@@ -86,7 +86,6 @@ memory is your subjective 1-3 sentence memory based on what just happened — yo
     }
 
     Object.assign(window.PromptBuilder, {
-        MEMORY_INSTRUCTION_REACTION,
         MEMORY_INSTRUCTION_REACT,
         EMOTE_RULES_REACTION,
         EMOTE_RULES_DECIDE,

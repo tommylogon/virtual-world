@@ -80,7 +80,7 @@ def register_settings_routes(app):
             "turn": w.turn_number,
             "ticks": w.time_ticks,
             "time": w.get_current_time(),
-            "players": {pname: {"area": p.current_area, "state": p.state, "HP": p.vitals.get("HP")} for pname, p in w.players.items()},
+            "players": {getattr(p, "name", pname): {"area": p.current_area, "state": p.state, "HP": p.vitals.get("HP")} for pname, p in w.players.items()},
             "log_count": len(w.game_log),
             "area_count": len(w.areas),
             "dead_players": w.get_all_dead_players(),

@@ -1,0 +1,38 @@
+{
+  "name": "Paranoid",
+  "description": "Every shadow has a face. Friends look like enemies and every sound is a threat.",
+  "blocks_actions": false,
+  "blocks_movement": false,
+  "blocks_speech": false,
+  "auto_fail_checks": [],
+  "auto_fail_saves": [],
+  "attack_mod": 1,
+  "defense_mod": -2,
+  "speed_mult": 1.0,
+  "movement_mode": null,
+  "drops_held_items": false,
+  "periodic": {
+    "Sanity": -1
+  },
+  "ends_on": [
+    "comfort",
+    "rest",
+    "socialize"
+  ],
+  "known": true,
+  "symptoms": {
+    "5": "You keep glancing over your shoulder, sure someone is watching.",
+    "3": "Their smile doesn't reach their eyes. You know what they're really planning.",
+    "1": "The walls are listening. You shouldn't say anything out loud."
+  },
+  "stack": "refresh",
+  "default_duration": 30,
+  "excludes": [
+    "hallucinating"
+  ],
+  "order": null,
+  "perception_skip": false,
+  "mature": false,
+  "check_advantage": [],
+  "check_disadvantage": []
+}

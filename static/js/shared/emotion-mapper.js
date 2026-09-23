@@ -12,6 +12,12 @@
  *      server's keyword map try; if that fails too it stays a no-op).
  *
  * Returns `{ dimension, label }` or null.
+ *
+ * @module shared/emotion-mapper — emotion label → affect dimension
+ * @contributes labelToDimension: curated keyword map + embedding fallback → { dimension, label } or null
+ * @powers landing novel / LLM-invented emotion labels on real affect dimensions
+ * @relates mirrors engine/emotion.py LABEL_TO_DIM; uses shared/embedding-client
+ * @docs docs/virtualWorld/Characters/Emotion & Affect System.md
  */
 (() => {
     'use strict';

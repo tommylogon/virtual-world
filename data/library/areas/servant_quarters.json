@@ -1,7 +1,12 @@
 {
   "name": "servant quarters",
   "description": "a narrow, cramped room with two simple iron cots and wooden lockers. the ceiling slopes with the roofline. the air smells of unwashed linen and stale sweat, as if someone still sleeps here. a single window, small and grimy, lets in a sliver of moonlight. the room feels lived-in despite being abandoned for over a century.",
-  "tags": [],
+  "tags": [
+    "interior",
+    "mansion",
+    "bedroom",
+    "sleeping"
+  ],
   "environment": {
     "air": "stale",
     "light": 15,

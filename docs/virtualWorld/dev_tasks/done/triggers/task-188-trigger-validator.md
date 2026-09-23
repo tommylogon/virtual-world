@@ -1,7 +1,7 @@
 ---
 id: 188
 title: Trigger Validator — Broken Reference Detection + Editor Alerts
-status: review
+status: done
 priority: high
 created: 2026-08-10
 updated: 2026-08-10

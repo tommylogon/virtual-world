@@ -85,3 +85,14 @@ Tick N:
 - Empty areas don't block processing
 - All characters in one room = same behavior as before
 - Sync barrier works (slow room doesn't lose events)
+
+## Progress (2026-09-22)
+
+- The **frontend experiment** now has a per-room variant: the turn-mode dial
+  offers "Simultaneous per room" (`static/js/agent/simultaneous.js`,
+  `agent-engine.js:_simultaneousRoomStep`, task-465). It groups by area, gives
+  each room an independent countdown, and runs that room's characters
+  sequentially — an approximation of Phase 1/2 with no snapshot.
+- The **engine-level** flow above (true tick-level parallel processing, the
+  Phase 3 sync barrier, Phase 4 cross-room movement resolution, `tick_manager`
+  restructure) is still open and is absorbed by task-437 ("task-101 is step 5").

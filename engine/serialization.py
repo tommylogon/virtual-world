@@ -1,6 +1,7 @@
 import random
 import time
 import uuid
+import logging
 from typing import Optional
 
 from graph import EDGE_CONNECTION, EDGE_IN, EDGE_ON, EDGE_UNDER, EDGE_BEHIND, EDGE_BESIDE, EDGE_AT, Edge, Node, WorldGraph
@@ -13,6 +14,9 @@ from engine.beyond_visibility import normalize_visible_items
 from engine.character_spatial import get_character_at_way, get_spatial_position_data
 from engine.serialization_template import TemplateLoader
 from engine.serialization_legacy import LegacyLoader
+from engine.character_identity import collapse_character_identity, rewrite_known
+
+logger = logging.getLogger(__name__)
 
 
 def _body_region_catalog():
@@ -126,10 +130,19 @@ class WorldSerializer:
             "tags": getattr(p, 'tags', []),
             "flags": dict(getattr(p, 'flags', {})),
             "hidden": bool(getattr(p, 'hidden', False)),
+            # Transient soak order (task-481) for the initiative list; not part of
+            # the save's durable state (there is nothing to restore).
+            "soak": (
+                {"intent": (getattr(p, "soak_order", None) or {}).get("intent"),
+                 "remaining_minutes": round(float(
+                     (getattr(p, "soak_order", None) or {}).get("remaining_minutes", 0) or 0), 1)}
+                if getattr(p, "soak_order", None) else None
+            ),
             "known": list(getattr(p, 'known', []) or []),
             "crafting_known": list(getattr(p, 'crafting_known', []) or []),
             "discovered_exits": list(getattr(p, 'discovered_exits', []) or []),
             "interest_tags": getattr(p, 'interest_tags', []),
+            "fear_tags": getattr(p, 'fear_tags', []),
             "discovered_items": list(getattr(p, 'discovered_items', []) or []),
             "decay_rates": getattr(p, 'decay_rates', {}),
             "body_state": getattr(p, 'body_state', {}),
@@ -152,6 +165,8 @@ class WorldSerializer:
             "relationships": getattr(p, 'relationships', {}),
             "activity": getattr(p, 'activity', None),
             "memories": getattr(p, 'memories', []),
+            "memory_index": dict(getattr(p, 'memory_index', {}) or {}),
+            "schedule": list(getattr(p, 'schedule', []) or []),
             "simple_npc": getattr(p, 'simple_npc', False),
             "autonomy": getattr(p, 'autonomy', True),
             "npc_behavior": getattr(p, 'npc_behavior', 'wander'),
@@ -219,15 +234,25 @@ class WorldSerializer:
             "narration_mode": self.legacy.narration_mode,
             "ghost_mode": self.legacy.ghost_mode,
             "mature_content": getattr(self.legacy, "mature_content", False),
+            # The scenario's own name. Without this a saved file cannot be
+            # identified on reload (routes fall back to "unnamed"), and the
+            # frontend's _scenarioIdentity() — which gates the local
+            # background-map cache — always sees null.
+            "_scenario_name": getattr(self.legacy, "_scenario_name", None),
             "world_lore": self.legacy.world_lore,
             "calendar_config": getattr(self.legacy, "calendar_config", None),
             "forecast_schedule": getattr(self.legacy, "forecast_schedule", None),
             "forecast_override": getattr(self.legacy, "forecast_override", None),
+            "graph_background": getattr(self.legacy, "graph_background", None),
             "delayed_events": self.legacy.delayed_events.to_dict()
         }
 
     def _deserialize_player(self, pname, pdata):
         p = Player(pname)
+        # task-446: the registry key may be an id (duplicate display names), so
+        # the authoritative display name comes from the payload.
+        if pdata.get("name"):
+            p.name = pdata["name"]
         # task-316: restore the stable identity (fall back to a fresh id for
         # legacy saves that never had one).
         p.id = pdata.get("id") or p.id
@@ -244,8 +269,19 @@ class WorldSerializer:
         if "Energy" in p.vitals:
             p.vitals["Energy"] = max(0, min(100, p.vitals["Energy"]))
         p.decay_rates = pdata.get("decay_rates", p.decay_rates)
+        from engine.trace import load as _trace_load
+        _trace_load(p, pdata.get("trace"))
+        p.simulation_mode = pdata.get("simulation_mode", "active")
+        try:
+            p.next_due_tick = int(pdata.get("next_due_tick", 0) or 0)
+        except (TypeError, ValueError):
+            p.next_due_tick = 0
         p.body_state = pdata.get("body_state", p.body_state)
-        p.skills = pdata.get("skills", {})
+        # Merge over the defaults so a save from before the full skill list
+        # (task-474) still ends up with every skill on the sheet.
+        _skills = dict(p.skills or {})
+        _skills.update(pdata.get("skills", {}) or {})
+        p.skills = _skills
         p.state = pdata.get("state", "awake")
         p.load_conditions(pdata.get("conditions"))
         legacy_timer = pdata.get("state_timer") or 0
@@ -268,6 +304,7 @@ class WorldSerializer:
             tuple(x) for x in (pdata.get("discovered_exits", []) or []) if isinstance(x, (list, tuple)) and len(x) == 2
         }
         p.interest_tags = list(pdata.get("interest_tags", []))
+        p.fear_tags = list(pdata.get("fear_tags", []))
         p.current_area = pdata.get("current_area") or pdata.get("current_area") or pdata.get("current_room")
         p.recent_hearing = pdata.get("recent_hearing", [])
         pdata_memory = pdata.get("memory", {})
@@ -282,6 +319,11 @@ class WorldSerializer:
         rel_data = pdata.get("relationships", {})
         if isinstance(rel_data, dict):
             p.relationships = dict(rel_data)
+        # Authored daily schedule (task-409). Normalised on load so a
+        # hand-edited or legacy file cannot put a malformed step into the day.
+        from engine.schedule import normalize as _normalize_schedule
+        p.schedule = _normalize_schedule(pdata.get("schedule"))
+
         mem_data = pdata.get("memories", [])
         if isinstance(mem_data, list):
             for m in mem_data:
@@ -291,7 +333,20 @@ class WorldSerializer:
                     m["entity_ids"] = []
                 if "source" not in m:
                     m["source"] = "auto"
+                m.setdefault("location", "")
             p.memories = list(mem_data)
+        # The observation index is derived, so rebuild it from the memories
+        # rather than trusting a stored copy: an older save has no index at all,
+        # and a hand-edited one could point at a memory that no longer exists.
+        p.memory_index = {}
+        stored_index = pdata.get("memory_index")
+        if isinstance(stored_index, dict):
+            p.memory_index = {str(k): str(v) for k, v in stored_index.items()}
+        by_id = {m.get("id"): m for m in p.memories}
+        for subject, entry_id in list(p.memory_index.items()):
+            entry = by_id.get(entry_id)
+            if entry is None or entry.get("superseded_by"):
+                p.memory_index.pop(subject, None)
         p.simple_npc = pdata.get("simple_npc", False)
         p.autonomy = pdata.get("autonomy", True)
         p.npc_behavior = pdata.get("npc_behavior", "wander")
@@ -316,6 +371,44 @@ class WorldSerializer:
         data.pop("delayed_events", None)
         for pdata in data.get("players", {}).values():
             pdata.pop("recent_hearing", None)
+            # task-403/425: a scenario is authored content, so it carries no
+            # runtime *perception*. Merely loading a scenario observes every
+            # character's starting area (engine/observation.py), and saving it
+            # back would otherwise bake that into the file — 23 characters'
+            # worth of "you have been in Blackmarsh" written into the scenario
+            # and growing it by ~60KB on the first save, for state the loader
+            # regenerates anyway. `memory_index` is derived and goes with them;
+            # authored memories (`source: manual`, i.e. preconceived knowledge)
+            # stay. A savegame uses `to_dict()` and keeps everything.
+            pdata["memories"] = [
+                m for m in (pdata.get("memories") or [])
+                if m.get("source") != "observation"
+            ]
+            pdata.pop("memory_index", None)
+        # task-222, continued: a saved world is graph-only, so nothing here is
+        # a second copy of data already carried by `graph.nodes`:
+        #   - `areas` / `rooms` are projections the loader never reads
+        #     (LegacyCompat rebuilds them from the graph), and `rooms` was the
+        #     same dict written twice — 13% of the file, byte for byte.
+        #   - `ways` / `item_registry` were legacy attrs only the loader
+        #     populated and nothing consumed.
+        # Every field of an `areas` entry that mattered already lives on the
+        # node (`name`, `description`, `environment`, `floor`, `properties`);
+        # `ambient_light`/`light_description` are recomputed each tick and
+        # `items` was always empty (placement is the graph's `in` edges).
+        #
+        # The LIVE payload (to_dict) keeps all of them: the frontend reads
+        # worldState.areas / .ways (agent-engine, agent-lens, inspector,
+        # item-library/placement, graph/layout-engine).
+        data.pop("areas", None)
+        data.pop("rooms", None)
+        data.pop("ways", None)
+        data.pop("item_registry", None)
+        # Omit an empty name rather than writing "": the load path tests
+        # `data.get('_scenario_name') or data.get('name')`, so an empty string
+        # reads as "unnamed" and silently outranks a real name.
+        if not data.get("_scenario_name"):
+            data.pop("_scenario_name", None)
         self.strip_redundant_exits(data)
         return data
 
@@ -339,8 +432,15 @@ class WorldSerializer:
             self._template_loader.load(data)
             return
 
+        # task-463: collapse the authored character_<slug> node and the runtime
+        # player_<Name> anchor into one canonical node before the graph is built,
+        # and keep every retired id resolvable through the alias index.
+        aliases = {}
         if "graph" in data:
+            report = collapse_character_identity(data["graph"], data.get("players") or {})
+            aliases = report.get("aliases") or {}
             self.graph.load_from_dict(data["graph"])
+            self.graph.register_aliases(aliases)
             self._normalize_item_node_actions()
         else:
             self._legacy_loader.load(data)
@@ -363,6 +463,13 @@ class WorldSerializer:
             self.legacy.area_presence = {}
         self.legacy.log_revision = data.get("log_revision", 0)
         self.legacy.narration_mode = data.get("narration_mode", "none")
+        # Round-trip the scenario's name so a saved file stays identifiable
+        # without the load route having to re-derive it.
+        self.legacy._scenario_name = (
+            data.get("_scenario_name")
+            or getattr(self.legacy, "_scenario_name", None)
+            or ""
+        )
         self.legacy.ghost_mode = data.get("ghost_mode", False)
         self.legacy.mature_content = data.get("mature_content", False)
         self.legacy.speech_log.clear()
@@ -373,6 +480,20 @@ class WorldSerializer:
             temp_players[pname] = p
 
         self.player_manager.players = temp_players
+        # task-463: an authored `known` list may name a retired character id
+        # ("character_arix"); move it onto the surviving identity.
+        if aliases:
+            for p in temp_players.values():
+                if getattr(p, "known", None):
+                    known, changed = rewrite_known(p.known, aliases)
+                    if changed:
+                        p.known = known
+        # task-446: rebuild the id→key index and give duplicate-keyed players a
+        # unique anchor after a bulk load. (self.player_manager here is the
+        # world; the real manager hangs off it.)
+        _pm = getattr(self.player_manager, "player_manager", None)
+        if _pm is not None and hasattr(_pm, "reindex"):
+            _pm.reindex()
         self.player_manager.active_player = data.get("active_player") or (next(iter(temp_players.keys())) if temp_players else None)
 
         for pname, p in self.player_manager.players.items():
@@ -399,6 +520,9 @@ class WorldSerializer:
         self.legacy.ways = data.get("ways", {})
         self.legacy.item_registry = data.get("item_registry", {})
         self.legacy.world_lore = data.get("world_lore", [])
+        # Graph background map: image path + transform (presentation only).
+        background = data.get("graph_background")
+        self.legacy.graph_background = background if isinstance(background, dict) else {}
         # task-228/227: calendar + forecast persist through saves.
         if isinstance(data.get("calendar_config"), dict):
             defaults = getattr(self.legacy, "calendar_config", None) or {}
@@ -411,3 +535,15 @@ class WorldSerializer:
         self.legacy._forecast_sched_obj = None
         from engine.event_queue import DelayedEventQueue
         self.legacy.delayed_events = DelayedEventQueue.from_dict(data.get("delayed_events", []))
+
+        # Perception at load (task-403): a character knows the room it is
+        # standing in from the moment it is there. Observations are otherwise
+        # written on arrival, so without this pass the one area a character
+        # could never remember would be the one it started in — and task-425's
+        # novelty would pay for it again on the first re-entry.
+        try:
+            from engine.observation import observe_area
+            for p in self.player_manager.players.values():
+                observe_area(p, self.legacy)
+        except Exception as e:
+            logger.warning("[observation] initial pass failed: %s", e)

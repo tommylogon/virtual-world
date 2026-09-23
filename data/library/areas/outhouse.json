@@ -1,7 +1,13 @@
 {
   "name": "Outhouse",
   "description": "A small, wooden outhouse stands isolated in the snow, ",
-  "tags": [],
+  "tags": [
+    "exterior",
+    "mansion",
+    "outdoor",
+    "bathroom",
+    "waste"
+  ],
   "environment": {
     "air": "fresh",
     "light": "normal",

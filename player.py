@@ -3,6 +3,25 @@ import re
 import time
 import uuid
 
+from vital_rates import BASELINE_DECAY, BLADDER_FILL
+
+MEMORY_LIMIT_KEY = "memory.max_per_character"
+
+
+def _memory_limit() -> int:
+    """Configured per-character memory cap; 0 or unset means keep everything.
+
+    Imported lazily: player.py is reached through ``engine/__init__.py``, so a
+    module-level ``from engine.runtime_config import config`` would re-enter the
+    package while it is still initialising.
+    """
+    try:
+        from engine.runtime_config import config
+        return max(0, int(config.get(MEMORY_LIMIT_KEY, 0) or 0))
+    except Exception:
+        return 0
+
+
 class Player:
     def sync_vitals_with_tags(self):
         """Add or remove Mana vital based on 'magic' tag."""
@@ -39,13 +58,37 @@ class Player:
             for vital in ("Arousal", "Stimulation", "Pleasure"):
                 self.decay_rates.pop(vital, None)
             # The arousal state conditions are meaningless without the vitals.
-            for cid in ("warming_up", "aroused", "highly_aroused", "frantic",
-                        "overstimulated", "nipple_hard", "blushing", "wetness",
-                        "sensitized", "satisfied"):
+            # The id set is data (each condition's `mature` flag), not a list here.
+            for cid in MATURE_CONDITIONS:
                 self.conditions.pop(cid, None)
+
+    @staticmethod
+    def node_id_for(name: str) -> str:
+        """The graph node id for a character named ``name``.
+
+        The single definition of the convention — `PlayerManager.get_player_node_id`
+        delegates here, and `Player.node_id` is derived from it at construction.
+        Observation memories key a subject by node id (task-403) and relationships
+        key by *name*, so anything that needs to cross between the two (e.g. the
+        meeting novelty grant, task-434) must use this rather than re-deriving
+        the string, which is how the two would drift.
+        """
+        return f"player_{name}".replace(" ", "_")
 
     def __init__(self, name="Traveler"):
         self.name = name
+        # Derived, not persisted: it must follow a rename the same way the graph
+        # node does, and the deserializer builds Players without going through
+        # PlayerManager.add_player.
+        self.node_id = self.node_id_for(name)
+        # Game minutes per tick, refreshed by the tick loop. Novelty windows are
+        # authored in game minutes but compared against tick deltas, so the
+        # conversion has to happen somewhere that knows both.
+        self.minutes_per_tick = 1.0
+        # Authored daily schedule (task-409): [{start:"HH:MM", activity, area,
+        # fallback}]. Empty means "no schedule" — pure need-driven behaviour,
+        # which is what every character did before schedules existed.
+        self.schedule = []
         # task-316 foundation: stable opaque identity. Display names stay the
         # addressing surface (same-named characters are allowed); the id is the
         # anchor the full id-backed re-key will use. 8 hex chars, survives
@@ -80,20 +123,15 @@ class Player:
             "Entertainment": 100, "Temperature": 37.0
         }
 
-        # Per-character decay rate overrides. Defaults match the engine
-        # baseline in virtual_world_engine.py — real-world-scaled per-minute
-        # rates (1 tick = 1 in-game minute): ~3 weeks without food, ~3 days
-        # without water. The old 1/tick values starved everyone in ~15-25
-        # minutes regardless of the food in their pockets.
-        self.decay_rates = {
-            "Hunger": 0.06, "Thirst": 0.18, "Energy": 1, "Social": 1,
-            "Hygiene": 1, "Bladder": 1, "Sanity": 1, "Entertainment": 1
-        }
-        # Fractional accumulator for sub-1/tick drive decay (mansion: Hunger
-        # 0.06/min, Thirst 0.18/min). int() truncation would drop the whole
-        # increment most ticks, so the drives would barely move; this carries
-        # the leftover over so the real-world rate actually accrues.
-        self._decay_accum = {}
+        # Per-character decay rate overrides. Defaults mirror
+        # vital_rates.BASELINE_DECAY (the single source of truth) — real-world
+        # per-minute rates: from a FULL meter a healthy adult reaches the
+        # starvation edge at ~3 weeks, the dehydration edge at ~3 days, and
+        # Energy empties over a ~16h waking day. Sub-1 rates rely on the
+        # fractional accumulator in TickManager.tick_turn(). Bladder has its
+        # own thirst-modulated fill in tick_manager. Goblins get the faster
+        # `high_metabolism` trait.
+        self.decay_rates = {**BASELINE_DECAY, "Bladder": BLADDER_FILL}
 
         # Per-body-part numeric state (task-253 body-part taxonomy). Flat dict
         # keyed by region id from engine/body_parts.py: each region has a base
@@ -104,10 +142,17 @@ class Player:
         self.body_state = default_body_state()
         
         # Basic Skills
+        # The full skill vocabulary (task-474). Every skill is on the sheet, so a
+        # setting or a character can grant/train any of them; skills a setting
+        # does not use simply sit at 0. The six "adventuring basics" start at 1.
         self.skills = {
             "Athletics": 1, "Acrobatics": 1,
             "Stealth": 1, "Perception": 1,
-            "Survival": 1, "Persuasion": 1
+            "Survival": 1, "Persuasion": 1,
+            "Animal Handling": 0, "Arcana": 0, "Deception": 0,
+            "History": 0, "Insight": 0, "Intimidation": 0,
+            "Investigation": 0, "Medicine": 0, "Nature": 0,
+            "Performance": 0, "Religion": 0, "Sleight of Hand": 0,
         }
         # Crafting (task-2): recipe names this character has discovered
         # (discoverable recipes after the first successful craft).
@@ -124,11 +169,23 @@ class Player:
         # "Items that catch your attention" list before other items.
         # Examples: ["magic", "food", "weapon", "documents"]
         self.interest_tags = []
+        # Things this character is afraid of (task-469). Mirrors interest_tags:
+        # meeting a co-located character/item or an area whose tags intersect
+        # these applies the source-gated `frightened` condition. Guards vs
+        # farmers vs goblins differ purely by these lists, so no group needs a
+        # global "hostile" flag that makes it panic at its own kind.
+        self.fear_tags = []
+        # An active soak order (task-481): declared on this human's turn ("go
+        # west for an hour"), it makes the character run on a policy each turn
+        # until the span is spent or something promotes them back. None = normal
+        # attended play. Transient: deliberately not serialized.
+        self.soak_order = None
         # Conditions system: {condition_id: [instance, instance, ...]} — MULTIPLE
         # concurrent instances per condition (5 vials of poison = 5 `poisoned`
         # instances). Each instance: {duration, source, level, periodic, ends_on,
         # symptoms, known} where the optional fields override the catalog default.
-        # duration = ticks remaining (None = until countered/removed).
+        # duration = game minutes remaining (None = until countered/removed).
+        # Scaled to the tick length by engine/conditions.py:process_tick.
         self.conditions = {"awake": [{"duration": None, "source": None, "level": 0}]}
         # Track discovered exits: set of (area_name, direction) tuples
         self.discovered_exits = set()
@@ -212,6 +269,27 @@ class Player:
         # === MEMORY STORE ===
         # List of {text, tick, timestamp, importance (1-10), type, embedding (optional)}
         self.memories = []
+        # subject graph id -> id of the live observation memory about it
+        # (engine/observation.py). Takes "which memory is about this subject?"
+        # out of the memory list, so a subject does not have to be found by
+        # scanning for it, and it is how a character knows what it has and has
+        # not seen.
+        self.memory_index = {}
+
+        # === TRACE (objective history) ===
+        # Bounded list of plain dicts written by engine.trace — the mechanical
+        # "what happened and why" record. Distinct from subjective memories;
+        # see docs/design/trace-format.md.
+        self.trace_log = []
+
+        # === SIMULATION FIDELITY (task-399) ===
+        # simulation_mode is a runtime fidelity, orthogonal to
+        # controller/autonomy/simple_npc: "active" runs the normal LLM/simple
+        # loop, "background" runs the deterministic survival runner instead.
+        # next_due_tick is when the background runner should next consider
+        # them, so background work is event-scheduled, not a per-tick scan.
+        self.simulation_mode = "active"
+        self.next_due_tick = 0
 
         self.sync_vitals_with_tags()
 
@@ -320,19 +398,20 @@ class Player:
             return False
         # Ensure a relationship record exists so this person shows up in
         # derived profiles and later name-learning can clear the stranger flag.
-        if other_name not in self.relationships:
-            self.relationships[other_name] = {
-                "closeness": 0, "last_interaction_tick": tick,
-                "interaction_count": 0, "first_sighting": True,
-            }
+        from engine.relationships import ensure_relationship
+        rel, created = ensure_relationship(self, other_name, tick)
+        if created:
+            rel["first_sighting"] = True
         dim, factor = self._FELT_TO_DIM[key]
         # Per-point magnitude: a 10/10 feeling lands a tag of ~2.5, which the
         # reducer multiplies by importance, leaving a real mark on the profile.
         mag = intensity / 4.0
         importance = max(3, round(intensity))
-        tags = ["rel:" + other_name, dim + ":" + str(round(factor * mag, 2))]
+        rel_key = self._rel_key(other_name)
+        from engine.relationships import display_name as _rel_display
+        tags = ["rel:" + rel_key, dim + ":" + str(round(factor * mag, 2))]
         self.add_memory(
-            "I felt " + label + " toward " + other_name + ".", tick=tick,
+            "I felt " + label + " toward " + _rel_display(self, other_name, rel_key) + ".", tick=tick,
             importance=importance, memory_type="emotion", tags=tags, source="felt",
         )
         # Also nudge the live affect map so the mood reads this turn.
@@ -434,26 +513,30 @@ class Player:
         (the first sighting is anonymized); the flag is cleared on the next
         shared-area encounter, which is when the name is revealed.
         """
-        if other_name in self.relationships:
+        if self._rel_key(other_name) in self.relationships:
             return False
-        self.relationships[other_name] = {
-            "closeness": 0,
-            "last_interaction_tick": tick,
-            "interaction_count": 0,
-            "first_sighting": True
-        }
-        self._grant_meeting_entertainment()
+        from engine.relationships import ensure_relationship
+        ensure_relationship(self, other_name, tick, label="")
+        self.relationships[self._rel_key(other_name)]["first_sighting"] = True
+        self._grant_meeting_entertainment(other_name, tick)
         return True
+
+    def _rel_key(self, other) -> str:
+        """Identity key a relationship with ``other`` is stored under (task-446)."""
+        manager = getattr(self, "player_manager", None)
+        if manager is not None and hasattr(manager, "relationship_key"):
+            return manager.relationship_key(other)
+        return str(getattr(other, "name", other) or "")
 
     def has_met(self, other_name: str) -> bool:
         """True when this character has met *other_name* (a relationship exists)."""
-        return other_name in self.relationships
+        return self._rel_key(other_name) in self.relationships
 
     def knows_name(self, other_name: str) -> bool:
         """True when this character has actually learned *other_name*'s name
         (heard it spoken, or read their name tag) — task-339. Recognition
         (having seen them) is NOT name knowledge."""
-        rel = self.relationships.get(other_name)
+        rel = self.relationships.get(self._rel_key(other_name))
         return rel is not None and not rel.get("first_sighting")
 
     def learn_name(self, other_name: str, tick: int) -> bool:
@@ -461,7 +544,7 @@ class Player:
         tag) — task-339. Registers the relationship if new and clears the
         name-unknown flag. Returns True only when this was new knowledge."""
         self.register_first_meeting(other_name, tick)
-        rel = self.relationships.get(other_name)
+        rel = self.relationships.get(self._rel_key(other_name))
         if rel is None:
             return False
         was_unknown = bool(rel.get("first_sighting"))
@@ -536,21 +619,35 @@ class Player:
                 return label
         return "the stranger"
 
-    def _grant_meeting_entertainment(self):
-        """Entertainment boost the first time a character meets someone new."""
-        if "Entertainment" not in self.vitals:
-            return
-        try:
-            from engine.traits import TraitSystem
-        except ImportError:
-            base_boost = 10
-        else:
-            base_boost = 10
-            if TraitSystem.has_effect(self, "curious"):
-                base_boost = int(base_boost * 1.5)
-            if TraitSystem.has_effect(self, "homebody"):
-                base_boost = 0
-        self.vitals["Entertainment"] = min(100, self.vitals.get("Entertainment", 50) + base_boost)
+    def _grant_meeting_entertainment(self, other_name: str = "", tick: int = 0) -> int:
+        """Entertainment the first time this character meets someone new.
+
+        Routed through the shared novelty curve (task-425) keyed on the other
+        character's *node id*, so meeting somebody is the **person** subject of
+        the same mechanic that covers places and things.
+
+        It both **reads and records** the observation, which is what makes it
+        idempotent with perception in either order (task-434): perception records
+        the character on arrival and pays, so a later meeting reads a fresh tick
+        and pays nothing — and a meeting that happens first records, so a later
+        perception pays nothing. This used to be a separate flat +10 that
+        double-paid with the perception grant.
+
+        Note the ordering inside: the grant reads the tick *before* the record
+        refreshes it, exactly as `observe_area` computes freshness before
+        refreshing.
+        """
+        if "Entertainment" not in self.vitals or not other_name:
+            return 0
+        from engine.novelty import grant
+        subject = self.node_id_for(other_name)
+        gained = grant(self, subject, tick)
+        self.record_observation(
+            subject, f"You have met {other_name}.", tick, kind="character",
+            tags=["met"], importance=5,
+            location=getattr(self, "current_area", "") or "",
+        )
+        return gained
 
     def update_relationship(self, other_name: str, tick: int, sentiment_change: int = 0):
         """Update relationship closeness with another character.
@@ -558,52 +655,83 @@ class Player:
 
         First meeting with a character grants an Entertainment novelty boost
         (mirrors the area-visit/item-discovery boosts in task-136).
+
+        Goes through `engine/relationships.py` — the one writer of closeness
+        (task-420), so the change carries a cause and clamps in one place.
         """
-        if other_name not in self.relationships:
-            self.relationships[other_name] = {
-                "closeness": 0,
-                "last_interaction_tick": tick,
-                "interaction_count": 0
-            }
-            self._grant_meeting_entertainment()
-        rel = self.relationships[other_name]
-        rel["closeness"] = max(-100, min(100, rel["closeness"] + sentiment_change))
-        rel["last_interaction_tick"] = tick
-        rel["interaction_count"] += 1
+        from engine.relationships import apply_relationship_delta, ensure_relationship
+        _, created = ensure_relationship(self, other_name, tick)
+        if created:
+            self._grant_meeting_entertainment(other_name, tick)
+        apply_relationship_delta(
+            self, other_name, sentiment_change, "dialogue",
+            tick=tick, area_id=getattr(self, "current_area", "") or "",
+        )
+
+    #: Familiarity's damping on relationship decay. 0.15 means six prior
+    #: interactions halve the rate — shared history should not evaporate.
+    RELATIONSHIP_DECAY_FAMILIARITY = 0.15
+
+    def decay_relationships(self, elapsed_days: float, per_day: float) -> int:
+        """Drift closeness toward 0 for relationships left unmaintained.
+
+        Deliberately safe on authored data: the step can never cross zero
+        (strength protects itself), shared history damps the rate through
+        `interaction_count`, and an authored `label` ("my brother") is a
+        declaration rather than a measurement, so it is never touched — only the
+        computed closeness moves.
+
+        Sub-1 daily steps accumulate per relationship the way vitals do, or a
+        0.5/day rate would round to nothing every day.
+
+        Returns the number of relationships that moved.
+        """
+        if elapsed_days <= 0 or per_day <= 0:
+            return 0
+        accum = getattr(self, "_rel_decay_accum", None)
+        if accum is None:
+            accum = self._rel_decay_accum = {}
+        changed = 0
+        for name, rel in self.relationships.items():
+            closeness = rel.get("closeness", 0)
+            if not isinstance(closeness, (int, float)) or not closeness:
+                accum.pop(name, None)
+                continue
+            damping = 1.0 / (
+                1.0 + self.RELATIONSHIP_DECAY_FAMILIARITY
+                * float(rel.get("interaction_count", 0) or 0)
+            )
+            accum[name] = accum.get(name, 0.0) + per_day * elapsed_days * damping
+            step = int(accum[name])
+            if not step:
+                continue
+            accum[name] -= step
+            step = min(abs(closeness), step)
+            rel["closeness"] = closeness - step if closeness > 0 else closeness + step
+            changed += 1
+        return changed
 
     def get_relationship_nl(self, other_name: str) -> str:
-        """Return a natural language description of the relationship."""
-        rel = self.relationships.get(other_name)
-        if not rel:
-            return f"{self.name} has never met {other_name}."
-        closeness = rel["closeness"]
-        if closeness <= -75:
-            desc = "mortal enemy"
-        elif closeness <= -50:
-            desc = "enemy"
-        elif closeness <= -25:
-            desc = "rival"
-        elif closeness < 0:
-            desc = "unfriendly"
-        elif closeness == 0:
-            desc = "neutral"
-        elif closeness <= 25:
-            desc = "acquaintance"
-        elif closeness <= 50:
-            desc = "friend"
-        elif closeness <= 75:
-            desc = "close friend"
-        else:
-            desc = "inseparable"
-        return f"{self.name} considers {other_name} a {desc} (closeness: {closeness}/100)."
+        """Return a natural language description of the relationship.
 
-    def add_memory(self, text: str, tick: int, importance: int = 5, memory_type: str = "observation", tags=None, source: str = "auto"):
+        The band ladder lives in engine/relationships.py so band-gated game
+        rules (task-423's flirt/confide gates) cannot disagree with this prose
+        about where the boundaries are.
+        """
+        from engine.relationships import describe
+        return describe(self, other_name)
+
+    def add_memory(self, text: str, tick: int, importance: int = 5, memory_type: str = "observation", tags=None, source: str = "auto", entity_ids=None, location: str = "", salience: int = 0):
         """Add a memory entry. Importance 1-10, higher = more significant.
 
         tags: list[str] — optional keyword labels for targeting via trigger effects.
+        entity_ids: list[str] — graph node ids this memory is about (a subject),
+            used by the observation index and the retrieval entity boost.
+        location: str — the area the memory happened in.
         source: str — provenance label (auto/manual/trigger/...).
+        Returns the stored entry so callers can index it.
         """
-        self.memories.append({
+        entry = {
             "id": str(uuid.uuid4())[:8],
             "text": text,
             "tick": tick,
@@ -612,11 +740,126 @@ class Player:
             "type": memory_type,
             "tags": list(tags) if tags else [],
             "source": source,
-            "salience_override": 0,
+            "entity_ids": [str(e) for e in (entity_ids or []) if e],
+            "location": location or "",
+            "salience_override": salience,
             "suppressions": [],
-        })
-        if len(self.memories) > 200:
-            self.memories.pop(0)
+        }
+        self.memories.append(entry)
+        limit = _memory_limit()
+        if limit and len(self.memories) > limit:
+            self._trim_memories(limit)
+        return entry
+
+    def record_observation(self, subject_id: str, text: str, tick: int, kind: str = "",
+                           tags=None, importance: int = 4, location: str = "",
+                           source: str = "observation") -> dict:
+        """Record seeing ``subject_id`` now, refreshing its live observation.
+
+        ONE live observation per subject, updated in place: re-seeing the pantry
+        updates the memory that already describes it rather than appending a
+        second one. That is what keeps the store bounded by *subjects* instead
+        of by visits — a week of wandering does not become thousands of
+        observations — and it makes "when did I last see this?" a single lookup.
+
+        The trace is the history; this holds the current belief.
+        """
+        existing = self.observation_memory(subject_id)
+        if existing is not None:
+            existing["text"] = text
+            existing["tick"] = tick
+            existing["timestamp"] = time.time()
+            existing["location"] = location or existing.get("location", "")
+            existing["visits"] = int(existing.get("visits", 1)) + 1
+            if tags:
+                existing["tags"] = sorted(set(existing.get("tags", [])) | set(tags))
+            self.memory_index[str(subject_id)] = existing["id"]
+            return existing
+
+        entry = self.add_memory(
+            text, tick, importance=importance, memory_type="observation",
+            tags=(["observed"] + ([kind] if kind else []) + list(tags or [])),
+            source=source, entity_ids=[subject_id], location=location,
+        )
+        entry["kind"] = kind
+        entry["visits"] = 1
+        self.memory_index[str(subject_id)] = entry["id"]
+        return entry
+
+    def observation_memory(self, subject_id: str):
+        """The live observation memory about ``subject_id``, or None.
+
+        Falls back to a scan when the index has no entry (an old save, or a
+        memory written outside ``record_observation``) so the index can never
+        silently disagree with the store; the scan repairs it.
+        """
+        key = str(subject_id)
+        if not key:
+            return None
+        entry_id = self.memory_index.get(key)
+        if entry_id:
+            for m in self.memories:
+                if m.get("id") == entry_id and not m.get("superseded_by"):
+                    return m
+        found = None
+        for m in self.memories:
+            if m.get("superseded_by"):
+                continue
+            if key in (m.get("entity_ids") or []):
+                found = m
+        if found is not None:
+            self.memory_index[key] = found["id"]
+        return found
+
+    def observation_tick(self, subject_id: str):
+        """Game tick this subject was last seen (None = never)."""
+        entry = self.observation_memory(subject_id)
+        return entry.get("tick") if entry else None
+
+    def has_seen(self, subject_id: str) -> bool:
+        """True when the character has a live observation of ``subject_id``.
+
+        The novelty test (task-425): absence means "never been", because every
+        sighting refreshes or creates the observation.
+        """
+        return self.observation_memory(subject_id) is not None
+
+    def supersede_observation(self, subject_id: str, reason: str = "") -> bool:
+        """Retire the observation of a subject that no longer exists as seen.
+
+        The belief was replaced (the bread was eaten, the door was unlocked) and
+        nothing new took its place, so recall must stop surfacing it. This is
+        the only path that adds to the supersede chain — sightings refresh in
+        place, they do not chain.
+        """
+        entry = self.observation_memory(str(subject_id))
+        if entry is None:
+            return False
+        entry["superseded_by"] = reason or "gone"
+        self.memory_index.pop(str(subject_id), None)
+        return True
+
+    def _trim_memories(self, limit: int):
+        """Drop the least worth keeping when a retention cap is configured.
+
+        Authored memories (``source == "manual"``) are the character's backstory,
+        so they go last — a busy week of generated social chatter must not push
+        the hand-written past out of the character.
+
+        An evicted subject also leaves the observation index, so the character
+        genuinely no longer knows it. Forgetting therefore re-enchants the world
+        (task-425): a place it can no longer remember is novel again.
+        """
+        while len(self.memories) > limit:
+            victim = 0
+            for index, memory in enumerate(self.memories):
+                if memory.get("source") != "manual":
+                    victim = index
+                    break
+            gone = self.memories.pop(victim)
+            for subject in (gone.get("entity_ids") or []):
+                if self.memory_index.get(str(subject)) == gone.get("id"):
+                    self.memory_index.pop(str(subject), None)
 
     def suppress_memory(self, tags=None, keywords: str = "", duration: int = 1, scope: str = "self") -> list:
         """Mark matching memories as inaccessible for `duration` turns.
@@ -678,7 +921,9 @@ class Player:
     def get_relevant_memories(self, query: str, max_results: int = 5) -> list:
         """Keyword-based memory retrieval respecting suppressions and salience.
 
-        Memories with an active suppression are excluded.
+        Memories with an active suppression are excluded, and so are superseded
+        observations — a belief that was replaced by a later one must not still
+        be recallable (task-403).
         Recalled memories get a reinforce bump (+1 importance, cap 10).
         """
         if not self.memories:
@@ -690,7 +935,7 @@ class Player:
 
         scored = []
         for m in self.memories:
-            if m.get("suppressions"):
+            if m.get("suppressions") or m.get("superseded_by"):
                 continue
             text_clean = re.sub(r'[^\w\s]', '', m.get("text", "").lower())
             text_words = set(text_clean.split())
@@ -753,12 +998,17 @@ class Player:
             "traits": dict(self.traits),
             "tags": list(self.tags),
             "interest_tags": list(self.interest_tags),
+            "fear_tags": list(self.fear_tags),
             "flags": dict(getattr(self, "flags", {})),
             "hidden": bool(getattr(self, "hidden", False)),
             "visited_areas": list(self.visited_areas),
             "discovered_items": list(self.discovered_items),
+            "memory_index": dict(self.memory_index),
             "patrol_route": list(getattr(self, "patrol_route", [])),
             "patrol_index": getattr(self, "patrol_index", 0),
+            "trace": [dict(e) for e in getattr(self, "trace_log", [])],
+            "simulation_mode": getattr(self, "simulation_mode", "active"),
+            "next_due_tick": int(getattr(self, "next_due_tick", 0)),
         }
 
     def _relationships_to_dict(self):
@@ -769,16 +1019,18 @@ class Player:
         truthful read synchronously (no extra fetch).
         """
         out = {}
-        for name, data in (self.relationships or {}).items():
+        for key, data in (self.relationships or {}).items():
+            display = data.get("name") or key
             entry = {
                 "closeness": data["closeness"],
                 "interaction_count": data.get("interaction_count", 0),
                 "last_interaction_tick": data.get("last_interaction_tick", 0),
                 "first_sighting": data.get("first_sighting", False),
+                "label": data.get("label", ""),
             }
             try:
                 from engine.derive import derive_person_profile
-                prof = derive_person_profile(self, name)
+                prof = derive_person_profile(self, key)
                 entry["role"] = prof.get("role")
                 entry["consent"] = round(prof.get("consent", 0.0), 3)
                 entry["trust"] = round(prof.get("trust", 0.0), 1)
@@ -787,7 +1039,7 @@ class Player:
                 entry["has_signal"] = bool(prof.get("_has_signal"))
             except Exception:
                 pass
-            out[name] = entry
+            out[display] = entry
         return out
 from engine.player_conditions import (
     CONDITION_DEFINITIONS,
@@ -796,10 +1048,13 @@ from engine.player_conditions import (
     PERIODIC_CONDITIONS,
     CONDITION_EXCLUSIONS,
     CONDITION_DEFAULT_TIMERS,
+    PERCEPTION_SKIP,
+    MATURE_CONDITIONS,
     _CONDITION_BASE,
     _condition_library_dir,
     _load_condition_library,
     seed_condition_library,
+    reload_condition_library,
     _normalize_instance,
     condition_has_condition,
     condition_add_condition,

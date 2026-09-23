@@ -12,7 +12,7 @@ group: Trigger System
 
 ## Problem
 
-Triggers can modify the world (items, conditions, environment) but cannot touch `Player.memories[]`. We want trigger effects that let in-world events surface, suppress, or strengthen a character's memories â€” without requiring authors to track individual memory IDs at scale.
+Triggers can modify the world (items, conditions, environment) but cannot touch `Player.memories[]`. We want trigger effects that let in-world events surface, suppress, or strengthen a character's memories — without requiring authors to track individual memory IDs at scale.
 
 Narrative injection is already covered by the `message` effect. This task adds the *memory-state* operations: surface existing memories, suppress them, and reinforce them through repeated exposure.
 
@@ -28,10 +28,10 @@ never by individual ID:
 Force a matching memory into the agent's active recall for the current turn.
 
 - params:
-  - `tags` (list[str]) â€” memories tagged with ALL of these are surfaced
-  - `keywords` (str) â€” text substring match (case-insensitive)
-  - `importance_min` (int, default 0) â€” minimum importance threshold
-  - `salience_boost` (int, default 3) â€” temporary relevance bump for matching
+  - `tags` (list[str]) — memories tagged with ALL of these are surfaced
+  - `keywords` (str) — text substring match (case-insensitive)
+  - `importance_min` (int, default 0) — minimum importance threshold
+  - `salience_boost` (int, default 3) — temporary relevance bump for matching
     memories this turn (written into the memory entry as `salience_override`)
 - Matching: tag AND (keyword OR all). If `tags` is empty, match on keywords
   alone. If both are empty, no-op.
@@ -47,9 +47,9 @@ Mark matching memories as inaccessible for the current turn.
 - params:
   - `tags` (list[str])
   - `keywords` (str)
-  - `duration` (int, default 1) â€” turns to keep suppressed; 0 = permanent until
+  - `duration` (int, default 1) — turns to keep suppressed; 0 = permanent until
     `unblock_memory` fires
-  - `scope` (str, default `"self"`) â€” `"self"` or explicit character name
+  - `scope` (str, default `"self"`) — `"self"` or explicit character name
 - Suppressed memories are excluded from `get_relevant_memories()` and from the
   prompt builder's memory context while the suppression is active.
 - A memory can carry multiple active suppressions (stack as list); all must
@@ -71,7 +71,7 @@ Remove an active suppression from matching memories.
 
 When a memory is surfaced via `surface_memory` or recalled naturally by the
 prompt builder, bump its `importance` by 1 (capped at 10). This is the
-spaced-repetition signal â€” memories that keep coming up organically grow
+spaced-repetition signal — memories that keep coming up organically grow
 stronger. Implemented as a post-recall hook inside `get_relevant_memories()` in
 `player.py`, not as a trigger effect. Trigger effects should not directly modify
 importance; the engine does it based on actual recall frequency.
@@ -98,22 +98,22 @@ Extend `Player.memories[]` entries with two new optional fields:
 
 `salience_override` is reset to 0 at the start of each turn (in
 `advance_clock` / turn-init). `suppressions` is checked in
-`get_relevant_memories()` â€” entries with an active suppression are excluded
+`get_relevant_memories()` — entries with an active suppression are excluded
 from results.
 
 ---
 
 ## Files
 
-- `player.py` â€” extend `add_memory` to accept optional `tags` list; add
+- `player.py` — extend `add_memory` to accept optional `tags` list; add
   `suppress_memory` / `unblock_memory` / `clear_expired_suppressions` methods;
   update `get_relevant_memories` to respect `salience_override` and
   `suppressions`; add reinforce hook (importance +1 on recall, cap 10).
-- `engine/effects.py` â€” add `handle_surface_memory`, `handle_suppress_memory`,
+- `engine/effects.py` — add `handle_surface_memory`, `handle_suppress_memory`,
   `handle_unblock_memory`.
-- `engine/trigger_system.py` â€” register the three new effect types in
+- `engine/trigger_system.py` — register the three new effect types in
   `EFFECT_TYPES`.
-- `tests/test_memory_effects.py` â€” new test file covering:
+- `tests/test_memory_effects.py` — new test file covering:
   - surface_memory by tag, by keyword, by both
   - surface_memory with no matches is silent no-op
   - suppress blocks get_relevant_memories for duration
@@ -122,7 +122,7 @@ from results.
   - reinforce bumps importance on recall, caps at 10
   - salience_override resets each turn
   - multiple overlapping suppressions
-- `docs/virtualWorld/Rules Engine/Memory System.md` â€” document the three new
+- `docs/virtualWorld/Rules Engine/Memory System.md` — document the three new
   effect types and the reinforce mechanic.
 
 ---

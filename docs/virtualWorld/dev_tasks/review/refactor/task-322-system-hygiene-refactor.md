@@ -36,14 +36,14 @@ derives from it and `TickManager.get_current_time()` consumes it (via the facade
 it already holds). One formula, two consumers.
 
 ### R4 — JS unit harness (no server needed)
-`tools/unit/run.js`: sandbox whose global object IS `window` (true browser semantics for
+`tools/unit/run.cjs`: sandbox whose global object IS `window` (true browser semantics for
 `window.Foo = ...` modules), zero-dependency runner. Suites:
 - `test_plan_tracker.js` (12) — criticalNeeds, crossing-gated replanning, trackStep
 - `test_conversation_context.js` (14) — salience classifier, markers, anti-repeat (restores
   the throwaway harness deleted during task-321)
 - `test_response_parser.js` (8) — structured parsing, volume-as-key, fences, error capture
 
-Run: `node tools/unit/run.js` → 34 passed, 0 failed.
+Run: `node tools/unit/run.cjs` → 34 passed, 0 failed.
 
 ### R5 — one vitals threshold table
 `static/js/agent/vital-thresholds.js` (new): CRITICAL/WARNING/BLADDER_*/SANITY_SHATTERED +
@@ -65,7 +65,7 @@ The 3 "pre-existing" failures were stale test expectations against retuned libra
 
 - `python -m pytest tests/ -q -k "not mcp and not emote"` → **1051 passed, 0 failed**,
   1 skipped (first fully green run this session).
-- `node tools/unit/run.js` → 34 passed, 0 failed.
+- `node tools/unit/run.cjs` → 34 passed, 0 failed.
 - `node --check` clean on all touched JS.
 - Speech/narration/realism subset: 51 passed. Time/clock subset: 43 passed.
 - Trigger system: 144 passed.

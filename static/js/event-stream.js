@@ -1,6 +1,12 @@
 /**
  * EventBus — Pub/sub event stream and terminal output
  *
+ * @module event-stream — the event stream panel
+ * @contributes EventBus service: log/emit, row kinds, turn cards, filters, persistence hooks, story mode
+ * @powers the main event stream, stream search, the queue strip, and the log export
+ * @relates publishes on event-bus; collaborators live in static/js/stream/*
+ * @docs docs/virtualWorld/UI & Settings/Event Log Export.md
+ *
  * task-340 (event stream v2): slimmed core with extracted collaborators in
  * static/js/stream/ (filters, turn cards, raw-LLM chips, persistence,
  * timeline scrubber). The bus remains the single public surface — every
@@ -138,12 +144,31 @@ class EventBus {
         streamEl.setAttribute('data-style', style);
     }
 
+    /**
+     * Open (or reuse) the turn card for a human-controlled actor so rows they
+     * emit directly through /api/action (speech, emotes, interjections) group
+     * under their character instead of landing in the bare stream (bug-33).
+     * Safe to call repeatedly within one turn — a card for the same actor is
+     * reused, and the next phase marker starts a fresh one.
+     */
+    beginActorTurn(charName) {
+        const streamEl = document.getElementById('event-stream');
+        if (!streamEl || !charName) return;
+        this._cards.bodyFor(charName, streamEl);
+    }
+
     /** Log a message to the event stream — uses styled bubbles.
      *  meta (optional): {outcome:'success'|'failure'|'minor'} for results.
      *  actor (optional): explicit owner for rows that would otherwise inherit
      *  the open turn card (e.g. memory recalls logged on behalf of a character). */
     log(text, className, meta, actor) {
-        this.emit('log', { text, className });
+        // The bus payload carries the acting character so subscribers (the turn
+        // digest) can scope what the human is allowed to perceive. An explicit
+        // actor wins; otherwise action/result rows inherit the open turn card's
+        // actor, while system/world rows stay unattributed.
+        const isSystemRow = className === 'system-msg' || className === 'agent-msg';
+        const busActor = actor || (isSystemRow ? null : (this._cards && this._cards.actor)) || null;
+        this.emit('log', { text, className, meta, actor: busActor });
 
         if (className === 'msg-thought') {
             const match = text.match(/^\[([^\]]+) inner\]\s*(.*)/);

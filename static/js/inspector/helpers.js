@@ -6,6 +6,12 @@
  * task-216: HTML-producing functions return lit-html TemplateResults
  * (via window.Lit.html) instead of strings, so consumers can nest them
  * in their own templates without escaping issues.
+ *
+ * @module inspector/helpers — shared inspector field/section builders
+ * @contributes InspectorHelpers: field/row builders, tag editor, common sections (lit-html templates)
+ * @powers consistent forms and validation across every inspector view
+ * @relates used by all inspector/* views; reads worldState + api + events directly
+ * @docs docs/virtualWorld/UI & Settings/Inspector Panels.md
  */
 
 window.InspectorHelpers = (() => {
@@ -15,24 +21,73 @@ window.InspectorHelpers = (() => {
     const htmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
 
     /**
-     * Build lit-html for per-node graph physics gravity control
+     * Build lit-html for the per-node graph physics control
+     *
+     * The checkbox is bound through `live()` rather than `?checked`: the user can
+     * change this control without a re-render, and lit only diffs the value it last
+     * *bound*, so a plain binding left the DOM showing the previously inspected
+     * node's state (bug-37). `live()` compares against the element's current
+     * property every render and rewrites it when they differ.
+     *
      * @param {string} nodeId - Graph node ID
      * @param {object} props - Node properties
      * @returns {TemplateResult}
      */
     H.graphGravityControl = function(nodeId, props = {}) {
-        const enabled = props.central_gravity_enabled !== false;
+        const enabled = props.central_gravity_enabled !== false && props.layout_static !== true;
+        const num = (value) => (Number(value) > 0 ? Number(value) : '');
         return htmlTag`<div class="inspector-section">
             <h3>Graph Physics</h3>
             <div class="field">
-                <label title="When off, this node is excluded from graph physics and stays in place.">
-                    <input type="checkbox" ?checked=${enabled}
+                <label title="When off, this node is excluded from graph physics and stays where it is.">
+                    <input type="checkbox" .checked=${window.Lit.live(enabled)}
                         @change=${(ev) => H.setCentralGravity(nodeId, ev.target.checked)}>
-                    Central pull enabled
+                    Physics enabled
                 </label>
-                <div class="section-hint" style="margin-top:4px;">Turn off to lock this node in place while the rest of the graph moves.</div>
+                <div class="section-hint" style="margin-top:4px;">Turn off to freeze this node in place while the rest of the graph settles.</div>
+            </div>
+            <div class="field">
+                <label title="How far this node sits from the thing that holds it (its parent). Blank = whatever the parent or the graph setting says.">
+                    Distance from parent
+                    <input type="number" min="0" step="5" .value=${window.Lit.live(num(props.layout_distance))}
+                        @change=${(ev) => H.setLayoutNumber(nodeId, 'layout_distance', ev.target.value)}>
+                </label>
+                <label title="How far this node's own contents sit from it. Blank = the graph-wide setting.">
+                    Distance of my contents
+                    <input type="number" min="0" step="5" .value=${window.Lit.live(num(props.layout_child_distance))}
+                        @change=${(ev) => H.setLayoutNumber(nodeId, 'layout_child_distance', ev.target.value)}>
+                </label>
+                <label title="The gap between this node's contents. Blank = derived from the distance.">
+                    Spacing of my contents
+                    <input type="number" min="0" step="5" .value=${window.Lit.live(num(props.layout_child_spacing))}
+                        @change=${(ev) => H.setLayoutNumber(nodeId, 'layout_child_spacing', ev.target.value)}>
+                </label>
+                <div class="section-hint" style="margin-top:4px;">Per-node physics distances. Leave blank to use the Item Edge Length setting.</div>
             </div>
         </div>`;
+    };
+
+    /**
+     * Set a numeric layout property on a node (blank clears it back to the
+     * inherited setting) and re-derive the contents' arrangement.
+     * @param {string} nodeId - Graph node ID
+     * @param {string} key - layout_distance | layout_child_distance | layout_child_spacing
+     * @param {string|number} rawValue - the input's value
+     */
+    H.setLayoutNumber = async function(nodeId, key, rawValue) {
+        const value = Number(rawValue);
+        const patch = {};
+        patch[key] = Number.isFinite(value) && value > 0 ? value : null;
+        const saved = await api.updateNode(nodeId, { properties: patch });
+        if (!saved) {
+            console.warn(`Could not update ${key} for node ${nodeId}`);
+            return;
+        }
+        if (window.GraphRelativeLayout) window.GraphRelativeLayout.reseed();
+        await worldState.fetch();
+        if (graphManager) {
+            graphManager.loadGraphData();
+        }
     };
 
     /**
@@ -48,6 +103,7 @@ window.InspectorHelpers = (() => {
             console.warn(`Could not update graph gravity for node ${nodeId}`);
             return;
         }
+        if (window.GraphRelativeLayout) window.GraphRelativeLayout.reseed();
         await worldState.fetch();
         if (graphManager) {
             graphManager.loadGraphData();

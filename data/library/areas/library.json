@@ -1,7 +1,12 @@
 {
   "name": "library",
   "description": "floor-to-ceiling bookshelves line every wall, filled with ancient leather-bound volumes. a large oak desk sits in the centre, buried under papers, maps, and scientific instruments from another era. a cold fireplace with a marble mantel dominates the north wall. the room smells of old paper, dust, and something else — something metallic. one bookcase looks subtly different from the others, its spine alignment just slightly off.",
-  "tags": [],
+  "tags": [
+    "interior",
+    "mansion",
+    "library",
+    "paper"
+  ],
   "environment": {
     "air": "stale",
     "light": 30,

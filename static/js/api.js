@@ -1,5 +1,11 @@
 /**
  * ApiClient — Backend HTTP calls for the VirtualWorld engine
+ *
+ * @module api — the single HTTP client for every UI → engine call
+ * @contributes ApiClient.* (actions, graph CRUD, items, saves, scenario ops) + runAction
+ * @powers every button/panel that talks to the Flask engine, and the graph's data fetches
+ * @relates used by world-state, graph, inspector, item library, agent-engine, main
+ * @docs none
  */
 class ApiClient {
     /** Generic POST helper */
@@ -25,6 +31,21 @@ class ApiClient {
     static async get(url) {
         const resp = await fetch(url);
         return resp.json();
+    }
+
+    /**
+     * Declare a soak order for a character (task-481): they run on a policy for
+     * the span instead of taking attended turns.
+     */
+    static async declareSoak(payload) {
+        return this.post('/api/world/soak', payload);
+    }
+
+    /** Drop a character's soak order (defaults to the active character). */
+    static async cancelSoak(charName = null) {
+        const query = charName ? '?character=' + encodeURIComponent(charName) : '';
+        const resp = await fetch('/api/world/soak' + query, { method: 'DELETE' });
+        return resp.json().catch(() => ({}));
     }
 
     /** Status-condition catalog (for the inspector's condition editor) */
@@ -206,6 +227,19 @@ class ApiClient {
 
     static async removeNodeImage(nodeId) {
         return ApiClient.updateNode(nodeId, { properties: { image: null } });
+    }
+
+    /** Upload the graph's background map; returns { image: '/static/images/backgrounds/…' }. */
+    static async uploadBackgroundImage(file) {
+        const form = new FormData();
+        form.append('file', file);
+        const resp = await fetch('/api/graph/background/image', { method: 'POST', body: form });
+        return resp.json();
+    }
+
+    /** Persist the background map's path + transform on the world (scenario-level). */
+    static async saveGraphBackground(background) {
+        return ApiClient.post('/api/graph/background', background);
     }
 
     static async renameNode(nodeId, newId) {

@@ -11,6 +11,12 @@
  *   - window.WorldExport.saveFileWithDialog (for downloadWorld)
  *   - Global: toastSuccess, toastError, toastInfo (from ui-helpers.js)
  *   - DOM elements: #save-game-list, #save-game-name-input, #load-game-modal, etc.
+ *
+ * @module ui/saveload-view — save/load game UI
+ * @contributes SaveLoadView: save list, save/load/delete, named saves
+ * @powers keeping and restoring your world (extracted from main.js)
+ * @relates uses api + events + config; delegates downloads to shared WorldExport
+ * @docs docs/virtualWorld/UI & Settings/
  */
 
 const saveLoadViewTag = (strings, ...values) => window.Lit.html(strings, ...values);
@@ -36,11 +42,11 @@ window.SaveLoadView = (() => {
 
             function saveName() {
                 var newName = input.value.trim() || 'unnamed';
-                document.body.dataset.scenarioName = newName;
                 var newText = document.createElement('span');
                 newText.id = 'scenario-name-text';
                 newText.textContent = newName;
                 input.replaceWith(newText);
+                if (newName !== currentName) persistScenarioName(newName, currentName, newText);
             }
 
             input.addEventListener('blur', saveName);
@@ -49,6 +55,42 @@ window.SaveLoadView = (() => {
                 if (e.key === 'Escape') { input.value = currentName; input.blur(); }
             });
         });
+    }
+
+    /**
+     * Persist the scenario name on the SERVER.
+     *
+     * The name is not cosmetic — it decides where a commit writes (so a world
+     * booted from a shared template stops committing into that template), and it
+     * keys the per-scenario graph-background cache. The server is the source of
+     * truth, so a failure reverts the chip rather than lying to the user.
+     */
+    async function persistScenarioName(name, previous, textEl) {
+        try {
+            const resp = await fetch('/api/scenario/name', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name }),
+            });
+            const data = await resp.json().catch(() => ({}));
+            if (!resp.ok || data.error) throw new Error(data.error || ('HTTP ' + resp.status));
+
+            const applied = data.name || name;
+            document.body.dataset.scenarioName = applied;
+            if (textEl) textEl.textContent = applied;
+            // Update the cached world state so the background cache re-keys now.
+            if (typeof worldState !== 'undefined' && worldState && worldState.data) {
+                worldState.data._scenario_name = applied;
+            }
+            if (data.warning && typeof toastInfo === 'function') toastInfo(data.warning);
+            try { events.log(`🌍 Scenario named "${applied}".`, 'system-msg'); } catch (e) { /* ignore */ }
+        } catch (err) {
+            document.body.dataset.scenarioName = previous;
+            if (textEl) textEl.textContent = previous;
+            if (typeof toastError === 'function') {
+                toastError('Rename failed: ' + (err && err.message ? err.message : err));
+            }
+        }
     }
 
     /**

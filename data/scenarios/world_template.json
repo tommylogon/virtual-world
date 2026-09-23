@@ -1,4 +1,5 @@
 {
+  "_scenario_name": "world_template",
   "active_player": "Kaelen Voss",
   "areas": {
     "Abandoned Hunter's Cabin": {
@@ -8869,6 +8870,7 @@
   },
   "item_registry": {},
   "narration_mode": "none",
+  "persist": true,
   "players": {
     "Kaelen Voss": {
       "activity": null,
@@ -8976,14 +8978,15 @@
       "current_area": "Blizzard Forest Clearing",
       "current_carry_weight": 27.999999999999996,
       "decay_rates": {
-        "Bladder": 1,
-        "Energy": 1,
-        "Entertainment": 1,
-        "Hunger": 1,
-        "Hygiene": 1,
-        "Sanity": 1,
-        "Social": 1,
-        "Thirst": 1
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "description": "He cuts a lean, weather-worn figure in a heavy fur-lined coat that hangs open over a waxed canvas vest and rumpled linen shirt, a worn leather backpack slung across his shoulders. Dark hair streaked with grey is pulled back from a face sharp with high cheekbones and a stubbled jaw, his hazel eyes narrowed in a perpetual squint that deepens the crow’s feet and worry lines. A thin white scar slices through his left brow into the hairline, and the faint, rhythmic click of a segmented brass-and-steel prosthetic leg punctuates his stance beneath the reinforced wool trousers. At his collar, a small brooch catches the light, while a web of scarred knuckles rests against the coat’s edge.",
       "discovered_items": [],
@@ -9231,14 +9234,15 @@
       "current_area": "Frozen Thicket",
       "current_carry_weight": 1.7,
       "decay_rates": {
-        "Bladder": 1,
-        "Energy": 1,
-        "Entertainment": 1,
-        "Hunger": 1,
-        "Hygiene": 1,
-        "Sanity": 1,
-        "Social": 1,
-        "Thirst": 1
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "description": "A small, slight elf with a mess of strawberry-blonde hair escapes a crushed dried flower crown, a few wisps tangling with a stray leaf. Her large, earnest pale blue eyes are framed by a soft round face peppered with freckles, while a faint silvery scar curls behind one unusually long, twitching ear. She wears a green tunic beneath a short forest cape, stirrup socks peeking above her boots, and a frayed friendship bracelet circles her wrist—her fidgeting hands marked with nicks and scratches, her cheeks flushed and still bearing faint tracks of dried tears.",
       "discovered_items": [],
@@ -9958,14 +9962,15 @@
       "current_area": "Kitchen",
       "current_carry_weight": 0,
       "decay_rates": {
-        "Bladder": 1,
-        "Energy": 1,
-        "Entertainment": 1,
-        "Hunger": 1,
-        "Hygiene": 1,
-        "Sanity": 1,
-        "Social": 1,
-        "Thirst": 1
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025,
+        "Mana": 0.0
       },
       "description": "",
       "discovered_items": [],
@@ -10585,7 +10590,5 @@
       "tick_created": 8,
       "title": "Rocheveron"
     }
-  ],
-  "_scenario_name": "world_template",
-  "persist": true
+  ]
 }

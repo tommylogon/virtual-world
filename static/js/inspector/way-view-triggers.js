@@ -1,11 +1,17 @@
 /**
  * InspectorWayViewTriggers — Trigger extraction for way inspector
  * Extracted from way-view.js for modularity.
+ *
+ * @module inspector/way-view-triggers — trigger extraction for the way inspector
+ * @contributes InspectorWayViewTriggers: pull a way's trigger edges into the inspector's trigger list
+ * @powers showing a way's triggers in the way inspector
+ * @relates consumed by way-view; complements inspector/trigger-helpers
+ * @docs docs/virtualWorld/Rules Engine/
  */
 window.InspectorWayViewTriggers = (() => {
-    const T = {};
+    const api = {};
 
-    T._extractTriggersFromEdges = function(nodeId) {
+    api._extractTriggersFromEdges = function(nodeId) {
         const triggers = [];
         if (!worldState.graph?.edges) return triggers;
         for (const edge of worldState.graph.edges) {
@@ -36,5 +42,5 @@ window.InspectorWayViewTriggers = (() => {
         return triggers;
     };
 
-    return T;
+    return api;
 })();

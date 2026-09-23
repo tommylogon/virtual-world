@@ -20,7 +20,14 @@ from engine.pleasure_actions import (
 def _world():
     from app import create_app
     app = create_app({"TESTING": True})
-    return app.world
+    world = app.world
+    # These tests assert band/cascade logic from hand-set meter values, so pin
+    # the tick to one minute: the boot world runs at 5, and Arousal/Stimulation
+    # /Pleasure are in baseline_decay, so a 5-minute tick drains them 5x and
+    # drops the fixture out of its band before the band logic runs.
+    # Tick-length scaling itself is covered by tests/test_tick_time_scaling.py.
+    world.time_per_tick_minutes = 1
+    return world
 
 
 def _place_pair(world, actor_name="Actor", target_name="Lydia", area="Study"):

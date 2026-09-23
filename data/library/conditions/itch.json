@@ -1,0 +1,34 @@
+{
+  "name": "Itch",
+  "description": "Unbearably itchy. You can't stop scratching.",
+  "blocks_actions": false,
+  "blocks_movement": false,
+  "blocks_speech": false,
+  "auto_fail_checks": [],
+  "auto_fail_saves": [],
+  "attack_mod": 0,
+  "defense_mod": 0,
+  "speed_mult": 1.0,
+  "movement_mode": null,
+  "drops_held_items": false,
+  "periodic": {},
+  "ends_on": [
+    "scratch",
+    "cure",
+    "duration"
+  ],
+  "known": false,
+  "symptoms": {
+    "5": "You scratch at the itch without thinking.",
+    "3": "The itching is maddening. You rub the spot raw.",
+    "1": "Every nerve screams to scratch."
+  },
+  "stack": "refresh",
+  "default_duration": 10,
+  "excludes": [],
+  "order": null,
+  "perception_skip": false,
+  "mature": false,
+  "check_advantage": [],
+  "check_disadvantage": []
+}

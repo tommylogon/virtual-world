@@ -10,6 +10,12 @@
  *     placeholder: "Search tags...",
  *     onChange: (tags) => { ... }
  *   });
+ *
+ * @module shared/tag-multiselect — searchable tag picker
+ * @contributes TagMultiselect(container, { tags, appliesTo, allowNew, onChange })
+ * @powers assigning and creating tags in item, area, and character editors
+ * @relates backed by /api/tags/search + /api/tags/validate, with a short-lived list cache
+ * @docs docs/virtualWorld/Library System/Tags System.md
  */
 
 // Lazy tag: window.Lit only exists at call time (deferred module bootstrap).

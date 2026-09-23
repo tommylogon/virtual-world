@@ -11,6 +11,12 @@
  * in agent-engine.js.
  *
  * Load BEFORE agent-engine.js.
+ *
+ * @module agent/plan-tracker — plan state ownership
+ * @contributes PlanTracker: plan array, step progress, failure map, replan eligibility
+ * @powers "am I still on plan?" — the replan trigger and the (CURRENT) plan marker
+ * @relates owns state that used to be inline in agent-engine; read by prompt-builder hasPlan/context-sections
+ * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
 
 window.PlanTracker = (() => {

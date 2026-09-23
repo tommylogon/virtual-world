@@ -176,3 +176,30 @@ capture overhead is negligible (IndexedDB writes are async and fire-and-forget).
 - Automatic request replay or modification
 - Token cost tracking across sessions
 - Exporting raw exchanges as a training dataset format
+
+## Progress — 2026-09-19
+
+Implemented (browser-only, opt-in).
+
+- `storage.js`: DB version 3 → 4, added the `llm_raw_exchanges` store.
+- `shared/dataset-collector.js`: `captureRaw` / `getAllRaw` / `clearRaw` /
+  `countRaw`. Redacts `authorization` / `api-key` / `x-api-key` to
+  `Bearer xxxxxx…REDACTED`, caps the store at 200 entries (trimmed every 25th
+  capture), and only records when `config.showRawLLM` is on.
+- `llm-client.js`: `_captureRawExchange(...)` plus hooks after `resp.json()`,
+  after `_handleStream` (captures `{ streamed: true, content }` — a stream has
+  no provider envelope), and in the `!resp.ok` branch so error bodies are kept.
+- `ui/llm-inspector.js` (new): floating panel with expand-per-entry, usage line
+  (prompt/completion/in/out/**reasoning**/total/cost), Copy request / Copy
+  response via `navigator.clipboard`, label + status filters, body search, and
+  Clear. Bodies are JS-serialized and truncated at 200k chars per block.
+- Settings: new **🔬 Show Raw LLM** checkbox (`agent-show-raw-llm`), wired
+  through `config` load/save/saveFromForm **and** `populateForm()` restore.
+
+Verified: `node --check` clean on all six touched JS files, `npm run lint`
+passes, and the settings-checkbox audit reports all 14 covered.
+
+Not done / caveats: no syntax highlighting or collapsible nested arrays (JSON is
+pretty-printed in a scrollable `<pre>`); no export of raw exchanges; the button
+and panel sit alongside the 🧪 dataset panel (both float bottom-right, so they
+can overlap if both are open).

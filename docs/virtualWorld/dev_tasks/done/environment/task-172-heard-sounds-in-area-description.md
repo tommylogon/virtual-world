@@ -1,7 +1,7 @@
 ---
 id: 172
 title: Heard Sounds in Area Description
-status: review
+status: done
 priority: low
 created: 2026-08-03
 updated: 2026-08-07

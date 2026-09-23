@@ -5,6 +5,12 @@
  * threat alert string to prepend to the DECIDE prompt, or null if safe.
  *
  * Load AFTER agent/agent-state.js, BEFORE agent-engine.js.
+ *
+ * @module agent/threat-detector — room threat scan
+ * @contributes ThreatDetector: hostile-actor scan → formatted alert string (or null when safe)
+ * @powers the threat warning prepended to the DECIDE prompt
+ * @relates reads worldState + agent-state; used by agent-engine
+ * @docs docs/virtualWorld/Characters/NPC Behavior System.md
  */
 
 window.ThreatDetector = (() => {

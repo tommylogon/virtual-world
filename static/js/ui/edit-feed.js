@@ -10,6 +10,12 @@
  * Caveat: undo pops the NEWEST snapshot, not this specific one — feeds are
  * per-edit *labels* for visibility; exact ordering discipline is the undo
  * stack's job. Practically the newest edit is the one in front of you.
+ *
+ * @module ui/edit-feed — "World edited" feed with per-edit undo
+ * @contributes EditFeed: session-local feed (cap 8) of world_changed events, each with ↩ Undo
+ * @powers seeing what just changed and reverting a single edit (task-384)
+ * @relates listens to the same EventSource as world-state.js; pops one undo snapshot
+ * @docs docs/virtualWorld/UI & Settings/
  */
 window.EditFeed = (() => {
   'use strict';

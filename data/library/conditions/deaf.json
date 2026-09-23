@@ -22,5 +22,10 @@
   "symptoms": {},
   "stack": "noop",
   "default_duration": 5,
-  "excludes": []
+  "excludes": [],
+  "order": 19,
+  "perception_skip": false,
+  "mature": false,
+  "check_advantage": [],
+  "check_disadvantage": []
 }

@@ -2,6 +2,12 @@
  * InspectorItemView — Item inspector (showItem, improveItem, actions, parameters, move, tags)
  * Extracted from inspector.js for modularity.
  * task-216: renders lit-html TemplateResults through InspectorPanel (single panel owner).
+ *
+ * @module inspector/item-view — the item inspector
+ * @contributes InspectorItemView: actions, parameters, tags, state, move, AI improve, contents
+ * @powers inspecting and editing any item in the world
+ * @relates renders through InspectorPanel; uses helpers + trigger-helpers
+ * @docs docs/virtualWorld/Items & Inventory/Items Overview.md
  */
 window.InspectorItemView = (() => {
     const IV = {};

@@ -97,8 +97,20 @@ def _safe_call(fn, *args, **kwargs):
 def get_tools(world):
     """Return a mapping of tool name -> callable. `world` should be a VirtualWorld instance."""
     def _ensure_tick():
+        """Advance one minute, unless the action already advanced the clock.
+
+        Atomic actions take a minute and get it here. A *task* that runs for its
+        own duration — ``rest``, which calls ``tick_turn`` once per minute itself
+        — sets ``world._clock_advanced_by_task`` so this does not add a second
+        minute on top of the hours it already spent.
+
+        The guard used to be driven by a ``time`` field on the cost table, which
+        made *which* actions moved the clock an accident of that table (``open``
+        did not, ``look`` did). task-436 removed that source; the flag now means
+        only what its name says.
+        """
         try:
-            if not getattr(world, '_action_time_consumed', False):
+            if not getattr(world, "_clock_advanced_by_task", False):
                 world.tick(1)
         except Exception:
             pass

@@ -40,6 +40,10 @@ HOSTILE = "hostile"
 #: tag string — when near a matching tag, apply a condition
 ALLERGIC_TO = "allergic_to"
 
+#: blood-temperature model — a band name ("cold_blooded"/"hot_blooded") or a
+#: partial override dict. Absent ⇒ warm-blooded (the engine default).
+TEMPERATURE_BAND = "temperature_band"
+
 #: list of conditions this trait grants immunity to
 IMMUNE_TO_CONDITION = "immune_to_condition"
 
@@ -653,6 +657,61 @@ def seed_trait_library():
 # TraitSystem
 # ──────────────────────────────────────────────────────────────
 
+# ── Blood-temperature bands ───────────────────────────────────────────────
+# Every threshold the temperature model uses, so a species can be described by
+# its band instead of the engine assuming 37 °C. "warm_blooded" is the default
+# and reproduces the historic hardcoded numbers exactly.
+TEMPERATURE_BANDS: Dict[str, Dict[str, float]] = {
+    "warm_blooded": {
+        "normal": 37.0,        # comfortable core temperature
+        "cold_mild": 35.0,     # below → mild cold (Energy drain)
+        "cold_severe": 33.0,   # below → severe cold (Energy + HP)
+        "cold_floor": 25.0,    # coldest the body drifts to
+        "heat_mild": 38.0,     # above → mild heat (Thirst)
+        "heat_severe": 40.0,   # above → severe heat (HP)
+        "heat_ceiling": 45.0,  # hottest the body drifts to
+        "ambient_cold": 5.0,   # ambient below this cools the body
+        "ambient_hot": 35.0,   # ambient above this heats the body
+        "drift_rate": 0.02,
+        "converge_rate": 0.1,
+        "cold_critical": 30.0,  # death-cause attribution ("hypothermia")
+        "heat_critical": 42.0,  # death-cause attribution ("heat stroke")
+    },
+    # Reptiles/amphibians: comfort near ambient, slow to warm, intolerant of cold.
+    "cold_blooded": {
+        "normal": 22.0,
+        "cold_mild": 16.0,
+        "cold_severe": 12.0,
+        "cold_floor": 6.0,
+        "heat_mild": 30.0,
+        "heat_severe": 34.0,
+        "heat_ceiling": 38.0,
+        "ambient_cold": -5.0,
+        "ambient_hot": 30.0,
+        "drift_rate": 0.02,
+        "converge_rate": 0.1,
+        "cold_critical": 8.0,
+        "heat_critical": 36.0,
+    },
+    # Dragonoids: hot-running, comfortable well above human.
+    "hot_blooded": {
+        "normal": 40.0,
+        "cold_mild": 36.0,
+        "cold_severe": 32.0,
+        "cold_floor": 24.0,
+        "heat_mild": 43.0,
+        "heat_severe": 46.0,
+        "heat_ceiling": 52.0,
+        "ambient_cold": 10.0,
+        "ambient_hot": 40.0,
+        "drift_rate": 0.02,
+        "converge_rate": 0.1,
+        "cold_critical": 26.0,
+        "heat_critical": 48.0,
+    },
+}
+
+
 class TraitSystem:
     """Resolves trait definitions into engine-readable effect values.
 
@@ -736,6 +795,26 @@ class TraitSystem:
             for vital, mult in m.items():
                 merged[vital] = merged.get(vital, 1.0) * mult
         return merged
+
+    @staticmethod
+    def get_temperature_band(player) -> Dict[str, float]:
+        """Resolve the player's blood-temperature band.
+
+        A trait may name a band (``temperature_band: "cold_blooded"``) or supply a
+        partial dict of overrides. Missing ⇒ fully warm-blooded, so characters
+        without such a trait behave exactly as before.
+        """
+        band = dict(TEMPERATURE_BANDS["warm_blooded"])
+        for value in TraitSystem.get_effects(player, TEMPERATURE_BAND):
+            if isinstance(value, str):
+                preset = TEMPERATURE_BANDS.get(value)
+                if preset:
+                    band.update(preset)
+            elif isinstance(value, dict):
+                for key, val in value.items():
+                    if key in band and isinstance(val, (int, float)):
+                        band[key] = float(val)
+        return band
 
     @staticmethod
     def get_action_cost_mods(player) -> Dict[str, int]:

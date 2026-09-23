@@ -152,5 +152,6 @@ id-keyed library dedupes repeats. Manual tag creation uses the `TagMultiselect` 
 - [[dev_tasks/done/triggers/task-169-add-tag-to-target-via-trigger|task-169: Add tag to target via trigger]]
 - [[dev_tasks/done/characters/task-178-unify-memory-systems|task-178: Memory unification (tag auto-registration)]]
 - [[Library System/Library System Overview]]
+- [[Library System/Domain & Role Tags]] — the area → furniture → item population chain
 - [[Items & Inventory/Items Overview]]
 - [[AI & Narration/Memory System]]

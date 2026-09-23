@@ -2,6 +2,12 @@
  * EdgeTypes — shared edge type configuration for the graph
  * Central place for edge type names, colors, icons, and valid source/target combos.
  * Load this before graph-manager.js in index.html.
+ *
+ * @module graph/edge-types — the edge type registry
+ * @contributes EdgeTypes: type names, colors, icons, valid source/target combos, resolve()/getConfig()
+ * @powers consistent styling and validation of every edge in the graph
+ * @relates loaded before graph-manager.js; used by network-manager, node-operations, edge-inspector
+ * @docs docs/virtualWorld/World Building/Graph System.md
  */
 window.EdgeTypes = {
     // All edge types with display metadata

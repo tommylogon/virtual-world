@@ -6,6 +6,7 @@ All names formerly defined in player.py are re-exported from here so
 delegates in player.py.
 """
 
+import copy
 import json
 import os
 from typing import Any, Dict, List, Optional
@@ -79,6 +80,7 @@ CONDITION_DEFINITIONS = {
         "name": "Restrained", "description": "Tied or held fast. Speed 0; attacks at disadvantage.",
         "blocks_actions": True, "blocks_movement": True, "blocks_speech": False,
         "auto_fail_checks": [], "auto_fail_saves": ["DEX"],
+        "check_disadvantage": ["attack"],
         "attack_mod": -2, "defense_mod": -2, "speed_mult": 0.0,
         "movement_mode": None, "drops_held_items": False,
         "periodic": {}, "ends_on": ["escape"],
@@ -417,7 +419,10 @@ CONDITION_DEFINITIONS = {
         "auto_fail_checks": [], "auto_fail_saves": [],
         "attack_mod": -2, "defense_mod": -2, "speed_mult": 1.0,
         "movement_mode": None, "drops_held_items": False,
-        "periodic": {"Sanity": -1}, "ends_on": ["socialize", "comfort"],
+        # No Sanity drain: it used to be -1/min against a 0.005/min baseline —
+        # 200x, and a condition that drains the meter causing it can only
+        # maintain itself. The behavioural penalty is the cost.
+        "periodic": {}, "ends_on": ["socialize", "comfort"],
         "known": False, "symptoms": {
             5: "You talk to yourself without meaning to.",
             3: "You'd say anything to have company right now.",
@@ -453,7 +458,11 @@ CONDITION_DEFINITIONS = {
         "auto_fail_saves": [],
         "attack_mod": 2, "defense_mod": -3, "speed_mult": 1.0,
         "movement_mode": None, "drops_held_items": False,
-        "periodic": {"Sanity": -2}, "ends_on": ["comfort", "rest", "meditate"],
+        # No Sanity drain, for the same reason as social_breakdown: -2/min was
+        # 400x the baseline and -2880/day, so a character who reached this could
+        # never climb back out however well they lived. Low Sanity *causes* the
+        # condition; the condition must not then hold Sanity down.
+        "periodic": {}, "ends_on": ["comfort", "rest", "meditate"],
         "known": True, "symptoms": {
             5: "A voice whispers from the corner of the room — no one else seems to hear it.",
             3: "The person standing in front of you isn't the person you remember.",
@@ -504,7 +513,65 @@ _CONDITION_BASE = {
     "periodic": {}, "ends_on": [],
     "known": True, "symptoms": {}, "stack": "noop", "default_duration": None,
     "excludes": [],
+    # Catalog metadata (single source of truth: the JSON library):
+    #   order            — position in CONDITION_HIERARCHY; None = not in it
+    #   perception_skip  — in the hierarchy but never rendered as a perception line
+    #   mature           — hidden/gated behind the world mature_content toggle
+    "order": None, "perception_skip": False, "mature": False,
+    # Roll-affecting lists read by engine/checks.py: names of skills, abilities
+    # or "attack"/"*" that gain advantage / disadvantage / auto-fail (task-472).
+    "check_advantage": [], "check_disadvantage": [],
 }
+
+# ──────────────────────────────────────────────────────────────
+# Catalog bootstrap metadata
+# ──────────────────────────────────────────────────────────────
+# Runtime truth for condition definitions is data/library/conditions/*.json
+# (loaded below, seeded by seed_condition_library). These tables are only the
+# built-in fallback for entries with no file yet, and every file the seeder
+# writes is stamped with them, so the values become editable per-condition JSON.
+# Conditions WITHOUT an `order` stay out of CONDITION_HIERARCHY on purpose —
+# mature arousal state is surfaced by the mature prompt path, not the generic
+# perception line.
+_CATALOG_ORDER = [
+    "dead", "unconscious",
+    "paralysed", "stunned",
+    "grappled", "restrained", "prone",
+    "busy", "exhausted",
+    "sick", "poisoned",
+    "wet", "injured", "bleeding", "hypothermia",
+    "suffocating", "petrified",
+    "blind", "deaf",
+    "frightened", "charmed",
+    "awake",
+]
+_PERCEPTION_SKIP_IDS = ("awake", "dead", "grappled")
+_MATURE_CONDITION_IDS = (
+    "warming_up", "aroused", "highly_aroused", "frantic", "overstimulated",
+    "nipple_hard", "blushing", "wetness", "sensitized", "satisfied",
+)
+
+
+def _normalize_catalog():
+    """Give every catalog entry the full schema (missing keys → base defaults)."""
+    for cid, definition in CONDITION_DEFINITIONS.items():
+        if not isinstance(definition, dict):
+            continue
+        for key, value in _CONDITION_BASE.items():
+            definition.setdefault(key, copy.deepcopy(value))
+
+
+for _index, _cid in enumerate(_CATALOG_ORDER, 1):
+    CONDITION_DEFINITIONS.setdefault(_cid, {})["order"] = _index
+for _cid in _PERCEPTION_SKIP_IDS:
+    CONDITION_DEFINITIONS.setdefault(_cid, {})["perception_skip"] = True
+for _cid in _MATURE_CONDITION_IDS:
+    CONDITION_DEFINITIONS.setdefault(_cid, {})["mature"] = True
+del _index, _cid
+_normalize_catalog()
+
+# Frozen copy of the built-in catalog, used to rebuild from scratch on reload.
+_BUILTIN_CONDITIONS = copy.deepcopy(CONDITION_DEFINITIONS)
 
 
 # ──────────────────────────────────────────────────────────────
@@ -538,7 +605,7 @@ def _load_condition_library():
         if not isinstance(entry, dict):
             continue
         base = CONDITION_DEFINITIONS.get(cond_id, _CONDITION_BASE)
-        merged = dict(base)
+        merged = copy.deepcopy(base)
         merged.update(entry)
         merged.setdefault('name', cond_id.title().replace('_', ' '))
         for nested_key in ('symptoms', 'level_periodic', 'level_speed_mult'):
@@ -555,67 +622,120 @@ def _load_condition_library():
 
 
 _load_condition_library()
+_normalize_catalog()
+
+
+def reload_condition_library():
+    """Re-read data/library/conditions/*.json and rebuild the catalog in place.
+
+    In place (dict/list/set mutation, not rebinding) so modules that imported
+    ``CONDITION_DEFINITIONS`` / ``CONDITION_HIERARCHY`` / ``BLOCKING_CONDITIONS``
+    at import time keep seeing the updates. Call after the library API writes a
+    condition file, so edits take effect without an app restart.
+    """
+    CONDITION_DEFINITIONS.clear()
+    for cond_id, definition in copy.deepcopy(_BUILTIN_CONDITIONS).items():
+        CONDITION_DEFINITIONS[cond_id] = definition
+    _load_condition_library()
+    _normalize_catalog()
+    _rebuild_derived_constants()
 
 
 def seed_condition_library():
-    """Write the current catalog into data/library/conditions/*.json.
+    """Backfill/upgrade data/library/conditions/*.json from the catalog.
 
-    Called once at app startup (non-TESTING) when the conditions library is empty,
-    so the library browser's Conditions tab has a real, editable source of truth.
-    Never overwrites existing files.
+    Runtime truth is the JSON library, so every catalog entry gets a file; an
+    existing file only receives schema keys it is missing (never a value
+    overwrite), so user-edited values are preserved. Idempotent — called at app
+    startup (non-TESTING).
     """
     cond_dir = _condition_library_dir()
     try:
         os.makedirs(cond_dir, exist_ok=True)
     except OSError:
         return
-    if any(fname.endswith('.json') for fname in os.listdir(cond_dir)):
-        return
     for cond_id, definition in CONDITION_DEFINITIONS.items():
         path = os.path.join(cond_dir, f"{cond_id}.json")
+        existing = None
+        if os.path.exists(path):
+            try:
+                with open(path, 'r', encoding='utf-8-sig') as f:
+                    existing = json.load(f)
+            except Exception:
+                existing = None
+        if isinstance(existing, dict):
+            payload = dict(existing)
+            changed = False
+            for key, value in definition.items():
+                if key not in payload:
+                    payload[key] = copy.deepcopy(value)
+                    changed = True
+            if not changed:
+                continue
+        else:
+            payload = copy.deepcopy(definition)
         try:
             with open(path, 'w', encoding='utf-8') as f:
-                json.dump(definition, f, indent=2, ensure_ascii=False)
+                json.dump(payload, f, indent=2, ensure_ascii=False)
         except OSError:
             continue
 
 
 # ──────────────────────────────────────────────────────────────
-# Derived constants
+# Derived constants (rebuilt from the catalog — never hand-maintained)
 # ──────────────────────────────────────────────────────────────
 
-CONDITION_HIERARCHY = [
-    "dead", "unconscious",
-    "paralysed", "stunned",
-    "grappled", "restrained", "prone",
-    "busy", "exhausted",
-    "sick", "poisoned",
-    "wet", "injured", "bleeding", "hypothermia",
-    "suffocating", "petrified",
-    "blind", "deaf",
-    "frightened", "charmed",
-    "awake",
-]
+CONDITION_HIERARCHY: List[str] = []
+BLOCKING_CONDITIONS: set = set()
+PERIODIC_CONDITIONS: Dict[str, Any] = {}
+CONDITION_EXCLUSIONS: Dict[str, set] = {}
+CONDITION_DEFAULT_TIMERS: Dict[str, Any] = {}
+PERCEPTION_SKIP: set = set()
+MATURE_CONDITIONS: set = set()
 
-BLOCKING_CONDITIONS = frozenset(
-    cid for cid, definition in CONDITION_DEFINITIONS.items() if definition["blocks_actions"]
-)
 
-PERIODIC_CONDITIONS = {
-    cid: definition["periodic"]
-    for cid, definition in CONDITION_DEFINITIONS.items() if definition["periodic"]
-}
+def _rebuild_derived_constants():
+    """Recompute every derived constant in place from CONDITION_DEFINITIONS."""
+    ordered = sorted(
+        ((cid, d) for cid, d in CONDITION_DEFINITIONS.items() if d.get("order") is not None),
+        key=lambda item: item[1]["order"],
+    )
+    CONDITION_HIERARCHY[:] = [cid for cid, _d in ordered]
 
-CONDITION_EXCLUSIONS = {
-    cid: set(definition["excludes"])
-    for cid, definition in CONDITION_DEFINITIONS.items()
-}
+    BLOCKING_CONDITIONS.clear()
+    BLOCKING_CONDITIONS.update(
+        cid for cid, d in CONDITION_DEFINITIONS.items() if d.get("blocks_actions")
+    )
 
-CONDITION_DEFAULT_TIMERS = {
-    cid: definition["default_duration"]
-    for cid, definition in CONDITION_DEFINITIONS.items()
-    if definition["default_duration"] is not None
-}
+    PERIODIC_CONDITIONS.clear()
+    PERIODIC_CONDITIONS.update({
+        cid: d["periodic"] for cid, d in CONDITION_DEFINITIONS.items() if d.get("periodic")
+    })
+
+    CONDITION_EXCLUSIONS.clear()
+    CONDITION_EXCLUSIONS.update({
+        cid: set(d.get("excludes") or []) for cid, d in CONDITION_DEFINITIONS.items()
+    })
+
+    CONDITION_DEFAULT_TIMERS.clear()
+    CONDITION_DEFAULT_TIMERS.update({
+        cid: d["default_duration"]
+        for cid, d in CONDITION_DEFINITIONS.items()
+        if d.get("default_duration") is not None
+    })
+
+    PERCEPTION_SKIP.clear()
+    PERCEPTION_SKIP.update(
+        cid for cid, d in CONDITION_DEFINITIONS.items() if d.get("perception_skip")
+    )
+
+    MATURE_CONDITIONS.clear()
+    MATURE_CONDITIONS.update(
+        cid for cid, d in CONDITION_DEFINITIONS.items() if d.get("mature")
+    )
+
+
+_rebuild_derived_constants()
 
 
 # ──────────────────────────────────────────────────────────────

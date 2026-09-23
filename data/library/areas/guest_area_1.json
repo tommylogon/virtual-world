@@ -1,7 +1,12 @@
 {
   "name": "guest area 1",
   "description": "a small, sparsely furnished guest room with a single iron bed, a nightstand with a broken lamp, and a tall wooden wardrobe. the window is boarded up from the outside, the boards nailed firmly in place. why would someone board a window from the outside?",
-  "tags": [],
+  "tags": [
+    "interior",
+    "mansion",
+    "bedroom",
+    "sleeping"
+  ],
   "environment": {
     "air": "stale",
     "light": 20,

@@ -93,7 +93,17 @@
         "food"
       ],
       "discovered_items": [],
-      "decay_rates": {},
+      "decay_rates": {
+        "Energy": 0.104,
+        "Hunger": 0.0034,
+        "Thirst": 0.025,
+        "Social": 0.02,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Entertainment": 0.03,
+        "Mana": 0.0,
+        "Bladder": 0.42
+      },
       "body_state": {
         "arm_left": {
           "sensitivity": 0.3
@@ -430,8 +440,15 @@
       ],
       "discovered_items": [],
       "decay_rates": {
-        "Hunger": 1.0,
-        "Thirst": 1.0
+        "Hunger": 0.0034,
+        "Thirst": 0.025,
+        "Energy": 0.104,
+        "Social": 0.02,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Entertainment": 0.03,
+        "Mana": 0.0,
+        "Bladder": 0.42
       },
       "body_state": {
         "arm_left": {
@@ -727,7 +744,17 @@
       "discovered_exits": [],
       "interest_tags": [],
       "discovered_items": [],
-      "decay_rates": {},
+      "decay_rates": {
+        "Energy": 0.104,
+        "Hunger": 0.0034,
+        "Thirst": 0.025,
+        "Social": 0.02,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Entertainment": 0.03,
+        "Mana": 0.0,
+        "Bladder": 0.42
+      },
       "body_state": {
         "arm_left": {
           "sensitivity": 0.3

@@ -7,6 +7,12 @@
  * so it earns a standalone file. Exports merge into window.PromptBuilder.
  *
  * Cross-file calls use PromptBuilder.<fn>(...).
+ *
+ * @module prompt-builder/memory-context — memory retrieval + investigation notes
+ * @contributes buildMemoryContext: async recall scoring, keyword/semantic/recent mix, investigation notes
+ * @powers the "=== I REMEMBER ===" block and the discovery-note pipeline
+ * @relates the only async module here; uses memory-manager + shared/embedding-client
+ * @docs docs/virtualWorld/AI & Narration/Memory System.md
  */
 
 window.PromptBuilder = window.PromptBuilder || {};

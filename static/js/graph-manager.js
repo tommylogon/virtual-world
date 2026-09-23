@@ -1,5 +1,15 @@
 /**
- * GraphManager — vis.js network graph, context menu, and graph API operations
+ * GraphManager — graph-view facade: the single `graphManager` singleton the rest of
+ * the app talks to. The heavy lifting lives in static/js/graph/* (GraphNetwork,
+ * GraphEventHandlers, GraphContextMenu, GraphProjection, GraphFocus, GraphOverlays,
+ * GraphLayoutEngine). Many methods here are thin, deprecated delegates kept so
+ * existing callers and HTML onclick handlers keep working.
+ *
+ * @module graph-manager — graph view facade + shared graph state
+ * @contributes `graphManager`: network handle, node map, filters, reveal/bulk/floor state
+ * @powers the graph view — rendering, context menus, search/focus, overlays, authoring
+ * @relates delegates to static/js/graph/*; reads worldState; used by inspector + nl-editor
+ * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
 const graphManagerHtmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
 
@@ -33,6 +43,7 @@ class GraphManager {
 
     async init() {
         await GraphNetwork.init();
+        if (window.GraphBackground) await window.GraphBackground.init();
         await this._applyEngineConfigDefaults();
     }
 
@@ -123,10 +134,13 @@ class GraphManager {
             const values = data.values || {};
             if ('graph.physics_enabled' in values) {
                 this._physicsEnabled = !!values['graph.physics_enabled'];
+                // Hierarchical mode owns positions: the solver would drag nodes
+                // off their levels, so the stored preference is not applied there.
+                const on = this._physicsEnabled && !this._levelsMode();
                 const pb = document.getElementById('btn-physics');
-                if (pb) pb.textContent = this._physicsEnabled ? '⏸ Physics' : '▶ Physics';
+                if (pb) pb.textContent = on ? '⏸ Physics' : '▶ Physics';
                 if (this.network) {
-                    this.network.setOptions({ physics: { enabled: this._physicsEnabled } });
+                    this.network.setOptions({ physics: { enabled: on } });
                 }
             }
             if ('graph.show_items' in values) {
@@ -208,6 +222,7 @@ class GraphManager {
             items.push(graphManagerHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('create_character')}>✨ Create Character Here</div>`);
             items.push(graphManagerHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('create_trigger')}>⚡ Add Trigger Edge</div>`);
             items.push(graphManagerHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('save_area_to_lib')}>📚 Save to Library</div>`);
+            items.push(graphManagerHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('save_structure')}>📦 Save as Structure…</div>`);
         } else if (nodeData?.type === 'item') {
             items.push(graphManagerHtmlTag`<div class="context-menu-separator"></div>`);
             items.push(graphManagerHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('edit')}>✏️ Edit Item</div>`);
@@ -262,6 +277,11 @@ class GraphManager {
                 const areaName = t.nodeData?.name || name;
                 if (libraryBrowser?.saveAreaByName) libraryBrowser.saveAreaByName(areaName);
                 else events.log('Library browser not ready.', 'error-msg');
+                break;
+            }
+            case 'save_structure': {
+                if (VW?.structures?.openSaveDialog) VW.structures.openSaveDialog(t.nodeId, name);
+                else events.log('Structure module not loaded.', 'error-msg');
                 break;
             }
             case 'delete': this._deleteNode(t.nodeId); break;
@@ -663,6 +683,18 @@ class GraphManager {
         graphManager._saveGraphConfigKey('graph.physics_enabled', graphManager._physicsEnabled);
     }
 
+    /** Free physics layout <-> vis hierarchical levels (task-485). */
+    toggleLayoutMode() { return GraphNetwork.toggleLayoutMode(); }
+
+    /** True when the hierarchical (level) layout owns node positions. */
+    _levelsMode() {
+        try {
+            return (typeof config !== 'undefined' && config && config.graphLayoutMode) === 'levels';
+        } catch (err) {
+            return false;
+        }
+    }
+
     fitView() { return GraphNetwork.fitView(); }
 
     /** Floating zoom-cluster actions (bottom-right of the canvas). */
@@ -781,11 +813,11 @@ class GraphManager {
                 if (cb) cb.textContent = '🗺️ Map';
                 this._physicsEnabled = true;
                 const pb = document.getElementById('btn-physics');
-                if (pb) pb.textContent = '⏸ Physics';
+                if (pb) pb.textContent = this._levelsMode() ? '▶ Physics' : '⏸ Physics';
             }
             if (this.network) {
                 GraphNetwork.applyOverlay('structural');
-                this.network.setOptions({ physics: { enabled: this._physicsEnabled } });
+                this.network.setOptions({ physics: { enabled: this._physicsEnabled && !this._levelsMode() } });
                 this.fitView();
             }
         } else if (overlayModes.includes(mode)) {

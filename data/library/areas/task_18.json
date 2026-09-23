@@ -22,6 +22,9 @@
     }
   ],
   "name": "Task 18",
-  "tags": [],
+  "tags": [
+    "test",
+    "sealed"
+  ],
   "triggers": []
 }

@@ -1,7 +1,7 @@
 ---
 id: 159
 title: Saves and Reactions to Actions and Events
-status: review
+status: done
 priority: medium
 created: 2026-08-02
 tags: [combat, skills, gameplay, reactions]

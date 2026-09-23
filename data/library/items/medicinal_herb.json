@@ -1,0 +1,9 @@
+{
+  "name": "medicinal_herb",
+  "description": "a sprig of grey-green leaves. it smells sharp and clean.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "tags": ["herb", "medicinal", "plant", "forage"]
+}

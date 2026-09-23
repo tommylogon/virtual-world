@@ -1,8 +1,15 @@
 /**
  * tools.js — Tool catalog and Overlay Graph View for Natural-Language Editor (task-387).
  *
- * Implements the 20 catalog tools with an OverlayGraphView that seamlessly
- * merges live worldState with uncommitted staged operations.
+ * Implements the catalog tools with an OverlayGraphView that seamlessly merges
+ * live worldState with uncommitted staged operations (including bulk
+ * update_matching_nodes patches and roster/list reads).
+ *
+ * @module nl-editor/tools — the tool catalog + overlay graph view
+ * @contributes NLEditorTools + OverlayGraphView: merge live worldState with uncommitted staged ops, list_nodes/matchNodes roster reads, update_matching_nodes bulk patches, library_upsert/library_delete template editing
+ * @powers what the NL agent can actually do, previewed against the real graph
+ * @relates called by agent-loop.js; reads staging.js
+ * @docs docs/virtualWorld/dev_tasks/done/graph/task-387-natural-language-editor-mode.md
  */
 
 window.NLEditorTools = (() => {
@@ -16,6 +23,32 @@ window.NLEditorTools = (() => {
             this.staging = stagingBuffer;
         }
 
+        /** Live character data for a character node, from the state payload.
+         *  The character node is the authoring record; fields not yet mirrored
+         *  onto it (traits, tags, stats, vitals, ...) are read from the live
+         *  player so the agent can see the whole character. Node props win. */
+        _characterFields(node) {
+            if (!node || node.type !== 'character' || !node.name) return null;
+            try {
+                const players = (typeof worldState !== 'undefined' && worldState?.data?.players) || null;
+                return (players && players[node.name]) || null;
+            } catch (e) { return null; }
+        }
+
+        /** Node view with live character fields filled in where the node lacks them. */
+        _enrich(node) {
+            const p = this._characterFields(node);
+            if (!p) return node;
+            const props = { ...(node.properties || {}) };
+            for (const f of ['description', 'base_description', 'personality', 'stats', 'skills',
+                             'vitals', 'traits', 'tags', 'interest_tags', 'decay_rates',
+                             'simple_npc', 'autonomy', 'npc_behavior', 'npc_action_interval',
+                             'emotion', 'conditions', 'activity']) {
+                if (props[f] === undefined && p[f] !== undefined) props[f] = p[f];
+            }
+            return { ...node, properties: props };
+        }
+
         getNode(nodeId) {
             if (!nodeId) return null;
             const nid = String(nodeId).toLowerCase();
@@ -23,22 +56,36 @@ window.NLEditorTools = (() => {
             if (deletions.has(nid)) return null;
 
             const creations = this.staging.getStagedCreations();
-            if (creations[nid]) {
-                const node = { ...creations[nid] };
+            const stagedId = creations[nid]
+                ? nid
+                : Object.keys(creations).find(k => (creations[k].name || '').toLowerCase() === nid);
+            if (stagedId) {
+                const node = { ...creations[stagedId] };
                 const updates = this.staging.getStagedUpdates();
-                if (updates[nid]) {
-                    node.properties = { ...(node.properties || {}), ...updates[nid] };
+                if (updates[stagedId]) {
+                    node.properties = this._mergeProps(node.properties, updates[stagedId]);
                 }
+                const bulk = this._bulkPatchFor(stagedId);
+                if (bulk) node.properties = this._mergeProps(node.properties, bulk);
                 return node;
             }
 
-            const liveNode = typeof worldState !== 'undefined' && worldState?.getNode ? worldState.getNode(nid) : null;
+            // Display names are not storage keys (AGENTS.md): resolve a name to
+            // its node at the read boundary, so `get_node {"node_id":"Thrazz"}`
+            // resolves instead of failing on the raw name.
+            let liveNode = typeof worldState !== 'undefined' && worldState?.getNode ? worldState.getNode(nid) : null;
+            if (!liveNode && typeof worldState !== 'undefined' && typeof worldState?.getNodeByIdentifier === 'function') {
+                liveNode = worldState.getNodeByIdentifier(nodeId) || null;
+            }
             if (liveNode) {
-                const node = JSON.parse(JSON.stringify(liveNode));
+                const liveId = String(liveNode.id).toLowerCase();
+                const node = this._enrich(JSON.parse(JSON.stringify(liveNode)));
                 const updates = this.staging.getStagedUpdates();
-                if (updates[nid]) {
-                    node.properties = { ...(node.properties || {}), ...updates[nid] };
+                if (updates[liveId]) {
+                    node.properties = this._mergeProps(node.properties, updates[liveId]);
                 }
+                const bulk = this._bulkPatchFor(liveId);
+                if (bulk) node.properties = this._mergeProps(node.properties, bulk);
                 return node;
             }
             return null;
@@ -47,7 +94,7 @@ window.NLEditorTools = (() => {
         searchNodes(query = '', kind = null, tags = null) {
             const q = (query || '').toLowerCase().trim();
             const filterKind = kind ? kind.toLowerCase() : null;
-            const tagSet = Array.isArray(tags) ? new Set(tags.map(t => t.toLowerCase())) : null;
+            const tagList = Array.isArray(tags) ? tags.map(t => String(t).toLowerCase()).filter(Boolean) : null;
             const deletions = this.staging.getStagedDeletions();
             const results = [];
             const seenIds = new Set();
@@ -57,6 +104,8 @@ window.NLEditorTools = (() => {
             for (const [id, node] of Object.entries(creations)) {
                 if (seenIds.has(id) || deletions.has(id)) continue;
                 if (filterKind && (node.type || 'item').toLowerCase() !== filterKind) continue;
+                const nodeTags = (node.properties?.tags || []).map(t => String(t).toLowerCase());
+                if (tagList && tagList.length && !tagList.some(t => nodeTags.includes(t))) continue;
                 const name = (node.name || '').toLowerCase();
                 if (!q || id.includes(q) || name.includes(q)) {
                     seenIds.add(id);
@@ -79,11 +128,12 @@ window.NLEditorTools = (() => {
                 const nodeType = (rawNode.type || '').toLowerCase();
                 if (filterKind && nodeType !== filterKind) continue;
 
+                const view = this._enrich(rawNode);
                 const name = (rawNode.name || '').toLowerCase();
-                const desc = (rawNode.properties?.description || '').toLowerCase();
-                const nodeTags = (rawNode.properties?.tags || []).map(t => String(t).toLowerCase());
+                const desc = (view.properties?.description || '').toLowerCase();
+                const nodeTags = (view.properties?.tags || []).map(t => String(t).toLowerCase());
 
-                if (tagSet && !tagSet.some(t => nodeTags.includes(t))) continue;
+                if (tagList && tagList.length && !tagList.some(t => nodeTags.includes(t))) continue;
 
                 if (!q || nid.includes(q) || name.includes(q) || desc.includes(q)) {
                     seenIds.add(nid);
@@ -91,8 +141,8 @@ window.NLEditorTools = (() => {
                         id: rawNode.id,
                         name: rawNode.name,
                         type: rawNode.type,
-                        tags: rawNode.properties?.tags || [],
-                        short_desc: (rawNode.properties?.description || '').slice(0, 80),
+                        tags: view.properties?.tags || [],
+                        short_desc: (view.properties?.description || '').slice(0, 80),
                         staged: false
                     });
                 }
@@ -109,16 +159,28 @@ window.NLEditorTools = (() => {
             const deletions = this.staging.getStagedDeletions();
 
             const allNodes = { ...liveNodes, ...creations };
+            const counts = { area: 0, character: 0, item: 0, way: 0, logic_trigger: 0 };
             for (const [id, node] of Object.entries(allNodes)) {
                 const nid = id.toLowerCase();
                 if (deletions.has(nid)) continue;
-                if (node.type === 'area') {
+                const type = node.type || 'item';
+                if (counts[type] !== undefined) counts[type] += 1;
+                if (type === 'area') {
                     const tagStr = (node.properties?.tags || []).join(', ');
                     areas.push(`- Area [${node.name}] (id: ${node.id}${node.staged ? ', STAGED' : ''})${tagStr ? ` [tags: ${tagStr}]` : ''}`);
                 }
             }
             if (areas.length === 0) lines.push('(No areas found in world)');
             else lines.push(...areas);
+            lines.push(`Counts: ${counts.area} areas, ${counts.character} characters, ${counts.item} items, ${counts.way} ways${counts.logic_trigger ? `, ${counts.logic_trigger} triggers` : ''}.`);
+
+            const roster = this.roster();
+            if (roster.length) {
+                lines.push(`Characters (${roster.length}):`);
+                for (const entry of roster) {
+                    lines.push(`- ${entry.name}${entry.area ? ` @ ${entry.area}` : ''} (id: ${entry.id})`);
+                }
+            }
 
             const stagedOps = this.staging.getOps();
             if (stagedOps.length > 0) {
@@ -127,6 +189,143 @@ window.NLEditorTools = (() => {
             }
             return lines.join('\n');
         }
+
+        /** Characters (id, name, current area), resolved from the live roster. */
+        roster() {
+            const players = (typeof worldState !== 'undefined' && worldState?.data?.players) || {};
+            const out = [];
+            for (const [key, player] of Object.entries(players)) {
+                const name = player?.name || key;
+                let id = player?.node_id || null;
+                if (!id && typeof worldState?.getNodeByIdentifier === 'function') {
+                    id = worldState.getNodeByIdentifier(name)?.id || null;
+                }
+                out.push({ key, id: id || key, name, area: player?.current_area || null });
+            }
+            out.sort((a, b) => String(a.name).localeCompare(String(b.name)));
+            return out;
+        }
+
+        /**
+         * Resolve a bulk selector to node views — uncapped, deterministic. The
+         * selector mirrors the server's `_select_nodes` so the affected set the
+         * user reviews is the set the apply will touch:
+         * {kind|type, tags|tag, require_all_tags, area|area_id,
+         *  name_contains|query, ids}.
+         */
+        matchNodes(selector = {}) {
+            const sel = selector || {};
+            const kind = String(sel.kind || sel.type || '').toLowerCase() || null;
+            const nameContains = String(sel.name_contains || sel.query || '').toLowerCase().trim();
+            const tags = []
+                .concat(sel.tags || [], sel.tag ? [sel.tag] : [])
+                .map(t => String(t).toLowerCase())
+                .filter(Boolean);
+            const requireAll = sel.require_all_tags !== false;
+            const explicit = Array.isArray(sel.ids) && sel.ids.length
+                ? new Set(sel.ids.map(i => String(i).toLowerCase()))
+                : null;
+
+            const deletions = this.staging.getStagedDeletions();
+            const creations = this.staging.getStagedCreations();
+            const liveNodes = (typeof worldState !== 'undefined' && worldState?.graph?.nodes) || {};
+            const all = { ...liveNodes, ...creations };
+
+            let areaId = null;
+            const areaKey = sel.area || sel.area_id || null;
+            if (areaKey) {
+                const wanted = String(areaKey).toLowerCase();
+                for (const [id, node] of Object.entries(all)) {
+                    if (node.type === 'area' && (String(node.name).toLowerCase() === wanted || id.toLowerCase() === wanted)) {
+                        areaId = id.toLowerCase();
+                        break;
+                    }
+                }
+                if (!areaId) areaId = `area_${wanted.replace(/\s+/g, '_')}`;
+            }
+
+            const results = [];
+            for (const [id, rawNode] of Object.entries(all)) {
+                const nid = id.toLowerCase();
+                if (deletions.has(nid)) continue;
+                if (explicit && !explicit.has(nid) && !explicit.has(String(rawNode.id || '').toLowerCase())) continue;
+                if (kind && String(rawNode.type || '').toLowerCase() !== kind) continue;
+                const view = this._enrich(rawNode);
+                const nodeTags = (view.properties?.tags || []).map(t => String(t).toLowerCase());
+                if (tags.length && (requireAll
+                    ? !tags.every(t => nodeTags.includes(t))
+                    : !tags.some(t => nodeTags.includes(t)))) continue;
+                const name = String(rawNode.name || '').toLowerCase();
+                if (nameContains && !name.includes(nameContains) && !nid.includes(nameContains)) continue;
+                if (areaId && !this._isInArea(nid, areaId)) continue;
+                results.push({
+                    id: rawNode.id || id,
+                    name: rawNode.name,
+                    type: rawNode.type || 'item',
+                    tags: view.properties?.tags || [],
+                    staged: !!creations[id]
+                });
+            }
+            results.sort((a, b) => String(a.id).localeCompare(String(b.id)));
+            return results;
+        }
+
+        /** True when node *nid* has an `in` edge to *areaId* (live or staged). */
+        _isInArea(nid, areaId) {
+            const key = String(nid).toLowerCase();
+            const target = String(areaId).toLowerCase();
+            const liveEdges = (typeof worldState !== 'undefined' && worldState?.graph?.edges) || [];
+            for (const edge of liveEdges) {
+                if (String(edge.type) !== 'in') continue;
+                if (String(edge.source).toLowerCase() === key && String(edge.target).toLowerCase() === target) return true;
+            }
+            for (const op of this.staging.getOps()) {
+                if (op.type !== 'attach') continue;
+                const payload = op.payload || {};
+                if ((payload.relation || 'in') !== 'in') continue;
+                if (String(payload.from_id).toLowerCase() === key &&
+                    String(payload.to_id).toLowerCase() === target) return true;
+            }
+            return false;
+        }
+
+        /** The effective property map of a patch (nested `properties` + flat keys). */
+        _patchProps(patch) {
+            const props = { ...((patch || {}).properties || {}) };
+            for (const [key, value] of Object.entries(patch || {})) {
+                if (key === 'properties' || key === 'name' || key === 'id' || key === 'type') continue;
+                props[key] = value;
+            }
+            return props;
+        }
+
+        /** One-level dict merge, mirroring the server's `_merge_dict_props`. */
+        _mergeProps(base, patch) {
+            const out = { ...(base || {}) };
+            for (const [key, value] of Object.entries(patch || {})) {
+                const current = out[key];
+                out[key] = (value && typeof value === 'object' && !Array.isArray(value) &&
+                    current && typeof current === 'object' && !Array.isArray(current))
+                    ? { ...current, ...value }
+                    : value;
+            }
+            return out;
+        }
+
+        /** Merged patch from staged bulk ops that listed *nodeId* as affected. */
+        _bulkPatchFor(nodeId) {
+            const key = String(nodeId).toLowerCase();
+            let patch = null;
+            for (const op of this.staging.getOps()) {
+                if (op.type !== 'update_matching_nodes') continue;
+                const payload = op.payload || {};
+                const ids = (payload.matched_ids || []).map(i => String(i).toLowerCase());
+                if (!ids.includes(key)) continue;
+                patch = Object.assign(patch || {}, this._patchProps(payload.patch || {}));
+            }
+            return patch;
+        }
+
     }
 
     /**
@@ -159,6 +358,26 @@ window.NLEditorTools = (() => {
                         node_id: { type: 'string', description: 'The unique ID of the node to inspect' }
                     },
                     required: ['node_id']
+                }
+            }
+        },
+        {
+            type: 'function',
+            function: {
+                name: 'list_nodes',
+                description: 'List/count nodes by kind, tag, area or name — the roster read. Use for "who is in area X", "how many goblins", "all items tagged lantern", and to preview a bulk selector before update_matching_nodes. Paged.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        kind: { type: 'string', enum: ['area', 'item', 'way', 'character', 'logic_trigger'], description: 'Optional node type filter' },
+                        tags: { type: 'array', items: { type: 'string' }, description: 'Required tags (all of them)' },
+                        tag: { type: 'string', description: 'Single required tag shorthand' },
+                        require_all_tags: { type: 'boolean', description: 'Default true; false matches any tag' },
+                        area: { type: 'string', description: 'Area id or name; matches nodes with an `in` edge to it' },
+                        name_contains: { type: 'string', description: 'Case-insensitive substring of name or id' },
+                        page: { type: 'number', description: '1-based page (default 1)' },
+                        page_size: { type: 'number', description: 'Nodes per page (default 25, max 200)' }
+                    }
                 }
             }
         },
@@ -206,8 +425,29 @@ window.NLEditorTools = (() => {
         {
             type: 'function',
             function: {
+                name: 'list_library_traits',
+                description: 'List the registered trait catalog (id, effects, description). Call this before setting a character\'s traits so you only use real trait ids (e.g. dark_vision / darkvision).',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        query: { type: 'string', description: 'Optional keyword filter (e.g. "dark", "vision", "heal")' }
+                    }
+                }
+            }
+        },
+        {
+            type: 'function',
+            function: {
                 name: 'list_world_summary',
                 description: 'Get a concise summary of all rooms, landmarks, and currently staged operations.',
+                parameters: { type: 'object', properties: {} }
+            }
+        },
+        {
+            type: 'function',
+            function: {
+                name: 'get_background_map',
+                description: 'Get the scenario background map image (if one is set): its file path, position and size on the graph, opacity, and lock state. Check this before describing or editing spatial layout, so a hand-drawn map can be respected.',
                 parameters: { type: 'object', properties: {} }
             }
         },
@@ -290,6 +530,37 @@ window.NLEditorTools = (() => {
         {
             type: 'function',
             function: {
+                name: 'upsert_library_entry',
+                description: 'Stage creating or updating a shared library template (archetype) for items, characters, areas, ways or traits — e.g. "all goblins have darkvision" as an archetype change. Future spawns inherit it; link/refresh existing nodes to push it to the world. Validated before Apply (id slug, known fields, mature gate).',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        registry_type: { type: 'string', enum: ['items', 'characters', 'areas', 'ways', 'traits'], description: 'Which library registry' },
+                        id: { type: 'string', description: 'Template id — a lowercase slug (a-z, 0-9, _)' },
+                        data: { type: 'object', description: 'The template body, same schema as the registry read (name, description, tags, effects/triggers/properties, ...)' }
+                    },
+                    required: ['registry_type', 'id', 'data']
+                }
+            }
+        },
+        {
+            type: 'function',
+            function: {
+                name: 'delete_library_entry',
+                description: 'Stage deleting a library template from a registry. Does not touch nodes already spawned from it.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        registry_type: { type: 'string', enum: ['items', 'characters', 'areas', 'ways', 'traits'], description: 'Which library registry' },
+                        id: { type: 'string', description: 'Template id to delete' }
+                    },
+                    required: ['registry_type', 'id']
+                }
+            }
+        },
+        {
+            type: 'function',
+            function: {
                 name: 'create_node',
                 description: 'Stage creation of a new world entity (area, item, character, or logic_trigger). Must search library first if creating an item.',
                 parameters: {
@@ -354,6 +625,33 @@ window.NLEditorTools = (() => {
                         patch: { type: 'object', description: 'Key-value map of properties to update (e.g. description, triggers, tags)' }
                     },
                     required: ['node_id', 'patch']
+                }
+            }
+        },
+        {
+            type: 'function',
+            function: {
+                name: 'update_matching_nodes',
+                description: 'Stage ONE patch applied to every node matching a selector — use for bulk intents ("give all goblins darkvision"). The affected entities are resolved immediately and listed for review before Apply; dict-valued fields (traits, stats, environment) merge key-by-key. Prefer this over many update_node calls.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        selector: {
+                            type: 'object',
+                            description: 'Which nodes to patch. kind/type, tags (all required) or tag, require_all_tags (default true), area/area_id, name_contains, or ids (explicit affected list wins over filters).',
+                            properties: {
+                                kind: { type: 'string', enum: ['area', 'item', 'way', 'character', 'logic_trigger'] },
+                                tags: { type: 'array', items: { type: 'string' } },
+                                tag: { type: 'string' },
+                                require_all_tags: { type: 'boolean' },
+                                area: { type: 'string', description: 'Area id or name; matches nodes with an `in` edge to it' },
+                                name_contains: { type: 'string' },
+                                ids: { type: 'array', items: { type: 'string' } }
+                            }
+                        },
+                        patch: { type: 'object', description: 'Flat property patch applied to each match (e.g. {"traits": {"dark_vision": true}})' }
+                    },
+                    required: ['selector', 'patch']
                 }
             }
         },
@@ -739,18 +1037,44 @@ window.NLEditorTools = (() => {
                         if (!node) return { error: `Node '${args.node_id}' not found in world or staging.` };
                         return node;
                     }
+                    case 'list_nodes': {
+                        const selector = {
+                            kind: args.kind,
+                            tags: args.tags,
+                            tag: args.tag,
+                            require_all_tags: args.require_all_tags,
+                            area: args.area,
+                            name_contains: args.name_contains,
+                        };
+                        const all = this.overlay.matchNodes(selector);
+                        const pageSize = Math.max(1, Math.min(200, parseInt(args.page_size) || 25));
+                        const pages = Math.max(1, Math.ceil(all.length / pageSize));
+                        const page = Math.max(1, Math.min(pages, parseInt(args.page) || 1));
+                        const start = (page - 1) * pageSize;
+                        return {
+                            count: all.length,
+                            page,
+                            page_size: pageSize,
+                            pages,
+                            nodes: all.slice(start, start + pageSize),
+                        };
+                    }
                     case 'search_library_items': {
                         const q = (args.query || '').toLowerCase().trim();
+                        const tags = Array.isArray(args.tags) ? args.tags.map(t => String(t).toLowerCase()).filter(Boolean) : null;
                         try {
                             const res = await ApiClient.get('/api/library/items');
                             let items = this._registryToEntries(res);
-                            if (q) {
-                                items = items.filter(it =>
-                                    (it.name || '').toLowerCase().includes(q) ||
-                                    (it.id || '').toLowerCase().includes(q) ||
-                                    (it.description || '').toLowerCase().includes(q) ||
-                                    (it.tags || []).some(t => String(t).toLowerCase().includes(q))
-                                );
+                            if (q || (tags && tags.length)) {
+                                items = items.filter(it => {
+                                    const itTags = (it.tags || []).map(t => String(t).toLowerCase());
+                                    if (tags && tags.length && !tags.some(t => itTags.includes(t))) return false;
+                                    if (!q) return true;
+                                    return (it.name || '').toLowerCase().includes(q) ||
+                                        (it.id || '').toLowerCase().includes(q) ||
+                                        (it.description || '').toLowerCase().includes(q) ||
+                                        itTags.some(t => t.includes(q));
+                                });
                             }
                             const compact = items.slice(0, 10).map(it => ({
                                 id: it.id,
@@ -782,21 +1106,63 @@ window.NLEditorTools = (() => {
                             return { count: 0, tags: [], error: e.message };
                         }
                     }
+                    case 'list_library_traits': {
+                        const q = (args.query || '').toLowerCase().trim();
+                        try {
+                            const res = await ApiClient.get('/api/library/traits');
+                            let traits = this._registryToEntries(res);
+                            if (q) {
+                                traits = traits.filter(t =>
+                                    (t.id || '').toLowerCase().includes(q) ||
+                                    (t.name || '').toLowerCase().includes(q) ||
+                                    (t.description || '').toLowerCase().includes(q));
+                            }
+                            const compact = traits.slice(0, 30).map(t => ({
+                                id: t.id,
+                                name: t.name || t.id,
+                                description: (t.description || '').slice(0, 100),
+                                effects: t.effects || {}
+                            }));
+                            return { count: compact.length, traits: compact };
+                        } catch (e) {
+                            return { count: 0, traits: [], error: e.message };
+                        }
+                    }
                     case 'list_world_summary': {
                         return { summary: this.overlay.listWorldSummary() };
                     }
+                    case 'get_background_map': {
+                        const bg = (typeof window !== 'undefined' && window.GraphBackground?._state) || null;
+                        if (!bg || (!bg.imagePath && !bg.image)) {
+                            return { has_background: false, note: 'No background map image is set for this scenario.' };
+                        }
+                        return {
+                            has_background: true,
+                            image_path: bg.imagePath || null,
+                            inline_image_loaded: !bg.imagePath && !!bg.image,
+                            rect: bg.rect || null,
+                            rotation: bg.rotation ?? null,
+                            opacity: bg.opacity ?? null,
+                            locked: !!bg.locked,
+                            note: 'A flat reference image rendered under the node graph. Its pixels are not visible to you — use it for layout context only.'
+                        };
+                    }
                     case 'search_library_areas': {
                         const q = (args.query || '').toLowerCase().trim();
+                        const tags = Array.isArray(args.tags) ? args.tags.map(t => String(t).toLowerCase()).filter(Boolean) : null;
                         try {
                             const res = await ApiClient.get('/api/library/areas');
                             let areas = this._registryToEntries(res);
-                            if (q) {
-                                areas = areas.filter(a =>
-                                    (a.name || '').toLowerCase().includes(q) ||
-                                    (a.id || '').toLowerCase().includes(q) ||
-                                    (a.description || '').toLowerCase().includes(q) ||
-                                    (a.tags || []).some(t => String(t).toLowerCase().includes(q))
-                                );
+                            if (q || (tags && tags.length)) {
+                                areas = areas.filter(a => {
+                                    const aTags = (a.tags || []).map(t => String(t).toLowerCase());
+                                    if (tags && tags.length && !tags.some(t => aTags.includes(t))) return false;
+                                    if (!q) return true;
+                                    return (a.name || '').toLowerCase().includes(q) ||
+                                        (a.id || '').toLowerCase().includes(q) ||
+                                        (a.description || '').toLowerCase().includes(q) ||
+                                        aTags.some(t => t.includes(q));
+                                });
                             }
                             const compact = areas.slice(0, 10).map(a => ({
                                 id: a.id, name: a.name, tags: a.tags || [],
@@ -820,16 +1186,20 @@ window.NLEditorTools = (() => {
                     }
                     case 'search_library_characters': {
                         const q = (args.query || '').toLowerCase().trim();
+                        const tags = Array.isArray(args.tags) ? args.tags.map(t => String(t).toLowerCase()).filter(Boolean) : null;
                         try {
                             const res = await ApiClient.get('/api/library/characters');
                             let chars = this._registryToEntries(res);
-                            if (q) {
-                                chars = chars.filter(c =>
-                                    (c.name || '').toLowerCase().includes(q) ||
-                                    (c.id || '').toLowerCase().includes(q) ||
-                                    (c.personality || '').toLowerCase().includes(q) ||
-                                    (c.tags || []).some(t => String(t).toLowerCase().includes(q))
-                                );
+                            if (q || (tags && tags.length)) {
+                                chars = chars.filter(c => {
+                                    const cTags = (c.tags || []).map(t => String(t).toLowerCase());
+                                    if (tags && tags.length && !tags.some(t => cTags.includes(t))) return false;
+                                    if (!q) return true;
+                                    return (c.name || '').toLowerCase().includes(q) ||
+                                        (c.id || '').toLowerCase().includes(q) ||
+                                        (c.personality || '').toLowerCase().includes(q) ||
+                                        cTags.some(t => t.includes(q));
+                                });
                             }
                             const compact = chars.slice(0, 10).map(c => ({
                                 id: c.id, name: c.name, tags: c.tags || [],
@@ -866,11 +1236,41 @@ window.NLEditorTools = (() => {
                         const node = this.overlay.getNode(nodeId);
                         if (!node) return { error: `Node '${args.node_id}' not found.` };
                         const op = this.staging.addOp('link_to_library', {
-                            node_id: nodeId,
+                            node_id: node.id,
                             library_id: args.library_id,
                             registry_type: args.registry_type || 'items'
                         }, `Link "${node.name || nodeId}" to library ${args.registry_type || 'items'}/${args.library_id}`);
                         return { staged: true, op_id: op.id, summary: op.summary };
+                    }
+                    case 'upsert_library_entry': {
+                        const registry = String(args.registry_type || '').toLowerCase();
+                        if (!['items', 'characters', 'areas', 'ways', 'traits'].includes(registry)) {
+                            return { error: `upsert_library_entry: registry_type must be items, characters, areas, ways or traits.` };
+                        }
+                        const id = String(args.id || '').toLowerCase().trim().replace(/[^a-z0-9_]+/g, '_').replace(/^_+|_+$/g, '');
+                        if (!id) return { error: 'upsert_library_entry needs a slug id (a-z, 0-9, _).' };
+                        if (!args.data || typeof args.data !== 'object' || Array.isArray(args.data)) {
+                            return { error: 'upsert_library_entry needs a template object in "data".' };
+                        }
+                        const op = this.staging.addOp('library_upsert', {
+                            registry_type: registry,
+                            id,
+                            data: args.data,
+                        }, `Library ${registry}: upsert "${args.data.name || id}" [${id}]`);
+                        return { staged: true, op_id: op.id, registry_type: registry, id, summary: op.summary };
+                    }
+                    case 'delete_library_entry': {
+                        const registry = String(args.registry_type || '').toLowerCase();
+                        if (!['items', 'characters', 'areas', 'ways', 'traits'].includes(registry)) {
+                            return { error: `delete_library_entry: registry_type must be items, characters, areas, ways or traits.` };
+                        }
+                        const id = String(args.id || '').trim();
+                        if (!id) return { error: 'delete_library_entry needs an id.' };
+                        const op = this.staging.addOp('library_delete', {
+                            registry_type: registry,
+                            id,
+                        }, `Library ${registry}: delete "${id}"`);
+                        return { staged: true, op_id: op.id, registry_type: registry, id, summary: op.summary };
                     }
                     case 'create_node': {
                         const kind = args.kind || 'item';
@@ -893,7 +1293,7 @@ window.NLEditorTools = (() => {
                         if (!targetNode) return { error: `Parent target node '${args.parent_id}' does not exist.` };
                         const op = this.staging.addOp('spawn_library_item', {
                             library_id: args.library_id,
-                            parent_id: parentId,
+                            parent_id: targetNode.id,
                             rename: args.rename,
                             relation: args.relation || 'in',
                             overrides: args.overrides
@@ -950,17 +1350,49 @@ window.NLEditorTools = (() => {
                         const node = this.overlay.getNode(nodeId);
                         if (!node) return { error: `Node '${args.node_id}' not found.` };
                         const op = this.staging.addOp('update_node', {
-                            node_id: nodeId,
+                            node_id: node.id,
                             patch: args.patch
                         }, `Update "${node.name || nodeId}" properties`);
                         return { staged: true, op_id: op.id, summary: op.summary };
+                    }
+                    case 'update_matching_nodes': {
+                        const selector = args.selector || {};
+                        const patch = args.patch || {};
+                        if (!Object.keys(patch).length) {
+                            return { error: 'update_matching_nodes needs a non-empty patch.' };
+                        }
+                        const matches = this.overlay.matchNodes(selector);
+                        if (!matches.length) {
+                            return { error: 'No nodes matched the selector — nothing staged.' };
+                        }
+                        const ids = matches.map(m => m.id);
+                        const selectorLabel = Object.entries(selector)
+                            .filter(([, v]) => v !== undefined && v !== null && v !== '' &&
+                                !(Array.isArray(v) && !v.length))
+                            .map(([k, v]) => `${k}=${Array.isArray(v) ? v.join('|') : String(v).toLowerCase()}`)
+                            .join(' ') || 'all nodes';
+                        const names = matches.map(m => m.name || m.id);
+                        const preview = names.slice(0, 8).join(', ') + (names.length > 8 ? `, +${names.length - 8} more` : '');
+                        const op = this.staging.addOp('update_matching_nodes', {
+                            selector,
+                            patch,
+                            matched_ids: ids,
+                            matched: matches.map(m => ({ id: m.id, name: m.name, type: m.type })),
+                        }, `Update ${matches.length} node${matches.length === 1 ? '' : 's'} matching ${selectorLabel}: ${preview}`);
+                        return {
+                            staged: true,
+                            op_id: op.id,
+                            count: matches.length,
+                            affected: matches.map(m => ({ id: m.id, name: m.name, type: m.type })),
+                            summary: op.summary,
+                        };
                     }
                     case 'delete_node': {
                         const nodeId = this._resolveNodeId(args.node_id);
                         const node = this.overlay.getNode(nodeId);
                         if (!node) return { error: `Node '${args.node_id}' not found.` };
                         const op = this.staging.addOp('delete_node', {
-                            node_id: nodeId
+                            node_id: node.id
                         }, `Delete ${node.type || 'node'} "${node.name || nodeId}"`);
                         return { staged: true, op_id: op.id, summary: op.summary };
                     }
@@ -970,17 +1402,19 @@ window.NLEditorTools = (() => {
                         if (!fromNode) return { error: `Source entity '${args.from_id}' not found.` };
                         if (!toNode) return { error: `Target container '${args.to_id}' not found.` };
                         const op = this.staging.addOp('attach', {
-                            from_id: args.from_id,
-                            to_id: args.to_id,
+                            from_id: fromNode.id,
+                            to_id: toNode.id,
                             relation: args.relation || 'in',
                             properties: args.properties || {}
                         }, `Attach "${fromNode.name || args.from_id}" ${args.relation || 'in'} "${toNode.name || args.to_id}"`);
                         return { staged: true, op_id: op.id, summary: op.summary };
                     }
                     case 'detach': {
+                        const fromNode = this.overlay.getNode(args.from_id);
+                        const toNode = this.overlay.getNode(args.to_id);
                         const op = this.staging.addOp('detach', {
-                            from_id: args.from_id,
-                            to_id: args.to_id,
+                            from_id: fromNode ? fromNode.id : args.from_id,
+                            to_id: toNode ? toNode.id : args.to_id,
                             relation: args.relation || 'in'
                         }, `Detach ${args.from_id} from ${args.to_id}`);
                         return { staged: true, op_id: op.id, summary: op.summary };
@@ -993,8 +1427,8 @@ window.NLEditorTools = (() => {
                         const wayId = this.staging.mintId('way', args.way_name || 'Door');
                         const op = this.staging.addOp('connect_areas', {
                             way_id: wayId,
-                            area_a_id: args.area_a_id,
-                            area_b_id: args.area_b_id,
+                            area_a_id: areaA.id,
+                            area_b_id: areaB.id,
                             way_name: args.way_name || 'Door',
                             direction_a: args.direction_a,
                             direction_b: args.direction_b,

@@ -1,7 +1,7 @@
 ---
 id: 161
 title: Armor and Equipment Uses Reduced on Hit
-status: todo
+status: review
 priority: medium
 created: 2026-08-02
 tags: [items, equipment, combat, durability]

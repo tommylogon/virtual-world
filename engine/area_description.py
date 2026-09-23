@@ -113,6 +113,23 @@ class AreaDescription:
         so the author sees their own hidden passages. Game-facing callers
         (prompts, look, scene) must keep the default filtered view.
         """
+        # task-407: authoring exits (include_hidden=True) are purely
+        # graph-derived, so they are safe to cache and invalidate on graph
+        # revision. The game-facing view depends on per-player discovery
+        # state and is deliberately NOT cached.
+        cache = None
+        cache_key = None
+        if include_hidden:
+            rev = self.graph.get_revision()
+            if getattr(self, "_exits_cache_rev", None) != rev:
+                self._exits_cache = {}
+                self._exits_cache_rev = rev
+            cache = self._exits_cache
+            cache_key = str(area_name).lower()
+            hit = cache.get(cache_key)
+            if hit is not None:
+                return dict(hit)
+
         area_node = resolve_area_node(self.graph, area_name)
         area_id = area_node.id if area_node is not None else None
         if not area_id:
@@ -160,6 +177,8 @@ class AreaDescription:
                                 exit_data["cardinal"] = edge.properties["cardinal"]
                             exits[label] = exit_data
                             break
+        if cache is not None:
+            cache[cache_key] = dict(exits)
         return exits
 
     def get_area_description(self) -> str:
@@ -174,7 +193,7 @@ class AreaDescription:
 
         env = self.player_manager.current_area.environment
         area_id = self.get_current_area_id()
-        ambient_light = self.lighting.get_ambient_light(area_id, env) if area_id else self.lighting.get_light_int(env, 80)
+        ambient_light = self.lighting.get_ambient_light(area_id) if area_id else self.lighting.get_light_int(env, 80)
         light_level = self.lighting.light_to_level(ambient_light)
 
         # task-133: light level flavors what you PERCEIVE. Pitch black still
@@ -349,13 +368,17 @@ class AreaDescription:
                 known = active_player_obj is not None and active_player_obj.has_met(pname)
                 name_known = False
                 if known:
-                    rel = active_player_obj.relationships.get(pname) or {}
+                    from engine.relationships import get_relationship
+                    rel = get_relationship(active_player_obj, pname) or {}
                     name_known = not rel.get("first_sighting")
                 if not name_known and active_player_obj is not None:
                     try:
-                        viewer_known = set(getattr(active_player_obj, "known", None) or [])
-                        p_slug = "player_" + pname.lower().replace(" ", "_")
-                        if pname in viewer_known or p_slug in viewer_known or ("character_" + p_slug[len("player_"):]) in viewer_known:
+                        viewer_known = {
+                            str(entry) for entry in (getattr(active_player_obj, "known", None) or [])
+                        }
+                        viewer_known_lower = {entry.lower() for entry in viewer_known}
+                        canonical_id = str(self.player_manager.player_node_id(pname))
+                        if pname in viewer_known or canonical_id.lower() in viewer_known_lower:
                             name_known = True
                     except Exception:
                         name_known = False

@@ -15,6 +15,12 @@
  *   3. Renders a card-based diff modal so you decide per-trigger, per-row.
  *
  * Pure UI/decision helper — no engine calls.
+ *
+ * @module shared/trigger-suggest-diff — review/merge UI for suggested triggers
+ * @contributes TriggerSuggestDiff: classify keep / add / conflict, then decide per row
+ * @powers merging suggested triggers without blindly overwriting existing ones
+ * @relates fed by trigger-suggest-ai and the heuristic suggester
+ * @docs docs/virtualWorld/Rules Engine/
  */
 window.TriggerSuggestDiff = (() => {
     const GREEN = 'var(--green, #2e9e5b)';

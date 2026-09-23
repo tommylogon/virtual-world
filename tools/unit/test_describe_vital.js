@@ -1,4 +1,12 @@
-/** Unit tests for describeVital — per-vital natural language (task-337). */
+/**
+ * Unit tests for describeVital — per-vital natural language (task-337).
+ *
+ * Hunger/Thirst expectations were updated for the Maslow changes (task-425/432):
+ * the physiological tiers now end in an imperative moodlet — "EAT your X" when
+ * something is carried, "FIND SOMETHING TO EAT NOW" when nothing is — and bend to
+ * a hostile presence in the room. The older prose tails ("Your stomach feels
+ * empty.") are gone; do not restore them.
+ */
 'use strict';
 const PB = window.PromptBuilder;
 
@@ -12,16 +20,37 @@ test('describeVital returns empty for missing or healthy vitals', () => {
 
 test('describeVital Hunger drive: low=fed, high=starving', () => {
     assertEq(PB.describeVital({ Hunger: 5 }, 'Hunger'), '', 'well-fed');
-    assertEq(PB.describeVital({ Hunger: 30 }, 'Hunger'), 'You are hungry. Your stomach feels empty.', 'mild hunger');
-    assertEq(PB.describeVital({ Hunger: 60 }, 'Hunger'), 'You are very hungry. Your stomach growls loudly.', 'urgent hunger');
-    assertEq(PB.describeVital({ Hunger: 100 }, 'Hunger'), 'You are starving — your stomach is a hollow knot of pain.', 'starving');
+    assertEq(PB.describeVital({ Hunger: 30 }, 'Hunger'), 'You are hungry. FIND SOMETHING TO EAT NOW.', 'mild hunger');
+    assertEq(PB.describeVital({ Hunger: 60 }, 'Hunger'), 'You are very hungry and it is draining you. FIND SOMETHING TO EAT NOW.', 'urgent hunger');
+    assertEq(PB.describeVital({ Hunger: 100 }, 'Hunger'), 'You are STARVING — your body cannot hold you up. FIND SOMETHING TO EAT NOW.', 'starving');
+});
+
+test('describeVital Hunger names the carried item, and a threat outranks eating', () => {
+    assertEq(
+        PB.describeVital({ Hunger: 60 }, 'Hunger', { carriedFood: ['granola_bar'] }),
+        'You are very hungry and it is draining you. EAT your granola_bar.',
+        'names the carried food',
+    );
+    assertEq(
+        PB.describeVital({ Hunger: 30 }, 'Hunger', { hasThreat: true }),
+        'You are hungry. FIND SOMETHING TO EAT NOW (but a hostile presence is in the room — flee/defend first, eat only if safe).',
+        'threat qualifier',
+    );
 });
 
 test('describeVital Thirst drive: low=hydrated, high=deadly', () => {
     assertEq(PB.describeVital({ Thirst: 5 }, 'Thirst'), '', 'hydrated');
-    assertEq(PB.describeVital({ Thirst: 30 }, 'Thirst'), 'You are thirsty. Your throat feels dry.', 'mild thirst');
-    assertEq(PB.describeVital({ Thirst: 80 }, 'Thirst'), 'You are very thirsty. Your tongue sticks to the roof of your mouth.', 'urgent thirst');
-    assertEq(PB.describeVital({ Thirst: 100 }, 'Thirst'), 'You are dying of thirst — your throat is cracked and dry as ash.', 'dying');
+    assertEq(PB.describeVital({ Thirst: 30 }, 'Thirst'), 'You are thirsty. FIND SOMETHING TO DRINK NOW.', 'mild thirst');
+    assertEq(PB.describeVital({ Thirst: 80 }, 'Thirst'), 'You are very thirsty and it is draining you. FIND SOMETHING TO DRINK NOW.', 'urgent thirst');
+    assertEq(PB.describeVital({ Thirst: 100 }, 'Thirst'), 'You are DYING of thirst — your throat is cracked and dry. FIND SOMETHING TO DRINK NOW.', 'dying');
+});
+
+test('describeVital Thirst prefers a named drink over the generic imperative', () => {
+    assertEq(
+        PB.describeVital({ Thirst: 30 }, 'Thirst', { carriedDrink: ['water_bottle'] }),
+        'You are thirsty. DRINK your water_bottle.',
+        'names the carried drink',
+    );
 });
 
 test('describeVital Bladder drive: low=relieved, high=bursting', () => {

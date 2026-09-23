@@ -8,6 +8,35 @@ from typing import Optional, Dict, List, Any
 from graph import EDGE_CONNECTION
 
 
+def _interval_ticks(gs, minutes) -> int:
+    """An authored behaviour interval, in **game minutes**, as whole ticks.
+
+    `behaviors[].interval` and `npc_action_interval` used to be raw *tick*
+    counts, so their meaning silently depended on `world.time_per_tick_minutes`:
+    at 15 min/tick an authored "every 5" fired every 75 game minutes, and a
+    legacy wanderer moved once every 45 minutes instead of every 3. Every other
+    time-measuring thing in the engine (vital decay, conditions, temperature
+    drift, background action credit, plant growth, the social cooldown) is in
+    game units and scales; this was the last one that did not.
+
+    Quantised to the nearest tick with a floor of one, because a tick is the
+    smallest step the scheduler can take — at 15 min/tick a "20 minute" interval
+    is one tick (15 minutes), which is as close as it can get. At the default
+    1 min/tick the meaning of an authored value is unchanged.
+    """
+    try:
+        per_tick = float(getattr(gs, "time_per_tick_minutes", 1) or 1)
+    except (TypeError, ValueError):
+        per_tick = 1.0
+    if per_tick <= 0:
+        per_tick = 1.0
+    try:
+        want = float(minutes)
+    except (TypeError, ValueError):
+        return 1
+    return max(1, int(round(want / per_tick)))
+
+
 class NPCBehaviorSystem:
     """Manages simple NPC behaviors (wander/flee/stationary), behavior-tree evaluation,
     and AI-driven hunting (BFS pathfinding toward players)."""
@@ -67,8 +96,10 @@ class NPCBehaviorSystem:
                 b_trigger = behavior.get("trigger")
                 if b_trigger and b_trigger != trigger_type:
                     continue
-                interval = behavior.get("interval", 1)
-                if interval > 1 and self.gs.time_ticks % interval != 0:
+                # `or 1` guards a null in saved data: .get() only falls back when
+                # the key is ABSENT, and a serialized interval can be None.
+                interval_ticks = _interval_ticks(self.gs, behavior.get("interval", 1) or 1)
+                if interval_ticks > 1 and self.gs.time_ticks % interval_ticks != 0:
                     continue
                 conditions = behavior.get("conditions", {})
                 if conditions and not self.triggers._evaluate_conditions(
@@ -87,9 +118,15 @@ class NPCBehaviorSystem:
 
             # Legacy fallback (only in on_tick context)
             if not acted and trigger_type == "on_tick":
-                interval = getattr(player, 'npc_action_interval', 3)
-                if self.gs.time_ticks % interval != 0:
+                # `or 3`: the attribute is often present as None (saved data
+                # writes null), and getattr's default only applies when it is
+                # absent — `time_ticks % None` used to raise and take the tick
+                # down with it.
+                interval_ticks = _interval_ticks(
+                    self.gs, getattr(player, 'npc_action_interval', 3) or 3)
+                if interval_ticks > 1 and self.gs.time_ticks % interval_ticks != 0:
                     continue
+
                 behavior = getattr(player, 'npc_behavior', 'wander')
                 if behavior == "stationary":
                     continue
@@ -106,7 +143,7 @@ class NPCBehaviorSystem:
                     self.gs.active_player = pname
                     try:
                         result = self.gs.movement.move_to_area(direction)
-                        msg = f"[NPC] {pname} wanders {direction} to {player.current_area}."
+                        msg = f"[NPC] {player.name} wanders {direction} to {player.current_area}."
                         self.gs.add_log_entry(msg)
                         self.gs.record_turn_event(pname, "move", msg, area_name=player.current_area)
                     except ValueError:
@@ -135,7 +172,7 @@ class NPCBehaviorSystem:
                     self.gs.active_player = pname
                     try:
                         result = self.gs.movement.move_to_area(direction)
-                        msg = f"[NPC] {pname} flees {direction} from a threat."
+                        msg = f"[NPC] {player.name} flees {direction} from a threat."
                         self.gs.add_log_entry(msg)
                         self.gs.record_turn_event(pname, "move", msg, area_name=player.current_area)
                     except ValueError:

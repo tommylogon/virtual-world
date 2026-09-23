@@ -13,7 +13,7 @@ from routes.helpers import load_registry, save_registry, delete_registry_entry, 
 
 logger = logging.getLogger(__name__)
 
-REGISTRY_TYPES = ['items', 'characters', 'areas', 'ways', 'traits', 'conditions', 'behaviours', 'tags', 'triggers']
+REGISTRY_TYPES = ['items', 'characters', 'areas', 'ways', 'traits', 'conditions', 'behaviours', 'tags', 'triggers', 'structures']
 
 RELATION_EDGE_TYPES = {
     "in": EDGE_IN,
@@ -107,9 +107,14 @@ def _materialize_trigger_nodes(graph, node_id, trigger_data):
     ))
 
 
-def _spawn_library_item_node(app, item_id, lib_item, container_id=None):
+def _spawn_library_item_node(app, item_id, lib_item, container_id=None, node_id=None):
     item_name = lib_item.get('name', item_id)
-    node_id = f"item_{item_name}_{int(time.time()*1000)}_{random.randint(0, 999)}".lower()
+    if not node_id:
+        # Generated ids embed the display name (lowercased, spaces included) plus
+        # a timestamp and random suffix, so they are neither stable nor
+        # re-derivable. Authored placement (tools/add_renewable_sources.py)
+        # passes its own deterministic id instead.
+        node_id = f"item_{item_name}_{int(time.time()*1000)}_{random.randint(0, 999)}".lower()
     props = {
         "description": lib_item.get('description', ''),
         "actions": normalize_item_actions(lib_item.get('actions', 'examine,take,use')),
@@ -134,6 +139,10 @@ def _spawn_library_item_node(app, item_id, lib_item, container_id=None):
         "resistances": lib_item.get('resistances', {}),
         "image": lib_item.get('image') or None,
     }
+    # Gauges (task-410: a plant's `growth` counter). Without this the counter is
+    # dropped at placement, so the item's own triggers can never see it.
+    if lib_item.get('parameters'):
+        props["parameters"] = dict(lib_item['parameters'])
     graph = app.world.graph
     node = Node(id=node_id, type='item', name=item_name, properties=props)
     graph.add_node(node)
@@ -181,10 +190,10 @@ def handle_library_entities(app):
 
 
 def _filter_mature_entries(app, registry_type, data):
-    """task-213: hide adult traits from library listings/pickers unless the
-    mature_content toggle is on. Definitions stay functional for characters
-    that already carry them."""
-    if registry_type != 'traits':
+    """task-213/462: hide adult traits/conditions from library listings/pickers
+    unless the mature_content toggle is on. Definitions stay functional for
+    characters that already carry them."""
+    if registry_type not in ('traits', 'conditions'):
         return data
     if getattr(app.world, 'mature_content', False):
         return data
@@ -194,6 +203,18 @@ def _filter_mature_entries(app, registry_type, data):
         key: value for key, value in data.items()
         if not (isinstance(value, dict) and value.get('mature'))
     }
+
+
+def _reload_condition_catalog(registry_type):
+    """task-462: conditions are the engine's runtime catalog — re-read the JSON
+    library after a write so edits take effect without an app restart."""
+    if registry_type != 'conditions':
+        return
+    try:
+        from engine.player_conditions import reload_condition_library
+        reload_condition_library()
+    except Exception as e:
+        logger.warning(f"Condition catalog reload failed: {e}")
 
 
 def handle_library_list(app, registry_type):
@@ -218,31 +239,84 @@ def handle_library_all(app):
     return jsonify(result)
 
 
+#: Node properties that describe where a node sits on the CANVAS, not the thing
+#: itself. They must never reach a library template, or every world laid out over
+#: a map would leak its coordinates into the archetype.
+PRESENTATION_ONLY_PROPERTIES = ('x', 'y')
+
+
+def _strip_presentation_properties(entry):
+    """Copy *entry* without its canvas-only properties (x/y)."""
+    if not isinstance(entry, dict):
+        return entry
+    props = entry.get('properties')
+    if not isinstance(props, dict):
+        return entry
+    cleaned = {k: v for k, v in props.items() if k not in PRESENTATION_ONLY_PROPERTIES}
+    if len(cleaned) == len(props):
+        return entry
+    entry = dict(entry)
+    entry['properties'] = cleaned
+    return entry
+
+
+def _entry_tag_warnings(app, entry):
+    raw_tags = entry.get('tags') if isinstance(entry, dict) else None
+    if isinstance(raw_tags, str):
+        raw_tags = [t.strip() for t in raw_tags.split(',') if t.strip()]
+    if isinstance(raw_tags, (list, tuple)):
+        try:
+            return validate_tags_on_save(list(raw_tags), app.config.get('DATA_DIR'))
+        except Exception as e:
+            return [f"Tag validation error: {e}"]
+    return []
+
+
+def write_library_entry(app, registry_type, entry_id, entry_data):
+    """Write one registry entry, shared by the HTTP route and the NL-editor batch.
+
+    Returns the tag warnings. Raises ``ValueError`` on invalid input so a batch
+    op can report it per op. ``save_registry`` never deletes, so this is an
+    upsert.
+    """
+    if registry_type not in REGISTRY_TYPES:
+        raise ValueError(f"Unknown registry type: {registry_type}")
+    if not entry_id or not str(entry_id).strip():
+        raise ValueError("Missing entry id")
+    if not isinstance(entry_data, dict):
+        raise ValueError("Entry data must be an object")
+    filename = f"{registry_type}.json"
+    registry = load_registry(app.config['DATA_DIR'], filename)
+    registry[str(entry_id)] = _strip_presentation_properties(entry_data)
+    save_registry(app.config['DATA_DIR'], filename, registry)
+    _reload_condition_catalog(registry_type)
+    return _entry_tag_warnings(app, registry.get(str(entry_id), {}))
+
+
+def delete_library_entry(app, registry_type, entry_id):
+    """Delete one registry entry. Returns True when it existed."""
+    if registry_type not in REGISTRY_TYPES:
+        raise ValueError(f"Unknown registry type: {registry_type}")
+    filename = f"{registry_type}.json"
+    registry = load_registry(app.config['DATA_DIR'], filename)
+    if str(entry_id) not in registry:
+        return False
+    delete_registry_entry(app.config['DATA_DIR'], filename, str(entry_id))
+    _reload_condition_catalog(registry_type)
+    return True
+
+
 def handle_library_create_or_update(app, registry_type):
     if registry_type not in REGISTRY_TYPES:
         return jsonify({"error": f"Unknown registry type: {registry_type}"}), 400
     data = request.get_json()
     if not data or 'id' not in data:
         return jsonify({"error": "Missing 'id' in payload"}), 400
-    filename = f"{registry_type}.json"
-    registry = load_registry(app.config['DATA_DIR'], filename)
-    if 'data' in data:
-        registry[data['id']] = data['data']
-    else:
-        entry_data = {k: v for k, v in data.items() if k != 'id'}
-        registry[data['id']] = entry_data
-    save_registry(app.config['DATA_DIR'], filename, registry)
-
-    warnings = []
-    entry = registry.get(data['id'], {})
-    raw_tags = entry.get('tags')
-    if isinstance(raw_tags, str):
-        raw_tags = [t.strip() for t in raw_tags.split(',') if t.strip()]
-    if isinstance(raw_tags, (list, tuple)):
-        try:
-            warnings = validate_tags_on_save(list(raw_tags), app.config.get('DATA_DIR'))
-        except Exception as e:
-            warnings = [f"Tag validation error: {e}"]
+    entry_data = data['data'] if 'data' in data else {k: v for k, v in data.items() if k != 'id'}
+    try:
+        warnings = write_library_entry(app, registry_type, data['id'], entry_data)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
     return jsonify({"status": "success", "warnings": warnings})
 
 
@@ -255,6 +329,7 @@ def handle_library_delete(app, registry_type, entry_id):
         return jsonify({"error": "Entry not found"}), 404
     del registry[entry_id]
     delete_registry_entry(app.config['DATA_DIR'], filename, entry_id)
+    _reload_condition_catalog(registry_type)
     return jsonify({"status": "deleted"})
 
 
@@ -276,6 +351,7 @@ def handle_library_rename(app, registry_type, entry_id):
     registry[new_id] = registry.pop(entry_id)
     save_registry(app.config['DATA_DIR'], filename, registry)
     delete_registry_entry(app.config['DATA_DIR'], filename, entry_id)
+    _reload_condition_catalog(registry_type)
     return jsonify({"status": "renamed", "old": entry_id, "new": new_id})
 
 

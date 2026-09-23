@@ -8,9 +8,9 @@ Dry-run by default; pass --apply to write. Idempotent: re-running only adds
 missing tags, never removes existing ones.
 
 Usage:
-    python tools/tag_domains.py            # report what would change
-    python tools/tag_domains.py --apply    # write changes
-    python tools/tag_domains.py --apply --domains goblin   # limit scope
+    python tools/tag_domains.py                              # report what would change
+    python tools/tag_domains.py --apply                      # write changes
+    python tools/tag_domains.py --domains kitchen,library    # limit to these domain tags
 """
 
 import argparse
@@ -41,15 +41,26 @@ def tag_file_def(tag):
 
 # Domain/role tags this pass needs. Missing ones get a tag file created.
 NEEDED_TAGS = [
-    "display", "furniture", "container", "storage", "food", "medical",
-    "animal", "water", "occult", "social",
-    "cooking", "sleeping", "workshop", "shrine", "scouting", "mining",
-    "waste", "prison", "nursery", "training", "goblin_camp", "entrance",
-    "armory", "guard",
+    # population-chain machinery
+    "display", "furniture", "container", "storage",
+    # place domains (what an area is FOR)
+    "food", "medical", "animal", "water", "occult", "social", "ritual",
+    "cooking", "kitchen", "dining", "drink", "sleeping", "bedroom",
+    "workshop", "shrine", "scouting", "mining", "waste", "prison",
+    "nursery", "training", "goblin_camp", "entrance", "armory", "guard",
+    "library", "study", "garden", "bathroom", "shelter", "loot",
+    "settlement", "trade", "paper", "plant", "meat", "documents", "light",
+    # setting / location tags the tables also use
+    "mansion", "interior", "exterior", "outdoor", "underground", "stone",
+    "human", "test", "sealed",
 ]
 
 # ── Area domain table (library area id -> tags to ADD, existing kept) ──
+#
+# Setting tags (exterior/interior/underground/outdoor) say WHERE an area is;
+# domain tags say what it is FOR. Both may coexist (task-324 convention).
 AREA_DOMAINS = {
+    # ── Kraktooth goblin camp ──
     "camp_entrance": ["goblin_camp", "entrance", "guard"],
     "camp_entrance_trail": ["goblin_camp", "entrance"],
     "chief_s_pit": ["goblin_camp", "social", "cooking"],
@@ -72,39 +83,89 @@ AREA_DOMAINS = {
     "water_source": ["goblin_camp", "water"],
     "waste_disposal": ["goblin_camp", "waste"],
     "side_tunnels": ["goblin_camp", "storage"],
+    "fighting_pit": ["training", "social", "underground"],
+
+    # ── Blackwood Manor (interior) ──
+    "foyer": ["interior", "mansion", "entrance", "social"],
+    "living_room": ["interior", "mansion", "social"],
+    "dining_area": ["interior", "mansion", "dining", "food", "social"],
+    "kitchen": ["interior", "mansion", "kitchen", "food", "cooking"],
+    "pantry": ["interior", "mansion", "kitchen", "food", "storage"],
+    "wine_cellar": ["interior", "mansion", "underground", "storage", "drink"],
+    "cellar": ["interior", "mansion", "underground", "storage", "food"],
+    "basement": ["interior", "mansion", "underground", "storage"],
+    "attic": ["interior", "mansion", "storage"],
+    "hidden_panic_room": ["interior", "mansion", "shelter", "storage"],
+    "library": ["interior", "mansion", "library", "paper"],
+    "study": ["interior", "mansion", "library", "study", "paper"],
+    "secret_study": ["interior", "mansion", "library", "study", "occult", "ritual"],
+    "master_bedroom": ["interior", "mansion", "bedroom", "sleeping"],
+    "sons_bedroom": ["interior", "mansion", "bedroom", "sleeping"],
+    "guest_area_1": ["interior", "mansion", "bedroom", "sleeping"],
+    "guest_area_2": ["interior", "mansion", "bedroom", "sleeping", "nursery"],
+    "servant_quarters": ["interior", "mansion", "bedroom", "sleeping"],
+    "upstairs_hall": ["interior", "mansion", "social"],
+    "upstairs_hallway": ["interior", "mansion", "social"],
+    "crypt": ["interior", "mansion", "underground", "occult", "stone"],
+    "slaughterhouse": ["interior", "mansion", "underground", "occult", "ritual", "meat"],
+
+    # ── Blackwood Manor (grounds / below) ──
+    "front_courtyard": ["exterior", "mansion", "outdoor", "entrance"],
+    "outside": ["exterior", "mansion", "outdoor", "entrance"],
+    "garden": ["exterior", "mansion", "outdoor", "garden", "plant"],
+    "conservatory": ["interior", "mansion", "garden", "plant"],
+    "balcony": ["exterior", "mansion", "outdoor"],
+    "graveyard": ["exterior", "mansion", "outdoor", "occult", "stone"],
+    "outhouse": ["exterior", "mansion", "outdoor", "bathroom", "waste"],
+    "abandoned_hunter_s_cabin": ["exterior", "outdoor", "shelter", "loot", "storage"],
+    "dark_cave": ["underground", "shelter", "stone"],
+
+    # ── World ──
+    "eldenford": ["exterior", "outdoor", "settlement", "trade", "human", "entrance"],
+
+    # ── Test fixtures (featureless sealed cubes) ──
+    "task_4": ["test", "sealed"],
+    "task_18": ["test", "sealed"],
 }
 
 # ── Furniture role+domain table (library item id -> tags to ADD) ──
+#
+# Role tags (display/container/storage) say HOW an item accepts placement.
+# A generic piece (table, shelves) carries the role only; a specific piece
+# (bookshelf, stove, altar) also carries the domain it belongs to.
 FURNITURE_TAGS = {
+    # generic roles
     "barrel": ["storage", "food"],
     "crate": ["storage"],
     "shelves": ["display"],
     "table": ["display"],
     "cupboard": ["storage"],
     "trunk": ["storage"],
-    "nightstand": ["storage"],
-    "desk": ["display"],
-    "wardrobe_g1": ["storage"],
-    "wardrobe_master": ["storage"],
-    "wardrobe_attic": ["storage"],
-    "locker": ["storage"],
+    "desk": ["display", "study"],
+    "booth_chair": ["dining"],
     "sideboard": ["display", "storage"],
-    "vanity": ["storage"],
-    "bed": ["sleeping"],
-    "cot": ["sleeping"],
-    "child_bed": ["sleeping", "nursery"],
-    "crib": ["furniture", "container", "nursery"],
+    "locker": ["storage"],
+    # domain-specific furniture
+    "nightstand": ["storage", "bedroom"],
+    "vanity": ["storage", "bedroom"],
+    "wardrobe_g1": ["storage", "bedroom"],
+    "wardrobe_master": ["storage", "bedroom"],
+    "wardrobe_attic": ["storage", "bedroom"],
+    "bed": ["sleeping", "bedroom"],
+    "cot": ["sleeping", "bedroom"],
+    "child_bed": ["sleeping", "bedroom", "nursery"],
+    "crib": ["container", "nursery", "bedroom"],
     "toy_box": ["storage", "nursery"],
     "rocking_horse": ["nursery"],
-    "fireplace": ["cooking", "display"],
-    "stove": ["cooking"],
-    "meat_hooks": ["furniture", "display", "cooking", "food"],
-    "cleaver_rack": ["furniture", "display", "cooking"],
-    "altar": ["furniture", "display", "shrine"],
-    "bookshelf_item": ["display"],
-    "garden_bench": ["display"],
-    "lab_table": ["display"],
-    "booth_table": ["display"],
+    "fireplace": ["display", "kitchen", "cooking"],
+    "stove": ["kitchen", "cooking"],
+    "meat_hooks": ["display", "kitchen", "cooking", "food"],
+    "cleaver_rack": ["display", "kitchen", "cooking"],
+    "altar": ["display", "shrine", "ritual"],
+    "bookshelf_item": ["display", "library"],
+    "garden_bench": ["display", "garden"],
+    "lab_table": ["display", "study"],
+    "booth_table": ["display", "dining"],
 }
 
 # ── Item domain table (library item id -> tags to ADD) ──
@@ -113,17 +174,17 @@ ITEM_TAGS = {
     "knife": ["armory", "guard"], "small_knife": ["armory", "guard"],
     "rusty_hatchet": ["armory", "guard"], "spear": ["armory", "guard"],
     "club": ["armory", "guard"], "heavy_club": ["armory"],
-    "cleaver": ["armory", "cooking"], "crossbow": ["armory", "guard"],
+    "cleaver": ["armory", "cooking", "kitchen"], "crossbow": ["armory", "guard"],
     # tools -> workshop (+ guard/entrance light + rope)
     "rope": ["workshop", "entrance"], "pry_bar": ["workshop"],
     "torch": ["workshop", "light", "guard", "entrance"],
     "lantern": ["workshop", "light", "guard", "entrance"],
     "unlit_torch": ["workshop", "light", "entrance"],
     # food -> food/cooking
-    "bread": ["food"], "berries": ["food"], "mushrooms": ["food"],
-    "dried_meat": ["food"], "hanging_dried_meats": ["food", "cooking"],
-    "wheel_of_cheese": ["food"], "cheese_shred": ["food"],
-    "cauldron": ["cooking"],
+    "bread": ["food", "kitchen"], "berries": ["food"], "mushrooms": ["food"],
+    "dried_meat": ["food", "kitchen"], "hanging_dried_meats": ["food", "cooking", "kitchen"],
+    "wheel_of_cheese": ["food", "kitchen"], "cheese_shred": ["food", "kitchen"],
+    "cauldron": ["cooking", "kitchen"],
     # occult -> shrine (+ guard fetishes on posts)
     "bone": ["occult", "shrine", "guard"], "bones": ["occult", "shrine", "guard"],
     "talisman": ["occult", "shrine"], "bravery_charm": ["occult", "shrine"],
@@ -131,10 +192,15 @@ ITEM_TAGS = {
     "healing_herbs": ["medical"], "bandages": ["medical"],
     "ace_bandage": ["medical"], "healing_potion": ["medical"],
     # scouting
-    "crude_map": ["scouting", "entrance"], "brass_spyglass": ["scouting"],
+    "crude_map": ["scouting", "entrance", "library"],
+    "brass_spyglass": ["scouting"],
     # water / storage
     "water_skin": ["water"], "half_full_waterskin": ["water"],
     "backpack": ["storage"],
+    # library / study
+    "book": ["library", "paper"], "journal": ["library", "paper"],
+    "letter": ["library", "paper", "documents"],
+    "family_photo": ["library", "paper"],
 }
 
 
@@ -182,10 +248,14 @@ def add_tags_to_file(path: Path, additions, dry_run: bool):
     return True, before, tags
 
 
-def run_group(kind: str, table: dict, subdir: str, dry_run: bool):
+def run_group(kind: str, table: dict, subdir: str, dry_run: bool, only=None):
     print(f"\n== {kind} ({len(table)} entries) ==")
     changed = 0
     for entry_id, additions in sorted(table.items()):
+        if only is not None:
+            additions = [t for t in additions if t.lower() in only]
+            if not additions:
+                continue
         path = LIBRARY / subdir / f"{entry_id}.json"
         if not path.exists():
             print(f"  MISSING {subdir}/{entry_id}.json")
@@ -201,18 +271,26 @@ def run_group(kind: str, table: dict, subdir: str, dry_run: bool):
 def main():
     ap = argparse.ArgumentParser(description="Apply domain/role tags for the population chain.")
     ap.add_argument("--apply", action="store_true", help="Write changes (default: dry-run)")
+    ap.add_argument("--domains", default=None,
+                    help="Comma-separated domain tags to limit the pass to, e.g. "
+                         "kitchen,library. Default: every tag in the tables.")
     args = ap.parse_args()
     dry_run = not args.apply
+    only = None
+    if args.domains:
+        only = {d.strip().lower() for d in args.domains.split(",") if d.strip()}
 
     tag_dir = LIBRARY / "tags"
     print(f"{'DRY RUN' if dry_run else 'APPLYING'} — library={LIBRARY}")
+    if only:
+        print(f"limited to domains: {sorted(only)}")
     created, existing = ensure_tag_files(tag_dir, dry_run)
     print("Tag files: created", created, "| already present", len(existing))
 
     total = 0
-    total += run_group("Area domains", AREA_DOMAINS, "areas", dry_run)
-    total += run_group("Furniture roles/domains", FURNITURE_TAGS, "items", dry_run)
-    total += run_group("Item domains", ITEM_TAGS, "items", dry_run)
+    total += run_group("Area domains", AREA_DOMAINS, "areas", dry_run, only)
+    total += run_group("Furniture roles/domains", FURNITURE_TAGS, "items", dry_run, only)
+    total += run_group("Item domains", ITEM_TAGS, "items", dry_run, only)
 
     print(f"\nTotal files {'to change' if dry_run else 'changed'}: {total}")
     if dry_run:

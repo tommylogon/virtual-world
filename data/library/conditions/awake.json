@@ -19,5 +19,10 @@
   "default_duration": null,
   "excludes": [
     "unconscious"
-  ]
+  ],
+  "order": 22,
+  "perception_skip": true,
+  "mature": false,
+  "check_advantage": [],
+  "check_disadvantage": []
 }

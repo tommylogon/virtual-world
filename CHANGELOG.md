@@ -4,6 +4,737 @@ All notable changes to VirtualWorld. See `docs/virtualWorld/Scenario Workflows &
 
 ---
 
+## Unreleased — "Hands Off the Wheel" (2026-09-21 → 09-23)
+
+A skip is not a special mode — it is the controller swap `Simulation Model` already
+implied. This pass makes it real: **a human can hand their character to a
+deterministic policy for a span and walk away**, the background tier gets a genuine
+action model (skill-checked finding, risky ground, fear read from tags), and the
+dice get one home. The graph, meanwhile, stopped trusting the `x`/`y` it was handed
+and started deriving position from the relations that were always the truth.
+
+### ⏳ A timeskip is a controller swap, not a mode
+`engine/timeskip.py` · `routes/timeskip_ops.py` · `static/js/ui/timeskip.js`. Declare
+an intent plus a span; the world advances **minute by minute** with the character's
+decisions supplied by a policy, and control returns the moment something relevant
+happens to them.
+
+- **Five intents** — `idle`, `leisure`, `search`, `explore`, `travel` — and a span in
+  minutes, hours, turns, a derived travel route, or "until dawn/dusk/noon". Dialog
+  presets 30m/1h/2h/4h/8h + custom; entry also from the command palette.
+- **The frame dial is never changed by a skip.** A skip advances whole turns of the
+  scenario's `time_per_tick_minutes`, so the clock (ticks × dial) stays consistent:
+  a 1-minute world resolves interrupts every minute, a 5-minute world every 5.
+- **No stasis, no protection.** Vitals decay and the environment applies — a wait in
+  a forest with no food or water can kill. The skip removes *decisions*, not
+  *consequences*.
+- **Zero LLM calls inside a skip**; exactly one bounded resume memory is written, and
+  the skip summary reports notable world events, not just the character's own trace.
+- **Interleaving mutations are refused** (`409`) while a skip runs, and the result
+  carries `vitals_before`/`vitals_after`, `clock_after` and the interrupt that ended it.
+
+### ⏭ Soak orders: one per character, on that player's turn
+`engine/soak.py` + `tick_turn`. In a shared world a timeskip is **not** a table-wide
+consensus and **not** a blocking server jump — it is an order attached to the
+character who declared it, declared on their turn and run by the normal turn loop
+exactly like an agent or a distant NPC.
+
+- **Genuinely background while it runs:** `simulation_mode` becomes `background`, the
+  soak tier drives the character, and the turn queue treats it as not attended; the
+  previous mode is restored when the order ends.
+- **Promotion hands control back early** on something feared, a hostile condition, a
+  vital in its danger band, or a discovery matching the order's `watch_tags`. It uses
+  **absolute** checks rather than crossings, because an order runs for many turns. A
+  search that turns up its target is a discovery exactly like in a blocking skip — the
+  policy result used to be dropped here, so a character searched straight past the
+  thing they were looking for.
+- **Re-queue follows the normal order rule** when the character is promoted back into
+  a table: sequential→alphabetic, random→shuffled, initiative→a fresh d20+DEX keeping
+  the current slot, simultaneous→the next unused slot.
+- **Cancel from the roster row** (`DELETE /api/world/soak?character=<name>`; defaults
+  to the active character, 404 on an unknown name, a clean no-op when nothing is
+  declared). **Status lives in the initiative/roster list** (`⏩ intent 42m` + ✕),
+  never in the composer — the composer is where you *declare*, not where you *watch*.
+- **No active character ⇒ a world advance** (`mode: "world"`): there is nobody to
+  attach an order to, so everyone soaks and the world jumps in one request.
+- Requests are capped at **1,440 minutes** — a synchronous request must not hold a
+  worker for a game week; the engine itself supports up to a week
+  (`MAX_MINUTES = 10080`).
+- `tests/test_soak_orders.py` (16) and `tests/test_soak_chain.py` (5 — background pass
+  → policy → time spent → promotion → resume memory → `soak_end`) drive the real
+  `world.tick_turn()`, covering fear mid-span, a search finding its target, span
+  accounting and death inside a soak.
+
+### 🎲 One home for the dice (task-472)
+`engine/checks.py` is the single resolution path: advantage and disadvantage cancel,
+degrees of success, criticals, auto-fail, `DCS`/`dc_band` and `opposed`.
+`SkillSystem.skill_check`/`saving_throw` are thin adapters that preserve their old
+tuple+message return, so nothing downstream had to change.
+
+- **Conditions feed the roll.** A condition definition (or instance) may carry
+  `check_advantage` / `check_disadvantage` / `auto_fail_checks` naming skills,
+  abilities, or the literal `"attack"`/`"*"` (`engine/checks.py::condition_flags`).
+  `restrained` now ships `check_disadvantage: ["attack"]` — it already had a flat
+  `attack_mod −2`, but a ties-up is *disadvantage*, not a bonus that stacks with a
+  bonus. All 38 library files gained the two empty lists, so a Definition-Schema edit
+  shows the fields instead of the code silently defaulting.
+
+### 🧑🎓 The whole skill sheet lives on the base sheet (task-474)
+The base sheet is **18 skills** — the six adventuring basics (Athletics, Acrobatics,
+Stealth, Perception, Survival, Persuasion) start at **1**, the other twelve at **0**.
+A save or library restore now **merges over** the defaults instead of replacing them,
+so a character authored before a skill existed still gets it.
+
+### 🍓 Finding things is a skill check now (tasks 469–471)
+- **Foraging is skill-checked in the soak tier**, and the `forage` mechanics tag
+  curates what a search can turn up in the wilds; `_pick_item` prefers forage-tagged
+  candidates.
+- **Searches can turn up junk, and the skill margin decides how useful it is** —
+  finding *something* is not the same as finding the right thing.
+- **Fear is a tag, not a global hostile flag.** `engine/fear.py` + per-character
+  `fear_tags` make what frightens a character data, driving `frightened` and the
+  involuntary/interrupt passes. `BackgroundSimulation` can also approach the player,
+  with relevance-gated interrupts so an unrelated distant event no longer moves the
+  human.
+
+### 🥾 Risky ground rolls; routine ground just takes 10 (task-475)
+`engine/traversal.py` turns "walk over there" into a real action for the soak tier.
+Routine ground takes 10 and never rolls; **risky ground** rolls the relevant skill
+against `HAZARD_DC 12`, and a failure spends the turn and lands the
+`HAZARD_CONDITION`. A refusal is remembered on the character (`traversal_avoid`) and
+one immediate detour is attempted rather than looping; `traversal.hop` never raises.
+
+- Wired through `BackgroundSimulation._hop` / `_travel_toward` / `_travel_to_area`
+  and `timeskip._move`, with `_target_step(avoid=…)`.
+- **Gaps recorded:** `engine/npc_behaviors.py` still calls `movement.move_to_area`
+  directly; there is no `swim`/`force` verb yet; and the actions in `SOAK_ACTIONS`
+  whose systems do not exist yet (calm/ride 476, treat/diagnose/identify_plant 478,
+  read_mood/investigate 468) wait on those tasks.
+
+### 🕸 Graph positions are derived, not remembered (task-485)
+`static/js/graph/relative-layout.js`. A saved snapshot of every node's `x`/`y` is
+stale the moment anything is created or deleted, and it never explained *why* a node
+sat where it did. Layout is now **derived from the relations** — parent priority
+carrying > equipped > at > in > triggers — and re-derived, not restored.
+
+- **A room's contents orbit it** instead of stacking on its label; the ring grows with
+  the crowd, and a mixed-`in` group's direction is resolved by depth from the area
+  roots. Ways sit at the midpoint of their two rooms.
+- **Explicit distances are exact** (labels may overlap); the comfort floor/cap and
+  crowd-spacing growth apply only to *inherited* distances.
+- **Physics settings finally reach the contents.** vis-network's `centralGravity` is a
+  *global field* applied to every node on every solver iteration, and the edge spring
+  cannot outvote it — measured, a large change to `springConstant`+`centralGravity`
+  moved a settled layout by **2 px of ~5900**. Contents therefore stay out of the
+  global solver (`{fixed:false, physics:false}`) and hold a parent-relative offset the
+  follow pass re-applies. **Item Edge Length** now scales the orbit; the other physics
+  sliders govern areas and ways.
+- **The follow pass is incremental and budgeted** (only moved parents; `FOLLOW_MS 120`,
+  `FOLLOW_BUDGET 500`, and it sleeps when physics is off) after the original per-frame
+  graph sweep proved too expensive.
+
+### 🪜 A levels layout, and per-node physics (task-485)
+- **🌳 Levels** mode (toolbar `#btn-layout-mode`, config `graph_layout_mode`) hands the
+  graph to vis's hierarchical solver for an outline-like view, switching back to free
+  physics cleanly. Making that switch honest meant killing four silent physics
+  re-enablers (`applyCardinalLayout`, `graph-background._applyLockState`, the persisted
+  `graph.physics_enabled` load/switch paths, `_clearOverlay`).
+- **Per-node control** — `layout_static`, `layout_distance`, `layout_child_distance`,
+  `layout_child_spacing`, `layout_min_radius`, `layout_max_radius`, precedence
+  child → parent → global — editable from the inspector's **Graph Physics** section.
+  Verified live: inherited 146–147 px; a parent at 80/40 gives 79–81; at 320 gives
+  319–320; one child pinned at 90 sits at 90.
+- **A frozen node is honoured in every layout** (bug-45), and **cardinal
+  auto-placement only runs in map mode** — in graph/manual view, hand-placed nodes stay
+  where they were put.
+
+### 🐛 Bugs killed
+- **bug-44** (filed): 21 authored container contents in the boot template carry an
+  **inverted** `in` edge (`item_Backpack → item_Ink`, `grandfather_clock →
+  brass_key`, `medicine_cabinet → antiseptic`), so the engine cannot see them.
+  Canonical direction is contained → container; this is repaired as data, not by
+  papering over the reader.
+- **bug-45** (fixed): a frozen node (`central_gravity_enabled: false`) was moved anyway
+  by the cardinal layout, and the cardinal layout ran in graph mode where it should not.
+- **bug-46** (fixed): the client event stream persisted in IndexedDB was restored into
+  whatever scenario loaded next, so exports mixed two worlds. It is now stamped with a
+  world key (`_scenario_name` → `scenario_source` → `body.dataset.scenarioName`) and
+  dropped when the key differs.
+
+### 🗃 Identity collapse, simultaneous turns, and the library as truth
+- **Character identity collapse + the fourth turn mode** (`53420e6`): `simultaneous`
+  resolves against a snapshot and commits together, on the same dial as
+  sequential/random/initiative.
+- **`6fb0887`**: the condition JSON library is the single source of truth; the
+  hardcoded `CONDITION_DEFINITIONS` dict is only the fallback, so a truncated or
+  corrupt file can never wipe definitions.
+- **Content refresh:** `world_template.json` was re-saved by the new engine — full
+  18-skill sheets, `soak: null`, `fear_tags`, derived node positions,
+  `central_gravity_enabled`, the Living Room's per-node layout tweaks, and **both
+  `graph_background` map layers** ("frosen wilds", "valerious-house-interior"), whose
+  images are committed alongside it.
+
+### 📋 Filed for next
+The `task-475` gaps above · `task-482` long spans, leisure vendors, the explore
+frontier · `task-483` search affordances, hints, per-area forage tables · `task-484`
+`frightened` tuning under per-character fear tags.
+
+---
+
+## Unreleased — "One Copy of Every Truth" (2026-09-20 → 09-21)
+
+A saved world was carrying the same facts three times over, the natural-language
+editor was quietly discarding failed edits while burning its entire context, and
+a locked door was treated as more soundproof than a closed one. This pass makes
+the graph the single source of truth, gives the NL editor an honest ledger, and
+fixes the two bugs that stopped a saved background map from ever coming back.
+
+### 🗃 Scenario files are graph-only — 28% smaller
+A saved scenario held `areas`, `rooms` **and** `graph.nodes`, all describing the
+same world. `rooms` was a byte-identical duplicate of `areas` (the same dict
+assigned to two keys), and every `areas` entry carried a verbatim copy of its
+node's `properties`, plus `ambient_light`/`light_description` recomputed each tick
+and an `items` list that was always empty. Every remaining field was audited:
+**nothing in `areas` was unique** — `name` is `node.name`, and
+`description`/`environment`/`floor` are `node.properties`.
+
+- **`to_scenario_dict()` no longer writes** `areas`, `rooms`, `ways` or
+  `item_registry`. The goblin camp drops **455,567 → 322,407 bytes (−28%, ~131 KB)**
+  with identical reload behaviour (31 areas, 23 players, descriptions intact).
+- **…but the live payload keeps them.** ~20 frontend call sites read
+  `worldState.areas` (agent-engine, agent-lens, inspector, item-library/placement,
+  graph/layout-engine), so the projection stays in `/api/state` and only the *file*
+  is stripped. `tests/test_scenario_graph_only.py` locks both directions so a
+  future tidy-up cannot collapse the wrong one.
+- **The Changes panel now reads areas from the graph**, exactly as it already did
+  for items and ways — areas had simply never been migrated. Its fingerprint also
+  drops `exits`, which every written payload strips: that made it a constant on
+  the live side and a false "changed" for any older file still carrying a copy.
+- **`_scenario_name` round-trips again.** Every save dropped it, so a restored file
+  was "unnamed" — and because the name is what keys the local background-map cache,
+  that single omission made a saved map unloadable. An empty name is now omitted
+  rather than written as `""`, which `data.get(...) or ...` reads as "unnamed" and
+  would let it outrank a real name.
+
+### 🧠 The NL editor needed an honest ledger
+- **A partially-failed Apply threw away the failures.** `/api/graph/batch` answers
+  `207 partial` with `applied[]`/`errors[]`; the editor showed the errors and then
+  cleared *every* op it had sent, so edits that never applied vanished with no way
+  to retry. Only ops the server reports as applied are cleared now, and the toast
+  says how many are still staged. A regression harness drives the real
+  `StagingBuffer` through success / partial / total-failure / selective-apply and
+  both replay paths (23 checks).
+- **Context pruning had disabled itself.** `prune()` reset the counters it then
+  guarded on, so the next call handed back the *entire* transcript: at iteration 90
+  the model received **179 messages** while the tracker claimed ~1,004 tokens, and
+  `overLimit` read false forever. Metadata is now keyed by message identity instead
+  of array position, the window is measured from the array actually being sent, and
+  critical retention is bounded newest-first. The same loop now sends **29**.
+- **The `[Summary: N earlier turns omitted]` marker never fired** — it was gated on
+  index 0 being dropped, but index 0 is the system prompt and always kept, so
+  dropped turns disappeared with no signal to the model.
+- **Errors were invisible.** `turn:end` fires from `finally` and reset the badge to
+  "Ready" immediately after the error handler set "Error", and the message was
+  never rendered in the chat. Both fixed, plus the hardcoded `round x/10` label
+  that the 100-round cap had made a lie.
+- **The ghost preview never panned for spawns** — the spotlight looked up
+  `nlghost_<parent_id>` while the ghost was created as `nlghost_spawn_<op_id>`.
+- **`get_background_map`** tool added, so the agent knows a reference map exists
+  (path, transform, opacity, lock) without pretending it can see the pixels. The
+  catalog is **24 tools**; the header claimed 20 and was already wrong at 23.
+
+### 🔊 A lock is not soundproofing
+`get_way_barrier`'s own contract treats closed/blocked/locked as one "solid state"
+for a per-door `sound_barrier` override, but the defaults disagreed: a locked door
+blocked **2** where a closed one blocked **1**. A lock is a latch on a door that is
+already closed, so `sound.way_locked` and `sound.way_blocked` are now **1**
+(`hidden` stays 2). Behaviour change: a shout carries through a locked door, and a
+scream carries through an open+closed+locked chain — the loudest channel is no
+longer stopped by a latch. The value was duplicated in four places, including a JS
+mirror in `turn-feed.js` that would otherwise have disagreed with the engine.
+
+### 🗺 …and why the background map would not come back
+Two defects, both upstream of the image itself:
+- **The scenario name never reached the client.** `_serialize_world()` omitted
+  `_scenario_name`, so `/api/state` never carried it and the client only knew the
+  name if it had set it that session. `graph-background.js:_scenarioIdentity()`
+  returns `null` without a name, and the local cache is consulted only for a named
+  scenario — so a locally-held map was **never** restored.
+- **The two "which scenario am I" functions disagreed.** `_scenarioKey()` accepted
+  the `body.dataset.scenarioName` fallback that Save/Export Scenario writes;
+  `_scenarioIdentity()` did not. The key is now derived from the identity, so they
+  cannot diverge.
+
+### ⏱ Vital decay now scales with the tick's game time
+Every rate in `vital_rates` is *per in-game minute*, but `time_per_tick_minutes`
+is settable per scenario and live from Engine Config — and nothing multiplied by
+it. A tick applied one minute's worth of decay no matter how many minutes it
+covered, so the clock and the meters disagreed silently the moment the tick
+stopped being a minute.
+
+- **`vital_rates.change()` takes `minutes`**, and `tick_minutes(world)` is the one
+  place that reads `time_per_tick_minutes` (tolerating junk: `0`, `None` and
+  `"nonsense"` all fall back to 1, and a negative sign is treated as a typo).
+  `TickManager._decay()` routes every per-minute effect through it.
+- **The baseline loop uses the same accumulator as everything else.** It had its
+  own `_decay_accum` separate from `change()`'s `_rate_accum` — two parallel
+  implementations of the same idea, and a second source of truth per meter.
+- **The starvation grace is counted in minutes, not ticks.** It is a wall-clock
+  reprieve (360 min of hunger, 60 min of thirst); counted in ticks, a 15-minute
+  world would have stretched the 1-hour thirst grace into 15 hours. Damage past
+  the grace scales with the tick too (0.5 HP/min × 15 = 7.5 HP).
+- **`soak_sim.py`'s `TICKS_PER_DAY` was hardcoded to 1440** "at
+  time_per_tick_minutes == 1", so the day/week/month projections lied by exactly
+  the tick-length factor while `fmt_span` printed the real spans.
+
+Consequences worth knowing: the **boot `world_template.json` runs at 5
+min/tick**, so decay in the default world was running **5× too slow** (the
+kraktooth campaign pins 1, so its soak numbers are unaffected). The pleasure
+meters (`Arousal`/`Stimulation`/`Pleasure`) are in `baseline_decay` and were
+marked *"still per-tick; not yet folded into the per-minute scale"* — they are
+now folded in, so they drain 5× per tick in a 5-minute world and may want
+re-tuning. `tests/test_tick_time_scaling.py` covers the invariant (equal game
+time, equal decay, at 1/5/15-minute ticks); the pleasure and Social-company
+suites pin a one-minute tick because they assert per-minute calibration.
+
+### 🎟 Background decisions are paced in game minutes, not ticks
+Decay was only half the story. `engine/background_simulation.py` gated
+decisions on `DECISION_INTERVAL = 10` **ticks**, so at 15 min/tick a character
+decided every 150 minutes instead of every 10 and got a fifteenth as many
+decisions per game hour. A week soak at 15 min/tick killed everyone of
+exhaustion inside a day at first, then 3/23 once decay was scaled — with food
+in reach.
+
+- **Action credit replaces the tick interval.** Credit accrues at
+  `time_per_tick_minutes / DECISION_MINUTES` (10) and is spent one decision at
+  a time, capped at `MAX_ACTIONS_PER_TICK` (4). A busy or unconscious character
+  neither decides nor banks credit, so a long sleep cannot leave a backlog to
+  dump on waking. First sighting acts at once, and an explicit future
+  `next_due_tick` from a save or tool still defers.
+- **Measured invariant:** over the same 1,440 game minutes, 1 min/tick gives
+  78.2 decisions/hour and 15 min/tick gives 78.0 — identical within noise,
+  where it used to be 15x apart.
+- **Body-temperature drift is scaled too.** `drift`/`converge_rate` were
+  per-tick while the cold/heat damage they feed was per-minute, so a 15-minute
+  tick spent 15 minutes taking band damage per 1 minute of *leaving* the band.
+  That was killing poorly-sheltered and cold-blooded characters (Croak-Mother
+  in Blackmarsh at 8h15m). Fixed, and the death is gone.
+- **`soak_sim.py` gains `--minutes-per-tick`** (it previously only read the
+  value from the scenario, so the one thing worth tuning was the one thing you
+  could not vary) **and `--mature`**. Both the camp scenario and
+  `world_template.json` ship `mature_content: false`, and with it off
+  `sync_pleasure_vitals` *strips* Arousal/Stimulation/Pleasure and their decay
+  rates — so every soak so far ran a world missing that whole subsystem. With
+  `--mature` the sweep is unchanged (those meters start at 0 and do not feed
+  survival, and background characters never trip the cascade), but the run is
+  now the real world. Worth deciding whether the camp *should* ship it off: the
+  players carry `body_state`/`region_exposed` data that implies otherwise.
+
+Week soak, `--background-all`, same game week: **1 min/tick 23/23 alive**;
+**15 min/tick 21/23** in 9s instead of 70s, the two deaths being starvation at
+6d14h+ — the known finite-food issue (task-410), not the tick length. The
+1-minute result is unchanged, which is the point: `×1` scaling is a no-op.
+
+A tick-length sweep over the same game week is flat until the step gets
+coarse — **23/23 alive at 1, 2 and 5 min/tick**, then 21–22/23 at 15/30/60. The
+death is the *same character* (Silver-Talon) at every coarse step and the whole
+camp's food is consumed either way, so the tail is the finite-food problem
+(task-410), not the time scaling: at 1 min/tick the hungriest three end the
+week at Hunger 100 *alive*. Use ≤5 min/tick when tuning rates.
+
+### ⏳ Condition durations are game minutes
+`player.py` documented `duration = ticks remaining` and
+`engine/conditions.py` counted one down per tick, so a 5-minute `unconscious`
+lasted **75 game minutes** in a 15-minute world, `satisfied` 5 hours and
+`sensitized` 150 minutes.
+
+- **Durations and condition `periodic` drains are per game minute.**
+  `process_tick` counts down by the tick's minutes and routes periodics through
+  `vital_rates.change(..., minutes=…)`, so sub-1 periodics also stop truncating
+  to nothing (they were written straight into `vitals` before).
+- **`get_active_conditions` reports `minutes_remaining`** rather than
+  `ticks_remaining` — nothing consumed the old key.
+- **Save compatibility:** instances store a bare number, so a save written at
+  1 min/tick is byte-identical in meaning; at a longer tick an old value now
+  reads as minutes, which is the correct interpretation.
+- Verified: a 10-minute condition expires after 10 / 2 / 1 ticks at 1 / 5 / 10
+  minutes per tick (`tests/test_tick_time_scaling.py`).
+
+Re-running the sweep after this changed nothing (same deaths, same identities),
+which is the expected negative result: it confirms the remaining soak deaths are
+food-limited rather than a residue of tick-quantised time.
+
+Still tick-quantised and not yet converted: `npc_behaviors.npc_action_interval`
+(a second, older action scheduler).
+
+### 🧾 Character memories are no longer capped at 200
+`player.add_memory` silently dropped the **oldest** memory once a character
+passed 200 — a cap nobody chose, and FIFO, so a busy week of generated events
+would have pushed the hand-written backstory out first.
+
+- The cap is now `memory.max_per_character` (Engine Config → memory, default
+  **0 = unlimited**), read at call time like every other engine setting.
+- When a limit *is* set, eviction skips `source: "manual"` memories, so authored
+  backstory is the last thing to go rather than the first.
+- Verified: 600 generated memories all retained by default; with a cap of 50 the
+  total trims to 50 and **all 10 authored memories survive**.
+
+This matters for the background social work (task-423): at the measured decision
+rate a character accrues ~2–4 memories per game hour, which would have started
+evicting the authored past after roughly three game days.
+
+### 🔗 Relationships fade when nobody maintains them
+Closeness only ever moved on an event: `last_interaction_tick` was written in
+five places and **read in none**, so a pair that never met again kept its value
+forever and a week of simulation could only ratchet.
+
+- **`Player.decay_relationships()`** eases closeness toward 0 by elapsed game
+  days, driven from the tick loop **once per game day** — so a 1-minute world and
+  a 15-minute one drift identically, and the cost is daily rather than 23
+  characters × N relationships every tick.
+- **Safe on authored data, deliberately.** The step can never cross zero, shared
+  history damps the rate through `interaction_count` (the same counter that feeds
+  `derive.familiarity`, so six prior interactions roughly halve the drift), and an
+  authored `label` ("my brother") is a *declaration* rather than a measurement, so
+  it is never touched — only the computed closeness moves.
+- Sub-1 daily steps accumulate per relationship the way vitals do; a 0.5/day rate
+  would otherwise round to nothing every day.
+- Tunable at `relationship.decay_per_day` (Engine Config → relationship, default
+  0.5). Verified tick-length independent: 3 days at 1 min/tick and at 15 min/tick
+  land on the same closeness.
+
+### 🏷 Scenarios name themselves from the filename
+A blank `_scenario_name` is the failure mode that made saves land as "unnamed"
+and left the frontend's local background-map cache unreachable, since
+`_scenarioIdentity()` keys off the name. `world.set_scenario_source(path)` is now
+the one place that keeps source and name consistent: it derives the name from the
+filename stem when the world has none, never overwrites an existing name, and
+`None` clears the source only. All seven path-bearing assignments route through it.
+`_scenario_name` is also initialised in `VirtualWorld.__init__` instead of only
+appearing once something set it.
+
+### 📋 Filed for next
+`task-416` area-major tick iteration · `task-417` co-presence gate for coarse
+meetings (amends `task-409 §4`, which would otherwise pair characters on opposite
+sides of the map) · `task-418` awareness channels replacing `radius_hops` ·
+`task-419` one `at` per character + anchor budget · `task-420` a single
+relationship write path · `task-421` light barrier parity with sound · `task-422`
+NL editor budget controls; `bug-36` `moveNode` called for absent nodes.
+
+---
+
+## Unreleased — "Long-horizon simulation: Phase 0 + trace" (2026-09-19 → 09-20)
+
+Groundwork for running a scenario for weeks of in-game time with every
+character a real agent. Two things made that impossible: vitals were still on
+session timescales outside the drives (environment/regen/comfort vitals killed
+everyone in ~2 hours), and there was no objective record of what a background
+character did. See `docs/design/long-horizon-simulation-progress.md`.
+
+### ⏳ Vitals on a true per-minute scale
+- **`vital_rates.py`** — new single source of truth for per-minute rates (1 tick
+  = 1 in-game minute). From a full meter: Hunger ~3 weeks, Thirst ~3 days, Energy
+  ~16h; Social/Hygiene/Entertainment ~1–2 days; Sanity ~14 days. `change()` is a
+  fractional accumulator so sub-1 rates actually accrue.
+- **All environmental/temperature/social/sanity/bladder/sleep/HP-regen effects**
+  in `engine/tick_manager.py` routed through it and rescaled; `engine/activities.py`
+  activity regen rescaled too. Cold/heat now measured per minute, heat correctly
+  *raises* Thirst (drive), and HP regen no longer outpaces starvation.
+- **`tools/migrate_decay_rates.py`** — new: re-bakes per-player `decay_rates`
+  (baked rates override engine defaults, so the calibration was otherwise
+  invisible). Applied to `world_template.json` and the goblin scenario.
+- **`data/library/traits/high_metabolism.json`** — new goblin trait (Hunger ×2,
+  Thirst ×1.5, Energy ×1.3).
+
+### 🧾 Objective character trace (task-399 foundation)
+- **`engine/trace.py`** — new append-only, code-written history per character:
+  `record / recent / since / summarize_window / rollup / load / to_list`, capped
+  at 200 entries with salient-first retention. Wired into need tier crossings
+  (`why="needs:*"`), deaths (salient), and resolved actions. Round-trips through
+  `Player.to_dict` / `_deserialize_player`.
+- **Design contracts** — `docs/design/reversibility-contract.md` (one state
+  model, two decision policies; what must stay live while backgrounded) and
+  `docs/design/trace-format.md` (entry schema, kinds, reason tags, trace→memory).
+
+### 🌦 Scenario fixes
+- **Kraktooth forecast** rewritten from a perpetual blizzard (`temperature_mod`
+  -15, light -12) to a clear → overcast → rain day cycle. The frozen baseline was
+  killing every exterior character with hypothermia within ~11 game-hours.
+
+### 🧪 Tooling & tests
+- **`tools/soak_sim.py`** — headless long-run harness with live progress
+  (bar/ETA/ticks-per-second/deaths), day/week/month wall-clock projections,
+  survival breakdown, `--debug-hp`, `--neutral-environment` (now clears weather
+  too), `--engine-decay`, `--override`, `--set`, `--apply-trait`, `--report`.
+  Measured ~6–9 ticks/s with 23 characters → a game week ≈ 18–29 min.
+- `tests/test_trace.py` (new); `test_activities.py` / `test_social_company.py`
+  updated to the per-minute model. **2828 passing** (excluding pre-existing,
+  unrelated `test_mcp_*` failures).
+
+### ⚡ Trigger/edge indexing and background scale (tasks 406/407)
+- **`graph.py`** — a trigger-event index (`get_trigger_sources`) plus edge
+  indexes keyed on lowercased source/target. Turn/time trigger sweeps now visit
+  **only** nodes that own that trigger (any node type) instead of every node,
+  and edge lookups no longer scan the whole edge list or call `.lower()` per
+  edge. A `_revision` counter drives cache invalidation; a length check lazily
+  rebuilds if code mutates `edges` directly.
+- **Standing items can tick** — `engine/tick_manager.py` now fires `on_tick` for
+  items that are neither carried/equipped nor lit/on (a bush, nest, shrine),
+  exactly once, without disturbing the existing carried/lit paths.
+- **Cheaper trigger execution** — `_execute_triggers` fetches trigger edges and
+  type-filters them before building its template context, and resolves the
+  current area by id instead of reading the legacy `current_area` property
+  (which rebuilt an `Area` plus its exits on every access).
+- **Authoring exits cached** — `build_exits_for_area(include_hidden=True)` is
+  memoised by graph revision. The game-facing view depends on per-player
+  discovery state and is deliberately **not** cached.
+- **Lighting** — effective light is now explicitly the **brightest single
+  source** (`max`), not a sum: the old `own + items` was computed and then
+  discarded by the brightness ceiling anyway (four dim torches never out-shone
+  one torch). Every area's light is recomputed **once per tick** into a stamp
+  the render/tick paths read, instead of rescanning the room and its neighbours
+  on every access; `_item_light_stats` also collapsed from two content passes
+  to one. `graph.retarget_edge` was added, and unequip now moves its edge in
+  place instead of remove + add.
+- **Scenario cleanup** — deleted four generated goblin byproduct scenarios
+  (`*_assembled`, `*_populated`, `*_generated`, `*_generated_connected`); one
+  goblin scenario remains.
+- **The turn-event buffer was O(n²).** `GameLogger.record_turn_event`
+  (`engine/logging_events.py`) rebuilt the whole buffer on *every* append. The
+  browser clears it each turn, but a headless run never calls
+  `clear_turn_events`, so it grew to ~17,000 and each append scanned all of it —
+  the real cause of a 265 → 135 ticks/s decline across a week. It now prunes only
+  when the turn changes and hard-caps the buffer at 2,000.
+- **Take/drop move edges instead of remove + add.** Placement edges are
+  captured, then retargeted onto the player (take) or back into the room (drop),
+  the way unequip already was. A failed take no longer orphans the item, because
+  the capacity/hand checks now run before any graph mutation.
+- **Regression guard** — `tests/test_perf_guards.py` asserts the *shape* of the
+  hot paths (buffer bounds, index usage, trigger-sweep scope, brightest-source
+  lighting, stamp invalidation) instead of wall-clock time. Verified to fail
+  when a fix is reverted.
+- **Measured** — a one-week (10,080-tick) background soak runs in **~56s
+  (181 ticks/s), 23/23 alive** (roughly 56–71s depending on host load) — down
+  from ~6–9 ticks/s and from 9m49s after the first pass. Survivor vitals and
+  trace are identical to the slower run, so this is pure speed. After the
+  logging fix, function-call counts are flat early vs late in a run. Full suite
+  **2831 passing** — four fewer than before only because
+  `tests/test_data_no_mojibake.py` is parametrized over every scenario JSON and
+  four files were deleted.
+- **Not yet playable at speed** — the browser is still the metronome (~2s/step,
+  one `tick_turn` per roster wrap). Server-side batch advance is task-414.
+
+### 🧰 Gotchas (this pass)
+- The interactive ~2s step delay is **UI pacing, not a rate limit**. Rate
+  limiting is `RateLimiter` (`agent-engine.js:412–425`, driven by
+  `config.rpmLimit`); the sleep predates it. Keep it for readability, make it
+  configurable, and use 0 in headless/batch paths.
+- The camp's 11 authored triggers are **dead data**: written as
+  `logic_trigger → area` edges with `event` on the node, but the runtime matches
+  `trigger_type` on the edge with the owner as source. None of them fire.
+
+### 🔬 LLM Inspector — raw request/response capture (task-405)
+- `shared/dataset-collector.js` gains `captureRaw` / `getAllRaw` / `clearRaw` /
+  `countRaw` over a new IndexedDB store `llm_raw_exchanges` (DB version 4). It
+  stores the full request body, response status/headers/raw body, duration, and
+  usage. **Authorization/API-key headers are redacted** before storage, and the
+  store is capped at 200 entries.
+- `llm-client.js` captures after `resp.json()` (non-streaming), after
+  `_handleStream` (streaming), and on error responses (400/429/500) so provider
+  error shapes are visible.
+- New `ui/llm-inspector.js`: a floating **🔬 LLM inspector** panel with
+  per-entry expand, a usage line (including `reasoning_tokens`), **Copy
+  request / Copy response**, filters by label and status, body search, and
+  Clear. Entries survive reload.
+- New Settings toggle **🔬 Show Raw LLM** (`config.showRawLLM`, default off) —
+  capture is opt-in.
+
+### 🐛 Fixes (settings + active character + DeepSeek)
+- **Settings silently reset four toggles.** `populateForm()` never restored
+  `agent-mature-content`, `agent-auto-retry-invalid`, `agent-simultaneous-mode`,
+  or `agent-structured-output`, so they rendered unchecked and the next Save
+  wrote them back as `false`. All four are now restored on form load (and a new
+  guard audits that every settings checkbox is covered).
+- **"No agent selected" after refresh.** `config.controllingPlayer` is
+  client-only and not persisted, while the header's `Active:` comes from the
+  server's `active_player`. `step()` and `startRun()` now fall back to the
+  server's active player instead of refusing to run.
+- **DeepSeek model names.** Profile + model dropdown updated to
+  `deepseek-flash` and `deepseek-v4-pro`; `deepseek-v4-flash`, `deepseek-chat`,
+  and `deepseek-reasoner` are retired aliases. Thinking is enabled by default at
+  `high`, so the disable path is explicit, and effort `none` now means "thinking
+  off" rather than being sent as an invalid `reasoning_effort`.
+
+### 🗺️ Scenario authoring fixes + two engine effects
+The camp's trigger validator reported **78 issues across 45 nodes**; it now
+reports **0**, and the 11 previously-dead triggers fire.
+
+- **Triggers (11).** Authored as `logic_trigger -> owner` with the event on the
+  node — a shape the runtime never matches, so none fired. They now use
+  `owner -> logic_trigger` with `trigger_type` on the edge, and their legacy
+  flat fields migrate into `effects[]` (`message`, `spawn_items`,
+  `grant_memory`).
+- **`grant_memory` effect (new).** Adds a memory entry to the target player via
+  `Player.add_memory`. Registered in `EFFECT_TYPES` with an editor template
+  (`data/library/items/template_grant_memory.json`).
+- **`once` triggers (new).** A trigger node with `once: true` fires exactly
+  once (`fired` persists on the node). Without it the camp's discovery triggers
+  repeated their message and duplicated their spawned items.
+- **Effect aliases.** `decrement_uses` → `adjust_uses {delta:-1}` and
+  `roll_condition` → `save` (with `on_success`/`on_fail` wrapped as lists) —
+  both were unknown effect types that silently did nothing.
+- **Ways.** Every bidirectional way had only one authored side, so the reverse
+  exit fell back to the way name and read backwards (*"passage to scouting
+  rooms"* from inside the rooms). Reverse sides now carry the opposite cardinal,
+  a direction label, and a view of the far area.
+- **Weapons.** Club / Knife / Rusty Hatchet / Spear had `damage_dice` but no
+  `damage`, so combat silently used a flat 5; `damage` now mirrors the dice.
+- **Tooling.** `tools/fix_scenario_authoring.py` (dry-run by default) applies
+  all of the above; `tests/test_camp_trigger_wiring.py` locks the wiring, the
+  once gate, and `grant_memory`.
+
+### 👁️ Human panel perception + stranger targeting
+- **"Since your turn" no longer leaks the world.** `agent/turn-feed.js`
+  subscribed to the global `events` log, and `digest()` returned *everything*
+  logged since the last turn — so the human saw other characters acting in other
+  areas, written in second person as if it were their own action. `event-stream.js`
+  now carries the acting character on the `log` bus payload (explicit actor,
+  else the open turn card's actor; system rows stay unattributed), and both the
+  digest and the "What happened" feed filter to what the viewer could perceive:
+  their own rows plus rows acted by characters in the same room.
+- **Audio propagation through ways.** Speech in *other* areas is now included
+  when it carries. The panel mirrors `engine/sound.py` exactly — BFS from the
+  speaker's area accumulating per-way barriers (`sound.speech_*` 0/1/1/2/3 for
+  whisper/normal/sing/shout/scream; `sound.way_open` 0.5, see-through 0.75,
+  closed 1, locked/blocked/hidden 2; ambient noise dampening at the origin) and
+  a room hears the line when `penetration - accumulated > 0`. So a shout through
+  a closed door carries, normal speech carries through an open passage, and a
+  whisper stays private. Uses the model's default values — a customised Engine
+  Config override is not read by the panel yet.
+- **Unmet characters can be targeted by the label the scene shows.**
+  `matching.py _match_character_name` gained an appearance-label tier, so a
+  stranger resolves by their `unknown_display_name()` ("the woman") — exact,
+  partial, or significant-word match, with ambiguity still returning candidates.
+  Previously `approach the woman` failed with *"There's no 'woman' here to
+  approach."* while the scene listed her. Once met, the real name is what matches.
+- Tests: `tests/test_stranger_targeting.py`.
+
+### 🗺️ Graph map background — right-click + on-canvas handles
+- **Right-click empty canvas** → 🗺 menu: **Add background image…**, then
+  **Edit image**, **✂ Crop**, **⤢ Fit to nodes**, **🎚 Opacity…**, **🗑 Remove
+  image**, plus **🔒 Lock nodes** and **💾 Save node layout**. No permanent
+  toolbar — the map is opt-in per right-click.
+- **Manipulate on the canvas**: drag the image to move, corner handles scale it
+  about its centre, the top dot rotates it, and in crop mode the amber inner
+  edges crop it (crop is a normalised source window, so cropping enlarges the
+  kept region to fill the frame). A small hint chip appears while editing, with
+  opacity and Done.
+- Rendering: an `<img>` layer is inserted as the **first child** of
+  `#graph-container`, so it paints beneath the (transparent) vis canvas — nodes
+  draw over the map and the map never covers the legend. It is kept glued to the
+  view transform on every `afterDrawing` (`translate(centre) scale(s)
+  translate(-viewPos)`), so it pans and zooms with the graph. A second,
+  above-canvas handle layer is `pointer-events: none` except on the handles, so
+  normal graph interaction is untouched when not editing.
+- Persisted per scenario in IndexedDB (`graph_assets`, DB version 5): image data
+  URL, rect, rotation, crop, opacity, lock flag, and node positions. Locking
+  freezes physics and applies the saved positions.
+- Caveat: the storage key is the scenario `_scenario_name` (falling back to
+  `default`), so until the camp scenario carries a `name` (task-408) its layout
+  is filed under the boot name.
+
+### 📚 Front-end module documentation sweep
+- Every non-vendor module under `static/js` (**133**) now opens with a
+  `@module` / `@contributes` / `@powers` / `@relates` / `@docs` contract, so
+  "what does this file contribute and what feature does it power?" is answerable
+  without reading the file.
+- `tools/js_module_index.py` generates `docs/design/js-module-index.md`
+  (module · purpose · file · contributes · powers · docs), and `--check` **fails
+  on any new module missing the contract**. The legacy baseline was retired as
+  files were documented and is now empty.
+- Bugs found by the sweep (all fixed): an **unreachable `Social` tier** in
+  `prompt-builder/character-state.js` (the `[social_need: moderate]` cue never
+  fired — two identical `if (v < WARNING)` branches), and `agent/vital-thresholds.js`
+  not exporting its own `DRIVE_*` constants. Also: the duplicated lore/brevity
+  block in `system-prompt.js` extracted to shared helpers, stale counts in the
+  `prompt-builder/index.js` manifest, and missing headers on `event-bus.js`,
+  `graph/layout-engine.js`, and `graph/edge-inspector.js`.
+- Docs health: `tools/fix_docs_mojibake.py` repaired **233** cp1252 sequences
+  across 34 files, and `tests/test_docs_no_mojibake.py` now guards **all** of
+  `docs/` (previously only `data/` was checked). `_Index.md`'s stale hardcoded
+  repo path was corrected.
+- Open decisions raised by the sweep are collected in
+  `docs/design/pending-confirmations.md`.
+
+### 🧼 Readable locals + TypeScript toolchain
+- **163 cryptic single-letter locals renamed** across 11 files (`v` / `T` / `n` →
+  `value` / `thresholds` / `vitals` …). Worst offender:
+  `prompt-builder/character-state.js: describeVital`, where `v < T.WARNING`
+  became `value < thresholds.WARNING`. Loop indices and coordinates (`i`, `x`)
+  are still fine; the convention is documented.
+- **TypeScript adopted, incrementally** (`.js` and `.ts` coexist; the app works
+  at every step):
+  - `tsconfig.json` (`npm run build:ts`) compiles `static/js/**/*.ts` → `.js`
+    beside the source — `strict`, `noEmitOnError`, comments preserved.
+  - `tsconfig.check.json` (`npm run typecheck`) parses **every** JS + TS with
+    `noEmit`; JS opts into checking per file via `// @ts-check`.
+  - Converted files stay **classic scripts** (no `import`/`export`) and use
+    ambient globals in `static/js/types/globals.d.ts`, so the `<script>` load
+    order is unchanged.
+  - First module converted: `agent/rate-limiter.ts` → generated
+    `rate-limiter.js` (doc header + module contract preserved, `window.RateLimiter`
+    intact). `npm run typecheck` is clean across all 133 modules.
+  - TS 7 notes: `module: "none"` and `alwaysStrict` were removed (using
+    `esnext`), and emitted files begin with `"use strict";`, which the module
+    contract guard now steps over.
+  - Convention and conversion recipe: `docs/design/typescript-migration.md`.
+
+### 🗺️ Graph layout durability + adaptive edges
+- **Node positions persist to the WORLD.** 🗺 → **Save layout to world** (and
+  locking) writes each node's `properties.x`/`y` through a single atomic
+  `POST /api/graph/batch` — so a layout survives reloads, travels with the
+  scenario file, and is one undo step. `buildNodeConfig()` seeds `x`/`y` from
+  those properties on load. **`x`/`y` never reach library templates** —
+  `handle_library_create_or_update` strips presentation-only properties, and the
+  template-refresh paths already build explicit key lists, so a refresh cannot
+  clear a node's saved position either. `tests/test_library_presentation_keys.py`
+  locks both the helper and the route.
+- **Background map stored as a FILE, not base64.** New
+  `POST /api/graph/background/image` saves to `static/images/backgrounds/…`, and
+  the path plus transform (rect/rotation/crop/opacity/locked) lives in a new
+  scenario-level `graph_background` block, serialized like `world_lore`.
+  Embedding the map as base64 would have added ~2.7 MB to the scenario per
+  commit for a 2 MB image; IndexedDB remains a local fallback for maps never
+  uploaded.
+- **Search no longer wrecks hand-made layouts.** `graph/focus.js` called
+  `network.moveNode()` on *every* match regardless of `physics: false`, and
+  `_kickClusterPhysics()` switched global physics on and ran `stabilize(60)`
+  even when physics was off — re-settling the whole layout. Frozen nodes are now
+  excluded from the cluster grid, and the kick is skipped entirely when physics
+  is disabled.
+- **Adaptive connection edges.** Area↔way edges size to the label actually
+  drawn: `clamp(45…130, 35 + 3.2 × labelLength)`, so unlabelled edges stay tight
+  and long names get room without stretching the map. A per-way `edge_length`
+  property still overrides.
+
+### 🌍 Scenario naming + per-scenario isolation
+- **The top-bar name is now real.** The click-to-rename chip only ever wrote
+  `document.body.dataset.scenarioName` — never the server — so the name was
+  cosmetic, vanished on reload, and even keyed the graph-background cache. New
+  **`POST /api/scenario/name`** sets `world._scenario_name` and, when the source
+  file has a different basename, **repoints the commit target** to
+  `data/scenarios/<name>.json` — so a world booted from the boot template stops
+  committing into `world_template.json`. Existing files are never clobbered.
+  The chip updates immediately and reverts if the server rejects the name.
+- **Graph backgrounds are per-scenario.** Loading a different world left the
+  previous world's map on screen, and the IndexedDB fallback keyed unnamed
+  scenarios to one shared `default` slot. The **world is now authoritative**:
+  every state refresh re-derives the background (clearing it when the world has
+  none), the local cache is consulted only for a *named* scenario, and a
+  previous world's physics freeze is undone rather than inherited.
+
+---
+
 ## Unreleased — "Survival balance & Sanity breakdown" (2026-09-08)
 
 The mansion survival fix: teenagers were dying of starvation in ~45–63 in-universe minutes despite carrying granola bars and water bottles, because the drive decay was 1/tick, vitals were invisible to the agent, and the moodlets never told anyone *what to do*. Low Sanity was also still draining HP and being listed as a cause of death — going insane doesn't kill you, it makes you more dangerous.
@@ -494,6 +1225,10 @@ moonlight descriptions. **2633 passing**.
   updated for `forecast.apply_scope`.
 - Task vault: 227/228/229/231/232/234/378/379/387 — all implemented in this session.
 - Full suite at **2633 passing**.
+
+---
+
+## 1.2.0 — "Craft & Carry" (2026-08-31)
 
 Items stopped being cardboard props. Uses, durability, weight, freshness, stacking, crafting,
 teaching, auto-dressing, gated shortcuts — and a pile of the item/gameplay todo queue landed in

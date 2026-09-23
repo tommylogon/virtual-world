@@ -1,0 +1,31 @@
+{
+  "name": "Satisfied",
+  "description": "Released and content. Drowsy and at peace.",
+  "blocks_actions": false,
+  "blocks_movement": false,
+  "blocks_speech": false,
+  "auto_fail_checks": [],
+  "auto_fail_saves": [],
+  "attack_mod": 0,
+  "defense_mod": 0,
+  "speed_mult": 1.0,
+  "movement_mode": null,
+  "drops_held_items": false,
+  "periodic": {},
+  "ends_on": [
+    "duration"
+  ],
+  "known": false,
+  "symptoms": {
+    "5": "A slow, warm contentment settles over you.",
+    "3": "You feel languid and sated."
+  },
+  "stack": "refresh",
+  "default_duration": 20,
+  "excludes": [],
+  "mature": true,
+  "order": null,
+  "perception_skip": false,
+  "check_advantage": [],
+  "check_disadvantage": []
+}

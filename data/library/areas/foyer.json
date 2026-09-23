@@ -1,7 +1,12 @@
 {
   "name": "foyer",
   "description": "a grand entrance hall with a black-and-white marble floor. a dusty crystal chandelier hangs precariously overhead, cobwebs draping from its arms. a sweeping staircase curves upward into darkness. to the east, a heavy oak door leads to the library; to the west, a door opens into the dining room. the massive oak front door is directly ahead, barred by an intricate locking mechanism with a skull-shaped indentation at its center. the air is stale and bitingly cold.",
-  "tags": [],
+  "tags": [
+    "interior",
+    "mansion",
+    "entrance",
+    "social"
+  ],
   "environment": {
     "air": "stale",
     "light": "dim",

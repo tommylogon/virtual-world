@@ -10,6 +10,12 @@
  *   const triggers = await TriggerSuggestAI.suggest(fields, 'item');
  *   // → [{ trigger_type, target_name, target_state, conditions, effects,
  *   //      success_message, fail_message }, ...]  |  null (config/failure)
+ *
+ * @module shared/trigger-suggest-ai — AI trigger suggestions
+ * @contributes TriggerSuggestAI.suggest(fields, kind) → cleaned trigger objects, or null
+ * @powers the "✨ Suggest (AI)" button on item / way / area nodes
+ * @relates uses shared/ai-generator; its output flows through trigger-suggest-diff
+ * @docs docs/virtualWorld/Rules Engine/
  */
 window.TriggerSuggestAI = (() => {
     /**
@@ -46,7 +52,10 @@ on_take      — player picks item up. Best for whispers / weight / cursed react
 on_drop      — player drops it.
 on_examine   — player examines it. Ideal for save-gated or skill-gated reveals.
 on_inspect   — upgraded examine (study closely).
+on_look      — player looks at it in the room (ambient flavor, no action).
+on_search    — player searches it / the area — hidden finds.
 on_use       — the generic action; NOTE: co-fires when eating/drinking.
+on_use_progressive — fires on EVERY use, alongside on_use (charges/ramps). Gate with uses_above / uses_reached.
 on_use_on    — used ON a target (item/way/character). Unlock keys, use-on-door.
 on_eat       — consume as food (already co-fires on_use — never pair with on_use).
 on_drink     — consume as drink (already co-fires on_use — never pair with on_use).
@@ -57,6 +66,7 @@ on_equip / on_unequip — equip/unequip (weapon threat, curses, worn effects).
 on_throw     — throw it (breaks, propulsion).
 on_break     — it breaks (shards, snapped).
 on_depleted  — uses reach 0 (runs out / burns out; fires after system flips unlit).
+on_spoil     — food spoils on a tick (rot / poison).
 on_toggle_on / on_toggle_off — a toggleable flips ON / OFF (REAL toggle triggers).
 on_toggle_off — used to douse a light.
 on_state_enter / on_state_exit — when the node's current_state changes (recursive).

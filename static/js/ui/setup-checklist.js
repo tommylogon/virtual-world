@@ -6,6 +6,12 @@
  * scenario doesn't "exist but nobody knows what to do next". Check state is
  * session-local (localStorage key per scenario name) — resets together with
  * the world when the scenario name changes.
+ *
+ * @module ui/setup-checklist — new-scenario onboarding checklist
+ * @contributes SetupChecklist: the five setup stages with links to each tool, per-scenario check state
+ * @powers telling a fresh scenario's author what to do next (task-382)
+ * @relates session-local state (localStorage keyed by scenario name)
+ * @docs docs/virtualWorld/ScenarioCreationGuide.md
  */
 window.SetupChecklist = (() => {
   'use strict';

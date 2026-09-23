@@ -5,6 +5,8 @@
 from item import Item
 from area import Area
 from player import Player, CONDITION_DEFINITIONS
+from vital_rates import BASELINE_DECAY
+import os
 import time
 import logging
 import random
@@ -51,6 +53,7 @@ class VirtualWorld:
         self.time_ticks = 0
         self.time_per_tick_minutes = 1
         self._scenario_source = None
+        self._scenario_name = ""
         self.scenario_ended = False
         self._restart_requested = False
 
@@ -73,23 +76,23 @@ class VirtualWorld:
         # Auto-generate equipment descriptions on equip/unequip (False = manual only)
         self.auto_generate_descriptions = True
 
-        # Per-minute decay rates. 1 tick = 1 in-game minute (see the event
-        # log's "1m" stamps), so these are real-world-scaled: a healthy
-        # adult goes ~3 weeks without food and ~3 days without water.
-        #
-        # The old 1/tick values killed everyone in ~15-25 minutes — the
-        # teenagers in the mansion had granola bars and water bottles in
-        # their pockets and still starved, because the drive maxed out before
-        # they ever thought to eat. Hunger now takes ~7h to max from the
-        # scenario's starting 75, Thirst ~1.4h from 85 — long enough to act.
+        # Per-minute decay rates. 1 tick = 1 in-game minute, so these are
+        # real-world-scaled from a FULL meter: a healthy adult reaches the
+        # starvation edge at ~3 weeks, the dehydration edge at ~3 days, and
+        # Energy empties over a ~16h waking day. Single source of truth is
+        # vital_rates.BASELINE_DECAY — sub-1 rates there depend on the
+        # fractional accumulator in TickManager.tick_turn(); int() alone
+        # would truncate them to zero. The tick_manager Hunger/Thirst
+        # grace + HP-drain constants are tuned against these rates so total
+        # time-to-death lands near the 3-week / 3-day targets.
         self.baseline_decay = {
-            "Energy": 1, "Hunger": 0.06, "Thirst": 0.18,
-            "Social": 1, "Hygiene": 1,
-            "Sanity": 1, "Entertainment": 1,
-            "Mana": 0,
+            **BASELINE_DECAY,
             # Pleasure system (task-207/208): decay only touches players that
             # carry the vitals (mature_content on). Arousal ebbs slowly,
             # Stimulation drains at a medium rate, Pleasure fades fastest.
+            # These are per-minute like everything else in this loop and are
+            # scaled to the tick length by TickManager._decay, so at the
+            # default 1-minute tick they behave exactly as authored.
             "Arousal": 1, "Stimulation": 2, "Pleasure": 3
         }
         self.game_logger = GameLogger()
@@ -104,16 +107,27 @@ class VirtualWorld:
         self.add_log_entry(" - WARNING: Environmental conditions affect your needs. Pay attention to temperature, air, noise, and smell!")
 
         self.ACTION_COSTS = {
-            "move": {"time": 1, "energy": 1},
-            "open": {"time": 0, "energy": 1},
-            "close": {"time": 0, "energy": 1},
-            "look": {"time": 1, "energy": 0},
-            "use": {"time": 1, "energy": 1},
-            "take": {"time": 1, "energy": 1},
-            "drop": {"time": 1, "energy": 0},
-            "fumble": {"time": 2, "energy": 3}, 
+            # Energy costs are ABSOLUTE, not per-minute rates. They used to be
+            # multiplied by a `time` field that also decided whether the action
+            # advanced the clock; task-436 removed that overload, so `fumble`
+            # carries the 6 it always cost (3 x time:2) and every atomic action
+            # takes one minute, unconditionally.
+            "move": {"energy": 1},
+            "open": {"energy": 1},
+            "close": {"energy": 1},
+            "look": {"energy": 0},
+            "use": {"energy": 1},
+            "take": {"energy": 1},
+            "drop": {"energy": 0},
+            "fumble": {"energy": 6},
+            "fear": {"energy": 0},
+            "interest": {"energy": 0},
         }
-        self._action_time_consumed = False
+        # Set by a *task* that advances the clock for its own duration (rest,
+        # sleep) so the per-action layer does not add a minute on top. task-436
+        # renamed it from `_action_time_consumed`, which described its old
+        # `time`-derived source rather than what it actually guards.
+        self._clock_advanced_by_task = False
 
         # World lore: shared list of structured lore entries
         self.world_lore = []
@@ -140,6 +154,9 @@ class VirtualWorld:
             "transition_table": {},
         }
         self.forecast_override = None
+        # Graph background map (image path + transform). Presentation-only world
+        # state, persisted so a layout travels with the scenario file.
+        self.graph_background = {}
         self._forecast_sched_obj = None
         self._forecast_last_entry_key = None
         self._forecast_last_minute = None
@@ -296,6 +313,8 @@ class VirtualWorld:
         return NodeIDHelper.area_node_id(name)
 
     def player_node_id(self, name: str) -> str:
+        if hasattr(self, 'player_manager') and self.player_manager is not None:
+            return self.player_manager.get_player_node_id(name)
         return NodeIDHelper.player_node_id(name)
 
     def item_node_id(self, name: str) -> str:
@@ -317,6 +336,8 @@ class VirtualWorld:
         return self.name_matcher._is_item_reachable(item_id, area_id)
 
     def _player_node_id(self, player_name: str) -> str:
+        if hasattr(self, 'player_manager') and self.player_manager is not None:
+            return self.player_manager.get_player_node_id(player_name)
         return NodeIDHelper.player_node_id(player_name)
 
     def _match_exit_direction(self, area_id: str, input_str: str) -> Optional[str]:
@@ -526,6 +547,69 @@ class VirtualWorld:
 
     def steal_item(self, item_name: str, target_name: str) -> str:
         return self.item_actions.steal_item(self, item_name, target_name)
+
+    # ─────────────────── Interest / fear tags (task-469) ───────────────────
+
+    def _target_tags(self, target_name: str):
+        """Tags implied by a named character, item, area or way."""
+        name = (target_name or "").strip()
+        if not name:
+            return set(), name
+        player_obj = self.player_manager.get_player(name)
+        if player_obj is None:
+            # Commands arrive lowercased, so match display names case-insensitively.
+            low_name = name.lower()
+            player_obj = next(
+                (p for p in (self.players or {}).values()
+                 if str(getattr(p, "name", "")).lower() == low_name),
+                None,
+            )
+        if player_obj is not None:
+            tags = {str(t).lower() for t in (getattr(player_obj, "traits", {}) or {}).keys()}
+            try:
+                node = self.graph.get_node(self._player_node_id(player_obj.name))
+            except Exception:
+                node = None
+            if node is not None:
+                tags |= {str(t).lower() for t in ((node.properties or {}).get("tags") or [])}
+            return {t for t in tags if t}, player_obj.name
+        low = name.lower()
+        for node in self.graph.nodes.values():
+            if str(getattr(node, "name", "")).lower() != low:
+                continue
+            tags = {str(t).lower() for t in ((node.properties or {}).get("tags") or [])}
+            return {t for t in tags if t}, node.name
+        return set(), name
+
+    def _apply_tagged_relation(self, target_name: str, field: str, verb: str) -> str:
+        player = self.get_active_player_obj()
+        if player is None:
+            raise ValueError("No active character.")
+        tags, label = self._target_tags(target_name)
+        if not tags:
+            fallback = str(target_name).strip().lower()
+            tags = {fallback} if fallback else set()
+        current = getattr(player, field, None)
+        if not isinstance(current, list):
+            current = []
+            setattr(player, field, current)
+        have = {str(t).lower() for t in current}
+        added = sorted(t for t in tags if t not in have)
+        for tag in added:
+            current.append(tag)
+        if not added:
+            return f"You already {verb} {label}."
+        if verb == "fear":
+            return f"You now fear {label} ({', '.join(added)})."
+        return f"You take an interest in {label} ({', '.join(added)})."
+
+    def fear_target(self, target_name: str) -> str:
+        """Deliberate action: register what the character is now afraid of."""
+        return self._apply_tagged_relation(target_name, "fear_tags", "fear")
+
+    def interest_target(self, target_name: str) -> str:
+        """Deliberate action: register what the character is now interested in."""
+        return self._apply_tagged_relation(target_name, "interest_tags", "interest")
 
     def get_inventory(self) -> List[str]:
         return self.item_actions.get_inventory(self)
@@ -759,6 +843,20 @@ class VirtualWorld:
     def apply_action(self, action_name, override_cost=None, player=None):
         return self.tick_manager.apply_action(action_name, override_cost, player)
 
+    def set_scenario_source(self, path):
+        """Point the world at its source file, naming it from the filename.
+
+        One place keeps `_scenario_source` and `_scenario_name` consistent. A
+        blank name is what made saves land as "unnamed" and what made the
+        frontend's local background-map cache unreachable, since
+        `_scenarioIdentity()` keys off the name. Passing None just clears the
+        source — callers that also want to rename set the name explicitly.
+        """
+        self._scenario_source = path
+        if path and not str(getattr(self, "_scenario_name", "") or "").strip():
+            self._scenario_name = os.path.splitext(os.path.basename(path))[0]
+        return self._scenario_source
+
     def advance_clock(self, ticks=1):
         return self.tick_manager.advance_clock(ticks)
 
@@ -970,17 +1068,22 @@ class VirtualWorld:
         return get_moon_phase(self.game_day)
 
     def _fire_turn_triggers(self, trigger_type: str):
-        """task-234: fire ``on_turn_start`` / ``on_turn_end`` triggers on every
-        area, way, and character node that has one attached."""
-        for node in list(self.graph.nodes.values()):
-            if node.type not in ("area", "way", "character"):
+        """task-234/406: fire ``on_turn_start`` / ``on_turn_end`` triggers.
+
+        task-406: driven by the graph's trigger-event index, so only nodes that
+        actually own such a trigger are visited (any node type — items and ways
+        included), instead of sweeping every node each turn.
+        """
+        for source_id in self.graph.get_trigger_sources(trigger_type):
+            node = self.graph.get_node(source_id)
+            if node is None:
                 continue
             try:
                 outputs = self.triggers._execute_triggers(node, trigger_type, game_state=self)
                 for out in outputs:
                     self.add_log_entry(out)
             except Exception as e:
-                logger.warning("[triggers] %s on %s: %s", trigger_type, node.id, e)
+                logger.warning("[triggers] %s on %s: %s", trigger_type, source_id, e)
 
     def _fire_time_triggers(self):
         """task-234: one-shot time-of-day & moon triggers — on_dawn, on_dusk,
@@ -999,14 +1102,15 @@ class VirtualWorld:
         }
         cache = self._time_trigger_cache
         bucket = self.game_day
-        for node in list(self.graph.nodes.values()):
-            if node.type not in ("area", "way", "character"):
+        for trigger_type, active in checks.items():
+            if not active:
                 continue
-            for trigger_type, active in checks.items():
-                if not active:
-                    continue
-                key = (node.id, trigger_type)
+            for source_id in self.graph.get_trigger_sources(trigger_type):
+                key = (source_id, trigger_type)
                 if cache.get(key) == bucket:
+                    continue
+                node = self.graph.get_node(source_id)
+                if node is None:
                     continue
                 cache[key] = bucket
                 try:
@@ -1014,7 +1118,7 @@ class VirtualWorld:
                     for out in outputs:
                         self.add_log_entry(out)
                 except Exception as e:
-                    logger.warning("[triggers] %s on %s: %s", trigger_type, node.id, e)
+                    logger.warning("[triggers] %s on %s: %s", trigger_type, source_id, e)
         if len(cache) > 400:
             for key in list(cache)[:len(cache) - 200]:
                 cache.pop(key, None)

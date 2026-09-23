@@ -1,6 +1,12 @@
 /**
  * turn-queue.js — Turn queue management for turn-based agent simulation
  *
+ * @module agent/turn-queue — turn ordering and advancement
+ * @contributes TurnQueue: sequential/random/initiative order, current character, turn number
+ * @powers who acts next — the order the agent loop walks and the queue strip displays
+ * @relates state lives on VW.agent (AgentEngine); used by agent-engine + human-turn-composer
+ * @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
+ *
  * Manages character turn ordering (sequential, random, or initiative-based),
  * turn advancement, and turn tracking. State lives on the VW.agent instance
  * (AgentEngine) as .turnQueue, .currentTurnIndex, .turnNumber, .initiativeRolls.
@@ -91,6 +97,9 @@ window.TurnQueue = (() => {
     function reconcile() {
         const agent = _getAgent();
         if (!config.turnBased) return false;
+        // Soak orders can end between roster changes (promotion/expiry); that is
+        // also a re-queue event, by the normal order rule (task-481).
+        syncSoakPromotions();
         if (!worldState.players || Object.keys(worldState.players).length === 0) {
             if (agent.turnQueue && agent.turnQueue.length === 0) return false;
             initialize();
@@ -151,11 +160,76 @@ window.TurnQueue = (() => {
     async function advance() {
         const agent = _getAgent();
         if (!agent.turnQueue || agent.turnQueue.length === 0) return;
-        agent.currentTurnIndex = ((agent.currentTurnIndex || 0) + 1) % agent.turnQueue.length;
+        const len = agent.turnQueue.length;
+        // A character with a soak order (task-481) does not take an attended turn:
+        // the soak tier is driving them, so step past them. Bounded so an
+        // all-soaking table cannot spin forever.
+        let guard = 0;
+        do {
+            agent.currentTurnIndex = ((agent.currentTurnIndex || 0) + 1) % len;
+            if (agent.currentTurnIndex === 0) {
+                await endTurn();
+            }
+            guard++;
+        } while (_isSoaking(getCurrentCharacter()) && guard <= len);
         config.controllingPlayer = getCurrentCharacter();
-        if (agent.currentTurnIndex === 0) {
-            await endTurn();
+    }
+
+    /** True when *name* currently has a soak order (per the last state fetch). */
+    function _isSoaking(name) {
+        if (!name) return false;
+        try {
+            return !!(worldState.players && worldState.players[name] && worldState.players[name].soak);
+        } catch (e) {
+            return false;
         }
+    }
+
+    // Names that were soaking at the previous state fetch, for promotion detection.
+    let _soakingNames = new Set();
+
+    /**
+     * Re-queue characters whose soak order just ended (task-481).
+     *
+     * A promoted or expired character re-enters by the normal order rule:
+     * sequential is already alphabetic, random is already shuffled, initiative
+     * gets a fresh roll (and the queue re-sorts, keeping the current character
+     * current), and simultaneous modes do not use this queue at all.
+     *
+     * @returns {boolean} True when at least one character was re-queued
+     */
+    function syncSoakPromotions() {
+        const players = (typeof worldState !== 'undefined' && worldState.players) || {};
+        const now = new Set();
+        for (const name of Object.keys(players)) {
+            if (players[name] && players[name].soak) now.add(name);
+        }
+        const ended = [..._soakingNames].filter(
+            (name) => !now.has(name) && players[name] && players[name].state !== 'dead');
+        _soakingNames = now;
+        if (ended.length === 0) return false;
+
+        if (config.turnOrder === 'initiative') {
+            const agent = _getAgent();
+            if (!Array.isArray(agent.turnQueue) || agent.turnQueue.length === 0) return true;
+            if (!agent.initiativeRolls) agent.initiativeRolls = {};
+            const current = getCurrentCharacter();
+            for (const name of ended) {
+                const dex = (players[name].stats && players[name].stats.DEX) || 10;
+                const bonus = Math.floor((dex - 10) / 2);
+                agent.initiativeRolls[name] = Math.floor(Math.random() * 20) + 1 + bonus;
+            }
+            agent.turnQueue.sort((a, b) =>
+                ((agent.initiativeRolls[b] || 0) - (agent.initiativeRolls[a] || 0))
+                || a.localeCompare(b));
+            if (current) {
+                const idx = agent.turnQueue.indexOf(current);
+                if (idx >= 0) agent.currentTurnIndex = idx;
+            }
+        }
+        // sequential: already alphabetic. random: already shuffled. simultaneous:
+        // the queue is unused, the character resumes its own cadence.
+        return true;
     }
 
     /**
@@ -223,6 +297,7 @@ window.TurnQueue = (() => {
         endTurn,
         getCurrentCharacter,
         rerollInitiatives,
-        reshuffleRandom
+        reshuffleRandom,
+        syncSoakPromotions
     };
 })();

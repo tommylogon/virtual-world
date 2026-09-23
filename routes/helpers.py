@@ -80,7 +80,7 @@ def load_autosave_if_exists(world):
             meta = data.get('_autosave_meta', {})
             saved_source = meta.get('scenario_source')
             if saved_source and os.path.exists(saved_source):
-                world._scenario_source = saved_source
+                world.set_scenario_source(saved_source)
 
             # Migrate bladder values from schema v1 (100=empty → 0=empty, 100=full)
             schema_version = meta.get('schema_version', 1)
@@ -274,7 +274,7 @@ def _save_scenario(world, name=None):
         data = world.to_scenario_dict()
         with open(source, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
-        world._scenario_source = source
+        world.set_scenario_source(source)
     except Exception as e:
         logger.warning(f"Could not save scenario: {e}")
 

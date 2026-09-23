@@ -21,6 +21,9 @@ from .graph_ops import (
     handle_delete_edge,
     handle_append_draft,
     handle_graph_batch,
+    handle_graph_validate,
+    handle_upload_background_image,
+    handle_save_background,
 )
 
 logger = logging.getLogger(__name__)
@@ -46,6 +49,14 @@ def register_graph_routes(app):
     @app.route('/api/graph/node/<node_id>/image', methods=['POST'])
     def upload_node_image(node_id):
         return handle_upload_node_image(app, node_id)
+
+    @app.route('/api/graph/background/image', methods=['POST'])
+    def upload_graph_background():
+        return handle_upload_background_image(app)
+
+    @app.route('/api/graph/background', methods=['POST'])
+    def save_graph_background():
+        return handle_save_background(app)
 
     @app.route('/api/graph/item/<node_id>/move', methods=['POST'])
     def move_item_node(node_id):
@@ -106,3 +117,7 @@ def register_graph_routes(app):
     @app.route('/api/graph/batch', methods=['POST'])
     def graph_batch():
         return handle_graph_batch(app)
+
+    @app.route('/api/graph/batch/validate', methods=['POST'])
+    def graph_batch_validate():
+        return handle_graph_validate(app)

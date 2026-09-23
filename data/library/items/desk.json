@@ -14,7 +14,8 @@
     "furniture",
     "wooden",
     "container",
-    "display"
+    "display",
+    "study"
   ],
   "triggers": [
     {

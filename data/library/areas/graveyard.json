@@ -1,7 +1,13 @@
 {
   "name": "graveyard",
   "description": "a small, neglected graveyard behind the mansion. crumbling headstones lean at odd angles like broken teeth. a large stone mausoleum stands at the far end, its heavy door slightly ajar, a sliver of darkness within. the air is cold and unnaturally still. no birds sing here. fresh lilies lie at one grave.",
-  "tags": [],
+  "tags": [
+    "exterior",
+    "mansion",
+    "outdoor",
+    "occult",
+    "stone"
+  ],
   "environment": {
     "air": "cold",
     "light": 60,

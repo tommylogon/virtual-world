@@ -173,6 +173,10 @@
     }
   ],
   "name": "Living Room",
-  "tags": [],
+  "tags": [
+    "interior",
+    "mansion",
+    "social"
+  ],
   "triggers": []
 }

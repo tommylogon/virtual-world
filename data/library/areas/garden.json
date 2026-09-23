@@ -1,7 +1,13 @@
 {
   "name": "garden",
   "description": "an overgrown garden where nature has reclaimed what was once carefully manicured. a cracked stone path winds through tangled weeds and brambles. a crumbling fountain stands in the centre, its basin filled with dark, stagnant water. to the north, a rusted wrought-iron gate leads to a graveyard. to the south, the conservatory's glass panels glint. the air is fresh but cold. a single rose bush, impossibly, still blooms — red flowers against the decay.",
-  "tags": [],
+  "tags": [
+    "exterior",
+    "mansion",
+    "outdoor",
+    "garden",
+    "plant"
+  ],
   "environment": {
     "air": "fresh",
     "light": 80,

@@ -1,7 +1,7 @@
 ﻿# Bug-19: Clicking an NPC Does Not Set Them as Active Player
 
 **Status:** Done — confirmed by Tommy 2026-08-30.
-**Area:** Graph editor â€” character interaction
+**Area:** Graph editor — character interaction
 **Observed:** `clicking on a nc does not set them as active player`
 
 ## Root cause
@@ -20,7 +20,7 @@ player:
 ## Fix
 
 - `renderAgentList`: NPC rows now call `selectAgent(name)` like every other
-  agent â€” click = set active + controlling player + open inspector + focus.
+  agent — click = set active + controlling player + open inspector + focus.
   Removed the now-unused `ui.showAgentAndFocus` helper.
 - `GraphEventHandlers.onClick`: when the clicked node is a `character` backed by
   a `worldState.players` entry, it calls `ui.selectAgent(name)`; everything else

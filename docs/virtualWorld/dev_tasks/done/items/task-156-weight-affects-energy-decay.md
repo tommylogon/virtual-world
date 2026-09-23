@@ -1,7 +1,7 @@
 ---
 id: 156
 title: Weight Affects Energy Decay
-status: todo
+status: done
 priority: low
 created: 2026-08-02
 tags: [items, weight, vitals, movement]

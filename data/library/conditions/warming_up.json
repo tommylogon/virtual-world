@@ -1,0 +1,34 @@
+{
+  "name": "Warming Up",
+  "description": "A pleasant warmth spreads. Interest is building.",
+  "blocks_actions": false,
+  "blocks_movement": false,
+  "blocks_speech": false,
+  "auto_fail_checks": [],
+  "auto_fail_saves": [],
+  "attack_mod": 0,
+  "defense_mod": 0,
+  "speed_mult": 1.0,
+  "movement_mode": null,
+  "drops_held_items": false,
+  "periodic": {
+    "Stimulation": 1
+  },
+  "ends_on": [
+    "cool_down",
+    "relax"
+  ],
+  "known": false,
+  "symptoms": {
+    "3": "A pleasant warmth spreads through you.",
+    "1": "Your skin feels hot to the touch."
+  },
+  "stack": "refresh",
+  "default_duration": 20,
+  "excludes": [],
+  "mature": true,
+  "order": null,
+  "perception_skip": false,
+  "check_advantage": [],
+  "check_disadvantage": []
+}

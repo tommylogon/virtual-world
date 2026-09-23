@@ -8,6 +8,12 @@
  * nothing executes at load time.
  *
  * Cross-file internal calls use PromptBuilder.<fn>(...).
+ *
+ * @module prompt-builder/helpers — leaf prompt utilities
+ * @contributes lightToLevel, wayHandle, buildRelationMap, anonymousName, voiceLabel, hasPlan, secondPersonDesc, frameSelfSpeech
+ * @powers consistent labelling of rooms/items/strangers, and self-framing, across every prompt
+ * @relates the leaf layer; used by room-context, contextual-actions, character-state
+ * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
 
 window.PromptBuilder = window.PromptBuilder || {};
@@ -96,22 +102,29 @@ window.PromptBuilder = window.PromptBuilder || {};
     }
 
     /**
+     * Does *charName* already know *targetName* — either because they have met,
+     * or because the authored `known` registry lists them? A known character is
+     * never masked as a stranger (task-154), for faces AND for voices.
+     */
+    function isKnownToViewer(charName, targetName) {
+        if (worldState.hasMet(charName, targetName)) return true;
+        const viewer = worldState.data?.players?.[charName];
+        const known = new Set((viewer?.known || []).map(String));
+        const knownLower = new Set([...known].map(value => value.toLowerCase()));
+        const targetSlug = String(targetName || '').toLowerCase().replace(/\s+/g, '_');
+        return knownLower.has(String(targetName || '').toLowerCase())
+            || knownLower.has('player_' + targetSlug)
+            || knownLower.has('character_' + targetSlug);
+    }
+
+    /**
      * Return how this character should refer to another.
      * Known characters are called by their real name. Strangers (no relationship
      * record yet) are labelled by their appearance so the character never
      * learns a name they haven't been told (task-154).
      */
     function anonymousName(charName, targetName, targetDesc) {
-        const hasMet = worldState.hasMet(charName, targetName);
-        if (hasMet) return targetName;
-        // Authored `known` registry: a character flagged as known to the
-        // viewer is never masked, regardless of meeting state.
-        const viewer = worldState.data?.players?.[charName];
-        const known = new Set((viewer?.known || []).map(String));
-        const targetSlug = String(targetName || '').toLowerCase().replace(/\s+/g, '_');
-        if (known.has(String(targetName || '')) || known.has('player_' + targetSlug) || known.has('character_' + targetSlug)) {
-            return targetName;
-        }
+        if (isKnownToViewer(charName, targetName)) return targetName;
         const player = worldState.data?.players?.[targetName] || {};
         const tagMap = {
             female: 'the woman', male: 'the man', woman: 'the woman', man: 'the man',
@@ -128,14 +141,14 @@ window.PromptBuilder = window.PromptBuilder || {};
 
     /**
      * How a character should refer to someone they can HEAR but not see
-     * (cross-room speech). Physical appearance is useless through a wall —
-     * use voice characteristics instead. Derives from the speaker's tags
-     * (female/male/woman/man/girl/boy/child), falling back to pronouns in
-     * their description, then a generic voice.
+     * (cross-room speech). If you know someone, you know their voice — a met or
+     * authored-known speaker is named. Otherwise physical appearance is useless
+     * through a wall, so this falls back to voice characteristics derived from
+     * their tags (female/male/…), then pronouns in their description, then a
+     * generic voice.
      */
     function voiceLabel(charName, targetName) {
-        const hasMet = worldState.hasMet(charName, targetName);
-        if (hasMet) return targetName;
+        if (isKnownToViewer(charName, targetName)) return targetName;
         const player = worldState.data?.players?.[targetName] || {};
         const tagMap = {
             female: 'woman', male: 'man', woman: 'woman', man: 'man',
@@ -242,6 +255,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         indefiniteArticle,
         wayHandle,
         buildRelationMap,
+        isKnownToViewer,
         anonymousName,
         voiceLabel,
         hasPlan,

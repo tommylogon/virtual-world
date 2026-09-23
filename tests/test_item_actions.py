@@ -132,6 +132,7 @@ def item_actions(graph, player_manager):
         side_effect=lambda iid, aid: is_reachable(graph, f"player_{player_manager.active_player}", aid, iid)
     )
     ia.matching._match_item_name = MagicMock(return_value=None)
+    ia.matching.match_item_name_in_inventory = MagicMock(return_value=None)
     ia.matching._match_character_name = MagicMock(return_value=(None, []))
     ia.matching.resolve_exit = MagicMock(return_value=(None, None, ""))
     ia.matching.way_handle = MagicMock(return_value="door")
@@ -307,57 +308,112 @@ class TestStealItem:
         assert any(e.source == item.id for e in graph.get_edges_for_target("player_Hero", EDGE_CARRYING))
         assert not any(e.source == item.id for e in graph.get_edges_for_target("player_Bandit", EDGE_EQUIPPED))
 
+    def test_steal_misspelled_item_resolves_via_tiered_matcher(self, graph, player_manager, item_actions):
+        """bug-35: a misspelled steal target resolves through the matcher rather
+        than failing with "doesn't have ... to steal"."""
+        item, bandit = self._setup_steal(graph)
+        player_manager.players["Bandit"] = bandit
+        item_actions.matching.match_item_name_in_inventory = MagicMock(return_value="gold_coin")
+
+        with patch("engine.items.transfer_actions.random.randint", return_value=10):
+            result = item_actions.steal_item(player_manager, "gold cion", "Bandit")
+
+        assert "slip" in result
+        assert any(e.source == item.id for e in graph.get_edges_for_target("player_Hero", EDGE_CARRYING))
+
 
 # ═══════════════ TASK 136: ITEM DISCOVERY ENTERTAINMENT ═══════════════
 
 
 class TestItemDiscovery:
-    """First-seen items grant an Entertainment novelty boost (task-136)."""
+    """First-seen items grant an Entertainment novelty boost (task-136), now on
+    the recovery curve (task-425): one subject, refreshed in place, worth 15 at
+    full freshness instead of 8 once ever.
 
-    def test_discover_new_item_boosts_entertainment(self, item_actions, player_manager):
-        """Examining/taking a never-seen item adds to discovered_items and boosts Entertainment."""
-        player_manager.player.vitals = {"Entertainment": 50}
-        player_manager.player.discovered_items = set()
+    These use a real Player because the curve reads the observation memory —
+    a MagicMock would answer every lookup with a truthy stub and prove nothing.
+    """
 
-        was_new = item_actions._register_item_discovery(player_manager, "Kindling")
+    @staticmethod
+    def _real_player(pm, entertainment=50):
+        from player import Player
+        hero = Player("Hero")
+        hero.vitals = {"Entertainment": entertainment}
+        pm.player = hero
+        return hero
+
+    def test_discover_new_item_boosts_entertainment(self, graph, player_manager, item_actions):
+        """A never-seen item pays full novelty and is marked discovered."""
+        hero = self._real_player(player_manager)
+        kindling = add_item(graph, "kindling")
+
+        was_new = item_actions._register_item_discovery(player_manager, kindling)
 
         assert was_new is True
-        assert "Kindling" in player_manager.player.discovered_items
-        assert player_manager.player.vitals["Entertainment"] == 58  # base boost 8
+        assert "kindling" in hero.discovered_items
+        assert hero.vitals["Entertainment"] == 65  # 50 + NOVELTY_MAX
+        assert hero.has_seen(kindling.id)
 
-    def test_rediscovering_item_gives_no_boost(self, item_actions, player_manager):
-        """Same item again: no double boost, no re-add."""
-        player_manager.player.vitals = {"Entertainment": 50}
-        player_manager.player.discovered_items = {"Kindling"}
+    def test_rediscovering_item_gives_no_boost(self, graph, player_manager, item_actions):
+        """Same item again within the window: no double boost."""
+        hero = self._real_player(player_manager)
+        kindling = add_item(graph, "kindling")
 
-        was_new = item_actions._register_item_discovery(player_manager, "Kindling")
+        item_actions._register_item_discovery(player_manager, kindling)
+        assert hero.vitals["Entertainment"] == 65
+
+        was_new = item_actions._register_item_discovery(player_manager, kindling)
 
         assert was_new is False
-        assert player_manager.player.vitals["Entertainment"] == 50
+        assert hero.vitals["Entertainment"] == 65
 
-    def test_discover_does_not_exceed_cap(self, item_actions, player_manager):
+    def test_a_stale_item_pays_again(self, graph, player_manager, item_actions):
+        """The set-based test could only ever pay once; the curve recovers."""
+        from engine.novelty import DEFAULT_RECOVERY_MINUTES
+        hero = self._real_player(player_manager)
+        kindling = add_item(graph, "kindling")
+        item_actions.world = MagicMock(time_ticks=0)
+
+        item_actions._register_item_discovery(player_manager, kindling)
+        assert hero.vitals["Entertainment"] == 65
+
+        item_actions.world.time_ticks = DEFAULT_RECOVERY_MINUTES
+        item_actions._register_item_discovery(player_manager, kindling)
+
+        assert hero.vitals["Entertainment"] == 80
+
+    def test_discover_does_not_exceed_cap(self, graph, player_manager, item_actions):
         """Entertainment boost is clamped at 100."""
-        player_manager.player.vitals = {"Entertainment": 98}
-        player_manager.player.discovered_items = set()
+        hero = self._real_player(player_manager, entertainment=98)
+        kindling = add_item(graph, "kindling")
 
-        item_actions._register_item_discovery(player_manager, "Kindling")
+        item_actions._register_item_discovery(player_manager, kindling)
 
-        assert player_manager.player.vitals["Entertainment"] == 100
+        assert hero.vitals["Entertainment"] == 100
+
+    def test_homebody_gains_nothing(self, graph, player_manager, item_actions):
+        hero = self._real_player(player_manager)
+        hero.traits = {"homebody": True}
+        kindling = add_item(graph, "kindling")
+
+        item_actions._register_item_discovery(player_manager, kindling)
+
+        assert hero.vitals["Entertainment"] == 50
+        assert hero.has_seen(kindling.id)  # still observed, just not enjoyed
 
     def test_examine_registers_discovery(self, graph, player_manager, item_actions):
         """Examine of a real area item marks it discovered."""
         add_player(graph, "Hero")
         add_item(graph, "kindling", properties={"description": "A bundle of dry twigs."})
         graph.add_edge(Edge(source="item_kindling", target="area_test", type=EDGE_IN))
-        player_manager.player.vitals = {"Entertainment": 50}
-        player_manager.player.discovered_items = set()
+        hero = self._real_player(player_manager)
         player_manager.lighting.can_see_in_dark = MagicMock(return_value=True)
         item_actions.matching._match_item_name = MagicMock(return_value="kindling")
 
         item_actions.get_item_desc(player_manager, "kindling")
 
-        assert "kindling" in player_manager.player.discovered_items
-        assert player_manager.player.vitals["Entertainment"] == 58
+        assert "kindling" in hero.discovered_items
+        assert hero.vitals["Entertainment"] == 65
 
     def test_examine_shows_remaining_uses(self, graph, player_manager, item_actions):
         """Examine of a consumable shows remaining uses and minutes."""
@@ -657,6 +713,48 @@ class TestGiveItem:
         with pytest.raises(ValueError, match="isn't in the same area"):
             item_actions.give_item(player_manager, "key", "Elsewhere")
 
+    def test_give_misspelled_item_resolves_via_tiered_matcher(self, graph, player_manager, item_actions):
+        """bug-35: 'jumptuit' resolves to the carried Jumpsuit instead of a bare
+        "You aren't carrying" failure."""
+        add_player(graph, "Hero")
+        add_player(graph, "Lyrie")
+        jumpsuit = add_item(graph, "Jumpsuit")
+        graph.add_edge(Edge(source=jumpsuit.id, target="player_Hero", type=EDGE_CARRYING))
+        lyrie = MagicMock()
+        lyrie.name = "Lyrie"
+        lyrie.current_area = "Test"
+        lyrie.state = "awake"
+        player_manager.players["Lyrie"] = lyrie
+        # The real matcher would resolve the misspelling and set a note; the
+        # mocked one returns the canonical name.
+        item_actions.matching.match_item_name_in_inventory = MagicMock(return_value="Jumpsuit")
+
+        result = item_actions.give_item(player_manager, "jumptuit", "Lyrie")
+
+        assert "Jumpsuit" in result
+        assert any(e.source == jumpsuit.id for e in graph.get_edges_for_target("player_Lyrie", EDGE_CARRYING))
+
+    def test_give_worn_item_transfers_and_unequips(self, graph, player_manager, item_actions):
+        """A worn (equipped) item can be handed over; the equipped stack clears."""
+        add_player(graph, "Hero")
+        add_player(graph, "Lyrie")
+        jumpsuit = add_item(graph, "Jumpsuit")
+        graph.add_edge(Edge(source=jumpsuit.id, target="player_Hero", type=EDGE_EQUIPPED,
+                            properties={"slot": "torso"}))
+        player_manager.player.equipped = {"torso": [jumpsuit.id]}
+        lyrie = MagicMock()
+        lyrie.name = "Lyrie"
+        lyrie.current_area = "Test"
+        lyrie.state = "awake"
+        player_manager.players["Lyrie"] = lyrie
+
+        result = item_actions.give_item(player_manager, "Jumpsuit", "Lyrie")
+
+        assert "Jumpsuit" in result
+        assert any(e.source == jumpsuit.id for e in graph.get_edges_for_target("player_Lyrie", EDGE_CARRYING))
+        assert not any(e.source == jumpsuit.id for e in graph.get_edges_for_target("player_Hero", EDGE_EQUIPPED))
+        assert jumpsuit.id not in player_manager.player.equipped.get("torso", [])
+
 
 class TestSpatialReachability:
     def test_item_on_surface_is_reachable(self, graph):
@@ -769,6 +867,18 @@ class TestTakeAlreadyHeld:
         add_player(graph, "Hero")
         ring = add_item(graph, "ring")
         graph.add_edge(Edge(source=ring.id, target="player_Hero", type=EDGE_EQUIPPED))
+
+        result = item_actions.take_item(player_manager, "ring")
+
+        assert "already wearing" in result.lower()
+
+    def test_take_worn_item_with_stale_carry_edge_prefers_wearing(self, graph, player_manager, item_actions):
+        """bug-25: a worn item can also carry a stale CARRYING edge (desync or a
+        duplicate instance); take must report the truthful worn state."""
+        add_player(graph, "Hero")
+        ring = add_item(graph, "ring")
+        graph.add_edge(Edge(source=ring.id, target="player_Hero", type=EDGE_EQUIPPED))
+        graph.add_edge(Edge(source=ring.id, target="player_Hero", type=EDGE_CARRYING))
 
         result = item_actions.take_item(player_manager, "ring")
 

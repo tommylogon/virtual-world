@@ -3,6 +3,12 @@
  *
  * Extracted from event-stream.js; adds stream search and area-filter
  * persistence across reloads. Loaded BEFORE event-stream.js.
+ *
+ * @module stream/stream-filters — filtering, scoping, and search
+ * @contributes StreamFilters: kind filters, actor/area scoping, stream search, persisted area filter
+ * @powers narrowing the event stream to one character, one area, or a text query
+ * @relates loaded before event-stream.js; driven by the stream toolbar
+ * @docs docs/virtualWorld/UI & Settings/Event Log Export.md
  */
 class StreamFilters {
     constructor(bus) {

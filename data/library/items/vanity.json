@@ -14,7 +14,8 @@
     "wooden",
     "mirror",
     "container",
-    "storage"
+    "storage",
+    "bedroom"
   ],
   "triggers": [
     {

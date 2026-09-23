@@ -1,6 +1,12 @@
 /**
  * InspectorPaperdoll — Paperdoll view and equipment context menus
  * Extracted from inspector.js for modularity.
+ *
+ * @module inspector/paperdoll-view — paperdoll + equipment menus
+ * @contributes InspectorPaperdoll: body-region rendering, slot menus, equip/unequip actions
+ * @powers seeing and changing what a character is wearing
+ * @relates renders through InspectorPanel; used by agent-view's Inventory tab
+ * @docs docs/virtualWorld/Items & Inventory/Equipment & Paperdoll.md
  */
 
 window.InspectorPaperdoll = (() => {
@@ -131,9 +137,9 @@ window.InspectorPaperdoll = (() => {
                 if (isResistance) {
                     const res = props.resistances || {};
                     for (const [dtype, val] of Object.entries(res)) {
-                        const v = parseInt(val, 10) || 0;
-                        if ((totals.resistances[dtype] || 0) < v) {
-                            totals.resistances[dtype] = v;
+                        const resistanceValue = parseInt(val, 10) || 0;
+                        if ((totals.resistances[dtype] || 0) < resistanceValue) {
+                            totals.resistances[dtype] = resistanceValue;
                             totals.contributors.resistances.push(name);
                         }
                     }

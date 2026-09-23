@@ -3,6 +3,12 @@
  *
  * Renders the side panel chat stream, staged ops tray, interactive clarification
  * buttons, and Cmd-L palette overlay.
+ *
+ * @module nl-editor/ui — the NL editor's UI components
+ * @contributes NLEditorUI: chat stream, staged-ops tray, clarification buttons, Cmd-L palette
+ * @powers interacting with the natural-language editor
+ * @relates renders the nl-editor panel; driven by index.js
+ * @docs docs/virtualWorld/dev_tasks/done/graph/task-387-natural-language-editor-mode.md
  */
 
 window.NLEditorUI = (() => {
@@ -164,6 +170,28 @@ window.NLEditorUI = (() => {
             this.chatList.scrollTop = this.chatList.scrollHeight;
         }
 
+        appendErrorMessage(text) {
+            if (!this.chatList || !text) return;
+            const bubble = document.createElement('div');
+            bubble.style.cssText = 'align-self:flex-start;max-width:88%;background:rgba(248,81,73,0.12);border:1px solid var(--red,#f85149);color:var(--red,#f85149);padding:6px 10px;border-radius:8px;font-size:11px;line-height:1.4;';
+            bubble.textContent = `⚠ ${text}`;
+            this.chatList.appendChild(bubble);
+            this.chatList.scrollTop = this.chatList.scrollHeight;
+        }
+
+        /** Render the pre-Apply validation gate's findings (task-461). */
+        showValidationIssues(issues, blocked = false) {
+            if (!this.chatList || !issues || !issues.length) return;
+            const bubble = document.createElement('div');
+            bubble.style.cssText = 'align-self:flex-start;max-width:88%;background:rgba(210,153,34,0.12);border:1px solid #d29922;color:#d29922;padding:6px 10px;border-radius:8px;font-size:11px;line-height:1.5;white-space:pre-wrap;';
+            const shown = issues.slice(0, 8);
+            const lines = shown.map(i => `• op #${(i.index ?? 0) + 1}${i.type ? ` [${i.type}]` : ''}: ${i.message}`);
+            if (issues.length > shown.length) lines.push(`+${issues.length - shown.length} more`);
+            bubble.textContent = `${blocked ? '⛔ Apply blocked — fix these first:' : '⚠ Validation:'}\n${lines.join('\n')}`;
+            this.chatList.appendChild(bubble);
+            this.chatList.scrollTop = this.chatList.scrollHeight;
+        }
+
         appendToolEvent(name, result) {
             if (!this.chatList) return;
             const chip = document.createElement('div');
@@ -301,6 +329,23 @@ window.NLEditorUI = (() => {
 
             removeBtn.onclick = () => this.controller.staging.removeOp(op.id);
             row.appendChild(head);
+
+            // ── Property-level diff preview (task-461) ──
+            if (typeof NLEditorDiff !== 'undefined') {
+                let lines = [];
+                try {
+                    lines = NLEditorDiff.summaryLines(op, {
+                        nodes: (typeof worldState !== 'undefined' && worldState?.graph?.nodes) || {},
+                        creations: this.controller.staging.getStagedCreations(),
+                    });
+                } catch (e) { lines = []; }
+                if (lines.length) {
+                    const diffEl = document.createElement('div');
+                    diffEl.style.cssText = 'padding:0 6px 4px 24px;font-size:10px;color:var(--text-muted);line-height:1.5;white-space:pre-wrap;';
+                    diffEl.textContent = lines.join('\n');
+                    row.appendChild(diffEl);
+                }
+            }
 
             // ── Inline payload tweaker ──
             const editor = document.createElement('div');

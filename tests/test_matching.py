@@ -4,7 +4,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pytest
-from graph import Node, Edge, EDGE_IN, EDGE_CARRYING, EDGE_CONNECTION
+from graph import Node, Edge, EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED, EDGE_CONNECTION
 from engine.matching import NameMatching
 
 
@@ -697,3 +697,35 @@ class TestAliasMatching:
         matcher = NameMatching(graph_with_exits, gs)
         edge, way_node, handle = matcher.resolve_exit("area_Test_Room", "secret vault")
         assert way_node is None
+
+
+class TestInventoryScopedItemMatching:
+    """bug-35: give/steal need tiered item matching scoped to one character's
+    carried + equipped items — never the surrounding area."""
+
+    def test_misspelled_carried_item_fuzzy_resolves(self, matcher, graph):
+        jumpsuit = Node(id="item_jumpsuit_scoped", type="item", name="Jumpsuit",
+                        properties={"description": "A sleek jumpsuit."})
+        graph.add_node(jumpsuit)
+        graph.add_edge(Edge(source=jumpsuit.id, target="player_TestPlayer", type=EDGE_CARRYING))
+
+        result = matcher.match_item_name_in_inventory("jumptuit", "player_TestPlayer")
+
+        assert result == "Jumpsuit"
+        assert "fuzzy match" in matcher._fuzzy_match_note
+
+    def test_area_item_is_out_of_scope(self, matcher, graph):
+        """Rusty Key sits in the area, not on TestPlayer — give must not see it."""
+        assert matcher.match_item_name_in_inventory("rusty key", "player_TestPlayer") is None
+
+    def test_alias_resolves_for_worn_item(self, matcher, graph):
+        crown = Node(id="item_crown_scoped", type="item", name="Dried Flower Crown",
+                     properties={"aliases": ["withered crown", "pale petals"]})
+        graph.add_node(crown)
+        graph.add_edge(Edge(source=crown.id, target="player_TestPlayer", type=EDGE_EQUIPPED))
+
+        result = matcher.match_item_name_in_inventory("withered crown", "player_TestPlayer")
+
+        assert result == "Dried Flower Crown"
+        assert "alias" in matcher._fuzzy_match_note
+

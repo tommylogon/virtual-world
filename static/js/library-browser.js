@@ -6,6 +6,12 @@
  *
  * Items tab delegates to the existing ItemLibrary class.
  * Other tabs use inline editors defined here.
+ *
+ * @module library-browser — the unified library browser
+ * @contributes LibraryBrowser: tabbed Items/Characters/Rooms/Traits/Conditions/Behaviours browsing + editors
+ * @powers the 📚 Library modal (the Items tab delegates to ItemLibrary)
+ * @relates uses api + storage; inline editors for the non-item tabs
+ * @docs docs/virtualWorld/Library System/
  */
 
 // Lazy tag: classic scripts parse before the deferred lit-bootstrap module

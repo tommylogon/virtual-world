@@ -6,6 +6,12 @@
  * to handle common LLM formatting failures before parsing.
  *
  * Load AFTER shared/json-utils.js, BEFORE agent-engine.js.
+ *
+ * @module agent/response-parser — LLM response parsing
+ * @contributes ResponseParser: extract inner_monologue/action/speech/emote/memory via repairJSON()
+ * @powers turning messy model output into structured action fields
+ * @relates depends on shared/json-utils.js; used by agent-engine
+ * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
 
 window.ResponseParser = (() => {

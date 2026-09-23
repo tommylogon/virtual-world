@@ -18,7 +18,11 @@
  *      does NOT move the matches, for spatial reasoning ("where does food
  *      live?").
  *
- * @module GraphFocus
+ * @module graph/focus — search reveal + camera/physics focus
+ * @contributes GraphFocus: freeze hidden nodes, cluster matches in a grid, keep-in-place mode, camera framing
+ * @powers the graph search — surfacing matches, gathering them, and restoring layout on clear
+ * @relates works with GraphProjector for visibility; driven by the graph search box
+ * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
 window.GraphFocus = {
 
@@ -177,6 +181,17 @@ window.GraphFocus = {
         if (ds) present = ids.filter(id => ds.get(id) !== null);
         if (!present.length) { GraphFocus._fitToSearchMatches(); return; }
 
+        // Respect frozen nodes: a node with physics disabled belongs to the
+        // user's hand-made layout, so clustering must not drag it off. Only
+        // movable matches take part in the grid.
+        if (ds) {
+            present = present.filter((id) => {
+                const n = ds.get(id);
+                return !n || n.physics !== false;
+            });
+        }
+        if (!present.length) { GraphFocus._fitToSearchMatches(); return; }
+
         // Save current layout (only for nodes we're about to move).
         try { GraphFocus._savedPositions = network.getPositions(present); } catch (e) { GraphFocus._savedPositions = null; }
         try { GraphFocus._savedView = { position: network.getViewPosition(), scale: network.getScale() }; } catch (e) { GraphFocus._savedView = null; }
@@ -203,12 +218,16 @@ window.GraphFocus = {
         if (!graphManager.network || !GraphFocus._clusterActive) return;
         const network = graphManager.network;
         if (GraphFocus._savedPositions) {
-            const moves = [];
+            // _savedPositions is a snapshot of every node present when the
+            // cluster formed; a projection change or world refetch can leave ids
+            // that are no longer rendered. moveNode logs (not throws) for those,
+            // so filter against the live DataSet first (bug-36).
+            const live = new Set(network.body?.data?.nodes?.getIds?.() || []);
             for (const id in GraphFocus._savedPositions) {
+                if (!live.has(id)) continue;
                 const p = GraphFocus._savedPositions[id];
-                moves.push({ id, x: p.x, y: p.y });
+                network.moveNode(id, p.x, p.y);
             }
-            for (const m of moves) network.moveNode(m.id, m.x, m.y);
         }
         if (GraphFocus._savedView) {
             try { network.moveTo({ position: GraphFocus._savedView.position, scale: GraphFocus._savedView.scale, animation: true }); } catch (e) { /* ignore */ }
@@ -264,14 +283,17 @@ window.GraphFocus = {
      */
     _kickClusterPhysics() {
         if (!graphManager.network) return;
+        // NEVER spin up the solver when the user has physics off: the kick would
+        // re-settle a hand-made layout (stabilize() moves nodes even though the
+        // toggle is off). The cluster is arranged by explicit moveNode() calls,
+        // so it does not need the solver at all.
+        if (graphManager._physicsEnabled === false) return;
         const nodes = graphManager.network.body?.data?.nodes;
         if (!nodes) return;
-        const wasEnabled = graphManager._physicsEnabled !== false;
         graphManager.network.setOptions({ physics: { enabled: true } });
         try {
             graphManager.network.stabilize(60);
         } catch (e) { /* ignore */ }
-        if (!wasEnabled) graphManager.network.setOptions({ physics: { enabled: false } });
     },
 
     /**

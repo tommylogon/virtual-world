@@ -11,6 +11,12 @@
  * fine-tuning wants positive examples (clean JSON) AND negative ones (the
  * broken output + the corrected target) so a tiny model learns to emit valid
  * JSON in the exact shapes the app's prompts demand.
+ *
+ * @module shared/dataset-collector — dataset capture + raw exchange store
+ * @contributes DatasetCollector.capture / captureRaw / getAll / getAllRaw / clearRaw + the 🧪 export panel
+ * @powers the fine-tuning dataset export and the 🔬 LLM inspector's raw exchanges
+ * @relates hooks llm-client.chat(); persists via storage (llm_dataset, llm_raw_exchanges)
+ * @docs docs/virtualWorld/UI & Settings/Event Log Export.md
  */
 window.DatasetCollector = (() => {
     const STORE = 'llm_dataset';
@@ -83,6 +89,99 @@ window.DatasetCollector = (() => {
 
     async function clear() {
         try { if (typeof storage !== 'undefined' && storage) await storage.clear(STORE); } catch (e) {}
+    }
+
+    // ── Raw HTTP exchange capture (task-405, LLM Inspector) ──────────────
+    // Separate store from the fine-tuning dataset: this keeps the full request
+    // body and the raw response envelope (status, headers, usage, error shape)
+    // so providers can be debugged. Authorization is redacted before storage.
+    const RAW_STORE = 'llm_raw_exchanges';
+    const RAW_MAX = 200;
+
+    function _redactHeaders(headers) {
+        const out = {};
+        try {
+            Object.keys(headers || {}).forEach(k => {
+                const headerValue = String(headers[k]);
+                if (/^(authorization|api[-_]key|x-api[-_]key)$/i.test(k)) {
+                    const prefix = /^Bearer\s+/i.test(headerValue) ? 'Bearer ' : '';
+                    out[k] = prefix + headerValue.replace(/^Bearer\s+/i, '').slice(0, 6) + '…REDACTED';
+                } else {
+                    out[k] = headers[k];
+                }
+            });
+        } catch (e) { /* ignore */ }
+        return out;
+    }
+
+    function _nextRawKey() {
+        const n = (window.__rawSeq = (window.__rawSeq || 0) + 1);
+        return 'r' + Date.now() + '_' + n;
+    }
+
+    /**
+     * Persist a full exchange. Fire-and-forget; never throws, never blocks the
+     * game loop. Only records when the `showRawLLM` opt-in is enabled.
+     * @param {Object} x - { label, model, url, requestHeaders, requestBody,
+     *                       status, statusText, responseHeaders, body, durationMs, parsedOk }
+     */
+    async function captureRaw(x) {
+        try {
+            if (typeof storage === 'undefined' || !storage) return;
+            if (typeof config !== 'undefined' && config && !config.showRawLLM) return;
+            const entry = {
+                key: _nextRawKey(),
+                ts: Date.now(),
+                label: x.label || 'LLM',
+                model: x.model || (typeof llmClient !== 'undefined' && llmClient.model) || '',
+                request: {
+                    url: x.url || '',
+                    method: 'POST',
+                    headers: _redactHeaders(x.requestHeaders || {}),
+                    body: x.requestBody ?? null,
+                },
+                response: {
+                    status: x.status ?? null,
+                    statusText: x.statusText || '',
+                    headers: _redactHeaders(x.responseHeaders || {}),
+                    body: x.body ?? null,
+                },
+                duration_ms: x.durationMs ?? null,
+                parsed_ok: x.parsedOk ?? null,
+            };
+            await storage.set(RAW_STORE, entry.key, entry);
+            // Occasional trim (not every call) keeps the store bounded without
+            // paying a full read on each capture.
+            if ((window.__rawSeq % 25) === 0) _trimRaw();
+        } catch (e) { /* never break the game loop */ }
+    }
+
+    async function _trimRaw() {
+        try {
+            const map = await storage.getAll(RAW_STORE);
+            const keys = Object.keys(map);
+            if (keys.length <= RAW_MAX) return;
+            keys.sort(); // 'r' + timestamp → chronological
+            for (const k of keys.slice(0, keys.length - RAW_MAX)) {
+                await storage.delete(RAW_STORE, k);
+            }
+        } catch (e) { /* ignore */ }
+    }
+
+    async function getAllRaw() {
+        try {
+            if (typeof storage === 'undefined' || !storage) return [];
+            const map = await storage.getAll(RAW_STORE);
+            return Object.keys(map).map(k => map[k]).sort((a, b) => b.ts - a.ts);
+        } catch (e) { return []; }
+    }
+
+    async function clearRaw() {
+        try { if (typeof storage !== 'undefined' && storage) await storage.clear(RAW_STORE); } catch (e) {}
+    }
+
+    async function countRaw() {
+        return (await getAllRaw()).length;
     }
 
     /**
@@ -178,7 +277,10 @@ window.DatasetCollector = (() => {
         } catch (e) { set('error: ' + (e.message || e)); }
     }
 
-    return { capture, getAll, count, clear, buildJSONL, ensureUI, togglePanel };
+    return {
+        capture, getAll, count, clear, buildJSONL, ensureUI, togglePanel,
+        captureRaw, getAllRaw, clearRaw, countRaw,
+    };
 })();
 
 // Auto-show the floating button once the DOM is ready (no user action needed).

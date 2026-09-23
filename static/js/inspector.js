@@ -1,6 +1,12 @@
 /**
  * Inspector — Context-sensitive right panel rendering for agents, rooms, items, doors
  * Enhanced with full Actions/Effects/Triggers grid
+ *
+ * @module inspector — right-panel dispatcher for whatever you selected
+ * @contributes the `inspector` singleton: showNode/showAgent/showRoom/showItem/showWay routing, open/close
+ * @powers clicking a node or character to open its inspector and use its context actions
+ * @relates delegates to the inspector/* views; inspector/panel.js is the only panel writer
+ * @docs docs/virtualWorld/UI & Settings/Inspector Panels.md
  */
 const inspectorUiHtmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
 

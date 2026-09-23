@@ -2,11 +2,25 @@
 
 This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game engine for AI beings. This wiki documents every system, how it works, how it's wired, and where the code lives.
 
-> **Main repo**: `F:\AI\viwo\virtual-world`  
-> **Code conventions**: See `AGENTS.md` (referenced here but not present in this checkout)  
-> **Design specs**: `docs/superpowers/specs/`
+> **Repo**: this vault lives inside the game repo, under `docs/virtualWorld/`.  
+> **Code conventions**: [`AGENTS.md`](../../AGENTS.md) at the repo root - layout, commands, testing baseline, and known gotchas.  
+> **Design specs**: `docs/superpowers/specs/`  
+> **Code map**: `docs/design/js-module-index.md` — what each front-end module contributes (generated).
 
 ---
+
+## [[History|📜 History]]
+
+| Doc | What it covers |
+|-----|---------------|
+| [[History\|History]] | The whole lineage: the 2025 Aura/APSE origins, the 2026-02-21 monorepo reorg, the July 2026 build-out and modularization, the 2026-08-26 public split, and how to re-derive any of it from git |
+| [[Patch Notes 2026-08-22 to 2026-09-22\|Patch Notes]] | The last 30 days written to be shared cold: time as a timeframe, the background tier, the identity refactor, one copy of every truth, structures, and the bugs killed |
+
+## [[Simulation Model|🧭 Core Model]]
+
+| Doc | What it covers |
+|-----|---------------|
+| [[Simulation Model\|Simulation Model]] | **Start here.** One entity at four processing levels (soak NPC / simple NPC / agent / human), cognition refines but never creates capability, attention-bounded scale, a turn as a *timeframe* filled by an action flow, survival by slack and emptiness rather than a drain rate, routine over hunt |
 
 ## [[World Building/Rooms & Areas|🏠 World Building]]
 
@@ -14,7 +28,7 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 |-----|---------------|
 | [[World Building/Rooms & Areas\|Rooms & Areas]] | Area nodes, environment properties, descriptions per light level, area concept |
 | [[World Building/Doors & Connections\|Doors & Connections]] | Way nodes, 6 states, connections, hidden doors, unlocking, auto-close, pass_message |
-| [[World Building/Graph System\|Graph System]] | WorldGraph, Node/Edge dataclasses, 5 node types, 7 edge types, serialization |
+| [[World Building/Graph System\|Graph System]] | WorldGraph, Node/Edge dataclasses, 5 node types, 7 edge types, serialization, derived layout (orbit, levels, per-node physics) |
 
 ## [[Characters/Characters Overview|🧑 Characters]]
 
@@ -23,10 +37,10 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 | [[Characters/Characters Overview\|Characters Overview]] | Player class, 3 character types, import/export, registry, library format |
 | [[Characters/Traits System\|Traits System]] | Trait definitions, library format, how traits modify gameplay |
 | [[Characters/Skills System\|Skills System]] | Skill checks, progression, action resolution, combat integration |
-| [[Characters/Vitals System\|Vitals System]] | HP, energy, hunger, thirst, sanity, decay per tick, death, ghost mode |
+| [[Characters/Vitals System\|Vitals System]] | HP, energy, hunger, thirst, sanity, decay per **game minute**, Sanity sources, Entertainment novelty, death, ghost mode |
 | [[Characters/Equipment Loadouts\|Equipment Loadouts]] | Per-character generated equipment lists by slot |
-| [[Characters/NPC Behavior System\|NPC Behavior System]] | Simple NPCs, behavior types, action intervals, LLM agent vs scripted |
-| [[Characters/Relationships System\|Relationships System]] | Closeness model, what moves it (speak/give/combat), labels, guidance, grapple modifier |
+| [[Characters/NPC Behavior System\|NPC Behavior System]] | Simple NPCs, behavior types, action intervals (game minutes), the background tier, LLM agent vs scripted |
+| [[Characters/Relationships System\|Relationships System]] | Closeness model, the one mutation path, bands, what moves it, background social interactions, labels, grapple modifier |
 | [[Characters/Emotion & Affect System\|Emotion & Affect System]] | Multi-dimensional affect map, semantic emotion mapping, mental-vital coupling, relationship valence, self- & social-recall re-feel |
 
 ## [[Items & Inventory/Items Overview|📦 Items & Inventory]]
@@ -101,6 +115,10 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 - **API health check**: `GET /api/health` → `{"status":"ok"}`
 - **API restart**: `GET /api/restart` — resets world from `world_template.json`
 - **Game root**: `http://127.0.0.1:4444`
-- **Tests**: `node ../tools/test_all.cjs` (requires running server)
+- **Run the app**: `python app.py`
+- **Tests**: `python -m pytest -q` — baseline is ~3,239 passing with ~60 known pre-existing failures (see `AGENTS.md`); targeted run: `python -m pytest tests/test_<name>.py -q`
+- **JS lint / typecheck**: `npm run lint` · `npm run typecheck`
+- **Export-log lint**: `node tools/log_lint.cjs data/exports/<log>.txt` (or `npm run loglint -- <path>`)
+- **Dev tasks**: `python tools/tasks.py list` · `python tools/tasks.py validate`
 
-*Last updated: 2026-08-27*
+*Last updated: 2026-09-23*

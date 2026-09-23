@@ -3,6 +3,12 @@
  *
  * Buffers graph operations locally until the user approves and applies them.
  * No live graph changes happen until explicit Apply.
+ *
+ * @module nl-editor/staging — the staged-ops buffer
+ * @contributes NLEditorStaging: buffer graph ops until explicit Apply; approve/reject per op
+ * @powers safe, reversible NL edits — nothing touches the graph until you apply
+ * @relates consumed by index.js + ghosts.js; applied through the graph API
+ * @docs docs/virtualWorld/dev_tasks/done/graph/task-387-natural-language-editor-mode.md
  */
 
 window.NLEditorStaging = (() => {
@@ -184,30 +190,55 @@ window.NLEditorStaging = (() => {
             const opsPayload = targets.map(op => ({ type: op.type, payload: op.payload }));
             let batch;
             try {
-                batch = await ApiClient.post('/api/graph/batch', { ops: opsPayload });
+                batch = await ApiClient.post('/api/graph/batch', { ops: opsPayload, strict_validation: true });
             } catch (e) {
                 batch = null;
             }
+            if (batch && batch.status === 'invalid') {
+                // task-461: the validation gate refused the batch — nothing was
+                // applied; keep every op staged and surface the findings.
+                const issues = batch.validation || [];
+                const messages = (batch.errors || issues)
+                    .map(er => er.message || er.error || String(er))
+                    .filter(Boolean);
+                return {
+                    success: false,
+                    invalid: true,
+                    appliedCount: 0,
+                    remaining: this.ops.length,
+                    validation: issues,
+                    errors: messages.length ? messages : ['Validation failed.'],
+                };
+            }
             if (batch && typeof batch.status === 'string') {
                 await this._refreshWorld();
+                // Remove ONLY the ops the server reports as applied. A `partial`
+                // batch means the rest failed; they must stay staged so the user
+                // can fix and retry them rather than losing them silently.
+                const appliedIds = new Set();
+                for (const entry of (batch.applied || [])) {
+                    const op = targets[entry.index];
+                    if (op) appliedIds.add(op.id);
+                }
                 const errs = (batch.errors || []).map(er => {
                     if (typeof er === 'string') return er;
                     const label = er.type || 'op';
                     const name = targets[er.index]?.summary || `#${er.index}`;
                     return `${name} (${label}): ${er.error}`;
                 });
-                this._clearApplied(opFilter);
+                this._removeOps(appliedIds);
                 this._notify();
                 return {
                     success: batch.status === 'success',
-                    appliedCount: (batch.applied || []).length,
+                    appliedCount: appliedIds.size,
+                    remaining: this.ops.length,
                     errors: errs
                 };
             }
 
             // ── Fallback: per-op replay (stale server, no atomic undo) ──
             const errors = [];
-            let appliedCount = 0;
+            const appliedIds = new Set();
 
             const creates = targets.filter(o => o.type === 'create_node' || o.type === 'spawn_library_item' || o.type === 'connect_areas');
             const updates = targets.filter(o => o.type === 'update_node' || o.type === 'link_to_library');
@@ -227,7 +258,7 @@ window.NLEditorStaging = (() => {
                                 properties: nodeData.properties || {}
                             });
                             if (res?.error) errors.push(`${op.summary}: ${res.error}`);
-                            else appliedCount++;
+                            else appliedIds.add(op.id);
                             break;
                         }
                         case 'spawn_library_item': {
@@ -245,7 +276,7 @@ window.NLEditorStaging = (() => {
                                 await ApiClient.updateNode(res.node_id, { name: p.rename });
                             }
                             if (res?.error) errors.push(`${op.summary}: ${res.error}`);
-                            else appliedCount++;
+                            else appliedIds.add(op.id);
                             break;
                         }
                         case 'connect_areas': {
@@ -268,7 +299,7 @@ window.NLEditorStaging = (() => {
                             await ApiClient.createEdge(p.way_id, p.area_b_id, 'connection', { direction: dirB });
                             await ApiClient.createEdge(p.area_b_id, p.way_id, 'connection', { direction: dirB, visible_in_direction: '' });
                             await ApiClient.createEdge(p.way_id, p.area_a_id, 'connection', { direction: dirA });
-                            appliedCount++;
+                            appliedIds.add(op.id);
                             break;
                         }
                         case 'update_node': {
@@ -276,35 +307,46 @@ window.NLEditorStaging = (() => {
                             const patch = this._nodePatch(p.patch || {});
                             const ok = await ApiClient.updateNode(p.node_id, patch);
                             if (!ok) errors.push(`${op.summary}: node update rejected`);
-                            else appliedCount++;
+                            else appliedIds.add(op.id);
+                            break;
+                        }
+                        case 'update_matching_nodes': {
+                            // Only the batch endpoint understands bulk selectors;
+                            // never drop the op silently on a stale server.
+                            errors.push(`${op.summary}: bulk update needs the batch endpoint`);
+                            break;
+                        }
+                        case 'library_upsert':
+                        case 'library_delete': {
+                            errors.push(`${op.summary}: library editing needs the batch endpoint`);
                             break;
                         }
                         case 'link_to_library': {
                             const p = op.payload;
                             const ok = await ApiClient.updateNode(p.node_id, { properties: { template_id: p.library_id } });
                             if (!ok) errors.push(`${op.summary}: link rejected`);
-                            else appliedCount++;
+                            else appliedIds.add(op.id);
                             break;
                         }
                         case 'attach': {
                             const p = op.payload;
                             const res = await ApiClient.createEdge(p.from_id, p.to_id, p.relation || 'in', p.properties || {});
                             if (res?.error) errors.push(`${op.summary}: ${res.error}`);
-                            else appliedCount++;
+                            else appliedIds.add(op.id);
                             break;
                         }
                         case 'detach': {
                             const p = op.payload;
                             const res = await ApiClient.deleteEdge(p.from_id, p.to_id, p.relation || 'in');
                             if (res?.error) errors.push(`${op.summary}: ${res.error}`);
-                            else appliedCount++;
+                            else appliedIds.add(op.id);
                             break;
                         }
                         case 'delete_node': {
                             const p = op.payload;
                             const res = await ApiClient.deleteNode(p.node_id);
                             if (res?.error) errors.push(`${op.summary}: ${res.error}`);
-                            else appliedCount++;
+                            else appliedIds.add(op.id);
                             break;
                         }
                     }
@@ -314,28 +356,32 @@ window.NLEditorStaging = (() => {
             }
 
             await this._refreshWorld();
-            this._clearApplied(opFilter);
+            this._removeOps(appliedIds);
             this._notify();
             return {
                 success: errors.length === 0,
-                appliedCount,
+                appliedCount: appliedIds.size,
+                remaining: this.ops.length,
                 errors
             };
         }
 
-        /** Remove applied ops only; with a filter, keep the unchecked ones. */
-        _clearApplied(opFilter) {
-            if (opFilter) {
-                this.ops = this.ops.filter(o => !opFilter.has(o.id));
-            } else {
-                this.ops = [];
-            }
+        /** Remove only the ops that actually applied; failures stay staged. */
+        _removeOps(opIds) {
+            if (!opIds || opIds.size === 0) return;
+            this.ops = this.ops.filter(o => !opIds.has(o.id));
         }
 
-        /** Wrap an NL-editor flat property patch for the PATCH route. */
+        /** Wrap an NL-editor flat property patch for the PATCH route.
+         *  Mirrors the batch route's folding: a top-level `name` is a rename,
+         *  every other flat key becomes a property. */
         _nodePatch(patch) {
-            if ('properties' in patch || 'name' in patch || 'id' in patch) return patch;
-            return { properties: patch };
+            if ('properties' in patch || 'id' in patch) return patch;
+            const rest = { ...patch };
+            const out = {};
+            if (typeof rest.name === 'string') { out.name = rest.name; delete rest.name; }
+            if (Object.keys(rest).length) out.properties = rest;
+            return out;
         }
 
         async _refreshWorld() {

@@ -105,6 +105,28 @@ def test_batch_spawn_library_item_relation_and_rename():
     assert place_edges == [(node_id, area_node.id, 'on')]
 
 
+def test_batch_update_character_node_applies_traits_live():
+    """A character node is the record: patching `traits` on it updates the live
+    character, and trait patches merge so existing traits survive."""
+    client, app = _fresh_client()
+    pm = app.world.player_manager
+    key = next(k for k, p in pm.players.items() if not getattr(p, 'traits', None))
+    node_id = pm.get_player_node_id(key)
+    player = pm.get_player(key)
+
+    resp = client.post('/api/graph/batch', json={'ops': [
+        {'type': 'update_node', 'payload': {'node_id': node_id, 'patch': {'traits': {'dark_vision': True}}}},
+        {'type': 'update_node', 'payload': {'node_id': node_id, 'patch': {'traits': {'fast_healer': True}}}},
+    ]})
+    assert resp.status_code == 200
+
+    node = app.world.graph.get_node(node_id)
+    assert node.properties['traits'].get('dark_vision') is True
+    assert node.properties['traits'].get('fast_healer') is True
+    assert player.traits.get('dark_vision') is True
+    assert player.traits.get('fast_healer') is True
+
+
 def test_batch_connect_areas_authors_directions():
     """connect_areas must author direction props so exits actually resolve."""
     client, app = _fresh_client()
@@ -130,3 +152,132 @@ def test_batch_connect_areas_authors_directions():
     assert props('way_nl_gate', area_b.id) == {'direction': 'west'}
     assert props(area_b.id, 'way_nl_gate') == {'direction': 'west', 'visible_in_direction': ''}
     assert props('way_nl_gate', area_a.id) == {'direction': 'east'}
+
+
+def _seed_bulk_cast(client):
+    """Three characters (two tagged goblin) plus a hall for bulk-select tests."""
+    resp = client.post('/api/graph/batch', json={'ops': [
+        {'type': 'create_node', 'payload': {'node': {
+            'id': 'character_grub', 'type': 'character', 'name': 'Grub',
+            'properties': {'tags': ['goblin'], 'traits': {'hardy': True}}}}},
+        {'type': 'create_node', 'payload': {'node': {
+            'id': 'character_nub', 'type': 'character', 'name': 'Nub',
+            'properties': {'tags': ['goblin']}}}},
+        {'type': 'create_node', 'payload': {'node': {
+            'id': 'character_sol', 'type': 'character', 'name': 'Sol',
+            'properties': {'tags': ['human']}}}},
+        {'type': 'create_node', 'payload': {'node': {
+            'id': 'area_nl_hall', 'type': 'area', 'name': 'NL Hall',
+            'properties': {'environment': {'light': 'dim', 'temperature': 12.0}}}}},
+    ]})
+    assert resp.status_code == 200
+
+
+def test_batch_update_matching_nodes_by_tag_merges_dict_fields():
+    """task-458: one bulk op patches every match, and dict fields merge."""
+    client, app = _fresh_client()
+    _seed_bulk_cast(client)
+
+    resp = client.post('/api/graph/batch', json={'ops': [
+        {'type': 'update_matching_nodes', 'payload': {
+            'selector': {'kind': 'character', 'tags': ['goblin']},
+            'patch': {'traits': {'dark_vision': True}}}},
+        {'type': 'update_matching_nodes', 'payload': {
+            'selector': {'kind': 'area', 'name_contains': 'NL Hall'},
+            'patch': {'environment': {'temperature': 18.0}}}},
+    ]})
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data['status'] == 'success'
+    assert data['applied'][0]['matched'] == ['character_grub', 'character_nub']
+    assert data['applied'][0]['updated'] == 2
+
+    graph = app.world.graph
+    # Existing trait survives; the new one lands.
+    assert graph.get_node('character_grub').properties['traits'] == {
+        'hardy': True, 'dark_vision': True}
+    assert graph.get_node('character_nub').properties['traits'] == {'dark_vision': True}
+    assert graph.get_node('character_sol').properties.get('traits') is None
+    # Area environment merges key-by-key rather than replacing the map.
+    assert graph.get_node('area_nl_hall').properties['environment'] == {
+        'light': 'dim', 'temperature': 18.0}
+
+
+def test_batch_update_matching_nodes_is_one_undo_snapshot():
+    client, app = _fresh_client()
+    _seed_bulk_cast(client)
+    before = len(app._undo_stack)
+
+    resp = client.post('/api/graph/batch', json={'ops': [
+        {'type': 'update_matching_nodes', 'payload': {
+            'selector': {'kind': 'character', 'tag': 'goblin'},
+            'patch': {'description': 'bulk'}}},
+    ]})
+    assert resp.status_code == 200
+    labels = [entry[2] for entry in app._undo_stack[before:]]
+    assert len(labels) == 1 and 'NL editor batch' in labels[0]
+
+    client.post('/api/undo')
+    assert app.world.graph.get_node('character_grub').properties.get('description') is None
+
+
+def test_batch_update_matching_nodes_no_match_is_an_error():
+    client, app = _fresh_client()
+    _seed_bulk_cast(client)
+    resp = client.post('/api/graph/batch', json={'ops': [
+        {'type': 'update_matching_nodes', 'payload': {
+            'selector': {'kind': 'character', 'tags': ['dragon']},
+            'patch': {'description': 'nope'}}},
+    ]})
+    assert resp.status_code == 207
+    assert resp.get_json()['errors'][0]['type'] == 'update_matching_nodes'
+    assert 'No nodes matched' in resp.get_json()['errors'][0]['error']
+
+
+def test_batch_update_matching_nodes_explicit_ids_win_and_are_idempotent():
+    client, app = _fresh_client()
+    _seed_bulk_cast(client)
+    ops = [{'type': 'update_matching_nodes', 'payload': {
+        'selector': {'ids': ['character_sol']},
+        'patch': {'tags': ['human', 'scout']}}}]
+
+    first = client.post('/api/graph/batch', json={'ops': ops})
+    assert first.status_code == 200
+    assert first.get_json()['applied'][0]['matched'] == ['character_sol']
+
+    second = client.post('/api/graph/batch', json={'ops': ops})
+    assert second.status_code == 200
+    assert second.get_json()['applied'][0]['matched'] == ['character_sol']
+    assert app.world.graph.get_node('character_sol').properties['tags'] == ['human', 'scout']
+
+
+def test_batch_update_matching_nodes_area_filter_matches_in_edge():
+    client, app = _fresh_client()
+    _seed_bulk_cast(client)
+    client.post('/api/graph/batch', json={'ops': [
+        {'type': 'attach', 'payload': {'from_id': 'character_grub', 'to_id': 'area_nl_hall', 'relation': 'in'}},
+    ]})
+    resp = client.post('/api/graph/batch', json={'ops': [
+        {'type': 'update_matching_nodes', 'payload': {
+            'selector': {'kind': 'character', 'area': 'NL Hall'},
+            'patch': {'flags': {'in_hall': True}}}},
+    ]})
+    assert resp.status_code == 200
+    assert resp.get_json()['applied'][0]['matched'] == ['character_grub']
+
+
+def test_batch_update_matching_nodes_reviewed_ids_are_authoritative():
+    """The affected list the user reviewed wins over re-resolving the selector."""
+    client, app = _fresh_client()
+    _seed_bulk_cast(client)
+    resp = client.post('/api/graph/batch', json={'ops': [
+        {'type': 'update_matching_nodes', 'payload': {
+            'selector': {'kind': 'character', 'tags': ['goblin']},
+            'matched_ids': ['character_grub'],
+            'patch': {'description': 'reviewed only'}}},
+    ]})
+    assert resp.status_code == 200
+    assert resp.get_json()['applied'][0]['matched'] == ['character_grub']
+    graph = app.world.graph
+    assert graph.get_node('character_grub').properties.get('description') == 'reviewed only'
+    assert graph.get_node('character_nub').properties.get('description') is None

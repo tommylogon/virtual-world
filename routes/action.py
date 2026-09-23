@@ -17,8 +17,15 @@ from .action_handlers import (
     handle_apply_turn_decay,
     handle_clear_turn_events,
 )
+from .timeskip_ops import handle_timeskip, handle_soak_declare, handle_soak_cancel
 
 logger = logging.getLogger(__name__)
+
+
+def _timeskip_busy():
+    """A running skip owns the clock; other mutating calls must not interleave."""
+    from engine import timeskip
+    return timeskip.is_running()
 
 
 def register_action_routes(app):
@@ -32,6 +39,8 @@ def register_action_routes(app):
 
     @app.route('/api/action', methods=['POST'])
     def take_action():
+        if _timeskip_busy():
+            return jsonify({"error": "A timeskip is running."}), 409
         return handle_take_action(app)
 
     @app.route('/api/emote', methods=['POST'])
@@ -40,6 +49,8 @@ def register_action_routes(app):
 
     @app.route('/api/llm_respond', methods=['POST'])
     def llm_respond_post():
+        if _timeskip_busy():
+            return jsonify({"error": "A timeskip is running."}), 409
         return handle_llm_respond_post(app)
 
     @app.route('/api/auto_dress', methods=['POST'])
@@ -57,8 +68,22 @@ def register_action_routes(app):
 
     @app.route('/api/turn/apply', methods=['POST'])
     def apply_turn_decay():
+        if _timeskip_busy():
+            return jsonify({"error": "A timeskip is running."}), 409
         return handle_apply_turn_decay(app)
 
     @app.route('/api/turn/clear', methods=['POST'])
     def clear_turn_events():
         return handle_clear_turn_events(app)
+
+    @app.route('/api/world/timeskip', methods=['POST'])
+    def world_timeskip():
+        return handle_timeskip(app)
+
+    @app.route('/api/world/soak', methods=['POST'])
+    def world_soak():
+        return handle_soak_declare(app)
+
+    @app.route('/api/world/soak', methods=['DELETE'])
+    def world_soak_cancel():
+        return handle_soak_cancel(app)

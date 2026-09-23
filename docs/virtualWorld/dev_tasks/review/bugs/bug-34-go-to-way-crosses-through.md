@@ -7,7 +7,7 @@ area: gameplay
 # bug-34: "go to the <way>" silently crosses the doorway
 
 **Filed**: 2026-08-30
-**Status**: In Review â€” fixed 2026-08-30, engine + prompt tests green; agent
+**Status**: In Review — fixed 2026-08-30, engine + prompt tests green; agent
 E2E playtest pending.
 
 ## Observed
@@ -17,7 +17,7 @@ REACH the doorway; `go` resolved the way and walked them through.
 
 ## Fix
 
-- `engine/movement.py`: approach semantics â€” `go to <way>` / `go toward` /
+- `engine/movement.py`: approach semantics — `go to <way>` / `go toward` /
   `approach X` walk UP TO the way and stop (positioned at it);
   crossing is explicit (`go <handle>`, `go <room>`, `go through <X>`, dash).
 - New `approach` verb: HTTP handler, MCP tool, action normalizer, prompt

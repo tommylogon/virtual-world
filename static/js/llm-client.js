@@ -1,6 +1,12 @@
 /**
  * LLMClient — OpenAI-compatible API calls with streaming support
  * Handles URL normalization, auth, retry logic, streaming, and error handling.
+ *
+ * @module llm-client — the provider client (Chat Completions / Responses)
+ * @contributes LLMClient.chat/chatWithTools: retries, streaming, JSON repair, thinking/reasoning controls, raw-capture hook
+ * @powers all character and narration LLM calls, plus the 🔬 LLM inspector's raw exchanges
+ * @relates configured from config.toLLMConfig(); feeds dataset-collector.captureRaw
+ * @docs docs/virtualWorld/AI & Narration/LLM Providers.md
  */
 class LLMClient {
     constructor() {
@@ -79,6 +85,7 @@ class LLMClient {
 
         const maxRetries = 3;
         let lastError = null;
+        const startedAt = Date.now();
 
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             // Structured output (task: structured output): response_format is
@@ -103,16 +110,20 @@ class LLMClient {
                             if (options.tool_choice) body.tool_choice = options.tool_choice;
                         }
                         // Thinking mode (DeepSeek reasoning models): extra_body + reasoning_effort.
-                        // When OFF we send explicit disables instead of omitting the param —
-                        // providers often default reasoning models to thinking ON, so omitting it
-                        // would silently re-enable thinking. DeepSeek's native toggle plus
-                        // OpenRouter/OpenAI's unified `reasoning.exclude` (supported on all models,
-                        // so no risk of rejection by non-reasoning backends) both fire.
+                        // DeepSeek defaults thinking ON at effort `high`, so we must send an
+                        // explicit disable when it is off — omitting the parameter silently
+                        // re-enables high-effort reasoning on every call.
+                        // `effort: "none"` is the disable spelling for providers that key
+                        // thinking off the effort value, so treat it as OFF here too rather
+                        // than sending an invalid `reasoning_effort: "none"`.
+                        // OpenRouter/OpenAI's unified `reasoning.exclude` is supported on all
+                        // models, so it can't be rejected by a non-reasoning backend.
                         // Qwen 3.5 in LM Studio ignores all disable flags; the only reliable
                         // workaround is a trailing empty assistant message, which forces the
-                        // model to skip the  block and emit content directly.
+                        // model to skip its reasoning block and emit content directly.
                         // Gated by `suppressLocalThinking` so it only fires when opted in.
-                        if (this.thinking) {
+                        const thinkingOff = !this.thinking || this.thinkingEffort === 'none';
+                        if (!thinkingOff) {
                             body.reasoning_effort = this.thinkingEffort || 'high';
                             body.extra_body = { thinking: { type: 'enabled' } };
                         } else {
@@ -136,8 +147,11 @@ class LLMClient {
 
                 if (!resp.ok) {
                     let errText = '';
-                    try { const err = await resp.json(); errText = err.error?.message || JSON.stringify(err); }
-                    catch (e) { errText = await resp.text(); }
+                    let errBody = null;
+                    try { errBody = await resp.json(); errText = errBody.error?.message || JSON.stringify(errBody); }
+                    catch (e) { errText = await resp.text(); errBody = { text: errText }; }
+                    // Capture provider error shapes (400/429/500) too (task-405).
+                    this._captureRawExchange(label, requestBody, errBody || { error: errText }, resp, startedAt, headers);
                     // Provider rejected structured output (unknown param, json
                     // word missing, schema unsupported) — drop it for the rest
                     // of the session and retry immediately without burning the
@@ -158,10 +172,14 @@ class LLMClient {
 
                 if (streaming) {
                     const streamed = await this._handleStream(resp, format, options.onChunk, label, messages, options);
+                    // A stream isn't reassembled into a provider envelope, so
+                    // capture the request plus the assembled text (task-405).
+                    this._captureRawExchange(label, requestBody, { streamed: true, content: streamed }, resp, startedAt, headers);
                     this._checkSchemaEnforcement(streamed, responseFormat);
                     return streamed;
                 }
                 const completion = await resp.json();
+                this._captureRawExchange(label, requestBody, completion, resp, startedAt, headers);
                 if (completion?.error) throw new Error(completion.error.message || JSON.stringify(completion.error));
                 const content = isResponses
                     ? this._extractResponsesContent(completion)
@@ -194,6 +212,32 @@ class LLMClient {
     /** Chat completion helper for tool calling (forces non-streaming and returns { content, tool_calls }). */
     async chatWithTools(messages, options = {}) {
         return this.chat(messages, { ...options, streaming: false, withTools: true });
+    }
+
+    /**
+     * Capture the full HTTP exchange for the LLM Inspector (task-405).
+     * No-ops unless `config.showRawLLM` is on and the collector is loaded;
+     * never throws and never affects the LLM call result.
+     */
+    _captureRawExchange(label, requestBody, body, resp, startedAt, requestHeaders) {
+        try {
+            if (typeof window === 'undefined' || !window.DatasetCollector?.captureRaw) return;
+            if (typeof config !== 'undefined' && config && !config.showRawLLM) return;
+            const responseHeaders = {};
+            try { resp?.headers?.forEach?.((v, k) => { responseHeaders[k] = v; }); } catch (e) { /* ignore */ }
+            window.DatasetCollector.captureRaw({
+                label,
+                model: requestBody?.model || this.model,
+                url: (resp && resp.url) || '',
+                requestHeaders: requestHeaders || { 'content-type': 'application/json' },
+                requestBody,
+                status: resp?.status ?? null,
+                statusText: resp?.statusText || '',
+                responseHeaders,
+                body,
+                durationMs: startedAt ? (Date.now() - startedAt) : null,
+            });
+        } catch (e) { /* capture must never affect the call */ }
     }
 
     /**
@@ -249,21 +293,12 @@ class LLMClient {
     /**
      * Resolve which API format to use for requests.
      * auto currently routes to chat-completions (DeepSeek v4-pro only works on chat-completions
-     * until early Aug 2026; the Responses API only supports deepseek-v4-flash). Manual opt-in to
+     * until early Aug 2026; the Responses API only supports the Flash model). Manual opt-in to
      * 'responses' activates the new path. Reserved for future smart routing.
      */
     _resolveFormat() {
         if (this.apiFormat === 'responses') return 'responses';
         return 'chat-completions';
-    }
-
-    /**
-     * Translate chat-completions effort levels (low/high/xhigh/max) to Responses API
-     * levels (low/medium/high). One-way and lossy: xhigh/max collapse to high.
-     */
-    _translateEffort(effort) {
-        if (effort === 'xhigh' || effort === 'max') return 'high';
-        return effort || 'high';
     }
 
     /** Strip provider wrappers; never return chain-of-thought reasoning text. */
@@ -354,8 +389,10 @@ class LLMClient {
                     : { type: 'json_object' }
             };
         }
-        if (this.thinking) body.reasoning = { effort: this._translateEffort(this.thinkingEffort) };
-        else body.reasoning = { exclude: true }
+        // Thinking OFF — or an explicit `none` effort — disables reasoning by
+        // sending effort 'none'; otherwise the selected effort passes through.
+        const thinkingOff = !this.thinking || this.thinkingEffort === 'none';
+        body.reasoning = { effort: thinkingOff ? 'none' : (this.thinkingEffort || 'high') };
         return body;
     }
 
@@ -516,7 +553,7 @@ class LLMClient {
     static getFallbackModels(apiBase) {
         const base = (apiBase || '').toLowerCase();
         if (base.includes('openai')) return ['gpt-4.1-mini', 'gpt-4o', 'gpt-4o-mini', 'o1', 'o3-mini'];
-        if (base.includes('deepseek')) return ['deepseek-v4-flash', 'deepseek-chat', 'deepseek-reasoner'];
+        if (base.includes('deepseek')) return ['deepseek-flash', 'deepseek-v4-pro'];
         if (base.includes('groq')) return ['llama3-70b-8192', 'llama3-8b-8192', 'mixtral-8x7b-32768', 'gemma2-9b-it'];
         if (base.includes('openrouter')) return ['openai/gpt-4o', 'anthropic/claude-3.5-sonnet', 'google/gemini-2.0-flash-001', 'meta-llama/llama-3.3-70b-instruct', 'deepseek/deepseek-chat', 'mistralai/mistral-7b-instruct'];
         if (base.includes('127.0.0.1') || base.includes('localhost')) return ['local-model'];

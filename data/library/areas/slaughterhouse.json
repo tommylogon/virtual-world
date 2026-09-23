@@ -1,7 +1,14 @@
 {
   "name": "slaughterhouse",
   "description": "a hidden chamber deep beneath the mansion, long forgotten by the living. the walls are lined with butcher hooks and rusted meat racks. bones — human and animal — litter the earthen floor. a single bare bulb flickers with no visible power source. the stench of old blood and decay is overwhelming. chains hang from the ceiling, swaying in currents of air that don't exist. a narrow tunnel leads up into the darkness.",
-  "tags": [],
+  "tags": [
+    "interior",
+    "mansion",
+    "underground",
+    "occult",
+    "ritual",
+    "meat"
+  ],
   "environment": {
     "air": "stale",
     "light": 5,

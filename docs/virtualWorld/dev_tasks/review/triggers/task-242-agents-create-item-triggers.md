@@ -5,8 +5,8 @@
 
 ## Goal
 
-Let AI agents add triggers to items at runtime â€” e.g. an agent crafts or enchants an item
-and binds a behaviour (`on_use`, `on_take`, `on_examine`, timing) to it â€” moving trigger
+Let AI agents add triggers to items at runtime — e.g. an agent crafts or enchants an item
+and binds a behaviour (`on_use`, `on_take`, `on_examine`, timing) to it — moving trigger
 authoring beyond the human designer.
 
 ## Notes / open questions
@@ -16,4 +16,4 @@ authoring beyond the human designer.
 - Security/sanity: scope what agents can express (supported effect/condition sets), and
   whether agent-created triggers persist (graph) and serialize.
 - Interaction with the shared TriggerEditor data model (edge properties vs
-  `logic_trigger` nodes) â€” reuse the same internals so human editors can see/edit them.
+  `logic_trigger` nodes) — reuse the same internals so human editors can see/edit them.

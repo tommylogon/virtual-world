@@ -543,21 +543,23 @@ def set_world_lore(entries: list) -> dict:
 
 
 @mcp.tool()
-def add_lore_entry(category: str, content: str, title: str = None) -> dict:
+def add_lore_entry(category: str, content: str, title: str = None, allowed_tags: list = None) -> dict:
     """Add a new world lore entry."""
     body = {"category": category, "content": content}
     if title is not None: body["title"] = title
+    if allowed_tags is not None: body["allowed_tags"] = allowed_tags
     return _api("POST", "/api/world/lore/entry", body)
 
 
 @mcp.tool()
 def update_lore_entry(entry_id: str, category: str = None,
-                      content: str = None, title: str = None) -> dict:
+                      content: str = None, title: str = None, allowed_tags: list = None) -> dict:
     """Update a specific world lore entry."""
     body = {}
     if category is not None: body["category"] = category
     if content is not None: body["content"] = content
     if title is not None: body["title"] = title
+    if allowed_tags is not None: body["allowed_tags"] = allowed_tags
     return _api("POST", f"/api/world/lore/entry/{entry_id}", body)
 
 

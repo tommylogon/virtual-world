@@ -4,7 +4,11 @@
  * tooltip building, physics toggling, legend rendering, and node filtering.
  * Extracted from graph-manager.js. References the global graphManager singleton.
  *
- * @module GraphNetwork
+ * @module graph/network-manager — vis.js Network construction and data loading
+ * @contributes GraphNetwork: options, loadGraphData, applyVisibility, legend/tags, node configs
+ * @powers the graph canvas itself — layout physics, filtering, tooltips, node badges
+ * @relates driven by graph-manager; collaborators in static/js/graph/*
+ * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
 // Lazy lit-html tag: window.Lit is only available at call time (deferred module
 // bootstrap), not at parse time. Unique per file so top-level consts never collide.
@@ -27,6 +31,7 @@ window.GraphNetwork = {
 
         const options = GraphNetwork.buildOptions();
         graphManager.network = new vis.Network(container, { nodes: [], edges: [] }, options);
+        if (window.GraphRelativeLayout) window.GraphRelativeLayout.attach(graphManager.network);
 
         // Create legend overlay (after vis.js so it doesn't get cleared)
         graphManager._legendEl = document.createElement('div');
@@ -48,6 +53,7 @@ window.GraphNetwork = {
         GraphNetwork.ensureTagLibrary();
 
         graphManager.network.on("click", (params) => GraphEventHandlers.onClick(params));
+        GraphNetwork._syncLayoutButton && GraphNetwork._syncLayoutButton();
         graphManager.network.on("oncontext", (params) => GraphEventHandlers.onContext(params));
         GraphNetwork._bindEdgeHoverTooltips();
 
@@ -72,12 +78,15 @@ window.GraphNetwork = {
         // (which is always undefined and made every slider a silent no-op).
         const cfg = config || {};
         const solver = cfg.graphSolver || 'forceAtlas2Based';
+        // Hierarchical mode: vis places every node by relation level, so physics
+        // is off and each parent sits a level above its children (task-485).
+        const levels = (cfg.graphLayoutMode || 'free') === 'levels';
         const physicsBase = solver === 'barnesHut'
             ? { barnesHut: { gravitationalConstant: cfg.graphGravitationalConstant ?? -3000, centralGravity: 0.3, springLength: cfg.graphSpringLength ?? 120, springConstant: cfg.graphSpringConstant ?? 0.04, damping: cfg.graphDamping ?? 0.09 } }
             : { forceAtlas2Based: { gravitationalConstant: cfg.graphGravitationalConstant ?? -40, centralGravity: 0.005, springLength: cfg.graphSpringLength ?? 100, springConstant: cfg.graphSpringConstant ?? 0.02, damping: cfg.graphDamping ?? 0.4 } };
         return {
             physics: {
-                enabled: true, solver,
+                enabled: !levels, solver,
                 ...physicsBase,
                 stabilization: { iterations: 100, fit: false }
             },
@@ -87,7 +96,27 @@ window.GraphNetwork = {
                 arrows: cfg.graphArrows !== false ? { to: { enabled: true, scaleFactor: 0.5 } } : { to: { enabled: false } },
                 width: cfg.graphEdgeWidth || 1
             },
-            layout: { improvedLayout: cfg.graphImprovedLayout === true },
+            layout: levels
+                ? {
+                    hierarchical: {
+                        enabled: true,
+                        direction: 'UD',
+                        sortMethod: 'directed',
+                        levelSeparation: 150,
+                        nodeSpacing: 110,
+                        treeSpacing: 170,
+                        blockShifting: true,
+                        edgeMinimization: true,
+                        parentCentralization: true,
+                        shakeTowards: 'roots'
+                    }
+                }
+                : {
+                    // Explicitly off: vis merges options, so switching back to
+                    // free would otherwise leave the hierarchical engine enabled.
+                    hierarchical: { enabled: false },
+                    improvedLayout: cfg.graphImprovedLayout === true
+                },
             manipulation: {
                 enabled: true, initiallyActive: false,
                 addNode: (data, callback) => GraphEventHandlers.onAddNode(data, callback),
@@ -105,8 +134,22 @@ window.GraphNetwork = {
     applyGraphSettings() {
         if (!graphManager.network) return;
         graphManager._lastSig = '';
+        const levelsOn = ((typeof config !== 'undefined' && config && config.graphLayoutMode) || 'free') === 'levels';
+        graphManager._physicsEnabled = !levelsOn;
         graphManager.network.setOptions(GraphNetwork.buildOptions());
+        const physicsBtn = document.getElementById('btn-physics');
+        if (physicsBtn) physicsBtn.textContent = levelsOn ? '▶ Physics' : '⏸ Physics';
+        // Settings changed, so let the contents re-derive their arrangement —
+        // otherwise a moved "Item Edge Length" (Hug Parent) would not re-orbit
+        // anything, because remembered offsets win.
+        if (window.GraphRelativeLayout && !levelsOn) window.GraphRelativeLayout.reseed();
         GraphNetwork.loadGraphData();
+        // Hierarchical layout places every node itself, so there is nothing to
+        // simulate — and stabilize() would turn the solver back on and undo it.
+        if (levelsOn) {
+            GraphNetwork._syncLayoutButton();
+            return;
+        }
         // Re-run the simulation with the new force parameters. After the
         // initial stabilization vis.js freezes the network (physics.stabilized
         // = true), so setOptions() alone never moves a node — explicitly
@@ -247,7 +290,25 @@ window.GraphNetwork = {
                     }
                 }
 
-                // Check if the way node has a per-edge length override
+                // Attachment edges (item -> its parent, or a trigger -> its host)
+                // get short springs so a child settles next to its parent rather
+                // than floating at the global length. Children stay dynamic: the
+                // leash in relative-layout.js is what keeps them local (task-485).
+                const isAttachment = GRAPH_ATTACH_EDGE_TYPES.has(edgeType)
+                    || edgeType === 'triggers' || edgeType === 'grappled';
+
+                // In hierarchical mode a relation edge is the level link: orient
+                // it parent -> child from the resolved relations rather than the
+                // stored direction, which is inconsistent for `in` (bug-44).
+                const levelsMode = ((typeof config !== 'undefined' && config && config.graphLayoutMode) || 'free') === 'levels';
+                const levelsPlan = (levelsMode && window.GraphRelativeLayout)
+                    ? (isAttachment
+                        ? window.GraphRelativeLayout.levelEdge(edgeObj.source, edgeObj.target, nodesObj, edgesArr)
+                        : (edgeType === 'connection'
+                            ? window.GraphRelativeLayout.connectionLevelEdge(edgeObj.source, edgeObj.target, nodesObj)
+                            : null))
+                    : null;
+
                 let edgeLength = undefined;
                 if (edgeType === 'connection') {
                     const targetNode = nodesObj[edgeObj.target];
@@ -257,27 +318,44 @@ window.GraphNetwork = {
                         const len = wayNode.properties?.edge_length;
                         if (len && len > 0) edgeLength = len;
                     }
-                } else if (GRAPH_ATTACH_EDGE_TYPES.has(edgeType)) {
-                    // Item → parent attachment edges (in/on/under/behind/beside/
-                    // at/carrying/equipped): shorter springs so children hug
-                    // their parents instead of floating at the global length.
-                    const len = (config || {}).graphItemEdgeLength || 60;
+                    // Dynamic default: a connection edge is only as long as its
+                    // labels need. A short name ("west") stays tight; a long one
+                    // ("northwest passage") gets room — so edges stop being
+                    // stretched to the global spring length. A per-way
+                    // `edge_length` property still wins.
+                    if (!edgeLength) {
+                        // Size to the label actually drawn along the edge: an
+                        // unlabelled edge can be short, a long one needs room.
+                        // Capped so a two-sided label can't stretch the layout.
+                        const labelLength = String(edgeLabel || '').length;
+                        edgeLength = Math.min(130, Math.max(45, 35 + labelLength * 3.2));
+                    }
+                } else if (isAttachment) {
+                    const len = (config || {}).graphItemEdgeLength || 35;
                     edgeLength = len;
                 }
                 visEdges.push({
-                    from: edgeObj.source, to: edgeObj.target,
+                    from: (levelsPlan && levelsPlan.from) || edgeObj.source,
+                    to: (levelsPlan && levelsPlan.to) || edgeObj.target,
                     type: edgeType,
                     label: edgeLabel,
                     length: edgeLength,
-                    arrows: edgeType === 'connection' ? 'from,to' : (style.arrows || 'to'),
+                    // Hierarchical levels come from direction, so a relation
+                    // stored child -> parent is flipped for layout and the arrow
+                    // is flipped back to keep reading the right way (task-485).
+                    arrows: (levelsPlan && levelsPlan.flipped)
+                        ? (edgeType === 'connection' ? 'from,to' : 'from')
+                        : (edgeType === 'connection' ? 'from,to' : (style.arrows || 'to')),
                     dashes: style.dashes !== undefined ? style.dashes : defaultDashes,
                     color: { color: style.color || defaultColor, highlight: '#4ec9b0' },
                     font: { color: style.color || defaultColor, size: graphManager._edgeLabelSize || 8, align: 'horizontal', strokeWidth: 2, strokeColor: '#0d1117', background: 'rgba(13,17,23,0.85)' },
-                    width: style.width || 1
+                    width: style.width || 1,
+                    smooth: isAttachment ? false : undefined
                 });
             }
             // Disable physics during data swap to avoid jitter
-            const wasPhysics = graphManager._physicsEnabled;
+            const levelsOn = ((typeof config !== 'undefined' && config && config.graphLayoutMode) || 'free') === 'levels';
+            const wasPhysics = graphManager._physicsEnabled && !levelsOn;
             graphManager.network.setOptions({ physics: { enabled: false } });
             graphManager.network.setData({ nodes: visNodes, edges: visEdges });
             // Restore positions only for nodes that still exist
@@ -286,10 +364,26 @@ window.GraphNetwork = {
                 if (!newNodeIds.has(id)) continue;
                 graphManager.network.moveNode(id, pos.x, pos.y);
             }
-            // Apply cardinal-based area layout if enabled
-            if (graphManager._cardinalLayout && worldState.areas) {
+            // Apply cardinal-based area layout only in MAP mode: the Map button
+            // (`_cardinalLayout`) or the map view overlay (`_viewMode`). In the
+            // graph view nodes are placed by hand (restored from `properties.x/y`),
+            // so auto-anchoring areas, ways and loose nodes there moved a way the
+            // user had just positioned. Not in hierarchical mode either: that
+            // layout owns every position.
+            const mapMode = graphManager._cardinalLayout === true
+                || graphManager._viewMode === 'cardinal';
+            if (!levelsOn && mapMode && worldState.areas) {
                 GraphLayoutEngine.applyCardinalLayout(nodesObj);
             }
+
+
+        // Items, characters and triggers sit relative to whatever holds them,
+        // derived fresh each load (task-485) — never a saved snapshot, so a
+        // carried item follows its carrier.
+        if (window.GraphRelativeLayout) {
+            try { window.GraphRelativeLayout.apply(); } catch (err) { /* ignore */ }
+        }
+
 
             if (wasPhysics) graphManager.network.setOptions({ physics: { enabled: true } });
 
@@ -403,6 +497,29 @@ window.GraphNetwork = {
     },
 
     /**
+     * Toggle vis's hierarchical (level) layout against the free physics layout
+     * (task-485). Levels needs no per-frame work: the layout engine places every
+     * node from the relation levels, so nothing drifts and nothing is stretched.
+     */
+    toggleLayoutMode() {
+        const cfg = (typeof config !== 'undefined' && config) || {};
+        cfg.graphLayoutMode = cfg.graphLayoutMode === 'levels' ? 'free' : 'levels';
+        GraphNetwork._syncLayoutButton();
+        GraphNetwork.applyGraphSettings();
+        if (cfg.save) { try { cfg.save(); } catch (err) { /* ignore */ } }
+    },
+
+    _syncLayoutButton() {
+        const cfg = (typeof config !== 'undefined' && config) || {};
+        const btn = document.getElementById('btn-layout-mode');
+        if (!btn) return;
+        const levels = cfg.graphLayoutMode === 'levels';
+        btn.textContent = levels ? '🌳 Levels on' : '🌳 Levels';
+        btn.title = levels
+            ? 'Hierarchical layout is on: nodes sit by relation level (physics off). Click for free physics.'
+            : 'Free physics layout with contents following their parent. Click for hierarchical levels.';
+    },
+    /**
      * Toggles physics simulation on/off for the vis.js network.
      * Updates the physics button text accordingly.
      */
@@ -511,8 +628,19 @@ window.GraphNetwork = {
             title: GraphNetwork.buildTooltip(nodeData),
             // vis-network's central gravity is global. A node excluded from
             // physics stays out of that pull while the rest keeps simulating.
+            // "Static" can be said either way: the inspector's Physics-enabled
+            // off, or an explicit layout_static flag (task-485).
             physics: nodeData.properties?.central_gravity_enabled !== false
+                && nodeData.properties?.layout_static !== true
         };
+
+        // Saved layout: a node whose x/y were persisted to the world (right-click
+        // → 🗺 → 💾 Save layout) loads back in place instead of being freshly
+        // simulated. Whether it then HOLDS is the job of the physics lock.
+        if (typeof nodeData.properties?.x === 'number' && typeof nodeData.properties?.y === 'number') {
+            nodeConfig.x = nodeData.properties.x;
+            nodeConfig.y = nodeData.properties.y;
+        }
 
         // Way nodes: color by state
         if (nodeData.type === 'way') {
@@ -904,7 +1032,8 @@ window.GraphNetwork = {
         graphManager._lastSig = '';
         graphManager.network.setOptions({ physics: { enabled: false } });
         GraphNetwork.loadGraphData();
-        if (graphManager._physicsEnabled) {
+        const levelsOn = ((typeof config !== 'undefined' && config && config.graphLayoutMode) || 'free') === 'levels';
+        if (graphManager._physicsEnabled && !levelsOn) {
             graphManager.network.setOptions({ physics: { enabled: true } });
         }
         GraphNetwork._updateOverlayLegend('structural');

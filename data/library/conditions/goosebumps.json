@@ -1,0 +1,32 @@
+{
+  "name": "Goosebumps",
+  "description": "A chill raises the hairs on your skin.",
+  "blocks_actions": false,
+  "blocks_movement": false,
+  "blocks_speech": false,
+  "auto_fail_checks": [],
+  "auto_fail_saves": [],
+  "attack_mod": 0,
+  "defense_mod": 0,
+  "speed_mult": 1.0,
+  "movement_mode": null,
+  "drops_held_items": false,
+  "periodic": {},
+  "ends_on": [
+    "warm_up",
+    "duration"
+  ],
+  "known": false,
+  "symptoms": {
+    "3": "The hairs on your arms stand on end.",
+    "1": "You can't shake the prickling on your skin."
+  },
+  "stack": "noop",
+  "default_duration": 5,
+  "excludes": [],
+  "order": null,
+  "perception_skip": false,
+  "mature": false,
+  "check_advantage": [],
+  "check_disadvantage": []
+}

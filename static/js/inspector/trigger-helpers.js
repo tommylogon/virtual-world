@@ -2,10 +2,16 @@
  * InspectorTriggers — Trigger system helpers for the Inspector
  * Extracted from inspector.js for modularity.
  * Handles display and removal of trigger edges on item/way nodes.
+ *
+ * @module inspector/trigger-helpers — trigger display/removal for item & way inspectors
+ * @contributes InspectorTriggers: list a node's trigger edges, remove one, open the trigger editor
+ * @powers viewing and editing the triggers attached to an item or way
+ * @relates renders through InspectorPanel; used by item-view + way-view
+ * @docs docs/virtualWorld/Rules Engine/
  */
 
 window.InspectorTriggers = (() => {
-    const T = {};
+    const api = {};
 
     /**
      * Remove a trigger edge and its associated logic_trigger node
@@ -13,7 +19,7 @@ window.InspectorTriggers = (() => {
      * @param {string} source - Edge source node ID
      * @param {string} target - Edge target node ID (logic_trigger)
      */
-    T.removeTriggerFromNode = async function(nodeId, source, target) {
+    api.removeTriggerFromNode = async function(nodeId, source, target) {
         if (!confirm('Remove this trigger?')) return;
         await ApiClient.deleteEdge(source, target, 'triggers');
         const triggerNode = worldState.getNode(target);
@@ -29,7 +35,7 @@ window.InspectorTriggers = (() => {
      * Build HTML option list of all way nodes in the graph
      * @returns {string} HTML option elements
      */
-    T.getDoorOptions = function() {
+    api.getDoorOptions = function() {
         const doors = [];
         if (worldState.graph?.nodes) {
             for (const [id, node] of Object.entries(worldState.graph.nodes)) {
@@ -45,7 +51,7 @@ window.InspectorTriggers = (() => {
      * Build searchable datalist options for on_use_on target: exits, doors, area items
      * @returns {string} HTML option elements for a datalist
      */
-    T.getTargetDatalist = function() {
+    api.getTargetDatalist = function() {
         const seen = new Set();
         const opts = [];
 
@@ -94,7 +100,7 @@ window.InspectorTriggers = (() => {
      * Build searchable datalist options for spawn/give/remove item fields.
      * @returns {string} HTML option elements for a datalist
      */
-    T.getItemDatalist = function() {
+    api.getItemDatalist = function() {
         const seen = new Set();
         const opts = [];
         if (worldState.graph?.nodes) {
@@ -121,7 +127,7 @@ window.InspectorTriggers = (() => {
      * @param {string[]} lockedFields - Currently locked fields
      * @returns {TemplateResult}
      */
-    T.buildTriggersHtml = function(nodeId, lockedFields) {
+    api.buildTriggersHtml = function(nodeId, lockedFields) {
         const triggers = [];
         const locked = lockedFields || [];
         const nodeIdLower = String(nodeId).toLowerCase();
@@ -143,10 +149,10 @@ window.InspectorTriggers = (() => {
             <h3 style="display:flex;justify-content:space-between;align-items:center;">
                 <span>${lockToggle} ⚡ Triggers</span>
                 <div style="display:flex;gap:3px;">
-                    <button class="btn btn-sm" @click=${() => T._openGraphEditor(nodeId)} style="font-size:10px;">🧩 Graph</button>
-                    <button class="btn btn-sm" @click=${() => T.validateNode(nodeId)} style="font-size:10px;" title="Scan this node's triggers for broken references">⚠ Validate</button>
-                    <button class="btn btn-sm" @click=${(e) => T.suggestForNode(nodeId, false, e.currentTarget)} style="font-size:10px;background:var(--bg-inset);border-color:var(--orange);color:var(--orange);" title="Suggest a full set of useful triggers from this node (no AI)">⚡ Suggest</button>
-                    <button class="btn btn-sm" @click=${(e) => T.suggestForNode(nodeId, true, e.currentTarget)} style="font-size:10px;background:var(--bg-inset);border-color:var(--blue);color:var(--blue);" title="Ask the LLM to suggest a full set of useful triggers (AI)">✨ Suggest (AI)</button>
+                    <button class="btn btn-sm" @click=${() => api._openGraphEditor(nodeId)} style="font-size:10px;">🧩 Graph</button>
+                    <button class="btn btn-sm" @click=${() => api.validateNode(nodeId)} style="font-size:10px;" title="Scan this node's triggers for broken references">⚠ Validate</button>
+                    <button class="btn btn-sm" @click=${(e) => api.suggestForNode(nodeId, false, e.currentTarget)} style="font-size:10px;background:var(--bg-inset);border-color:var(--orange);color:var(--orange);" title="Suggest a full set of useful triggers from this node (no AI)">⚡ Suggest</button>
+                    <button class="btn btn-sm" @click=${(e) => api.suggestForNode(nodeId, true, e.currentTarget)} style="font-size:10px;background:var(--bg-inset);border-color:var(--blue);color:var(--blue);" title="Ask the LLM to suggest a full set of useful triggers (AI)">✨ Suggest (AI)</button>
                     <button class="btn btn-sm btn-blue" @click=${() => VW.inspector._addTriggerToNode(nodeId)}>➕ Add</button>
                 </div>
             </h3>
@@ -207,7 +213,7 @@ window.InspectorTriggers = (() => {
                                 <strong>${triggerType}</strong>
                                 <div>
                                     <button class="btn btn-sm" @click=${() => VW.inspector._editTriggerFromNode(nodeId, JSON.stringify(trigger))} style="font-size:10px;">✏️</button>
-                                    <button class="btn btn-sm btn-red" @click=${() => T.removeTriggerFromNode(nodeId, trigger.source, trigger.target)} style="font-size:10px;">✕</button>
+                                    <button class="btn btn-sm btn-red" @click=${() => api.removeTriggerFromNode(nodeId, trigger.source, trigger.target)} style="font-size:10px;">✕</button>
                                 </div>
                             </div>
                             <div style="font-size:10px;color:var(--text-dim);margin-top:2px;">Effect: ${effectDetail}</div>
@@ -226,7 +232,7 @@ window.InspectorTriggers = (() => {
      * trigger list. Clickable jump buttons open the owning node in the
      * inspector + graph.
      */
-    T.validateNode = async function(nodeId) {
+    api.validateNode = async function(nodeId) {
         if (!window.ValidatorPanel) {
             toastInfo('Trigger validation not loaded yet.');
             return;
@@ -242,7 +248,7 @@ window.InspectorTriggers = (() => {
         }
     };
 
-    T._openGraphEditor = function(escId) {
+    api._openGraphEditor = function(escId) {
         const nodeId = escId.replace(/\\'/g, "'");
         const nodeIdLower = String(nodeId).toLowerCase();
         const triggerEdges = [];
@@ -327,7 +333,7 @@ window.InspectorTriggers = (() => {
      * @param {string} nodeId - Graph node ID
      * @returns {Array} trigger edges
      */
-    T._getNodeTriggers = function(nodeId) {
+    api._getNodeTriggers = function(nodeId) {
         const out = [];
         const lower = String(nodeId).toLowerCase();
         if (worldState.graph?.edges) {
@@ -346,7 +352,7 @@ window.InspectorTriggers = (() => {
      * @param {string} nodeId - Source node ID
      * @param {object} data   - Trigger data ({ trigger_type, effects, conditions, ... })
      */
-    T.createTriggerOnNode = async function(nodeId, data) {
+    api.createTriggerOnNode = async function(nodeId, data) {
         const triggerId = `trigger_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
         const typeLabel = Array.isArray(data.trigger_type) ? data.trigger_type.join(', ') : (data.trigger_type || 'custom');
         const name = (data.name || '').trim() || `${typeLabel} → ${data.effects?.[0]?.type || '?'}`;
@@ -368,7 +374,7 @@ window.InspectorTriggers = (() => {
      * @param {string} nodeId - Graph node ID
      * @returns {object} { kind, name, description, tags, actions, uses, current_state, requires }
      */
-    T._suggestFieldsForNode = function(nodeId) {
+    api._suggestFieldsForNode = function(nodeId) {
         const node = worldState.getNode(nodeId);
         if (!node) return null;
         const props = node.properties || {};
@@ -397,9 +403,9 @@ window.InspectorTriggers = (() => {
      * floor). Result is diffed against existing triggers and shown in a review
      * modal — per-trigger keep/use-suggested/skip — never a blind overwrite.
      */
-    T.suggestForNode = async function(nodeId, useAI, btn) {
+    api.suggestForNode = async function(nodeId, useAI, btn) {
         const Suggester = window.ItemLibraryTriggerSuggester;
-        const fields = T._suggestFieldsForNode(nodeId);
+        const fields = api._suggestFieldsForNode(nodeId);
         if (!fields) {
             if (typeof toastInfo === 'function') toastInfo('Node not found.');
             return;
@@ -447,7 +453,7 @@ window.InspectorTriggers = (() => {
             }
 
             // Diff against what already exists on the node.
-            const existingData = T._getNodeTriggerData(nodeId);
+            const existingData = api._getNodeTriggerData(nodeId);
             const rows = (window.TriggerSuggestDiff && planTypes)
                 ? window.TriggerSuggestDiff.diff(existingData, planTypes, triggers)
                 : [];
@@ -458,7 +464,7 @@ window.InspectorTriggers = (() => {
             }
 
             const apply = async (result) => {
-                await T._applyTriggerDiff(nodeId, existingData, result);
+                await api._applyTriggerDiff(nodeId, existingData, result);
                 worldState.fetch().then(() => {
                     if (window.VW?.inspector) window.VW.inspector.showNode(nodeId);
                 });
@@ -496,9 +502,9 @@ window.InspectorTriggers = (() => {
      * @param {string} nodeId - Graph node ID
      * @returns {Array} [{ trigger_type, effects, conditions, ... }]
      */
-    T._getNodeTriggerData = function(nodeId) {
+    api._getNodeTriggerData = function(nodeId) {
         const out = [];
-        for (const edge of T._getNodeTriggers(nodeId)) {
+        for (const edge of api._getNodeTriggers(nodeId)) {
             const tn = worldState.getNode(edge.target);
             if (tn && tn.type === 'logic_trigger' && tn.properties) {
                 out.push(tn.properties);
@@ -515,7 +521,7 @@ window.InspectorTriggers = (() => {
      * @param {Array} existingData - the pre-existing trigger data
      * @param {object} result - { keep: [types], replace: [{type,data}], add: [{type,data}] }
      */
-    T._applyTriggerDiff = async function(nodeId, existingData, result) {
+    api._applyTriggerDiff = async function(nodeId, existingData, result) {
         const toTypeKey = (t) => Array.isArray(t) ? t.join(',') : String(t || '');
         const wanted = new Set(result.keep);
         result.replace.forEach(r => wanted.add(r.type));
@@ -525,7 +531,7 @@ window.InspectorTriggers = (() => {
         const deletes = [];
 
         // Delete existing triggers we're NOT keeping (replaced or skipped).
-        for (const edge of T._getNodeTriggers(nodeId)) {
+        for (const edge of api._getNodeTriggers(nodeId)) {
             const tn = worldState.getNode(edge.target);
             if (!tn || tn.type !== 'logic_trigger' || !tn.properties) continue;
             const k = toTypeKey(tn.properties.trigger_type);
@@ -564,7 +570,7 @@ window.InspectorTriggers = (() => {
             if (!batchOk) {
                 // Sequential fallback: delete, then create.
                 for (const id of deletes) { try { await ApiClient.deleteNode(id); } catch (e) {} }
-                for (const { data } of addItems) await T.createTriggerOnNode(nodeId, data);
+                for (const { data } of addItems) await api.createTriggerOnNode(nodeId, data);
             }
         }
     };
@@ -574,7 +580,7 @@ window.InspectorTriggers = (() => {
      * @param {string} nodeId - Graph node ID
      * @returns {TemplateResult}
      */
-    T.buildContentsHtml = function(nodeId) {
+    api.buildContentsHtml = function(nodeId) {
         const contained = [];
         if (worldState.graph?.edges) {
             for (const edge of worldState.graph.edges) {
@@ -610,5 +616,5 @@ window.InspectorTriggers = (() => {
         </div>`;
     };
 
-    return T;
+    return api;
 })();

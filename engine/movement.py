@@ -2,13 +2,15 @@
 
 import re
 import time
+import logging
 from typing import Optional, Dict, Any
 
 from graph import Node, Edge, EDGE_CONNECTION, EDGE_TRIGGERS, EDGE_CARRYING, EDGE_EQUIPPED, EDGE_IN
 from engine.room_perception import normalize_requires
-from engine.traits import TraitSystem
 from engine.size import size_tier, size_tier_from_name
 from engine.conditions import effective_speed
+
+logger = logging.getLogger(__name__)
 
 # Movement kind → flavor line. The `time` part of a way's cost is a DURATION
 # hint for the future stateful-action system (task-131), not per-action clock
@@ -138,6 +140,37 @@ class MovementSystem:
                     break
 
     # ────────────────────── Movement ──────────────────────
+
+    def _grant_arrival_entertainment(self, player, perception):
+        """Pay Entertainment for whatever arriving made fresh (task-425).
+
+        Every subject the arrival reported freshness for — the area itself, the
+        things in it, the people standing there — is a discovery, and discovery
+        is entertainment. Charging per subject rather than a flat "+15 for a new
+        area" is what makes a room full of unfamiliar things worth the walk.
+
+        Subjects already known pay nothing: freshness is 0 for anything seen
+        within the recovery window, so loitering and bouncing earn no credit
+        while a genuinely stale place pays again.
+
+        Pays the **freshness `observe_area` reported**, not a recomputed one. That
+        distinction is the whole point of it reporting one: observing refreshes the
+        tick this would otherwise read, so calling `grant()` here measured 0 for
+        every subject on every arrival — which is exactly what this did, and why
+        perceived novelty never paid anything until it was caught.
+        """
+        freshness_map = (perception or {}).get("freshness") or {}
+        if not freshness_map:
+            return 0
+        try:
+            from engine.novelty import grant_freshness
+        except Exception:
+            return 0
+        total = 0
+        tick = self.gs.time_ticks
+        for subject_id, fresh in freshness_map.items():
+            total += grant_freshness(player, fresh, tick)
+        return total
 
     def _get_encumbrance_energy_cost(self) -> int:
         """Return extra movement energy cost from carry encumbrance (tiered).
@@ -599,7 +632,7 @@ class MovementSystem:
                         break
             if not block:
                 feared_here = [
-                    pname for pname, p in list(self.gs.players.items())
+                    getattr(p, "name", pname) for pname, p in list(self.gs.players.items())
                     if p.state != "dead" and p.current_area == target_area_node.name
                 ]
                 for inst in self.gs.player.conditions.get("frightened", []):
@@ -691,21 +724,25 @@ class MovementSystem:
                         {"player_area": target_area_node.name}
                     )
 
-        # Entertainment boost for area entry
+        # Perceive the area just entered (task-403) and pay for the arrival
+        # (task-425). Perception runs first because it reports each subject's
+        # freshness as it was *before* refreshing the observation — which is why
+        # the curve is computed in observe_area and not re-derived here: reading
+        # the tick afterwards would report every arrival as already stale.
         player = self.gs.player
         area_name = target_area_node.name
-        if player and "Entertainment" in player.vitals:
-            was_new = area_name not in player.visited_areas
+        try:
+            from engine.observation import observe_area
+            perception = observe_area(player, self.gs)
+        except Exception as e:  # perception must never break movement
+            logger.warning("[observation] %s: %s", self.gs.active_player, e)
+            perception = {"seen": 0, "novel": [], "freshness": {}}
+
+        if player is not None:
+            # visited_areas is still written — spatial memory's known-route
+            # filter reads it — but it no longer decides novelty.
             player.visited_areas.add(area_name)
-            if was_new:
-                base_boost = 15
-                if TraitSystem.has_effect(player, "curious"):
-                    base_boost = int(base_boost * 1.5)
-                if TraitSystem.has_effect(player, "homebody"):
-                    base_boost = 0
-                player.vitals["Entertainment"] = min(100, player.vitals.get("Entertainment", 50) + base_boost)
-            elif TraitSystem.has_effect(player, "wanderlust"):
-                player.vitals["Entertainment"] = min(100, player.vitals.get("Entertainment", 50) + 3)
+            self._grant_arrival_entertainment(player, perception)
 
         # Apply move cost (ghosts get no energy cost). The way's authored cost
         # applies as-is — crawl/climb/jump don't scale it (see KIND_MOVE_LINE).
@@ -714,7 +751,7 @@ class MovementSystem:
             self.gs.apply_action("move", exit_cost, player=self.gs.player)
             encumbrance_cost = self._get_encumbrance_energy_cost()
             if encumbrance_cost:
-                self.gs.apply_action("move", {"energy": encumbrance_cost, "time": 0}, player=self.gs.player)
+                self.gs.apply_action("move", {"energy": encumbrance_cost}, player=self.gs.player)
         # Fire on_enter triggers on the door (e.g., auto-close behind player,
         # fear saves on "fleshy orifice" doors) — game_state so save gates work
         enter_outputs = self.triggers._execute_triggers(
@@ -790,7 +827,7 @@ class MovementSystem:
 
         # Scaled energy surcharge for sprinting (beyond the normal exit cost)
         if self.gs.player.state != "dead":
-            self.gs.apply_action("move", {"energy": 4, "time": 0}, player=self.gs.player)
+            self.gs.apply_action("move", {"energy": 4}, player=self.gs.player)
         return hop
 
     def approach(self, target_input: str) -> str:
@@ -889,7 +926,8 @@ class MovementSystem:
                 display = resolved
                 try:
                     player = self.player_manager.players.get(self.gs.active_player)
-                    rel = (player.relationships.get(resolved) or {}) if player else {}
+                    from engine.relationships import get_relationship
+                    rel = (get_relationship(player, resolved) or {}) if player else {}
                     if rel.get("first_sighting"):
                         other = self.gs.player_manager.players.get(resolved)
                         display = other.unknown_display_name() or resolved

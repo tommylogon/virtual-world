@@ -139,15 +139,15 @@ class TestWayBarrier:
         way.properties = {"current_state": "closed"}
         assert get_way_barrier(way) == 1
     
-    def test_locked_door_barrier_two(self):
+    def test_locked_door_barrier_one(self):
         way = MagicMock()
         way.properties = {"current_state": "locked"}
-        assert get_way_barrier(way) == 2
+        assert get_way_barrier(way) == 1
     
-    def test_blocked_door_barrier_two(self):
+    def test_blocked_door_barrier_one(self):
         way = MagicMock()
         way.properties = {"current_state": "blocked"}
-        assert get_way_barrier(way) == 2
+        assert get_way_barrier(way) == 1
     
     def test_hidden_door_barrier_two(self):
         way = MagicMock()
@@ -231,11 +231,12 @@ class TestSpeechPropagation:
         # Shout (pen=2) through closed door (bar=1) reaches room_b
         assert "area_room_b" in result
     
-    def test_shout_blocked_by_locked_door(self, graph, areas, ways):
+    def test_shout_through_locked_door(self, graph, areas, ways):
         connect_areas(graph, areas, ways)
         result = get_areas_hearing_speech("area_room_b", "shout", graph, areas)
-        # Shout (pen=2) blocked by locked door (bar=2)
-        assert "area_room_c" not in result
+        # A lock is a latch on an already-closed door: bar=1, same as closed.
+        # Shout (pen=2) - 1 = 1, so room_c hears it.
+        assert "area_room_c" in result
     
     def test_scream_reaches_three_areas(self, graph, areas, ways):
         connect_areas(graph, areas, ways)
@@ -249,15 +250,87 @@ class TestSpeechPropagation:
         assert "area_room_b" in result
         assert "area_room_c" in result
     
-    def test_scream_blocked_by_two_closed_doors(self, graph, areas, ways):
+    def test_scream_carries_through_three_solid_doors(self, graph, areas, ways):
         connect_areas(graph, areas, ways)
-        # hallway->room_a open, room_a->room_b closed, room_b->room_c closed
+        # hallway->room_a open(0.5), room_a->room_b closed(1), room_b->room_c locked(1)
         result = get_areas_hearing_speech("area_hallway", "scream", graph, areas)
-        # Scream (pen=3) through open(0) + closed(1) + closed(1) = 2 barriers
-        # 3 - 2 = 1, so reaches room_b but not room_c
+        # Scream (pen=3) - 2.5 accumulated = 0.5, so the loudest channel reaches all
+        # three. Locked is bar=1 now (a latch adds no acoustic mass), so room_c is
+        # no longer cut off — only the quietest channels are stopped by a door chain.
         assert "area_room_a" in result
         assert "area_room_b" in result
-        assert "area_room_c" not in result
+        assert "area_room_c" in result
+
+
+class TestLeastDampedPath:
+    """The sound walk must use the CHEAPEST route, not the first route found.
+
+    bug-30: the old FIFO BFS marked an area visited on first touch, so a nearer
+    route through heavy doors could beat a slightly longer, mostly-open corridor.
+    """
+
+    def _build_diamond(self, graph, areas):
+        """room_a → room_b → room_c (one closed door) and
+        room_a → room_d → room_c (two open ways). The B route is reached first
+        in insertion order but is the more damped one."""
+        graph._edges_by_source = {}
+
+        def add_way(way_id, state):
+            way = MagicMock(spec=Node)
+            way.id = way_id
+            way.type = "way"
+            way.properties = {"current_state": state, "description": "door"}
+            graph.nodes[way_id] = way
+            return way
+
+        add_way("way_ab", "open")
+        add_way("way_bc", "closed")
+        add_way("way_ad", "open")
+        add_way("way_dc", "open")
+
+        def add_edge(source, target, direction=""):
+            edge = Edge(source=source, target=target, type="connection",
+                        properties={"direction": direction})
+            graph.edges.append(edge)
+            graph._edges_by_source.setdefault(source, []).append(edge)
+
+        # Insert the heavy B route FIRST so a FIFO flood reaches room_c through it.
+        add_edge("area_room_a", "way_ab", "east")
+        add_edge("way_ab", "area_room_b")
+        add_edge("area_room_b", "way_ab", "west")
+        add_edge("way_ab", "area_room_a")
+        add_edge("area_room_b", "way_bc", "south")
+        add_edge("way_bc", "area_room_c")
+        add_edge("area_room_c", "way_bc", "north")
+        add_edge("way_bc", "area_room_b")
+        # Cheaper D route second.
+        add_edge("area_room_a", "way_ad", "north")
+        add_edge("way_ad", "area_room_d")
+        add_edge("area_room_d", "way_ad", "south")
+        add_edge("way_ad", "area_room_a")
+        add_edge("area_room_d", "way_dc", "east")
+        add_edge("way_dc", "area_room_c")
+        add_edge("area_room_c", "way_dc", "west")
+        add_edge("way_dc", "area_room_d")
+
+    def test_quietest_route_wins_over_first_reached(self, graph, areas):
+        self._build_diamond(graph, areas)
+        result = get_areas_hearing_speech("area_room_a", "scream", graph, areas)
+        # B route: 0.5 + 1 (closed) = 1.5 → remaining 1.5
+        # D route: 0.5 + 0.5 (open) = 1.0 → remaining 2.0 (must win)
+        assert "area_room_c" in result
+        remaining, direction = result["area_room_c"]
+        assert remaining == 2.0
+        # Direction is the first hop of the winning route (A → D = north).
+        assert direction == "north"
+
+    def test_remaining_penetration_uses_best_route(self, graph, areas):
+        self._build_diamond(graph, areas)
+        # A shout (pen=2) through the B route would be 2 - 1.5 = 0.5; the D route
+        # gives 2 - 1.0 = 1.0. The result must reflect the louder channel.
+        result = get_areas_hearing_speech("area_room_a", "shout", graph, areas)
+        assert result["area_room_c"][0] == 1.0
+
 
 
 class TestAmbientNoise:

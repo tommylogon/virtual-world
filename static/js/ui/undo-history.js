@@ -4,6 +4,12 @@
  * 📜 button in the graph toolbar: lists every labeled undo snapshot
  * (newest first; index 0 = what a single Undo restores). Clicking a row
  * restores the world back to that point via multi-step undo.
+ *
+ * @module ui/undo-history — visible undo history dropdown
+ * @contributes UndoHistory: list labeled snapshots (newest first) and restore to any point
+ * @powers seeing and jumping through the edit history (task-371)
+ * @relates reads the undo stack; opened from the 📜 button in the graph toolbar
+ * @docs docs/virtualWorld/UI & Settings/
  */
 
 window.UndoHistory = (() => {

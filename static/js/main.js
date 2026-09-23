@@ -7,6 +7,12 @@
  *   VW namespace  →  global singleton registry
  *   Legacy globals →  kept as aliases for HTML onclick compatibility
  *   Modules       →  classes with singletons, initialized here
+ *
+ * @module main — bootstrap that wires every front-end module together
+ * @contributes the `VW` namespace, legacy global aliases for HTML onclick, init order
+ * @powers app startup, world save/load dialogs, and the run/step/cancel controls
+ * @relates the only entry point in index.html; initialises agent-engine, graph, panels
+ * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
 
 // ============================================

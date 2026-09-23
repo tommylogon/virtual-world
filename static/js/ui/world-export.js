@@ -9,6 +9,12 @@
  *   - window.api / window.ApiClient
  *   - Global: toastInfo, toastError (from ui-helpers.js)
  *   - DOM elements: #event-stream, #manual-prompt-content, etc.
+ *
+ * @module ui/world-export — export, print, and clipboard utilities
+ * @contributes WorldExport: save-file dialog/downloads, world JSON export, prompt copying, print
+ * @powers getting data out of the app (extracted from main.js)
+ * @relates uses worldState + api + events; used by saveload-view's downloadWorld
+ * @docs docs/virtualWorld/UI & Settings/Event Log Export.md
  */
 
 window.WorldExport = (() => {
@@ -23,11 +29,12 @@ window.WorldExport = (() => {
         if ('showSaveFilePicker' in window) {
             try {
                 var ext = suggestedName.split('.').pop();
-                var mime = ext === 'txt' ? 'text/plain' : 'application/json';
+                var mime = ext === 'txt' ? 'text/plain' : ext === 'png' ? 'image/png' : 'application/json';
+                var typeName = ext === 'txt' ? 'Text File' : ext === 'png' ? 'PNG Image' : 'JSON File';
                 var handle = await window.showSaveFilePicker({
                     suggestedName: suggestedName,
                     types: [{
-                        description: ext === 'txt' ? 'Text File' : 'JSON File',
+                        description: typeName,
                         accept: (function() { var obj = {}; obj[mime] = ['.' + ext]; return obj; })()
                     }]
                 });

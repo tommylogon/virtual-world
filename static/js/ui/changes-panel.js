@@ -8,6 +8,12 @@
  *
  * Wire: GET /api/scenario/diff → groups
  *       POST /api/scenario/diff/apply {commit:[...]|discard:[...]}
+ *
+ * @module ui/changes-panel — changes-since-source panel
+ * @contributes ChangesPanel: live-vs-source diff grouped by kind, with per-group Commit / Discard
+ * @powers reviewing and committing edits back into the scenario source (task-373)
+ * @relates uses /api/scenario/diff + /api/scenario/diff/apply; opened from the scenario toolbar
+ * @docs docs/virtualWorld/Scenario Workflows & UI Audit.md
  */
 window.ChangesPanel = (() => {
   'use strict';

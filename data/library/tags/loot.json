@@ -1,0 +1,19 @@
+{
+  "id": "loot",
+  "name": "Loot",
+  "description": "Domain tag used by the population chain: loot.",
+  "category": "domain",
+  "contexts": [
+    "placement",
+    "generic",
+    "dungeon"
+  ],
+  "implies": [],
+  "applies_to": [
+    "area",
+    "item"
+  ],
+  "color": "#4ec9b0",
+  "icon": "🏷️",
+  "examples": []
+}

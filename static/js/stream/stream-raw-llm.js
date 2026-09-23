@@ -6,6 +6,12 @@
  * the outcome is always readable above a one-line chip.
  * Also tracks consecutive parse errors and offers a payload export when a
  * streak forms. Extracted from event-stream.js; loaded BEFORE it.
+ *
+ * @module stream/stream-raw-llm — collapsed LLM payload chips
+ * @contributes collapsed request/response chips with token meters, parse-error streaks, payload export
+ * @powers reading (or hiding) raw LLM payloads inline in the stream
+ * @relates loaded before event-stream.js; complements the 🔬 LLM inspector
+ * @docs docs/virtualWorld/UI & Settings/Event Log Export.md
  */
 class StreamRawLLM {
     constructor(bus) {

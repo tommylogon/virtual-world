@@ -36,9 +36,22 @@ class TransferActionsMixin:
         from engine.character_spatial import _pm_get_player_node_id, approach_character
         approach_character(self.graph, player_manager, target_name)
 
-        item_node = player_manager.find_item_node(item_name)
+        player_id = player_manager._player_node_id(player_manager.active_player)
+        # bug-35: resolve through the tiered matcher (exact → substring → alias →
+        # fuzzy) scoped to what we carry/wear, so a misspelling like "jumptuit"
+        # resolves to the Jumpsuit instead of a bare "aren't carrying". The
+        # matcher also sets _fuzzy_match_note, surfaced as a system message.
+        if self.matching is not None and hasattr(self.matching, "match_item_name_in_inventory"):
+            resolved_name = self.matching.match_item_name_in_inventory(item_name, player_id)
+        else:
+            resolved_name = None
+        lookup_name = resolved_name or item_name
+        item_node = player_manager.find_item_node(lookup_name)
+        if not item_node and lookup_name != item_name:
+            item_node = player_manager.find_item_node(item_name)
         if not item_node:
             raise ValueError(f"You aren't carrying '{item_name}'.")
+        item_name = item_node.name
         item_node_id = item_node.id
 
         p = player_manager.players.get(player_manager.active_player)
@@ -48,9 +61,16 @@ class TransferActionsMixin:
                     stack.remove(item_node_id)
                     break
 
-        player_id = player_manager._player_node_id(player_manager.active_player)
         target_player_id = _pm_get_player_node_id(player_manager, target_name)
+        # Detach from the giver: the carrying edge AND any equipped edge (a WORN
+        # item handed over must not leave a dangling EQUIPPED edge behind), plus
+        # any multi-slot markers the item contributed to sibling slots.
         self.graph.remove_edge(item_node_id, player_id, EDGE_CARRYING)
+        self.graph.remove_edge(item_node_id, player_id, EDGE_EQUIPPED)
+        if p:
+            marker = f"__multi_slot_{item_node_id}"
+            for slot in list(p.equipped.keys()):
+                p.equipped[slot] = [x for x in p.equipped[slot] if x != marker]
         for edge in list(self.graph.get_edges_for_source(item_node_id, EDGE_IN)):
             self.graph.remove_edge(edge.source, edge.target, EDGE_IN)
         self.graph.add_edge(Edge(source=item_node_id, target=target_player_id, type=EDGE_CARRYING))
@@ -99,19 +119,27 @@ class TransferActionsMixin:
 
         target_player_id = _pm_get_player_node_id(player_manager, target_name)
 
-        # Find item in target's inventory
-        item_node = None
-        for edge_type in (EDGE_CARRYING, EDGE_EQUIPPED):
-            for edge in self.graph.get_edges_for_target(target_player_id, edge_type):
-                node = self.graph.get_node(edge.source)
-                if node and node.type == "item":
-                    normalized_item = item_name.lower().replace("_", " ").replace("-", " ")
-                    normalized_node = node.name.lower().replace("_", " ").replace("-", " ")
-                    if normalized_item == normalized_node or normalized_item in normalized_node:
-                        item_node = node
-                        break
-            if item_node:
-                break
+        # Find item in target's inventory — bug-35: route through the tiered
+        # matcher too, so misspellings resolve and WORN items are eligible, then
+        # fall back to the strict name scan if matching is unavailable.
+        resolved_name = None
+        if self.matching is not None and hasattr(self.matching, "match_item_name_in_inventory"):
+            resolved_name = self.matching.match_item_name_in_inventory(item_name, target_player_id)
+
+        def _find_in_target(name):
+            wanted = name.lower().replace("_", " ").replace("-", " ")
+            for edge_type in (EDGE_CARRYING, EDGE_EQUIPPED):
+                for edge in self.graph.get_edges_for_target(target_player_id, edge_type):
+                    node = self.graph.get_node(edge.source)
+                    if node and node.type == "item":
+                        norm = node.name.lower().replace("_", " ").replace("-", " ")
+                        if wanted == norm or wanted in norm:
+                            return node
+            return None
+
+        item_node = _find_in_target(resolved_name) if resolved_name else None
+        if not item_node:
+            item_node = _find_in_target(item_name)
         if not item_node:
             raise ValueError(f"{target_name} doesn't have a '{item_name}' to steal.")
 

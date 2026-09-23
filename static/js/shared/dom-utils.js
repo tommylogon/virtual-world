@@ -1,5 +1,11 @@
 /**
  * Shared DOM utilities: escaping, element creation, event helpers.
+ *
+ * @module shared/dom-utils — small DOM helpers
+ * @contributes escaping, element creation, and event helper utilities
+ * @powers consistent, XSS-safe DOM construction in the classic scripts
+ * @relates leaf utility; used wherever a lit-html template isn't warranted
+ * @docs none
  */
 
 /** Escape a string for use in HTML attribute context (replaces " with &quot;) */

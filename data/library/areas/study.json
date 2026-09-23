@@ -1,7 +1,13 @@
 {
   "name": "Study",
   "description": "A freezing study filled floor-to-ceiling with books. Your breath fogs in the cold air. A large oak desk dominates the center, covered in papers and an old typewriter. A dim lamp offers weak light. One of the desk drawers is locked. A fierce draft seeps through a boarded-up window.",
-  "tags": [],
+  "tags": [
+    "interior",
+    "mansion",
+    "library",
+    "study",
+    "paper"
+  ],
   "environment": {
     "air": "cold",
     "light": "normal",

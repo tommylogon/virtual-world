@@ -4,7 +4,11 @@
  * manipulation callbacks. Extracted from graph-manager.js.
  * References the global graphManager singleton.
  *
- * @module GraphEventHandlers
+ * @module graph/event-handlers — graph click/context/manipulation handlers
+ * @contributes GraphEventHandlers: node/edge click, right-click context, addNode/addEdge callbacks
+ * @powers selecting and right-clicking nodes, and drawing new nodes/edges
+ * @relates wired in GraphNetwork.init; delegates to GraphContextMenu + GraphNodeOps + GraphBackground
+ * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
 window.GraphEventHandlers = {
     /**
@@ -77,6 +81,10 @@ window.GraphEventHandlers = {
                 edgeData = graphManager.network.body.data.edges.get(edgeId);
             }
             GraphContextMenu.showEdgeContextMenu(params.event, edgeData || { id: edgeId, from: edgeId, to: edgeId, label: 'unknown' });
+        } else if (window.GraphBackground) {
+            // Empty canvas → the graph-map menu (add/edit/crop the background,
+            // lock nodes, save the layout).
+            window.GraphBackground.showCanvasMenu(params.event);
         }
     },
 

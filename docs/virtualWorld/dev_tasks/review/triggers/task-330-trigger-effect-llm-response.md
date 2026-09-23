@@ -1,4 +1,4 @@
-﻿# Task-330: Trigger Effect â€” LLM-Generated Response
+﻿# Task-330: Trigger Effect — LLM-Generated Response
 
 **Status**: Todo — blocked 2026-08-30: engine-side LLM provider was removed (task-99, backend LLM modules). Trigger effects fire server-side; llm_respond needs a server LLM path (provider route or browser round-trip callback). Composition design (on_speech + speech_matches gate) stays valid — implement once the LLM host question is settled.
 **Filed**: 2026-08-23
@@ -34,8 +34,8 @@ condition machinery needed.
 }
 ```
 
-- `instructions` â€” persona/behavior prompt for the generation.
-- `fallback_message` â€” used when no API key / call fails / empty reply.
+- `instructions` — persona/behavior prompt for the generation.
+- `fallback_message` — used when no API key / call fails / empty reply.
 - Optional extras to decide during design: `name` (attribution label), cooldown.
 
 ## KEY ARCHITECTURAL CONSTRAINT
@@ -49,7 +49,7 @@ Sketch:
    context: speaker name, the speech heard, area, instructions params.
 2. Frontend polls `worldState.fetch()` as usual â†’ picks up pending requests â†’
    generates via `VW.llm` (reuse the pattern in `static/js/shared/ai-generator.js`
-   â€” system+user messages, parse, fallback).
+   — system+user messages, parse, fallback).
 3. Frontend posts the result back through the normal action endpoint
    (`speak <line>` attributed to the object's display name) or a small dedicated
    route that logs it as an area/speech event.
@@ -57,18 +57,18 @@ Sketch:
 
 ## Files likely touched
 
-- `engine/trigger_system.py` â€” effect registration + pending-request store
-- `shared/trigger-types.js` + `shared/trigger-editor.js` â€” effect type in editor UI
-- `agent-engine.js` or a small `agent/object-responder.js` â€” pickup + generation
+- `engine/trigger_system.py` — effect registration + pending-request store
+- `shared/trigger-types.js` + `shared/trigger-editor.js` — effect type in editor UI
+- `agent-engine.js` or a small `agent/object-responder.js` — pickup + generation
 - Possibly a routes module for consume/report-back if not reusing `/api/action`
-- Serialization if pending requests must survive autosave (probably NOT â€” transient)
+- Serialization if pending requests must survive autosave (probably NOT — transient)
 
 ## Open questions
 
 - Attribution: does the object "speak" into the room (visible to all agents in the
   area) or whisper back only to the speaker?
 - Do object responses enter nearby agents' conversation memory? (Probably yes via
-  normal speech pipeline â€” free ambient dialogue.)
+  normal speech pipeline — free ambient dialogue.)
 - Cost/rate limiting: one LLM call per qualifying trigger hit could be chatty;
   per-node cooldown param?
 - Behavior-side twin filed separately as task-331 (same runtime, different executor).

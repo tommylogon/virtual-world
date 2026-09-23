@@ -1,7 +1,12 @@
 {
   "name": "outside",
   "description": "you stand on the front porch of blackwood manor. the night air is cool and clean, carrying the scent of pine and distant woodsmoke. the mansion looms behind you, its dark windows reflecting the moonlight like dead eyes. the barred front door — the only entrance — stands firmly shut. the overgrown driveway leads to a rusted gate, beyond which the road home waits. you have escaped the blackwood curse... for now.",
-  "tags": [],
+  "tags": [
+    "exterior",
+    "mansion",
+    "outdoor",
+    "entrance"
+  ],
   "environment": {
     "air": "fresh",
     "light": 60,

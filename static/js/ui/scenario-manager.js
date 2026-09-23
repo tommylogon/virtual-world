@@ -4,6 +4,12 @@
  * Lists data/scenarios/*.json with stats (rooms/characters/size/age),
  * and per scenario: Open (load with undo), Audit (validator on the file),
  * Duplicate, Rename, Delete. Opened from the Game menu.
+ *
+ * @module ui/scenario-manager — the Scenario Manager modal
+ * @contributes ScenarioManager: list / Open / Audit / Duplicate / Rename / Delete scenarios
+ * @powers managing the files in data/scenarios (task-374)
+ * @relates opened from the Game menu; Open follows the scenario-dropdown path
+ * @docs docs/virtualWorld/Scenario Workflows & UI Audit.md
  */
 
 window.ScenarioManager = (() => {

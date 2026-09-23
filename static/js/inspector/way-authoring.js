@@ -1,5 +1,11 @@
 /**
  * WayAuthoring — shared helpers for way inspector, area exits, graph tooltips, agent lens.
+ *
+ * @module inspector/way-authoring — shared way/door authoring helpers
+ * @contributes WayAuthoring: way naming, state, cardinal/direction helpers, vis edge tooltips
+ * @powers consistent way editing across the way inspector, area exits, graph tooltips, and agent lens
+ * @relates used by way-view + area-view + graph/network-manager (edge tooltips)
+ * @docs docs/virtualWorld/World Building/Doors & Connections.md
  */
 window.WayAuthoring = (() => {
     const WA = {};

@@ -1,0 +1,14 @@
+{
+  "id": "high_metabolism",
+  "name": "High Metabolism",
+  "description": "Burns through food, water, and energy far faster than a human.",
+  "category": "physical",
+  "params": null,
+  "effects": {
+    "vital_multiplier": {
+      "Hunger": 2.0,
+      "Thirst": 1.5,
+      "Energy": 1.3
+    }
+  }
+}

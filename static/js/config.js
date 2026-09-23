@@ -1,5 +1,11 @@
 /**
  * ConfigManager — Settings and profile management with IndexedDB persistence
+ *
+ * @module config — user settings, saved API profiles, and `toLLMConfig()`
+ * @contributes the `config` singleton: model/keys, thinking, graph physics, UI toggles
+ * @powers the Settings modal, profile switching, model picker, and every feature flag
+ * @relates persists via storage.js; read by llm-client, graph, agent, and the UI
+ * @docs docs/virtualWorld/UI & Settings/Settings & Configuration.md
  */
 class ConfigManager {
     constructor() {
@@ -40,20 +46,34 @@ class ConfigManager {
         this.graphEdgeWidth = parseInt(await storage.getConfig('graph_edge_width')) || 1;
         this.graphArrows = (await storage.getConfig('graph_arrows')) !== 'false';
         this.graphImprovedLayout = (await storage.getConfig('graph_improved_layout')) === 'true';
+        // Graph layout mode (task-485): 'free' = force physics with contents held
+        // on a parent-relative offset; 'levels' = vis hierarchical layout, where
+        // the layout engine places every node by relation level (physics off).
+        this.graphLayoutMode = await storage.getConfig('graph_layout_mode') || 'free';
 
         // Ghost mode: when true, dead characters can still act as ghosts
         this.ghostMode = (await storage.getConfig('ghost_mode')) === 'true';
         // Mature content opt-in (task-206): gates the pleasure/arousal subsystem
         this.matureContent = (await storage.getConfig('mature_content')) === 'true';
+        // Raw LLM exchange capture opt-in (task-405): feeds the LLM inspector
+        this.showRawLLM = (await storage.getConfig('show_raw_llm')) === 'true';
+        // End-of-turn memory opt-in: memories are normally written at the START
+        // of a character's turn, so asking for one at the END is optional.
+        this.endOfTurnMemory = (await storage.getConfig('end_of_turn_memory')) === 'true';
         this.manualMode = (await storage.getConfig('manual_mode')) === 'true';
 
         // Invalid-action auto-retry (task-361): when an agent action fails, give
         // it one same-turn retry with the error fed back (default off).
         this.autoRetryInvalid = (await storage.getConfig('auto_retry_invalid')) === 'true';
 
-        // task-101 experimental simultaneous mode: per-character act countdowns
-        // instead of the sequential turn loop (default off; chaos by design).
-        this.simultaneousMode = (await storage.getConfig('simultaneous_mode')) === 'true';
+        // task-101: the turn mode dial owns the simultaneous variants; the
+        // legacy boolean setting is folded in so an old save keeps working.
+        // "simultaneous_room" resolves rooms independently with characters
+        // inside a room acting in order.
+        this.turnOrder = window.VWSimultaneous.normalizeMode(
+            await storage.getConfig('simultaneous_mode'),
+            this.turnOrder
+        );
 
         // Structured output: send response_format (json_schema / json_object)
         // with every LLM call that expects JSON. Auto-degrades per session when
@@ -108,6 +128,34 @@ class ConfigManager {
         this._lastActionResultMap = {};
     }
 
+    /** The simultaneous variant in effect, or false (derived from turnOrder). */
+    get simultaneousMode() {
+        return window.VWSimultaneous.isSimultaneous(this.turnOrder) ? this.turnOrder : false;
+    }
+
+    /**
+     * Select a turn mode from the dial. The simultaneous variants conflict with
+     * the turn queue, so choosing one turns Turn-Based Mode off.
+     */
+    async setTurnMode(mode) {
+        this.turnOrder = window.VWSimultaneous.normalizeMode(mode, this.turnOrder);
+        if (window.VWSimultaneous.isSimultaneous(this.turnOrder)) {
+            this.turnBased = false;
+            const turnBased = document.getElementById('agent-turn-based');
+            if (turnBased) turnBased.checked = false;
+            events.log(
+                this.turnOrder === 'simultaneous_room'
+                    ? '🏘️ Simultaneous per room enabled (rooms resolve independently)'
+                    : '🌊 Simultaneous mode enabled (experimental — chaos by design)',
+                'system-msg'
+            );
+        } else if (window.TurnQueue && this.turnBased) {
+            TurnQueue.initialize();
+        }
+        await this.save();
+        if (window.appEvents) appEvents.emit('state:updated', worldState?.data);
+    }
+
     async save() {
         await storage.setConfig('api_key', this.apiKey);
         await storage.setConfig('api_base', this.apiBase);
@@ -125,6 +173,8 @@ class ConfigManager {
         await storage.setConfig('reactive_mode', this.reactiveMode ? 'true' : 'false');
         await storage.setConfig('ghost_mode', this.ghostMode ? 'true' : 'false');
         await storage.setConfig('mature_content', this.matureContent ? 'true' : 'false');
+        await storage.setConfig('show_raw_llm', this.showRawLLM ? 'true' : 'false');
+        await storage.setConfig('end_of_turn_memory', this.endOfTurnMemory ? 'true' : 'false');
         await storage.setConfig('rpm_limit', String(this.rpmLimit));
         await storage.setConfig('tpm_limit', String(this.tpmLimit));
         await storage.setConfig('filter_thoughts', this.filterThoughts ? 'true' : 'false');
@@ -136,7 +186,7 @@ class ConfigManager {
         await storage.setConfig('filter_npc', this.filterNpc ? 'true' : 'false');
         await storage.setConfig('manual_mode', this.manualMode ? 'true' : 'false');
         await storage.setConfig('auto_retry_invalid', this.autoRetryInvalid ? 'true' : 'false');
-        await storage.setConfig('simultaneous_mode', this.simultaneousMode ? 'true' : 'false');
+        await storage.setConfig('simultaneous_mode', this.simultaneousMode || 'false');
         await storage.setConfig('structured_output', this.structuredOutput ? 'true' : 'false');
         await storage.setConfig('auto_generate_descriptions', this.autoGenerateDescriptions ? 'true' : 'false');
         await storage.setConfig('embed_enabled', this.embedEnabled ? 'true' : 'false');
@@ -157,6 +207,7 @@ class ConfigManager {
         await storage.setConfig('graph_edge_width', String(this.graphEdgeWidth));
         await storage.setConfig('graph_arrows', this.graphArrows ? 'true' : 'false');
         await storage.setConfig('graph_improved_layout', this.graphImprovedLayout ? 'true' : 'false');
+        await storage.setConfig('graph_layout_mode', this.graphLayoutMode || 'free');
 
         this._saveToCurrentProfile();
     }
@@ -191,15 +242,21 @@ class ConfigManager {
         this.maxTokens = parseInt(document.getElementById('max-tokens-input')?.value) || this.maxTokens;
         this.softMaxTokens = parseInt(document.getElementById('soft-max-tokens-input')?.value) || this.softMaxTokens;
         this.turnBased = document.getElementById('agent-turn-based')?.checked || false;
-        this.turnOrder = document.getElementById('agent-turn-order')?.value || 'sequential';
+        const turnOrderEl = document.getElementById('agent-turn-order');
+        if (turnOrderEl) {
+            this.turnOrder = window.VWSimultaneous.normalizeMode(turnOrderEl.value, this.turnOrder);
+            // Simultaneous variants ignore the turn queue, so they imply turn-based off.
+            if (window.VWSimultaneous.isSimultaneous(this.turnOrder)) this.turnBased = false;
+        }
         this.showLogs = document.getElementById('agent-show-logs')?.checked || false;
         this.streaming = document.getElementById('agent-streaming')?.checked || false;
         this.reactiveMode = document.getElementById('agent-reactive-mode')?.checked ?? this.reactiveMode;
         this.ghostMode = document.getElementById('agent-ghost-mode')?.checked ?? this.ghostMode;
         this.matureContent = document.getElementById('agent-mature-content')?.checked ?? this.matureContent;
+        this.showRawLLM = document.getElementById('agent-show-raw-llm')?.checked ?? this.showRawLLM;
+        this.endOfTurnMemory = document.getElementById('agent-end-of-turn-memory')?.checked ?? this.endOfTurnMemory;
         this.manualMode = document.getElementById('agent-manual-mode')?.checked ?? this.manualMode;
         this.autoRetryInvalid = document.getElementById('agent-auto-retry-invalid')?.checked ?? this.autoRetryInvalid;
-        this.simultaneousMode = document.getElementById('agent-simultaneous-mode')?.checked ?? this.simultaneousMode;
         this.structuredOutput = document.getElementById('agent-structured-output')?.checked ?? this.structuredOutput;
         this.autoGenerateDescriptions = document.getElementById('agent-auto-generate-descriptions')?.checked ?? this.autoGenerateDescriptions;
         this.embedEnabled = document.getElementById('embed-enabled')?.checked ?? this.embedEnabled;
@@ -292,7 +349,11 @@ class ConfigManager {
         this.streaming = !!profile.streaming;
         this.showLogs = !!profile.showLogs;
         this.turnBased = !!profile.turnBased;
-        this.turnOrder = profile.turnOrder || 'sequential';
+        this.turnOrder = window.VWSimultaneous.normalizeMode(
+            profile.simultaneousMode || profile.turnOrder,
+            profile.turnOrder
+        );
+        if (window.VWSimultaneous.isSimultaneous(this.turnOrder)) this.turnBased = false;
         this.apiFormat = profile.apiFormat || 'auto';
         this.lastProfile = name;
 
@@ -317,7 +378,7 @@ class ConfigManager {
         setVal('agent-api-base', profile.apiBase);
         setVal('api-base-input', profile.apiBase);
         setVal('agent-model', profile.model);
-        setVal('agent-turn-order', profile.turnOrder);
+        setVal('agent-turn-order', this.turnOrder);
         setVal('agent-api-format', profile.apiFormat || 'auto');
         
         document.getElementById('agent-turn-based') && (document.getElementById('agent-turn-based').checked = !!profile.turnBased);
@@ -338,7 +399,10 @@ class ConfigManager {
             streaming: document.getElementById('agent-streaming')?.checked || false,
             showLogs: document.getElementById('agent-show-logs')?.checked || false,
             turnBased: document.getElementById('agent-turn-based')?.checked || false,
-            turnOrder: document.getElementById('agent-turn-order')?.value || 'sequential',
+            turnOrder: (() => {
+                const el = document.getElementById('agent-turn-order');
+                return el ? window.VWSimultaneous.normalizeMode(el.value, this.turnOrder) : this.turnOrder;
+            })(),
             apiFormat: document.getElementById('agent-api-format')?.value || this.apiFormat
         };
     }
@@ -389,8 +453,17 @@ class ConfigManager {
                 apiKey: 'not-needed', apiBase: 'http://localhost:1234/v1', model: '',
                 streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
             },
+            // DeepSeek is OpenAI-format compatible; base_url https://api.deepseek.com
+            // also works (the /v1 suffix is what the OpenAI SDK-style calls here
+            // expect). Current model names are `deepseek-flash` and
+            // `deepseek-v4-pro`; deepseek-v4-flash / deepseek-chat /
+            // deepseek-reasoner are retired legacy aliases.
             'DeepSeek': {
-                apiKey: liveKey, apiBase: 'https://api.deepseek.com/v1', model: 'deepseek-v4-flash',
+                apiKey: liveKey, apiBase: 'https://api.deepseek.com/v1', model: 'deepseek-flash',
+                streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
+            },
+            'DeepSeek (V4 Pro)': {
+                apiKey: liveKey, apiBase: 'https://api.deepseek.com/v1', model: 'deepseek-v4-pro',
                 streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
             },
             'Groq': {

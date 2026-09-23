@@ -130,6 +130,80 @@ class ConditionTreeMixin:
                 )
 
             # --- Item trigger leaf types ---
+            elif condition_type == "parameter_reached":
+                # Gate on a gauge in the node's `parameters` dict (task-410:
+                # plant growth reaching 100). Counters live in `parameters`
+                # because `uses` is remaining charges/durability — a gauge that
+                # starts at 0 would read as depleted and hit the <=0 removal
+                # paths. `op` defaults to gte.
+                if item_node is None:
+                    return False
+                key = str(
+                    conditions.get("key") or conditions.get("parameter") or ""
+                ).strip()
+                if not key:
+                    return False
+                params_map = item_node.properties.get("parameters") or {}
+                if not isinstance(params_map, dict):
+                    return False
+                try:
+                    actual = float(params_map.get(key, 0))
+                    threshold = float(conditions.get("value", 0))
+                except (TypeError, ValueError):
+                    return False
+                op = str(conditions.get("op", "gte")).lower()
+                if op in ("gt", ">"):
+                    return actual > threshold
+                if op in ("gte", ">="):
+                    return actual >= threshold
+                if op in ("lt", "<"):
+                    return actual < threshold
+                if op in ("lte", "<="):
+                    return actual <= threshold
+                if op in ("eq", "=="):
+                    return actual == threshold
+                return False
+
+            elif condition_type == "contains_count":
+                # Count what a container holds, optionally filtered to a name/id
+                # substring — the produce cap for a plant ("fewer than 10
+                # berries"). `op` defaults to gte; `contains_count` with op `lt`
+                # is "has room for more".
+                if item_node is None:
+                    return False
+                rel = str(conditions.get("relation", "in")).lower().strip() or "in"
+                try:
+                    edges = self.graph.get_edges_for_target(item_node.id, rel)
+                except Exception:
+                    return False
+                needle = str(conditions.get("target", "") or "").strip().lower()
+                count = 0
+                for edge in edges:
+                    if needle:
+                        other = self.graph.get_node(edge.source)
+                        if other is None or not (
+                            needle in str(other.name or "").lower()
+                            or needle in str(other.id).lower()
+                        ):
+                            continue
+                    count += 1
+                try:
+                    threshold = float(conditions.get("value", 0))
+                except (TypeError, ValueError):
+                    return False
+                op = str(conditions.get("op", "gte")).lower()
+                if op in ("gt", ">"):
+                    return count > threshold
+                if op in ("gte", ">="):
+                    return count >= threshold
+                if op in ("lt", "<"):
+                    return count < threshold
+                if op in ("lte", "<="):
+                    return count <= threshold
+                if op in ("eq", "=="):
+                    return count == threshold
+                return False
+
             elif condition_type == "uses_reached":
                 try:
                     target_uses = int(conditions.get("value", 0))

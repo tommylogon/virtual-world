@@ -1,6 +1,12 @@
 /**
  * Create Modal — opens the modal for creating rooms, items, and connections.
  * Used by graph-manager add buttons and the legacy openCreateModal() wrapper.
+ *
+ * @module ui/create-modal — create room/item/connection modal
+ * @contributes CreateModal + the item vocabularies (actions, equip slots, states, relations, damage)
+ * @powers adding new rooms, items, and connections from the graph's add buttons
+ * @relates opened by graph-manager; writes through the graph API
+ * @docs docs/virtualWorld/ScenarioCreationGuide.md
  */
 // Lazy tag: classic scripts parse before the deferred lit-bootstrap module
 // runs, so window.Lit only exists when this module actually renders.
@@ -491,7 +497,7 @@ const CreateModal = {
         } else if (type === 'item') {
             const tags = this._tagMSItem ? this._tagMSItem.getValue() : [];
             const has = (tag) => tags.includes(tag);
-            const num = (id) => { const v = document.getElementById(id)?.value; return v === '' || v === undefined ? undefined : parseFloat(v); };
+            const num = (id) => { const raw = document.getElementById(id)?.value; return raw === '' || raw === undefined ? undefined : parseFloat(raw); };
             const str = (id) => document.getElementById(id)?.value || undefined;
             const contents = Array.from(document.querySelectorAll('#item-contents-rows .cm-content-row')).map((row, i) => {
                 const name = row.querySelector('.cr-name')?.value.trim() || '';

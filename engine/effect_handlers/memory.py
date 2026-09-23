@@ -1,4 +1,35 @@
-"""Memory effect handlers (surface_memory, suppress_memory, unblock_memory)."""
+"""Memory effect handlers (grant_memory, surface_memory, suppress_memory, unblock_memory)."""
+
+
+def handle_grant_memory(self, params, context, item_node=None, game_state=None):
+    """Add a memory entry to the target player (trigger-authored discovery).
+
+    params:
+      memory (dict) — a memory object (text/importance/tags/type/source), or
+        pass those fields inline in ``params``.
+      target (str, default "self") — player name.
+      message (str) — optional narrative line to emit.
+    """
+    player = self._resolve_memory_target(params, game_state)
+    if player is None or not hasattr(player, "add_memory"):
+        return []
+    mem = params.get("memory") if isinstance(params.get("memory"), dict) else params
+    text = str(mem.get("text", "") or "").strip()
+    if not text:
+        return []
+    tags = mem.get("tags") or []
+    if isinstance(tags, str):
+        tags = [t.strip() for t in tags.split(",") if t.strip()]
+    player.add_memory(
+        text=text,
+        tick=int(getattr(game_state, "time_ticks", 0) or 0),
+        importance=int(mem.get("importance", 5) or 5),
+        memory_type=str(mem.get("type") or mem.get("memory_type") or "observation"),
+        tags=list(tags),
+        source=str(mem.get("source") or "trigger"),
+    )
+    msg = str(params.get("message", "") or "").strip()
+    return [msg] if msg else []
 
 
 def handle_surface_memory(self, params, context, item_node=None, game_state=None):
@@ -101,6 +132,7 @@ def handle_unblock_memory(self, params, context, item_node=None, game_state=None
 
 
 HANDLERS = {
+    "grant_memory": handle_grant_memory,
     "surface_memory": handle_surface_memory,
     "suppress_memory": handle_suppress_memory,
     "unblock_memory": handle_unblock_memory,

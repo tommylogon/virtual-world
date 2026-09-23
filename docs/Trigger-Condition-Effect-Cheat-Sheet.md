@@ -58,6 +58,8 @@ Complete reference for VirtualWorld engine behaviors and triggers.
 | `has_items` | Player has ALL items | `value` (list) | ✅ | 🔴 Both |
 | `random_chance` | True X% of the time | `value` (0-100) or `chance` (0.0-1.0) | ✅ | 🔴 Both |
 | `uses_reached` | Item uses ≤ N | `value` (int) | ✅ | 🔵 Triggers |
+| `parameter_reached` | Gauge in `parameters` vs `value` (default `op` gte) | `key` (str), `value` (num), `op` (`gt`/`gte`/`lt`/`lte`/`eq`) | ✅ | 🔵 Triggers |
+| `contains_count` | Items the node contains vs `value` (default `op` gte) | `value` (num), `op`, `relation` (default `in`), `target` (name/id filter) | ✅ | 🔵 Triggers |
 | `uses_above` | Item uses > N | `value` (int) | ✅ | 🔵 Triggers |
 | `state_equals` | Node's `current_state` matches | `target`, `value` | ✅ | 🔴 Both |
 | `skill_check` | Skill check succeeds | `skill`, `dc` | ✅ | 🔴 Both |
@@ -116,7 +118,7 @@ Complete reference for VirtualWorld engine behaviors and triggers.
 | `apply_condition` | Apply condition | `condition`, `target`, `duration`, `source` | ✅ | 🔴 Both |
 | `remove_condition` | Remove condition | `condition`, `target` | ✅ | 🔴 Both |
 | `set_parameter` | Set node parameter | `node_id`, `key`, `value` | ✅ | 🔵 Triggers |
-| `adjust_parameter` | Delta to parameter | `node_id`, `key`, `delta` | ✅ | 🔵 Triggers |
+| `adjust_parameter` | Delta to parameter | `node_id`, `key`, `delta`, `per` (`"minute"` scales the delta by the tick's game time) | ✅ | 🔵 Triggers |
 | `surface_memory` | Force memory recall | `tags`, `salience_boost` | ✅ | 🟢 Behaviors |
 | `suppress_memory` | Block memory recall | `keywords`, `duration` | ✅ | 🟢 Behaviors |
 | `unblock_memory` | Lift memory block | `tags` | ✅ | 🟢 Behaviors |

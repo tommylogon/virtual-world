@@ -15,7 +15,8 @@
     "fire",
     "furniture",
     "cooking",
-    "display"
+    "display",
+    "kitchen"
   ],
   "triggers": [
     {

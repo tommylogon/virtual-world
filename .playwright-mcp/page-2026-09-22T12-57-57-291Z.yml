@@ -1,0 +1,234 @@
+- generic [active] [ref=e1]:
+  - link "Skip to command input" [ref=e2] [cursor=pointer]:
+    - /url: "#command-input"
+  - banner [ref=e3]:
+    - generic "Click to rename scenario" [ref=e4]:
+      - text: 🌍 kraktooth_goblin_camp
+      - 'generic "Scenario source: C:\\Projects\\virtual-world\\data\\scenarios\\kraktooth_goblin_camp.json" [ref=e6]': 📦
+    - generic [ref=e7] [cursor=pointer]: 🕐 08:00
+    - generic [ref=e8]:
+      - generic [ref=e9] [cursor=pointer]:
+        - checkbox "Toggle spectator mode" [ref=e10]
+        - generic [ref=e11]: 👁️ Spectator
+      - generic "Spectator mode polls the world state every 1.5s so you can watch the simulation unfold without clicking anything." [ref=e12]: "?"
+      - button "Game menu — save, load, import, new scenario" [ref=e14] [cursor=pointer]: 🎮 Game ▾
+      - button "⚡" [ref=e15] [cursor=pointer]
+      - button "Restart scenario" [ref=e16] [cursor=pointer]: 🔄 Restart
+      - button "Agent Settings" [ref=e17] [cursor=pointer]: ⚙️ Settings
+      - button "Help" [ref=e18] [cursor=pointer]: ❓ Help
+      - combobox "Narration mode" [ref=e19]:
+        - option "🔇 No Narration" [selected]
+        - option "🎭 Player Narrate"
+        - option "🤖 AI Narrate"
+  - generic [ref=e20]:
+    - complementary "Agents and simulation controls" [ref=e21]:
+      - toolbar "Simulation controls" [ref=e22]:
+        - button "▶" [ref=e23] [cursor=pointer]
+        - button "⏸" [ref=e24] [cursor=pointer]
+        - button "⏭" [ref=e25] [cursor=pointer]
+        - spinbutton "Max steps before auto-stop (0 = unlimited)" [ref=e26]: "10"
+        - generic "Max steps before auto-stop (0 = unlimited)" [ref=e27]: steps
+      - generic [ref=e28]:
+        - generic [ref=e29]: "Turn: 0"
+        - generic [ref=e30]: "Step: 0/0"
+        - generic [ref=e31]: "Active: —"
+      - tablist "Left panel views" [ref=e32]:
+        - tab "🧍 Agents" [ref=e33] [cursor=pointer]
+        - tab "🗺️ Outline" [ref=e34] [cursor=pointer]
+        - tab "👁 Lens" [ref=e35] [cursor=pointer]
+        - tab "🛠 Issues" [ref=e36] [cursor=pointer]
+        - tab "✨ NL Editor" [ref=e37] [cursor=pointer]
+      - tabpanel [ref=e39]:
+        - generic [ref=e40]:
+          - heading "🧍 Agents (click to select active)" [level=4] [ref=e41]:
+            - text: 🧍 Agents
+            - generic [ref=e42]: (click to select active)
+          - list "Agent list" [ref=e43]
+          - generic [ref=e44]:
+            - textbox "New agent name" [ref=e45]:
+              - /placeholder: New agent name...
+            - button "+" [ref=e46] [cursor=pointer]
+        - generic [ref=e47]:
+          - generic [ref=e48]:
+            - generic [ref=e49]: 🎮
+            - text: Turn Order
+          - generic [ref=e50]:
+            - generic [ref=e51] [cursor=pointer]:
+              - checkbox "⏭️ Turn-Based Mode" [ref=e52]
+              - text: ⏭️ Turn-Based Mode
+            - generic [ref=e53]: Characters act one at a time
+      - heading "⚠️ Alerts" [level=4] [ref=e55]
+    - generic "Drag to resize" [ref=e56]
+    - main "World visualization" [ref=e57]:
+      - toolbar "Graph tools" [ref=e58]:
+        - generic "Create nodes" [ref=e59]:
+          - button "🏠 Area" [ref=e60] [cursor=pointer]
+          - button "📦 Item" [ref=e61] [cursor=pointer]
+          - button "🚪 Way" [ref=e62] [cursor=pointer]
+          - button "📚 Library" [ref=e63] [cursor=pointer]
+          - button "📦 Structures" [ref=e64] [cursor=pointer]
+        - generic "Undo / redo" [ref=e66]:
+          - button "↩️" [ref=e67] [cursor=pointer]
+          - button "↪️" [ref=e68] [cursor=pointer]
+          - button "📜" [ref=e69] [cursor=pointer]
+        - generic "View mode" [ref=e71]:
+          - button "🔮 Graph" [ref=e72] [cursor=pointer]
+          - button "🗺️ Map" [ref=e73] [cursor=pointer]
+          - button "📊 Overlays ▾" [ref=e75] [cursor=pointer]
+        - generic "Canvas controls" [ref=e77]:
+          - button "⏸ Physics" [ref=e78] [cursor=pointer]
+          - button "⊞ Fit" [ref=e79] [cursor=pointer]
+          - button "📷 PNG" [ref=e80] [cursor=pointer]
+          - textbox "Filter graph nodes by name or tag" [ref=e81]:
+            - /placeholder: 🔍 Search nodes or tags...
+          - generic "Freeze hidden nodes but keep matches in place (for spatial review)" [ref=e82] [cursor=pointer]:
+            - checkbox "KEEP" [ref=e83]
+            - generic [ref=e84]: KEEP
+        - generic "Show on graph" [ref=e86]:
+          - button "🏘 Inhabited" [ref=e87] [cursor=pointer]
+          - button "🖼 Images" [ref=e88] [cursor=pointer]
+          - button "🔩 Triggers" [ref=e89] [cursor=pointer]
+          - button "📦 Items" [ref=e90] [cursor=pointer]
+          - combobox "Filter graph to a single floor of areas" [ref=e91]:
+            - option "🏢 All Floors" [selected]
+        - generic "Edge labels" [ref=e93]:
+          - button "🏷 Labels" [ref=e94] [cursor=pointer]
+          - generic [ref=e95]:
+            - button "−" [ref=e96] [cursor=pointer]
+            - generic [ref=e97]: "8"
+            - button "+" [ref=e98] [cursor=pointer]
+        - generic "More tools" [ref=e100]:
+          - button "⋯ More ▾" [ref=e101] [cursor=pointer]
+        - generic [ref=e102]:
+          - button "📋 Copy Prompt" [ref=e103] [cursor=pointer]
+          - button "📝 Paste Response" [ref=e104] [cursor=pointer]
+      - img "Interactive relationship graph" [ref=e105]:
+        - group "Zoom controls" [ref=e106]:
+          - button "Zoom in" [ref=e107] [cursor=pointer]: ＋
+          - button "Zoom out" [ref=e108] [cursor=pointer]: －
+          - button "Fit all nodes" [ref=e109] [cursor=pointer]: ⊞
+      - generic [ref=e110]:
+        - generic [ref=e111]:
+          - heading "📜 Event Stream" [level=4] [ref=e112]
+          - generic [ref=e113]:
+            - button "📥" [ref=e114] [cursor=pointer]
+            - button "⏩" [ref=e115] [cursor=pointer]
+            - button "📋" [ref=e116] [cursor=pointer]
+            - button "📌" [ref=e117] [cursor=pointer]
+            - combobox "Stream visual style" [ref=e118]:
+              - option "Dark" [selected]
+              - option "Disco Elysium"
+              - option "Linear"
+              - option "Terminal"
+            - combobox "Filter by actor" [ref=e119]:
+              - option "All actors" [selected]
+              - option "All actors"
+              - option "World"
+            - generic [ref=e120] [cursor=pointer]:
+              - checkbox "Tick" [checked] [ref=e121]
+              - text: Tick
+            - generic "Stream density / story mode" [ref=e122]:
+              - button "▤" [ref=e123] [cursor=pointer]
+              - button "▥" [ref=e124] [cursor=pointer]
+              - button "📖" [ref=e125] [cursor=pointer]
+        - generic [ref=e126]:
+          - textbox "Search the stream (filters cards containing the text)" [ref=e127]:
+            - /placeholder: find…
+          - generic "Inner monologue" [ref=e128] [cursor=pointer]: 💭 Thought
+          - generic "Spoken lines & whispers" [ref=e130] [cursor=pointer]: 💬 Speech
+          - generic "Actions, results & emotes" [ref=e132] [cursor=pointer]: ▶️ Action
+          - generic "Memory recalls ('🧠 recalled …')" [ref=e134] [cursor=pointer]: 🧠 Recall
+          - generic "Simple NPC rows" [ref=e136] [cursor=pointer]: 👾 NPC
+          - generic "Engine & system rows" [ref=e138] [cursor=pointer]: ⚙️ System
+          - generic "Raw LLM request/response payloads" [ref=e140] [cursor=pointer]: 🤖 LLM
+        - log [ref=e142]:
+          - generic [ref=e143]:
+            - generic [ref=e144]: "📌 Scoped to: Abandoned Farm"
+            - button "×" [ref=e145]
+          - generic "Session timeline — click to jump" [ref=e146] [cursor=pointer]
+          - generic "just now" [ref=e167]:
+            - generic [ref=e168]: ⚙️
+            - generic [ref=e169]: "[Tick 0 | 08:00]"
+            - generic [ref=e170]: World
+            - generic [ref=e171]: "Switched to profile: OpenAI (GPT-4.1-mini)"
+          - generic "just now" [ref=e172]:
+            - generic [ref=e173]: ⚙️
+            - generic [ref=e174]: "[Tick 1 | 08:00]"
+            - generic [ref=e175]: World
+            - generic [ref=e176]: VirtualWorld Engine initialized
+          - generic "just now" [ref=e177]:
+            - generic [ref=e178]: ⚙️
+            - generic [ref=e179]: "[Tick 0 | 08:00]"
+            - generic [ref=e180]: World
+            - generic [ref=e181]: "Switched to profile: OpenAI (GPT-4.1-mini)"
+          - generic "just now" [ref=e182]:
+            - generic [ref=e183]: ⚙️
+            - generic [ref=e184]: "[Tick 1 | 08:00]"
+            - generic [ref=e185]: World
+            - generic [ref=e186]: VirtualWorld Engine initialized
+          - generic "just now" [ref=e187]:
+            - generic [ref=e188]: ⚙️
+            - generic [ref=e189]: "[Tick 0 | 08:00]"
+            - generic [ref=e190]: World
+            - generic [ref=e191]: "Switched to profile: OpenAI (GPT-4.1-mini)"
+          - generic "just now" [ref=e192]:
+            - generic [ref=e193]: ⚙️
+            - generic [ref=e194]: "[Tick 1 | 08:00]"
+            - generic [ref=e195]: World
+            - generic [ref=e196]: VirtualWorld Engine initialized
+          - generic "just now" [ref=e197]:
+            - generic [ref=e198]: ⚙️
+            - generic [ref=e199]: "[Tick 0 | 08:00]"
+            - generic [ref=e200]: World
+            - generic [ref=e201]: "Switched to profile: OpenAI (GPT-4.1-mini)"
+          - generic "just now" [ref=e202]:
+            - generic [ref=e203]: ⚙️
+            - generic [ref=e204]: "[Tick 1 | 08:00]"
+            - generic [ref=e205]: World
+            - generic [ref=e206]: VirtualWorld Engine initialized
+          - generic "just now" [ref=e207]:
+            - generic [ref=e208]: ⚙️
+            - generic [ref=e209]: "[Tick 0 | 08:00]"
+            - generic [ref=e210]: World
+            - generic [ref=e211]: "Switched to profile: OpenAI (GPT-4.1-mini)"
+          - generic "just now" [ref=e212]:
+            - generic [ref=e213]: ⚙️
+            - generic [ref=e214]: "[Tick 1 | 08:00]"
+            - generic [ref=e215]: World
+            - generic [ref=e216]: VirtualWorld Engine initialized
+          - generic "just now" [ref=e217]:
+            - generic [ref=e218]: ⚙️
+            - generic [ref=e219]: "[Tick 0 | 08:00]"
+            - generic [ref=e220]: World
+            - generic [ref=e221]: "Switched to profile: OpenAI (GPT-4.1-mini)"
+          - generic "just now" [ref=e222]:
+            - generic [ref=e223]: ⚙️
+            - generic [ref=e224]: "[Tick 1 | 08:00]"
+            - generic [ref=e225]: World
+            - generic [ref=e226]: VirtualWorld Engine initialized
+          - generic "just now" [ref=e227]:
+            - generic [ref=e228]: ⚙️
+            - generic [ref=e229]: "[Tick 0 | 08:00]"
+            - generic [ref=e230]: World
+            - generic [ref=e231]: "Switched to profile: OpenAI (GPT-4.1-mini)"
+          - generic "just now" [ref=e232]:
+            - generic [ref=e233]: ⚙️
+            - generic [ref=e234]: "[Tick 1 | 08:00]"
+            - generic [ref=e235]: World
+            - generic [ref=e236]: VirtualWorld Engine initialized
+        - generic [ref=e237]:
+          - textbox "Your line is spoken in the active area and logged as speech" [ref=e238]:
+            - /placeholder: 💬 Speak as guest — talk to the characters here…
+          - button "💬 Speak" [ref=e239] [cursor=pointer]
+          - generic [ref=e240]: Enter game command
+          - textbox "Enter game command" [ref=e241]:
+            - /placeholder: ⚡ Override — engine command (verb + target, Tab completes)
+    - complementary "Inspector panel" [ref=e242]:
+      - generic [ref=e244]:
+        - generic [ref=e245]: 🔍
+        - paragraph [ref=e246]: Select a node or agent to inspect
+        - paragraph [ref=e247]: Click on the graph or an agent in the list
+        - button "🌍 World Lore" [ref=e248] [cursor=pointer]
+  - button "🧪 dataset" [ref=e249] [cursor=pointer]
+  - button "🔬 LLM inspector" [ref=e250] [cursor=pointer]
+  - button "🕘" [ref=e251] [cursor=pointer]

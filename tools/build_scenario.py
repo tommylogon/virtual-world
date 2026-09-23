@@ -12,6 +12,12 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from engine.character_identity import canonical_character_node_id  # noqa: E402
+
 
 def load_json(path: Path) -> Any:
     with open(path, "r", encoding="utf-8") as f:
@@ -51,7 +57,7 @@ def ensure_item_id(name: str) -> str:
 
 
 def ensure_character_id(name: str) -> str:
-    return f"character_{_slugify(name)}"
+    return canonical_character_node_id(name)
 
 
 def ensure_trigger_id(name: str) -> str:
@@ -120,7 +126,10 @@ def normalize_item(item: dict) -> dict:
 def normalize_character(character: dict, area_ids: set) -> dict:
     character.setdefault("type", "character")
     character.setdefault("id", ensure_character_id(character.get("name", "unnamed")))
-    character.setdefault("name", character["id"].replace("character_", "").replace("_", " ").title())
+    character.setdefault(
+        "name",
+        character["id"].replace("player_", "").replace("character_", "").replace("_", " ").title(),
+    )
     props = character.setdefault("properties", {})
     props.setdefault("description", "")
     props.setdefault("personality", "")
@@ -128,6 +137,37 @@ def normalize_character(character: dict, area_ids: set) -> dict:
     if current_area and current_area not in area_ids:
         raise ValueError(f"Character {character['id']} references missing area '{current_area}'")
     return character
+
+
+def _remap_refs(value: Any, remap: Dict[str, str]) -> Any:
+    """Rewrite exact string references to a remapped node id, recursively."""
+    if isinstance(value, dict):
+        return {key: _remap_refs(item, remap) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_remap_refs(item, remap) for item in value]
+    if isinstance(value, str):
+        return remap.get(value.lower(), value)
+    return value
+
+
+def canonicalize_character_ids(characters: List[dict], triggers: List[dict]) -> Dict[str, str]:
+    """Point every character at the canonical ``player_<Name>`` node (task-463).
+
+    Component filenames can carry a legacy ``character_<slug>`` id whose slug
+    drifts from the display name; remap it and every trigger reference onto the
+    runtime anchor so the built world has one node per character.
+    """
+    remap: Dict[str, str] = {}
+    for character in characters:
+        old_id = character.get("id")
+        new_id = canonical_character_node_id(character.get("name") or old_id or "unnamed")
+        if old_id and old_id != new_id:
+            remap[str(old_id).lower()] = new_id
+        character["id"] = new_id
+    if remap:
+        for trigger in triggers:
+            trigger.update(_remap_refs(trigger, remap))
+    return remap
 
 
 def normalize_trigger(trigger: dict, node_ids: set) -> dict:
@@ -225,6 +265,7 @@ def build_scenario(components_dir: Path, runtime_overrides: dict) -> dict:
     items = [normalize_item(i) for i in load_components_with_ids(components_dir, "items")]
     characters = [normalize_character(c, {a["id"] for a in areas}) for c in load_components_with_ids(components_dir, "characters")]
     triggers_raw = load_components_with_ids(components_dir, "triggers")
+    canonicalize_character_ids(characters, triggers_raw)
 
     all_node_ids = {n["id"] for n in areas + ways_raw + items + characters + triggers_raw}
     ways = [normalize_way(w, {a["id"] for a in areas}) for w in ways_raw]

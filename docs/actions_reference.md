@@ -36,6 +36,9 @@ structured action object (see `agent-engine.js:_normalizeStructuredAction`).
 | Relieve | `relieve` | `relieve` | Uses a toilet if available |
 | Manifest | `manifest` | `manifest` | Ghost only |
 | Vanish | `vanish` | `vanish` | Ghost only |
+| Name | `name <target> <alias>` or `name <target> as <alias>` | `name the man in green green-man` | Sets a personal alias on a character or item |
+| Label | `label <person> <relationship>` | `label jake boyfriend` | Sets how you relate to someone |
+| Guess Time | `guess time` | `guess time` | Survival check; DC varies by weather |
 
 ## Rules
 - **One action per turn.** Do not combine commands.

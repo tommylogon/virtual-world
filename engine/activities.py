@@ -21,6 +21,7 @@ Key facts:
 from typing import Optional, List, Dict, Any
 
 from graph import Node, Edge, EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED
+from vital_rates import change, tick_minutes
 
 
 #: player condition applied when an activity starts (None = none).
@@ -35,19 +36,41 @@ ACTIVITY_CONDITIONS: Dict[str, Optional[str]] = {
     "bathing": "busy",
     "sitting": "busy",
     "lying down": "busy",
+    # task-409 — a scheduled character working at its trade. Deliberately a
+    # SHORT block (see WORK_MINUTES): `_act` skips anyone mid-activity, so a long
+    # block is a long time not eating, drinking or relieving. A conversation
+    # taught that lesson the hard way — one that rounded to a single tick at
+    # 15 min/tick looked harmless there and cost the camp its hygiene at 1.
+    "working": "busy",
 }
 
-#: per-tick vital regeneration while an activity is active.
-#: Values are tuned against baseline decay (Energy -1/tick) so restful
-#: activities NET positive.
-ACTIVITY_REGEN: Dict[str, Dict[str, int]] = {
-    "sleeping": {"Energy": 0},   # handled by tick_manager state logic (+3 → net +2)
-    "resting": {"Energy": 2},    # net +1
+#: per-minute vital regeneration while an activity is active (see
+#: vital_rates — the world clock is 1 in-game minute per tick). Tuned against
+#: the per-minute baseline Energy drain (0.104/min): sleeping is the real
+#: recovery (~+0.20/min net), resting/lying down slow the drain, bathing
+#: cleans fast. Whole units land via the fractional accumulator, so
+#: short activities may show no change for a few ticks.
+ACTIVITY_REGEN: Dict[str, Dict[str, float]] = {
+    # Sleep is the primary Sanity source (task-432). The rate is sized against
+    # what Sanity actually loses in a camp: 7.2/day passive plus the dark-room
+    # penalty (the goblin camp is a cave, `ENV_DARK_SANITY` is up to 28.8/day), so
+    # roughly 20/day of inflow. A night is ~8h, and 0.025/min over 480 minutes is
+    # ~12 — enough that a character who sleeps holds steady or recovers slowly,
+    # and one kept awake slides. Nothing used to restore Sanity at all, so every
+    # character went mad on a fixed schedule; the first attempt at 0.10/min
+    # overshot and pegged the whole camp at 100 within a week.
+    "sleeping": {"Sanity": 0.025},  # Energy handled by tick_manager (SLEEP_ENERGY_REGEN)
+    "resting": {"Energy": 0.15, "Sanity": 0.05},  # net ~+0.05/min Energy vs baseline drain
     "waiting": {},
-    "meditating": {"Sanity": 2},  # net +1
-    "bathing": {"Hygiene": 5},
-    "sitting": {"Energy": 2},     # net +1
-    "lying down": {"Energy": 3},  # net +2
+    "meditating": {"Sanity": 0.05},
+    "bathing": {"Hygiene": 1.5},
+    "sitting": {"Energy": 0.06},    # slows the drain, does not restore
+    "lying down": {"Energy": 0.25},  # faster than sitting/resting, slower than sleep
+    # Work restores nothing. Energy's baseline drain is the cost of a working day;
+    # adding an extra drain here would have to be re-tuned against every other
+    # Energy source, and the visible signal (being at the forge, working) does not
+    # need it.
+    "working": {},
 }
 
 #: human-readable labels
@@ -59,6 +82,9 @@ ACTIVITY_LABELS: Dict[str, str] = {
     "bathing": "bathing",
     "sitting": "sitting",
     "lying down": "lying down",
+    "working": "working",
+    # task-469: a failed forage in the soak tier occupies the timeframe
+    "foraging": "foraging",
 }
 
 #: activities that block taking most other actions (speech/look/etc. allowed)
@@ -67,11 +93,26 @@ ACTIVITY_BLOCKING = {"sleeping", "bathing"}
 #: activities that consume the character's turn (agent loop / simple NPCs skip)
 ACTIVITY_SKIP_TURNS = {
     "sleeping", "resting", "waiting", "meditating",
-    "bathing", "sitting", "lying down",
+    "bathing", "sitting", "lying down", "working",
+    # task-436: a background task whose duration outran its timeframe spans
+    # turns, and must occupy them like any other turn-consuming activity.
+    "eating", "drinking", "relieving", "washing", "recreating", "recuperating",
+    "foraging",
 }
 
 #: activities that end automatically when the character does anything else
-ACTIVITY_INTERRUPTIBLE = {"resting", "waiting", "meditating", "sitting", "lying down"}
+#:
+#: Also the set that auto-ends when a duration elapses. **A type missing here
+#: never expires**: `_tick` only calls `_maybe_end_by_duration` for members, so
+#: `elapsed_ticks` runs past `duration_ticks` forever and the character is stuck
+#: `busy` — which reads downstream as a mysterious refusal to eat, sleep or wash.
+#: Add every timed activity to this set.
+ACTIVITY_INTERRUPTIBLE = {"resting", "waiting", "meditating", "sitting", "lying down",
+                          "working",
+                          # task-436: the same trap applies to every one of
+                          # these; leaving one out strands the character busy.
+                          "eating", "drinking", "relieving", "washing",
+                          "recreating", "recuperating", "foraging"}
 
 #: commands allowed while a blocking activity is active
 _ALLOWED_WHILE_BLOCKED = {
@@ -258,11 +299,16 @@ class ActivitySystem:
         activity["elapsed_ticks"] = activity.get("elapsed_ticks", 0) + 1
         outputs = []
 
-        # Vital regen
+        # Vital regen (per-minute, scaled to the tick length; fractional steps
+        # carry between ticks)
+        minutes = tick_minutes(self.world)
+        # Elapsed *game time*, so a duration authored in minutes means the same
+        # thing at a 1-minute turn and a 30-minute one (task-436).
+        activity["elapsed_minutes"] = activity.get("elapsed_minutes", 0.0) + minutes
         for stat, amount in ACTIVITY_REGEN.get(activity_type, {}).items():
             if stat in player.vitals:
                 before = player.vitals[stat]
-                player.vitals[stat] = min(100, player.vitals[stat] + amount)
+                change(player, stat, amount, minutes=minutes)
                 if player.vitals[stat] > before and stat == "Hygiene" and activity_type == "bathing":
                     outputs.append(f"You scrub yourself clean. Hygiene {player.vitals[stat]}%.")
 
@@ -275,6 +321,23 @@ class ActivitySystem:
 
         return "\n".join(outputs) if outputs else None
 
+    @staticmethod
+    def _duration_elapsed(activity: dict) -> bool:
+        """Has the activity's authored duration run out?
+
+        Two units, deliberately. ``duration_ticks`` counts *turns* and predates
+        the author-in-game-minutes rule; ``duration_minutes`` counts game time
+        and is what a task must use if its length is to mean the same thing at a
+        1-minute turn and a 30-minute one (task-436). An activity may use either,
+        or neither, in which case it ends on its own condition (energy full,
+        hygiene clean).
+        """
+        if activity.get("duration_minutes") is not None:
+            return activity.get("elapsed_minutes", 0.0) >= activity["duration_minutes"]
+        if activity.get("duration_ticks") is not None:
+            return activity.get("elapsed_ticks", 0) >= activity["duration_ticks"]
+        return False
+
     def _tick_sleeping(self, player, activity: dict, outputs: List[str]):
         energy = player.vitals.get("Energy", 100)
         if energy >= 100:
@@ -282,11 +345,10 @@ class ActivitySystem:
             outputs.append("You wake fully rested.")
             return
         # Natural timer (sleep <minutes>): wake when elapsed time runs out
-        if activity.get("duration_ticks") is not None:
-            if activity.get("elapsed_ticks", 0) >= activity["duration_ticks"]:
-                self.end_activity(player.name, reason="finished")
-                outputs.append("Your sleep is over.")
-                return
+        if self._duration_elapsed(activity):
+            self.end_activity(player.name, reason="finished")
+            outputs.append("Your sleep is over.")
+            return
 
     def _tick_bathing(self, player, activity: dict, outputs: List[str]):
         hygiene = player.vitals.get("Hygiene", 100)
@@ -301,16 +363,14 @@ class ActivitySystem:
                     outputs.append(dressed)
             except ValueError:
                 pass
-        elif activity.get("duration_ticks") is not None:
-            if activity.get("elapsed_ticks", 0) >= activity["duration_ticks"]:
-                self.end_activity(player.name, reason="finished")
-                outputs.append("You finish bathing.")
+        elif self._duration_elapsed(activity):
+            self.end_activity(player.name, reason="finished")
+            outputs.append("You finish bathing.")
 
     def _maybe_end_by_duration(self, player, activity: dict, outputs: List[str]):
-        if activity.get("duration_ticks") is not None:
-            if activity.get("elapsed_ticks", 0) >= activity["duration_ticks"]:
-                self.end_activity(player.name, reason="finished")
-                outputs.append("You finish.")
+        if self._duration_elapsed(activity):
+            self.end_activity(player.name, reason="finished")
+            outputs.append("You finish.")
 
     # ─────────────────────────── wake / interrupt ───────────────────────────
 

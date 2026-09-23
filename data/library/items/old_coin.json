@@ -1,0 +1,9 @@
+{
+  "name": "old_coin",
+  "description": "a worn coin, the face long since rubbed smooth.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.01,
+  "current_state": "normal",
+  "tags": ["coin", "currency", "antique", "forage"]
+}

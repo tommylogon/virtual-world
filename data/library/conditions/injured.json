@@ -13,11 +13,21 @@
   "drops_held_items": false,
   "periodic": {},
   "level_periodic": {
-    "1": {"HP": -1},
-    "2": {"HP": -2},
-    "3": {"HP": -3}
+    "1": {
+      "HP": -1
+    },
+    "2": {
+      "HP": -2
+    },
+    "3": {
+      "HP": -3
+    }
   },
-  "ends_on": ["fix", "heal", "medicine"],
+  "ends_on": [
+    "fix",
+    "heal",
+    "medicine"
+  ],
   "known": true,
   "symptoms": {
     "3": "The {body_part} throbs painfully.",
@@ -26,5 +36,15 @@
   },
   "stack": "accumulate",
   "default_duration": null,
-  "excludes": []
+  "excludes": [],
+  "level_speed_mult": {
+    "1": 1.0,
+    "2": 0.75,
+    "3": 0.5
+  },
+  "order": 13,
+  "perception_skip": false,
+  "mature": false,
+  "check_advantage": [],
+  "check_disadvantage": []
 }

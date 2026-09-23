@@ -26,6 +26,7 @@ from engine.effect_handlers.misc import HANDLERS as MISC_HANDLERS
 from engine.effect_handlers.ways import HANDLERS as WAY_HANDLERS
 from engine.effect_handlers.scry import HANDLERS as SCRY_HANDLERS
 from engine.effect_handlers.weather import HANDLERS as WEATHER_HANDLERS
+from engine.effect_handlers.tags import HANDLERS as TAG_HANDLERS
 
 HANDLERS = {}
 HANDLERS.update(VITAL_HANDLERS)
@@ -41,6 +42,7 @@ HANDLERS.update(MISC_HANDLERS)
 HANDLERS.update(WAY_HANDLERS)
 HANDLERS.update(SCRY_HANDLERS)
 HANDLERS.update(WEATHER_HANDLERS)
+HANDLERS.update(TAG_HANDLERS)
 
 
 class Effects:
@@ -445,7 +447,11 @@ class Effects:
         if "Energy" in p.vitals:
             p.vitals["Energy"] = max(0, min(100, p.vitals["Energy"]))
         p.decay_rates = lib_data.get("decay_rates", p.decay_rates)
-        p.skills = lib_data.get("skills", {})
+        # Additive: a library definition sets only the skills it cares about and
+        # the rest stay on the sheet at their defaults (task-474).
+        _skills = dict(getattr(p, "skills", None) or {})
+        _skills.update(lib_data.get("skills", {}) or {})
+        p.skills = _skills
         p.traits = lib_data.get("traits", {})
         p.tags = list(lib_data.get("tags", []))
         p.sync_vitals_with_tags()
@@ -511,7 +517,7 @@ class Effects:
         if target in players:
             return players[target]
         target_lower = str(target).lower()
-        for name, p in players.items():
-            if str(name).lower() == target_lower:
+        for key, p in players.items():
+            if str(getattr(p, "name", key)).lower() == target_lower:
                 return p
         return None

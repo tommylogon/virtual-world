@@ -40,7 +40,7 @@ def _restore_snapshot(app, state, source):
     """Replace app.world with a fresh instance loaded from a snapshot."""
     new_world = VirtualWorld()
     new_world.load_from_dict(state)
-    new_world._scenario_source = source
+    new_world.set_scenario_source(source)
     new_world.time_per_tick_minutes = getattr(app.world, 'time_per_tick_minutes', 5)
     app.world = new_world
     # Persist the restored state so a restart doesn't lose it (skip in tests)
@@ -105,7 +105,7 @@ def register_saveload_routes(app):
                 app.world.serializer.strip_redundant_exits(data)
                 with open(scenario_path, 'w', encoding='utf-8') as f:
                     json.dump(data, f, indent=2, ensure_ascii=False)
-                app.world._scenario_source = scenario_path
+                app.world.set_scenario_source(scenario_path)
                 app.world._scenario_name = scenario_name
                 app.world._commit_seq = getattr(app.world, '_edit_seq', 0)
                 logger.info(f"Saved loaded scenario to {scenario_path}")
@@ -140,7 +140,7 @@ def register_saveload_routes(app):
                 with open(template_path, 'r', encoding='utf-8-sig') as f:
                     template_data = json.load(f)
                 new_world.load_from_dict(template_data)
-                new_world._scenario_source = template_path
+                new_world.set_scenario_source(template_path)
                 logger.info(f"Reset world from {template_path}")
             else:
                 logger.warning("No scenario file found, using blank world")
@@ -360,7 +360,7 @@ def register_saveload_routes(app):
         """Structural diff between the live world and its scenario source.
 
         Groups: added_areas / removed_areas / changed_areas (description,
-        environment, exits) / added_players / removed_players /
+        environment) / added_players / removed_players /
         added_items / removed_items / changed_items / added_ways /
         removed_ways / changed_ways. Rides on a canonical fingerprint —
         no storage format changes.
@@ -376,21 +376,40 @@ def register_saveload_routes(app):
             return jsonify({"source": source, "groups": {}, "warning": "source unreadable"})
         cur = world.to_scenario_dict()
 
-        def fingerprint(d, name):
-            a = (d.get('areas') or {}).get(name) or {}
+        # Areas come from the graph node set, like items/ways below. Legacy
+        # template payloads (areas but no graph) still fall back to the `areas`
+        # map so a template-sourced world diffs correctly.
+        #
+        # `exits` is deliberately NOT part of the fingerprint: every written
+        # payload has it stripped, so it was a constant on the live side and a
+        # false "changed" for any older file that still carried a copy.
+        def area_index(d):
+            idx = {}
+            nodes = (d.get('graph') or {}).get('nodes') or {}
+            for nd in nodes.values():
+                if isinstance(nd, dict) and nd.get('type') == 'area' and nd.get('name'):
+                    props = nd.get('properties')
+                    idx[str(nd['name'])] = props if isinstance(props, dict) else {}
+            if idx:
+                return idx
+            for name, a in (d.get('areas') or {}).items():
+                idx[str(name)] = a if isinstance(a, dict) else {}
+            return idx
+
+        def fingerprint(idx, name):
+            a = idx.get(name) or {}
             env = a.get('environment') or {}
             return json.dumps({
                 "description": a.get("description", ""),
                 "environment": {k: env.get(k) for k in ("light", "temperature", "air", "smell", "noise")},
-                "exits": a.get("exits") or {},
             }, sort_keys=True, default=str)
 
-        src_areas = set(str(k) for k in (src.get('areas') or {}))
-        cur_areas = set(str(k) for k in (cur.get('areas') or {}))
+        src_idx, cur_idx = area_index(src), area_index(cur)
+        src_areas, cur_areas = set(src_idx), set(cur_idx)
         added = sorted(cur_areas - src_areas)
         removed = sorted(src_areas - cur_areas)
         common = src_areas & cur_areas
-        changed = sorted(n for n in common if fingerprint(src, n) != fingerprint(cur, n))
+        changed = sorted(n for n in common if fingerprint(src_idx, n) != fingerprint(cur_idx, n))
 
         def player_names(d):
             if "players" in d:
@@ -753,6 +772,51 @@ def register_saveload_routes(app):
             "committed_at": committed_at,
         })
 
+    @app.route('/api/scenario/name', methods=['POST'])
+    def scenario_set_name():
+        """Name the live world.
+
+        The name is not cosmetic: it drives the top-bar chip, the per-scenario
+        browser cache key, and — most importantly — WHERE a commit writes. A
+        world booted from a shared source (e.g. the boot template) would
+        otherwise commit straight back into that file. When the current source
+        has a different basename the save target is repointed to
+        ``<name>.json``; an existing file is never overwritten (the previous
+        target is kept and a warning returned).
+        """
+        world = app.world
+        body = request.get_json(force=True, silent=True) or {}
+        name = str(body.get('name') or '').strip()
+        if not name:
+            return jsonify({"error": "Missing 'name'"}), 400
+
+        safe = ''.join(c if (c.isalnum() or c in ' _-') else '_' for c in name).strip() or 'unnamed'
+        world._scenario_name = safe
+
+        source = getattr(world, '_scenario_source', None)
+        current = os.path.splitext(os.path.basename(source))[0] if source else None
+        result = {"status": "success", "name": safe, "source": source or ""}
+
+        if current != safe:
+            scenarios_dir = os.path.join(app.config['DATA_DIR'], 'scenarios')
+            target = os.path.join(scenarios_dir, f"{safe}.json")
+            target_is_source = bool(source) and os.path.abspath(target) == os.path.abspath(source)
+            if os.path.exists(target) and not target_is_source:
+                result["warning"] = (
+                    f"'{safe}.json' already exists — commits keep writing to "
+                    f"{os.path.basename(source) if source else 'the current target'}."
+                )
+            else:
+                try:
+                    os.makedirs(scenarios_dir, exist_ok=True)
+                    world.set_scenario_source(target)
+                    result["source"] = target
+                except OSError as exc:
+                    result["warning"] = f"Could not set the save target: {exc}"
+
+        logger.info("Scenario named '%s' (save target: %s)", safe, getattr(world, '_scenario_source', None))
+        return jsonify(result)
+
     @app.route('/api/scenario/commit', methods=['POST'])
     def scenario_commit():
         """Write the live world into the scenario source (undo not needed —
@@ -777,7 +841,7 @@ def register_saveload_routes(app):
         except Exception as e:
             logger.exception("Scenario commit failed")
             return jsonify({"error": str(e)}), 500
-        world._scenario_source = source
+        world.set_scenario_source(source)
         world._scenario_name = name
         world._commit_seq = getattr(world, '_edit_seq', 0)
         logger.info(f"Committed live world to scenario {source}")

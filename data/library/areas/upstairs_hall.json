@@ -1,7 +1,11 @@
 {
   "name": "upstairs hall",
   "description": "a long, dim hallway on the second floor. the carpet is threadbare and stained, the wallpaper peeling in long strips. a portrait of augustus blackwood in his prime hangs at the far end, his painted eyes seeming to follow you. a cold draft seeps from under one of the doors. the floorboards creak in a pattern that sounds almost like footsteps behind you — but when you stop, they stop too.",
-  "tags": [],
+  "tags": [
+    "interior",
+    "mansion",
+    "social"
+  ],
   "environment": {
     "air": "drafty",
     "light": 30,

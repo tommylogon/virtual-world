@@ -19,15 +19,42 @@ Purely descriptive at the data level. Mechanical gating comes from `player.state
 
 ## Commands
 
-| Command | Activity | State | Regen (net after decay) | Ends when |
+**Regen values are per in-game MINUTE**, scaled by the tick's length
+(`world.time_per_tick_minutes`) like every other rate — see
+[Vitals System](Vitals%20System.md). The table below used to read "+N/tick",
+which was only the same thing at a 1-minute tick.
+
+| Command | Activity | State | Regen per minute | Ends when |
 |---|---|---|---|---|
-| `rest [N] [on item]` | resting | resting | Energy +1/tick | interrupted by any action, damage, or duration elapses |
-| `sleep [N] [on item]` | sleeping | sleeping | Energy +2/tick | `wake`, damage, loud noise (WIS save DC 10), Energy full, duration elapses |
-| `wait [N]` | waiting | — | none | interrupted by anything |
-| `meditate [N]` | meditating | meditating | Sanity +1/tick | interrupted, or duration elapses |
-| `bathe [in item]` | bathing | busy | Hygiene +5/tick | Hygiene full → auto-dresses from the pile |
-| `sit` | sitting | — | Energy +1/tick | `stand` / any action |
-| `lie down` | lying down | — | Energy +2/tick | `stand` / any action |
+| `rest [N] [on item]` | resting | busy | Energy +0.15, Sanity +0.05 | duration elapses, or interrupted |
+| `sleep [N] [on item]` | sleeping | unconscious | Sanity +0.025; Energy via `SLEEP_ENERGY_REGEN` | `wake`, damage, loud noise (WIS save), **Energy full**, or duration |
+| `wait [N]` | waiting | busy | none | interrupted by anything |
+| `meditate [N]` | meditating | busy | Sanity +0.05 | interrupted, or duration elapses |
+| `bathe [in item]` | bathing | busy | Hygiene +1.5 | Hygiene full → auto-dresses from the pile |
+| `sit` | sitting | busy | Energy +0.06 | `stand` / any action |
+| `lie down` | lying down | busy | Energy +0.25 | `stand` / any action |
+
+**Wake-on-full-Energy is checked before the duration**, so a character who is not
+tired cannot sleep — which is why Sanity recovery at full Energy needs a *rest*
+(see below), and why the engine's own `rest()` reads are not interchangeable with
+`sleep`.
+
+## Timed activities must be registered in `ACTIVITY_INTERRUPTIBLE`
+
+`_tick` only calls `_maybe_end_by_duration` for members of
+`activities.ACTIVITY_INTERRUPTIBLE`. **A type missing from it never expires**:
+`elapsed_ticks` runs past `duration_ticks` forever and the character is stuck
+`busy`, which downstream reads as a mysterious refusal to eat, sleep or wash.
+Adding a timed activity means adding it there, and to `ACTIVITY_CONDITIONS`,
+`ACTIVITY_REGEN`, `ACTIVITY_LABELS` and `ACTIVITY_SKIP_TURNS`.
+
+## Background recuperation (task-432)
+
+The background tier rests a character whose Sanity is low
+(`SANITY_THRESHOLD` 40) for `SANITY_REST_MINUTES` (60) — a **bounded** block on
+purpose, because `_act` skips anyone mid-activity and a sprawling rest would stop
+them eating. It is a rest rather than sleep because sleep cannot help a character
+at full Energy.
 | `stand` / `get up` | — | — | — | ends sitting/lying/meditating/waiting/resting |
 | `stop` | — | — | — | ends any activity |
 | `wake [name]` | — | — | — | wakes a sleeper (self or another) |

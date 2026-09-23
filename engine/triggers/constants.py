@@ -83,6 +83,7 @@ EFFECT_TYPES = [
     "remove_tag",
     "set_parameter",
     "adjust_parameter",
+    "grant_memory",
     "surface_memory",
     "suppress_memory",
     "unblock_memory",

@@ -81,7 +81,7 @@ for (const name of [
     'InspectorBehaviors', 'InspectorItemView', 'InspectorLore',
     'InspectorMemory', 'InspectorPanel', 'InspectorPaperdoll',
     'InspectorTriggers', 'InspectorWayView', 'ItemLibraryContents',
-    'ItemLibraryPlacement', 'NLEditorAgent', 'NLEditorGhosts',
+    'ItemLibraryPlacement', 'NLEditorAgent', 'NLEditorDiff', 'NLEditorGhosts',
     'NLEditorStaging', 'NLEditorTools', 'NLEditorUI', 'NodeBadges',
     'Notyf', 'PlanManager', 'PlanTracker', 'PromptBuilder', 'RateLimiter',
     'ResponseParser', 'SaveLoadView', 'ScenarioManager', 'ScenarioStatus',

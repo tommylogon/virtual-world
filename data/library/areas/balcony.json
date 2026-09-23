@@ -1,7 +1,11 @@
 {
   "name": "balcony",
   "description": "a small wrought-iron balcony overlooking the overgrown garden far below. the railing is rusted and creaks alarmingly when you lean on it. the night air is cold and fresh, a welcome relief from the mansion's oppressive atmosphere. the moon hangs low, casting silver light across the garden. from here, you can see the graveyard gate and the mausoleum beyond.",
-  "tags": [],
+  "tags": [
+    "exterior",
+    "mansion",
+    "outdoor"
+  ],
   "environment": {
     "air": "fresh",
     "light": 70,

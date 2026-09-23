@@ -51,6 +51,23 @@ class WorldGraph:
         # Lowercase id → actual id, so lookups never break on case mismatches
         # ("Task 7" derived as area_Task_7 vs node id area_task_7).
         self._id_index: Dict[str, str] = {}
+        # Retired id → surviving id (task-463). When two identities for one
+        # character collapse into one node, authored references still mention
+        # the retired id; resolving it here keeps them from dangling.
+        self._id_aliases: Dict[str, str] = {}
+        # task-407: edges indexed by lowercased endpoint so lookups never scan
+        # the whole edge list (and never call .lower() per edge).
+        self._edges_by_source: Dict[str, List[Edge]] = {}
+        self._edges_by_target: Dict[str, List[Edge]] = {}
+        self._spatial_edges: List[Edge] = []
+        # task-406: trigger event/type → set of source node ids, so turn/time
+        # sweeps visit only nodes that actually carry that trigger.
+        self._trigger_index: Dict[str, set] = {}
+        # Number of edges the indexes were built from. A few effect handlers
+        # mutate ``self.edges`` directly; the length check forces a lazy rebuild.
+        self._indexed_edge_count = 0
+        # Bumped on every mutation; derived caches (exits) key on this.
+        self._revision = 0
 
     # ── Case-insensitive id helpers ────────────────────────────────────
 
@@ -61,7 +78,81 @@ class WorldGraph:
         """Resolve *node_id* to the stored key, case-insensitively."""
         if node_id in self.nodes:
             return node_id
-        return self._id_index.get(node_id.lower())
+        if not isinstance(node_id, str):
+            return None
+        lowered = node_id.lower()
+        resolved = self._id_index.get(lowered)
+        if resolved is not None:
+            return resolved
+        # task-463: a retired id (e.g. "character_arix") follows its alias to
+        # the surviving canonical node ("player_Arix").
+        alias = self._id_aliases.get(lowered)
+        if alias is None:
+            return None
+        if alias in self.nodes:
+            return alias
+        return self._id_index.get(alias.lower())
+
+    def register_alias(self, retired_id: str, surviving_id: str):
+        """Point a retired node id at its surviving node (task-463)."""
+        if not retired_id or not surviving_id:
+            return
+        retired = str(retired_id)
+        surviving = str(surviving_id)
+        if retired.lower() == surviving.lower():
+            return
+        self._id_aliases[retired.lower()] = surviving
+
+    def register_aliases(self, aliases: Dict[str, str]):
+        """Bulk form of :meth:`register_alias` (retired-id → surviving-id)."""
+        for retired, surviving in (aliases or {}).items():
+            self.register_alias(retired, surviving)
+
+    def aliases(self) -> Dict[str, str]:
+        """A copy of the retired-id → surviving-id alias map."""
+        return dict(self._id_aliases)
+
+    # ── task-407: edge indexes ──────────────────────────────────────────
+
+    def _index_edge(self, edge: Edge):
+        self._edges_by_source.setdefault(str(edge.source).lower(), []).append(edge)
+        self._edges_by_target.setdefault(str(edge.target).lower(), []).append(edge)
+        if edge.type in SPATIAL_EDGE_TYPES:
+            self._spatial_edges.append(edge)
+        if edge.type == EDGE_TRIGGERS:
+            tt = edge.properties.get("trigger_type")
+            if tt:
+                for t in (tt if isinstance(tt, (list, tuple, set)) else [tt]):
+                    if t:
+                        self._trigger_index.setdefault(str(t), set()).add(str(edge.source))
+
+    def _rebuild_indexes(self):
+        self._edges_by_source = {}
+        self._edges_by_target = {}
+        self._spatial_edges = []
+        self._trigger_index = {}
+        for e in self.edges:
+            self._index_edge(e)
+        self._indexed_edge_count = len(self.edges)
+        self._revision += 1
+
+    def _ensure_indexes(self):
+        if self._indexed_edge_count != len(self.edges):
+            self._rebuild_indexes()
+
+    def get_trigger_sources(self, trigger_type: str) -> List[str]:
+        """Ids of nodes owning a trigger of *trigger_type* (task-406).
+
+        Faithful to ``_execute_triggers``: an edge qualifies only when it is a
+        ``triggers`` edge carrying a non-empty ``trigger_type`` in its own
+        properties (the runtime shape). Legacy shapes that never matched are
+        still not matched — no behaviour change, just no wasted sweep.
+        """
+        self._ensure_indexes()
+        return list(self._trigger_index.get(str(trigger_type), ()))
+
+    def get_revision(self) -> int:
+        return self._revision
 
     def add_node(self, node: Node):
         """Add a node. If node ID already exists, append a random suffix."""
@@ -81,6 +172,7 @@ class WorldGraph:
                 raise ValueError(f"Area node '{node.id}' already exists.")
         self.nodes[node.id] = node
         self._id_index[node.id.lower()] = node.id
+        self._revision += 1
 
     def remove_node(self, node_id: str):
         # Remove node and all edges connected to it (case-insensitive)
@@ -89,26 +181,101 @@ class WorldGraph:
             return
         self.nodes.pop(stored_id, None)
         self._id_index.pop(stored_id.lower(), None)
+        for alias, target in list(self._id_aliases.items()):
+            if target.lower() == stored_id.lower():
+                self._id_aliases.pop(alias, None)
+        stored_lower = stored_id.lower()
         self.edges = [
             e for e in self.edges
-            if e.source != stored_id and e.target != stored_id
+            if str(e.source).lower() != stored_lower
+            and str(e.target).lower() != stored_lower
         ]
+        self._rebuild_indexes()
 
     def add_edge(self, edge: Edge):
-        # Prevent duplicates if needed (case-insensitive)
-        if not any(
-            e.source.lower() == edge.source.lower()
-            and e.target.lower() == edge.target.lower()
-            and e.type == edge.type
-            for e in self.edges
-        ):
-            self.edges.append(edge)
+        # Prevent duplicates (case-insensitive) — only same-source edges can
+        # collide, so the source index makes this O(degree) instead of O(E).
+        self._ensure_indexes()
+        key_s = str(edge.source).lower()
+        key_t = str(edge.target).lower()
+        for e in self._edges_by_source.get(key_s, ()):
+            if str(e.target).lower() == key_t and e.type == edge.type:
+                return
+        self.edges.append(edge)
+        self._index_edge(edge)
+        self._indexed_edge_count = len(self.edges)
+        self._revision += 1
+
+    def _unindex_edge(self, edge: Edge):
+        """Remove one edge from the derived indexes (task-407).
+
+        Falls back to nothing for the trigger index, which is a set of sources;
+        callers that touch ``triggers`` edges rebuild instead.
+        """
+        src = str(edge.source).lower()
+        tgt = str(edge.target).lower()
+        lst = self._edges_by_source.get(src)
+        if lst is not None:
+            self._edges_by_source[src] = [e for e in lst if e is not edge]
+        lst = self._edges_by_target.get(tgt)
+        if lst is not None:
+            self._edges_by_target[tgt] = [e for e in lst if e is not edge]
+        if edge.type in SPATIAL_EDGE_TYPES:
+            self._spatial_edges = [e for e in self._spatial_edges if e is not edge]
 
     def remove_edge(self, source: str, target: str, edge_type: str):
-        self.edges = [e for e in self.edges
-                      if not (e.source.lower() == source.lower()
-                              and e.target.lower() == target.lower()
-                              and e.type == edge_type)]
+        self._ensure_indexes()
+        key_s = str(source).lower()
+        key_t = str(target).lower()
+        doomed = [
+            e for e in self._edges_by_source.get(key_s, ())
+            if str(e.target).lower() == key_t and e.type == edge_type
+        ]
+        if not doomed:
+            return
+        doomed_ids = {id(e) for e in doomed}
+        self.edges = [e for e in self.edges if id(e) not in doomed_ids]
+        if edge_type == EDGE_TRIGGERS:
+            # Trigger index is a set of sources — rebuild rather than guess.
+            self._rebuild_indexes()
+            return
+        for e in doomed:
+            self._unindex_edge(e)
+        self._indexed_edge_count = len(self.edges)
+        self._revision += 1
+
+    def retarget_edge(self, edge: Edge, new_type: Optional[str] = None,
+                      new_target: Optional[str] = None,
+                      properties: Optional[Dict] = None):
+        """Move an edge to a new type/target **in place** (task-407).
+
+        One graph operation instead of ``remove_edge`` + ``add_edge`` for a
+        pure move (take / drop / equip hand swaps): the source is unchanged, so
+        only the target/type indexes are touched. ``properties`` replaces the
+        edge's properties when given (e.g. clearing a slot on equip→carry).
+        """
+        self._ensure_indexes()
+        if not any(e is edge for e in self.edges):
+            return
+        if edge.type == EDGE_TRIGGERS or new_type == EDGE_TRIGGERS:
+            if new_type is not None:
+                edge.type = new_type
+            if new_target is not None:
+                edge.target = new_target
+            if properties is not None:
+                edge.properties = properties
+            self._rebuild_indexes()
+            return
+        self._unindex_edge(edge)
+        if new_type is not None:
+            edge.type = new_type
+        if new_target is not None:
+            edge.target = new_target
+        if properties is not None:
+            edge.properties = properties
+        self._index_edge(edge)
+        self._indexed_edge_count = len(self.edges)
+        self._revision += 1
 
     def remove_edges_for_node(self, node_id: str, edge_type: str):
         """Remove every edge of *edge_type* touching *node_id* (as source or target).
@@ -116,42 +283,71 @@ class WorldGraph:
         Used to sever dangling connection edges when an item's ownership state
         changes (equip / unequip / drop).
         """
+        self._ensure_indexes()
         node_lower = str(node_id).lower()
-        self.edges = [
-            e for e in self.edges
-            if not (e.type == edge_type
-                    and (e.source.lower() == node_lower or e.target.lower() == node_lower))
-        ]
+        doomed_ids = set()
+        doomed = []
+        for e in self._edges_by_source.get(node_lower, ()):
+            if e.type == edge_type and id(e) not in doomed_ids:
+                doomed_ids.add(id(e))
+                doomed.append(e)
+        for e in self._edges_by_target.get(node_lower, ()):
+            if e.type == edge_type and id(e) not in doomed_ids:
+                doomed_ids.add(id(e))
+                doomed.append(e)
+        if not doomed:
+            return
+        self.edges = [e for e in self.edges if id(e) not in doomed_ids]
+        if edge_type == EDGE_TRIGGERS:
+            self._rebuild_indexes()
+            return
+        for e in doomed:
+            self._unindex_edge(e)
+        self._indexed_edge_count = len(self.edges)
+        self._revision += 1
 
     def get_node(self, node_id: str) -> Optional[Node]:
         resolved = self._resolve_id(node_id)
         return self.nodes.get(resolved) if resolved else None
 
     def get_edges_for_source(self, source_id: str, edge_type: Optional[str] = None) -> List[Edge]:
-        source_lower = source_id.lower()
+        self._ensure_indexes()
+        source_lower = str(source_id).lower()
+        candidates = self._edges_by_source.get(source_lower, [])
         if edge_type is None:
-            return [e for e in self.edges if e.source.lower() == source_lower]
+            return list(candidates)
         match_types = resolve_edge_types(edge_type)
-        results = [e for e in self.edges if e.source.lower() == source_lower and e.type in match_types]
+        results = [e for e in candidates if e.type in match_types]
         if EDGE_CONTAINS in match_types or edge_type == EDGE_IN:
-            results += [e for e in self.edges if e.target.lower() == source_lower and e.type == EDGE_CONTAINS]
+            results += [
+                e for e in self._edges_by_target.get(source_lower, ())
+                if e.type == EDGE_CONTAINS
+            ]
         return results
 
     def get_edges_for_target(self, target_id: str, edge_type: Optional[str] = None) -> List[Edge]:
-        target_lower = target_id.lower()
+        self._ensure_indexes()
+        target_lower = str(target_id).lower()
+        candidates = self._edges_by_target.get(target_lower, [])
         if edge_type is None:
-            return [e for e in self.edges if e.target.lower() == target_lower]
+            return list(candidates)
         match_types = resolve_edge_types(edge_type)
-        results = [e for e in self.edges if e.target.lower() == target_lower and e.type in match_types]
+        results = [e for e in candidates if e.type in match_types]
         if EDGE_CONTAINS in match_types or edge_type == EDGE_IN:
-            results += [e for e in self.edges if e.source.lower() == target_lower and e.type == EDGE_CONTAINS]
+            results += [
+                e for e in self._edges_by_source.get(target_lower, ())
+                if e.type == EDGE_CONTAINS
+            ]
         if edge_type == EDGE_IN:
             # Spatial placement: items resting on/under/etc. a surface that is
             # itself positioned in the target (or pointed at the target itself)
             # are discovered as being present here. Anchors = the surfaces that
             # sit directly in the target (the `in` result sources).
-            anchors = {target_lower} | {e.source.lower() for e in results}
-            results += [e for e in self.edges if e.type in SPATIAL_EDGE_TYPES and e.target.lower() in anchors]
+            anchors = {target_lower} | {str(e.source).lower() for e in results}
+            results += [
+                e for e in self._spatial_edges
+                if str(e.target).lower() in anchors
+            ]
         return results
 
     def get_edges_by_type(self, edge_type: str) -> List[Edge]:
@@ -176,6 +372,7 @@ class WorldGraph:
             else:
                 migrated.append(e)
         self.edges = migrated
+        self._rebuild_indexes()
 
     def to_dict(self) -> dict:
         self.normalize_node_types()
@@ -257,10 +454,18 @@ class WorldGraph:
         self.nodes.clear()
         self.edges.clear()
         self._id_index.clear()
+        self._id_aliases.clear()
+        self._edges_by_source.clear()
+        self._edges_by_target.clear()
+        self._spatial_edges.clear()
+        self._trigger_index.clear()
+        self._indexed_edge_count = 0
+        self._revision += 1
 
     def load_from_dict(self, data: dict):
         self.nodes.clear()
         self.edges.clear()
+        self._id_aliases.clear()
         for node_id, ndata in data.get("nodes", {}).items():
             self.nodes[node_id] = Node(**ndata)
         for edata in data.get("edges", []):
@@ -269,6 +474,7 @@ class WorldGraph:
         self.normalize_node_types()
         self.normalize_edges()
         self._normalize_edge_endpoints()
+        self._rebuild_indexes()
 
     def _normalize_edge_endpoints(self):
         """Remap edge source/target ids to the canonical stored node ids.

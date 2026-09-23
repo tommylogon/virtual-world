@@ -46,6 +46,8 @@
                     <button class="dropdown-item" onclick="closeTopMenus();document.getElementById('file-upload').click()" role="menuitem">📂 Load JSON…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();ScenarioManager.open()" role="menuitem">🗂 Scenario Manager…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();ScenarioHealth.open()" role="menuitem">🩺 Scenario Health…</button>
+                <button class="dropdown-item" onclick="closeTopMenus();window.location.href='/soak'" role="menuitem">🧪 Soak Lab…</button>
+                <button class="dropdown-item" onclick="closeTopMenus();Timeskip.openDialog()" role="menuitem" title="Wait, mingle, search, explore or fast-travel for a span of game time">⏩ Wait / Timeskip…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();RoomTemplatePalette.open()" role="menuitem">🏗️ New Room from Template…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();SetupChecklist.open()" role="menuitem">🚀 Setup Checklist…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();saveScenarioToFile()" role="menuitem">📤 Export Scenario File…</button>
@@ -109,8 +111,8 @@
                 </div>
                 <div class="settings-group" style="border-top:1px solid var(--border-light);margin-top:6px;">
                     <div class="settings-group-title"><span class="group-icon">🎮</span> Turn Order</div>
-                    <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-turn-based" onchange="config.turnBased=this.checked;document.getElementById('turn-settings').style.display=this.checked?'block':'none';config.save();events.log(this.checked?'Turn-based enabled':'Turn-based disabled','system-msg');if(window.appEvents)appEvents.emit('state:updated',worldState?.data);"> ⏭️ Turn-Based Mode</label><span class="toggle-desc">Characters act one at a time</span></div>
-                    <div class="turn-settings-sub" id="turn-settings" style="display:none;"><div class="settings-field"><label for="agent-turn-order">Order</label><select id="agent-turn-order" style="width:160px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.turnOrder=this.value;config.save();if(window.TurnQueue&&config.turnBased){TurnQueue.initialize();if(window.appEvents)appEvents.emit('state:updated',worldState?.data);}"><option value="sequential">Sequential</option><option value="random">Random</option><option value="initiative">Initiative</option></select></div></div>
+                    <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-turn-based" onchange="config.turnBased=this.checked;if(this.checked&&window.VWSimultaneous.isSimultaneous(config.turnOrder)){config.setTurnMode('sequential');}else{config.save();}events.log(this.checked?'Turn-based enabled':'Turn-based disabled','system-msg');if(window.appEvents)appEvents.emit('state:updated',worldState?.data);"> ⏭️ Turn-Based Mode</label><span class="toggle-desc">Characters act one at a time</span></div>
+                    <div class="settings-field"><label for="agent-turn-order" data-help="simultaneous">Turn mode</label><select id="agent-turn-order" style="width:210px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.setTurnMode(this.value)"><option value="sequential">Sequential — one at a time</option><option value="random">Random — reshuffled each round</option><option value="initiative">Initiative — d20 + DEX</option><option value="simultaneous">Simultaneous — every character on a countdown</option><option value="simultaneous_room">Simultaneous per room — rooms independent, order within a room</option></select></div>
                 </div>
             </div>
             <div id="left-tab-outline" class="left-tab-pane" role="tabpanel">
@@ -167,6 +169,7 @@
                     <button class="toolbar-btn" data-tool="add_item" onclick="addItemViaGraph()">📦 Item</button>
                     <button class="toolbar-btn" data-tool="add_way" onclick="connectRoomsViaGraph()">🚪 Way</button>
                     <button class="toolbar-btn" onclick="openLibraryBrowser()">📚 Library</button>
+                    <button class="toolbar-btn" onclick="VW.structures.openBrowseDialog()">📦 Structures</button>
                 </div>
                 <div class="toolbar-divider"></div>
                 <!-- History -->
@@ -196,7 +199,9 @@
                 <!-- Canvas -->
                 <div class="toolbar-group" aria-label="Canvas controls">
                     <button class="toolbar-btn" id="btn-physics" onclick="graphManager.togglePhysics()" title="Toggle physics (freeze/unfreeze node positions)">⏸ Physics</button>
+<button class="toolbar-btn" id="btn-layout-mode" onclick="graphManager.toggleLayoutMode()" title="Free physics layout with contents following their parent. Click for hierarchical levels.">🌳 Levels</button>
                     <button class="toolbar-btn" onclick="graphManager.fitView()" title="Zoom to fit all nodes">⊞ Fit</button>
+                    <button class="toolbar-btn" id="btn-export-png" onclick="GraphExport.openDialog()" title="Export the graph as a high-resolution PNG (map background included)">📷 PNG</button>
                     <input class="graph-search" type="text" id="graph-search" placeholder="🔍 Search nodes or tags..." oninput="graphManager.filterNodes(this.value)" onkeydown="if(event.key==='Enter'){GraphNetwork.settleSearch();}" onblur="GraphNetwork.settleSearch()" title="Filter graph nodes by name or tag">
                     <label class="toolbar-btn" style="display:inline-flex;align-items:center;gap:3px;cursor:pointer;font-size:10px;" title="Freeze hidden nodes but keep matches in place (for spatial review)">
                         <input type="checkbox" id="search-keep-in-place" style="margin:0;cursor:pointer;" onchange="GraphFocus.setKeepInPlace(this.checked); this.parentElement.classList.toggle('active', this.checked)">
@@ -235,6 +240,7 @@
                         <button class="dropdown-item" onclick="closeTopMenus();graphManager.toggleTagPanel()" role="menuitem" title="Toggle tag filter / indicators">🏷️ Tags</button>
                         <button class="dropdown-item" onclick="closeTopMenus();openWorldSync()" role="menuitem" title="Sync world entities to library">📋 Sync to Library</button>
                         <button class="dropdown-item" onclick="closeTopMenus();printWorld()" role="menuitem" title="Printer-friendly world summary">🖨️ Print</button>
+                        <button class="dropdown-item" onclick="closeTopMenus();GraphExport.openDialog()" role="menuitem" title="Export the graph as a high-resolution PNG">📷 Export PNG</button>
                     </div>
                 </div>
                 <div class="toolbar-spacer"></div>
@@ -417,15 +423,16 @@
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-reactive-mode" onchange="config.reactiveMode=this.checked;config.save();"> 🔁 Reactive Mode</label><span class="toggle-desc">Thought→Act→React</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-streaming" onchange="config.streaming=this.checked;config.save();"> ⚡ Streaming Mode</label><span class="toggle-desc">Stream tokens in real time</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-thinking" onchange="config.thinking=this.checked;document.getElementById('thinking-effort-row').style.display=this.checked?'flex':'none';config.save();"> 🧠 Thinking Mode</label><span class="toggle-desc">Enable chain-of-thought reasoning (DeepSeek reasoning models)</span></div>
-                        <div class="toggle-row" id="thinking-effort-row" style="display:none;"><label class="toggle-label"><select id="agent-thinking-effort" style="width:120px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.thinkingEffort=this.value;config.save();"><option value="low">low</option><option value="high" selected>high</option><option value="xhigh">xhigh</option><option value="max">max</option></select> Thinking Effort</label><span class="toggle-desc">Reasoning effort level (low / high / xhigh / max)</span></div>
+                        <div class="toggle-row" id="thinking-effort-row" style="display:none;"><label class="toggle-label"><select id="agent-thinking-effort" style="width:120px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.thinkingEffort=this.value;config.save();"><option value="none">none (off)</option><option value="low">low</option><option value="high" selected>high</option><option value="xhigh">xhigh</option><option value="max">max</option></select> Thinking Effort</label><span class="toggle-desc">Reasoning effort level (none disables; low / high / xhigh / max). DeepSeek maps minimal→low, medium→high, xhigh→high, max→max.</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-suppress-local-thinking" onchange="config.suppressLocalThinking=this.checked;config.save();"> 🚫 Suppress Local Thinking</label><span class="toggle-desc">Inject empty assistant message to bypass Qwen 3.5 reasoning in LM Studio (API ignores disable flags)</span></div>
+                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-show-raw-llm" onchange="config.showRawLLM=this.checked;config.save();events.log('🔬 Raw LLM capture '+(this.checked?'enabled':'disabled'),'system-msg');"> 🔬 Show Raw LLM</label><span class="toggle-desc">Capture the full request/response JSON (status, headers, usage, reasoning tokens, error bodies) for the 🔬 LLM inspector. Authorization is redacted.</span></div>
+                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-end-of-turn-memory" onchange="config.endOfTurnMemory=this.checked;config.save();events.log('🧠 End-of-turn memory '+(this.checked?'enabled':'disabled'),'system-msg');"> 🧠 End-of-turn Memory</label><span class="toggle-desc">Ask the character to write a memory after its action resolves. Off by default — memories are normally written at the <b>start</b> of a turn.</span></div>
                         <div class="toggle-row"><label class="toggle-label"><select id="agent-api-format" style="width:160px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.apiFormat=this.value;config.save();"><option value="auto">Auto</option><option value="chat-completions">Chat Completions</option><option value="responses">Responses API</option></select> API Format</label><span class="toggle-desc">Responses API: /v1/responses for LM Studio / DeepSeek reasoning models (stateful chat &amp; MCP not supported)</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-show-logs" onchange="config.showLogs=this.checked;config.save();"> 📋 Show LLM Logs</label><span class="toggle-desc">Log LLM requests to event stream</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-manual-mode" onchange="config.manualMode=this.checked;llmClient._manualMode=this.checked;llmClient._manualResponse=null;config.save();VW?.events?.log(this.checked?'✋ Manual response mode enabled. Use 📋 Copy Prompt / 📝 Paste Response in graph toolbar.':'✋ Manual response mode disabled.','system-msg');"> ✋ Manual Response Mode</label><span class="toggle-desc">Skip API call, paste a manual response instead</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-auto-generate-descriptions" onchange="config.autoGenerateDescriptions=this.checked;config.save();(async()=>{try{await ApiClient.setAutoGenerateDescriptions(this.checked);}catch(e){}})();events.log('🪄 Auto-generate descriptions '+(this.checked?'enabled':'disabled'),'system-msg');"> 🪄 Auto-Generate Descriptions</label><span class="toggle-desc">Generate appearance description on equip/unequip</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-auto-retry-invalid" onchange="config.autoRetryInvalid=this.checked;config.save();events.log('🔁 Invalid-action auto-retry '+(this.checked?'enabled':'disabled'),'system-msg');"> 🔁 Auto-Retry Invalid Actions</label><span class="toggle-desc">Give the agent one same-turn retry when its action fails (error fed back)</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-structured-output" onchange="config.structuredOutput=this.checked;config.save();events.log('🧱 Structured output '+(this.checked?'enabled':'disabled')+(this.checked?'':' — back to plain JSON prompts'),'system-msg');"> 🧱 Structured Output</label><span class="toggle-desc">Send response_format (JSON schema) with every structured LLM call — provider-enforced valid JSON instead of prompt-begging. Auto-falls back if the provider rejects it.</span></div>
-                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-simultaneous-mode" data-help="simultaneous" onchange="config.simultaneousMode=this.checked;config.save();events.log('🌊 Simultaneous mode '+(this.checked?'enabled (experimental — chaos by design)':'disabled'),'system-msg');"> 🌊 Simultaneous Mode (experimental)</label><span class="toggle-desc">Requires <b>Turn-Based Mode OFF</b>. Every autonomous character acts on its own countdown (Social/traits/Energy derived) instead of the fixed turn order — ignores the turn queue entirely.</span></div>
                     </div>
                     <div class="settings-group">
                         <div class="settings-group-title"><span class="group-icon">👻</span> Ghost Mode</div>
@@ -777,6 +784,109 @@
         </div>
     </div>
 
+    <!-- GRAPH PNG EXPORT MODAL -->
+    <div id="graph-export-modal" class="modal" style="display:none;">
+        <div class="modal-content" style="width:420px;">
+            <div class="modal-header">
+                <h3>📷 Export graph as PNG</h3>
+                <button class="modal-close" onclick="GraphExport.closeDialog()">&times;</button>
+            </div>
+            <div style="padding:16px 20px;display:flex;flex-direction:column;gap:14px;font-size:12px;color:var(--text);">
+                <div>
+                    <div style="font-weight:600;margin-bottom:6px;">What to capture</div>
+                    <label style="display:flex;gap:8px;align-items:center;margin-bottom:5px;cursor:pointer;">
+                        <input type="radio" name="gexport-scope" value="graph" checked> Whole graph (fit all visible nodes)
+                    </label>
+                    <label style="display:flex;gap:8px;align-items:center;cursor:pointer;">
+                        <input type="radio" name="gexport-scope" value="view"> Current view (exact pan &amp; zoom)
+                    </label>
+                </div>
+                <div>
+                    <div style="font-weight:600;margin-bottom:6px;">Resolution</div>
+                    <label style="display:flex;gap:8px;align-items:center;margin-bottom:5px;cursor:pointer;">
+                        <input type="radio" name="gexport-scale" value="1"> 1× (screen)
+                    </label>
+                    <label style="display:flex;gap:8px;align-items:center;margin-bottom:5px;cursor:pointer;">
+                        <input type="radio" name="gexport-scale" value="2" checked> 2× (recommended)
+                    </label>
+                    <label style="display:flex;gap:8px;align-items:center;cursor:pointer;">
+                        <input type="radio" name="gexport-scale" value="3"> 3× (print)
+                    </label>
+                </div>
+                <div id="gexport-status" style="color:var(--text-muted);min-height:14px;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-green" id="gexport-go" onclick="GraphExport._submit()">🖼️ Export PNG</button>
+                <button class="btn btn-secondary" onclick="GraphExport.closeDialog()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TIMESKIP MODAL -->
+    <div id="timeskip-modal" class="modal" style="display:none;">
+        <div class="modal-content" style="width:460px;">
+            <div class="modal-header">
+                <h3>⏩ Timeskip</h3>
+                <button class="modal-close" onclick="Timeskip.closeDialog()">&times;</button>
+            </div>
+            <div style="padding:16px 20px;display:flex;flex-direction:column;gap:14px;font-size:12px;color:var(--text);">
+                <div id="timeskip-intent-block">
+                    <div style="font-weight:600;margin-bottom:6px;">Intent</div>
+                    <label style="display:flex;gap:8px;align-items:center;margin-bottom:5px;cursor:pointer;">
+                        <input type="radio" name="timeskip-intent" value="idle" checked> Wait here — do nothing; vitals keep running
+                    </label>
+                    <label style="display:flex;gap:8px;align-items:center;margin-bottom:5px;cursor:pointer;">
+                        <input type="radio" name="timeskip-intent" value="leisure"> Mingle / leisure — eat, drink, roam the area
+                    </label>
+                    <label style="display:flex;gap:8px;align-items:center;margin-bottom:5px;cursor:pointer;">
+                        <input type="radio" name="timeskip-intent" value="search"> Search — for an item (set a target or tags)
+                    </label>
+                    <label style="display:flex;gap:8px;align-items:center;margin-bottom:5px;cursor:pointer;">
+                        <input type="radio" name="timeskip-intent" value="explore"> Explore — head into the frontier
+                    </label>
+                    <label style="display:flex;gap:8px;align-items:center;cursor:pointer;">
+                        <input type="radio" name="timeskip-intent" value="travel"> Travel — to a known place, or a heading
+                    </label>
+                </div>
+                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                    <div style="font-weight:600;">For</div>
+                    <select id="timeskip-preset" style="padding:3px 6px;">
+                        <option value="30m">30 min</option>
+                        <option value="1h">1 hour</option>
+                        <option value="2h" selected>2 hours</option>
+                        <option value="4h">4 hours</option>
+                        <option value="8h">8 hours</option>
+                        <option value="until:dawn">until dawn</option>
+                        <option value="until:dusk">until dusk</option>
+                    </select>
+                    <span style="color:var(--text-muted);">or</span>
+                    <input id="timeskip-minutes" type="number" min="1" max="1440" placeholder="minutes" style="width:90px;padding:3px 6px;">
+                </div>
+                <div style="color:var(--text-muted);">Travel to a target uses the route length unless you type minutes; the other intents use the duration above.</div>
+                <div id="timeskip-target-block" style="display:flex;gap:10px;">
+                    <div style="flex:1;">
+                        <div style="font-weight:600;margin-bottom:4px;">Target <span style="color:var(--text-muted);">(travel area / search item)</span></div>
+                        <input id="timeskip-target" type="text" placeholder="e.g. Water Source" style="width:100%;padding:3px 6px;">
+                    </div>
+                    <div style="width:110px;">
+                        <div style="font-weight:600;margin-bottom:4px;">Heading</div>
+                        <input id="timeskip-heading" type="text" placeholder="west" style="width:100%;padding:3px 6px;">
+                    </div>
+                </div>
+                <div id="timeskip-tags-block">
+                    <div style="font-weight:600;margin-bottom:4px;">Watch tags <span style="color:var(--text-muted);">(comma separated — stop on discovery)</span></div>
+                    <input id="timeskip-tags" type="text" placeholder="relic, treasure" style="width:100%;padding:3px 6px;">
+                </div>
+                <div id="timeskip-status" style="color:var(--text-muted);min-height:14px;"></div>
+                <pre id="timeskip-result" style="display:none;max-height:180px;overflow:auto;white-space:pre-wrap;background:rgba(0,0,0,0.25);padding:8px;border-radius:4px;font-size:11px;margin:0;"></pre>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-green" id="timeskip-go" onclick="Timeskip.run()">⏩ Skip</button>
+                <button class="btn btn-secondary" onclick="Timeskip.closeDialog()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script>
     let _vitalModalPlayer = '';
     let _vitalModalName = '';
@@ -983,12 +1093,14 @@
     <script src="/static/js/stream/stream-control-mode.js"></script>
     <script src="/static/js/event-stream.js"></script>
     <script src="/static/js/world-state.js"></script>
+    <script src="/static/js/agent/simultaneous.js"></script>
     <script src="/static/js/config.js"></script>
     <script src="/static/js/api.js"></script>
     <script src="/static/js/prompt-docs.js"></script>
     <script src="/static/js/shared/dom-utils.js"></script>
     <script src="/static/js/shared/json-utils.js"></script>
     <script src="/static/js/shared/dataset-collector.js"></script>
+    <script src="/static/js/ui/llm-inspector.js"></script>
     <script src="/static/js/shared/json-schemas.js"></script>
     <script src="/static/js/shared/search-select.js"></script>
     <script src="/static/js/shared/trigger-types.js"></script>
@@ -1038,6 +1150,7 @@
     <script src="/static/js/graph/edge-types.js"></script>
     <script src="/static/js/graph/context-menu.js"></script>
     <script src="/static/js/graph/layout-engine.js"></script>
+    <script src="/static/js/graph/relative-layout.js"></script>
     <script src="/static/js/graph/tree-view.js"></script>
     <script src="/static/js/graph/node-operations.js"></script>
     <script src="/static/js/graph/node-badges.js"></script>
@@ -1046,6 +1159,8 @@
     <script src="/static/js/graph/tooltips.js"></script>
     <script src="/static/js/graph/focus.js"></script>
     <script src="/static/js/graph/network-manager.js"></script>
+    <script src="/static/js/graph/graph-background.js"></script>
+    <script src="/static/js/graph/graph-export.js"></script>
     <script src="/static/js/graph/edge-inspector.js"></script>
     <script src="/static/js/graph/event-handlers.js"></script>
     <script src="/static/js/graph-manager.js"></script>
@@ -1055,6 +1170,7 @@
     <script src="/static/js/item-library/contents-editor.js"></script>
     <script src="/static/js/item-library.js"></script>
     <script src="/static/js/library-browser.js"></script>
+    <script src="/static/js/structures.js"></script>
 <script src="/static/js/world-sync.js"></script>
     <script src="/static/js/inspector/helpers.js"></script>
     <script src="/static/js/inspector/known-by.js"></script>
@@ -1089,10 +1205,12 @@
     <script src="/static/js/ui/undo-history.js"></script>
     <script src="/static/js/ui/scenario-manager.js"></script>
     <script src="/static/js/ui/recent-edits.js"></script>
+    <script src="/static/js/ui/timeskip.js"></script>
     <script src="/static/js/narration-ui.js"></script>
     <script src="/static/js/validator-panel.js"></script>
     <script src="/static/js/nl-editor/staging.js"></script>
     <script src="/static/js/nl-editor/ghosts.js"></script>
+    <script src="/static/js/nl-editor/diff.js"></script>
     <script src="/static/js/nl-editor/tools.js"></script>
     <script src="/static/js/nl-editor/agent-loop.js"></script>
     <script src="/static/js/nl-editor/ui.js"></script>

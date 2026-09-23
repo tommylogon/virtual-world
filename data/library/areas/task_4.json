@@ -37,6 +37,9 @@
     }
   ],
   "name": "Task 4",
-  "tags": [],
+  "tags": [
+    "test",
+    "sealed"
+  ],
   "triggers": []
 }

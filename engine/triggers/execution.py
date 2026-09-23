@@ -320,9 +320,66 @@ class ExecutionMixin:
             return []
         outputs = []
 
-        # ── Build template context ──
+        # ── Walk trigger edges (task-406: fetch before building context) ──
+        triggers = self.graph.get_edges_for_source(
+            item_node.id, EDGE_TRIGGERS
+        )
+        if not triggers:
+            return []
+
+        # Cheap type pre-filter: if no edge could possibly match, skip the
+        # context build entirely. Superset of the per-edge filter below, so it
+        # can only remove work, never a real match.
+        def _type_might_match(raw):
+            if isinstance(raw, (list, tuple)):
+                return trigger_type in raw
+            return raw == trigger_type or (
+                isinstance(raw, str)
+                and raw.startswith("on_use_on")
+                and trigger_type == "on_use_on"
+            )
+
+        if not any(
+            _type_might_match(e.properties.get("trigger_type", ""))
+            for e in triggers
+        ):
+            return []
+
+        # ── Build template context (only now that something can fire) ──
         if context is None:
             context = {}
+        # Resolve the current area cheaply. Reading the legacy `current_area`
+        # property rebuilds an Area + its exits on every access, so prefer the
+        # area id/node; only fall back to the property for duck-typed callers.
+        area_node = None
+        area_name = ""
+        area_env = {}
+        if game_state is not None:
+            area_id = None
+            try:
+                if hasattr(game_state, "get_current_area_id"):
+                    area_id = game_state.get_current_area_id()
+            except Exception:
+                area_id = None
+            if area_id:
+                area_node = self.graph.get_node(area_id)
+            if area_node is None and item_node is not None:
+                try:
+                    area_id = self.graph._resolve_id(
+                        self._get_current_area_id(item_node, game_state) or ""
+                    )
+                except Exception:
+                    area_id = None
+                if area_id:
+                    area_node = self.graph.get_node(area_id)
+            if area_node is not None:
+                area_env = area_node.properties.get("environment", {}) or {}
+            else:
+                legacy_area = getattr(game_state, "current_area", None)
+                if legacy_area is not None:
+                    area_name = getattr(legacy_area, "name", "") or ""
+                    area_env = getattr(legacy_area, "environment", {}) or {}
+
         context.setdefault(
             "game_time",
             game_state.get_current_time() if game_state else "",
@@ -338,7 +395,7 @@ class ExecutionMixin:
         )
         context.setdefault(
             "area_name",
-            game_state.current_area.name if game_state and game_state.current_area else "",
+            area_node.name if area_node is not None else area_name,
         )
         context.setdefault("item_name", item_node.name if item_node else "")
         context.setdefault(
@@ -368,16 +425,11 @@ class ExecutionMixin:
                 "player_sanity",
                 str(game_state.player.vitals.get("Sanity", 0)),
             )
-        if game_state and game_state.current_area:
-            env = game_state.current_area.environment
-            context.setdefault("area_light", str(env.get("light", "")))
-            context.setdefault("area_temp", str(env.get("temperature", "")))
-            context.setdefault("area_smell", env.get("smell", ""))
+        if area_env:
+            context.setdefault("area_light", str(area_env.get("light", "")))
+            context.setdefault("area_temp", str(area_env.get("temperature", "")))
+            context.setdefault("area_smell", area_env.get("smell", ""))
 
-        # ── Walk trigger edges ──
-        triggers = self.graph.get_edges_for_source(
-            item_node.id, EDGE_TRIGGERS
-        )
         for trigger_edge in triggers:
             trigger_types_on_edge = trigger_edge.properties.get("trigger_type", "")
 
@@ -510,6 +562,15 @@ class ExecutionMixin:
             if not conditions_pass:
                 continue
 
+            # ── Fire-once triggers (legacy `once`) ──
+            # A discovery trigger must not re-fire on every examine — that
+            # would repeat its message and duplicate its spawned items.
+            once_node = self.graph.get_node(trigger_edge.target)
+            if once_node is not None:
+                once_props = once_node.properties or {}
+                if once_props.get("once") and once_props.get("fired"):
+                    continue
+
             # ── Execute all effects in order ──
             for effect in effects_list:
                 effect_type = effect.get("type", "message")
@@ -565,5 +626,9 @@ class ExecutionMixin:
                         game_state=game_state,
                     )
                 )
+
+            # Mark a `once` trigger as spent after it actually ran.
+            if once_node is not None and (once_node.properties or {}).get("once"):
+                once_node.properties["fired"] = True
 
         return outputs

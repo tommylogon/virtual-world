@@ -4,6 +4,12 @@
  * Records every node the GUI edits via ApiClient (updateNode / duplicateNode)
  * into a session-local history and exposes a floating 🕘 button (bottom-left)
  * that opens the list; click an entry to jump to that node.
+ *
+ * @module ui/recent-edits — the "where was I" rail
+ * @contributes RecentEdits: session-local history of GUI edits + the floating 🕘 jump button
+ * @powers jumping back to something you just edited (task-372)
+ * @relates hooks ApiClient updateNode/duplicateNode; drives the graph camera + inspector
+ * @docs docs/virtualWorld/UI & Settings/
  */
 
 (() => {

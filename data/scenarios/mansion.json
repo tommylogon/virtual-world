@@ -130,14 +130,21 @@
         "bookshelf_item"
       ],
       "decay_rates": {
-        "Hunger": 0.06,
-        "Thirst": 0.18,
+        "Hunger": 0.0034,
+        "Thirst": 0.025,
         "bladder": 1,
         "energy": 1,
         "entertainment": 1,
         "hygiene": 1,
         "sanity": 1,
-        "social": 1
+        "social": 1,
+        "Energy": 0.104,
+        "Social": 0.02,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Entertainment": 0.03,
+        "Mana": 0.0,
+        "Bladder": 0.42
       },
       "body_state": {
         "arm_left": {
@@ -522,14 +529,21 @@
       ],
       "discovered_items": [],
       "decay_rates": {
-        "Hunger": 0.06,
-        "Thirst": 0.18,
+        "Hunger": 0.0034,
+        "Thirst": 0.025,
         "bladder": 1,
         "energy": 1,
         "entertainment": 1,
         "hygiene": 1,
         "sanity": 1,
-        "social": 1
+        "social": 1,
+        "Energy": 0.104,
+        "Social": 0.02,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Entertainment": 0.03,
+        "Mana": 0.0,
+        "Bladder": 0.42
       },
       "body_state": {
         "arm_left": {
@@ -899,14 +913,21 @@
         "vase"
       ],
       "decay_rates": {
-        "Hunger": 0.06,
-        "Thirst": 0.18,
+        "Hunger": 0.0034,
+        "Thirst": 0.025,
         "bladder": 1,
         "energy": 1,
         "entertainment": 1,
         "hygiene": 1,
         "sanity": 1,
-        "social": 1
+        "social": 1,
+        "Energy": 0.104,
+        "Social": 0.02,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Entertainment": 0.03,
+        "Mana": 0.0,
+        "Bladder": 0.42
       },
       "body_state": {
         "arm_left": {
@@ -1291,14 +1312,21 @@
         "chandelier"
       ],
       "decay_rates": {
-        "Hunger": 0.06,
-        "Thirst": 0.18,
+        "Hunger": 0.0034,
+        "Thirst": 0.025,
         "bladder": 1,
         "energy": 1,
         "entertainment": 1,
         "hygiene": 1,
         "sanity": 1,
-        "social": 1
+        "social": 1,
+        "Energy": 0.104,
+        "Social": 0.02,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Entertainment": 0.03,
+        "Mana": 0.0,
+        "Bladder": 0.42
       },
       "body_state": {
         "arm_left": {
@@ -1687,15 +1715,22 @@
         "coat_rack"
       ],
       "decay_rates": {
-        "Hunger": 0.06,
-        "Thirst": 0.18,
+        "Hunger": 0.0034,
+        "Thirst": 0.025,
         "bladder": 1,
         "energy": 1,
         "entertainment": 1,
         "hygiene": 1,
         "sanity": 1,
         "social": 1,
-        "temperature": 0
+        "temperature": 0,
+        "Energy": 0.104,
+        "Social": 0.02,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Entertainment": 0.03,
+        "Mana": 0.0,
+        "Bladder": 0.42
       },
       "body_state": {
         "arm_left": {
@@ -2094,14 +2129,21 @@
         "portrait"
       ],
       "decay_rates": {
-        "Hunger": 0.06,
-        "Thirst": 0.18,
+        "Hunger": 0.0034,
+        "Thirst": 0.025,
         "bladder": 1,
         "energy": 1,
         "entertainment": 1,
         "hygiene": 1,
         "sanity": 1,
-        "social": 1
+        "social": 1,
+        "Energy": 0.104,
+        "Social": 0.02,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Entertainment": 0.03,
+        "Mana": 0.0,
+        "Bladder": 0.42
       },
       "body_state": {
         "arm_left": {
@@ -2528,14 +2570,21 @@
         "chandelier"
       ],
       "decay_rates": {
-        "Hunger": 0.06,
-        "Thirst": 0.18,
+        "Hunger": 0.0034,
+        "Thirst": 0.025,
         "bladder": 1,
         "energy": 1,
         "entertainment": 1,
         "hygiene": 1,
         "sanity": 1,
-        "social": 1
+        "social": 1,
+        "Energy": 0.104,
+        "Social": 0.02,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Entertainment": 0.03,
+        "Mana": 0.0,
+        "Bladder": 0.42
       },
       "body_state": {
         "arm_left": {
@@ -2929,14 +2978,21 @@
         "jerky"
       ],
       "decay_rates": {
-        "Hunger": 0.06,
-        "Thirst": 0.18,
+        "Hunger": 0.0034,
+        "Thirst": 0.025,
         "bladder": 1,
         "energy": 1,
         "entertainment": 1,
         "hygiene": 1,
         "sanity": 1,
-        "social": 1
+        "social": 1,
+        "Energy": 0.104,
+        "Social": 0.02,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Entertainment": 0.03,
+        "Mana": 0.0,
+        "Bladder": 0.42
       },
       "body_state": {
         "arm_left": {
@@ -3294,15 +3350,21 @@
       ],
       "discovered_items": [],
       "decay_rates": {
-        "Bladder": 0,
-        "Hunger": 0.06,
-        "Thirst": 0.18,
+        "Bladder": 0.42,
+        "Hunger": 0.0034,
+        "Thirst": 0.025,
         "bladder": 1,
         "energy": 1,
         "entertainment": 1,
         "hygiene": 1,
         "sanity": 1,
-        "social": 1
+        "social": 1,
+        "Energy": 0.104,
+        "Social": 0.02,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Entertainment": 0.03,
+        "Mana": 0.0
       },
       "body_state": {
         "arm_left": {

@@ -59,8 +59,10 @@ def get_autocomplete_options(vw, verb: str, prefix: str = "", character_name: st
                     way_directions.append(dir_name)
 
     area_chars = [
-        pname for pname, p in vw.player_manager.players.items()
-        if pname != player_name and vw._get_area_id_for_player(pname) == current_area_id
+        getattr(p, "name", pname) for pname, p in vw.player_manager.players.items()
+        if pname != player_name
+        and getattr(p, "name", pname) != player_name
+        and vw._get_area_id_for_player(pname) == current_area_id
     ]
 
     candidates = []
@@ -150,6 +152,12 @@ def get_autocomplete_options(vw, verb: str, prefix: str = "", character_name: st
     elif verb in ('attack', 'kill', 'speak', 'say', 'talk', 'whisper', 'shout'):
         for cname in area_chars:
             _add(cname)
+
+    elif verb in ('name', 'label'):
+        for cname in area_chars:
+            _add(cname)
+        for item in room_items + carried_items:
+            _add(item.properties.get('name') or item.id)
 
     elif verb in ('go', 'walk', 'move', 'enter'):
         for way in room_ways:

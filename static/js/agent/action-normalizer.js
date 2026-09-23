@@ -6,6 +6,12 @@
  * that the chosen verb is actually allowed.
  *
  * Load BEFORE agent-engine.js.
+ *
+ * @module agent/action-normalizer — LLM action → backend command translation
+ * @contributes ActionNormalizer: field→command-string mapping plus verb validation
+ * @powers turning the LLM's structured action JSON into a command the engine can execute
+ * @relates used by agent-engine; mirrors the verb list advertised in the system prompt
+ * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
 
 window.ActionNormalizer = (() => {
@@ -21,7 +27,7 @@ window.ActionNormalizer = (() => {
         'whisper', 'scream', 'pick', 'wear', 'equip', 'remove', 'unequip', 'wait',
         'nothing', 'pause', 'stay', 'stand', 'listen', 'lead', 'approach',
         'stow', 'combine', 'split', 'craft', 'make', 'teach',
-        'bind', 'enchant'
+        'bind', 'enchant', 'fear', 'interest'
     ]);
 
     // task-211: intimacy verbs are only valid actions in mature worlds. Kept
@@ -120,6 +126,7 @@ window.ActionNormalizer = (() => {
                 return parts.join(' ');
             }
             case 'grab': return obj ? `grab ${obj}` : verb;
+            case 'fear': case 'interest': return obj ? `${verb} ${obj}` : verb;
             case 'escape': case 'struggle': return verb;
             case 'wear': case 'equip': return item ? `wear ${item}` : verb;
             case 'remove': case 'unequip': return item ? `remove ${item}` : verb;

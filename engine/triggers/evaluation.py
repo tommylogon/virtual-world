@@ -31,7 +31,8 @@ class EvaluationMixin:
         if player is None:
             needle = str(target).lower()
             player = next(
-                (p for name, p in players.items() if str(name).lower() == needle),
+                (p for key, p in players.items()
+                 if str(getattr(p, "name", key)).lower() == needle),
                 None,
             )
         return player

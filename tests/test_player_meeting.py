@@ -1,7 +1,13 @@
-"""Tests for first-meeting Entertainment novelty boost (task-136).
+"""First-meeting Entertainment novelty (task-136, folded into task-425/434).
 
-Verifies that a character's first meeting with another character grants an
-Entertainment boost, once only, with trait modifiers.
+A first meeting grants Entertainment through the *shared novelty curve*, keyed on
+the other character's node id — the same mechanic as places and things. It used
+to be a separate flat +10, which double-paid with the perception grant task-425
+added, so a character who walked into a room holding a stranger got both. Now
+whichever happens first pays and the other pays nothing.
+
+The values are therefore `NOVELTY_MAX` (15), not 10, and the trait scaling is the
+curve's (curious x1.5, homebody 0).
 """
 import sys
 from pathlib import Path
@@ -9,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pytest
 from player import Player
-from engine.traits import TraitSystem
+from engine.novelty import NOVELTY_MAX
 
 
 def _player(ent=50, traits=None):
@@ -22,20 +28,21 @@ def _player(ent=50, traits=None):
 
 class TestFirstMeeting:
     def test_first_meeting_boosts_entertainment(self):
-        """Meeting a new character grants the base boost."""
+        """Meeting a new character grants full novelty."""
         p = _player(ent=50)
         was_new = p.register_first_meeting("Lyrie", tick=1)
         assert was_new is True
         assert "Lyrie" in p.relationships
-        assert p.vitals["Entertainment"] == 60  # base 10
+        assert p.vitals["Entertainment"] == 50 + NOVELTY_MAX
 
     def test_repeat_meeting_no_boost(self):
         """Seeing the same character again gives no extra boost."""
         p = _player(ent=50)
         p.register_first_meeting("Lyrie", tick=1)
+        gained = p.vitals["Entertainment"]
         was_new = p.register_first_meeting("Lyrie", tick=2)
         assert was_new is False
-        assert p.vitals["Entertainment"] == 60
+        assert p.vitals["Entertainment"] == gained
         assert p.relationships["Lyrie"]["interaction_count"] == 0
 
     def test_meeting_clamped_at_100(self):
@@ -45,13 +52,13 @@ class TestFirstMeeting:
         assert p.vitals["Entertainment"] == 100
 
     def test_curious_gets_half_again(self):
-        """curious trait: +50% boost."""
+        """curious: the curve gives +50%."""
         p = _player(ent=50, traits=["curious"])
         p.register_first_meeting("Lyrie", tick=1)
-        assert p.vitals["Entertainment"] == 65  # 10 * 1.5
+        assert p.vitals["Entertainment"] == 50 + int(NOVELTY_MAX * 1.5)
 
     def test_homebody_gets_nothing(self):
-        """homebody trait: no boost from meeting new people."""
+        """homebody: no boost from meeting new people."""
         p = _player(ent=50, traits=["homebody"])
         p.register_first_meeting("Lyrie", tick=1)
         assert p.vitals["Entertainment"] == 50
@@ -61,7 +68,46 @@ class TestFirstMeeting:
         p = _player(ent=50)
         p.update_relationship("Kaelen", tick=1, sentiment_change=0)
         assert "Kaelen" in p.relationships
-        assert p.vitals["Entertainment"] == 60
+        assert p.vitals["Entertainment"] == 50 + NOVELTY_MAX
+
+    # ── task-434: one paid experience, whatever the order ────────────────
+
+    def test_perception_then_meeting_pays_once(self):
+        """Walking into a room holding a stranger, then greeting them."""
+        p = _player(ent=50)
+        p.record_observation(p.node_id_for("Lyrie"), "You have met Lyrie.", 5,
+                             kind="character", location="Hall")
+        after_perception = p.vitals["Entertainment"]
+        p.register_first_meeting("Lyrie", tick=5)
+        assert p.vitals["Entertainment"] == after_perception
+
+    def test_meeting_then_perception_pays_once(self):
+        """The other order must pay the same — ordering must not decide."""
+        p = _player(ent=50)
+        p.register_first_meeting("Lyrie", tick=5)
+        after_meeting = p.vitals["Entertainment"]
+        p.record_observation(p.node_id_for("Lyrie"), "You have met Lyrie.", 5,
+                             kind="character", location="Hall")
+        assert p.vitals["Entertainment"] == after_meeting
+
+    def test_the_meeting_grant_is_keyed_on_the_node_id(self):
+        """Relationships key by name; novelty keys by node id. Crossing between
+        them must use the node id or the two never meet."""
+        p = _player(ent=50)
+        p.register_first_meeting("Lyrie", tick=1)
+        assert p.observation_tick(p.node_id_for("Lyrie")) == 1
+
+    def test_a_second_meeting_after_the_window_pays_again(self):
+        """The curve recovers, so a long-absent face is worth noticing again."""
+        from engine.novelty import DEFAULT_RECOVERY_MINUTES
+        p = _player(ent=0)
+        p.register_first_meeting("Lyrie", tick=0)
+        first = p.vitals["Entertainment"]
+        p.vitals["Entertainment"] = 0
+        p.register_first_meeting("Lyrie", tick=DEFAULT_RECOVERY_MINUTES)
+        # First meet only: the relationship already exists, so nothing is granted.
+        assert p.vitals["Entertainment"] == 0
+        assert first == NOVELTY_MAX
 
     def test_first_sighting_stamped_on_meeting(self):
         """register_first_meeting marks the record so the name stays hidden

@@ -91,7 +91,12 @@ def _make_two_room_world(way_state="open", see_through=False):
 
     lighting = MagicMock()
     lighting.can_see_in_dark = MagicMock(return_value=True)
-    lighting.get_ambient_light = MagicMock(side_effect=lambda area_id, env: int(env.get("light", 80)))
+    def _fake_ambient(area_id, env=None):
+        if env is None:
+            node = graph.get_node(area_id)
+            env = (node.properties.get("environment", {}) if node else {}) or {}
+        return int(env.get("light", 80))
+    lighting.get_ambient_light = MagicMock(side_effect=_fake_ambient)
     lighting.light_to_level = MagicMock(return_value="normal")
     lighting.get_light_int = MagicMock(return_value=80)
 

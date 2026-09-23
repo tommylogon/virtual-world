@@ -3,6 +3,12 @@
  *
  * Integrates StagingBuffer, ToolRouter, AgentLoop, and UI.
  * Exposes window.NLEditor singleton.
+ *
+ * @module nl-editor/index — the NL editor controller
+ * @contributes window.NLEditor: wires StagingBuffer + ToolRouter + AgentLoop + UI
+ * @powers the Cmd-L natural-language graph editor (task-387)
+ * @relates the entry point for the whole nl-editor cluster
+ * @docs docs/virtualWorld/dev_tasks/done/graph/task-387-natural-language-editor-mode.md
  */
 
 window.NLEditor = (() => {
@@ -35,7 +41,7 @@ window.NLEditor = (() => {
                         this.ui.setStatus('Thinking...', true);
                         break;
                     case 'llm:calling':
-                        this.ui.setStatus(`Thinking (round ${data.iteration}/10)…`, true);
+                        this.ui.setStatus(`Thinking (round ${data.iteration}/${this.agent.maxIterations})…`, true);
                         break;
                     case 'message:added':
                         if (data.role === 'user') {
@@ -57,7 +63,7 @@ window.NLEditor = (() => {
                         this.ui.setStatus('Waiting for choice', false);
                         break;
                     case 'turn:end':
-                        this.ui.setStatus('Ready', false);
+                        this.ui.setStatus(data?.error ? 'Error' : 'Ready', false);
                         // Refresh ghost previews; auto-pan when this turn staged
                         // something new ("here's what I just drafted").
                         if (typeof NLEditorGhosts !== 'undefined' && NLEditorGhosts?.refresh) {
@@ -66,6 +72,7 @@ window.NLEditor = (() => {
                         break;
                     case 'error':
                         this.ui.setStatus('Error', false);
+                        this.ui.appendErrorMessage(data?.error);
                         break;
                     case 'session:reset':
                         if (this.ui.chatList) this.ui.chatList.innerHTML = '';
@@ -104,14 +111,19 @@ window.NLEditor = (() => {
         /** Apply staged mutations to live world */
         async apply() {
             const res = await this.staging.apply();
-            if (res.success) {
+            if (res.invalid) {
+                this.ui.showValidationIssues(res.validation || [], true);
+                if (typeof toastError === 'function') {
+                    toastError('Validation failed — nothing applied. Fix the flagged ops.');
+                }
+            } else if (res.success) {
                 if (typeof toastSuccess === 'function') {
                     toastSuccess(`Applied ${res.appliedCount} changes to world.`);
                 }
                 this.agent.resetSession();
             } else if (res.errors && res.errors.length > 0) {
                 if (typeof toastError === 'function') {
-                    toastError(`Apply partially failed: ${res.errors.join(', ')}`);
+                    toastError(`Apply partially failed — ${res.remaining ?? 0} op(s) still staged: ${res.errors.join(', ')}`);
                 }
             }
             if (typeof NLEditorGhosts !== 'undefined') NLEditorGhosts?.refresh();
@@ -121,14 +133,19 @@ window.NLEditor = (() => {
         /** Apply only the checked staged ops; unchecked stay staged. */
         async applySelected(ids) {
             const res = await this.staging.apply(ids);
-            if (res.success) {
+            if (res.invalid) {
+                this.ui.showValidationIssues(res.validation || [], true);
+                if (typeof toastError === 'function') {
+                    toastError('Validation failed — nothing applied. Fix the flagged ops.');
+                }
+            } else if (res.success) {
                 if (typeof toastSuccess === 'function') {
                     toastSuccess(`Applied ${res.appliedCount} changes. ${this.staging.getOps().length} still staged.`);
                 }
                 this.agent.resetSession();
             } else if (res.errors && res.errors.length > 0) {
                 if (typeof toastError === 'function') {
-                    toastError(`Apply partially failed: ${res.errors.join(', ')}`);
+                    toastError(`Apply partially failed — ${res.remaining ?? 0} op(s) still staged: ${res.errors.join(', ')}`);
                 }
             }
             if (typeof NLEditorGhosts !== 'undefined') NLEditorGhosts?.refresh();

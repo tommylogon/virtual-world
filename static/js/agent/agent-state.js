@@ -1,6 +1,12 @@
 /**
  * agent-state.js — Agent turn eligibility and state tracking
  *
+ * @module agent/agent-state — turn eligibility + abort machinery
+ * @contributes AgentState: can-act checks (busy/unconscious/resting/simple_npc/manual) and cancel flags
+ * @powers skipping characters who cannot act, and clean cancellation mid-turn
+ * @relates consulted by agent-engine on every step; loaded before it
+ * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
+ *
  * Determines whether a character can act this turn based on:
  * - Busy/unconscious/resting state
  * - NPC simple_npc flag
