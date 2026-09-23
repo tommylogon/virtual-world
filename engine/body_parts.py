@@ -268,7 +268,9 @@ def default_body_state():
     Every region gets a ``sensitivity`` seeded from the catalog. Injury state
     is NOT stored here — it lives as ``body_part``-tagged condition instances
     (``injured``/``bleeding``), the single source of truth. Erogenous-only
-    numeric fields (hardness, wetness, flush, ...) land here in task-207.
+    state (hardness, wetness, flush, ...) is modeled as conditions
+    (``nipple_hard``/``blushing``/``wetness``), not numeric fields here
+    (task-207, descoped).
     """
     return {
         region_id: {

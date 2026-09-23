@@ -136,8 +136,9 @@ class Player:
         # Per-body-part numeric state (task-253 body-part taxonomy). Flat dict
         # keyed by region id from engine/body_parts.py: each region has a base
         # `sensitivity` and an `injury` slot (None until combat/conditions set
-        # one). Erogenous numeric fields (hardness, wetness, flush, ...) extend
-        # this per-region dict in task-207.
+        # one). Erogenous state (hardness, wetness, flush, ...) is modeled as
+        # conditions (nipple_hard/blushing/wetness), not numeric fields here
+        # (task-207, descoped).
         from engine.body_parts import default_body_state
         self.body_state = default_body_state()
         
