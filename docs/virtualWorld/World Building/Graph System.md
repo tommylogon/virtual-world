@@ -229,16 +229,18 @@ Equipment items have `equipped` edges from the item node to the player node, wit
 
 ## Graph Visualization in the UI
 
-The graph is rendered using **vis-network** (vis.js) in the browser. The frontend graph module lives in `static/js/graph/` with seven files:
+The graph is rendered using **vis-network** (vis.js) in the browser. The frontend graph module lives in `static/js/graph/`, one file per concern (the full, generated list is `docs/design/js-module-index.md`):
 
 | File | Purpose |
 |------|---------|
 | `network-manager.js` | vis.js setup, data loading, tooltips, legend, physics, filtering, overlays |
+| `relative-layout.js` | **Derive** node positions from relations (orbit, follow, levels, per-node controls) — see [Derived layout](#derived-layout-relative-layoutjs) |
 | `context-menu.js` | Right-click context menus for nodes and edges |
-| `layout-engine.js` | Cardinal direction layout algorithm |
+| `layout-engine.js` | Cardinal direction layout algorithm (map mode only) |
 | `tree-view.js` | World outline tree rendered in the left panel (Outline tab); click-to-focus camera |
 | `node-operations.js` | Node creation, editing, deletion, duplication |
 | `event-handlers.js` | Click, double-click, drag handlers |
+| `graph-background.js` | Map background layers (images beneath the nodes) |
 
 ### Node Visualization by Type
 
@@ -318,6 +320,52 @@ The sliders in **Settings → Graph** map directly:
 entirely — `applyCardinalLayout()` hardcodes its own `barnesHut` physics and force-places items and
 characters on a fixed grid. If you tweak the sliders and see no change, you're in Map mode.
 
+**They also govern areas and ways only, not a room's contents.** Since task-485 the contents are
+leashed to their parent by a derived offset (see below), so sliders that move the whole graph do not
+move them. To change how far a room's contents sit from it, use **Item Edge Length** — or the
+per-node overrides in the inspector.
+
+### Derived layout (`relative-layout.js`)
+
+A saved snapshot of every node's `x`/`y` is stale the moment anything is created or deleted, and it
+never explained *why* a node sat where it did. The layout is therefore **derived from the relations**
+and re-derived, not restored:
+
+- **Parent selection** uses a priority: `carrying` > `equipped` > `at` > `in` > `triggers`. A room's
+  item, a carried item and an equipped item each resolve to the right anchor; a mixed `in` group's
+  direction is resolved by depth from the area roots.
+- **Contents orbit their parent** instead of stacking on its label. The ring radius grows with the
+  crowd (`ORBIT`: `minRadius` 130, `maxRadius` 320, `spacing` 92, `baseEdgeLength` 60,
+  `nestedScale` 0.45). Ways sit at the **midpoint** of their two rooms and are placed first.
+- **Explicit distances are exact** — a `layout_distance`/`layout_child_distance` pins the offset even
+  if labels then overlap. The comfort floor/cap and crowd-spacing growth apply only to *inherited*
+  distances.
+- **Contents stay out of the global solver** (`{fixed:false, physics:false}`) and hold a
+  parent-relative offset that the **follow pass** re-applies. vis-network's `centralGravity` is a
+  *global field* applied to every node on every solver iteration, and the edge spring cannot outvote
+  it — measured, a large change to `springConstant`+`centralGravity` moved a settled layout by 2 px of
+  ~5900. The follow pass is incremental (only moved parents, `FOLLOW_MS` 120, `FOLLOW_BUDGET` 500) and
+  sleeps while physics is off.
+- **Dragging a room carries its contents exactly**; a dropped child keeps its place
+  (`rememberDrop`/`frozenDropOps`). **Item Edge Length** scales the orbit; changing a physics setting
+  calls `reseed()` so the arrangement re-derives.
+
+**Levels mode.** The toolbar's **🌳 Levels** button (config `graph_layout_mode`) hands the graph to
+vis's hierarchical solver for an outline-like view (`levelSeparation` 150, `nodeSpacing` 110,
+`treeSpacing` 170, physics forced off). Switching back to free physics does so cleanly — four silent
+re-enablers had to be fixed (`applyCardinalLayout`, `graph-background._applyLockState`, the persisted
+`graph.physics_enabled` load/switch paths, `_clearOverlay`).
+
+**Per-node physics (`layout_*` properties).** Precedence is **child → parent → global**, editable from
+the inspector's **Graph Physics** section (`H.setLayoutNumber` in `static/js/inspector/helpers.js`):
+
+| Property | On | Effect |
+|----------|----|--------|
+| `layout_static` | any node | freeze this node (`physics: false`) |
+| `layout_distance` / `layout_child_distance` | item / parent | exact distance from the parent (px) |
+| `layout_child_spacing` | parent | desired gap between its contents (px) |
+| `layout_min_radius` / `layout_max_radius` | parent | clamp the orbit ring (px) |
+
 ### Edge dedup & suppression (character↔item)
 
 The backend can emit **three** edges for the same item↔character link (`carrying`, `equipped`, and a
@@ -346,6 +394,10 @@ The toolbar's **🗺️ Map** button toggles a cardinal-direction-based grid lay
 | **Character nodes** | Stacked to the right of their current room | ❌ physics on, settles via edge |
 
 **Per-node physics:** Areas and ways use `physics: false` + `fixed: {x: true, y: true}` so they stay frozen in place. Items and characters use `physics: true` (default) — they settle naturally via their `location` edge springs while the layout is active.
+
+**Two guards (bug-45):** the cardinal layout only auto-moves nodes in **map mode** — in graph/manual
+view, hand-placed nodes stay where they were put — and a **frozen** node
+(`central_gravity_enabled: false`) is skipped even in map mode, so a pin survives a layout pass.
 
 **Setting cardinals on ways:** Open a way's inspector (`Connections` section). The Cardinal dropdowns for A→B and B→A are linked — selecting "east" for A→B automatically sets B→A to "west". When a cardinal changes, the graph layout updates live.
 

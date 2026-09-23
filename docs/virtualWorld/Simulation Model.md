@@ -107,6 +107,13 @@ at soak fidelity.
 - Zero LLM calls inside a skip; exactly one bounded memory is written on resume
   (**task-412**). `sleep` is the existing precedent for a duration task with the
   world ticking.
+- **In a shared world a skip is a per-character order, not a table-wide jump.** It
+  is declared on that character's turn and carried by the normal turn loop exactly
+  like an agent or a distant NPC; the character becomes genuinely background
+  (`simulation_mode`) and is promoted back to their player early on fear, a hostile
+  condition, a vital in its danger band, or a watched discovery (**task-481**).
+  The blocking "advance the world N minutes" is only the fast path when nothing
+  attended remains.
 
 See **task-464** (hub), **task-467** (belief travel + maps), **task-468**
 (background agendas that make interrupts actually happen).

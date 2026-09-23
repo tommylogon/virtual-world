@@ -28,7 +28,7 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 |-----|---------------|
 | [[World Building/Rooms & Areas\|Rooms & Areas]] | Area nodes, environment properties, descriptions per light level, area concept |
 | [[World Building/Doors & Connections\|Doors & Connections]] | Way nodes, 6 states, connections, hidden doors, unlocking, auto-close, pass_message |
-| [[World Building/Graph System\|Graph System]] | WorldGraph, Node/Edge dataclasses, 5 node types, 7 edge types, serialization |
+| [[World Building/Graph System\|Graph System]] | WorldGraph, Node/Edge dataclasses, 5 node types, 7 edge types, serialization, derived layout (orbit, levels, per-node physics) |
 
 ## [[Characters/Characters Overview|🧑 Characters]]
 
@@ -121,4 +121,4 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 - **Export-log lint**: `node tools/log_lint.cjs data/exports/<log>.txt` (or `npm run loglint -- <path>`)
 - **Dev tasks**: `python tools/tasks.py list` · `python tools/tasks.py validate`
 
-*Last updated: 2026-09-22*
+*Last updated: 2026-09-23*

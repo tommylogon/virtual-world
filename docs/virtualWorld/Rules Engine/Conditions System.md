@@ -38,6 +38,8 @@ Each entry in the condition catalog (library file or `player.py` fallback, `COND
     "blocks_speech": False,     # hard gate — cannot speak
     "auto_fail_checks": [],     # sense checks that auto-fail: ["sight", "hearing"]
     "auto_fail_saves": [],      # ability saves that auto-fail: ["STR", "DEX", "CON"]
+    "check_advantage": [],      # skills/abilities/"attack"/"*" rolled at advantage
+    "check_disadvantage": [],   # ... rolled at disadvantage
     "attack_mod": 0,            # modifier on the bearer's own attack rolls
     "defense_mod": 0,           # modifier on the bearer's defense (target defense_mod is subtracted from incoming attacks; negative = easier to hit)
     "speed_mult": 1.0,          # movement speed multiplier
@@ -240,6 +242,17 @@ Modifiers are presence-based per condition id: one mod per condition regardless 
 
 - `auto_fails_checks(player, sense)` (`engine/conditions.py:207-212`): `True` if any active condition auto-fails checks requiring `sense` (`"sight"`, `"hearing"`, ...).
 - `auto_fails_saves(player, stat)` (`engine/conditions.py:215-220`): `True` if any active condition auto-fails saves on ability `stat` (`"STR"`, `"DEX"`, `"CON"`, ...).
+
+### Advantage / Disadvantage
+
+`engine/checks.py::condition_flags(player, *targets)` returns `(advantage, disadvantage, auto_fail)` for
+a skill, an ability, or the literal `"attack"`. A condition definition — or an instance override — may
+carry `check_advantage` / `check_disadvantage` naming skills (`"Stealth"`), abilities (`"DEX"`) or
+`"attack"`; the special names `"*"` / `"all"` match every roll. Presence is per **condition**, not per
+instance: two `restrained` ties still give one disadvantage, not two. The flags feed the single
+resolution path in `engine/checks.resolve` (task-472), where advantage and disadvantage cancel before
+the roll. `restrained` ships `check_disadvantage: ["attack"]`; every other library file carries the two
+lists empty so the Definition-Schema editor exposes them.
 
 ## Movement Integration
 

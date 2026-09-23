@@ -4,6 +4,183 @@ All notable changes to VirtualWorld. See `docs/virtualWorld/Scenario Workflows &
 
 ---
 
+## Unreleased — "Hands Off the Wheel" (2026-09-21 → 09-23)
+
+A skip is not a special mode — it is the controller swap `Simulation Model` already
+implied. This pass makes it real: **a human can hand their character to a
+deterministic policy for a span and walk away**, the background tier gets a genuine
+action model (skill-checked finding, risky ground, fear read from tags), and the
+dice get one home. The graph, meanwhile, stopped trusting the `x`/`y` it was handed
+and started deriving position from the relations that were always the truth.
+
+### ⏳ A timeskip is a controller swap, not a mode
+`engine/timeskip.py` · `routes/timeskip_ops.py` · `static/js/ui/timeskip.js`. Declare
+an intent plus a span; the world advances **minute by minute** with the character's
+decisions supplied by a policy, and control returns the moment something relevant
+happens to them.
+
+- **Five intents** — `idle`, `leisure`, `search`, `explore`, `travel` — and a span in
+  minutes, hours, turns, a derived travel route, or "until dawn/dusk/noon". Dialog
+  presets 30m/1h/2h/4h/8h + custom; entry also from the command palette.
+- **The frame dial is never changed by a skip.** A skip advances whole turns of the
+  scenario's `time_per_tick_minutes`, so the clock (ticks × dial) stays consistent:
+  a 1-minute world resolves interrupts every minute, a 5-minute world every 5.
+- **No stasis, no protection.** Vitals decay and the environment applies — a wait in
+  a forest with no food or water can kill. The skip removes *decisions*, not
+  *consequences*.
+- **Zero LLM calls inside a skip**; exactly one bounded resume memory is written, and
+  the skip summary reports notable world events, not just the character's own trace.
+- **Interleaving mutations are refused** (`409`) while a skip runs, and the result
+  carries `vitals_before`/`vitals_after`, `clock_after` and the interrupt that ended it.
+
+### ⏭ Soak orders: one per character, on that player's turn
+`engine/soak.py` + `tick_turn`. In a shared world a timeskip is **not** a table-wide
+consensus and **not** a blocking server jump — it is an order attached to the
+character who declared it, declared on their turn and run by the normal turn loop
+exactly like an agent or a distant NPC.
+
+- **Genuinely background while it runs:** `simulation_mode` becomes `background`, the
+  soak tier drives the character, and the turn queue treats it as not attended; the
+  previous mode is restored when the order ends.
+- **Promotion hands control back early** on something feared, a hostile condition, a
+  vital in its danger band, or a discovery matching the order's `watch_tags`. It uses
+  **absolute** checks rather than crossings, because an order runs for many turns. A
+  search that turns up its target is a discovery exactly like in a blocking skip — the
+  policy result used to be dropped here, so a character searched straight past the
+  thing they were looking for.
+- **Re-queue follows the normal order rule** when the character is promoted back into
+  a table: sequential→alphabetic, random→shuffled, initiative→a fresh d20+DEX keeping
+  the current slot, simultaneous→the next unused slot.
+- **Cancel from the roster row** (`DELETE /api/world/soak?character=<name>`; defaults
+  to the active character, 404 on an unknown name, a clean no-op when nothing is
+  declared). **Status lives in the initiative/roster list** (`⏩ intent 42m` + ✕),
+  never in the composer — the composer is where you *declare*, not where you *watch*.
+- **No active character ⇒ a world advance** (`mode: "world"`): there is nobody to
+  attach an order to, so everyone soaks and the world jumps in one request.
+- Requests are capped at **1,440 minutes** — a synchronous request must not hold a
+  worker for a game week; the engine itself supports up to a week
+  (`MAX_MINUTES = 10080`).
+- `tests/test_soak_orders.py` (16) and `tests/test_soak_chain.py` (5 — background pass
+  → policy → time spent → promotion → resume memory → `soak_end`) drive the real
+  `world.tick_turn()`, covering fear mid-span, a search finding its target, span
+  accounting and death inside a soak.
+
+### 🎲 One home for the dice (task-472)
+`engine/checks.py` is the single resolution path: advantage and disadvantage cancel,
+degrees of success, criticals, auto-fail, `DCS`/`dc_band` and `opposed`.
+`SkillSystem.skill_check`/`saving_throw` are thin adapters that preserve their old
+tuple+message return, so nothing downstream had to change.
+
+- **Conditions feed the roll.** A condition definition (or instance) may carry
+  `check_advantage` / `check_disadvantage` / `auto_fail_checks` naming skills,
+  abilities, or the literal `"attack"`/`"*"` (`engine/checks.py::condition_flags`).
+  `restrained` now ships `check_disadvantage: ["attack"]` — it already had a flat
+  `attack_mod −2`, but a ties-up is *disadvantage*, not a bonus that stacks with a
+  bonus. All 38 library files gained the two empty lists, so a Definition-Schema edit
+  shows the fields instead of the code silently defaulting.
+
+### 🧑🎓 The whole skill sheet lives on the base sheet (task-474)
+The base sheet is **18 skills** — the six adventuring basics (Athletics, Acrobatics,
+Stealth, Perception, Survival, Persuasion) start at **1**, the other twelve at **0**.
+A save or library restore now **merges over** the defaults instead of replacing them,
+so a character authored before a skill existed still gets it.
+
+### 🍓 Finding things is a skill check now (tasks 469–471)
+- **Foraging is skill-checked in the soak tier**, and the `forage` mechanics tag
+  curates what a search can turn up in the wilds; `_pick_item` prefers forage-tagged
+  candidates.
+- **Searches can turn up junk, and the skill margin decides how useful it is** —
+  finding *something* is not the same as finding the right thing.
+- **Fear is a tag, not a global hostile flag.** `engine/fear.py` + per-character
+  `fear_tags` make what frightens a character data, driving `frightened` and the
+  involuntary/interrupt passes. `BackgroundSimulation` can also approach the player,
+  with relevance-gated interrupts so an unrelated distant event no longer moves the
+  human.
+
+### 🥾 Risky ground rolls; routine ground just takes 10 (task-475)
+`engine/traversal.py` turns "walk over there" into a real action for the soak tier.
+Routine ground takes 10 and never rolls; **risky ground** rolls the relevant skill
+against `HAZARD_DC 12`, and a failure spends the turn and lands the
+`HAZARD_CONDITION`. A refusal is remembered on the character (`traversal_avoid`) and
+one immediate detour is attempted rather than looping; `traversal.hop` never raises.
+
+- Wired through `BackgroundSimulation._hop` / `_travel_toward` / `_travel_to_area`
+  and `timeskip._move`, with `_target_step(avoid=…)`.
+- **Gaps recorded:** `engine/npc_behaviors.py` still calls `movement.move_to_area`
+  directly; there is no `swim`/`force` verb yet; and the actions in `SOAK_ACTIONS`
+  whose systems do not exist yet (calm/ride 476, treat/diagnose/identify_plant 478,
+  read_mood/investigate 468) wait on those tasks.
+
+### 🕸 Graph positions are derived, not remembered (task-485)
+`static/js/graph/relative-layout.js`. A saved snapshot of every node's `x`/`y` is
+stale the moment anything is created or deleted, and it never explained *why* a node
+sat where it did. Layout is now **derived from the relations** — parent priority
+carrying > equipped > at > in > triggers — and re-derived, not restored.
+
+- **A room's contents orbit it** instead of stacking on its label; the ring grows with
+  the crowd, and a mixed-`in` group's direction is resolved by depth from the area
+  roots. Ways sit at the midpoint of their two rooms.
+- **Explicit distances are exact** (labels may overlap); the comfort floor/cap and
+  crowd-spacing growth apply only to *inherited* distances.
+- **Physics settings finally reach the contents.** vis-network's `centralGravity` is a
+  *global field* applied to every node on every solver iteration, and the edge spring
+  cannot outvote it — measured, a large change to `springConstant`+`centralGravity`
+  moved a settled layout by **2 px of ~5900**. Contents therefore stay out of the
+  global solver (`{fixed:false, physics:false}`) and hold a parent-relative offset the
+  follow pass re-applies. **Item Edge Length** now scales the orbit; the other physics
+  sliders govern areas and ways.
+- **The follow pass is incremental and budgeted** (only moved parents; `FOLLOW_MS 120`,
+  `FOLLOW_BUDGET 500`, and it sleeps when physics is off) after the original per-frame
+  graph sweep proved too expensive.
+
+### 🪜 A levels layout, and per-node physics (task-485)
+- **🌳 Levels** mode (toolbar `#btn-layout-mode`, config `graph_layout_mode`) hands the
+  graph to vis's hierarchical solver for an outline-like view, switching back to free
+  physics cleanly. Making that switch honest meant killing four silent physics
+  re-enablers (`applyCardinalLayout`, `graph-background._applyLockState`, the persisted
+  `graph.physics_enabled` load/switch paths, `_clearOverlay`).
+- **Per-node control** — `layout_static`, `layout_distance`, `layout_child_distance`,
+  `layout_child_spacing`, `layout_min_radius`, `layout_max_radius`, precedence
+  child → parent → global — editable from the inspector's **Graph Physics** section.
+  Verified live: inherited 146–147 px; a parent at 80/40 gives 79–81; at 320 gives
+  319–320; one child pinned at 90 sits at 90.
+- **A frozen node is honoured in every layout** (bug-45), and **cardinal
+  auto-placement only runs in map mode** — in graph/manual view, hand-placed nodes stay
+  where they were put.
+
+### 🐛 Bugs killed
+- **bug-44** (filed): 21 authored container contents in the boot template carry an
+  **inverted** `in` edge (`item_Backpack → item_Ink`, `grandfather_clock →
+  brass_key`, `medicine_cabinet → antiseptic`), so the engine cannot see them.
+  Canonical direction is contained → container; this is repaired as data, not by
+  papering over the reader.
+- **bug-45** (fixed): a frozen node (`central_gravity_enabled: false`) was moved anyway
+  by the cardinal layout, and the cardinal layout ran in graph mode where it should not.
+- **bug-46** (fixed): the client event stream persisted in IndexedDB was restored into
+  whatever scenario loaded next, so exports mixed two worlds. It is now stamped with a
+  world key (`_scenario_name` → `scenario_source` → `body.dataset.scenarioName`) and
+  dropped when the key differs.
+
+### 🗃 Identity collapse, simultaneous turns, and the library as truth
+- **Character identity collapse + the fourth turn mode** (`53420e6`): `simultaneous`
+  resolves against a snapshot and commits together, on the same dial as
+  sequential/random/initiative.
+- **`6fb0887`**: the condition JSON library is the single source of truth; the
+  hardcoded `CONDITION_DEFINITIONS` dict is only the fallback, so a truncated or
+  corrupt file can never wipe definitions.
+- **Content refresh:** `world_template.json` was re-saved by the new engine — full
+  18-skill sheets, `soak: null`, `fear_tags`, derived node positions,
+  `central_gravity_enabled`, the Living Room's per-node layout tweaks, and **both
+  `graph_background` map layers** ("frosen wilds", "valerious-house-interior"), whose
+  images are committed alongside it.
+
+### 📋 Filed for next
+The `task-475` gaps above · `task-482` long spans, leisure vendors, the explore
+frontier · `task-483` search affordances, hints, per-area forage tables · `task-484`
+`frightened` tuning under per-character fear tags.
+
+---
+
 ## Unreleased — "One Copy of Every Truth" (2026-09-20 → 09-21)
 
 A saved world was carrying the same facts three times over, the natural-language

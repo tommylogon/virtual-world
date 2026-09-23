@@ -15,6 +15,7 @@ build/
 playwright-report/
 test-results/
 playwright/.cache/
+.playwright-mcp/
 *-playwright-screenshot*.png
 *screenshot*.png
 downloads/
