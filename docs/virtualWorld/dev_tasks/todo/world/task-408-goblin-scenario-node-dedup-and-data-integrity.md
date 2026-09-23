@@ -137,3 +137,31 @@ Still open in this task: dedupe the 46→23 character nodes, canonicalize
 way/area endpoint ids at authoring time, attach `high_metabolism`, add a
 `name`/`meta.title` (the app currently labels the file `world_template`), and
 the folder-authoring → compiled-JSON format.
+
+## Progress — 2026-09-23 (re-validation; trigger fixes not in the committed file)
+
+Re-checking the committed `data/scenarios/kraktooth_goblin_camp.json` today shows
+**76 validator issues**, not 0:
+
+```
+python tools/validate_scenario.py --input data/scenarios/kraktooth_goblin_camp.json
+→ 76 issues
+  - 23x  Character player_* missing description   (runtime player anchors)
+  - 53x  Trigger ... missing target / no incoming triggers edge
+```
+
+The same 76 issues are present in a pre-edit backup, so they are pre-existing.
+This means the 2026-09-20 authoring fixes (78 → 0) are **not** in the current
+file. Most likely cause: the scenario has `persist: true`, so loading it in the
+editor rewrites the file from the live world and re-introduces runtime artifacts
+(player anchors with no description, triggers whose `triggers` edges were not
+restored). Filed as bug-47 and folded in here — the folder-authoring compiler
+(change 5) should also define whether persist may ever write a scenario file,
+and if so, strip runtime-only artifacts first.
+
+Character identity note: `tests/test_character_identity.py` requires the legacy
+`character_*` aliases to remain in the file so `collapse_character_identity`
+(task-316) can merge them idempotently on load. Do **not** satisfy this task's
+"46→23" by deleting the `character_*` nodes outright — that breaks the alias
+contract. Dedupe must mean: one node per character *after load*, with the file
+keeping aliases that collapse cleanly.

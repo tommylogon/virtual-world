@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: inprogress
 area: world
 priority: high
 ---
@@ -112,4 +112,35 @@ always remains in a real area, as today.
 - Route tests prove an endpoint response excludes nodes outside the requested
   scope.
 - Browser test: scope navigation preserves current camera/filter behavior.
+
+## Progress — 2026-09-23 (backend slice)
+
+Landed (uncommitted):
+
+- `VirtualWorld.world_scopes` manifest attribute (`virtual_world_engine.py`).
+- Serialization round-trip in `engine/serialization.py` (`_serialize_world`
+  writes `world_scopes`; `load_from_dict` restores a dict or `{}`), so
+  `to_scenario_dict` carries it and legacy scenarios without a manifest are
+  unchanged.
+- `engine/world_scopes.py` — pure helpers: `normalise_manifest`,
+  `root_scope_ids`, `direct_child_ids`, `area_ids_in_scope` (recursive),
+  `scope_summary` (area/character/item counts, state, child ids),
+  `boundary_ways`, and `project(manifest, graph, players, scope_id, depth,
+  include_items)`.
+- `routes/world_scopes.py` + `routes/world_scopes_ops.py`:
+  - `GET /api/world/scopes` — top-level scope cards.
+  - `GET /api/world/scopes/<scope_id>` — child scope cards, or leaf area
+    summaries + boundary ways.
+  - `GET /api/world/scopes/<scope_id>/graph?depth=&include_items=` — projection;
+    items/edges included only when requested.
+- `tests/test_world_scopes.py` (12) — recursion, cardinality, boundary ways,
+  leaf vs building projections, manifest round-trip through `/api/load`, and
+  backward compatibility with no manifest. Full suite: 3451 passed, 6 known
+  pre-existing failures.
+
+Still open in this task:
+
+- Scope breadcrumb/tree UI above the graph (work plan step 4) and the
+  unmade-scope `Generate` affordance (step 5, depends on task-398).
+- `task-398` recipe/generation flow over `world_scopes`.
 

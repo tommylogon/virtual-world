@@ -481,6 +481,23 @@ def build_item_from_library(area: str, item_id: str) -> dict:
     return _api("POST", f"/api/library/items/{item_id}/place", {"area": area})
 
 
+@mcp.tool()
+def populate_area(area_id: str, seed: int = 1, furniture_max: int = 3,
+                  items_per_area: int = 6, preview: bool = False) -> dict:
+    """Populate an area with fitting furniture/items from the library by tag chain.
+
+    ``area_id`` is the graph node id (e.g. ``area_chief_s_pit``). Uses the
+    area's domain tags to select role-tagged furniture and matching items.
+    Set ``preview`` true to plan without applying.
+    """
+    return _api("POST", f"/api/populate/area/{area_id}", {
+        "seed": seed,
+        "furniture_max": furniture_max,
+        "items_per_area": items_per_area,
+        "preview": preview,
+    })
+
+
 # ──────────────────────────────────────────────
 # 7. Item Registry (Library)
 # ──────────────────────────────────────────────

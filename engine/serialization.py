@@ -240,6 +240,8 @@ class WorldSerializer:
             # background-map cache — always sees null.
             "_scenario_name": getattr(self.legacy, "_scenario_name", None),
             "world_lore": self.legacy.world_lore,
+            # task-397: hierarchy manifest (authored), not a projection. Optional.
+            "world_scopes": getattr(self.legacy, "world_scopes", {}) or {},
             "calendar_config": getattr(self.legacy, "calendar_config", None),
             "forecast_schedule": getattr(self.legacy, "forecast_schedule", None),
             "forecast_override": getattr(self.legacy, "forecast_override", None),
@@ -520,6 +522,9 @@ class WorldSerializer:
         self.legacy.ways = data.get("ways", {})
         self.legacy.item_registry = data.get("item_registry", {})
         self.legacy.world_lore = data.get("world_lore", [])
+        # task-397: optional hierarchy manifest; absent in legacy scenarios.
+        raw_scopes = data.get("world_scopes")
+        self.legacy.world_scopes = raw_scopes if isinstance(raw_scopes, dict) else {}
         # Graph background map: image path + transform (presentation only).
         background = data.get("graph_background")
         self.legacy.graph_background = background if isinstance(background, dict) else {}

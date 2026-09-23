@@ -118,6 +118,22 @@ Placement relations: `in` for container/storage furniture, `on` for display
 furniture, `at` for loose floor items. `apply_population(plan, spawn, relate,
 area_node_id)` takes caller callbacks so the engine never depends on Flask.
 
+### Live-world route
+
+```
+POST /api/populate/area/<area_id>
+body: { "seed": 1, "furniture_max": 3, "items_per_area": 6, "preview": false }
+```
+
+- Reads the area's domain tags, plans, and materializes into the running graph
+  via the public `materialize_library_item()` service.
+- `preview: true` returns the plan without applying.
+- Re-run safe: a non-empty area returns `status: "already_populated"`.
+- Empty/unresolvable → `status: "empty"` with `unresolved_domains`.
+- Exposed as the MCP tool **`populate_area`** and the **`🪄 Populate`** button in
+  the area inspector (`static/js/inspector/area-view.js`).
+- Tests: `tests/test_population.py` (engine) + `tests/test_population_route.py` (route).
+
 ### Domain tagging pass (`tools/tag_domains.py`, task-324)
 
 Adds the shared domain tags the chain needs. Dry-run by default.
@@ -137,7 +153,7 @@ tag library 521 → 535.
 | **task-357** structure save/load (connected-area bundles) | todo | Closest sibling: save a connected area group (with items) as a named bundle and re-import. |
 | **task-381** room-template palette | review | Authoring UI for "New Room from Template". |
 | **task-364** scenario-from-text wizard | review (implemented) | LLM drafts a whole scenario; this generator is the deterministic counterpart. |
-| **task-9** tag-chain item population | **implemented here (v1)** | `engine/population.py` — engine + tests; route/editor integration still open. |
+| **task-9** tag-chain item population | **review (implemented)** | `engine/population.py` + `POST /api/populate/area/<id>` + MCP + editor button + tests. |
 | **task-324** domain tag schema + area tagging | **partial (goblin camp)** | `tools/tag_domains.py`; 35 non-goblin areas still untagged. |
 | **task-398** deterministic structure generation | todo | Recipes + `GenerationPatch` — this generator + population is a working precursor. |
 | **task-289/290/317** template link sync / variants | todo | Keeping pieces in sync with placed instances. |

@@ -7,8 +7,8 @@ wiki: "[[Items & Inventory/Items Overview]]"
 **Filed**: 2026-07-17  
 **Rewritten**: 2026-08-21 (concept draft â†’ implementation plan after equip_slots/tag groundwork landed)  
 **Priority**: Medium  
-**Status**: Todo — **unblocked**: task-323 and task-324 both landed (done). This is the
-population hub, consumed by task-398 (deterministic structure generation) and depended on
+**Status**: Review — implemented 2026-09-23 (engine + route + MCP + editor button; see
+Implementation). Consumed by task-398 (deterministic structure generation) and depended on
 by task-438 (NL-editor region decomposition, which needs `engine/population.py`).
 
 ---
@@ -105,6 +105,38 @@ Area  "Clothing Store"   tags: [store, clothing]
 7. Tests: fixture graph with tagged empty area; assert furniture gets seeded,
    relations chosen by role, idempotency, density cap (pattern:
    tests/test_item_actions.py fixtures)
+
+## Implementation (2026-09-23)
+
+Landed (uncommitted at time of writing):
+
+- **`engine/population.py`** — `LibraryIndex` (tag → library id, 489 items/221 tags),
+  `plan_population(area_tags, index, rng, ...)`, `apply_population(plan, spawn,
+  relate, area_node_id)`. Pure + deterministic; no Flask imports. Unresolved
+  domains are reported, never silently substituted.
+- **`tools/tag_domains.py`** — task-324 domain/role tagging pass (dry-run default,
+  `--apply`). 22 goblin areas + 27 furniture + 27 items; +14 tag files.
+- **`routes/library_ops.py`** — public `materialize_library_item(app, library_id)`
+  (work plan step 1) so the engine is not coupled to `_spawn_library_item_node`.
+- **`routes/population.py` + `routes/population_ops.py`** — work plan step 4:
+  `POST /api/populate/area/<area_id>` with `seed`, `furniture_max`,
+  `items_per_area`, `preview`. Re-run safe: non-empty area → `already_populated`.
+- **`mcp_server.py`** — work plan step 5: `populate_area` tool.
+- **`static/js/inspector/area-view.js`** — work plan step 6: `🪄 Populate` button.
+- **Tests** — `tests/test_population.py` (7) + `tests/test_population_route.py` (5).
+
+Verified in-process (Flask test client): `area_storage_caves` previewed + applied
+3 furniture + 6 items; second call idempotent. Live browser/server verification
+pending (server was down).
+
+### Deferred / follow-ups
+
+- Density knobs not yet wired to `engine/runtime_config.py` SCHEMA (work plan
+  note) — currently request params only.
+- Raw tag intersection still admits generic matches (`interior`, `cave`); a
+  domain-category filter on `LibraryIndex` would tighten relevance.
+- Character equipment generation (task-325) and LLM-hybrid selection remain later
+  phases.
 
 ## Verification
 

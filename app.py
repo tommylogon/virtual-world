@@ -166,6 +166,8 @@ def register_routes(app):
     from routes.events import register_events_routes
     from routes.structures import register_structures_routes
     from routes.soak import register_soak_routes
+    from routes.population import register_population_routes
+    from routes.world_scopes import register_world_scopes_routes
 
 
     register_health_routes(app)
@@ -186,6 +188,8 @@ def register_routes(app):
     register_search_routes(app)
     register_structures_routes(app)
     register_soak_routes(app)
+    register_population_routes(app)
+    register_world_scopes_routes(app)
 
 # For running directly (development)
 if __name__ == '__main__':

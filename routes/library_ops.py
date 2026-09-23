@@ -167,6 +167,21 @@ def _spawn_library_item_node(app, item_id, lib_item, container_id=None, node_id=
     return node_id
 
 
+def materialize_library_item(app, library_id):
+    """Create a world node for a library item WITHOUT placing it.
+
+    Public materialization service for engine/tool callers (task-9). The caller
+    writes the spatial edge afterwards (see ``graph_add_relation_edge``), which
+    keeps the population engine free of Flask/route-private helpers.
+
+    Returns the new node id, or None when the library entry is missing.
+    """
+    lib_item = _lookup_library_item(app, library_id)
+    if not lib_item:
+        return None
+    return _spawn_library_item_node(app, library_id, lib_item)
+
+
 def _materialize_contained_items(app, parent_node_id, contents, logger_ctx=""):
     for child_ref in (contents or []):
         child_id = _content_ref_id(child_ref)

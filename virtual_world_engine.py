@@ -132,6 +132,11 @@ class VirtualWorld:
         # World lore: shared list of structured lore entries
         self.world_lore = []
 
+        # task-397: hierarchy manifest over the flat area/way/item graph.
+        # {scope_id: {id, kind, name, parent_id, children, area_ids, state, generation}}
+        # Optional: scenarios without a manifest behave exactly as before.
+        self.world_scopes = {}
+
         # ── Calendar (task-228) ──
         self.calendar_config = {
             "minutes_per_day": 1440,

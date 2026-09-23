@@ -170,7 +170,8 @@ window.InspectorAreaView = (() => {
                     </div>
                 </div>
             </div>
-<button class="btn btn-sm btn-ghost" @click=${() => libraryBrowser.saveAreaByName(name)} title="Save this area to library" style="font-size:10px;">📚 Save to Library</button>
+            <button class="btn btn-sm btn-ghost" data-populate-area=${actualNodeId} @click=${() => RV.populateArea(actualNodeId)} title="Populate this area with fitting furniture and items from the library by its domain tags" style="font-size:10px;">🪄 Populate</button>
+            <button class="btn btn-sm btn-ghost" @click=${() => libraryBrowser.saveAreaByName(name)} title="Save this area to library" style="font-size:10px;">📚 Save to Library</button>
             <button class="btn btn-sm btn-ghost" @click=${() => graphManager._duplicateNode(actualNodeId)} title="Duplicate this area with its items, contents and triggers" style="font-size:10px;">📋 Duplicate</button>
             <button class="btn btn-sm btn-ghost" @click=${() => hideInspectorPanel()}>✕</button>
         </div>`;
@@ -487,6 +488,41 @@ Improve this area's description and environment settings. Make the description m
     RV._refreshFromLibrary = async function(nodeId) {
         if (!window.InspectorTemplateSync) return;
         await window.InspectorTemplateSync.refreshFromLibrary('area', nodeId);
+    };
+
+    /**
+     * Populate this area with fitting furniture/items from the library by its
+     * domain tags (task-9). Refreshes world state + the inspector on success.
+     * @param {string} nodeId - Area graph node ID
+     */
+    RV.populateArea = async function(nodeId) {
+        const btn = document.querySelector(`[data-populate-area="${nodeId}"]`);
+        const original = btn ? btn.textContent : '';
+        if (btn) { btn.disabled = true; btn.textContent = 'Populating…'; }
+        try {
+            const res = await fetch(`/api/populate/area/${encodeURIComponent(nodeId)}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({}),
+            });
+            const data = await res.json();
+            if (!res.ok || data.error) {
+                console.warn('Populate failed:', data.error || res.status);
+            } else if (data.status === 'empty') {
+                console.info('Nothing to place for this area:',
+                    (data.unresolved_domains || []).join(', ') || data.notes);
+            }
+            if (window.worldState && typeof worldState.fetch === 'function') {
+                await worldState.fetch();
+            }
+            if (window.VW && VW.inspector && typeof VW.inspector.showNode === 'function') {
+                VW.inspector.showNode(nodeId);
+            }
+        } catch (err) {
+            console.warn('Populate failed:', err);
+        } finally {
+            if (btn) { btn.disabled = false; btn.textContent = original || '🪄 Populate'; }
+        }
     };
 
     // Register the template-sync pattern for areas.
