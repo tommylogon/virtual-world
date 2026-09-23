@@ -805,6 +805,15 @@ class TickManager:
             except Exception as e:
                 logger.warning("[tick] background_simulation: %s", e)
 
+            # Per-character soak orders (task-481): a human who declared "go west
+            # for an hour" runs on a policy each turn, exactly like an agent or a
+            # distant NPC, and is promoted back when something demands attention.
+            try:
+                from engine.soak import apply_orders
+                apply_orders(self.gs)
+            except Exception as e:
+                logger.warning("[tick] soak orders: %s", e)
+
         # ── Delayed events now due (task-90) ──
         # Fired AFTER the clock advances, so an event scheduled 5 ticks from
         # now fires on the 5th subsequent turn. Iterate a snapshot: an event's

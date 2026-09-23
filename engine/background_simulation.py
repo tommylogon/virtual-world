@@ -149,6 +149,10 @@ class BackgroundSimulation:
         a long sleep cannot leave a backlog to dump on waking.
         """
         for name, p in list(self.gs.players.items()):
+            # A declared soak order drives this character for its span (its
+            # intent, not the generic need policy) — see engine/soak.
+            if getattr(p, "soak_order", None):
+                continue
             focused = getattr(p, "simulation_mode", "active") != "background"
             # Human-driven characters (autonomy False) are never puppeted: the
             # player's minutes are theirs. This is the documented marker

@@ -315,3 +315,7 @@ def _visible_here(gs, area_name):
             out.add((getattr(node, "type", ""), getattr(node, "id", ""),
                      getattr(node, "name", ""), tags))
     return out
+
+
+#: Public alias: the spatial entries in an area, for soak orders (engine/soak).
+visible_here = _visible_here

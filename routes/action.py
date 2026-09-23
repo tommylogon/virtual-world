@@ -17,7 +17,7 @@ from .action_handlers import (
     handle_apply_turn_decay,
     handle_clear_turn_events,
 )
-from .timeskip_ops import handle_timeskip
+from .timeskip_ops import handle_timeskip, handle_soak_declare, handle_soak_cancel
 
 logger = logging.getLogger(__name__)
 
@@ -79,3 +79,11 @@ def register_action_routes(app):
     @app.route('/api/world/timeskip', methods=['POST'])
     def world_timeskip():
         return handle_timeskip(app)
+
+    @app.route('/api/world/soak', methods=['POST'])
+    def world_soak():
+        return handle_soak_declare(app)
+
+    @app.route('/api/world/soak', methods=['DELETE'])
+    def world_soak_cancel():
+        return handle_soak_cancel(app)

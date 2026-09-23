@@ -122,6 +122,30 @@ def advance_world(gs, minutes, *, rng=None) -> TimeskipResult:
     return result
 
 
+def frame_minutes(gs) -> float:
+    """Public alias for the frame dial a skip or soak order steps by."""
+    return _frame_minutes(gs)
+
+
+def run_policy_step(gs, sim, player, *, intent="idle", target=None,
+                    watch_tags=(), target_type=None, heading=None,
+                    remaining=None):
+    """One turn of a policy for *player* (shared by skips and soak orders).
+
+    Returns a found node when a search succeeds, else None (task-481 reuses this
+    so a declared soak order behaves exactly like a timeskip policy).
+    """
+    if remaining is None:
+        remaining = _frame_minutes(gs)
+    return _policy_step(gs, sim, player, intent, target, watch_tags,
+                        target_type, heading, remaining)
+
+
+def write_resume_memory(gs, player, result, intent, target):
+    """Write the one bounded resume memory for a policy span (public wrapper)."""
+    return _write_memory(gs, player, result, intent, target)
+
+
 def is_running() -> bool:
     """True while a timeskip is advancing the world.
 

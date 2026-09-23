@@ -175,6 +175,11 @@ class Player:
         # farmers vs goblins differ purely by these lists, so no group needs a
         # global "hostile" flag that makes it panic at its own kind.
         self.fear_tags = []
+        # An active soak order (task-481): declared on this human's turn ("go
+        # west for an hour"), it makes the character run on a policy each turn
+        # until the span is spent or something promotes them back. None = normal
+        # attended play. Transient: deliberately not serialized.
+        self.soak_order = None
         # Conditions system: {condition_id: [instance, instance, ...]} — MULTIPLE
         # concurrent instances per condition (5 vials of poison = 5 `poisoned`
         # instances). Each instance: {duration, source, level, periodic, ends_on,
