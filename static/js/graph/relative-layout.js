@@ -76,6 +76,56 @@ window.GraphRelativeLayout = {
             spacing: this.ORBIT.spacing * scale,
         };
     },
+
+    /**
+     * Whether a node is *placed* rather than simulated: it keeps its own x/y and
+     * is never repositioned. Two ways to say it — the inspector's "Physics
+     * enabled" off (`central_gravity_enabled: false`) or an explicit
+     * `layout_static: true` — because they are the same intent.
+     */
+    isStatic(node) {
+        const props = (node && node.properties) || {};
+        return props.central_gravity_enabled === false || props.layout_static === true;
+    },
+
+    /**
+     * How a *parent* wants its contents arranged. A per-node override wins over
+     * the global setting, so a room can say "my contents sit 90px out, 40px
+     * apart" without changing every other room:
+     *
+     *   layout_child_distance  - desired distance from the parent (px)
+     *   layout_child_spacing   - desired gap between its contents (px)
+     *   layout_min_radius / layout_max_radius - clamp the ring
+     */
+    _parentSpec(parentNode) {
+        const props = (parentNode && parentNode.properties) || {};
+        const base = this._orbitSpec();
+        const positive = (value) => (Number(value) > 0 ? Number(value) : null);
+        return {
+            ...base,
+            distance: positive(props.layout_child_distance) || base.length,
+            spacing: positive(props.layout_child_spacing) || base.spacing,
+            minRadius: positive(props.layout_min_radius) || base.minRadius,
+            maxRadius: positive(props.layout_max_radius) || base.maxRadius,
+        };
+    },
+
+    /** A node's own desired distance from its parent, else its parent's default. */
+    _childDistance(node, spec) {
+        const props = (node && node.properties) || {};
+        const own = Number(props.layout_distance);
+        return own > 0 ? own : spec.distance;
+    },
+
+    /** True when this child's distance was asked for by name, not inherited. */
+    _distanceIsExplicit(node, parentNode) {
+        const props = (node && node.properties) || {};
+        const parentProps = (parentNode && parentNode.properties) || {};
+        return Number(props.layout_distance) > 0
+            || Number(parentProps.layout_child_distance) > 0
+            || Number(parentProps.layout_min_radius) > 0
+            || Number(parentProps.layout_max_radius) > 0;
+    },
     // Children stay dynamic: they hold a *relative* offset from their parent and
     // that offset is re-applied as the parent moves, so a dragged room carries
     // its contents while global central gravity can never stretch a child away
@@ -301,7 +351,8 @@ window.GraphRelativeLayout = {
             });
             const index = Math.max(0, siblings.indexOf(id));
             const count = Math.max(1, siblings.length);
-            out[id] = this.orbitPosition(parentPos, index, count, node, Math.max(1, depthOf(id)));
+            out[id] = this.orbitPosition(parentPos, index, count, node,
+                                         Math.max(1, depthOf(id)), nodes[parent]);
         }
         return out;
     },
@@ -353,21 +404,37 @@ window.GraphRelativeLayout = {
     },
 
     /**
-     * Where the *n*-th of *count* children of a parent orbits: evenly spaced on a
-     * ring. The radius is the item-edge-length setting (Hug Parent <-> Stretched),
-     * grown when the crowd needs more room for labels, and floored/capped so it is
-     * never a pile on the label nor stretched across the map. Nested contents
-     * orbit their container on a proportionally smaller ring.
+     * Where the *n*-th of *count* children of a parent orbits. The radius is the
+     * child's own `layout_distance`, else the parent's `layout_child_distance`,
+     * else the item-edge-length setting (Hug Parent <-> Stretched), grown when the
+     * crowd needs more room for labels, and clamped by the parent's
+     * `layout_min_radius`/`layout_max_radius`. Nested contents orbit their
+     * container on a proportionally smaller ring.
      */
-    orbitPosition(parentPos, index, count, node, depth) {
-        const spec = this._orbitSpec();
+    orbitPosition(parentPos, index, count, node, depth, parentNode) {
+        const spec = this._parentSpec(parentNode);
         const nested = depth >= 2;
-        const want = nested ? spec.length * this.ORBIT.nestedScale : spec.length;
+        const want = nested
+            ? this._childDistance(node, spec) * this.ORBIT.nestedScale
+            : this._childDistance(node, spec);
         const spacing = nested ? spec.spacing * this.ORBIT.nestedScale : spec.spacing;
         const needed = (Math.max(1, count) * spacing) / (2 * Math.PI);
-        const floor = nested ? spec.minRadius * this.ORBIT.nestedScale : spec.minRadius;
-        const ceiling = nested ? spec.maxRadius * this.ORBIT.nestedScale : spec.maxRadius;
-        const radius = Math.max(floor, Math.min(Math.max(want, needed), ceiling));
+        // An explicitly requested distance is honoured even outside the comfort
+        // range: someone who says "90px" or "400px" means it (labels may overlap
+        // at 90 - that is what hugging means). The range only governs the
+        // automatic growth for a crowd.
+        const explicit = this._distanceIsExplicit(node, parentNode);
+        const floor = explicit
+            ? Math.min(nested ? spec.minRadius * this.ORBIT.nestedScale : spec.minRadius, want)
+            : (nested ? spec.minRadius * this.ORBIT.nestedScale : spec.minRadius);
+        const ceiling = explicit
+            ? Math.max(nested ? spec.maxRadius * this.ORBIT.nestedScale : spec.maxRadius, want)
+            : (nested ? spec.maxRadius * this.ORBIT.nestedScale : spec.maxRadius);
+        const radius = explicit
+            // An asked-for distance is exact: "80px away" means 80px, even if that
+            // means labels touch. Automatic growth is only for inherited distances.
+            ? Math.max(want, 0)
+            : Math.max(floor, Math.min(Math.max(want, needed), ceiling));
         const angle = this.ORBIT.startAngle + (2 * Math.PI * index) / Math.max(1, count);
         return {
             x: parentPos.x + radius * Math.cos(angle),
@@ -406,7 +473,7 @@ window.GraphRelativeLayout = {
             if (!node || node.type === 'area' || node.type === 'way') continue;
             // A node the user froze keeps its own place (and its physics stays off);
             // no offset is recorded for it, so the follow pass leaves it alone too.
-            if ((node.properties || {}).central_gravity_enabled === false) continue;
+            if (this.isStatic(node)) continue;
             if (!Number.isFinite(pos.x) || !Number.isFinite(pos.y)) continue;
             const parent = parents[id];
             const parentPos = parent ? derived[parent] : null;
@@ -635,7 +702,7 @@ window.GraphRelativeLayout = {
         const ops = [];
         for (const id of ids || []) {
             const props = (nodes[id] || {}).properties || {};
-            if (props.central_gravity_enabled !== false) continue;
+            if (!this.isStatic(nodes[id])) continue;
             const body = network.body?.nodes?.[id];
             if (!body || !Number.isFinite(body.x) || !Number.isFinite(body.y)) continue;
             ops.push({

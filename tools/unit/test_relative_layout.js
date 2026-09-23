@@ -416,6 +416,35 @@ test('a dragged frozen node has its position written so a reload keeps it', () =
     }
 });
 
+test('a parent can set how its own contents are arranged', () => {
+    const nodes = {
+        area_a: { type: 'area', properties: { layout_child_distance: 90, layout_child_spacing: 40, layout_max_radius: 200 } },
+        item_0: { type: 'item' }, item_1: { type: 'item' },
+    };
+    const edges = [
+        { type: 'in', source: 'item_0', target: 'area_a' },
+        { type: 'in', source: 'item_1', target: 'area_a' },
+    ];
+    const out = GraphRelativeLayout.layoutPositions(nodes, edges, { area_a: { x: 0, y: 0 } });
+    const r = Math.round(Math.hypot(out.item_0.x, out.item_0.y));
+    // max(90 requested, 2 children * 40 spacing / 2pi = 13) = 90
+    assertEq(r, 90, 'the parent controls its own ring');
+});
+
+test('a child can override its own distance from the parent', () => {
+    const nodes = { area_a: { type: 'area', properties: { layout_child_distance: 90 } }, item_0: { type: 'item', properties: { layout_distance: 140 } } };
+    const edges = [{ type: 'in', source: 'item_0', target: 'area_a' }];
+    const out = GraphRelativeLayout.layoutPositions(nodes, edges, { area_a: { x: 0, y: 0 } });
+    assertEq(Math.round(Math.hypot(out.item_0.x, out.item_0.y)), 140, 'the child wins for itself');
+});
+
+test('a static node is recognised however it is declared', () => {
+    assertTrue(GraphRelativeLayout.isStatic({ properties: { central_gravity_enabled: false } }), 'physics off');
+    assertTrue(GraphRelativeLayout.isStatic({ properties: { layout_static: true } }), 'layout_static');
+    assertFalse(GraphRelativeLayout.isStatic({ properties: {} }), 'default is dynamic');
+    assertFalse(GraphRelativeLayout.isStatic(null), 'missing node is dynamic');
+});
+
 test('the item-edge-length setting drives the orbit (Hug Parent vs Stretched)', () => {
     const nodes = { area_a: { type: 'area' }, item_0: { type: 'item' }, item_1: { type: 'item' } };
     const edges = [

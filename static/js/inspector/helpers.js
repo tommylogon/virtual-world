@@ -34,7 +34,8 @@ window.InspectorHelpers = (() => {
      * @returns {TemplateResult}
      */
     H.graphGravityControl = function(nodeId, props = {}) {
-        const enabled = props.central_gravity_enabled !== false;
+        const enabled = props.central_gravity_enabled !== false && props.layout_static !== true;
+        const num = (value) => (Number(value) > 0 ? Number(value) : '');
         return htmlTag`<div class="inspector-section">
             <h3>Graph Physics</h3>
             <div class="field">
@@ -45,7 +46,48 @@ window.InspectorHelpers = (() => {
                 </label>
                 <div class="section-hint" style="margin-top:4px;">Turn off to freeze this node in place while the rest of the graph settles.</div>
             </div>
+            <div class="field">
+                <label title="How far this node sits from the thing that holds it (its parent). Blank = whatever the parent or the graph setting says.">
+                    Distance from parent
+                    <input type="number" min="0" step="5" .value=${window.Lit.live(num(props.layout_distance))}
+                        @change=${(ev) => H.setLayoutNumber(nodeId, 'layout_distance', ev.target.value)}>
+                </label>
+                <label title="How far this node's own contents sit from it. Blank = the graph-wide setting.">
+                    Distance of my contents
+                    <input type="number" min="0" step="5" .value=${window.Lit.live(num(props.layout_child_distance))}
+                        @change=${(ev) => H.setLayoutNumber(nodeId, 'layout_child_distance', ev.target.value)}>
+                </label>
+                <label title="The gap between this node's contents. Blank = derived from the distance.">
+                    Spacing of my contents
+                    <input type="number" min="0" step="5" .value=${window.Lit.live(num(props.layout_child_spacing))}
+                        @change=${(ev) => H.setLayoutNumber(nodeId, 'layout_child_spacing', ev.target.value)}>
+                </label>
+                <div class="section-hint" style="margin-top:4px;">Per-node physics distances. Leave blank to use the Item Edge Length setting.</div>
+            </div>
         </div>`;
+    };
+
+    /**
+     * Set a numeric layout property on a node (blank clears it back to the
+     * inherited setting) and re-derive the contents' arrangement.
+     * @param {string} nodeId - Graph node ID
+     * @param {string} key - layout_distance | layout_child_distance | layout_child_spacing
+     * @param {string|number} rawValue - the input's value
+     */
+    H.setLayoutNumber = async function(nodeId, key, rawValue) {
+        const value = Number(rawValue);
+        const patch = {};
+        patch[key] = Number.isFinite(value) && value > 0 ? value : null;
+        const saved = await api.updateNode(nodeId, { properties: patch });
+        if (!saved) {
+            console.warn(`Could not update ${key} for node ${nodeId}`);
+            return;
+        }
+        if (window.GraphRelativeLayout) window.GraphRelativeLayout.reseed();
+        await worldState.fetch();
+        if (graphManager) {
+            graphManager.loadGraphData();
+        }
     };
 
     /**
@@ -61,6 +103,7 @@ window.InspectorHelpers = (() => {
             console.warn(`Could not update graph gravity for node ${nodeId}`);
             return;
         }
+        if (window.GraphRelativeLayout) window.GraphRelativeLayout.reseed();
         await worldState.fetch();
         if (graphManager) {
             graphManager.loadGraphData();

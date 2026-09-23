@@ -628,7 +628,10 @@ window.GraphNetwork = {
             title: GraphNetwork.buildTooltip(nodeData),
             // vis-network's central gravity is global. A node excluded from
             // physics stays out of that pull while the rest keeps simulating.
+            // "Static" can be said either way: the inspector's Physics-enabled
+            // off, or an explicit layout_static flag (task-485).
             physics: nodeData.properties?.central_gravity_enabled !== false
+                && nodeData.properties?.layout_static !== true
         };
 
         // Saved layout: a node whose x/y were persisted to the world (right-click

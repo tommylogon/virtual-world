@@ -62,3 +62,36 @@ Trade-off to decide: in levels mode the map is laid out by the graph, not by you
 
 - `bug-44`: the save's authored container contents (`item_Backpack -> item_Ink`, 21 edges) are stored opposite to the canonical `EDGE_IN` direction, so the engine's `get_edges_for_target(container, EDGE_IN)` readers cannot see them. The layout tolerates either direction; the engine does not.
 - Area positions are still stored per world (`graph_background.positions`/`layoutLocked`), so mapping areas onto a background image still needs Save layout + Lock; that is now only about the rooms, not their contents.
+
+## Per-node physics control
+
+Reported after the global setting was wired up: "no way to calculate per parent node? ... to be able to say these nodes are static and placed at xy, but these use physics and should want to be so and so far from each other or so and so close to their connected nodes".
+
+So the layout reads per-node intent out of the node's properties:
+
+| property | on | meaning |
+|---|---|---|
+| `layout_static: true` | the node | placed, not simulated (same intent as `central_gravity_enabled: false`; `GraphRelativeLayout.isStatic` accepts either) |
+| `layout_distance` | a child | how far this node sits from the thing that holds it |
+| `layout_child_distance` | a parent | how far this parent's contents sit from it |
+| `layout_child_spacing` | a parent | the gap between this parent's contents |
+| `layout_min_radius` / `layout_max_radius` | a parent | clamp the ring for this parent |
+
+Precedence for a child's distance: its own `layout_distance` > its parent's `layout_child_distance` > the graph-wide Item Edge Length.
+
+An explicitly-set distance is **exact** (80 means 80, labels may overlap - that is what hugging means); the comfort floor/cap and the crowd-spacing growth only apply to inherited distances, so the default arrangement stays readable.
+
+Inspector: the "Graph Physics" section now carries the three numbers (`helpers.js`), each clearing back to inherited when blanked, and a change calls `GraphRelativeLayout.reseed()` so the arrangement re-derives immediately.
+
+Verified live on `area_living_room` (10 visible children):
+
+| state | radii |
+|---|---|
+| inherited | 146-147px |
+| room says 80/40 | 79-81px |
+| room says 320 | 319-320px |
+| one item says 90, rest inherit | that item 90, others 320 |
+
+`node tools/unit/run.cjs` -> 162 passed (parent override, child override, static-flag recognition).
+
+Note on the graph-editor reference: that project's model is a global physics config (repulsion, min distance, cluster attraction, connected-vs-unconnected factors) for a 3D canvas, so the useful part was the idea of a *min distance* and different treatment for connected nodes - applied here per node and per parent instead of globally.
