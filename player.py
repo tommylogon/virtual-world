@@ -142,10 +142,17 @@ class Player:
         self.body_state = default_body_state()
         
         # Basic Skills
+        # The full skill vocabulary (task-474). Every skill is on the sheet, so a
+        # setting or a character can grant/train any of them; skills a setting
+        # does not use simply sit at 0. The six "adventuring basics" start at 1.
         self.skills = {
             "Athletics": 1, "Acrobatics": 1,
             "Stealth": 1, "Perception": 1,
-            "Survival": 1, "Persuasion": 1
+            "Survival": 1, "Persuasion": 1,
+            "Animal Handling": 0, "Arcana": 0, "Deception": 0,
+            "History": 0, "Insight": 0, "Intimidation": 0,
+            "Investigation": 0, "Medicine": 0, "Nature": 0,
+            "Performance": 0, "Religion": 0, "Sleight of Hand": 0,
         }
         # Crafting (task-2): recipe names this character has discovered
         # (discoverable recipes after the first successful craft).

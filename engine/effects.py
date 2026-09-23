@@ -447,7 +447,11 @@ class Effects:
         if "Energy" in p.vitals:
             p.vitals["Energy"] = max(0, min(100, p.vitals["Energy"]))
         p.decay_rates = lib_data.get("decay_rates", p.decay_rates)
-        p.skills = lib_data.get("skills", {})
+        # Additive: a library definition sets only the skills it cares about and
+        # the rest stay on the sheet at their defaults (task-474).
+        _skills = dict(getattr(p, "skills", None) or {})
+        _skills.update(lib_data.get("skills", {}) or {})
+        p.skills = _skills
         p.traits = lib_data.get("traits", {})
         p.tags = list(lib_data.get("tags", []))
         p.sync_vitals_with_tags()

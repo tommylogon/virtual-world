@@ -269,7 +269,11 @@ class WorldSerializer:
         except (TypeError, ValueError):
             p.next_due_tick = 0
         p.body_state = pdata.get("body_state", p.body_state)
-        p.skills = pdata.get("skills", {})
+        # Merge over the defaults so a save from before the full skill list
+        # (task-474) still ends up with every skill on the sheet.
+        _skills = dict(p.skills or {})
+        _skills.update(pdata.get("skills", {}) or {})
+        p.skills = _skills
         p.state = pdata.get("state", "awake")
         p.load_conditions(pdata.get("conditions"))
         legacy_timer = pdata.get("state_timer") or 0
