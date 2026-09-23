@@ -376,6 +376,9 @@ window.GraphRelativeLayout = {
         for (const [id, pos] of Object.entries(derived)) {
             const node = nodes[id];
             if (!node || node.type === 'area' || node.type === 'way') continue;
+            // A node the user froze keeps its own place (and its physics stays off);
+            // no offset is recorded for it, so the follow pass leaves it alone too.
+            if ((node.properties || {}).central_gravity_enabled === false) continue;
             if (!Number.isFinite(pos.x) || !Number.isFinite(pos.y)) continue;
             const parent = parents[id];
             const parentPos = parent ? derived[parent] : null;
@@ -587,6 +590,45 @@ window.GraphRelativeLayout = {
         }
     },
 
+    /** The graph ops that would save frozen nodes' current positions. */
+    frozenDropOps(ids) {
+        const g = (typeof graphManager !== 'undefined' && graphManager) || {};
+        const network = g.network;
+        if (!network) return [];
+        const nodes = this._nodes();
+        const ops = [];
+        for (const id of ids || []) {
+            const props = (nodes[id] || {}).properties || {};
+            if (props.central_gravity_enabled !== false) continue;
+            const body = network.body?.nodes?.[id];
+            if (!body || !Number.isFinite(body.x) || !Number.isFinite(body.y)) continue;
+            ops.push({
+                type: 'update_node',
+                payload: {
+                    node_id: id,
+                    patch: { properties: { x: Math.round(body.x * 10) / 10, y: Math.round(body.y * 10) / 10 } },
+                },
+            });
+        }
+        return ops;
+    },
+
+    /**
+     * A frozen node that was dragged keeps its new place across reloads: its
+     * position is written to the node (the same `properties.x/y` the layout lock
+     * uses), because nothing else will restore it — the layout deliberately
+     * leaves frozen nodes alone.
+     */
+    async persistFrozenDrop(ids) {
+        const ops = this.frozenDropOps(ids);
+        if (!ops.length) return 0;
+        if (typeof ApiClient === 'undefined' || !ApiClient.batchGraph) return 0;
+        try {
+            await ApiClient.batchGraph(ops);
+        } catch (err) { /* ignore — the position simply is not remembered */ }
+        return ops.length;
+    },
+
     /**
      * Follow the room: dragging re-places that node's contents live, dragEnd
      * re-seeds the blocks (and remembers any child the player moved), and the
@@ -617,6 +659,7 @@ window.GraphRelativeLayout = {
             for (const id of dragged) this._dragging.delete(id);
             if (dragged.length) {
                 this.rememberDrop(dragged);
+                this.persistFrozenDrop(dragged);
                 this.apply();
                 this._wake(dragged);
             }

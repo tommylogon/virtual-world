@@ -361,6 +361,61 @@ test('room-to-door edges put the door below the room in level mode', () => {
         { from: 'area_a', to: 'area_b', flipped: false });
 });
 
+test('a frozen node keeps its own place (no orbit, no offset)', () => {
+    GraphRelativeLayout._offsets = null;
+    const frozenNodes = {
+        area_hall: { type: 'area' },
+        item_lamp: { type: 'item', properties: { central_gravity_enabled: false } },
+        char_kael: { type: 'character' },
+    };
+    const edges = [
+        { type: 'in', source: 'item_lamp', target: 'area_hall' },
+        { type: 'in', source: 'char_kael', target: 'area_hall' },
+    ];
+    const updated = [];
+    const previousGraphManager = globalThis.graphManager;
+    globalThis.graphManager = {
+        _graphNodesObj: frozenNodes,
+        _graphEdgesArr: edges,
+        network: {
+            body: {
+                nodes: { area_hall: { x: 0, y: 0 }, item_lamp: { x: 999, y: 999 }, char_kael: { x: 0, y: 0 } },
+                data: { nodes: { update: (u) => updated.push(...u) } },
+            },
+            getPositions: () => ({ area_hall: { x: 0, y: 0 } }),
+        },
+    };
+    try {
+        GraphRelativeLayout.apply();
+        assertTrue(!updated.some(u => u.id === 'item_lamp'), 'the frozen node is not repositioned');
+        assertTrue(!GraphRelativeLayout._offsets.item_lamp, 'and gets no offset, so follow ignores it');
+        assertTrue(updated.some(u => u.id === 'char_kael'), 'others still orbit');
+    } finally {
+        globalThis.graphManager = previousGraphManager;
+        GraphRelativeLayout._offsets = null;
+    }
+});
+
+test('a dragged frozen node has its position written so a reload keeps it', () => {
+    const previousGraphManager = globalThis.graphManager;
+    globalThis.graphManager = {
+        _graphNodesObj: {
+            way_door: { type: 'way', properties: { central_gravity_enabled: false } },
+            item_loose: { type: 'item' },
+        },
+        _graphEdgesArr: [],
+        network: { body: { nodes: { way_door: { x: 12.34, y: 56.78 }, item_loose: { x: 1, y: 2 } } } },
+    };
+    try {
+        const ops = GraphRelativeLayout.frozenDropOps(['way_door', 'item_loose']);
+        assertEq(ops.length, 1, 'only the frozen node is saved');
+        assertEq(ops[0].payload.node_id, 'way_door');
+        assertEq(ops[0].payload.patch.properties, { x: 12.3, y: 56.8 });
+    } finally {
+        globalThis.graphManager = previousGraphManager;
+    }
+});
+
 test('attach() registers the follow hooks once', () => {
     const handlers = {};
     const network = { on: (name, fn) => { handlers[name] = fn; } };

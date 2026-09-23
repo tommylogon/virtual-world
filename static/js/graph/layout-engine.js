@@ -208,8 +208,15 @@ window.GraphLayoutEngine = {
             });
         }
 
-        // Apply all updates
-        nodesDS.update([...areaUpdates, ...wayUpdates, ...looseUpdates]);
+        // Apply all updates. A node the user froze ("Physics enabled" off in the
+        // inspector) is left exactly as it is: its position is theirs and its
+        // physics is already off, so re-anchoring it here is what made a placed
+        // way snap back and get pushed again (bug report, task-485 follow-up).
+        const frozen = (id) => {
+            const props = (nodesObj[id] || {}).properties || {};
+            return props.central_gravity_enabled === false;
+        };
+        nodesDS.update([...areaUpdates, ...wayUpdates, ...looseUpdates].filter(u => u && !frozen(u.id)));
 
         // Enable hybrid physics: force-directed with anchor attraction
         // - Strong repulsion between area nodes (prevent overlap)
