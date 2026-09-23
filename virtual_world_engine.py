@@ -120,6 +120,8 @@ class VirtualWorld:
             "take": {"energy": 1},
             "drop": {"energy": 0},
             "fumble": {"energy": 6},
+            "fear": {"energy": 0},
+            "interest": {"energy": 0},
         }
         # Set by a *task* that advances the clock for its own duration (rest,
         # sleep) so the per-action layer does not add a minute on top. task-436
@@ -545,6 +547,69 @@ class VirtualWorld:
 
     def steal_item(self, item_name: str, target_name: str) -> str:
         return self.item_actions.steal_item(self, item_name, target_name)
+
+    # ─────────────────── Interest / fear tags (task-469) ───────────────────
+
+    def _target_tags(self, target_name: str):
+        """Tags implied by a named character, item, area or way."""
+        name = (target_name or "").strip()
+        if not name:
+            return set(), name
+        player_obj = self.player_manager.get_player(name)
+        if player_obj is None:
+            # Commands arrive lowercased, so match display names case-insensitively.
+            low_name = name.lower()
+            player_obj = next(
+                (p for p in (self.players or {}).values()
+                 if str(getattr(p, "name", "")).lower() == low_name),
+                None,
+            )
+        if player_obj is not None:
+            tags = {str(t).lower() for t in (getattr(player_obj, "traits", {}) or {}).keys()}
+            try:
+                node = self.graph.get_node(self._player_node_id(player_obj.name))
+            except Exception:
+                node = None
+            if node is not None:
+                tags |= {str(t).lower() for t in ((node.properties or {}).get("tags") or [])}
+            return {t for t in tags if t}, player_obj.name
+        low = name.lower()
+        for node in self.graph.nodes.values():
+            if str(getattr(node, "name", "")).lower() != low:
+                continue
+            tags = {str(t).lower() for t in ((node.properties or {}).get("tags") or [])}
+            return {t for t in tags if t}, node.name
+        return set(), name
+
+    def _apply_tagged_relation(self, target_name: str, field: str, verb: str) -> str:
+        player = self.get_active_player_obj()
+        if player is None:
+            raise ValueError("No active character.")
+        tags, label = self._target_tags(target_name)
+        if not tags:
+            fallback = str(target_name).strip().lower()
+            tags = {fallback} if fallback else set()
+        current = getattr(player, field, None)
+        if not isinstance(current, list):
+            current = []
+            setattr(player, field, current)
+        have = {str(t).lower() for t in current}
+        added = sorted(t for t in tags if t not in have)
+        for tag in added:
+            current.append(tag)
+        if not added:
+            return f"You already {verb} {label}."
+        if verb == "fear":
+            return f"You now fear {label} ({', '.join(added)})."
+        return f"You take an interest in {label} ({', '.join(added)})."
+
+    def fear_target(self, target_name: str) -> str:
+        """Deliberate action: register what the character is now afraid of."""
+        return self._apply_tagged_relation(target_name, "fear_tags", "fear")
+
+    def interest_target(self, target_name: str) -> str:
+        """Deliberate action: register what the character is now interested in."""
+        return self._apply_tagged_relation(target_name, "interest_tags", "interest")
 
     def get_inventory(self) -> List[str]:
         return self.item_actions.get_inventory(self)

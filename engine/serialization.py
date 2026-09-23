@@ -134,6 +134,7 @@ class WorldSerializer:
             "crafting_known": list(getattr(p, 'crafting_known', []) or []),
             "discovered_exits": list(getattr(p, 'discovered_exits', []) or []),
             "interest_tags": getattr(p, 'interest_tags', []),
+            "fear_tags": getattr(p, 'fear_tags', []),
             "discovered_items": list(getattr(p, 'discovered_items', []) or []),
             "decay_rates": getattr(p, 'decay_rates', {}),
             "body_state": getattr(p, 'body_state', {}),
@@ -291,6 +292,7 @@ class WorldSerializer:
             tuple(x) for x in (pdata.get("discovered_exits", []) or []) if isinstance(x, (list, tuple)) and len(x) == 2
         }
         p.interest_tags = list(pdata.get("interest_tags", []))
+        p.fear_tags = list(pdata.get("fear_tags", []))
         p.current_area = pdata.get("current_area") or pdata.get("current_area") or pdata.get("current_room")
         p.recent_hearing = pdata.get("recent_hearing", [])
         pdata_memory = pdata.get("memory", {})

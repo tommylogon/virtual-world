@@ -730,6 +730,10 @@ def handle_take_action(app):
                 add_output(world.steal_item(item_name, target_name))
             else:
                 add_output("Steal what from who? Use: steal <item> from <target>")
+        elif cmd.startswith("fear "):
+            add_output(world.fear_target(cmd[5:].strip()))
+        elif cmd.startswith("interest "):
+            add_output(world.interest_target(cmd[9:].strip()))
         elif cmd in ("i", "inv", "inventory"):
             inv = world.get_inventory()
             equipped = world.get_full_equipment()

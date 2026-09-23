@@ -162,6 +162,12 @@ class Player:
         # "Items that catch your attention" list before other items.
         # Examples: ["magic", "food", "weapon", "documents"]
         self.interest_tags = []
+        # Things this character is afraid of (task-469). Mirrors interest_tags:
+        # meeting a co-located character/item or an area whose tags intersect
+        # these applies the source-gated `frightened` condition. Guards vs
+        # farmers vs goblins differ purely by these lists, so no group needs a
+        # global "hostile" flag that makes it panic at its own kind.
+        self.fear_tags = []
         # Conditions system: {condition_id: [instance, instance, ...]} — MULTIPLE
         # concurrent instances per condition (5 vials of poison = 5 `poisoned`
         # instances). Each instance: {duration, source, level, periodic, ends_on,
@@ -980,6 +986,7 @@ class Player:
             "traits": dict(self.traits),
             "tags": list(self.tags),
             "interest_tags": list(self.interest_tags),
+            "fear_tags": list(self.fear_tags),
             "flags": dict(getattr(self, "flags", {})),
             "hidden": bool(getattr(self, "hidden", False)),
             "visited_areas": list(self.visited_areas),

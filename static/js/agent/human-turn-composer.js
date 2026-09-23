@@ -152,6 +152,7 @@ window.HumanTurnComposer = (() => {
         'rest', 'sleep', 'wait', 'nothing', 'dash', 'crawl', 'climb', 'jump', 'grab',
         'steal', 'light', 'ignite', 'vanish', 'manifest', 'toggle', 'listen',
         'wake', 'meditate', 'bathe', 'stand', 'release', 'escape', 'struggle', 'lead',
+        'fear', 'interest',
     ];
     const VOLUME_WORDS = ['scream', 'shout', 'whisper'];
 

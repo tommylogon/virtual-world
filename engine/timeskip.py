@@ -27,6 +27,7 @@ from dataclasses import dataclass, field
 
 from engine.background_simulation import BackgroundSimulation, TASK_MINUTES
 from engine import interrupts as interrupts_mod
+from engine import fear as fear_mod
 from engine.trace import record, summarize_window
 
 logger = logging.getLogger(__name__)
@@ -165,7 +166,20 @@ def advance(gs, minutes, *, intent="idle", target=None, watch_tags=(),
             result.ticks += 1
             result.elapsed_minutes = int(round(result.ticks * per_tick))
 
-            # 3. did anything relevant happen to us?
+            # 3. something the character fears is present: apply frightened and
+            #    hand control back (task-469).
+            feared = fear_mod.fear_sources(gs, who)
+            if feared:
+                fear_mod.apply_frightening(gs, who, feared)
+                result.interrupted = True
+                result.interrupt = {
+                    "kind": "fear", "why": f"fear:{feared[0]['kind']}",
+                    "detail": f"You are frightened by {feared[0]['name']}.",
+                    "salient": True,
+                }
+                break
+
+            # 4. did anything else relevant happen to us?
             after = interrupts_mod.snapshot(gs, who)
             events = interrupts_mod.events_since(gs, before)
             reasons = interrupts_mod.evaluate(
