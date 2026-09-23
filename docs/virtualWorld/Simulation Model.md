@@ -98,9 +98,10 @@ at soak fidelity.
 - **No stasis, no protection.** Vitals decay and the environment applies; a wait
   in a forest with no food or water can kill. The skip removes *decisions*, not
   *consequences*.
-- A skip always advances **1-minute ticks** regardless of the scenario's
-  `time_per_tick_minutes` (which is restored afterwards), so interrupts land on a
-  minute boundary. Normal play keeps the frame dial.
+- A skip advances whole **turns of the scenario's frame** (`time_per_tick_minutes`),
+  so the clock (ticks x dial) stays consistent: a 1-minute world resolves
+  interrupts every minute, a 5-minute world every 5. The dial is never changed by
+  a skip.
 - Interrupt and promotion use the shared relevance evaluator (**task-466**):
   death, threat, vital/condition crossing, involuntary action, discovery, arrival.
 - Zero LLM calls inside a skip; exactly one bounded memory is written on resume
