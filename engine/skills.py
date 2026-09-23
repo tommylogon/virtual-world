@@ -32,11 +32,10 @@ class SkillSystem:
     ) -> int:
         """Roll *num_dice* each with *sides* sides, sum them, and add *modifier*.
 
-        >>> SkillSystem(None, None).roll_dice(1, 6, 0)  # 1d6 (random)
-        4  # (example)
+        Thin delegate to :mod:`engine.checks` so all dice live in one place.
         """
-        total = sum(random.randint(1, sides) for _ in range(num_dice))
-        return total + modifier
+        from engine import checks
+        return checks.roll_dice(num_dice, sides, modifier)
 
     # ─────────────────────────── Skill checks ─────────────────────────
 
@@ -66,29 +65,33 @@ class SkillSystem:
         if not player:
             return (False, 0, "No active player")
 
-        skill_value = player.skills.get(skill_name, 0)
-        from engine.traits import TraitSystem
-        mods = TraitSystem.get_skill_check_mods(player)
-        bonus = mods.get(skill_name, 0) + mods.get("*", 0)
-        roll = self.roll_dice(1, 20, 0)
-        total = roll + skill_value + bonus
+        from engine import checks
+        # One central modifier pipeline: ability mod (from the skill's ability),
+        # the skill's own value, and trait mods, plus condition-driven advantage.
+        _ability, mods = checks.skill_modifiers(player, skill_name)
+        bonus = sum(m.value for m in mods)
+        cond_adv, cond_dis, auto_fail = checks.condition_flags(
+            player, skill_name, _ability)
+
+        if auto_fail:
+            message = (f"[Skill Check] {skill_name} vs DC {difficulty_class}: "
+                       f"AUTO-FAIL (a condition prevents it)")
+            self.logging_events.add_log_entry(message)
+            return (False, 0, message)
+
+        rolled = checks.roll_d20(
+            advantage=cond_adv, disadvantage=cond_dis,
+            roll_fn=lambda: self.roll_dice(1, 20, 0))
+        total = rolled.kept + bonus
         success = total >= difficulty_class
 
-        if difficulty_class <= 5:
-            diff_desc = "very easy"
-        elif difficulty_class <= 10:
-            diff_desc = "easy"
-        elif difficulty_class <= 15:
-            diff_desc = "medium"
-        elif difficulty_class <= 20:
-            diff_desc = "hard"
-        else:
-            diff_desc = "very hard"
-
+        diff_desc = checks.dc_band(difficulty_class)
         result_label = "success" if success else "failure"
+        detail = " + ".join(str(m.value) for m in mods) or "0"
+        mode = "" if rolled.mode == "normal" else f" [{rolled.mode}]"
         message = (
-            f"[Skill Check] {skill_name} vs DC {difficulty_class} ({diff_desc}): "
-            f"roll={roll} + {skill_value} + {bonus} = {total} => {result_label}"
+            f"[Skill Check] {skill_name} vs DC {difficulty_class} ({diff_desc}){mode}: "
+            f"roll={rolled.kept} + {detail} = {total} => {result_label}"
         )
         self.logging_events.add_log_entry(message)
         return (success, total, message)
@@ -123,10 +126,10 @@ class SkillSystem:
             self.logging_events.add_log_entry(message)
             return (False, 0, message)
         if stat in self.STAT_NAMES:
-            stat_value = (player.stats or {}).get(stat, 10)
-            mod = (stat_value - 10) // 2
+            from engine import checks
+            mod = checks.ability_mod((player.stats or {}).get(stat, 10))
         else:
-            mod = (player.skills or {}).get(stat, 0)
+            mod = int(((player.skills or {}).get(stat, 0)) or 0)
         from engine.traits import TraitSystem
         flat_bonus, per_stat_bonus = TraitSystem.get_save_bonus(player)
         mod += flat_bonus + per_stat_bonus.get(stat, 0)

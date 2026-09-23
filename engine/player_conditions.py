@@ -80,6 +80,7 @@ CONDITION_DEFINITIONS = {
         "name": "Restrained", "description": "Tied or held fast. Speed 0; attacks at disadvantage.",
         "blocks_actions": True, "blocks_movement": True, "blocks_speech": False,
         "auto_fail_checks": [], "auto_fail_saves": ["DEX"],
+        "check_disadvantage": ["attack"],
         "attack_mod": -2, "defense_mod": -2, "speed_mult": 0.0,
         "movement_mode": None, "drops_held_items": False,
         "periodic": {}, "ends_on": ["escape"],
@@ -517,6 +518,9 @@ _CONDITION_BASE = {
     #   perception_skip  — in the hierarchy but never rendered as a perception line
     #   mature           — hidden/gated behind the world mature_content toggle
     "order": None, "perception_skip": False, "mature": False,
+    # Roll-affecting lists read by engine/checks.py: names of skills, abilities
+    # or "attack"/"*" that gain advantage / disadvantage / auto-fail (task-472).
+    "check_advantage": [], "check_disadvantage": [],
 }
 
 # ──────────────────────────────────────────────────────────────

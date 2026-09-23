@@ -194,11 +194,19 @@ def best_skill_for(gs, player, want_tags) -> str:
 
 
 def _candidate_entries(skill_key, want_tags):
-    """Entries from the chosen table, plus any table entries matching a tag."""
+    """Entries from the chosen table, plus any table entries matching a tag.
+
+    When *want_tags* is given the candidates are **restricted** to entries that
+    satisfy it, so a food search can never turn up a herb the character cannot
+    eat — the table is a menu, but the need is the order.
+    """
     want = {str(t).lower() for t in (want_tags or [])}
     seen, out = set(), []
     for entry in SKILL_TABLES.get(skill_key or "", []):
-        key = tuple(sorted(str(t).lower() for t in entry.get("tags", [])))
+        tags = {str(t).lower() for t in entry.get("tags", [])}
+        if want and not (want & tags):
+            continue
+        key = tuple(sorted(tags))
         if key not in seen:
             seen.add(key)
             out.append(entry)

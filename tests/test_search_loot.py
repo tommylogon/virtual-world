@@ -106,5 +106,8 @@ def test_soak_forages_when_the_area_has_no_food():
     p.vitals["Hunger"] = 80
     w.skill_check = lambda *a, **k: (True, 20, "")
     used = BackgroundSimulation(w).take_action(p, served=set(), remaining=10.0)
-    assert used == TASK_MINUTES["eat"], "did not eat the find"
+    assert used == TASK_MINUTES["eat"], (
+        f"did not eat the find: used={used} hunger={p.vitals['Hunger']} "
+        f"activity={getattr(p, 'activity', None)} "
+        f"log={list(w.game_logger.game_log)[-3:]}")
     assert p.vitals["Hunger"] == 80 - 45
