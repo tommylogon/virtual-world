@@ -83,6 +83,8 @@ ACTIVITY_LABELS: Dict[str, str] = {
     "sitting": "sitting",
     "lying down": "lying down",
     "working": "working",
+    # task-469: a failed forage in the soak tier occupies the timeframe
+    "foraging": "foraging",
 }
 
 #: activities that block taking most other actions (speech/look/etc. allowed)
@@ -95,6 +97,7 @@ ACTIVITY_SKIP_TURNS = {
     # task-436: a background task whose duration outran its timeframe spans
     # turns, and must occupy them like any other turn-consuming activity.
     "eating", "drinking", "relieving", "washing", "recreating", "recuperating",
+    "foraging",
 }
 
 #: activities that end automatically when the character does anything else
@@ -109,7 +112,7 @@ ACTIVITY_INTERRUPTIBLE = {"resting", "waiting", "meditating", "sitting", "lying 
                           # task-436: the same trap applies to every one of
                           # these; leaving one out strands the character busy.
                           "eating", "drinking", "relieving", "washing",
-                          "recreating", "recuperating"}
+                          "recreating", "recuperating", "foraging"}
 
 #: commands allowed while a blocking activity is active
 _ALLOWED_WHILE_BLOCKED = {

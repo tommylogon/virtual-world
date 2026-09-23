@@ -73,6 +73,12 @@ BATH_HYGIENE = 70         # fallback when a fixture does not author its own amou
 RECREATION_TAGS = ("recreation",)
 ENTERTAINMENT_RESTORE = 15  # fallback when a fixture does not author its own amount
 
+#: Finding something in the *field* (an item you are not carrying) is a skill
+#: check, not a guarantee: a perceptive forager eats, a clumsy one goes hungry
+#: and moves on (task-469). Carried items never need a check.
+FORAGE_SKILL = "Perception"
+FORAGE_DC = 10
+
 #: Minutes each background action takes. A turn is a *timeframe*, and these fill
 #: it, so the number of actions per turn is **emergent** rather than budgeted: a
 #: character does what fits and stops as soon as nothing is due (task-436).
@@ -96,6 +102,7 @@ TASK_MINUTES = {
     "recreate": 15,
     "recuperate": 30,
     "work": 30,
+    "forage": 5,   # searching the area for something edible; may find nothing
     "travel": 1,   # one step; repeats until the timeframe is full
     "sleep": 1,    # lying down — the sleeping activity occupies what follows
 }
@@ -276,10 +283,18 @@ class BackgroundSimulation:
                 served.add("drink")
                 self._begin_task(p, "drinking", TASK_MINUTES["drink"], remaining)
                 return TASK_MINUTES["drink"]
-            if "drink" not in served and self._consume_here(p, DRINK_TAGS, "drink"):
-                served.add("drink")
-                self._begin_task(p, "drinking", TASK_MINUTES["drink"], remaining)
-                return TASK_MINUTES["drink"]
+            if "drink" not in served:
+                outcome = self._consume_here(p, DRINK_TAGS, "drink")
+                if outcome is True:
+                    served.add("drink")
+                    self._begin_task(p, "drinking", TASK_MINUTES["drink"], remaining)
+                    return TASK_MINUTES["drink"]
+                if outcome == "failed":
+                    # Searched here and missed: spend the time, then head to a
+                    # different source next (served blocks a retry this frame).
+                    served.add("drink")
+                    self._begin_task(p, "foraging", TASK_MINUTES["forage"], remaining)
+                    return TASK_MINUTES["forage"]
             if self._travel_toward(p, DRINK_TAGS, "thirst"):
                 return TASK_MINUTES["travel"]
             return None  # no water within reach; nothing else to try for it
@@ -290,10 +305,16 @@ class BackgroundSimulation:
             return TASK_MINUTES["sleep"]
 
         if hunger >= HUNGER_THRESHOLD:
-            if "eat" not in served and self._consume_here(p, FOOD_TAGS, "eat"):
-                served.add("eat")
-                self._begin_task(p, "eating", TASK_MINUTES["eat"], remaining)
-                return TASK_MINUTES["eat"]
+            if "eat" not in served:
+                outcome = self._consume_here(p, FOOD_TAGS, "eat")
+                if outcome is True:
+                    served.add("eat")
+                    self._begin_task(p, "eating", TASK_MINUTES["eat"], remaining)
+                    return TASK_MINUTES["eat"]
+                if outcome == "failed":
+                    served.add("eat")
+                    self._begin_task(p, "foraging", TASK_MINUTES["forage"], remaining)
+                    return TASK_MINUTES["forage"]
             if self._travel_toward(p, FOOD_TAGS, "hunger"):
                 return TASK_MINUTES["travel"]
 
@@ -529,10 +550,59 @@ class BackgroundSimulation:
                     return default
         return default
 
+    def _requires_search(self, node) -> bool:
+        """True when an item sits inside/on another *item* (a basket, a larder).
+
+        Open-area resources are plain maintenance — a camp that starves beside a
+        visible stew is not the game we want. Only something tucked away is a
+        Perception check (task-469); carried items are never searched for.
+        """
+        try:
+            for edge in self.gs.graph.edges:
+                if edge.source != node.id or edge.type not in self.REACHABLE_RELATIONS:
+                    continue
+                parent = self.gs.graph.get_node(edge.target)
+                if parent is not None and getattr(parent, "type", "") == "item":
+                    return True
+        except Exception:
+            return False
+        return False
+
+    def _forage_check(self, p, kind) -> bool:
+        """Perception vs a flat DC for spotting food/water in the field.
+
+        A skill check reads the *active* player, so the character is swapped in
+        for the roll (the same trick `_travel_toward` uses) and restored after.
+        A missing skill system fails open: going hungry should be the exception,
+        not the default.
+        """
+        active = getattr(self.gs, "active_player", None)
+        try:
+            self.gs.active_player = p.name
+            success, _total, _msg = self.gs.skill_check(FORAGE_SKILL, FORAGE_DC)
+        except Exception:
+            return True
+        finally:
+            try:
+                self.gs.active_player = active
+            except Exception:
+                pass
+        return bool(success)
+
     def _consume_here(self, p, tags, kind):
         node = self._find_consumable(p, tags, verb=self._verb_for_need(kind))
         if not node:
             return False
+        # Carried food is yours and open-area resources are plain maintenance;
+        # only something tucked into a container has to be noticed first
+        # (task-469). A miss costs the search time, not the item.
+        if self._requires_search(node) and not self._forage_check(p, kind):
+            record(p, self.gs.time_ticks, "act",
+                   f"searched {p.current_area} for {kind} and found nothing",
+                   why="forage:fail", area=p.current_area, tags=["need", "forage"])
+            self.gs.add_log_entry(
+                f"[{p.name}] searches for {kind} but finds nothing.")
+            return "failed"
         props = node.properties or {}
         count = props.get("count")
         uses = props.get("uses")
