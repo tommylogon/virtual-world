@@ -77,34 +77,52 @@ test('an area is a root: it comes back at its own position, unplaced', () => {
     assertEq(layout(POS).area_hall, { x: 0, y: 0 });
 });
 
-test('children pack into a tight block beside their parent', () => {
+test('children orbit their parent instead of stacking on it', () => {
     const out = layout(POS);
-    // One item child: directly below the room, not on a wide halo.
-    assertTrue(Math.abs(out.item_lamp.x - POS.area_hall.x) < 0.5, 'below, not offset sideways');
-    assertTrue(Math.abs(out.item_lamp.y - (POS.area_hall.y + 58)) < 0.5, 'item block sits under the room');
-    // A character child sits to the right instead.
-    assertTrue(out.char_kael.x > POS.area_hall.x + 30, 'character block to the right');
-    // Nested contents pack tighter than top-level ones.
+    const r = (id, parent) => Math.hypot(out[id].x - POS[parent].x, out[id].y - POS[parent].y);
+    // A lone item sits on the ring, clear of the room's own label.
+    assertTrue(Math.abs(r('item_lamp', 'area_hall') - GraphRelativeLayout.ORBIT.minRadius) < 0.5,
+        'one child sits on the minimum orbit');
+    // Nested contents orbit their container on a smaller ring.
     const nested = Math.hypot(out.item_oil.x - out.item_lamp.x, out.item_oil.y - out.item_lamp.y);
-    const direct = Math.hypot(out.item_lamp.x - POS.area_hall.x, out.item_lamp.y - POS.area_hall.y);
-    assertTrue(nested < direct, 'nested items pack tighter');
+    assertTrue(nested < GraphRelativeLayout.ORBIT.minRadius, 'nested orbit is tighter');
 });
 
-test('a crowded parent wraps into rows instead of one long line', () => {
+test('the orbit grows with the crowd so labels do not collide', () => {
+    const one = { area_a: { type: 'area' }, item_0: { type: 'item' } };
+    const oneEdges = [{ type: 'in', source: 'item_0', target: 'area_a' }];
+    const oneOut = GraphRelativeLayout.layoutPositions(one, oneEdges, { area_a: { x: 0, y: 0 } });
+    const oneR = Math.hypot(oneOut.item_0.x, oneOut.item_0.y);
+
+    const many = { area_a: { type: 'area' } };
+    const manyEdges = [];
+    for (let i = 0; i < 12; i++) {
+        many['item_' + i] = { type: 'item' };
+        manyEdges.push({ type: 'in', source: 'item_' + i, target: 'area_a' });
+    }
+    const manyOut = GraphRelativeLayout.layoutPositions(many, manyEdges, { area_a: { x: 0, y: 0 } });
+    const items = Object.entries(manyOut).filter(([id]) => id !== 'area_a').map(([, p]) => p);
+    const radii = items.map(p => Math.round(Math.hypot(p.x, p.y)));
+    const unique = new Set(radii);
+    assertEq(unique.size, 1, 'every item is on the same ring');
+    const wide = radii[0];
+    assertTrue(wide > oneR, 'a crowded room gets a wider ring');
+    assertTrue(wide <= GraphRelativeLayout.ORBIT.maxRadius, 'the ring is bounded, so nothing is stretched away');
+    // Evenly spaced: no two items share a spot.
+    const keys = items.map(p => `${Math.round(p.x)},${Math.round(p.y)}`);
+    assertEq(new Set(keys).size, keys.length, 'no two items overlap');
+});
+
+test('an extremely crowded room stays capped rather than flying off', () => {
     const nodes = { area_a: { type: 'area' } };
     const edges = [];
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < 60; i++) {
         nodes['item_' + i] = { type: 'item' };
         edges.push({ type: 'in', source: 'item_' + i, target: 'area_a' });
     }
     const out = GraphRelativeLayout.layoutPositions(nodes, edges, { area_a: { x: 0, y: 0 } });
-    const pts = Object.entries(out).filter(([id]) => id !== 'area_a').map(([, p]) => p);
-    const ys = new Set(pts.map(p => Math.round(p.y)));
-    const xs = new Set(pts.map(p => Math.round(p.x)));
-    assertEq(xs.size, 3, 'three columns');
-    assertEq(ys.size, 3, 'three rows');
-    const keys = pts.map(p => `${Math.round(p.x)},${Math.round(p.y)}`);
-    assertEq(new Set(keys).size, keys.length, 'no two items overlap');
+    const maxR = Math.max(...Object.values(out).map(p => Math.hypot(p.x, p.y)));
+    assertTrue(Math.round(maxR) <= GraphRelativeLayout.ORBIT.maxRadius, 'capped at maxRadius');
 });
 
 test('a carried item ends up beside the carrier, wherever the carrier is', () => {

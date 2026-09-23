@@ -35,19 +35,21 @@ window.GraphRelativeLayout = {
     ],
     RELATION_TYPES: new Set(['carrying', 'equipped', 'at', 'in', 'triggers']),
 
-    // Children are packed into a tight block beside their parent rather than
-    // spread on a wide halo: a room's contents should read as one cluster, not
-    // overlap the neighbouring room. Items go below (clear of the parent's own
-    // label box), characters right, triggers tucked to the left, and nested
-    // contents pack tighter still. Spacing is sized for a short label.
-    CLUSTER: {
-        item: { dx: 52, dy: 26, cols: 3, ox: 0, oy: 58 },
-        character: { dx: 40, dy: 34, cols: 1, ox: 74, oy: -20 },
-        logic_trigger: { dx: 26, dy: 20, cols: 2, ox: -78, oy: -20 },
-        default: { dx: 44, dy: 26, cols: 3, ox: 40, oy: 46 },
+    // Contents ORBIT their parent: a ring around the room, radius grown to fit
+    // however many things are in there (so labels do not collide), and smaller
+    // rings for contents nested inside a container. Nothing is stretched away —
+    // the ring is bounded at `maxRadius`.
+    ORBIT: {
+        minRadius: 130,
+        maxRadius: 320,
+        spacing: 92,
+        nestedMinRadius: 58,
+        nestedMaxRadius: 130,
+        nestedSpacing: 62,
+        // Start at the top and go clockwise, so the first item clears the room's
+        // own label instead of sitting on it.
+        startAngle: -Math.PI / 2,
     },
-    // Nested contents (an item inside a container) scale the block down.
-    NESTED_SCALE: 0.72,
     // Children stay dynamic: they hold a *relative* offset from their parent and
     // that offset is re-applied as the parent moves, so a dragged room carries
     // its contents while global central gravity can never stretch a child away
@@ -273,15 +275,9 @@ window.GraphRelativeLayout = {
             });
             const index = Math.max(0, siblings.indexOf(id));
             const count = Math.max(1, siblings.length);
-            out[id] = this.clusterPosition(parentPos, index, count, node, Math.max(1, depthOf(id)));
+            out[id] = this.orbitPosition(parentPos, index, count, node, Math.max(1, depthOf(id)));
         }
         return out;
-    },
-
-    /** Which block a node packs into (its own row: items, characters, triggers). */
-    _slotFor(node) {
-        if (!node) return 'default';
-        return this.CLUSTER[node.type] ? node.type : 'default';
     },
 
     /**
@@ -323,24 +319,31 @@ window.GraphRelativeLayout = {
         return { from: source, to: target, flipped: false };
     },
 
+    /** Which arc a node sorts into, so a room's items/characters/triggers group. */
+    _slotFor(node) {
+        if (!node) return 'default';
+        return node.type === 'item' || node.type === 'character' || node.type === 'logic_trigger'
+            ? node.type : 'default';
+    },
+
     /**
-     * Where the *n*-th of *count* same-kind children of a parent sits: a tight
-     * grid block offset to one side of the parent, wrapping into rows.
+     * Where the *n*-th of *count* children of a parent orbits: evenly spaced on a
+     * ring whose radius grows with the count, so labels stay apart instead of
+     * stacking on the room. Nested contents orbit their container on a smaller
+     * ring, and the radius is capped so nothing is stretched across the map.
      */
-    clusterPosition(parentPos, index, count, node, depth) {
-        const spec = this.CLUSTER[this._slotFor(node)];
-        const scale = depth >= 2 ? this.NESTED_SCALE : 1;
-        const dx = spec.dx * scale;
-        const dy = spec.dy * scale;
-        const cols = Math.max(1, Math.min(spec.cols, count));
-        const rows = Math.ceil(count / cols);
-        const col = index % cols;
-        const row = Math.floor(index / cols);
-        const blockWidth = (cols - 1) * dx;
-        const blockHeight = (rows - 1) * dy;
+    orbitPosition(parentPos, index, count, node, depth) {
+        const nested = depth >= 2;
+        const spec = this.ORBIT;
+        const spacing = nested ? spec.nestedSpacing : spec.spacing;
+        const minR = nested ? spec.nestedMinRadius : spec.minRadius;
+        const maxR = nested ? spec.nestedMaxRadius : spec.maxRadius;
+        const wanted = (Math.max(1, count) * spacing) / (2 * Math.PI);
+        const radius = Math.max(minR, Math.min(wanted, maxR));
+        const angle = spec.startAngle + (2 * Math.PI * index) / Math.max(1, count);
         return {
-            x: parentPos.x + spec.ox * scale - blockWidth / 2 + col * dx,
-            y: parentPos.y + spec.oy * scale - blockHeight / 2 + row * dy,
+            x: parentPos.x + radius * Math.cos(angle),
+            y: parentPos.y + radius * Math.sin(angle),
         };
     },
 
