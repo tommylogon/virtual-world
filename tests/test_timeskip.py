@@ -12,7 +12,9 @@ from engine import timeskip
 
 def _world():
     from app import create_app
-    return create_app({"TESTING": True}).world
+    w = create_app({"TESTING": True}).world
+    w.time_per_tick_minutes = 1   # the target play scale: a turn is a minute
+    return w
 
 
 def _hero(w):
@@ -149,14 +151,15 @@ def test_idle_lets_vitals_decay():
     assert res.vitals_after["Energy"] < 50
 
 
-def test_forced_minute_resolution_and_restore():
+def test_skip_honours_the_frame_dial():
+    """A skip advances whole turns of the scenario's length and never changes it."""
     w = _world()
     _safe(_hero(w))
     w.time_per_tick_minutes = 15
-    res = timeskip.advance(w, 3, intent="idle")
-    assert res.elapsed_minutes == 3
-    assert res.ticks == 3
-    assert w.time_per_tick_minutes == 15, "frame dial must be restored"
+    res = timeskip.advance(w, 30, intent="idle")
+    assert res.elapsed_minutes == 30
+    assert res.ticks == 2, "30 minutes is two 15-minute turns"
+    assert w.time_per_tick_minutes == 15, "the skip must not change the frame dial"
 
 
 def test_vital_danger_interrupts_and_returns_control():
@@ -414,6 +417,7 @@ def test_minutes_until_named_times():
 def _client():
     from app import create_app
     app = create_app({"TESTING": True})
+    app.world.time_per_tick_minutes = 1
     hero = _safe(_hero(app.world))
     try:
         app.world.player_manager.set_active_player(hero.name)

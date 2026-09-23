@@ -12,9 +12,11 @@ graph, same clock, same action flows; only who supplies the decision changes.
 Every other character is already run by the soak tier through ``tick_turn``.
 Zero LLM calls are made inside a skip.
 
-The one deliberate deviation from the frame dial: a skip advances **1-minute
-ticks regardless of ``time_per_tick_minutes``**, so interrupts land on a minute
-boundary. Normal play keeps the scenario's turn length.
+Resolution follows the scenario's frame dial (``time_per_tick_minutes``): a skip
+advances whole turns of that length, so the world clock stays consistent (it is
+derived from ticks x dial). A 1-minute world resolves interrupts every minute; a
+5-minute world every 5. Atomic actions keep their own 1-minute durations inside
+the flow either way.
 """
 
 from __future__ import annotations
@@ -93,7 +95,7 @@ def advance(gs, minutes, *, intent="idle", target=None, watch_tags=(),
     taxonomy — the library identifies them by tags). ``watch_tags`` are interest
     tags that end the skip on discovery; Explore defaults them to the
     character's own ``interest_tags``. Returns a :class:`TimeskipResult`; the
-    world is left at the exact minute the skip stopped on.
+    world is left at the exact turn the skip stopped on.
     """
     global _ACTIVE
 
@@ -136,21 +138,17 @@ def advance(gs, minutes, *, intent="idle", target=None, watch_tags=(),
     result.vitals_before = dict(getattr(who, "vitals", {}) or {})
     start_tick = getattr(gs, "time_ticks", 0)
 
-    saved_per_tick = getattr(gs, "time_per_tick_minutes", 1)
     try:
-        # Force minute resolution for the skip only.
-        try:
-            gs.time_per_tick_minutes = 1.0
-        except Exception:
-            pass
-
+        per_tick = _frame_minutes(gs)
+        steps = max(1, int(round(requested / per_tick)))
         before = interrupts_mod.snapshot(gs, who)
-        for _ in range(requested):
-            # 1. the standing-in policy spends this minute.
+        for _ in range(steps):
+            # 1. the standing-in policy spends this turn.
             if getattr(who, "state", None) != "dead" and not _busy(who):
                 try:
                     found = _policy_step(gs, sim, who, intent, target,
-                                         watch_tags, target_type, heading)
+                                         watch_tags, target_type, heading,
+                                         per_tick)
                 except Exception as e:  # never let one step kill the skip
                     logger.warning("[timeskip] %s step: %s", intent, e)
                     found = None
@@ -162,10 +160,10 @@ def advance(gs, minutes, *, intent="idle", target=None, watch_tags=(),
                     }
                     break
 
-            # 2. the world advances one minute (everyone else is soak).
+            # 2. the world advances one turn (everyone else is soak).
             gs.tick_turn()
-            result.elapsed_minutes += 1
             result.ticks += 1
+            result.elapsed_minutes = int(round(result.ticks * per_tick))
 
             # 3. did anything relevant happen to us?
             after = interrupts_mod.snapshot(gs, who)
@@ -184,10 +182,6 @@ def advance(gs, minutes, *, intent="idle", target=None, watch_tags=(),
                                     "detail": "You died.", "salient": True}
                 break
     finally:
-        try:
-            gs.time_per_tick_minutes = saved_per_tick
-        except Exception:
-            pass
         _ACTIVE = False
 
     result.vitals_after = dict(getattr(who, "vitals", {}) or {})
@@ -221,6 +215,14 @@ def _resolve_active(gs):
     if isinstance(who, str):
         return (getattr(gs, "players", None) or {}).get(who)
     return None
+
+
+def _frame_minutes(gs) -> float:
+    """The scenario's turn length: one skip step is one turn of this length."""
+    try:
+        return max(0.001, float(getattr(gs, "time_per_tick_minutes", 1) or 1))
+    except (TypeError, ValueError):
+        return 1.0
 
 
 def _default_watch_tags(player, intent, watch_tags):
@@ -267,13 +269,14 @@ def minutes_until(gs, when):
     return int((target - (now % 1440)) % 1440)
 
 
-def _policy_step(gs, sim, player, intent, target, watch_tags, target_type, heading):
-    """One minute of the standing-in policy. Returns a found node or None."""
+def _policy_step(gs, sim, player, intent, target, watch_tags, target_type,
+                 heading, remaining):
+    """One turn of the standing-in policy. Returns a found node or None."""
     if intent == "idle":
         return None  # do nothing, on purpose
 
     if intent == "leisure":
-        sim.take_action(player, served=set(), remaining=1.0)
+        sim.take_action(player, served=set(), remaining=remaining)
         return None
 
     if intent == "search":
@@ -285,7 +288,7 @@ def _policy_step(gs, sim, player, intent, target, watch_tags, target_type, headi
         # the maintenance a mingle would.
         if search_tags and sim.step_toward_tags(player, search_tags, "search"):
             return None
-        sim.take_action(player, served=set(), remaining=1.0)
+        sim.take_action(player, served=set(), remaining=remaining)
         return None
 
     if intent == "explore":
