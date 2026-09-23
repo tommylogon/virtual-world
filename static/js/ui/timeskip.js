@@ -75,12 +75,40 @@ window.Timeskip = (() => {
         });
     }
 
+    function _activeCharacter() {
+        try {
+            if (window.worldState && worldState.data) {
+                return worldState.data.active_player || null;
+            }
+        } catch (e) { /* ignore */ }
+        return null;
+    }
+
+    /**
+     * With no active character there is no one to stand in for, so the dialog
+     * drops the intent/target fields and the request becomes a world advance:
+     * every character is soak and the clock simply runs.
+     */
+    function _setWorldMode(on) {
+        ['timeskip-intent-block', 'timeskip-target-block', 'timeskip-tags-block']
+            .forEach((id) => {
+                const el = _el(id);
+                if (el) el.style.display = on ? 'none' : '';
+            });
+        const go = _el('timeskip-go');
+        if (go) go.textContent = on ? '⏩ Advance world' : '⏩ Skip';
+        if (on) {
+            _setStatus('No active character — this advances the world with everyone in soak mode.');
+        }
+    }
+
     function openDialog() {
         const modal = _el('timeskip-modal');
         if (!modal) return;
         _setStatus('');
         const result = _el('timeskip-result');
         if (result) { result.textContent = ''; result.style.display = 'none'; }
+        _setWorldMode(!_activeCharacter());
         modal.style.display = 'flex';
     }
 
@@ -97,6 +125,9 @@ window.Timeskip = (() => {
         const box = _el('timeskip-result');
         if (!box) return;
         const lines = [];
+        if (data.mode === 'world') {
+            lines.push('No active character — the world advances.');
+        }
         lines.push(`Elapsed: ${data.elapsed_minutes} min (${data.ticks} ticks) → ${data.clock_after || ''}`);
         if (data.interrupted && data.interrupt) {
             lines.push(`Interrupted: ${data.interrupt.detail || data.interrupt.why}`);
@@ -121,9 +152,19 @@ window.Timeskip = (() => {
     async function run() {
         const button = _el('timeskip-go');
         if (button) button.disabled = true;
-        _setStatus('Advancing the world minute by minute…');
+        const worldMode = !_activeCharacter();
+        const planned = _payload();
+        const body = worldMode
+            ? ((planned.minutes !== undefined || planned.until !== undefined)
+                ? Object.assign({}, planned.minutes !== undefined ? { minutes: planned.minutes } : {},
+                    planned.until !== undefined ? { until: planned.until } : {})
+                : { minutes: 120 })
+            : planned;
+        _setStatus(worldMode
+            ? 'Advancing the world with everyone in soak mode…'
+            : 'Advancing the world minute by minute…');
         try {
-            const data = await ApiClient.post('/api/world/timeskip', _payload());
+            const data = await ApiClient.post('/api/world/timeskip', body);
             if (!data || data.error || data.ok === false) {
                 _setStatus('⚠ ' + ((data && (data.error || data.reason)) || 'Timeskip failed.'));
                 return;

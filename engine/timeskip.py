@@ -50,6 +50,7 @@ class TimeskipResult:
     ok: bool
     intent: str
     requested_minutes: int
+    mode: str = "character"       # character (a policy stands in) | world (all soak)
     elapsed_minutes: int = 0
     ticks: int = 0
     interrupted: bool = False
@@ -64,6 +65,7 @@ class TimeskipResult:
         return {
             "ok": self.ok,
             "intent": self.intent,
+            "mode": self.mode,
             "requested_minutes": self.requested_minutes,
             "elapsed_minutes": self.elapsed_minutes,
             "ticks": self.ticks,
@@ -75,6 +77,49 @@ class TimeskipResult:
             "clock_after": self.clock_after,
             "lines": self.lines,
         }
+
+
+def advance_world(gs, minutes, *, rng=None) -> TimeskipResult:
+    """Advance the world with **no** player policy — everyone is soak.
+
+    This is what a timeskip means in a scenario with no human player: there is no
+    one to stand in for, so the clock simply runs. No policies, no interrupts,
+    no resume memory: just ``tick_turn`` until the span is spent, with every
+    character driven by the background tier.
+    """
+    global _ACTIVE
+
+    try:
+        requested = int(minutes)
+    except (TypeError, ValueError):
+        return TimeskipResult(False, "world", 0,
+                              reason="A timeskip needs a duration.")
+    if requested < MIN_MINUTES:
+        return TimeskipResult(False, "world", requested, reason="That is too short.")
+    requested = min(requested, MAX_MINUTES)
+    if _ACTIVE:
+        return TimeskipResult(False, "world", requested,
+                              reason="A timeskip is already running.")
+
+    _ACTIVE = True
+    result = TimeskipResult(True, "world", requested, mode="world")
+    start_tick = getattr(gs, "time_ticks", 0)
+    per_tick = _frame_minutes(gs)
+    steps = max(1, int(round(requested / per_tick)))
+    try:
+        for _ in range(steps):
+            gs.tick_turn()
+            result.ticks += 1
+            result.elapsed_minutes = int(round(result.ticks * per_tick))
+    finally:
+        _ACTIVE = False
+
+    try:
+        result.clock_after = gs.tick_manager.get_current_time()
+    except Exception:
+        result.clock_after = ""
+    result.lines = _notable_lines(gs, start_tick, "")
+    return result
 
 
 def is_running() -> bool:

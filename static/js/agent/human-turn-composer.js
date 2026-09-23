@@ -297,6 +297,7 @@ window.HumanTurnComposer = (() => {
             <div class="htc-footer-row">
               <button type="button" id="htc-advanced-toggle" class="htc-linkbtn muted">▸ advanced</button>
               <button type="button" id="htc-json-toggle" class="htc-linkbtn muted">▸ raw json</button>
+              <button type="button" id="htc-timeskip" class="htc-linkbtn" title="Wait, mingle, search, explore or travel for a span — your character runs on a policy while everyone else soaks">⏩ timeskip</button>
               <button type="button" id="htc-end" class="htc-linkbtn endturn">⏭ end turn</button>
             </div>
             <div id="htc-advanced" style="display:none">
@@ -337,6 +338,13 @@ window.HumanTurnComposer = (() => {
         // composer actions
         _modal.querySelector('#htc-act').addEventListener('click', onActButton);
         _modal.querySelector('#htc-end').addEventListener('click', () => finishAct({ endTurn: true }));
+        // On the human's turn this is the natural home for a timeskip: their
+        // character runs on a policy while everyone else soaks (task-464/474).
+        _modal.querySelector('#htc-timeskip').addEventListener('click', () => {
+            if (window.Timeskip && typeof window.Timeskip.openDialog === 'function') {
+                window.Timeskip.openDialog();
+            }
+        });
         _modal.querySelector('#htc-skip-react').addEventListener('click', () => finishReact({ endTurn: true }));
         _modal.querySelector('#htc-clear-do').addEventListener('click', () => {
             _modal.querySelector('#htc-do').value = '';

@@ -43,11 +43,9 @@ def handle_timeskip(app):
 
     target = data.get("target")
     player = world.get_active_player_obj()
-    if player is None:
-        return jsonify({"error": "No active character"}), 400
 
     # Travel to a known place can derive its own span from the route.
-    if minutes is None and intent == "travel" and target:
+    if minutes is None and player is not None and intent == "travel" and target:
         route = timeskip.travel_minutes(world, player.current_area, target)
         if route is None:
             return jsonify({"error": f"No route to '{target}'"}), 400
@@ -70,15 +68,19 @@ def handle_timeskip(app):
         return jsonify({"error": f"Too long for a request (max {MAX_REQUEST_MINUTES} min)",
                         "max_minutes": MAX_REQUEST_MINUTES}), 400
 
-    watch_tags = data.get("watch_tags") or []
-    if isinstance(watch_tags, str):
-        watch_tags = [watch_tags]
-
     try:
-        result = timeskip.advance(
-            world, int(round(requested)), intent=intent, target=target,
-            watch_tags=watch_tags, target_type=data.get("target_type"),
-            heading=data.get("heading"))
+        if player is None:
+            # No human/active character: a timeskip is a WORLD advance — intent,
+            # target and watch tags have no subject, so everyone simply soaks.
+            result = timeskip.advance_world(world, int(round(requested)))
+        else:
+            watch_tags = data.get("watch_tags") or []
+            if isinstance(watch_tags, str):
+                watch_tags = [watch_tags]
+            result = timeskip.advance(
+                world, int(round(requested)), intent=intent, target=target,
+                watch_tags=watch_tags, target_type=data.get("target_type"),
+                heading=data.get("heading"))
     except Exception as e:  # never 500 the world on a bad skip
         logger.exception("[timeskip] request failed")
         return jsonify({"error": str(e)}), 400

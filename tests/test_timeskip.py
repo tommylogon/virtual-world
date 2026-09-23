@@ -471,3 +471,35 @@ def test_mutating_routes_refuse_while_a_skip_runs():
     finally:
         timeskip._ACTIVE = False
     assert not timeskip.is_running()
+
+
+# ─────────────────── world advance (no human player) ──────────────────────
+
+def test_world_advance_needs_no_character():
+    w = _world()
+    _safe(_hero(w))
+    w.player_manager.active_player = None
+    res = timeskip.advance_world(w, 5)
+    assert res.ok and res.mode == "world"
+    assert res.elapsed_minutes == 5 and res.ticks == 5
+
+
+def test_route_advances_the_world_when_there_is_no_active_character():
+    from app import create_app
+    app = create_app({"TESTING": True})
+    app.world.time_per_tick_minutes = 1
+    _safe(_hero(app.world))
+    app.world.player_manager.active_player = None
+    client = app.test_client()
+    resp = client.post("/api/world/timeskip", json={"minutes": 3})
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["mode"] == "world"
+    assert data["elapsed_minutes"] == 3
+
+
+def test_a_character_skip_reports_character_mode():
+    w = _world()
+    _safe(_hero(w))
+    res = timeskip.advance(w, 3, intent="idle")
+    assert res.mode == "character"

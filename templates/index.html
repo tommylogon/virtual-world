@@ -829,7 +829,7 @@
                 <button class="modal-close" onclick="Timeskip.closeDialog()">&times;</button>
             </div>
             <div style="padding:16px 20px;display:flex;flex-direction:column;gap:14px;font-size:12px;color:var(--text);">
-                <div>
+                <div id="timeskip-intent-block">
                     <div style="font-weight:600;margin-bottom:6px;">Intent</div>
                     <label style="display:flex;gap:8px;align-items:center;margin-bottom:5px;cursor:pointer;">
                         <input type="radio" name="timeskip-intent" value="idle" checked> Wait here — do nothing; vitals keep running
@@ -862,7 +862,7 @@
                     <input id="timeskip-minutes" type="number" min="1" max="1440" placeholder="minutes" style="width:90px;padding:3px 6px;">
                 </div>
                 <div style="color:var(--text-muted);">Travel to a target uses the route length unless you type minutes; the other intents use the duration above.</div>
-                <div style="display:flex;gap:10px;">
+                <div id="timeskip-target-block" style="display:flex;gap:10px;">
                     <div style="flex:1;">
                         <div style="font-weight:600;margin-bottom:4px;">Target <span style="color:var(--text-muted);">(travel area / search item)</span></div>
                         <input id="timeskip-target" type="text" placeholder="e.g. Water Source" style="width:100%;padding:3px 6px;">
@@ -872,7 +872,7 @@
                         <input id="timeskip-heading" type="text" placeholder="west" style="width:100%;padding:3px 6px;">
                     </div>
                 </div>
-                <div>
+                <div id="timeskip-tags-block">
                     <div style="font-weight:600;margin-bottom:4px;">Watch tags <span style="color:var(--text-muted);">(comma separated — stop on discovery)</span></div>
                     <input id="timeskip-tags" type="text" placeholder="relic, treasure" style="width:100%;padding:3px 6px;">
                 </div>
