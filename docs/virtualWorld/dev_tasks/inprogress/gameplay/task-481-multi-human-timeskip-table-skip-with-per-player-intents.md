@@ -55,13 +55,18 @@ Confirmed decisions (2026-09-23):
 - [x] Turn-based `advance()` steps past characters with an active soak order, so
       a soaking human is not prompted for an attended turn (bounded, so an
       all-soaking table cannot spin).
-- [ ] Cancel affordance (from the roster entry) and explicit queue position on
-      promotion (ties to task-437); the composer's timeskip button could declare
-      directly instead of opening the dialog.
+- [x] Promotion re-queues by the normal order rule: sequential is already
+      alphabetic, random already shuffled, **initiative re-rolls for the
+      promoted character** and re-sorts keeping the current character current,
+      and simultaneous modes do not use this queue at all
+      (`TurnQueue.syncSoakPromotions`, driven from `reconcile()` on each fetch).
+- [ ] Cancel affordance (from the roster entry); the composer's timeskip button
+      could declare directly instead of opening the dialog.
 - [ ] Save/load: orders are deliberately transient; a reload abandons the order.
 
 ## Verification
 
 `python -m pytest tests/test_soak_orders.py -q` → 14 passed (incl. the state
 payload reporting the order for the roster). Targeted soak/background/timeskip/
-fear/checks → 111 passed. lint / typecheck / tools-unit clean.
+fear/checks → 111 passed. `tools/unit` → 133 passed (incl. 3 soak-queue cases).
+lint / typecheck / module-index clean.

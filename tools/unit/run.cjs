@@ -63,6 +63,7 @@ load('static/js/shared/json-utils.js');
 load('static/js/shared/trigger-suggest-ai.js');
 load('static/js/agent/vital-thresholds.js');
 load('static/js/agent/simultaneous.js');
+load('static/js/agent/turn-queue.js');
 load('static/js/agent/action-normalizer.js');
 load('static/js/agent/response-parser.js');
 load('static/js/agent/plan-tracker.js');
