@@ -1,0 +1,9 @@
+{
+  "name": "edible_root",
+  "description": "a knotted root, pale under the dirt. filling, if plain.",
+  "actions": "examine,take,drop,eat",
+  "uses": -1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "tags": ["root", "food", "forage"]
+}

@@ -315,6 +315,12 @@ class BackgroundSimulation:
                     served.add("eat")
                     self._begin_task(p, "foraging", TASK_MINUTES["forage"], remaining)
                     return TASK_MINUTES["forage"]
+                if outcome is False and self._forage_spawn(p, FOOD_TAGS):
+                    # The search turned something up (task-471): eat it now.
+                    if self._consume_here(p, FOOD_TAGS, "eat") is True:
+                        served.add("eat")
+                        self._begin_task(p, "eating", TASK_MINUTES["eat"], remaining)
+                        return TASK_MINUTES["eat"]
             if self._travel_toward(p, FOOD_TAGS, "hunger"):
                 return TASK_MINUTES["travel"]
 
@@ -588,6 +594,21 @@ class BackgroundSimulation:
             except Exception:
                 pass
         return bool(success)
+
+    def _forage_spawn(self, p, want_tags):
+        """A search can turn something up in an area that had nothing (task-471).
+
+        Only areas that can plausibly hold a find yield one (see
+        engine/foraging), and the per-area daily cap still applies.
+        """
+        try:
+            from engine.foraging import find_or_spawn, best_skill_for
+            skill = best_skill_for(self.gs, p, want_tags)
+            return find_or_spawn(self.gs, p, p.current_area, skill=skill,
+                                 want_tags=want_tags)
+        except Exception as e:
+            logger.warning("[background] forage spawn: %s", e)
+            return None
 
     def _consume_here(self, p, tags, kind):
         node = self._find_consumable(p, tags, verb=self._verb_for_need(kind))

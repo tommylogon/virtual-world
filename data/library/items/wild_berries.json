@@ -1,0 +1,9 @@
+{
+  "name": "wild_berries",
+  "description": "a handful of small dark berries, bitter but edible.",
+  "actions": "examine,take,drop,eat",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "tags": ["berry", "fruit", "food", "forage"]
+}

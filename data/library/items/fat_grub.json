@@ -1,0 +1,9 @@
+{
+  "name": "fat_grub",
+  "description": "a pale grub as long as a thumb, curled in the soil.",
+  "actions": "examine,take,drop,eat",
+  "uses": -1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "tags": ["grub", "bait", "bug", "food", "forage"]
+}

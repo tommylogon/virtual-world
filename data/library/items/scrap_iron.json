@@ -1,0 +1,9 @@
+{
+  "name": "scrap_iron",
+  "description": "a bent scrap of iron, rusted at the edges. somebody might want it.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "tags": ["scrap", "junk", "metal"]
+}

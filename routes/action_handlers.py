@@ -4,6 +4,7 @@ import json
 from flask import request, jsonify
 from virtual_world_engine import AmbiguousItemError
 from graph import EDGE_IN, Edge
+from engine.foraging import is_loot_skill
 from engine.activities import (
     ACTIVITY_BLOCKING, ACTIVITY_INTERRUPTIBLE, activity_description,
 )
@@ -540,7 +541,19 @@ def handle_take_action(app):
                 add_output("You look around but can't focus.")
             else:
                 explicit_tag = ' '.join(tokens[1:]).strip() if len(tokens) > 1 else None
-                if explicit_tag:
+                if explicit_tag and is_loot_skill(explicit_tag):
+                    # Skill-driven search (task-471): Survival finds plants and
+                    # game, History finds old things, Religion finds relics.
+                    from engine.foraging import find_or_spawn
+                    area_name = getattr(world.player, 'current_area', None)
+                    node = find_or_spawn(world, world.player, area_name,
+                                         skill=explicit_tag)
+                    if node is not None:
+                        add_output(f"You search with {explicit_tag} and find {node.name}.")
+                    else:
+                        add_output(f"You search with {explicit_tag} but find nothing new.")
+                    tags_to_search = []
+                elif explicit_tag:
                     tags_to_search = [explicit_tag]
                     tag_label = f"'{explicit_tag}'"
                 else:

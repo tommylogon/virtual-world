@@ -1,0 +1,9 @@
+{
+  "name": "dwarf_chisel",
+  "description": "a short chisel of dark metal, its head worked with runes. old, but sound.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "tags": ["tool", "dwarf", "old", "antique"]
+}

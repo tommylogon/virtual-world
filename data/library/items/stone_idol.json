@@ -1,0 +1,9 @@
+{
+  "name": "stone_idol",
+  "description": "a small stone figure, worn and faceless, still faintly warm.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 1.2,
+  "current_state": "normal",
+  "tags": ["idol", "religious", "relic", "old"]
+}
