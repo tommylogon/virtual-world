@@ -360,9 +360,15 @@ window.GraphNetwork = {
                 if (!newNodeIds.has(id)) continue;
                 graphManager.network.moveNode(id, pos.x, pos.y);
             }
-            // Apply cardinal-based area layout if enabled. Not in hierarchical
-            // mode: that layout owns every position (and re-enables physics).
-            if (!levelsOn && graphManager._cardinalLayout && worldState.areas) {
+            // Apply cardinal-based area layout only in MAP mode: the Map button
+            // (`_cardinalLayout`) or the map view overlay (`_viewMode`). In the
+            // graph view nodes are placed by hand (restored from `properties.x/y`),
+            // so auto-anchoring areas, ways and loose nodes there moved a way the
+            // user had just positioned. Not in hierarchical mode either: that
+            // layout owns every position.
+            const mapMode = graphManager._cardinalLayout === true
+                || graphManager._viewMode === 'cardinal';
+            if (!levelsOn && mapMode && worldState.areas) {
                 GraphLayoutEngine.applyCardinalLayout(nodesObj);
             }
 
