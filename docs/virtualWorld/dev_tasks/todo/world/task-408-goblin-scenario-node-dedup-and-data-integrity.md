@@ -138,6 +138,32 @@ way/area endpoint ids at authoring time, attach `high_metabolism`, add a
 `name`/`meta.title` (the app currently labels the file `world_template`), and
 the folder-authoring → compiled-JSON format.
 
+## Progress — 2026-09-23 (folder-authoring compiler, side quest)
+
+Change 5 (folder authoring → compiled JSON) has a first working slice:
+
+- `tools/compile_scenario.py` — compiles a folder to one scenario JSON.
+  - Layout: `scenario.json` manifest + `rooms/` (alias `areas/`), `ways/`,
+    `items/`, `characters/`, `triggers/`.
+  - Manifest runtime keys pass through; `name` → `_scenario_name`.
+  - Characters compile to a `players` block **and** a canonical `player_<Name>`
+    node; authored area ids are translated to the area display name for
+    `players[].current_area` (engine convention).
+  - Deterministic: sorted file order + `sort_keys=True` → byte-identical compiles.
+- `tools/build_scenario.py` — reusable graph builder now accepts alternate
+  folder names (`dir_names`) and bare/unprefixed filenames (id prefixed from the
+  name when the stem lacks `area_`/`way_`/`item_`/`logic_trigger_`). Existing
+  prefixed components behave exactly as before.
+- `tests/test_compile_scenario.py` (4) — determinism, ids/players, way edges,
+  and a full `/api/load` round-trip asserting no duplicate characters.
+- Docs: `tools/scenario-folder-authoring.md`.
+- Full suite: 3455 passed, 6 known pre-existing failures.
+
+Still open in this task: migrate the goblin scenario into a folder under this
+format, dedupe 46→23 at source (respecting the task-316 alias contract — see the
+2026-09-23 note above), canonicalize way/area ids, attach `high_metabolism`, add
+`name`/`meta.title`, and resolve the re-introduced validator issues.
+
 ## Progress — 2026-09-23 (re-validation; trigger fixes not in the committed file)
 
 Re-checking the committed `data/scenarios/kraktooth_goblin_camp.json` today shows

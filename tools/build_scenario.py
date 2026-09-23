@@ -24,8 +24,7 @@ def load_json(path: Path) -> Any:
         return json.load(f)
 
 
-def load_component_dir(base: Path, kind: str) -> List[Tuple[str, dict]]:
-    directory = base / kind
+def load_component_dir_at(directory: Path) -> List[Tuple[str, dict]]:
     if not directory.exists():
         return []
     results = []
@@ -36,6 +35,10 @@ def load_component_dir(base: Path, kind: str) -> List[Tuple[str, dict]]:
         except json.JSONDecodeError as e:
             print(f"Warning: failed to parse {path}: {e}", file=sys.stderr)
     return results
+
+
+def load_component_dir(base: Path, kind: str) -> List[Tuple[str, dict]]:
+    return load_component_dir_at(base / kind)
 
 
 def _slugify(name: str) -> str:
@@ -68,6 +71,8 @@ def normalize_area(area: dict) -> dict:
     area.setdefault("type", "area")
     area.setdefault("id", ensure_area_id(area.get("name", "unnamed")))
     area.setdefault("name", area["id"].replace("area_", "").replace("_", " ").title())
+    if not str(area["id"]).startswith("area_"):
+        area["id"] = ensure_area_id(area.get("name") or area["id"])
     props = area.setdefault("properties", {})
     props.setdefault("description", "")
     props.setdefault("environment", {"light": "normal", "temperature": 18.0, "air": "fresh", "smell": "neutral", "noise": "quiet"})
@@ -81,6 +86,8 @@ def normalize_way(way: dict, area_ids: set) -> dict:
     way.setdefault("type", "way")
     way.setdefault("id", ensure_way_id(way.get("name", "unnamed")))
     way.setdefault("name", way["id"].replace("way_", "").replace("_", " ").title())
+    if not str(way["id"]).startswith("way_"):
+        way["id"] = ensure_way_id(way.get("name") or way["id"])
     props = way.setdefault("properties", {})
     props.setdefault("description", "")
     if not props.get("pass_message"):
@@ -100,6 +107,8 @@ def normalize_item(item: dict) -> dict:
     item.setdefault("type", "item")
     item.setdefault("id", ensure_item_id(item.get("name", "unnamed")))
     item.setdefault("name", item["id"].replace("item_", "").replace("_", " ").title())
+    if not str(item["id"]).startswith("item_"):
+        item["id"] = ensure_item_id(item.get("name") or item["id"])
     props = item.setdefault("properties", {})
     props.setdefault("description", "")
     props.setdefault("actions", [])
@@ -174,6 +183,8 @@ def normalize_trigger(trigger: dict, node_ids: set) -> dict:
     trigger.setdefault("type", "logic_trigger")
     trigger.setdefault("id", ensure_trigger_id(trigger.get("name", "unnamed")))
     trigger.setdefault("name", trigger["id"].replace("logic_trigger_", "").replace("_", " ").title())
+    if not str(trigger["id"]).startswith("logic_trigger_"):
+        trigger["id"] = ensure_trigger_id(trigger.get("name") or trigger["id"])
     props = trigger.setdefault("properties", {})
     props.setdefault("event", "on_examine")
     props.setdefault("target", "")
@@ -244,27 +255,32 @@ def build_trigger_edges(triggers: List[dict]) -> List[dict]:
     return edges
 
 
-def load_components_with_ids(base: Path, kind: str) -> List[dict]:
+def load_components_with_ids(base: Path, kind: str, folder: str = None) -> List[dict]:
     """Load component files, using the filename stem as the node id.
 
     Component filenames are authored with the canonical id (e.g.
     ``area_chiefs_pit.json``); deriving the id from the display name instead
     makes punctuation-sensitive names ("Chief's Pit") drift from the ids the
     ways/characters reference.
+
+    ``folder`` overrides the subdirectory name for this kind (e.g. ``rooms``
+    instead of ``areas``), which the folder-authoring compiler uses.
     """
     entries = []
-    for stem, data in load_component_dir(base, kind):
+    for stem, data in load_component_dir_at(base / (folder or kind)):
         data.setdefault("id", stem)
         entries.append(data)
     return entries
 
 
-def build_scenario(components_dir: Path, runtime_overrides: dict) -> dict:
-    areas = [normalize_area(a) for a in load_components_with_ids(components_dir, "areas")]
-    ways_raw = load_components_with_ids(components_dir, "ways")
-    items = [normalize_item(i) for i in load_components_with_ids(components_dir, "items")]
-    characters = [normalize_character(c, {a["id"] for a in areas}) for c in load_components_with_ids(components_dir, "characters")]
-    triggers_raw = load_components_with_ids(components_dir, "triggers")
+def build_scenario(components_dir: Path, runtime_overrides: dict,
+                   dir_names: Dict[str, str] = None) -> dict:
+    names = dir_names or {}
+    areas = [normalize_area(a) for a in load_components_with_ids(components_dir, "areas", names.get("areas"))]
+    ways_raw = load_components_with_ids(components_dir, "ways", names.get("ways"))
+    items = [normalize_item(i) for i in load_components_with_ids(components_dir, "items", names.get("items"))]
+    characters = [normalize_character(c, {a["id"] for a in areas}) for c in load_components_with_ids(components_dir, "characters", names.get("characters"))]
+    triggers_raw = load_components_with_ids(components_dir, "triggers", names.get("triggers"))
     canonicalize_character_ids(characters, triggers_raw)
 
     all_node_ids = {n["id"] for n in areas + ways_raw + items + characters + triggers_raw}
