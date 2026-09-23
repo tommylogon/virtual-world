@@ -68,3 +68,21 @@ search/soak/actions regression → 289 passed.
   looks elsewhere next turn instead of standing still.
 - [ ] Follow-up: grouped items (`task-473`) — a 50-use meat pile, relational herb
   piles — so wild finds can be tidied into stacks.
+
+## Update 2 — the `forage` mechanics tag (curated pool)
+
+Tags are **additive** (faction, setting, type, mechanics all live together). The
+mechanics tag **`forage`** marks "this can turn up when someone searches the
+wilds". `_pick_item` prefers `forage`-tagged candidates whenever any exist, so a
+`tool` entry picks a findable chisel instead of a coffee grinder or nail polish,
+and a food entry cannot surface a cauldron. If nothing is tagged yet it falls
+back to the plain tag match, so untagged libraries keep working. Biome
+preference stays in the tables (`AREA_SKILL_BONUS`), not on the items.
+
+Curated wild pool (12): `wild_berries`, `bush_of_berries`, `edible_root`,
+`fat_grub`, `medicinal_herb`, `scrap_iron`, `old_coin`, `dwarf_chisel`,
+`stone_idol`, `bundle_of_twigs`, `chipped_stone`, `sodden_bark`.
+
+To make any item findable, add `forage` to its tags — that is the whole authoring
+step alongside the area's biome tag. Remaining: more religion/history content
+(one relic today), and finer `tool`/`food` distribution.

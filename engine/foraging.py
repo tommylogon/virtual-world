@@ -12,6 +12,14 @@ single Perception-style check, and a per-area daily cap so a long soak cannot
 turn one wood into a loot piñata. Finds are ordinary library items, spawned as
 fresh copies, so they can be taken, eaten, given away or ignored by every other
 system.
+
+Tag convention (additive — an item keeps every tag that is true of it):
+``forage`` is a **mechanics** tag meaning "this can turn up when someone
+searches the wilds". Tables name type tags (``fruit``, ``tool``, ``coin``,
+``relic`` …) and, when any candidate carries ``forage``, only tagged items are
+eligible — so a search draws from a curated pool instead of matching a cauldron
+or a nail-polish kit just because both say ``food``/``tool``. Biome preference
+lives in the tables (:data:`AREA_SKILL_BONUS`), not on the items.
 """
 
 from __future__ import annotations
@@ -79,6 +87,10 @@ AREA_SKILL_BONUS = {
 }
 
 _LIBRARY_INDEX = None
+
+#: Mechanics tag: "findable by searching the wilds". Our own loot tables prefer
+#: tagged items when any exist (see _pick_item), so the pool stays curated.
+FORAGE_TAG = "forage"
 
 #: Anything useless a search can also turn up — the wilds are not a pantry.
 JUNK_ENTRY = {"tags": ["junk", "scrap", "debris"], "weight": 2}
@@ -264,12 +276,21 @@ def _weight(entry, skill_key, area_tags, present_tags, want_tags=()):
 
 
 def _pick_item(entry_tags, present_tags, rng):
-    """A library item whose tags best match the entry (deterministic given rng)."""
+    """A library item whose tags best match the entry (deterministic given rng).
+
+    Items tagged :data:`FORAGE_TAG` win whenever any candidate has it, so the
+    tables draw from a curated wild pool; a library with nothing tagged yet
+    still works (falls back to the plain tag match).
+    """
     index = _library_items_by_tag()
     scores = {}
     for tag in entry_tags:
         for item_id in index.get(str(tag).lower(), []):
             scores[item_id] = scores.get(item_id, 0) + 1
+    curated = {item: score for item, score in scores.items()
+               if item in set(index.get(FORAGE_TAG, []))}
+    if curated:
+        scores = curated
     if not scores:
         return None
     best = max(scores.values())

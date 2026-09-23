@@ -69,6 +69,16 @@ def test_a_strong_result_delivers_what_was_asked_for():
     assert all({"food"} & {str(t).lower() for t in e["tags"]} for e in entries)
 
 
+def test_the_forage_tag_curates_the_item_pool():
+    """A `tool` entry picks a findable tool, not a random fixture."""
+    assert foraging._pick_item(["tool"], set(), random.Random(0)) == "dwarf_chisel"
+
+
+def test_forage_curation_keeps_food_finds_edible():
+    picked = foraging._pick_item(["food"], set(), random.Random(0))
+    assert picked in {"wild_berries", "edible_root", "fat_grub"}
+
+
 def test_an_untagged_interior_yields_nothing():
     w = _world()
     area = _area(w, "Test Hall", [])
