@@ -35,11 +35,26 @@ window.GraphRelativeLayout = {
     ],
     RELATION_TYPES: new Set(['carrying', 'equipped', 'at', 'in', 'triggers']),
 
-    // Ring radius per depth below the parent node.
-    RADII: [0, 130, 88, 62],
-    // Extra radius for crowded parents (triggers love a way or an item).
-    CROWD_STEP: 46,
-    CROWD_AT: 8,
+    // Children are packed into a tight block beside their parent rather than
+    // spread on a wide halo: a room's contents should read as one cluster, not
+    // overlap the neighbouring room. Items go below (clear of the parent's own
+    // label box), characters right, triggers tucked to the left, and nested
+    // contents pack tighter still. Spacing is sized for a short label.
+    CLUSTER: {
+        item: { dx: 52, dy: 26, cols: 3, ox: 0, oy: 58 },
+        character: { dx: 40, dy: 34, cols: 1, ox: 74, oy: -20 },
+        logic_trigger: { dx: 26, dy: 20, cols: 2, ox: -78, oy: -20 },
+        default: { dx: 44, dy: 26, cols: 3, ox: 40, oy: 46 },
+    },
+    // Nested contents (an item inside a container) scale the block down.
+    NESTED_SCALE: 0.72,
+    // Children stay dynamic: they hold a *relative* offset from their parent and
+    // that offset is re-applied as the parent moves, so a dragged room carries
+    // its contents while global central gravity can never stretch a child away
+    // (or drag it to the middle). Corrected every frame the simulation draws,
+    // with a timer as the floor for a settled network that stops redrawing.
+    FOLLOW_MS: 30,
+    FOLLOW_EPSILON: 0.5,
 
     _edges() {
         const g = (typeof graphManager !== 'undefined' && graphManager) || {};
@@ -96,6 +111,17 @@ window.GraphRelativeLayout = {
         if (node.type === 'area') return 3;
         if (node.type === 'character') return 2;
         return 1;
+    },
+
+    /** Parent of every node, cached by graph identity (the leash runs per frame). */
+    _parents(nodes, edges) {
+        if (this._parentCache && this._parentCache.nodes === nodes && this._parentCache.edges === edges) {
+            return this._parentCache.map;
+        }
+        const map = {};
+        for (const id of Object.keys(nodes)) map[id] = this.parentOf(id, edges, nodes);
+        this._parentCache = { nodes, edges, map };
+        return map;
     },
 
     /**
@@ -179,11 +205,7 @@ window.GraphRelativeLayout = {
         positions = positions || {};
 
         const ids = Object.keys(nodes).sort();
-        const parents = {};
-        for (const id of ids) {
-            if (nodes[id] && nodes[id].type === 'area') continue;
-            parents[id] = this.parentOf(id, edges, nodes);
-        }
+        const parents = this._parents(nodes, edges);
 
         // Depth from the root, walking up with a visited set so a container
         // cycle is an orphan (left to physics) rather than an infinite loop.
@@ -239,25 +261,49 @@ window.GraphRelativeLayout = {
             const parent = parents[id];
             const parentPos = parent ? out[parent] : null;
             if (!parentPos) continue;
-            const siblings = children[parent] || [id];
+            const node = nodes[id] || {};
+            const siblings = (children[parent] || [id]).filter((child) => {
+                const c = nodes[child];
+                return c && this._slotFor(c) === this._slotFor(node);
+            });
             const index = Math.max(0, siblings.indexOf(id));
-            const count = siblings.length;
-            const depth = Math.max(1, depthOf(id));
-            const base = this.RADII[Math.min(depth, this.RADII.length - 1)];
-            const radius = base + Math.max(0, Math.ceil(count / this.CROWD_AT) - 1) * this.CROWD_STEP;
-            const angle = (2 * Math.PI * index) / Math.max(1, count) - Math.PI / 2;
-            out[id] = {
-                x: parentPos.x + radius * Math.cos(angle),
-                y: parentPos.y + radius * Math.sin(angle),
-            };
+            const count = Math.max(1, siblings.length);
+            out[id] = this.clusterPosition(parentPos, index, count, node, Math.max(1, depthOf(id)));
         }
         return out;
     },
 
+    /** Which block a node packs into (its own row: items, characters, triggers). */
+    _slotFor(node) {
+        if (!node) return 'default';
+        return this.CLUSTER[node.type] ? node.type : 'default';
+    },
+
     /**
-     * Apply the derived layout to the live network. Areas are left alone
-     * (physics/settling/free dragging); everything else is moved onto its
-     * parent's ring and held there.
+     * Where the *n*-th of *count* same-kind children of a parent sits: a tight
+     * grid block offset to one side of the parent, wrapping into rows.
+     */
+    clusterPosition(parentPos, index, count, node, depth) {
+        const spec = this.CLUSTER[this._slotFor(node)];
+        const scale = depth >= 2 ? this.NESTED_SCALE : 1;
+        const dx = spec.dx * scale;
+        const dy = spec.dy * scale;
+        const cols = Math.max(1, Math.min(spec.cols, count));
+        const rows = Math.ceil(count / cols);
+        const col = index % cols;
+        const row = Math.floor(index / cols);
+        const blockWidth = (cols - 1) * dx;
+        const blockHeight = (rows - 1) * dy;
+        return {
+            x: parentPos.x + spec.ox * scale - blockWidth / 2 + col * dx,
+            y: parentPos.y + spec.oy * scale - blockHeight / 2 + row * dy,
+        };
+    },
+
+    /**
+     * Seed the derived layout: put every child in its parent's block and leave
+     * it to the physics. Children are **not** pinned — they settle, jostle and
+     * stay draggable — the leash in `enforce()` is what stops them leaving.
      *
      * @returns {number} how many nodes were placed
      */
@@ -268,27 +314,32 @@ window.GraphRelativeLayout = {
         const nodes = this._nodes();
         if (!Object.keys(nodes).length) return 0;
 
-        // Positions of the nodes that already exist, hidden ones included:
-        // getPositions() drops filtered-out nodes, and a child must still be
-        // placed when its parent is not currently visible.
-        let current = {};
-        try {
-            const body = network.body?.nodes || {};
-            for (const [id, n] of Object.entries(body)) {
-                if (n && Number.isFinite(n.x) && Number.isFinite(n.y)) current[id] = { x: n.x, y: n.y };
-            }
-        } catch (err) { /* fall through to getPositions */ }
-        if (!Object.keys(current).length) {
-            try { current = network.getPositions() || {}; } catch (err) { return 0; }
-        }
+        const current = this._positions(network);
+        if (!Object.keys(current).length) return 0;
         const derived = this.layoutPositions(nodes, this._edges(), current);
+        const parents = this._parents(nodes, this._edges());
 
+        // Keep each child's offset from its parent. An existing offset is kept,
+        // so a nudge the player made is not thrown away and a reload restores the
+        // arrangement rather than re-clustering from scratch.
+        if (!this._offsets) this._offsets = {};
         const updates = [];
         for (const [id, pos] of Object.entries(derived)) {
             const node = nodes[id];
-            if (!node || node.type === 'area') continue;
+            if (!node || node.type === 'area' || node.type === 'way') continue;
             if (!Number.isFinite(pos.x) || !Number.isFinite(pos.y)) continue;
-            updates.push({ id, x: pos.x, y: pos.y, fixed: { x: true, y: true }, physics: false });
+            const parent = parents[id];
+            const parentPos = parent ? derived[parent] : null;
+            if (!this._offsets[id] && parentPos) {
+                this._offsets[id] = { dx: pos.x - parentPos.x, dy: pos.y - parentPos.y };
+            }
+            const offset = this._offsets[id];
+            const target = offset && parentPos
+                ? { x: parentPos.x + offset.dx, y: parentPos.y + offset.dy }
+                : pos;
+            // Dynamic: no `fixed`, physics stays on — the follow pass is what
+            // keeps them with their parent.
+            updates.push({ id, x: target.x, y: target.y, fixed: false, physics: true });
         }
         if (updates.length) {
             try { network.body.data.nodes.update(updates); } catch (err) { /* ignore */ }
@@ -296,13 +347,126 @@ window.GraphRelativeLayout = {
         return updates.length;
     },
 
-    /** Follow area movement: re-derive after settling and after any drag. */
+    /** Live positions, hidden nodes included (`getPositions()` drops them). */
+    _positions(network) {
+        const out = {};
+        try {
+            const body = network.body?.nodes || {};
+            for (const [id, n] of Object.entries(body)) {
+                if (n && Number.isFinite(n.x) && Number.isFinite(n.y)) out[id] = { x: n.x, y: n.y };
+            }
+        } catch (err) { /* fall through */ }
+        if (!Object.keys(out).length) {
+            try { return network.getPositions() || {}; } catch (err) { return {}; }
+        }
+        return out;
+    },
+
+    /**
+     * Re-apply every child's offset against its parent's live position. This is
+     * what makes a room's contents follow it (physics moves the room, they track
+     * it) without ever letting a child drift off on its own. Runs on a timer
+     * because a settled vis network stops redrawing, so frame events are not
+     * enough.
+     *
+     * @returns {number} how many children were re-placed
+     */
+    follow() {
+        const g = (typeof graphManager !== 'undefined' && graphManager) || {};
+        const network = g.network;
+        if (!network || !network.body?.nodes || !this._offsets) return 0;
+        const nodes = this._nodes();
+        const parents = this._parents(nodes, this._edges());
+        const positions = this._positions(network);
+        const dragging = this._dragging || new Set();
+        let moved = 0;
+
+        // Shallowest first, updating the local map as we go, so a nested child
+        // (oil inside a lamp inside a room) resolves against the place its parent
+        // just moved to rather than the stale position of this pass.
+        const depthOf = (id) => {
+            let depth = 0, current = parents[id];
+            const seen = new Set();
+            while (current && !seen.has(current)) {
+                seen.add(current);
+                depth++;
+                current = parents[current];
+            }
+            return depth;
+        };
+        const ordered = Object.keys(this._offsets)
+            .filter((id) => nodes[id])
+            .sort((a, b) => depthOf(a) - depthOf(b) || (a < b ? -1 : 1));
+
+        for (const id of ordered) {
+            if (dragging.has(id)) continue;
+            const offset = this._offsets[id];
+            if (!offset) continue;
+            const parent = parents[id];
+            const parentPos = parent ? positions[parent] : null;
+            if (!parentPos) continue;
+            const x = parentPos.x + offset.dx;
+            const y = parentPos.y + offset.dy;
+            const now = positions[id];
+            if (now && Math.abs(now.x - x) <= this.FOLLOW_EPSILON && Math.abs(now.y - y) <= this.FOLLOW_EPSILON) {
+                continue;
+            }
+            try {
+                network.moveNode(id, x, y);
+                positions[id] = { x, y };
+                moved++;
+            } catch (err) { /* ignore */ }
+        }
+        this.lastFollowed = moved;
+        return moved;
+    },
+
+    /**
+     * A child that was dragged keeps its new place: its offset is recomputed from
+     * where it was dropped, so the player can arrange a room's contents by hand
+     * and they still follow the room afterwards.
+     */
+    rememberDrop(ids) {
+        const g = (typeof graphManager !== 'undefined' && graphManager) || {};
+        const network = g.network;
+        if (!network || !this._offsets) return;
+        const nodes = this._nodes();
+        const parents = this._parents(nodes, this._edges());
+        const positions = this._positions(network);
+        for (const id of ids || []) {
+            const node = nodes[id];
+            if (!node || node.type === 'area' || node.type === 'way') continue;
+            const parent = parents[id];
+            const parentPos = parent ? positions[parent] : null;
+            const pos = positions[id];
+            if (!parentPos || !pos) continue;
+            this._offsets[id] = { dx: pos.x - parentPos.x, dy: pos.y - parentPos.y };
+        }
+    },
+
+    /**
+     * Follow the room: dragEnd re-seeds the blocks (and remembers any child the
+     * player moved); the timer keeps children on their parent's pattern while
+     * physics runs so nothing is stretched across the map.
+     */
     attach(network) {
         if (!network || network._relativeLayoutAttached) return;
         network._relativeLayoutAttached = true;
+        this._dragging = new Set();
         network.on('stabilizationIterationsDone', () => this.apply());
-        network.on('dragEnd', (params) => {
-            if (params && params.nodes && params.nodes.length) this.apply();
+        network.on('dragStart', (params) => {
+            for (const id of (params && params.nodes) || []) this._dragging.add(id);
         });
+        network.on('dragEnd', (params) => {
+            const dragged = (params && params.nodes) || [];
+            for (const id of dragged) this._dragging.delete(id);
+            if (dragged.length) this.rememberDrop(dragged);
+        });
+        // Every drawn frame while the simulation is active, so the offset wins
+        // against central gravity instead of being tugged off between timer ticks.
+        network.on('afterDrawing', () => this.follow());
+        if (typeof setInterval === 'function' && !this._followTimer) {
+            this._followTimer = setInterval(() => this.follow(), this.FOLLOW_MS);
+        }
     },
 };

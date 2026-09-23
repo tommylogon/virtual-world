@@ -1,4 +1,4 @@
----
+﻿---
 type: task
 status: review
 area: graph
@@ -24,7 +24,7 @@ Positions must be a function of the graph relations, not saved snapshots: an ite
 - [x] Parent resolution is data-driven: priority `carrying` > `equipped` > `at` > `in` > `triggers`, so a carried bag rides its carrier even when a stale `in` edge still points at the room it was left in.
 - [x] The mixed `in` direction in the data is handled: `in` has no reliable direction (`Backpack -> Ink` vs `fireplace -> living_room`), so for `in` the end nearer the area roots is the parent, and only a strictly shallower node can be a parent (two-node container cycles stay parentless instead of each holding the other).
 - [x] Ways sit at the midpoint of the rooms they connect and are placed before children, so a trigger hosted by a way has somewhere to sit.
-- [x] Children are placed on a deterministic ring (depth radii 130/88/62, wider when a parent is crowded) and **held** (`fixed`, `physics: false`), so global central gravity can never drag them to the middle again. Areas keep physics and remain the only world coordinates.
+- [x] Children are packed into a tight block beside their parent (items below, characters right, triggers left, nested contents tighter still) and stay **dynamic**: no `fixed`, physics on, draggable. Each child holds a parent-relative offset that is re-applied every drawn frame (30ms timer as the floor), so global central gravity can never drag a child to the middle or stretch it away, a dragged room carries its contents, and a dragged child keeps the place it was dropped. Areas remain the only world coordinates.
 - [x] Re-derived on load, on `stabilizationIterationsDone`, and on `dragEnd`, so moving a room carries its contents.
 - [x] Hidden nodes are handled: positions come from the node bodies, not `getPositions()` (which drops filtered-out nodes), so a child of a hidden parent is still placed.
 
@@ -32,8 +32,9 @@ Positions must be a function of the graph relations, not saved snapshots: an ite
 
 Live against the real autosave (235 nodes) in the running app:
 
-- resolution: items 97/97, characters 3/3, logic_triggers 97/97, ways 19/19 � **0 orphans**.
-- placement holds: children sit 0-1px from their derived position and drift **0px over 3s** with area physics still enabled.
+- resolution: items 97/97, characters 3/3, logic_triggers 97/97, ways 19/19 ï¿½ **0 orphans**.
+- dynamic + local: 0 pinned / 197 dynamic children; child-parent distance median 58px, p90 78px, max 110px (the seeded block spacing) and unchanged after moving a room.
+- follow: moving `area_living_room` by (350, -150) moved its item by exactly (350, -150) with the cluster spacing intact.
 - follow: moving `area_living_room` by (+400, +200) moved all 10 of its items by exactly (+400, +200) (`allFollowed`).
 - spread: median distance of items/characters from the layout centroid went from 411px (broken resolution, effectively clustering) to 1486px, i.e. spread out with their rooms.
 

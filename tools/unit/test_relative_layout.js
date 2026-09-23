@@ -1,9 +1,9 @@
-/**
+﻿/**
  * Unit tests for graph/relative-layout.js (task-485).
  *
  * Positions must be derived from the relations, so the interesting cases are
  * the precedence rules (carried beats inside, worn beats inside), cycles, and
- * stability — the same graph must lay out the same way twice.
+ * stability â€” the same graph must lay out the same way twice.
  */
 
 const NODES = {
@@ -45,7 +45,7 @@ test('an item hangs off the area that holds it', () => {
 });
 
 test('a carried item follows the carrier, not the room it was left in', () => {
-    // item_bag BOTH sits in the cellar and is carried — the carrier wins.
+    // item_bag BOTH sits in the cellar and is carried â€” the carrier wins.
     assertEq(GraphRelativeLayout.parentOf('item_bag', EDGES, NODES), 'char_kael');
 });
 
@@ -77,11 +77,34 @@ test('an area is a root: it comes back at its own position, unplaced', () => {
     assertEq(layout(POS).area_hall, { x: 0, y: 0 });
 });
 
-test('children are placed on a ring near their parent', () => {
-    const out = { ...layout(POS), ...POS };
-    const d = (a, b) => Math.hypot(out[a].x - out[b].x, out[a].y - out[b].y);
-    assertTrue(Math.abs(d('item_lamp', 'area_hall') - 130) < 0.5, 'direct child radius');
-    assertTrue(Math.abs(d('item_oil', 'item_lamp') - 88) < 0.5, 'nested child radius');
+test('children pack into a tight block beside their parent', () => {
+    const out = layout(POS);
+    // One item child: directly below the room, not on a wide halo.
+    assertTrue(Math.abs(out.item_lamp.x - POS.area_hall.x) < 0.5, 'below, not offset sideways');
+    assertTrue(Math.abs(out.item_lamp.y - (POS.area_hall.y + 58)) < 0.5, 'item block sits under the room');
+    // A character child sits to the right instead.
+    assertTrue(out.char_kael.x > POS.area_hall.x + 30, 'character block to the right');
+    // Nested contents pack tighter than top-level ones.
+    const nested = Math.hypot(out.item_oil.x - out.item_lamp.x, out.item_oil.y - out.item_lamp.y);
+    const direct = Math.hypot(out.item_lamp.x - POS.area_hall.x, out.item_lamp.y - POS.area_hall.y);
+    assertTrue(nested < direct, 'nested items pack tighter');
+});
+
+test('a crowded parent wraps into rows instead of one long line', () => {
+    const nodes = { area_a: { type: 'area' } };
+    const edges = [];
+    for (let i = 0; i < 9; i++) {
+        nodes['item_' + i] = { type: 'item' };
+        edges.push({ type: 'in', source: 'item_' + i, target: 'area_a' });
+    }
+    const out = GraphRelativeLayout.layoutPositions(nodes, edges, { area_a: { x: 0, y: 0 } });
+    const pts = Object.entries(out).filter(([id]) => id !== 'area_a').map(([, p]) => p);
+    const ys = new Set(pts.map(p => Math.round(p.y)));
+    const xs = new Set(pts.map(p => Math.round(p.x)));
+    assertEq(xs.size, 3, 'three columns');
+    assertEq(ys.size, 3, 'three rows');
+    const keys = pts.map(p => `${Math.round(p.x)},${Math.round(p.y)}`);
+    assertEq(new Set(keys).size, keys.length, 'no two items overlap');
 });
 
 test('a carried item ends up beside the carrier, wherever the carrier is', () => {
@@ -120,14 +143,17 @@ test('a relation island with no area is left alone, not hung on', () => {
     assertEq(GraphRelativeLayout.layoutPositions(nodes, edges, {}), {});
 });
 
-test('apply() moves children and leaves areas to physics', () => {
+test('apply() seeds children and leaves them dynamic (not pinned)', () => {
     const updated = [];
     const previousGraphManager = globalThis.graphManager;
     globalThis.graphManager = {
         _graphNodesObj: NODES,
         _graphEdgesArr: EDGES,
         network: {
-            body: { data: { nodes: { update: (u) => updated.push(...u) } } },
+            body: {
+                nodes: { area_hall: { x: 0, y: 0 }, area_cellar: { x: 800, y: 600 } },
+                data: { nodes: { update: (u) => updated.push(...u) } },
+            },
             getPositions: () => POS,
         },
     };
@@ -135,11 +161,75 @@ test('apply() moves children and leaves areas to physics', () => {
         const count = GraphRelativeLayout.apply();
         assertEq(count, updated.length, 'returns what it placed');
         assertTrue(updated.every((u) => u.id !== 'area_hall'), 'areas untouched');
-        assertTrue(updated.every((u) => u.fixed && u.fixed.x === true && u.physics === false),
-            'children are held against central gravity');
+        assertTrue(updated.every((u) => u.fixed === false && u.physics === true),
+            'children stay in the physics simulation');
         assertTrue(updated.some((u) => u.id === 'item_bag'), 'the carried bag was placed');
     } finally {
         globalThis.graphManager = previousGraphManager;
+    }
+});
+
+test('a child holds its offset from the parent and follows it', () => {
+    GraphRelativeLayout._offsets = null;
+    const moved = [];
+    const positions = {
+        area_hall: { x: 0, y: 0 },
+        item_lamp: { x: 4000, y: 0 },   // flung across the map
+        item_oil: { x: 0, y: 60 },      // still tucked in the lamp
+    };
+    const previousGraphManager = globalThis.graphManager;
+    globalThis.graphManager = {
+        _graphNodesObj: NODES,
+        _graphEdgesArr: EDGES,
+        network: {
+            body: { nodes: positions, data: { nodes: { update: () => {} } } },
+            moveNode: (id, x, y) => { positions[id] = { x, y }; moved.push({ id, x, y }); },
+        },
+    };
+    try {
+        // Seed: the lamp takes its place under the hall, the oil inside the lamp.
+        GraphRelativeLayout.apply();
+        assertTrue(!!GraphRelativeLayout._offsets.item_lamp, 'the lamp has an offset');
+        assertTrue(Math.abs(GraphRelativeLayout._offsets.item_lamp.dx) < 0.5, 'below its parent');
+
+        // Physics flings the lamp away; the follow pass brings it back onto its
+        // offset, and the oil rides along rather than staying behind.
+        positions.item_lamp = { x: 4000, y: 0 };
+        const fixed = GraphRelativeLayout.follow();
+        assertTrue(fixed >= 2, 'both lamp and oil re-placed');
+        assertTrue(Math.abs(positions.item_lamp.x) < 1, 'the lamp is back with the hall');
+        assertTrue(Math.abs(positions.item_oil.x) < 60, 'the oil stayed in the lamp');
+    } finally {
+        globalThis.graphManager = previousGraphManager;
+        GraphRelativeLayout._offsets = null;
+    }
+});
+
+test('a dragged child keeps the place it was dropped in', () => {
+    GraphRelativeLayout._offsets = null;
+    const positions = { area_hall: { x: 0, y: 0 }, item_lamp: { x: 0, y: 58 } };
+    const previousGraphManager = globalThis.graphManager;
+    globalThis.graphManager = {
+        _graphNodesObj: NODES,
+        _graphEdgesArr: EDGES,
+        network: {
+            body: { nodes: positions, data: { nodes: { update: () => {} } } },
+            moveNode: (id, x, y) => { positions[id] = { x, y }; },
+        },
+    };
+    try {
+        GraphRelativeLayout.apply();
+        positions.item_lamp = { x: 220, y: 30 };          // dropped to the side
+        GraphRelativeLayout.rememberDrop(['item_lamp']);
+        assertEq(GraphRelativeLayout._offsets.item_lamp, { dx: 220, dy: 30 });
+        GraphRelativeLayout.follow();
+        assertEq(positions.item_lamp, { x: 220, y: 30 }, 'it stays where it was dropped');
+        positions.area_hall = { x: 500, y: 500 };          // the room moves
+        GraphRelativeLayout.follow();
+        assertEq(positions.item_lamp, { x: 720, y: 530 }, 'and follows the room from there');
+    } finally {
+        globalThis.graphManager = previousGraphManager;
+        GraphRelativeLayout._offsets = null;
     }
 });
 

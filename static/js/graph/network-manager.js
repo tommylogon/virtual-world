@@ -252,7 +252,13 @@ window.GraphNetwork = {
                     }
                 }
 
-                // Check if the way node has a per-edge length override
+                // Attachment edges (item -> its parent, or a trigger -> its host)
+                // get short springs so a child settles next to its parent rather
+                // than floating at the global length. Children stay dynamic: the
+                // leash in relative-layout.js is what keeps them local (task-485).
+                const isAttachment = GRAPH_ATTACH_EDGE_TYPES.has(edgeType)
+                    || edgeType === 'triggers' || edgeType === 'grappled';
+
                 let edgeLength = undefined;
                 if (edgeType === 'connection') {
                     const targetNode = nodesObj[edgeObj.target];
@@ -274,11 +280,8 @@ window.GraphNetwork = {
                         const labelLength = String(edgeLabel || '').length;
                         edgeLength = Math.min(130, Math.max(45, 35 + labelLength * 3.2));
                     }
-                } else if (GRAPH_ATTACH_EDGE_TYPES.has(edgeType)) {
-                    // Item → parent attachment edges (in/on/under/behind/beside/
-                    // at/carrying/equipped): shorter springs so children hug
-                    // their parents instead of floating at the global length.
-                    const len = (config || {}).graphItemEdgeLength || 60;
+                } else if (isAttachment) {
+                    const len = (config || {}).graphItemEdgeLength || 35;
                     edgeLength = len;
                 }
                 visEdges.push({
@@ -290,7 +293,8 @@ window.GraphNetwork = {
                     dashes: style.dashes !== undefined ? style.dashes : defaultDashes,
                     color: { color: style.color || defaultColor, highlight: '#4ec9b0' },
                     font: { color: style.color || defaultColor, size: graphManager._edgeLabelSize || 8, align: 'horizontal', strokeWidth: 2, strokeColor: '#0d1117', background: 'rgba(13,17,23,0.85)' },
-                    width: style.width || 1
+                    width: style.width || 1,
+                    smooth: isAttachment ? false : undefined
                 });
             }
             // Disable physics during data swap to avoid jitter
