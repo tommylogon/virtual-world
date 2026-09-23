@@ -24,5 +24,9 @@
   "excludes": [],
   "order": 6,
   "perception_skip": false,
-  "mature": false
+  "mature": false,
+  "check_disadvantage": [
+    "attack"
+  ],
+  "check_advantage": []
 }

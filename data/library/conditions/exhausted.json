@@ -53,5 +53,7 @@
   "excludes": [],
   "order": 9,
   "perception_skip": false,
-  "mature": false
+  "mature": false,
+  "check_advantage": [],
+  "check_disadvantage": []
 }
