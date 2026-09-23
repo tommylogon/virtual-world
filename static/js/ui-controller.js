@@ -91,6 +91,13 @@ class UIController {
             const statusText = ord
                 ? uiControllerHtmlTag`<span class="initiative-status" style="font-size:9px;color:${ord.statusColor};margin-left:auto;font-weight:${ord.isCurrent ? '600' : '400'};">${ord.statusStr}</span>`
                 : '';
+            const soak = p.soak;
+            let soakText = '';
+            if (soak) {
+                const soakLabels = { idle: 'wait', leisure: 'mingle', search: 'search', explore: 'explore', travel: 'travel' };
+                const left = Math.round(soak.remaining_minutes || 0);
+                soakText = uiControllerHtmlTag`<span class="initiative-status" title="Soaking — ${soak.intent}, ${left} min left" style="font-size:9px;color:#a371f7;margin-left:auto;font-weight:600;">⏩ ${soakLabels[soak.intent] || soak.intent} ${left}m</span>`;
+            }
             if (!window.Lit) return; // startup race: first state:updated can arrive before Lit bootstrap
 
             rows.push(uiControllerHtmlTag`<div class="agent-item ${isSelected ? 'selected' : ''} ${statusClass === 'stuck' ? 'stuck' : ''}" @click=${() => selectAgent(name)} style="${isSimpleNpc ? 'opacity:0.85;cursor:pointer;' : ''}">
@@ -101,7 +108,7 @@ class UIController {
                     ? uiControllerHtmlTag`<span class="agent-location" title="Focus area in graph" @click=${(e) => { e.stopPropagation(); if (window.graphManager) graphManager._selectRoom(p.current_area); }} style="cursor:pointer;text-decoration:underline dotted;">${p.current_area}</span>`
                     : uiControllerHtmlTag`<span class="agent-location">?</span>`}
                 <div class="agent-need-bar"><div class="agent-need-fill" style="width:${lowestVital}%; background:${vitalColor}"></div></div>
-                ${statusText}
+                ${soakText || statusText}
             </div>`);
         }
         let listTemplate;

@@ -130,6 +130,14 @@ class WorldSerializer:
             "tags": getattr(p, 'tags', []),
             "flags": dict(getattr(p, 'flags', {})),
             "hidden": bool(getattr(p, 'hidden', False)),
+            # Transient soak order (task-481) for the initiative list; not part of
+            # the save's durable state (there is nothing to restore).
+            "soak": (
+                {"intent": (getattr(p, "soak_order", None) or {}).get("intent"),
+                 "remaining_minutes": round(float(
+                     (getattr(p, "soak_order", None) or {}).get("remaining_minutes", 0) or 0), 1)}
+                if getattr(p, "soak_order", None) else None
+            ),
             "known": list(getattr(p, 'known', []) or []),
             "crafting_known": list(getattr(p, 'crafting_known', []) or []),
             "discovered_exits": list(getattr(p, 'discovered_exits', []) or []),

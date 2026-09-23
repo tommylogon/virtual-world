@@ -157,10 +157,28 @@ window.TurnQueue = (() => {
     async function advance() {
         const agent = _getAgent();
         if (!agent.turnQueue || agent.turnQueue.length === 0) return;
-        agent.currentTurnIndex = ((agent.currentTurnIndex || 0) + 1) % agent.turnQueue.length;
+        const len = agent.turnQueue.length;
+        // A character with a soak order (task-481) does not take an attended turn:
+        // the soak tier is driving them, so step past them. Bounded so an
+        // all-soaking table cannot spin forever.
+        let guard = 0;
+        do {
+            agent.currentTurnIndex = ((agent.currentTurnIndex || 0) + 1) % len;
+            if (agent.currentTurnIndex === 0) {
+                await endTurn();
+            }
+            guard++;
+        } while (_isSoaking(getCurrentCharacter()) && guard <= len);
         config.controllingPlayer = getCurrentCharacter();
-        if (agent.currentTurnIndex === 0) {
-            await endTurn();
+    }
+
+    /** True when *name* currently has a soak order (per the last state fetch). */
+    function _isSoaking(name) {
+        if (!name) return false;
+        try {
+            return !!(worldState.players && worldState.players[name] && worldState.players[name].soak);
+        } catch (e) {
+            return false;
         }
     }
 

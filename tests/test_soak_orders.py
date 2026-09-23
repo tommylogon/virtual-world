@@ -215,3 +215,13 @@ def test_timeskip_still_fast_forwards_when_the_human_is_alone():
     assert resp.status_code == 200
     assert resp.get_json()["mode"] == "character"
     assert hero.soak_order is None
+
+
+def test_state_payload_reports_the_soak_order_for_the_roster():
+    _app, hero, client = _client()
+    client.post("/api/world/soak", json={"intent": "travel", "minutes": 30,
+                                         "heading": "west"})
+    state = client.get("/api/state").get_json()
+    soak = state["players"][hero.name]["soak"]
+    assert soak and soak["intent"] == "travel"
+    assert soak["remaining_minutes"] == 30

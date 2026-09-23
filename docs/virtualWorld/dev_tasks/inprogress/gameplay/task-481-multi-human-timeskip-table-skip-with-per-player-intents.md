@@ -49,12 +49,19 @@ Confirmed decisions (2026-09-23):
 - [x] API: `POST /api/world/soak`, `DELETE /api/world/soak`; `POST
       /api/world/timeskip` now **declares an order** when another attended human
       exists instead of blocking the world, and still fast-forwards when alone.
-- [ ] Turn composer: declare an order on your turn (intent + span), show
-      "soaking: 42 min left · cancel", and surface the `soak_end` event.
-- [ ] Turn-queue re-insertion on promotion (frontend, ties to task-437).
+- [x] The **initiative/roster list** shows an active soak (⏩ intent + minutes
+      left) from the state payload; the **turn composer deliberately shows
+      nothing** about it (status belongs in the list).
+- [x] Turn-based `advance()` steps past characters with an active soak order, so
+      a soaking human is not prompted for an attended turn (bounded, so an
+      all-soaking table cannot spin).
+- [ ] Cancel affordance (from the roster entry) and explicit queue position on
+      promotion (ties to task-437); the composer's timeskip button could declare
+      directly instead of opening the dialog.
 - [ ] Save/load: orders are deliberately transient; a reload abandons the order.
 
 ## Verification
 
-`python -m pytest tests/test_soak_orders.py -q` → 12 passed; targeted
-soak/background/timeskip/fear/checks → 111 passed.
+`python -m pytest tests/test_soak_orders.py -q` → 14 passed (incl. the state
+payload reporting the order for the roster). Targeted soak/background/timeskip/
+fear/checks → 111 passed. lint / typecheck / tools-unit clean.
