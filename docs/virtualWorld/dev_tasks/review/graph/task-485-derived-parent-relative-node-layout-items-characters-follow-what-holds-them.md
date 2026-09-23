@@ -41,7 +41,24 @@ Live against the real autosave (235 nodes) in the running app:
 
 `node tools/unit/run.cjs` -> 151 passed (18 cases in `tools/unit/test_relative_layout.js`); `npm run lint`, `npm run typecheck`, `python tools/js_module_index.py --check` all clean.
 
-## Found while doing this
+## Layout modes (both implemented, switchable)
+
+Two modes, toggled with the toolbar's `🌳 Levels` button and persisted as `graph_layout_mode`:
+
+- **free** (default): force physics owns the areas; contents hold a parent-relative offset and are kept out of the global solver, so nothing drifts to the middle and nothing is stretched.
+- **levels**: vis hierarchical layout (`direction: UD`, physics forced off). Every node is placed by relation level: rooms at the top, their contents below, nested contents below that, triggers below their host.
+
+Because hierarchical levels come from edge direction, and the stored direction is not trustworthy, the layout edges are oriented from the resolved relations: attachment edges parent -> child (`levelEdge`), and room-to-door edges with the door as the child (`connectionLevelEdge`) - the door edges are stored both ways round, and that 2-cycle was what scrambled levels (153/197 -> 180/197 -> 100/100 visible children below their parent once oriented).
+
+Also fixed while wiring it (all were silently re-enabling physics and would have dragged nodes off their levels):
+
+- `GraphLayoutEngine.applyCardinalLayout` turns physics on; not called in levels mode.
+- `_applyLockState` in `graph-background.js` "unfroze" physics for a new world.
+- the persisted `graph.physics_enabled` preference was applied on load and on view-mode switches (`graph-manager.js`).
+- switching back to free left `layout.hierarchical.enabled` true (vis merges options), so it is now set explicitly false.
+
+Trade-off to decide: in levels mode the map is laid out by the graph, not by your background image, so the rooms no longer sit on their painted positions; it is wide (levels are shallow: all rooms are roots, their ways at level 1). Free mode keeps the image mapping and holds contents by offset.
+
 
 - `bug-44`: the save's authored container contents (`item_Backpack -> item_Ink`, 21 edges) are stored opposite to the canonical `EDGE_IN` direction, so the engine's `get_edges_for_target(container, EDGE_IN)` readers cannot see them. The layout tolerates either direction; the engine does not.
 - Area positions are still stored per world (`graph_background.positions`/`layoutLocked`), so mapping areas onto a background image still needs Save layout + Lock; that is now only about the rooms, not their contents.

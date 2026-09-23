@@ -46,6 +46,10 @@ class ConfigManager {
         this.graphEdgeWidth = parseInt(await storage.getConfig('graph_edge_width')) || 1;
         this.graphArrows = (await storage.getConfig('graph_arrows')) !== 'false';
         this.graphImprovedLayout = (await storage.getConfig('graph_improved_layout')) === 'true';
+        // Graph layout mode (task-485): 'free' = force physics with contents held
+        // on a parent-relative offset; 'levels' = vis hierarchical layout, where
+        // the layout engine places every node by relation level (physics off).
+        this.graphLayoutMode = await storage.getConfig('graph_layout_mode') || 'free';
 
         // Ghost mode: when true, dead characters can still act as ghosts
         this.ghostMode = (await storage.getConfig('ghost_mode')) === 'true';
@@ -203,6 +207,7 @@ class ConfigManager {
         await storage.setConfig('graph_edge_width', String(this.graphEdgeWidth));
         await storage.setConfig('graph_arrows', this.graphArrows ? 'true' : 'false');
         await storage.setConfig('graph_improved_layout', this.graphImprovedLayout ? 'true' : 'false');
+        await storage.setConfig('graph_layout_mode', this.graphLayoutMode || 'free');
 
         this._saveToCurrentProfile();
     }

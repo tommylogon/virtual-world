@@ -3,7 +3,7 @@
  *
  * Positions must be derived from the relations, so the interesting cases are
  * the precedence rules (carried beats inside, worn beats inside), cycles, and
- * stability — the same graph must lay out the same way twice.
+ * stability â€” the same graph must lay out the same way twice.
  */
 
 const NODES = {
@@ -45,7 +45,7 @@ test('an item hangs off the area that holds it', () => {
 });
 
 test('a carried item follows the carrier, not the room it was left in', () => {
-    // item_bag BOTH sits in the cellar and is carried — the carrier wins.
+    // item_bag BOTH sits in the cellar and is carried â€” the carrier wins.
     assertEq(GraphRelativeLayout.parentOf('item_bag', EDGES, NODES), 'char_kael');
 });
 
@@ -299,6 +299,48 @@ test('a dragged child keeps the place it was dropped in', () => {
         globalThis.graphManager = previousGraphManager;
         GraphRelativeLayout._offsets = null;
     }
+});
+
+test('hierarchical level edges run parent -> child whichever way `in` is stored', () => {
+    const nodes = {
+        area_hall: { type: 'area' }, item_lamp: { type: 'item' }, item_oil: { type: 'item' },
+        char_kael: { type: 'character' }, item_bag: { type: 'item' },
+    };
+    const edges = [
+        { type: 'in', source: 'item_lamp', target: 'area_hall' },   // child -> parent
+        { type: 'in', source: 'item_lamp', target: 'item_oil' },    // parent -> child (bug-44 style)
+        { type: 'carrying', source: 'item_bag', target: 'char_kael' },
+        { type: 'in', source: 'char_kael', target: 'area_hall' },
+    ];
+    // child -> parent is flipped so the area sits above its lamp.
+    const a = GraphRelativeLayout.levelEdge('item_lamp', 'area_hall', nodes, edges);
+    assertEq(a, { from: 'area_hall', to: 'item_lamp', flipped: true });
+    // parent -> child is already the right way round and is left alone.
+    const b = GraphRelativeLayout.levelEdge('item_lamp', 'item_oil', nodes, edges);
+    assertEq(b, { from: 'item_lamp', to: 'item_oil', flipped: false });
+    // a carried item hangs below its carrier.
+    const c = GraphRelativeLayout.levelEdge('item_bag', 'char_kael', nodes, edges);
+    assertEq(c, { from: 'char_kael', to: 'item_bag', flipped: true });
+    // an unrelated pair is left as stored.
+    const d = GraphRelativeLayout.levelEdge('area_hall', 'char_kael', nodes, edges);
+    assertEq(d.from, 'area_hall');
+});
+
+test('levels mode is off unless the setting says so', () => {
+    // The sandbox has no `config`, which is the free-layout default.
+    assertFalse(GraphRelativeLayout.levelsMode(), 'free by default');
+});
+
+test('room-to-door edges put the door below the room in level mode', () => {
+    const nodes = { area_a: { type: 'area' }, area_b: { type: 'area' }, way_door: { type: 'way' } };
+    // Stored both ways round (a door opens from either side).
+    assertEq(GraphRelativeLayout.connectionLevelEdge('area_a', 'way_door', nodes),
+        { from: 'area_a', to: 'way_door', flipped: false });
+    assertEq(GraphRelativeLayout.connectionLevelEdge('way_door', 'area_b', nodes),
+        { from: 'area_b', to: 'way_door', flipped: true });
+    // A non-way pair is left alone.
+    assertEq(GraphRelativeLayout.connectionLevelEdge('area_a', 'area_b', nodes),
+        { from: 'area_a', to: 'area_b', flipped: false });
 });
 
 test('attach() registers the follow hooks once', () => {

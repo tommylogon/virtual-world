@@ -199,6 +199,7 @@
                 <!-- Canvas -->
                 <div class="toolbar-group" aria-label="Canvas controls">
                     <button class="toolbar-btn" id="btn-physics" onclick="graphManager.togglePhysics()" title="Toggle physics (freeze/unfreeze node positions)">⏸ Physics</button>
+<button class="toolbar-btn" id="btn-layout-mode" onclick="graphManager.toggleLayoutMode()" title="Free physics layout with contents following their parent. Click for hierarchical levels.">🌳 Levels</button>
                     <button class="toolbar-btn" onclick="graphManager.fitView()" title="Zoom to fit all nodes">⊞ Fit</button>
                     <button class="toolbar-btn" id="btn-export-png" onclick="GraphExport.openDialog()" title="Export the graph as a high-resolution PNG (map background included)">📷 PNG</button>
                     <input class="graph-search" type="text" id="graph-search" placeholder="🔍 Search nodes or tags..." oninput="graphManager.filterNodes(this.value)" onkeydown="if(event.key==='Enter'){GraphNetwork.settleSearch();}" onblur="GraphNetwork.settleSearch()" title="Filter graph nodes by name or tag">

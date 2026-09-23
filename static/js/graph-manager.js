@@ -134,10 +134,13 @@ class GraphManager {
             const values = data.values || {};
             if ('graph.physics_enabled' in values) {
                 this._physicsEnabled = !!values['graph.physics_enabled'];
+                // Hierarchical mode owns positions: the solver would drag nodes
+                // off their levels, so the stored preference is not applied there.
+                const on = this._physicsEnabled && !this._levelsMode();
                 const pb = document.getElementById('btn-physics');
-                if (pb) pb.textContent = this._physicsEnabled ? '⏸ Physics' : '▶ Physics';
+                if (pb) pb.textContent = on ? '⏸ Physics' : '▶ Physics';
                 if (this.network) {
-                    this.network.setOptions({ physics: { enabled: this._physicsEnabled } });
+                    this.network.setOptions({ physics: { enabled: on } });
                 }
             }
             if ('graph.show_items' in values) {
@@ -680,6 +683,18 @@ class GraphManager {
         graphManager._saveGraphConfigKey('graph.physics_enabled', graphManager._physicsEnabled);
     }
 
+    /** Free physics layout <-> vis hierarchical levels (task-485). */
+    toggleLayoutMode() { return GraphNetwork.toggleLayoutMode(); }
+
+    /** True when the hierarchical (level) layout owns node positions. */
+    _levelsMode() {
+        try {
+            return (typeof config !== 'undefined' && config && config.graphLayoutMode) === 'levels';
+        } catch (err) {
+            return false;
+        }
+    }
+
     fitView() { return GraphNetwork.fitView(); }
 
     /** Floating zoom-cluster actions (bottom-right of the canvas). */
@@ -798,11 +813,11 @@ class GraphManager {
                 if (cb) cb.textContent = '🗺️ Map';
                 this._physicsEnabled = true;
                 const pb = document.getElementById('btn-physics');
-                if (pb) pb.textContent = '⏸ Physics';
+                if (pb) pb.textContent = this._levelsMode() ? '▶ Physics' : '⏸ Physics';
             }
             if (this.network) {
                 GraphNetwork.applyOverlay('structural');
-                this.network.setOptions({ physics: { enabled: this._physicsEnabled } });
+                this.network.setOptions({ physics: { enabled: this._physicsEnabled && !this._levelsMode() } });
                 this.fitView();
             }
         } else if (overlayModes.includes(mode)) {

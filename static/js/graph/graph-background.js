@@ -1509,11 +1509,19 @@
         }
         else if (state.physicsDisabledByLock) {
             // WE froze physics for the previous world's lock — undo it, so a new
-            // scenario doesn't inherit the old one's frozen layout.
-            if (network)
-                network.setOptions({ physics: { enabled: true } });
-            if (typeof graphManager !== 'undefined' && graphManager)
-                graphManager._physicsEnabled = true;
+            // scenario doesn't inherit the old one's frozen layout. Never in
+            // hierarchical mode: there the layout engine owns positions and the
+            // solver would drag them off their levels (task-485).
+            const levels = (() => {
+                try { return typeof config !== 'undefined' && config && config.graphLayoutMode === 'levels'; }
+                catch (err) { return false; }
+            })();
+            if (!levels) {
+                if (network)
+                    network.setOptions({ physics: { enabled: true } });
+                if (typeof graphManager !== 'undefined' && graphManager)
+                    graphManager._physicsEnabled = true;
+            }
             state.physicsDisabledByLock = false;
         }
     }

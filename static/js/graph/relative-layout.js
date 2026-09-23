@@ -285,6 +285,45 @@ window.GraphRelativeLayout = {
     },
 
     /**
+     * Hierarchical mode positions nodes by edge *direction*, and the stored `in`
+     * edges disagree with each other (`Backpack -> Ink` vs `fireplace ->
+     * living_room` — bug-44). So the level edges are oriented from the resolved
+     * parent instead: the parent becomes `from`, the child `to`, and the arrow
+     * keeps pointing the way the relation actually reads.
+     */
+    levelEdge(source, target, nodes, edges) {
+        const nodesObj = nodes || this._nodes();
+        const edgesArr = edges || this._edges();
+        const parentOfTarget = this.parentOf(target, edgesArr, nodesObj);
+        const parentOfSource = this.parentOf(source, edgesArr, nodesObj);
+        if (parentOfTarget === source) return { from: source, to: target, flipped: false };
+        if (parentOfSource === target) return { from: target, to: source, flipped: true };
+        return { from: source, to: target, flipped: false };
+    },
+
+    /** True when the graph should let vis's hierarchical layout own positions. */
+    levelsMode() {
+        try {
+            return (typeof config !== 'undefined' && config && config.graphLayoutMode) === 'levels';
+        } catch (err) {
+            return false;
+        }
+    },
+
+    /**
+     * Room-to-door edges are stored both ways round (a door is entered from both
+     * rooms), which is a 2-cycle the level sort cannot order. For layout the way
+     * is always the child, so the door sits below the rooms it joins.
+     */
+    connectionLevelEdge(source, target, nodes) {
+        const nodesObj = nodes || this._nodes();
+        const sourceIsWay = nodesObj[source] && nodesObj[source].type === 'way';
+        const targetIsWay = nodesObj[target] && nodesObj[target].type === 'way';
+        if (sourceIsWay && !targetIsWay) return { from: target, to: source, flipped: true };
+        return { from: source, to: target, flipped: false };
+    },
+
+    /**
      * Where the *n*-th of *count* same-kind children of a parent sits: a tight
      * grid block offset to one side of the parent, wrapping into rows.
      */
@@ -316,6 +355,8 @@ window.GraphRelativeLayout = {
         const g = (typeof graphManager !== 'undefined' && graphManager) || {};
         const network = g.network;
         if (!network || !network.body?.data?.nodes) return 0;
+        // Hierarchical mode owns positions; the offset follow would fight it.
+        if (this.levelsMode()) return 0;
         const nodes = this._nodes();
         if (!Object.keys(nodes).length) return 0;
 
@@ -392,6 +433,7 @@ window.GraphRelativeLayout = {
         const g = (typeof graphManager !== 'undefined' && graphManager) || {};
         const network = g.network;
         if (!network || !network.body?.nodes || !this._offsets) return 0;
+        if (this.levelsMode()) return 0;
         const nodes = this._nodes();
         const edges = this._edges();
         const children = this._childIndex(nodes, edges);
@@ -509,6 +551,7 @@ window.GraphRelativeLayout = {
 
     /** Start following again — after a drag, a stabilization, or a physics toggle. */
     _wake(dirty) {
+        if (this.levelsMode()) { this._sleep(); return; }
         if (dirty) {
             this._dirtyParents = this._dirtyParents || new Set();
             for (const id of [].concat(dirty)) this._dirtyParents.add(id);
