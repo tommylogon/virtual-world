@@ -1,6 +1,35 @@
 # task-316 — ID-backed character identity (same-name support)
 
-**Status**: To Do — designed 2026-08-19, implement next session
+**Status**: Done — identity delivered under task-446 Slice A; fresh character
+spawns completed 2026-09-23.
+
+## Outcome
+
+Most of this design landed as **task-446 Slice A** (id-first identity), which
+cites task-316 as the source of the opaque `Player.id`:
+
+- `Player.id` (opaque, persisted, never shown to agents); registry is
+  identity-keyed with name lookup (`PlayerManager._unique_key` /
+  `_players_by_id` / `relationship_key` / `resolve` / `find_by_name`).
+- Duplicate display names coexist end-to-end: distinct registry keys, distinct
+  anchor nodes, separate relationship records (task-446,
+  `tests/test_player_identity.py`).
+- `graph.add_node` suffixes duplicate `character` ids rather than overwriting
+  (graph.py).
+- Save/load persists and restores `Player.id` with a legacy fallback
+  (`engine/serialization.py`).
+
+**Completed here (2026-09-23):** `spawn_character` is now always *fresh* —
+`_hydrate_character(..., always_fresh=True)` builds a new `Player`/identity per
+call (mirroring `spawn_item`), and `handle_spawn_character` places the new
+entity by its registry key rather than its display name (which would resolve to
+the primary for a duplicate). A trigger can now produce 100 distinct same-named
+zombies. Covered by `test_spawn_character_is_fresh_per_call`, plus a
+strengthened id-stability assertion in the save round-trip test.
+
+Remaining follow-ups live elsewhere: disambiguation UX (**task-448**), character
+alters (**task-447**), grapple identity (**task-449**), and location-by-id
+(**task-439**).
 
 ## Goal
 

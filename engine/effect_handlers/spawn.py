@@ -195,6 +195,11 @@ def handle_give_item(self, params, context, item_node=None, game_state=None):
 def handle_spawn_character(self, params, context, item_node=None, game_state=None):
     """Spawn a character from the library into the world.
 
+    Every call is a *fresh* spawn (task-316): a new ``Player`` identity, so the
+    same library character can be spawned repeatedly as distinct same-named
+    entities (e.g. 100 zombies). Placement is applied to the new identity's key,
+    never the display name, so a duplicate is not moved onto the primary.
+
     params:
       character_id — library id to spawn
       area — optional area name override (defaults to current actor's area)
@@ -207,7 +212,7 @@ def handle_spawn_character(self, params, context, item_node=None, game_state=Non
     if not char_id:
         return []
 
-    player_obj, _ = self._hydrate_character(char_id, params, game_state)
+    player_obj, _ = self._hydrate_character(char_id, params, game_state, always_fresh=True)
     if player_obj is None:
         return []
 
@@ -234,11 +239,15 @@ def handle_spawn_character(self, params, context, item_node=None, game_state=Non
 
     prev_active = game_state.active_player
     game_state.add_player(player_obj)
+    # ``add_player`` makes the new player active; capture its registry key
+    # (unique even for a duplicate name) before restoring the previous actor,
+    # and place by key so the right entity is moved.
+    new_key = game_state.active_player
     if game_state.active_player != prev_active:
         game_state.active_player = prev_active
 
     if area_name:
-        game_state.set_player_area(player_obj.name, area_name)
+        game_state.set_player_area(new_key or player_obj.name, area_name)
 
     msg = params.get("message") or f"{player_obj.name} arrives!"
     return [self._render_template_fn(msg, context)]

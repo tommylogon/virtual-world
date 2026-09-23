@@ -402,17 +402,24 @@ class Effects:
                 )
             )
 
-    def _hydrate_character(self, char_id, params, game_state=None):
-        """Materialize a character from the library if not already present.
+    def _hydrate_character(self, char_id, params, game_state=None, always_fresh=False):
+        """Materialize a character from the library.
 
         Returns ``(player_obj, lib_data)``. Reused by ``handle_spawn_character``.
+
+        With ``always_fresh=True`` a brand-new ``Player`` — hence a fresh opaque
+        id, registry key and anchor node — is built on every call, so the same
+        library character can be spawned any number of times as distinct
+        entities (task-316: e.g. 100 same-named zombies). With the default
+        ``False`` an existing player is reused when its anchor node is present.
         """
-        player_node_id = f"player_{char_id}".replace(' ', '_')
-        existing_node = self.graph.get_node(player_node_id)
-        if existing_node is not None and game_state is not None:
-            existing_player = game_state.get_player(char_id)
-            if existing_player is not None:
-                return existing_player, {}
+        if not always_fresh:
+            player_node_id = f"player_{char_id}".replace(' ', '_')
+            existing_node = self.graph.get_node(player_node_id)
+            if existing_node is not None and game_state is not None:
+                existing_player = game_state.get_player(char_id)
+                if existing_player is not None:
+                    return existing_player, {}
 
         lib_data = {}
         try:

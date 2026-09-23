@@ -55,8 +55,8 @@ def test_duplicate_display_names_coexist():
 
 def test_duplicate_names_round_trip_through_save():
     world = _world()
-    _add(world, "Jon")
-    _add(world, "Jon")
+    a = _add(world, "Jon")
+    b = _add(world, "Jon")
 
     data = world.to_dict()
     assert len(data["players"]) == 2
@@ -65,6 +65,8 @@ def test_duplicate_names_round_trip_through_save():
     reloaded.load_from_dict(data)
     jons = reloaded.player_manager.find_by_name("Jon")
     assert len(jons) == 2
+    # task-316: identity is stable across the round-trip, not regenerated.
+    assert {p.id for p in jons} == {a.id, b.id}
     # Both landed in the room with distinct anchors.
     anchors = {reloaded.player_manager.get_player_node_id(p) for p in jons}
     assert len(anchors) == 2
@@ -137,3 +139,40 @@ def test_relationships_are_per_identity_not_name():
     assert observer.has_met(a)
 
 
+def test_spawn_character_is_fresh_per_call():
+    """task-316: spawn_character always materializes a *distinct* entity, so the
+    same library character can be spawned repeatedly as same-named copies, each
+    with its own identity/anchor and placed in the room independently."""
+    import json
+    import os
+
+    from engine.effects import Effects
+
+    world = _world()
+    _add(world, "Spawner")  # active player standing in Room
+    effects = Effects(world.graph, None)
+
+    for _ in range(2):
+        result = effects.execute(
+            "spawn_character", {"character_id": "jake"}, {}, game_state=world
+        )
+        assert result
+
+    lib_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "..", "data", "library", "characters", "jake.json",
+    )
+    with open(lib_path, encoding="utf-8-sig") as f:
+        lib_name = json.load(f)["name"]
+
+    copies = world.player_manager.find_by_name(lib_name)
+    assert len(copies) == 2, "second spawn must not return the first"
+    assert len({p.id for p in copies}) == 2
+
+    anchors = {world.player_manager.get_player_node_id(p) for p in copies}
+    assert len(anchors) == 2
+    for anchor in anchors:
+        assert world.graph.get_node(anchor) is not None
+        assert any(
+            e.source == anchor and e.type == "in" for e in world.graph.edges
+        ), f"{anchor} was not placed in the room"
