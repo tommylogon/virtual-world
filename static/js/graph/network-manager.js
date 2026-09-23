@@ -139,6 +139,10 @@ window.GraphNetwork = {
         graphManager.network.setOptions(GraphNetwork.buildOptions());
         const physicsBtn = document.getElementById('btn-physics');
         if (physicsBtn) physicsBtn.textContent = levelsOn ? '▶ Physics' : '⏸ Physics';
+        // Settings changed, so let the contents re-derive their arrangement —
+        // otherwise a moved "Item Edge Length" (Hug Parent) would not re-orbit
+        // anything, because remembered offsets win.
+        if (window.GraphRelativeLayout && !levelsOn) window.GraphRelativeLayout.reseed();
         GraphNetwork.loadGraphData();
         // Hierarchical layout places every node itself, so there is nothing to
         // simulate — and stabilize() would turn the solver back on and undo it.

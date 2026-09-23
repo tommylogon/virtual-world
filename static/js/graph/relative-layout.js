@@ -38,17 +38,43 @@ window.GraphRelativeLayout = {
     // Contents ORBIT their parent: a ring around the room, radius grown to fit
     // however many things are in there (so labels do not collide), and smaller
     // rings for contents nested inside a container. Nothing is stretched away —
-    // the ring is bounded at `maxRadius`.
+    // the ring is bounded.
+    //
+    // The "Item Edge Length" setting (its ends are labelled Hug Parent <->
+    // Stretched) is the desired distance from the parent, so it scales the whole
+    // ring: that is the setting the user is actually pulling when they want
+    // children to hug. The count-based spacing still wins when a room is too
+    // crowded for labels to fit at that distance.
     ORBIT: {
         minRadius: 130,
         maxRadius: 320,
         spacing: 92,
-        nestedMinRadius: 58,
-        nestedMaxRadius: 130,
-        nestedSpacing: 62,
+        nestedScale: 0.45,
+        baseEdgeLength: 60,
         // Start at the top and go clockwise, so the first item clears the room's
         // own label instead of sitting on it.
         startAngle: -Math.PI / 2,
+    },
+
+    /** The orbit's current numbers, scaled by the item-edge-length setting. */
+    _orbitSpec() {
+        let length = this.ORBIT.baseEdgeLength;
+        try {
+            const cfg = (typeof config !== 'undefined' && config) || null;
+            const raw = cfg && Number(cfg.graphItemEdgeLength);
+            if (raw) length = raw;
+        } catch (err) { /* keep the default */ }
+        const scale = Math.max(0.25, Math.min(length / this.ORBIT.baseEdgeLength, 3.5));
+        return {
+            length,
+            scale,
+            minRadius: this.ORBIT.minRadius * scale,
+            maxRadius: this.ORBIT.maxRadius * scale,
+            // Spacing scales too: a short "rest length" genuinely pulls a crowded
+            // room tight (labels may overlap — that is what hugging means), a long
+            // one spreads it out.
+            spacing: this.ORBIT.spacing * scale,
+        };
     },
     // Children stay dynamic: they hold a *relative* offset from their parent and
     // that offset is re-applied as the parent moves, so a dragged room carries
@@ -328,19 +354,21 @@ window.GraphRelativeLayout = {
 
     /**
      * Where the *n*-th of *count* children of a parent orbits: evenly spaced on a
-     * ring whose radius grows with the count, so labels stay apart instead of
-     * stacking on the room. Nested contents orbit their container on a smaller
-     * ring, and the radius is capped so nothing is stretched across the map.
+     * ring. The radius is the item-edge-length setting (Hug Parent <-> Stretched),
+     * grown when the crowd needs more room for labels, and floored/capped so it is
+     * never a pile on the label nor stretched across the map. Nested contents
+     * orbit their container on a proportionally smaller ring.
      */
     orbitPosition(parentPos, index, count, node, depth) {
+        const spec = this._orbitSpec();
         const nested = depth >= 2;
-        const spec = this.ORBIT;
-        const spacing = nested ? spec.nestedSpacing : spec.spacing;
-        const minR = nested ? spec.nestedMinRadius : spec.minRadius;
-        const maxR = nested ? spec.nestedMaxRadius : spec.maxRadius;
-        const wanted = (Math.max(1, count) * spacing) / (2 * Math.PI);
-        const radius = Math.max(minR, Math.min(wanted, maxR));
-        const angle = spec.startAngle + (2 * Math.PI * index) / Math.max(1, count);
+        const want = nested ? spec.length * this.ORBIT.nestedScale : spec.length;
+        const spacing = nested ? spec.spacing * this.ORBIT.nestedScale : spec.spacing;
+        const needed = (Math.max(1, count) * spacing) / (2 * Math.PI);
+        const floor = nested ? spec.minRadius * this.ORBIT.nestedScale : spec.minRadius;
+        const ceiling = nested ? spec.maxRadius * this.ORBIT.nestedScale : spec.maxRadius;
+        const radius = Math.max(floor, Math.min(Math.max(want, needed), ceiling));
+        const angle = this.ORBIT.startAngle + (2 * Math.PI * index) / Math.max(1, count);
         return {
             x: parentPos.x + radius * Math.cos(angle),
             y: parentPos.y + radius * Math.sin(angle),
@@ -401,6 +429,14 @@ window.GraphRelativeLayout = {
             try { network.body.data.nodes.update(updates); } catch (err) { /* ignore */ }
         }
         return updates.length;
+    },
+
+    /** Drop remembered offsets so the next apply() re-derives from the settings. */
+    reseed() {
+        this._offsets = null;
+        this._lastParentPos = null;
+        this._pendingParents = null;
+        this._dragging = new Set();
     },
 
     /** Live positions, hidden nodes included (`getPositions()` drops them). */

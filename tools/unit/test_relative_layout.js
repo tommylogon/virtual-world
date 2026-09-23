@@ -416,6 +416,39 @@ test('a dragged frozen node has its position written so a reload keeps it', () =
     }
 });
 
+test('the item-edge-length setting drives the orbit (Hug Parent vs Stretched)', () => {
+    const nodes = { area_a: { type: 'area' }, item_0: { type: 'item' }, item_1: { type: 'item' } };
+    const edges = [
+        { type: 'in', source: 'item_0', target: 'area_a' },
+        { type: 'in', source: 'item_1', target: 'area_a' },
+    ];
+    const ringRadiusFor = (length) => {
+        const previous = globalThis.config;
+        globalThis.config = { graphItemEdgeLength: length };
+        try {
+            const out = GraphRelativeLayout.layoutPositions(nodes, edges, { area_a: { x: 0, y: 0 } });
+            return Math.round(Math.hypot(out.item_0.x, out.item_0.y));
+        } finally {
+            globalThis.config = previous;
+        }
+    };
+    const hug = ringRadiusFor(20);
+    const standard = ringRadiusFor(60);
+    const stretched = ringRadiusFor(200);
+    assertTrue(hug < standard, `a low setting hugs the parent (${hug} < ${standard})`);
+    assertTrue(stretched > standard, `a high setting stretches the ring (${stretched} > ${standard})`);
+    // The default (no config at all) is the classic orbit.
+    assertTrue(ringRadiusFor(undefined) === standard, 'no setting behaves like the default');
+});
+
+test('re-deriving the arrangement drops remembered offsets', () => {
+    GraphRelativeLayout._offsets = { some: { dx: 1, dy: 1 } };
+    GraphRelativeLayout._lastParentPos = new Map([['a', { x: 0, y: 0 }]]);
+    GraphRelativeLayout.reseed();
+    assertEq(GraphRelativeLayout._offsets, null);
+    assertEq(GraphRelativeLayout._lastParentPos, null);
+});
+
 test('attach() registers the follow hooks once', () => {
     const handlers = {};
     const network = { on: (name, fn) => { handlers[name] = fn; } };
