@@ -1,0 +1,9 @@
+{
+  "name": "bundle_of_twigs",
+  "description": "a fistful of dry twigs. good for starting a fire, not much else.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "tags": ["junk", "tinder", "wood"]
+}

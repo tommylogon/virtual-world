@@ -44,7 +44,7 @@ def _searcher(w, area, **skills):
     return p
 
 
-def test_survival_search_in_a_forest_finds_a_forage_item():
+def test_survival_search_in_a_forest_finds_something():
     w = _world()
     area = _area(w, "Test Woods", ["forest"])
     p = _searcher(w, area, Survival=10)
@@ -53,9 +53,20 @@ def test_survival_search_in_a_forest_finds_a_forage_item():
                                   rng=random.Random(1))
     assert node is not None
     tags = {str(t).lower() for t in (node.properties.get("tags") or [])}
-    assert tags & FORAGE_TAGS
+    assert tags & (FORAGE_TAGS | {"junk", "scrap", "debris", "tinder", "wood", "stone"})
     assert any(e.source == node.id and e.target == w.area_node_id(area)
                for e in w.graph.edges), "the find was not placed in the area"
+
+
+def test_a_bare_success_can_turn_up_junk():
+    entries = foraging._candidate_entries("survival", ("food",), strong=False)
+    assert any("junk" in {str(t).lower() for t in e["tags"]} for e in entries)
+
+
+def test_a_strong_result_delivers_what_was_asked_for():
+    entries = foraging._candidate_entries("survival", ("food",), strong=True)
+    assert entries
+    assert all({"food"} & {str(t).lower() for t in e["tags"]} for e in entries)
 
 
 def test_an_untagged_interior_yields_nothing():

@@ -80,6 +80,9 @@ AREA_SKILL_BONUS = {
 
 _LIBRARY_INDEX = None
 
+#: Anything useless a search can also turn up — the wilds are not a pantry.
+JUNK_ENTRY = {"tags": ["junk", "scrap", "debris"], "weight": 2}
+
 
 def is_loot_skill(name: str) -> bool:
     return str(name or "").strip().lower() in SKILL_TABLES
@@ -161,21 +164,25 @@ def _bump_cap(area_node, gs) -> None:
     state["count"] = int(state.get("count", 0)) + 1
 
 
-def _search_check(gs, player, skill_key: str, dc: int) -> bool:
-    """One skill check for the searcher. Fails open if there is no skill system."""
+def _search_check(gs, player, skill_key: str, dc: int):
+    """One skill check for the searcher. Returns ``(success, total)``.
+
+    Fails open (a strong pass) if there is no skill system, so going hungry is
+    the exception rather than the default.
+    """
     display = SKILL_DISPLAY.get(skill_key, str(skill_key).title())
     active = getattr(gs, "active_player", None)
     try:
         gs.active_player = player.name
-        success, _total, _msg = gs.skill_check(display, dc)
+        success, total, _msg = gs.skill_check(display, dc)
     except Exception:
-        return True
+        return True, dc + 100
     finally:
         try:
             gs.active_player = active
         except Exception:
             pass
-    return bool(success)
+    return bool(success), int(total)
 
 
 def best_skill_for(gs, player, want_tags) -> str:
@@ -193,43 +200,63 @@ def best_skill_for(gs, player, want_tags) -> str:
     return best_key or "perception"
 
 
-def _candidate_entries(skill_key, want_tags):
-    """Entries from the chosen table, plus any table entries matching a tag.
+def _candidate_entries(skill_key, want_tags, strong: bool = False):
+    """What a search can turn up.
 
-    When *want_tags* is given the candidates are **restricted** to entries that
-    satisfy it, so a food search can never turn up a herb the character cannot
-    eat — the table is a menu, but the need is the order.
+    A **strong** result (margin ≥ 5) delivers what was asked for: if a need is
+    given, only entries satisfying it. A bare success delivers the skill's
+    table plus junk — the wilds are not a pantry, and an unskilled searcher
+    mostly finds sticks. This is what makes a Survival-trained goblin eat where
+    a child goes hungry (task-471/472).
     """
     want = {str(t).lower() for t in (want_tags or [])}
+
+    def tags_of(entry):
+        return {str(t).lower() for t in entry.get("tags", [])}
+
     seen, out = set(), []
-    for entry in SKILL_TABLES.get(skill_key or "", []):
-        tags = {str(t).lower() for t in entry.get("tags", [])}
-        if want and not (want & tags):
-            continue
-        key = tuple(sorted(tags))
+
+    def add(entry):
+        key = tuple(sorted(tags_of(entry)))
         if key not in seen:
             seen.add(key)
             out.append(entry)
+
+    tables = [SKILL_TABLES.get(skill_key or "", [])]
     if want:
-        for entries in SKILL_TABLES.values():
+        tables += list(SKILL_TABLES.values())
+
+    if want and strong:
+        for entries in tables:
             for entry in entries:
-                tags = {str(t).lower() for t in entry.get("tags", [])}
-                key = tuple(sorted(tags))
-                if key in seen or not (want & tags):
-                    continue
-                seen.add(key)
-                out.append(entry)
+                if want & tags_of(entry):
+                    add(entry)
+        if out:
+            return out
+        # Nothing in any table satisfies the need: fall through to a normal result.
+
+    for entries in tables:
+        for entry in entries:
+            if want and not strong and not (want & tags_of(entry)):
+                continue
+            add(entry)
+    if not (want and strong):
+        add(JUNK_ENTRY)
     return out
 
 
-def _weight(entry, skill_key, area_tags, present_tags):
+def _weight(entry, skill_key, area_tags, present_tags, want_tags=()):
     tags = {str(t).lower() for t in entry.get("tags", [])}
+    want = {str(t).lower() for t in (want_tags or [])}
     weight = float(entry.get("weight", 1) or 1)
     for area_tag in area_tags:
         bonus = AREA_SKILL_BONUS.get(area_tag, {}).get(skill_key, 0)
         weight += float(bonus)
         if area_tag in tags:
             weight += 1.0
+    # What the searcher actually needs is much more likely to be what they spot.
+    if want & tags:
+        weight += 3.0
     # Something already here — an old religious statue in a forest — makes the
     # matching kind of find more likely.
     weight += float(len(tags & present_tags))
@@ -269,26 +296,32 @@ def find_or_spawn(gs, player, area_name, *, skill=None, want_tags=(), rng=None):
         return None
 
     skill_key = (skill or "perception").strip().lower()
-    entries = _candidate_entries(skill_key, want_tags)
-    if not entries:
-        return None
-
     present = _present_tags(gs, area_id)
 
     affinity = sum(AREA_SKILL_BONUS.get(t, {}).get(skill_key, 0) for t in area_tags)
+    table_entries = SKILL_TABLES.get(skill_key, [])
     check_bonus = min(4, affinity + min(3, len({t for t in present if any(
-        t in {str(x).lower() for x in e.get("tags", [])} for e in entries)})))
+        t in {str(x).lower() for x in e.get("tags", [])} for e in table_entries)})))
     dc = max(MIN_DC, SEARCH_DC - check_bonus)
-    if not _search_check(gs, player, skill_key, dc):
+
+    ok, total = _search_check(gs, player, skill_key, dc)
+    if not ok:
         _trace(gs, player, area_name, why="forage:fail",
                text=f"searched {area_name} ({skill_key}) and found nothing")
         return None
 
-    weighted = [(_weight(e, skill_key, area_tags, present), e) for e in entries]
-    total = sum(w for w, _ in weighted)
-    if total <= 0:
+    # A strong result delivers what was asked for; a bare success may be junk.
+    strong = (total - dc) >= 5
+    entries = _candidate_entries(skill_key, want_tags, strong=strong)
+    if not entries:
         return None
-    roll = rng.uniform(0, total)
+
+    weighted = [(_weight(e, skill_key, area_tags, present, want_tags), e)
+                for e in entries]
+    total_weight = sum(w for w, _ in weighted)
+    if total_weight <= 0:
+        return None
+    roll = rng.uniform(0, total_weight)
     chosen = weighted[-1][1]
     upto = 0.0
     for weight, entry in weighted:

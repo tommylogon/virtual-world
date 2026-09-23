@@ -1,0 +1,9 @@
+{
+  "name": "sodden_bark",
+  "description": "a strip of waterlogged bark, soft with rot.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "tags": ["junk", "debris", "wood"]
+}

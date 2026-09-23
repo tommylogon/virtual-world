@@ -315,12 +315,19 @@ class BackgroundSimulation:
                     served.add("eat")
                     self._begin_task(p, "foraging", TASK_MINUTES["forage"], remaining)
                     return TASK_MINUTES["forage"]
-                if outcome is False and self._forage_spawn(p, FOOD_TAGS):
-                    # The search turned something up (task-471): eat it now.
-                    if self._consume_here(p, FOOD_TAGS, "eat") is True:
+                if outcome is False:
+                    spawned = self._forage_spawn(p, FOOD_TAGS)
+                    if spawned is not None:
+                        if self._consume_here(p, FOOD_TAGS, "eat") is True:
+                            served.add("eat")
+                            self._begin_task(p, "eating", TASK_MINUTES["eat"], remaining)
+                            return TASK_MINUTES["eat"]
+                        # Found something useless (junk, an herb): spend the search
+                        # time and look elsewhere next turn — the wilds are not a
+                        # pantry, and survival is not guaranteed (task-471/472).
                         served.add("eat")
-                        self._begin_task(p, "eating", TASK_MINUTES["eat"], remaining)
-                        return TASK_MINUTES["eat"]
+                        self._begin_task(p, "foraging", TASK_MINUTES["forage"], remaining)
+                        return TASK_MINUTES["forage"]
             if self._travel_toward(p, FOOD_TAGS, "hunger"):
                 return TASK_MINUTES["travel"]
 

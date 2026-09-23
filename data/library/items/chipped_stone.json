@@ -1,0 +1,9 @@
+{
+  "name": "chipped_stone",
+  "description": "a flat stone with a chipped edge. it might once have been a tool.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "tags": ["junk", "stone", "debris"]
+}

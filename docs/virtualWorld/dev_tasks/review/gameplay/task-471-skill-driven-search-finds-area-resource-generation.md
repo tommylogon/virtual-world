@@ -54,3 +54,17 @@ An area need not be hand-stocked to be worth searching. What a search turns up d
 
 `python -m pytest tests/test_search_loot.py -q` → 6 passed; targeted
 search/soak/actions regression → 289 passed.
+
+## Update 2026-09-23 — junk is a real outcome (survival not guaranteed)
+
+- [x] A **strong** result (margin ≥ 5 over the DC) delivers what was asked for
+  (`want_tags`-matching entries only). A **bare** success includes junk: the
+  skill's table *plus* a junk entry (tags junk/scrap/debris). So a
+  Survival/Nature-trained goblin reliably eats where a low-skill child mostly
+  turns up sticks, and a strongly-skilled searcher does better than a lucky one.
+- [x] Three junk library items so the entry has content (`bundle_of_twigs`,
+  `chipped_stone`, `sodden_bark`).
+- [x] Soak no longer stalls on a useless find: it spends the search time and
+  looks elsewhere next turn instead of standing still.
+- [ ] Follow-up: grouped items (`task-473`) — a 50-use meat pile, relational herb
+  piles — so wild finds can be tidied into stacks.
