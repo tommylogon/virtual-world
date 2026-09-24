@@ -9,6 +9,7 @@ priority: medium
 
 **Filed:** 2026-09-24
 **Related:** task-399, task-495, task-401, task-411, task-418
+**Design:** `docs/design/worldpainter-knowledge-and-fog.md`
 
 **Overlaps task-401 and task-411.** task-401 already owns chunk load/evict (the actual materialisation), and task-411 (selector) + task-418 (awareness channels) own fidelity-tier selection. This task's only unique delta is using *zones* as the selection key and keeping WorldPainter-side zone records — consider folding it into 401/411 rather than tracking it separately.
 

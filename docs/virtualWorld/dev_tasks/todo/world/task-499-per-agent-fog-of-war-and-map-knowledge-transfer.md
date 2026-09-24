@@ -9,6 +9,9 @@ priority: medium
 
 **Filed:** 2026-09-24
 **Related:** task-495, task-403
+**Design:** `docs/design/worldpainter-knowledge-and-fog.md` — fog is the
+knowledge dimension of the painted grid (movement + reveal + belief travel,
+task-467).
 
 ## Goal
 

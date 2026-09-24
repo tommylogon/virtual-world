@@ -9,10 +9,18 @@ priority: medium
 
 **Filed:** 2026-09-22
 **Related:** task-464, task-466, task-403, task-398, task-9
+**Design:** `docs/design/worldpainter-knowledge-and-fog.md` — grids, belief
+travel and fog of war as one substrate (ties task-495/496/499).
 
 ## Goal
 
 Travel to a destination held as a belief rather than a known node: heading plus time budget ('go west 2h') moves the character through the world, resolves whatever lies that way (including generated content, task-398/task-9) and validates the belief on arrival. Maps and directions gained from dialogue or items write knowledge (task-403) that upgrades a belief into a known route/area. Shares the heading + frontier primitive with Explore, and interrupts via task-466 (hazard, vital, interesting find).
+
+Once WorldPainter fills the world grid (task-495/496), moving by heading means
+**selecting grid cells/edges**: a trigger can attach a target location or a path
+to an item or character (a map, a note, a rumour), the walk follows the lattice,
+and each entered cell **reveals fog of war** for that character (task-499). The
+grid is the shared model for authoring, movement and knowledge.
 
 ## Acceptance
 

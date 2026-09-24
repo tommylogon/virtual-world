@@ -9,6 +9,8 @@ priority: medium
 
 **Filed:** 2026-09-24
 **Related:** task-496, task-398, task-9
+**Design:** `docs/design/world-environment-taxonomy.md` — the expanded 170-category
+vocabulary and per-entry record shape this data file should grow toward.
 
 ## Goal
 
@@ -20,6 +22,9 @@ Define the tile taxonomy and its mapping to engine tags: roads (gravel/dirt/pave
 - Resource distribution rules exist (biome → likely items), reusing the existing foraging tag→yield map.
 - Hostile distribution rules exist (biome + distance from settlement → spawn likelihood).
 - Adding a new biome requires data only, no code change.
+- The 16 shipped biomes are the seed of the 170-category vocabulary in
+  `docs/design/world-environment-taxonomy.md`; each shipped biome validates and
+  the vocabulary can be grown as data under the same record shape.
 
 ## Progress — 2026-09-24
 

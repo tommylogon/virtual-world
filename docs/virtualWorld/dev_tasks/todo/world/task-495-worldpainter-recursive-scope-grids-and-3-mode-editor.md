@@ -9,6 +9,8 @@ priority: medium
 
 **Filed:** 2026-09-24
 **Related:** task-397, task-398, task-400
+**Design:** `docs/design/worldpainter-knowledge-and-fog.md`,
+`docs/design/world-environment-taxonomy.md`
 
 ## Goal
 

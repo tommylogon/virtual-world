@@ -9,6 +9,8 @@ priority: high
 
 **Filed:** 2026-09-24
 **Related:** task-495, task-398, task-400
+**Design:** `docs/design/worldpainter-knowledge-and-fog.md`,
+`docs/design/world-environment-taxonomy.md`
 
 **Overlaps task-398.** task-398 already owns the deterministic generation contract (the `GenerationPatch` shape, provenance, apply-once, "a manual edit survives a second run"). This task is the *painted-grid recipe* — wilderness/road/biome tiles + region-merge — that should emit a `GenerationPatch` through 398's contract rather than a parallel generator. Decide whether to fold it into 398 or keep it as the grid recipe.
 
