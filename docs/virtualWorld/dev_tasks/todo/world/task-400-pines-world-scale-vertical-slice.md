@@ -59,3 +59,25 @@ that bypasses normal graph edges do not count.
 - Multiple loaded chunks or disk eviction.
 - Long road grids, fast travel, or cross-town route materialization.
 - More than five background residents.
+
+## Progress — 2026-09-24 (partial)
+
+Authored slice (data only, via `tools/author_pines_slice.py`):
+
+- **Scope manifest** in `data/scenarios/pines.json`: Millbrook Falls -> Downtown /
+  The Pines -> Ground/Floor 1/Floor 2/Floor 3/Roof, with every existing area
+  assigned a `world_scope_id` (a test asserts none is left unassigned).
+- **Unmade `apartment_3b`** scope carrying `recipe: "apartment.v1"` and a stable
+  seed — the generation hook task-398 will consume.
+- **Five resident schedules** (miki, rose, kevin, haruka, mateo) with
+  deliberately different days: working away, working at home, roaming, waiting,
+  and a night routine.
+- **task-399 proof**: offload/advance-eight-hours/promote on Miki yields one
+  bounded `background` memory (see task-399). Tests: `tests/test_pines_slice.py`
+  (7).
+
+Still open (blocked on **task-398**, deterministic scoped generation, which is
+still `todo`): generating Apartment 3B from preview, walking from Hallway 3 into
+its new areas, and proving no duplicate generated nodes on save/reload. The
+scope/placement data and the background-life proof are in place; the generator
+they call does not exist yet.

@@ -1,6 +1,6 @@
 ---
 type: task
-status: inprogress
+status: review
 area: world
 priority: high
 ---
@@ -195,3 +195,20 @@ superseded and folded here.
   returns the queued/pending names. The change lands at the next tick.
 
 Remaining for this task: the Pines proof (task-400).
+
+## Progress — 2026-09-24 (Pines proof, task-400)
+
+The last open item — an end-to-end proof on real scenario content — landed with
+task-400. `data/scenarios/pines.json` now carries a scope manifest and five
+authored resident schedules, authored by `tools/author_pines_slice.py`.
+
+Verified on that scenario: offload Miki, advance eight in-game hours (32 ticks at
+15 min/tick) through the real tick loop, promote — and she receives exactly one
+bounded `source: "background"` memory:
+
+> "While you were on your own for about 480 min, you saw to energy and thirst."
+
+No LLM call was made; repeated promotion is a no-op; a second offload/advance
+span adds at most one more memory. Tests: `tests/test_pines_slice.py`. No
+generation-on-open is exercised here (that is task-398), so the proof covers the
+background/reactivation seam, not scoped structure generation.
