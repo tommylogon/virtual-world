@@ -253,6 +253,11 @@ class Player:
         # something. The edge (hidden/relation) is the source of truth; this
         # boolean mirrors it for quick condition checks.
         self.hidden = False
+        # task-309 (5e-aligned): a `ghost`/incorporeal character is unseen by
+        # default, but visibility is a state, not an identity. `manifest` makes
+        # it seen/targetable; `vanish` hides it again. `hidden` still means
+        # mundane hiding. Undead-but-corporeal (zombie, vampire) ignore this.
+        self.manifested = False
         # Arbitrary flags set by trigger effects (set_flag action).
         # Examples: "alert", "fleeing", "guarding", "distracted".
         # Dict of flag_name -> value (usually True). Checked by character_has_flag

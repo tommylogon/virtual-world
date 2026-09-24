@@ -621,3 +621,78 @@ class TestEquipmentNarrative:
         pm.players[pm.active_player].vitals["Hygiene"] = 20
         modifier = equipment.get_hygiene_modifier()
         assert modifier < 0
+
+
+# ─────────── TestEquipmentItemDescriptions (task-215 re-scope) ───────────
+
+
+class TestEquipmentItemDescriptions:
+    """Clothing detail is carried by item descriptions, not opacity/friction."""
+
+    def test_self_narrative_includes_item_descriptions(self, basic_setup):
+        graph, pm, equipment = basic_setup
+        node = add_carried_item(graph, pm, "item_cloak", "Wool Cloak",
+                                equip_slots=["back"])
+        node.properties["description"] = "Thick wool, still damp from the rain."
+        equipment.equip_item("Wool Cloak")
+
+        narrative = equipment.get_equipment_narrative()
+        assert "ITEM DESCRIPTIONS:" in narrative
+        assert "Thick wool, still damp from the rain." in narrative
+        assert "Wool Cloak" in narrative
+
+    def test_viewer_sees_outermost_description_only(self, basic_setup):
+        graph, pm, equipment = basic_setup
+        shirt = add_carried_item(graph, pm, "item_shirt", "Cotton Shirt",
+                                 equip_slots=["torso"])
+        shirt.properties["description"] = "A thin cotton undershirt."
+        coat = add_carried_item(graph, pm, "item_coat", "Leather Coat",
+                                equip_slots=["torso"])
+        coat.properties["description"] = "Scuffed leather, heavy with rain."
+        equipment.equip_item("Cotton Shirt")
+        equipment.equip_item("Leather Coat")
+
+        other = equipment.get_equipment_narrative(viewer_name="AnotherPerson")
+        assert "Scuffed leather, heavy with rain." in other
+        assert "A thin cotton undershirt." not in other
+
+    def test_no_description_no_section(self, basic_setup):
+        graph, pm, equipment = basic_setup
+        node = add_carried_item(graph, pm, "item_plain", "Plain Vest",
+                                equip_slots=["torso"])
+        node.properties["description"] = ""
+        equipment.equip_item("Plain Vest")
+
+        narrative = equipment.get_equipment_narrative()
+        assert "ITEM DESCRIPTIONS:" not in narrative
+        assert "Plain Vest" in narrative
+
+    def test_unresolved_template_placeholders_are_stripped(self, basic_setup):
+        graph, pm, equipment = basic_setup
+        node = add_carried_item(graph, pm, "item_wraps", "Grubby Wraps",
+                                equip_slots=["hands"])
+        node.properties["description"] = "Stained with {param:color} grime."
+        equipment.equip_item("Grubby Wraps")
+
+        narrative = equipment.get_equipment_narrative()
+        assert "{param:color}" not in narrative
+        assert "Stained with" in narrative
+
+    def test_detail_lines_carry_description_not_opacity_or_friction(self, basic_setup):
+        graph, pm, equipment = basic_setup
+        node = add_carried_item(graph, pm, "item_dress", "Linen Dress",
+                                equip_slots=["torso"])
+        node.properties["description"] = "Light linen, almost sheer in the sun."
+        node.properties["coverage"] = 0.4
+        node.properties["opacity"] = 0.2
+        node.properties["friction"] = 3
+        equipment.equip_item("Linen Dress")
+
+        player = pm.players[pm.active_player]
+        lines = equipment._equipment_detail_lines(player, {})
+        joined = "\n".join(lines)
+        assert "Light linen, almost sheer in the sun." in joined
+        assert "coverage 0.4" in joined
+        assert "opacity" not in joined
+        assert "friction" not in joined
+

@@ -42,6 +42,7 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 | [[Characters/NPC Behavior System\|NPC Behavior System]] | Simple NPCs, behavior types, action intervals (game minutes), the background tier, LLM agent vs scripted |
 | [[Characters/Relationships System\|Relationships System]] | Closeness model, the one mutation path, bands, what moves it, background social interactions, labels, grapple modifier |
 | [[Characters/Emotion & Affect System\|Emotion & Affect System]] | Multi-dimensional affect map, semantic emotion mapping, mental-vital coupling, relationship valence, self- & social-recall re-feel |
+| [[Characters/Character Images & Expression Packs\|Character Images & Expression Packs]] | Profile + full-body art per emotion or action (SillyTavern-style pack), upload/remove API, resolver, library round-trip, avatar-by-emotion |
 
 ## [[Items & Inventory/Items Overview|📦 Items & Inventory]]
 

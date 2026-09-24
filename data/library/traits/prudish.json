@@ -1,0 +1,13 @@
+{
+  "name": "Prudish",
+  "description": "Open displays embarrass and offend you — you look away and disapprove.",
+  "category": "social",
+  "params": null,
+  "effects": {
+    "npc_reaction": "disapprove"
+  },
+  "conflicts": [
+    "open_minded",
+    "exhibitionist"
+  ]
+}

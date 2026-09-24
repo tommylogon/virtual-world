@@ -138,6 +138,7 @@ class WorldSerializer:
                      (getattr(p, "soak_order", None) or {}).get("remaining_minutes", 0) or 0), 1)}
                 if getattr(p, "soak_order", None) else None
             ),
+            "manifested": bool(getattr(p, 'manifested', False)),
             "known": list(getattr(p, 'known', []) or []),
             "crafting_known": list(getattr(p, 'crafting_known', []) or []),
             "discovered_exits": list(getattr(p, 'discovered_exits', []) or []),
@@ -314,6 +315,7 @@ class WorldSerializer:
         p.sync_vitals_with_tags()
         p.flags = dict(pdata.get("flags", {}))
         p.hidden = bool(pdata.get("hidden", False))
+        p.manifested = bool(pdata.get("manifested", False))
         p.known = list(pdata.get("known", []) or [])
         p.crafting_known = list(pdata.get("crafting_known", []) or [])
         p.discovered_exits = {

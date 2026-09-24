@@ -8,6 +8,44 @@ from typing import Optional, Dict, List, Any
 from graph import EDGE_CONNECTION
 
 
+# ────────────────────── NPC perception & reaction (task-214) ──────────────────
+
+#: Base DC for an NPC to notice another character's state or action.
+PERCEPTION_BASE_DC = 10
+
+#: Stimuli that only exist in mature worlds — gated on ``world.mature_content``.
+SEXUAL_STIMULI = frozenset({"intimacy", "aroused", "nipple_hard", "wetness"})
+
+#: Which region's outer-layer coverage makes a stimulus harder to read. Exposed
+#: skin is easier to notice than covered skin.
+_REGION_FOR_STIMULUS = {
+    "nipple_hard": "torso",
+    "wetness": "torso",
+    "aroused": "torso",
+    "blushing": "head",
+}
+
+#: Reaction → flavour lines. ``{npc}`` is replaced with the reacting NPC's name.
+_REACTION_LINES = {
+    "disapprove": (
+        "{npc} frowns and pointedly looks away.",
+        "{npc} mutters something under their breath, disapproving.",
+        "{npc} turns their back on the display.",
+    ),
+    "approach": (
+        "{npc} drifts a step closer, eyes fixed.",
+        "{npc} can't quite look away.",
+        "{npc} leans in, drawn toward it.",
+    ),
+    "comment": (
+        "{npc} watches, and says nothing.",
+        "{npc} glances over, weighing what they saw.",
+        "{npc} makes a low sound of surprise.",
+    ),
+    "ignore": (),
+}
+
+
 def _interval_ticks(gs, minutes) -> int:
     """An authored behaviour interval, in **game minutes**, as whole ticks.
 
@@ -50,8 +88,198 @@ class NPCBehaviorSystem:
     # ────────────────────── Simple NPC Processing ──────────────────────
 
     def process_npcs_on_combat(self, context: dict = None):
-        """Process NPC reactions to combat events."""
-        pass  # Stub — NPC combat reactions go here.
+        """task-214: bystander NPCs notice a fight and react.
+
+        Generic (non-sexual) stimulus, so it is always active. Combat passes
+        ``{"combat_actors": [attacker, target]}``.
+        """
+        context = context or {}
+        actors = context.get("combat_actors") or []
+        if len(actors) < 2:
+            return []
+        return self.process_bystander_reactions(actors[0], actors[1], "combat", context)
+
+    # ────────────────────── NPC Perception & Reaction (task-214) ──────────────────────
+
+    def _area_id_for(self, area_name):
+        """Resolve an area name to its node id (canonical first, then scan)."""
+        if not area_name:
+            return None
+        from engine.node_ids import NodeIDHelper
+        candidate = NodeIDHelper.area_node_id(area_name)
+        if self.graph.get_node(candidate) is not None:
+            return candidate
+        for node in self.graph.nodes.values():
+            if node.type == "area" and node.name == area_name:
+                return node.id
+        return None
+
+    def _ambient_light(self, area_name) -> int:
+        area_id = self._area_id_for(area_name)
+        if area_id is None:
+            return 80
+        try:
+            return int(self.gs.lighting.get_ambient_light(area_id))
+        except Exception:
+            return 80
+
+    def _outer_coverage(self, target, region_id) -> float:
+        """0.0 (bare) .. 1.0 (fully covered) for the outer layer over a region."""
+        if target is None or not region_id:
+            return 0.0
+        try:
+            from engine.body_parts import coverage_slots
+        except Exception:
+            return 0.0
+        best = 0.0
+        for slot in coverage_slots(region_id):
+            stack = (getattr(target, "equipped", None) or {}).get(slot) or []
+            outer = [i for i in stack if i and not str(i).startswith("__multi_slot")]
+            if not outer:
+                continue
+            node = self.graph.get_node(outer[-1])
+            if node is None:
+                continue
+            try:
+                best = max(best, float((node.properties or {}).get("coverage", 0) or 0))
+            except (TypeError, ValueError):
+                continue
+        return min(1.0, max(0.0, best))
+
+    def _trait_dc_mod(self, npc, stimulus_type) -> int:
+        from engine.traits import PERCEPTION_DC_MOD, TraitSystem
+        mod = 0.0
+        try:
+            for value in TraitSystem.get_effects(npc, PERCEPTION_DC_MOD):
+                try:
+                    mod += float(value)
+                except (TypeError, ValueError):
+                    continue
+        except Exception:
+            pass
+        # `attracted` reads arousal more sharply (design §8 "perverted").
+        if stimulus_type in SEXUAL_STIMULI and (getattr(npc, "traits", None) or {}).get("attracted"):
+            mod -= 3
+        return int(round(mod))
+
+    def calculate_perception_difficulty(self, npc, target, stimulus_type) -> int:
+        """task-214 DC: base 10 ± traits, light, and the target's outer coverage."""
+        dc = PERCEPTION_BASE_DC
+        dc += self._trait_dc_mod(npc, stimulus_type)
+        light = self._ambient_light(getattr(npc, "current_area", None))
+        if light < 20:
+            dc += 10
+        elif light > 80:
+            dc -= 5
+        region = _REGION_FOR_STIMULUS.get(stimulus_type)
+        if region:
+            dc += int(round(self._outer_coverage(target, region) * 10))
+        return dc
+
+    def check_perception(self, npc, dc) -> bool:
+        """d20 + WIS modifier + Perception trait mods vs DC (silent — no log spam)."""
+        from engine.traits import TraitSystem
+        stat_value = (getattr(npc, "stats", None) or {}).get("WIS", 10)
+        mod = (stat_value - 10) // 2
+        try:
+            mods = TraitSystem.get_skill_check_mods(npc)
+            mod += int(mods.get("Perception", 0))
+        except Exception:
+            pass
+        roll = random.randint(1, 20)
+        return (roll + mod) >= dc
+
+    def _reaction_type(self, npc, stimulus_type) -> str:
+        from engine.traits import NPC_REACTION, TraitSystem
+        traits = getattr(npc, "traits", None) or {}
+        declared = None
+        try:
+            declared = TraitSystem.get_first_effect(npc, NPC_REACTION)
+        except Exception:
+            declared = None
+        if not declared:
+            return "ignore" if stimulus_type in SEXUAL_STIMULI else "comment"
+        # Reaction traits only *move* on intimate stimuli; on a generic stimulus
+        # (a fight, a death) they simply take it in.
+        if stimulus_type not in SEXUAL_STIMULI:
+            return "comment"
+        # open_minded approaches only when it wants company (design §8).
+        if declared == "approach" and traits.get("open_minded") and not traits.get("attracted"):
+            social = (getattr(npc, "vitals", None) or {}).get("Social", 0)
+            return "approach" if social > 50 else "ignore"
+        return declared
+
+    def _emit_reaction(self, npc, reaction) -> Optional[str]:
+        pool = _REACTION_LINES.get(reaction) or ()
+        if not pool:
+            return None
+        line = random.choice(pool).replace("{npc}", npc.name)
+        self.gs.add_log_entry(line)
+        try:
+            self.gs.record_turn_event(npc.name, "npc_reaction", line,
+                                      area_name=npc.current_area)
+        except Exception:
+            pass
+        return line
+
+    def process_npc_reaction(self, npc, target, stimulus_type,
+                             stimulus_data: dict = None) -> Optional[str]:
+        """One NPC perceives (or fails to perceive) a stimulus and reacts.
+
+        Returns the emitted line, or None when nothing was noticed/emitted.
+        """
+        if npc is None or target is None or npc.name == getattr(target, "name", None):
+            return None
+        if self.gs is None:
+            return None
+        if getattr(npc, "state", None) == "dead":
+            return None
+        if self.gs.is_undead_ghost(npc):
+            return None
+        if stimulus_type in SEXUAL_STIMULI and not getattr(self.gs, "mature_content", False):
+            return None
+        dc = self.calculate_perception_difficulty(npc, target, stimulus_type)
+        if not self.check_perception(npc, dc):
+            return None
+        reaction = self._reaction_type(npc, stimulus_type)
+        if reaction == "ignore":
+            return None
+        return self._emit_reaction(npc, reaction)
+
+    def process_bystander_reactions(self, actor_name: str, target_name: str,
+                                    stimulus_type: str,
+                                    stimulus_data: dict = None,
+                                    max_reactions: int = 1) -> List[str]:
+        """Every simple NPC sharing the actor's area reacts to the stimulus.
+
+        Simple NPCs are the tier with no LLM; agent/human characters already
+        perceive through their own prompts, so they are not double-handled here.
+        Capped at *max_reactions* lines per stimulus so a crowded room does not
+        flood the log/prompt with one comment per bystander.
+        """
+        if self.gs is None:
+            return []
+        actor = self.gs.players.get(actor_name)
+        target = self.gs.players.get(target_name)
+        if actor is None or target is None:
+            return []
+        area = getattr(actor, "current_area", None)
+        if not area:
+            return []
+        lines = []
+        for pname, npc in list(self.gs.players.items()):
+            if len(lines) >= max_reactions:
+                break
+            if pname in (actor_name, target_name):
+                continue
+            if not getattr(npc, "simple_npc", False):
+                continue
+            if getattr(npc, "current_area", None) != area:
+                continue
+            line = self.process_npc_reaction(npc, target, stimulus_type, stimulus_data)
+            if line:
+                lines.append(line)
+        return lines
 
     def process_simple_npcs(self, trigger_type="on_tick", extra_context=None):
         """Process simple NPC behaviors and legacy wander/flee.

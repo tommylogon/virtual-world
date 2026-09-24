@@ -1,0 +1,15 @@
+{
+  "name": "Observant",
+  "description": "You read people and rooms. Notices what others miss.",
+  "category": "mental",
+  "params": null,
+  "effects": {
+    "perception_dc_mod": -5,
+    "skill_check_mod": {
+      "Perception": 2
+    }
+  },
+  "conflicts": [
+    "oblivious"
+  ]
+}

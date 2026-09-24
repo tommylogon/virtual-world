@@ -1,0 +1,12 @@
+{
+  "name": "Oblivious",
+  "description": "Subtle cues pass you by — you miss what others catch.",
+  "category": "mental",
+  "params": null,
+  "effects": {
+    "perception_dc_mod": 5
+  },
+  "conflicts": [
+    "observant"
+  ]
+}

@@ -215,12 +215,24 @@ class ApiClient {
         return resp.json();
     }
 
-    static async uploadNodeImage(nodeId, file) {
+    static async uploadNodeImage(nodeId, file, kind = 'full', expression = 'neutral') {
         const form = new FormData();
         form.append('file', file);
+        form.append('kind', kind);
+        form.append('expression', expression);
         const resp = await fetch(`/api/graph/node/${encodeURIComponent(nodeId)}/image`, {
             method: 'POST',
             body: form
+        });
+        return resp.json();
+    }
+
+    /** Remove one expression-pack image slot (kind + expression). */
+    static async removeExpressionImage(nodeId, kind = 'full', expression = 'neutral') {
+        const resp = await fetch(`/api/graph/node/${encodeURIComponent(nodeId)}/image/remove`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ kind, expression })
         });
         return resp.json();
     }

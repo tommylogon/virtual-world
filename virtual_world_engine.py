@@ -868,8 +868,29 @@ class VirtualWorld:
     def tick_turn(self, skip_npcs=False):
         return self.tick_manager.tick_turn(skip_npcs)
 
+    def is_undead(self, player_name: str) -> bool:
+        """task-309 facade: not alive (skips vitals), but corporeal."""
+        try:
+            return self.player_manager.is_undead(player_name)
+        except Exception:
+            return False
+
+    def is_incorporeal(self, player_name: str) -> bool:
+        """task-309 facade: a ghost — phases through ways."""
+        try:
+            return self.player_manager.is_incorporeal(player_name)
+        except Exception:
+            return False
+
+    def is_visible(self, player_name: str) -> bool:
+        """task-309 facade: can this character be seen/listed/targeted now?"""
+        try:
+            return self.player_manager.is_visible(player_name)
+        except Exception:
+            return False
+
     def is_undead_ghost(self, player_name: str) -> bool:
-        """task-309 facade: is this character an invisible undead-ghost NPC?"""
+        """task-309 compat alias: undead *or* incorporeal (spectral entity)."""
         try:
             return self.player_manager.is_undead_ghost(player_name)
         except Exception:

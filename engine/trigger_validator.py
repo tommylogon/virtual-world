@@ -54,8 +54,18 @@ CONDITION_TYPES = {
     "proximity",
     "sound_heard",
     "speech_matches",
+    "item_relationship",
     # task-233: dynamic area statuses.
     "area_has_status",
+    # Phase 1/2 NPC behavior conditions (task-389/390).
+    "npc_emotion_is",
+    "npc_is_hidden",
+    "character_has_tag",
+    "player_has_tag",
+    "sight_holds",
+    "flag_equals",
+    "sound_above",
+    "smell_detected",
 }
 
 # Effect params that hard-reference a graph node by id. ``self`` means the

@@ -7,7 +7,7 @@ status: done
 
 **Filed**: 2026-08-11
 **Priority**: Medium
-**Status**: Todo
+**Status**: Done — shipped in v1.4.0
 
 ---
 

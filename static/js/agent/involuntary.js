@@ -5,8 +5,15 @@
  * Non-blocking flavor only: these methods return a possibly-modified string
  * and NEVER replace the intended action. Injection is driven by active
  * character conditions (frightened → stutter, cold → shiver, sick/poisoned
- * → cough) plus a low random baseline so life happens even without a
- * trigger condition.
+ * → cough), a situational startle (a sudden loud sound → yelp), the `jittery`
+ * trait, plus a low random baseline so life happens even without a trigger
+ * condition.
+ *
+ * This is a LIVEGAME layer: it runs where a character's line is emitted
+ * (agent-engine), for the attended/LLM-agent set. Background and simple NPCs
+ * have no speech/emote emission path, so they intentionally never reach it —
+ * the cheap tier stays cheap. The roll is per emitted line, not per turn, so
+ * it stays correct under the timeframe-and-flow model (task-436/437).
  *
  * @module agent/involuntary — involuntary speech/emote flavour
  * @contributes Involuntary: hiccup/burp/yelp/stutter injection from conditions + a small random baseline
@@ -21,6 +28,18 @@ window.Involuntary = (() => {
     // active so flavor is noticeable in the situations that call for it.
     const RANDOM_SPEECH_CHANCE = 0.06;
     const RANDOM_EMOTE_CHANCE = 0.04;
+
+    // A sudden loud sound (shout/scream) makes a yelp much more likely than
+    // the ambient random baseline. The agent engine reports this per line via
+    // the `startled` flag; it never fires on its own.
+    const STARTLE_SPEECH_CHANCE = 0.35;
+    const STARTLE_EMOTE_CHANCE = 0.70;
+
+    // Traits that make involuntary reactions more likely (task-166: "a clumsy
+    // or nervous trait could raise the chance"). `jittery` is the library id;
+    // the aliases are defensive so authored/label variants still count.
+    const NERVOUS_TRAITS = ['jittery', 'nervous', 'clumsy'];
+    const NERVOUS_BOOST = 1.8;
 
     // condition_id -> {type, chance} for speech interruptions.
     const SPEECH_TRIGGERS = {
@@ -84,6 +103,29 @@ window.Involuntary = (() => {
         '*a short yelp escapes*',
     ];
 
+    // A sudden loud sound lands on a character who did not expect it. These
+    // are stronger than the ambient hiccup/burp pool on purpose.
+    const STARTLE_EMOTES = [
+        '*{they} flinch hard, a sharp yelp escaping*',
+        '*{they} jolt upright, heart hammering*',
+        '*a startled gasp catches in {their} throat*',
+        '*{they} spin toward the noise, eyes wide*',
+    ];
+
+    function _hasTrait(player, traitId) {
+        return !!(player?.traits && player.traits[traitId]);
+    }
+
+    /** Multiplier applied to every involuntary roll for nervous characters. */
+    function _traitBoost(player) {
+        return NERVOUS_TRAITS.some(t => _hasTrait(player, t)) ? NERVOUS_BOOST : 1.0;
+    }
+
+    /** True when the caller reports a startle this line (a sudden loud sound). */
+    function _startled(context) {
+        return !!(context && context.startled);
+    }
+
     function _hasCondition(player, cid) {
         const conds = player?.conditions;
         if (!conds) return false;
@@ -142,17 +184,25 @@ window.Involuntary = (() => {
 
     /**
      * Return a possibly-modified speech string (or null when nothing fires).
+     * @param {string} speech - The intended line
+     * @param {Object} player - Player data object
+     * @param {Object} [context] - Optional signals, e.g. {startled:true}
      */
-    function speech(speech, player) {
+    function speech(speech, player, context) {
         if (!speech || typeof speech !== 'string') return null;
+        const boost = _traitBoost(player);
+        // A startle trumps everything: the yelp is the moment.
+        if (_startled(context) && Math.random() < STARTLE_SPEECH_CHANCE) {
+            return _interrupt(speech, 'yelp');
+        }
         // Condition-driven injection takes precedence over random flavor.
         for (const cid of Object.keys(SPEECH_TRIGGERS)) {
             if (_hasCondition(player, cid)) {
                 const { type, chance } = SPEECH_TRIGGERS[cid];
-                if (Math.random() < chance) return _interrupt(speech, type);
+                if (Math.random() < Math.min(1, chance * boost)) return _interrupt(speech, type);
             }
         }
-        if (Math.random() < RANDOM_SPEECH_CHANCE) {
+        if (Math.random() < Math.min(1, RANDOM_SPEECH_CHANCE * boost)) {
             const kind = GENERIC_SPEECH[Math.floor(Math.random() * GENERIC_SPEECH.length)];
             return _interrupt(speech, kind);
         }
@@ -161,9 +211,17 @@ window.Involuntary = (() => {
 
     /**
      * Return a possibly-modified emote string (or null when nothing fires).
+     * @param {string} emoteText - The intended emote
+     * @param {Object} player - Player data object
+     * @param {Object} [context] - Optional signals, e.g. {startled:true}
      */
-    function emote(emoteText, player) {
+    function emote(emoteText, player, context) {
         if (!emoteText || typeof emoteText !== 'string') return null;
+        const boost = _traitBoost(player);
+        if (_startled(context) && Math.random() < STARTLE_EMOTE_CHANCE) {
+            const pick = STARTLE_EMOTES[Math.floor(Math.random() * STARTLE_EMOTES.length)];
+            return `${emoteText} ${_render(pick, player)}`.trim();
+        }
         for (const cid of Object.keys(EMOTE_TRIGGERS)) {
             if (_hasCondition(player, cid)) {
                 const pool = EMOTE_TRIGGERS[cid];
@@ -171,7 +229,7 @@ window.Involuntary = (() => {
                 return `${emoteText} ${_render(pick, player)}`.trim();
             }
         }
-        if (Math.random() < RANDOM_EMOTE_CHANCE) {
+        if (Math.random() < Math.min(1, RANDOM_EMOTE_CHANCE * boost)) {
             const pool = GENERIC_EMOTES;
             const pick = pool[Math.floor(Math.random() * pool.length)];
             return `${emoteText} ${_render(pick, player)}`.trim();
@@ -179,5 +237,8 @@ window.Involuntary = (() => {
         return null;
     }
 
-    return { speech, emote };
+    // Exposed for tests and for callers that want the startle pool directly.
+    const _internals = { STARTLE_EMOTES, NERVOUS_TRAITS, NERVOUS_BOOST };
+
+    return { speech, emote, _internals };
 })();

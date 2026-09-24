@@ -75,6 +75,26 @@ class AgentLens {
         return VW?.ui?.getAgentColor?.(name) || '#58a6ff';
     }
 
+    /**
+     * Profile image for a character, chosen by their current emotion.
+     * Fallback chain: emotion → neutral → profile_image → image → ''.
+     */
+    _expressionAvatar(name) {
+        try {
+            const player = worldState?.players?.[name];
+            if (!player) return '';
+            const nodeId = `player_${name.replace(/\s+/g, '_')}`;
+            const props = worldState?.getNode?.(nodeId)?.properties || {};
+            const expr = props.expressions || {};
+            const emotion = (player.emotion && player.emotion.current) || 'neutral';
+            const profileFor = (key) => (expr[key] || {}).profile;
+            return profileFor(emotion) || profileFor('neutral')
+                || props.profile_image || props.image || '';
+        } catch (e) {
+            return '';
+        }
+    }
+
     _modeIcon(mode) {
         return ({ area: '🏠', agent: '🧍', way: '🚪' })[mode] || '👁';
     }
@@ -291,12 +311,15 @@ class AgentLens {
         const header = document.getElementById('agent-lens-header');
         if (!header) return;
         const color = charName ? this._agentColor(charName) : '#58a6ff';
-        const avatarStyle = `background:linear-gradient(135deg, ${color}33 0%, ${color}11 100%);color:${color}`;
+        const avatarUrl = charName ? this._expressionAvatar(charName) : '';
+        const avatarStyle = avatarUrl
+            ? `background-image:url('${avatarUrl}');background-size:cover;background-position:center;`
+            : `background:linear-gradient(135deg, ${color}33 0%, ${color}11 100%);color:${color}`;
         const modePillClass = `agent-lens-mode-pill ${mode}`;
         window.Lit.render(agentLensHtmlTag`
             <div class="agent-lens-header-inner">
                 <div class="agent-lens-avatar" style=${avatarStyle}>
-                    ${this._modeIcon(mode)}
+                    ${avatarUrl ? '' : this._modeIcon(mode)}
                 </div>
                 <div class="agent-lens-header-text">
                     <div class="agent-lens-header-top">

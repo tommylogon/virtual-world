@@ -1,0 +1,14 @@
+{
+  "name": "Attracted",
+  "description": "Visible desire pulls at you — you can't help moving closer.",
+  "category": "social",
+  "params": null,
+  "effects": {
+    "npc_reaction": "approach",
+    "drawn_to_arousal": true
+  },
+  "mature": true,
+  "conflicts": [
+    "prudish"
+  ]
+}

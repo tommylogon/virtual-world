@@ -518,6 +518,18 @@ def handle_library_import_character(app, char_id):
         player.activity = activity
     app.world.add_player(player)
 
+    # Expression pack: carry the library character's art onto its node.
+    try:
+        node = app.world.graph.get_node(
+            app.world.player_manager.get_player_node_id(player_name))
+        if node is not None:
+            for key in ("image", "profile_image", "expressions"):
+                value = cdata.get(key)
+                if value:
+                    node.properties[key] = value
+    except Exception:
+        pass
+
     target_area = area_name or cdata.get('current_area', '')
     if target_area:
         try:
@@ -1003,6 +1015,16 @@ def _refresh_character(app, node, sections, template_id=None, entries=None):
     player = app.world.player_manager.get_player(node.name) if hasattr(app.world, 'player_manager') else None
     if player is None:
         return jsonify({"error": f"Character '{node.name}' not found in world"}), 404
+
+    # Expression pack is node presentation state, refreshed straight from the
+    # library entry (not a Player field).
+    try:
+        for key in ("image", "profile_image", "expressions"):
+            value = lib_char.get(key)
+            if value:
+                node.properties[key] = value
+    except Exception:
+        pass
 
     editable_map = {
         'name': 'name',

@@ -5,6 +5,7 @@ and hygiene modifiers.
 """
 
 from typing import Optional, Dict, List, Any
+import re
 from graph import Node, Edge, EDGE_CARRYING, EDGE_EQUIPPED, EDGE_IN, EDGE_CONNECTION
 
 
@@ -511,8 +512,10 @@ class EquipmentSystem:
             if acc:
                 parts.append(f"wearing {', '.join(acc)} as accessories")
             if not parts:
-                return "You are wearing nothing."
-            return "You are wearing: " + "; ".join(parts) + "."
+                base = "You are wearing nothing."
+            else:
+                base = "You are wearing: " + "; ".join(parts) + "."
+            only_names = None
         else:
             visible = self.get_visible_equipment(player_name)
             parts = []
@@ -532,8 +535,18 @@ class EquipmentSystem:
                     hand_items.append(visible["hand_right"])
                 parts.append(f"holding {' and '.join(hand_items)}")
             if not parts:
-                return f"{player.name} is wearing nothing."
-            return f"{player.name} is wearing " + ", ".join(parts) + "."
+                base = f"{player.name} is wearing nothing."
+            else:
+                base = f"{player.name} is wearing " + ", ".join(parts) + "."
+            # A viewer must not learn inner-layer detail, so filter to the
+            # outermost/visible items they can actually perceive.
+            only_names = set(visible.values()) | {node.name for node, _ in full_body}
+        # task-215 re-scope: clothing detail (layer visibility, wetness, comfort)
+        # lives in the item description, so surface it with the equipment list.
+        desc_lines = self._equipment_description_lines(player, only_names=only_names)
+        if desc_lines:
+            base += "\nITEM DESCRIPTIONS:\n" + "\n".join(desc_lines)
+        return base
 
     def decrement_armor_uses_on_hit(self, player) -> list:
         """Wear the outermost armor on a hit (task-161).
@@ -642,9 +655,74 @@ class EquipmentSystem:
                 lines.append(f"- {player.name}'s {phrase}")
         return lines
 
+    def _item_description_text(self, node) -> str:
+        """Prompt-safe, first-sentence item description (task-215 re-scope).
+
+        Clothing detail — coverage, wetness, comfort, layer visibility — is
+        carried by the item's own description rather than numeric props, so the
+        equipment prompts must include that text. Templates (``{param:x}``) are
+        rendered when possible; any unresolved placeholder is stripped so the
+        LLM never sees raw braces. Long descriptions are cut to one sentence.
+        """
+        if node is None:
+            return ""
+        props = node.properties or {}
+        desc = str(props.get("description", "") or "").strip()
+        if not desc:
+            return ""
+        trigger_system = getattr(self, "triggers", None)
+        if trigger_system is not None and hasattr(trigger_system, "_render_template"):
+            context = {
+                "item_params": props.get("parameters", {}) or {},
+                "item_properties": props,
+                "item_name": node.name or "",
+                "item_state": props.get("current_state", ""),
+            }
+            try:
+                desc = trigger_system._render_template(desc, context)
+            except Exception:
+                pass
+        if "{" in desc:
+            desc = re.sub(r"\{[^}]*\}", "", desc)
+        desc = " ".join(desc.split())
+        if len(desc) > 220:
+            cut = desc.find(". ", 0, 220)
+            desc = desc[:cut + 1] if cut != -1 else desc[:220].rstrip() + "…"
+        return desc
+
+    def _equipment_description_lines(self, player, only_names=None) -> List[str]:
+        """``- <item>: <description>`` lines for every equipped item that has one.
+
+        Shared by the "You are wearing" narrative and the appearance-description
+        prompt so the same clothing prose reaches both. A full-body item worn
+        across several slots is reported once. When *only_names* is given, inner
+        layers the viewer cannot see are omitted.
+        """
+        lines = []
+        seen = set()
+        for stack in (getattr(player, "equipped", None) or {}).values():
+            for item_id in stack:
+                if self._is_marker(item_id):
+                    continue
+                node = self.graph.get_node(item_id)
+                if node is None or node.id in seen:
+                    continue
+                if only_names is not None and node.name not in only_names:
+                    continue
+                seen.add(node.id)
+                desc = self._item_description_text(node)
+                if desc:
+                    lines.append(f"- {node.name}: {desc}")
+        return lines
+
     def _equipment_detail_lines(self, player, full):
-        """task-210: per-item detail properties (opacity/coverage/state/friction)
-        appended to the equipment prompt when the item defines them."""
+        """task-210/215: per-item clothing detail for the appearance prompt.
+
+        Coverage and a live ``current_state`` are numeric facts the engine acts
+        on; everything else (layer visibility, comfort, wetness) is carried by
+        the item's own description. ``opacity`` and ``friction`` were retired
+        (task-215 re-scope) — no library item authors them.
+        """
         lines = []
         for slot, node_ids in (player.equipped or {}).items():
             for node_id in node_ids:
@@ -654,18 +732,21 @@ class EquipmentSystem:
                 if node is None or node.type != 'item':
                     continue
                 props = node.properties or {}
-                bits = []
-                if 'opacity' in props:
-                    bits.append(f"opacity {props['opacity']}")
+                desc = self._item_description_text(node)
+                meta = []
                 if 'coverage' in props:
-                    bits.append(f"coverage {props['coverage']}")
+                    meta.append(f"coverage {props['coverage']}")
                 state = props.get('current_state')
                 if state and state not in ('off', 'unlit'):
-                    bits.append(f"state: {state}")
-                if props.get('friction'):
-                    bits.append(f"friction {props['friction']}")
-                if bits:
-                    lines.append(f"- {node.name} ({slot}): {', '.join(bits)}")
+                    meta.append(f"state: {state}")
+                if not desc and not meta:
+                    continue
+                line = f"- {node.name} ({slot})"
+                if desc:
+                    line += f": {desc}"
+                if meta:
+                    line += f" [{', '.join(meta)}]"
+                lines.append(line)
         return lines
 
     def _update_equipment_description(self, player):

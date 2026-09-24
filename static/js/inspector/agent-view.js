@@ -77,6 +77,11 @@ window.InspectorAgentView = (() => {
             .find(([, node]) => node.type === 'character' && node.name === agentName);
 
         let html = AV._renderAgentHeader(agentName, player, color, characterNode);
+        // Expression pack lives right under the name — the character's face is
+        // not an "Advanced" setting.
+        if (characterNode) {
+            html += window.InspectorHelpers.renderExpressionSection(characterNode[0], characterNode[1].properties || {});
+        }
         html += AV._renderStatusRow(agentName, player, color, isAuto, escName);
         if (characterNode) {
             html += AV._deferredGravityControl(characterNode[0], characterNode[1].properties || {});
@@ -1035,7 +1040,6 @@ window.InspectorAgentView = (() => {
         let html = `<div data-tab="Advanced" style="${showTab('Advanced')}">`;
 
         if (characterNode) {
-            html += window.InspectorHelpers.renderImageSection(characterNode[0], characterNode[1].properties || {});
             html += AV._deferredGravityControl(characterNode[0], characterNode[1].properties || {}, 'adv');
         }
 
@@ -1684,6 +1688,7 @@ Respond with ONLY a JSON object: {"tags": ["magic","books","jewelry"]} — the t
         const player = worldState.players[charName];
         if (!player) return null;
         const charNodeId = `player_${charName.replace(/\s+/g, '_')}`;
+        const charProps = worldState.getNode(charNodeId)?.properties || {};
         const inventory = [];
         const seen = new Set();
         for (const edge of worldState.graph?.edges || []) {
@@ -1713,6 +1718,10 @@ Respond with ONLY a JSON object: {"tags": ["magic","books","jewelry"]} — the t
             traits: player.traits || {},
             tags: player.tags || [],
             interest_tags: player.interest_tags || [],
+            // Expression pack (profile/full body per emotion or action).
+            image: charProps.image || null,
+            profile_image: charProps.profile_image || null,
+            expressions: charProps.expressions || {},
             state: player.state || 'awake',
             conditions: player.conditions || {},
             equipped: (() => {
@@ -1770,6 +1779,9 @@ Respond with ONLY a JSON object: {"tags": ["magic","books","jewelry"]} — the t
             { key: 'skills', label: 'Skills' },
             { key: 'traits', label: 'Traits' },
             { key: 'tags', label: 'Tags' },
+            { key: 'expressions', label: 'Expression Pack' },
+            { key: 'image', label: 'Full-body image' },
+            { key: 'profile_image', label: 'Profile image' },
             { key: 'emotion', label: 'Emotion' },
             { key: 'vitals', label: 'Vitals', perEntry: true },
             { key: 'decay_rates', label: 'Decay Rates', perEntry: true },
