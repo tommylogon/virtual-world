@@ -2722,3 +2722,130 @@ class TestLegacyTriggerEffects:
         outputs = trigger_system._execute_triggers(sample_item, "on_examine", game_state=None)
         assert outputs == ["modern text"]
 
+
+class TestTriggerEventIndex:
+    """task-406: event-indexed dispatch, standing-item ticks, lazy context.
+
+    These cover the acceptance criteria that the implementation commit
+    (961b286) shipped without tests for: a standing item fires on_tick exactly
+    once, carried/lit items are not double-fired, item turn/time triggers now
+    fire, a no-match call builds no context (and never reads the legacy
+    ``current_area`` property), and the graph index stays correct across
+    add/remove/load/clear.
+    """
+
+    MARK = "TASK406_PROBE"
+
+    @staticmethod
+    def _world():
+        from app import create_app
+        app = create_app({'TESTING': True})
+        return app.world, app.test_client()
+
+    @staticmethod
+    def _item(world, name, **props):
+        from graph import Node
+        item = Node(id=f'item_task406_{name}', type='item', name=name,
+                    properties={'uses': -1, 'actions': 'examine', **props})
+        world.graph.add_node(item)
+        return item
+
+    @staticmethod
+    def _message_trigger(world, item, trigger_type, text):
+        from graph import Node, Edge
+        tid = f'trig_task406_{item.id}_{trigger_type}'
+        props = {
+            'trigger_type': [trigger_type],
+            'effects': [{'type': 'message', 'params': {'message': text}}],
+        }
+        world.graph.add_node(Node(id=tid, type='logic_trigger', name='probe',
+                                  properties=props))
+        world.graph.add_edge(Edge(source=item.id, target=tid, type=EDGE_TRIGGERS,
+                                  properties=props))
+        return tid
+
+    def _count(self, world, needle):
+        return sum(1 for line in world.game_logger.game_log if needle in line)
+
+    def test_standing_item_on_tick_fires_once_per_tick(self):
+        world, _ = self._world()
+        world.set_active_player('Kaelen Voss')
+        item = self._item(world, 'shrine', current_state='idle')
+        self._message_trigger(world, item, 'on_tick', self.MARK)
+        world.tick_turn()
+        assert self._count(world, self.MARK) == 1
+
+    def test_carried_item_on_tick_not_double_fired(self):
+        from graph import Edge
+        world, _ = self._world()
+        world.set_active_player('Kaelen Voss')
+        item = self._item(world, 'amulet', current_state='hidden')
+        world.graph.add_edge(Edge(source=item.id, target='player_Kaelen_Voss',
+                                  type='carrying'))
+        self._message_trigger(world, item, 'on_tick', self.MARK)
+        world.tick_turn()
+        assert self._count(world, self.MARK) == 1
+
+    def test_lit_area_item_on_tick_not_double_fired(self):
+        from graph import Edge, EDGE_IN
+        world, _ = self._world()
+        world.set_active_player('Kaelen Voss')
+        item = self._item(world, 'lantern', current_state='lit', uses=50)
+        world.graph.add_edge(Edge(source=item.id, target=world.get_current_area_id(),
+                                  type=EDGE_IN))
+        self._message_trigger(world, item, 'on_tick', self.MARK)
+        world.tick_turn()
+        assert self._count(world, self.MARK) == 1
+
+    def test_item_on_turn_start_trigger_now_fires(self):
+        world, _ = self._world()
+        item = self._item(world, 'totem', current_state='idle')
+        self._message_trigger(world, item, 'on_turn_start', self.MARK)
+        world._fire_turn_triggers('on_turn_start')
+        assert self._count(world, self.MARK) == 1
+
+    def test_no_match_returns_empty_without_reading_current_area(self):
+        world, _ = self._world()
+        item = self._item(world, 'plain', current_state='idle')
+        # Edge exists but the type cannot match the requested trigger type.
+        self._message_trigger(world, item, 'on_examine', self.MARK)
+
+        class Exploding:
+            @property
+            def current_area(self):
+                raise AssertionError('current_area read on no-match path')
+
+            def get_current_area_id(self):
+                raise AssertionError('get_current_area_id read on no-match path')
+
+        assert world.triggers._execute_triggers(
+            item, 'on_tick', game_state=Exploding()) == []
+        assert self._count(world, self.MARK) == 0
+
+    def test_trigger_index_tracks_add_remove_load_clear(self, graph):
+        from graph import Node, Edge
+        graph.add_node(Node(id='item_a', type='item', name='a', properties={}))
+        graph.add_node(Node(id='trig_a', type='logic_trigger', name='t', properties={}))
+        graph.add_edge(Edge(source='item_a', target='trig_a', type=EDGE_TRIGGERS,
+                            properties={'trigger_type': ['on_tick', 'on_turn_start']}))
+        assert set(graph.get_trigger_sources('on_tick')) == {'item_a'}
+        assert set(graph.get_trigger_sources('on_turn_start')) == {'item_a'}
+        assert graph.get_trigger_sources('on_examine') == []
+
+        # An edge with no trigger_type is a legacy shape that never matched;
+        # the index must not invent a match for it.
+        graph.add_edge(Edge(source='item_a', target='trig_a', type=EDGE_TRIGGERS,
+                            properties={}))
+        assert graph.get_trigger_sources('on_tick') == ['item_a']
+
+        graph.remove_edge('item_a', 'trig_a', EDGE_TRIGGERS)
+        assert graph.get_trigger_sources('on_tick') == []
+
+        graph.add_edge(Edge(source='item_a', target='trig_a', type=EDGE_TRIGGERS,
+                            properties={'trigger_type': ['on_tick']}))
+        graph.load_from_dict(graph.to_dict())
+        assert set(graph.get_trigger_sources('on_tick')) == {'item_a'}
+
+        graph.clear()
+        assert graph.get_trigger_sources('on_tick') == []
+
