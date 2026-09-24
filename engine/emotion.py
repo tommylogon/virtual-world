@@ -65,6 +65,50 @@ AXES: dict[str, str] = {
     "surprised": "surprise",
 }
 
+#: Axis group -> the canonical expression-portrait key it selects. The 11
+#: affect axes map onto 11 of the 12 expression keys; `neutral` is the absence
+#: of any raised axis (see ``dominant_expression``).
+AXIS_TO_EXPRESSION: dict[str, str] = {
+    "joy": "happy", "sadness": "sad", "fear": "afraid", "anger": "angry",
+    "arousal": "aroused", "bond": "affectionate", "shame": "ashamed",
+    "envy": "envious", "disgust": "disgusted", "calm": "calm",
+    "surprise": "surprised",
+}
+
+
+def dominant_expression(emotions: dict, min_margin: float | None = None) -> str:
+    """Canonical expression key for the strongest raised affect axis.
+
+    Deviation ABOVE baseline decides, not the raw value: ``calm``/``content``
+    rest near 50/46, so a raw max would always pick calm and the face would
+    never change. ``min_margin`` is the points-above-resting an axis must reach
+    to beat ``neutral``; it comes from ``emotion.expression_margin`` (default
+    6.0) so it can be tuned without code edits.
+
+    Returns one of the 12 canonical keys, ``neutral`` when nothing stands out.
+    Feeds the expression-portrait selection (node/chip/examine art).
+    """
+    if min_margin is None:
+        try:
+            min_margin = float(runtime_config.get("emotion.expression_margin", 6.0))
+        except (TypeError, ValueError):
+            min_margin = 6.0
+    best_axis = None
+    best_score = 0.0
+    for dim, axis in AXES.items():
+        base = BASELINES.get(dim, 0.0)
+        try:
+            value = float(emotions.get(dim, base))
+        except (TypeError, ValueError, AttributeError):
+            continue
+        deviation = value - base
+        if deviation > best_score:
+            best_score = deviation
+            best_axis = axis
+    if best_axis is None or best_score < min_margin:
+        return "neutral"
+    return AXIS_TO_EXPRESSION.get(best_axis, "neutral")
+
 #: Dimension -> (vital, per-point factor). Recalled memory emotions nudge the
 #: matching mental vital subtly (Sanity / Entertainment / Social). A negative
 #: factor drains; a positive restores.

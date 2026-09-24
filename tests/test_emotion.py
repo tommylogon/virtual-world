@@ -9,8 +9,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from player import Player
 from engine.emotion import (
-    BASELINES, describe, dominant, decay, derive_from_vitals, felt_from_llm,
-    normalize, spike,
+    BASELINES, describe, dominant, dominant_expression, decay, derive_from_vitals,
+    felt_from_llm, normalize, spike,
 )
 
 
@@ -292,3 +292,51 @@ class TestRoute:
         r = client.post("/api/players/Nobody/emotions",
                         json={"emotion": "sad", "delta": 5})
         assert r.status_code == 404
+
+
+class TestDominantExpression:
+    """dominant_expression: affect map -> canonical expression-portrait key."""
+
+    def test_all_baseline_is_neutral(self):
+        assert dominant_expression(dict(BASELINES)) == "neutral"
+
+    def test_raised_joy_axis_selects_happy(self):
+        m = dict(BASELINES)
+        m["happy"] = m["happy"] + 20
+        assert dominant_expression(m) == "happy"
+
+    def test_sub_emotion_selects_its_axis_key(self):
+        # anxious is the fear axis, whose portrait key is 'afraid'.
+        m = dict(BASELINES)
+        m["anxious"] = m["anxious"] + 20
+        assert dominant_expression(m) == "afraid"
+
+    def test_bond_and_calm_axes(self):
+        m = dict(BASELINES)
+        m["affectionate"] = m["affectionate"] + 20
+        assert dominant_expression(m) == "affectionate"
+        m = dict(BASELINES)
+        m["calm"] = m["calm"] + 20
+        assert dominant_expression(m) == "calm"
+
+    def test_below_margin_is_neutral(self):
+        m = dict(BASELINES)
+        m["angry"] = m["angry"] + 3
+        assert dominant_expression(m) == "neutral"
+
+    def test_min_margin_override(self):
+        m = dict(BASELINES)
+        m["angry"] = m["angry"] + 3
+        assert dominant_expression(m, min_margin=1.0) == "angry"
+
+    def test_strongest_axis_wins(self):
+        m = dict(BASELINES)
+        m["happy"] = m["happy"] + 12
+        m["sad"] = m["sad"] + 30
+        assert dominant_expression(m) == "sad"
+
+    def test_player_method_uses_affect_map(self):
+        p = Player()
+        assert p.dominant_expression() == "neutral"
+        p.spike_emotion("afraid", 30)
+        assert p.dominant_expression() == "afraid"

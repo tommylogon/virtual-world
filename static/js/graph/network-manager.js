@@ -180,7 +180,7 @@ window.GraphNetwork = {
                 .sort(([a], [b]) => a.localeCompare(b))
                 .map(([id, nodeData]) => {
                     const avatar = window.CharacterArt
-                        ? window.CharacterArt.avatarFor(nodeData.properties, window.CharacterArt.emotionOf(nodeData.name))
+                        ? window.CharacterArt.avatarFor(nodeData.properties, window.CharacterArt.emotionKeyForName(nodeData.name))
                         : (nodeData.properties?.image || '');
                     return `${id}:${nodeData.type}:${nodeData.properties?.current_state || ''}:${nodeData.properties?.central_gravity_enabled !== false}:${avatar}`;
                 })
@@ -696,7 +696,7 @@ window.GraphNetwork = {
         // other node types fall through to their plain `image`. Nodes without
         // any art keep their normal group shape/color.
         const nodeAvatar = window.CharacterArt
-            ? window.CharacterArt.avatarFor(nodeData.properties, window.CharacterArt.emotionOf(nodeData.name))
+            ? window.CharacterArt.avatarFor(nodeData.properties, window.CharacterArt.emotionKeyForName(nodeData.name))
             : (nodeData.properties?.image || '');
         if (graphManager._showImages && nodeAvatar) {
             nodeConfig.shape = 'circularImage';

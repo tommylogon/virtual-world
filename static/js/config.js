@@ -86,8 +86,8 @@ class ConfigManager {
         // Embedding settings (task-91: OpenAI-compatible endpoint, browser-side
         // calls; vectors stored server-side. Dims 0 = auto-detect from first call)
         this.embedEnabled = (await storage.getConfig('embed_enabled')) === 'true';
-        this.embedUrl = await storage.getConfig('embed_url') || 'http://localhost:11434/v1';
-        this.embedModel = await storage.getConfig('embed_model') || 'nomic-embed-text';
+        this.embedUrl = await storage.getConfig('embed_url') || 'http://localhost:1234/v1';
+        this.embedModel = await storage.getConfig('embed_model') || 'text-embedding-nomic-embed-text-v1.5';
         this.embedDims = parseInt(await storage.getConfig('embed_dims')) || 0;
         this.embedApiKey = await storage.getConfig('embed_api_key') || '';
 

@@ -87,7 +87,7 @@ class AgentLens {
             const nodeId = `player_${name.replace(/\s+/g, '_')}`;
             const props = worldState?.getNode?.(nodeId)?.properties || {};
             const emotion = (player.emotion && player.emotion.current) || 'neutral';
-            if (window.CharacterArt) return window.CharacterArt.avatarFor(props, emotion);
+            if (window.CharacterArt) return window.CharacterArt.avatarFor(props, window.CharacterArt.emotionKeyFor(player));
             const expr = props.expressions || {};
             const profileFor = (key) => (expr[key] || {}).profile;
             return profileFor(emotion) || profileFor('neutral')

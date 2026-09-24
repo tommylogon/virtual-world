@@ -156,6 +156,12 @@ class WorldSerializer:
             "emotion": {
                 "current": getattr(p, 'emotion', 'neutral'),
                 "intensity": getattr(p, 'emotion_intensity', 0.0),
+                # Canonical expression-portrait key derived from the affect map
+                # (the state events/decisions produced), so the node/chip/examine
+                # art follows the mood rather than the legacy free-text label.
+                "expression": (
+                    p.dominant_expression() if hasattr(p, 'dominant_expression') else "neutral"
+                ),
                 "description": p.get_emotion_nl() if hasattr(p, 'get_emotion_nl') else ""
             },
             "emotions": p.emotions_map() if hasattr(p, 'emotions_map') else {},

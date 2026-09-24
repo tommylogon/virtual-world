@@ -384,6 +384,20 @@ class Player:
         from engine import emotion as _emotion
         _emotion.spike(self.emotions_map(), emotion, delta)
 
+    def dominant_expression(self) -> str:
+        """Canonical expression-portrait key for the current mood.
+
+        Derived from the affect map's strongest raised axis (engine.emotion.
+        dominant_expression) — so the character's face follows the emotional
+        state that events and decisions produced, not the legacy free-text
+        ``emotion`` string. Returns one of the 12 canonical keys or 'neutral'.
+        """
+        from engine import emotion as _emotion
+        try:
+            return _emotion.dominant_expression(self.emotions_map())
+        except Exception:
+            return "neutral"
+
     #: Emotion-label -> (derived dimension, sign factor). The recipient decides
     #: how a line landed (label + intensity 1-10); we map it to a dimension
     #: delta and record it as an experience (task-350).

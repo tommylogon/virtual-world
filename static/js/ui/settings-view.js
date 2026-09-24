@@ -103,8 +103,8 @@ window.SettingsView = (() => {
         setVal('agent-rpm-limit', String(config.rpmLimit || 0));
         setVal('agent-tpm-limit', String(config.tpmLimit || 0));
         setChecked('embed-enabled', !!config.embedEnabled);
-        setVal('embed-url', config.embedUrl || 'http://localhost:11434/v1');
-        setVal('embed-model', config.embedModel || 'nomic-embed-text');
+        setVal('embed-url', config.embedUrl || 'http://localhost:1234/v1');
+        setVal('embed-model', config.embedModel || 'text-embedding-nomic-embed-text-v1.5');
         setVal('embed-dims', config.embedDims ? String(config.embedDims) : '');
         setVal('embed-api-key', config.embedApiKey || '');
         var etr = document.getElementById('embed-test-result');

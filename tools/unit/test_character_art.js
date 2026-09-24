@@ -45,3 +45,17 @@ test('artFor returns both renders and defaults emotion to neutral', () => {
     assertEq(Art.artFor(PROPS), { profile: '/p/neutral.png', full: '/f/neutral.png' }, 'default neutral');
     assertEq(Art.artFor(PROPS, 'happy').full, '/f/neutral.png', 'happy has no full -> neutral full');
 });
+
+test('emotionKeyFor prefers the server-resolved expression key', () => {
+    // The affect-map-derived key wins even when `current` is legacy free text.
+    assertEq(Art.emotionKeyFor({ emotion: { current: 'relieved but vigilant', expression: 'calm' } }), 'calm',
+        'expression key preferred over free text');
+});
+
+test('emotionKeyFor falls back to a canonical current, else neutral', () => {
+    assertEq(Art.emotionKeyFor({ emotion: { current: 'sad' } }), 'sad', 'canonical current used');
+    assertEq(Art.emotionKeyFor({ emotion: { current: 'anxious and hopeful' } }), 'neutral',
+        'free-text current -> neutral');
+    assertEq(Art.emotionKeyFor({ emotion: {} }), 'neutral', 'no key -> neutral');
+    assertEq(Art.emotionKeyFor(null), 'neutral', 'no player -> neutral');
+});

@@ -22,6 +22,10 @@
 window.CharacterArt = (() => {
     'use strict';
 
+    // Canonical expression keys (fallback if InspectorHelpers isn't loaded yet).
+    const CANONICAL = ['neutral', 'happy', 'sad', 'angry', 'afraid', 'surprised',
+        'disgusted', 'aroused', 'affectionate', 'ashamed', 'envious', 'calm'];
+
     function _expr(props) { return (props && props.expressions) || {}; }
     function _slot(props, key) { return _expr(props)[key] || {}; }
 
@@ -68,6 +72,32 @@ window.CharacterArt = (() => {
         }
     }
 
+    /**
+     * The expression key that should drive a character's art.
+     *
+     * Preferred: ``emotion.expression`` — the server's canonical key derived from
+     * the affect map (the state events/decisions actually produced). Falls back
+     * to ``emotion.current`` only when it is itself a canonical key (the legacy
+     * free-text moods like "relieved but vigilant" are not), else 'neutral'.
+     */
+    function emotionKeyFor(player) {
+        if (!player) return 'neutral';
+        const e = player.emotion || {};
+        if (e.expression) return e.expression;
+        const cur = e.current;
+        const order = (window.InspectorHelpers && window.InspectorHelpers.EXPRESSION_ORDER) || CANONICAL;
+        return (cur && order.indexOf(cur) !== -1) ? cur : 'neutral';
+    }
+
+    /** Same as emotionKeyFor but keyed by character name. */
+    function emotionKeyForName(name) {
+        try {
+            return emotionKeyFor(window.worldState && worldState.players && worldState.players[name]);
+        } catch (e) {
+            return 'neutral';
+        }
+    }
+
     /** Graph node by id, tolerating either worldState accessor. */
     function _node(nodeId) {
         try {
@@ -91,7 +121,7 @@ window.CharacterArt = (() => {
         const node = _node(nodeId);
         const props = (node && node.properties) || {};
         const name = (node && node.name) || '';
-        const emotion = name ? emotionOf(name) : 'neutral';
+        const emotion = name ? emotionKeyForName(name) : 'neutral';
         return Object.assign({ name, emotion }, artFor(props, emotion));
     }
 
@@ -172,5 +202,6 @@ window.CharacterArt = (() => {
         return emotion ? `showing: ${String(emotion).replace(/_/g, ' ')}` : '';
     }
 
-    return { avatarFor, fullArtFor, artFor, artForNodeId, emotionOf, open, close };
+    return { avatarFor, fullArtFor, artFor, artForNodeId, emotionOf,
+             emotionKeyFor, emotionKeyForName, open, close };
 })();

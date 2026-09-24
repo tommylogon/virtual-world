@@ -60,6 +60,13 @@ expressions[<current emotion>].profile  ->  expressions.neutral.profile
 
 - **Graph node** (`static/js/graph/network-manager.js`, Show Images mode) now
   draws this current-emotion **profile**, not the static full-body `neutral`.
+  Which key counts as "current" is `player.emotion.expression` — the server's
+  canonical key derived from the **affect map** (`Player.dominant_expression()` ->
+  `engine.emotion.dominant_expression`, the strongest axis raised above its
+  baseline, else `neutral`), so the face follows the state events and decisions
+  produced rather than the legacy free-text `emotion.current`. The client
+  (`CharacterArt.emotionKeyFor`) prefers `expression`, falls back to a canonical
+  `current`, else `neutral`.
 - **People chips** (`static/js/agent/turn-scene-view.js`) show the profile
   thumbnail; clicking it — or choosing **Examine** — opens
   `CharacterArt.open()`, the big view: current **full body** if the character has
