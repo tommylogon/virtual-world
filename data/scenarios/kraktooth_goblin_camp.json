@@ -14093,7 +14093,8 @@
       "kind": "scope",
       "parent_id": null,
       "children": [
-        "deep_woods"
+        "deep_woods",
+        "deep_woods_2"
       ],
       "area_ids": [],
       "state": "unmade",
@@ -14267,7 +14268,8 @@
           "7,10": "sparse_forest",
           "6,10": "sparse_forest",
           "5,10": "sparse_forest",
-          "3,10": "sparse_forest"
+          "3,10": "sparse_forest",
+          "21,8": "sparse_forest"
         }
       },
       "placements": {},
@@ -14276,6 +14278,23 @@
         "opacity": 1.0,
         "visible": true
       }
+    },
+    "deep_woods_2": {
+      "id": "deep_woods_2",
+      "name": "deep woods",
+      "kind": "scope",
+      "parent_id": "world",
+      "children": [],
+      "area_ids": [],
+      "state": "unmade",
+      "grid": {
+        "w": 8,
+        "h": 8,
+        "cell_scale": 1.0
+      },
+      "mode": "town",
+      "layers": {},
+      "placements": {}
     }
   },
   "calendar_config": {
@@ -14323,21 +14342,51 @@
   },
   "forecast_override": null,
   "graph_background": {
-    "crop": {
-      "h": 1,
-      "w": 1,
-      "x": 0,
-      "y": 0
-    },
-    "image": "/static/images/backgrounds/ChatGPT_Image_Sep_20_2026_02_50_11_PM-1789922605242.png",
-    "locked": false,
-    "opacity": 0.8,
-    "rect": {
-      "height": 2408.6666666666665,
-      "width": 3613,
-      "x": -2036,
-      "y": -2024.8333333333333
-    },
-    "rotation": 0
+    "layers": [
+      {
+        "id": "layer-1",
+        "label": "",
+        "image": "/static/images/backgrounds/ChatGPT_Image_Sep_20_2026_02_50_11_PM-1789922605242.png",
+        "rect": {
+          "x": -2036,
+          "y": -1995.3333333333333,
+          "width": 3613,
+          "height": 2408.6666666666665
+        },
+        "rotation": 0,
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "w": 1,
+          "h": 1
+        },
+        "opacity": 1,
+        "locked": false,
+        "visible": true
+      },
+      {
+        "id": "bg-eahl1v8",
+        "label": "deep forest",
+        "image": "/static/images/backgrounds/deep_forest-1790288542838.png",
+        "rect": {
+          "x": -1975.6864406779662,
+          "y": -4778.610734463277,
+          "width": 3614,
+          "height": 2409.3333333333335
+        },
+        "rotation": 0,
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "w": 1,
+          "h": 1
+        },
+        "opacity": 1,
+        "locked": false,
+        "visible": true
+      }
+    ],
+    "positions": {},
+    "layoutLocked": false
   }
 }
