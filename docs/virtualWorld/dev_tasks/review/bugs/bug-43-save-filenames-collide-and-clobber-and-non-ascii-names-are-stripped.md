@@ -1,6 +1,6 @@
 ---
 type: bug
-status: todo
+status: review
 area: bugs
 priority: medium
 ---
@@ -49,13 +49,39 @@ Note: `bug-31` covers path *validation* (traversal). This is filename *generatio
 
 ## Acceptance
 
-- [ ] Saving two different states with the same name in the same second yields two
+- [x] Saving two different states with the same name in the same second yields two
       files; neither overwrites the other.
-- [ ] A save named with non-ASCII letters keeps those letters in the filename (or at
+- [x] A save named with non-ASCII letters keeps those letters in the filename (or at
       least does not become all underscores), and the save still loads.
-- [ ] Overwriting an existing slot via 💾 still replaces that same file in place.
-- [ ] Path traversal remains rejected (`_safe_save_path`); add cases for the new
+- [x] Overwriting an existing slot via 💾 still replaces that same file in place.
+- [x] Path traversal remains rejected (`_safe_save_path`); add cases for the new
       unicode/normalization path.
+
+## Resolution (2026-09-24)
+
+One shared `sanitize_filename(name, *, allow='', fallback='unnamed')` in
+`routes/helpers.py` replaces all six ad-hoc copies (`helpers._save_scenario`,
+`helpers._save_game`, `saveload` rename, `_safe_scenario_name`, `scenario/name`,
+`scenario/commit`). It now:
+
+- NFKC-normalises and keeps Unicode letters/digits (not just ASCII), so
+  `Draghál` / `Ærø kysten` survive instead of collapsing to underscores. The
+  task text said NFKD, but NFKD + an alnum-only filter peels the combining mark
+  and turns `á` into `a_`; NFKC composes it, which is what the second acceptance
+  criterion actually wants. Documented in the helper docstring.
+- Folds only characters unsafe on a filesystem, trims Windows-hostile trailing
+  dots/spaces, and escapes reserved stems (`CON`, `com1`, ...).
+- Keeps scenario names' extra `.()` allowance via `allow='.()'`.
+
+`unique_filename(dir, filename)` resolves same-second collisions to
+`..._2.json`, `..._3.json`. `_save_game` uses it for named saves; slot/autosave
+writes bypass it (the one intentional in-place overwrite). Rename uses it too,
+unless the new name resolves back to the current file.
+
+Note: only the *filename* is disambiguated on collision — the stored
+`_save_metadata.name` display label is untouched (convention: rename ids, not
+display names). Tests in `tests/test_saveload.py` (`TestSanitizeFilename`,
+`TestSaveFilenameCollisions`, `TestSafeSavePath`).
 
 ## Files
 

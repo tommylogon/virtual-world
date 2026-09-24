@@ -235,6 +235,7 @@ The graph is rendered using **vis-network** (vis.js) in the browser. The fronten
 |------|---------|
 | `network-manager.js` | vis.js setup, data loading, tooltips, legend, physics, filtering, overlays |
 | `relative-layout.js` | **Derive** node positions from relations (orbit, follow, levels, per-node controls) — see [Derived layout](#derived-layout-relative-layoutjs) |
+| `separation.js` | Short-range relaxation: push nearby unconnected nodes apart (items/characters stop overlapping), grid-bounded |
 | `context-menu.js` | Right-click context menus for nodes and edges |
 | `layout-engine.js` | Cardinal direction layout algorithm (map mode only) |
 | `tree-view.js` | World outline tree rendered in the left panel (Outline tab); click-to-focus camera |
@@ -346,6 +347,23 @@ and re-derived, not restored:
   it — measured, a large change to `springConstant`+`centralGravity` moved a settled layout by 2 px of
   ~5900. The follow pass is incremental (only moved parents, `FOLLOW_MS` 120, `FOLLOW_BUDGET` 500) and
   sleeps while physics is off.
+- **Short-range separation** (`graph/separation.js`, setting `graph_repel_enabled`) is what keeps a
+  crowded room readable without putting contents back in the solver: two nodes closer than
+  **Repel Distance** (`graph_repel_min`, default 55) push apart, a pair further than **Ignore Beyond**
+  (`graph_repel_max`, default 220) is ignored, and a pair joined by **any edge** is exempt — a container
+  and its contents (or an item and its carrier) are meant to touch. **Parent Pull** (`graph_repel_pull`,
+  default 0.12) is a restoring force back to a node's **own ring position** — never the parent's centre,
+  which would suck a crowded character/item onto the area it belongs to — applied only to nodes
+  separation actually displaced, so a crowded room tightens and rooms that are not crowded keep their
+  exact ring. It runs while `layoutPositions` derives a layout *and* on a follow tick that actually moved
+  a parent, folding the result back into the offsets so the next tick reproduces it. Live movement is
+  **smoothed, not snapped**: a displaced node carries a damped velocity toward its resolved spot, pumped
+  at frame rate while it is in flight, and is dropped from that easing once its speed and gap fall below
+  the settle floors — so it eases in and stops instead of teleporting or jittering forever (the vis
+  physics feel without rejoining the solver). A uniform grid keyed
+  by `max`-sized cells keeps it ~linear; areas and ways are anchors and never move, and a frozen node
+  keeps its place. The push target is `max(min, r1 + r2)`, where the radii grow with the name so long
+  labels get room.
 - **Dragging a room carries its contents exactly**; a dropped child keeps its place
   (`rememberDrop`/`frozenDropOps`). **Item Edge Length** scales the orbit; changing a physics setting
   calls `reseed()` so the arrangement re-derives.

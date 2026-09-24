@@ -1,0 +1,39 @@
+{
+  "name": "sign",
+  "description": "A weathered wooden sign on a blackened post. The board is split and rimed, its letters cut shallow and darkened with soot.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 4.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "sign",
+    "readable",
+    "wayfinding",
+    "wood",
+    "outdoor"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "success_message": "You lean in to read the sign. The carving is weathered shallow, but the letters are still there — it names the paths around where it stands."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

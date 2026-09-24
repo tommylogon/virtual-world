@@ -5,5 +5,9 @@
   "uses": -1,
   "weight": 0.3,
   "current_state": "normal",
-  "tags": ["root", "food", "forage"]
+  "tags": [
+    "root",
+    "food",
+    "forage"
+  ]
 }

@@ -8,8 +8,8 @@
  * @docs docs/virtualWorld/UI & Settings/Inspector Panels.md
  * Extracted from inspector.js for modularity.
  * Tabs: Inventory (paperdoll on top + gear below), Bio (personality, appearance,
- * stats/skills/traits, relationships, memories), Advanced (graph physics,
- * behaviors, timeline, save/export).
+ * stats/skills/traits, relationships, memories), Advanced (behaviors,
+ * timeline, save/export).
  */
 window.InspectorAgentView = (() => {
     const AV = {};
@@ -98,7 +98,7 @@ window.InspectorAgentView = (() => {
         // Bio tab (personality, appearance, stats/skills/traits, relationships, memories)
         html += AV._renderBioTab(agentName, player, charState, area, escName, isAuto, color);
 
-        // Advanced tab (graph physics, behaviors, timeline, save/export)
+        // Advanced tab (behaviors, timeline, save/export)
         html += AV._renderAdvancedTab(agentName, player, charState, escName, isAuto, characterNode);
 
         // The whole agent view is one big string template with inline onclick
@@ -1026,7 +1026,7 @@ window.InspectorAgentView = (() => {
     };
 
     /**
-     * Render the Advanced tab content (graph physics, behaviors, timeline, conversation memory, save/export, nudge, manual command)
+     * Render the Advanced tab content (behaviors, timeline, conversation memory, save/export, nudge, manual command)
      * @param {string} agentName - Character name
      * @param {object} player - Player data
      * @param {object} charState - Character state from events
@@ -1039,9 +1039,9 @@ window.InspectorAgentView = (() => {
         const showTab = (tabName) => _activeTab === tabName ? '' : 'display:none;';
         let html = `<div data-tab="Advanced" style="${showTab('Advanced')}">`;
 
-        if (characterNode) {
-            html += AV._deferredGravityControl(characterNode[0], characterNode[1].properties || {}, 'adv');
-        }
+        // NOTE: the graph-physics gravity control is NOT repeated here — it is
+        // rendered once in the header (see the main render). It was duplicated
+        // here historically; commit 66209430 only fixed the colliding IDs.
 
         // Behaviors
         if (player.simple_npc && Array.isArray(player.behaviors)) {

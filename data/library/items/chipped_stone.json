@@ -5,5 +5,10 @@
   "uses": -1,
   "weight": 0.5,
   "current_state": "normal",
-  "tags": ["junk", "stone", "debris", "forage"]
+  "tags": [
+    "junk",
+    "stone",
+    "debris",
+    "forage"
+  ]
 }

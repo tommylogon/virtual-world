@@ -486,3 +486,54 @@ test('attach() registers the follow hooks once', () => {
     assertTrue(!!handlers.stabilizationIterationsDone, 'settle hook');
     assertTrue(!!handlers.dragEnd, 'drag hook');
 });
+
+test('separation eases and settles instead of snapping', () => {
+    const previousConfig = globalThis.config;
+    const previousGraphManager = globalThis.graphManager;
+    const nodes = { area_a: { type: 'area' }, item_0: { type: 'item' }, item_1: { type: 'item' } };
+    const edges = [
+        { type: 'in', source: 'item_0', target: 'area_a' },
+        { type: 'in', source: 'item_1', target: 'area_a' },
+    ];
+    const positions = { area_a: { x: 0, y: 0 }, item_0: { x: 0, y: 0 }, item_1: { x: 8, y: 0 } };
+    globalThis.config = { graphRepelEnabled: true, graphRepelMin: 100, graphRepelMax: 300 };
+    globalThis.graphManager = {
+        _graphNodesObj: nodes,
+        _graphEdgesArr: edges,
+        _physicsEnabled: false,
+        network: {
+            body: { nodes: positions, data: { nodes: { update: () => {} } } },
+            moveNode: (id, x, y) => { positions[id] = { x, y }; },
+            getPositions: () => positions,
+        },
+    };
+    GraphRelativeLayout._offsets = null;
+    GraphRelativeLayout._sepVel = {};
+    try {
+        GraphRelativeLayout.apply();
+        // Pin them on top of each other and force a follow tick (as a drag would).
+        GraphRelativeLayout._offsets = { item_0: { dx: 0, dy: 0 }, item_1: { dx: 8, dy: 0 } };
+        positions.item_0 = { x: 0, y: 0 };
+        positions.item_1 = { x: 8, y: 0 };
+        GraphRelativeLayout._dirtyParents = new Set(['area_a']);
+        GraphRelativeLayout.follow();
+        const dist = () => Math.hypot(positions.item_0.x - positions.item_1.x, positions.item_0.y - positions.item_1.y);
+        const afterOne = dist();
+        assertTrue(afterOne > 8, `it moved (${afterOne})`);
+        assertTrue(afterOne < 100, `but eased, not snapped to the target (${afterOne})`);
+
+        let settled = false;
+        for (let i = 0; i < 500; i++) {
+            if (GraphRelativeLayout.follow() === 0) { settled = true; break; }
+        }
+        assertTrue(settled, 'the motion comes to rest');
+        assertTrue(dist() > 8, 'and rests separated');
+    } finally {
+        globalThis.config = previousConfig;
+        globalThis.graphManager = previousGraphManager;
+        GraphRelativeLayout._offsets = null;
+        GraphRelativeLayout._sepVel = {};
+        GraphRelativeLayout._dirtyParents = null;
+        GraphRelativeLayout._cancelPump();
+    }
+});

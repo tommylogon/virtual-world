@@ -11018,7 +11018,7 @@
           "w": 1,
           "h": 1
         },
-        "opacity": 0.5,
+        "opacity": 0.8,
         "locked": true,
         "visible": true
       },
@@ -11039,7 +11039,7 @@
           "w": 1,
           "h": 1
         },
-        "opacity": 0.45,
+        "opacity": 0.75,
         "locked": false,
         "visible": true
       }

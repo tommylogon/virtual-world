@@ -5,5 +5,10 @@
   "uses": -1,
   "weight": 0.1,
   "current_state": "normal",
-  "tags": ["berry", "fruit", "food", "forage"]
+  "tags": [
+    "berry",
+    "fruit",
+    "food",
+    "forage"
+  ]
 }

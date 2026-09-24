@@ -138,6 +138,19 @@ window.GraphRelativeLayout = {
     // Most children re-placed in one tick; the rest are queued for the next tick,
     // so a very large graph degrades gracefully instead of stalling a frame.
     FOLLOW_BUDGET: 500,
+    // A separation pass over more nodes than this waits for a calmer tick (the
+    // grid keeps it cheap, but a huge graph should still degrade, not stall).
+    SEPARATION_NODE_CAP: 2500,
+    // Separation is smoothed, not snapped: a displaced node carries a velocity
+    // toward its resolved spot, damped each step, so it eases in and — when both
+    // the gap and the speed fall below the settle floors — stops. This is the
+    // vis-physics feel (accelerate, damp, pause) without putting the node back
+    // in the global solver. STEP caps one frame so a pile never teleports.
+    SEPARATION_STIFFNESS: 0.18,
+    SEPARATION_DAMPING: 0.72,
+    SEPARATION_MAX_STEP: 40,
+    SEPARATION_SETTLE_SPEED: 0.35,
+    SEPARATION_SETTLE_GAP: 0.5,
 
     _edges() {
         const g = (typeof graphManager !== 'undefined' && graphManager) || {};
@@ -354,6 +367,21 @@ window.GraphRelativeLayout = {
             out[id] = this.orbitPosition(parentPos, index, count, node,
                                          Math.max(1, depthOf(id)), nodes[parent]);
         }
+
+        // Short-range separation (graph/separation.js): a node no edge joins is
+        // pushed off its neighbours, so a crowded room's contents and a nested
+        // container stop layering on top of one another. Areas and ways are the
+        // anchors and never move. Off unless the setting enables it.
+        if (window.GraphSeparation && window.GraphSeparation.enabled()) {
+            const spec = window.GraphSeparation.spec();
+            // Restore any displaced node to the spot the orbit gave it (its
+            // place on the ring), never to the parent's centre — otherwise a
+            // crowded character/item is sucked onto the area it belongs to.
+            spec.targets = {};
+            for (const id of Object.keys(out)) spec.targets[id] = { x: out[id].x, y: out[id].y };
+            const resolved = window.GraphSeparation.resolve(nodes, edges, out, spec);
+            for (const id of Object.keys(resolved)) out[id] = resolved[id];
+        }
         return out;
     },
 
@@ -504,6 +532,8 @@ window.GraphRelativeLayout = {
         this._lastParentPos = null;
         this._pendingParents = null;
         this._dragging = new Set();
+        this._sepVel = {};
+        this._cancelPump();
     },
 
     /** Live positions, hidden nodes included (`getPositions()` drops them). */
@@ -548,6 +578,9 @@ window.GraphRelativeLayout = {
         const children = this._childIndex(nodes, edges);
         const dragging = this._dragging || new Set();
         const physicsOn = g._physicsEnabled !== false;
+        // Separation in flight: keep ticking (even with physics off) until the
+        // eased motion settles, then let the timer sleep again.
+        const settling = !!(this._sepVel && Object.keys(this._sepVel).length);
 
         let work = this._pendingParents;
         let forced = false;
@@ -560,6 +593,8 @@ window.GraphRelativeLayout = {
                 forced = true;
             } else if (physicsOn) {
                 work = this._orderedParents(nodes, edges, children);
+            } else if (settling) {
+                work = [];
             } else {
                 this._sleep();
                 return 0;
@@ -610,8 +645,98 @@ window.GraphRelativeLayout = {
             if (exhausted) { deferred.push(parent); break; }
         }
         if (deferred.length) this._pendingParents = deferred;
+        // A parent that just moved shoved its contents into whatever was beside
+        // them; let those settle apart and fold the result into the offsets, so
+        // the next tick reproduces the separated arrangement instead of undoing
+        // it. Skipped while a budget backlog is still draining.
+        if (!this._pendingParents && (moved > 0 || forced || settling)
+                && window.GraphSeparation && window.GraphSeparation.enabled()) {
+            moved += this._separate(nodes, edges, network);
+        }
         this.lastFollowed = moved;
         return moved;
+    },
+
+    /**
+     * One live separation pass over the current node positions. Only anchored
+     * children are nudged (an orphan is left to physics). Each moves by a damped
+     * velocity toward where separation wants it, and its offset is rewritten so
+     * the follow pass keeps the eased position; when a node's speed and gap both
+     * fall below the settle floors it is dropped from the velocity map, so the
+     * motion comes to rest instead of jittering forever.
+     */
+    _separate(nodes, edges, network) {
+        const positions = this._positions(network);
+        const ids = Object.keys(positions);
+        if (ids.length < 2 || ids.length > this.SEPARATION_NODE_CAP) return 0;
+        const parents = this._parents(nodes, edges);
+        const spec = window.GraphSeparation.spec();
+        // The pull restores a displaced node to its leash position (parent +
+        // offset), not the parent's centre.
+        spec.targets = {};
+        for (const id of ids) {
+            const parent = parents[id];
+            const offset = parent ? this._offsets[id] : null;
+            const pp = parent ? positions[parent] : null;
+            if (pp && offset) spec.targets[id] = { x: pp.x + offset.dx, y: pp.y + offset.dy };
+        }
+        const resolved = window.GraphSeparation.resolve(nodes, edges, positions, spec);
+        if (!this._sepVel) this._sepVel = {};
+        const dragging = this._dragging || new Set();
+        let moved = 0;
+        for (const id of ids) {
+            if (dragging.has(id)) continue;
+            const parent = parents[id];
+            const parentPos = parent ? (resolved[parent] || positions[parent]) : null;
+            if (!parentPos || !this._offsets) continue;
+            const cur = positions[id];
+            const want = resolved[id] || cur;
+            const dx = want.x - cur.x;
+            const dy = want.y - cur.y;
+            const vel = this._sepVel[id];
+            let vx = (vel ? vel.x : 0) * this.SEPARATION_DAMPING + dx * this.SEPARATION_STIFFNESS;
+            let vy = (vel ? vel.y : 0) * this.SEPARATION_DAMPING + dy * this.SEPARATION_STIFFNESS;
+            const speed = Math.hypot(vx, vy);
+            const gap = Math.hypot(dx, dy);
+            if (speed < this.SEPARATION_SETTLE_SPEED && gap < this.SEPARATION_SETTLE_GAP) {
+                delete this._sepVel[id];
+                continue;
+            }
+            if (speed > this.SEPARATION_MAX_STEP) {
+                const scale = this.SEPARATION_MAX_STEP / speed;
+                vx *= scale;
+                vy *= scale;
+            }
+            this._sepVel[id] = { x: vx, y: vy };
+            const nx = cur.x + vx;
+            const ny = cur.y + vy;
+            this._offsets[id] = { dx: nx - parentPos.x, dy: ny - parentPos.y };
+            try {
+                network.moveNode(id, nx, ny);
+                moved++;
+            } catch (err) { /* ignore */ }
+        }
+        // Keep easing at frame rate while anything still has velocity, so the
+        // settle is smooth rather than a 120 ms stutter.
+        if (moved > 0 && typeof requestAnimationFrame === 'function') this._pump();
+        return moved;
+    },
+
+    /** Drive follow() on the next animation frame while separation is settling. */
+    _pump() {
+        if (this._pumpRaf || typeof requestAnimationFrame !== 'function') return;
+        this._pumpRaf = requestAnimationFrame(() => {
+            this._pumpRaf = null;
+            this.follow();
+        });
+    },
+
+    /** Stop the frame pump (nothing left to ease). */
+    _cancelPump() {
+        if (this._pumpRaf && typeof cancelAnimationFrame === 'function') {
+            cancelAnimationFrame(this._pumpRaf);
+        }
+        this._pumpRaf = null;
     },
 
     /** Parent -> [child ids] and the parent ids in depth order, both cached. */
@@ -652,6 +777,7 @@ window.GraphRelativeLayout = {
 
     /** Pause the follow timer until something wakes it (physics off and idle). */
     _sleep() {
+        this._cancelPump();
         if (this._followTimer && typeof clearInterval === 'function') {
             clearInterval(this._followTimer);
         }
@@ -690,6 +816,8 @@ window.GraphRelativeLayout = {
             const pos = positions[id];
             if (!parentPos || !pos) continue;
             this._offsets[id] = { dx: pos.x - parentPos.x, dy: pos.y - parentPos.y };
+            // Dropped here for real: stop easing it anywhere else.
+            if (this._sepVel) delete this._sepVel[id];
         }
     },
 
@@ -746,7 +874,12 @@ window.GraphRelativeLayout = {
             this._wake();
         });
         network.on('dragStart', (params) => {
-            for (const id of (params && params.nodes) || []) this._dragging.add(id);
+            for (const id of (params && params.nodes) || []) {
+                this._dragging.add(id);
+                // A dragged node follows the pointer directly; kill any
+                // separation velocity still easing it.
+                if (this._sepVel) delete this._sepVel[id];
+            }
             // Keep the children moving with the node while it is being dragged.
             this._wake();
         });

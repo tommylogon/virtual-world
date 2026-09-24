@@ -86,6 +86,18 @@ window.SettingsView = (() => {
         setVal('graph-item-edge-length', String(config.graphItemEdgeLength || 60));
         var gielv = document.getElementById('graph-item-edge-length-val');
         if (gielv) gielv.textContent = config.graphItemEdgeLength || 60;
+        setChecked('graph-repel-enabled', config.graphRepelEnabled !== false);
+        setVal('graph-repel-min', String(config.graphRepelMin || 55));
+        var grmv = document.getElementById('graph-repel-min-val');
+        if (grmv) grmv.textContent = config.graphRepelMin || 55;
+        setVal('graph-repel-max', String(config.graphRepelMax || 220));
+        var grxv = document.getElementById('graph-repel-max-val');
+        if (grxv) grxv.textContent = config.graphRepelMax || 220;
+        var grp = Number(config.graphRepelPull);
+        if (!Number.isFinite(grp)) grp = 0.12;
+        setVal('graph-repel-pull', String(grp));
+        var grpv = document.getElementById('graph-repel-pull-val');
+        if (grpv) grpv.textContent = grp.toFixed(2);
         setVal('graph-solver', config.graphSolver || 'forceAtlas2Based');
         setVal('graph-edge-width', String(config.graphEdgeWidth || 1));
         var gewv = document.getElementById('graph-edge-width-val');

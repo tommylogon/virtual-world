@@ -1,0 +1,40 @@
+{
+  "name": "weathered trail sign",
+  "description": "A crooked blackened-pine post where the thicket's paths fork. The board is split and rimed, its letters gouged with a knife and darkened with soot. Someone keeps this marker standing.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 4.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "sign",
+    "readable",
+    "wayfinding",
+    "wood",
+    "outdoor",
+    "frozen"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_examine",
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "success_message": "You scrape the frost off the board and read the gouged letters.\n\nICY ARCH — a low passage, to Snowbound Hollow. Duck your head.\nROCKY SLOPE — a cleft in the bank, to Frozen Hollow. A dead-end; the old well stands there.\nWILLOW GAP — through the curtain of branches, to Weeping Willow Hollow. Warm and sheltered. Mind the roots.\nFROSTED ARCHWAY — to Frozen Lake Clearing. The ice is thin near the reeds.\nICE BRIDGE — across the stream, to Frozen Stream Crossing. Then follow the bank down to the lake.\n\nBelow that, gouged deeper and half-scratched out: 'Valerious — not this way. Under the hill. The dark.'"
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

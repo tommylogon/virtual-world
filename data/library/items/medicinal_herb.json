@@ -5,5 +5,10 @@
   "uses": -1,
   "weight": 0.05,
   "current_state": "normal",
-  "tags": ["herb", "medicinal", "plant", "forage"]
+  "tags": [
+    "herb",
+    "medicinal",
+    "plant",
+    "forage"
+  ]
 }

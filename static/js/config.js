@@ -50,6 +50,18 @@ class ConfigManager {
         // on a parent-relative offset; 'levels' = vis hierarchical layout, where
         // the layout engine places every node by relation level (physics off).
         this.graphLayoutMode = await storage.getConfig('graph_layout_mode') || 'free';
+        // Node separation (graph/separation.js): nearby item/character nodes
+        // push apart unless an edge already joins them. `min` is the distance
+        // under which they repel, `max` the distance beyond which a pair is
+        // ignored (and the grid cell size, so it bounds the cost).
+        this.graphRepelEnabled = (await storage.getConfig('graph_repel_enabled')) !== 'false';
+        this.graphRepelMin = parseInt(await storage.getConfig('graph_repel_min')) || 55;
+        this.graphRepelMax = parseInt(await storage.getConfig('graph_repel_max')) || 220;
+        this.graphRepelStrength = parseFloat(await storage.getConfig('graph_repel_strength')) || 0.6;
+        // Restoring pull toward the parent for nodes separation displaced, so a
+        // crowded room's contents do not drift outward. 0 = no pull.
+        this.graphRepelPull = parseFloat(await storage.getConfig('graph_repel_pull'));
+        if (!Number.isFinite(this.graphRepelPull)) this.graphRepelPull = 0.12;
 
         // Ghost mode: when true, dead characters can still act as ghosts
         this.ghostMode = (await storage.getConfig('ghost_mode')) === 'true';
@@ -208,6 +220,11 @@ class ConfigManager {
         await storage.setConfig('graph_arrows', this.graphArrows ? 'true' : 'false');
         await storage.setConfig('graph_improved_layout', this.graphImprovedLayout ? 'true' : 'false');
         await storage.setConfig('graph_layout_mode', this.graphLayoutMode || 'free');
+        await storage.setConfig('graph_repel_enabled', this.graphRepelEnabled ? 'true' : 'false');
+        await storage.setConfig('graph_repel_min', String(this.graphRepelMin));
+        await storage.setConfig('graph_repel_max', String(this.graphRepelMax));
+        await storage.setConfig('graph_repel_strength', String(this.graphRepelStrength));
+        await storage.setConfig('graph_repel_pull', String(this.graphRepelPull));
 
         this._saveToCurrentProfile();
     }

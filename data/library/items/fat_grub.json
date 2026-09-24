@@ -5,5 +5,11 @@
   "uses": -1,
   "weight": 0.05,
   "current_state": "normal",
-  "tags": ["grub", "bait", "bug", "food", "forage"]
+  "tags": [
+    "grub",
+    "bait",
+    "bug",
+    "food",
+    "forage"
+  ]
 }
