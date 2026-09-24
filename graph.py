@@ -368,7 +368,9 @@ class WorldGraph:
             elif e.type == EDGE_CARRIED_BY:
                 migrated.append(Edge(source=e.source, target=e.target, type=EDGE_CARRYING, properties=e.properties))
             elif e.type == EDGE_CONTAINS:
-                migrated.append(Edge(source=e.source, target=e.target, type=EDGE_IN, properties=e.properties))
+                # Legacy `contains` was container -> contained; canonical `in`
+                # is the reverse (contained -> container). Swap the endpoints.
+                migrated.append(Edge(source=e.target, target=e.source, type=EDGE_IN, properties=e.properties))
             else:
                 migrated.append(e)
         self.edges = migrated
@@ -474,7 +476,48 @@ class WorldGraph:
         self.normalize_node_types()
         self.normalize_edges()
         self._normalize_edge_endpoints()
+        self.normalize_in_edge_directions()
         self._rebuild_indexes()
+
+    def normalize_in_edge_directions(self):
+        """Swap container -> contained ``in`` edges into contained -> container.
+
+        Canonical ``in`` points *from* the contained item *to* its container
+        (see ``EDGE_IN``). An item that sits directly in a room (``in``) or on a
+        character (``carrying``/``equipped``) is 'placed'; its contents are
+        reached through it and are not placed themselves. So an item -> item
+        ``in`` edge whose source is placed and whose target is not is stored
+        backwards and must be reversed.
+
+        This repairs saves written while ``contains`` was relabelled to ``in``
+        without swapping endpoints (bug-44) — those contents were invisible to
+        take/examine/search. :meth:`normalize_edges` reverses legacy ``contains``
+        edges directly; this catches the already-relabelled ones.
+        """
+        placed = set()
+        for e in self.edges:
+            if e.type not in (EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED):
+                continue
+            target = self.get_node(e.target)
+            if target is not None and target.type in ("area", "player", "character"):
+                placed.add(str(e.source).lower())
+
+        swapped = 0
+        for e in self.edges:
+            if e.type != EDGE_IN:
+                continue
+            source = self.get_node(e.source)
+            target = self.get_node(e.target)
+            if source is None or target is None:
+                continue
+            if source.type != "item" or target.type != "item":
+                continue
+            if str(e.source).lower() in placed and str(e.target).lower() not in placed:
+                e.source, e.target = e.target, e.source
+                swapped += 1
+        if swapped:
+            logger.info("Reversed %d container edge(s) to contained->container", swapped)
+        return swapped
 
     def _normalize_edge_endpoints(self):
         """Remap edge source/target ids to the canonical stored node ids.

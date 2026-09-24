@@ -89,3 +89,88 @@ def test_normalize_edge_type_maps_legacy_to_modern():
 def test_resolve_edge_types_includes_legacy():
     assert resolve_edge_types(EDGE_IN) == {EDGE_IN, "location", "contains"}
     assert resolve_edge_types(EDGE_CARRYING) == {EDGE_CARRYING, "carried_by", "location"}
+
+
+def _item_edges(graph):
+    return [(e.source, e.target) for e in graph.edges if e.type == EDGE_IN]
+
+
+def test_legacy_contains_edges_are_reversed():
+    """Legacy `contains` was container -> contained; `in` is the reverse."""
+    g = WorldGraph()
+    container = Node(id="item_backpack", type="item", name="Backpack")
+    book = Node(id="item_book", type="item", name="Book")
+    g.add_node(container)
+    g.add_node(book)
+    g.edges = [Edge(source=container.id, target=book.id, type="contains")]
+    g.normalize_edges()
+    assert (book.id, container.id) in _item_edges(g)
+    assert (container.id, book.id) not in _item_edges(g)
+
+
+def _load(nodes, edges):
+    g = WorldGraph()
+    g.load_from_dict({"nodes": nodes, "edges": edges})
+    return g
+
+
+def _node(nid, ntype, name):
+    return {nid: {"id": nid, "type": ntype, "name": name, "properties": {}}}
+
+
+def test_inverted_container_edges_are_reversed_on_load():
+    """bug-44: a placed container's contents were stored container -> child."""
+    nodes = {}
+    for d in (_node("area_room", "area", "Room"),
+              _node("item_backpack", "item", "Backpack"),
+              _node("item_book", "item", "Book")):
+        nodes.update(d)
+    g = _load(nodes, [
+        {"source": "item_backpack", "target": "area_room", "type": EDGE_IN, "properties": {}},
+        {"source": "item_backpack", "target": "item_book", "type": EDGE_IN, "properties": {}},
+    ])
+    assert ("item_book", "item_backpack") in _item_edges(g)
+    assert ("item_backpack", "item_book") not in _item_edges(g)
+
+
+def test_equipped_container_contents_are_reversed_on_load():
+    """A worn/held container (equipped) counts as placed, not just `in` an area."""
+    nodes = {}
+    for d in (_node("player_hero", "player", "Hero"),
+              _node("item_coat", "item", "Coat"),
+              _node("item_pen", "item", "Pen")):
+        nodes.update(d)
+    g = _load(nodes, [
+        {"source": "item_coat", "target": "player_hero", "type": EDGE_EQUIPPED, "properties": {}},
+        {"source": "item_coat", "target": "item_pen", "type": EDGE_IN, "properties": {}},
+    ])
+    assert ("item_pen", "item_coat") in _item_edges(g)
+
+
+def test_canonical_container_edges_are_left_alone():
+    nodes = {}
+    for d in (_node("area_room", "area", "Room"),
+              _node("item_backpack", "item", "Backpack"),
+              _node("item_book", "item", "Book")):
+        nodes.update(d)
+    g = _load(nodes, [
+        {"source": "item_backpack", "target": "area_room", "type": EDGE_IN, "properties": {}},
+        {"source": "item_book", "target": "item_backpack", "type": EDGE_IN, "properties": {}},
+    ])
+    assert ("item_book", "item_backpack") in _item_edges(g)
+    assert ("item_backpack", "item_book") not in _item_edges(g)
+
+
+def test_nested_container_edge_is_untouched():
+    """A container inside another container (neither placed directly) is valid."""
+    nodes = {}
+    for d in (_node("area_room", "area", "Room"),
+              _node("item_backpack", "item", "Backpack"),
+              _node("item_pouch", "item", "Pouch")):
+        nodes.update(d)
+    g = _load(nodes, [
+        {"source": "item_backpack", "target": "area_room", "type": EDGE_IN, "properties": {}},
+        {"source": "item_pouch", "target": "item_backpack", "type": EDGE_IN, "properties": {}},
+    ])
+    assert ("item_pouch", "item_backpack") in _item_edges(g)
+    assert ("item_backpack", "item_pouch") not in _item_edges(g)
