@@ -261,3 +261,40 @@ that no cost entry regains a `time` key.
 
 `docs/virtualWorld/dev_tasks/cancelled/task-14-action_costs_to_time.md` shows this
 was intuited before and never landed.
+
+## Progress — 2026-09-24 (root cause found and fixed)
+
+The "Energy resolves ~10 apart at T=1 vs T=15" residual was **not an Energy bug**.
+Measured over one camp day, *every* drive diverged, and drives — not Energy —
+were the signal:
+
+| vital (camp mean, 1440 min) | T=1 (before) | T=5 | T=15 |
+|---|---|---|---|
+| Energy | 0.0 | 52.0 | 52.1 |
+| Hunger | 56.1 | 31.6 | 31.6 |
+| Thirst | 78.1 | 34.7 | 34.5 |
+| Bladder | 100.0 | 81.1 | 81.2 |
+| Hygiene | 32.6 | 72.1 | 70.5 |
+| Sanity | 56.1 | 80.3 | 80.0 |
+
+T=5 and T=15 agreed; **T=1 alone was the outlier**. Root cause: `process_due`
+gives a *focused* character `remaining = minutes_in_turn - 1` minutes, and
+`advance_world` never offloaded anyone — so at a 1-minute tick everyone was
+"focused" and got **0 minutes of action per turn**. The whole camp only decayed;
+nobody ate, drank, relieved, washed or recreated. Energy=0 was the visible
+symptom of collapse, not the cause.
+
+Fixed (`2b608a8`): `advance_world` marks everyone `background` for the span and
+restores the modes afterwards. Two-day camp soak, T=1 vs T=15: Energy 73.9/73.1,
+Hunger 17.0/17.0, Thirst 23.8/25.4, Bladder 33.9/37.7, Hygiene 60.6/73.1 — worst
+gap 12.5, most under 5. Tests in `tests/test_tick_time_scaling.py`.
+
+Still open (three narrower, pre-existing failures in the same file, both in the
+direct-`tick_turn` path rather than the world-advance path):
+
+- `test_equal_game_time_gives_equal_decay` / `test_scaling_holds_at_a_coarser_step`
+  — a single isolated focused character still differs by ~1 unit at T=1 vs T=5,
+  where `remaining = T - 1` is nonzero. Narrower now.
+- `test_starvation_grace_is_counted_in_minutes` — the starvation grace's
+  per-minute accumulator drops sub-tick remainders, so at T=5 the grace records
+  0 minutes instead of 15. A separate, clean accumulator bug.
