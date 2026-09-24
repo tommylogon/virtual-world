@@ -17,10 +17,16 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pytest
 
+from area import Area
 from player import Player
 from vital_rates import change, tick_minutes
 
 AREA = "Blizzard Forest Clearing"
+#: A location with no food or drink, for tests that need a character to stay
+#: exactly as configured. In a real area the need ladder behaves sensibly and
+#: (for example) drinks to relieve a maxed Thirst, which would erase the state
+#: under test before the assertion.
+DRY_AREA = "Dry Store Room"
 
 
 def _world(minutes_per_tick=1):
@@ -31,12 +37,19 @@ def _world(minutes_per_tick=1):
     return world
 
 
-def _place(world, name):
+def _place(world, name, area=AREA):
     p = world.player_manager.players.get(name) or Player(name)
     if name not in world.player_manager.players:
         world.add_player(p)
-    world.set_player_area(name, AREA)
+    world.set_player_area(name, area)
     return p
+
+
+def _dry_area(world):
+    """Create the food/drink-free room used by the starvation tests."""
+    if DRY_AREA not in getattr(world, "areas", {}):
+        world.movement.add_area(Area(DRY_AREA, "Bare shelves and dust.", []))
+    return DRY_AREA
 
 
 def _empty_area(world, keep):
@@ -52,6 +65,13 @@ def _empty_area(world, keep):
 def _energy_lost(minutes_per_tick, total_minutes, name):
     world = _world(minutes_per_tick=minutes_per_tick)
     p = _place(world, name)
+    # The character is simulated, not focused. A *focused* character's own
+    # decision is assumed to have spent the turn's first minute, so at a
+    # 1-minute turn it has no deterministic minutes left (by design — pinned by
+    # `test_a_focused_character_owes_nothing_at_a_one_minute_turn`). These tests
+    # feed no decisions, so a focused fixture would starve the deterministic
+    # flow at T=1 and measure that design rule instead of decay scaling.
+    p.simulation_mode = "background"
     p.vitals["Energy"] = 100
     _empty_area(world, p)
     for _ in range(int(round(total_minutes / minutes_per_tick))):
@@ -153,7 +173,7 @@ def test_starvation_grace_is_counted_in_minutes():
     """The grace is a wall-clock reprieve: 5-minute ticks must consume it 5x
     faster, or a 1-hour thirst grace becomes 15 hours."""
     world = _world(minutes_per_tick=5)
-    p = _place(world, "Parched")
+    p = _place(world, "Parched", area=_dry_area(world))
     p.vitals["Thirst"] = 100
     _empty_area(world, p)
     for _ in range(3):
@@ -164,7 +184,7 @@ def test_starvation_grace_is_counted_in_minutes():
 def test_starvation_damage_is_per_minute():
     """Past the grace, a 5-minute tick deals 5 minutes of HP loss."""
     world = _world(minutes_per_tick=5)
-    p = _place(world, "Starving")
+    p = _place(world, "Starving", area=_dry_area(world))
     p.vitals["Thirst"] = 100
     p.vitals["HP"] = 100
     # Skip the 60-minute grace, then take one 5-minute tick of damage.
