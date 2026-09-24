@@ -1,5 +1,5 @@
 {
-  "current_area": "Blizzard Forest Clearing",
+  "current_area": "Frozen Thicket",
   "players_in_area": [],
   "area_presence": {},
   "players": {
@@ -100,6 +100,7 @@
       "flags": {},
       "hidden": false,
       "soak": null,
+      "manifested": false,
       "known": [],
       "crafting_known": [],
       "discovered_exits": [],
@@ -244,6 +245,7 @@
       "emotion": {
         "current": "relieved but vigilant",
         "intensity": 0.5,
+        "expression": "neutral",
         "description": "Kaelen Voss is quite relieved but vigilant."
       },
       "emotions": {
@@ -284,7 +286,7 @@
         "satisfied": 40.0,
         "surprised": 15.0
       },
-      "emotions_description": "You feel a faint stirring of uneasy.",
+      "emotions_description": "A faint unease prickles at you.",
       "relationships": {},
       "activity": null,
       "memories": [
@@ -426,6 +428,7 @@
       "flags": {},
       "hidden": false,
       "soak": null,
+      "manifested": false,
       "known": [],
       "crafting_known": [],
       "discovered_exits": [],
@@ -569,6 +572,7 @@
       "emotion": {
         "current": "anxious and hopeful",
         "intensity": 0.5,
+        "expression": "neutral",
         "description": "Lyrie is quite anxious and hopeful."
       },
       "emotions": {
@@ -609,7 +613,7 @@
         "satisfied": 40.0,
         "surprised": 15.0
       },
-      "emotions_description": "You feel a faint stirring of uneasy.",
+      "emotions_description": "A faint unease prickles at you.",
       "relationships": {},
       "activity": null,
       "memories": [
@@ -741,7 +745,7 @@
       "patrol_route": [],
       "patrol_index": 0,
       "feels_like": 18,
-      "current_carry_weight": 1.4,
+      "current_carry_weight": 1.4000000000000001,
       "max_carry_capacity": 100.0,
       "at_way_id": null,
       "spatial_position": null
@@ -828,6 +832,7 @@
       "flags": {},
       "hidden": false,
       "soak": null,
+      "manifested": false,
       "known": [],
       "crafting_known": [],
       "discovered_exits": [],
@@ -959,6 +964,7 @@
       "emotion": {
         "current": "neutral",
         "intensity": 0,
+        "expression": "neutral",
         "description": ""
       },
       "emotions": {
@@ -999,7 +1005,7 @@
         "satisfied": 40.0,
         "surprised": 15.0
       },
-      "emotions_description": "A nervous dread you can't quite name lingers.",
+      "emotions_description": "You feel a small, persistent loneliness. Also, a nervous dread you can't quite name lingers.",
       "relationships": {},
       "activity": null,
       "memories": [],
@@ -1411,7 +1417,7 @@
       "spatial_position": null
     }
   },
-  "active_player": "Kaelen Voss",
+  "active_player": "Lyrie",
   "game_time": "08:00:00",
   "time_ticks": 0,
   "time_per_tick_minutes": 5,
@@ -1597,11 +1603,11 @@
             "exterior"
           ],
           "central_gravity_enabled": false,
-          "x": 592,
-          "y": -739
+          "x": 478.1,
+          "y": -599.9
         },
         "created": 1784462059.071219,
-        "updated": 1790166149.8094416
+        "updated": 1790261734.1316006
       },
       "area_frozen_stream_crossing": {
         "id": "area_frozen_stream_crossing",
@@ -1649,11 +1655,11 @@
             "exterior"
           ],
           "central_gravity_enabled": false,
-          "x": 1060,
-          "y": 62
+          "x": 867.8,
+          "y": 12.6
         },
         "created": 1784462524.2982874,
-        "updated": 1790166149.809458
+        "updated": 1790261589.1677783
       },
       "area_hidden_panic_room": {
         "id": "area_hidden_panic_room",
@@ -4570,10 +4576,50 @@
         "name": "Kaelen Voss",
         "properties": {
           "x": -954,
-          "y": -47
+          "y": -47,
+          "image": "/static/images/nodes/player_Kaelen_Voss-1790256977027.png",
+          "expressions": {
+            "neutral": {
+              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-neutral-1790257193421.png"
+            },
+            "happy": {
+              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-happy-1790257193814.png"
+            },
+            "sad": {
+              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-sad-1790257194232.png"
+            },
+            "angry": {
+              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-angry-1790257194711.png"
+            },
+            "afraid": {
+              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-afraid-1790257195365.png"
+            },
+            "surprised": {
+              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-surprised-1790257196164.png"
+            },
+            "disgusted": {
+              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-disgusted-1790257196758.png"
+            },
+            "aroused": {
+              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-aroused-1790257197324.png"
+            },
+            "affectionate": {
+              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-affectionate-1790257197922.png"
+            },
+            "ashamed": {
+              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-ashamed-1790257198801.png"
+            },
+            "envious": {
+              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-envious-1790257199389.png"
+            },
+            "calm": {
+              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-calm-1790257200031.png"
+            }
+          },
+          "profile_image": "/static/images/nodes/player_Kaelen_Voss-profile-neutral-1790257193421.png"
         },
         "created": 1784015354.4561856,
-        "updated": 1790166149.8112257
+        "updated": 1790257200.0437033
       },
       "player_Lyrie": {
         "id": "player_Lyrie",
@@ -4581,10 +4627,50 @@
         "name": "Lyrie",
         "properties": {
           "x": -69,
-          "y": 608
+          "y": 608,
+          "image": "/static/images/nodes/player_Lyrie-1790256849285.png",
+          "expressions": {
+            "neutral": {
+              "profile": "/static/images/nodes/player_Lyrie-profile-neutral-1790257215628.png"
+            },
+            "happy": {
+              "profile": "/static/images/nodes/player_Lyrie-profile-happy-1790257216015.png"
+            },
+            "sad": {
+              "profile": "/static/images/nodes/player_Lyrie-profile-sad-1790257216397.png"
+            },
+            "angry": {
+              "profile": "/static/images/nodes/player_Lyrie-profile-angry-1790257216827.png"
+            },
+            "afraid": {
+              "profile": "/static/images/nodes/player_Lyrie-profile-afraid-1790257217623.png"
+            },
+            "surprised": {
+              "profile": "/static/images/nodes/player_Lyrie-profile-surprised-1790257218431.png"
+            },
+            "disgusted": {
+              "profile": "/static/images/nodes/player_Lyrie-profile-disgusted-1790257218920.png"
+            },
+            "aroused": {
+              "profile": "/static/images/nodes/player_Lyrie-profile-aroused-1790257219633.png"
+            },
+            "affectionate": {
+              "profile": "/static/images/nodes/player_Lyrie-profile-affectionate-1790257229794.png"
+            },
+            "ashamed": {
+              "profile": "/static/images/nodes/player_Lyrie-profile-ashamed-1790257232247.png"
+            },
+            "envious": {
+              "profile": "/static/images/nodes/player_Lyrie-profile-envious-1790257238234.png"
+            },
+            "calm": {
+              "profile": "/static/images/nodes/player_Lyrie-profile-calm-1790257246480.png"
+            }
+          },
+          "profile_image": "/static/images/nodes/player_Lyrie-profile-neutral-1790257215628.png"
         },
         "created": 1784461990.64985,
-        "updated": 1790166149.811252
+        "updated": 1790257246.4838052
       },
       "player_rat": {
         "id": "player_rat",
@@ -6763,11 +6849,12 @@
             "icy",
             "passage"
           ],
-          "x": 691,
-          "y": -156
+          "x": 769.7,
+          "y": -209.5,
+          "central_gravity_enabled": false
         },
         "created": 1785094334.8922255,
-        "updated": 1790166149.8113406
+        "updated": 1790261597.0072873
       },
       "way_icy_arch": {
         "id": "way_icy_arch",
@@ -6934,11 +7021,12 @@
             "ice",
             "gap"
           ],
-          "x": 441,
-          "y": -501
+          "x": 724.9,
+          "y": -482.4,
+          "central_gravity_enabled": false
         },
         "created": 1785347146.7596085,
-        "updated": 1790166149.8114095
+        "updated": 1790261708.1470485
       },
       "way_swinging_door": {
         "id": "way_swinging_door",
@@ -6977,11 +7065,12 @@
             "natural",
             "passage"
           ],
-          "x": 894,
-          "y": 441
+          "x": 974,
+          "y": 194.5,
+          "central_gravity_enabled": false
         },
         "created": 1785311139.2580452,
-        "updated": 1790166149.8114252
+        "updated": 1790261652.637742
       },
       "item_bush of berries_1788218658044_568": {
         "id": "item_bush of berries_1788218658044_568",
@@ -7387,6 +7476,91 @@
         },
         "created": 1788367045.9756746,
         "updated": 1788367046.0802393
+      },
+      "item_weathered_trail_sign_rkty": {
+        "id": "item_weathered_trail_sign_rkty",
+        "type": "item",
+        "name": "Weathered Trail Sign",
+        "properties": {
+          "description": "A crooked post of blackened pinewood, planted where the thicket's paths fork. Its board is split and rimed with frost, the letters gouged deep with a knife and darkened with soot so they might be read through snow-glare. The carver's hand was steady once; the lower lines waver, as though written in haste or cold.\n\nwest  - the valarius mansion\nnorth - lake\nsouth - weeping willows hollow",
+          "read_text": "A rough board of blackened pine, its letters gouged deep and darkened with soot:\n\n  ↑ ROCKY SLOPE — FROZEN HOLLOW\n     \"dead-end. old well. do not linger.\"\n\n  ↑ WILLOW GAP — WEEPING WILLOW HOLLOW\n     \"warm. sheltered. mind the roots.\"\n\n  ↑ ICY ARCH — SNOWBOUND HOLLOW\n     \"low passage. duck your head.\"\n\n  ↗ FROSTED ARCHWAY — FROZEN LAKE CLEARING\n     \"ice is thin near the reeds.\"\n\n  → ICE BRIDGE — FROZEN STREAM CROSSING\n     \"then the stream bank to the lake.\"\n\n  ← [scratched out] — THE HOUSE\n     \"the magistrate's keep. north, past the clearing.\"\n     beneath it, in a hurried hand: \"ask at the house. ask about Valerious.\"",
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "read"
+          ],
+          "tags": [
+            "sign",
+            "readable",
+            "wayfinding",
+            "outdoor",
+            "frozen",
+            "wooden"
+          ],
+          "weight": 12
+        },
+        "created": 1790261488.55401,
+        "updated": 1790262172.311336
+      },
+      "way_frozen_path_6tug": {
+        "id": "way_frozen_path_6tug",
+        "type": "way",
+        "name": "Frozen Path",
+        "properties": {
+          "description": "A narrow footpath beaten through the drifted snow, its surface glazed to slick ice where boots have packed it down. Rime-crusted willows lean over the trail, and the wind scours it clear in long, whistling gusts. It runs from the outhouse toward the shore of the frozen lake.",
+          "current_state": "normal",
+          "tags": [
+            "exterior"
+          ]
+        },
+        "created": 1790261838.3188646,
+        "updated": 1790261838.3188648
+      },
+      "trigger_1790262184871_3trb": {
+        "id": "trigger_1790262184871_3trb",
+        "type": "logic_trigger",
+        "name": "on_examine → message",
+        "properties": {
+          "trigger_type": "on_examine",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "Frost has crept into the gouged letters, but the soot still holds them dark against the pale wood. The carver's knife wandered on the lower lines — as if the hand that wrote them was shaking, or hurrying out of the cold."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1790262184.8850193,
+        "updated": 1790262184.88502
+      },
+      "trigger_1790262184872_x4mj": {
+        "id": "trigger_1790262184872_x4mj",
+        "type": "logic_trigger",
+        "name": "on_read → message",
+        "properties": {
+          "trigger_type": "on_read",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You brush the rime from the board and read the soot-dark letters:\n\n  WEST  —  the Valarius mansion\n  NORTH —  the lake\n  SOUTH —  (a line gouged deep, then scratched out)\n\nBeneath, in a smaller, wavering hand: 'South is no road. South is a mouth. Do not follow the lanterns.'"
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1790262184.8851607,
+        "updated": 1790262184.8851612
       }
     },
     "edges": [
@@ -9560,7 +9734,7 @@
         "target": "way_frosted_archway",
         "type": "connection",
         "properties": {
-          "cardinal": "north",
+          "cardinal": "northwest",
           "direction": "willow arch",
           "visible_in_direction": "Through the gap, you see a tangle of rime-coated branches and pale blue shadows, the snow deepening among the trees"
         }
@@ -9578,7 +9752,7 @@
         "target": "way_frosted_archway",
         "type": "connection",
         "properties": {
-          "cardinal": "south",
+          "cardinal": "southeast",
           "direction": "willow arch",
           "visible_in_direction": "Looking back through the arch, the frozen lake stretches white and vast under the gray sky, the wind whipping snow across the ice"
         }
@@ -9596,7 +9770,7 @@
         "target": "way_icy_arch",
         "type": "connection",
         "properties": {
-          "cardinal": "south",
+          "cardinal": "northeast",
           "direction": "icy arch",
           "visible_in_direction": "Through the arch, the Frozen Thicket glimmers with pale blue light, the branches heavy with rime."
         }
@@ -9614,7 +9788,7 @@
         "target": "way_icy_arch",
         "type": "connection",
         "properties": {
-          "cardinal": "north",
+          "cardinal": "southwest",
           "direction": "icy arch",
           "visible_in_direction": "ahead the Snowbound Hollow appears as a dim, sheltered hollow beneath a lattice of icy branches."
         }
@@ -9740,7 +9914,7 @@
         "target": "way_willow_gap",
         "type": "connection",
         "properties": {
-          "cardinal": "east",
+          "cardinal": "northwest",
           "direction": "willow gap",
           "visible_in_direction": "Through the gap, a dense tangle of frozen trees coated in rime, pale blue light filtering through."
         }
@@ -9758,7 +9932,7 @@
         "target": "way_willow_gap",
         "type": "connection",
         "properties": {
-          "cardinal": "west",
+          "cardinal": "southeast",
           "direction": "willow gap",
           "visible_in_direction": "A warm glow emanates from a sheltered hollow under a great weeping willow, dry leaves covering the ground."
         }
@@ -9776,7 +9950,7 @@
         "target": "way_root_tunnel",
         "type": "connection",
         "properties": {
-          "cardinal": "south",
+          "cardinal": "northwest",
           "direction": "root tunnel",
           "visible_in_direction": "Through the gap, you glimpse a shallow depression where pale light filters through icy branches, and a faint frost coats the pine-needle floor. The muffled sound of wind suggests the storm is just beyond."
         }
@@ -9794,7 +9968,7 @@
         "target": "way_root_tunnel",
         "type": "connection",
         "properties": {
-          "cardinal": "north",
+          "cardinal": "southeast",
           "direction": "root tunnel",
           "visible_in_direction": "Looking back through the low opening, you see a warm, dry hollow sheltered by the willow's roots, where fallen leaves lie undisturbed and the air is still and earthy."
         }
@@ -10410,7 +10584,8 @@
         "target": "way_ice_bridge",
         "type": "connection",
         "properties": {
-          "direction": "ice bridge"
+          "direction": "ice bridge",
+          "cardinal": "south"
         }
       },
       {
@@ -10426,7 +10601,8 @@
         "target": "way_ice_bridge",
         "type": "connection",
         "properties": {
-          "direction": "ice bridge"
+          "direction": "ice bridge",
+          "cardinal": "north"
         }
       },
       {
@@ -10655,8 +10831,20 @@
         "properties": {}
       },
       {
+        "source": "player_rat",
+        "target": "area_kitchen",
+        "type": "in",
+        "properties": {}
+      },
+      {
         "source": "player_Kaelen_Voss",
         "target": "area_blizzard_forest_clearing",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_weathered_trail_sign_rkty",
+        "target": "area_frozen_thicket",
         "type": "in",
         "properties": {}
       },
@@ -10667,10 +10855,80 @@
         "properties": {}
       },
       {
-        "source": "player_rat",
-        "target": "area_kitchen",
-        "type": "in",
-        "properties": {}
+        "source": "area_outhouse",
+        "target": "way_frozen_path_6tug",
+        "type": "connection",
+        "properties": {
+          "direction": "east",
+          "visible_in_direction": ""
+        }
+      },
+      {
+        "source": "way_frozen_path_6tug",
+        "target": "area_frozen_lake_clearing",
+        "type": "connection",
+        "properties": {
+          "direction": "west"
+        }
+      },
+      {
+        "source": "area_frozen_lake_clearing",
+        "target": "way_frozen_path_6tug",
+        "type": "connection",
+        "properties": {
+          "direction": "west",
+          "visible_in_direction": ""
+        }
+      },
+      {
+        "source": "way_frozen_path_6tug",
+        "target": "area_outhouse",
+        "type": "connection",
+        "properties": {
+          "direction": "east"
+        }
+      },
+      {
+        "source": "item_weathered_trail_sign_rkty",
+        "target": "trigger_1790262184871_3trb",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "Frost has crept into the gouged letters, but the soot still holds them dark against the pale wood. The carver's knife wandered on the lower lines — as if the hand that wrote them was shaking, or hurrying out of the cold."
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "item_weathered_trail_sign_rkty",
+        "target": "trigger_1790262184872_x4mj",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_read",
+          "target_name": "",
+          "target_state": "",
+          "conditions": [],
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You brush the rime from the board and read the soot-dark letters:\n\n  WEST  —  the Valarius mansion\n  NORTH —  the lake\n  SOUTH —  (a line gouged deep, then scratched out)\n\nBeneath, in a smaller, wavering hand: 'South is no road. South is a mouth. Do not follow the lanterns.'"
+              }
+            }
+          ],
+          "success_message": "",
+          "fail_message": ""
+        }
       }
     ]
   },
@@ -10691,6 +10949,7 @@
       "title": "The Valerious Case"
     }
   ],
+  "world_scopes": {},
   "calendar_config": {
     "minutes_per_day": 1440,
     "days_per_week": 7,
