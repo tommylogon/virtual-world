@@ -8,7 +8,15 @@ priority: high
 # task-439: Canonical area identity in the save and in area lookups
 
 **Filed:** 2026-09-21
-**Blocks:** task-438 (NL editor region decomposition), task-397 (world scopes), task-401 (chunk persistence)
+**Blocks:** task-401 (chunk persistence — stable area ids, id-keyed `current_area`)
+**Correction (2026-09-24):** this task no longer blocks **task-397**. The scope
+layer shipped keying on node id / `world_scope_id` (`engine/world_scopes.py`,
+`virtual_world_engine.py:138`) without requiring id-keyed saves, so 397 is
+partial-and-unblocked. It also no longer blocks **task-438**, which was
+cancelled in favour of the WorldPainter set (495/496/499/500); task-496's
+compiler is expected to own ids. **task-401 is the real remaining dependent** —
+the save layer is still display-name-keyed (`engine/serialization.py` writes
+`rooms_serialized[node.name]`), and 401 needs `current_area` as an id.
 **Related:** task-407 (graph edge indexing + case normalization), task-393 (validator triage), task-222 (serialize exits graph-only), `engine/serialization.py`, `docs/virtualWorld/World Building/Rooms & Areas.md`
 
 ## Goal

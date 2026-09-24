@@ -226,3 +226,20 @@ behaviour auditable.
   off), reflection cap, goal-planner selection, deferral, symmetric
   relationships, schedule serialization.
 - A multi-day soak report showing distinct activities per character.
+
+## Dependency reality (2026-09-24)
+
+- **`Depends on: task-399` is satisfied** (background runner + promotion seam,
+  `engine/background_simulation.py`, `engine/promotion.py`); `task-408` is only
+  partly done (consolidation + folder compiler landed; dedupe/`high_metabolism`
+  open).
+- **Most of this task already shipped**: the schedule model/planner
+  (`engine/schedule.py`), schedule pursuit
+  (`engine/background_simulation.py:838-868 _pursue_schedule`) and the coarse
+  social pass (`engine/background_social.py:717 run_social_pass`) are live.
+  Section 4 ("coarse meetings") was amended and completed by task-417/task-423.
+- **Only the capped daily reflection LLM call (≤1/char/day) is genuinely
+  missing** — no reflection code exists in `engine/`.
+- The plan's action-budget arithmetic is superseded by the timeframe-and-flow
+  model (`docs/virtualWorld/Simulation Model.md`); options now collapse to
+  "background characters use bundled tasks authored like crafting recipes".

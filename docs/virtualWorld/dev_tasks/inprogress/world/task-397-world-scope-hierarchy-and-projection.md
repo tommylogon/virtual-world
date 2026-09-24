@@ -144,3 +144,43 @@ Still open in this task:
   unmade-scope `Generate` affordance (step 5, depends on task-398).
 - `task-398` recipe/generation flow over `world_scopes`.
 
+## Dependency reality (2026-09-24)
+
+- **Not blocked by task-439.** The scope layer keys on node id / `world_scope_id`,
+  so the "id-keyed saves" work in task-439 was not required to land this. The
+  stale `439 → 397` block edge has been removed from task-439.
+- **This task satisfies** the `397` dependency of task-398, task-400, task-401,
+  task-402, task-411, task-495, task-496 and task-500.
+- Remaining work here is the book/search UI (step 4), the `Generate` affordance
+  (step 5), and the projection's scope-keyed fidelity handoff to task-500.
+
+## Progress — 2026-09-24 (scope-filtered graph view)
+
+The step-3 projection now has a consumer, which is also the fix for the
+"densely painted world freezes the graph" failure:
+
+- **`engine/world_scopes.project_subgraph(manifest, graph, players, scope_id,
+  include_items=True)`** — a vis-loadable `{nodes, edges}` slice in the same
+  shape as `WorldGraph.to_dict`. Membership is recursive: every area in the
+  scope and its descendants, a `way` with **both** endpoints inside, a
+  `character`/`player` standing in an included area, and (when requested) an
+  `item` attached to one. Only edges with both endpoints included are emitted,
+  so nothing dangles. Extracted `way_endpoints` so `boundary_ways` and this
+  share one endpoint resolver.
+- **`GET /api/world/scopes/<id>/subgraph?include_items=`** returns that slice
+  plus the scope summary; **`GET /api/world/scopes?flat=1`** returns every scope
+  depth-first with a `depth` field (`flat_scopes`, cycle-safe) for a picker.
+- **Graph-view scope picker** (`#graph-scope-filter` in the toolbar): choosing a
+  scope makes `GraphNetwork.loadGraphData` fetch the subgraph instead of
+  `/api/graph/*`, so the browser never receives nodes outside the scope. The
+  selection is part of the reload signature; a stale scope (e.g. after loading
+  another world) falls back to the whole world and the picker is rebuilt on
+  load. The empty selection is the unchanged whole-world path.
+- Tests: `tests/test_world_scopes.py` +4 (subgraph membership, recursion without
+  dangling edges, `include_items`, flat depth order) plus route assertions for
+  `/subgraph` and `?flat=1`.
+
+Still open: the breadcrumb/tree *panel* (this ships a flat picker), the
+unmade-scope `Generate` affordance (task-398), and the projection's scope-keyed
+fidelity handoff to task-500.
+

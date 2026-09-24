@@ -108,3 +108,17 @@ resolves/defers the human turn.
   expected number of times; attended plan continuation with no LLM call; human
   timeout resolves.
 - Perf: a multi-thousand-tick `advance` runs in seconds with no browser.
+
+## Dependency reality (2026-09-24)
+
+- **`task-399` is satisfied**; **`task-409` is mostly shipped** (schedule pursuit
+  + coarse social), so the deterministic plan layer this task consumes exists.
+  **`task-411` is the real unmet dependency** — there is no attended-set
+  selector / fidelity tier yet.
+- **The server-side N-minute advance already exists under other task ids**:
+  `engine/timeskip.py:82 advance_world` loops `tick_turn`, the route chunks long
+  spans (`routes/timeskip_ops.py`), and `task-481`'s soak orders give the
+  non-blocking-human behaviour when another attended human is present. What is
+  missing here is the named `POST /api/world/advance {ticks:N}` transport
+  (only `/api/world/timeskip` and `/api/world/soak` are registered) and
+  attended-plan continuation across the batch.

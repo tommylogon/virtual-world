@@ -78,3 +78,20 @@ either it adopts the same convention or the cleanup match becomes prefix-based.
 - Re-filling way orientation for existing scenarios (task-395 decided on-demand
   remediation is right, and the camp data is already clean).
 - Authoring orientation for the mansion/Pines areas (that is task-324's area pass).
+
+## Code check (2026-09-24) — still open, partially remediated
+
+The exact minted template is still written by the offline generators:
+
+- `tools/build_scenario.py:93-94`, `tools/assemble_scenario.py:253`,
+  `tools/sync_scenario_to_library.py:147` — `"You pass through {name}."`
+- `tools/fix_scenario_authoring.py:78-79` — the near-variant
+  `"You pass through the {noun}."`
+- `tools/generate_scenario.py:212` now writes a *different* template
+  (`"You pass from {a} toward {b}."`), which the exact-match cleanup never
+  removes — so the task's "reconcile the near-variant" note is now two variants.
+
+The cleanup half already shipped (`clear_way_fix_fields`,
+`routes/graph_ops.py:973-1004`; `fix_way_orientation` removed), and no generator
+test asserts "zero cleanable fields". This is a prerequisite for clean task-398
+generation output.
