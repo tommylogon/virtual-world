@@ -271,11 +271,17 @@ class TickManager:
                 # sleeping: falls through to normal vitals decay; the activity
                 # system wakes at full Energy (regen applied below)
 
-            from engine.traits import TraitSystem
+            from engine.traits import TraitSystem, MEMORY_DECAY_PER_TICK
             # task-309: undead-ghost NPCs skip vitals processing entirely —
             # they don't hunger, tire, or freeze (same handling as slashers).
             if TraitSystem.has_effect(p, "is_slasher") or self.gs.is_undead_ghost(pname):
                 continue
+
+            # task-403: trait-driven memory decay. Inert without a
+            # memory_decay_per_tick trait, so the default is unchanged.
+            if TraitSystem.get_first_effect(p, MEMORY_DECAY_PER_TICK):
+                from engine.agent_memory import AgentMind
+                AgentMind(p, self.graph, game_state=self.gs).apply_decay()
 
             prev_vitals = p.vitals.copy()
             trait_multipliers = TraitSystem.get_vital_multipliers(p)

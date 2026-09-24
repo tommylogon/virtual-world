@@ -71,6 +71,18 @@ NO_ENTERTAINMENT_DECAY = "no_entertainment_decay"
 #: minimum noise level required to wake (1=whisper, 5=scream)
 WAKE_THRESHOLD = "wake_threshold"
 
+#: task-403: multiplier on a memory's recall score (default 1.0)
+MEMORY_RECALL_BOOST = "memory_recall_boost"
+
+#: task-403: salience a memory loses per tick (absent/0 = no decay)
+MEMORY_DECAY_PER_TICK = "memory_decay_per_tick"
+
+#: task-403: fraction (0.0-1.0) subtracted from the decay rate
+MEMORY_DECAY_REDUCTION = "memory_decay_reduction"
+
+#: task-403: highest importance that may still surface in recall (None = no cap)
+MAX_IMPORTANCE_CAP = "max_importance_cap"
+
 # ──────────────────────────────────────────────────────────────
 # Trait schema v2 effect keys (Phase 2)
 # ──────────────────────────────────────────────────────────────
@@ -337,6 +349,22 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "params": None,
         "effects": {WAKE_THRESHOLD: 1},
         "conflicts": ["light_sleeper"],
+    },
+    "perfect_memory": {
+        "name": "Perfect Memory",
+        "description": "Recalls things twice as readily; memories barely fade.",
+        "category": "mental",
+        "params": None,
+        "effects": {MEMORY_RECALL_BOOST: 2.0, MEMORY_DECAY_REDUCTION: 1.0},
+        "conflicts": ["poor_memory"],
+    },
+    "poor_memory": {
+        "name": "Poor Memory",
+        "description": "Recalls things half as readily; memories fade and only the strong ones surface.",
+        "category": "mental",
+        "params": None,
+        "effects": {MEMORY_RECALL_BOOST: 0.5, MEMORY_DECAY_PER_TICK: 0.02, MAX_IMPORTANCE_CAP: 6},
+        "conflicts": ["perfect_memory"],
     },
     "immortal": {
         "name": "Immortal",

@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: characters
 priority: high
 ---
@@ -272,3 +272,40 @@ absence means "blank slate."
 - A full world-knowledge graph or ontology.
 - Automatic generation of preconceived knowledge from world topology.
 - Replacing `VectorStore` or `SpatialMemory` with a single backend.
+
+## Progress — 2026-09-24 (slice 2: AgentMind)
+
+`engine/agent_memory.py` (new) lands the facade and the three missing pieces.
+It stores nothing itself — it delegates to `player.memories`, `player.known`,
+`player.known_way_aspects`, `player.memory_index` and `engine/promotion.py`.
+
+- **`AgentMind(player, graph, game_state, vector_store)`** — `recall(query, need,
+  context, limit)` (tag/keyword match, ranked `importance * salience *
+  recall_boost * urgency`, filtered by `max_importance_cap`), `remember(...)`,
+  `know_area`/`knows_area`, `knows_way`, and `consolidation_summary(since_tick)`
+  (delegates to `promotion.pending_span` + `promotion.summarize`).
+- **Preconceived knowledge** — `load_preconceived(pdata)` injects authored
+  `memories` (source `preconceived`), `known_areas`, `known_items` and
+  `known_ways`. Idempotent by memory text. Wired into
+  `engine/serialization._deserialize_player`, so a scenario or save carrying the
+  keys bootstraps the character's knowledge; absent keys are a no-op.
+- **Need-driven recall** — `surface_need_memory(need, tick, urgency, day_key)`
+  recalls for a pressing need, writes one `source: need_recall` memory, and
+  dedupes to once per in-game day per need. It never fabricates a location. Wired
+  into `background_simulation._act` at the thirst and hunger thresholds (memory
+  only — it cannot change an action).
+- **Memory traits + decay** — `perfect_memory` (recall ×2, no decay) and
+  `poor_memory` (recall ×0.5, `memory_decay_per_tick` 0.02, importance cap 6)
+  added to `TRAIT_DEFINITIONS` with the new effect keys
+  (`memory_recall_boost`, `memory_decay_per_tick`, `memory_decay_reduction`,
+  `max_importance_cap`). `AgentMind.apply_decay()` fades salience and removes
+  exhausted memories, is **inert without a decay trait**, never decays
+  `preconceived` memories, fades `background` memories at half rate, and keeps
+  `player.memory_index` consistent on removal. Wired into the per-player
+  `tick_turn` loop, guarded by the trait so default behaviour is unchanged.
+
+Tests: `tests/test_agent_memory.py` (13) — injection + idempotence, recall
+match/rank/no-match, the poor-memory cap, once-per-day need recall (no
+fabrication), decay inertness/removal/preconceived immunity, and a
+preconceived-knowledge world load. Related suites
+(background/serialization/promotion/traits/soak) all pass.

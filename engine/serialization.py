@@ -384,6 +384,12 @@ class WorldSerializer:
         p.patrol_index = pdata.get("patrol_index", 0)
         p.activity = pdata.get("activity", None) or None
         p.exhaustion_count = pdata.get("exhaustion_count", 0)
+        # task-403: authored starting knowledge. Idempotent by memory text, so a
+        # re-loaded save never duplicates it, and absent keys mean a no-op.
+        if (pdata.get("preconceived_knowledge") or pdata.get("known_areas")
+                or pdata.get("known_ways")):
+            from engine.agent_memory import AgentMind
+            AgentMind(p, self.graph).load_preconceived(pdata)
         return p
 
     def to_dict(self):

@@ -40,6 +40,24 @@ logger = logging.getLogger(__name__)
 FOOD_TAGS = ("food", "eat", "edible", "meal")
 DRINK_TAGS = ("drink", "water", "beverage")
 
+
+def _surface_need_recall(gs, player, need):
+    """task-403: surface one recalled memory when a need is pressing.
+
+    Memory only — it never changes what the character does — and ``AgentMind``
+    dedupes to one surfacing per in-game day per need, so a long soak does not
+    accumulate recall spam. Failures are swallowed: recall is a nice-to-have and
+    must never abort a survival action.
+    """
+    try:
+        from engine.agent_memory import AgentMind
+        minutes = float(getattr(gs, "time_ticks", 0) or 0) * float(
+            getattr(gs, "time_per_tick_minutes", 1) or 1)
+        AgentMind(player, getattr(gs, "graph", None), game_state=gs).surface_need_memory(
+            need, getattr(gs, "time_ticks", 0), day_key=int(minutes // 1440))
+    except Exception:
+        pass
+
 THIRST_THRESHOLD = 45     # drive: high = parched; act before it gets urgent
 HUNGER_THRESHOLD = 50     # drive: high = starving
 ENERGY_THRESHOLD = 30     # resource: low = tired
@@ -282,6 +300,7 @@ class BackgroundSimulation:
             return TASK_MINUTES["sleep"]
 
         if thirst >= THIRST_THRESHOLD:
+            _surface_need_recall(self.gs, p, "thirst")
             # The scenario models natural water as an AREA tag ("water") you
             # drink from by standing in it, not as an item to consume.
             if self._in_water_area(p):
@@ -315,6 +334,7 @@ class BackgroundSimulation:
             return TASK_MINUTES["sleep"]
 
         if hunger >= HUNGER_THRESHOLD:
+            _surface_need_recall(self.gs, p, "hunger")
             if "eat" not in served:
                 outcome = self._consume_here(p, FOOD_TAGS, "eat")
                 if outcome is True:
