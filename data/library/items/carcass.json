@@ -26,13 +26,6 @@
       "amount": -30,
       "target": "self"
      }
-    },
-    {
-     "type": "adjust_uses",
-     "params": {
-      "delta": -1,
-      "node_id": "self"
-     }
     }
    ]
   }

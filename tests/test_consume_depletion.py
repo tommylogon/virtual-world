@@ -1,4 +1,9 @@
-"""Consume-path depletion: spent items vanish, empty containers persist (task-424)."""
+"""Consume-path depletion: spent items vanish, empty containers persist.
+
+task-424 established the authored depletion path; task-508 moved the *spend*
+itself into the engine (consume now decrements `uses` exactly as `use` does), so
+these fixtures author only `adjust_vital` and never a hand-written `adjust_uses`.
+"""
 
 import sys
 import uuid
@@ -56,23 +61,66 @@ def _drink(w, name):
     return w.drink_item(name)
 
 
-def _spend_and_eat():
+def _authored_eat():
+    """The task-508 shape: the trigger restores, the engine spends the charge."""
     return [
         {"trigger_type": "on_eat", "effects": [
             {"type": "adjust_vital", "params": {"stat": "Hunger", "amount": -45}},
-            {"type": "adjust_uses", "params": {"node_id": "self", "delta": -1}},
         ]},
     ]
+
+
+def test_the_engine_spends_a_charge_on_eat():
+    """Consume decrements `uses` with no `adjust_uses` in the trigger."""
+    w = _world()
+    area = _area(w)
+    node = _item(w, area, "rations", tags=["food"], uses=2, triggers=_authored_eat())
+    w.player.vitals["Hunger"] = 80
+    _eat(w, "rations")
+    assert node.properties["uses"] == 1, "consume did not spend a charge"
+    assert w.graph.get_node(node.id) is not None, "a one-charge item was eaten away"
+    assert w.player.vitals["Hunger"] == 35
+
+    w.player.vitals["Hunger"] = 80
+    _eat(w, "rations")
+    assert w.graph.get_node(node.id) is None, "the last charge did not consume it"
 
 
 def test_authored_food_vanishes_at_last_use():
     w = _world()
     area = _area(w)
-    node = _item(w, area, "bread", tags=["food"], uses=1, triggers=_spend_and_eat())
+    node = _item(w, area, "bread", tags=["food"], uses=1, triggers=_authored_eat())
     w.player.vitals["Hunger"] = 80
     _eat(w, "bread")
     assert w.player.vitals["Hunger"] == 35, "the authored adjust_vital did not fire"
     assert w.graph.get_node(node.id) is None, "spent food was not consumed"
+
+
+def test_a_suggested_item_is_finite():
+    """The suggester's shape — a `uses_above 0` guard and no spend — is finite.
+
+    Before task-508 the guard could never become false because the engine did
+    not spend the charge, making every suggested consumable infinite.
+    """
+    w = _world()
+    area = _area(w)
+    node = _item(w, area, "pastry", tags=["food"], uses=2, triggers=[
+        {"trigger_type": "on_eat",
+         "condition": {"type": "uses_above", "value": 0},
+         "effects": [
+             {"type": "adjust_vital", "params": {"stat": "Hunger", "amount": -20}},
+         ]},
+    ])
+    w.player.vitals["Hunger"] = 80
+    _eat(w, "pastry")
+    assert node.properties["uses"] == 1
+    _eat(w, "pastry")
+    assert w.graph.get_node(node.id) is None
+    try:
+        _eat(w, "pastry")
+    except ValueError:
+        return
+    raise AssertionError("a spent suggested item was still edible")
 
 
 def test_an_empty_container_persists():
@@ -81,7 +129,6 @@ def test_an_empty_container_persists():
     node = _item(w, area, "glass", tags=["drink"], uses=1, triggers=[
         {"trigger_type": "on_drink", "effects": [
             {"type": "adjust_vital", "params": {"stat": "Thirst", "amount": -30}},
-            {"type": "adjust_uses", "params": {"node_id": "self", "delta": -1}},
         ]},
         {"trigger_type": "on_depleted", "effects": [
             {"type": "set_state", "params": {"state": "empty",
@@ -105,18 +152,18 @@ def test_a_permanent_item_is_never_destroyed():
         ]},
     ])
     w.player.vitals["Thirst"] = 90
-    _drink(w, "everfull cup")
+    for _ in range(5):
+        _drink(w, "everfull cup")
     assert w.graph.get_node(node.id) is not None
-    assert w.player.vitals["Thirst"] == 80
+    assert node.properties["uses"] == -1, "a permanent item's uses were spent"
+    assert w.player.vitals["Thirst"] == 40
 
 
 def test_an_empty_container_cannot_be_drunk_again():
     w = _world()
     area = _area(w)
     node = _item(w, area, "glass", tags=["drink"], uses=1, triggers=[
-        {"trigger_type": "on_drink", "effects": [
-            {"type": "adjust_uses", "params": {"node_id": "self", "delta": -1}},
-        ]},
+        {"trigger_type": "on_drink", "effects": []},
         {"trigger_type": "on_depleted", "effects": [
             {"type": "set_state", "params": {"state": "empty"}},
         ]},
@@ -137,7 +184,6 @@ def test_a_refilled_container_works_again():
     node = _item(w, area, "glass", tags=["drink"], uses=1, triggers=[
         {"trigger_type": "on_drink", "effects": [
             {"type": "adjust_vital", "params": {"stat": "Thirst", "amount": -20}},
-            {"type": "adjust_uses", "params": {"node_id": "self", "delta": -1}},
         ]},
         {"trigger_type": "on_depleted", "effects": [
             {"type": "set_state", "params": {"state": "empty"}},
@@ -164,7 +210,8 @@ def test_background_eating_uses_the_same_depletion():
     p.state = "idle"
     p.activity = None
     p.vitals.update({"Hunger": 80, "Thirst": 0, "Energy": 100, "Bladder": 0})
-    node = _item(w, area, "bread", tags=["food"], uses=1, triggers=_spend_and_eat())
+    node = _item(w, area, "bread", tags=["food"], uses=1, triggers=_authored_eat())
     BackgroundSimulation(w).take_action(p, served=set(), remaining=10.0)
     assert p.vitals["Hunger"] == 35
     assert w.graph.get_node(node.id) is None
+

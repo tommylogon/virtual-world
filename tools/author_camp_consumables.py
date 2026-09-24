@@ -11,10 +11,14 @@ path is live, the data itself must be right.
 This gives each one its authored trigger:
 
 * every food item: ``on_eat`` → ``adjust_vital`` Hunger (the fallback amount, so
-  camp survival is unchanged) + ``adjust_uses`` −1;
-* the water skin: ``on_drink`` → ``adjust_vital`` Thirst + ``adjust_uses`` −1, and
-  ``on_depleted`` → ``set_state empty`` so it **empties and persists** instead of
-  vanishing on the last charge (the acceptance's "glass" case).
+  camp survival is unchanged);
+* the water skin: ``on_drink`` → ``adjust_vital`` Thirst, and ``on_depleted`` →
+  ``set_state empty`` so it **empties and persists** instead of vanishing on the
+  last charge (the acceptance's "glass" case).
+
+Depletion is **not** authored: since task-508 the engine spends ``uses`` on
+consume exactly as it does for ``use``, so a hand-written ``adjust_uses`` would
+double-spend the charge.
 
 Deterministic and idempotent: stable trigger ids, and an existing trigger of the
 same type is rewritten in place, so re-running changes nothing and the scenario
@@ -47,18 +51,20 @@ DRINK_ITEMS = ("item_water_skin",)
 
 
 def _food_effects(item_id):
+    # task-508: the engine spends `uses` on consume (as it does for `use`), so
+    # the trigger owns only the restore. Hand-writing adjust_uses here would
+    # double-spend the charge.
     return [
         {"params": {"amount": -MEAL_RESTORE, "stat": "Hunger", "target": "self"},
          "type": "adjust_vital"},
-        {"params": {"delta": -1, "node_id": item_id}, "type": "adjust_uses"},
     ]
 
 
 def _drink_effects(item_id):
+    # task-508: depletion is the engine's, not the trigger's (see _food_effects).
     return [
         {"params": {"amount": -DRINK_RESTORE, "stat": "Thirst", "target": "self"},
          "type": "adjust_vital"},
-        {"params": {"delta": -1, "node_id": item_id}, "type": "adjust_uses"},
     ]
 
 

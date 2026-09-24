@@ -107,6 +107,13 @@ class ConsumeActionsMixin:
             result += "\n" + "\n".join(trigger_outputs)
             if not self.graph.get_node(item_node.id):
                 return result
+        # task-508: consuming spends a charge exactly as `use` does, so an
+        # authored consume trigger owns only *what the item does* (adjust_vital,
+        # conditions, messages) and never hand-writes `adjust_uses`. `uses: -1`
+        # is "no charge model" and is never spent. The spend happens *after* the
+        # item's triggers so they can read the pre-spend count (the suggester's
+        # `uses_above 0` guard, and `on_depleted` on the transition to 0).
+        self._spend_uses(item_node)
         result = self._deplete_if_spent(item_node, uses_before, result)
 
         skill_check_config = item_node.properties.get("skill_check", {})
@@ -128,6 +135,18 @@ class ConsumeActionsMixin:
         past_verb = "ate" if action_verb == "eat" else "drank"
         player_manager.record_turn_event(player_manager.active_player, action_verb, f"{past_verb} the {item_name}", area_name=area_name)
         return result
+
+    def _spend_uses(self, item_node) -> None:
+        """Spend one charge on consume (task-508), mirroring the `use` path.
+
+        ``uses`` is charges/durability (task-155): a positive count is spent
+        down to 0, and ``-1`` (or absent) means "no charge model" — a permanent
+        item. The ``on_depleted`` hook and removal are handled by
+        ``_deplete_if_spent`` on the transition to 0.
+        """
+        uses = item_node.properties.get("uses", -1)
+        if isinstance(uses, (int, float)) and uses > 0:
+            item_node.properties["uses"] = uses - 1
 
     def _deplete_if_spent(self, item_node, uses_before, result: str) -> str:
         """Consume a spent item, or keep a persistent empty one (task-424).

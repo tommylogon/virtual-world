@@ -13819,13 +13819,6 @@
                 "target": "self"
               },
               "type": "adjust_vital"
-            },
-            {
-              "params": {
-                "delta": -1,
-                "node_id": "self"
-              },
-              "type": "adjust_uses"
             }
           ],
           "fail_message": "",
@@ -19280,13 +19273,6 @@
                 "target": "self"
               },
               "type": "adjust_vital"
-            },
-            {
-              "params": {
-                "delta": -1,
-                "node_id": "self"
-              },
-              "type": "adjust_uses"
             }
           ],
           "fail_message": "",

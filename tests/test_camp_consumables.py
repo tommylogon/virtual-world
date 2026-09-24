@@ -1,10 +1,14 @@
-"""The camp's five consumables author their own consumption (task-424).
+"""The camp's five consumables author their own consumption (task-424/508).
 
 Regression guard for ``tools/author_camp_consumables.py``. The shipped items must
 carry ``on_eat``/``on_drink`` triggers whose ``adjust_vital`` *relieves* the drive
-(negative, because Hunger/Thirst are drives that rise) and whose depletion is
-authored (``adjust_uses``), plus the water skin's ``on_depleted`` → ``set_state
-empty`` so it empties and persists.
+(negative, because Hunger/Thirst are drives that rise), plus the water skin's
+``on_depleted`` → ``set_state empty`` so it empties and persists.
+
+Since task-508 depletion is the **engine's** job: consuming spends ``uses``
+exactly as ``use`` does, so a consume trigger must **not** hand-write
+``adjust_uses`` (that would double-spend the charge). These tests assert both
+halves of that contract.
 
 This is not cosmetic: the earlier data used **positive** amounts (legacy satiation
 semantics), which under drive semantics *feed the fire instead of the character*
@@ -76,8 +80,9 @@ def test_each_camp_food_authors_a_relieving_on_eat():
         trigger = _trigger(data, item_id, "on_eat")
         assert trigger is not None, f"{item_id} authors no on_eat trigger"
         _test_one_drives_negative(trigger, stat, item_id)
-        assert _effects(trigger, "adjust_uses"), (
-            f"{item_id} on_eat does not deplete uses — an infinite loaf"
+        assert not _effects(trigger, "adjust_uses"), (
+            f"{item_id} hand-writes adjust_uses; the engine spends the charge "
+            f"on consume (task-508) — this would double-spend it"
         )
 
 
@@ -87,8 +92,9 @@ def test_each_camp_drink_authors_a_relieving_on_drink():
         trigger = _trigger(data, item_id, "on_drink")
         assert trigger is not None, f"{item_id} authors no on_drink trigger"
         _test_one_drives_negative(trigger, stat, item_id)
-        assert _effects(trigger, "adjust_uses"), (
-            f"{item_id} on_drink does not deplete uses"
+        assert not _effects(trigger, "adjust_uses"), (
+            f"{item_id} hand-writes adjust_uses; the engine spends the charge "
+            f"on consume (task-508)"
         )
 
 
