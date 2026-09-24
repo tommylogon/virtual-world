@@ -419,26 +419,65 @@ window.InspectorHelpers = (() => {
         return [...known, ...custom];
     };
 
-    H._expressionRowsHtml = function(nodeId, props, kind) {
+    /** Inject the expression-card stylesheet once. */
+    H._ensureExprStyles = function() {
+        if (document.getElementById('expr-pack-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'expr-pack-styles';
+        style.textContent = `
+            .expr-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(92px,1fr)); gap:6px; }
+            .expr-card { position:relative; display:flex; flex-direction:column; align-items:center; gap:4px;
+                padding:6px; border:1px solid var(--border); border-radius:8px; background:var(--bg-input);
+                transition:border-color .12s, background .12s; }
+            .expr-card.expr-current { border-color:#57c98f; box-shadow:0 0 0 1px #2c4a36; }
+            .expr-card.expr-drop { border-color:#4f9cf9; background:#14243a; }
+            .expr-thumb { width:100%; aspect-ratio:1; border-radius:6px; overflow:hidden; display:flex;
+                align-items:center; justify-content:center; border:1px dashed var(--border); }
+            .expr-thumb.has-art { border-style:solid; }
+            .expr-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+            .expr-thumb .expr-empty { font-size:18px; opacity:.35; }
+            .expr-name { font-size:10px; text-align:center; max-width:100%; white-space:nowrap;
+                overflow:hidden; text-overflow:ellipsis; }
+            .expr-actions { display:flex; gap:4px; opacity:.45; transition:opacity .12s; }
+            .expr-card:hover .expr-actions { opacity:1; }
+            .expr-upload { cursor:pointer; }
+            .expr-current-badge { position:absolute; top:4px; right:4px; font-size:8.5px; letter-spacing:.4px;
+                background:#14231a; color:#57c98f; border:1px solid #2c4a36; border-radius:6px; padding:0 4px; }`;
+        document.head.appendChild(style);
+    };
+
+    /** Card grid HTML: thumbnail + label + upload/remove, drop target, live highlight. */
+    H._expressionCardsHtml = function(nodeId, props, kind) {
         const escId = H.escId(nodeId);
+        const node = worldState.getNode ? worldState.getNode(nodeId) : null;
+        const currentKey = (window.CharacterArt && node)
+            ? window.CharacterArt.emotionKeyForName(node.name) : 'neutral';
         return H.expressionKeys(props).map(key => {
             const safeKey = H.expressionKeySafe(key);
             const url = H.expressionImageFor(props, kind, key);
             const icon = EXPRESSION_ICONS[key] || '🎭';
             const label = H.esc(String(key).replace(/_/g, ' '));
+            const isCurrent = H.expressionKeySafe(currentKey) === safeKey;
             const thumb = url
-                ? `<img src="${H.esc(url)}" alt="${label}" style="width:46px;height:46px;object-fit:cover;border-radius:6px;border:1px solid var(--border);">`
-                : `<div style="width:46px;height:46px;border-radius:6px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--text-muted);">none</div>`;
-            const clear = url
+                ? `<img src="${H.esc(url)}" alt="${label}">`
+                : `<span class="expr-empty" title="No ${kind} image">🎭</span>`;
+            const remove = url
                 ? `<button class="btn btn-sm btn-danger" title="Remove" onclick="InspectorHelpers.clearExpressionImage('${escId}','${kind}','${safeKey}')">🗑</button>`
                 : '';
-            return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
-                ${thumb}
-                <div style="flex:1;min-width:0;">
-                    <div style="font-size:11px;">${icon} ${label}</div>
-                    <input type="file" accept="image/*" title="Upload ${label}" onchange="InspectorHelpers.setExpressionImage('${escId}','${kind}','${safeKey}',this)" style="font-size:10px;max-width:100%;">
+            return `<div class="expr-card${isCurrent ? ' expr-current' : ''}" data-key="${safeKey}"
+                        ondragover="event.preventDefault();this.classList.add('expr-drop');"
+                        ondragleave="this.classList.remove('expr-drop');"
+                        ondrop="InspectorHelpers.dropExpressionImage('${escId}','${kind}','${safeKey}',event)">
+                <div class="expr-thumb${url ? ' has-art' : ''}">${thumb}</div>
+                <div class="expr-name" title="${label}">${icon} ${label}</div>
+                <div class="expr-actions">
+                    <label class="btn btn-sm expr-upload" title="Upload / replace ${label}">⬆
+                        <input type="file" accept="image/*" style="display:none"
+                            onchange="InspectorHelpers.setExpressionImage('${escId}','${kind}','${safeKey}',this)">
+                    </label>
+                    ${remove}
                 </div>
-                ${clear}
+                ${isCurrent ? '<span class="expr-current-badge">NOW</span>' : ''}
             </div>`;
         }).join('');
     };
@@ -450,7 +489,7 @@ window.InspectorHelpers = (() => {
         const grid = document.getElementById(`expr-grid-${escId}`);
         if (grid) {
             grid.dataset.kind = kind;
-            grid.innerHTML = H._expressionRowsHtml(nodeId, props, kind);
+            grid.innerHTML = H._expressionCardsHtml(nodeId, props, kind);
         }
         document.querySelectorAll(`#expr-section-${escId} .expr-tab`).forEach(btn => {
             btn.classList.toggle('btn-blue', btn.dataset.kind === kind);
@@ -472,6 +511,7 @@ window.InspectorHelpers = (() => {
     H.renderExpressionSection = function(nodeId, props = {}) {
         const escId = H.escId(nodeId);
         H._exprCache[nodeId] = props;
+        H._ensureExprStyles();
         const kind = H._exprTab[nodeId] || 'profile';
         const tab = (value, label) => {
             const on = value === kind ? ' btn-blue' : '';
@@ -486,19 +526,19 @@ window.InspectorHelpers = (() => {
                 <button class="btn btn-sm" title="Slice a grid sprite sheet into one image per expression slot"
                     onclick="SpriteSheet.openDialog('${escId}','${kind}')">✂️ Split sheet</button>
             </div>
-            <div id="expr-grid-${escId}" data-kind="${kind}">
-                ${H._expressionRowsHtml(nodeId, props, kind)}
+            <div id="expr-grid-${escId}" class="expr-grid" data-kind="${kind}">
+                ${H._expressionCardsHtml(nodeId, props, kind)}
             </div>
             <div style="display:flex;gap:4px;margin-top:6px;">
                 <input type="text" id="expr-new-${escId}" placeholder="add expression (happy, attack…)" style="flex:1;font-size:11px;">
                 <button class="btn btn-sm btn-green" onclick="InspectorHelpers.addExpressionKey('${escId}')">Add</button>
             </div>
-            <div class="section-hint" style="margin-top:4px;">Profile is the character's avatar and follows their current emotion; full body is the portrait art. The "neutral" slot is the fallback.</div>
+            <div class="section-hint" style="margin-top:4px;">Profile is the character's avatar and follows their current emotion; full body is the portrait art. The "neutral" slot is the fallback. Drag an image onto any card to set it.</div>
         </div>`;
     };
 
-    H.setExpressionImage = async function(nodeId, kind, key, inputEl) {
-        const file = inputEl && inputEl.files && inputEl.files[0];
+    /** Shared upload path for the picker and drag-and-drop. */
+    H.uploadExpressionFile = async function(nodeId, kind, key, file) {
         if (!file) return;
         const res = await api.uploadNodeImage(nodeId, file, kind, key);
         if (res.error) {
@@ -516,6 +556,20 @@ window.InspectorHelpers = (() => {
         if (graphManager) graphManager._lastSig = '';
         worldState.fetch();
         if (graphManager) graphManager.loadGraphData();
+    };
+
+    /** Drop-to-set: an image file dropped on an expression card. */
+    H.dropExpressionImage = function(nodeId, kind, key, ev) {
+        if (ev && ev.preventDefault) ev.preventDefault();
+        const card = ev && ev.currentTarget;
+        if (card) card.classList.remove('expr-drop');
+        const file = ev && ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files[0];
+        if (file) H.uploadExpressionFile(nodeId, kind, key, file);
+    };
+
+    H.setExpressionImage = function(nodeId, kind, key, inputEl) {
+        const file = inputEl && inputEl.files && inputEl.files[0];
+        if (file) H.uploadExpressionFile(nodeId, kind, key, file);
     };
 
     H.clearExpressionImage = async function(nodeId, kind, key) {
