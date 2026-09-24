@@ -24,6 +24,14 @@ class GhostSystem:
         if not area_name:
             return
 
+        # task-427: a creature with a declared carcass drops food, not the human
+        # body item. The carcass is a fresh library-spawned copy (several rabbits
+        # leave several carcasses) and ordinary food through task-424's path.
+        carcass_id = getattr(player, "carcass_item", None)
+        if carcass_id:
+            self._spawn_carcass(player, carcass_id, area_name, cause_of_death)
+            return
+
         body_item_id = f"body_{player_name}"
 
         body_description = f"The lifeless body of {player_name}. Death came from {cause_of_death}."
@@ -68,6 +76,50 @@ class GhostSystem:
         self.graph.add_edge(Edge(source=body_item_id, target=area_node_id, type=EDGE_IN))
 
         self.logging_events.add_log_entry(f"[System] {player_name}'s body lies in the {area_name}.")
+
+    def _area_node_id(self, area_name):
+        """Resolve an area's node id by name, falling back to the derived id."""
+        for node in self.graph.nodes.values():
+            if node.type == "area" and node.name == area_name:
+                return node.id
+        return f"area_{area_name.lower().replace(' ', '_')}"
+
+    def _spawn_carcass(self, player, carcass_id, area_name, cause_of_death):
+        """Drop a fresh carcass item (ordinary food) where the creature died."""
+        node = None
+        lib_data = {}
+        effects = getattr(self.skills, "effects", None)
+        if effects is not None:
+            try:
+                node, lib_data = effects._hydrate_item(
+                    carcass_id,
+                    {"display_name": f"{player.name}'s carcass"},
+                    always_fresh=True,
+                )
+            except Exception:
+                node = None
+        if node is None or not lib_data:
+            # No library entry (or hydration failed): a plain edible carcass so
+            # a kill never yields nothing. Uses 1 so consumption depletes it.
+            node = Node(
+                id=f"carcass_{player.name}".replace(' ', '_'),
+                type="item",
+                name=f"{player.name}'s carcass",
+                properties={
+                    "description": f"The carcass of {player.name}.",
+                    "actions": ["examine", "take"],
+                    "tags": ["food", "meat", "carcass"],
+                    "uses": 1,
+                    "weight": 5.0,
+                },
+            )
+            self.graph.add_node(node)
+        self.graph.add_edge(
+            Edge(source=node.id, target=self._area_node_id(area_name), type=EDGE_IN)
+        )
+        self.logging_events.add_log_entry(
+            f"[System] {player.name}'s carcass lies in the {area_name} ({cause_of_death})."
+        )
 
     def check_ghost_action(self, player_manager, action_type: str, target_name: str = None) -> Optional[str]:
         """Check if a dead character can perform an action in ghost mode.

@@ -144,6 +144,7 @@ class WorldSerializer:
             "discovered_exits": list(getattr(p, 'discovered_exits', []) or []),
             "interest_tags": getattr(p, 'interest_tags', []),
             "fear_tags": getattr(p, 'fear_tags', []),
+            "carcass_item": getattr(p, 'carcass_item', None),
             "discovered_items": list(getattr(p, 'discovered_items', []) or []),
             "decay_rates": getattr(p, 'decay_rates', {}),
             "body_state": getattr(p, 'body_state', {}),
@@ -329,6 +330,7 @@ class WorldSerializer:
         }
         p.interest_tags = list(pdata.get("interest_tags", []))
         p.fear_tags = list(pdata.get("fear_tags", []))
+        p.carcass_item = pdata.get("carcass_item")
         p.current_area = pdata.get("current_area") or pdata.get("current_area") or pdata.get("current_room")
         p.recent_hearing = pdata.get("recent_hearing", [])
         pdata_memory = pdata.get("memory", {})

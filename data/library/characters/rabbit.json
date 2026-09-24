@@ -1,0 +1,81 @@
+{
+ "name": "Rabbit",
+ "personality": "You are a rabbit: skittish, quick, and always alert. You flee danger and look for food and cover.",
+ "description": "A small brown rabbit with twitching ears.",
+ "base_description": "A small brown rabbit.",
+ "unknown_name": "",
+ "stats": {
+  "CHA": 6,
+  "CON": 8,
+  "DEX": 16,
+  "INT": 3,
+  "STR": 4,
+  "WIS": 12
+ },
+ "vitals": {
+  "Bladder": 50,
+  "Energy": 85,
+  "Entertainment": 30,
+  "HP": 12,
+  "Hunger": 70,
+  "Hygiene": 60,
+  "Max_HP": 12,
+  "Sanity": 90,
+  "Social": 10,
+  "Temperature": 37,
+  "Thirst": 60
+ },
+ "decay_rates": {
+  "Bladder": 1,
+  "Energy": 1,
+  "Entertainment": 1,
+  "Hunger": 1,
+  "Hygiene": 1,
+  "Sanity": 1,
+  "Social": 1,
+  "Thirst": 1
+ },
+ "skills": {
+  "Acrobatics": 1,
+  "Perception": 2,
+  "Stealth": 2,
+  "Survival": 1
+ },
+ "traits": {},
+ "tags": [
+  "animal",
+  "rabbit",
+  "small",
+  "prey"
+ ],
+ "interest_tags": [
+  "food"
+ ],
+ "state": "awake",
+ "conditions": {
+  "awake": [
+   {
+    "duration": null,
+    "level": 0,
+    "source": null
+   }
+  ]
+ },
+ "equipped": {},
+ "activity": null,
+ "inventory": [],
+ "emotion": {
+  "current": "neutral",
+  "description": "",
+  "intensity": 0
+ },
+ "memories": [],
+ "relationships": {},
+ "behaviors": [],
+ "npc_behavior": "wander",
+ "npc_action_interval": 3,
+ "npc_state": "idle",
+ "simple_npc": false,
+ "recent_hearing": [],
+ "carcass": "carcass"
+}

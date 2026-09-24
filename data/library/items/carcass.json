@@ -1,0 +1,41 @@
+{
+ "name": "Carcass",
+ "description": "The carcass of a small animal, still warm. It could be eaten raw or cooked.",
+ "actions": "take,drop,examine,eat",
+ "uses": 1,
+ "weight": 3,
+ "current_state": "normal",
+ "light_level": "dim",
+ "defense": 0,
+ "damage": 0,
+ "insulation": 0,
+ "equip_slots": [],
+ "tags": [
+  "food",
+  "meat",
+  "carcass"
+ ],
+ "triggers": [
+  {
+   "trigger_type": "on_eat",
+   "effects": [
+    {
+     "type": "adjust_vital",
+     "params": {
+      "stat": "Hunger",
+      "amount": -30,
+      "target": "self"
+     }
+    },
+    {
+     "type": "adjust_uses",
+     "params": {
+      "delta": -1,
+      "node_id": "self"
+     }
+    }
+   ]
+  }
+ ],
+ "contents": []
+}

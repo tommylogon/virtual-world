@@ -30,6 +30,7 @@ CONDITION_TYPES = {
     "uses_above",
     "parameter_reached",
     "contains_count",
+    "tagged_count",
     "has_item",
     "has_items",
     "state_equals",

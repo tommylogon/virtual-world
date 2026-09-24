@@ -7,11 +7,76 @@ import random
 import re
 from typing import Any, Optional
 
-from graph import EDGE_CARRYING, EDGE_EQUIPPED
+from graph import EDGE_CARRYING, EDGE_EQUIPPED, EDGE_IN
 
 
 class ConditionTreeMixin:
     """Tree and flat-list condition evaluation."""
+
+    def _area_of_node(self, node):
+        """Return ``(area_name, area_id)`` for a node's canonical ``in`` edge."""
+        if node is None:
+            return None, None
+        for edge in self.graph.get_edges_for_source(node.id, EDGE_IN):
+            target = self.graph.get_node(edge.target)
+            if target is not None and target.type == "area":
+                return target.name, target.id
+        return None, None
+
+    def _count_tagged(self, tag, scope, gs, anchor_node=None):
+        """Count live characters/items carrying *tag*, optionally area-scoped.
+
+        ``scope`` is ``"world"``/empty (everywhere), ``"current"`` (the
+        anchoring item's area, else the active actor's area), or an area
+        name/id. Characters are counted by their own ``tags``; items by node
+        tags in the area their canonical ``in`` edge points at. Used by
+        ``tagged_count`` (task-427) so a spawner can cap a population.
+        """
+        scope_l = str(scope or "").strip().lower()
+        world_wide = scope_l in ("", "world", "any", "all")
+        area_name = area_id = None
+        if not world_wide:
+            if scope_l == "current":
+                if anchor_node is not None:
+                    area_name, area_id = self._area_of_node(anchor_node)
+                else:
+                    players = getattr(gs, "players", None) or {}
+                    active = players.get(getattr(gs, "active_player", None))
+                    area_name = getattr(active, "current_area", None)
+            else:
+                area_name = scope
+        area_l = str(area_name or "").lower()
+        area_id_l = str(area_id or "").lower()
+
+        def in_scope(name, aid):
+            if world_wide:
+                return True
+            values = {str(name or "").lower(), str(aid or "").lower()}
+            return area_l in values or bool(area_id_l and area_id_l in values)
+
+        count = 0
+        players = getattr(gs, "players", None) or {}
+        for pname, player in players.items():
+            p_tags = [str(t).lower() for t in (getattr(player, "tags", None) or [])]
+            if tag not in p_tags:
+                resolver = getattr(gs, "_player_node_id", None)
+                node = self.graph.get_node(resolver(pname)) if callable(resolver) else None
+                props = (node.properties if node is not None else {}) or {}
+                node_tags = [str(t).lower() for t in (props.get("tags") or [])]
+                if tag not in node_tags:
+                    continue
+            if in_scope(getattr(player, "current_area", None), None):
+                count += 1
+        for node in self.graph.nodes.values():
+            if getattr(node, "type", None) != "item":
+                continue
+            node_tags = [str(t).lower() for t in ((node.properties or {}).get("tags") or [])]
+            if tag not in node_tags:
+                continue
+            n_name, n_id = self._area_of_node(node)
+            if in_scope(n_name, n_id):
+                count += 1
+        return count
 
     def _evaluate_conditions(
         self,
@@ -187,6 +252,36 @@ class ConditionTreeMixin:
                         ):
                             continue
                     count += 1
+                try:
+                    threshold = float(conditions.get("value", 0))
+                except (TypeError, ValueError):
+                    return False
+                op = str(conditions.get("op", "gte")).lower()
+                if op in ("gt", ">"):
+                    return count > threshold
+                if op in ("gte", ">="):
+                    return count >= threshold
+                if op in ("lt", "<"):
+                    return count < threshold
+                if op in ("lte", "<="):
+                    return count <= threshold
+                if op in ("eq", "=="):
+                    return count == threshold
+                return False
+
+            elif condition_type == "tagged_count":
+                # Count live entities carrying a tag — the population cap a
+                # creature spawner needs ("fewer than 4 rabbits here"). Generic
+                # beyond creatures: "how many goblins are in this room".
+                tag = str(
+                    conditions.get("target_has_tag")
+                    or conditions.get("tag")
+                    or ""
+                ).strip().lower()
+                if not tag:
+                    return False
+                scope = str(conditions.get("area", "current") or "current")
+                count = self._count_tagged(tag, scope, gs, anchor_node=item_node)
                 try:
                     threshold = float(conditions.get("value", 0))
                 except (TypeError, ValueError):

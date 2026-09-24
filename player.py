@@ -183,6 +183,10 @@ class Player:
         # farmers vs goblins differ purely by these lists, so no group needs a
         # global "hostile" flag that makes it panic at its own kind.
         self.fear_tags = []
+        # Library item id this creature leaves behind when it dies (task-427).
+        # A rabbit drops a carcass item; a character without one leaves the
+        # normal `body_<name>` item.
+        self.carcass_item = None
         # An active soak order (task-481): declared on this human's turn ("go
         # west for an hour"), it makes the character run on a policy each turn
         # until the span is spent or something promotes them back. None = normal
@@ -1036,6 +1040,7 @@ class Player:
             "tags": list(self.tags),
             "interest_tags": list(self.interest_tags),
             "fear_tags": list(self.fear_tags),
+            "carcass_item": getattr(self, 'carcass_item', None),
             "flags": dict(getattr(self, "flags", {})),
             "hidden": bool(getattr(self, "hidden", False)),
             "visited_areas": list(self.visited_areas),

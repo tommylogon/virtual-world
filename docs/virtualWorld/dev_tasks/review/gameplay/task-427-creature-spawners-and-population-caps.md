@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: gameplay
 priority: medium
 ---
@@ -57,6 +57,54 @@ produce a deer you can hunt. Those are **character** spawns, and:
 - Population reaches a stable band over a week rather than 0 or unbounded.
 - A creature spawner is never itself edible or huntable.
 - Deterministic under a fixed seed.
+
+## Resolution (2026-09-24)
+
+Engine pieces:
+
+- **`tagged_count` condition** (`engine/triggers/condition_tree.py`, registered in
+  `engine/trigger_validator.py`) — counts live characters/items carrying a tag,
+  scoped to `"world"`, `"current"` (the anchoring item's area, else the active
+  actor's area) or a named area. `_count_tagged` / `_area_of_node` helpers.
+- **`spawn_character` defaults to the triggering item's area**
+  (`engine/effect_handlers/spawn.py`) — a burrow spawns rabbits where the burrow
+  is, not where the player happens to be. This was the missing piece that made a
+  fixture spawner usable.
+- **Death yields a carcass** (`engine/ghost.py`): a character whose template
+  declares `carcass` (new `Player.carcass_item`, serialized) drops a fresh
+  library-spawned food item instead of the human `body_<name>` item. The carcass
+  carries the library's authored `on_eat` trigger, so it depletes through
+  task-424's path rather than being infinite. `_hydrate_character`
+  (`engine/effects.py`) copies `carcass` from the template.
+
+Data (no code change to add a species):
+
+- `data/library/characters/rabbit.json` — creature template, tags
+  `animal/rabbit/small/prey`, `carcass: "carcass"`.
+- `data/library/items/carcass.json` — ordinary food (`food/meat/carcass`), uses 1,
+  authored `on_eat` (Hunger −30, `adjust_uses -1`).
+- `data/library/items/rabbit_burrow.json` — untagged spawner: growth counter →
+  `spawn_character` gated by `tagged_count rabbit < 4`.
+
+Tests: `tests/test_creature_spawners.py` (14) cover the count/scope/op matrix,
+the fifth-rabbit cap, spawn-into-the-burrows-area, the spawner not being edible,
+template hydration, creature-vs-human death, the depleting authored eat trigger,
+and two separate carcasses from two deaths. `tools/lint_library.py` gains no new
+errors; the 24 remaining are pre-existing.
+
+Still open: the week-scale **population band** soak (a scenario that places a
+burrow and runs multi-day) — the cap + death mechanics it depends on are done and
+tested, but no scenario authors a burrow yet.
+
+## Files
+
+- `engine/triggers/condition_tree.py`, `engine/trigger_validator.py` — `tagged_count`
+- `engine/effect_handlers/spawn.py` — spawn into the triggering item's area
+- `engine/ghost.py`, `engine/effects.py`, `player.py`, `engine/serialization.py`
+  — carcass-on-death + `carcass_item`
+- `data/library/characters/rabbit.json`, `data/library/items/carcass.json`,
+  `data/library/items/rabbit_burrow.json`
+- `tests/test_creature_spawners.py`
 
 ## Non-goals
 

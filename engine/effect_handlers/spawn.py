@@ -224,6 +224,14 @@ def handle_spawn_character(self, params, context, item_node=None, game_state=Non
         player_obj.state = params["current_state"]
 
     area_name = params.get("area")
+    if not area_name and item_node is not None and game_state is not None:
+        # A spawner fixture spawns into *its own* area, not the active actor's —
+        # a rabbit burrow must not drop rabbits where the player happens to be.
+        for _edge in game_state.graph.get_edges_for_source(item_node.id, EDGE_IN):
+            _target = game_state.graph.get_node(_edge.target)
+            if _target is not None and _target.type == "area":
+                area_name = _target.name
+                break
     if not area_name and game_state:
         area_id = game_state.get_current_area_id()
         if area_id:
