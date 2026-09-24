@@ -180,6 +180,24 @@ window.HelpCenter = (() => {
             title: 'Duplicate clones children — not parents',
             body: 'Duplicating the table also clones the salt <i>on</i> it, but the kitchen it sits in stays shared. Parents are never cloned; attached children are.',
         },
+        {
+            id: 'worldpainter',
+            event: 'data-help',
+            match: d => d === 'worldpainter',
+            group: 'World building',
+            title: '🗺️ WorldPainter — paint a world, then compile it',
+            body: '<b>Root then zone</b>: the first scope you create is the world root; add a child zone (a forest, town, or floor) and drill in to detail it. Paint the <b>biome</b>, <b>road</b> and <b>elevation</b> layers — drag to paint, or use the <b>🧭 Route</b> tool (1 cell = 1 turn, so 240 cells = 4&nbsp;h). Load a map image as a reference with <b>▦ match</b>. <b>⚙ Generate is per scope</b>: compile the root and each zone separately, so the root stays coarse and zones hold the detail — no single generate mints thousands of rooms at once.',
+            target: '[data-help="worldpainter"]',
+        },
+        {
+            id: 'scope-filter',
+            event: 'data-help',
+            match: d => d === 'scope-filter',
+            group: 'World building',
+            title: '🌍 Load one scope at a time',
+            body: 'A densely painted world is thousands of rooms, which freezes the graph. Pick a <b>world scope</b> here to load only that zone into the canvas (its rooms, ways and characters). <b>Whole world</b> restores everything, and switching scenarios rebuilds the list.',
+            target: '#graph-scope-filter',
+        },
     ];
 
     // Guided tours: ordered chains of tip ids.
@@ -187,6 +205,7 @@ window.HelpCenter = (() => {
         hello: { title: 'First five minutes', group: 'Beginner', steps: ['welcome', 'run-sim', 'agent-settings', 'game-menu'] },
         triggers: { title: 'Triggers & effects', group: 'Items & triggers', steps: ['inspector-item', 'trigger-system', 'snippets', 'more-tools'] },
         scenario: { title: 'Scenario workflow', group: 'World building', steps: ['game-menu', 'duplicate', 'inspector-area'] },
+        world: { title: 'Painting a world', group: 'World building', steps: ['worldpainter', 'scope-filter', 'inspector-area'] },
     };
 
     // ─────────────────────── State ───────────────────────
