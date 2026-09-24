@@ -16,6 +16,12 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 | [[History\|History]] | The whole lineage: the 2025 Aura/APSE origins, the 2026-02-21 monorepo reorg, the July 2026 build-out and modularization, the 2026-08-26 public split, and how to re-derive any of it from git |
 | [[Patch Notes 2026-08-22 to 2026-09-22\|Patch Notes]] | The last 30 days written to be shared cold: time as a timeframe, the background tier, the identity refactor, one copy of every truth, structures, and the bugs killed |
 
+## [[Roadmap|🗺️ Roadmap]]
+
+| Doc | What it covers |
+|-----|---------------|
+| [[Roadmap\|Roadmap]] | Where the world is going, in what order, and why: the three rules that set priority, the WorldPainter epic in flight, the simulation-contract debt, and the scale work that follows |
+
 ## [[Simulation Model|🧭 Core Model]]
 
 | Doc | What it covers |
@@ -122,4 +128,4 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 - **Export-log lint**: `node tools/log_lint.cjs data/exports/<log>.txt` (or `npm run loglint -- <path>`)
 - **Dev tasks**: `python tools/tasks.py list` · `python tools/tasks.py validate`
 
-*Last updated: 2026-09-23*
+*Last updated: 2026-09-24*
