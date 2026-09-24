@@ -240,6 +240,20 @@ class TickManager:
         except Exception as e:
             logger.warning("[tick] grapple-sync: %s", e)
 
+        # task-486: keep each character's stored appearance description in step
+        # with visible conditions / equipment even when the change came from a
+        # direct conditions-dict write rather than equip/unequip. Hash-guarded
+        # inside, so this only rebuilds the prose when something actually changed.
+        equipment = getattr(self.gs, "equipment", None)
+        if equipment is not None and hasattr(equipment, "_update_state_description"):
+            for pname, p in self.player_manager.players.items():
+                if p.state == "dead":
+                    continue
+                try:
+                    equipment._update_state_description(p)
+                except Exception as e:
+                    logger.warning("[tick] description state update: %s", e)
+
         for pname, p in self.player_manager.players.items():
             if p.state == "dead":
                 continue

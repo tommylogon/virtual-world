@@ -18,6 +18,25 @@ INTRINSIC_ABILITY_TAGS = frozenset(
 )
 
 
+# task-210/486: conditions that are outwardly visible and therefore belong in an
+# appearance description. Keys are condition ids; values are phrases rendered as
+# "<name>'s <phrase>". Shared between the description prompt block and the
+# appearance-state fingerprint (``_get_state_hash``), so adding a visible
+# condition here automatically makes it trigger regeneration.
+VISIBLE_BODY_STATE_PHRASES = {
+    'blushing': 'cheeks are flushed',
+    'nipple_hard': 'nipples press visibly against the fabric',
+    'wetness': 'a telltale wet sheen',
+    'aroused': 'a visible flush and quickened breathing',
+    'highly_aroused': 'visibly trembling, skin flushed',
+    'frantic': 'openly desperate, barely keeping composure',
+    'satisfied': 'languid and deeply relaxed',
+    'overstimulated': 'twitching at the slightest touch',
+    'hypothermia': 'pale and shivering violently',
+    'goosebumps': 'goosebumps stand out on their skin',
+}
+
+
 class EquipmentSystem:
     """Manages equipment on body slots for all players."""
 
@@ -627,6 +646,63 @@ class EquipmentSystem:
             return
         self._update_equipment_description(player)
 
+    def _get_state_hash(self, player) -> str:
+        """Fingerprint the appearance-relevant state of *player* (task-486).
+
+        Covers exactly what ``_update_equipment_description`` renders: the
+        equipped stacks (slot, item id, its live ``current_state``), whether the
+        body-state block is enabled (``world.mature_content``), the visible
+        conditions present, and each body region's sensitivity. Two equal
+        hashes mean regenerating would produce the same text, so the caller can
+        skip the work.
+        """
+        equip = []
+        for slot, stack in sorted((getattr(player, 'equipped', None) or {}).items()):
+            for item_id in stack:
+                if not item_id or self._is_marker(item_id):
+                    continue
+                node = self.graph.get_node(item_id)
+                if node is None:
+                    continue
+                props = node.properties or {}
+                equip.append((slot, item_id, str(props.get('current_state', '') or '')))
+        world = getattr(self, 'world', None)
+        mature = bool(world is not None and getattr(world, 'mature_content', False))
+        conditions = tuple(sorted(
+            cid for cid in (getattr(player, 'conditions', None) or {})
+            if cid in VISIBLE_BODY_STATE_PHRASES
+        ))
+        body_state = tuple(sorted(
+            (region, round(float(state.get('sensitivity', 0.0) or 0.0), 3))
+            for region, state in (getattr(player, 'body_state', None) or {}).items()
+            if isinstance(state, dict)
+        ))
+        return repr((tuple(equip), mature, conditions, body_state))
+
+    def _update_state_description(self, player) -> bool:
+        """Regenerate ``player.description`` when visible state changed (task-486).
+
+        The equip/unequip paths call the description builder directly; this is
+        the reconciliation hook for every *other* path that can change how a
+        character looks — conditions applied or expired, ``body_state`` edits,
+        and conditions mutated through direct ``player.conditions`` dict writes.
+        It is called once per character per turn by the tick manager and by the
+        conditions system on apply/remove.
+
+        Guarded by ``world.auto_generate_descriptions`` and hash-guarded by
+        ``_get_state_hash`` so nothing is rebuilt while the appearance is
+        unchanged. Returns ``True`` when the description was rebuilt.
+        """
+        if player is None:
+            return False
+        if self.world is not None and not getattr(self.world, 'auto_generate_descriptions', True):
+            return False
+        state_hash = self._get_state_hash(player)
+        if getattr(player, '_description_state_hash', None) == state_hash:
+            return False
+        self._update_equipment_description(player)
+        return True
+
     def _body_state_description_lines(self, player):
         """task-210: visible body-state bullets for the description prompt.
 
@@ -637,20 +713,8 @@ class EquipmentSystem:
         world = getattr(self, 'world', None)
         if world is None or not getattr(world, 'mature_content', False):
             return []
-        visible = {
-            'blushing': 'cheeks are flushed',
-            'nipple_hard': 'nipples press visibly against the fabric',
-            'wetness': 'a telltale wet sheen',
-            'aroused': 'a visible flush and quickened breathing',
-            'highly_aroused': 'visibly trembling, skin flushed',
-            'frantic': 'openly desperate, barely keeping composure',
-            'satisfied': 'languid and deeply relaxed',
-            'overstimulated': 'twitching at the slightest touch',
-            'hypothermia': 'pale and shivering violently',
-            'goosebumps': 'goosebumps stand out on their skin',
-        }
         lines = []
-        for cid, phrase in visible.items():
+        for cid, phrase in VISIBLE_BODY_STATE_PHRASES.items():
             if cid in (player.conditions or {}):
                 lines.append(f"- {player.name}'s {phrase}")
         return lines
@@ -813,6 +877,10 @@ class EquipmentSystem:
             clause = clause.replace(f"{player.name}'s ", "Their ")
             parts.append(clause.rstrip('.') + ".")
         player.description = '\n'.join(parts)
+        # task-486: remember what this description was built from, so the
+        # per-turn reconciliation hook can skip regenerating until the
+        # appearance-relevant state actually changes.
+        player._description_state_hash = self._get_state_hash(player)
 
     def update_equipment_description(self, player):
         return self._update_equipment_description(player)

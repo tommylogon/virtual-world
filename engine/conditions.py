@@ -261,6 +261,23 @@ class ConditionsSystem:
                 self.gs.item_actions.drop_held_items(self.gs, player_name)
             except Exception:
                 pass
+        # task-486: a visible condition changes how the character looks, so
+        # refresh the stored appearance description right away (hash-guarded).
+        self._refresh_description(player)
+
+    def _refresh_description(self, player):
+        """Best-effort appearance-description refresh after a condition change.
+
+        Skills/locks/combat apply conditions on many paths, so this must never
+        raise into them — the per-turn tick reconciliation is the safety net.
+        """
+        equipment = getattr(self.gs, "equipment", None)
+        if equipment is None or not hasattr(equipment, "_update_state_description"):
+            return
+        try:
+            equipment._update_state_description(player)
+        except Exception:
+            pass
 
     def _effective_drops(self, player, condition: str) -> bool:
         """Effective ``drops_held_items`` for a condition (instance override wins)."""
@@ -275,6 +292,8 @@ class ConditionsSystem:
         if not player:
             return
         player.remove_condition(condition)
+        # task-486: removal can also change appearance (e.g. blushing fades).
+        self._refresh_description(player)
 
     def has_condition(self, player_name: str, condition: str) -> bool:
         """Check if a player has a condition (any instance present)."""
