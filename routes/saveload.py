@@ -8,7 +8,7 @@ from virtual_world_engine import VirtualWorld
 from logger import setup_logger
 from player import Player
 from graph import Node, Edge
-from .helpers import _save_game, SAVES_DIR
+from .helpers import _save_game, save_autosave, SAVES_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +47,29 @@ def _restore_snapshot(app, state, source):
     if not app.config.get('TESTING'):
         from .helpers import save_autosave
         save_autosave(app.world)
+
+
+def _adopt_loaded_world(app, data, *, autosave=True):
+    """Make a freshly loaded world a runtime snapshot, not a scenario source.
+
+    Must be called after ``world.load_from_dict(data)``. A savegame (or any
+    runtime snapshot) is not a writable scenario: if the world keeps the
+    previously open scenario's ``_scenario_source``, a later Commit writes the
+    loaded state into *that* file and destroys its authored content (bug-41).
+    So adopting a load always clears the source, names the world from the
+    payload (never the stale scenario), and starts the dirty-dot sequence clean.
+
+    ``autosave`` refreshes the boot autosave so a server restart restores the
+    loaded state; pass ``False`` for ephemeral loads (tests, MCP import, "New
+    Scenario") that must not write to disk.
+    """
+    world = app.world
+    world._scenario_source = None
+    world._scenario_name = data.get('_scenario_name') or data.get('name') or ''
+    world._commit_seq = getattr(world, '_edit_seq', 0)
+    if autosave and not app.config.get('TESTING'):
+        save_autosave(world)
+    return world
 
 
 def _safe_save_path(saves_dir, filename):
@@ -89,9 +112,11 @@ def register_saveload_routes(app):
             start = time.time()
             _push_undo_snapshot(app, label=f"load{' savegame' if '_save_metadata' in data else ' scenario'} <{data.get('_scenario_name') or data.get('name') or 'unnamed'}>")
             app.world.load_from_dict(data)
-            # Save game loads (have _save_metadata) clear the scenario source
+            # A savegame is a runtime snapshot: adopt it (clear the scenario
+            # source, name it from the payload, refresh the autosave) so a later
+            # Commit cannot overwrite the previously open scenario (bug-41).
             if "_save_metadata" in data:
-                app.world._scenario_source = None
+                _adopt_loaded_world(app, data)
             elif data.get('persist'):
                 # GUI scenario loads opt IN with persist:true — write the source
                 # file to scenarios/ so Save Scenario works. Ephemeral loads
@@ -113,9 +138,7 @@ def register_saveload_routes(app):
                 # Ephemeral load (no persist flag): the world is replaced in
                 # memory but nothing is written to scenarios/. Reset falls back
                 # to the boot template.
-                app.world._scenario_source = None
-                app.world._scenario_name = data.get('_scenario_name') or data.get('name') or ''
-                app.world._commit_seq = getattr(app.world, '_edit_seq', 0)
+                _adopt_loaded_world(app, data, autosave=False)
             elapsed = (time.time() - start) * 1000
             logger.info(f"World loaded in {elapsed:.0f} ms")
             return jsonify({"status": "success"})
@@ -339,6 +362,7 @@ def register_saveload_routes(app):
                 data = json.load(f)
             _push_undo_snapshot(app, label=f"load savegame <{filename}>")
             app.world.load_from_dict(data)
+            _adopt_loaded_world(app, data)
             return jsonify({"status": "success"})
         except Exception as e:
             return jsonify({"error": f"Could not load save: {e}"}), 500

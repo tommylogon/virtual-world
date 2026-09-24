@@ -236,3 +236,62 @@ class TestDeleteAllSaves:
         resp = client.post('/api/save-games/delete-all', json={})
         assert resp.status_code == 200
         assert resp.get_json()['deleted'] == []
+
+
+class TestLoadGameAdoption:
+    """bug-41: a loaded savegame must not inherit the previously open scenario.
+
+    Otherwise a later Commit writes the loaded runtime state into the stale
+    scenario's file and destroys its authored content.
+    """
+
+    def test_load_game_clears_the_stale_scenario_source(self, app, client):
+        world = _world(app)
+        world._scenario_source = '/some/stale/scenario.json'
+        filename = _save_game(world, "bug41 source")
+        resp = client.post(f'/api/load-game/{filename}')
+        assert resp.status_code == 200
+        assert world._scenario_source is None
+
+    def test_load_game_names_the_world_from_the_payload(self, app, client):
+        world = _world(app)
+        world._scenario_name = 'Bug41 Camp'
+        filename = _save_game(world, "bug41 name")
+        # A different, previously open scenario must not leak its name in.
+        world._scenario_name = 'Stale Scenario'
+        world._scenario_source = '/some/stale/scenario.json'
+        client.post(f'/api/load-game/{filename}')
+        assert world._scenario_name == 'Bug41 Camp'
+        assert world._scenario_source is None
+
+    def test_load_game_syncs_the_commit_sequence(self, app, client):
+        world = _world(app)
+        filename = _save_game(world, "bug41 seq")
+        world._edit_seq = 7
+        world._commit_seq = 0
+        client.post(f'/api/load-game/{filename}')
+        assert world._commit_seq == getattr(world, '_edit_seq', 0)
+
+    def test_api_load_savegame_payload_clears_the_source(self, app, client):
+        world = _world(app)
+        world._scenario_source = '/some/stale/scenario.json'
+        payload = world.to_dict()
+        payload['_save_metadata'] = {'name': 'a savegame'}
+        payload['_scenario_name'] = 'Loaded World'
+        resp = client.post('/api/load', json=payload)
+        assert resp.status_code == 200
+        assert world._scenario_source is None
+        assert world._scenario_name == 'Loaded World'
+
+    def test_adopt_loaded_world_refreshes_the_autosave(self, app, monkeypatch):
+        import routes.saveload as saveload
+        calls = []
+        monkeypatch.setattr(saveload, 'save_autosave', lambda w: calls.append(w))
+        monkeypatch.setitem(app.config, 'TESTING', False)
+
+        saveload._adopt_loaded_world(app, {'_scenario_name': 'X'})
+        assert calls == [app.world]
+
+        saveload._adopt_loaded_world(app, {'_scenario_name': 'X'}, autosave=False)
+        assert calls == [app.world], "ephemeral loads must not write the autosave"
+

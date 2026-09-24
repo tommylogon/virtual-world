@@ -1,6 +1,6 @@
 ---
 type: bug
-status: todo
+status: review
 area: bugs
 priority: high
 ---
@@ -56,14 +56,37 @@ Keep `/api/load`'s existing `persist:true` scenario-load branch unchanged.
 
 ## Acceptance
 
-- [ ] Load a savegame while a scenario is open: `_scenario_source` is `None` and the
+- [x] Load a savegame while a scenario is open: `_scenario_source` is `None` and the
       chip reflects the loaded world, not the stale scenario.
-- [ ] With a stale source previously attached, Commit after a savegame load cannot
-      overwrite any scenario file.
-- [ ] `_commit_seq == _edit_seq` after load, so the dirty dot starts clean.
-- [ ] Restarting the server after a savegame load restores the loaded state.
-- [ ] `POST /api/load` with a `_save_metadata` payload keeps its current behavior
+- [x] With a stale source previously attached, Commit after a savegame load cannot
+      overwrite any scenario file. (The commit target is derived from
+      `_scenario_source`, which is now cleared, so there is nothing to overwrite.)
+- [x] `_commit_seq == _edit_seq` after load, so the dirty dot starts clean.
+- [x] Restarting the server after a savegame load restores the loaded state.
+      (`_adopt_loaded_world` calls `save_autosave` unless `TESTING`.)
+- [x] `POST /api/load` with a `_save_metadata` payload keeps its current behavior
       (source cleared), and the `persist:true` scenario-load branch is untouched.
+
+## Fix — 2026-09-24
+
+One helper, `_adopt_loaded_world(app, data, *, autosave=True)` (`routes/saveload.py`),
+now runs after `load_from_dict` in every runtime-snapshot path:
+
+- clears `world._scenario_source = None`,
+- sets `world._scenario_name` from the payload (never the stale scenario),
+- sets `world._commit_seq = world._edit_seq`,
+- refreshes the boot autosave (`save_autosave`) unless `TESTING`.
+
+Callers: `/api/load`'s `_save_metadata` branch (autosave on) and its ephemeral
+branch (autosave off), and `/api/load-game/<filename>` — so the two routes can no
+longer drift apart (the drift that caused the bug). The `persist:true`
+scenario-load branch is unchanged.
+
+Tests (`tests/test_saveload.py::TestLoadGameAdoption`, 5): stale source cleared on
+load-game; name taken from the payload not the stale scenario; `_commit_seq`
+synced; `/api/load` with `_save_metadata` clears the source; autosave refreshed
+(and *not* written for ephemeral loads).
+
 
 ## Files
 
