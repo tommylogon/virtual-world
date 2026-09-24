@@ -109,6 +109,12 @@ def create_app(config=None):
                         # single PRE-state snapshot; a post-state push here
                         # would make the first Undo a no-op.
                         label = None
+                    elif path == '/api/world/scopes' or path.endswith('/grid') \
+                            or '/grid/' in path:
+                        # task-495: WorldPainter grid handlers push their own
+                        # PRE-state snapshot for the same reason (the post-state
+                        # push here would shadow it and make Undo a no-op).
+                        label = None
                     elif path.startswith('/api/graph/node/') and not path.endswith(('/image', '/rename')):
                         label = f"edited node {path.rsplit('/', 1)[-1]}"
                     elif '/api/graph/' in path:
@@ -168,6 +174,7 @@ def register_routes(app):
     from routes.soak import register_soak_routes
     from routes.population import register_population_routes
     from routes.world_scopes import register_world_scopes_routes
+    from routes.world_grid import register_world_grid_routes
 
 
     register_health_routes(app)
@@ -190,6 +197,7 @@ def register_routes(app):
     register_soak_routes(app)
     register_population_routes(app)
     register_world_scopes_routes(app)
+    register_world_grid_routes(app)
 
 # For running directly (development)
 if __name__ == '__main__':

@@ -64,6 +64,7 @@ const GLOBALS = {
     canonicalizeJSON: 'readonly',
     jsonDeepEqual: 'readonly',
     confirm: 'readonly',
+    Konva: 'readonly',
     // ---- VW namespace ----
     VW: 'readonly',
 }

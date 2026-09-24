@@ -13,6 +13,8 @@ from __future__ import annotations
 
 from typing import Dict, Iterable, List, Optional
 
+from engine import world_grid
+
 SPATIAL_TYPES = {"in", "on", "under", "behind", "beside", "at"}
 
 DEFAULT_KIND = "scope"
@@ -35,6 +37,9 @@ def normalise_manifest(raw) -> Dict[str, dict]:
         rec["children"] = [str(c) for c in (rec.get("children") or [])]
         rec["area_ids"] = [str(a) for a in (rec.get("area_ids") or [])]
         rec["state"] = rec.get("state") or DEFAULT_STATE
+        # task-495: canonicalise any WorldPainter grid fields. A scope that
+        # never had a grid is returned unchanged (no empty containers added).
+        world_grid.normalise_grid(rec)
         manifest[str(scope_id)] = rec
     return manifest
 
@@ -107,15 +112,33 @@ def item_count_in_areas(graph, area_ids: Iterable[str]) -> int:
     return sum(len(_items_in_area(graph, aid)) for aid in set(area_ids))
 
 
+def _endpoint(props, id_key: str, name_key: str, name_to_id: Dict[str, str]) -> str:
+    raw = props.get(id_key) or props.get(name_key)
+    return name_to_id.get(raw, raw)
+
+
+def way_endpoints(node, name_to_id: Dict[str, str]):
+    """Resolve a way node's two area endpoints to ids.
+
+    Prefers the id fields a generator writes (task-496), falling back to the
+    display-name fields hand-authored ways store; either is resolved
+    display-name → id, so both compare correctly.
+    """
+    props = getattr(node, "properties", {}) or {}
+    return (_endpoint(props, "area_from_id", "area_from", name_to_id),
+            _endpoint(props, "area_to_id", "area_to", name_to_id))
+
+
 def boundary_ways(graph, area_ids: Iterable[str]) -> List[dict]:
     """Ways with one endpoint inside the scope and one outside."""
     area_ids = set(area_ids)
+    name_to_id = _area_name_to_id(graph)
+
     out = []
     for node_id, node in graph.nodes.items():
         if getattr(node, "type", "") != "way":
             continue
-        props = node.properties
-        a, b = props.get("area_from"), props.get("area_to")
+        a, b = way_endpoints(node, name_to_id)
         inside = {x for x in (a, b) if x in area_ids}
         if len(inside) != 1:
             continue
@@ -203,3 +226,81 @@ def project(manifest: Dict[str, dict], graph, players, scope_id: str,
         result["nodes"] = nodes
         result["edges"] = edges
     return result
+
+
+def flat_scopes(manifest: Dict[str, dict], graph, players) -> List[dict]:
+    """Depth-first scope summaries with a ``depth`` field, for a scope picker.
+
+    Cycle-safe: a scope is emitted at most once, so a malformed manifest whose
+    parent links loop cannot hang the picker.
+    """
+    out: List[dict] = []
+    seen: set = set()
+
+    def walk(scope_id: str, depth: int):
+        if scope_id in seen or scope_id not in manifest:
+            return
+        seen.add(scope_id)
+        out.append({**scope_summary(manifest, graph, players, scope_id),
+                    "depth": depth})
+        for child in direct_child_ids(manifest, scope_id):
+            walk(child, depth + 1)
+
+    for root_id in root_scope_ids(manifest):
+        walk(root_id, 0)
+    return out
+
+
+def project_subgraph(manifest: Dict[str, dict], graph, players, scope_id: str,
+                     include_items: bool = True) -> dict:
+    """A vis-loadable subgraph for one scope (task-397 step 3).
+
+    Returns ``{nodes, edges}`` in the same shapes as ``WorldGraph.to_dict`` —
+    ``nodes`` keyed by id, ``edges`` a list — so the graph view can load a
+    scope's slice instead of the whole world. That is what keeps a densely
+    painted WorldPainter world from freezing the canvas: the browser never
+    receives nodes outside the requested scope (task-400).
+
+    Membership is recursive over the scope's descendants:
+
+    - every ``area`` in the scope;
+    - a ``way`` whose **both** endpoints resolve inside the scope;
+    - a ``character``/``player`` standing in an included area;
+    - an ``item`` attached to an included area, when ``include_items`` is true.
+
+    Only edges with both endpoints included are emitted, so no edge ever
+    dangles to a node the browser never received.
+    """
+    area_ids = area_ids_in_scope(manifest, graph, scope_id)
+    name_to_id = _area_name_to_id(graph)
+    included: set = set()
+    nodes: Dict[str, dict] = {}
+
+    def add(node):
+        if node is None or node.id in included:
+            return
+        included.add(node.id)
+        nodes[node.id] = node.to_dict()
+
+    for node in graph.nodes.values():
+        if getattr(node, "type", "") == "area" and node.id in area_ids:
+            add(node)
+
+    for node in graph.nodes.values():
+        if getattr(node, "type", "") != "way":
+            continue
+        a, b = way_endpoints(node, name_to_id)
+        if a in area_ids and b in area_ids:
+            add(node)
+
+    for node in graph.nodes.values():
+        ntype = getattr(node, "type", "")
+        if ntype in ("character", "player") or (include_items and ntype == "item"):
+            for edge in graph.get_edges_for_source(node.id):
+                if getattr(edge, "type", "") in SPATIAL_TYPES and edge.target in area_ids:
+                    add(node)
+                    break
+
+    edges = [e.to_dict() for e in graph.edges
+             if e.source in included and e.target in included]
+    return {"nodes": nodes, "edges": edges}

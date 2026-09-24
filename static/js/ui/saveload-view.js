@@ -498,6 +498,12 @@ window.SaveLoadView = (() => {
             events.log('📂 Game loaded: ' + filename, 'system-msg');
             events.clearAll();
             agent.reset();
+            // A loaded world has its own scopes: drop the stale graph scope
+            // pick and rebuild the picker (task-397).
+            if (typeof graphManager !== 'undefined' && graphManager) {
+                graphManager._scopeFilter = null;
+                graphManager.loadScopeFilterOptions();
+            }
             worldState.fetch();
             var modal = document.getElementById('load-game-modal');
             if (modal) modal.style.display = 'none';

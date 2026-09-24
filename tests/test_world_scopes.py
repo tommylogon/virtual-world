@@ -105,6 +105,44 @@ def test_project_leaf_include_items_emits_spatial_nodes():
             "type": "in", "properties": {}} in out["edges"]
 
 
+def test_project_subgraph_keeps_only_scope_members():
+    m = world_scopes.normalise_manifest(MANIFEST)
+    out = world_scopes.project_subgraph(m, _graph(), _players(), "apartment_3b")
+    # Only the leaf area is inside; the hallway way crosses the boundary.
+    assert set(out["nodes"]) == {"area_3b_living", "item_sofa"}
+    assert out["edges"] == [{"source": "item_sofa", "target": "area_3b_living",
+                             "type": "in", "properties": {}}]
+
+
+def test_project_subgraph_recurses_and_keeps_interior_ways():
+    m = world_scopes.normalise_manifest(MANIFEST)
+    out = world_scopes.project_subgraph(m, _graph(), _players(), "the_pines")
+    assert {"area_hall3", "area_3b_living", "way_hall3_3b"} <= set(out["nodes"])
+    # A way with one endpoint outside the scope is a boundary way, not a member.
+    assert "way_outside" not in out["nodes"]
+    # No edge may dangle to a node the caller never received.
+    for edge in out["edges"]:
+        assert edge["source"] in out["nodes"]
+        assert edge["target"] in out["nodes"]
+
+
+def test_project_subgraph_respects_include_items():
+    m = world_scopes.normalise_manifest(MANIFEST)
+    out = world_scopes.project_subgraph(m, _graph(), _players(), "apartment_3b",
+                                        include_items=False)
+    assert "item_sofa" not in out["nodes"]
+    assert out["edges"] == []
+
+
+def test_flat_scopes_lists_depth_first_with_depth():
+    m = world_scopes.normalise_manifest(MANIFEST)
+    flat = world_scopes.flat_scopes(m, _graph(), _players())
+    by_id = {s["id"]: s["depth"] for s in flat}
+    assert by_id["millbrook_falls"] == 0
+    assert by_id["the_pines"] == 2
+    assert by_id["apartment_3b"] == 4
+
+
 def test_missing_manifest_is_safe():
     m = world_scopes.normalise_manifest(None)
     out = world_scopes.project(m, _graph(), _players(), "root")
@@ -129,6 +167,15 @@ def test_route_scope_endpoints(tmp_path):
     graph_view = client.get(
         "/api/world/scopes/apartment_3b/graph?include_items=1").get_json()
     assert [a["id"] for a in graph_view["areas"]] == ["area_3b_living"]
+
+    flat = client.get("/api/world/scopes?flat=1").get_json()
+    assert flat["scopes"][0]["id"] == "millbrook_falls"
+
+    sub = client.get("/api/world/scopes/apartment_3b/subgraph").get_json()
+    assert sub["scope"]["id"] == "apartment_3b"
+    assert set(sub["nodes"]) == {"area_3b_living"}
+
+    assert client.get("/api/world/scopes/nope/subgraph").status_code == 404
 
     assert client.get("/api/world/scopes/nope").status_code == 404
 

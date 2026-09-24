@@ -64,6 +64,7 @@ window.GraphNetwork = {
         });
 
         await GraphNetwork.loadGraphData();
+        await graphManager.loadScopeFilterOptions();
         setTimeout(() => GraphNetwork.fitView(), 100);
     },
 
@@ -173,8 +174,31 @@ window.GraphNetwork = {
     async loadGraphData() {
         if (!graphManager.network) return;
         try {
-            const nodesObj = await ApiClient.getGraphNodes();
-            const edgesArr = await ApiClient.getGraphEdges();
+            // A selected scope loads only that scope's slice (areas + ways +
+            // characters, items optional); without one the whole world loads.
+            // Loading one scope at a time is what keeps a densely painted
+            // WorldPainter world from freezing the canvas — the browser never
+            // receives nodes outside the scope (task-397 step 3 / task-400).
+            const scopeId = graphManager._scopeFilter || null;
+            let nodesObj, edgesArr;
+            if (scopeId) {
+                try {
+                    const sub = await ApiClient.getScopeSubgraph(scopeId, true);
+                    nodesObj = sub.nodes || {};
+                    edgesArr = sub.edges || [];
+                } catch (err) {
+                    // Stale selection (e.g. after a scenario load): drop it and
+                    // fall back to the whole world rather than showing nothing.
+                    graphManager._scopeFilter = null;
+                    const sel = document.getElementById('graph-scope-filter');
+                    if (sel) sel.value = '';
+                    nodesObj = await ApiClient.getGraphNodes();
+                    edgesArr = await ApiClient.getGraphEdges();
+                }
+            } else {
+                nodesObj = await ApiClient.getGraphNodes();
+                edgesArr = await ApiClient.getGraphEdges();
+            }
 
             // Skip reload if graph structure hasn't changed (avoids jitter on tick updates).
             // The signature must include the RESOLVED character avatar (current
@@ -194,7 +218,7 @@ window.GraphNetwork = {
                 .map(edgeObj => `${edgeObj.source}:${edgeObj.target}:${edgeObj.type}:${edgeObj.properties?.description || ''}`)
                 .sort()
                 .join('|');
-            const sig = `${nodeSig}|${edgeSig}`;
+            const sig = `${graphManager._scopeFilter || '*'}|${nodeSig}|${edgeSig}`;
             if (sig === graphManager._lastSig) return;
             graphManager._lastSig = sig;
 

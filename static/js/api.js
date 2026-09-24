@@ -194,6 +194,22 @@ class ApiClient {
         return resp.json();
     }
 
+    /** World scope cards. `flat=true` returns every scope depth-first with a
+     *  `depth` field, for the graph view's scope picker (task-397). */
+    static async getWorldScopes(flat = false) {
+        const resp = await fetch(`/api/world/scopes${flat ? '?flat=1' : ''}`);
+        return resp.json();
+    }
+
+    /** One scope's vis-loadable subgraph ({nodes, edges}) — the graph view
+     *  loads this instead of the whole world when a scope is selected. */
+    static async getScopeSubgraph(scopeId, includeItems = true) {
+        const resp = await fetch(
+            `/api/world/scopes/${encodeURIComponent(scopeId)}/subgraph?include_items=${includeItems ? 1 : 0}`);
+        if (!resp.ok) throw new Error(`scope subgraph failed: ${resp.status}`);
+        return resp.json();
+    }
+
     static async updateNode(nodeId, data) {
         const resp = await fetch(`/api/graph/node/${encodeURIComponent(nodeId)}`, {
             method: 'PATCH',

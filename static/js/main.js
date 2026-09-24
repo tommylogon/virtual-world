@@ -57,8 +57,12 @@ const mainJsTag = (strings, ...values) => window.Lit.html(strings, ...values);
     VW.inspector = inspector;
     VW.libraryBrowser = libraryBrowser;
 VW.worldSync = worldSync;
-    VW.agentLens = agentLens;
-    VW.humanTurnComposer = HumanTurnComposer;
+VW.agentLens = agentLens;
+VW.humanTurnComposer = HumanTurnComposer;
+// WorldPainter (task-495): bare globals defined before this bootstrap.
+VW.gridModel = window.gridModel;
+VW.worldPainter = window.worldPainter;
+VW.structures = window.structures;
 })();
 
 // ─────────────────────────────────────────────────────────────────────────────

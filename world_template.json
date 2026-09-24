@@ -1,5 +1,5 @@
 {
-  "current_area": "Frozen Thicket",
+  "current_area": "Blizzard Forest Clearing",
   "players_in_area": [],
   "area_presence": {},
   "players": {
@@ -1417,7 +1417,7 @@
       "spatial_position": null
     }
   },
-  "active_player": "Lyrie",
+  "active_player": "Kaelen Voss",
   "game_time": "08:00:00",
   "time_ticks": 0,
   "time_per_tick_minutes": 5,
@@ -10837,19 +10837,7 @@
         "properties": {}
       },
       {
-        "source": "player_Kaelen_Voss",
-        "target": "area_blizzard_forest_clearing",
-        "type": "in",
-        "properties": {}
-      },
-      {
         "source": "item_weathered_trail_sign_rkty",
-        "target": "area_frozen_thicket",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Lyrie",
         "target": "area_frozen_thicket",
         "type": "in",
         "properties": {}
@@ -10929,6 +10917,18 @@
           "success_message": "",
           "fail_message": ""
         }
+      },
+      {
+        "source": "player_Lyrie",
+        "target": "area_frozen_thicket",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Kaelen_Voss",
+        "target": "area_blizzard_forest_clearing",
+        "type": "in",
+        "properties": {}
       }
     ]
   },

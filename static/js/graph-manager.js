@@ -19,6 +19,7 @@ class GraphManager {
         this.nodes = new Map();
         this._contextTarget = null;
         this._lastSig = '';          // hash to skip redundant reloads
+        this._scopeFilter = null;    // task-397: load one world scope at a time
         this._physicsEnabled = true;
         this._legendEl = null;
         this._searchQuery = '';
@@ -177,6 +178,45 @@ class GraphManager {
     }
 
     _buildOptions() { return GraphNetwork.buildOptions(); }
+
+    /**
+     * Populate the graph view's scope picker (task-397 step 4). Safe to call
+     * repeatedly: it preserves the current selection. Options are indented by
+     * `depth` so the world's zone hierarchy reads as a tree.
+     */
+    async loadScopeFilterOptions() {
+        const sel = document.getElementById('graph-scope-filter');
+        if (!sel) return;
+        const current = this._scopeFilter || '';
+        try {
+            const data = await ApiClient.getWorldScopes(true);
+            sel.innerHTML = '';
+            const wholeWorld = document.createElement('option');
+            wholeWorld.value = '';
+            wholeWorld.textContent = '🌍 Whole world';
+            sel.appendChild(wholeWorld);
+            for (const scope of data.scopes || []) {
+                const opt = document.createElement('option');
+                opt.value = scope.id;
+                opt.textContent = `${'\u00A0'.repeat((scope.depth || 0) * 2)}${scope.name}`;
+                sel.appendChild(opt);
+            }
+            sel.value = current;
+        } catch (e) {
+            console.warn('Failed to load scope filter options:', e);
+        }
+    }
+
+    /**
+     * Load the graph one world scope at a time (empty id restores the whole
+     * world). A scope loads only its own slice, so a huge painted world never
+     * ships every node to the canvas (task-397 / task-400).
+     */
+    setScopeFilter(scopeId) {
+        this._scopeFilter = scopeId || null;
+        this._lastSig = '';
+        this.loadGraphData();
+    }
 
     toggleCardinalLayout() {
         this._cardinalLayout = !this._cardinalLayout;

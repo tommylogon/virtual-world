@@ -16,8 +16,14 @@ def _parts(app):
 
 
 def handle_scopes_root(app):
-    """GET /api/world/scopes — top-level scope cards."""
+    """GET /api/world/scopes — top-level scope cards.
+
+    ``?flat=1`` returns every scope depth-first with a ``depth`` field, which is
+    what the graph view's scope picker needs (task-397 step 4).
+    """
     manifest, graph, players = _parts(app)
+    if str(request.args.get("flat", "")).lower() in ("1", "true", "yes"):
+        return jsonify({"scopes": world_scopes.flat_scopes(manifest, graph, players)})
     return jsonify(world_scopes.project(manifest, graph, players, "root"))
 
 
@@ -41,6 +47,26 @@ def handle_scope_graph(app, scope_id):
     include_items = str(request.args.get("include_items", "")).lower() in ("1", "true", "yes")
     return jsonify(world_scopes.project(manifest, graph, players, scope_id,
                                         depth=max(0, depth), include_items=include_items))
+
+
+def handle_scope_subgraph(app, scope_id):
+    """GET /api/world/scopes/<scope_id>/subgraph?include_items= — vis subgraph.
+
+    The graph view loads this instead of the whole-world ``/api/graph/*`` when a
+    scope is selected, so a huge painted world never ships every node to the
+    browser (task-397 step 3 / task-400). Shape matches ``WorldGraph.to_dict``,
+    plus the scope summary for the breadcrumb.
+    """
+    manifest, graph, players = _parts(app)
+    if scope_id not in manifest:
+        return jsonify({"error": f"Scope '{scope_id}' not found"}), 404
+    include_items = str(request.args.get("include_items", "1")).lower() not in (
+        "0", "false", "no")
+    sub = world_scopes.project_subgraph(manifest, graph, players, scope_id,
+                                        include_items=include_items)
+    return jsonify({"scope": world_scopes.scope_summary(manifest, graph, players,
+                                                        scope_id),
+                    **sub})
 
 
 def handle_scope_observe(app, scope_id):
