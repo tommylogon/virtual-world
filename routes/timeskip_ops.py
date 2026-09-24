@@ -15,10 +15,33 @@ from engine import soak, timeskip
 
 logger = logging.getLogger(__name__)
 
-#: A synchronous request must not hold a worker for a whole game week. Longer
-#: spans need the soak-runner-style job (task-464 follow-up); the engine itself
-#: supports up to timeskip.MAX_MINUTES.
+#: A synchronous request runs a long span in chunks of this many minutes, so a
+#: worker never holds one blocking `advance` for a whole game week at once. The
+#: request ceiling is the engine's own `timeskip.MAX_MINUTES` (one in-game week).
 MAX_REQUEST_MINUTES = 1440
+
+
+def _merge_results(results):
+    """Collapse chunked fast-path results into the last result's envelope."""
+    if not results:
+        return None
+    if len(results) == 1:
+        return results[0]
+    first, last = results[0], results[-1]
+    last.requested_minutes = sum(r.requested_minutes for r in results)
+    last.elapsed_minutes = sum(r.elapsed_minutes for r in results)
+    last.ticks = sum(r.ticks for r in results)
+    last.ok = all(r.ok for r in results)
+    last.interrupted = any(r.interrupted for r in results)
+    if not last.vitals_before:
+        last.vitals_before = first.vitals_before
+    lines = []
+    for r in results:
+        lines.extend(r.lines or [])
+    last.lines = lines[-50:]
+    if not last.reason:
+        last.reason = next((r.reason for r in results if r.reason), "")
+    return last
 
 
 def _requested_minutes(world, data):
@@ -66,32 +89,53 @@ def handle_timeskip(app):
         return jsonify({"error": "Duration must be a number"}), 400
     if requested < timeskip.MIN_MINUTES:
         return jsonify({"error": "That is too short"}), 400
-    if requested > MAX_REQUEST_MINUTES:
-        return jsonify({"error": f"Too long for a request (max {MAX_REQUEST_MINUTES} min)",
-                        "max_minutes": MAX_REQUEST_MINUTES}), 400
+    if requested > timeskip.MAX_MINUTES:
+        return jsonify({"error": f"Too long for a request (max {timeskip.MAX_MINUTES} min)",
+                        "max_minutes": timeskip.MAX_MINUTES}), 400
 
     try:
         watch_tags = data.get("watch_tags") or []
         if isinstance(watch_tags, str):
             watch_tags = [watch_tags]
+        total = int(round(requested))
         if player is None:
             # No human/active character: a timeskip is a WORLD advance — intent,
             # target and watch tags have no subject, so everyone simply soaks.
-            result = timeskip.advance_world(world, int(round(requested)))
+            # Long spans run in day-sized chunks (task-482) so a synchronous
+            # request never holds one blocking advance for a whole game week.
+            results, remaining = [], total
+            while remaining > 0:
+                chunk = min(MAX_REQUEST_MINUTES, remaining)
+                outcome = timeskip.advance_world(world, chunk)
+                results.append(outcome)
+                remaining -= chunk
+                if not outcome.ok:
+                    break
+            result = _merge_results(results)
         elif _other_attended_humans(world, player):
             # Shared world: a blocking server jump would freeze the other players
             # (and lock them out while it runs). Attach a soak order to this
-            # character instead and let the normal turn loop carry it.
+            # character instead and let the normal turn loop carry it — the loop
+            # runs the span over many turns, so a week-long order is fine.
             order = soak.declare(
-                player, intent=intent, minutes=int(round(requested)),
+                player, intent=intent, minutes=total,
                 target=target, watch_tags=watch_tags,
                 target_type=data.get("target_type"), heading=data.get("heading"))
             return jsonify({"ok": True, "mode": "soak", "order": order})
         else:
-            result = timeskip.advance(
-                world, int(round(requested)), intent=intent, target=target,
-                watch_tags=watch_tags, target_type=data.get("target_type"),
-                heading=data.get("heading"))
+            results, remaining = [], total
+            while remaining > 0:
+                chunk = min(MAX_REQUEST_MINUTES, remaining)
+                outcome = timeskip.advance(
+                    world, chunk, intent=intent, target=target,
+                    watch_tags=watch_tags, target_type=data.get("target_type"),
+                    heading=data.get("heading"))
+                results.append(outcome)
+                remaining -= chunk
+                # An interrupt hands control back to the player, so stop early.
+                if not outcome.ok or outcome.interrupted:
+                    break
+            result = _merge_results(results)
     except Exception as e:  # never 500 the world on a bad skip
         logger.exception("[timeskip] request failed")
         return jsonify({"error": str(e)}), 400
@@ -134,8 +178,8 @@ def _declared_span(world, player, data, intent):
     span = float(minutes)
     if span < timeskip.MIN_MINUTES:
         raise ValueError("That is too short")
-    if span > MAX_REQUEST_MINUTES:
-        raise ValueError(f"Too long for a request (max {MAX_REQUEST_MINUTES} min)")
+    if span > timeskip.MAX_MINUTES:
+        raise ValueError(f"Too long for an order (max {timeskip.MAX_MINUTES} min)")
     return int(round(span))
 
 

@@ -455,6 +455,30 @@ def test_timeskip_route_rejects_oversize():
     assert resp.status_code == 400
 
 
+def test_timeskip_route_runs_a_long_span_in_chunks():
+    """task-482: spans past one day run as chunked blocking advances."""
+    from app import create_app
+    app = create_app({"TESTING": True})
+    app.world.time_per_tick_minutes = 60  # keep the tick count small
+    # No active character → a world advance: no interrupts end the span early,
+    # so the full two days must actually elapse.
+    app.world.player_manager.active_player = None
+    client = app.test_client()
+
+    resp = client.post("/api/world/timeskip", json={"intent": "idle", "minutes": 2880})
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["ok"] and data["elapsed_minutes"] == 2880
+    assert data["requested_minutes"] == 2880
+
+
+def test_timeskip_route_rejects_beyond_a_week():
+    client = _client()
+    resp = client.post("/api/world/timeskip", json={"intent": "idle", "minutes": 20000})
+    assert resp.status_code == 400
+    assert resp.get_json()["max_minutes"] == 10080
+
+
 def test_timeskip_route_rejects_unknown_until():
     client = _client()
     resp = client.post("/api/world/timeskip", json={"intent": "idle", "until": "tea"})
