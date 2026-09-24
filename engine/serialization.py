@@ -278,6 +278,15 @@ class WorldSerializer:
             p.next_due_tick = int(pdata.get("next_due_tick", 0) or 0)
         except (TypeError, ValueError):
             p.next_due_tick = 0
+        try:
+            p.last_offload_tick = int(pdata.get("last_offload_tick", 0) or 0)
+        except (TypeError, ValueError):
+            p.last_offload_tick = 0
+        try:
+            p.background_consolidated_through = int(
+                pdata.get("background_consolidated_through", 0) or 0)
+        except (TypeError, ValueError):
+            p.background_consolidated_through = 0
         p.body_state = pdata.get("body_state", p.body_state)
         # Merge over the defaults so a save from before the full skill list
         # (task-474) still ends up with every skill on the sheet.

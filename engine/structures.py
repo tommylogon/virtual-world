@@ -393,7 +393,15 @@ def materialize_structure(
             payload = _remap_refs(copy.deepcopy(res.get("player") or {}), id_map)
             payload["name"] = instance_name
             player_obj = world.serializer._deserialize_player(instance_name, payload)
-            player_obj.simulation_mode = payload.get("simulation_mode") or "background"
+            # Residents default to the background tier. Use the promotion seam
+            # (task-399) so the demotion boundary tick is stamped — a later
+            # activation can then summarize exactly the background span.
+            mode = payload.get("simulation_mode") or "background"
+            if mode == "background":
+                from engine import promotion
+                promotion.offload(world, player_obj, reason="materialize")
+            else:
+                player_obj.simulation_mode = mode
             pm.players[instance_name] = player_obj
             anchor_id = pm.get_player_node_id(instance_name)
             if graph.get_node(anchor_id) is None:

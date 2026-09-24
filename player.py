@@ -291,6 +291,14 @@ class Player:
         # them, so background work is event-scheduled, not a per-tick scan.
         self.simulation_mode = "active"
         self.next_due_tick = 0
+        # Promotion/demotion bookkeeping (task-399). `last_offload_tick` is when
+        # the character was demoted to background, so promotion summarizes only
+        # the background span and never a foreground action. `background_
+        # consolidated_through` is the tick through which that trace has already
+        # been turned into a bounded `background` memory, so repeated activation
+        # cannot duplicate it. See engine/promotion.py.
+        self.last_offload_tick = 0
+        self.background_consolidated_through = 0
 
         self.sync_vitals_with_tags()
 
@@ -1010,6 +1018,9 @@ class Player:
             "trace": [dict(e) for e in getattr(self, "trace_log", [])],
             "simulation_mode": getattr(self, "simulation_mode", "active"),
             "next_due_tick": int(getattr(self, "next_due_tick", 0)),
+            "last_offload_tick": int(getattr(self, "last_offload_tick", 0)),
+            "background_consolidated_through": int(
+                getattr(self, "background_consolidated_through", 0)),
         }
 
     def _relationships_to_dict(self):
