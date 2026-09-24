@@ -1,0 +1,381 @@
+{
+  "version": 1,
+  "biomes": {
+    "sparse_forest": {
+      "name": "Sparse Forest",
+      "terrain": "forest",
+      "tags": ["forest", "woods"],
+      "forage_skills": ["survival", "perception"],
+      "floor": "dirt",
+      "descriptions": [
+        "Scattered trees open onto patches of grass.",
+        "Thin woodland, easy to walk and hard to hide in."
+      ]
+    },
+    "dense_forest": {
+      "name": "Dense Forest",
+      "terrain": "forest",
+      "tags": ["forest", "woods", "dense"],
+      "forage_skills": ["survival"],
+      "floor": "dirt",
+      "descriptions": [
+        "Close-set trunks swallow the light a few steps in.",
+        "Underbrush claws at the legs with every stride."
+      ]
+    },
+    "pine_forest": {
+      "name": "Pine Forest",
+      "terrain": "forest",
+      "tags": ["forest", "woods", "pine"],
+      "forage_skills": ["survival"],
+      "floor": "pine_needles",
+      "descriptions": [
+        "Straight pines rise from a hush of fallen needles.",
+        "The air smells of resin and cold bark."
+      ]
+    },
+    "hills": {
+      "name": "Hills",
+      "terrain": "rock",
+      "tags": ["hills", "hill"],
+      "forage_skills": ["survival", "perception"],
+      "floor": "grass",
+      "descriptions": [
+        "Rolling ground folds away into shallow valleys.",
+        "Windswept grass over hard, stony soil."
+      ]
+    },
+    "mountains": {
+      "name": "Mountains",
+      "terrain": "rock",
+      "tags": ["mountains", "mountain", "rocky"],
+      "forage_skills": ["survival", "history"],
+      "floor": "stone",
+      "descriptions": [
+        "Bare rock climbs in broken steps toward the peaks.",
+        "Cold stone and thin air, with scree underfoot."
+      ]
+    },
+    "cliff": {
+      "name": "Cliff",
+      "terrain": "rock",
+      "tags": ["cliff", "rocky"],
+      "forage_skills": ["survival"],
+      "floor": "stone",
+      "descriptions": [
+        "The ground ends at a sheer drop.",
+        "A rock face falls away, wind pulling at the edge."
+      ]
+    },
+    "ravine": {
+      "name": "Ravine",
+      "terrain": "rock",
+      "tags": ["ravine", "rocky"],
+      "forage_skills": ["survival", "history"],
+      "floor": "stone",
+      "descriptions": [
+        "A narrow cut in the land, walls close on either side.",
+        "The path threads down through broken rock."
+      ]
+    },
+    "chasm": {
+      "name": "Chasm",
+      "terrain": "rock",
+      "tags": ["chasm", "rocky"],
+      "forage_skills": ["history"],
+      "floor": "stone",
+      "descriptions": [
+        "A crack in the world, too wide to cross and too deep to see.",
+        "Cold air rises from a darkness with no visible bottom."
+      ]
+    },
+    "beach": {
+      "name": "Beach",
+      "terrain": "water",
+      "tags": ["beach", "shore"],
+      "forage_skills": ["survival", "perception"],
+      "floor": "sand",
+      "descriptions": [
+        "Wet sand slopes down to the waterline.",
+        "Driftwood and stranded weed mark the tide line."
+      ]
+    },
+    "lake": {
+      "name": "Lake",
+      "terrain": "water",
+      "tags": ["lake", "water"],
+      "forage_skills": ["survival"],
+      "floor": "shallow_water",
+      "descriptions": [
+        "Still water stretches out, flat and grey.",
+        "Reeds crowd the shallows at the water's edge."
+      ]
+    },
+    "river": {
+      "name": "River",
+      "terrain": "water",
+      "tags": ["river", "water"],
+      "forage_skills": ["survival"],
+      "floor": "shallow_water",
+      "descriptions": [
+        "A current runs steadily between its banks.",
+        "Water hurries over a stony bed."
+      ]
+    },
+    "deep_water": {
+      "name": "Deep Water",
+      "terrain": "water",
+      "tags": ["deep_water", "water", "ocean"],
+      "forage_skills": ["survival"],
+      "floor": "deep_water",
+      "descriptions": [
+        "The bottom drops away into dark, moving water.",
+        "Cold water, too deep to stand in."
+      ]
+    },
+    "ocean": {
+      "name": "Ocean",
+      "terrain": "water",
+      "tags": ["ocean", "water"],
+      "forage_skills": ["survival"],
+      "floor": "deep_water",
+      "descriptions": [
+        "Open water to the horizon, restless and salt-heavy.",
+        "Long swells roll in under a wide sky."
+      ]
+    },
+    "stream": {
+      "name": "Stream",
+      "terrain": "water",
+      "tags": ["stream", "water"],
+      "forage_skills": ["survival"],
+      "floor": "shallow_water",
+      "descriptions": [
+        "A narrow stream chatters over pebbles.",
+        "Shallow water threads between mossy stones."
+      ]
+    },
+    "spring": {
+      "name": "Spring",
+      "terrain": "water",
+      "tags": ["spring", "water"],
+      "forage_skills": ["survival"],
+      "floor": "wet_ground",
+      "descriptions": [
+        "Clear water wells up from the ground, cold and clean.",
+        "A small spring seeps out of the hillside."
+      ]
+    },
+    "farmland": {
+      "name": "Farmland",
+      "terrain": "farm",
+      "tags": ["farmland", "field"],
+      "forage_skills": ["survival", "perception"],
+      "floor": "tilled_soil",
+      "descriptions": [
+        "Tilled rows run to a low boundary hedge.",
+        "Open fields, worked and fenced."
+      ]
+    }
+  },
+  "features": {
+    "road": {
+      "name": "Road",
+      "tags": ["road"],
+      "biomes": ["sparse_forest", "dense_forest", "farmland", "hills"],
+      "descriptions": ["A worn track cut through the land."]
+    },
+    "bridge": {
+      "name": "Bridge",
+      "tags": ["road", "bridge"],
+      "biomes": ["river", "stream", "ravine", "chasm"],
+      "descriptions": ["A span carries the road over the gap."]
+    },
+    "ford": {
+      "name": "Ford",
+      "tags": ["road", "river"],
+      "biomes": ["river", "stream"],
+      "descriptions": ["The road drops through shallow water here."]
+    },
+    "tunnel": {
+      "name": "Tunnel",
+      "tags": ["tunnel", "underground"],
+      "biomes": ["mountains", "hills"],
+      "descriptions": ["A bored passage runs through the rock."]
+    },
+    "town": {
+      "name": "Town",
+      "tags": ["settlement", "town"],
+      "biomes": ["farmland"],
+      "descriptions": ["A dense knot of streets and roofs."]
+    },
+    "village": {
+      "name": "Village",
+      "tags": ["settlement", "village"],
+      "biomes": ["farmland", "sparse_forest"],
+      "descriptions": ["A handful of buildings around a common."]
+    },
+    "building": {
+      "name": "Building",
+      "tags": ["building", "shelter"],
+      "biomes": ["farmland", "sparse_forest", "hills"],
+      "descriptions": ["A single roofed structure with walls and a door."]
+    },
+    "ruin": {
+      "name": "Ruin",
+      "tags": ["ruin", "ruins"],
+      "biomes": ["hills", "mountains", "dense_forest", "farmland"],
+      "descriptions": ["Broken walls half-buried in growth."]
+    },
+    "gate": {
+      "name": "Gate",
+      "tags": ["road", "gate"],
+      "biomes": ["farmland", "hills"],
+      "descriptions": ["A gate bars the road between posts."]
+    }
+  },
+  "resource_distribution": {
+    "sparse_forest": [
+      {"tags": ["berry", "fruit"], "weight": 4},
+      {"tags": ["herb", "medicinal"], "weight": 3},
+      {"tags": ["root", "food"], "weight": 2},
+      {"tags": ["junk", "scrap"], "weight": 1}
+    ],
+    "dense_forest": [
+      {"tags": ["berry", "fruit"], "weight": 3},
+      {"tags": ["herb", "medicinal"], "weight": 3},
+      {"tags": ["root", "food"], "weight": 3},
+      {"tags": ["grub", "bait"], "weight": 2},
+      {"tags": ["junk", "scrap"], "weight": 1}
+    ],
+    "pine_forest": [
+      {"tags": ["root", "food"], "weight": 3},
+      {"tags": ["herb", "medicinal"], "weight": 2},
+      {"tags": ["grub", "bait"], "weight": 2},
+      {"tags": ["junk", "scrap"], "weight": 1}
+    ],
+    "hills": [
+      {"tags": ["herb", "medicinal"], "weight": 3},
+      {"tags": ["root", "food"], "weight": 2},
+      {"tags": ["scrap", "junk"], "weight": 2},
+      {"tags": ["tool"], "weight": 1}
+    ],
+    "mountains": [
+      {"tags": ["scrap", "junk"], "weight": 3},
+      {"tags": ["antique"], "weight": 2},
+      {"tags": ["coin", "currency"], "weight": 2},
+      {"tags": ["junk"], "weight": 1}
+    ],
+    "cliff": [
+      {"tags": ["scrap", "junk"], "weight": 3},
+      {"tags": ["junk"], "weight": 2},
+      {"tags": ["antique"], "weight": 1}
+    ],
+    "ravine": [
+      {"tags": ["antique"], "weight": 3},
+      {"tags": ["scrap", "junk"], "weight": 2},
+      {"tags": ["junk"], "weight": 2}
+    ],
+    "chasm": [
+      {"tags": ["antique"], "weight": 3},
+      {"tags": ["relic", "religious"], "weight": 1},
+      {"tags": ["junk"], "weight": 1}
+    ],
+    "beach": [
+      {"tags": ["scrap", "junk"], "weight": 3},
+      {"tags": ["junk"], "weight": 3},
+      {"tags": ["coin", "currency"], "weight": 1}
+    ],
+    "lake": [
+      {"tags": ["herb", "medicinal"], "weight": 2},
+      {"tags": ["food"], "weight": 1},
+      {"tags": ["junk"], "weight": 2}
+    ],
+    "river": [
+      {"tags": ["herb", "medicinal"], "weight": 2},
+      {"tags": ["food"], "weight": 1},
+      {"tags": ["junk"], "weight": 2}
+    ],
+    "deep_water": [
+      {"tags": ["junk"], "weight": 1}
+    ],
+    "ocean": [
+      {"tags": ["scrap", "junk"], "weight": 2},
+      {"tags": ["junk"], "weight": 2},
+      {"tags": ["coin", "currency"], "weight": 1}
+    ],
+    "stream": [
+      {"tags": ["herb", "medicinal"], "weight": 2},
+      {"tags": ["food"], "weight": 1},
+      {"tags": ["junk"], "weight": 2}
+    ],
+    "spring": [
+      {"tags": ["herb", "medicinal"], "weight": 2},
+      {"tags": ["junk"], "weight": 1}
+    ],
+    "farmland": [
+      {"tags": ["root", "food"], "weight": 3},
+      {"tags": ["berry", "fruit"], "weight": 2},
+      {"tags": ["food"], "weight": 2},
+      {"tags": ["tool"], "weight": 1}
+    ]
+  },
+  "hostile_distribution": {
+    "sparse_forest": [
+      {"kind": "bandit", "base_chance": 0.02, "per_area_from_settlement": 0.01, "max_chance": 0.3},
+      {"kind": "predator", "base_chance": 0.03, "per_area_from_settlement": 0.005, "max_chance": 0.25}
+    ],
+    "dense_forest": [
+      {"kind": "predator", "base_chance": 0.05, "per_area_from_settlement": 0.01, "max_chance": 0.4},
+      {"kind": "monster", "base_chance": 0.01, "per_area_from_settlement": 0.005, "max_chance": 0.15}
+    ],
+    "pine_forest": [
+      {"kind": "predator", "base_chance": 0.04, "per_area_from_settlement": 0.01, "max_chance": 0.35},
+      {"kind": "bandit", "base_chance": 0.01, "per_area_from_settlement": 0.01, "max_chance": 0.2}
+    ],
+    "hills": [
+      {"kind": "bandit", "base_chance": 0.03, "per_area_from_settlement": 0.01, "max_chance": 0.3},
+      {"kind": "predator", "base_chance": 0.02, "per_area_from_settlement": 0.005, "max_chance": 0.2}
+    ],
+    "mountains": [
+      {"kind": "monster", "base_chance": 0.04, "per_area_from_settlement": 0.01, "max_chance": 0.4},
+      {"kind": "predator", "base_chance": 0.03, "per_area_from_settlement": 0.01, "max_chance": 0.3}
+    ],
+    "cliff": [
+      {"kind": "predator", "base_chance": 0.03, "per_area_from_settlement": 0.01, "max_chance": 0.25}
+    ],
+    "ravine": [
+      {"kind": "bandit", "base_chance": 0.03, "per_area_from_settlement": 0.015, "max_chance": 0.35},
+      {"kind": "monster", "base_chance": 0.02, "per_area_from_settlement": 0.01, "max_chance": 0.25}
+    ],
+    "chasm": [
+      {"kind": "monster", "base_chance": 0.05, "per_area_from_settlement": 0.02, "max_chance": 0.5}
+    ],
+    "beach": [
+      {"kind": "predator", "base_chance": 0.02, "per_area_from_settlement": 0.01, "max_chance": 0.2},
+      {"kind": "bandit", "base_chance": 0.01, "per_area_from_settlement": 0.005, "max_chance": 0.15}
+    ],
+    "lake": [
+      {"kind": "predator", "base_chance": 0.02, "per_area_from_settlement": 0.01, "max_chance": 0.2}
+    ],
+    "river": [
+      {"kind": "predator", "base_chance": 0.02, "per_area_from_settlement": 0.01, "max_chance": 0.2}
+    ],
+    "deep_water": [
+      {"kind": "monster", "base_chance": 0.03, "per_area_from_settlement": 0.02, "max_chance": 0.4}
+    ],
+    "ocean": [
+      {"kind": "monster", "base_chance": 0.03, "per_area_from_settlement": 0.02, "max_chance": 0.4}
+    ],
+    "stream": [
+      {"kind": "predator", "base_chance": 0.02, "per_area_from_settlement": 0.01, "max_chance": 0.2}
+    ],
+    "spring": [
+      {"kind": "predator", "base_chance": 0.02, "per_area_from_settlement": 0.01, "max_chance": 0.2}
+    ],
+    "farmland": [
+      {"kind": "bandit", "base_chance": 0.04, "per_area_from_settlement": 0.015, "max_chance": 0.35},
+      {"kind": "predator", "base_chance": 0.01, "per_area_from_settlement": 0.005, "max_chance": 0.15}
+    ]
+  }
+}

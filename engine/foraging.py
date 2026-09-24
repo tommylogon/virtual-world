@@ -84,6 +84,28 @@ AREA_SKILL_BONUS = {
     "shrine": {"religion": 2},
     "road": {"perception": 1, "history": 1},
     "battlefield": {"history": 2},
+    # Natural-biome vocabulary (task-497). WorldPainter biomes reuse these tags
+    # as their area tags, so adding a new biome (task-497) is data-only: the
+    # foraging layer already recognises the tag. None of these are placed by the
+    # existing scenarios, so behaviour is unchanged until a painted world uses
+    # them.
+    "hill": {"survival": 1},
+    "hills": {"survival": 1},
+    "mountain": {"survival": 1},
+    "mountains": {"survival": 1},
+    "rocky": {"history": 1},
+    "cliff": {"survival": 1},
+    "ravine": {"survival": 1},
+    "chasm": {"survival": 1},
+    "beach": {"survival": 1},
+    "lake": {"survival": 1},
+    "river": {"survival": 1},
+    "stream": {"survival": 1},
+    "spring": {"survival": 1},
+    "ocean": {"survival": 1},
+    "deep_water": {"survival": 1},
+    "farmland": {"survival": 1},
+    "field": {"survival": 1},
 }
 
 _LIBRARY_INDEX = None

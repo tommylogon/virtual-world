@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: triggers
 priority: high
 ---
@@ -59,3 +59,40 @@ Evidence: `static/js/shared/trigger-graph.js:1844`, `:1996`, `:2082-2113`.
 - Runtime blueprint materialisation and the blueprint browser — task-442
   slices 1/3.
 - Editor pan/zoom/wire-deletion UX — task-388.
+
+## Progress — 2026-09-24
+
+Implemented in `static/js/shared/trigger-graph.js`; no engine change was needed
+(the condition tree already evaluates `and`/`or`/`not` —
+`engine/triggers/condition_tree.py:655-675`, covered by
+`tests/test_trigger_system.py`).
+
+- **`triggerToGraph` (import)** — no longer keeps only `conditions[0]`: every
+  leaf condition is drawn as a node in the chain. A `fail_message` is drawn as a
+  message effect on the last condition's NO socket, so it round-trips. A
+  condition tree the linear chain cannot draw (OR/NOT, or an AND that nests one
+  — `_treeIsFlat`) is stored on the trigger node as `condition_tree` +
+  `condition_leaves`.
+- **`_traceGraph`** — now also collects NO-branch effects and a `problems` list.
+  A lone NO message becomes `fail_message`; anything else (two effects, or a NO
+  branch that chains another condition) becomes a refusal reason. It no longer
+  borrows one NO message while dropping the rest.
+- **`compileToEngine`** — re-emits a stored `condition_tree` verbatim when the
+  drawn leaves still match it (`_sameShape`, order-insensitive, numeric/string
+  tolerant); if the group's conditions were edited in the graph it **refuses**
+  with `compile_error` rather than flattening to AND. Only sets `fail_message`
+  from a lone NO message. Clean compiles carry no `compile_error`.
+- **Refusal surfacing** — `TG.compileError` / `TG.reportCompileError`, wired into
+  the four save paths (`shared/trigger-graph.js` apply, `item-library.js`,
+  `inspector/trigger-helpers.js`, `shared/trigger-editor.js`), so a refused
+  compile cannot be saved silently.
+- **Tests** — `tools/unit/test_trigger_compile_honesty.js` (7), module loaded in
+  `tools/unit/run.cjs`. Verified: `node tools/unit/run.cjs` 174 passed (13
+  pre-existing `test_plan_tracker.js` failures, confirmed on a clean tree);
+  `node --check` clean; `npm run lint` clean; `npm run typecheck` clean;
+  `python tools/js_module_index.py --check` OK; 208 trigger tests pass.
+
+Deliberately deferred (filed): condition **group nodes** so an imported OR/NOT
+group is editable again instead of refused (task-502); behavior-mode compile
+honesty, where `_traceBehavior`/`compileToBehaviors` still drop NO-branch
+actions (task-503).
