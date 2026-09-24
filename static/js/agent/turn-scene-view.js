@@ -44,6 +44,9 @@ window.TurnSceneView = (() => {
             .tsv-chip.tsv-exit:hover { border-color:#3fae94; background:#152825; }
             .tsv-chip.tsv-person { color:#eec9ff; border-color:#3d2b52; }
             .tsv-chip.tsv-person:hover { border-color:#a86ee0; background:#241a33; }
+            /* Current-emotion profile thumbnail; click opens the big portrait. */
+            .tsv-avatar { width:18px; height:18px; border-radius:50%; object-fit:cover;
+                          border:1px solid #3d2b52; cursor:zoom-in; flex:none; }
             .tsv-chip .tsv-em { font-size:11px; color:#78828e; font-style:italic; }
             .tsv-chip.tsv-shut::before { content:'●'; color:#c96a46; font-size:7px; margin-right:-1px; }
             .tsv-hint { font-size:10.5px; color:#5b6570; margin-top:3px; }
@@ -168,7 +171,13 @@ window.TurnSceneView = (() => {
         // label drafts fine and resolves server-side.
         menus.push({
             label: `Examine ${person.display_name}`,
-            run: () => draftParts({ action: 'examine', target: person.display_name }),
+            run: () => {
+                // "Big overlay on examine": examining a character shows their
+                // live art (current full body, else the profile enlarged) even
+                // when the draft can't be submitted (react phase).
+                if (window.CharacterArt) window.CharacterArt.open({ name: person.display_name, nodeId: person.id });
+                return draftParts({ action: 'examine', target: person.display_name });
+            },
         });
         menus.push({
             label: `Attack ${person.display_name}`,
@@ -351,6 +360,18 @@ window.TurnSceneView = (() => {
             const chip = mkChip(peopleChips, 'tsv-person', p.display_name,
                 (e) => chipClick(e, p.display_name, buildPersonMenu(p)),
                 () => lookLines(scene, 'person', p));
+            const art = window.CharacterArt && window.CharacterArt.artForNodeId(p.id);
+            if (art && art.profile) {
+                const img = document.createElement('img');
+                img.className = 'tsv-avatar';
+                img.src = art.profile;
+                img.alt = '';
+                img.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    window.CharacterArt.open({ name: p.display_name, nodeId: p.id });
+                });
+                chip.insertBefore(img, chip.firstChild);
+            }
             chip.title = '';
         }
 

@@ -384,6 +384,10 @@ window.InspectorHelpers = (() => {
         surprised: '😲', disgusted: '🤢', aroused: '😳', affectionate: '🥰',
         ashamed: '😖', envious: '😒', calm: '😌',
     };
+    // Exposed so the sprite-sheet splitter (SpriteSheet.defaultNames) uses the
+    // same canonical order instead of keeping its own copy in sync.
+    H.EXPRESSION_ORDER = EXPRESSION_ORDER;
+    H.EXPRESSION_ICONS = EXPRESSION_ICONS;
 
     H._exprCache = {};   // nodeId -> props (last rendered)
     H._exprTab = {};     // nodeId -> 'profile' | 'full'
@@ -478,6 +482,9 @@ window.InspectorHelpers = (() => {
             <div style="display:flex;gap:4px;margin-bottom:6px;">
                 ${tab('profile', '🖼 Profile')}
                 ${tab('full', '🧍 Full body')}
+                <span style="flex:1;"></span>
+                <button class="btn btn-sm" title="Slice a grid sprite sheet into one image per expression slot"
+                    onclick="SpriteSheet.openDialog('${escId}','${kind}')">✂️ Split sheet</button>
             </div>
             <div id="expr-grid-${escId}" data-kind="${kind}">
                 ${H._expressionRowsHtml(nodeId, props, kind)}

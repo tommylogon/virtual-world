@@ -119,11 +119,26 @@ Open a character (click them on the graph, or Characters list) — the
 5. To add an action key (for example `attack` or `sleeping`), type it in the
    "add expression" field and press **Add**, then upload. Custom keys are stored
    now; runtime selection of action keys is a future hook.
-6. Use the 🗑 button to remove a slot (this also deletes the file).
+6. Have one image already? Click **✂️ Split sheet** to slice a sheet into one
+   image per slot. Two modes: **Even grid** (set **Columns/Rows** and a **Trim
+   label %** that crops the caption banner off each tile) for a regular sheet,
+   and **Draw boxes** (drag a rectangle over each panel) for art packs whose
+   panels are not a uniform grid — turnarounds, magic poses, action rows. The
+   target **Profile / Full body** tab is chosen in the dialog; the names field /
+   box names map tiles to expression keys and default to the canonical emotion
+   order (then `slotN`), so edit them when your sheet uses, say, `excited` or
+   `walking`. The preview shows the grid/cut line or your boxes before upload.
+7. Use the 🗑 button to remove a slot (this also deletes the file).
 
 The pack is saved with the character: "Save Character to Library" includes it,
 and spawning/importing the character brings the images back. See
 [[Characters/Character Images & Expression Packs]] for the data model and API.
+
+The character's **graph node** and the **"People here" chips** in the turn
+composer show their current-emotion **profile** (via
+`static/js/character-art.js`); clicking a chip's avatar — or **Examine**-ing a
+character — opens a big portrait (current full body if set, else the profile
+enlarged).
 
 ### Way View (`InspectorWayView`)
 

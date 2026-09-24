@@ -53,6 +53,9 @@ window.HumanTurnComposer = (() => {
     let _jsonText = '';
     let _scene = null;
     let _pendingConfirm = null;
+    // Set when the committed action examines a person; consumed by the react
+    // phase to open that character's portrait (CharacterArt.open).
+    let _pendingPortrait = null;
 
     const STYLE_ID = 'htc-styles';
 
@@ -544,9 +547,23 @@ window.HumanTurnComposer = (() => {
         }
     }
 
+    /**
+     * If a committed action examines someone in the room, return that person's
+     * {name, nodeId} so the react phase can show their portrait. The examine
+     * target is the free-text rest of the command, matched against the scene's
+     * displayed names ("the woman" for a stranger, the real name once met).
+     */
+    function _portraitForAction(payload) {
+        if (!payload || payload.action !== 'examine' || !_scene) return null;
+        const target = String(payload.item || payload.target || '').trim().toLowerCase();
+        if (!target) return null;
+        const person = (_scene.people || []).find(
+            (p) => String(p.display_name || '').toLowerCase() === target);
+        return person ? { name: person.display_name, nodeId: person.id } : null;
+    }
+
     /** Draft fill entry point for scene menus + the You strip. */
-    function applyDraft(parts) {
-        const m = _modal;
+    function applyDraft(parts) {        const m = _modal;
         if (!parts) return;
         if (_phase === 'react') return; // menus are compose-phase only
         m.querySelector('#htc-do').value = [parts.action, parts.item, parts.target]
@@ -559,6 +576,7 @@ window.HumanTurnComposer = (() => {
         if (_phase === 'react') { closeTurn(); return; }
         const payload = buildPayload();
         if (!payload.action && !payload.speech && !payload.emote) return;
+        _pendingPortrait = _portraitForAction(payload);
         if (_confirmBeforeAct && !_pendingConfirm) {
             _pendingConfirm = payload;
             showConfirm(payload);
@@ -714,6 +732,12 @@ window.HumanTurnComposer = (() => {
                 });
                 window.TurnYouStrip.render(m.querySelector('#htc-you'), scene.you, stripHandlers);
                 renderDatalist();
+                // React phase: an examine that targeted someone opens their
+                // portrait (current full body, else profile) as the big view.
+                if (phase === 'react' && _pendingPortrait && window.CharacterArt) {
+                    window.CharacterArt.open(_pendingPortrait);
+                }
+                _pendingPortrait = null;
             }).catch(() => {
                 sceneHost.textContent = '';
                 sceneHost.appendChild(document.createTextNode('scene unavailable.'));

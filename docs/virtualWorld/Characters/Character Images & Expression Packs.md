@@ -47,9 +47,25 @@ expressions[<current emotion>].profile  ->  expressions.neutral.profile
   ->  profile_image  ->  image  ->  (icon fallback)
 ```
 
-The graph thumbnail continues to use `image` (full-body neutral). Frontend
-implementation: `InspectorHelpers.expressionImageFor()` and
-`AgentLens._expressionAvatar()`.
+The graph node, the turn-composer "People here" chip, the agent-lens header and
+the examine portrait all resolve through one module, `static/js/character-art.js`
+(`CharacterArt.avatarFor` / `fullArtFor` / `artForNodeId`), so the chain cannot
+drift between consumers. The full-body chain is
+`expressions[emotion].full -> expressions.neutral.full -> image`.
+
+```js
+expressions[<current emotion>].profile  ->  expressions.neutral.profile
+  ->  profile_image  ->  image  ->  (icon fallback)
+```
+
+- **Graph node** (`static/js/graph/network-manager.js`, Show Images mode) now
+  draws this current-emotion **profile**, not the static full-body `neutral`.
+- **People chips** (`static/js/agent/turn-scene-view.js`) show the profile
+  thumbnail; clicking it — or choosing **Examine** — opens
+  `CharacterArt.open()`, the big view: current **full body** if the character has
+  one, else the profile enlarged (with a Full body / Profile tab when both exist).
+  The composer also auto-opens it in the **react phase** when the committed
+  action was `examine <person>`.
 
 ---
 
@@ -90,7 +106,28 @@ The pack travels with the character between library and world:
 The gallery renders **in the character inspector header, directly under the
 name** — not in a tab. It has a **Profile / Full-body** tab switcher and one row
 per expression key with a thumbnail, an upload control, and a clear button, plus
-an "add expression" field for custom keys. Helpers live in
+an "add expression" field for custom keys, and a **"Split sheet"** button.
+
+**Sheet splitting.** A character's art often arrives as one grid contact sheet.
+The splitter (`static/js/inspector/sprite-sheet.js`) crops it in the browser with
+a canvas and uploads each tile to its own slot through the same single-image
+endpoint, so nothing new is stored server-side. Two modes handle different
+layouts: **Even grid** (rows x cols over the whole sheet — a clean 4x3 face
+sheet) and **Draw boxes** (drag one rectangle per panel, for art packs that mix a
+large turnaround or magic pose beside smaller expressions, where no even grid
+fits); `clampBox` normalises and clamps each dragged box. `computeCells`
+partitions the sheet into rows x cols so the tiles cover it exactly (no
+gaps/overlap, rounding remainder absorbed by the last row/column), and
+`labelTrim` drops a fraction off the bottom of every cell for the caption banner
+(grid mode only — in box mode you simply box the art and leave the caption out).
+`parseNames` maps tile order to slugs and leaves blank entries un-uploaded;
+`defaultNames`/`defaultNameFor` prefill the canonical emotion order (then
+`slotN`), so a drawn box gets a sensible name you can edit. Because a sheet's captions may not match the canonical keys (for
+example `excited` where the UI uses `aroused`), the names are editable before
+upload rather than hardcoded. The pure geometry/naming helpers are tested in
+`tools/unit/test_sprite_sheet.js`.
+
+Helpers live in
 `static/js/inspector/helpers.js` (`renderExpressionSection`,
 `setExpressionImage`, `clearExpressionImage`, `addExpressionKey`).
 
@@ -105,8 +142,10 @@ an "add expression" field for custom keys. Helpers live in
 | Library import / refresh | `routes/library_ops.py` |
 | API client | `static/js/api.js` |
 | Gallery + resolver | `static/js/inspector/helpers.js` |
+| Sheet splitting | `static/js/inspector/sprite-sheet.js` (+ `tools/unit/test_sprite_sheet.js`) |
 | Inspector placement + save card | `static/js/inspector/agent-view.js` |
 | Avatar by emotion | `static/js/agent-lens.js` |
+| Live art resolver + portrait viewer | `static/js/character-art.js` (+ `tools/unit/test_character_art.js`) |
 | Tests | `tests/test_character_expressions.py` |
 
 ---
@@ -115,9 +154,8 @@ an "add expression" field for custom keys. Helpers live in
 
 - Only the emotion keys select automatically, via the character's current
   emotion. Action keys (`attack`, `sleeping`) are stored and selectable but
-  nothing drives them at runtime yet — a hook would set the "current
-  expression" the way `emotion.current` is set.
-- The graph thumbnail uses full-body `neutral`, not the current emotion.
+  nothing sets an action as the active art yet (there is no "current action
+  expression" the way `emotion.current` is set).
 - Damage resistance / nonmagical-weapon immunity for incorporeal undead is not
   implemented (tracked in the character dev tasks).
 

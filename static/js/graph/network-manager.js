@@ -679,14 +679,19 @@ window.GraphNetwork = {
             }
         }
 
-        // Node image mode (task-249): when enabled and the node carries an
-        // `image` property, render it as a circular thumbnail instead of the
-        // plain colored shape. The label stays so names remain readable; the
-        // rich tooltip still carries the full details. Nodes without an image
-        // keep their normal group shape/color.
-        if (graphManager._showImages && nodeData.properties?.image) {
+        // Node image mode (task-249): when enabled and the node carries art,
+        // render it as a circular thumbnail instead of the plain colored shape.
+        // The label stays so names remain readable; the rich tooltip still
+        // carries the full details. Character nodes show their CURRENT-emotion
+        // profile via CharacterArt (falling back to neutral/profile_image/image);
+        // other node types fall through to their plain `image`. Nodes without
+        // any art keep their normal group shape/color.
+        const nodeAvatar = window.CharacterArt
+            ? window.CharacterArt.avatarFor(nodeData.properties, window.CharacterArt.emotionOf(nodeData.name))
+            : (nodeData.properties?.image || '');
+        if (graphManager._showImages && nodeAvatar) {
             nodeConfig.shape = 'circularImage';
-            nodeConfig.image = nodeData.properties.image;
+            nodeConfig.image = nodeAvatar;
             nodeConfig.size = { area: 45, character: 28, item: 24, way: 22 }[nodeData.type] || 24;
             nodeConfig.borderWidth = 2;
         }

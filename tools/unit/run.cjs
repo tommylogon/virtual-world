@@ -69,6 +69,8 @@ load('static/js/agent/action-normalizer.js');
 load('static/js/agent/response-parser.js');
 load('static/js/agent/plan-tracker.js');
 load('static/js/agent/involuntary.js');
+load('static/js/character-art.js');
+load('static/js/inspector/sprite-sheet.js');
 load('static/js/agent/prompt-builder/character-state.js');
 load('static/js/agent/prompt-builder/conversation-context.js');
 load('static/js/context-window.js');

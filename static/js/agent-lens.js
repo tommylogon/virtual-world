@@ -77,7 +77,8 @@ class AgentLens {
 
     /**
      * Profile image for a character, chosen by their current emotion.
-     * Fallback chain: emotion → neutral → profile_image → image → ''.
+     * Delegates to CharacterArt (single fallback chain:
+     * emotion -> neutral -> profile_image -> image).
      */
     _expressionAvatar(name) {
         try {
@@ -85,8 +86,9 @@ class AgentLens {
             if (!player) return '';
             const nodeId = `player_${name.replace(/\s+/g, '_')}`;
             const props = worldState?.getNode?.(nodeId)?.properties || {};
-            const expr = props.expressions || {};
             const emotion = (player.emotion && player.emotion.current) || 'neutral';
+            if (window.CharacterArt) return window.CharacterArt.avatarFor(props, emotion);
+            const expr = props.expressions || {};
             const profileFor = (key) => (expr[key] || {}).profile;
             return profileFor(emotion) || profileFor('neutral')
                 || props.profile_image || props.image || '';
