@@ -1,0 +1,24 @@
+{
+  "packs": {
+    "kraktooth_goblin": {
+      "name": "Kraktooth Goblin",
+      "description": "Raised in the warren: quiet feet and an eye for what the marsh gives.",
+      "skills": {"Stealth": 1, "Survival": 1}
+    },
+    "eldenford_human": {
+      "name": "Eldenford Human",
+      "description": "Farm country: reads weather, animals and the land.",
+      "skills": {"Nature": 1, "Animal Handling": 1}
+    },
+    "pines_resident": {
+      "name": "The Pines Resident",
+      "description": "Small-town life: reads people and gets along with them.",
+      "skills": {"Insight": 1, "Persuasion": 1}
+    },
+    "millbrook_townsfolk": {
+      "name": "Millbrook Townsfolk",
+      "description": "A working town: notices what is out of place and asks around.",
+      "skills": {"Insight": 1, "Investigation": 1}
+    }
+  }
+}

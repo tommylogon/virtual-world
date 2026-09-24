@@ -131,6 +131,31 @@ for the problem. It is also a change to the *survival model's granularity*, so i
 should be decided rather than assumed. Until then the schedule data stays out of
 the scenario and the engine remains as committed in slice 1.
 
+## Update (2026-09-24) — the action-budget arithmetic is superseded
+
+The "96 actions/day" figure above comes from the retired *action credit* model
+(`DECISION_MINUTES = 10`, one decision per 10 game minutes). That model is gone:
+`engine/background_simulation.py` now gives every character **one action per
+turn**, where a turn is a *timeframe* (default `time_per_tick_minutes = 1`, so
+~1440 turn-minutes per in-game day) and each action consumes its authored
+`TASK_MINUTES` duration. A task longer than the timeframe spans turns (the
+overdraft fix in `_begin_task`), and the count of actions per turn is emergent,
+not budgeted — `MAX_ACTIONS_PER_TICK` no longer exists. A background character and
+the live character now spend the same turn the same way.
+
+So options (a)/(b)/(c) collapse. (a) "more actions per day" is already true and is
+not a knob to turn; the fix is **(b), and it is decided: background characters use
+bundled tasks, authored the same way as crafting recipes.** A chore task (walk to
+a service area, service several needs, return) is one action rather than five
+separate journeys. `engine/crafting.py` is the model — recipe nodes whose
+properties declare inputs/conditions/outputs (task-2) — and the same declarative
+shape gives a chore bundle an authored duration, target area and effect list.
+
+The measured collapse in the tables above was real **under the old clock** and is
+kept as evidence; it must be re-measured under the one-action-per-turn model before
+any decision to ship schedule data. Slice 2 (the capped daily reflection) is
+unaffected and still open.
+
 ## Goal
 
 Background characters behave like **supercharged simple NPCs**: a deterministic,

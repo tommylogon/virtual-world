@@ -4,7 +4,135 @@ All notable changes to VirtualWorld. See `docs/virtualWorld/Scenario Workflows &
 
 ---
 
-## Unreleased — "Hands Off the Wheel" (2026-09-21 → 09-23)
+## Unreleased — "The Camp Breathes" (2026-09-24)
+
+One theme runs through the whole day: **characters stop being generic and start
+being themselves** — at what they are good at, in what they can find, what they
+will do unobserved, and whether the camp can actually feed them for a week. Skills
+became a real per-character surface (roles, proficiency, opt-in growth), search
+gained depth and breadth, the background tier gained an *actor-driven* agenda, and
+the plants that are supposed to sustain a camp were finally proven to grow — on the
+spawned path the soak had never exercised. The morning's commits (399/406/497/501/
+503, bug-40/42) are part of the same push; this entry covers the full day.
+
+### 🎭 A character is good at what they *are* (task-476)
+`data/library/roles.json` · `engine/roles.py` · `engine/checks.py`. Roles are
+**namespaced tags** (`role:hunter`, the `faction:guard` shape), so a role is
+authored and saved like any other tag and needs no new field, no migration.
+
+- Thirteen profiles (hunter, trapper, guard, thief, healer, scholar, smith, cook,
+  farmer, ...) map to real skills and merge into the one check pipeline as a `role`
+  source, so `skill_check`, `resolve` and `opposed` all see them with no second path.
+- **Only `role:`-prefixed tags resolve**; a bare `cook`/`farmer` tag stays inert, so
+  every existing character's checks are unchanged until a data pass authors roles.
+- Proof: same roll and stats, a `role:trapper` out-forages a roleless child on
+  Survival and a `role:guard` beats a `role:cook` on Perception.
+
+### 🔎 Search grew a spine and four more eyes (task-478, task-483)
+`engine/foraging.py` · `data/library/foraging.json`. Noticing and searching are now
+two steps, and the skill list has content beyond Survival/Perception/History/Religion.
+
+- **Notice-then-search**: `notice()` (Perception) spots that there is something worth
+  looking for and remembers it on the area; `search_hidden()` then lets the search
+  skill find it. A failed notice means the character walks past — even on a great roll
+  there is no find they never saw.
+- **Nature, Investigation, Arcana and Medicine** tables and area bonuses (forest →
+  Nature/Medicine, ruin → Investigation/Arcana, temple → Arcana). **No new area tags**,
+  so the existing "can this area yield" gate is unchanged.
+- **The tables are data now** (`foraging.json`, seeded exactly from the old constants),
+  with a per-area `forage_tables` override that adds local finds and makes an otherwise
+  barren area searchable, plus `findable_here()`/`findable_hint()` for the HUD.
+- `find <skill>` is discoverable: the autocomplete now suggests the search skills.
+
+### 📈 Growth, proficiency, and set-in-stone stats (task-480)
+`engine/skill_progress.py` · `data/library/skill_packs.json` · `player.py` ·
+`engine/checks.py` · `engine/effect_handlers/vitals.py`.
+
+- **Proficiency** is a separate term (`player.proficiency`, default 0) merged as its
+  own modifier source — the sheet can express trained value *and* proficiency apart.
+  At 0 it is exactly the pre-task-480 result.
+- **Use-based growth is opt-in**: `record_use` counts *successful* uses and raises a
+  skill at the threshold (reset on raise, capped, failures never teach), and it only
+  runs when a scenario sets `skill_growth`. Existing saves and soaks do not move.
+- **Setting skill packs** grant starting skills (`apply_pack`, raise-only/idempotent),
+  and the new `adjust_stat` effect lets play train or drain an ability (clamped 1–30,
+  reusing the character's own key casing).
+
+### 🥷 Background characters now want things (task-468)
+`engine/background_social.py` · `engine/background_simulation.py`. The social pass had
+opinions but no agenda; now an unobserved character can *act*.
+
+- **Theft agenda** (`run_theft_pass`): a `thief`/`kleptomaniac`/`pickpocket` trait or tag
+  — or a starving character after food — attempts `steal_item` on a co-located target
+  through the **real** Sleight of Hand vs Perception path, cooldown- and daily-capped.
+  The failed attempt writes the same "notices" line the interrupt evaluator reads.
+- **Approach variety**: approaching the player is no longer always `chat`; the
+  relationship band picks the kind (confide at friend, flirt at close friend), never
+  hostile and never a no-op.
+
+### 🌿 The plants actually grow — including the path the soak never touched (task-410)
+`engine/effects.py` · `tests/test_renewable_plants.py`. The camp's bushes live in the
+scenario, so the soak never exercised the **library-hydrate** path — which had two
+real bugs:
+
+- `_hydrate_item` dropped the library `parameters` dict, so a spawned plant came up
+  with no growth gauge at all (the same class of bug fixed earlier for the other
+  placement path).
+- `_materialize_spawn_triggers` did not carry the legacy singular trigger shape
+  (`condition` + `effect_type`/`effect_params`), so a hydrated plant's growth trigger
+  had no conditions and no effects — it could never grow. It now carries the shape
+  **and** stops emitting an empty `conditions: {}` that masked the singular fallback
+  and made the trigger fire unconditionally.
+
+A hydrated bush now grows by game-minute, matures into produce, resets, respects the
+10-produce cap, and is never food-tagged (so it cannot be eaten and deleted).
+
+### 🍞 One consumption path, background or not (task-424, change 1 of 3)
+`engine/background_simulation.py`. When an item authors its own `on_eat`/`on_drink`,
+the background tier now runs the **player** consume path with the character swapped
+into the active slot, so the trigger fires and the item depletes its own way. The
+hardcoded count/uses/remove stays only as a logged fallback for silent items —
+so today's camp, whose five consumables author no triggers, is deliberately unchanged.
+
+### 🧠 Background life got a memory bridge (task-399, committed this morning)
+`engine/promotion.py` · `player.py` · `engine/structures.py` · `engine/tick_manager.py`
+· `routes/world_scopes*.py`. Characters can be offloaded to a deterministic tier with
+**zero LLM calls**, then promoted back to one bounded `source:"background"` memory
+summarizing the span — idempotently. Transitions are *queued* and applied as one batch
+at tick start (no character resolves under two modes), and `POST
+/api/world/scopes/<id>/observe` promotes a scope's residents.
+
+### 🧭 The trigger editor stopped lying (task-501, task-503, committed this morning)
+`static/js/shared/trigger-graph.js` · `static/js/inspector/behaviors-view.js`. The
+editor used to silently flatten OR/NOT conditions, drop NO-branch effects, and discard
+NO-branch behavior actions on compile. It now preserves what it draws and **refuses to
+save a lossy compile** with a clear error instead of quietly changing the author's
+intent.
+
+### 🌍 WorldPainter got a biome taxonomy (task-497, committed this morning)
+`data/worldpainter/biomes.json` · `engine/biomes.py`. Sixteen biomes and nine features
+with resource and hostile distribution, reusing the existing foraging tag vocabulary so
+a painted area forages with machinery that already exists — data-only, no engine change
+to add a biome.
+
+### 💾 Save dialog: no literal HTML, no accidental autosave loss (bug-40, bug-42)
+`static/js/ui/saveload-view.js` · `routes/saveload.py`. Save-list badges render as
+elements; "Delete All" is a single confirm backed by `POST /api/save-games/delete-all`
+and keeps the autosave slot unless explicitly told otherwise.
+
+### 🧪 Standing items are guarded by tests (task-406, committed this morning)
+`tests/test_trigger_system.py`. The event-index dispatch and the standing-item `on_tick`
+path (what a plant relies on) now have coverage: it fires exactly once, never
+double-fires a carried or lit item, and survives add/remove/load/clear.
+
+### 📝 Design note: the turn is the unit of agency (task-409)
+Recorded on the task: the old "96 actions/day, one decision per 10 minutes" action-credit
+model is retired. A character takes **one action per turn**, a turn is a timeframe
+(default 1 minute, ~1440/day), and actions carry authored `TASK_MINUTES` durations that
+span turns. The fix for schedule starvation is therefore **bundled chore tasks modelled
+on crafting recipes** — a decision, not the old budget arithmetic.
+
+
 
 A skip is not a special mode — it is the controller swap `Simulation Model` already
 implied. This pass makes it real: **a human can hand their character to a

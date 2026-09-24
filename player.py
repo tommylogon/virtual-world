@@ -155,6 +155,13 @@ class Player:
             "Investigation": 0, "Medicine": 0, "Nature": 0,
             "Performance": 0, "Religion": 0, "Sleight of Hand": 0,
         }
+        # Progression (task-480). `proficiency` is an optional, separate term so
+        # the sheet can express trained value (skills) and proficiency
+        # independently; `skill_progress` counts successful uses toward a raise.
+        # Both default to a no-op/empty state, so nothing changes until a
+        # character is authored or a scenario enables growth.
+        self.proficiency = 0
+        self.skill_progress = {}
         # Crafting (task-2): recipe names this character has discovered
         # (discoverable recipes after the first successful craft).
         self.crafting_known = []
@@ -986,6 +993,8 @@ class Player:
             "decay_rates": dict(self.decay_rates),
             "stats": dict(self.stats),
             "skills": dict(self.skills),
+            "proficiency": int(getattr(self, "proficiency", 0) or 0),
+            "skill_progress": dict(getattr(self, "skill_progress", {}) or {}),
             "inventory": [],
             "personality": self.personality,
             "description": getattr(self, 'description', ''),

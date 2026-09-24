@@ -340,6 +340,31 @@ def choose_action(actor, target, tick: int) -> str:
     return rng.choices(names, weights=values, k=1)[0]
 
 
+#: Actions an *approach toward the player* may take (task-468). Hostile `bully`
+#: is excluded — an unprompted attack is not an approach — and `ignore` is not an
+#: action, so the first touch is always a social bid but its *kind* comes from the
+#: relationship band and the actor's traits (confide unlocks at friend, flirt at
+#: close friend, a cold band mostly jokes and compliments).
+APPROACH_ACTIONS = ("chat", "joke", "compliment", "tease", "confide", "flirt")
+
+
+def choose_approach_action(actor, target, tick: int) -> str:
+    """The action a background character approaches the player with (task-468).
+
+    A weighted draw over the same table the paired pass uses, restricted to
+    non-hostile approach actions. Falls back to a neutral `chat` when every
+    option is gated out, so an approach never becomes a no-op.
+    """
+    weights = action_weights(actor, target)
+    names = [n for n in APPROACH_ACTIONS if weights.get(n, 0.0) > 0]
+    if not names:
+        return "chat"
+    values = [weights[n] for n in names]
+    rng = _rng(getattr(actor, "name", ""), getattr(target, "name", ""), tick,
+               "approach")
+    return rng.choices(names, weights=values, k=1)[0]
+
+
 def resolve_tier(actor, target, action: str, tick: int) -> str:
     """d20 + modifiers vs the action's DC, mapped onto the six-tier ladder.
 
@@ -799,7 +824,8 @@ def run_social_approach(gs, tick: Optional[int] = None) -> list:
 
     present.sort(key=lambda p: getattr(p, "name", ""))
     actor = present[0]
-    outcome = perform(gs, actor, human, area_id, area_name, tick, action="chat")
+    action = choose_approach_action(actor, human, tick)
+    outcome = perform(gs, actor, human, area_id, area_name, tick, action=action)
     if outcome is None:
         return []
     _record_meeting(gs, actor)
@@ -815,3 +841,235 @@ def run_social_approach(gs, tick: Optional[int] = None) -> list:
     except Exception:
         pass
     return [outcome]
+
+
+# ───────────────────── actor-driven agenda: theft (task-468) ──────────────
+
+#: Trait/tag vocabulary that marks a would-be thief. Authored intent, not a guess.
+THEFT_TRAITS = ("thief", "kleptomaniac", "pickpocket")
+
+#: A starving character will steal food even without the thief markers.
+THEFT_HUNGER = 70
+
+#: One attempt per thief per this many game minutes, and a small daily cap, so a
+#: camp is not a den of constant theft.
+THEFT_COOLDOWN_MINUTES = 240
+THEFT_PER_DAY = 2
+
+#: Tags a starvation theft will reach for.
+THEFT_FOOD_TAGS = {"food", "eat", "edible", "meal", "drink"}
+
+
+def _carried_items(gs, player) -> list:
+    """A character's carried/equipped item nodes, sorted by name (deterministic)."""
+    from graph import EDGE_CARRYING, EDGE_EQUIPPED
+    try:
+        pid = gs.player_manager.get_player_node_id(getattr(player, "name", ""))
+    except Exception:
+        pid = None
+    if not pid:
+        return []
+    items = []
+    try:
+        for etype in (EDGE_CARRYING, EDGE_EQUIPPED):
+            for edge in gs.graph.get_edges_for_target(pid, etype):
+                node = gs.graph.get_node(edge.source)
+                if node and node.type == "item":
+                    items.append(node)
+    except Exception:
+        pass
+    items.sort(key=lambda n: getattr(n, "name", ""))
+    return items
+
+
+def _item_tags(node) -> set:
+    props = getattr(node, "properties", {}) or {}
+    return {str(t).lower() for t in (props.get("tags") or [])}
+
+
+def _is_would_be_thief(player) -> bool:
+    traits = getattr(player, "traits", None) or {}
+    if any(t in traits for t in THEFT_TRAITS):
+        return True
+    tags = {str(t).lower() for t in (getattr(player, "tags", None) or [])}
+    return bool(tags & set(THEFT_TRAITS))
+
+
+def _is_starving(player) -> bool:
+    try:
+        return float((getattr(player, "vitals", None) or {}).get("Hunger", 0)) >= THEFT_HUNGER
+    except (TypeError, ValueError):
+        return False
+
+
+def _off_theft_cooldown(player, gs, tick: int) -> bool:
+    last = getattr(player, "_theft_last_tick", None)
+    if last is None:
+        return True
+    try:
+        minutes_per_tick = float(getattr(gs, "time_per_tick_minutes", 1) or 1)
+    except (TypeError, ValueError):
+        minutes_per_tick = 1.0
+    return (int(tick) - int(last)) * minutes_per_tick >= THEFT_COOLDOWN_MINUTES
+
+
+def _thefts_today(player, gs, tick: int) -> int:
+    per = getattr(gs, "_theft_day", None)
+    if per is None:
+        per = gs._theft_day = {}
+    try:
+        minutes_per_tick = float(getattr(gs, "time_per_tick_minutes", 1) or 1)
+    except (TypeError, ValueError):
+        minutes_per_tick = 1.0
+    ticks_per_day = max(1, int(round(1440 / max(0.001, minutes_per_tick))))
+    day = int(tick) // ticks_per_day
+    state = per.get(getattr(player, "name", ""))
+    if not state or state.get("day") != day:
+        return 0
+    return int(state.get("count", 0))
+
+
+def _bump_theft_today(player, gs, tick: int) -> None:
+    per = getattr(gs, "_theft_day", None)
+    if per is None:
+        per = gs._theft_day = {}
+    try:
+        minutes_per_tick = float(getattr(gs, "time_per_tick_minutes", 1) or 1)
+    except (TypeError, ValueError):
+        minutes_per_tick = 1.0
+    ticks_per_day = max(1, int(round(1440 / max(0.001, minutes_per_tick))))
+    day = int(tick) // ticks_per_day
+    key = getattr(player, "name", "")
+    state = per.get(key)
+    if not state or state.get("day") != day:
+        state = {"day": day, "count": 0}
+        per[key] = state
+    state["count"] = int(state.get("count", 0)) + 1
+
+
+def _areas_with_characters(gs) -> list:
+    """(area_id, area_name) for areas holding two or more characters."""
+    counts = {}
+    for player in (gs.player_manager.players or {}).values():
+        name = getattr(player, "current_area", None)
+        if name:
+            counts[name] = counts.get(name, 0) + 1
+    out = []
+    for area_name in sorted(n for n, c in counts.items() if c >= 2):
+        area_id = ""
+        try:
+            from engine.room_perception import resolve_area_node
+            node = resolve_area_node(gs.graph, area_name)
+            area_id = node.id if node else ""
+        except Exception:
+            area_id = ""
+        out.append((area_id, area_name))
+    return out
+
+
+def _would_be_thieves(gs, area_name: str, tick: int) -> list:
+    out = []
+    for _name, player in (gs.player_manager.players or {}).items():
+        if not is_background(player) or not is_available(player):
+            continue
+        if getattr(player, "current_area", None) != area_name:
+            continue
+        if not (_is_would_be_thief(player) or _is_starving(player)):
+            continue
+        if not _off_theft_cooldown(player, gs, tick):
+            continue
+        if _thefts_today(player, gs, tick) >= THEFT_PER_DAY:
+            continue
+        out.append(player)
+    out.sort(key=lambda p: getattr(p, "name", ""))
+    return out
+
+
+def _pick_theft(gs, thief, area_name: str):
+    """The best (target, item) for *thief*, or ``(None, None)``.
+
+    A starving thief reaches only for food; a marked thief takes anything. The
+    target is the alphabetically-first co-located carrier so a replay is stable.
+    """
+    starving = _is_starving(thief)
+    candidates = []
+    for _name, player in (gs.player_manager.players or {}).items():
+        if player is thief:
+            continue
+        if getattr(player, "current_area", None) != area_name:
+            continue
+        items = _carried_items(gs, player)
+        if items:
+            candidates.append((getattr(player, "name", ""), player, items))
+    if not candidates:
+        return (None, None)
+    candidates.sort(key=lambda c: c[0])
+    if starving:
+        for _name, player, items in candidates:
+            for item in items:
+                if _item_tags(item) & THEFT_FOOD_TAGS:
+                    return (player, item)
+        return (None, None)
+    _name, player, items = candidates[0]
+    return (player, items[0])
+
+
+def _attempt_theft(gs, thief, target, item, area_name: str, tick: int) -> dict:
+    """Run the real steal path with the thief swapped into the active slot."""
+    active = getattr(gs, "active_player", None)
+    try:
+        gs.active_player = getattr(thief, "name", None)
+        try:
+            gs.steal_item(item.name, target.name)
+            success = True
+        except Exception:
+            success = False
+    finally:
+        try:
+            gs.active_player = active
+        except Exception:
+            pass
+
+    try:
+        thief._theft_last_tick = int(tick)
+    except Exception:
+        pass
+    _bump_theft_today(thief, gs, tick)
+
+    try:
+        from engine.trace import record
+        record(thief, tick, "act",
+               f"{'stole' if success else 'failed to steal'} {item.name} "
+               f"from {target.name}",
+               why="agenda:theft", area=area_name, tags=["theft", "agenda"])
+    except Exception:
+        pass
+    return {
+        "actor": getattr(thief, "name", ""), "target": getattr(target, "name", ""),
+        "item": getattr(item, "name", ""), "success": success,
+        "area": area_name,
+    }
+
+
+def run_theft_pass(gs, tick: Optional[int] = None) -> list:
+    """A trait/need-driven background character attempts a theft (task-468).
+
+    The actor-driven counterpart to the social pass: without it a wait or
+    fast-travel is never interrupted by a theft, so the interrupt evaluator
+    (task-466) has nothing of that kind to react to. Deterministic, cooldown- and
+    daily-capped, and it goes through the **real** ``steal_item`` path (Sleight of
+    Hand vs Perception), so the failed attempt writes the same "notices" line the
+    evaluator reads.
+    """
+    if gs is None:
+        return []
+    if tick is None:
+        tick = getattr(gs, "time_ticks", 0)
+    outcomes = []
+    for _area_id, area_name in _areas_with_characters(gs):
+        for thief in _would_be_thieves(gs, area_name, tick):
+            target, item = _pick_theft(gs, thief, area_name)
+            if target is None or item is None:
+                continue
+            outcomes.append(_attempt_theft(gs, thief, target, item, area_name, tick))
+    return outcomes

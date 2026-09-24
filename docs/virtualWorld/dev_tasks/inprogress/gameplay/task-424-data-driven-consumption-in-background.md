@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: inprogress
 area: gameplay
 priority: medium
 ---
@@ -104,3 +104,28 @@ for movement), so a glass empties, a skin keeps its charges, and bread is eaten.
   authored amount, not by a constant).
 - Soak: a week at 1 and 15 min/tick, survival and food counts unchanged vs
   task-410's result.
+
+## Progress — 2026-09-24 (change 1: delegation)
+
+The code half is in; the data half is not, so the observable behaviour of the
+shipped camp is deliberately unchanged (its five consumables author no triggers,
+so every one still takes the fallback — which is the point of the suggested order).
+
+- **`engine/background_simulation.py`** — `_consume_here` now checks
+  `_has_authored_consume(node, "on_eat"/"on_drink")`; when the item authors its
+  own consumption it runs `_consume_via_authored` (the player `eat_item`/
+  `drink_item` path with the background character swapped into the active slot,
+  the same trick as `_forage_check`), and only the need-level trace/log is added
+  afterwards — the item's `adjust_vital` is the single source of truth, so the
+  hardcoded constant is **not** applied (validated: an authored `-20` leaves
+  Hunger at 60, not `80 - MEAL_RESTORE`). Items with no authored trigger keep the
+  old count/uses/remove path and log that the fallback was taken.
+- **`tests/test_background_consumption.py`** (4): authored eat runs the trigger
+  and its `remove_item`; authored drink does the same; a silent item still falls
+  back and removes; a non-food item is not eaten.
+
+Still to do (this task): change **2** — the data pass that gives the five camp
+consumables their own `on_eat`/`on_drink` (`adjust_vital` + depletion) — and change
+**3** — the generic `uses == 0 → on_depleted`/`set_state` hook in the consume path
+so a drinkable container can "empty and persist". Only then are `MEAL_RESTORE`/
+`DRINK_RESTORE` retired and the glass/bread acceptance met.

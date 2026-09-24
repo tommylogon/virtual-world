@@ -235,6 +235,27 @@ def skill_modifiers(player, skill: str):
             mods.append(Modifier("traits", bonus))
     except Exception:
         pass
+    # Role profile (task-476): a `role:` tag biases the checks the role is good
+    # at. Merged here so it is the same pipeline as ability/value/traits and so
+    # skill_check, resolve and opposed all see it; a roleless character adds
+    # nothing (engine/roles.py).
+    try:
+        from engine import roles as roles_mod
+        role_bonus = int((roles_mod.skill_mods(player) or {}).get(skill, 0))
+        if role_bonus:
+            mods.append(Modifier("role", role_bonus))
+    except Exception:
+        pass
+    # Proficiency (task-480): an optional term kept separate from the trained
+    # skill value, so the sheet expresses both. Default 0 — exactly the
+    # pre-task-480 result (task-472 deliberately left it out).
+    try:
+        from engine import skill_progress as progress_mod
+        prof = int(progress_mod.proficiency_bonus(player))
+        if prof:
+            mods.append(Modifier("proficiency", prof))
+    except Exception:
+        pass
     return ability, mods
 
 

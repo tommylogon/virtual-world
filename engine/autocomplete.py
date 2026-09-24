@@ -165,6 +165,13 @@ def get_autocomplete_options(vw, verb: str, prefix: str = "", character_name: st
         for d in way_directions:
             _add(d)
 
+    elif verb in ('find', 'forage'):
+        # `find <skill>` (task-471/483): suggest the search skills by name so the
+        # affordance is discoverable, not something a player has to guess.
+        from engine import foraging
+        for key in sorted(foraging.SKILL_TABLES):
+            _add(foraging.SKILL_DISPLAY.get(key, key.title()))
+
     else:
         for item in room_items + carried_items + known_items:
             _add(item.properties.get('name') or item.id)

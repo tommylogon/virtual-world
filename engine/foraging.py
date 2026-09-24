@@ -39,9 +39,15 @@ MIN_DC = 6
 #: Finds one area can yield per in-game day, across all searchers.
 MAX_FINDS_PER_AREA_PER_DAY = 3
 
-#: skill key (lowercase, also the search verb) -> weighted candidate entries.
-#: An entry's tags select the library item; weight is relative.
-SKILL_TABLES = {
+#: Area property marking that a Perception notice has spotted something worth
+#: searching for here (task-478). Set by :func:`notice`; required by a hidden
+#: search, so a character cannot find what they never noticed.
+NOTICE_PROPERTY = "search_noticed"
+
+#: Built-in defaults (task-483). The shipped tables live in
+#: ``data/library/foraging.json`` and are authoritative; these are the fallback
+#: used when that file is missing or malformed, so search still works unpackaged.
+_DEFAULT_SKILL_TABLES = {
     "survival": [
         {"tags": ["herb", "medicinal"], "weight": 3},
         {"tags": ["berry", "fruit", "food"], "weight": 4},
@@ -62,33 +68,54 @@ SKILL_TABLES = {
         {"tags": ["relic", "religious"], "weight": 3},
         {"tags": ["idol", "religious"], "weight": 2},
     ],
+    "nature": [
+        {"tags": ["plant"], "weight": 3},
+        {"tags": ["herb", "medicinal"], "weight": 2},
+        {"tags": ["bug", "grub"], "weight": 2},
+        {"tags": ["bait"], "weight": 1},
+    ],
+    "investigation": [
+        {"tags": ["tool", "old"], "weight": 3},
+        {"tags": ["metal"], "weight": 2},
+        {"tags": ["scrap", "junk"], "weight": 2},
+        {"tags": ["antique"], "weight": 1},
+    ],
+    "arcana": [
+        {"tags": ["relic", "religious"], "weight": 3},
+        {"tags": ["idol", "religious"], "weight": 2},
+        {"tags": ["antique"], "weight": 2},
+    ],
+    "medicine": [
+        {"tags": ["herb", "medicinal"], "weight": 4},
+        {"tags": ["plant"], "weight": 2},
+        {"tags": ["root"], "weight": 1},
+    ],
 }
 
 #: The name the skill system knows (skills are case-sensitive in the sheet).
-SKILL_DISPLAY = {
+_DEFAULT_SKILL_DISPLAY = {
     "survival": "Survival",
     "perception": "Perception",
     "history": "History",
     "religion": "Religion",
+    "nature": "Nature",
+    "investigation": "Investigation",
+    "arcana": "Arcana",
+    "medicine": "Medicine",
 }
 
 #: area tag -> {skill key: weight multiplier bonus}. Also raises the check.
-AREA_SKILL_BONUS = {
-    "forest": {"survival": 2},
-    "woods": {"survival": 2},
-    "woodland": {"survival": 2},
-    "shore": {"survival": 1},
-    "ruin": {"history": 2, "religion": 1},
-    "ruins": {"history": 2, "religion": 1},
-    "temple": {"religion": 3},
-    "shrine": {"religion": 2},
-    "road": {"perception": 1, "history": 1},
-    "battlefield": {"history": 2},
-    # Natural-biome vocabulary (task-497). WorldPainter biomes reuse these tags
-    # as their area tags, so adding a new biome (task-497) is data-only: the
-    # foraging layer already recognises the tag. None of these are placed by the
-    # existing scenarios, so behaviour is unchanged until a painted world uses
-    # them.
+_DEFAULT_AREA_SKILL_BONUS = {
+    "forest": {"survival": 2, "nature": 2, "medicine": 1},
+    "woods": {"survival": 2, "nature": 2, "medicine": 1},
+    "woodland": {"survival": 2, "nature": 2, "medicine": 1},
+    "shore": {"survival": 1, "nature": 1},
+    "ruin": {"history": 2, "religion": 1, "investigation": 2, "arcana": 1},
+    "ruins": {"history": 2, "religion": 1, "investigation": 2, "arcana": 1},
+    "temple": {"religion": 3, "arcana": 2},
+    "shrine": {"religion": 2, "arcana": 2},
+    "road": {"perception": 1, "history": 1, "investigation": 1},
+    "battlefield": {"history": 2, "investigation": 1},
     "hill": {"survival": 1},
     "hills": {"survival": 1},
     "mountain": {"survival": 1},
@@ -104,9 +131,43 @@ AREA_SKILL_BONUS = {
     "spring": {"survival": 1},
     "ocean": {"survival": 1},
     "deep_water": {"survival": 1},
-    "farmland": {"survival": 1},
-    "field": {"survival": 1},
+    "farmland": {"survival": 1, "nature": 1, "medicine": 1},
+    "field": {"survival": 1, "nature": 1},
 }
+
+#: Where the JSON table surface lives (task-483).
+FORAGE_DATA_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "data", "library", "foraging.json",
+)
+
+#: Area property naming a per-area override: ``{skill_key: [entries]}``. Its
+#: entries are added to the global table for that area, and its presence makes
+#: the area searchable even when its tags are not otherwise recognised.
+AREA_TABLES_PROPERTY = "forage_tables"
+
+
+def _load_forage_data(path=None) -> dict:
+    try:
+        with open(path or FORAGE_DATA_PATH, "r", encoding="utf-8-sig") as f:
+            data = json.load(f)
+    except Exception as e:
+        logger.warning("[foraging] table data not loaded, using defaults: %s", e)
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+_FORAGE_DATA = _load_forage_data()
+
+#: The shipped tables are authoritative; the built-ins cover a missing file.
+SKILL_TABLES = (dict(_FORAGE_DATA["skill_tables"])
+                if _FORAGE_DATA.get("skill_tables")
+                else _DEFAULT_SKILL_TABLES)
+SKILL_DISPLAY = {**_DEFAULT_SKILL_DISPLAY,
+                 **(_FORAGE_DATA.get("skill_display") or {})}
+AREA_SKILL_BONUS = (dict(_FORAGE_DATA["area_skill_bonus"])
+                    if _FORAGE_DATA.get("area_skill_bonus")
+                    else _DEFAULT_AREA_SKILL_BONUS)
 
 _LIBRARY_INDEX = None
 
@@ -162,6 +223,19 @@ def _area_node(gs, area_name):
 def _area_tags(area_node) -> set:
     props = getattr(area_node, "properties", {}) or {}
     return {str(t).lower() for t in (props.get("tags") or [])}
+
+
+def _area_noticed(area_node) -> bool:
+    """True once Perception has spotted something worth searching for here."""
+    props = getattr(area_node, "properties", {}) or {}
+    return bool(props.get(NOTICE_PROPERTY))
+
+
+def _area_tables(area_node) -> dict:
+    """A per-area table override (task-483): ``{skill_key: [entries]}`` or ``{}``."""
+    props = getattr(area_node, "properties", {}) or {}
+    raw = props.get(AREA_TABLES_PROPERTY)
+    return raw if isinstance(raw, dict) else {}
 
 
 def _present_tags(gs, area_id) -> set:
@@ -234,7 +308,8 @@ def best_skill_for(gs, player, want_tags) -> str:
     return best_key or "perception"
 
 
-def _candidate_entries(skill_key, want_tags, strong: bool = False):
+def _candidate_entries(skill_key, want_tags, strong: bool = False,
+                       extra_entries=()):
     """What a search can turn up.
 
     A **strong** result (margin ≥ 5) delivers what was asked for: if a need is
@@ -242,6 +317,9 @@ def _candidate_entries(skill_key, want_tags, strong: bool = False):
     table plus junk — the wilds are not a pantry, and an unskilled searcher
     mostly finds sticks. This is what makes a Survival-trained goblin eat where
     a child goes hungry (task-471/472).
+
+    ``extra_entries`` are appended to the skill's table, which is how a per-area
+    override (task-483) adds local finds without touching the global table.
     """
     want = {str(t).lower() for t in (want_tags or [])}
 
@@ -256,7 +334,7 @@ def _candidate_entries(skill_key, want_tags, strong: bool = False):
             seen.add(key)
             out.append(entry)
 
-    tables = [SKILL_TABLES.get(skill_key or "", [])]
+    tables = [list(SKILL_TABLES.get(skill_key or "", [])) + list(extra_entries)]
     if want:
         tables += list(SKILL_TABLES.values())
 
@@ -320,29 +398,40 @@ def _pick_item(entry_tags, present_tags, rng):
     return rng.choice(top)
 
 
-def find_or_spawn(gs, player, area_name, *, skill=None, want_tags=(), rng=None):
+def find_or_spawn(gs, player, area_name, *, skill=None, want_tags=(), rng=None,
+                  require_notice=False):
     """Search *area_name* with *skill*; spawn and return a find, or None.
 
     Returns None when the area is capped for the day, the check fails, or the
     library has nothing matching — an empty-handed search is a normal result.
+
+    ``require_notice`` makes this the *second* half of notice-then-search
+    (task-478): the area must first have been noticed by :func:`notice`, or the
+    search finds nothing because the searcher never spotted there was anything
+    to look for. Plain searches leave it False.
     """
     rng = rng or random
     area_id, area_node = _area_node(gs, area_name)
     if area_node is None or not _cap_ok(area_node, gs):
         return None
+    if require_notice and not _area_noticed(area_node):
+        return None
 
     # Only an area that can plausibly *hold* a find yields one: a forest, shore,
     # ruin, road, battlefield. A bare interior with no such tag stays barren, so
-    # this never turns every room into a resource dispenser.
+    # this never turns every room into a resource dispenser — unless the area
+    # authors its own table override (task-483), which is explicit intent.
     area_tags = _area_tags(area_node)
-    if not (area_tags & set(AREA_SKILL_BONUS)):
+    area_tables = _area_tables(area_node)
+    if not (area_tags & set(AREA_SKILL_BONUS)) and not area_tables:
         return None
 
     skill_key = (skill or "perception").strip().lower()
+    extra_entries = list(area_tables.get(skill_key, []) or [])
     present = _present_tags(gs, area_id)
 
     affinity = sum(AREA_SKILL_BONUS.get(t, {}).get(skill_key, 0) for t in area_tags)
-    table_entries = SKILL_TABLES.get(skill_key, [])
+    table_entries = list(SKILL_TABLES.get(skill_key, [])) + extra_entries
     check_bonus = min(4, affinity + min(3, len({t for t in present if any(
         t in {str(x).lower() for x in e.get("tags", [])} for e in table_entries)})))
     dc = max(MIN_DC, SEARCH_DC - check_bonus)
@@ -355,7 +444,8 @@ def find_or_spawn(gs, player, area_name, *, skill=None, want_tags=(), rng=None):
 
     # A strong result delivers what was asked for; a bare success may be junk.
     strong = (total - dc) >= 5
-    entries = _candidate_entries(skill_key, want_tags, strong=strong)
+    entries = _candidate_entries(skill_key, want_tags, strong=strong,
+                                 extra_entries=extra_entries)
     if not entries:
         return None
 
@@ -389,6 +479,80 @@ def find_or_spawn(gs, player, area_name, *, skill=None, want_tags=(), rng=None):
     except Exception:
         pass
     return node
+
+
+def notice(gs, player, area_name, *, dc: int = SEARCH_DC) -> bool:
+    """Perception: spot that there is something worth searching for (task-478).
+
+    The *first* half of notice-then-search. Returns True when something is
+    noticed (and remembers it on the area), False when the searcher walks past.
+    Perception is the **gate**; the search skill (Investigation, ...) is the
+    *find* — so a perceptive but untrained character notices the cache and still
+    cannot open it, and a trained but unobservant one never sees it at all.
+
+    Fails open when there is no skill system, matching `_search_check`.
+    """
+    area_id, area_node = _area_node(gs, area_name)
+    if area_node is None:
+        return False
+    if _area_noticed(area_node):
+        return True
+    ok, _total = _search_check(gs, player, "perception", dc)
+    if not ok:
+        return False
+    try:
+        area_node.properties[NOTICE_PROPERTY] = True
+    except Exception:
+        return False
+    _trace(gs, player, area_name, why="search:notice",
+           text=f"noticed something worth searching in {area_name}",
+           tags=["forage", "notice"])
+    return True
+
+
+def search_hidden(gs, player, area_name, *, skill="investigation", want_tags=(),
+                  rng=None):
+    """Two-step hidden search (task-478): Perception notices, *skill* finds.
+
+    A failed notice means no search happens at all — the character did not see
+    there was anything to look for. A success is remembered on the area, so
+    coming back later does not pay for the notice again. Returns the find or None.
+    """
+    area_id, area_node = _area_node(gs, area_name)
+    if area_node is None:
+        return None
+    if not _area_noticed(area_node) and not notice(gs, player, area_name):
+        return None
+    return find_or_spawn(gs, player, area_name, skill=skill,
+                         want_tags=want_tags, rng=rng, require_notice=True)
+
+
+def findable_here(gs, area_name) -> list:
+    """The skills that could turn something up in *area_name* (task-483).
+
+    Derived from the area's tags and any per-area override, so the UI can tell a
+    player what is worth searching for before they burn a turn guessing. Ordered
+    and side-effect free; returns ``[{"key", "skill"}, ...]``.
+    """
+    area_id, area_node = _area_node(gs, area_name)
+    if area_node is None:
+        return []
+    keys = set()
+    for tag in _area_tags(area_node):
+        keys.update((AREA_SKILL_BONUS.get(tag) or {}).keys())
+    keys.update((_area_tables(area_node) or {}).keys())
+    return [{"key": key, "skill": SKILL_DISPLAY.get(key, key.title())}
+            for key in sorted(keys)]
+
+
+def findable_hint(gs, area_name) -> str:
+    """One-line "what could be found here" hint for the HUD (task-483)."""
+    skills = [entry["skill"] for entry in findable_here(gs, area_name)]
+    if not skills:
+        return "Nothing about this place looks worth searching."
+    if len(skills) == 1:
+        return f"Something here could be found with {skills[0]}."
+    return "Could be searched for: " + ", ".join(skills) + "."
 
 
 def _spawn_into_area(gs, item_id, area_id):

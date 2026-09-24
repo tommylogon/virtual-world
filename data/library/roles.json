@@ -1,0 +1,74 @@
+{
+  "roles": {
+    "hunter": {
+      "name": "Hunter",
+      "description": "Tracks, stalks and reads the wilds for game.",
+      "skills": {"Survival": 3, "Nature": 2, "Perception": 1}
+    },
+    "trapper": {
+      "name": "Trapper",
+      "description": "Sets snares and reads sign to find where animals and people have been.",
+      "skills": {"Survival": 2, "Nature": 2, "Investigation": 1, "Stealth": 1}
+    },
+    "fisher": {
+      "name": "Fisher",
+      "description": "Reads water and weather and works a line.",
+      "skills": {"Survival": 2, "Perception": 1, "Athletics": 1}
+    },
+    "guard": {
+      "name": "Guard",
+      "description": "Watches for threats and reads intent in a face.",
+      "skills": {"Perception": 2, "Insight": 1, "Intimidation": 1}
+    },
+    "scout": {
+      "name": "Scout",
+      "description": "Moves unseen ahead of the group and reports what is there.",
+      "skills": {"Perception": 2, "Stealth": 2, "Survival": 1}
+    },
+    "thief": {
+      "name": "Thief",
+      "description": "Works locks, pockets and the shadows.",
+      "skills": {"Sleight of Hand": 3, "Stealth": 2, "Investigation": 1, "Deception": 1}
+    },
+    "healer": {
+      "name": "Healer",
+      "description": "Mends wounds and knows the useful plants.",
+      "skills": {"Medicine": 3, "Insight": 1, "Nature": 1}
+    },
+    "scholar": {
+      "name": "Scholar",
+      "description": "Reads the old languages, religions and hidden meanings.",
+      "skills": {"History": 2, "Religion": 2, "Arcana": 2, "Investigation": 1}
+    },
+    "smith": {
+      "name": "Smith",
+      "description": "Works hot metal and knows how a made thing fits together.",
+      "skills": {"Athletics": 2, "Investigation": 1}
+    },
+    "cook": {
+      "name": "Cook",
+      "description": "Feeds a camp and knows what is safe to eat.",
+      "skills": {"Survival": 1, "Insight": 1}
+    },
+    "farmer": {
+      "name": "Farmer",
+      "description": "Knows crops, weather, livestock and the land.",
+      "skills": {"Nature": 2, "Animal Handling": 2, "Survival": 1}
+    },
+    "merchant": {
+      "name": "Merchant",
+      "description": "Reads a customer and closes a trade.",
+      "skills": {"Persuasion": 2, "Insight": 2, "Deception": 1}
+    },
+    "miner": {
+      "name": "Miner",
+      "description": "Works stone and notices a weak seam.",
+      "skills": {"Athletics": 2, "Investigation": 1}
+    },
+    "performer": {
+      "name": "Performer",
+      "description": "Holds a crowd and works it.",
+      "skills": {"Performance": 3, "Persuasion": 1}
+    }
+  }
+}

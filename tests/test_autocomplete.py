@@ -154,3 +154,16 @@ def test_autocomplete_api_endpoint():
     assert data['verb'] == 'take'
     assert data['prefix'] == 'brass'
     assert data['options'] == ['Brass Key']
+
+
+def test_autocomplete_find_offers_search_skills():
+    """`find <skill>` is discoverable (task-483)."""
+    client, app = _fresh_client()
+    world = _setup_world(app)
+
+    opts = world.get_autocomplete_options('find')
+    assert 'Survival' in opts
+    assert 'Perception' in opts
+    assert 'Investigation' in opts
+
+    assert world.get_autocomplete_options('find', prefix='sur') == ['Survival']

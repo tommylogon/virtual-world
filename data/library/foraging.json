@@ -1,0 +1,85 @@
+{
+  "skill_tables": {
+    "survival": [
+      {"tags": ["herb", "medicinal"], "weight": 3},
+      {"tags": ["berry", "fruit", "food"], "weight": 4},
+      {"tags": ["root", "food"], "weight": 3},
+      {"tags": ["grub", "bait", "bug"], "weight": 2}
+    ],
+    "perception": [
+      {"tags": ["scrap", "junk"], "weight": 3},
+      {"tags": ["tool"], "weight": 2},
+      {"tags": ["coin", "currency"], "weight": 1}
+    ],
+    "history": [
+      {"tags": ["antique"], "weight": 3},
+      {"tags": ["coin", "currency"], "weight": 2},
+      {"tags": ["tool", "old"], "weight": 2}
+    ],
+    "religion": [
+      {"tags": ["relic", "religious"], "weight": 3},
+      {"tags": ["idol", "religious"], "weight": 2}
+    ],
+    "nature": [
+      {"tags": ["plant"], "weight": 3},
+      {"tags": ["herb", "medicinal"], "weight": 2},
+      {"tags": ["bug", "grub"], "weight": 2},
+      {"tags": ["bait"], "weight": 1}
+    ],
+    "investigation": [
+      {"tags": ["tool", "old"], "weight": 3},
+      {"tags": ["metal"], "weight": 2},
+      {"tags": ["scrap", "junk"], "weight": 2},
+      {"tags": ["antique"], "weight": 1}
+    ],
+    "arcana": [
+      {"tags": ["relic", "religious"], "weight": 3},
+      {"tags": ["idol", "religious"], "weight": 2},
+      {"tags": ["antique"], "weight": 2}
+    ],
+    "medicine": [
+      {"tags": ["herb", "medicinal"], "weight": 4},
+      {"tags": ["plant"], "weight": 2},
+      {"tags": ["root"], "weight": 1}
+    ]
+  },
+  "skill_display": {
+    "survival": "Survival",
+    "perception": "Perception",
+    "history": "History",
+    "religion": "Religion",
+    "nature": "Nature",
+    "investigation": "Investigation",
+    "arcana": "Arcana",
+    "medicine": "Medicine"
+  },
+  "area_skill_bonus": {
+    "forest": {"survival": 2, "nature": 2, "medicine": 1},
+    "woods": {"survival": 2, "nature": 2, "medicine": 1},
+    "woodland": {"survival": 2, "nature": 2, "medicine": 1},
+    "shore": {"survival": 1, "nature": 1},
+    "ruin": {"history": 2, "religion": 1, "investigation": 2, "arcana": 1},
+    "ruins": {"history": 2, "religion": 1, "investigation": 2, "arcana": 1},
+    "temple": {"religion": 3, "arcana": 2},
+    "shrine": {"religion": 2, "arcana": 2},
+    "road": {"perception": 1, "history": 1, "investigation": 1},
+    "battlefield": {"history": 2, "investigation": 1},
+    "hill": {"survival": 1},
+    "hills": {"survival": 1},
+    "mountain": {"survival": 1},
+    "mountains": {"survival": 1},
+    "rocky": {"history": 1},
+    "cliff": {"survival": 1},
+    "ravine": {"survival": 1},
+    "chasm": {"survival": 1},
+    "beach": {"survival": 1},
+    "lake": {"survival": 1},
+    "river": {"survival": 1},
+    "stream": {"survival": 1},
+    "spring": {"survival": 1},
+    "ocean": {"survival": 1},
+    "deep_water": {"survival": 1},
+    "farmland": {"survival": 1, "nature": 1, "medicine": 1},
+    "field": {"survival": 1, "nature": 1}
+  }
+}

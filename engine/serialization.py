@@ -293,6 +293,11 @@ class WorldSerializer:
         _skills = dict(p.skills or {})
         _skills.update(pdata.get("skills", {}) or {})
         p.skills = _skills
+        try:
+            p.proficiency = int(pdata.get("proficiency", 0) or 0)
+        except (TypeError, ValueError):
+            p.proficiency = 0
+        p.skill_progress = dict(pdata.get("skill_progress", {}) or {})
         p.state = pdata.get("state", "awake")
         p.load_conditions(pdata.get("conditions"))
         legacy_timer = pdata.get("state_timer") or 0

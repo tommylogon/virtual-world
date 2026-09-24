@@ -21,9 +21,12 @@ class SkillSystem:
         Must provide ``record_turn_event(...)``.
     """
 
-    def __init__(self, player_manager, logging_events):
+    def __init__(self, player_manager, logging_events, game_state=None):
         self.player_manager = player_manager
         self.logging_events = logging_events
+        #: Optional world handle. Only needed for opt-in use-based skill growth
+        #: (task-480); every existing caller passes two args and is unaffected.
+        self.world = game_state
 
     # ─────────────────────────── Dice rolling ─────────────────────────
 
@@ -94,7 +97,32 @@ class SkillSystem:
             f"roll={rolled.kept} + {detail} = {total} => {result_label}"
         )
         self.logging_events.add_log_entry(message)
+        self._maybe_grow(player, skill_name, success)
         return (success, total, message)
+
+    def _maybe_grow(self, player, skill_name, success: bool) -> Optional[bool]:
+        """Use-based skill growth, if the scenario opted in (task-480).
+
+        Off unless the world sets ``skill_growth``, so no existing game changes.
+        Returns True when the skill rose (for tests), else None.
+        """
+        gs = self.world
+        if gs is None or not success:
+            return None
+        try:
+            from engine import skill_progress
+            if not skill_progress.growth_enabled(gs):
+                return None
+            threshold = skill_progress.growth_threshold(gs)
+            if skill_progress.record_use(player, skill_name, success=True,
+                                         threshold=threshold):
+                self.logging_events.add_log_entry(
+                    f"[Skill] {getattr(player, 'name', 'someone')}'s "
+                    f"{skill_name} improved.")
+                return True
+        except Exception:
+            return None
+        return None
 
     # ─────────────────────────── Saving throws ────────────────────────
 

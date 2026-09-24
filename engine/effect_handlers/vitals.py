@@ -178,9 +178,58 @@ def handle_adjust_vital(self, params, context, item_node=None, game_state=None):
     return outputs
 
 
+STAT_NAMES = ("STR", "DEX", "CON", "INT", "WIS", "CHA")
+#: 5e's ability range. A trigger may train or drain an ability but not make it
+#: nonsense, so the result is clamped rather than left to the author.
+STAT_MIN, STAT_MAX = 1, 30
+
+
+def handle_adjust_stat(self, params, context, item_node=None, game_state=None):
+    """Adjust an ability score on a player (task-480).
+
+    The sheet counterpart to ``adjust_vital``: abilities are mutable stats
+    changed by play, so an item or trigger can train or drain one. ``stat`` is a
+    core ability (STR/DEX/CON/INT/WIS/CHA, case-insensitive); the existing key
+    casing on the player is reused so both ``STR`` and ``str`` spells work.
+    Clamped to [1, 30]. Targets ``self`` or a named character.
+    """
+    stat = str(params.get("stat", "")).upper()
+    if stat not in STAT_NAMES:
+        return []
+    try:
+        amount = int(params.get("amount", 0))
+    except (TypeError, ValueError):
+        return []
+    target = params.get("target", "self")
+
+    outputs = []
+    player = None
+    if game_state is not None:
+        if target == "self":
+            player = getattr(game_state, "player", None)
+        else:
+            player = (getattr(game_state, "players", None) or {}).get(target)
+    if player is None:
+        return outputs
+
+    stats = getattr(player, "stats", None)
+    if not isinstance(stats, dict):
+        return outputs
+    key = stat if stat in stats else stat.lower()
+    try:
+        current = int(stats.get(key, 10) or 10)
+    except (TypeError, ValueError):
+        current = 10
+    stats[key] = max(STAT_MIN, min(STAT_MAX, current + amount))
+    outputs.append(params.get("message")
+                   or f"{key} {stats[key]} ({amount:+d}).")
+    return outputs
+
+
 HANDLERS = {
     "damage": handle_damage,
     "save": handle_save,
     "heal": handle_heal,
     "adjust_vital": handle_adjust_vital,
+    "adjust_stat": handle_adjust_stat,
 }

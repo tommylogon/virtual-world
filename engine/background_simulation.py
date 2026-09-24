@@ -31,7 +31,7 @@ import logging
 import random
 from collections import deque
 
-from graph import EDGE_IN, EDGE_CARRYING
+from graph import EDGE_IN, EDGE_CARRYING, EDGE_TRIGGERS
 from engine.trace import record
 from vital_rates import tick_minutes
 
@@ -193,9 +193,15 @@ class BackgroundSimulation:
         # area, once per tick, and gives both sides a short conversing activity —
         # which is why the loop above skips anyone mid-activity.
         try:
-            from engine.background_social import run_social_pass, run_social_approach
+            from engine.background_social import (
+                run_social_pass, run_social_approach, run_theft_pass,
+            )
             run_social_pass(self.gs)
             run_social_approach(self.gs)
+            # Actor-driven agenda last (task-468): a thief reaches for something
+            # after everyone has moved, and its failed attempt writes the line
+            # the interrupt evaluator reads.
+            run_theft_pass(self.gs)
         except Exception as e:
             logger.warning("[background] social pass: %s", e)
 
@@ -621,6 +627,51 @@ class BackgroundSimulation:
             logger.warning("[background] forage spawn: %s", e)
             return None
 
+    def _has_authored_consume(self, node, trigger_type) -> bool:
+        """True when *node* authors an ``on_eat``/``on_drink`` trigger.
+
+        An authored consumable owns its own effect and depletion (bread is
+        destroyed, a glass empties and persists). When it does, the background
+        tier must run *that* path rather than the hardcoded count/uses/remove.
+        """
+        try:
+            edges = self.gs.graph.get_edges_for_source(node.id, EDGE_TRIGGERS)
+        except Exception:
+            return False
+        for edge in edges:
+            tt = (edge.properties or {}).get("trigger_type", "")
+            if isinstance(tt, (list, tuple)):
+                if trigger_type in tt:
+                    return True
+            elif tt == trigger_type:
+                return True
+        return False
+
+    def _consume_via_authored(self, p, node, verb) -> bool:
+        """Run the player consume path with *p* swapped into the active slot.
+
+        This is the same trick `_travel_toward`/`_forage_check` use: the authored
+        path reads the active player, so the background character is briefly
+        active. Returns True when it ran; False lets the caller fall back.
+        """
+        active = getattr(self.gs, "active_player", None)
+        try:
+            self.gs.active_player = getattr(p, "name", None)
+            if verb == "drink":
+                self.gs.item_actions.drink_item(self.gs.player_manager, node.name)
+            else:
+                self.gs.item_actions.eat_item(self.gs.player_manager, node.name)
+            return True
+        except Exception as e:
+            logger.warning("[background] authored %s failed for %s: %s",
+                           verb, getattr(p, "name", "?"), e)
+            return False
+        finally:
+            try:
+                self.gs.active_player = active
+            except Exception:
+                pass
+
     def _consume_here(self, p, tags, kind):
         node = self._find_consumable(p, tags, verb=self._verb_for_need(kind))
         if not node:
@@ -635,7 +686,22 @@ class BackgroundSimulation:
             self.gs.add_log_entry(
                 f"[{p.name}] searches for {kind} but finds nothing.")
             return "failed"
+
+        verb = "drink" if kind == "drink" else "eat"
+        trigger_type = "on_drink" if kind == "drink" else "on_eat"
+        # One consumption path (task-424): an authored consumable resolves through
+        # the player path, so its triggers fire and it depletes its own way. The
+        # hardcoded count/uses/remove below stays only as a fallback for items that
+        # author no consumption, and says so in the log.
+        if self._has_authored_consume(node, trigger_type):
+            if self._consume_via_authored(p, node, verb):
+                self._areas_cache.clear()
+                self._record_consumption(p, node, kind, restore=False)
+                return True
+
         props = node.properties or {}
+        logger.info("[background] %s: %s authors no consume trigger; using the "
+                    "hardcoded fallback", getattr(p, "name", "?"), node.name)
         count = props.get("count")
         uses = props.get("uses")
         if isinstance(count, int) and count > 1:
@@ -649,17 +715,29 @@ class BackgroundSimulation:
         # their own now-empty area instead of a real source.
         self._areas_cache.clear()
 
+        self._record_consumption(p, node, kind, restore=True)
+        return True
+
+    def _record_consumption(self, p, node, kind, *, restore: bool):
+        """The need-level trace + log for a background meal.
+
+        ``restore`` applies the hardcoded MEAL_RESTORE/DRINK_RESTORE. It is True
+        only on the fallback path: when the item authors its own consumption, its
+        ``adjust_vital`` trigger is the one source of truth and applying the
+        constant too would double the restore (task-424).
+        """
         tick = self.gs.time_ticks
         if kind == "drink":
-            p.vitals["Thirst"] = max(0, p.vitals.get("Thirst", 0) - DRINK_RESTORE)
+            if restore:
+                p.vitals["Thirst"] = max(0, p.vitals.get("Thirst", 0) - DRINK_RESTORE)
             verb = "drank"
         else:
-            p.vitals["Hunger"] = max(0, p.vitals.get("Hunger", 0) - MEAL_RESTORE)
+            if restore:
+                p.vitals["Hunger"] = max(0, p.vitals.get("Hunger", 0) - MEAL_RESTORE)
             verb = "ate"
         record(p, tick, "act", f"{verb} {node.name}", why=f"needs:{kind}",
                area=p.current_area, tags=["need"])
         self.gs.add_log_entry(f"[{p.name}] {verb} the {node.name}.")
-        return True
 
     def _sleep(self, p):
         try:

@@ -297,9 +297,17 @@ class Effects:
                 "heating_rate",
                 "contents",
                 "aliases",
+                # task-410: `parameters` is the generic gauge dict (a plant's
+                # growth, a device's charge counter). Dropping it on hydrate lost
+                # the authored starting value, so a spawned plant came up with no
+                # counter at all.
+                "parameters",
             ):
                 if extra_field in lib_data:
-                    properties[extra_field] = lib_data[extra_field]
+                    value = lib_data[extra_field]
+                    properties[extra_field] = (
+                        dict(value) if isinstance(value, dict) else value
+                    )
 
             spawn_node = Node(
                 id=item_id,
@@ -372,20 +380,36 @@ class Effects:
             trigger_type = trigger_data.get("trigger_type", "on_use")
             effects = trigger_data.get("effects", []) or []
             first_effect = effects[0].get("type", "message") if effects else "message"
+            if not effects and trigger_data.get("effect_type"):
+                first_effect = trigger_data["effect_type"]
             trigger_id = (
                 f"trigger_{spawn_id}_{trigger_type}_"
                 f"{int(time.time() * 1000)}_{random.randint(0, 999)}"
             )
             trigger_properties = {
                 "trigger_type": trigger_type,
-                "conditions": trigger_data.get("conditions", {}),
-                "conditions_logic": trigger_data.get("conditions_logic", "and"),
                 "effects": effects,
                 "target_name": trigger_data.get("target_name", ""),
                 "target_state": trigger_data.get("target_state", ""),
                 "success_message": trigger_data.get("success_message", ""),
                 "fail_message": trigger_data.get("fail_message", ""),
             }
+            # Only carry `conditions` when the source has them: an empty `{}`
+            # would mask the singular `condition` fallback in execution.py (which
+            # tests `conditions_list == []`, not falsiness), making a legacy
+            # trigger fire unconditionally.
+            if trigger_data.get("conditions"):
+                trigger_properties["conditions"] = trigger_data["conditions"]
+                trigger_properties["conditions_logic"] = \
+                    trigger_data.get("conditions_logic", "and")
+            # Legacy singular shape (task-410): a library plant authors its growth
+            # increment as `condition` + `effect_type`/`effect_params`. Carry those
+            # keys through too — the runtime reads both shapes (execution.py /
+            # effect_resolution.py), but without this a hydrated plant would get a
+            # trigger with no conditions and no effects, i.e. it would never grow.
+            for legacy_key in ("condition", "effect_type", "effect_params"):
+                if legacy_key in trigger_data:
+                    trigger_properties[legacy_key] = trigger_data[legacy_key]
             trigger_node = Node(
                 id=trigger_id,
                 type="logic_trigger",

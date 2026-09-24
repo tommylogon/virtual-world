@@ -190,7 +190,7 @@ class VirtualWorld:
         # fresh window; back-and-forth is the memory system's job.
         self.area_presence = {}
         self.equipment = EquipmentSystem(self.graph, self.triggers, self.game_logger, self.player_manager, world=self)
-        self.skills = SkillSystem(self.player_manager, self.game_logger)
+        self.skills = SkillSystem(self.player_manager, self.game_logger, game_state=self)
         self.name_matcher = NameMatching(self.graph, self)
         self.grapple = GrappleSystem(self.graph, self.player_manager, self.skills, self.name_matcher, self)
         self.node_ids = NodeIDHelper

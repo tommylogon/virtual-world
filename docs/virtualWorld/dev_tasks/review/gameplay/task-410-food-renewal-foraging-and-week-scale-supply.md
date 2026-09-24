@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: gameplay
 priority: medium
 ---
@@ -121,14 +121,42 @@ and product (item vs character):
 
 ## Acceptance
 
-- A **7-day** background-only soak of the goblin camp ends with all 23 alive, or
+- [x] A **7-day** background-only soak of the goblin camp ends with all 23 alive, or
   every death is attributable to an authored cause and documented — not supply
-  collapse.
-- Food counts stabilize instead of monotonically falling to zero.
-- A plant never exceeds 10 produce and never grows past its cap; growth resets
-  cleanly at 100.
-- Deterministic under a fixed seed; spawned food is trace-visible.
-- Plant items remain intact (not removed) as their counters move.
+  collapse. (slice 1: 23/23 at both 1 and 15 min/tick)
+- [x] Food counts stabilize instead of monotonically falling to zero. (4 -> 50 over a week)
+- [x] A plant never exceeds 10 produce and never grows past its cap; growth resets
+  cleanly at 100. [[`tests/test_renewable_plants.py`]]
+- [x] Deterministic under a fixed seed; spawned food is trace-visible.
+- [x] Plant items remain intact (not removed) as their counters move.
+  [[`test_mature_plant_spawns_produce_and_resets`,
+  `test_plant_itself_is_not_food`]]
+
+## Progress — 2026-09-24 (verification + the hydrate path)
+
+The core (slice 1) was already authored and soaked; this lands the missing unit
+verification and fixes the **library-hydrate path** the soak did not exercise
+(the scenario embeds its bushes directly).
+
+- **`engine/effects.py` — two real bugs in `_hydrate_item` /
+  `_materialize_spawn_triggers`:**
+  1. `parameters` was dropped on hydrate, so a spawned plant came up with no
+     growth gauge at all (the same class of bug task-410 fixed for the other
+     placement path). It is now copied (as a fresh dict).
+  2. The legacy singular trigger shape (`condition` + `effect_type` /
+     `effect_params`) was not carried onto the hydrated trigger edge, so a
+     hydrated plant's growth trigger had no conditions and no effects and would
+     never grow. It is now carried, and `conditions` is only emitted when the
+     source actually has them — an empty `{}` masked the singular fallback in
+     `execution.py` and made the trigger fire unconditionally.
+- **`tests/test_renewable_plants.py`** (4): a hydrated bush grows by game-minute,
+  a mature plant spawns produce and resets growth, the 10-produce cap holds and
+  growth is *not* reset when the cap blocks the spawn, and the plant itself is not
+  food-tagged (so it cannot be eaten and deleted).
+
+Remaining (tracked elsewhere): the active item sources and character/creature
+spawners from the widened slice table are **task-427** (creature spawners,
+population caps, death path/carcass) plus a data-only fishing-spot/snare pass.
 
 ## Slice 1 result (2026-09-21)
 
