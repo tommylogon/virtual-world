@@ -41,3 +41,23 @@ def handle_scope_graph(app, scope_id):
     include_items = str(request.args.get("include_items", "")).lower() in ("1", "true", "yes")
     return jsonify(world_scopes.project(manifest, graph, players, scope_id,
                                         depth=max(0, depth), include_items=include_items))
+
+
+def handle_scope_observe(app, scope_id):
+    """POST /api/world/scopes/<scope_id>/observe — activation boundary (task-399).
+
+    Opening a scope requests that its background residents become attended. The
+    transition is *queued*, not applied inline: the turn loop flushes the batch
+    at one tick boundary, so activate/offload stays atomic.
+    """
+    from engine import promotion
+
+    manifest, _graph, _players = _parts(app)
+    if scope_id not in manifest:
+        return jsonify({"error": f"Scope '{scope_id}' not found"}), 404
+    queued = promotion.activate_scope(app.world, scope_id)
+    return jsonify({
+        "scope_id": scope_id,
+        "queued": sorted(queued),
+        "pending": sorted(promotion.pending(app.world)),
+    })

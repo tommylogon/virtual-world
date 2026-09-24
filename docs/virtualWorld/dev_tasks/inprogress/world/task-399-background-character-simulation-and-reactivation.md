@@ -140,19 +140,20 @@ Still to build for this task (updated 2026-09-24):
    soak/timeskip hooks. See Progress below.
 2. ~~`simulation_mode: active | background`, with atomic activate/offload at a
    tick; `trace.summarize_window` builds the promotion catch-up summary.~~
-   **Partially done.** `simulation_mode` + the promotion/demotion **memory
-   bridge** landed in `engine/promotion.py` (2026-09-24, absorbing task-412):
-   `offload()` stamps the background boundary and `promote()` consolidates the
-   span into one bounded `source: "background"` memory, idempotently. Still
-   open: the *atomic* activate/offload at a tick and the scope-observation
-   activation boundary (opening a scope promotes its residents). Soak orders
-   keep their own `source: "timeskip"` resume memory (task-481) and are not
-   routed through the bridge.
+   **Done (2026-09-24).** `simulation_mode` + the promotion/demotion **memory
+   bridge** landed in `engine/promotion.py` (absorbing task-412): `offload()`
+   stamps the background boundary and `promote()` consolidates the span into one
+   bounded `source: "background"` memory, idempotently. Atomicity and the
+   scope-observation boundary also landed — transitions are *queued* and applied
+   as one batch by `flush()` at the top of `tick_turn`, and
+   `POST /api/world/scopes/<id>/observe` queues promotion for the scope's
+   background residents. Soak orders keep their own `source: "timeskip"` resume
+   memory (task-481) and are not routed through the bridge.
 3. **Pines proof** — author schedules for five residents, offload/advance/
-   activate, and a bounded `background` memory in Miki's next prompt. Deferred:
-   the scenario content belongs to task-400/task-408, and task-409 slice 1
-   deliberately did not ship schedule data (it degraded Hygiene/Social/
-   Entertainment in a measured soak).
+   activate, and a bounded `background` memory in Miki's next prompt. **Still
+   open.** Deferred: the scenario content belongs to task-400/task-408, and
+   task-409 slice 1 deliberately did not ship schedule data (it degraded
+   Hygiene/Social/Entertainment in a measured soak).
 
 ## Progress — 2026-09-24
 
@@ -169,12 +170,28 @@ superseded and folded here.
 - **`engine/structures.py`** — resident materialisation now demotes through
   `promotion.offload(..., reason="materialize")`, so imported residents carry a
   real boundary stamp for a later activation to summarize from.
-- **Tests** — `tests/test_promotion.py` (11): offload idempotence, no-op promote
+- **Tests** — `tests/test_promotion.py` (19): offload idempotence, no-op promote
   on an attended character, one bounded memory per span, no duplicate on
   repeated activation, a second span adds exactly one more, foreground markers
-  never summarized, marks survive serialize/load. Related suites
+  never summarized, marks survive serialize/load; plus the atomic boundary
+  (queue-then-flush, request collapse, missing-character drop, soak orders
+  skipped, memory written at flush) and the observe route. Related suites
   (`test_trace`, `test_serialization`, `test_background_simulation`,
-  `test_soak_chain`, `test_soak_orders`, `test_structures`) all pass.
+  `test_soak_chain`, `test_soak_orders`, `test_structures`, `test_world_scopes`)
+  all pass.
 
-Remaining for this task: atomic activate/offload at a tick + the scope
-observation boundary, and the Pines proof (task-400).
+## Progress — 2026-09-24 (slice 2: atomic transitions + scope boundary)
+
+- **`engine/promotion.py`** — `request()` / `pending()` / `flush()` /
+  `activate_scope()`. A tier change is *queued*, never applied mid-turn; the
+  batch is applied in one place. Overlapping requests for one character
+  collapse to the last, so a character cannot be resolved twice under two modes.
+- **`engine/tick_manager.py`** — `tick_turn` flushes the queue first thing,
+  before `on_turn_start` and before any character is processed, so the whole
+  turn sees a single mode per character.
+- **`routes/world_scopes.py` / `_ops.py`** — `POST
+  /api/world/scopes/<id>/observe` queues promotion for the scope's background
+  residents (soak-ordered and already-attended characters are skipped) and
+  returns the queued/pending names. The change lands at the next tick.
+
+Remaining for this task: the Pines proof (task-400).

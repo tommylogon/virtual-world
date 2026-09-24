@@ -173,6 +173,15 @@ class TickManager:
     def tick_turn(self, skip_npcs=False):
         """Apply baseline vital decay and environmental effects to ALL characters.
         When skip_npcs=True, NPC behavior processing is skipped (used during rest)."""
+        # task-399: apply queued fidelity transitions at this one boundary,
+        # before any character is resolved, so activate/offload is atomic and a
+        # character can never act twice in a turn under two different modes.
+        try:
+            from engine.promotion import flush as _flush_fidelity
+            _flush_fidelity(self.gs)
+        except Exception as e:
+            logger.warning("[tick] fidelity flush: %s", e)
+
         # task-234: on_turn_start area/way/character triggers fire FIRST —
         # before conditions, vitals decay, and environmental effects.
         try:

@@ -129,6 +129,98 @@ def pending_span(player, since_tick: Optional[int] = None) -> List[Dict[str, Any
     return _span(player, int(since_tick))
 
 
+# ─────────────────── atomic transitions (task-399) ────────────────────────
+# A tier change is a boundary event: it must land at one tick boundary, before
+# any character is resolved, or a character could act twice in the same turn —
+# once as background and once as attended. Callers therefore *request* a
+# transition and the turn loop applies the whole batch with `flush()`.
+
+PENDING_ATTR = "_pending_fidelity"
+
+
+def request(gs, player, mode, *, reason: str = "scope") -> bool:
+    """Queue a fidelity change for the next tick boundary (atomic).
+
+    ``mode="background"`` demotes; anything else promotes. Queuing twice for the
+    same character replaces the earlier request, so a batch of overlapping scope
+    observations resolves to one transition, not two.
+    """
+    if player is None:
+        return False
+    queue = getattr(gs, PENDING_ATTR, None)
+    if queue is None:
+        queue = {}
+        setattr(gs, PENDING_ATTR, queue)
+    queue[player.name] = {
+        "mode": "background" if mode == "background" else "active",
+        "reason": str(reason),
+    }
+    return True
+
+
+def pending(gs) -> Dict[str, dict]:
+    """The queued transitions (``name -> request``) as a copy."""
+    return dict(getattr(gs, PENDING_ATTR, None) or {})
+
+
+def flush(gs) -> List[str]:
+    """Apply every queued transition at one tick boundary.
+
+    Returns the names whose tier actually changed. A request for a character
+    that no longer exists is dropped. This is the **only** place a queued
+    transition is applied, so the batch is atomic with respect to the turn:
+    every character is resolved once, under a single mode.
+    """
+    queue = getattr(gs, PENDING_ATTR, None)
+    if not queue:
+        return []
+    players = getattr(gs, "players", {}) or {}
+    changed: List[str] = []
+    for name, req in list(queue.items()):
+        player = players.get(name)
+        if player is None:
+            continue
+        before = getattr(player, "simulation_mode", "active")
+        if req.get("mode") == "background":
+            offload(gs, player, reason=req.get("reason", "scope"))
+        else:
+            promote(gs, player, reason=req.get("reason", "scope"))
+        if getattr(player, "simulation_mode", "active") != before:
+            changed.append(name)
+    queue.clear()
+    return changed
+
+
+def activate_scope(gs, scope_id) -> List[str]:
+    """Queue promotion for every background resident inside *scope_id*.
+
+    The scope-observation activation boundary (task-399): opening a scope is a
+    request to make its residents attended. Characters owned by an explicit soak
+    order are left to that order, and already-attended characters are untouched.
+    The change lands at the next tick boundary via :func:`flush`, never mid-turn.
+    """
+    from engine import world_scopes as ws
+
+    manifest = ws.normalise_manifest(getattr(gs, "world_scopes", {}) or {})
+    area_ids = ws.area_ids_in_scope(manifest, gs.graph, scope_id)
+    if not area_ids:
+        return []
+    queued: List[str] = []
+    for player in (getattr(gs, "players", {}) or {}).values():
+        if getattr(player, "soak_order", None):
+            continue
+        if getattr(player, "simulation_mode", "active") != "background":
+            continue
+        try:
+            in_scope = gs.area_node_id(player.current_area) in area_ids
+        except Exception:
+            in_scope = False
+        if in_scope:
+            request(gs, player, "active", reason=f"scope:{scope_id}")
+            queued.append(player.name)
+    return queued
+
+
 def summarize(gs, entries: List[Dict[str, Any]], *, since_tick: int = 0,
               end_tick: int = 0) -> str:
     """A deterministic, bounded sentence over a background span's trace facts.

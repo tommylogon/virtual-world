@@ -13,6 +13,51 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from player import Player
 from engine import promotion, trace as trace_mod
+from graph import Node, WorldGraph
+
+
+SCOPE_MANIFEST = {
+    "the_pines": {"id": "the_pines", "name": "The Pines", "kind": "building",
+                  "children": ["pines_floor_3"]},
+    "pines_floor_3": {"id": "pines_floor_3", "name": "Floor 3", "kind": "floor",
+                      "parent_id": "the_pines", "children": ["apartment_3b"]},
+    "apartment_3b": {"id": "apartment_3b", "name": "Apartment 3B",
+                     "kind": "apartment", "parent_id": "pines_floor_3",
+                     "area_ids": ["area_3b_living"]},
+}
+
+
+class _ScopeGS:
+    """A game-state stub with just what activation and flushing read."""
+
+    def __init__(self, tick=100):
+        self.graph = WorldGraph()
+        self.world_scopes = dict(SCOPE_MANIFEST)
+        self.players = {}
+        self.time_ticks = tick
+        self.time_per_tick_minutes = 1
+        self.graph.add_node(Node(id="area_hall3", type="area", name="Hallway 3",
+                                 properties={"world_scope_id": "pines_floor_3"}))
+        self.graph.add_node(Node(id="area_3b_living", type="area", name="3B Living",
+                                 properties={"world_scope_id": "apartment_3b"}))
+
+    def area_node_id(self, name):
+        for nid, node in self.graph.nodes.items():
+            if node.type == "area" and node.name == name:
+                return nid
+        return None
+
+
+def _resident(gs, name, area, *, background=True, soak=False):
+    p = Player(name)
+    p.current_area = area
+    if soak:
+        p.soak_order = {"intent": "idle", "declared_minutes": 10,
+                        "remaining_minutes": 10}
+    if background:
+        promotion.offload(gs, p)
+    gs.players[name] = p
+    return p
 
 
 class _GS:
@@ -182,3 +227,110 @@ def test_a_reloaded_player_does_not_double_consolidate():
     reloaded.simulation_mode = "background"
     gs.time_ticks = 25
     assert promotion.promote(gs, reloaded) is None
+
+
+# ──────────────────── atomic transitions + scope boundary ─────────────────
+
+def test_activate_scope_queues_only_background_residents_inside():
+    gs = _ScopeGS()
+    alice = _resident(gs, "Alice", "3B Living")   # apartment_3b, in The Pines
+    bob = _resident(gs, "Bob", "Hallway 3")       # pines_floor_3, in The Pines
+    carol = _resident(gs, "Carol", "Somewhere Else")  # outside every scope
+
+    queued = promotion.activate_scope(gs, "the_pines")
+
+    assert set(queued) == {"Alice", "Bob"}
+    assert set(promotion.pending(gs)) == {"Alice", "Bob"}
+    # Nothing has changed tier yet — the request is queued, not applied.
+    assert alice.simulation_mode == "background"
+    assert bob.simulation_mode == "background"
+    assert carol.simulation_mode == "background"
+
+
+def test_flush_applies_the_batch_at_one_boundary():
+    gs = _ScopeGS()
+    alice = _resident(gs, "Alice", "3B Living")
+    bob = _resident(gs, "Bob", "Hallway 3")
+    carol = _resident(gs, "Carol", "Somewhere Else")
+    promotion.activate_scope(gs, "the_pines")
+
+    changed = promotion.flush(gs)
+
+    assert set(changed) == {"Alice", "Bob"}
+    assert alice.simulation_mode == "active"
+    assert bob.simulation_mode == "active"
+    assert carol.simulation_mode == "background"
+    assert promotion.pending(gs) == {}
+
+
+def test_a_second_request_for_the_same_character_replaces_the_first():
+    gs = _ScopeGS()
+    alice = _resident(gs, "Alice", "3B Living")
+    promotion.request(gs, alice, "active")
+    promotion.request(gs, alice, "background")
+    assert promotion.pending(gs)["Alice"]["mode"] == "background"
+    promotion.flush(gs)
+    assert alice.simulation_mode == "background"
+
+
+def test_flush_applies_a_queued_offload_and_stamps_the_boundary():
+    gs = _ScopeGS(tick=100)
+    alice = _resident(gs, "Alice", "3B Living", background=False)
+    promotion.request(gs, alice, "background", reason="left-scope")
+    promotion.flush(gs)
+    assert alice.simulation_mode == "background"
+    assert alice.last_offload_tick == 100
+
+
+def test_flush_drops_a_request_for_a_missing_character():
+    gs = _ScopeGS()
+    ghost = Player("Ghost")
+    promotion.request(gs, ghost, "active")
+    assert promotion.flush(gs) == []
+    assert promotion.pending(gs) == {}
+
+
+def test_a_soak_ordered_character_is_not_activated_by_a_scope():
+    gs = _ScopeGS()
+    _resident(gs, "Alice", "3B Living")
+    _resident(gs, "Bob", "Hallway 3", soak=True)
+    queued = promotion.activate_scope(gs, "the_pines")
+    assert queued == ["Alice"]
+
+
+def test_activation_writes_the_span_memory_at_flush():
+    gs = _ScopeGS(tick=100)
+    alice = _resident(gs, "Alice", "3B Living")
+    gs.time_ticks = 120
+    _bg(alice, gs, what="worked", why="schedule:work")
+
+    promotion.activate_scope(gs, "the_pines")
+    promotion.flush(gs)
+
+    assert alice.simulation_mode == "active"
+    memories = _bg_memories(alice)
+    assert len(memories) == 1
+    assert "work" in memories[0]["text"]
+
+
+def test_observe_route_queues_residents_and_404s_unknown_scope():
+    from app import create_app
+    app = create_app({"TESTING": True})
+    world = app.world
+    resident = next(iter(world.players.values()))
+    area_id = world.area_node_id(resident.current_area)
+    world.world_scopes = {
+        "pines": {"id": "pines", "name": "Pines", "area_ids": [area_id]},
+    }
+    promotion.offload(world, resident)
+    client = app.test_client()
+
+    missing = client.post("/api/world/scopes/nope/observe")
+    assert missing.status_code == 404
+
+    ok = client.post("/api/world/scopes/pines/observe")
+    assert ok.status_code == 200
+    body = ok.get_json()
+    assert resident.name in body["queued"]
+    assert resident.name in body["pending"]
+
