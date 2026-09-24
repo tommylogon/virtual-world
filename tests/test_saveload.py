@@ -191,3 +191,48 @@ class TestSaveRoutes:
         resp2 = client.post('/api/save-game', json={'slot': filename})
         assert resp2.status_code == 201
         assert resp2.get_json()['filename'] == filename
+
+
+class TestDeleteAllSaves:
+    """bug-42: Delete All keeps the autosave slot and is one request."""
+
+    @staticmethod
+    def _write(name, autosave=False):
+        path = os.path.join(_saves_dir(), name)
+        with open(path, 'w', encoding='utf-8') as f:
+            json.dump({'_save_metadata': {'name': name, 'autosave': autosave}}, f)
+        return path
+
+    def test_delete_all_keeps_the_autosave_slot(self, app, client):
+        auto = self._write('autosave.json', autosave=True)
+        one = self._write('run_one_20260101_120000.json')
+        two = self._write('run_two_20260102_120000.json')
+
+        body = client.post('/api/save-games/delete-all', json={}).get_json()
+
+        assert os.path.exists(auto)
+        assert not os.path.exists(one) and not os.path.exists(two)
+        assert body['kept'] == ['autosave.json']
+        assert sorted(body['deleted']) == [
+            'run_one_20260101_120000.json', 'run_two_20260102_120000.json']
+
+    def test_delete_all_can_include_the_autosave_when_asked(self, app, client):
+        auto = self._write('autosave.json', autosave=True)
+        body = client.post('/api/save-games/delete-all',
+                           json={'include_autosave': True}).get_json()
+        assert not os.path.exists(auto)
+        assert 'autosave.json' in body['deleted']
+        assert body['kept'] == []
+
+    def test_delete_all_ignores_non_json_files(self, app, client):
+        note = os.path.join(_saves_dir(), 'notes.txt')
+        with open(note, 'w', encoding='utf-8') as f:
+            f.write('keep me')
+        body = client.post('/api/save-games/delete-all', json={}).get_json()
+        assert os.path.exists(note)
+        assert body['deleted'] == []
+
+    def test_delete_all_with_no_saves_is_a_noop(self, app, client):
+        resp = client.post('/api/save-games/delete-all', json={})
+        assert resp.status_code == 200
+        assert resp.get_json()['deleted'] == []

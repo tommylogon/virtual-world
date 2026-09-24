@@ -532,6 +532,12 @@ class ApiClient {
         return resp.json();
     }
 
+    /** Delete every user save in one request; the autosave slot is kept unless
+     *  `includeAutosave` is true (bug-42). */
+    static async deleteAllSaveGames(includeAutosave = false) {
+        return this.post('/api/save-games/delete-all', { include_autosave: !!includeAutosave });
+    }
+
     static async renameSaveGame(filename, name) {
         return this.post(`/api/save-game/${encodeURIComponent(filename)}/rename`, { name });
     }

@@ -1,6 +1,6 @@
 ---
 type: bug
-status: todo
+status: review
 area: ui
 priority: medium
 ---
@@ -54,3 +54,19 @@ loops `api.deleteSaveGame(saves[i].filename)` with no exclusion for
 - `routes/saveload.py` — save-game routes (new bulk endpoint)
 - `static/js/api.js` — client method for the bulk endpoint
 - `tests/test_saveload.py` — bulk-delete + autosave-retention coverage
+
+## Fix — 2026-09-24
+
+- **`routes/saveload.py`** — new `POST /api/save-games/delete-all` with an
+  `include_autosave` flag (default false). It deletes every `.json` in the saves
+  dir in one pass, keeping `autosave.json` unless explicitly asked; a mid-way
+  `OSError` returns an error listing what was deleted, so the wipe is never
+  silently partial.
+- **`static/js/api.js`** — `deleteAllSaveGames(includeAutosave = false)`.
+- **`static/js/ui/saveload-view.js`** — `confirmDeleteAllSaves` now lists saves,
+  filters out the autosave row, states the count and that autosave is kept, and
+  makes a single bulk request (one confirm, not a non-differential double
+  confirm). An empty user-save set is a no-op with a toast.
+- **Tests** — `tests/test_saveload.py::TestDeleteAllSaves` (4): autosave kept and
+  listed in `kept`; `include_autosave: true` removes it; non-JSON files are
+  ignored; no saves is a no-op. `pytest tests/test_saveload.py` → 14 passed.

@@ -355,6 +355,42 @@ def register_saveload_routes(app):
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 
+    @app.route('/api/save-games/delete-all', methods=['POST'])
+    def delete_all_save_games():
+        """Delete every user save in one request (bug-42).
+
+        The autosave slot is **kept** unless ``include_autosave`` is true: the
+        modal promises the autosave is always current, so a global wipe must not
+        destroy the safety net. On a mid-way failure the response is an error and
+        lists what was deleted, so the wipe is never silently partial.
+        """
+        from .helpers import AUTOSAVE_PATH
+        body = request.get_json(force=True, silent=True) or {}
+        include_autosave = bool(body.get('include_autosave', False))
+        saves_dir = SAVES_DIR
+        deleted, kept = [], []
+        if os.path.isdir(saves_dir):
+            auto_abs = {os.path.abspath(AUTOSAVE_PATH),
+                        os.path.abspath(os.path.join(saves_dir, 'autosave.json'))}
+            for fname in sorted(os.listdir(saves_dir)):
+                if not fname.endswith('.json'):
+                    continue
+                path = os.path.join(saves_dir, fname)
+                is_auto = os.path.abspath(path) in auto_abs
+                if is_auto and not include_autosave:
+                    kept.append(fname)
+                    continue
+                try:
+                    os.remove(path)
+                    deleted.append(fname)
+                except OSError as e:
+                    return jsonify({
+                        "error": f"Could not delete {fname}: {e}",
+                        "deleted": deleted,
+                        "kept": kept,
+                    }), 500
+        return jsonify({"status": "success", "deleted": deleted, "kept": kept})
+
     @app.route('/api/scenario/diff', methods=['GET'])
     def scenario_diff():
         """Structural diff between the live world and its scenario source.

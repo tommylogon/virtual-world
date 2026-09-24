@@ -460,11 +460,14 @@ window.SaveLoadView = (() => {
                 if (size) stats.push(size);
                 var statLine = stats.join(' · ');
                 var isAuto = !!save.autosave;
+                // Build the badges as elements, not HTML strings: a Lit text
+                // binding escapes markup, so pre-built strings rendered as
+                // literal `<span ...>` text (bug-40).
                 var badge = isAuto
-                    ? '<span style="background:var(--accent,#4a9eff);color:#fff;border-radius:3px;padding:1px 5px;font-size:9px;margin-right:5px;">AUTO</span>'
+                    ? saveLoadViewTag`<span style="background:var(--accent,#4a9eff);color:#fff;border-radius:3px;padding:1px 5px;font-size:9px;margin-right:5px;">AUTO</span>`
                     : '';
                 var versionBadge = save.version
-                    ? '<span style="font-size:9px;color:var(--text-muted);margin-left:4px;">v' + save.version + '</span>'
+                    ? saveLoadViewTag`<span style="font-size:9px;color:var(--text-muted);margin-left:4px;">v${save.version}</span>`
                     : '';
                 return saveLoadViewTag`<div class="save-game-item" style="display:flex;justify-content:space-between;align-items:center;padding:8px 6px;border-bottom:1px solid var(--border);${isAuto ? 'background:rgba(74,158,255,0.06);' : ''}">
                     <div style="flex:1;cursor:pointer;" @click=${() => window.SaveLoadView.doLoadGame(save.filename)}>
@@ -519,18 +522,35 @@ window.SaveLoadView = (() => {
     }
 
     /**
-     * Delete all saved games after double confirmation.
+     * Delete all user saves, keeping the autosave slot (bug-42).
+     *
+     * One bulk request rather than N+1 DELETEs, so a failure cannot leave a
+     * silently partial wipe, and the autosave the modal promises to keep is
+     * excluded.
      */
     async function confirmDeleteAllSaves() {
-        if (!confirm('Delete ALL saves? This cannot be undone.')) return;
-        if (!confirm('Are you sure?')) return;
+        var saves = [];
         try {
-            var saves = await api.listSaveGames();
-            for (var i = 0; i < saves.length; i++) {
-                await api.deleteSaveGame(saves[i].filename);
+            saves = await api.listSaveGames() || [];
+        } catch (err) {
+            toastError('Could not list saves: ' + err.message);
+            return;
+        }
+        var userSaves = saves.filter(function(s) { return !s.autosave; });
+        if (userSaves.length === 0) {
+            toastInfo('No user saves to delete. Autosave is kept.');
+            return;
+        }
+        var noun = userSaves.length === 1 ? 'save' : 'saves';
+        if (!confirm('Delete all ' + userSaves.length + ' ' + noun + '? Autosave is kept. This cannot be undone.')) return;
+        try {
+            var result = await api.deleteAllSaveGames(false);
+            if (result && result.status === 'success') {
+                events.log('🗑 ' + (result.deleted || []).length + ' ' + noun + ' deleted (autosave kept)', 'system-msg');
+                loadGameList();
+            } else {
+                toastError('Delete failed: ' + (result?.error || 'unknown error'));
             }
-            events.log('🗑 All saves deleted', 'system-msg');
-            loadGameList();
         } catch (err) {
             toastError('Error deleting saves: ' + err.message);
         }

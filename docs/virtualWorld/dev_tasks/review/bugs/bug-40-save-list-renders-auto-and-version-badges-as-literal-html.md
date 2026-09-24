@@ -1,6 +1,6 @@
 ---
 type: bug
-status: todo
+status: review
 area: bugs
 priority: high
 ---
@@ -65,3 +65,15 @@ for it.
 ## Files
 
 - `static/js/ui/saveload-view.js` — list template, badge construction (lines ~462-471)
+
+## Fix — 2026-09-24
+
+`badge` and `versionBadge` are now Lit templates (`saveLoadViewTag\`<span …>\``)
+instead of HTML strings, so Lit renders the elements rather than escaping them
+as literal text. `save.name` / `save.filename` remain ordinary text bindings, so
+a name containing `<`, `>`, `&` or a quote still renders literally. No engine or
+route change; `node --check` / lint / typecheck clean. The badge markup is now
+built by the same `saveLoadViewTag` used for the row.
+
+Acceptance met by construction; the row markup cannot contain a raw `<span …>`
+string any more (only the two element templates, which Lit owns).
