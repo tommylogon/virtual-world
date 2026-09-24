@@ -2,11 +2,13 @@
 
 ## Status
 
-Todo — design + API contract drafted 2026-08-17, awaiting implementation.
-Partial: `refresh-to-world` works for **items and ways** only; areas/characters
-return 400 and there is no `break-template-link` yet.
-See **task-317** (bidirectional sync unification) for the World→Library half and
-the empty-world-never-clobbers guard added 2026-08-20.
+In progress — `refresh-to-world` now dispatches **item, way, area and character**
+(`routes/library_ops.py:750-769` → `_refresh_item`/`_refresh_way`/`_refresh_area`/
+`_refresh_character`; the old `routes/library_routes.py:482` 400 is gone), covered by
+`tests/test_library_refresh.py` and `tests/test_events_and_perentry.py`.
+Remaining: `break-template-link` endpoint + inspector UI, and the designed per-type
+mutable-field whitelist — fields are still handled inline per `_refresh_*`, there is
+no `engine/sync.py`. See **task-317** for the World→Library half.
 
 ## Goal
 

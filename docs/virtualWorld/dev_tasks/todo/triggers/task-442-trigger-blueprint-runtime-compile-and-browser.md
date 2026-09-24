@@ -9,7 +9,8 @@ priority: high
 
 **Filed:** 2026-09-21
 **Supersedes:** task-351 Phases 2–3 (Phase 1 shipped; that task is closed)
-**Related:** task-388 (trigger graph editor overhaul — defects #9–#11 are the compile-honesty findings to fix here)
+**Related:** task-388 (trigger graph editor overhaul); task-501 (compile-honesty:
+NO-branch effects + OR/NOT — split out 2026-09-24, was Slice 2 here)
 
 ## Goal
 
@@ -41,14 +42,11 @@ edges — no parallel format, same as task-398's `GenerationPatch` principle.
 
 ## Slice 2 — condition branching must stop losing data
 
-Two known dishonest compiles to fix (also tracked as task-388 defects #9–#11):
-
-- `_traceGraph` (`trigger-graph.js:2082-2113`) **AND-folds every condition and keeps only
-  a NO-branch message as `fail_message`**, dropping every other NO-branch effect.
-- `compileToEngine` (`:1996`) **always emits `{operator:'and'}`** — there is no OR/NOT.
-
-A branch's NO path must compile to engine conditions / effects, or the editor must refuse
-to save it rather than silently discard it.
+**Moved to task-501 (2026-09-24).** The two dishonest compiles — `_traceGraph`
+dropping NO-branch effects and `compileToEngine` always emitting `{operator:'and'}`
+— are a self-contained editor/compiler fix, so they no longer gate this task's
+runtime work. Do task-501 first: slice 1's JSON contract must carry whatever
+condition shape task-501 lands on.
 
 ## Slice 3 — blueprint browser
 
@@ -59,9 +57,8 @@ user-saved ones), in the shape the item library already uses — not a floating 
 
 - A blueprint with a condition branch round-trips into `logic_trigger` nodes + `triggers`
   edges and behaves correctly in the engine.
-- No effect is silently dropped on save or compile: a NO branch with two effects produces
-  two effects (or a visible refusal).
-- OR/NOT conditions survive the round trip.
+- The compile-fidelity half (NO-branch effects, OR/NOT) is task-501 and must be
+  done before a branch can be claimed to round-trip.
 - The browser lists and searches `data/library/triggers/*.json`, and attaching a
   blueprint from it materialises the nodes.
 - `node --check` clean on touched JS; `python -m pytest tests/ -q -k "not mcp and not emote"` green.

@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: triggers
 priority: high
 ---
@@ -115,3 +115,16 @@ Implemented.
 Verified: 255 targeted tests + full suite (2835 passed, excluding pre-existing
 `test_mcp_*`). One-week background soak: 10,080 ticks in 9m49s (17.1 t/s),
 23/23 alive.
+
+## Progress — 2026-09-24
+
+Closed the verification gap: the implementation shipped without the acceptance
+tests named below. Added `TestTriggerEventIndex` in `tests/test_trigger_system.py`
+— standing item fires `on_tick` exactly once; carried and lit/on items are not
+double-fired; an item `on_turn_start` trigger now fires; a no-match
+`_execute_triggers` call returns `[]` without touching `game_state.current_area`
+(asserted with an exploding stub); and the graph trigger index stays correct
+across add / remove / load / clear, including list-valued `trigger_type` and the
+legacy no-`trigger_type` shape.
+
+Focused run: 6 new tests pass; trigger suites 191 passed. Moved to review.

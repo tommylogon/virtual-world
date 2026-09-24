@@ -2,8 +2,11 @@
 
 ## Status
 
-Todo — ties together task-289 (Library→World) and task-290 (variants/overrides)
-with the World→Library sync direction and the data-safety rules added 2026-08-20.
+In progress — both halves partly live. World→Library: `world-sync.js` `_isEmpty`/
+`_mergeEntry` (`:243-257`) + `diff-modal.js` clobber flag (`:267-330`). Library→World:
+`refresh-to-world` now covers item/way/area/character (`routes/library_ops.py:750-769`).
+Remaining: `break-template-link` endpoint + inspector UI (task-289), and variants /
+override tracking (task-290, not started — `template_ref` is absent from the code).
 
 ## Goal
 
@@ -19,8 +22,9 @@ types (item, way, area, character):
 
 The two directions were built independently and behave inconsistently:
 
-- `refresh-to-world` (Library→World) only supports **items and ways**
-  (routes/library_routes.py:482 returns 400 for areas/characters).
+- `refresh-to-world` (Library→World) used to support only **items and ways**
+  (the old `routes/library_routes.py:482` returned 400 for areas/characters); it now
+  covers all four types (`routes/library_ops.py:765-768`).
 - The sync modal (World→Library) originally did a **full overwrite**: a bare world
   copy (empty description, no triggers) nuked the curated template — the `brass_key`
   incident. Fixed 2026-08-20 with a merge guard (empty world values no longer erase
@@ -49,11 +53,11 @@ World→Library (implemented 2026-08-20 — verify + keep):
 - world-sync.js `_mergeEntry` + `_isEmpty` guard on bulk sync
 - diff-modal.js clobber detection / uncheck-by-default on empty-world-over-library
 
-Library→World (from 289/290, NOT yet generalized):
-- extend `refresh-to-world` to area + character
-- `break-template-link` endpoint + inspector UI
-- per-type mutable-field whitelist (engine/sync.py, task-289 step 1)
-- variants + override tracking, `template_ref` migration (task-290)
+Library→World (from 289/290):
+- ~~extend `refresh-to-world` to area + character~~ — done (`routes/library_ops.py:765-768`)
+- `break-template-link` endpoint + inspector UI — **not done** (no code matches)
+- per-type mutable-field whitelist — **not done** (inline per `_refresh_*`; no `engine/sync.py`)
+- variants + override tracking, `template_ref` migration (task-290) — **not started**
 
 ## Verification
 

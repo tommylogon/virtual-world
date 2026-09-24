@@ -1,11 +1,23 @@
 ---
 type: task
-status: todo
+status: cancelled
 area: characters
 priority: high
 ---
 
 # task-412: Promotion/demotion and trace→memory consolidation
+
+**Superseded by task-399 (2026-09-24).** The background runner (task-399) already
+existed, so its one remaining gap — this seam — was built directly there rather
+than as a separate task. The promotion/demotion **memory bridge** now lives in
+`engine/promotion.py` (`offload` / `promote` / `pending_span` / `summarize`),
+with `last_offload_tick` + `background_consolidated_through` marks on `Player`.
+See task-399's Progress section.
+
+Not yet done (carried by task-399): the *atomic* tick-boundary transition and the
+scope-observation activation boundary. This file is kept as the historical spec.
+
+## Original spec (kept for reference)
 
 **Filed:** 2026-09-19  
 **Depends on:** task-399 (background runner), task-411 (attention tiers),

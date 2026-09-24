@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: inprogress
 area: world
 priority: high
 ---
@@ -129,10 +129,52 @@ Foundation landed (see `docs/design/long-horizon-simulation-progress.md`):
 - Vitals were recalibrated to a true per-minute scale (`vital_rates.py`) so a
   multi-day background span is survivable and needs actually move.
 
-Still to build for this task:
+Still to build for this task (updated 2026-09-24):
 
-1. `engine/background_simulation.py` — process only **due** characters
+1. ~~`engine/background_simulation.py` — process only **due** characters
    (`next_due_tick`), deterministic/seeded over schedule + needs + traits,
-   writing the trace with reasons. Survival behaviors (eat/drink/sleep/work).
-2. `simulation_mode: active | background`, with atomic activate/offload at a
-   tick; `trace.summarize_window` builds the promotion catch-up summary.
+   writing the trace with reasons. Survival behaviors (eat/drink/sleep/work).~~
+   **Done** — the module is 988 lines: due scheduling, the full survival ladder,
+   schedule pursuit (`_pursue_schedule`, task-409 slice 1), background social
+   (`engine/background_social.py`, task-423), traversal/foraging checks, and
+   soak/timeskip hooks. See Progress below.
+2. ~~`simulation_mode: active | background`, with atomic activate/offload at a
+   tick; `trace.summarize_window` builds the promotion catch-up summary.~~
+   **Partially done.** `simulation_mode` + the promotion/demotion **memory
+   bridge** landed in `engine/promotion.py` (2026-09-24, absorbing task-412):
+   `offload()` stamps the background boundary and `promote()` consolidates the
+   span into one bounded `source: "background"` memory, idempotently. Still
+   open: the *atomic* activate/offload at a tick and the scope-observation
+   activation boundary (opening a scope promotes its residents). Soak orders
+   keep their own `source: "timeskip"` resume memory (task-481) and are not
+   routed through the bridge.
+3. **Pines proof** — author schedules for five residents, offload/advance/
+   activate, and a bounded `background` memory in Miki's next prompt. Deferred:
+   the scenario content belongs to task-400/task-408, and task-409 slice 1
+   deliberately did not ship schedule data (it degraded Hygiene/Social/
+   Entertainment in a measured soak).
+
+## Progress — 2026-09-24
+
+Promotion/demotion memory bridge landed; task-412 (which owned this seam) is
+superseded and folded here.
+
+- **`engine/promotion.py`** (new) — `offload()` / `promote()` / `pending_span()`
+  / `summarize()`. Deterministic templated summary, no LLM. The span is
+  `t > max(last_offload_tick, background_consolidated_through)`, so foreground
+  actions between two spans are never summarized and repeated activation writes
+  no duplicate memory. Bound: 300 chars; importance scales with salient events.
+- **`player.py`** — `last_offload_tick` + `background_consolidated_through`
+  fields, serialized in `to_dict`; restored in `engine/serialization.py`.
+- **`engine/structures.py`** — resident materialisation now demotes through
+  `promotion.offload(..., reason="materialize")`, so imported residents carry a
+  real boundary stamp for a later activation to summarize from.
+- **Tests** — `tests/test_promotion.py` (11): offload idempotence, no-op promote
+  on an attended character, one bounded memory per span, no duplicate on
+  repeated activation, a second span adds exactly one more, foreground markers
+  never summarized, marks survive serialize/load. Related suites
+  (`test_trace`, `test_serialization`, `test_background_simulation`,
+  `test_soak_chain`, `test_soak_orders`, `test_structures`) all pass.
+
+Remaining for this task: atomic activate/offload at a tick + the scope
+observation boundary, and the Pines proof (task-400).
