@@ -8,7 +8,9 @@ from virtual_world_engine import VirtualWorld
 from logger import setup_logger
 from player import Player
 from graph import Node, Edge
-from .helpers import _save_game, save_autosave, SAVES_DIR
+from .helpers import (
+    _save_game, save_autosave, sanitize_filename, unique_filename, SAVES_DIR,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -332,17 +334,20 @@ def register_saveload_routes(app):
             meta = data.get('_save_metadata', {})
             meta['name'] = new_name
             data['_save_metadata'] = meta
-            safe_new = ''.join(c if c.isalnum() or c in ' _-' else '_' for c in new_name)
+            safe_new = sanitize_filename(new_name, fallback='save')
             old_base = os.path.basename(path)[:-5]
             # Timestamped saves end in the convention name_YYYYMMDD_HHMMSS.
             m = re.match(r'^(.*)_(\d{8}_\d{6})$', old_base)
-            if meta.get('autosave') or not m:
+            target = f"{safe_new}_{m.group(2)}.json" if m else None
+            if meta.get('autosave') or not m or target == os.path.basename(path):
                 # Slot saves keep their identity — only the label changes.
                 with open(path, 'w', encoding='utf-8') as f:
                     json.dump(data, f, indent=2, ensure_ascii=False)
                 new_filename = os.path.basename(path)
             else:
-                new_filename = f"{safe_new}_{m.group(2)}.json"
+                # Another save may already own the target name (same-second save
+                # or a rename onto an existing run) — never clobber it.
+                new_filename = unique_filename(saves_dir, target)
                 new_path = os.path.join(saves_dir, new_filename)
                 with open(new_path, 'w', encoding='utf-8') as f:
                     json.dump(data, f, indent=2, ensure_ascii=False)
@@ -695,7 +700,9 @@ def register_saveload_routes(app):
         base = name.replace('\\', '/').split('/')[-1]
         if base in ('', '.', '..'):
             return None
-        safe = ''.join(c if c.isalnum() or c in ' _-.()' else '_' for c in base)
+        safe = sanitize_filename(base, allow='.()', fallback='')
+        if not safe:
+            return None
         if not safe.lower().endswith('.json'):
             safe += '.json'
         return os.path.join(_scenarios_dir(), safe)
@@ -850,7 +857,7 @@ def register_saveload_routes(app):
         if not name:
             return jsonify({"error": "Missing 'name'"}), 400
 
-        safe = ''.join(c if (c.isalnum() or c in ' _-') else '_' for c in name).strip() or 'unnamed'
+        safe = sanitize_filename(name, fallback='unnamed')
         world._scenario_name = safe
 
         source = getattr(world, '_scenario_source', None)
@@ -890,7 +897,7 @@ def register_saveload_routes(app):
         if not source or not os.path.exists(source):
             scenarios_dir = os.path.join(app.config['DATA_DIR'], 'scenarios')
             os.makedirs(scenarios_dir, exist_ok=True)
-            safe = ''.join(c if c.isalnum() or c in ' _-' else '_' for c in name) or 'unnamed'
+            safe = sanitize_filename(name, fallback='unnamed')
             source = os.path.join(scenarios_dir, f"{safe}.json")
         scenario_data = world.to_scenario_dict()
         tmp_path = source + '.tmp'

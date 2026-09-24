@@ -2,6 +2,7 @@ import os
 import json
 import time
 import logging
+import unicodedata
 from logger import setup_logger
 from version import APP_VERSION
 
@@ -16,6 +17,51 @@ AUTOSAVE_PATH = os.path.join(PROJECT_ROOT, 'data', 'autosave.json')
 # always-restorable snapshot without manual saves piling up.
 SAVES_DIR = os.path.join(PROJECT_ROOT, 'saves')
 AUTOSAVE_SLOT = os.path.join(SAVES_DIR, 'autosave.json')
+
+#: Windows reserves these stems (case-insensitively, with or without an
+#: extension): a file actually named `con.json` cannot be created there.
+_WINDOWS_RESERVED_STEMS = {'con', 'prn', 'aux', 'nul'} | {
+    f'{stem}{i}' for stem in ('com', 'lpt') for i in range(1, 10)
+}
+
+
+def sanitize_filename(name, *, allow='', fallback='unnamed', max_length=120):
+    """Fold a display name into a filesystem-safe filename stem.
+
+    Keeps Unicode letters and digits (``str.isalnum`` is Unicode-aware), plus
+    space/underscore/hyphen and any extra characters in ``allow``. Everything
+    else — including the Windows-forbidden ``<>:"/\\|?*`` and control characters
+    — folds to ``_``. NFKC composes accents (``a`` + combining acute -> ``á``)
+    rather than peeling the mark off, so ``Draghál`` keeps its letter instead of
+    becoming ``Dragha_l``. Only if nothing survives does ``fallback`` apply.
+    """
+    text = unicodedata.normalize('NFKC', str(name or ''))
+    keep = set(' _-') | set(allow)
+    safe = ''.join(c if c.isalnum() or c in keep else '_' for c in text)
+    # Windows silently drops trailing dots/spaces, which would break round-trip.
+    safe = safe.strip(' .')
+    if not safe:
+        return fallback
+    if safe.split('.')[0].lower() in _WINDOWS_RESERVED_STEMS:
+        safe = f'_{safe}'
+    return safe[:max_length].strip(' .') or fallback
+
+
+def unique_filename(directory, filename):
+    """Return ``filename``, or ``stem_2.json`` / ``stem_3.json`` if it exists.
+
+    Named saves use a second-resolution timestamp, so two saves in the same
+    second would otherwise silently overwrite each other. Slot and autosave
+    writes deliberately bypass this — those are the one intentional in-place
+    overwrite.
+    """
+    if not os.path.exists(os.path.join(directory, filename)):
+        return filename
+    stem, ext = os.path.splitext(filename)
+    n = 2
+    while os.path.exists(os.path.join(directory, f'{stem}_{n}{ext}')):
+        n += 1
+    return f'{stem}_{n}{ext}'
 
 
 def save_autosave(world):
@@ -264,7 +310,7 @@ def _save_scenario(world, name=None):
         if name:
             scenarios_dir = os.path.join(PROJECT_ROOT, 'data', 'scenarios')
             os.makedirs(scenarios_dir, exist_ok=True)
-            safe_name = ''.join(c if c.isalnum() or c in ' _-' else '_' for c in name)
+            safe_name = sanitize_filename(name, allow='.()', fallback='unnamed')
             source = os.path.join(scenarios_dir, f"{safe_name}.json")
         else:
             source = getattr(world, '_scenario_source', None)
@@ -290,7 +336,7 @@ def _save_game(world, name=None, slot=None):
         os.makedirs(saves_dir, exist_ok=True)
         scenario = os.path.splitext(os.path.basename(world._scenario_source or 'world_template'))[0]
         ts = time.strftime('%Y%m%d_%H%M%S')
-        safe_name = ''.join(c if c.isalnum() or c in ' _-' else '_' for c in (name or scenario))
+        safe_name = sanitize_filename(name or scenario, fallback='save')
         if slot:
             base = os.path.basename(slot or '')
             if not base.endswith('.json') or base in ('', '.', '..') or base != slot:
@@ -307,7 +353,7 @@ def _save_game(world, name=None, slot=None):
                 except Exception:
                     name = None
         else:
-            filename = f"{safe_name}_{ts}.json"
+            filename = unique_filename(saves_dir, f"{safe_name}_{ts}.json")
         path = os.path.join(saves_dir, filename)
         data = world.to_dict()
         is_auto_slot = slot and os.path.basename(slot) == os.path.basename(AUTOSAVE_SLOT)

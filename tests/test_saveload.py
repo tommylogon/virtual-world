@@ -9,7 +9,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pytest
 from app import create_app
-from routes.helpers import _save_game, save_autosave
+from routes.helpers import _save_game, save_autosave, sanitize_filename, unique_filename
+from routes.saveload import _safe_save_path
 
 
 @pytest.fixture
@@ -294,4 +295,104 @@ class TestLoadGameAdoption:
 
         saveload._adopt_loaded_world(app, {'_scenario_name': 'X'}, autosave=False)
         assert calls == [app.world], "ephemeral loads must not write the autosave"
+
+
+class TestSanitizeFilename:
+    """bug-43: filename generation must keep Unicode letters, fold only what is
+    genuinely unsafe, and never hand back an empty/Windows-reserved stem."""
+
+    def test_keeps_unicode_letters(self):
+        assert sanitize_filename('Ærø kysten') == 'Ærø kysten'
+        assert sanitize_filename('Draghál') == 'Draghál'
+
+    def test_composes_combining_marks_instead_of_peeling_them(self):
+        # 'e' + COMBINING ACUTE ACCENT normalises to 'é', it does not become 'e_'
+        assert sanitize_filename('e\u0301') == 'é'
+
+    def test_folds_unsafe_and_control_characters(self):
+        assert sanitize_filename('a<b>c:d/e\\f|g?h*i') == 'a_b_c_d_e_f_g_h_i'
+        assert sanitize_filename('bell\x07name') == 'bell_name'
+
+    def test_strips_windows_hostile_trailing_dots_and_spaces(self):
+        # Dots are only kept for scenario names; there a trailing "..." would be
+        # silently dropped by Windows, so it is trimmed instead.
+        assert sanitize_filename('report... ', allow='.()') == 'report'
+        assert sanitize_filename('report ') == 'report'
+
+    def test_escapes_reserved_windows_stems(self):
+        assert sanitize_filename('CON') == '_CON'
+        assert sanitize_filename('com1') == '_com1'
+        assert sanitize_filename('console') == 'console'  # not reserved
+
+    def test_falls_back_only_when_nothing_survives(self):
+        assert sanitize_filename('', fallback='save') == 'save'
+        assert sanitize_filename('   ', fallback='save') == 'save'
+
+    def test_scenario_names_may_keep_dots_and_parens(self):
+        assert sanitize_filename('Act I. (draft)', allow='.()') == 'Act I. (draft)'
+
+
+class TestSaveFilenameCollisions:
+    """bug-43: a second save in the same second must not clobber the first."""
+
+    def _freeze_clock(self, monkeypatch):
+        import routes.helpers as helpers
+        monkeypatch.setattr(helpers.time, 'strftime', lambda fmt: '20260101_120000')
+
+    def test_same_second_saves_produce_two_files(self, app, monkeypatch):
+        self._freeze_clock(monkeypatch)
+        world = _world(app)
+
+        world.time_ticks = 1
+        first = _save_game(world, "same name")
+        world.time_ticks = 2
+        second = _save_game(world, "same name")
+
+        assert first == 'same name_20260101_120000.json'
+        assert second == 'same name_20260101_120000_2.json'
+        for filename, tick in ((first, 1), (second, 2)):
+            with open(os.path.join(_saves_dir(), filename), 'r', encoding='utf-8-sig') as f:
+                data = json.load(f)
+            assert data['_save_metadata']['tick'] == tick
+            # Collisions rename the file only — the display name is untouched.
+            assert data['_save_metadata']['name'] == 'same name'
+
+    def test_third_collision_keeps_counting(self, app, monkeypatch):
+        self._freeze_clock(monkeypatch)
+        world = _world(app)
+        names = [_save_game(world, "many") for _ in range(3)]
+        assert names == [
+            'many_20260101_120000.json',
+            'many_20260101_120000_2.json',
+            'many_20260101_120000_3.json',
+        ]
+        assert len(os.listdir(_saves_dir())) == 3
+
+    def test_unicode_save_keeps_letters_and_loads(self, app):
+        world = _world(app)
+        filename = _save_game(world, "Draghál")
+        assert filename.startswith('Draghál_')
+        assert '___' not in filename
+        with open(os.path.join(_saves_dir(), filename), 'r', encoding='utf-8-sig') as f:
+            assert json.load(f)['_save_metadata']['name'] == 'Draghál'
+
+    def test_unique_filename_skips_taken_suffixes(self, tmp_path):
+        (tmp_path / 'a.json').write_text('{}', encoding='utf-8')
+        (tmp_path / 'a_2.json').write_text('{}', encoding='utf-8')
+        assert unique_filename(str(tmp_path), 'a.json') == 'a_3.json'
+        assert unique_filename(str(tmp_path), 'fresh.json') == 'fresh.json'
+
+
+class TestSafeSavePath:
+    """Traversal/extension validation is unchanged by the unicode work."""
+
+    def test_rejects_traversal_and_foreign_extensions(self, tmp_path):
+        assert _safe_save_path(str(tmp_path), '../escape.json') is None
+        assert _safe_save_path(str(tmp_path), 'sub/evil.json') is None
+        assert _safe_save_path(str(tmp_path), 'no_ext') is None
+        assert _safe_save_path(str(tmp_path), '') is None
+
+    def test_allows_a_unicode_filename(self, tmp_path):
+        expected = os.path.join(str(tmp_path), 'Draghál_20260101_120000.json')
+        assert _safe_save_path(str(tmp_path), 'Draghál_20260101_120000.json') == expected
 
