@@ -61,6 +61,7 @@ win.assertFalse = (value, label) => {
 // ── load production modules (browser-global style) ──
 load('static/js/shared/json-utils.js');
 load('static/js/shared/trigger-suggest-ai.js');
+load('static/js/shared/trigger-graph.js');
 load('static/js/agent/vital-thresholds.js');
 load('static/js/agent/simultaneous.js');
 load('static/js/agent/turn-queue.js');

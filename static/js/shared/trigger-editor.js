@@ -590,6 +590,7 @@ window.Lit.render(triggerEditorTag`
             editorBridge: bridge,
             onSave: (newGraph) => {
                 const compiled = TriggerGraph.compileToEngine(newGraph);
+                if (TriggerGraph.reportCompileError(compiled)) return;
                 if (!compiled || !onSave) return;
                 onSave({
                     ...TriggerGraph.engineToFormData(compiled),

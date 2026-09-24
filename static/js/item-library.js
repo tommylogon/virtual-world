@@ -788,6 +788,7 @@ class ItemLibrary {
             },
             onSave: (newGraph) => {
                 const compiled = TriggerGraph.compileToEngine(newGraph);
+                if (TriggerGraph.reportCompileError(compiled)) return;
                 if (!compiled) return;
                 persistFormData({
                     ...TriggerGraph.engineToFormData(compiled),

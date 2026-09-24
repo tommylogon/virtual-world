@@ -323,6 +323,7 @@ window.InspectorTriggers = (() => {
             },
             onSave: async (newGraph) => {
                 const compiled = TriggerGraph.compileToEngine(newGraph);
+                if (TriggerGraph.reportCompileError(compiled)) return;
                 await persistCompiled(compiled);
             }
         });

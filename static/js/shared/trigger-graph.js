@@ -571,6 +571,30 @@ window.TriggerGraph = (() => {
         return props;
     }
 
+    /** Flatten an engine condition tree to its leaf conditions, in order.
+     *  A logical node ({operator:'and'|'or'|'not'}) contributes its children;
+     *  a group is not itself a condition. Used to lay out the node chain and to
+     *  detect whether an imported group has since been edited. */
+    function _flattenConditions(tree) {
+        if (!tree) return [];
+        if (Array.isArray(tree)) return tree.flatMap(c => _flattenConditions(c));
+        if (typeof tree !== 'object') return [];
+        if (tree.operator) return (tree.conditions || []).flatMap(c => _flattenConditions(c));
+        return [tree];
+    }
+
+    /** True when a tree is just a flat AND of leaf conditions (or a bare leaf
+     *  list) — the shape the linear node chain can draw and re-emit exactly. */
+    function _treeIsFlat(tree) {
+        if (Array.isArray(tree)) return tree.every(c => _treeIsFlat(c));
+        if (!tree || typeof tree !== 'object') return true;
+        if (tree.operator) {
+            if (tree.operator !== 'and') return false;
+            return (tree.conditions || []).every(c => _treeIsFlat(c));
+        }
+        return true;
+    }
+
     TG.triggerToGraph = function(triggerDef) {
         const t = triggerDef || {};
         const nodes = [];
@@ -578,33 +602,44 @@ window.TriggerGraph = (() => {
         let nodeId = 0;
         const types = Array.isArray(t.trigger_type) ? t.trigger_type : [t.trigger_type || 'on_use'];
         const tnode = `n${nodeId++}`;
-        nodes.push({
-            id: tnode, type: 'trigger', x: 50, y: 50,
-            props: {
-                trigger_type: types,
-                target_tag: t.target_name || t.target_tag || '',
-                target_state: t.target_state || '',
-            },
-        });
+        const triggerProps = {
+            trigger_type: types,
+            target_tag: t.target_name || t.target_tag || '',
+            target_state: t.target_state || '',
+        };
+        nodes.push({ id: tnode, type: 'trigger', x: 50, y: 50, props: triggerProps });
 
         let conditions = t.conditions || [];
+        let conditionTree = null;
         if (typeof conditions === 'object' && !Array.isArray(conditions) && conditions.operator) {
-            conditions = conditions.conditions || [];
+            conditionTree = conditions;
+            conditions = _flattenConditions(conditions);
         }
         if (!Array.isArray(conditions)) conditions = [];
 
+        // The node graph draws a linear AND chain, so any grouping (OR/NOT, or an
+        // AND that nests one) has no node representation yet. Keep the original
+        // tree on the trigger node so compileToEngine can re-emit it unchanged
+        // instead of silently flattening it to AND (task-501).
+        if (conditionTree && !_treeIsFlat(conditionTree)) {
+            triggerProps.condition_tree = conditionTree;
+            triggerProps.condition_leaves = conditions;
+        }
+
         const effects = t.effects || [];
         let attachFrom = [tnode, 'output'];
+        let lastCond = null;
 
-        if (conditions.length > 0) {
+        conditions.forEach((c, i) => {
             const cnode = `n${nodeId++}`;
             nodes.push({
-                id: cnode, type: 'condition', x: 50, y: 180,
-                props: _conditionToGraphProps(conditions[0]),
+                id: cnode, type: 'condition', x: 50, y: 180 + i * 120,
+                props: _conditionToGraphProps(c),
             });
             wires.push({ id: `w${wires.length}`, from: attachFrom, to: [cnode, 'input'] });
             attachFrom = [cnode, 'output_yes'];
-        }
+            lastCond = cnode;
+        });
 
         for (let i = 0; i < effects.length; i++) {
             const eff = effects[i];
@@ -619,6 +654,17 @@ window.TriggerGraph = (() => {
             if (effects.length > 1 && i < effects.length - 1) {
                 attachFrom = [enode, 'output'];
             }
+        }
+
+        // A fail message is the engine's only NO-branch effect; draw it on the
+        // last condition's NO socket so it round-trips (task-501).
+        if (t.fail_message && lastCond) {
+            const fnode = `n${nodeId++}`;
+            nodes.push({
+                id: fnode, type: 'effect', x: 330, y: 180 + conditions.length * 120,
+                props: { effect_type: 'message', message: t.fail_message },
+            });
+            wires.push({ id: `w${wires.length}`, from: [lastCond, 'output_no'], to: [fnode, 'input'] });
         }
 
         return { nodes, wires };
@@ -1645,6 +1691,7 @@ window.TriggerGraph = (() => {
             alert('Add a trigger node before applying.');
             return;
         }
+        if (TG.reportCompileError(compiled)) return;
         try {
             const issues = await _validateCompiled(compiled);
             const errors = issues.filter(i => i.severity === 'error');
@@ -1993,7 +2040,25 @@ window.TriggerGraph = (() => {
             return empty;
         }
         const traced = _traceGraph(tw.to[0], graph.wires, graph.nodes);
-        const condTree = traced.conditions.length > 0 ? { operator: 'and', conditions: traced.conditions } : {};
+        const problems = [...(traced.problems || [])];
+
+        // A condition tree the node graph cannot draw (OR/NOT groups) is kept on
+        // the trigger node at import and re-emitted verbatim. If its conditions
+        // have since been edited in the graph, refuse rather than quietly
+        // flattening the group to AND (task-501).
+        const storedTree = triggerNode.props.condition_tree;
+        const storedLeaves = triggerNode.props.condition_leaves;
+        let condTree = {};
+        if (traced.conditions.length > 0) {
+            if (storedTree && _sameShape(storedLeaves || [], traced.conditions)) {
+                condTree = storedTree;
+            } else if (storedTree) {
+                problems.push('This trigger was imported with an OR/NOT condition group; editing its conditions in the node graph is not supported yet, so it was not compiled. Revert the edits or edit the trigger JSON.');
+            } else {
+                condTree = { operator: 'and', conditions: traced.conditions };
+            }
+        }
+
         const result = {
             trigger_type: tt,
             effects: traced.effects.length ? traced.effects : [{ type: 'message', params: { message: '' } }],
@@ -2002,7 +2067,22 @@ window.TriggerGraph = (() => {
         if (triggerNode.props.target_tag) result.target_name = triggerNode.props.target_tag;
         if (triggerNode.props.target_state) result.target_state = triggerNode.props.target_state;
         if (traced.fail_message) result.fail_message = traced.fail_message;
+        if (problems.length) result.compile_error = problems.join(' ');
         return result;
+    };
+
+    /** The refusal reason for a compiled trigger, or '' when it compiled clean. */
+    TG.compileError = function(compiled) {
+        return compiled && compiled.compile_error ? compiled.compile_error : '';
+    };
+
+    /** Surface a refused compile to the user. Returns true when it was refused. */
+    TG.reportCompileError = function(compiled) {
+        const msg = TG.compileError(compiled);
+        if (!msg) return false;
+        if (typeof toastInfo === 'function') toastInfo(msg);
+        else if (typeof alert === 'function') alert(msg);
+        return true;
     };
 
     /** Mirror the form editor's _collectData: convert a graph node's flat props
@@ -2079,37 +2159,68 @@ window.TriggerGraph = (() => {
         return p;
     }
 
+    /** Canonicalise a value for shape comparison: object keys sorted, primitives
+     *  stringified, so {@link _sameShape} tolerates numeric/string drift between
+     *  an imported tree and the node graph rebuilt from it. */
+    function _canonical(v) {
+        if (Array.isArray(v)) return v.map(_canonical);
+        if (v && typeof v === 'object') {
+            const out = {};
+            Object.keys(v).sort().forEach(k => { out[k] = _canonical(v[k]); });
+            return out;
+        }
+        if (v === undefined) return null;
+        return String(v);
+    }
+
+    function _sameShape(a, b) {
+        return JSON.stringify(_canonical(a)) === JSON.stringify(_canonical(b));
+    }
+
     function _traceGraph(nid, wires, nodes) {
+        const empty = { effects: [], conditions: [], fail_message: '', problems: [] };
         const node = nodes.find(n => n.id === nid);
-        if (!node) return { effects: [], conditions: [], fail_message: '' };
+        if (!node) return empty;
         if (node.type === 'condition') {
             const conds = [_buildConditionFromNode(node)];
+            const label = conds[0]?.type || 'condition';
             const yw = wires.find(w => w.from[0] === nid && w.from[1] === 'output_yes');
             const nw = wires.find(w => w.from[0] === nid && w.from[1] === 'output_no');
-            const ye = yw ? _traceGraph(yw.to[0], wires, nodes) : { effects: [], conditions: [], fail_message: '' };
+            const ye = yw ? _traceGraph(yw.to[0], wires, nodes) : empty;
             let failMessage = '';
+            let problems = [...ye.problems];
             if (nw) {
                 const ne = _traceGraph(nw.to[0], wires, nodes);
-                const msgEff = ne.effects.find(e => e.type === 'message');
-                if (msgEff?.params?.message) failMessage = msgEff.params.message;
+                const msgs = ne.effects.filter(e => e.type === 'message');
+                if (ne.conditions.length) {
+                    problems.push(`Condition "${label}" NO branch chains another condition; the engine supports only a single NO message.`);
+                }
+                if (ne.effects.length === 1 && msgs.length === 1 && msgs[0].params?.message) {
+                    failMessage = msgs[0].params.message;
+                } else if (ne.effects.length > 0) {
+                    problems.push(`Condition "${label}" NO branch has ${ne.effects.length} effect(s); the engine supports only a single NO message.`);
+                }
+                problems = problems.concat(ne.problems);
             }
             return {
                 effects: ye.effects,
                 conditions: [...conds, ...ye.conditions],
-                fail_message: failMessage || ye.fail_message || ''
+                fail_message: failMessage || ye.fail_message || '',
+                problems,
             };
         }
         if (node.type === 'effect') {
             const eff = { type: node.props.effect_type || 'message', params: _normalizeEffectParams(node.props.effect_type || 'message', node.props) };
             const nw = wires.find(w => w.from[0] === nid && (w.from[1] === 'output' || w.from[1] === 'right'));
-            const next = nw ? _traceGraph(nw.to[0], wires, nodes) : { effects: [], conditions: [], fail_message: '' };
+            const next = nw ? _traceGraph(nw.to[0], wires, nodes) : empty;
             return {
                 effects: [eff, ...next.effects],
                 conditions: next.conditions,
-                fail_message: next.fail_message
+                fail_message: next.fail_message,
+                problems: next.problems,
             };
         }
-        return { effects: [], conditions: [], fail_message: '' };
+        return empty;
     }
 
     return TG;
