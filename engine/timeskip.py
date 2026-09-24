@@ -106,12 +106,23 @@ def advance_world(gs, minutes, *, rng=None) -> TimeskipResult:
     start_tick = getattr(gs, "time_ticks", 0)
     per_tick = _frame_minutes(gs)
     steps = max(1, int(round(requested / per_tick)))
+    # A world advance has no attended actor, so *everyone* must soak. `process_due`
+    # gives a focused character `minutes_in_turn - 1` minutes — zero at a 1-minute
+    # tick — so without this a fine-grained world advance merely decays everyone's
+    # needs and never serves them (task-436 root cause). Restore the modes after,
+    # so the attribute the save persists is unchanged.
+    soaked = [(p, getattr(p, "simulation_mode", "active"))
+              for p in list(getattr(gs, "players", {}).values())]
+    for player, _ in soaked:
+        player.simulation_mode = "background"
     try:
         for _ in range(steps):
             gs.tick_turn()
             result.ticks += 1
             result.elapsed_minutes = int(round(result.ticks * per_tick))
     finally:
+        for player, mode in soaked:
+            player.simulation_mode = mode
         _ACTIVE = False
 
     try:

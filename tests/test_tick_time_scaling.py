@@ -173,3 +173,62 @@ def test_starvation_damage_is_per_minute():
     world.tick_turn()
     # 0.50 HP/min x 5 min = 2.5 -> rounded down to 2 by the int() on HP.
     assert p.vitals["HP"] == 98
+
+
+# ── world advance soaks everyone (task-436 root cause) ───────────────────
+#
+# `process_due` gives a *focused* character `minutes_in_turn - 1` minutes of
+# action time — zero at a 1-minute tick. `advance_world` has no attended actor,
+# so unless it offloads everyone a fine-grained world advance decays every drive
+# without ever serving it: the whole camp hits Energy 0, Thirst 78, Bladder 100
+# after a day while a 15-minute world looks healthy. These tests pin the fix.
+
+CAMP = Path(__file__).parent.parent / "data" / "scenarios" / "kraktooth_goblin_camp.json"
+SOAK_VITALS = ("Energy", "Hunger", "Thirst", "Bladder", "Hygiene",
+               "Entertainment", "Social", "Sanity", "HP")
+
+
+def _camp_soak(minutes_per_tick, total_minutes):
+    import json
+    from engine import timeskip
+
+    world = _world(minutes_per_tick=minutes_per_tick)
+    with open(CAMP, encoding="utf-8-sig") as fh:
+        world.load_from_dict(json.load(fh))
+    world.time_per_tick_minutes = minutes_per_tick
+    before = {p.name: p.simulation_mode for p in world.player_manager.players.values()}
+
+    timeskip.advance_world(world, total_minutes)
+
+    players = list(world.player_manager.players.values())
+    after = {p.name: p.simulation_mode for p in players}
+    mean = {v: sum(p.vitals.get(v, 0) for p in players) / len(players)
+            for v in SOAK_VITALS}
+    return mean, before, after
+
+
+def test_world_advance_restores_simulation_modes():
+    """A world advance soaks everyone for the span only."""
+    _, before, after = _camp_soak(15, 60)
+    assert before == after
+    assert set(after.values()) == {"active"}
+
+
+def test_two_day_world_advance_is_tick_length_independent():
+    """Two in-game days give comparable outcomes at T=1 and T=15.
+
+    Before the fix the T=1 camp ended at Energy 0 / Hunger 56 / Thirst 78 /
+    Bladder 100 while T=15 sat near Energy 50 / Hunger 31 / Thirst 34 / Bladder 81.
+    """
+    one, _, _ = _camp_soak(1, 2 * 24 * 60)
+    fifteen, _, _ = _camp_soak(15, 2 * 24 * 60)
+
+    for vital in SOAK_VITALS:
+        assert abs(one[vital] - fifteen[vital]) <= 15, (
+            vital, one[vital], fifteen[vital])
+
+    # The 1-minute world is hydrated, not merely alive.
+    assert one["Energy"] > 40
+    assert one["Hunger"] < 40
+    assert one["Thirst"] < 50
+    assert one["Bladder"] < 90
