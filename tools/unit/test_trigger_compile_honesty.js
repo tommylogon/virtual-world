@@ -112,3 +112,36 @@ test('a NO branch with two effects is refused, not truncated', () => {
     const compiled = TriggerGraph.compileToEngine(g);
     assertTrue(TriggerGraph.compileError(compiled).length > 0, 'the refusal reason is set');
 });
+
+// ── behavior mode (task-503) ──────────────────────────────────────────────
+
+function behaviorGraph(withNo) {
+    const nodes = [
+        { id: 'b0', type: 'behavior', props: { trigger: 'on_tick' } },
+        { id: 'c1', type: 'condition', props: { condition_type: 'has_trait', value: 'goblin' } },
+        { id: 'a1', type: 'action', props: { action_type: 'message', text: 'yes' } },
+    ];
+    const wires = [
+        { id: 'w0', from: ['b0', 'output'], to: ['c1', 'input'] },
+        { id: 'w1', from: ['c1', 'output_yes'], to: ['a1', 'input'] },
+    ];
+    if (withNo) {
+        nodes.push({ id: 'a2', type: 'action', props: { action_type: 'message', text: 'no' } });
+        wires.push({ id: 'w2', from: ['c1', 'output_no'], to: ['a2', 'input'] });
+    }
+    return { nodes, wires };
+}
+
+test('behavior mode: a NO branch carrying an action is refused', () => {
+    const detailed = TriggerGraph.compileToBehaviorsWithIssues(behaviorGraph(true));
+    assertTrue(TriggerGraph.compileError(detailed).length > 0, 'the refusal reason is set');
+    assertEq(TriggerGraph.compileToBehaviors(behaviorGraph(true)).length, 1,
+             'compileToBehaviors still returns the behavior array');
+});
+
+test('behavior mode: a clean graph compiles without a refusal', () => {
+    const detailed = TriggerGraph.compileToBehaviorsWithIssues(behaviorGraph(false));
+    assertEq(TriggerGraph.compileError(detailed), '', 'no refusal reason');
+    assertEq(detailed.behaviors.length, 1, 'one behavior compiled');
+});
+

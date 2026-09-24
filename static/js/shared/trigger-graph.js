@@ -1848,36 +1848,44 @@ window.TriggerGraph = (() => {
         return a;
     }
 
-    /** Trace behavior node graph into conditions + flat actions. */
-    function _traceBehavior(nid, wires, nodes) {
+    /** Trace behavior node graph into conditions + flat actions.
+     *  ``problems`` accumulates refusals (task-503): the behavior model has no
+     *  else, so a NO branch carrying anything is unrepresentable and must not be
+     *  dropped silently. */
+    function _traceBehavior(nid, wires, nodes, problems) {
+        if (!problems) problems = [];
         const node = nodes.find(n => n.id === nid);
         if (!node) return { conditions: [], actions: [] };
         if (node.type === 'condition') {
             const conds = [_buildConditionFromNode(node)];
+            const label = conds[0]?.type || 'condition';
             const yw = wires.find(w => w.from[0] === nid && w.from[1] === 'output_yes');
-            const yes = yw ? _traceBehavior(yw.to[0], wires, nodes) : { conditions: [], actions: [] };
+            const yes = yw ? _traceBehavior(yw.to[0], wires, nodes, problems) : { conditions: [], actions: [] };
             let actions = yes.actions;
             let conditions = [...conds, ...yes.conditions];
             const nw = wires.find(w => w.from[0] === nid && w.from[1] === 'output_no');
             if (nw) {
-                const no = _traceBehavior(nw.to[0], wires, nodes);
-                // NO branch only carries actions; there's no else in the behavior model, so
-                // we don't fold NO actions into the YES path. Kept for structural parity.
+                const no = _traceBehavior(nw.to[0], wires, nodes, problems);
+                if (no.actions.length || no.conditions.length) {
+                    problems.push(`Behavior condition "${label}" NO branch carries ${no.actions.length} action(s); the behavior model has no else, so it was not compiled.`);
+                }
             }
             return { conditions, actions };
         }
         if (node.type === 'action' || node.type === 'state') {
             const act = _buildActionFromNode(node);
             const nw = wires.find(w => w.from[0] === nid && (w.from[1] === 'output' || w.from[1] === 'right'));
-            const next = nw ? _traceBehavior(nw.to[0], wires, nodes) : { conditions: [], actions: [] };
+            const next = nw ? _traceBehavior(nw.to[0], wires, nodes, problems) : { conditions: [], actions: [] };
             return { conditions: next.conditions, actions: [act, ...next.actions] };
         }
         return { conditions: [], actions: [] };
     }
 
-    /** Compile a behavior-mode graph into the engine behavior array. */
-    TG.compileToBehaviors = function(graph) {
-        if (!graph?.nodes) return [];
+    /** Compile a behavior-mode graph into the engine behavior array (task-501
+     *  task-503: with a refusal reason when a NO branch would be dropped). */
+    TG.compileToBehaviorsWithIssues = function(graph) {
+        if (!graph?.nodes) return { behaviors: [], compile_error: '' };
+        const problems = [];
         let behaviorNodes = graph.nodes.filter(n => n.type === 'behavior');
         // Priority comes from vertical position: top = highest priority (matches the
         // drag-to-reorder behavior). Two nodes with identical y keep their order.
@@ -1886,7 +1894,7 @@ window.TriggerGraph = (() => {
         const behaviors = behaviorNodes.map((bnode, rank) => {
             const bw = (graph.wires || []).find(w => w.from[0] === bnode.id && (w.from[1] === 'output' || w.from[1] === 'right'));
             let traced = { conditions: [], actions: [] };
-            if (bw) traced = _traceBehavior(bw.to[0], graph.wires, graph.nodes);
+            if (bw) traced = _traceBehavior(bw.to[0], graph.wires, graph.nodes, problems);
             const conditions = traced.conditions.length > 0
                 ? (traced.conditions.length === 1 ? traced.conditions[0] : { operator: 'and', conditions: traced.conditions })
                 : {};
@@ -1901,7 +1909,12 @@ window.TriggerGraph = (() => {
         });
         // Stable order: highest priority first (mirrors engine sort in npc_behaviors.py)
         behaviors.sort((a, b) => b.priority - a.priority);
-        return behaviors;
+        return { behaviors, compile_error: problems.join(' ') };
+    };
+
+    /** Compile a behavior-mode graph into the engine behavior array. */
+    TG.compileToBehaviors = function(graph) {
+        return TG.compileToBehaviorsWithIssues(graph).behaviors;
     };
 
     /** Convert an engine behavior array into a behavior-mode graph.

@@ -1427,8 +1427,9 @@ window.InspectorBehaviors = (() => {
             mode: 'behavior',
             graph,
             onSave: async (newGraph) => {
-                const compiled = TriggerGraph.compileToBehaviors(newGraph);
-                await ApiClient.updateCharacter(charName, { behaviors: compiled });
+                const compiled = TriggerGraph.compileToBehaviorsWithIssues(newGraph);
+                if (TriggerGraph.reportCompileError(compiled)) return;
+                await ApiClient.updateCharacter(charName, { behaviors: compiled.behaviors });
                 if (window.VW?.inspector) window.VW.inspector._reRender();
             }
         });
