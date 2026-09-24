@@ -123,10 +123,15 @@ window.GraphNetwork = {
                 addEdge: (data, callback) => GraphEventHandlers.onAddEdge(data, callback)
             },
             groups: {
-                area:      { color: { background: '#2d333b', border: '#58a6ff' }, shape: 'box', font: { color: '#c9d1d9', size: 14 }, borderWidth: 2, margin: { top: 21, bottom: 21, left: 27, right: 27 } },
-                item:      { color: { background: '#3d2e1a', border: '#e3b341' }, shape: 'diamond', font: { color: '#e3b341', size: 12 }, size: 18, borderWidth: 1 },
-                way:      { color: { background: '#1a3a2a', border: '#4ec9b0' }, shape: 'triangle', font: { color: '#4ec9b0' }, size: 14, borderWidth: 1 },
-                character: { color: { background: '#2a1a3d', border: '#bc8cff' }, shape: 'ellipse', font: { color: '#bc8cff', size: 14 }, size: 24, borderWidth: 2 }
+                // NOTE: `shape` is deliberately NOT set on groups. vis-network's
+                // group options override a node's own `shape`, so an image node
+                // (shape: circularImage) was silently drawn as its group shape and
+                // the image never appeared. Shapes are assigned per node in
+                // buildNodeConfig instead; groups keep color/font/size only.
+                area:      { color: { background: '#2d333b', border: '#58a6ff' }, font: { color: '#c9d1d9', size: 14 }, borderWidth: 2, margin: { top: 21, bottom: 21, left: 27, right: 27 } },
+                item:      { color: { background: '#3d2e1a', border: '#e3b341' }, font: { color: '#e3b341', size: 12 }, size: 18, borderWidth: 1 },
+                way:      { color: { background: '#1a3a2a', border: '#4ec9b0' }, font: { color: '#4ec9b0' }, size: 14, borderWidth: 1 },
+                character: { color: { background: '#2a1a3d', border: '#bc8cff' }, font: { color: '#bc8cff', size: 14 }, size: 24, borderWidth: 2 }
             }
         };
     },
@@ -643,7 +648,10 @@ window.GraphNetwork = {
             // "Static" can be said either way: the inspector's Physics-enabled
             // off, or an explicit layout_static flag (task-485).
             physics: nodeData.properties?.central_gravity_enabled !== false
-                && nodeData.properties?.layout_static !== true
+                && nodeData.properties?.layout_static !== true,
+            // Per-node shape (groups no longer define shape — see options.groups).
+            // The image branch below overrides this with circularImage.
+            shape: { area: 'box', item: 'diamond', way: 'triangle', character: 'ellipse' }[nodeData.type] || 'ellipse'
         };
 
         // Saved layout: a node whose x/y were persisted to the world (right-click
@@ -703,6 +711,9 @@ window.GraphNetwork = {
             nodeConfig.image = nodeAvatar;
             nodeConfig.size = { area: 45, character: 28, item: 24, way: 22 }[nodeData.type] || 24;
             nodeConfig.borderWidth = 2;
+            // Clip the art to the circle and keep a visible state-colored border
+            // rather than letting the image's own bounds set the node size.
+            nodeConfig.shapeProperties = { useBorderWithImage: true, useImageSize: false };
         }
 
         return nodeConfig;
