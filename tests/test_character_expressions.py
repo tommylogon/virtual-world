@@ -122,7 +122,7 @@ class TestSpawnCarriesExpressions:
 
         lib_pack = {"angry": {"profile": "/static/images/nodes/z-profile.png"},
                     "happy": {"full": "/static/images/nodes/z-full.png"}}
-        world.effects._hydrate_character = lambda cid, params, gs: (
+        world.effects._hydrate_character = lambda cid, params, gs, always_fresh=False: (
             p, {"image": "/static/images/nodes/z-full.png",
                 "profile_image": "/static/images/nodes/z-profile.png",
                 "expressions": lib_pack})
@@ -138,7 +138,7 @@ class TestSpawnCarriesExpressions:
     def test_spawn_without_pack_is_fine(self):
         world = create_app({"TESTING": True}).world
         p = Player("Plain")
-        world.effects._hydrate_character = lambda cid, params, gs: (p, {})
+        world.effects._hydrate_character = lambda cid, params, gs, always_fresh=False: (p, {})
         world.effects._render_template_fn = lambda msg, ctx: msg
         world.effects.handle_spawn_character({"character_id": "plain"}, {}, game_state=world)
         node = world.graph.get_node(world.player_manager.get_player_node_id("Plain"))

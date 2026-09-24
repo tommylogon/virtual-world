@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: cancelled
 area: graph
 priority: high
 ---
@@ -13,6 +13,18 @@ task-387 (NL editor + staging), task-9 (`engine/population.py`)
 **Related:** task-397 (world scopes), task-398 (deterministic structure generation),
 task-393 (validator triage), task-324 (domain tags), task-427 (population caps),
 task-410 (food renewal), task-411 (attention budget / fidelity tiers), task-422 (NL editor budget)
+
+> **SUPERSEDED 2026-09-24 — do not build as written.**
+> WorldPainter owns world topology: paint first (task-495 recursive scope grids +
+> 3-mode editor, task-496 grid-to-graph compiler, task-500 zone-driven fidelity,
+> task-499 fog of war), and its compiler generates the child areas / minted ways /
+> boundary re-homing this task planned to do through the NL editor. The NL editor
+> is the **second step** — customising and hand-perfecting an already-painted
+> world with LLM help — not the tool that decomposes regions. Kept for its still-
+> useful mechanics (boundary-way retargeting, gateway assignment, atomic staged
+> create+update apply, unresolved-gateway reporting), which move to **task-496**.
+> Supersedes relationship: this depends on task-439, which may no longer be a hard
+> prerequisite once the compiler owns ids.
 
 ## Goal
 
