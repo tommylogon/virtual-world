@@ -171,10 +171,19 @@ window.GraphNetwork = {
             const nodesObj = await ApiClient.getGraphNodes();
             const edgesArr = await ApiClient.getGraphEdges();
 
-            // Skip reload if graph structure hasn't changed (avoids jitter on tick updates)
+            // Skip reload if graph structure hasn't changed (avoids jitter on tick updates).
+            // The signature must include the RESOLVED character avatar (current
+            // emotion -> profile), not just `properties.image`: an emotion change
+            // or a profile-only upload leaves `image` untouched, and a stale
+            // signature would then keep the node on the previous face.
             const nodeSig = Object.entries(nodesObj)
                 .sort(([a], [b]) => a.localeCompare(b))
-                .map(([id, nodeData]) => `${id}:${nodeData.type}:${nodeData.properties?.current_state || ''}:${nodeData.properties?.central_gravity_enabled !== false}:${nodeData.properties?.image || ''}`)
+                .map(([id, nodeData]) => {
+                    const avatar = window.CharacterArt
+                        ? window.CharacterArt.avatarFor(nodeData.properties, window.CharacterArt.emotionOf(nodeData.name))
+                        : (nodeData.properties?.image || '');
+                    return `${id}:${nodeData.type}:${nodeData.properties?.current_state || ''}:${nodeData.properties?.central_gravity_enabled !== false}:${avatar}`;
+                })
                 .join('|');
             const edgeSig = edgesArr
                 .map(edgeObj => `${edgeObj.source}:${edgeObj.target}:${edgeObj.type}:${edgeObj.properties?.description || ''}`)
