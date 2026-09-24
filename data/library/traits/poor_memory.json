@@ -1,0 +1,14 @@
+{
+  "name": "Poor Memory",
+  "description": "Recalls things half as readily; memories fade and only the strong ones surface.",
+  "category": "mental",
+  "params": null,
+  "effects": {
+    "memory_recall_boost": 0.5,
+    "memory_decay_per_tick": 0.02,
+    "max_importance_cap": 6
+  },
+  "conflicts": [
+    "perfect_memory"
+  ]
+}

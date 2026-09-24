@@ -1,0 +1,13 @@
+{
+  "name": "Perfect Memory",
+  "description": "Recalls things twice as readily; memories barely fade.",
+  "category": "mental",
+  "params": null,
+  "effects": {
+    "memory_recall_boost": 2.0,
+    "memory_decay_reduction": 1.0
+  },
+  "conflicts": [
+    "poor_memory"
+  ]
+}
