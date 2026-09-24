@@ -1,6 +1,6 @@
 ---
 type: task
-status: inprogress
+status: review
 area: gameplay
 priority: medium
 ---
@@ -124,8 +124,42 @@ so every one still takes the fallback — which is the point of the suggested or
   and its `remove_item`; authored drink does the same; a silent item still falls
   back and removes; a non-food item is not eaten.
 
-Still to do (this task): change **2** — the data pass that gives the five camp
-consumables their own `on_eat`/`on_drink` (`adjust_vital` + depletion) — and change
-**3** — the generic `uses == 0 → on_depleted`/`set_state` hook in the consume path
-so a drinkable container can "empty and persist". Only then are `MEAL_RESTORE`/
-`DRINK_RESTORE` retired and the glass/bread acceptance met.
+## Progress — 2026-09-24 (change 2: data pass; change 3: depletion hook)
+
+**Correction to the scoping note above.** It said none of the five camp
+consumables authors a trigger. True for berries and dried meat, but **three did**
+— `item_bread`, `item_mushrooms`, `item_water_skin` — with **legacy positive**
+`adjust_vital` amounts (satiation semantics). Under the current *drive* semantics
+(Hunger/Thirst rise) those amounts *increase* the need, so the moment change 1's
+authored path went live the camp began to starve (a measured week soak fell to
+16/23). The data pass is therefore not cosmetic: it is what makes change 1 safe.
+
+- **Change 3 — the depletion hook is in `engine/items/consume_actions.py`**
+  (`_deplete_if_spent` + `PERSISTENT_EMPTY_STATES`): on a genuine last-use
+  transition (`uses_before > 0`, now 0) the item's `on_depleted` fires; a node that
+  marked itself a persistent empty state (a glass, the water skin) stays in the
+  world, anything else is removed. `tests/test_consume_depletion.py` (6).
+- **Change 2 — `tools/author_camp_consumables.py`** authors the five items in
+  `kraktooth_goblin_camp.json`: every food gets `on_eat` → `adjust_vital Hunger`
+  (`-MEAL_RESTORE`) + `adjust_uses −1`; the water skin gets `on_drink` →
+  `adjust_vital Thirst` (`-DRINK_RESTORE`) + `adjust_uses −1`, and `on_depleted` →
+  `set_state empty`. Idempotent and surgical: it edits the raw JSON (never
+  `to_scenario_dict()`, which rewrites every character), rewrites an existing
+  trigger of the same type in place, and a re-run is a no-op. `tests/test_camp_consumables.py`
+  (3) is the data regression guard.
+- **Soak — restored to the acceptance figure.** `--background-all --mature` over a
+  week is **23/23 alive, 0 dead** at both `1 min/tick` (10080 ticks) and
+  `15 min/tick` (672 ticks). Before the data pass the same run was 16/23.
+
+**Change 4 (retire the constants) is deliberately not done.** `MEAL_RESTORE` /
+`DRINK_RESTORE` survive only as the *documented degenerate fallback* in
+`_consume_here`, which is the sole branch for items that author no consumption. A
+measured pass over `data/library/items` found **78 edible/drinkable items, only 13
+of them authored, 65 tag-only** — so deleting the constants now would leave the
+majority of library food eaten but restoring nothing (or, with the fallback also
+removed, firing no trigger and never depleting: the infinite loaf). Retirement is
+therefore a **library-wide** data pass, filed as **task-506** (which also notes
+that several *authored* items, e.g. `rations_of_dried_meat` and `apple`, carry no
+depletion and are infinite once the authored path is live). The camp no longer
+touches the fallback: all five of its consumables now author `on_eat`/`on_drink`.
+

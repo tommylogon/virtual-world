@@ -658,9 +658,9 @@ class BackgroundSimulation:
         try:
             self.gs.active_player = getattr(p, "name", None)
             if verb == "drink":
-                self.gs.item_actions.drink_item(self.gs.player_manager, node.name)
+                self.gs.item_actions.drink_item(self.gs, node.name)
             else:
-                self.gs.item_actions.eat_item(self.gs.player_manager, node.name)
+                self.gs.item_actions.eat_item(self.gs, node.name)
             return True
         except Exception as e:
             logger.warning("[background] authored %s failed for %s: %s",
@@ -940,6 +940,10 @@ class BackgroundSimulation:
         """
         props = node.properties or {}
         if props.get("current_state") == "hidden":
+            return False
+        # A spent container is not a free refill (task-424): `uses == 0` means
+        # empty, so it cannot satisfy a need until it is refilled.
+        if props.get("uses", -1) == 0:
             return False
         node_tags = {str(t).lower() for t in (props.get("tags", []) or [])}
         if set(tags) & node_tags:

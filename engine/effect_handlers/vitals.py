@@ -139,6 +139,21 @@ def handle_heal(self, params, context, item_node=None, game_state=None):
     return outputs
 
 
+#: Vitals are keyed canonically ("Thirst"); authored data spells them loosely
+#: ("thirst"). Exact match wins, then a case-insensitive lookup, so a lowercase
+#: stat in a trigger adjusts the right vital instead of silently doing nothing.
+def _resolve_vital_key(vitals, stat):
+    if not isinstance(vitals, dict):
+        return None
+    if stat in vitals:
+        return stat
+    low = str(stat or "").lower()
+    for key in vitals:
+        if str(key).lower() == low:
+            return key
+    return None
+
+
 def handle_adjust_vital(self, params, context, item_node=None, game_state=None):
     """Adjust a vital stat (HP, Energy, Sanity, etc.) on a player.
 
@@ -151,26 +166,29 @@ def handle_adjust_vital(self, params, context, item_node=None, game_state=None):
     target = params.get("target", "self")
     outputs = []
     if target == "self" and game_state and game_state.player:
-        if stat in game_state.player.vitals:
-            game_state.player.vitals[stat] = max(
-                0, min(100, game_state.player.vitals[stat] + amount)
+        key = _resolve_vital_key(game_state.player.vitals, stat)
+        if key is not None:
+            game_state.player.vitals[key] = max(
+                0, min(100, game_state.player.vitals[key] + amount)
             )
-        if stat == "HP":
-            max_hp = game_state.player.vitals.get("Max_HP", 100)
-            game_state.player.vitals[stat] = max(
-                0, min(max_hp, game_state.player.vitals[stat])
-            )
+            if key == "HP":
+                max_hp = game_state.player.vitals.get("Max_HP", 100)
+                game_state.player.vitals[key] = max(
+                    0, min(max_hp, game_state.player.vitals[key])
+                )
     elif target != "self" and game_state:
         target_player = game_state.players.get(target)
-        if target_player and stat in target_player.vitals:
-            target_player.vitals[stat] = max(
-                0, min(100, target_player.vitals[stat] + amount)
-            )
-            if stat == "HP":
-                max_hp = target_player.vitals.get("Max_HP", 100)
-                target_player.vitals[stat] = max(
-                    0, min(max_hp, target_player.vitals[stat])
+        if target_player:
+            key = _resolve_vital_key(target_player.vitals, stat)
+            if key is not None:
+                target_player.vitals[key] = max(
+                    0, min(100, target_player.vitals[key] + amount)
                 )
+                if key == "HP":
+                    max_hp = target_player.vitals.get("Max_HP", 100)
+                    target_player.vitals[key] = max(
+                        0, min(max_hp, target_player.vitals[key])
+                    )
     from engine.vitals import format_vital_change
     msg = params.get("message") or format_vital_change(stat, amount)
     msg = self._render_template_fn(msg, context)

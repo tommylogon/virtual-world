@@ -10099,26 +10099,18 @@
           "effects": [
             {
               "params": {
-                "amount": 20,
-                "message": "The water cools your throat.",
-                "stat": "Thirst"
+                "amount": -50,
+                "stat": "Thirst",
+                "target": "self"
               },
               "type": "adjust_vital"
             },
             {
               "params": {
                 "delta": -1,
-                "message": "The water skin is lighter now.",
                 "node_id": "item_water_skin"
               },
               "type": "adjust_uses"
-            },
-            {
-              "params": {
-                "message": "You drink cool water from the skin.",
-                "success_message": "You drink cool water from the skin."
-              },
-              "type": "message"
             }
           ],
           "once": false,
@@ -10135,33 +10127,18 @@
           "effects": [
             {
               "params": {
-                "amount": 15,
-                "message": "Hunger satisfied.",
-                "stat": "Hunger"
+                "amount": -45,
+                "stat": "Hunger",
+                "target": "self"
               },
               "type": "adjust_vital"
             },
             {
               "params": {
-                "amount": -5,
-                "message": "The bread makes you thirsty.",
-                "stat": "Thirst"
-              },
-              "type": "adjust_vital"
-            },
-            {
-              "params": {
-                "message": "The bread is gone.",
+                "delta": -1,
                 "node_id": "item_bread"
               },
-              "type": "remove_item"
-            },
-            {
-              "params": {
-                "message": "You eat the coarse bread. It fills your stomach.",
-                "success_message": "You eat the coarse bread. It fills your stomach."
-              },
-              "type": "message"
+              "type": "adjust_uses"
             }
           ],
           "once": false,
@@ -10178,43 +10155,18 @@
           "effects": [
             {
               "params": {
-                "amount": 10,
-                "message": "Hunger satisfied.",
-                "stat": "Hunger"
+                "amount": -45,
+                "stat": "Hunger",
+                "target": "self"
               },
               "type": "adjust_vital"
             },
             {
               "params": {
-                "dc": 12,
-                "on_fail": [
-                  {
-                    "params": {
-                      "condition": "poisoned",
-                      "duration": 3,
-                      "message": "Your vision swims. Some mushrooms were not safe."
-                    },
-                    "type": "apply_condition"
-                  }
-                ],
-                "on_success": [
-                  {
-                    "params": {
-                      "message": "The mushrooms settle comfortably."
-                    },
-                    "type": "message"
-                  }
-                ],
-                "stat": "Sanity"
+                "delta": -1,
+                "node_id": "item_mushrooms"
               },
-              "type": "save"
-            },
-            {
-              "params": {
-                "message": "You eat the mushrooms. They taste earthy and slightly bitter.",
-                "success_message": "You eat the mushrooms. They taste earthy and slightly bitter."
-              },
-              "type": "message"
+              "type": "adjust_uses"
             }
           ],
           "once": false,
@@ -11849,6 +11801,76 @@
         },
         "created": 1789781679.8468356,
         "updated": 1789922611.815246
+      },
+      "trigger_item_berries_on_eat": {
+        "id": "trigger_item_berries_on_eat",
+        "type": "logic_trigger",
+        "name": "on_eat -> adjust_vital",
+        "properties": {
+          "effects": [
+            {
+              "params": {
+                "amount": -45,
+                "stat": "Hunger",
+                "target": "self"
+              },
+              "type": "adjust_vital"
+            },
+            {
+              "params": {
+                "delta": -1,
+                "node_id": "item_berries"
+              },
+              "type": "adjust_uses"
+            }
+          ],
+          "once": false,
+          "trigger_type": "on_eat"
+        }
+      },
+      "trigger_item_dried_meat_on_eat": {
+        "id": "trigger_item_dried_meat_on_eat",
+        "type": "logic_trigger",
+        "name": "on_eat -> adjust_vital",
+        "properties": {
+          "effects": [
+            {
+              "params": {
+                "amount": -45,
+                "stat": "Hunger",
+                "target": "self"
+              },
+              "type": "adjust_vital"
+            },
+            {
+              "params": {
+                "delta": -1,
+                "node_id": "item_dried_meat"
+              },
+              "type": "adjust_uses"
+            }
+          ],
+          "once": false,
+          "trigger_type": "on_eat"
+        }
+      },
+      "trigger_item_water_skin_on_depleted": {
+        "id": "trigger_item_water_skin_on_depleted",
+        "type": "logic_trigger",
+        "name": "on_depleted -> set_state",
+        "properties": {
+          "effects": [
+            {
+              "params": {
+                "message": "The water skin is empty.",
+                "state": "empty"
+              },
+              "type": "set_state"
+            }
+          ],
+          "once": false,
+          "trigger_type": "on_depleted"
+        }
       }
     },
     "edges": [
@@ -13916,6 +13938,30 @@
         "target": "area_camp_entrance_trail",
         "type": "in",
         "properties": {}
+      },
+      {
+        "source": "item_berries",
+        "target": "trigger_item_berries_on_eat",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_eat"
+        }
+      },
+      {
+        "source": "item_dried_meat",
+        "target": "trigger_item_dried_meat_on_eat",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_eat"
+        }
+      },
+      {
+        "source": "item_water_skin",
+        "target": "trigger_item_water_skin_on_depleted",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_depleted"
+        }
       }
     ]
   },

@@ -6,6 +6,13 @@ matching, trigger_system, ghost_system, world) via the mixin.
 """
 
 
+#: States that mean "spent but still here" (task-424): an emptied container
+#: marks itself with one of these from its own ``on_depleted`` (an empty glass)
+#: and the consume path leaves it in the world instead of removing it.
+PERSISTENT_EMPTY_STATES = {"empty", "unlit", "off", "spent", "finished",
+                           "drained", "used_up"}
+
+
 def _is_valid_for(node, trigger_type: str) -> bool:
     """Same acceptance rule as _consume_item's validity gate, so bare
     eat/drink auto-pick only grabs items that would pass anyway."""
@@ -83,16 +90,24 @@ class ConsumeActionsMixin:
             available = self.trigger_system._get_available_actions(item_node)
             raise ValueError(self.trigger_system._contextual_failure(action_verb, item_node.name, available))
 
+        # An emptied container is not a free refill (task-424): `uses` is
+        # charges/durability, so at 0 the item is spent and must be refilled
+        # before it can be consumed again. `uses: -1` is "no charge model".
+        if item_node.properties.get("uses", -1) == 0:
+            raise ValueError(f"The {item_name} is empty.")
+
         result = f"You {action_verb} the {item_name}."
 
         if hasattr(player_manager.player, 'exhaustion_count') and player_manager.player.exhaustion_count > 0:
             player_manager.player.exhaustion_count = 0
 
+        uses_before = item_node.properties.get("uses", -1)
         trigger_outputs = self._exec_triggers(item_node, trigger_type)
         if trigger_outputs:
             result += "\n" + "\n".join(trigger_outputs)
             if not self.graph.get_node(item_node.id):
                 return result
+        result = self._deplete_if_spent(item_node, uses_before, result)
 
         skill_check_config = item_node.properties.get("skill_check", {})
         if skill_check_config and skill_check_config.get("skill"):
@@ -112,4 +127,33 @@ class ConsumeActionsMixin:
         area_name = player_manager.current_area.name if player_manager.current_area else None
         past_verb = "ate" if action_verb == "eat" else "drank"
         player_manager.record_turn_event(player_manager.active_player, action_verb, f"{past_verb} the {item_name}", area_name=area_name)
+        return result
+
+    def _deplete_if_spent(self, item_node, uses_before, result: str) -> str:
+        """Consume a spent item, or keep a persistent empty one (task-424).
+
+        Fires the item's ``on_depleted`` on a genuine *last-use* transition
+        (``uses_before > 0`` and now 0), so a permanent item (``uses: -1``) is
+        never destroyed by being consumed. After the item's own ``on_depleted``
+        has run, a node that marked itself with a persistent empty state (an
+        empty glass) is left in the world; anything else is removed — which is
+        what makes authored bread disappear where a hardcoded path used to.
+        """
+        if not self.graph.get_node(item_node.id):
+            return result
+        uses_now = item_node.properties.get("uses", -1)
+        if not (uses_before > 0 and uses_now == 0):
+            return result
+        dep_outputs = self._exec_triggers(item_node, "on_depleted")
+        if dep_outputs:
+            result += "\n" + "\n".join(dep_outputs)
+        if not self.graph.get_node(item_node.id):
+            return result
+        state = str(item_node.properties.get("current_state", "")).lower()
+        if state in PERSISTENT_EMPTY_STATES:
+            return result
+        for edge in list(self.graph.edges):
+            if edge.source == item_node.id or edge.target == item_node.id:
+                self.graph.edges.remove(edge)
+        self.graph.remove_node(item_node.id)
         return result

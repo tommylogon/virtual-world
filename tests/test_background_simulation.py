@@ -55,7 +55,10 @@ def test_background_drinks_when_thirsty():
     p = _bg_player(w, Thirst=80, Hunger=5, Energy=90)
     _add_item(w, AREA, "water skin", ["drink"], ["drink"])
     w.tick_turn()
-    assert p.vitals["Thirst"] <= 40
+    # task-424: a source that authors on_drink owns its own restore, so the old
+    # DRINK_RESTORE fallback constant no longer sets the drop. Assert it quenched,
+    # not a fixed amount (the world's water_pitcher is authored at -15).
+    assert p.vitals["Thirst"] < 80
     assert any(e["why"] == "needs:drink" for e in p.trace_log)
 
 
