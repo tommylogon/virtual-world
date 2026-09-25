@@ -202,11 +202,37 @@ class ApiClient {
     }
 
     /** One scope's vis-loadable subgraph ({nodes, edges}) — the graph view
-     *  loads this instead of the whole world when a scope is selected. */
-    static async getScopeSubgraph(scopeId, includeItems = true) {
+     *  loads this instead of the whole world when a scope is selected.
+     *  Level-scoped by default (own areas only); pass `descendants` for the
+     *  whole subtree. */
+    static async getScopeSubgraph(scopeId, includeItems = true, descendants = false) {
         const resp = await fetch(
-            `/api/world/scopes/${encodeURIComponent(scopeId)}/subgraph?include_items=${includeItems ? 1 : 0}`);
+            `/api/world/scopes/${encodeURIComponent(scopeId)}/subgraph`
+            + `?include_items=${includeItems ? 1 : 0}&descendants=${descendants ? 1 : 0}`);
         if (!resp.ok) throw new Error(`scope subgraph failed: ${resp.status}`);
+        return resp.json();
+    }
+
+    /** One scope's painted grid payload ({scope, grid, layers, reference, …}).
+     *  Used by the graph background's "fit to painted grid" action. */
+    static async getWorldGrid(scopeId) {
+        const resp = await fetch(`/api/world/scopes/${encodeURIComponent(scopeId)}/grid`);
+        if (!resp.ok) throw new Error(`scope grid failed: ${resp.status}`);
+        return resp.json();
+    }
+
+    /** Persist a scope's map-layout offset (cell units) — the graph canvas zone
+     *  drag (task-523). Pass `reset: true` (and no x/y) to return the zone to
+     *  its painted position. Returns `{status, id, map_offset}`. */
+    static async setScopeOffset(scopeId, offset = {}) {
+        const resp = await fetch(`/api/world/scopes/${encodeURIComponent(scopeId)}/offset`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(offset && offset.reset
+                ? { reset: true }
+                : { x: Number(offset.x) || 0, y: Number(offset.y) || 0 })
+        });
+        if (!resp.ok) throw new Error(`scope offset failed: ${resp.status}`);
         return resp.json();
     }
 

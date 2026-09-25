@@ -27,7 +27,8 @@ hash of ``seed:cell``.
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple
+from collections import deque
+from typing import Dict, List, Optional, Set, Tuple
 
 from graph import EDGE_CONNECTION, Edge, Node
 
@@ -45,11 +46,20 @@ DIRECTIONS: Dict[str, Tuple[int, int]] = {
     "south": (0, 1),
     "east": (1, 0),
     "west": (-1, 0),
+    "northeast": (1, -1),
+    "northwest": (-1, -1),
+    "southeast": (1, 1),
+    "southwest": (-1, 1),
 }
-OPPOSITE = {"north": "south", "south": "north", "east": "west", "west": "east"}
+OPPOSITE = {
+    "north": "south", "south": "north", "east": "west", "west": "east",
+    "northeast": "southwest", "southwest": "northeast",
+    "northwest": "southeast", "southeast": "northwest",
+}
 #: Directions emitted when scanning for adjacencies, so each shared edge is
-#: visited once (east + south cover every 4-neighbour pair).
-_SCAN_DIRECTIONS = ("east", "south")
+#: visited once. The four "south half" deltas cover every 8-neighbour pair
+#: exactly once (a north neighbour is found from that cell's ``south``, etc.).
+_SCAN_DIRECTIONS = ("east", "south", "southeast", "southwest")
 
 #: Default area environment for a painted cell; a biome record may override it
 #: with its own ``environment`` dict.
@@ -64,6 +74,13 @@ PAINT_POLICY_BAKED = "baked"
 #: return with ``out`` — so the gateway builds its own four connection edges.
 GATEWAY_IN = "in"
 GATEWAY_OUT = "out"
+
+#: Canvas units per painted cell for generated node positions. The graph view
+#: reads ``properties.x``/``y`` directly, so with physics off (or graph mode) a
+#: compiled scope lays out in the exact shape it was painted — the point of
+#: painting over a reference map. This is layout only; travel time stays one
+#: turn per cell (``cell_scale`` is not read by the compiler or movement).
+CELL_CANVAS_UNITS = 40
 
 
 # ───────────────────────────── description ────────────────────────────────
@@ -175,19 +192,45 @@ def _direction_between(a: Tuple[int, int], b: Tuple[int, int]) -> str:
     return "across"
 
 
+#: 8-wind compass keyed by the sign of (dx, dy).
+_COMPASS_BY_SIGN: Dict[Tuple[int, int], str] = {
+    (0, -1): "north", (0, 1): "south", (1, 0): "east", (-1, 0): "west",
+    (1, -1): "northeast", (-1, -1): "northwest",
+    (1, 1): "southeast", (-1, 1): "southwest",
+}
+
+
+def _compass_direction(dx: int, dy: int) -> str:
+    """The compass name for an arbitrary delta, for long auto-link ways.
+
+    ``_direction_between`` only names single-cell steps; an island link can span
+    many cells, so the sign of the delta picks the 8-wind direction instead.
+    """
+    sx = (dx > 0) - (dx < 0)
+    sy = (dy > 0) - (dy < 0)
+    return _COMPASS_BY_SIGN.get((sx, sy), "across")
+
+
 def _way_edges(area_from: str, area_to: str, way_id: str,
                direction: str) -> List[Edge]:
-    """The four connection edges a bidirectional way needs (movement.py)."""
+    """The four connection edges a bidirectional way needs (movement.py).
+
+    Each edge carries ``cardinal`` as well as ``direction``: the way inspector's
+    "cardinal for map layout" compass and the cardinal map fallback read
+    ``edge.properties.cardinal`` (``area_description.build_exits_for_area``), so a
+    generated way without it showed an empty compass. It is the same 8-wind name
+    the painter's cell delta produced.
+    """
     back = OPPOSITE.get(direction, direction)
     return [
         Edge(source=area_from, target=way_id, type=EDGE_CONNECTION,
-             properties={"direction": direction}),
+             properties={"direction": direction, "cardinal": direction}),
         Edge(source=way_id, target=area_to, type=EDGE_CONNECTION,
-             properties={"direction": back}),
+             properties={"direction": back, "cardinal": back}),
         Edge(source=area_to, target=way_id, type=EDGE_CONNECTION,
-             properties={"direction": back}),
+             properties={"direction": back, "cardinal": back}),
         Edge(source=way_id, target=area_from, type=EDGE_CONNECTION,
-             properties={"direction": direction}),
+             properties={"direction": direction, "cardinal": direction}),
     ]
 
 
@@ -197,7 +240,8 @@ def _gateway_id(parent_id: str, child_id: str) -> str:
 
 def _gateway(parent_id: str, child_id: str, parent_area: str, parent_name: str,
              entry_area: str, entry_name: str, child_name: str,
-             recipe_id: str, seed: str, tick: int) -> Tuple[Node, List[Edge]]:
+             recipe_id: str, seed: str, tick: int,
+             cell: Optional[Tuple[int, int]] = None) -> Tuple[Node, List[Edge]]:
     """The way from a parent's placed cell into a child scope's entry area.
 
     Deterministic and self-contained: it depends only on ids/names both sides
@@ -219,6 +263,10 @@ def _gateway(parent_id: str, child_id: str, parent_area: str, parent_name: str,
         "child_scope_id": child_id,
         "generated": provenance(parent_id, recipe_id, seed, tick)["generated"],
     }
+    if cell is not None:
+        # Sit on the parent cell it opens from, so the entrance appears in place.
+        props["x"] = cell[0] * CELL_CANVAS_UNITS
+        props["y"] = cell[1] * CELL_CANVAS_UNITS
     node = Node(id=way_id, type="way",
                 name=f"Entrance to {child_name}", properties=props)
     edges = [
@@ -235,7 +283,7 @@ def _gateway(parent_id: str, child_id: str, parent_area: str, parent_name: str,
 
 
 def _regions(cells: List[Tuple[int, int]], biome_of: Dict[Tuple[int, int], str]):
-    """Flood-fill 4-neighbour cells of the same biome into ordered regions."""
+    """Flood-fill 8-neighbour cells of the same biome into ordered regions."""
     remaining = set(cells)
     regions: List[List[Tuple[int, int]]] = []
     for start in sorted(cells, key=lambda c: (c[1], c[0])):
@@ -257,10 +305,66 @@ def _regions(cells: List[Tuple[int, int]], biome_of: Dict[Tuple[int, int], str])
     return regions
 
 
+def _nearest_cells(cells_a: Set[Tuple[int, int]], cells_b: Set[Tuple[int, int]],
+                   width: int, height: int
+                   ) -> Optional[Tuple[Tuple[int, int], Tuple[int, int]]]:
+    """The closest (cell in A, cell in B) pair, by 8-neighbour BFS step count.
+
+    ``cells_b`` may be a set of cells from several regions; the first B cell
+    reached is the nearest. Used to join a disconnected island to the main
+    landmass at one way rather than walling it off.
+    """
+    if not cells_a or not cells_b:
+        return None
+    start = sorted(cells_a, key=lambda c: (c[1], c[0]))
+    seen: Set[Tuple[int, int]] = set(cells_a)
+    # Carry the painted origin so the returned A cell is always a real region
+    # cell, not an empty transit cell the BFS wandered through.
+    queue: deque = deque((cell, cell) for cell in start)
+    while queue:
+        cell, origin = queue.popleft()
+        for dx, dy in DIRECTIONS.values():
+            nb = (cell[0] + dx, cell[1] + dy)
+            if nb in cells_b:
+                return origin, nb
+            if nb in seen or not (0 <= nb[0] < width and 0 <= nb[1] < height):
+                continue
+            seen.add(nb)
+            queue.append((nb, origin))
+    return None
+
+
+def _region_components(n_regions: int,
+                       pairs: Set[Tuple[int, int]]) -> List[List[int]]:
+    """Union-find of regions joined by ``pairs`` → one list of members each."""
+    parent = list(range(n_regions))
+
+    def find(i: int) -> int:
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    for a, b in pairs:
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[max(ra, rb)] = min(ra, rb)
+
+    grouped: Dict[int, List[int]] = {}
+    for i in range(n_regions):
+        grouped.setdefault(find(i), []).append(i)
+    return list(grouped.values())
+
+
 def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
-                 region_merge: bool = False, recipe_id: str = RECIPE_ID,
+                 region_merge: bool = False, link_islands: bool = True,
+                 recipe_id: str = RECIPE_ID,
                  seed: Optional[str] = None, tick: int = 0) -> GenerationPatch:
     """Compile one scope's painted grid into an area/way ``GenerationPatch``.
+
+    ``link_islands`` joins each disconnected component to the main landmass with
+    a single way between the closest pair of cells, so a lone painted cell or a
+    far island is reachable instead of compiling to a dead end.
 
     Raises ``ValueError`` when the scope is missing, has no grid, paints no
     cells, or its ``paint_policy`` is ``baked`` and it is already materialized.
@@ -358,6 +462,13 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
             "description": _area_description(
                 anchor, biome_id, road, neighbours, directions,
                 child_scope_id, seed),
+            # Canvas position from the painted cell (task-496). The graph view
+            # reads ``properties.x``/``y`` directly, so with physics off a
+            # generated scope lays out in the shape it was painted instead of a
+            # physics blob. Not a distance: travel stays one turn per cell.
+            "x": anchor[0] * CELL_CANVAS_UNITS,
+            "y": anchor[1] * CELL_CANVAS_UNITS,
+            "cell": {"x": anchor[0], "y": anchor[1]},
         }
         elevation = elevation_layer.get(wg.cell_key(*anchor))
         if elevation not in (None, ""):
@@ -373,7 +484,38 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
             name=_area_name(scope_label, biome_id, anchor), properties=props))
 
     edges: List[Edge] = []
-    emitted_pairs = set()
+    emitted_pairs: Set[Tuple[int, int]] = set()
+
+    def emit_passage(region_a: int, region_b: int,
+                     cell: Tuple[int, int], nb: Tuple[int, int],
+                     direction: str, floor_biome: str) -> None:
+        from_area = area_id_of_region[region_a]
+        to_area = area_id_of_region[region_b]
+        from_name = region_area_name[region_a]
+        to_name = region_area_name[region_b]
+        way_id = _way_id(scope_id, from_area, to_area)
+        way_props = {
+            "area_from": from_name,
+            "area_to": to_name,
+            "area_from_id": from_area,
+            "area_to_id": to_area,
+            "direction": direction,
+            "current_state": "open",
+            "see_through": True,
+            "floor": (biomes_mod.biome(floor_biome) or {}).get("floor", "dirt"),
+            "pass_message": f"You follow the path {direction} toward {to_name}.",
+            "world_scope_id": scope_id,
+            # Midpoint of the two cells, so a way sits between its areas
+            # when the graph is laid out from painted positions.
+            "x": ((cell[0] + nb[0]) / 2) * CELL_CANVAS_UNITS,
+            "y": ((cell[1] + nb[1]) / 2) * CELL_CANVAS_UNITS,
+            "generated": provenance(scope_id, recipe_id, seed, tick)["generated"],
+        }
+        nodes.append(Node(id=way_id, type="way",
+                          name=f"{from_name} to {to_name}",
+                          properties=way_props))
+        edges.extend(_way_edges(from_area, to_area, way_id, direction))
+
     for cell in cells:
         for direction in _SCAN_DIRECTIONS:
             dx, dy = DIRECTIONS[direction]
@@ -388,30 +530,39 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
             if pair in emitted_pairs:
                 continue  # one passage per region boundary pair
             emitted_pairs.add(pair)
+            emit_passage(region_a, region_b, cell, nb,
+                         _direction_between(cell, nb), biome_of[cell])
 
-            from_area = area_id_of_region[region_a]
-            to_area = area_id_of_region[region_b]
-            from_name = region_area_name[region_a]
-            to_name = region_area_name[region_b]
-            way_id = _way_id(scope_id, from_area, to_area)
-            way_dir = _direction_between(cell, nb)
-            way_props = {
-                "area_from": from_name,
-                "area_to": to_name,
-                "area_from_id": from_area,
-                "area_to_id": to_area,
-                "direction": way_dir,
-                "current_state": "open",
-                "see_through": True,
-                "floor": (biomes_mod.biome(biome_of[cell]) or {}).get("floor", "dirt"),
-                "pass_message": f"You follow the path {way_dir} toward {to_name}.",
-                "world_scope_id": scope_id,
-                "generated": provenance(scope_id, recipe_id, seed, tick)["generated"],
-            }
-            nodes.append(Node(id=way_id, type="way",
-                              name=f"{from_name} to {to_name}",
-                              properties=way_props))
-            edges.extend(_way_edges(from_area, to_area, way_id, way_dir))
+    # ── link disconnected islands ──
+    # An island (a cell/cluster with no painted 8-neighbour) would compile to an
+    # unreachable dead end. Instead each disconnected component is joined to the
+    # main landmass by a *single* way between its closest pair of cells, so a
+    # lone outpost can be painted anywhere and still be walked to. One link per
+    # component — not one to each of the 8 nearest neighbours.
+    linked = 0
+    if link_islands and len(regions) > 1:
+        components = _region_components(len(regions), emitted_pairs)
+        if len(components) > 1:
+            main = max(components, key=lambda c: (len(c), -min(c)))
+            connected: Set[int] = set(main)
+            for comp in sorted((c for c in components if c is not main),
+                               key=lambda c: min(c)):
+                a_cells = {cell for i in comp for cell in regions[i]}
+                b_cells = {cell for i in connected for cell in regions[i]}
+                hit = _nearest_cells(a_cells, b_cells, width, height)
+                if hit is not None:
+                    ca, cb = hit
+                    region_a, region_b = cell_region[ca], cell_region[cb]
+                    pair = ((region_a, region_b) if region_a < region_b
+                            else (region_b, region_a))
+                    if region_a != region_b and pair not in emitted_pairs:
+                        emitted_pairs.add(pair)
+                        linked += 1
+                        emit_passage(
+                            region_a, region_b, ca, cb,
+                            _compass_direction(cb[0] - ca[0], cb[1] - ca[1]),
+                            biome_of[ca])
+                connected.update(comp)
 
     # ── child-scope gateways (task-496) ──
     # Every placement's compiled area is persisted on the parent, so a child
@@ -441,7 +592,8 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
         node, gw_edges = _gateway(
             scope_id, str(child_id), clean["area_id"], clean["area_name"],
             child_entry, str(child.get("entry_area_name") or child_entry),
-            str(child.get("name") or child_id), recipe_id, seed, tick)
+            str(child.get("name") or child_id), recipe_id, seed, tick,
+            cell=cell)
         if node.id not in gateway_ids:
             gateway_ids.add(node.id)
             nodes.append(node)
@@ -455,11 +607,16 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
         pos = (parent_rec.get("placements") or {}).get(scope_id)
         if not isinstance(pos, dict) or not pos.get("area_id"):
             continue
+        pos_cell = None
+        try:
+            pos_cell = (int(pos.get("x")), int(pos.get("y")))
+        except (TypeError, ValueError):
+            pos_cell = None
         node, gw_edges = _gateway(
             str(parent_id), scope_id,
             str(pos["area_id"]), str(pos.get("area_name") or pos["area_id"]),
             entry_area_id, entry_area_name, str(record.get("name") or scope_id),
-            recipe_id, seed, tick)
+            recipe_id, seed, tick, cell=pos_cell)
         if node.id not in gateway_ids:
             gateway_ids.add(node.id)
             nodes.append(node)
@@ -467,10 +624,23 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
             gateways += 1
         break
 
+    # An island is now auto-linked above, so this only counts a region left with
+    # no exits at all (a single painted cell, or ``link_islands=False``).
+    pair_degree: Dict[int, int] = {}
+    for region_a, region_b in emitted_pairs:
+        pair_degree[region_a] = pair_degree.get(region_a, 0) + 1
+        pair_degree[region_b] = pair_degree.get(region_b, 0) + 1
+    isolated = sum(1 for i in range(len(regions)) if not pair_degree.get(i))
+
     notes = [f"{len(regions)} area(s), {len(emitted_pairs)} passage(s)"
              + (" (region-merged)" if region_merge else "")]
     if gateways:
         notes.append(f"{gateways} child gateway(s)")
+    if linked:
+        notes.append(f"{linked} island(s) linked to the nearest region")
+    if isolated:
+        notes.append(f"{isolated} area(s) have no exits (nothing else painted "
+                     f"to link to)")
     report = GenerationReport(
         scope_id=scope_id, recipe_id=recipe_id, seed=str(seed),
         area_ids=sorted(area_scope_assignments),

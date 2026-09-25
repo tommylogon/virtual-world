@@ -107,6 +107,7 @@ def _grid_payload(manifest: Dict[str, dict], scope_id: str) -> dict:
         "mode": rec.get("mode"),
         "reference": world_grid.reference(rec),
         "layers": dict(rec.get("layers") or {}),
+        "map_offset": world_grid.map_offset(rec),
         "placements": placements,
         "feature": world_grid.feature_layer(rec),
         "children": children,
@@ -355,8 +356,11 @@ def handle_list_backgrounds(app):
 def handle_set_reference(app, scope_id):
     """POST /api/world/scopes/<scope_id>/grid/reference — reference image.
 
-    Body: ``{image, opacity?, visible?}``. ``image`` of ``null`` clears it. The
-    image is a *reference* only and never compiles into areas/ways.
+    Body: ``{image, opacity?, visible?, rect?, crop?, reset?}``. ``image`` of
+    ``null`` clears it. ``rect`` (cell units) and ``crop`` (normalized source
+    window) are the author's move/resize/crop of the picture; ``reset: true``
+    drops them back to auto-fit. The image is a *reference* only and never
+    compiles into areas/ways.
     """
     data = request.get_json(silent=True) or {}
     manifest = _load(app)
@@ -370,7 +374,10 @@ def handle_set_reference(app, scope_id):
         _snapshot(app, label=f"set reference on {record.get('name', scope_id)}")
         world_grid.set_reference(record, image,
                                  opacity=data.get("opacity"),
-                                 visible=data.get("visible"))
+                                 visible=data.get("visible"),
+                                 rect=data.get("rect"),
+                                 crop=data.get("crop"),
+                                 reset=bool(data.get("reset")))
     except ValueError as exc:
         return _error(str(exc))
     _commit(app, manifest)
@@ -434,6 +441,7 @@ def handle_generate_scope(app, scope_id):
         patch = world_compile.compile_grid(
             manifest, scope_id,
             region_merge=bool(data.get("region_merge")),
+            link_islands=bool(data.get("link_islands", True)),
             seed=data.get("seed"),
             tick=int(tick))
     except ValueError as exc:
@@ -482,3 +490,68 @@ def handle_remove_feature(app, scope_id):
         return _error(f"{child_id!r} is not placed in {scope_id!r}", 404)
     _commit(app, manifest)
     return jsonify({"status": "removed", **_grid_payload(manifest, scope_id)})
+
+
+def handle_rename_scope(app, scope_id):
+    """POST /api/world/scopes/<scope_id>/rename — ``{name}``.
+
+    Changes the **display name** only; the id (and every node reference) stays,
+    so renaming never breaks areas, placements or the graph.
+    """
+    data = request.get_json(silent=True) or {}
+    manifest = _load(app)
+    if scope_id not in manifest:
+        return _error(f"Scope '{scope_id}' not found", 404)
+    _snapshot(app, label=f"rename {scope_id}")
+    try:
+        record = world_scopes.rename_scope(manifest, scope_id, data.get("name"))
+    except ValueError as exc:
+        return _error(str(exc))
+    _commit(app, manifest)
+    return jsonify({"status": "renamed", "id": scope_id, "name": record["name"]})
+
+
+def handle_delete_scope(app, scope_id):
+    """POST /api/world/scopes/<scope_id>/delete — ``{cascade?}``.
+
+    Removes the scope's record, unplaces it from parents, and deletes the nodes
+    generation made for it. Refuses a scope that still has children unless
+    ``cascade`` is set (see :func:`engine.world_scopes.delete_scope`).
+    """
+    data = request.get_json(silent=True) or {}
+    cascade = str(data.get("cascade", "")).lower() in ("1", "true", "yes")
+    manifest = _load(app)
+    if scope_id not in manifest:
+        return _error(f"Scope '{scope_id}' not found", 404)
+    _snapshot(app, label=f"delete {scope_id}")
+    try:
+        result = world_scopes.delete_scope(manifest, app.world.graph, scope_id,
+                                           cascade=cascade)
+    except ValueError as exc:
+        return _error(str(exc))
+    _commit(app, manifest)
+    return jsonify({"status": "deleted", **result})
+
+
+def handle_set_scope_offset(app, scope_id):
+    """POST /api/world/scopes/<scope_id>/offset — ``{x, y}`` cells or ``{reset}``.
+
+    Persists the map-canvas zone drag (task-523): the graph map layout adds this
+    offset to the scope's painted coords, so a zone the author moves stays moved
+    across reloads without editing the painter's cell coords. ``{reset: true}``
+    returns the zone to its painted position.
+    """
+    data = request.get_json(silent=True) or {}
+    manifest = _load(app)
+    if scope_id not in manifest:
+        return _error(f"Scope '{scope_id}' not found", 404)
+    reset = str(data.get("reset", "")).lower() in ("1", "true", "yes")
+    _snapshot(app, label=f"move zone {scope_id}")
+    try:
+        world_grid.set_map_offset(manifest[scope_id], x=data.get("x", 0.0),
+                                  y=data.get("y", 0.0), reset=reset)
+    except ValueError as exc:
+        return _error(str(exc))
+    _commit(app, manifest)
+    return jsonify({"status": "offset", "id": scope_id,
+                    "map_offset": world_grid.map_offset(manifest[scope_id])})

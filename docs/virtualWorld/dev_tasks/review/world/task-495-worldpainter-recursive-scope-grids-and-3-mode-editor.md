@@ -103,3 +103,36 @@ failures are unrelated).
 
 Still open: the "merge" overlap policy is deferred to the compiler by design
 (see the module docstring); no editor work needs it yet.
+
+## Progress — 2026-09-25 (rename / delete / island warning)
+
+Authoring could create scopes but never rename or remove them, so a mis-named or
+duplicate zone (e.g. two "deep woods") was stuck.
+
+- **Rename** — `world_scopes.rename_scope(manifest, id, name)` sets the
+  **display name only**; the id and every node reference stay (task-439/495).
+  `POST /api/world/scopes/<id>/rename {name}`; a blank name is rejected.
+- **Delete** — `world_scopes.delete_scope(manifest, graph, id, cascade=False)`:
+  refuses a scope that still has children unless `cascade`; unplaces it from
+  every parent (`placements` + `children`); deletes the nodes generation made for
+  it (provenance `properties.generated.scope_id`), leaving hand-authored nodes
+  alone. `POST /api/world/scopes/<id>/delete {cascade?}`.
+- **Editor** — each scope card gets ✏️ rename and 🗑 delete; the card's own click
+  still opens. Deleting the open scope falls back to its parent.
+- **Islands auto-link** — ways are made for 8-neighbour adjacency (orthogonal and
+  diagonal; `_SCAN_DIRECTIONS = ("east","south","southeast","southwest")`). A cell
+  or cluster with no painted neighbour is not left a dead end: `compile_grid`
+  joins each disconnected component to the main landmass with a **single** way
+  between the closest pair of cells (`link_islands`, default on; one link per
+  component, not one per neighbour). The report notes
+  `K island(s) linked to the nearest region`; only a lone painted cell (nothing to
+  link to) still reports `no exits`. `estimateCompile` returns `isolated` and
+  `links`, so the live estimate reads `≈ N areas · M ways · 🔗 K linked`.
+- **Layer-scoped redraw** — a paint drag only changes the in-progress stroke
+  (drawn on the decor layer), so the hot path redraws that one Konva layer
+  instead of `stage.batchDraw()`. Full redraws re-rasterised the reference image
+  every painted cell, which made painting crawl with a large reference loaded.
+
+Tests: `tests/test_world_scopes.py` (+4 rename/delete), `tests/test_world_grid_routes.py`
+(+2 route), `tests/test_world_compile.py` (+1 island note),
+`tools/unit/test_worldpainter.js` (+1 `estimateCompile.isolated`).

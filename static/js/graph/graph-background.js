@@ -53,10 +53,12 @@
         // ── view / interaction ────────────────────────────────────────────
         editing: false,
         cropping: false,
+        zoneMove: false,
         physicsDisabledByLock: false,
         // ── DOM ───────────────────────────────────────────────────────────
         paintLayer: null, paintSpace: null,
         interactLayer: null, interactSpace: null,
+        zoneOverlay: null,
         activeFrame: null, handles: null,
         hitBoxes: {}, // layerId -> hit box element
         panel: null,
@@ -235,6 +237,9 @@
         state.layoutLocked = false;
         state.editing = false;
         state.cropping = false;
+        state.zoneMove = false;
+        if (state.zoneOverlay)
+            state.zoneOverlay.style.pointerEvents = 'none';
         _render();
         _updateHint();
     }
@@ -420,6 +425,16 @@
         interactSpace.style.cssText = 'position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0;';
         interactLayer.appendChild(interactSpace);
         container.appendChild(interactLayer);
+        // Zone-move mode (task-523): a transparent catcher ABOVE the canvas, so a
+        // drag moves the whole zone (its painted nodes + the reference art) rather
+        // than a node. `pointer-events` is off until the mode is enabled, so
+        // ordinary node dragging and map editing are untouched.
+        const zoneOverlay = document.createElement('div');
+        zoneOverlay.id = 'graph-zone-overlay';
+        zoneOverlay.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:7;cursor:grab;';
+        container.appendChild(zoneOverlay);
+        state.zoneOverlay = zoneOverlay;
+        _wireZoneOverlay();
         // The active layer's handles, in their own frame so they inherit its
         // rotation exactly like the old single-image version did.
         const activeFrame = document.createElement('div');
@@ -931,6 +946,12 @@
         const height = Math.max(1, maxY - minY) + padding * 2;
         const centreX = (minX + maxX) / 2;
         const centreY = (minY + maxY) / 2;
+        _fitLayerToRect(layer, centreX - width / 2, centreY - height / 2, width, height);
+    }
+    /** Contain-fit a layer inside a graph-space rect (aspect kept, centred). */
+    function _fitLayerToRect(layer, x, y, width, height) {
+        if (!layer || !layer.image || !(width > 0) || !(height > 0))
+            return;
         const aspect = (layer.image.width || 1) / (layer.image.height || 1);
         let fitWidth = width;
         let fitHeight = width / aspect;
@@ -938,7 +959,292 @@
             fitHeight = height;
             fitWidth = height * aspect;
         }
-        layer.rect = { x: centreX - fitWidth / 2, y: centreY - fitHeight / 2, width: fitWidth, height: fitHeight };
+        layer.rect = {
+            x: x + (width - fitWidth) / 2,
+            y: y + (height - fitHeight) / 2,
+            width: fitWidth,
+            height: fitHeight,
+        };
+    }
+    /**
+     * Painter cell pitch in engine units — mirrors ``CELL_CANVAS_UNITS`` in
+     * ``engine/world_compile.py``. Compiled areas sit at ``cell * pitch`` in
+     * *engine* space; the Map layout then scales that by
+     * ``GraphLayoutEngine.GRID_SCALE`` for readability, so the background must
+     * use the same scaled pitch or the art and the nodes land on different grids.
+     */
+    const PAINT_CELL_UNITS = 40;
+    /** Fallback canvas scale, mirroring `GraphLayoutEngine.GRID_SCALE`. */
+    const DEFAULT_MAP_SCALE = 3.5;
+    /** Canvas units per painted cell, matching what the Map layout uses. */
+    function _mapUnitsPerCell(scale) {
+        if (typeof scale === 'number')
+            return PAINT_CELL_UNITS * scale;
+        const griddy = (typeof GraphLayoutEngine !== 'undefined' && GraphLayoutEngine)
+            ? GraphLayoutEngine
+            : undefined;
+        const fallback = (griddy && typeof griddy.GRID_SCALE === 'number')
+            ? griddy.GRID_SCALE
+            : DEFAULT_MAP_SCALE;
+        return PAINT_CELL_UNITS * fallback;
+    }
+    /** The graph-space rect a painted scope grid occupies (null without a grid). */
+    function paintedGridRect(grid, scale) {
+        const w = grid ? Number(grid.w) : 0;
+        const h = grid ? Number(grid.h) : 0;
+        if (!w || !h || w < 1 || h < 1)
+            return null;
+        const u = _mapUnitsPerCell(scale);
+        return { x: -u / 2, y: -u / 2, width: w * u, height: h * u };
+    }
+    /** The scope whose painted grid the graph is currently showing. */
+    function _currentScopeId() {
+        const manager = (typeof graphManager !== 'undefined' && graphManager)
+            ? graphManager
+            : undefined;
+        return (manager && manager._scopeFilter) || null;
+    }
+    /** The live `graphManager._scopeOffsets` table, created if missing. */
+    function _offsetsTable() {
+        const manager = (typeof graphManager !== 'undefined' && graphManager)
+            ? graphManager
+            : undefined;
+        if (!manager)
+            return {};
+        manager._scopeOffsets = manager._scopeOffsets || {};
+        return manager._scopeOffsets;
+    }
+    /** A scope's map offset in **cells**; `(0,0)` when never moved. */
+    function _scopeOffset(scopeId) {
+        if (!scopeId)
+            return { x: 0, y: 0 };
+        const off = _offsetsTable()[scopeId];
+        return {
+            x: off && isFinite(Number(off.x)) ? Number(off.x) : 0,
+            y: off && isFinite(Number(off.y)) ? Number(off.y) : 0,
+        };
+    }
+    /** Zone move is only meaningful for a selected, painted scope in map mode. */
+    function _canMoveZone() {
+        const scopeId = _currentScopeId();
+        if (!scopeId)
+            return false;
+        const manager = (typeof graphManager !== 'undefined' && graphManager)
+            ? graphManager
+            : undefined;
+        if (!manager || manager._cardinalLayout !== true)
+            return false;
+        return !!(typeof GraphLayoutEngine !== 'undefined' && GraphLayoutEngine
+            && GraphLayoutEngine.hasPaintedGrid(manager._graphNodesObj || {}));
+    }
+    function zoneMoveActive() { return state.zoneMove; }
+    /** Toggle dragging the current zone (task-523). */
+    function setZoneMove(on) {
+        state.zoneMove = !!on;
+        if (state.zoneOverlay) {
+            state.zoneOverlay.style.pointerEvents = state.zoneMove ? 'auto' : 'none';
+            state.zoneOverlay.style.cursor = state.zoneMove ? 'grab' : 'default';
+        }
+        _updateHint();
+    }
+    function _wireZoneOverlay() {
+        const overlay = state.zoneOverlay;
+        if (!overlay)
+            return;
+        overlay.addEventListener('mousedown', (event) => {
+            if (!state.zoneMove)
+                return;
+            const scopeId = _currentScopeId();
+            if (!scopeId)
+                return;
+            event.preventDefault();
+            event.stopPropagation();
+            _startZoneDrag(event, scopeId);
+        });
+    }
+    /** Shift every visible map layer by a graph-space delta (drag feedback). */
+    function _nudgeActiveLayer(dx, dy) {
+        if (!dx && !dy)
+            return;
+        const layer = _active();
+        if (!layer || !layer.visible || !layer.rect)
+            return;
+        layer.rect.x += dx;
+        layer.rect.y += dy;
+        _render();
+    }
+    /**
+     * Drag the whole zone: record the new offset in cells, re-place the scope's
+     * painted nodes live (no camera refit), and nudge the active map art so it
+     * tracks the drag. On release the offset is persisted to the world — the
+     * painter's cell coords are never touched.
+     */
+    function _startZoneDrag(event, scopeId) {
+        const network = _network();
+        if (!network)
+            return;
+        const startMouse = { x: event.clientX, y: event.clientY };
+        const start = _scopeOffset(scopeId);
+        const spacing = (typeof GraphLayoutEngine !== 'undefined' && GraphLayoutEngine)
+            ? GraphLayoutEngine.mapSpacing() : 40;
+        let lastMouse = { x: startMouse.x, y: startMouse.y };
+        if (state.zoneOverlay)
+            state.zoneOverlay.style.cursor = 'grabbing';
+        const onMove = (moveEvent) => {
+            const scale = network.getScale() || 1;
+            const next = {
+                x: start.x + (moveEvent.clientX - startMouse.x) / (scale || 1) / spacing,
+                y: start.y + (moveEvent.clientY - startMouse.y) / (scale || 1) / spacing,
+            };
+            const table = _offsetsTable();
+            table[scopeId] = next;
+            if (typeof GraphLayoutEngine !== 'undefined' && GraphLayoutEngine
+                && GraphLayoutEngine.refreshGridLayout) {
+                GraphLayoutEngine.refreshGridLayout(graphManager._graphNodesObj, table);
+            }
+            _nudgeActiveLayer((moveEvent.clientX - lastMouse.x) / (scale || 1), (moveEvent.clientY - lastMouse.y) / (scale || 1));
+            lastMouse = { x: moveEvent.clientX, y: moveEvent.clientY };
+        };
+        const onUp = () => {
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+            if (state.zoneOverlay)
+                state.zoneOverlay.style.cursor = 'grab';
+            const final = _scopeOffset(scopeId);
+            // The art moved with the drag: persist it, then the offset for the
+            // nodes. Both stores stay single-source, so a reload aligns them.
+            _persist();
+            saveToWorld(true);
+            if (typeof ApiClient !== 'undefined' && ApiClient.setScopeOffset) {
+                ApiClient.setScopeOffset(scopeId, final).catch(() => { });
+            }
+            try {
+                events.log(`✥ Zone "${scopeId}" moved to (${final.x.toFixed(1)}, ${final.y.toFixed(1)}) cells.`, 'system-msg');
+            }
+            catch (error) { /* ignore */ }
+        };
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+    }
+    /** The layer to fit: the scope's painter reference if any, else the active one. */
+    async function _layerForFit(payload, scopeId) {
+        const src = String((payload && payload.reference && payload.reference.image) || '');
+        if (!src)
+            return _active();
+        const existing = state.layers.find((layer) => layer.imagePath === src || layer.imageSrc === src);
+        if (existing) {
+            _setActive(existing.id);
+            return existing;
+        }
+        const image = await _setImageSrc(src);
+        if (!image)
+            return _active();
+        const opacity = payload && payload.reference && typeof payload.reference.opacity === 'number'
+            ? payload.reference.opacity
+            : OPACITY_DEFAULT;
+        const layer = {
+            id: _uid(),
+            label: scopeId.replace(/_/g, ' '),
+            imagePath: src.startsWith('/static/') ? src : null,
+            imageSrc: src,
+            image,
+            rect: null,
+            rotation: 0,
+            crop: DEFAULT_CROP(),
+            opacity,
+            locked: false,
+            visible: true,
+        };
+        state.layers.push(layer);
+        state.activeId = layer.id;
+        return layer;
+    }
+    /**
+     * Place the map the way the painter did: its stored rect (in cell units)
+     * mapped through the graph's spacing, or the whole-grid fit when the
+     * reference has no rect. The crop window is copied too, so both views show
+     * the same part of the picture (task-524).
+     */
+    function _applyReferenceLayout(layer, payload, gridRect, scopeId) {
+        const ref = (payload && payload.reference) || null;
+        const stored = ref && ref.rect;
+        const offset = _scopeOffset(scopeId === undefined ? _currentScopeId() : scopeId);
+        if (stored && typeof stored.x === 'number' && typeof stored.y === 'number'
+            && typeof stored.w === 'number' && typeof stored.h === 'number'
+            && stored.w > 0 && stored.h > 0) {
+            const spacing = _mapUnitsPerCell();
+            layer.rect = {
+                // The stored rect is in the scope's local cells; add the zone's
+                // map offset (task-523) so the art lines up with moved nodes.
+                x: (stored.x + offset.x) * spacing,
+                y: (stored.y + offset.y) * spacing,
+                width: stored.w * spacing,
+                height: stored.h * spacing,
+            };
+        }
+        else {
+            _fitLayerToRect(layer, gridRect.x, gridRect.y, gridRect.width, gridRect.height);
+        }
+        const crop = ref && ref.crop;
+        layer.crop = (crop && typeof crop.w === 'number')
+            ? {
+                x: crop.x || 0,
+                y: crop.y || 0,
+                w: crop.w,
+                h: typeof crop.h === 'number' ? crop.h : 1,
+            }
+            : DEFAULT_CROP();
+    }
+    /**
+     * Fit the map to the painted grid the graph is showing, so the reference art
+     * lands on exactly the cells it was drawn over in WorldPainter.
+     *
+     * Fits to the *whole* grid rect, not the painted cells' bounds: the painter
+     * fits the image into the full grid, so fitting to a partial paint would
+     * rescale the art and break the cell alignment. If the graph has no map yet
+     * and the scope has a reference image, that image is added first.
+     */
+    async function fitToPaintedGrid() {
+        const scopeId = _currentScopeId();
+        if (!scopeId) {
+            events.log('🗺 Pick a scope in the graph toolbar first — "fit to painted grid" needs that scope\'s grid.', 'system-msg');
+            return;
+        }
+        let payload = null;
+        try {
+            payload = await ApiClient.getWorldGrid(scopeId);
+        }
+        catch (error) {
+            payload = null;
+        }
+        const rect = paintedGridRect(payload && payload.grid);
+        if (!rect) {
+            events.log('🗺 That scope has no painted grid to fit to.', 'system-msg');
+            return;
+        }
+        // A moved zone (task-523) shifts its grid: fit the art to where the
+        // nodes actually are, not to the painter's un-offset local grid.
+        const offset = _scopeOffset(scopeId);
+        const gap = _mapUnitsPerCell();
+        const placedRect = {
+            x: rect.x + offset.x * gap,
+            y: rect.y + offset.y * gap,
+            width: rect.width,
+            height: rect.height,
+        };
+        const layer = await _layerForFit(payload, scopeId);
+        if (!layer || !layer.image) {
+            events.log('🗺 No map to fit — add a background image, or set a reference on the scope.', 'system-msg');
+            return;
+        }
+        _applyReferenceLayout(layer, payload, placedRect, scopeId);
+        _render();
+        _persist();
+        saveToWorld();
+        try {
+            _network()?.fit({ animation: false });
+        }
+        catch (error) { /* ignore */ }
     }
     function fitToNodes(padding = 140) {
         const layer = _active();
@@ -1287,6 +1593,9 @@
             case 'removeAll':
                 removeAllLayers();
                 break;
+            case 'fitGrid':
+                void fitToPaintedGrid();
+                break;
             default: break;
         }
     }
@@ -1328,6 +1637,7 @@
             <div style="display:flex;align-items:center;gap:6px;padding:5px 6px;border-bottom:1px solid var(--border,#444);">
                 <span style="flex:1;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-dim,#999);">🗺 Maps (${state.layers.length})</span>
                 <span data-act="add" title="Add another image" style="cursor:pointer;">➕</span>
+                <span data-act="fitGrid" title="Fit to the painted grid of the scope the graph is showing" style="cursor:pointer;">▦</span>
                 <span data-act="removeAll" title="Remove all layers" style="cursor:pointer;color:#f85149;">🗑</span>
                 <span data-act="done" title="Done editing" style="cursor:pointer;">✔</span>
             </div>
@@ -1335,6 +1645,11 @@
     }
     /* ── keyboard nudges ───────────────────────────────────────────────── */
     function _onKeyDown(event) {
+        // Esc ends zone-move even though it is not the image-edit mode.
+        if (event.key === 'Escape' && state.zoneMove) {
+            setZoneMove(false);
+            return;
+        }
         if (!state.editing)
             return;
         const layer = _active();
@@ -1370,7 +1685,7 @@
     /* ── on-canvas hint (only while editing) ───────────────────────────── */
     function _updateHint() {
         let chip = document.getElementById('gbg-hint');
-        if (!state.editing) {
+        if (!state.editing && !state.zoneMove) {
             if (chip)
                 chip.remove();
             return;
@@ -1378,12 +1693,18 @@
         if (!chip) {
             chip = document.createElement('div');
             chip.id = 'gbg-hint';
-            chip.style.cssText = 'position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:6;background:rgba(13,17,23,0.92);border:1px solid var(--border,#444);border-radius:6px;padding:6px 10px;font-size:11px;color:var(--text,#eee);display:flex;gap:8px;align-items:center;';
+            chip.style.cssText = 'position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:8;background:rgba(13,17,23,0.92);border:1px solid var(--border,#444);border-radius:6px;padding:6px 10px;font-size:11px;color:var(--text,#eee);display:flex;gap:8px;align-items:center;';
             const container = document.getElementById('graph-container');
             if (container)
                 container.appendChild(chip);
         }
         const layer = _active();
+        if (state.zoneMove) {
+            chip.innerHTML = `<span>✥ drag to move the zone · Esc or the button to finish</span>
+                <button class="btn btn-sm" id="gbg-zone-done">✔ Done</button>`;
+            chip.querySelector('#gbg-zone-done')?.addEventListener('click', () => setZoneMove(false));
+            return;
+        }
         chip.innerHTML = `<span>${state.cropping
             ? '✂ drag the amber edges to crop'
             : (layer ? '🖼 drag to move · corners resize · top dot rotates · alt-click cycles' : '🖼 add an image from the panel')}</span>
@@ -1416,6 +1737,13 @@
             rows.push(item('layer-lock', layer && layer.locked ? '🔓 Unlock image' : '🔒 Lock image', !!(layer && layer.locked)));
             rows.push(item('remove', '🗑 Remove image', false, '', '#f85149'));
         }
+        // Always offered: with no map yet this brings in the scope's painter
+        // reference and aligns it, which is the common case for a painted world.
+        rows.push(item('fit-grid', '▦ Fit to painted grid', false, '', _currentScopeId() ? '' : '#666'));
+        // task-523: grab the whole zone (its painted nodes + art) and drag it.
+        if (state.zoneMove || _canMoveZone()) {
+            rows.push(item('zone-move', state.zoneMove ? '✔ Done moving zone' : '✥ Move zone', state.zoneMove));
+        }
         rows.push(separator);
         rows.push(item('lock', state.layoutLocked ? '🔓 Unlock nodes' : '🔒 Lock nodes', state.layoutLocked));
         rows.push(item('save', '💾 Save layout to world'));
@@ -1445,6 +1773,12 @@
                 break;
             case 'fit':
                 fitToNodes();
+                break;
+            case 'fit-grid':
+                void fitToPaintedGrid();
+                break;
+            case 'zone-move':
+                setZoneMove(!state.zoneMove);
                 break;
             case 'opacity': {
                 if (!layer)
@@ -1509,19 +1843,11 @@
         }
         else if (state.physicsDisabledByLock) {
             // WE froze physics for the previous world's lock — undo it, so a new
-            // scenario doesn't inherit the old one's frozen layout. Never in
-            // hierarchical mode: there the layout engine owns positions and the
-            // solver would drag them off their levels (task-485).
-            const levels = (() => {
-                try { return typeof config !== 'undefined' && config && config.graphLayoutMode === 'levels'; }
-                catch (err) { return false; }
-            })();
-            if (!levels) {
-                if (network)
-                    network.setOptions({ physics: { enabled: true } });
-                if (typeof graphManager !== 'undefined' && graphManager)
-                    graphManager._physicsEnabled = true;
-            }
+            // scenario doesn't inherit the old one's frozen layout.
+            if (network)
+                network.setOptions({ physics: { enabled: true } });
+            if (typeof graphManager !== 'undefined' && graphManager)
+                graphManager._physicsEnabled = true;
             state.physicsDisabledByLock = false;
         }
     }
@@ -1558,8 +1884,11 @@
         addFromFile,
         showCanvasMenu,
         fitToNodes,
+        fitToPaintedGrid,
         setEditing,
         setCropping,
+        setZoneMove,
+        zoneMoveActive,
         setOpacity,
         setLayerOpacity,
         setLayerVisibility,
@@ -1585,6 +1914,9 @@
             _layersAt,
             _snapRect,
             _clientToGraph,
+            paintedGridRect,
+            _scopeOffset,
+            _canMoveZone,
         },
     };
     // Classic script: publish on window (no import/export — see the migration doc).

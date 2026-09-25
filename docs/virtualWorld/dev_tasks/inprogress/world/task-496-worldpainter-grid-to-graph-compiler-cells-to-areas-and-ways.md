@@ -45,10 +45,15 @@ Compile a painted scope grid into the existing area/way node+edge format: cells 
 - **`engine/world_compile.py`** (new): `compile_grid(manifest, scope_id, *,
   region_merge=False, recipe_id="grid.v1", seed=None, tick=0)` → a
   `GenerationPatch`.
-  - Cells with a painted `biome` become areas; 4-neighbour adjacencies become
+  - Cells with a painted `biome` become areas; 8-neighbour adjacencies
+    (orthogonal *and* diagonal) become
     `way` nodes with the **four connection edges** `connect_areas` produces, so
     the engine is unchanged. Optional `region_merge` flood-fills contiguous
     same-biome cells into one area, emitting one passage per region boundary.
+  - Disconnected islands are **auto-linked**: each component beyond the main
+    landmass gets one way to the closest cell of the main mass
+    (`link_islands`, default on), so a lone outpost is reachable instead of
+    compiling to a dead end. The report notes `K island(s) linked`.
   - Areas carry `tags` (biome + road feature), `floor`, `environment`,
     `world_scope_id`, optional `elevation`/`road`/`child_scope_id`, and a
     **deterministic description** built from the cell's own biome fragment, the
@@ -89,10 +94,9 @@ The compiler was reachable only from tests; it is now reachable from the editor.
 - Live browser run (6 painted cells): 13 nodes / 28 edges — 6 areas, 7 passages;
   scope `materialized`.
 
-Still open here: the "merge" overlap policy if a zone ever needs it,
-non-4-neighbour (diagonal/road-curve) ways, and materialising a placed child
-scope's own grid (a feature cell currently records `child_scope_id` + a
-`feature` tag but does not yet compile the child).
+Still open here: the "merge" overlap policy if a zone ever needs it. Diagonal
+(8-neighbour) ways and materialising a placed child scope's own grid are both
+done (see the progress sections below).
 
 ## Progress — 2026-09-24 (child-scope gateways)
 
@@ -125,3 +129,34 @@ parent-first gateway emission, `in`/`out` walkability read through a real
 `VirtualWorld`'s `build_exits_for_area`, no duplicate on regenerate, and no link
 for an unpainted cell; `tests/test_world_grid.py` +1 for the link fields
 surviving `normalise_grid`.
+
+## Progress — 2026-09-25 (painted positions)
+
+Generated nodes now carry a canvas position, so a compiled scope lays out in the
+shape it was painted instead of a physics blob:
+
+- Every area gets `properties.x` / `properties.y` = `cell * CELL_CANVAS_UNITS`
+  (40) plus `properties.cell` for the raw coords; every way gets the midpoint of
+  its two cells; a gateway sits on the parent cell it opens from.
+- The graph view reads `properties.x`/`y` on load, so with **physics off**
+  (graph mode) the world appears as painted. This is layout only — travel is
+  still one turn per cell, and `cell_scale` remains unread.
+- Not aligned yet: the graph's **background image** transform is independent, so
+  the nodes form the painted shape but may not overlay the art until the
+  background is fitted to the same rect. The `🗺️ Map` (cardinal) layout also
+  overrides these positions by design (it derives an XY map from exit
+  directions), so use graph mode + physics off to see the painted layout.
+
+### Map layout now reads the grid (2026-09-25)
+
+`GraphLayoutEngine.applyCardinalLayout` gained a **grid mode**: when the payload
+has `properties.cell` on its areas (painted, not hand-authored) it places areas
+and ways at their exact painted coordinates and leaves physics off — the map is
+read, not BFS-derived and force-settled. Hand-authored worlds keep the original
+cardinal BFS fallback. Pure helpers `gridPosition`/`hasPaintedGrid` are
+unit-tested (`tools/unit/test_graph_layout_engine.js`, 4 tests); the node-moving
+path needs a live network and is verified in-app. This supersedes the "Map
+overrides painted positions" caveat above for painted worlds.
+
+Tests: `tests/test_world_compile.py` +1 (area `cell`/`x`/`y`, way midpoint) and
+the gateway position assertion.

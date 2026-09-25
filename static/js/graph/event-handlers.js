@@ -63,6 +63,24 @@ window.GraphEventHandlers = {
     },
 
     /**
+     * Double-click: if the node is a placed child zone (a feature cell carrying
+     * `child_scope_id`), load that scope into the graph — the level-scoped
+     * drill-down (task-397). Otherwise fall through to the normal click.
+     *
+     * @param {Object} params - vis.js doubleClick event parameters
+     */
+    onDoubleClick(params) {
+        const nodeId = params?.nodes?.[0];
+        if (!nodeId) return;
+        const nodeData = graphManager.nodes.get(nodeId);
+        const childScope = nodeData?.properties?.child_scope_id;
+        if (!childScope) return;
+        const sel = document.getElementById('graph-scope-filter');
+        graphManager.setScopeFilter(childScope);
+        if (sel) sel.value = childScope;
+    },
+
+    /**
      * Handles right-click (context) events on the vis.js network.
      * Shows a context menu for the clicked node or edge.
      *

@@ -219,70 +219,160 @@
      * their passages, which is what makes the graph view choke).
      *
      * Mirrors `engine/world_compile.compile_grid`: biome cells become areas;
-     * without merge it is one area per cell and a way per adjacent pair, with
-     * merge it is one area per same-biome flood-fill region.
+     * without merge it is one area per cell and a way per adjacent pair
+     * (8-neighbour, so diagonals connect), with merge it is one area per
+     * same-biome flood-fill region. Each disconnected component beyond the main
+     * one becomes one extra "link" way (an island joined to the nearest cell).
      */
     function estimateCompile(payload, regionMerge) {
         const biome = (payload && payload.layers && payload.layers.biome) || {};
         const cells = Object.keys(biome);
-        if (!cells.length) return { areas: 0, ways: 0, total: 0 };
+        if (!cells.length) return { areas: 0, ways: 0, total: 0, isolated: 0, links: 0 };
         const present = {};
         cells.forEach((k) => { present[k] = true; });
-        const down = (k) => {
+        // 8-neighbour deltas. The four "south half" ones (east, south, south-
+        // east, south-west) count each shared pair exactly once; the full ring
+        // is used for connectivity checks and region flood-fill.
+        const at = (k, dx, dy) => {
             const p = parseCellKey(k);
-            return p ? cellKey(p.x, p.y + 1) : null;
+            return p ? cellKey(p.x + dx, p.y + dy) : null;
         };
-        const right = (k) => {
-            const p = parseCellKey(k);
-            return p ? cellKey(p.x + 1, p.y) : null;
-        };
+        const halfNeighbours = (k) => [at(k, 1, 0), at(k, 0, 1), at(k, 1, 1), at(k, -1, 1)];
+        const ring = (k) => [at(k, 1, 0), at(k, -1, 0), at(k, 0, 1), at(k, 0, -1),
+                             at(k, 1, 1), at(k, -1, 1), at(k, 1, -1), at(k, -1, -1)];
 
-        if (!regionMerge) {
-            let ways = 0;
-            cells.forEach((k) => {
-                if (present[down(k)]) ways += 1;
-                if (present[right(k)]) ways += 1;
-            });
-            return { areas: cells.length, ways, total: cells.length + ways };
-        }
-
-        // Flood-fill same-biome cells into regions (4-neighbour), then count one
-        // way per adjacent region pair.
+        // One region per cell, or a same-biome flood-fill (8-neighbour) region
+        // under merge.
         const regionOf = {};
         let rid = 0;
-        cells.forEach((start) => {
-            if (regionOf[start] != null) return;
-            const biomeId = biome[start];
-            const stack = [start];
-            regionOf[start] = rid;
-            while (stack.length) {
-                const k = stack.pop();
-                const pos = parseCellKey(k);
-                [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dx, dy]) => {
-                    const nk = cellKey(pos.x + dx, pos.y + dy);
-                    if (present[nk] && regionOf[nk] == null && biome[nk] === biomeId) {
-                        regionOf[nk] = rid;
-                        stack.push(nk);
-                    }
-                });
-            }
-            rid += 1;
-        });
+        if (!regionMerge) {
+            cells.forEach((k) => { regionOf[k] = rid++; });
+        } else {
+            cells.forEach((start) => {
+                if (regionOf[start] != null) return;
+                const biomeId = biome[start];
+                const stack = [start];
+                regionOf[start] = rid;
+                while (stack.length) {
+                    const k = stack.pop();
+                    ring(k).forEach((nk) => {
+                        if (nk && present[nk] && regionOf[nk] == null && biome[nk] === biomeId) {
+                            regionOf[nk] = rid;
+                            stack.push(nk);
+                        }
+                    });
+                }
+                rid += 1;
+            });
+        }
+
+        // One way per adjacent region pair (each pair counted once).
         const pairs = {};
         cells.forEach((k) => {
-            [down(k), right(k)].forEach((nk) => {
-                if (!present[nk] || regionOf[nk] === regionOf[k]) return;
+            halfNeighbours(k).forEach((nk) => {
+                if (!nk || !present[nk] || regionOf[nk] === regionOf[k]) return;
                 const a = regionOf[k];
                 const b = regionOf[nk];
                 pairs[`${Math.min(a, b)},${Math.max(a, b)}`] = true;
             });
         });
-        const ways = Object.keys(pairs).length;
-        return { areas: rid, ways, total: rid + ways };
+        const degree = {};
+        Object.keys(pairs).forEach((key) => {
+            const [a, b] = key.split(',').map(Number);
+            degree[a] = (degree[a] || 0) + 1;
+            degree[b] = (degree[b] || 0) + 1;
+        });
+
+        // The compiler joins every disconnected component but the main one with
+        // a single way, so add (components - 1) links.
+        const parent = Array.from({ length: rid }, (_, i) => i);
+        const find = (i) => {
+            let j = i;
+            while (parent[j] !== j) { parent[j] = parent[parent[j]]; j = parent[j]; }
+            return j;
+        };
+        Object.keys(pairs).forEach((key) => {
+            const [a, b] = key.split(',').map(Number);
+            const ra = find(a);
+            const rb = find(b);
+            if (ra !== rb) parent[Math.max(ra, rb)] = Math.min(ra, rb);
+        });
+        const roots = new Set();
+        for (let i = 0; i < rid; i += 1) roots.add(find(i));
+        const links = Math.max(0, roots.size - 1);
+
+        let isolated = 0;
+        for (let i = 0; i < rid; i += 1) if (!degree[i]) isolated += 1;
+        const ways = Object.keys(pairs).length + links;
+        return { areas: rid, ways, total: rid + ways, isolated, links };
     }
 
     function childrenAvailable(payload) {
         return ((payload && payload.children) || []).filter((c) => !c.placed);
+    }
+
+    /**
+     * Fit a reference image into a grid (contain, centred), in **cell** units.
+     * Used when the reference has no stored rect (task-524).
+     */
+    function fitReferenceRect(gridW, gridH, imgW, imgH) {
+        const gw = Number(gridW) || 0;
+        const gh = Number(gridH) || 0;
+        const iw = Number(imgW) || gw || 1;
+        const ih = Number(imgH) || gh || 1;
+        const s = Math.min((gw || iw) / iw, (gh || ih) / ih);
+        const w = iw * s;
+        const h = ih * s;
+        return { x: ((gw || w) - w) / 2, y: ((gh || h) - h) / 2, w, h };
+    }
+
+    /**
+     * The eight handle anchors for a reference rect (cell units): corners
+     * (`nw`/`ne`/`sw`/`se`) resize, edges (`n`/`e`/`s`/`w`) crop.
+     */
+    function referenceHandlePoints(rect) {
+        const x = rect.x, y = rect.y, w = rect.w, h = rect.h;
+        return {
+            nw: { x, y }, ne: { x: x + w, y }, sw: { x, y: y + h }, se: { x: x + w, y: y + h },
+            n: { x: x + w / 2, y }, s: { x: x + w / 2, y: y + h },
+            w: { x, y: y + h / 2 }, e: { x: x + w, y: y + h / 2 },
+        };
+    }
+
+    /**
+     * New `{rect, crop}` after dragging a handle to (cx, cy) in cell units.
+     *
+     * Corners resize the picture (the crop window is unchanged, so it scales).
+     * Edges crop it: the dragged edge follows the pointer and the source window
+     * shrinks proportionally, so the remaining content keeps its scale — a cut,
+     * not a stretch. `crop` is normalized (0..1).
+     */
+    function referenceHandleDrag(rect, crop, key, cx, cy) {
+        const r = { x: rect.x, y: rect.y, w: rect.w, h: rect.h };
+        const c = { x: crop.x, y: crop.y, w: crop.w, h: crop.h };
+        if (key.length === 2) {
+            const right = rect.x + rect.w;
+            const bottom = rect.y + rect.h;
+            if (key.indexOf('w') >= 0) { r.x = Math.min(cx, right - 0.5); r.w = right - r.x; }
+            if (key.indexOf('e') >= 0) { r.w = Math.max(0.5, cx - rect.x); }
+            if (key.indexOf('n') >= 0) { r.y = Math.min(cy, bottom - 0.5); r.h = bottom - r.y; }
+            if (key.indexOf('s') >= 0) { r.h = Math.max(0.5, cy - rect.y); }
+            return { rect: r, crop: c };
+        }
+        const fx = Math.min(0.95, Math.max(0.05, (cx - rect.x) / rect.w));
+        const fy = Math.min(0.95, Math.max(0.05, (cy - rect.y) / rect.h));
+        if (key === 'w') {
+            r.x = rect.x + fx * rect.w; r.w = rect.w * (1 - fx);
+            c.x = crop.x + fx * crop.w; c.w = crop.w * (1 - fx);
+        } else if (key === 'e') {
+            r.w = rect.w * fx; c.w = crop.w * fx;
+        } else if (key === 'n') {
+            r.y = rect.y + fy * rect.h; r.h = rect.h * (1 - fy);
+            c.y = crop.y + fy * crop.h; c.h = crop.h * (1 - fy);
+        } else if (key === 's') {
+            r.h = rect.h * fy; c.h = crop.h * fy;
+        }
+        return { rect: r, crop: c };
     }
 
     const gridModel = {
@@ -291,6 +381,7 @@
         lineCells, routeCells, routeStats, estimateCompile,
         cellValue, featureAt, placementFor, buildRows, featureMap,
         pruneGrid, childrenAvailable,
+        fitReferenceRect, referenceHandlePoints, referenceHandleDrag,
     };
     // main.js (loaded last) does `window.VW = {}` and re-registers singletons, so
     // the bare global is what survives; VW.gridModel is (re)attached there too.

@@ -75,7 +75,7 @@ def test_compile_makes_an_area_per_cell_and_a_way_per_adjacency():
     areas = [n for n in patch.nodes if n.type == "area"]
     ways = [n for n in patch.nodes if n.type == "way"]
     assert len(areas) == 4
-    assert len(ways) == 4            # 2x2 grid has four shared edges
+    assert len(ways) == 6            # 2x2: four orthogonal + two diagonal edges
     assert len(patch.edges) == len(ways) * 4   # four connection edges each
 
 
@@ -96,6 +96,29 @@ def test_compiled_areas_and_ways_carry_the_expected_properties():
     conns = [e for e in patch.edges
              if e.source == way.id and e.type == EDGE_CONNECTION]
     assert len(conns) == 2   # the way points at both areas
+
+    # Every connection edge carries the map-layout cardinal as well as the
+    # direction, so the way inspector's compass and the cardinal map fallback
+    # see the painter's 8-wind value (build_exits_for_area reads `cardinal`).
+    for edge in patch.edges:
+        if edge.type != EDGE_CONNECTION:
+            continue
+        assert edge.properties.get("cardinal") == edge.properties.get("direction")
+    area_side = next(e for e in patch.edges
+                     if e.source.startswith("area_") and e.target == way.id)
+    assert area_side.properties["cardinal"] in world_compile.DIRECTIONS
+
+
+def test_compiled_nodes_carry_canvas_positions_from_the_painted_cells():
+    m = _manifest(FOUR)
+    patch = world_compile.compile_grid(m, "wild")
+    unit = world_compile.CELL_CANVAS_UNITS
+    area = next(n for n in patch.nodes if n.id == "area_wild_1_0")
+    assert area.properties["cell"] == {"x": 1, "y": 0}
+    assert area.properties["x"] == 1 * unit
+    assert area.properties["y"] == 0
+    for way in (n for n in patch.nodes if n.type == "way"):
+        assert "x" in way.properties and "y" in way.properties
 
 
 def test_descriptions_are_deterministic_and_mention_exits():
@@ -136,6 +159,44 @@ def test_region_merge_keeps_a_way_between_different_biomes():
     patch = world_compile.compile_grid(m, "wild", region_merge=True)
     assert len([n for n in patch.nodes if n.type == "area"]) == 2
     assert len([n for n in patch.nodes if n.type == "way"]) == 1
+
+
+def test_diagonal_neighbours_are_connected():
+    # 8-neighbour adjacency: a diagonal-only pair still gets a way, in the
+    # diagonal compass direction.
+    m = _manifest({(0, 0): "sparse_forest", (1, 1): "hills"})
+    patch = world_compile.compile_grid(m, "wild")
+    ways = [n for n in patch.nodes if n.type == "way"]
+    assert len(ways) == 1
+    assert ways[0].properties["direction"] == "southeast"
+    assert not any("no exits" in note for note in patch.report.notes)
+
+
+def test_distant_islands_are_linked_to_the_nearest_cell_once():
+    # Two cells that touch nothing are two disconnected components; each is
+    # joined to the main landmass (here, the first) by a single way in the
+    # compass direction of the closest cells.
+    m = _manifest({(0, 0): "sparse_forest", (0, 5): "hills"}, w=3, h=6)
+    patch = world_compile.compile_grid(m, "wild")
+    ways = [n for n in patch.nodes if n.type == "way"]
+    assert len(ways) == 1
+    assert ways[0].properties["direction"] == "north"
+    assert any("linked to the nearest region" in note for note in patch.report.notes)
+    assert not any("no exits" in note for note in patch.report.notes)
+
+
+def test_link_islands_can_be_disabled():
+    m = _manifest({(0, 0): "sparse_forest", (0, 5): "hills"}, w=3, h=6)
+    patch = world_compile.compile_grid(m, "wild", link_islands=False)
+    assert [n for n in patch.nodes if n.type == "way"] == []
+    assert any("no exits" in note for note in patch.report.notes)
+
+
+def test_a_lone_painted_cell_has_no_exits_to_link_to():
+    m = _manifest({(0, 0): "sparse_forest"})
+    patch = world_compile.compile_grid(m, "wild")
+    assert [n for n in patch.nodes if n.type == "way"] == []
+    assert any("no exits" in note for note in patch.report.notes)
 
 
 def test_compile_rejects_missing_grid_and_empty_paint():
@@ -200,6 +261,8 @@ def test_child_compiled_first_then_parent_emits_the_gateway():
     assert gw.properties["area_to_id"] == "area_inn_0_0"
     assert gw.properties["direction"] == world_compile.GATEWAY_IN
     assert gw.properties["return_direction"] == world_compile.GATEWAY_OUT
+    # The entrance sits on the parent cell it opens from.
+    assert gw.properties["x"] == 0 and gw.properties["y"] == 0
     generation.apply_patch(g, m, parent_patch)
     # The parent cell remembers what it compiled to, for later reloads.
     assert m["town"]["placements"]["inn"]["area_id"] == "area_town_0_0"
@@ -282,8 +345,9 @@ def test_generated_ways_show_up_as_boundary_ways():
 
     one_area = {"area_wild_0_0"}
     boundaries = world_scopes.boundary_ways(g, one_area)
-    # (0,0) borders (1,0) east and (0,1) south; both ways leave the scope.
-    assert len(boundaries) == 2
+    # (0,0) borders (1,0) east, (0,1) south and (1,1) south-east; all three
+    # ways leave the one-area scope (8-neighbour adjacency).
+    assert len(boundaries) == 3
     assert all(b["outside"].startswith("area_wild_") for b in boundaries)
 
 

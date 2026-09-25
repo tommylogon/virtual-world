@@ -53,6 +53,7 @@ window.GraphNetwork = {
         GraphNetwork.ensureTagLibrary();
 
         graphManager.network.on("click", (params) => GraphEventHandlers.onClick(params));
+        graphManager.network.on("doubleClick", (params) => GraphEventHandlers.onDoubleClick(params));
         GraphNetwork._syncLayoutButton && GraphNetwork._syncLayoutButton();
         graphManager.network.on("oncontext", (params) => GraphEventHandlers.onContext(params));
         GraphNetwork._bindEdgeHoverTooltips();
@@ -63,8 +64,10 @@ window.GraphNetwork = {
             }
         });
 
-        await GraphNetwork.loadGraphData();
+        // Scope offsets must be known before the first layout, or a moved zone
+        // would render at its painted position until the next reload (task-523).
         await graphManager.loadScopeFilterOptions();
+        await GraphNetwork.loadGraphData();
         setTimeout(() => GraphNetwork.fitView(), 100);
     },
 
@@ -410,8 +413,13 @@ window.GraphNetwork = {
             // layout owns every position.
             const mapMode = graphManager._cardinalLayout === true
                 || graphManager._viewMode === 'cardinal';
-            if (!levelsOn && mapMode && worldState.areas) {
-                GraphLayoutEngine.applyCardinalLayout(nodesObj);
+            // `worldState.areas` is a legacy per-area map that a generated
+            // scope may not populate; the layout itself handles that (the
+            // cardinal path no-ops on an empty map), and the painted-grid path
+            // reads only `nodesObj`, so don't gate map mode on it.
+            let layoutKind = null;
+            if (!levelsOn && mapMode) {
+                layoutKind = GraphLayoutEngine.applyCardinalLayout(nodesObj);
             }
 
 
@@ -423,7 +431,13 @@ window.GraphNetwork = {
         }
 
 
-            if (wasPhysics) graphManager.network.setOptions({ physics: { enabled: true } });
+            // A painted grid is a map, not a simulation: leave physics off. Only
+            // the cardinal fallback wants physics re-enabled to settle the
+            // derived anchors — re-enabling it here after the grid layout is what
+            // dragged painted nodes off their lattice.
+            if (wasPhysics && layoutKind !== 'grid') {
+                graphManager.network.setOptions({ physics: { enabled: true } });
+            }
 
             // Put the camera back where the user had it (setData's internal
             // stabilization re-fit it to the whole graph; positions were restored

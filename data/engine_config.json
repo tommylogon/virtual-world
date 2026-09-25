@@ -21,7 +21,7 @@
   "emotion.decay_per_tick": 1.5,
   "emotion.llm_spike_max": 15.0,
   "emotion.recall_spike_scale": 0.25,
-  "graph.physics_enabled": true,
+  "graph.physics_enabled": false,
   "graph.show_items": false,
   "graph.show_only_inhabited": false,
   "memory.max_per_character": 0,

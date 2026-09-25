@@ -111,11 +111,39 @@ test('estimateCompile counts areas and ways, with and without region merge', () 
     };
     const flat = GM.estimateCompile(p, false);
     assertEq(flat.areas, 4, 'one area per painted cell');
-    assertEq(flat.ways, 4, 'every adjacent pair is a way');
+    assertEq(flat.ways, 6, 'every adjacent pair (orthogonal or diagonal) is a way');
     const merged = GM.estimateCompile(p, true);
     assertEq(merged.areas, 2, 'one area per same-biome region');
     assertEq(merged.ways, 1, 'one passage per adjacent region pair');
     assertEq(GM.estimateCompile({ grid: { w: 1, h: 1 }, layers: {} }).total, 0, 'empty');
+    assertEq(flat.isolated, 0, 'a fully connected 2x2 has no islands');
+});
+
+test('estimateCompile connects diagonal neighbours and links true islands', () => {
+    // 8-neighbour: a diagonal-only pair is connected.
+    const diag = {
+        grid: { w: 3, h: 3 },
+        layers: { biome: { '0,0': 'dense_forest', '1,1': 'hills' } },
+    };
+    const flat = GM.estimateCompile(diag, false);
+    assertEq(flat.ways, 1, 'a diagonal pair shares a way');
+    assertEq(flat.isolated, 0, 'diagonal neighbours are not islands');
+    assertEq(flat.links, 0, 'a connected pair needs no link');
+    const merged = GM.estimateCompile(diag, true);
+    assertEq(merged.ways, 1, 'the two regions are joined diagonally');
+    assertEq(merged.isolated, 0, 'merged diagonal regions are not islands');
+
+    // A cell touching nothing is counted as an island and gets one link way.
+    const far = {
+        grid: { w: 5, h: 5 },
+        layers: { biome: { '0,0': 'dense_forest', '4,4': 'lake' } },
+    };
+    assertEq(GM.estimateCompile(far, false).isolated, 2, 'distant cells have no neighbour');
+    assertEq(GM.estimateCompile(far, false).links, 1, 'the two components need one link');
+    assertEq(GM.estimateCompile(far, false).ways, 1, 'the link is the only way');
+    const farMerged = GM.estimateCompile(far, true);
+    assertEq(farMerged.isolated, 2, 'orphan regions too');
+    assertEq(farMerged.links, 1, 'and they link once');
 });
 
 test('routeStats turns cells into turns and game hours (1 cell = 1 turn)', () => {
@@ -124,4 +152,46 @@ test('routeStats turns cells into turns and game hours (1 cell = 1 turn)', () =>
     assertEq(GM.routeStats(240).hours, 4, 'hours');
     assertTrue(GM.routeStats(90).label.indexOf('1 h 30 m') >= 0, '90 cells = 1 h 30 m');
     assertTrue(GM.routeStats(45).label.indexOf('45 turns') >= 0, 'under an hour shows turns');
+});
+
+test('fitReferenceRect contains the image in the grid, centred (cell units)', () => {
+    // 100x50 image into a 20x20 grid: width-bound, centred vertically.
+    assertEq(GM.fitReferenceRect(20, 20, 100, 50), { x: 0, y: 5, w: 20, h: 10 });
+    // 50x100 image into a 20x20 grid: height-bound, centred horizontally.
+    assertEq(GM.fitReferenceRect(20, 20, 50, 100), { x: 5, y: 0, w: 10, h: 20 });
+    // Without image dims it fills the grid.
+    assertEq(GM.fitReferenceRect(8, 4, 0, 0), { x: 0, y: 0, w: 8, h: 4 });
+});
+
+test('referenceHandleDrag: corners resize, edges crop', () => {
+    const rect = { x: 0, y: 0, w: 10, h: 10 };
+    const whole = { x: 0, y: 0, w: 1, h: 1 };
+
+    // Corner resize keeps the crop (scales the whole picture).
+    const grown = GM.referenceHandleDrag(rect, whole, 'se', 12, 14);
+    assertEq(grown.rect, { x: 0, y: 0, w: 12, h: 14 }, 'se grows w/h');
+    assertEq(grown.crop, whole, 'crop unchanged on resize');
+
+    // Left edge drag to the right to x=2 cuts the left 20% (crop 0 -> 0.2, w 1 -> 0.8).
+    const cut = GM.referenceHandleDrag(rect, whole, 'w', 2, 5);
+    assertEq(cut.rect, { x: 2, y: 0, w: 8, h: 10 }, 'rect left edge follows the pointer');
+    assertEq(cut.crop.x, 0.2, 'crop x advances');
+    assertEq(Math.round(cut.crop.w * 100) / 100, 0.8, 'crop w shrinks');
+
+    // Top edge drag down to y=5 cuts the top half.
+    const top = GM.referenceHandleDrag(rect, whole, 'n', 5, 5);
+    assertEq(top.crop.y, 0.5, 'crop y advances');
+    assertEq(Math.round(top.crop.h * 100) / 100, 0.5, 'crop h shrinks');
+
+    // Clamped: dragging an edge almost onto the far edge keeps a positive window.
+    const tiny = GM.referenceHandleDrag(rect, whole, 'e', -50, 5);
+    assertTrue(tiny.rect.w > 0 && tiny.crop.w > 0, 'never collapses to zero');
+});
+
+test('referenceHandlePoints puts corners on the rect and edges mid-span', () => {
+    const pts = GM.referenceHandlePoints({ x: 1, y: 2, w: 4, h: 6 });
+    assertEq(pts.nw, { x: 1, y: 2 }, 'nw');
+    assertEq(pts.se, { x: 5, y: 8 }, 'se');
+    assertEq(pts.n, { x: 3, y: 2 }, 'n edge midpoint');
+    assertEq(pts.e, { x: 5, y: 5 }, 'e edge midpoint');
 });

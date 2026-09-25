@@ -186,7 +186,7 @@
                 <!-- View modes -->
                 <div class="toolbar-group" aria-label="View mode">
                     <button class="toolbar-btn view-toggle active" data-view="graph" onclick="graphManager.setViewMode('graph')" title="Force-directed graph view">🔮 Graph</button>
-                    <button class="toolbar-btn" id="btn-cardinal" onclick="graphManager.toggleCardinalLayout()" title="Toggle cardinal area layout">🗺️ Map</button>
+                    <button class="toolbar-btn" id="btn-cardinal" onclick="graphManager.toggleCardinalLayout()" title="Map layout: use painted grid positions when the world was painted, otherwise arrange areas from exit directions">🗺️ Map</button>
                     <div class="toolbar-dropdown menu-anchor" style="position:relative;">
                         <button class="toolbar-btn" id="btn-overlays" data-help="overlays" onclick="graphManager._toggleOverlayDropdown()" title="Graph overlay views">📊 Overlays ▾</button>
                         <div id="overlay-dropdown" class="dropdown-menu" style="display:none;position:absolute;top:100%;left:0;z-index:200;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:4px;box-shadow:0 8px 24px rgba(0,0,0,0.5);min-width:160px;">

@@ -184,3 +184,29 @@ Still open: the breadcrumb/tree *panel* (this ships a flat picker), the
 unmade-scope `Generate` affordance (task-398), and the projection's scope-keyed
 fidelity handoff to task-500.
 
+### Progress — 2026-09-25 (level-scoped view + drill-down)
+
+The scope view was **recursive**, so selecting a parent flattened its whole
+subtree — selecting the world root loaded every painted zone's cells at once.
+That is the wrong default: a parent should read as a map (task-496 follow-up).
+
+- `world_scopes.own_area_ids(graph, scope_id)` — the areas whose
+  `world_scope_id` is *exactly* this scope, ignoring descendants.
+- `project_subgraph(..., descendants=False)` is now **level-scoped by default**:
+  a parent shows its own areas, so a placed child zone is a single feature cell
+  (carrying `child_scope_id`) rather than its whole interior. `descendants=True`
+  restores the recursive subtree (what "Whole world" wants).
+- `GET /api/world/scopes/<id>/subgraph?descendants=1` exposes the opt-in;
+  `ApiClient.getScopeSubgraph(scopeId, includeItems, descendants)`.
+- **Drill-down:** double-clicking a feature cell in the graph loads its child
+  scope (`GraphEventHandlers.onDoubleClick` → `graphManager.setScopeFilter`) —
+  the graph equivalent of WorldPainter's `Open ▸`.
+
+Tests: `own_area_ids`, level-scoped default (a parent is not flattened; an
+organisational scope with no own cells is empty), descendant opt-in, and route
+assertions for `?descendants=1`.
+
+Note: an organisational scope with no painted cells of its own now shows an
+empty canvas — drill to a child via the picker or a feature cell. A
+children-as-cards fallback is a possible follow-up.
+

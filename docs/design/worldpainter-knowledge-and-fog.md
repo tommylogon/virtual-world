@@ -106,6 +106,70 @@ two levels are one continuous walk without cascading generation. The gateway is
 emitted by whichever scope compiles second, so either authoring order links
 exactly once; a placement on an unpainted cell links nothing.
 
+**Painted positions.** Generated nodes carry `properties.x`/`y` from their cell
+(`cell * CELL_CANVAS_UNITS`, ways at the midpoint), so the graph view with
+physics off lays a compiled scope out in the shape it was painted — the point of
+painting over a reference map. This is layout only: travel stays one turn per
+cell.
+
+**Aligning the reference art.** The graph background has its own transform, so
+right-click empty canvas → **▦ Fit to painted grid** pulls in the selected
+scope's painter reference (if the graph has no map yet) and fits it to the whole
+painted grid rect, then fits the view. The rect uses the Map layout's spacing —
+`GraphLayoutEngine.mapSpacing()` px per cell (default 40), offset half a cell so
+cell (0,0) is the origin — because that is where the Map layout puts the nodes.
+It fits the *full* grid, not the bounds of the painted cells: the painter fits
+the reference into the full grid, so fitting a partial paint would rescale the
+art and break the cell alignment.
+
+**Reference move/resize/crop (task-524).** The painter reference stores an
+optional `rect` in **cell** units plus a normalized `crop` window; `null` means
+auto-fit. Storing cells (not pixels) is what lets the painter (22px/cell) and the
+graph map layout (`mapSpacing` px/cell) draw the same picture at their own scale
+and still agree. Corner handles scale the whole image (crop unchanged); edge
+handles cut it (the source window shrinks proportionally, so content keeps its
+scale). Pure geometry — `fitReferenceRect`, `referenceHandlePoints`,
+`referenceHandleDrag` — lives in `static/js/worldpainter/grid-model.js` and is
+unit-tested.
+
+**Map layout is relative, not absolute.** Stored coords are engine units
+(`cell * 40`), but Map mode never uses them raw: it reads the cell *lattice* and
+applies a **spacing margin** (`mapSpacing()`, default 40px, override with
+`config.graphMapSpacing`). 40px/cell means an area every 40px with the way at the
+20px midpoint. The old 3.5× scale (140px/cell) made a 200×133 world ~28,000px
+wide and unreadable; spacing keeps the painted topology at a usable density.
+
+**Moving a whole zone (task-523).** Each scope stores an optional `map_offset`
+in **cell** units (absent = `(0,0)`, i.e. the painted position). The Map layout
+adds the offset of **each node's own scope** (`world_scope_id`, or
+`generated.scope_id` for a gateway) to its painted coords, so in the
+whole-world/descendant view every zone sits where its author put it. The offset
+is authoritative on the scope record and persisted with the scenario; the
+painter's cell coords are never rewritten, because a paint edit must not shift
+the world under it. In Map mode with a painted scope selected, right-click empty
+canvas → **✥ Move zone** drags the whole zone: nodes re-place live
+(`GraphLayoutEngine.refreshGridLayout`, no camera refit) and the active map art
+is nudged with it; releasing persists the offset via
+`POST /api/world/scopes/<id>/offset` (`{x, y}` cells, or `{reset: true}`).
+Moving a zone moves **only that scope's own lattice** — a child keeps its own
+offset (the level-scoped model: a placed child is one feature cell, and its
+interior is authored separately). `▦ Fit to painted grid` fits the reference to
+the *offset* grid, so the art follows the moved zone.
+
+**Map mode reads the grid (not the compass).** `applyCardinalLayout` prefers the
+painted lattice whenever the loaded nodes carry `properties.cell`
+(`hasPaintedGrid`); the compass BFS is only the fallback for hand-authored worlds
+with no painted coords. A painted map is *read*, so physics stays off — the
+loader must not re-enable it after a grid layout (it used to, which dragged the
+lattice into a force blob).
+
+**Map layout reads the grid (task-496 follow-up).** The `🗺️ Map` layout has two
+modes: when the loaded areas carry `properties.cell` (i.e. they were painted),
+it places areas and ways at those exact coordinates and leaves physics off —
+the map is *read*, not simulated. Hand-authored worlds with no painted coords
+fall back to the original cardinal BFS over exits + a force settle. So "Map"
+means "as painted" for painted worlds, and "as best derived" otherwise.
+
 ## Why not a second state model
 
 The same `world_scopes` hierarchy (task-397) backs the editor grid, the runtime

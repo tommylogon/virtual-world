@@ -177,6 +177,50 @@ def test_create_feature_with_grid_and_drill_down(tmp_path):
     assert drilled["breadcrumb"][-1]["id"] == village
 
 
+def test_rename_scope_changes_name_not_id(tmp_path):
+    app = _app(tmp_path)
+    client = app.test_client()
+
+    made = client.post("/api/world/scopes", json={"name": "Deep Woods"}).get_json()
+    sid = made["scope"]["id"]
+
+    renamed = client.post(f"/api/world/scopes/{sid}/rename",
+                          json={"name": "The Deep Woods"})
+    assert renamed.status_code == 200
+    assert renamed.get_json()["name"] == "The Deep Woods"
+    # The id is untouched, so the scope and its grid still resolve.
+    assert client.get(f"/api/world/scopes/{sid}/grid").status_code == 200
+
+    assert client.post(f"/api/world/scopes/{sid}/rename",
+                       json={"name": "   "}).status_code == 400
+    assert client.post("/api/world/scopes/ghost/rename",
+                       json={"name": "x"}).status_code == 404
+
+
+def test_delete_scope_refuses_children_and_deletes_generated_nodes(tmp_path):
+    app = _app(tmp_path)
+    client = app.test_client()
+
+    # A scope with children cannot be deleted without cascade.
+    assert client.post("/api/world/scopes/the_pines/delete",
+                       json={}).status_code == 400
+
+    made = client.post("/api/world/scopes", json={
+        "name": "Grove", "mode": "town", "w": 2, "h": 1}).get_json()
+    sid = made["scope"]["id"]
+    _paint(client, sid, {(0, 0): "dense_forest", (1, 0): "dense_forest"})
+    gen = client.post(f"/api/world/scopes/{sid}/grid/generate", json={}).get_json()
+    area_ids = gen["report"]["area_ids"]
+    assert area_ids
+    assert all(app.world.graph.get_node(a) is not None for a in area_ids)
+
+    out = client.post(f"/api/world/scopes/{sid}/delete", json={}).get_json()
+    assert out["deleted_nodes"] >= len(area_ids)
+    for aid in area_ids:
+        assert app.world.graph.get_node(aid) is None
+    assert client.get(f"/api/world/scopes/{sid}/grid").status_code == 404
+
+
 def _paint(client, scope_id, cells):
     for (x, y), biome in cells.items():
         resp = client.post(f"/api/world/scopes/{scope_id}/grid/paint",
@@ -398,3 +442,31 @@ def test_paint_is_undoable(tmp_path):
 
     assert client.post("/api/undo", json={}).status_code == 200
     assert not (app.world.world_scopes["the_pines"].get("layers", {}).get("road"))
+
+
+def test_set_scope_offset_round_trips_and_resets(tmp_path):
+    app = _app(tmp_path)
+    client = app.test_client()
+    client.post("/api/world/scopes/the_pines/grid", json={"w": 4, "h": 3})
+
+    resp = client.post("/api/world/scopes/the_pines/offset",
+                       json={"x": 2.5, "y": -1})
+    assert resp.status_code == 200
+    assert resp.get_json()["map_offset"] == {"x": 2.5, "y": -1.0}
+    # It persists on the world and travels with a save.
+    saved = client.get("/api/save").get_json()
+    assert saved["world_scopes"]["the_pines"]["map_offset"] == {"x": 2.5, "y": -1.0}
+    # The graph grid payload and the flat scope summary both carry it.
+    assert client.get("/api/world/scopes/the_pines/grid").get_json()["map_offset"] == {
+        "x": 2.5, "y": -1.0}
+    flat = client.get("/api/world/scopes?flat=1").get_json()["scopes"]
+    pine = next(s for s in flat if s["id"] == "the_pines")
+    assert pine["map_offset"] == {"x": 2.5, "y": -1.0}
+
+    reset = client.post("/api/world/scopes/the_pines/offset", json={"reset": True})
+    assert reset.get_json()["map_offset"] == {"x": 0.0, "y": 0.0}
+    assert "map_offset" not in app.world.world_scopes["the_pines"]
+
+    assert client.post("/api/world/scopes/the_pines/offset",
+                       json={"x": "left", "y": 0}).status_code == 400
+    assert client.post("/api/world/scopes/ghost/offset", json={"x": 1}).status_code == 404

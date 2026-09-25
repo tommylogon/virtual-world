@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Graph workspace — UX redesign</title>
+<style>
+  :root{
+    --bg:#141821; --panel:#171b22; --card:#20242c; --card2:#262b35;
+    --border:#333a45; --text:#e6e8ee; --muted:#98a0ad; --dim:#6b7480;
+    --accent:#79c0ff; --accent-bg:#1d3250; --accent-bd:#2a5580;
+    --good:#7ee787; --warn:#e3b341; --bad:#f85149;
+    --r:8px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:26px;background:var(--bg);color:var(--text);
+       font:13px/1.55 "Segoe UI",system-ui,sans-serif;max-width:1180px}
+  h1{font-size:19px;margin:0 0 4px}
+  h2{font-size:14px;margin:26px 0 10px;color:var(--accent)}
+  h3{font-size:12px;margin:16px 0 6px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .sub{color:var(--muted);font-size:12px;margin:0 0 10px}
+  .panel{border:1px solid var(--border);border-radius:12px;padding:16px 18px;background:var(--panel);margin-bottom:18px}
+  code{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:11.5px}
+  table{border-collapse:collapse;width:100%;font-size:12px;margin-top:6px}
+  th,td{border:1px solid var(--border);padding:6px 9px;text-align:left;vertical-align:top}
+  th{background:var(--card);color:var(--muted);font-weight:600}
+  ul{margin:6px 0 0;padding-left:18px} li{margin:3px 0}
+  .pill{display:inline-block;font-size:10px;padding:1px 7px;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
+  .good{color:var(--good)} .warn{color:var(--warn)} .bad{color:#ff9d95}
+
+  /* ═══ responsive app chrome prototype ═══ */
+  .frame{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#0f1218}
+  .appbar{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--panel);
+          border-bottom:1px solid var(--border);flex-wrap:wrap}
+  .zone{display:flex;align-items:center;gap:6px;min-width:0}
+  .zone.grow{flex:1 1 auto;min-width:0}
+  .sep{width:1px;height:24px;background:var(--border);margin:0 4px}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;font-size:12.5px;
+       color:var(--text);background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+       cursor:pointer;white-space:nowrap}
+  .btn:hover{border-color:var(--accent)}
+  .btn.primary{background:linear-gradient(#22507f,#1b3c61);border-color:var(--accent-bd)}
+  .btn.icon{padding:5px 8px}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .seg{display:inline-flex;border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+  .seg .btn{border:0;border-right:1px solid var(--border);border-radius:0;background:transparent}
+  .seg .btn:last-child{border-right:0}
+  .seg .btn[aria-selected="true"]{background:var(--accent-bg);color:#cfe6ff}
+  .chip{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;
+        border:1px solid var(--accent-bd);background:#16233a;color:#cfe6ff;cursor:pointer;font-size:12.5px}
+  .search{flex:1 1 220px;min-width:140px;display:flex;align-items:center;gap:6px;
+          background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:4px 8px}
+  .search input{flex:1;background:transparent;border:0;outline:0;color:var(--text);font-size:12.5px}
+  .keep{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);white-space:nowrap}
+  .keep.on{color:var(--accent)}
+  .zoompin{display:none}
+
+  .scopebar{display:flex;align-items:center;gap:10px;padding:7px 12px;background:#131a26;
+            border-bottom:1px solid var(--border);font-size:12px;flex-wrap:wrap}
+  .crumb{display:flex;align-items:center;gap:5px;color:var(--muted)}
+  .crumb b{color:var(--text);font-weight:600}
+  .stats{color:var(--dim);font-size:11.5px}
+  .scopebar .grow{flex:1 1 auto}
+  .mini{font-size:11.5px;padding:3px 9px}
+
+  .stage{position:relative;height:250px;background:
+      radial-gradient(120% 90% at 60% 40%,#1a2333 0%,#0f1218 70%)}
+  .stage .hint{position:absolute;left:14px;top:12px;color:var(--dim);font-size:11px}
+  .legend{position:absolute;right:12px;top:12px;width:206px;background:var(--panel);
+          border:1px solid var(--border);border-radius:10px;padding:9px 11px;font-size:11.5px}
+  .legend .hd{display:flex;justify-content:space-between;align-items:center;color:var(--muted);
+              font-size:10.5px;font-weight:600;margin-bottom:6px;letter-spacing:.04em}
+  .legend .x{cursor:pointer;background:var(--card);border:1px solid var(--border);border-radius:5px;
+             color:var(--text);font-size:10px;padding:0 6px;line-height:1.6}
+  .row{display:flex;align-items:center;gap:7px;margin:3px 0} .sw{width:11px;height:11px;border-radius:3px}
+
+  .pop{position:absolute;right:12px;top:52px;z-index:5;width:270px;background:var(--panel);
+       border:1px solid var(--border);border-radius:10px;padding:10px 12px;
+       box-shadow:0 18px 50px rgba(0,0,0,.6)}
+  .pop h4{margin:2px 0 6px;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+  .pop .grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+  .toggle{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border:1px solid var(--border);
+          border-radius:999px;background:var(--card);font-size:11.5px;cursor:pointer}
+  .toggle.on{border-color:var(--accent-bd);background:var(--accent-bg);color:#cfe6ff}
+  .pop .foot{border-top:1px solid var(--border);padding-top:8px;color:var(--dim);font-size:11px}
+
+  /* before strip (compact illustration) */
+  .oldbar{display:flex;flex-wrap:wrap;gap:5px;padding:8px;background:var(--card);border:1px solid var(--border);border-radius:10px}
+  .oldbar .b{font-size:11px;padding:3px 7px;border:1px solid var(--border);border-radius:5px;background:var(--card2);white-space:nowrap}
+  .oldbar .b.bad{outline:2px solid var(--bad);outline-offset:1px}
+  .oldbar .b.warn{outline:2px solid var(--warn);outline-offset:1px}
+  .statebar{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+  .statebtn{font-size:11.5px;padding:4px 10px;border-radius:999px;border:1px solid var(--border);
+            background:var(--card);color:var(--text);cursor:pointer}
+  .statebtn.on{border-color:var(--accent);background:var(--accent-bg);color:#cfe6ff}
+  .wire{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:6px}
+  .col{border:1px dashed var(--border);border-radius:10px;padding:10px 12px}
+  .col h4{margin:0 0 6px;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--accent)}
+  .col ul{padding-left:16px;margin:0}
+  .muted{color:var(--muted)}
+</style>
+</head>
+<body>
+
+<h1>Graph workspace — UX redesign</h1>
+<p class="sub">Mockup / spec only — <b>no app changes</b>. Prototype is interactive: switch states, open View, pick a layout, select a scope.</p>
+
+<!-- ═══════════ 1. why regrouping isn't enough ═══════════ -->
+<div class="panel">
+  <h2>1 · Why regrouping the strip isn't a redesign</h2>
+  <p class="sub">The current bar is one row of ~29 peer controls. Regrouping changes spacing; it doesn't change the model. Four unrelated mental models share one plane:</p>
+  <div class="oldbar">
+    <span class="b">🏠 Area</span><span class="b bad">📦 Item</span><span class="b">🚪 Way</span><span class="b">📚 Library</span><span class="b bad">📦 Structures</span><span class="b bad">🗺️ WorldPainter</span>
+    <span class="b">↩️</span><span class="b">↪️</span><span class="b">📜</span>
+    <span class="b bad warn">🔮 Graph</span><span class="b bad warn">🗺️ Map</span><span class="b">📊 Overlays ▾</span>
+    <span class="b">⏸ Physics</span><span class="b warn">🌳 Levels</span><span class="b">⊞ Fit</span><span class="b bad">📷 PNG</span>
+    <span class="b">🔍 Search</span><span class="b">KEEP</span><span class="b">🌍 Whole world</span>
+    <span class="b">🏘 Inhabited</span><span class="b">🖼 Images</span><span class="b bad">🔩 Triggers</span><span class="b bad">📦 Items</span><span class="b">🏢 Floors</span>
+    <span class="b">🏷 Labels</span><span class="b">⋯ More ▾</span><span class="b">📋 Copy Prompt</span><span class="b">📝 Paste Response</span>
+  </div>
+  <ul>
+    <li><b class="bad">Do</b> (build, undo) · <b class="bad">Where</b> (scope) · <b class="bad">Look</b> (layout, overlays, visibility) · <b class="bad">Session</b> (copy/paste prompt) — all at equal visual weight.</li>
+    <li><b>State lives in button labels</b>, not in the UI: Map renames itself “Graph”, Overlays renames itself “💡 Light”, Levels has no on/off at all.</li>
+    <li><b>Scope — the single most important control on a painted world — is a plain dropdown in the middle.</b> Nothing shows what's loaded, from which scope, or how big it is.</li>
+    <li><b>Ineffective controls</b> are always enabled: KEEP does nothing with no query, Paste Response fails unless Manual Mode is on.</li>
+    <li>Hick's law: 29 roughly-equal targets ≈ slow scanning. A good bar shows <b>≈7</b>.</li>
+  </ul>
+</div>
+
+<!-- ═══════════ 2. IA ═══════════ -->
+<div class="panel">
+  <h2>2 · Proposed information architecture</h2>
+  <p class="sub">Two tiers. A thin <b>primary bar</b> with 4 zones, and a <b>contextual scope bar</b> that appears only when a world scope is loaded. Everything rare moves behind <b>View ▾</b> / <b>⋯ More ▾</b> / the command palette.</p>
+  <div class="wire">
+    <div class="col">
+      <h4>Do — actions</h4>
+      <ul>
+        <li><b>➕ Build ▾</b> — Area · Item · Way · Library · Structures · WorldPainter</li>
+        <li>Undo · Redo · History (grouped, icon-only)</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h4>Where — context &amp; data</h4>
+      <ul>
+        <li><b>Scope chip</b> — opens the scope tree; shows the active zone</li>
+        <li><b>Scope bar</b> — breadcrumb, loaded-node count, Generate / WorldPainter / Clear</li>
+        <li>Search + <b>Keep layout</b> (disabled until a query exists)</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h4>Look — presentation</h4>
+      <ul>
+        <li><b>Layout</b> — segmented Graph · Map · Levels (one truth, no renaming)</li>
+        <li><b>View ▾</b> — Overlays (None default), Legend, Show…, Edge labels</li>
+        <li>Fit · Physics (disabled when Levels/an overlay owns positions)</li>
+        <li><b>⋯ More ▾</b> + command palette for the rest</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ 3. interactive prototype ═══════════ -->
+<div class="panel">
+  <h2>3 · Interactive prototype</h2>
+  <div class="statebar">
+    <button class="statebtn on" data-state="default">Default (whole world)</button>
+    <button class="statebtn" data-state="scope">Scope loaded</button>
+    <button class="statebtn" data-state="overlay">Overlay + search</button>
+    <span class="muted" style="font-size:11.5px;align-self:center">← switch states to see the scope bar, disabled states and the View popover</span>
+  </div>
+
+  <div class="frame">
+    <div class="appbar">
+      <!-- DO -->
+      <div class="zone">
+        <button class="btn primary" title="Create / insert">➕ Build ▾</button>
+        <span class="sep"></span>
+        <button class="btn icon" title="Undo">↩️</button>
+        <button class="btn icon" title="Redo">↪️</button>
+        <button class="btn icon" title="History">🕘</button>
+      </div>
+
+      <span class="sep"></span>
+
+      <!-- WHERE -->
+      <div class="zone grow">
+        <button class="chip" id="scopeChip">🌍 <span id="scopeChipLabel">Whole world</span> ▾</button>
+        <div class="search">
+          <span style="color:var(--dim)">🔍</span>
+          <input id="q" placeholder="Search nodes, tags, ids…">
+          <label class="keep" id="keepWrap" title="Needs an active search: keep matches where they are instead of gathering them">
+            <input type="checkbox" id="keep" disabled> Keep layout
+          </label>
+        </div>
+      </div>
+
+      <span class="sep"></span>
+
+      <!-- LOOK -->
+      <div class="zone">
+        <div class="seg" id="layoutSeg" role="tablist" aria-label="Layout mode">
+          <button role="tab" aria-selected="true">🔮 Graph</button>
+          <button role="tab" aria-selected="false">🗺️ Map</button>
+          <button role="tab" aria-selected="false">🌳 Levels</button>
+        </div>
+        <button class="btn" id="viewBtn" aria-expanded="false">👁 View ▾</button>
+        <button class="btn icon" id="fitBtn" title="Fit to content">⊞</button>
+        <button class="btn icon" id="physBtn" title="Freeze / unfreeze physics">⏸</button>
+        <button class="btn">⋯ More ▾</button>
+      </div>
+    </div>
+
+    <!-- contextual scope bar -->
+    <div class="scopebar" id="scopebar" hidden>
+      <span class="crumb">🌍 world <span style="color:var(--dim)">›</span> <b id="crumbScope">deep woods</b></span>
+      <span class="stats" id="scopeStats">316 areas · 367 ways · 683 nodes loaded · canonical</span>
+      <span class="grow"></span>
+      <button class="btn mini">⤓ Generate</button>
+      <button class="btn mini">🎨 Open in WorldPainter</button>
+      <button class="btn mini" id="clearScope">✕ Show world</button>
+    </div>
+
+    <div class="stage" id="stage">
+      <span class="hint" id="stageHint">Free physics · painted positions available</span>
+
+      <div class="pop" id="viewPop" hidden>
+        <h4>Overlays</h4>
+        <div class="grid" id="overlayGrid">
+          <span class="toggle on" data-overlay="none">None</span>
+          <span class="toggle" data-overlay="light">💡 Light</span>
+          <span class="toggle" data-overlay="heat">🌡️ Heat</span>
+          <span class="toggle" data-overlay="sound">🔊 Sound</span>
+          <span class="toggle" data-overlay="effects">⚡ Effects</span>
+        </div>
+        <h4>Show on canvas</h4>
+        <div class="grid">
+          <span class="toggle on">🏘 Inhabited</span>
+          <span class="toggle on">🖼 Images</span>
+          <span class="toggle">🔩 Trigger nodes</span>
+          <span class="toggle">👁 Items</span>
+          <span class="toggle on">🏢 All floors</span>
+        </div>
+        <h4>Labels &amp; legend</h4>
+        <div class="grid">
+          <span class="toggle on">🏷 Edge labels</span>
+          <span class="toggle" id="legendToggle">📖 Legend</span>
+        </div>
+        <div class="foot">Overlays recolor the canvas and update the legend <b>in place</b> — they never open it for you.</div>
+      </div>
+
+      <div class="legend" id="legendPanel" hidden>
+        <div class="hd"><span>📖 LEGEND</span><span class="x" id="legendClose">✕</span></div>
+        <div class="row"><span class="sw" style="background:#2d333b;border:2px solid #58a6ff"></span> Area</div>
+        <div class="row"><span class="sw" style="background:#3d2e1a;border:2px solid #e3b341"></span> Item</div>
+        <div class="row"><span class="sw" style="background:#1a3a2a;border:2px solid #4ec9b0"></span> Way</div>
+        <div class="row"><span class="sw" style="background:#2a1a3d;border:2px solid #bc8cff"></span> Character</div>
+        <div class="row" style="color:var(--dim);font-size:11px" id="legendMode">Structural</div>
+      </div>
+    </div>
+  </div>
+  <p class="sub" style="margin-top:10px">Demo: type in Search → <b>Keep layout</b> enables. Pick <b>Levels</b> → Physics grays out. Open <b>View</b> → pick an overlay → legend updates, canvas note changes. The scope bar is the home for the painted-world workflow.</p>
+</div>
+
+<!-- ═══════════ 4. rationale ═══════════ -->
+<div class="panel">
+  <h2>4 · Rationale — principle → decision → effect</h2>
+  <table>
+    <tr><th>Principle</th><th>Decision</th><th>Effect</th></tr>
+    <tr><td>Separate mental models</td><td>Do / Where / Look zones; Session actions leave the graph bar</td><td>You scan 7 targets, not 29</td></tr>
+    <tr><td>Progressive disclosure</td><td>Rare config behind View ▾ and More ▾ (plus ⌘K palette)</td><td>Default bar stays stable; power features one click deeper</td></tr>
+    <tr><td>State, not labels</td><td>Layout is a segmented control with <code>aria-selected</code>; Physics greys out when it can't run</td><td>No self-renaming; you can see which mode is on</td></tr>
+    <tr><td>Context over configuration</td><td>A scope bar appears when a zone is loaded, with breadcrumb + node count + Generate</td><td>The painted-world workflow gets first-class UI</td></tr>
+    <tr><td>Recognition over recall</td><td>Icons paired with words on primary controls; labels on every View chip</td><td>No guessing what “KEEP” or “🔩” means</td></tr>
+    <tr><td>Honest affordances</td><td>Disable KEEP with no query; disable Paste unless Manual Mode is on; disable Physics under Levels</td><td>No silent no-ops</td></tr>
+    <tr><td>Accessibility</td><td><code>role=tablist</code>/<code>aria-selected</code>, <code>aria-expanded</code>, visible focus, titles as descriptions</td><td>Keyboard and screen-reader usable</td></tr>
+    <tr><td>Responsive</td><td>Do and Look zones collapse into overflow before Where does</td><td>Scope + search survive narrow widths</td></tr>
+  </table>
+</div>
+
+<!-- ═══════════ 5. metrics + bug fixes ═══════════ -->
+<div class="panel">
+  <h2>5 · Result &amp; the behaviour fixes it carries</h2>
+  <table>
+    <tr><th>Metric</th><th>Before</th><th>After</th></tr>
+    <tr><td>Controls visible at rest</td><td>~29</td><td><b>7</b> (+3 contextual on the scope bar)</td></tr>
+    <tr><td>Unlabelled groups</td><td>7 dividers</td><td>3 labelled zones</td></tr>
+    <tr><td>Self-renaming buttons</td><td>2 (Map, Overlays)</td><td>0</td></tr>
+    <tr><td>Always-enabled no-ops</td><td>2 (KEEP, Paste)</td><td>0</td></tr>
+    <tr><td>Ways to reach a painted zone</td><td>1 (dropdown, easy to miss)</td><td>Scope chip + bar + Generate shortcut</td></tr>
+  </table>
+  <h3>Behaviour bugs carried into the design</h3>
+  <ul>
+    <li><b class="good">Legend:</b> overlays update it in place; never auto-opens; explicit toggle + ✕.</li>
+    <li><b class="good">Layout:</b> Graph / Map / Levels mutually exclusive; fixed labels.</li>
+    <li><b class="good">Overlays:</b> explicit <b>None</b>; cardinal removed from the overlay list (it's a layout).</li>
+    <li><b class="good">Prompt actions:</b> moved out of the graph bar to the agent/session area (Copy is a 3rd duplicate today).</li>
+    <li><b class="good">KEEP:</b> renamed “Keep layout”, disabled until a search exists.</li>
+  </ul>
+</div>
+
+<script>
+  const $ = (s)=>document.querySelector(s);
+  const $$ = (s)=>[...document.querySelectorAll(s)];
+
+  // ── state switcher ──
+  let demoKeep = false;
+  $$('.statebtn').forEach(b=>b.addEventListener('click',()=>{
+    $$('.statebtn').forEach(x=>x.classList.toggle('on',x===b));
+    const s=b.dataset.state;
+    const scoped = s!=='default';
+    $('#scopebar').hidden = !scoped;
+    $('#scopeChipLabel').textContent = scoped ? 'deep woods' : 'Whole world';
+    $('#scopeChip').firstChild.nodeValue = scoped ? '🗺️ ' : '🌍 ';
+    $('#stageHint').textContent = scoped
+      ? 'Scope: deep woods · 316 areas painted at (x,y)'
+      : 'Free physics · painted positions available';
+    if(s==='overlay'){ setOverlay('light'); $('#q').value='berry'; syncKeep(); $('#viewPop').hidden=false; }
+    else { setOverlay('none'); $('#q').value=''; syncKeep(); $('#viewPop').hidden=true; }
+  }));
+
+  // ── search → KEEP enable ──
+  function syncKeep(){
+    const has = $('#q').value.trim().length>0;
+    $('#keep').disabled = !has;
+    $('#keepWrap').classList.toggle('on', has && $('#keep').checked);
+    if(!has){ $('#keep').checked=false; }
+  }
+  $('#q').addEventListener('input',syncKeep);
+  $('#keep').addEventListener('change',()=>$('#keepWrap').classList.toggle('on',$('#keep').checked));
+
+  // ── layout segmented ──
+  $$('#layoutSeg .btn').forEach(b=>b.addEventListener('click',()=>{
+    $$('#layoutSeg .btn').forEach(x=>x.setAttribute('aria-selected', x===b ? 'true':'false'));
+    const levels = b.textContent.includes('Levels');
+    $('#physBtn').disabled = levels;
+    $('#stageHint').textContent = levels
+      ? 'Hierarchical layout owns positions — physics unavailable'
+      : (b.textContent.includes('Map') ? 'Cardinal layout: areas arranged by exit direction — physics off'
+                                       : 'Free physics · painted positions available');
+  }));
+
+  // ── View popover ──
+  const viewBtn=$('#viewBtn'), pop=$('#viewPop');
+  viewBtn.addEventListener('click',()=>{ pop.hidden=!pop.hidden; viewBtn.setAttribute('aria-expanded', String(!pop.hidden)); });
+  $$('#overlayGrid .toggle').forEach(t=>t.addEventListener('click',()=>setOverlay(t.dataset.overlay)));
+  function setOverlay(name){
+    $$('#overlayGrid .toggle').forEach(x=>x.classList.toggle('on', x.dataset.overlay===name));
+    const label = {none:'Structural',light:'💡 Light Overlay',heat:'🌡️ Heat Overlay',sound:'🔊 Sound Overlay',effects:'⚡ Effects Overlay'}[name];
+    $('#legendMode').textContent = label;
+  }
+  // legend toggle + close
+  $('#legendToggle').addEventListener('click',()=>{ $('#legendPanel').hidden=!$('#legendPanel').hidden; $('#legendToggle').classList.toggle('on',!$('#legendPanel').hidden); });
+  $('#legendClose').addEventListener('click',()=>{ $('#legendPanel').hidden=true; $('#legendToggle').classList.remove('on'); });
+
+  // scope chip / clear
+  $('#scopeChip').addEventListener('click',()=>{ $$('.statebtn')[1].click(); });
+  $('#clearScope').addEventListener('click',()=>{ $$('.statebtn')[0].click(); });
+  syncKeep();
+</script>
+</body>
+</html>

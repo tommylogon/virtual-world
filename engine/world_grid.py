@@ -103,7 +103,8 @@ def normalise_grid(record: dict) -> dict:
     """
     if not isinstance(record, dict):
         return record
-    if not any(key in record for key in ("grid", "layers", "placements", "mode")):
+    if not any(key in record for key in ("grid", "layers", "placements", "mode",
+                                         "map_offset")):
         return record
 
     grid = record.get("grid")
@@ -157,6 +158,13 @@ def normalise_grid(record: dict) -> dict:
                 clean_placements[str(child_id)] = clean
         record["placements"] = clean_placements
 
+    if "map_offset" in record:
+        clean_offset = _clean_offset(record.get("map_offset"))
+        if clean_offset and (clean_offset["x"] or clean_offset["y"]):
+            record["map_offset"] = clean_offset
+        else:
+            record.pop("map_offset", None)
+
     mode = record.get("mode")
     if mode is not None and str(mode) not in MODES:
         record.pop("mode", None)
@@ -175,6 +183,14 @@ def _as_float(value, default: float) -> float:
         return float(value)
     except (TypeError, ValueError):
         return default
+
+
+def _finite(value) -> bool:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return False
+    return number == number and number not in (float("inf"), float("-inf"))
 
 
 # ─────────────────────────────── grid ─────────────────────────────────────
@@ -235,6 +251,66 @@ def grid_size(record: dict) -> Tuple[int, int]:
 def _key_in_bounds(key: str, w: int, h: int) -> bool:
     pos = parse_cell_key(key)
     return bool(pos) and 0 <= pos[0] < w and 0 <= pos[1] < h
+
+
+# ─────────────────────── map layout offset (task-523) ─────────────────────
+
+#: A zone is nudged by dragging the graph canvas, so a value past this is a
+#: corrupt record (or a drag gone wild), not a real position.
+MAP_OFFSET_LIMIT = 100000.0
+
+
+def _clean_offset(offset) -> Optional[Dict[str, float]]:
+    """Validate a stored map offset (cell units) or return ``None``."""
+    if not isinstance(offset, dict):
+        return None
+    try:
+        x, y = float(offset.get("x", 0.0)), float(offset.get("y", 0.0))
+    except (TypeError, ValueError):
+        return None
+    if not _finite(x) or not _finite(y):
+        return None
+    if abs(x) > MAP_OFFSET_LIMIT or abs(y) > MAP_OFFSET_LIMIT:
+        return None
+    return {"x": x, "y": y}
+
+
+def map_offset(record: dict) -> Dict[str, float]:
+    """A scope's **map-layout offset** in cell units; ``(0, 0)`` by default.
+
+    The WorldPainter paints each scope on its own local grid anchored at
+    ``(0, 0)``. The graph map layout adds this offset to every node of the scope
+    (task-523), so the author can arrange zones relative to each other without
+    baking the move into the painter's cell coords — a paint edit must never
+    shift the world under it.
+    """
+    return _clean_offset((record or {}).get("map_offset")) or {"x": 0.0, "y": 0.0}
+
+
+def set_map_offset(record: dict, x=None, y=None, reset: bool = False) -> dict:
+    """Set a scope's map-layout offset (cell units); ``reset`` clears it.
+
+    A zero offset is stored as *absence*, so a scope that was never moved keeps
+    a minimal manifest and older saves load byte-identically. Raises
+    ``ValueError`` for a missing/non-numeric/non-finite value or one past
+    :data:`MAP_OFFSET_LIMIT`.
+    """
+    if reset:
+        record.pop("map_offset", None)
+        return record
+    try:
+        clean = {"x": float(x), "y": float(y)}
+    except (TypeError, ValueError):
+        raise ValueError("map offset needs numeric x and y")
+    if not _finite(clean["x"]) or not _finite(clean["y"]):
+        raise ValueError("map offset must be finite")
+    if abs(clean["x"]) > MAP_OFFSET_LIMIT or abs(clean["y"]) > MAP_OFFSET_LIMIT:
+        raise ValueError(f"map offset must be within ±{MAP_OFFSET_LIMIT:g} cells")
+    if clean["x"] == 0.0 and clean["y"] == 0.0:
+        record.pop("map_offset", None)
+    else:
+        record["map_offset"] = clean
+    return record
 
 
 # ─────────────────────────────── painting ─────────────────────────────────
@@ -303,6 +379,44 @@ def painter_at(record: dict, layer: str, x: int, y: int):
 #: Faint by default so painted cells read over the art underneath.
 REFERENCE_OPACITY_DEFAULT = 0.5
 
+#: Default crop window: the whole image.
+REFERENCE_CROP_DEFAULT = {"x": 0.0, "y": 0.0, "w": 1.0, "h": 1.0}
+
+
+def _clean_rect(rect) -> Optional[Dict[str, float]]:
+    """Validate a reference destination rect (cell units) or return ``None``."""
+    if not isinstance(rect, dict):
+        return None
+    try:
+        out = {key: float(rect[key]) for key in ("x", "y", "w", "h")}
+    except (KeyError, TypeError, ValueError):
+        return None
+    if not all(_finite(value) for value in out.values()):
+        return None
+    if out["w"] <= 0 or out["h"] <= 0:
+        return None
+    return out
+
+
+def _clean_crop(crop) -> Optional[Dict[str, float]]:
+    """Validate a normalized source window (0..1) or return ``None``."""
+    if not isinstance(crop, dict):
+        return None
+    try:
+        out = {key: float(crop[key]) for key in ("x", "y", "w", "h")}
+    except (KeyError, TypeError, ValueError):
+        return None
+    if not all(_finite(value) for value in out.values()):
+        return None
+    if out["w"] <= 0 or out["h"] <= 0:
+        return None
+    return {
+        "x": max(0.0, min(1.0, out["x"])),
+        "y": max(0.0, min(1.0, out["y"])),
+        "w": max(0.001, min(1.0, out["w"])),
+        "h": max(0.001, min(1.0, out["h"])),
+    }
+
 
 def reference(record: dict) -> Optional[dict]:
     """The scope's authoring reference image, or ``None``."""
@@ -310,27 +424,60 @@ def reference(record: dict) -> Optional[dict]:
     return dict(ref) if isinstance(ref, dict) and ref.get("image") else None
 
 
-def set_reference(record: dict, image, opacity=None, visible=None) -> Optional[dict]:
+def reference_rect(record: dict) -> Optional[Dict[str, float]]:
+    """The reference's destination rect in **cell** units, or ``None`` for auto-fit.
+
+    Stored in cells (not pixels) so the WorldPainter (22px/cell) and the graph
+    map layout (``mapSpacing`` px/cell) can each draw the art in their own space
+    and still agree; ``None`` means "fit the whole image to the grid".
+    """
+    return _clean_rect((reference(record) or {}).get("rect"))
+
+
+def reference_crop(record: dict) -> Dict[str, float]:
+    """The reference's normalized source window (0..1); the whole image by default."""
+    return _clean_crop((reference(record) or {}).get("crop")) or dict(REFERENCE_CROP_DEFAULT)
+
+
+def set_reference(record: dict, image, opacity=None, visible=None,
+                  rect=None, crop=None, reset: bool = False) -> Optional[dict]:
     """Set or clear a scope's reference image (a picture to paint over).
 
     Reference-only: it is never compiled into areas/ways, so a huge or stale
     image cannot affect the world — it just helps the author place cells over
     known art. ``image`` of ``None``/``""`` clears it.
+
+    ``rect`` (cell units) and ``crop`` (normalized source window) are the
+    author's move/resize/crop of the picture: omit them to keep what is stored,
+    pass ``reset=True`` to drop them back to auto-fit. A *changed* image also
+    auto-fits, since a rect tuned for the old picture rarely suits the new one.
     """
     if image in (None, ""):
         record.pop("reference", None)
         return None
     if not has_grid(record):
         raise ValueError("scope has no grid")
+    existing = reference(record) or {}
     try:
         value = float(REFERENCE_OPACITY_DEFAULT if opacity is None else opacity)
     except (TypeError, ValueError):
         value = REFERENCE_OPACITY_DEFAULT
-    record["reference"] = {
+    stored = {
         "image": str(image),
         "opacity": max(0.0, min(1.0, value)),
         "visible": True if visible is None else bool(visible),
     }
+    new_image = str(image) != str(existing.get("image") or "")
+    if not reset:
+        keep_rect = _clean_rect(rect) if rect is not None else (
+            None if new_image else _clean_rect(existing.get("rect")))
+        keep_crop = _clean_crop(crop) if crop is not None else (
+            None if new_image else _clean_crop(existing.get("crop")))
+        if keep_rect:
+            stored["rect"] = keep_rect
+        if keep_crop:
+            stored["crop"] = keep_crop
+    record["reference"] = stored
     return dict(record["reference"])
 
 

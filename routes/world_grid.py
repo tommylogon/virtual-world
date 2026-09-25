@@ -5,6 +5,7 @@ Thin registrar only — handlers live in ``routes/world_grid_ops.py``.
 
 from .world_grid_ops import (
     handle_create_scope,
+    handle_delete_scope,
     handle_generate_scope,
     handle_list_backgrounds,
     handle_painter_vocabulary,
@@ -12,9 +13,11 @@ from .world_grid_ops import (
     handle_paint_cell,
     handle_place_feature,
     handle_remove_feature,
+    handle_rename_scope,
     handle_scope_grid,
     handle_set_reference,
     handle_set_scope_grid,
+    handle_set_scope_offset,
 )
 
 
@@ -62,3 +65,15 @@ def register_world_grid_routes(app):
     @app.route('/api/world/scopes/<scope_id>/grid/generate', methods=['POST'])
     def world_scope_grid_generate(scope_id):
         return handle_generate_scope(app, scope_id)
+
+    @app.route('/api/world/scopes/<scope_id>/rename', methods=['POST'])
+    def world_scope_rename(scope_id):
+        return handle_rename_scope(app, scope_id)
+
+    @app.route('/api/world/scopes/<scope_id>/offset', methods=['POST'])
+    def world_scope_offset(scope_id):
+        return handle_set_scope_offset(app, scope_id)
+
+    @app.route('/api/world/scopes/<scope_id>/delete', methods=['POST'])
+    def world_scope_delete(scope_id):
+        return handle_delete_scope(app, scope_id)

@@ -20,6 +20,7 @@ class GraphManager {
         this._contextTarget = null;
         this._lastSig = '';          // hash to skip redundant reloads
         this._scopeFilter = null;    // task-397: load one world scope at a time
+        this._scopeOffsets = {};     // task-523: scopeId -> {x,y} map offset (cells)
         this._physicsEnabled = true;
         this._legendEl = null;
         this._searchQuery = '';
@@ -186,10 +187,18 @@ class GraphManager {
      */
     async loadScopeFilterOptions() {
         const sel = document.getElementById('graph-scope-filter');
-        if (!sel) return;
         const current = this._scopeFilter || '';
         try {
             const data = await ApiClient.getWorldScopes(true);
+            // task-523: the flat summary carries each scope's map offset; the map
+            // layout reads it per node, so the whole-world (descendant) view can
+            // place every zone correctly after a drag. Populated even when the
+            // picker element is absent, so the layout still has the offsets.
+            this._scopeOffsets = {};
+            for (const scope of data.scopes || []) {
+                if (scope.map_offset) this._scopeOffsets[scope.id] = scope.map_offset;
+            }
+            if (!sel) return;
             sel.innerHTML = '';
             const wholeWorld = document.createElement('option');
             wholeWorld.value = '';

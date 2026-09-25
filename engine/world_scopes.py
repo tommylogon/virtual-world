@@ -85,6 +85,18 @@ def area_ids_in_scope(manifest: Dict[str, dict], graph, scope_id: str,
     return areas
 
 
+def own_area_ids(graph, scope_id: str) -> set:
+    """Leaf area ids belonging to *exactly* this scope, ignoring descendants.
+
+    The graph view loads a scope's **own level** (task-397 revision): a parent
+    shows its own painted cells — a placed child is a single feature cell, not
+    its whole interior. Use :func:`area_ids_in_scope` when the subtree is wanted.
+    """
+    return {node_id for node_id, node in graph.nodes.items()
+            if getattr(node, "type", "") == "area"
+            and (getattr(node, "properties", {}) or {}).get("world_scope_id") == scope_id}
+
+
 def _area_name_to_id(graph) -> Dict[str, str]:
     return {node.name: node_id for node_id, node in graph.nodes.items()
             if getattr(node, "type", "") == "area"}
@@ -179,6 +191,9 @@ def scope_summary(manifest: Dict[str, dict], graph, players, scope_id: str) -> d
         "item_count": item_count_in_areas(graph, areas),
         "has_character": chars > 0,
         "children": direct_child_ids(manifest, scope_id),
+        # task-523: the graph map layout adds this (cell units) to the scope's
+        # painted coords, so a zone dragged on the canvas stays put across loads.
+        "map_offset": world_grid.map_offset(rec),
     }
 
 
@@ -251,8 +266,87 @@ def flat_scopes(manifest: Dict[str, dict], graph, players) -> List[dict]:
     return out
 
 
+def rename_scope(manifest: Dict[str, dict], scope_id: str, name: str) -> dict:
+    """Set a scope's **display name**. Ids are never renamed (task-439/495).
+
+    Raises ``ValueError`` for an unknown scope or a blank name.
+    """
+    record = manifest.get(scope_id)
+    if record is None:
+        raise ValueError(f"scope {scope_id!r} not found")
+    clean = str(name or "").strip()
+    if not clean:
+        raise ValueError("name must not be empty")
+    record["name"] = clean
+    return record
+
+
+def delete_scope(manifest: Dict[str, dict], graph, scope_id: str,
+                 cascade: bool = False) -> dict:
+    """Remove a scope — and with ``cascade`` its descendants — from the world.
+
+    - Refuses when the scope still has children unless ``cascade`` is set.
+    - Unplaces it from every parent (``placements`` + ``children`` lists).
+    - Deletes its **generated** graph nodes (provenance
+      ``properties.generated.scope_id``): areas, ways, gateways and the items
+      that generation placed. Hand-authored nodes are left alone rather than
+      guessed at.
+    - Returns ``{scope_ids, unplaced_from, deleted_nodes}``.
+    """
+    if scope_id not in manifest:
+        raise ValueError(f"scope {scope_id!r} not found")
+    children = direct_child_ids(manifest, scope_id)
+    if children and not cascade:
+        raise ValueError(
+            f"scope {scope_id!r} still has child scope(s): "
+            f"{', '.join(children)}; delete them first or pass cascade=True")
+
+    doomed = [scope_id]
+    if cascade:
+        seen = {scope_id}
+        stack = list(children)
+        while stack:
+            child = stack.pop()
+            if child in seen or child not in manifest:
+                continue
+            seen.add(child)
+            doomed.append(child)
+            stack.extend(direct_child_ids(manifest, child))
+    doomed_set = set(doomed)
+
+    unplaced_from: List[str] = []
+    for other_id, record in manifest.items():
+        if other_id in doomed_set:
+            continue
+        removed = False
+        placements = record.get("placements")
+        if isinstance(placements, dict):
+            for dead in doomed_set:
+                if placements.pop(dead, None) is not None:
+                    removed = True
+        kids = record.get("children")
+        if isinstance(kids, list):
+            kept = [c for c in kids if c not in doomed_set]
+            removed = removed or len(kept) != len(kids)
+            record["children"] = kept
+        if removed:
+            unplaced_from.append(other_id)
+
+    deleted = 0
+    for node_id, node in list(graph.nodes.items()):
+        generated = (getattr(node, "properties", {}) or {}).get("generated") or {}
+        if generated.get("scope_id") in doomed_set:
+            graph.remove_node(node_id)
+            deleted += 1
+
+    for dead in doomed:
+        manifest.pop(dead, None)
+    return {"scope_ids": doomed, "unplaced_from": unplaced_from,
+            "deleted_nodes": deleted}
+
+
 def project_subgraph(manifest: Dict[str, dict], graph, players, scope_id: str,
-                     include_items: bool = True) -> dict:
+                     include_items: bool = True, descendants: bool = False) -> dict:
     """A vis-loadable subgraph for one scope (task-397 step 3).
 
     Returns ``{nodes, edges}`` in the same shapes as ``WorldGraph.to_dict`` —
@@ -261,17 +355,26 @@ def project_subgraph(manifest: Dict[str, dict], graph, players, scope_id: str,
     painted WorldPainter world from freezing the canvas: the browser never
     receives nodes outside the requested scope (task-400).
 
-    Membership is recursive over the scope's descendants:
+    **Level-scoped by default.** Only the scope's *own* areas are included, so
+    selecting a parent shows its own level — a placed child zone is one feature
+    cell (carrying ``child_scope_id``), not its whole interior. Pass
+    ``descendants=True`` for the recursive subtree (what "Whole world" uses).
 
-    - every ``area`` in the scope;
-    - a ``way`` whose **both** endpoints resolve inside the scope;
+    Membership:
+
+    - every ``area`` whose ``world_scope_id`` is this scope (or, when
+      ``descendants``, elsewhere in its subtree);
+    - a ``way`` whose **both** endpoints are included;
     - a ``character``/``player`` standing in an included area;
     - an ``item`` attached to an included area, when ``include_items`` is true.
 
     Only edges with both endpoints included are emitted, so no edge ever
     dangles to a node the browser never received.
     """
-    area_ids = area_ids_in_scope(manifest, graph, scope_id)
+    if descendants:
+        area_ids = area_ids_in_scope(manifest, graph, scope_id)
+    else:
+        area_ids = own_area_ids(graph, scope_id)
     name_to_id = _area_name_to_id(graph)
     included: set = set()
     nodes: Dict[str, dict] = {}

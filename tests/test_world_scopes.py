@@ -6,6 +6,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+import pytest
+
 from engine import world_scopes
 from graph import Edge, Node, WorldGraph
 
@@ -114,9 +116,26 @@ def test_project_subgraph_keeps_only_scope_members():
                              "type": "in", "properties": {}}]
 
 
-def test_project_subgraph_recurses_and_keeps_interior_ways():
+def test_own_area_ids_ignores_descendants():
+    g = _graph()
+    assert world_scopes.own_area_ids(g, "pines_floor_3") == {"area_hall3"}
+    assert world_scopes.own_area_ids(g, "the_pines") == set()
+
+
+def test_project_subgraph_is_level_scoped_by_default():
     m = world_scopes.normalise_manifest(MANIFEST)
-    out = world_scopes.project_subgraph(m, _graph(), _players(), "the_pines")
+    g = _graph()
+    # pines_floor_3 owns area_hall3; apartment_3b (a descendant) is not pulled in.
+    out = world_scopes.project_subgraph(m, g, _players(), "pines_floor_3")
+    assert set(out["nodes"]) == {"area_hall3"}
+    # An organisational scope with no painted cells of its own shows nothing.
+    assert world_scopes.project_subgraph(m, g, _players(), "the_pines")["nodes"] == {}
+
+
+def test_project_subgraph_descendants_includes_the_subtree():
+    m = world_scopes.normalise_manifest(MANIFEST)
+    out = world_scopes.project_subgraph(m, _graph(), _players(), "the_pines",
+                                        descendants=True)
     assert {"area_hall3", "area_3b_living", "way_hall3_3b"} <= set(out["nodes"])
     # A way with one endpoint outside the scope is a boundary way, not a member.
     assert "way_outside" not in out["nodes"]
@@ -141,6 +160,51 @@ def test_flat_scopes_lists_depth_first_with_depth():
     assert by_id["millbrook_falls"] == 0
     assert by_id["the_pines"] == 2
     assert by_id["apartment_3b"] == 4
+
+
+def test_rename_scope_changes_the_display_name_only():
+    m = world_scopes.normalise_manifest(MANIFEST)
+    rec = world_scopes.rename_scope(m, "apartment_3b", "Apartment 3C")
+    assert rec["name"] == "Apartment 3C"
+    assert "apartment_3b" in m          # the id — and every reference — stays
+    with pytest.raises(ValueError):
+        world_scopes.rename_scope(m, "ghost", "x")
+    with pytest.raises(ValueError):
+        world_scopes.rename_scope(m, "apartment_3b", "   ")
+
+
+def test_delete_scope_refuses_a_scope_with_children_unless_cascading():
+    m = world_scopes.normalise_manifest(MANIFEST)
+    with pytest.raises(ValueError):
+        world_scopes.delete_scope(m, _graph(), "the_pines")
+    assert "the_pines" in m
+
+
+def test_delete_scope_unplaces_and_removes_generated_nodes_only():
+    m = world_scopes.normalise_manifest(MANIFEST)
+    m["pines_floor_3"]["placements"] = {"apartment_3b": {"x": 1, "y": 1}}
+    g = _graph()
+    g.add_node(Node(id="area_gen", type="area", name="Gen",
+                    properties={"generated": {"scope_id": "apartment_3b"}}))
+    g.add_node(Node(id="area_hand", type="area", name="Hand",
+                    properties={"world_scope_id": "apartment_3b"}))
+
+    result = world_scopes.delete_scope(m, g, "apartment_3b")
+
+    assert result["scope_ids"] == ["apartment_3b"]
+    assert result["deleted_nodes"] == 1
+    assert "apartment_3b" not in m
+    assert "apartment_3b" not in m["pines_floor_3"].get("placements", {})
+    assert g.get_node("area_gen") is None        # generated → deleted
+    assert g.get_node("area_hand") is not None   # hand-authored → left alone
+
+
+def test_delete_scope_cascades_to_descendants():
+    m = world_scopes.normalise_manifest(MANIFEST)
+    result = world_scopes.delete_scope(m, _graph(), "the_pines", cascade=True)
+    assert set(result["scope_ids"]) == {"the_pines", "pines_floor_3", "apartment_3b"}
+    for dead in result["scope_ids"]:
+        assert dead not in m
 
 
 def test_missing_manifest_is_safe():
@@ -174,6 +238,12 @@ def test_route_scope_endpoints(tmp_path):
     sub = client.get("/api/world/scopes/apartment_3b/subgraph").get_json()
     assert sub["scope"]["id"] == "apartment_3b"
     assert set(sub["nodes"]) == {"area_3b_living"}
+
+    # Level-scoped by default: a parent is not flattened into its subtree.
+    assert client.get("/api/world/scopes/the_pines/subgraph").get_json()["nodes"] == {}
+    deep = client.get(
+        "/api/world/scopes/the_pines/subgraph?descendants=1").get_json()
+    assert "area_3b_living" in deep["nodes"]
 
     assert client.get("/api/world/scopes/nope/subgraph").status_code == 404
 

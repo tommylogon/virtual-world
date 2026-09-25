@@ -49,6 +49,8 @@
         backgrounds: null,
         refImage: null,
         refNode: null,
+        refEdit: false,       // adjust mode: move/resize/crop the reference image
+        refDrag: null,        // {kind, key, start, rect, crop} during a ref edit
         selectedChild: null,
         merge: false,
         view: null,            // {scale} — Konva owns the live transform
@@ -238,11 +240,26 @@
         const el = _el('div',
             'border:1px solid var(--border,#444);border-radius:8px;padding:8px 10px;' +
             'min-width:150px;cursor:pointer;background:var(--bg-card,#24242b);');
-        el.appendChild(_el('div', 'font-weight:600;', card.name || card.id));
+        const head = _el('div', 'display:flex;align-items:center;gap:6px;');
+        head.appendChild(_el('span', 'font-weight:600;flex:1 1 auto;', card.name || card.id));
+        head.appendChild(_iconBtn('✏️', 'Rename scope', () => renameScope(card.id, card.name)));
+        head.appendChild(_iconBtn('🗑', 'Delete scope', () => deleteScope(card.id, card.name)));
+        el.appendChild(head);
         el.appendChild(_el('div', 'font-size:10px;color:var(--text-muted,#999);',
             `${card.kind || 'scope'} · ${card.state || ''}${card.mode ? ' · ' + card.mode : ''}`));
         el.addEventListener('click', () => (onOpen ? onOpen(card) : load(card.id)));
         return el;
+    }
+
+    /** Small icon button that doesn't trigger the card's own click. */
+    function _iconBtn(label, title, onClick) {
+        const b = _el('button',
+            'cursor:pointer;border:1px solid var(--border,#444);background:transparent;' +
+            'color:var(--text,#ddd);border-radius:5px;padding:1px 5px;font-size:11px;line-height:1.2;',
+            label);
+        b.title = title;
+        b.addEventListener('click', (e) => { e.stopPropagation(); onClick(); });
+        return b;
     }
 
     async function load(scopeId) {
@@ -250,6 +267,8 @@
         state.selectedChild = null;
         state.view = null;      // a new scope opens fitted
         state.route = [];
+        state.refEdit = false;  // reference adjust is per-scope
+        state.refDrag = null;
         const box = _renderShell('🗺️ WorldPainter');
         box.appendChild(_el('div', 'color:var(--text-muted,#999);', 'Loading grid…'));
         try {
@@ -260,6 +279,19 @@
             box.textContent = '';
             box.appendChild(_el('div', 'color:#e66;', `Failed to load grid: ${e.message}`));
         }
+    }
+
+    /**
+     * Refetch the open scope's payload in place. Used after a rename/delete of a
+     * scope that appears as a *card* in this scope's list: the card's name comes
+     * from the payload, so redrawing it without refetching showed the pre-edit
+     * list. Unlike `load()` this keeps the author's view and selection.
+     */
+    async function _reloadPayload() {
+        if (!state.scopeId) return;
+        state.payload = await _req(`${BASE}/${encodeURIComponent(state.scopeId)}/grid`,
+            { cache: 'no-store' });
+        render();
     }
 
     /** Shared header (title + close) and a fresh body container. */
@@ -328,12 +360,24 @@
         const tools = [['paint', '🖌 Paint'], ['erase', '🧽 Erase'],
             ['route', '🧭 Route'], ['feature', '🏠 Feature']];
         tools.forEach(([id, label]) => {
-            wrap.appendChild(_btn(label, () => { state.tool = id; render(); },
-                state.tool === id ? 'outline:2px solid #7ab;' : ''));
+            const btn = _btn(label, () => { state.tool = id; render(); },
+                state.tool === id ? 'outline:2px solid #7ab;' : '');
+            if (id === 'route') {
+                btn.title = 'Click waypoints, then ✓ Paint route — paints the '
+                    + 'current layer along the line (1 cell = 1 turn).';
+            } else if (id === 'feature') {
+                btn.title = 'Place a sub-zone (child scope) at a cell — not a '
+                    + 'road. Roads/bridges are painted on the road layer.';
+            }
+            wrap.appendChild(btn);
         });
 
+        wrap.appendChild(_el('span', 'font-size:12px;color:var(--text-muted,#999);',
+            'layer'));
         const layerSel = _el('select', 'padding:3px;border-radius:5px;');
         layerSel.setAttribute('data-role', 'wp-layer');
+        layerSel.title = 'Which layer you paint: biome, road or elevation. '
+            + 'Roads, bridges and fords are on the road layer.';
         GM().PAINT_LAYERS.forEach((l) => {
             const opt = _el('option', null, l);
             opt.value = l;
@@ -380,7 +424,12 @@
         const est = GM().estimateCompile(p, state.merge);
         const estEl = _el('span', 'font-size:11px;color:'
             + (est.total > 3000 ? '#c96' : 'var(--text-muted,#999)') + ';',
-            `≈ ${est.areas} areas · ${est.ways} ways`);
+            `≈ ${est.areas} areas · ${est.ways} ways`
+            + (est.links ? ` · 🔗 ${est.links} linked` : ''));
+        estEl.title = est.links
+            ? `${est.links} island(s) have no painted neighbour; each is joined to the `
+              + 'nearest painted cell with a single way (not one per neighbour).'
+            : 'Areas and ways this grid will compile to';
         estEl.setAttribute('data-role', 'wp-estimate');
         wrap.appendChild(estEl);
         wrap.appendChild(_btn('⚙ Generate', () => generate(), 'outline:1px solid #7ab;'));
@@ -399,6 +448,7 @@
             input.setAttribute('data-role', 'wp-value');
             input.value = state.value;
             input.placeholder = state.layer === 'elevation' ? '0..1' : 'value';
+            input.title = `Value painted on the ${state.layer} layer.`;
             input.addEventListener('input', () => { state.value = input.value; });
             return input;
         }
@@ -414,6 +464,7 @@
             sel.appendChild(opt);
         });
         sel.value = state.value;
+        sel.title = `Value painted on the ${state.layer} layer.`;
         sel.addEventListener('change', () => { state.value = sel.value; });
         return sel;
     }
@@ -622,6 +673,22 @@
             // the reference share geometry instead of fighting at different ratios.
             wrap.appendChild(_btn('▦ match', () => _gridFromReference(p),
                 'padding:1px 6px;font-size:11px;'));
+            // Move/resize/crop the picture (task-524). The rect is stored in cell
+            // units, so the graph map layout draws the same geometry.
+            const adjustBtn = _btn(state.refEdit ? '✔ adjust' : '✥ adjust', () => {
+                state.refEdit = !state.refEdit;
+                state.refDrag = null;
+                render();
+                _status(state.refEdit
+                    ? 'Reference: drag to move · corners resize · edges crop.'
+                    : 'Reference adjust off.', false);
+            }, 'padding:1px 6px;font-size:11px;');
+            adjustBtn.title = 'Move, resize and crop the reference image';
+            wrap.appendChild(adjustBtn);
+            const resetBtn = _btn('⤢ reset', () => updateReference({ reset: true }),
+                'padding:1px 6px;font-size:11px;');
+            resetBtn.title = 'Fit the whole image to the grid again (clears move/resize/crop)';
+            wrap.appendChild(resetBtn);
         }
         return wrap;
     }
@@ -677,6 +744,7 @@
         const paintShape = shape((ctx) => _drawPaint(ctx, p));
         const featureShape = shape((ctx) => _drawFeatures(ctx, p));
         const routeShape = shape((ctx) => _drawRoute(ctx));
+        const refShape = shape((ctx) => _drawRefHandles(ctx, p));
         const refLayer = new window.Konva.Layer({ listening: false });
         const bg = new window.Konva.Layer({ listening: false });
         const paint = new window.Konva.Layer({ listening: false });
@@ -696,19 +764,21 @@
         const refImg = _ensureRefImage(p);
         if (refImg && refImg.complete && refImg.naturalWidth) {
             refNode.image(refImg);
-            _fitRefNode(refNode, refImg, p);
+            _applyRefTransform(p);
         }
         refLayer.add(refNode);
         bg.add(bgShape);
         paint.add(paintShape);
         decor.add(featureShape);
         decor.add(routeShape);
+        decor.add(refShape);
         stage.add(refLayer);
         stage.add(bg);
         stage.add(paint);
         stage.add(decor);
         state.stage = stage;
         state.shapes = { bgShape, paintShape, featureShape, routeShape };
+        state.layers = { ref: refLayer, bg, paint, decor };
         _wireGrid(p);
         if (state.view) {
             // Rebuild (paint/layer change) keeps the author's place on the map.
@@ -729,6 +799,20 @@
         if (state.stage) state.stage.batchDraw();
     }
 
+    /**
+     * Redraw only the decor layer (in-progress paint stroke + feature markers +
+     * route waypoints). A paint *drag* changes nothing else: the ref/bg/paint
+     * layers keep their canvases and the stage transform is unchanged until
+     * mouse-up. Calling ``stage.batchDraw()`` on every painted cell re-rasterised
+     * the reference image each frame, which made painting crawl once a large
+     * reference (deep_forest) was loaded.
+     */
+    function _redrawDecor() {
+        const layers = state.layers;
+        if (layers && layers.decor) layers.decor.batchDraw();
+        else _redrawGrid();
+    }
+
     function _ensureRefImage(p) {
         const ref = p.reference;
         if (!ref || !ref.image) { state.refImage = null; return null; }
@@ -739,7 +823,7 @@
             state.refImage = img;
             if (state.refNode && state.payload) {
                 state.refNode.image(img);
-                _fitRefNode(state.refNode, img, state.payload);
+                _applyRefTransform(state.payload);
                 _redrawGrid();
             }
         };
@@ -749,16 +833,138 @@
     }
 
     /** Fit the reference into the grid bounds, preserving its aspect ratio. */
-    function _fitRefNode(node, img, p) {
-        const gw = p.grid.w * CELL;
-        const gh = p.grid.h * CELL;
-        const iw = img.naturalWidth || gw;
-        const ih = img.naturalHeight || gh;
-        const s = Math.min(gw / iw, gh / ih);
-        node.width(iw * s);
-        node.height(ih * s);
-        node.x((gw - iw * s) / 2);
-        node.y((gh - ih * s) / 2);
+    /**
+     * The reference's destination rect in **cell** units. A stored rect (the
+     * author's move/resize) wins; otherwise fit the whole image into the grid,
+     * preserving aspect ratio and centring it. Cell units (not px) so the graph
+     * map layout can draw the same picture at its own spacing (task-524).
+     */
+    function _refRectCells(p, img) {
+        const stored = (p.reference || {}).rect;
+        if (stored && typeof stored.x === 'number' && typeof stored.y === 'number'
+                && typeof stored.w === 'number' && typeof stored.h === 'number'
+                && stored.w > 0 && stored.h > 0) {
+            return { x: stored.x, y: stored.y, w: stored.w, h: stored.h };
+        }
+        const gw = (p.grid && p.grid.w) || 0;
+        const gh = (p.grid && p.grid.h) || 0;
+        const iw = (img && img.naturalWidth) || gw || 1;
+        const ih = (img && img.naturalHeight) || gh || 1;
+        return GM().fitReferenceRect(gw, gh, iw, ih);
+    }
+
+    /** Draw the reference into its rect (px) with the stored crop window. */
+    function _applyRefTransform(p) {
+        const node = state.refNode;
+        if (!node) return;
+        const img = state.refImage;
+        const rect = _refRectCells(p, img);
+        node.x(rect.x * CELL);
+        node.y(rect.y * CELL);
+        node.width(rect.w * CELL);
+        node.height(rect.h * CELL);
+        const iw = (img && img.naturalWidth) || 0;
+        const ih = (img && img.naturalHeight) || 0;
+        if (!iw || !ih) return;
+        const crop = (p.reference || {}).crop;
+        node.crop(crop && crop.w
+            ? { x: crop.x * iw, y: crop.y * ih, width: crop.w * iw, height: crop.h * ih }
+            : { x: 0, y: 0, width: iw, height: ih });
+    }
+
+    /** Handle anchor points (cell units): corners resize, edges crop. */
+    function _refHandlePoints(rect) {
+        return GM().referenceHandlePoints(rect);
+    }
+
+    function _drawRefHandles(ctx, p) {
+        if (!state.refEdit || !state.refImage || !(p.reference && p.reference.image)) return;
+        const rect = _refRectCells(p, state.refImage);
+        const scale = (state.stage && state.stage.scaleX()) || 1;
+        ctx.save();
+        ctx.strokeStyle = '#58a6ff';
+        ctx.lineWidth = 1.5 / scale;
+        ctx.setLineDash([6 / scale, 4 / scale]);
+        ctx.strokeRect(rect.x * CELL, rect.y * CELL, rect.w * CELL, rect.h * CELL);
+        ctx.setLineDash([]);
+        const pts = _refHandlePoints(rect);
+        Object.keys(pts).forEach((key) => {
+            ctx.beginPath();
+            ctx.arc(pts[key].x * CELL, pts[key].y * CELL, 5 / scale, 0, Math.PI * 2);
+            ctx.fillStyle = key.length === 2 ? '#58a6ff' : '#e3b341';   // corners vs edges
+            ctx.fill();
+        });
+        ctx.restore();
+    }
+
+    /** What a pointer press grabs on the reference: a handle or the body. */
+    function _refHit(p, pos) {
+        const rect = _refRectCells(p, state.refImage);
+        const scale = (state.stage && state.stage.scaleX()) || 1;
+        const tol = 9 / scale;
+        const pts = _refHandlePoints(rect);
+        for (const key of Object.keys(pts)) {
+            if (Math.abs(pos.x - pts[key].x * CELL) <= tol
+                    && Math.abs(pos.y - pts[key].y * CELL) <= tol) {
+                return { kind: key.length === 2 ? 'resize' : 'crop', key };
+            }
+        }
+        const x = rect.x * CELL, y = rect.y * CELL, w = rect.w * CELL, h = rect.h * CELL;
+        if (pos.x >= x && pos.x <= x + w && pos.y >= y && pos.y <= y + h) {
+            return { kind: 'move', key: null };
+        }
+        return null;
+    }
+
+    function _refMouseDown(p) {
+        if (!state.refImage || !(p.reference && p.reference.image)) return;
+        const pos = state.stage.getRelativePointerPosition();
+        if (!pos) return;
+        const target = _refHit(p, pos);
+        if (!target) return;
+        state.refDrag = {
+            kind: target.kind,
+            key: target.key,
+            start: { x: pos.x / CELL, y: pos.y / CELL },
+            rect: _refRectCells(p, state.refImage),
+            crop: Object.assign({ x: 0, y: 0, w: 1, h: 1 }, (p.reference || {}).crop || {}),
+        };
+    }
+
+    function _refMouseMove(p) {
+        const drag = state.refDrag;
+        if (!drag) return;
+        const pos = state.stage.getRelativePointerPosition();
+        if (!pos) return;
+        const cx = pos.x / CELL;
+        const cy = pos.y / CELL;
+        let r = Object.assign({}, drag.rect);
+        let crop = Object.assign({}, drag.crop);
+        if (drag.kind === 'move') {
+            r.x = drag.rect.x + (cx - drag.start.x);
+            r.y = drag.rect.y + (cy - drag.start.y);
+        } else {
+            // Pure geometry lives in grid-model (unit-tested): corners resize,
+            // edges crop.
+            const next = GM().referenceHandleDrag(drag.rect, drag.crop, drag.key, cx, cy);
+            r = next.rect;
+            crop = next.crop;
+        }
+        state.refDrag.rect = r;
+        state.refDrag.crop = crop;
+        // Live preview without a round-trip; persisted on mouse-up.
+        p.reference = Object.assign({}, p.reference, { rect: r, crop });
+        _applyRefTransform(p);
+        _redrawGrid();
+    }
+
+    function _refMouseUp() {
+        const drag = state.refDrag;
+        if (!drag) return;
+        state.refDrag = null;
+        const p = state.payload;
+        if (!p || !(p.reference && p.reference.image)) return;
+        updateReference({ rect: drag.rect, crop: drag.crop });
     }
 
     function _drawGridLines(ctx, p) {
@@ -879,7 +1085,7 @@
         const value = state.strokeValue;
         state.stroke = [];
         state.strokeKeys = {};
-        if (!cells.length) { _redrawGrid(); return; }
+        if (!cells.length) { _redrawDecor(); return; }
         try {
             if (cells.length === 1) {
                 state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/paint`,
@@ -899,12 +1105,14 @@
         const stage = state.stage;
         let dragged = false;
         // Paint/erase drag = paint. Pan is space-drag (or the zoom buttons), so a
-        // stroke is never interrupted by a pan.
-        stage.draggable(!_isPaintTool() || state.spaceDown);
+        // stroke is never interrupted by a pan. In reference-adjust mode the drag
+        // belongs to the picture, so only space pans there.
+        stage.draggable(state.spaceDown || (!state.refEdit && !_isPaintTool()));
         stage.on('dragstart', () => { dragged = true; });
         stage.on('dragend', _captureView);
 
         stage.on('mousedown', (e) => {
+            if (state.refEdit && !state.spaceDown) { _refMouseDown(p); return; }
             if (!_isPaintTool() || state.spaceDown || (e.evt && e.evt.button !== 0)) return;
             state.stroke = [];
             state.strokeKeys = {};
@@ -912,17 +1120,20 @@
             state.strokeValue = state.tool === 'erase' ? null : state.value;
             state.stroking = true;
             _strokeAdd(p, _cellAtPointer(p));
-            _redrawGrid();
+            _redrawDecor();
         });
         stage.on('mousemove', () => {
+            if (state.refEdit) { _refMouseMove(p); return; }
             if (!state.stroking) return;
-            if (_strokeAdd(p, _cellAtPointer(p))) _redrawGrid();
+            if (_strokeAdd(p, _cellAtPointer(p))) _redrawDecor();
         });
         stage.on('mouseup mouseleave', () => {
+            if (state.refEdit) { _refMouseUp(); return; }
             if (state.stroking) _commitStroke(p);
         });
 
         stage.on('click tap', () => {
+            if (state.refEdit) return;    // adjust mode owns the pointer
             if (dragged) { dragged = false; return; }
             if (_isPaintTool()) return;   // already committed by the stroke
             const cell = _cellAtPointer(p);
@@ -1031,7 +1242,7 @@
             // batch-paints it in one request (a 240-cell trail is one undo).
             state.route.push({ x, y });
             if (state.routeInfoEl) state.routeInfoEl.textContent = _routeLabel();
-            _redrawGrid();
+            _redrawDecor();
             return;
         }
         if (state.tool === 'feature') {
@@ -1113,6 +1324,56 @@
             render();
         } catch (e) {
             _status(`Remove failed: ${e.message}`, true);
+        }
+    }
+
+    /** Rename a scope's display name (its id, and every node reference, stays). */
+    async function renameScope(scopeId, currentName) {
+        const name = window.prompt('Rename scope:', currentName || scopeId);
+        if (name == null) return;
+        const clean = name.trim();
+        if (!clean || clean === currentName) return;
+        try {
+            await _post(`/${encodeURIComponent(scopeId)}/rename`, { name: clean });
+            _notify(true);
+            // A renamed *child* is a card in this scope's list, and the card's
+            // name lives in the payload — refetch it. `render()` alone redrew the
+            // stale list and the card kept its old label. Renaming the open scope
+            // itself needs a full load (its title/breadcrumb changed).
+            if (state.scopeId === scopeId) await load(scopeId);
+            else await _reloadPayload();
+            _status(`Renamed to “${clean}”.`, false);
+        } catch (e) {
+            _status(`Rename failed: ${e.message}`, true);
+        }
+    }
+
+    /**
+     * Delete a scope. Refuses one that still has children (delete those first);
+     * a generated scope's areas/ways/items go with it. If it was the open scope,
+     * fall back to its parent.
+     */
+    async function deleteScope(scopeId, name) {
+        const label = name || scopeId;
+        if (!window.confirm(`Delete scope “${label}”?\n\n`
+            + `This removes the scope, unplaces it, and deletes the areas/ways/items `
+            + `generated for it. Scopes that still have children must be emptied first.`)) {
+            return;
+        }
+        const trail = (state.payload && state.payload.breadcrumb) || [];
+        const parentId = trail.length > 1 ? trail[trail.length - 2].id : null;
+        try {
+            const result = await _post(`/${encodeURIComponent(scopeId)}/delete`, {});
+            _notify(true);
+            if (state.scopeId === scopeId) {
+                if (parentId) load(parentId); else open();
+            } else {
+                // Deleted scope was a card here: refetch so the card disappears.
+                await _reloadPayload();
+            }
+            _status(`Deleted “${label}” (${result.deleted_nodes || 0} generated node(s)).`, false);
+        } catch (e) {
+            _status(`Delete failed: ${e.message}`, true);
         }
     }
 

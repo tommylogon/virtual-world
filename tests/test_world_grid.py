@@ -243,3 +243,104 @@ def test_normalise_manifest_cleans_a_malformed_grid():
     forest = normalised["forest"]
     assert "grid" not in forest          # zero size is not a grid
     assert forest["placements"] == {"village": {"x": 1, "y": 1}}
+
+
+# ----------------------------- reference image ----------------------------
+
+
+def test_reference_stores_and_defaults_rect_and_crop():
+    m = _gridded_manifest()
+    rec = m["forest"]
+    wg.set_reference(rec, "/static/images/backgrounds/map.png", opacity=0.4)
+    ref = wg.reference(rec)
+    assert ref["image"].endswith("map.png")
+    # No rect = auto-fit; no crop = the whole image.
+    assert wg.reference_rect(rec) is None
+    assert wg.reference_crop(rec) == wg.REFERENCE_CROP_DEFAULT
+
+
+def test_reference_rect_and_crop_round_trip_in_cell_units():
+    m = _gridded_manifest()
+    rec = m["forest"]
+    wg.set_reference(rec, "/static/images/backgrounds/map.png")
+    wg.set_reference(rec, "/static/images/backgrounds/map.png",
+                     rect={"x": -1.5, "y": 2.0, "w": 8.0, "h": 6.0},
+                     crop={"x": 0.1, "y": 0.2, "w": 0.7, "h": 0.6})
+    assert wg.reference_rect(rec) == {"x": -1.5, "y": 2.0, "w": 8.0, "h": 6.0}
+    assert wg.reference_crop(rec) == {"x": 0.1, "y": 0.2, "w": 0.7, "h": 0.6}
+    # A later opacity-only save keeps the layout.
+    wg.set_reference(rec, "/static/images/backgrounds/map.png", opacity=0.9)
+    assert wg.reference_rect(rec) is not None
+    assert wg.reference(rec)["opacity"] == 0.9
+
+
+def test_reference_reset_and_new_image_drop_the_layout():
+    m = _gridded_manifest()
+    rec = m["forest"]
+    wg.set_reference(rec, "/static/images/backgrounds/one.png",
+                     rect={"x": 0, "y": 0, "w": 4, "h": 3})
+    wg.set_reference(rec, "/static/images/backgrounds/one.png", reset=True)
+    assert wg.reference_rect(rec) is None, "reset returns to auto-fit"
+
+    wg.set_reference(rec, "/static/images/backgrounds/one.png",
+                     rect={"x": 0, "y": 0, "w": 4, "h": 3})
+    wg.set_reference(rec, "/static/images/backgrounds/two.png")
+    assert wg.reference_rect(rec) is None, "a new image auto-fits"
+
+
+def test_reference_rejects_nonsense_rect_and_clamps_crop():
+    m = _gridded_manifest()
+    rec = m["forest"]
+    wg.set_reference(rec, "/static/images/backgrounds/map.png",
+                     rect={"x": 0, "y": 0, "w": 0, "h": 3})       # zero width
+    assert wg.reference_rect(rec) is None
+    wg.set_reference(rec, "/static/images/backgrounds/map.png",
+                     rect={"x": 0, "y": 0, "w": 4, "h": 3},
+                     crop={"x": -1, "y": 0, "w": 5, "h": 1})
+    assert wg.reference_crop(rec) == {"x": 0.0, "y": 0.0, "w": 1.0, "h": 1.0}
+
+
+# -------------------------- map offset (task-523) ------------------------
+
+
+def test_map_offset_defaults_to_zero_and_is_absent():
+    m = _gridded_manifest()
+    rec = m["forest"]
+    assert wg.map_offset(rec) == {"x": 0.0, "y": 0.0}
+    assert "map_offset" not in rec, "an unmoved scope stores no offset"
+
+
+def test_set_map_offset_round_trips_and_zero_clears_it():
+    m = _gridded_manifest()
+    rec = m["forest"]
+    wg.set_map_offset(rec, 3, -2.5)
+    assert rec["map_offset"] == {"x": 3.0, "y": -2.5}
+    assert wg.map_offset(rec) == {"x": 3.0, "y": -2.5}
+    # Back to the painted position = absence, so the manifest stays minimal.
+    wg.set_map_offset(rec, 0, 0)
+    assert "map_offset" not in rec
+    wg.set_map_offset(rec, 1, 1)
+    wg.set_map_offset(rec, reset=True)
+    assert "map_offset" not in rec
+
+
+def test_set_map_offset_rejects_nonsense():
+    m = _gridded_manifest()
+    rec = m["forest"]
+    with pytest.raises(ValueError):
+        wg.set_map_offset(rec, "left", 0)
+    with pytest.raises(ValueError):
+        wg.set_map_offset(rec, float("inf"), 0)
+    with pytest.raises(ValueError):
+        wg.set_map_offset(rec, wg.MAP_OFFSET_LIMIT + 1, 0)
+
+
+def test_map_offset_survives_manifest_normalisation():
+    normalised = world_scopes.normalise_manifest({
+        "forest": {"id": "forest", "name": "Forest",
+                   "grid": {"w": 4, "h": 3},
+                   "map_offset": {"x": 2.5, "y": -1}},
+        "bad": {"id": "bad", "name": "Bad", "map_offset": {"x": "nope", "y": 0}},
+    })
+    assert normalised["forest"]["map_offset"] == {"x": 2.5, "y": -1.0}
+    assert "map_offset" not in normalised["bad"]

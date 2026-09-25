@@ -50,20 +50,26 @@ def handle_scope_graph(app, scope_id):
 
 
 def handle_scope_subgraph(app, scope_id):
-    """GET /api/world/scopes/<scope_id>/subgraph?include_items= — vis subgraph.
+    """GET /api/world/scopes/<scope_id>/subgraph?include_items=&descendants=
 
     The graph view loads this instead of the whole-world ``/api/graph/*`` when a
     scope is selected, so a huge painted world never ships every node to the
     browser (task-397 step 3 / task-400). Shape matches ``WorldGraph.to_dict``,
     plus the scope summary for the breadcrumb.
+
+    Level-scoped by default: a parent shows its own areas (a placed child zone is
+    one feature cell). ``?descendants=1`` returns the recursive subtree.
     """
     manifest, graph, players = _parts(app)
     if scope_id not in manifest:
         return jsonify({"error": f"Scope '{scope_id}' not found"}), 404
     include_items = str(request.args.get("include_items", "1")).lower() not in (
         "0", "false", "no")
+    descendants = str(request.args.get("descendants", "0")).lower() in (
+        "1", "true", "yes")
     sub = world_scopes.project_subgraph(manifest, graph, players, scope_id,
-                                        include_items=include_items)
+                                        include_items=include_items,
+                                        descendants=descendants)
     return jsonify({"scope": world_scopes.scope_summary(manifest, graph, players,
                                                         scope_id),
                     **sub})

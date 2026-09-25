@@ -142,3 +142,20 @@ test('screen→graph conversion inverts the transform the layers are drawn with'
     assertEq(centre.x, 10, 'centre x is the view position');
     assertEq(centre.y, 20, 'centre y is the view position');
 });
+
+test('paintedGridRect maps a painted scope grid to graph space', () => {
+    const rect = GB._internals.paintedGridRect;
+    assertEq(rect(null), null, 'no grid');
+    assertEq(rect({}), null, 'empty grid');
+    assertEq(rect({ w: 0, h: 4 }), null, 'zero width');
+    assertEq(rect({ w: 4, h: 0 }), null, 'zero height');
+    // Default spacing: the Map layout's scale (GRID_SCALE 1) = 40px per cell,
+    // half a cell offset so cell 0's area is at the origin.
+    assertEq(rect({ w: 8, h: 4 }), { x: -20, y: -20, width: 320, height: 160 }, 'map spacing');
+    assertEq(rect({ w: 8, h: 4 }, 1), { x: -20, y: -20, width: 320, height: 160 }, 'engine units');
+    // An explicit override scales with the spacing (3.5 → 140px/cell).
+    assertEq(rect({ w: 8, h: 4 }, 3.5), { x: -70, y: -70, width: 1120, height: 560 }, 'override');
+    const wide = rect({ w: 8, h: 4 }, 1);
+    assertEq(wide.x + wide.width, 300, 'right edge is half a cell past the last column');
+    assertEq(wide.y + wide.height, 140, 'bottom edge is half a cell past the last row');
+});

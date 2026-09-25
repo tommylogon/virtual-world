@@ -40,10 +40,26 @@ declare const ApiClient: {
     saveGraphBackground(background: unknown): Promise<unknown>;
     uploadBackgroundImage(file: File): Promise<{ image?: string } | null>;
     batchGraph(ops: unknown[]): Promise<{ errors?: unknown[] } | null>;
+    getWorldGrid(scopeId: string): Promise<unknown>;
+    setScopeOffset(scopeId: string, offset?: { x?: number; y?: number; reset?: boolean }): Promise<unknown>;
 };
 
 /** AppEventBus singleton (event-bus.js): `state:updated` and friends. */
 declare const appEvents: {
     on(event: string, handler: (...args: unknown[]) => void): void;
     off?(event: string, handler: (...args: unknown[]) => void): void;
+};
+
+/** GraphLayoutEngine (graph/layout-engine.js): map layout helpers. */
+declare const GraphLayoutEngine: {
+    GRID_SCALE: number;
+    PAINT_UNITS_PER_CELL: number;
+    hasPaintedGrid(nodes: unknown): boolean;
+    gridPosition(properties: unknown, scale?: number): { x: number; y: number } | null;
+    mapSpacing(): number;
+    nodeScopeId(node: unknown): string | null;
+    offsetPxFor(node: unknown, offsets?: unknown, spacing?: number): { x: number; y: number };
+    scopedGridPosition(properties: unknown, node: unknown, offsets?: unknown,
+                       scale?: number): { x: number; y: number } | null;
+    refreshGridLayout(nodesObj?: unknown, offsets?: unknown): number;
 };
