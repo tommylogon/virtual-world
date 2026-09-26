@@ -18,6 +18,7 @@ from .world_grid_ops import (
     handle_set_reference,
     handle_set_scope_grid,
     handle_set_scope_offset,
+    handle_ungenerate_scope,
 )
 
 
@@ -65,6 +66,10 @@ def register_world_grid_routes(app):
     @app.route('/api/world/scopes/<scope_id>/grid/generate', methods=['POST'])
     def world_scope_grid_generate(scope_id):
         return handle_generate_scope(app, scope_id)
+
+    @app.route('/api/world/scopes/<scope_id>/grid/ungenerate', methods=['POST'])
+    def world_scope_grid_ungenerate(scope_id):
+        return handle_ungenerate_scope(app, scope_id)
 
     @app.route('/api/world/scopes/<scope_id>/rename', methods=['POST'])
     def world_scope_rename(scope_id):

@@ -28,6 +28,13 @@ class GraphManager {
         this._cardinalLayout = false;
         this._showEdgeLabels = true;
         this._edgeLabelSize = 8;
+        // Node-name labels: a manual toggle plus zoom LOD, because a dense
+        // painted map (1k+ cells) becomes a wall of text at overview zoom.
+        this._showNodeLabels = (() => {
+            try { const stored = localStorage.getItem('vw_graphNodeLabels'); return stored !== null ? stored === '1' : true; } catch (e) { return true; }
+        })();
+        this._nodeLabelsShown = null;   // last applied decision (avoid churn)
+        this._labelCache = null;        // decorated labels saved while hidden
         this._showItems = false;
         this._showOnlyInhabitedAreas = true;
         this._revealedAreaIds = new Set();
@@ -47,6 +54,7 @@ class GraphManager {
         await GraphNetwork.init();
         if (window.GraphBackground) await window.GraphBackground.init();
         await this._applyEngineConfigDefaults();
+        this._syncMapSpacingButton();
     }
 
     // ───────────── Bulk selection (task-378 / audit #12) ─────────────
@@ -243,6 +251,40 @@ class GraphManager {
     async loadGraphData() {
         this._clearBulkSelection();
         return GraphNetwork.loadGraphData();
+    }
+
+    /**
+     * Nudge the map-layout pitch (px per painted cell) — the padding between
+     * areas in Map mode. Persists to `config.graphMapSpacing`, re-lays the
+     * painted grid at the new pitch, and re-aligns the map art. `delta` is
+     * relative (e.g. +20 / -20 from the toolbar's +/- buttons).
+     */
+    async setMapSpacing(delta) {
+        const current = this._mapSpacingValue();
+        const next = Math.max(20, Math.min(400, Math.round(current + Number(delta || 0))));
+        if (typeof config !== 'undefined' && config) config.graphMapSpacing = next;
+        try { storage.setConfig('graphMapSpacing', next); } catch (e) { /* keep the session value */ }
+        this._syncMapSpacingButton();
+        this._lastSig = '';
+        await this.loadGraphData();
+        // The art is positioned in px, so a pitch change must re-fit it; only
+        // meaningful for a painted scope in Map mode.
+        if (this._scopeFilter && this._cardinalLayout
+                && window.GraphBackground && window.GraphBackground.fitToPaintedGrid) {
+            try { await window.GraphBackground.fitToPaintedGrid(); } catch (e) { /* ignore */ }
+        }
+    }
+
+    _mapSpacingValue() {
+        try {
+            const value = Number(config && config.graphMapSpacing);
+            return value > 0 ? value : 40;
+        } catch (e) { return 40; }
+    }
+
+    _syncMapSpacingButton() {
+        const el = document.getElementById('map-spacing');
+        if (el) el.textContent = String(this._mapSpacingValue());
     }
 
     _buildTooltip(nodeData) { return GraphNetwork.buildTooltip(nodeData); }
@@ -779,6 +821,19 @@ class GraphManager {
         if (btn) btn.classList.toggle('active', this._showEdgeLabels);
         this._lastSig = '';
         this.loadGraphData();
+    }
+
+    /**
+     * Toggle node-name labels. Independent of the zoom LOD: off forces every
+     * name hidden, on restores them (the LOD still hides them at overview zoom
+     * for a very dense map until you zoom in).
+     */
+    toggleNodeLabels() {
+        this._showNodeLabels = !this._showNodeLabels;
+        try { localStorage.setItem('vw_graphNodeLabels', this._showNodeLabels ? '1' : '0'); } catch (e) { /* ignore */ }
+        const btn = document.getElementById('btn-node-labels');
+        if (btn) btn.classList.toggle('active', this._showNodeLabels);
+        GraphNetwork.applyNodeLabelVisibility(true);
     }
 
     setEdgeLabelSize(delta) {

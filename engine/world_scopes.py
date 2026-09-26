@@ -345,6 +345,50 @@ def delete_scope(manifest: Dict[str, dict], graph, scope_id: str,
             "deleted_nodes": deleted}
 
 
+def ungenerate_scope(manifest: Dict[str, dict], graph, scope_id: str) -> dict:
+    """Delete a scope's generated nodes but keep the scope and its painted grid.
+
+    The inverse of ``⚙ Generate``: every node whose provenance
+    (``properties.generated.scope_id``) is this scope is removed — areas, ways,
+    gateways and generated items — plus any gateway a *parent* emitted that opens
+    into this scope (``properties.child_scope_id``). The scope record itself
+    survives with its paint, reference, map offset and placements; only
+    ``state``/``area_ids``/entry and the compiled ``placements`` area links are
+    reset, so a later Generate starts from a clean slate. Returns
+    ``{scope_id, deleted_nodes}``.
+    """
+    if scope_id not in manifest:
+        raise ValueError(f"scope {scope_id!r} not found")
+    record = manifest[scope_id]
+
+    deleted = 0
+    for node_id, node in list(graph.nodes.items()):
+        props = getattr(node, "properties", {}) or {}
+        generated = props.get("generated") or {}
+        # A parent's gateway into this scope dies with the scope it points at,
+        # even though its provenance names the parent.
+        into_scope = (getattr(node, "type", None) == "way"
+                      and str(props.get("child_scope_id") or "") == scope_id)
+        if generated.get("scope_id") == scope_id or into_scope:
+            graph.remove_node(node_id)
+            deleted += 1
+
+    # Compiled placement links point at areas that no longer exist; drop them so
+    # a regenerate re-links rather than following a dangling id.
+    prefix = f"area_{scope_id}_"
+    for other in manifest.values():
+        for pos in (other.get("placements") or {}).values():
+            if isinstance(pos, dict) and str(pos.get("area_id") or "").startswith(prefix):
+                pos.pop("area_id", None)
+                pos.pop("area_name", None)
+
+    record["state"] = "unmade"
+    record["area_ids"] = []
+    record.pop("entry_area_id", None)
+    record.pop("entry_area_name", None)
+    return {"scope_id": scope_id, "deleted_nodes": deleted}
+
+
 def project_subgraph(manifest: Dict[str, dict], graph, players, scope_id: str,
                      include_items: bool = True, descendants: bool = False) -> dict:
     """A vis-loadable subgraph for one scope (task-397 step 3).

@@ -126,8 +126,17 @@ def apply_patch(graph, manifest: Dict[str, dict], patch: GenerationPatch, *,
     # All collisions checked before any mutation, so a rejected apply leaves the
     # graph untouched rather than half-written.
     for node in patch.nodes:
-        if graph.get_node(node.id) is None:
+        existing = graph.get_node(node.id)
+        if existing is None:
             graph.add_node(node)
+        else:
+            # Reached only when allow_regenerate and both nodes are generated
+            # (the check above rejected every other case). The node must be
+            # re-stamped in place, not skipped: a re-run that only *adds* missing
+            # nodes leaves every existing one with its old data, so a recipe
+            # change (e.g. the compiler adding properties.cell/x/y) never reaches
+            # the nodes it already emitted.
+            graph.replace_node(node)
 
     for edge in patch.edges:
         graph.add_edge(edge)

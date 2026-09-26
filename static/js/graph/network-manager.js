@@ -58,6 +58,13 @@ window.GraphNetwork = {
         graphManager.network.on("oncontext", (params) => GraphEventHandlers.onContext(params));
         GraphNetwork._bindEdgeHoverTooltips();
 
+        // Label LOD: re-decide which names to draw when the zoom settles.
+        let labelZoomTimer = null;
+        graphManager.network.on("zoom", () => {
+            if (labelZoomTimer) clearTimeout(labelZoomTimer);
+            labelZoomTimer = setTimeout(() => GraphNetwork.applyNodeLabelVisibility(), 140);
+        });
+
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && graphManager._pendingConnection) {
                 graphManager.cancelPendingConnection();
@@ -247,6 +254,9 @@ window.GraphNetwork = {
             graphManager.nodes.clear();
             graphManager._revealedItemIds = new Map();
             graphManager._revealedAreaIds.clear();
+            // A new node set invalidates the label LOD decision + cache.
+            graphManager._nodeLabelsShown = null;
+            graphManager._labelCache = null;
             const visNodes = [];
             const visEdges = [];
             graphManager._graphNodesObj = nodesObj;
@@ -425,7 +435,11 @@ window.GraphNetwork = {
 
         // Items, characters and triggers sit relative to whatever holds them,
         // derived fresh each load (task-485) — never a saved snapshot, so a
-        // carried item follows its carrier.
+        // carried item follows its carrier. This must run in Map mode too: a
+        // painted grid places areas and ways, but items/characters have no
+        // painted coords and would otherwise pile up at the origin, fanning
+        // their edges across the map (the follow timer sleeps itself when
+        // physics is off, so there is no steady-state cost to leave it on).
         if (window.GraphRelativeLayout) {
             try { window.GraphRelativeLayout.apply(); } catch (err) { /* ignore */ }
         }
@@ -462,6 +476,9 @@ window.GraphNetwork = {
 
             // Re-apply trait + tag label decorations (tag library may load async)
             GraphNetwork._applyNodeLabelDecorations();
+
+            // Now that labels are decorated, apply the zoom-LOD decision.
+            GraphNetwork.applyNodeLabelVisibility(true);
 
             // Refresh floor picker options from areas now present
             graphManager.refreshFloorOptions();
@@ -502,6 +519,61 @@ window.GraphNetwork = {
     applyVisibility() {
         const visibleIds = GraphNetwork._computeVisibleNodeIds();
         GraphProjector.applyVisibility(graphManager.network, visibleIds);
+    },
+
+    /**
+     * Should node names be drawn right now? The manual toggle plus a zoom LOD:
+     * a dense painted map (more than `graphLabelMaxNodes`, default 400) hides
+     * names until the view is zoomed past `graphLabelMinScale` (default 0.6), so
+     * the overview is topology, not a wall of text. A small graph always shows.
+     */
+    _nodeLabelPolicy() {
+        if (!graphManager._showNodeLabels) return false;
+        const total = Object.keys(graphManager._graphNodesObj || {}).length;
+        const max = Number((typeof config !== 'undefined' && config && config.graphLabelMaxNodes)) || 400;
+        if (total <= max) return true;
+        let scale = 1;
+        try { scale = graphManager.network.getScale(); } catch (err) { /* ignore */ }
+        const minScale = Number((typeof config !== 'undefined' && config && config.graphLabelMinScale)) || 0.6;
+        return scale >= minScale;
+    },
+
+    /**
+     * Apply the label policy in one DataSet pass — only when the decision
+     * changes, so zooming does not re-write 1k nodes every frame. Decorated
+     * labels are cached while hidden and restored verbatim.
+     */
+    applyNodeLabelVisibility(force) {
+        if (!graphManager.network) return;
+        const nodesDS = graphManager.network.body && graphManager.network.body.data
+            && graphManager.network.body.data.nodes;
+        if (!nodesDS) return;
+        const show = GraphNetwork._nodeLabelPolicy();
+        if (!force && show === graphManager._nodeLabelsShown) return;
+        graphManager._nodeLabelsShown = show;
+        const src = graphManager._graphNodesObj || {};
+        const updates = [];
+        if (!show) {
+            if (!graphManager._labelCache) {
+                graphManager._labelCache = {};
+                for (const id in src) {
+                    const datum = nodesDS.get(id);
+                    if (datum) graphManager._labelCache[id] = datum.label || '';
+                }
+            }
+            for (const id in src) if (nodesDS.get(id)) updates.push({ id, label: '' });
+        } else if (graphManager._labelCache) {
+            for (const [id, label] of Object.entries(graphManager._labelCache)) {
+                if (nodesDS.get(id)) updates.push({ id, label });
+            }
+            graphManager._labelCache = null;
+        }
+        if (updates.length) {
+            nodesDS.update(updates);
+            graphManager.network.redraw();
+        }
+        const btn = document.getElementById('btn-node-labels');
+        if (btn) btn.classList.toggle('active', graphManager._showNodeLabels);
     },
 
     /**

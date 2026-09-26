@@ -137,7 +137,24 @@ unit-tested.
 applies a **spacing margin** (`mapSpacing()`, default 40px, override with
 `config.graphMapSpacing`). 40px/cell means an area every 40px with the way at the
 20px midpoint. The old 3.5× scale (140px/cell) made a 200×133 world ~28,000px
-wide and unreadable; spacing keeps the painted topology at a usable density.
+wide and unreadable; spacing keeps the painted topology at a usable density. The
+toolbar's **spacing − / +** control (next to `🗺️ Map`) edits
+`config.graphMapSpacing` live and re-lays the grid + re-fits the art at the new
+pitch — the padding knob for a dense painted map.
+
+**Ungenerate keeps the grid (task-496 follow-up).** `⚙ Generate` writes the
+zone's areas/ways; **🧹 Ungenerate** deletes exactly those nodes (provenance
+`generated.scope_id`, plus any parent gateway whose `child_scope_id` is the zone)
+and resets the scope to `unmade`, keeping the painted grid, reference, map offset
+and placements — a clean slate without repainting. A plain re-run
+(`allow_regenerate`) now re-stamps existing nodes in place, but it never removes
+orphans the new recipe no longer emits; ungenerate is the way to drop those.
+
+**Dense maps hide labels at overview zoom.** Node names are drawn by a zoom-level
+policy (`graphManager._showNodeLabels` + `graphLabelMaxNodes`/`graphLabelMinScale`
+in `GraphNetwork._nodeLabelPolicy`): above ~400 nodes the names hide until the
+view is zoomed past ~0.6 scale, so a 1k-cell map shows topology, not a wall of
+text. The toolbar **🔤 Names** button forces them on/off.
 
 **Moving a whole zone (task-523).** Each scope stores an optional `map_offset`
 in **cell** units (absent = `(0,0)`, i.e. the painted position). The Map layout
@@ -184,7 +201,32 @@ instead of the whole world. That is what keeps a densely painted world from
 freezing the canvas — the browser is never sent nodes outside the selected
 scope, so the node count is per zone, not per world.
 
-## Open decisions
+## Description and direction model (2026-09-26)
+
+Locked with the author; the compiler's next pass targets this.
+
+- **Every painted cell is a place, roads included.** A road cell *replaces* its
+  biome — one node per cell, the biome is description *context*, not a second
+  area. A road-only cell now compiles instead of being dropped by
+  `cells = sorted(biome_of)`.
+- **A description composes the place's character** from its neighbours and
+  elevation, it does not just list them: "a road along the forest line" (woods
+  to the north), "a road in the woods" (woods both sides), "a narrow path, the
+  rockface rising on one side and dropping away on the other" (cliff neighbours,
+  read from floor/elevation). It may look one hop further to say where a road
+  *leads* ("the road west leads back into the sparse woods"). Deterministic, no
+  LLM — the fragment catalogue is the hook.
+- **Directions: compass outdoors, narrative on feature entry.** Exterior
+  cell-to-cell moves stay `north/south/east/west` (+ diagonals). Entering a
+  **feature** uses a narrative phrase (`enter`, `enter the mine`,
+  `climb up the rockface`, existing `in`/`out`) carried by the edge, sourced from
+  the feature/placement rather than hardcoded. Movement already resolves by the
+  direction string, so the vocabulary widens with **no engine change**.
+- **Floors inform prose now, gate movement later.** `properties.elevation`
+  feeds the cliff phrasing; a floor delta past ~3 floors requiring a climb (and
+  potentially blocking the step) is deferred to **task-525**.
+
+
 
 - ~~Grid-canonical vs baked (task-496) — blocking; must be decided before the
   compiler is written.~~ **Decided 2026-09-24: per-zone `paint_policy`

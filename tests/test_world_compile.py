@@ -324,6 +324,31 @@ def test_regenerating_the_parent_does_not_duplicate_the_gateway():
     assert gw_ids == ["way_gateway_town_inn"]
 
 
+def test_regenerating_restamps_an_existing_generated_node():
+    """A re-run refreshes an emitted node's payload instead of keeping stale data.
+
+    Regression: a scope compiled before the recipe stored ``properties.cell``
+    kept no coords after ⚙ Generate, because apply_patch only *added* missing
+    nodes. Map mode then fell back to the compass layout and left physics on.
+    """
+    m = _manifest(FOUR)
+    g = WorldGraph()
+    generation.apply_patch(g, m, world_compile.compile_grid(m, "wild"))
+
+    area_id = "area_wild_0_0"
+    stale = g.get_node(area_id)
+    assert stale.properties["cell"] == {"x": 0, "y": 0}
+    # Simulate an old record: drop the painted coords the recipe now emits.
+    for key in ("cell", "x", "y"):
+        stale.properties.pop(key, None)
+
+    generation.apply_patch(g, m, world_compile.compile_grid(m, "wild"),
+                           allow_regenerate=True)
+    fresh = g.get_node(area_id)
+    assert fresh.properties["cell"] == {"x": 0, "y": 0}
+    assert fresh.properties["x"] == 0 and fresh.properties["y"] == 0
+
+
 def test_a_placement_on_an_unpainted_cell_does_not_link():
     m = _town_with_inn()
     wg.place(m, "town", "inn", 1, 0)   # cell (1,0) is painted, so move off it
@@ -332,6 +357,34 @@ def test_a_placement_on_an_unpainted_cell_does_not_link():
     parent_patch = world_compile.compile_grid(m, "town")
     assert not [n for n in parent_patch.nodes if n.id.startswith("way_gateway_")]
     assert "area_id" not in m["town"]["placements"]["inn"]
+
+
+def test_ungenerate_deletes_a_zone_but_keeps_its_grid():
+    """⚙ Ungenerate removes the generated nodes and resets the scope, keeping paint."""
+    m = _town_with_inn()
+    g = WorldGraph()
+    generation.apply_patch(g, m, world_compile.compile_grid(m, "inn"))
+    generation.apply_patch(g, m, world_compile.compile_grid(m, "town"))
+    assert g.get_node("way_gateway_town_inn") is not None
+    assert m["town"]["placements"]["inn"]["area_id"] == "area_town_0_0"
+
+    result = world_scopes.ungenerate_scope(m, g, "inn")
+    assert result["deleted_nodes"] >= 1
+    assert not [nid for nid in g.nodes if nid.startswith("area_inn_")]
+    # The parent's gateway into the zone dies with it, but the parent's own
+    # nodes and its placement link (which points at the parent's area) stay.
+    assert g.get_node("way_gateway_town_inn") is None
+    assert g.get_node("area_town_0_0") is not None
+    assert m["town"]["placements"]["inn"]["area_id"] == "area_town_0_0"
+    # The scope keeps its grid and paint, and returns to unmade.
+    assert m["inn"]["state"] == "unmade" and not m["inn"]["area_ids"]
+    assert "entry_area_id" not in m["inn"]
+    assert m["inn"]["layers"]["biome"]["0,0"] == "sparse_forest"
+
+    # A clean regenerate re-creates the zone and re-links the gateway.
+    generation.apply_patch(g, m, world_compile.compile_grid(m, "inn"))
+    assert g.get_node("area_inn_0_0") is not None
+    assert g.get_node("way_gateway_town_inn") is not None
 
 
 # ───────────────────── integration with the scope layer ──────────────────

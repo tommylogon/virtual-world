@@ -187,6 +187,11 @@
                 <div class="toolbar-group" aria-label="View mode">
                     <button class="toolbar-btn view-toggle active" data-view="graph" onclick="graphManager.setViewMode('graph')" title="Force-directed graph view">🔮 Graph</button>
                     <button class="toolbar-btn" id="btn-cardinal" onclick="graphManager.toggleCardinalLayout()" title="Map layout: use painted grid positions when the world was painted, otherwise arrange areas from exit directions">🗺️ Map</button>
+                    <span style="display:inline-flex;align-items:center;gap:2px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;padding:2px 4px;" title="Map mode: pixels per painted cell (padding between areas). Raise it to de-clutter a dense grid.">
+                        <button class="toolbar-btn" style="padding:0 6px;font-size:12px;line-height:1.2;" onclick="graphManager.setMapSpacing(-20)" title="Tighter map spacing">−</button>
+                        <span id="map-spacing" style="font-size:10px;color:var(--text);min-width:22px;text-align:center;">40</span>
+                        <button class="toolbar-btn" style="padding:0 6px;font-size:12px;line-height:1.2;" onclick="graphManager.setMapSpacing(20)" title="Roomier map spacing">+</button>
+                    </span>
                     <div class="toolbar-dropdown menu-anchor" style="position:relative;">
                         <button class="toolbar-btn" id="btn-overlays" data-help="overlays" onclick="graphManager._toggleOverlayDropdown()" title="Graph overlay views">📊 Overlays ▾</button>
                         <div id="overlay-dropdown" class="dropdown-menu" style="display:none;position:absolute;top:100%;left:0;z-index:200;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:4px;box-shadow:0 8px 24px rgba(0,0,0,0.5);min-width:160px;">
@@ -227,6 +232,7 @@
                 <!-- Edge labels -->
                 <div class="toolbar-group" aria-label="Edge labels">
                     <button class="toolbar-btn active" id="btn-edge-labels" onclick="graphManager.toggleEdgeLabels()" title="Show all edge type labels">🏷 Labels</button>
+                    <button class="toolbar-btn active" id="btn-node-labels" onclick="graphManager.toggleNodeLabels()" title="Show node names. Names auto-hide at overview zoom on a dense painted map (toggle off to force-hide).">🔤 Names</button>
                     <span style="display:inline-flex;align-items:center;gap:2px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;padding:2px 4px;">
                         <button class="toolbar-btn" style="padding:0 6px;font-size:12px;line-height:1.2;" onclick="graphManager.setEdgeLabelSize(-1)" title="Smaller edge labels">−</button>
                         <span id="edge-label-size" style="font-size:10px;color:var(--text);min-width:14px;text-align:center;">8</span>

@@ -50,6 +50,10 @@ class ConfigManager {
         // on a parent-relative offset; 'levels' = vis hierarchical layout, where
         // the layout engine places every node by relation level (physics off).
         this.graphLayoutMode = await storage.getConfig('graph_layout_mode') || 'free';
+        // Map-layout pitch (task-523 follow-up): px per painted cell, i.e. the
+        // padding between areas in Map mode. 40px = an area every 40px with the
+        // way at the midpoint; raise it to de-clutter a dense painted grid.
+        this.graphMapSpacing = parseInt(await storage.getConfig('graphMapSpacing')) || 40;
         // Node separation (graph/separation.js): nearby item/character nodes
         // push apart unless an edge already joins them. `min` is the distance
         // under which they repel, `max` the distance beyond which a pair is

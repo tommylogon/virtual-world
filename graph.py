@@ -174,6 +174,25 @@ class WorldGraph:
         self._id_index[node.id.lower()] = node.id
         self._revision += 1
 
+    def replace_node(self, node: Node):
+        """Overwrite an existing node's payload in place, keeping its edges.
+
+        A generator re-run must re-stamp a node it already emitted (e.g. the
+        WorldPainter compiler adding ``properties.cell``), not leave the old
+        payload behind. Edges are deliberately untouched: a remove+add would drop
+        gateways emitted from the other side of a scope. Raises ``KeyError`` for a
+        missing id — new nodes go through :meth:`add_node`.
+        """
+        stored_id = self._resolve_id(node.id)
+        if stored_id is None:
+            raise KeyError(node.id)
+        existing = self.nodes[stored_id]
+        existing.type = "way" if node.type == "door" else node.type
+        existing.name = node.name
+        existing.properties = dict(node.properties)
+        existing.updated = time.time()
+        self._revision += 1
+
     def remove_node(self, node_id: str):
         # Remove node and all edges connected to it (case-insensitive)
         stored_id = self._resolve_id(node_id)

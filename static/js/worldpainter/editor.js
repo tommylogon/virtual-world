@@ -74,10 +74,11 @@
         return el;
     }
 
-    function _btn(label, onClick, style) {
+    function _btn(label, onClick, style, title) {
         const b = _el('button', 'cursor:pointer;border:1px solid var(--border,#444);' +
             'background:var(--bg-card,#2a2a32);color:var(--text,#ddd);border-radius:5px;' +
             'padding:3px 8px;font-size:12px;' + (style || ''), label);
+        if (title) b.title = title;
         b.addEventListener('click', onClick);
         return b;
     }
@@ -433,6 +434,8 @@
         estEl.setAttribute('data-role', 'wp-estimate');
         wrap.appendChild(estEl);
         wrap.appendChild(_btn('⚙ Generate', () => generate(), 'outline:1px solid #7ab;'));
+        wrap.appendChild(_btn('🧹 Ungenerate', () => ungenerate(),
+            'color:#c96;', 'Delete this zone\'s generated nodes but keep its painted grid, so you can regenerate a clean slate.'));
 
         wrap.appendChild(_btn('⟳', () => load(state.scopeId)));
         return wrap;
@@ -501,6 +504,29 @@
             }
         };
         return run(false);
+    }
+
+    function ungenerate() {
+        const p = state.payload;
+        if (!p || !p.scope) return;
+        if (!window.confirm(
+                `Delete every generated node for “${p.scope.name}”?\n\n` +
+                `The painted grid, reference and placements are kept, and the scope `
+                + `returns to unmade so you can ⚙ Generate again.`)) {
+            return;
+        }
+        (async () => {
+            try {
+                const result = await _post(
+                    `/${encodeURIComponent(p.scope.id)}/grid/ungenerate`, {});
+                state.payload = result;
+                state.selectedChild = null;
+                _notify(true);
+                _status(`🧹 Removed ${result.deleted_nodes || 0} generated node(s) — grid kept.`, false);
+            } catch (e) {
+                _status(`Ungenerate failed: ${e.message}`, true);
+            }
+        })();
     }
 
     function _noGridPanel(p) {

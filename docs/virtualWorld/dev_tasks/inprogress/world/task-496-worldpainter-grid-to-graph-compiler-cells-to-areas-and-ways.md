@@ -23,7 +23,7 @@ Compile a painted scope grid into the existing area/way node+edge format: cells 
 - A painted grid compiles to areas + ways in the existing scenario/library formats, loadable with **no engine change**.
 - Optional region-merge collapses contiguous same-biome cells into one area (flood-fill); a test shows fewer nodes with identical topology.
 - Ways carry `direction`/open/`see_through`/`floor`; areas carry tags, `environment`, `floor`, `world_scope_id`.
-- Descriptions are deterministic from (own tile + 4 neighbours + exits) with **no LLM call** — sample: "a road running east and west, sparse forest to the north".
+- Descriptions are deterministic from (own tile + neighbours + exits) with **no LLM call**. **Superseded 2026-09-26** by the observer-view model below: every painted cell is a place, a road cell *replaces* the biome, and a description composes the place's *character* from its neighbours + elevation.
 - Grid-canonical vs baked-and-hand-edited is decided and enforced (edit-after-bake is not silently clobbered; see task-289/290/317).
 
 ## Decisions — 2026-09-24
@@ -40,7 +40,41 @@ Compile a painted scope grid into the existing area/way node+edge format: cells 
   `"baked"` compiles once and is treated as hand-authored thereafter (a second
   compile raises). This is the task-289/290/317 clobber trap answered.
 
-## Progress — 2026-09-24 (compiler)
+## Decisions — 2026-09-26 (observer-view places, road replaces biome, directions)
+
+Locked with the author. These widen the grid recipe beyond "biome cells → areas,
+4 neighbours" and are the target for the compiler's next pass.
+
+- **Every painted cell is a place.** Roads included. A road-only cell is no
+  longer dropped (the current `cells = sorted(biome_of)` behaviour): it compiles
+  to an area whose terrain is the road.
+- **A road cell replaces its biome**, it is not a second node on the same cell.
+  One place per cell; the biome underneath is *context* for the description, not
+  an extra area (`properties.road` becomes the cell's identity, not a tag on a
+  biome area).
+- **Descriptions compose the place's character**, not just list neighbours:
+  road with woods to the north → "a road along the forest line"; road between
+  woods → "a road in the woods"; road between cliffs → "a narrow path, rockface
+  rising on one side and dropping away on the other" (read from neighbour
+  elevation/floor). May look one hop further to say where a road *goes* ("the
+  road west leads back into the sparse woods"). Deterministic, no LLM.
+- **Directions: compass outdoors, narrative on feature entry.** Exterior
+  cell-to-cell moves stay `north/south/east/west` + diagonals. Entering a
+  **feature** uses a narrative phrase (`enter`, `enter the mine`,
+  `climb up the rockface`, existing `in`/`out`) sourced from the
+  feature/placement, not hardcoded. The engine already keys movement off the
+  direction string (gateways use `in`/`out`), so no engine change is needed to
+  widen the vocabulary.
+- **Elevation is a description input now, a movement gate later.** Floors are
+  stored on areas (`properties.elevation`) and should inform cliff prose now; a
+  large floor delta gating traversal (climb required past ~3 floors) is deferred
+  to **task-525**.
+
+Still to decide/land here: the context classifier (neighbour pattern →
+phrase), the feature-entry direction vocabulary, and road-as-place in the
+cell list.
+
+
 
 - **`engine/world_compile.py`** (new): `compile_grid(manifest, scope_id, *,
   region_merge=False, recipe_id="grid.v1", seed=None, tick=0)` → a

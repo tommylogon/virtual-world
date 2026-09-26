@@ -470,3 +470,28 @@ def test_set_scope_offset_round_trips_and_resets(tmp_path):
     assert client.post("/api/world/scopes/the_pines/offset",
                        json={"x": "left", "y": 0}).status_code == 400
     assert client.post("/api/world/scopes/ghost/offset", json={"x": 1}).status_code == 404
+
+
+def test_ungenerate_removes_nodes_but_keeps_the_grid(tmp_path):
+    app = _app(tmp_path)
+    client = app.test_client()
+    client.post("/api/world/scopes",
+                json={"id": "wild", "name": "Wild", "mode": "world", "w": 2, "h": 2})
+    _paint(client, "wild", {(0, 0): "sparse_forest", (1, 0): "dense_forest"})
+    assert client.post("/api/world/scopes/wild/grid/generate", json={}).status_code == 200
+    assert app.world.graph.get_node("area_wild_0_0") is not None
+
+    resp = client.post("/api/world/scopes/wild/grid/ungenerate", json={})
+    assert resp.status_code == 200
+    body = resp.get_json()
+    assert body["status"] == "ungenerated" and body["deleted_nodes"] >= 2
+    assert app.world.graph.get_node("area_wild_0_0") is None
+    rec = app.world.world_scopes["wild"]
+    assert rec["state"] == "unmade" and not rec["area_ids"]
+    # The painted grid survives, so a clean regenerate works.
+    assert rec["layers"]["biome"]["0,0"] == "sparse_forest"
+    assert client.post("/api/world/scopes/wild/grid/generate", json={}).status_code == 200
+    assert app.world.graph.get_node("area_wild_0_0") is not None
+
+    assert client.post("/api/world/scopes/ghost/grid/ungenerate",
+                       json={}).status_code == 404

@@ -470,6 +470,29 @@ def handle_generate_scope(app, scope_id):
     return jsonify(payload)
 
 
+def handle_ungenerate_scope(app, scope_id):
+    """POST /api/world/scopes/<scope_id>/grid/ungenerate — delete generated nodes.
+
+    The inverse of Generate: removes the scope's generated areas/ways/gateways
+    (and parent gateways into it) but keeps the scope record — its painted grid,
+    reference, map offset and placements — and resets it to ``unmade``, so the
+    author can regenerate a clean slate. Hand-authored nodes are never touched.
+    """
+    manifest = _load(app)
+    if scope_id not in manifest:
+        return _error(f"Scope '{scope_id}' not found", 404)
+    _snapshot(app, label=f"ungenerate {manifest[scope_id].get('name', scope_id)}")
+    try:
+        result = world_scopes.ungenerate_scope(manifest, app.world.graph, scope_id)
+    except ValueError as exc:
+        return _error(str(exc))
+    _commit(app, manifest)
+    payload = _grid_payload(manifest, scope_id)
+    payload["status"] = "ungenerated"
+    payload["deleted_nodes"] = result["deleted_nodes"]
+    return jsonify(payload)
+
+
 def handle_remove_feature(app, scope_id):
     """POST /api/world/scopes/<scope_id>/grid/remove — remove a placement.
 

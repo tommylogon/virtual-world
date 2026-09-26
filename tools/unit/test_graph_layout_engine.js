@@ -70,3 +70,14 @@ test('offsetPxFor honours an explicit spacing', () => {
     const node = { properties: { world_scope_id: 's' } };
     assertEq(GraphLayoutEngine.offsetPxFor(node, { s: { x: 2, y: -3 } }, 10), { x: 20, y: -30 });
 });
+
+test('mapSpacing honours config.graphMapSpacing (map padding)', () => {
+    assertEq(GraphLayoutEngine.mapSpacing(), 40, 'default pitch is 40px/cell');
+    config = { graphMapSpacing: 140 };
+    assertEq(GraphLayoutEngine.mapSpacing(), 140, 'override pitch');
+    assertEq(GraphLayoutEngine.GRID_SCALE, 140 / GraphLayoutEngine.PAINT_UNITS_PER_CELL,
+             'scale follows the pitch');
+    config = { graphMapSpacing: 0 };   // non-positive falls back to the default
+    assertEq(GraphLayoutEngine.mapSpacing(), 40, 'zero falls back to 40');
+    config = undefined;                // restore the sandbox's "no config" state
+});
