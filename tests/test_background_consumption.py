@@ -7,7 +7,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from graph import Node, Edge, EDGE_IN, EDGE_TRIGGERS
 from player import Player
-from engine.background_simulation import BackgroundSimulation, MEAL_RESTORE, DRINK_RESTORE
+from engine.background_simulation import BackgroundSimulation, UNAUTHORED_MEAL_RESTORE, UNAUTHORED_DRINK_RESTORE
 
 
 def _world():
@@ -64,8 +64,8 @@ def test_authored_consumption_runs_the_items_trigger():
         ],
     }])
     used = BackgroundSimulation(w).take_action(p, served=set(), remaining=10.0)
-    assert p.vitals["Hunger"] == 60, "did not use the authored -20, not MEAL_RESTORE"
-    assert p.vitals["Hunger"] != 80 - MEAL_RESTORE
+    assert p.vitals["Hunger"] == 60, "did not use the authored -20, not UNAUTHORED_MEAL_RESTORE"
+    assert p.vitals["Hunger"] != 80 - UNAUTHORED_MEAL_RESTORE
     assert w.graph.get_node(node.id) is None, "the authored remove did not run"
 
 
@@ -91,7 +91,7 @@ def test_fallback_consumption_is_unchanged_for_silent_items():
     p = _forager(w, area)
     node = _item(w, area, "plain bread", ["food"])
     BackgroundSimulation(w).take_action(p, served=set(), remaining=10.0)
-    assert p.vitals["Hunger"] == 80 - MEAL_RESTORE
+    assert p.vitals["Hunger"] == 80 - UNAUTHORED_MEAL_RESTORE
     assert w.graph.get_node(node.id) is None
 
 

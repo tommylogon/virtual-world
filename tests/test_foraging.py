@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from graph import Node, Edge, EDGE_IN, EDGE_CARRYING
 from player import Player
 from engine.background_simulation import (
-    BackgroundSimulation, TASK_MINUTES, MEAL_RESTORE,
+    BackgroundSimulation, TASK_MINUTES, UNAUTHORED_MEAL_RESTORE,
 )
 
 
@@ -97,7 +97,7 @@ def test_a_successful_forage_eats():
     w.skill_check = lambda *a, **k: (True, 20, "")
     used = BackgroundSimulation(w).take_action(p, served=set(), remaining=10.0)
     assert used == TASK_MINUTES["eat"]
-    assert p.vitals["Hunger"] == 80 - MEAL_RESTORE
+    assert p.vitals["Hunger"] == 80 - UNAUTHORED_MEAL_RESTORE
     assert w.graph.get_node(node.id) is None, "food was not consumed"
 
 
@@ -110,7 +110,7 @@ def test_open_food_needs_no_check():
     w.skill_check = lambda *a, **k: (False, 0, "")
     used = BackgroundSimulation(w).take_action(p, served=set(), remaining=10.0)
     assert used == TASK_MINUTES["eat"]
-    assert p.vitals["Hunger"] == 80 - MEAL_RESTORE
+    assert p.vitals["Hunger"] == 80 - UNAUTHORED_MEAL_RESTORE
     assert w.graph.get_node(node.id) is None
 
 
@@ -121,7 +121,7 @@ def test_carried_food_needs_no_check():
     w.skill_check = lambda *a, **k: (False, 0, "")
     used = BackgroundSimulation(w).take_action(p, served=set(), remaining=10.0)
     assert used == TASK_MINUTES["eat"]
-    assert p.vitals["Hunger"] == 80 - MEAL_RESTORE
+    assert p.vitals["Hunger"] == 80 - UNAUTHORED_MEAL_RESTORE
     assert w.graph.get_node(node.id) is None
 
 

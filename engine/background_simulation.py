@@ -78,8 +78,27 @@ SANITY_THRESHOLD = 40
 #: How long one recuperative rest lasts, in game minutes.
 SANITY_REST_MINUTES = 60
 
-MEAL_RESTORE = 45         # Hunger (drive) reduced by this when eating
-DRINK_RESTORE = 50        # Thirst (drive) reduced by this when drinking
+#: How much a background meal or drink is worth when **nothing authored it**
+#: (task-506). Both are legacy-save affordances, not the design: every
+#: edible/drinkable item in `data/library/items` authors its own
+#: `adjust_vital`, and `tools/lint_library.py --check unauthored_consumables`
+#: fails if one stops doing so, so this number should never be reached by a
+#: library item. It is kept, rather than deleted, because a save or a scenario
+#: written before the authoring pass can hold a tag-only item that nothing
+#: authored — and the two ways to remove that risk are both worse. Deleting it
+#: makes such an item an **infinite, useless loaf** (eaten, restores nothing,
+#: never depletes); zeroing it makes 42 real foods restore nothing at all.
+#: If you add a new library consumable, author the trigger — do not reach here.
+UNAUTHORED_MEAL_RESTORE = 45    # Hunger (drive) reduced by this when eating
+UNAUTHORED_DRINK_RESTORE = 50   # Thirst (drive) reduced by this when drinking
+
+#: How much drinking from a **water source** restores. Deliberately a separate
+#: name: natural water is modelled as an area tag (`water`) that a character
+#: drinks from by standing in it (`_in_water_area`), not as an item, so it has
+#: no authored trigger and never had one. Before task-506 this case silently
+#: shared `DRINK_RESTORE` with the item fallback, which made "how much is a
+#: river worth" and "how much is a hardcoded fallback worth" the same question.
+WATER_AREA_DRINK_RESTORE = 50
 
 #: A relief site: an area tag (a latrine) or a fixture standing in the area.
 #: Re-exported from `engine.relief`, which both tiers read so the background
@@ -314,7 +333,8 @@ class BackgroundSimulation:
             # The scenario models natural water as an AREA tag ("water") you
             # drink from by standing in it, not as an item to consume.
             if self._in_water_area(p):
-                p.vitals["Thirst"] = max(0, p.vitals.get("Thirst", 0) - DRINK_RESTORE)
+                p.vitals["Thirst"] = max(
+                    0, p.vitals.get("Thirst", 0) - WATER_AREA_DRINK_RESTORE)
                 record(p, self.gs.time_ticks, "act",
                        f"drank from {p.current_area}", why="needs:drink",
                        area=p.current_area, tags=["need"])
@@ -874,19 +894,23 @@ class BackgroundSimulation:
     def _record_consumption(self, p, node, kind, *, restore: bool):
         """The need-level trace + log for a background meal.
 
-        ``restore`` applies the hardcoded MEAL_RESTORE/DRINK_RESTORE. It is True
-        only on the fallback path: when the item authors its own consumption, its
-        ``adjust_vital`` trigger is the one source of truth and applying the
-        constant too would double the restore (task-424).
+        ``restore`` applies the hardcoded fallback and is True only on the path
+        where the item authored nothing: when it does author its consumption, its
+        ``adjust_vital`` trigger is the single source of truth and applying the
+        constant too would double the restore (task-424). Since task-506 no
+        library item reaches that path — see `UNAUTHORED_MEAL_RESTORE` and
+        `tools/lint_library.py --check unauthored_consumables`.
         """
         tick = self.gs.time_ticks
         if kind == "drink":
             if restore:
-                p.vitals["Thirst"] = max(0, p.vitals.get("Thirst", 0) - DRINK_RESTORE)
+                p.vitals["Thirst"] = max(
+                    0, p.vitals.get("Thirst", 0) - UNAUTHORED_DRINK_RESTORE)
             verb = "drank"
         else:
             if restore:
-                p.vitals["Hunger"] = max(0, p.vitals.get("Hunger", 0) - MEAL_RESTORE)
+                p.vitals["Hunger"] = max(
+                    0, p.vitals.get("Hunger", 0) - UNAUTHORED_MEAL_RESTORE)
             verb = "ate"
         record(p, tick, "act", f"{verb} {node.name}", why=f"needs:{kind}",
                area=p.current_area, tags=["need"])

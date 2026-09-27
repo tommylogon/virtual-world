@@ -53,6 +53,59 @@ These tags change how the engine treats the entity. Verified against `engine/`, 
 | `openable` | Can be opened (alongside `open` action). | `engine/trigger_system.py:909` |
 | `cursed` / `statue` / `plant` / etc. | Content/category tags — no hardcoded engine effect, used by triggers, traits, and filters. (`magic` on an ITEM has no effect — it only matters on characters, see below.) | — |
 
+#### `food` / `drink` are a permission, not a meal (task-506)
+
+`ConsumeActionsMixin._is_valid_for` (`engine/items/consume_actions.py:16-27`)
+accepts an item as edible or drinkable from the **tag alone**, with no trigger
+and no check that it is actually food. The tag says "you *may* eat this". What
+it does **not** say is that eating it will feed you.
+
+Eating runs the item's `on_eat` / `on_drink` triggers, and on the player's own
+path that is the *whole* of the effect — `ConsumeActionsMixin._consume_item` has
+no fallback. So an item tagged `food` with no relieving `adjust_vital` is a
+thing you can eat forever that does nothing: an infinite, useless loaf. 64
+library items shipped in exactly that state.
+
+Authoring rules for a consumable:
+
+```json
+{
+  "triggers": [
+    {
+      "trigger_type": "on_eat",
+      "effects": [
+        {"type": "adjust_vital", "params": {"stat": "Hunger", "amount": -45, "target": "self"}}
+      ]
+    }
+  ]
+}
+```
+
+- **The amount is negative.** Hunger and Thirst are *drives*: they fill upward,
+  so 0 is full and 100 is starving. A positive amount feeds the fire instead of
+  the character. This is the exact failure task-424 caught in the camp data.
+- **Do not write `adjust_uses`.** Depletion is the engine's job —
+  `ConsumeActionsMixin._spend_uses` spends a charge on every consume, after the
+  item's triggers (task-508). `uses: -1` means "no charge model" and is never
+  spent.
+- **`trigger_type` may be a list** (`["on_eat"]`). Both forms occur in the data.
+
+`python tools/lint_library.py --check unauthored_consumables` fails when an
+edible/drinkable item authors no relieving `adjust_vital` for the verb it claims.
+It skips the fixtures listed in `FOOD_ADJACENT_FIXTURES` (`tools/lint_library.py`),
+which are the items that wear a `food`/`drink` tag while being furniture — a
+barrel, a cauldron, a cheese wheel. Those are a known open item: because the tag
+is a permission, a mistagged fixture is not cosmetic, and a background character
+will eat the barrel.
+
+The background tier additionally has `UNAUTHORED_MEAL_RESTORE` /
+`UNAUTHORED_DRINK_RESTORE` in `engine/background_simulation.py`, applied only
+when an item authors nothing. No library item should reach them; they exist for
+saves written before the authoring pass. Drinking from a **water area** is a
+separate constant, `WATER_AREA_DRINK_RESTORE`, because natural water is an area
+tag rather than an item and has no authored trigger to read.
+
+
 ### Characters
 
 | Tag | Effect | Code |
