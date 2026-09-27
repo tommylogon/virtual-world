@@ -50,8 +50,15 @@ Human Development:    - Hunting trails, Logging camps, Dirt roads, Farms, Villag
 
 Engine tags:          forest, mixed, trees          # feed engine/foraging.py
 Forage skills:        survival, nature
-Floor:                grass
+Surface:              grass                        # ground material, NOT a storey
 ```
+
+`Surface` is what you stand on (dirt, grass, stone, sand, pine needles) and lands
+on an area's `properties.surface`. It is *not* the area's **floor**: `floor` is a
+**storey index** — 0 is the ground plane, 1 one storey up, -1 one down, unbounded
+(three stacked rooms, the bottom of a lake at -2, an 80-storey tower, a hole to
+hell at -900). An earlier draft of this template called the material `Floor`,
+which made one word mean two unrelated things; the material is `Surface` now.
 
 The generator rule this exists for: **a pine forest next to a mountain stream is
 normal; a tropical rainforest directly beside an arctic tundra is bizarre unless

@@ -25,13 +25,17 @@ FOUR = {(0, 0): "sparse_forest", (1, 0): "dense_forest",
         (0, 1): "hills", (1, 1): "farmland"}
 
 
-def _painted(biomes=None, roads=None, elevations=None, w=6, h=3, merge=False):
-    """A one-scope manifest painted across all three layers (task-496)."""
+def _painted(biomes=None, roads=None, floors=None, w=6, h=3, merge=False):
+    """A one-scope manifest painted across all three layers (task-496).
+
+    *floors* holds **storey indices** — 0 ground, 1 up, -1 down, unbounded — not
+    heights and not materials (see `engine/world_grid.PAINT_LAYERS`).
+    """
     m = _manifest(biomes or {}, w=w, h=h)
     for (x, y), value in (roads or {}).items():
         wg.paint(m["wild"], "road", x, y, value)
-    for (x, y), value in (elevations or {}).items():
-        wg.paint(m["wild"], "elevation", x, y, value)
+    for (x, y), value in (floors or {}).items():
+        wg.paint(m["wild"], "floor", x, y, value)
     return m
 
 
@@ -102,15 +106,21 @@ def test_compiled_areas_and_ways_carry_the_expected_properties():
     patch = world_compile.compile_grid(m, "wild")
     area = next(n for n in patch.nodes if n.type == "area")
     assert area.properties["world_scope_id"] == "wild"
-    assert area.properties["floor"] == "dirt"
+    # `floor` is a STOREY index (0 ground, 1 up, -1 down, unbounded) — never the
+    # ground material. The material is `surface`.
+    assert area.properties["floor"] == 0
+    assert isinstance(area.properties["floor"], int)
+    assert area.properties["surface"] == "dirt"
+    assert "elevation" not in area.properties
     assert "forest" in area.properties["tags"]
     assert isinstance(area.properties["environment"], dict)
     assert area.properties["description"].endswith(".")
 
     way = next(n for n in patch.nodes if n.type == "way")
     for key in ("area_from", "area_to", "area_from_id", "area_to_id",
-                "direction", "see_through", "floor"):
+                "direction", "see_through", "floor", "surface"):
         assert key in way.properties, key
+    assert isinstance(way.properties["floor"], int)
     conns = [e for e in patch.edges
              if e.source == way.id and e.type == EDGE_CONNECTION]
     assert len(conns) == 2   # the way points at both areas
@@ -298,19 +308,98 @@ def test_an_isolated_road_reads_as_open_country():
         "A road across open country")
 
 
-def test_elevation_turns_a_gentle_slope_into_a_rockface():
-    """Prose only — a large floor step reads as a cliff (traversal is task-525)."""
+def test_a_multi_storey_step_turns_a_gentle_slope_into_a_rockface():
+    """Prose only — a 2+ storey step reads as a cliff outdoors (task-525 gates it)."""
     painted = {(2, 1): "farmland", (2, 2): "sparse_forest"}
     flat = _painted(painted, roads={(2, 1): "road"})
     assert "forest line" in _character(world_compile.compile_grid(flat, "wild"))
 
     steep = _painted(painted, roads={(2, 1): "road"},
-                     elevations={(2, 0): "4"})
+                     floors={(2, 0): "4"})
     assert "rockface" in _character(world_compile.compile_grid(steep, "wild"))
 
     gentle = _painted(painted, roads={(2, 1): "road"},
-                      elevations={(2, 0): "1"})
+                      floors={(2, 0): "1"})
     assert "forest line" in _character(world_compile.compile_grid(gentle, "wild"))
+
+
+def test_a_storey_step_is_not_a_cliff_inside_a_building():
+    """A storey step in a town/interior is a staircase, not a rockface.
+
+    The same painting as the test above *does* read as a rockface in a `world`
+    scope, so this pins the mode gate rather than the absence of a step.
+    """
+    painted = {(2, 1): "farmland", (2, 2): "sparse_forest"}
+    for mode in ("town", "interior"):
+        m = _painted(painted, roads={(2, 1): "road"}, floors={(2, 0): "4"})
+        wg.ensure_grid(m["wild"], 6, 3, mode=mode)   # same size: paint survives
+        assert "rockface" not in _character(world_compile.compile_grid(m, "wild")), mode
+
+
+# ── storey semantics (recipe grid.v2) ─────────────────────────────────────
+
+
+def test_floor_is_a_storey_index_and_is_unbounded():
+    """0 ground, 1 up, -1 down — and as far as an author wants to go.
+
+    The old mapping wrote the ground *material* onto `floor` and had no way to
+    say "eighty floors up"; a 0..1 height fraction cannot, and a ±10 clamp in the
+    inspector could not either.
+    """
+    painted = {(0, 0): "farmland", (1, 0): "farmland", (2, 0): "farmland"}
+    m = _painted(painted, floors={(0, 0): "1", (1, 0): "80", (2, 0): "-900"})
+    patch = world_compile.compile_grid(m, "wild")
+
+    by_cell = {n.properties["cell"]["x"]: n
+               for n in patch.nodes if n.type == "area"}
+    assert by_cell[0].properties["floor"] == 1
+    assert by_cell[1].properties["floor"] == 80
+    assert by_cell[2].properties["floor"] == -900
+    # The material is still there, under its own name.
+    for cell in (0, 1, 2):
+        assert by_cell[cell].properties["surface"] == "tilled_soil"
+
+
+def test_an_unpainted_cell_is_ground_and_never_raises():
+    """A plain cell needs no number: unpainted means storey 0, and paint that
+    isn't a number reads as ground rather than crashing the compile."""
+    m = _painted({(0, 0): "farmland", (1, 0): "farmland"},
+                 floors={(1, 0): "not-a-number"})
+    patch = world_compile.compile_grid(m, "wild")
+    by_cell = {n.properties["cell"]["x"]: n
+               for n in patch.nodes if n.type == "area"}
+    assert by_cell[0].properties["floor"] == 0
+    assert by_cell[1].properties["floor"] == 0
+
+
+def test_a_way_takes_the_lower_of_the_two_storeys_it_joins():
+    """Order-independent: a corridor is on its storey, a climb on the one it
+    leaves — so the way must not depend on which side emitted it first."""
+    painted = {(0, 0): "farmland", (1, 0): "farmland"}
+    m = _painted(painted, floors={(0, 0): "5"})
+    patch = world_compile.compile_grid(m, "wild")
+    ways = [n for n in patch.nodes if n.type == "way"
+            and n.properties["area_from_id"].endswith("_0_0")]
+    assert ways and all(w.properties["floor"] == 0 for w in ways)
+    assert all(w.properties["surface"] == "tilled_soil" for w in ways)
+
+
+def test_a_legacy_elevation_layer_still_reads_as_storeys():
+    """A scope painted under the old layer name keeps its numbers.
+
+    `sanitize_record` migrates the key, so the compiler needs no special case —
+    this pins the migration, because dropping the layer would silently lose it.
+    """
+    m = _manifest({(0, 0): "farmland", (1, 0): "farmland"})
+    m["wild"]["layers"]["elevation"] = {"0,0": "3"}
+    wg.normalise_grid(m["wild"])
+    assert "elevation" not in m["wild"]["layers"]
+    assert m["wild"]["layers"]["floor"] == {"0,0": "3"}
+
+    patch = world_compile.compile_grid(m, "wild")
+    area = next(n for n in patch.nodes if n.type == "area"
+                and n.properties["cell"] == {"x": 0, "y": 0})
+    assert area.properties["floor"] == 3
 
 
 def test_road_beside_a_biome_says_a_track_runs_through_it():
@@ -410,11 +499,95 @@ def test_link_islands_can_be_disabled():
     assert any("no exits" in note for note in patch.report.notes)
 
 
+def test_a_road_only_island_links_without_a_biome():
+    """A cell is a place if it has a biome *or a road*
+    (``cells = set(biome_of) | set(road_of)``), so an island whose closest cell
+    is road-only has no ``biome_of`` entry at all.
+
+    The island-linker read ``biome_of[ca]`` as a bare subscript and raised
+    KeyError on exactly that cell, which is a 500 from Generate for a perfectly
+    ordinary map — a main landmass plus a road running out to a lone outpost. The
+    sibling region-boundary emitter has always used the safe accessor, and every
+    other read of ``biome_of`` in the module uses ``.get``; this was the lone
+    exception and it crashed the WorldPainter flow.
+
+    The road island is deliberately the *smaller* component: the linker picks
+    ``main`` as the largest, so only a road cell that is the linked island has no
+    biome. A road island larger than the landmass links the landmass instead and
+    never touches the missing key, which is why the shape has to be pinned this
+    way rather than left to the tie-break.
+    """
+    m = _painted(biomes={(0, 0): "sparse_forest", (0, 1): "dense_forest",
+                         (0, 2): "hills"},
+                 roads={(0, 5): "cobblestone"},
+                 w=3, h=6)
+    patch = world_compile.compile_grid(m, "wild")
+    ways = [n for n in patch.nodes if n.type == "way"]
+    # The road cell exists as a place, and the outpost is linked to the landmass
+    # rather than dropped as an unreachable dead end.
+    road_areas = [n for n in patch.nodes
+                  if n.type == "area" and n.properties.get("road")]
+    assert road_areas, "a road-painted cell must compile to a place"
+    assert ways, "the disconnected road island must be linked, not dropped"
+    assert not any("no exits" in note for note in patch.report.notes)
+    assert any("linked to the nearest region" in note for note in patch.report.notes)
+
+
 def test_a_lone_painted_cell_has_no_exits_to_link_to():
     m = _manifest({(0, 0): "sparse_forest"})
     patch = world_compile.compile_grid(m, "wild")
     assert [n for n in patch.nodes if n.type == "way"] == []
     assert any("no exits" in note for note in patch.report.notes)
+
+
+def test_every_generated_node_marks_its_position_as_painted():
+    """Areas *and* ways must carry ``cell`` next to their coords.
+
+    ``properties.x``/``y`` is an overloaded field: the compiler writes engine
+    units (``cell * 40``) that the map layout scales by the map pitch and
+    translates by the scope's ``map_offset``, while a node dragged in the graph
+    stores canvas pixels in the same field. ``cell`` is the only thing telling
+    them apart (``GraphLayoutEngine.hasPaintedCoords``).
+
+    Areas stamped it; ways did not, so a way was indistinguishable from a dragged
+    node. Saving a layout then wrote canvas pixels over its engine units, and the
+    next layout scaled them again *and* re-added the scope offset — the way
+    walked further out of place on every save. A character's stored position is a
+    canvas pixel by definition, so it is re-placed raw, never scaled.
+    """
+    m = _painted(biomes={(0, 0): "sparse_forest", (0, 1): "dense_forest",
+                         (0, 2): "hills"},
+                 roads={(1, 0): "cobblestone"},
+                 w=3, h=3)
+    patch = world_compile.compile_grid(m, "wild")
+    areas = [n for n in patch.nodes if n.type == "area"]
+    ways = [n for n in patch.nodes if n.type == "way"]
+    assert areas and ways, "the fixture must compile both areas and ways"
+
+    for node in areas + ways:
+        props = node.properties
+        cell = props.get("cell")
+        assert cell is not None, f"{node.id} is painted but carries no cell marker"
+        assert isinstance(cell.get("x"), (int, float))
+        assert isinstance(cell.get("y"), (int, float))
+        # The coords are engine units, so they must equal cell * CELL_CANVAS_UNITS.
+        # A way sits on the midpoint of two cells, so its cell is a half-integer.
+        assert props["x"] == pytest.approx(cell["x"] * world_compile.CELL_CANVAS_UNITS)
+        assert props["y"] == pytest.approx(cell["y"] * world_compile.CELL_CANVAS_UNITS)
+
+
+def test_a_compiled_way_sits_on_a_half_cell_midpoint():
+    """The way between two orthogonally adjacent cells (0,0)-(0,1) is painted on
+    the midpoint (0, 0.5), so the flag does not misrepresent it as owning a cell."""
+    m = _painted(biomes={(0, 0): "sparse_forest", (0, 1): "dense_forest"},
+                 w=2, h=2)
+    patch = world_compile.compile_grid(m, "wild")
+    ways = [n for n in patch.nodes if n.type == "way"]
+    assert len(ways) == 1
+    cell = ways[0].properties["cell"]
+    assert cell["y"] == pytest.approx(0.5)
+    assert cell["x"] == pytest.approx(0.0)
+    assert ways[0].properties["y"] == pytest.approx(0.5 * world_compile.CELL_CANVAS_UNITS)
 
 
 def test_compile_rejects_missing_grid_and_empty_paint():

@@ -13,6 +13,17 @@
  */
 const graphManagerHtmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
 
+/**
+ * A storey index as the picker words it: 0 is ground, a positive number is a
+ * floor above it, a negative one is below. `floor` is deliberately unbounded
+ * (three stacked rooms, a lake bottom, an 80-storey tower, -900 in a hole to
+ * hell), so the label never clamps — it just says which way is which.
+ */
+function _floorOptionLabel(floor) {
+    if (floor === 0) return 'Ground (0)';
+    return floor > 0 ? `Floor ${floor}` : `Floor ${floor} (below ground)`;
+}
+
 class GraphManager {
     constructor() {
         this.network = null;
@@ -986,40 +997,48 @@ class GraphManager {
         this.loadGraphData();
     }
 
-    // --- Floor filter ---
+    // --- Storey (floor) filter ---
 
     /**
-     * Set the active floor filter and reload the graph. Empty/'all' shows all floors.
+     * Set the active storey filter and reload the graph. 'all' shows every storey.
      * Also refreshes the picker dropdown from the areas seen in the graph.
-     * @param {string|number} floor - 'all' or a floor number
+     *
+     * `floor` is a **storey index** (0 ground, 1 up, -1 down, unbounded), so the
+     * filter is kept as a number; the dropdown's string values are parsed back.
+     * @param {string|number} floor - 'all' or a storey number
      */
     setFloorFilter(floor) {
-        const normalized = (String(floor) === 'all' || floor === null || floor === undefined) ? 'all' : String(floor);
-        this._floorFilter = normalized;
+        const isAll = (String(floor) === 'all' || floor === null || floor === undefined);
+        const parsed = Number(floor);
+        this._floorFilter = isAll || !Number.isFinite(parsed) ? 'all' : String(Math.round(parsed));
         const sel = document.getElementById('floor-filter');
-        if (sel) sel.value = normalized;
+        if (sel) sel.value = this._floorFilter;
         GraphNetwork.applyVisibility();
     }
 
     /**
-     * Refresh the available floors from area nodes and the picker dropdown.
-     * Composes with the current filter (keeps the selected floor if still present).
+     * Refresh the storey picker from the area nodes in the graph.
+     * Composes with the current filter (keeps the selected storey if still present).
+     *
+     * A non-numeric `floor` is a save from before the ground material moved to
+     * `properties.surface`; `GraphProjector.floorOf` reads it as ground, so the
+     * picker offers a storey the filter can actually match.
      */
     refreshFloorOptions() {
-        const floors = new Set(['all']);
+        const floors = new Set();
         this.nodes.forEach((nodeData) => {
-            if (nodeData.type === 'area' && nodeData.properties?.floor !== undefined) {
-                floors.add(String(nodeData.properties.floor));
-            }
+            if (nodeData.type !== 'area') return;
+            if ((nodeData.properties || {}).floor === undefined) return;
+            floors.add(String(GraphProjector.floorOf(nodeData)));
         });
-        this._floorOptions = ['all', ...Array.from(floors).filter(f => f !== 'all').sort((a, b) => Number(a) - Number(b))];
-        // Reflect current filter; default to 'all' if the selected floor no longer exists
+        this._floorOptions = ['all', ...Array.from(floors).sort((a, b) => Number(a) - Number(b))];
+        // Reflect current filter; default to 'all' if the selected storey no longer exists
         const sel = document.getElementById('floor-filter');
         if (!sel) return;
         const current = this._floorOptions.includes(this._floorFilter) ? this._floorFilter : 'all';
         this._floorFilter = current;
         window.Lit.render(graphManagerHtmlTag`${this._floorOptions.map(f =>
-            graphManagerHtmlTag`<option value=${f} ?selected=${f === current}>${f === 'all' ? 'All floors' : `Floor ${f}`}</option>`)}`, sel);
+            graphManagerHtmlTag`<option value=${f} ?selected=${f === current}>${f === 'all' ? 'All storeys' : _floorOptionLabel(Number(f))}</option>`)}`, sel);
         sel.value = current;
     }
 

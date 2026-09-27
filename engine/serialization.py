@@ -215,7 +215,11 @@ class WorldSerializer:
                     "exits": self.player_manager.build_exits_for_area(node.name),
                     "exits_authoring": self.player_manager.build_exits_for_area(node.name, include_hidden=True),
                     "items": [],
+                    # `floor` is the area's STOREY index (0 ground, 1 up, -1 down,
+                    # unbounded); `surface` is the ground material. They are two
+                    # different facts — see engine/world_grid.PAINT_LAYERS.
                     "floor": node.properties.get("floor", 0),
+                    "surface": node.properties.get("surface", ""),
                     "properties": node.properties
                 }
 

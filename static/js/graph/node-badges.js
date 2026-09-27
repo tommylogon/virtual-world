@@ -93,7 +93,7 @@ window.NodeBadges = {
             <div class="legend-row"><span style="font-size:11px;">🐜🐀📏🐘</span><span style="font-size:9px;"> max passage size</span></div>
             <div class="legend-row"><span style="font-size:11px;">🧰⚡</span><span style="font-size:9px;"> container / triggers</span></div>
             <div class="legend-row"><span style="font-size:11px;">🤖🧠👤</span><span style="font-size:9px;"> NPC / LLM / human</span></div>
-            <div class="legend-row"><span style="font-size:11px;">🌑🏢</span><span style="font-size:9px;"> dark area / non-ground floor</span></div>
+            <div class="legend-row"><span style="font-size:11px;">🌑🏢</span><span style="font-size:9px;"> dark area / not on the ground storey</span></div>
             <div style="font-size:9px;color:var(--text-muted);margin-top:4px;">Way/item state (open, locked, lit…) uses node color — see legend above.</div>`;
     },
 
@@ -197,11 +197,16 @@ window.NodeBadges = {
         const badges = [];
         const seen = new Set();
 
-        const floor = props.floor ?? 0;
+        // `floor` is a storey index (0 ground, 1 up, -1 down, unbounded). A
+        // non-numeric value is a save written before the ground material moved to
+        // `properties.surface`; it counts as ground rather than a storey called
+        // "dirt".
+        const parsed = Number(props.floor ?? 0);
+        const floor = Number.isFinite(parsed) ? Math.round(parsed) : 0;
         if (floor !== 0) {
             NodeBadges._push(badges, seen, {
                 emoji: floor > 0 ? '🏢' : '🕳️',
-                title: floor > 0 ? `Floor ${floor}` : `Basement ${floor}`,
+                title: floor > 0 ? `Floor ${floor}` : `Floor ${floor} (below ground)`,
             });
         }
 

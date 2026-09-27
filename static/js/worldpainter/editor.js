@@ -5,7 +5,7 @@
  * scope's authoring grid at its own resolution and lets the author:
  *   - select a scope and drill into its children (recursive scope grids);
  *   - set/resize the grid and pick its mode (world / town / interior);
- *   - paint cells on the biome / road / elevation layers;
+ *   - paint cells on the biome / road / floor layers;
  *   - place, move, and remove feature (child-scope) placements.
  *
  * Backend: `routes/world_grid_ops.py` (`GET/POST /api/world/scopes/<id>/grid*`).
@@ -145,7 +145,11 @@
     }
 
     function _defaultValueForLayer(layer) {
-        if (layer === 'elevation') return '0.5';
+        // The floor layer is a *storey index* (engine/world_grid.py): 0 is ground,
+        // so 1 — "one storey up" — is the only useful value to start dragging
+        // with. It used to default to a 0..1 height fraction, which is not a
+        // storey and cannot express "eighty floors up".
+        if (layer === 'floor') return '1';
         const options = _layerOptions(layer);
         if (!options.length) return '';
         const preferred = { biome: 'sparse_forest', road: 'road' }[layer];
@@ -425,8 +429,9 @@
             'layer'));
         const layerSel = _el('select', 'padding:3px;border-radius:5px;');
         layerSel.setAttribute('data-role', 'wp-layer');
-        layerSel.title = 'Which layer you paint: biome, road or elevation. '
-            + 'Roads, bridges and fords are on the road layer.';
+        layerSel.title = 'Which layer you paint: biome, road or floor. '
+            + 'Roads, bridges and fords are on the road layer. Floor is a storey '
+            + 'number: 0 is ground, 1 one up, -1 one down, and as far as you like.';
         GM().PAINT_LAYERS.forEach((l) => {
             const opt = _el('option', null, l);
             opt.value = l;
@@ -491,15 +496,18 @@
 
     function _valueControl() {
         const options = _layerOptions(state.layer);
-        if (state.layer === 'elevation' || !options.length) {
+        if (state.layer === 'floor' || !options.length) {
             // No vocabulary (fetch failed) or a numeric layer: free text.
             const input = _el('input',
                 'width:130px;padding:3px 6px;border-radius:5px;border:1px solid ' +
                 'var(--border,#444);background:var(--bg-card,#2a2a32);color:var(--text,#ddd);');
             input.setAttribute('data-role', 'wp-value');
             input.value = state.value;
-            input.placeholder = state.layer === 'elevation' ? '0..1' : 'value';
-            input.title = `Value painted on the ${state.layer} layer.`;
+            input.placeholder = state.layer === 'floor' ? '+1 / -1' : 'value';
+            input.title = state.layer === 'floor'
+                ? 'Storey: 0 is ground, 1 is one up, -1 one down. Unbounded — 3 for a '
+                  + 'room three storeys up, 80 for a tower, -900 for a hole.'
+                : `Value painted on the ${state.layer} layer.`;
             input.addEventListener('input', () => { state.value = input.value; });
             return input;
         }
@@ -1379,7 +1387,7 @@
         const bits = [];
         if (info.biome) bits.push(String(info.biome).replace(/_/g, ' '));
         if (info.road) bits.push(String(info.road).replace(/_/g, ' '));
-        if (info.elevation != null) bits.push(`elev ${info.elevation}`);
+        if (info.floor !== null) bits.push(GM().floorLabel(info.floor));
         if (info.area) bits.push(`📍 ${info.area.name}`);
         if (info.child) bits.push(`🏠 ${info.child.name || info.child.id}`);
         return `(${info.x},${info.y}) ${bits.join(' · ')}`;
@@ -1392,7 +1400,7 @@
         const info = cell ? GM().cellInfo(p, cell.x, cell.y) : null;
         // Konva fires mousemove per pixel; only touch the DOM when the cell or
         // its content actually changed.
-        const key = info ? `${info.key}|${info.biome}|${info.road}|${info.elevation}|` +
+        const key = info ? `${info.key}|${info.biome}|${info.road}|${info.floor}|` +
             `${info.area ? info.area.id : ''}|${info.child ? info.child.id : ''}` : '';
         if (key === state.cellInfoKey) return;
         state.cellInfoKey = key;
@@ -1428,7 +1436,7 @@
         };
         row('biome', info.biome ? String(info.biome).replace(/_/g, ' ') : '—');
         row('road', info.road ? String(info.road).replace(/_/g, ' ') : '—');
-        row('elevation', info.elevation != null ? String(info.elevation) : '—');
+        row('floor', GM().floorLabel(info.floor));
         row('area', info.area ? `${info.area.name} (${info.area.id})` : '—');
         row('sub-zone', info.child ? `${info.child.name || info.child.id} (${info.child.id})` : '—');
         wrap.appendChild(rows);

@@ -16,9 +16,20 @@ keys, so a scope with no grid costs nothing and older saves load unchanged::
     record["grid"]       = {"w": int, "h": int, "cell_scale": float}
     record["layers"]     = {"biome": {"<x>,<y>": value},   # value is a biome id
                             "road":  {"<x>,<y>": value},   # road/surface id
-                            "elevation": {"<x>,<y>": number}}
+                            "floor": {"<x>,<y>": int}}     # storey index
     record["placements"] = {child_scope_id: {"x": int, "y": int}}
     record["area_placements"] = {area_id: {"x": int, "y": int}}   (task-528)
+
+The ``floor`` layer is a **storey index**, not a height or a material: 0 is the
+ground plane, 1 one storey up, -1 one down, and the scale is *unbounded* — three
+rooms stacked over each other, the bottom of a lake at -2, an 80-storey tower, a
+hole to hell at -900. It is deliberately not a 0..1 fraction, because the engine
+compares *whole storeys* (a two-storey step reads as a cliff, task-525) and
+because a save has to be able to say "eighty floors up" without a legend. An
+unpainted cell is *ground* (0) rather than "unknown", so an author marking a
+cliff does not also have to number every plain cell around it. Ground *material*
+is a separate fact and lives in the biome/road record's ``surface``
+(``engine/biomes.ground_surface``).
 
 Features — a village inside a forest — are **child scopes placed at a cell**, so
 they live in ``placements`` rather than a separate paint layer;
@@ -53,7 +64,18 @@ MODES = ("world", "town", "interior")
 
 #: Paint layers a grid may carry. ``feature`` is *derived* from placements, not
 #: stored, so it is not listed here.
-PAINT_LAYERS = ("biome", "road", "elevation")
+#:
+#: ``floor`` holds a **storey index** (see the module docstring), not a height
+#: fraction and not a ground material.
+PAINT_LAYERS = ("biome", "road", "floor")
+
+#: Layer keys accepted when *reading* a record, mapped to the layer they now
+#: belong to. The ``elevation`` layer was a 0..1 height the author never agreed
+#: to; it was renamed to ``floor`` and re-based on storeys (2026-09-27). Reads
+#: stay tolerant so a save painted under the old name keeps its numbers instead
+#: of being silently dropped by :func:`normalise_grid`; writes only ever use
+#: :data:`PAINT_LAYERS`.
+LEGACY_LAYER_KEYS = {"elevation": "floor"}
 
 ON_OVERLAP = ("forbid", "displace")
 
@@ -130,8 +152,17 @@ def normalise_grid(record: dict) -> dict:
         layers = record.get("layers")
         clean_layers: Dict[str, dict] = {}
         if isinstance(layers, dict):
+            # A record painted under the old ``elevation`` name keeps its cells:
+            # the numbers become storeys, which is what that layer was reaching
+            # for. Merging (rather than taking one dict) means a half-migrated
+            # record loses nothing.
+            merged: Dict[str, dict] = {}
+            for key, values in layers.items():
+                if not isinstance(values, dict):
+                    continue
+                merged.setdefault(LEGACY_LAYER_KEYS.get(key, key), {}).update(values)
             for layer in PAINT_LAYERS:
-                values = layers.get(layer)
+                values = merged.get(layer)
                 if not isinstance(values, dict):
                     continue
                 kept = {}
@@ -400,7 +431,45 @@ def paint_many(record: dict, edits: List[dict]) -> int:
 
 def painter_at(record: dict, layer: str, x: int, y: int):
     """The value painted at a cell, or ``None``."""
-    return ((record or {}).get("layers") or {}).get(layer, {}).get(cell_key(x, y))
+    return layer_cells(record, layer).get(cell_key(x, y))
+
+
+def layer_cells(record: dict, layer: str) -> dict:
+    """The ``{"<x>,<y>": value}`` map for *layer*, or ``{}``.
+
+    Reads a legacy layer name (:data:`LEGACY_LAYER_KEYS`) so a record saved
+    before the ``elevation`` → ``floor`` rename still yields its cells.
+    """
+    layers = (record or {}).get("layers") or {}
+    values = layers.get(LEGACY_LAYER_KEYS.get(layer, layer))
+    return values if isinstance(values, dict) else {}
+
+
+def floor_paint_at(record: dict, x: int, y: int) -> Optional[int]:
+    """The cell's painted **storey index**, or ``None`` when it is unpainted.
+
+    The value is rounded to a whole storey: the engine reasons in storeys
+    (a two-storey step is a cliff, task-525) and a save has to be able to say
+    "eighty floors up" in one plain integer. Unreadable paint reads as
+    ``None`` — the caller decides whether that means ground.
+    """
+    value = layer_cells(record, "floor").get(cell_key(x, y))
+    if value in (None, ""):
+        return None
+    try:
+        return int(round(float(value)))
+    except (TypeError, ValueError):
+        return None
+
+
+def floor_at(record: dict, x: int, y: int) -> int:
+    """:func:`floor_paint_at` with unpainted/unreadable counting as ground (0).
+
+    The single most useful read: an author marking a cliff should not also have
+    to number every plain cell around it.
+    """
+    painted = floor_paint_at(record, x, y)
+    return 0 if painted is None else painted
 
 
 # ────────────────────────── reference image ───────────────────────────────

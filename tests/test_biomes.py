@@ -43,6 +43,25 @@ def test_resource_tags_come_from_the_foraging_vocabulary():
 def test_forage_bonus_is_derived_from_foraging():
     # A painted forest is foragable exactly as a hand-authored one is.
     assert biomes.forage_skill_bonus("dense_forest").get("survival", 0) > 0
+
+
+def test_every_biome_declares_a_surface_and_no_record_uses_floor_for_it():
+    """`surface` is the ground material; `floor` is a storey index (see
+    `engine/world_grid.PAINT_LAYERS`), so a taxonomy record must not use it."""
+    for bid, rec in biomes.biomes().items():
+        assert rec.get("surface"), f"{bid} has no ground material"
+        assert "floor" not in rec, (
+            f"{bid} uses 'floor' for a material; it means the storey index")
+
+
+def test_ground_surface_falls_back_and_tolerates_the_legacy_key():
+    """The material falls back: a road with none stands on the biome's ground,
+    and a pre-rename record that still says `floor` is still understood."""
+    assert biomes.ground_surface({"surface": "stone"}) == "stone"
+    assert biomes.ground_surface(None, {"surface": "sand"}) == "sand"
+    assert biomes.ground_surface({}, {"surface": "sand"}) == "sand"
+    assert biomes.ground_surface({"floor": "mud"}) == "mud"      # legacy
+    assert biomes.ground_surface({}, {}) == biomes.DEFAULT_SURFACE
     assert biomes.forage_skill_bonus("farmland").get("survival", 0) > 0
 
 
@@ -70,7 +89,7 @@ def test_adding_a_biome_is_data_only():
     data = copy.deepcopy(biomes.load())
     data["biomes"]["marsh"] = {
         "name": "Marsh", "terrain": "water", "tags": ["stream", "water"],
-        "forage_skills": ["survival"], "floor": "mud",
+        "forage_skills": ["survival"], "surface": "mud",
         "descriptions": ["Standing water and tufted reeds."],
     }
     data["resource_distribution"]["marsh"] = [{"tags": ["herb"], "weight": 2}]
@@ -85,7 +104,7 @@ def test_a_bad_biome_is_rejected():
     data = copy.deepcopy(biomes.load())
     data["biomes"]["bad"] = {
         "name": "Bad", "terrain": "rock", "tags": ["nowhere"],
-        "forage_skills": ["alchemy"], "floor": "stone", "descriptions": [],
+        "forage_skills": ["alchemy"], "surface": "stone", "descriptions": [],
     }
     data["resource_distribution"]["bad"] = [{"tags": ["unicorn"], "weight": 1}]
     data["hostile_distribution"]["bad"] = [

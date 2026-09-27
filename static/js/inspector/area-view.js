@@ -354,17 +354,37 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
 
     /**
      * Render the floor section
+     *
+     * `floor` is a **storey index**: 0 is the ground plane, 1 one storey up, -1
+     * one down, and it is deliberately *unbounded* — three stacked rooms, the
+     * bottom of a lake, an 80-storey tower, a hole to hell at -900. So there is
+     * no min/max on the input (a clamp to ±10 quietly caps a skyscraper at ten
+     * floors); the browser's own number spinner is enough. A non-numeric value
+     * is a save written before the material moved to `surface`, and reads as
+     * ground. The ground *material* is shown under it, read from
+     * `properties.surface` — which is where the WorldPainter compiler puts it.
+     *
      * @param {object} props - Node properties
-     * @param {string} actualNodeId - Graph node ID
+     * @param {string} actualNodeId - Graph node id
      * @returns {TemplateResult}
      */
     RV._renderFloorSection = function(props, actualNodeId) {
-        const floorValue = props.floor ?? 0;
+        const raw = props.floor ?? 0;
+        const parsed = Number(raw);
+        const floorValue = Number.isFinite(parsed) ? Math.round(parsed) : 0;
+        const label = floorValue === 0 ? 'Ground'
+            : (floorValue > 0 ? `Floor ${floorValue}` : `Floor ${floorValue} (below)`);
         return htmlTag`<div class="inspector-section"><h3>🏗️ Floor</h3>
             <div class="field" style="display:flex;align-items:center;gap:8px;">
-                <input type="number" min="-10" max="10" .value=${floorValue} style="flex:1;" @change=${(ev) => api.updateNode(actualNodeId, { properties: { floor: parseInt(ev.target.value) } }).then(() => worldState.fetch())}>
-                <span style="font-size:10px;color:var(--text-muted);">${floorValue === 0 ? 'Ground' : `Floor ${floorValue}`}</span>
+                <input type="number" step="1" .value=${floorValue} style="flex:1;" @change=${(ev) => api.updateNode(actualNodeId, { properties: { floor: parseInt(ev.target.value, 10) || 0 } }).then(() => worldState.fetch())}>
+                <span style="font-size:10px;color:var(--text-muted);">${label}</span>
             </div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">
+                Storey: 0 is ground, 1 one up, -1 one down — no upper or lower limit.
+            </div>
+            ${props.surface ? htmlTag`<div style="font-size:10px;color:var(--text-muted);margin-top:2px;">
+                Standing on: ${String(props.surface).replace(/_/g, ' ')}
+            </div>` : ''}
         </div>`;
     };
 

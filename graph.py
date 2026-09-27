@@ -408,6 +408,35 @@ class WorldGraph:
             if node.type == "door":
                 node.type = "way"
 
+    def normalize_area_floors(self):
+        """Repair areas/ways whose ``floor`` holds a ground *material* instead of a storey.
+
+        The WorldPainter compiler's ``grid.v1`` recipe wrote the biome's ground
+        material ("dirt", "stone", ...) onto ``properties.floor`` of both the
+        areas and the ways it minted, so saves compiled by it carry a string
+        where a **storey index** belongs: 0 is the ground plane, 1 one up, -1 one
+        down, and it is unbounded (three stacked rooms, a lake bottom, an
+        80-storey tower, -900 in a hole to hell). The material moves to
+        ``properties.surface``, where it belongs, and the storey falls back to
+        ground (0), which is what an unpainted cell means anyway.
+
+        Same save-repair pattern as ``normalize_node_types``: the recipe is
+        fixed in ``engine/world_compile.py``, and this keeps an existing save
+        loadable and readable instead of showing "Floor dirt" in the picker until
+        the scope is regenerated. Only area/way nodes are touched — an item or
+        trigger that happens to carry a string ``floor`` is none of this
+        migration's business.
+        """
+        for node in self.nodes.values():
+            if node.type not in ("area", "way"):
+                continue
+            floor = (node.properties or {}).get("floor")
+            if isinstance(floor, str) and floor.strip() != "":
+                surface = str(floor).strip()
+                if not node.properties.get("surface"):
+                    node.properties["surface"] = surface
+                node.properties["floor"] = 0
+
     def get_items_by_tag(self, tag: str, area_id: Optional[str] = None) -> List[Node]:
         """Return all item nodes that have the given tag, optionally filtered by area."""
         tag = tag.lower()
@@ -493,6 +522,7 @@ class WorldGraph:
             self.edges.append(Edge(**edata))
         self._rebuild_id_index()
         self.normalize_node_types()
+        self.normalize_area_floors()
         self.normalize_edges()
         self._normalize_edge_endpoints()
         self.normalize_in_edge_directions()

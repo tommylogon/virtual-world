@@ -34,7 +34,9 @@ grid→graph compiler (task-496)                engine/world_compile.py
         │  emits GenerationPatch via task-398 contract  engine/generation.py
         │
         ├── areas carry: biome tags (engine/biomes.py, task-497), environment,
-        │   floor, world_scope_id, grid cell coordinate (stable frame)
+        │   floor (storey index: 0 ground, +1 up, -1 down, unbounded),
+        │   surface (ground material), world_scope_id, grid cell coordinate
+        │   (stable frame)
         │
         ▼
 runtime graph
@@ -215,10 +217,10 @@ Locked with the author; **implemented in `engine/world_compile.py` (2026-09-27)*
   place. The WorldPainter's "≈ N areas" estimate (`grid-model.estimateCompile`)
   groups the same way, so the header matches what Generate mints.
 - **A description composes the place's character** from its neighbours and
-  elevation, it does not just list them: "a road along the forest line" (woods
+  storey step, it does not just list them: "a road along the forest line" (woods
   to the north), "a road in the woods" (woods both sides), "a narrow path, the
   rockface rising on one side and dropping away on the other" (cliff neighbours,
-  read from floor/elevation). It may look one hop further to say where a road
+  read from the floor layer). It may look one hop further to say where a road
   *leads* ("the road west leads back into the sparse woods"). Deterministic, no
   LLM — the fragment catalogue is the hook.
 - **A neighbour is named for what its place is.** Where a cell carries both a road
@@ -233,10 +235,25 @@ Locked with the author; **implemented in `engine/world_compile.py` (2026-09-27)*
   direction string, so the vocabulary widens with **no engine change**. Every
   phrase also carries `aliases: ["in", "out"]`, so `go in` / `go out` keep
   working.
-- **Floors inform prose now, gate movement later.** `properties.elevation`
-  feeds the cliff phrasing (`CLIFF_FLOOR_DELTA = 2` floors by default); a floor
-  delta past ~3 floors requiring a climb (and potentially blocking the step) is
-  deferred to **task-525**.
+- **A floor is a storey index, not a floor material** (corrected with the author,
+  2026-09-27). `properties.floor` is *which storey* the place is on: `0` is the
+  ground plane, `1` one up, `-1` one down, and the scale is **unbounded** — three
+  rooms stacked over each other, the space around a spaceship, the bottom of a
+  lake at `-2`, an 80-storey tower, a hole to hell at `-900`. It is rounded to a
+  whole storey because the engine compares whole storeys, not heights. What you
+  *stand on* — dirt, grass, stone, pine needles — is a different fact and lands
+  on `properties.surface`, read from the biome/road record
+  (`engine.biomes.ground_surface`).
+  The earlier revision of this design called the WorldPainter's third paint layer
+  `elevation`, held a 0..1 *height fraction* in it, wrote that to a separate
+  `properties.elevation`, and put the material on `floor`. None of that is
+  wanted. The layer is now `floor`, the material is `surface`, and
+  `properties.elevation` is gone.
+- **Floors inform prose now, gate movement later.** The floor layer feeds the
+  cliff phrasing (`CLIFF_FLOOR_DELTA = 2` storeys by default, and only for a
+  `world` scope — a storey step inside a town or interior is a staircase, not a
+  rockface); a step past ~3 storeys requiring a climb (and potentially blocking
+  the step) is deferred to **task-525**.
 
 ## Membership, placement, and reading a cell (2026-09-27)
 

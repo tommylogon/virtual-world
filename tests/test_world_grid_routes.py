@@ -35,7 +35,9 @@ def test_painter_vocabulary_lists_real_ids(tmp_path):
     assert all(b["name"] for b in vocab["biomes"])
 
     assert "road" in {f["id"] for f in vocab["features"]}
-    assert vocab["layers"] == ["biome", "road", "elevation"]
+    # `floor` is the storey layer (0 ground, 1 up, -1 down, unbounded); the
+    # 0..1 `elevation` height layer it replaced is gone.
+    assert vocab["layers"] == ["biome", "road", "floor"]
     assert set(vocab["modes"]) == {"world", "town", "interior"}
 
 

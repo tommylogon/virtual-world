@@ -17,6 +17,20 @@
 window.GraphProjector = {
 
     /**
+     * A node's **storey index**: 0 ground, 1 up, -1 down, unbounded.
+     *
+     * A non-numeric value is a save written before the ground material moved to
+     * `properties.surface` (the `grid.v1` compiler recipe); it counts as ground
+     * so such an area is never hidden by a storey filter it cannot satisfy.
+     * Kept here, next to the filter that uses it, so "what is a floor" has one
+     * answer in the visibility model.
+     */
+    floorOf(nodeData) {
+        const parsed = Number((nodeData && nodeData.properties && nodeData.properties.floor) ?? 0);
+        return Number.isFinite(parsed) ? Math.round(parsed) : 0;
+    },
+
+    /**
      * Read the current UI view-state off the GraphManager. Centralized so the
      * pure compute functions can take a plain view-state bag instead of
      * reaching into the global.
@@ -125,15 +139,18 @@ window.GraphProjector = {
             }
         }
 
-        // Floor filter: only areas on the active floor, plus their direct links.
+        // Floor filter: only areas on the active storey, plus their direct links.
+        // `floor` is a storey index (GraphProjector.floorOf), so the filter value
+        // is compared numerically rather than as a string.
         let floorAreas = null;
         let floorChildren = null;
         if (state.floorFilterActive) {
-            const targetFloor = String(state.floorFilter);
+            const targetFloor = Number(state.floorFilter);
             floorAreas = new Set();
             floorChildren = new Set();
             for (const id in nodesObj) {
-                if (nodesObj[id].type === 'area' && String(nodesObj[id].properties?.floor) === targetFloor) {
+                if (nodesObj[id].type === 'area'
+                        && this.floorOf(nodesObj[id]) === targetFloor) {
                     floorAreas.add(id);
                 }
             }

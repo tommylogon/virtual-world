@@ -311,7 +311,7 @@ test('cellInfo reports everything on a cell (task-540)', () => {
     const payload = {
         scope: { id: 'camp' },
         layers: { biome: { '2,1': 'sparse_forest' }, road: { '2,1': 'road' },
-                  elevation: { '2,1': '3' } },
+                  floor: { '2,1': '3' } },
         placements: [{ id: 'deep_woods', name: 'Deep Woods', kind: 'scope' }],
         feature: { '2,1': 'deep_woods' },
         area_placements: [{ id: 'area_pit', name: 'Sewer Pit', x: 2, y: 1 }],
@@ -320,7 +320,7 @@ test('cellInfo reports everything on a cell (task-540)', () => {
     assertEq(info.key, '2,1', 'cell key');
     assertEq(info.biome, 'sparse_forest', 'biome layer');
     assertEq(info.road, 'road', 'road layer');
-    assertEq(info.elevation, '3', 'elevation layer');
+    assertEq(info.floor, 3, 'floor layer is a numeric storey');
     assertEq(info.area.name, 'Sewer Pit', 'placed area');
     // The feature layer is {cellKey: child_id}; the readable name comes from the
     // scope's own placement card.
@@ -330,13 +330,42 @@ test('cellInfo reports everything on a cell (task-540)', () => {
 
     // An empty cell says so, rather than printing three blank fields.
     const bare = GM.cellInfo({ layers: {}, placements: [], area_placements: [] }, 0, 0);
-    assertEq(bare, { x: 0, y: 0, key: '0,0', biome: null, road: null, elevation: null,
+    assertEq(bare, { x: 0, y: 0, key: '0,0', biome: null, road: null, floor: null,
                      area: null, child: null, painted: false, empty: true }, 'bare cell');
 
     // A feature id with no card (a scope that was deleted) still names something.
     const orphan = GM.cellInfo({ layers: {}, feature: { '1,1': 'gone' },
                                  placements: [], area_placements: [] }, 1, 1);
     assertEq(orphan.child, { id: 'gone', name: 'gone', kind: null }, 'orphan child');
+});
+
+test('the floor layer is a storey index, unbounded and whole', () => {
+    // 0 ground, 1 up, -1 down, and as far as the author wants: three stacked
+    // rooms, a lake bottom, an 80-storey tower, a hole to hell at -900.
+    assertEq(GM.PAINT_LAYERS, ['biome', 'road', 'floor'], 'layer list');
+    assertEq(GM.floorNumber('3'), 3, 'above');
+    assertEq(GM.floorNumber('-900'), -900, 'far below');
+    assertEq(GM.floorNumber('80'), 80, 'far above');
+    assertEq(GM.floorNumber('2.4'), 2, 'rounded to a whole storey');
+    assertEq(GM.floorNumber(0), 0, 'ground is a real painted value');
+    assertEq(GM.floorNumber(''), null, 'unpainted');
+    assertEq(GM.floorNumber(null), null, 'unpainted');
+    assertEq(GM.floorNumber('dirt'), null, 'a material is not a storey');
+
+    // 0 must survive as 0 — a storey of ground is painted, not absent.
+    const ground = GM.cellInfo({ layers: { floor: { '4,4': '0' } } }, 4, 4);
+    assertEq(ground.floor, 0, 'ground storey');
+    assertEq(ground.painted, true, 'a painted ground storey is still painted');
+    assertEq(ground.empty, false, 'not an empty cell');
+
+    assertEq(GM.floorLabel(0), 'ground (0)', 'ground reads as ground');
+    assertEq(GM.floorLabel(3), 'floor 3', 'above');
+    assertEq(GM.floorLabel(-3), '3 below ground (-3)', 'below');
+    assertEq(GM.floorLabel(null), '—', 'unpainted reads as a dash');
+
+    // The colour is a tint, not a value: any far-off storey must not blow up.
+    ['-900', '80', '0'].forEach((v) => assertTrue(
+        /^hsl\(/.test(GM.layerColor('floor', v)), `floor colour for ${v}`));
 });
 
 test('estimateCompile drops cells a hand-placed area owns (task-528)', () => {

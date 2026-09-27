@@ -11,6 +11,16 @@ edit that reuses existing area tags and forage skills — no code change. The
 foraging layer already recognises the biome tags (``engine/foraging.py``
 ``AREA_SKILL_BONUS``) and the resource tags come from its ``SKILL_TABLES``
 vocabulary, so a painted area forages with the machinery that already exists.
+
+Two nouns that are easy to confuse, so they are kept apart on purpose:
+
+- ``surface`` (this module, :func:`ground_surface`) — the ground *material*: dirt,
+  grass, stone, sand, pine needles. What your feet are on.
+- ``floor`` (``engine/world_grid.py``, area ``properties.floor``) — the *storey
+  index*: 0 is ground, 1 one up, -1 one down, unbounded. Which deck of the
+  skyscraper, which room of the stacked house, how far under the lake surface.
+  An earlier revision of this taxonomy put the material under ``floor``, which
+  made "floor" mean two unrelated things; the material moved to ``surface``.
 """
 
 from __future__ import annotations
@@ -29,6 +39,10 @@ DATA_PATH = os.path.join(
 
 #: Hostiles the distribution tables may name.
 HOSTILE_KINDS = ("predator", "bandit", "monster")
+
+#: Ground material used when a record declares none. This is the *material* you
+#: stand on, not a storey — see :func:`ground_surface`.
+DEFAULT_SURFACE = "dirt"
 
 _cache: Dict[str, dict] = {}
 
@@ -87,6 +101,32 @@ def forage_skill_bonus(biome_id, path: Optional[str] = None) -> Dict[str, int]:
     return out
 
 
+def ground_surface(record: Optional[dict],
+                   fallback: Optional[dict] = None) -> str:
+    """The ground **material** a biome/road record declares (dirt, stone, ...).
+
+    Deliberately *not* called ``floor``. A floor is a **storey index** — 0 is
+    ground, 1 is one storey up, -1 one down, and it is unbounded (three stacked
+    rooms, a lake bottom at -2, an 80-storey tower, -900 in a hole to hell).
+    The material underfoot is a different fact and lives under ``surface``, so
+    the two can never be confused for one another.
+
+    *fallback* is consulted when *record* declares no material: a road painted
+    over a forest stands on the forest's ground unless the road says otherwise.
+    The ``floor`` reads are compatibility fallbacks for taxonomy files written
+    before the rename (2026-09-27); the shipped ``biomes.json`` uses ``surface``.
+    """
+    for source in (record, fallback):
+        if not isinstance(source, dict):
+            continue
+        value = source.get("surface")
+        if value in (None, ""):
+            value = source.get("floor")       # legacy pre-rename key
+        if value not in (None, ""):
+            return str(value)
+    return DEFAULT_SURFACE
+
+
 def _forage_vocabulary() -> set:
     """The tag vocabulary the foraging tables draw from (task-497 reuse)."""
     vocab = set()
@@ -138,8 +178,11 @@ def validate(data: Optional[dict] = None, path: Optional[str] = None) -> List[st
         for skill in (rec.get("forage_skills") or []):
             if str(skill).lower() not in skills:
                 problems.append(f"biome {bid}: unknown forage skill '{skill}'")
-        if not rec.get("floor"):
-            problems.append(f"biome {bid}: missing floor")
+        if not rec.get("surface") and not rec.get("floor"):
+            # `floor` on a record used to mean the ground material; it is now the
+            # storey index (engine/world_grid.PAINT_LAYERS), so a taxonomy that
+            # only has the old key is accepted but flagged by being unrenamed.
+            problems.append(f"biome {bid}: missing surface (ground material)")
         if not [d for d in (rec.get("descriptions") or []) if str(d).strip()]:
             problems.append(f"biome {bid}: no description fragments")
 

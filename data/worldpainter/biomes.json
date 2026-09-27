@@ -6,7 +6,7 @@
       "terrain": "forest",
       "tags": ["forest", "woods"],
       "forage_skills": ["survival", "perception"],
-      "floor": "dirt",
+      "surface": "dirt",
       "descriptions": [
         "Scattered trees open onto patches of grass.",
         "Thin woodland, easy to walk and hard to hide in."
@@ -17,7 +17,7 @@
       "terrain": "forest",
       "tags": ["forest", "woods", "dense"],
       "forage_skills": ["survival"],
-      "floor": "dirt",
+      "surface": "dirt",
       "descriptions": [
         "Close-set trunks swallow the light a few steps in.",
         "Underbrush claws at the legs with every stride."
@@ -28,7 +28,7 @@
       "terrain": "forest",
       "tags": ["forest", "woods", "pine"],
       "forage_skills": ["survival"],
-      "floor": "pine_needles",
+      "surface": "pine_needles",
       "descriptions": [
         "Straight pines rise from a hush of fallen needles.",
         "The air smells of resin and cold bark."
@@ -39,7 +39,7 @@
       "terrain": "rock",
       "tags": ["hills", "hill"],
       "forage_skills": ["survival", "perception"],
-      "floor": "grass",
+      "surface": "grass",
       "descriptions": [
         "Rolling ground folds away into shallow valleys.",
         "Windswept grass over hard, stony soil."
@@ -50,7 +50,7 @@
       "terrain": "rock",
       "tags": ["mountains", "mountain", "rocky"],
       "forage_skills": ["survival", "history"],
-      "floor": "stone",
+      "surface": "stone",
       "descriptions": [
         "Bare rock climbs in broken steps toward the peaks.",
         "Cold stone and thin air, with scree underfoot."
@@ -61,7 +61,7 @@
       "terrain": "rock",
       "tags": ["cliff", "rocky"],
       "forage_skills": ["survival"],
-      "floor": "stone",
+      "surface": "stone",
       "descriptions": [
         "The ground ends at a sheer drop.",
         "A rock face falls away, wind pulling at the edge."
@@ -72,7 +72,7 @@
       "terrain": "rock",
       "tags": ["ravine", "rocky"],
       "forage_skills": ["survival", "history"],
-      "floor": "stone",
+      "surface": "stone",
       "descriptions": [
         "A narrow cut in the land, walls close on either side.",
         "The path threads down through broken rock."
@@ -83,7 +83,7 @@
       "terrain": "rock",
       "tags": ["chasm", "rocky"],
       "forage_skills": ["history"],
-      "floor": "stone",
+      "surface": "stone",
       "descriptions": [
         "A crack in the world, too wide to cross and too deep to see.",
         "Cold air rises from a darkness with no visible bottom."
@@ -94,7 +94,7 @@
       "terrain": "water",
       "tags": ["beach", "shore"],
       "forage_skills": ["survival", "perception"],
-      "floor": "sand",
+      "surface": "sand",
       "descriptions": [
         "Wet sand slopes down to the waterline.",
         "Driftwood and stranded weed mark the tide line."
@@ -105,7 +105,7 @@
       "terrain": "water",
       "tags": ["lake", "water"],
       "forage_skills": ["survival"],
-      "floor": "shallow_water",
+      "surface": "shallow_water",
       "descriptions": [
         "Still water stretches out, flat and grey.",
         "Reeds crowd the shallows at the water's edge."
@@ -116,7 +116,7 @@
       "terrain": "water",
       "tags": ["river", "water"],
       "forage_skills": ["survival"],
-      "floor": "shallow_water",
+      "surface": "shallow_water",
       "descriptions": [
         "A current runs steadily between its banks.",
         "Water hurries over a stony bed."
@@ -127,7 +127,7 @@
       "terrain": "water",
       "tags": ["deep_water", "water", "ocean"],
       "forage_skills": ["survival"],
-      "floor": "deep_water",
+      "surface": "deep_water",
       "descriptions": [
         "The bottom drops away into dark, moving water.",
         "Cold water, too deep to stand in."
@@ -138,7 +138,7 @@
       "terrain": "water",
       "tags": ["ocean", "water"],
       "forage_skills": ["survival"],
-      "floor": "deep_water",
+      "surface": "deep_water",
       "descriptions": [
         "Open water to the horizon, restless and salt-heavy.",
         "Long swells roll in under a wide sky."
@@ -149,7 +149,7 @@
       "terrain": "water",
       "tags": ["stream", "water"],
       "forage_skills": ["survival"],
-      "floor": "shallow_water",
+      "surface": "shallow_water",
       "descriptions": [
         "A narrow stream chatters over pebbles.",
         "Shallow water threads between mossy stones."
@@ -160,7 +160,7 @@
       "terrain": "water",
       "tags": ["spring", "water"],
       "forage_skills": ["survival"],
-      "floor": "wet_ground",
+      "surface": "wet_ground",
       "descriptions": [
         "Clear water wells up from the ground, cold and clean.",
         "A small spring seeps out of the hillside."
@@ -171,7 +171,7 @@
       "terrain": "farm",
       "tags": ["farmland", "field"],
       "forage_skills": ["survival", "perception"],
-      "floor": "tilled_soil",
+      "surface": "tilled_soil",
       "descriptions": [
         "Tilled rows run to a low boundary hedge.",
         "Open fields, worked and fenced."

@@ -118,7 +118,18 @@ window.WorldExport = (() => {
         for (var ri = 0; ri < sortedRoomNames.length; ri++) {
             var areaName = sortedRoomNames[ri];
             var area = world.areas[areaName];
-            text += '\n  ■ ' + areaName + (area.floor !== undefined ? ' (Floor ' + area.floor + ')' : '') + '\n';
+            // `floor` is a storey index (0 ground, 1 up, -1 down, unbounded) and
+            // `surface` is the ground material — printing "Floor 0" on every room
+            // is noise, so only a non-ground storey is called out.
+            var areaFloor = Number(area.floor);
+            var floorText = '';
+            if (Number.isFinite(areaFloor) && Math.round(areaFloor) !== 0) {
+                floorText = (areaFloor > 0 ? ' (Floor ' + Math.round(areaFloor) + ')'
+                                           : ' (Floor ' + Math.round(areaFloor) + ', below ground)');
+            } else if (area.surface) {
+                floorText = ' (' + area.surface + ')';
+            }
+            text += '\n  ■ ' + areaName + floorText + '\n';
             if (area.description) text += '  "' + area.description + '"\n';
             if (area.environment) {
                 var env = area.environment;

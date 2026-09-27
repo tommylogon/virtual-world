@@ -235,10 +235,10 @@
                                 <button class="menu-toggle" id="btn-images" aria-pressed="true" onclick="graphManager.toggleImages()" title="Show node image thumbnails on the graph (where set)">🖼 Images</button>
                                 <button class="menu-toggle" id="btn-triggers" data-help="triggers" aria-pressed="false" onclick="graphManager.toggleTriggers()" title="Show/hide trigger nodes in graph">🔩 Trigger nodes</button>
                                 <button class="menu-toggle" id="btn-items" aria-pressed="false" onclick="graphManager.toggleItems()" title="Show/hide item nodes in graph">👁 Item nodes</button>
-                                <label class="menu-toggle menu-select" title="Filter the graph to a single floor of areas">
+                                <label class="menu-toggle menu-select" title="Filter the graph to a single storey. Floor is a storey index: 0 is ground, 1 one up, -1 one down, and it is not capped.">
                                     <span>🏢 Floors</span>
                                     <select id="floor-filter" onchange="graphManager.setFloorFilter(this.value)">
-                                        <option value="all">All floors</option>
+                                        <option value="all">All storeys</option>
                                     </select>
                                 </label>
                             </div>

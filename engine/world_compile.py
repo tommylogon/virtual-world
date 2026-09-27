@@ -35,17 +35,25 @@ The observer-view model (2026-09-26, locked with the author):
   estimate matches what Generate mints.
 - **A description composes the place's character**, via
   :func:`classify_company`, from the terrain class of its neighbours plus the
-  elevation step of its neighbours (``cliff_dirs``). A neighbour is named for
-  what its place is, so a road neighbour is a road even when a biome sits under
-  it.
+  storey step to its neighbours (``cliff_dirs``, outdoors only). A neighbour is
+  named for what its place is, so a road neighbour is a road even when a biome
+  sits under it.
 - **Compass outdoors, narrative on feature entry.** Grid passages stay compass
   directions. A child-scope gateway carries a phrase from :func:`_entry_phrases`
   ("enter the inn", "climb down into the cave") plus ``aliases: ["in", "out"]``,
   so the pre-existing ``go in`` / ``go out`` keep resolving and the engine needs
   no change — movement resolves by the direction string.
-- **Floors inform prose now, gate movement later.** ``properties.elevation``
-  feeds the cliff phrasing only; blocking or costing a climb on a floor step is
-  task-525.
+- **A floor is a storey index, not a floor material.** ``properties.floor`` is the
+  cell's storey: 0 is the ground plane, 1 one up, -1 one down, and it is
+  unbounded (three stacked rooms, a lake bottom at -2, an 80-storey tower, -900
+  in a hole to hell). It is rounded to a whole storey because the engine
+  compares whole storeys, not heights. What you *stand on* — dirt, grass, stone,
+  pine needles — is a different fact and lands on ``properties.surface``, read
+  from the biome/road record (``engine.biomes.ground_surface``). An earlier
+  revision of this compiler put the material on ``floor`` and painted heights on
+  a separate ``elevation`` property; both were wrong and are gone.
+- **Floors inform prose now, gate movement later.** The floor layer feeds the
+  cliff phrasing; blocking or costing a climb on a storey step is task-525.
 
 Determinism is absolute: no ``random``, no clock. The same manifest + scope +
 options yield identical nodes/edges, choosing description fragments by a stable
@@ -64,8 +72,10 @@ from engine import world_grid as wg
 from engine.generation import GenerationPatch, GenerationReport, provenance
 
 #: Grid recipe version. Bump when the mapping changes, so provenance records
-#: which compiler produced a node.
-RECIPE_ID = "grid.v1"
+#: which compiler produced a node. ``v2`` is the storey model: ``floor`` became
+#: the cell's storey index and the ground material moved to ``surface``
+#: (``v1`` put the material on ``floor``).
+RECIPE_ID = "grid.v2"
 
 #: Compass deltas. ``y`` increases downward, so north is ``(0, -1)``.
 DIRECTIONS: Dict[str, Tuple[int, int]] = {
@@ -164,8 +174,12 @@ DEFAULT_TERRAIN_CLASS = "open"
 _SENSE_DIRECTIONS = ("north", "south", "east", "west",
                      "northeast", "northwest", "southeast", "southwest")
 
-#: A floor difference at or above this reads as a cliff rather than a slope.
-#: This is *prose only* — gating traversal on a large delta is task-525.
+#: A storey difference at or above this reads as a cliff rather than a slope.
+#: Prose only — gating traversal on a large delta is task-525.
+#:
+#: The name is *floor* because the unit is storeys, not because the cell's ground
+#: is a floor (that is ``surface``). An 80-storey tower steps by 1 and reads as
+#: ordinary ground; only a multi-storey jump outdoors is a rockface.
 CLIFF_FLOOR_DELTA = 2
 
 
@@ -248,14 +262,14 @@ def classify_company(company: Dict[str, str]) -> str:
 
 
 def _cliff_company(company: Dict[str, str], cliffs: Set[str]) -> None:
-    """Promote cliff-sized floor deltas into ``rock`` so the classifier sees them.
+    """Promote cliff-sized storey steps into ``rock`` so the classifier sees them.
 
     Kept out of :func:`classify_company` so that function stays a pure function
-    of company (and therefore trivially testable); the elevation read lives here,
+    of company (and therefore trivially testable); the floor read lives here,
     where the grid is in scope.
 
     A promoted direction *outranks* whatever terrain stood there: standing on a
-    shelf two floors above a drop reads as a rockface even with woods on the
+    shelf two storeys above a drop reads as a rockface even with woods on the
     other side, so the class is overwritten rather than only filling gaps.
     """
     for direction in cliffs:
@@ -469,14 +483,18 @@ def _entry_phrases(child_name: str, feature: Optional[str],
     return (GATEWAY_IN, GATEWAY_OUT, [])
 
 
-def _elevation_value(layer: Dict[str, object],
-                     cell: Tuple[int, int]) -> Optional[float]:
-    """A cell's elevation as a float, or None when unpainted/unparseable."""
+def _floor_value(layer: Dict[str, object],
+                 cell: Tuple[int, int]) -> Optional[int]:
+    """A cell's **storey index** from a floor layer, or None when unpainted.
+
+    Whole storeys only: see :func:`world_grid.floor_paint_at`, which this mirrors
+    so the compiler and the editor agree on what a painted number means.
+    """
     value = (layer or {}).get(wg.cell_key(*cell))
     if value in (None, ""):
         return None
     try:
-        return float(value)
+        return int(round(float(value)))
     except (TypeError, ValueError):
         return None
 
@@ -646,12 +664,16 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
     # Display-name qualifier for generated areas, so two scopes never compile
     # to the same name (see ``_area_name``).
     scope_label = str(record.get("name") or scope_id)
+    # Only a *world* scope has cliffs. A town or interior scope is built space
+    # (rooms, decks, a storey of a skyscraper, the airlock of a spaceship), where
+    # a storey step is a staircase rather than a rockface.
+    outdoor = str(record.get("mode") or "world") == "world"
 
     width, height = wg.grid_size(record)
     layers = record.get("layers") or {}
     biome_layer = layers.get("biome") or {}
     road_layer = layers.get("road") or {}
-    elevation_layer = layers.get("elevation") or {}
+    floor_layer = wg.layer_cells(record, "floor")
 
     biome_of: Dict[Tuple[int, int], str] = {}
     for y in range(height):
@@ -711,39 +733,44 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
             return f"road:{road}"
         return f"biome:{biome_of.get(cell)}"
 
-    def elevation_at(cell: Tuple[int, int]) -> Optional[float]:
-        value = elevation_layer.get(wg.cell_key(*cell))
+    def floor_at(cell: Tuple[int, int]) -> Optional[int]:
+        value = floor_layer.get(wg.cell_key(*cell))
         if value in (None, ""):
             return None
         try:
-            return float(value)
+            return int(round(float(value)))
         except (TypeError, ValueError):
             return None
 
     def cliff_dirs(cell: Tuple[int, int]) -> Set[str]:
         """Directions whose neighbour stands a cliff-height above/below.
 
-        Read only for *prose* (task-496): a big floor delta makes a place read
-        as a narrow path with a rockface. Gating traversal on the same delta is
-        task-525's decision, deliberately not taken here.
+        Read only for *prose* (task-496): a multi-storey step makes an *outdoor*
+        place read as a narrow path with a rockface. Gating traversal on the same
+        delta is task-525's decision, deliberately not taken here.
 
-        An unpainted elevation counts as ground level (0), not as "unknown" —
-        the painter only asks for a number where the ground actually rises, and
-        an author marking a cliff at cell A should not also have to number every
-        plain cell around it. A cell that *is* painted still compares against
-        its neighbours' painted values.
+        A storey step **inside** a building is not a cliff — it is a staircase,
+        or simply the next deck of a spaceship — so ``town``/``interior`` scopes
+        never promote a step to rock (see ``outdoor`` below). Outdoors, an
+        unpainted floor counts as ground (0) rather than "unknown": the painter
+        only asks for a number where the ground actually steps, and an author
+        marking a cliff at cell A should not also have to number every plain cell
+        around it. A cell that *is* painted still compares against its
+        neighbours' painted values.
         """
-        painted_here = elevation_at(cell)
-        here = 0.0 if painted_here is None else painted_here
+        if not outdoor:
+            return set()
+        painted_here = floor_at(cell)
+        here = 0 if painted_here is None else painted_here
         out: Set[str] = set()
         for direction, (dx, dy) in DIRECTIONS.items():
             nb = (cell[0] + dx, cell[1] + dy)
             # Any in-bounds cell counts, not just a painted one: a cliff face is
             # terrain whether or not it became a place, and an author who marks a
-            # step up in elevation should not also have to paint a biome there.
+            # step up should not also have to paint a biome there.
             if not (0 <= nb[0] < width and 0 <= nb[1] < height):
                 continue
-            other = elevation_at(nb)
+            other = floor_at(nb)
             if other is None:
                 continue
             if abs(other - here) >= CLIFF_FLOOR_DELTA:
@@ -805,8 +832,8 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
 
         child_scope_id = wg.occupant_at(record, *anchor)
 
-        # A road cell's tags and floor come from the *road*; the biome under it
-        # is context. Without a road the biome decides, as before.
+        # A road cell's tags and ground material come from the *road*; the biome
+        # under it is context. Without a road the biome decides, as before.
         biome_rec = biomes_mod.biome(biome_id) or {}
         road_rec = (biomes_mod.features() or {}).get(str(road)) or {} if road else {}
         tags = list(road_rec.get("tags") or []) if road else []
@@ -824,7 +851,13 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
         props = {
             "world_scope_id": scope_id,
             "tags": tags,
-            "floor": (road_rec.get("floor") or biome_rec.get("floor", "dirt")),
+            # The cell's **storey index** — 0 ground, 1 up, -1 down, unbounded.
+            # Unpainted is ground, so every area carries a real storey.
+            "floor": wg.floor_at(record, *anchor),
+            # What you stand on, which is a different fact from which storey you
+            # are on. A road's own material wins; otherwise the biome under it.
+            "surface": biomes_mod.ground_surface(
+                road_rec if road else None, biome_rec),
             "environment": dict(biome_rec.get("environment") or DEFAULT_ENVIRONMENT),
             "description": _area_description(
                 anchor, biome_id, road, neighbours, directions,
@@ -837,9 +870,6 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
             "y": anchor[1] * CELL_CANVAS_UNITS,
             "cell": {"x": anchor[0], "y": anchor[1]},
         }
-        elevation = elevation_layer.get(wg.cell_key(*anchor))
-        if elevation not in (None, ""):
-            props["elevation"] = elevation
         if road:
             props["road"] = road
         if biome_id:
@@ -865,10 +895,7 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
         from_name = region_area_name[region_a]
         to_name = region_area_name[region_b]
         way_id = _way_id(scope_id, from_area, to_area)
-        # A road cell's way walks on the road; a biome cell's on its floor. A
-        # road-only cell has no biome, so it falls back to a made surface.
-        road_floor = (biomes_mod.features() or {}).get(
-            str(cell_road(cell) or ""), {}).get("floor")
+        road_id = cell_road(cell)
         way_props = {
             "area_from": from_name,
             "area_to": to_name,
@@ -877,13 +904,35 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
             "direction": direction,
             "current_state": "open",
             "see_through": True,
-            "floor": road_floor or (biomes_mod.biome(floor_biome) or {}).get("floor", "dirt"),
+            # A way's **storey** is the lower of the two it joins: a corridor sits
+            # on the storey both its ends are on, and a way that climbs is on the
+            # one it leaves. `min` rather than "the emitting cell's storey" so the
+            # value does not depend on which side of the adjacency emitted first.
+            "floor": min(wg.floor_at(record, *cell), wg.floor_at(record, *nb)),
+            # What you walk on: a road cell's way walks on the road, a biome
+            # cell's on its ground. A road-only cell has no biome, so it falls
+            # back to the default material.
+            "surface": biomes_mod.ground_surface(
+                (biomes_mod.features() or {}).get(str(road_id or "")),
+                biomes_mod.biome(floor_biome)),
             "pass_message": f"You follow the path {direction} toward {to_name}.",
             "world_scope_id": scope_id,
             # Midpoint of the two cells, so a way sits between its areas
             # when the graph is laid out from painted positions.
             "x": ((cell[0] + nb[0]) / 2) * CELL_CANVAS_UNITS,
             "y": ((cell[1] + nb[1]) / 2) * CELL_CANVAS_UNITS,
+            # A way is *painted* exactly like an area: those x/y are engine
+            # units (cell * 40) that the map layout scales by the map pitch and
+            # translates by the scope's `map_offset`. `cell` is the marker that
+            # says so, and it is the ONLY thing distinguishing engine units from
+            # the canvas pixels a hand-dragged node stores in the same field
+            # (see `GraphLayoutEngine.hasPaintedCoords`). Without it a way is
+            # indistinguishable from a dragged node, so saving a layout writes
+            # canvas pixels over its engine units and the next layout re-adds the
+            # scope offset on top — the way walks further out every save. The
+            # midpoint of two cells is a half-integer cell; that is honest, and
+            # the marker is a flag, not a cell index.
+            "cell": {"x": (cell[0] + nb[0]) / 2, "y": (cell[1] + nb[1]) / 2},
             "generated": provenance(scope_id, recipe_id, seed, tick)["generated"],
         }
         nodes.append(Node(id=way_id, type="way",
@@ -936,30 +985,35 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
                         emit_passage(
                             region_a, region_b, ca, cb,
                             _compass_direction(cb[0] - ca[0], cb[1] - ca[1]),
-                            biome_of[ca])
+                            # `cell_biome(... ) or ""`, not `biome_of[ca]`.
+                            # A cell is a place if it has a biome **or a road**
+                            # (`cells = set(biome_of) | set(road_of)`), so a
+                            # road-only cell is a perfectly valid island member
+                            # with no entry in `biome_of` — and a bare subscript
+                            # there raises KeyError. The sibling call above (the
+                            # region-boundary emitter) has always used the safe
+                            # accessor, and the other `biome_of` reads in this file
+                            # all use `.get`. This was the lone exception.
+                            cell_biome(ca) or "")
                 connected.update(comp)
 
     def _entry_delta(parent_rec: dict, child_id: str,
-                     cell: Optional[Tuple[int, int]]) -> Optional[float]:
-        """Floor step from a placement's parent cell down into the child.
+                     cell: Optional[Tuple[int, int]]) -> Optional[int]:
+        """Storey step from a placement's parent cell down into the child.
 
         Both sides come off the records — the parent cell from this scope's
-        elevation layer, the child from the ``entry_elevation`` it recorded when
-        *it* compiled. So whichever scope compiles second derives the same
-        phrase. An unpainted or unnumbered side reads as ground level.
+        floor layer, the child from the ``entry_floor`` it recorded when *it*
+        compiled. So whichever scope compiles second derives the same phrase. An
+        unpainted side reads as ground.
         """
-        parent_floor = 0.0
-        if cell is not None:
-            here = elevation_at(cell)
-            parent_floor = 0.0 if here is None else here
+        parent_floor = 0 if cell is None else (floor_at(cell) or 0)
         child = manifest.get(child_id) or {}
-        if "entry_elevation" not in child:
-            return None            # child not compiled with elevation yet
+        if "entry_floor" not in child:
+            return None            # child not compiled with a floor yet
         try:
-            child_floor = float(child["entry_elevation"])
+            return int(round(float(child["entry_floor"]))) - parent_floor
         except (TypeError, ValueError):
             return None
-        return child_floor - parent_floor
 
     def _parent_cell_feature(manifest_: Dict[str, dict], child_id: str,
                              cell: Optional[Tuple[int, int]]) -> Optional[str]:
@@ -974,27 +1028,24 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
         return None
 
     def _reverse_entry_delta(manifest_: Dict[str, dict], parent_id: str,
-                             child_id: str) -> Optional[float]:
-        """The same floor step, read from this scope's side (child-compiles-second).
+                             child_id: str) -> Optional[int]:
+        """The same storey step, read from this scope's side (child-compiles-second).
 
         Mirrors :func:`_entry_delta` so both emission paths produce the same
         direction pair, whichever scope happened to compile second.
         """
         child = manifest_.get(child_id) or {}
-        if "entry_elevation" not in child:
+        if "entry_floor" not in child:
             return None
         parent = manifest_.get(parent_id) or {}
         pos = (parent.get("placements") or {}).get(child_id) or {}
-        parent_floor = 0.0
+        parent_floor = 0
         try:
-            px, py = int(pos.get("x")), int(pos.get("y"))
-            value = ((parent.get("layers") or {}).get("elevation") or {}).get(
-                wg.cell_key(px, py))
-            parent_floor = float(value) if value not in (None, "") else 0.0
+            parent_floor = wg.floor_at(parent, int(pos.get("x")), int(pos.get("y")))
         except (TypeError, ValueError):
-            parent_floor = 0.0
+            parent_floor = 0
         try:
-            return float(child["entry_elevation"]) - parent_floor
+            return int(round(float(child["entry_floor"]))) - parent_floor
         except (TypeError, ValueError):
             return None
 
@@ -1096,9 +1147,12 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
                      # floor step between its cell and this scope's inside and
                      # phrase the gateway ("climb down into the cave") from
                      # something both sides of the compile agree on.
-                     "entry_cell": {"x": entry_anchor[0], "y": entry_anchor[1]},
-                     "entry_elevation": _elevation_value(
-                         elevation_layer, entry_anchor)}
+                      "entry_cell": {"x": entry_anchor[0], "y": entry_anchor[1]},
+                      # The entry cell's **storey index**, so a parent compiling
+                      # later can read the step between its cell and this scope's
+                      # inside and phrase the gateway ("climb down into the cave")
+                      # from something both sides of the compile agree on.
+                      "entry_floor": _floor_value(floor_layer, entry_anchor)}
     if placement_updates:
         updates["placements"] = placement_updates
     return GenerationPatch(

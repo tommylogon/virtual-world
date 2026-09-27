@@ -6,11 +6,14 @@
  * these functions, which are covered by `tools/unit/test_worldpainter.js`.
  *
  * Mirrors the server contract in `engine/world_grid.py` (task-495): a scope owns
- * a bounded grid, paint lives on layers `biome`/`road`/`elevation`, and features
- * are child scopes placed at a cell.
+ * a bounded grid, paint lives on layers `biome`/`road`/`floor`, and features
+ * are child scopes placed at a cell. `floor` is a **storey index** — 0 ground,
+ * 1 one up, -1 one down, unbounded (an 80-storey tower, a lake bottom at -2, a
+ * hole to hell at -900) — never a height fraction and never a ground material;
+ * the material lives in the biome/road record's `surface`.
  *
  * @module grid-model — WorldPainter grid view-model and cell maths
- * @contributes cell keys, drill-down mode suggestion, render rows, layer colours, placed areas, compile estimate, cell inspector, scope-grouped area picker
+ * @contributes cell keys, drill-down mode suggestion, render rows, layer colours, storey reads, placed areas, compile estimate, cell inspector, scope-grouped area picker
  * @powers WorldPainter editor grid rendering, placement and inspection (task-495, task-528, task-540, task-541)
  * @relates static/js/worldpainter/editor.js; engine/world_grid.py; routes/world_grid_ops.py
  * @docs docs/design/worldpainter-knowledge-and-fog.md
@@ -19,7 +22,7 @@
     'use strict';
 
     const MODES = ['world', 'town', 'interior'];
-    const PAINT_LAYERS = ['biome', 'road', 'elevation'];
+    const PAINT_LAYERS = ['biome', 'road', 'floor'];
 
     // Keys are the real ids in `data/worldpainter/biomes.json` / `features`, so a
     // painted cell reads at a glance; anything else gets a deterministic hash
@@ -75,13 +78,40 @@
         const key = String(value).toLowerCase();
         if (layer === 'biome') return BIOME_COLORS[key] || `hsl(${_hash(key) % 360},45%,45%)`;
         if (layer === 'road') return ROAD_COLORS[key] || `hsl(${_hash(key) % 360},18%,55%)`;
-        if (layer === 'elevation') {
+        if (layer === 'floor') {
             const n = Number(value);
             if (!Number.isFinite(n)) return '#666';
-            const t = Math.max(0, Math.min(1, n));
-            return `hsl(210,${20 + t * 45}%,${78 - t * 55}%)`;
+            // Storeys, not a 0..1 height: 0 is ground, up is cooler/lighter, down
+            // is warmer/darker. The clamp is for *colour* only — a cell may sit
+            // at 80 or -900, and every one of those should still read as "far
+            // above/below" rather than as a distinguishable shade.
+            const f = Math.max(-4, Math.min(4, n));
+            const light = f >= 0 ? 76 - f * 4 : 76 + f * 7;
+            return `hsl(${f < 0 ? 28 : 208},${8 + Math.abs(f) * 10}%,${Math.max(34, light)}%)`;
         }
         return `hsl(${_hash(key) % 360},40%,50%)`;
+    }
+
+    /**
+     * A cell's **storey index** as a number, or `null` when the cell is unpainted.
+     *
+     * 0 is a real painted value (the author said "ground"), so callers must test
+     * `!= null`, never truthiness. Non-numeric paint reads as `null` rather than
+     * 0 so a typo cannot silently become ground.
+     */
+    function floorNumber(value) {
+        if (value === null || value === undefined || value === '') return null;
+        const n = Number(value);
+        if (!Number.isFinite(n)) return null;
+        return Math.round(n);
+    }
+
+    /** How a storey index reads out loud: "ground", "floor 3", "3 below ground". */
+    function floorLabel(value) {
+        const n = floorNumber(value);
+        if (n === null) return '—';
+        if (n === 0) return 'ground (0)';
+        return n > 0 ? `floor ${n}` : `${-n} below ground (${n})`;
     }
 
     /**
@@ -438,16 +468,17 @@
      * What is on a cell (task-540) — the payload half of the painter's cell
      * inspector, kept pure so it can be unit-tested without a canvas.
      *
-     * Returns `{x, y, key, biome, road, elevation, area, child, painted, empty}`:
-     * the three paint layers, the hand-placed area on the cell, and the child
-     * scope placed on it. `empty` is true when nothing is there at all, which is
-     * the case the hover readout needs to say "nothing here" instead of printing
-     * three empty fields.
+     * Returns `{x, y, key, biome, road, floor, area, child, painted, empty}`:
+     * the three paint layers (with `floor` as a numeric storey index — `null`
+     * when the author painted no storey, which still counts as *painted* when it
+     * is 0), the hand-placed area on the cell, and the child scope placed on it.
+     * `empty` is true when nothing is there at all, which is the case the hover
+     * readout needs to say "nothing here" instead of printing three empty fields.
      */
     function cellInfo(payload, x, y) {
         const biome = cellValue(payload, 'biome', x, y) || null;
         const road = cellValue(payload, 'road', x, y) || null;
-        const elevation = cellValue(payload, 'elevation', x, y);
+        const floor = floorNumber(cellValue(payload, 'floor', x, y));
         const area = areaAt(payload, x, y);
         // `feature` is the derived `{cellKey: child_scope_id}` view; the readable
         // card (name, kind, state) comes from the scope's own `placements` list.
@@ -458,13 +489,11 @@
         return {
             x, y,
             key: cellKey(x, y),
-            biome, road,
-            elevation: (elevation === null || elevation === undefined || elevation === '')
-                ? null : elevation,
+            biome, road, floor,
             area: area ? { id: area.id, name: area.name, x: area.x, y: area.y } : null,
             child,
-            painted: Boolean(biome || road || elevation != null),
-            empty: !biome && !road && elevation == null && !area && !child,
+            painted: Boolean(biome || road || floor !== null),
+            empty: !biome && !road && floor === null && !area && !child,
         };
     }
 
@@ -588,6 +617,7 @@
     const gridModel = {
         MODES, PAINT_LAYERS, BIOME_COLORS, ROAD_COLORS,
         cellKey, parseCellKey, cellId, nextMode, layerColor,
+        floorNumber, floorLabel,
         lineCells, routeCells, routeStats, estimateCompile,
         cellValue, featureAt, placementFor, buildRows, featureMap,
         pruneGrid, childrenAvailable,

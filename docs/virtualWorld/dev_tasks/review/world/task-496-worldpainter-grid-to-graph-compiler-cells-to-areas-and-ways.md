@@ -1,6 +1,6 @@
 ---
 type: task
-status: inprogress
+status: review
 area: world
 priority: high
 ---
@@ -55,8 +55,8 @@ Locked with the author. These widen the grid recipe beyond "biome cells → area
 - **Descriptions compose the place's character**, not just list neighbours:
   road with woods to the north → "a road along the forest line"; road between
   woods → "a road in the woods"; road between cliffs → "a narrow path, rockface
-  rising on one side and dropping away on the other" (read from neighbour
-  elevation/floor). May look one hop further to say where a road *goes* ("the
+  rising on one side and dropping away on the other" (read from the neighbour
+  **storey** step). May look one hop further to say where a road *goes* ("the
   road west leads back into the sparse woods"). Deterministic, no LLM.
 - **Directions: compass outdoors, narrative on feature entry.** Exterior
   cell-to-cell moves stay `north/south/east/west` + diagonals. Entering a
@@ -65,37 +65,54 @@ Locked with the author. These widen the grid recipe beyond "biome cells → area
   feature/placement, not hardcoded. The engine already keys movement off the
   direction string (gateways use `in`/`out`), so no engine change is needed to
   widen the vocabulary.
-- **Elevation is a description input now, a movement gate later.** Floors are
-  stored on areas (`properties.elevation`) and should inform cliff prose now; a
-  large floor delta gating traversal (climb required past ~3 floors) is deferred
-  to **task-525**.
+- **`floor` is a storey index, not a floor material** (corrected with the author,
+  2026-09-27). `0` is the ground plane, `1` one storey up, `-1` one down, and the
+  scale is **unbounded** — three stacked rooms, the space around a spaceship, a
+  lake bottom at `-2`, an 80-storey tower, a hole to hell at `-900`. Rounded to a
+  whole storey, because the engine compares whole storeys. What you *stand on*
+  is `properties.surface`. The earlier revision of this design put the ground
+  material on `floor` and painted a 0..1 height fraction on a separate
+  `elevation` layer, written to `properties.elevation`; that is reverted, the
+  layer is `floor`, and `properties.elevation` is gone. A save already compiled
+  by the old recipe is repaired on load (`Graph.normalize_area_floors`).
+- **Storeys inform prose now, gate movement later.** The floor layer feeds the
+  cliff phrasing (`CLIFF_FLOOR_DELTA = 2` storeys, `world` scopes only — a storey
+  step in a town/interior is a staircase, not a rockface); a step past ~3
+  storeys gating traversal (climb required) is deferred to **task-525**.
 
-Still to decide/land here: the context classifier (neighbour pattern →
-phrase), the feature-entry direction vocabulary, and road-as-place in the
-cell list.
+All three landed on 2026-09-27 — see the Progress section at the end of this file:
+the context classifier, the feature-entry direction vocabulary, and road-as-place
+in the cell list.
 
 
 
 - **`engine/world_compile.py`** (new): `compile_grid(manifest, scope_id, *,
   region_merge=False, recipe_id="grid.v1", seed=None, tick=0)` → a
   `GenerationPatch`.
-  - Cells with a painted `biome` become areas; 8-neighbour adjacencies
+  - **Every painted cell becomes an area** — biome, road, or both
+    (`cells = sorted(set(biome_of) | set(road_of))`; a cell holding a
+    hand-placed area, task-528, is still skipped). 8-neighbour adjacencies
     (orthogonal *and* diagonal) become
     `way` nodes with the **four connection edges** `connect_areas` produces, so
     the engine is unchanged. Optional `region_merge` flood-fills contiguous
-    same-biome cells into one area, emitting one passage per region boundary.
+    cells of the same **identity** — `road:<value>` when a road is painted,
+    `biome:<value>` otherwise — into one area, emitting one passage per region
+    boundary. (Superseded 2026-09-27: before that, only biome cells compiled
+    and merging was by biome.)
   - Disconnected islands are **auto-linked**: each component beyond the main
     landmass gets one way to the closest cell of the main mass
     (`link_islands`, default on), so a lone outpost is reachable instead of
     compiling to a dead end. The report notes `K island(s) linked`.
-  - Areas carry `tags` (biome + road feature), `floor`, `environment`,
-    `world_scope_id`, optional `elevation`/`road`/`child_scope_id`, and a
-    **deterministic description** built from the cell's own biome fragment, the
-    road feature, its exits and its neighbouring biomes — no LLM (fragment
-    choice is a stable hash of `seed:cell`).
-  - Ways carry `direction`, open `current_state`, `see_through`, `floor`,
-    `pass_message`, and both `area_from`/`area_to` (display names, the engine's
-    convention) and `area_from_id`/`area_to_id` (ids, for scoped tooling).
+  - Areas carry `tags` (biome + road feature), `floor` (the cell's **storey
+    index**), `surface` (the ground material), `environment`, `world_scope_id`,
+    optional `road`/`child_scope_id`, and a **deterministic description** built
+    from the cell's own biome fragment, the road feature, its exits and its
+    neighbouring biomes — no LLM (fragment choice is a stable hash of
+    `seed:cell`).
+  - Ways carry `direction`, open `current_state`, `see_through`, `floor` (the
+    lower of the two storeys it joins), `surface`, `pass_message`, and both
+    `area_from`/`area_to` (display names, the engine's convention) and
+    `area_from_id`/`area_to_id` (ids, for scoped tooling).
   - Every generated node carries task-398 provenance.
 - `engine/world_scopes.py::boundary_ways` now prefers `area_from_id`/`area_to_id`
   and resolves display names → ids, so generated and hand-authored ways both
@@ -194,3 +211,88 @@ overrides painted positions" caveat above for painted worlds.
 
 Tests: `tests/test_world_compile.py` +1 (area `cell`/`x`/`y`, way midpoint) and
 the gateway position assertion.
+
+## Progress — 2026-09-27 (the observer-view pass landed)
+
+The three items the 2026-09-26 decision block left open are implemented, and the
+WorldPainter's area estimate now mirrors the compiler so the header matches what
+Generate mints.
+
+- **Road-as-place in the cell list.** The compile set is
+  `biome_of | road_of`, so a road-only cell compiles. A cell's *identity* is
+  `road:<value>` when a road is painted, else `biome:<value>`
+  (`identity()` inside `compile_grid`), and `_regions(cells, identity)` merges
+  by it: a run of road becomes one road area, while a road cell beside forest
+  stays its own place. A road cell's `tags`/`surface`/`environment`/name come
+  from the **road**; the biome underneath is kept as `properties.biome` plus
+  description context, so nothing is lost.
+- **Context classifier** (`terrain_class`, `classify_company`,
+  `_cliff_company`, `CLIFF_FLOOR_DELTA = 2`). Neighbouring cells are reduced to a
+  terrain class and the pattern becomes one character sentence: road in the
+  woods / along the forest line / a road cut along the foot of the rockface / a
+  narrow path with a rockface rising on one side and dropping away on the other /
+  a road carried over the water / a road across open country. A biome cell beside
+  a road gets "A track runs through it." A neighbour is named for what its place
+  **is**, so a road neighbour reads as a road even when a biome sits under it.
+- **Storeys as a description input.** `floor_at` + `cliff_dirs` compare against
+  the painted `floor` layer (an unpainted neighbour counts as ground), so a
+  multi-storey step turns a slope into a rockface — outdoors only; a `town` or
+  `interior` scope never promotes a step, because a storey step inside is a
+  staircase, not a cliff. Prose only — gating traversal on a storey delta stays
+  **task-525**.
+- **Feature-entry vocabulary** (`_entry_phrases`, `_entry_delta`). A child-scope
+  gateway carries a narrative phrase sourced from the placement's feature and the
+  storey step between the parent cell and the child's recorded
+  `entry_floor`/`entry_cell`: "enter the inn", "climb down into the cave",
+  "climb up the rockface". Every phrase also carries `aliases: ["in", "out"]`, so
+  the pre-existing `go in` / `go out` still resolve — verified against the real
+  `NameMatching.resolve_exit` for `in`, `enter inn`, `inn`, `the inn`. Exterior
+  passages stay compass directions.
+- **The painter's estimate was wrong** and is fixed
+  (`static/js/worldpainter/grid-model.js` `estimateCompile`): it counted biome
+  cells only and merged by biome, so it under-promised every road. It now unions
+  the biome and road layers and groups by the same road-first identity.
+
+Tests: `tests/test_world_compile.py` **49 passed** (road-only cells, road
+precedence over biome, road identity in region merge, every classifier phrase,
+elevation-driven rockfaces, entry phrases/aliases, road-neighbour naming, the
+`go in` alias tier). `tools/unit/test_worldpainter.js` +1 covering the road-cell
+estimate. World cluster (`test_world_compile` + `test_world_grid` +
+`test_world_grid_routes` + `test_world_scopes`) **134 passed**; `node
+tools/unit/run.cjs` 262 passed / 13 pre-existing `test_plan_tracker` failures;
+`npm run lint`, `npm run typecheck`, `js_module_index --check` and `tasks.py
+validate` clean. Live API run (7-cell grid with a road) reported `7 area(s),
+8 passage(s)`, `1 island(s) linked`.
+
+Docs: the model is written down in `engine/world_compile.py`'s module docstring
+and in `docs/design/worldpainter-knowledge-and-fog.md` ("Description and direction
+model"), not only here.
+
+## Floor semantics correction (2026-09-27, recipe `grid.v2`)
+
+The author rejected the mapping this file originally described, where `floor` was
+the ground **material** and a separate `elevation` layer held a 0..1 height
+fraction. `floor` is a **storey index** and nothing else: 0 is the ground plane,
+1 one up, -1 one down, unbounded — three stacked rooms, the space around a
+spaceship, a lake bottom at -2, an 80-storey tower, a hole to hell at -900. The
+ground material moved to `properties.surface` (and `surface` in the biome/road
+records, via `engine.biomes.ground_surface`). Changed:
+
+- `engine/world_grid.py`: `PAINT_LAYERS` is `("biome", "road", "floor")`;
+  `floor_at`/`floor_paint_at` are the storey reads (whole storeys, unpainted =
+  ground); `sanitize_record` migrates a legacy `elevation` layer onto `floor` so
+  an old save keeps its numbers.
+- `engine/world_compile.py`: areas get `floor` (storey) + `surface` (material);
+  ways get `floor` (the **lower** of the two storeys they join, so the value does
+  not depend on emission order) + `surface`; `entry_elevation` →
+  `entry_floor`; `RECIPE_ID` → `grid.v2`. The cliff promotion reads storeys and
+  is restricted to `world` scopes — a storey step in a town/interior is a
+  staircase, not a rockface.
+- `graph.py`: `normalize_area_floors` repairs a save compiled by `grid.v1` on
+  load (material string → `surface`, storey → 0), the same repair pattern as the
+  existing `door` → `way` migration.
+- Front end: the painter paints a `floor` layer with a `+1 / -1` default, the
+  storey filter and the inspector's Floor field are numeric and **no longer
+  capped at ±10** (that cap quietly truncated a skyscraper at ten floors), and
+  every consumer coerces a legacy non-numeric value to ground.
+

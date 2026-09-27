@@ -186,7 +186,7 @@ window.HelpCenter = (() => {
             match: d => d === 'worldpainter',
             group: 'World building',
             title: '🗺️ WorldPainter — paint a world, then compile it',
-            body: '<b>Root then zone</b>: the first scope you create is the world root; add a child zone (a forest, town, or floor) and drill in to detail it. Paint the <b>biome</b>, <b>road</b> and <b>elevation</b> layers — drag to paint, or use the <b>🧭 Route</b> tool (1 cell = 1 turn, so 240 cells = 4&nbsp;h). Load a map image as a reference with <b>▦ match</b>. <b>⚙ Generate is per scope</b>: compile the root and each zone separately, so the root stays coarse and zones hold the detail — no single generate mints thousands of rooms at once.',
+            body: '<b>Root then zone</b>: the first scope you create is the world root; add a child zone (a forest, town, or floor) and drill in to detail it. Paint the <b>biome</b>, <b>road</b> and <b>floor</b> layers — drag to paint, or use the <b>🧭 Route</b> tool (1 cell = 1 turn, so 240 cells = 4&nbsp;h). <b>Floor is a storey number</b>: 0 is ground, 1 one up, -1 one down, and it goes as far as you like (3 for a room three storeys up, 80 for a tower, -900 for a hole to hell). Load a map image as a reference with <b>▦ match</b>. <b>⚙ Generate is per scope</b>: compile the root and each zone separately, so the root stays coarse and zones hold the detail — no single generate mints thousands of rooms at once.',
             target: '[data-help="worldpainter"]',
         },
         {
