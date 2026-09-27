@@ -1,53 +1,71 @@
 {
-  "name": "Bread",
-  "actions": "take,drop,examine,eat",
-  "contents": [],
-  "current_state": "fresh",
-  "damage": 0,
-  "defense": 0,
-  "description": "A small loaf of coarse bread.",
-  "insulation": 0,
-  "light_level": "dim",
-  "tags": [
-    "food",
-    "kitchen"
-  ],
-  "triggers": [
+ "name": "Bread",
+ "actions": "take,drop,examine,eat",
+ "contents": [],
+ "current_state": "fresh",
+ "damage": 0,
+ "defense": 0,
+ "description": "A small loaf of coarse bread.",
+ "insulation": 0,
+ "light_level": "dim",
+ "tags": [
+  "food",
+  "kitchen"
+ ],
+ "triggers": [
+  {
+   "conditions": {},
+   "effects": [
     {
-      "conditions": {},
-      "effects": [
-        {
-          "params": {
-            "message": "",
-            "success_message": "It tastes good"
-          },
-          "type": "message"
-        }
-      ],
-      "fail_message": "",
-      "success_message": "",
-      "target_name": "",
-      "target_state": "",
-      "trigger_type": "on_eat"
-    },
-    {
-      "conditions": {},
-      "effects": [
-        {
-          "params": {
-            "message": "",
-            "success_message": "its still mosrtly soft, i can *EAT* this."
-          },
-          "type": "message"
-        }
-      ],
-      "fail_message": "",
-      "success_message": "",
-      "target_name": "",
-      "target_state": "",
-      "trigger_type": "on_examine"
+     "params": {
+      "message": "",
+      "success_message": "It tastes good"
+     },
+     "type": "message"
     }
-  ],
-  "uses": 1,
-  "weight": 1
+   ],
+   "fail_message": "",
+   "success_message": "",
+   "target_name": "",
+   "target_state": "",
+   "trigger_type": "on_eat"
+  },
+  {
+   "conditions": {},
+   "effects": [
+    {
+     "params": {
+      "message": "",
+      "success_message": "its still mosrtly soft, i can *EAT* this."
+     },
+     "type": "message"
+    }
+   ],
+   "fail_message": "",
+   "success_message": "",
+   "target_name": "",
+   "target_state": "",
+   "trigger_type": "on_examine"
+  },
+  {
+   "trigger_type": "on_eat",
+   "effects": [
+    {
+     "type": "adjust_vital",
+     "params": {
+      "stat": "Hunger",
+      "amount": -45,
+      "target": "self"
+     }
+    }
+   ],
+   "target_name": "",
+   "target_state": "",
+   "conditions": {},
+   "success_message": "",
+   "fail_message": ""
+  }
+ ],
+ "uses": 1,
+ "weight": 1
 }

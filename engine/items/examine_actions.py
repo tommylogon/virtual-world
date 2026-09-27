@@ -299,16 +299,36 @@ class ExamineActionsMixin:
                         }
                         target_name = item_node.name or item_node.id
                         lines = []
+                        revealed = 0
                         for etype in (EDGE_ON, EDGE_UNDER, EDGE_BEHIND, EDGE_BESIDE, EDGE_AT, EDGE_IN):
                             if etype not in related:
                                 continue
                             for cn in related[etype]:
                                 if cn.properties.get("current_state") == "hidden":
                                     cn.properties["current_state"] = "normal"
+                                # task-494: un-hiding a node is a *global* change, so the
+                                # first character to look in a chest revealed the loot to
+                                # everyone forever, while the character who actually did
+                                # the looking was never credited with meeting it. Both
+                                # halves are needed and they are different: the state flip
+                                # above is about what the world shows, this is about what
+                                # *this* character has seen. The three readers that
+                                # render "known" — contextual-actions.js isDiscovered,
+                                # room-context.js and memory-context.js — all read
+                                # `player.discovered_items`, so the stamp is what makes the
+                                # reveal mean anything to the player. Idempotent: a second
+                                # examine of the same chest refreshes the observation in
+                                # place and grants no further novelty.
+                                if self._register_item_discovery(player_manager, cn):
+                                    revealed += 1
                             names = ', '.join(cn.name for cn in related[etype])
                             lines.append(relation_labels[etype].format(target=target_name, names=names))
                         if lines:
                             desc += "\n" + "\n".join(lines)
+                        if revealed:
+                            # Only narrate when something was genuinely new, so a
+                            # re-look at a known chest does not read as a discovery.
+                            desc += f"\nTaking in {revealed} new thing{'s' if revealed != 1 else ''}."
 
                 actions = self.trigger_system._get_available_actions(item_node)
                 if actions:

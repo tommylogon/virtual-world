@@ -5,6 +5,8 @@ Checks (errors exit 1):
   2. missing_slots    — items tagged clothing/armor without equip_slots
   3. tag_case_drift   — same tag in multiple casings within a registry
   5. broken_contents  — item contents referencing missing library ids
+  7. unauthored_consumables — edible/drinkable items whose consume trigger
+     restores nothing (task-506)
 Warnings (exit 0):
   4. singleton_tags   — item tags appearing on exactly one item
   6. area_tag_gaps    — library areas with no tags
@@ -25,9 +27,29 @@ import sys
 
 DEFAULT_LIB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "library")
 
-ERROR_CHECKS = ("dead_interests", "missing_slots", "tag_case_drift", "broken_contents")
+ERROR_CHECKS = ("dead_interests", "missing_slots", "tag_case_drift", "broken_contents",
+                "unauthored_consumables")
 WARNING_CHECKS = ("singleton_tags", "area_tag_gaps")
 ALL_CHECKS = ERROR_CHECKS + WARNING_CHECKS
+
+#: Items that carry `food`/`drink` (or an `eat`/`drink` action) because they sit
+#: *near* food rather than being it — a barrel, a platter, a kettle. They are
+#: fixtures, and the task-506 authoring pass un-tags them instead of authoring a
+#: nonsense `on_eat`. Listed here so the lint does not demand the impossible and
+#: so a new one of these is a deliberate, visible line rather than a silent tag.
+#:
+#: This list is the honest exception set. It exists because
+#: `ConsumeActionsMixin._is_valid_for` accepts a consumable by *tag alone*, so a
+#: mistagged fixture is not a cosmetic problem: a background character will
+#: cheerfully eat the barrel.
+FOOD_ADJACENT_FIXTURES = frozenset({
+    "apple_tree", "barrel", "boxed_shell_cases", "bread_plate", "candy_jar",
+    "cauldron", "cheese_shred", "coffee_grinder", "dairy_case", "flour",
+    "hanging_dried_meats", "meat_hooks", "mystery_cream_sauce",
+    "seasoned_beef_pan", "spice_rack", "baja_blast_cup", "taco_bell_drink_cup",
+    "teacup", "thermos", "water_carboy", "water_glass", "water_jug",
+    "wine_case", "wine_cask", "frozen_berries_7dtx",
+})
 
 
 def load_registry(lib_dir, name):
@@ -106,6 +128,82 @@ def check_broken_contents(items, report):
                              f"items/{item_id}: contents references missing library item '{child_id}'")
 
 
+def check_unauthored_consumables(items, report):
+    """Edible/drinkable items whose consume trigger restores nothing (task-506).
+
+    `ConsumeActionsMixin._is_valid_for` accepts a consumable by *tag alone*, and
+    `BackgroundSimulation._consume_here` used to fall back to a hardcoded
+    `MEAL_RESTORE`/`DRINK_RESTORE` when an item authored nothing — so a tag was
+    enough to make an item edible and a hardcoded number was enough to make it
+    nourishing. That fallback is the thing being retired, and this check is what
+    stops it creeping back: an item that claims to be food and restores nothing
+    is either a data bug or a fixture that has been mistagged.
+
+    Two shapes are accepted, because both exist in the data: the modern
+    `effects: [{type, params}]` list and the older flat
+    `effect_type`/`effect_params` pair. `trigger_type` may be a string **or a
+    list** (`apple.json` has `["on_eat"]`) — missing that is how 64 items came to
+    look authored when they were not.
+
+    Hunger and Thirst are *drives*: they fill upward, so relief is a **negative**
+    `adjust_vital` amount. Checking the sign the other way round reports every
+    correctly-authored item as broken. The **stat must match the drive being
+    relieved** — an `on_eat` whose only `adjust_vital` is `Sanity -10` is not a
+    meal, and accepting it would leave the item starving with a green lint.
+    """
+    drive_for = {"on_eat": "hunger", "on_drink": "thirst"}
+    for item_id, item in sorted(items.items()):
+        if not isinstance(item, dict):
+            continue
+        tags = {str(t).strip().lower() for t in (item.get("tags") or [])}
+        actions = item.get("actions") or []
+        if isinstance(actions, str):
+            actions = [a.strip() for a in actions.split(",")]
+        actions = {str(a).strip().lower() for a in actions}
+        eatable = "food" in tags or "eat" in actions
+        drinkable = "drink" in tags or "drink" in actions
+        if not (eatable or drinkable):
+            continue
+        if item_id in FOOD_ADJACENT_FIXTURES:
+            continue  # deliberately un-tagged rather than authored; see the constant
+
+        relieved = {"on_eat": False, "on_drink": False}
+        for trigger in (item.get("triggers") or []):
+            if not isinstance(trigger, dict):
+                continue
+            raw = trigger.get("trigger_type")
+            types = ([str(t) for t in raw] if isinstance(raw, list)
+                     else [str(raw)] if raw else [])
+            effects = trigger.get("effects")
+            if not effects and trigger.get("effect_type"):
+                effects = [{"type": trigger.get("effect_type"),
+                            "params": trigger.get("effect_params") or {}}]
+            for effect in effects or []:
+                if not isinstance(effect, dict) or str(effect.get("type")) != "adjust_vital":
+                    continue
+                params = effect.get("params") or {}
+                stat = str(params.get("stat", "")).strip().lower()
+                try:
+                    amount = float(params.get("amount"))
+                except (TypeError, ValueError):
+                    continue
+                if amount >= 0:
+                    continue  # a drive is relieved downward, never upward
+                for trigger_type in types:
+                    if trigger_type in relieved and stat == drive_for[trigger_type]:
+                        relieved[trigger_type] = True
+
+        missing = []
+        if eatable and not relieved["on_eat"]:
+            missing.append("on_eat -> adjust_vital Hunger (negative)")
+        if drinkable and not relieved["on_drink"]:
+            missing.append("on_drink -> adjust_vital Thirst (negative)")
+        if missing:
+            report.error("unauthored_consumables",
+                         f"items/{item_id}: claims to be consumable but authors no "
+                         f"{'; '.join(missing)}")
+
+
 def check_singleton_tags(items, report):
     """Item tags appearing on exactly one item — typo or under-connected."""
     counts = {}
@@ -139,6 +237,7 @@ CHECKS = {
         _case_drift(ctx["areas"], lambda e: e.get("tags", []), "areas", r),
     ),
     "broken_contents": lambda ctx, r: check_broken_contents(ctx["items"], r),
+    "unauthored_consumables": lambda ctx, r: check_unauthored_consumables(ctx["items"], r),
     "singleton_tags": lambda ctx, r: check_singleton_tags(ctx["items"], r),
     "area_tag_gaps": lambda ctx, r: check_area_tag_gaps(ctx["areas"], r),
 }

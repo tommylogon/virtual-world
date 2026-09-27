@@ -133,6 +133,62 @@ Fill rate is `BLADDER_FILL` (0.42/min), modulated by Thirst so a dehydrated body
 conserves water. Crossing `BLADDER_THRESHOLD` (60) applies the Hygiene penalty
 once; see `vital_rates.py`.
 
+#### Relief: permitted anywhere, comfortable only in private (task-551)
+
+**Any character can relieve themselves in any area.** There is deliberately no
+check that refuses it. A world that happens to contain no latrine is not a world
+where nobody can go — the `latrine` / `toilet` / `privy` / `restroom` /
+`bathroom` tags mark a *proper place*, not the only legal one. Both tiers read
+`engine/relief.py`, so a background goblin and a human at the keyboard get
+identical rules.
+
+What the tags buy is *comfort*, expressed as a dignity cost when relief happens
+somewhere improvised:
+
+| | Sanity | Social |
+|---|---|---|
+| In a proper place (area tag, or a fixture standing in the area) | — | — |
+| Improvised, nobody watching | −2 | — |
+| Improvised, at least one witness | −2 | −3 |
+
+Being alone keeps it between you and the puddle, which is why the Social hit is
+conditional. An improvised relief also writes `urine` into the area's
+`environment.smell`; the foreground additionally spawns a `puddle` item, while
+the background tier does not, so a hundred goblins improvising does not bury the
+graph in scenery items.
+
+Background characters *prefer* somewhere better. Every area within two ways
+(`engine.relief.PRIVACY_SEARCH_HOPS`) is scored, lower being better:
+
+```
+score = 1.0 * (other characters in the area)
+      − 1.5 * (area tagged private / secluded / isolated)
+      − 1.0 * (a real relief fixture is here)
+```
+
+A character heads for the best score if it beats standing still, and relieves
+where it is otherwise. Two details matter:
+
+- **The occupancy term is the load-bearing one.** An author's `private` tag is a
+  claim about a room; the number of people actually standing in one is what
+  produced the traffic jam this replaced (in the Kraktooth camp the single
+  `Waste Disposal` room was the only relief area out of 84 and the busiest room
+  in the world). The tag is worth somewhat more than a single onlooker so a
+  character will cross one room for a spot the author called secluded, but the
+  hop budget — not the weight — is what stops it marching across a map.
+- **At or above `RELIEF_URGENT` (90) the character relieves where it stands.**
+  Below that it is willing to walk. The split is what stops a character
+  oscillating between two equally mediocre rooms, and stops it dawdling while
+  the involuntary threshold closes on it.
+
+A tie is not worth a walk. An explicit `public` / `communal` tag overrules
+`private` / `secluded` / `isolated`, so an author who bothered to say a great
+hall is public meant it.
+
+The weights are a parameter (`engine.relief.score_privacy(weights=...)`) so that
+per-species and per-faction privacy is a one-argument change rather than a
+redesign — that is task-549.
+
 ### Low Social / Low Entertainment
 
 Both cause Sanity penalties (per minute):

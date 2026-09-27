@@ -621,6 +621,145 @@ class TestHiddenAsState:
         assert graph.get_node("item_loot").properties.get("current_state") == "normal"
 
 
+# ═══════════════ TASK 494: EXAMINE MARKS CONTENTS DISCOVERED ═══════════════
+
+
+class TestExamineMarksContentsDiscovered:
+    """`examine <container>` credits the character who did the looking (task-494).
+
+    The node-state half of the reveal already existed and is **global**: the first
+    character to open a chest un-hid its loot for everyone, permanently. What was
+    missing is the *per-player* half — the character who looked was never recorded
+    as having met what was inside, so the three readers that render "known"
+    (`contextual-actions.js` `isDiscovered`, `room-context.js`,
+    `memory-context.js`) all still treated the contents as unseen.
+
+    A real `Player`, not a MagicMock, because `_register_item_discovery` reads the
+    vitals and the observation memory and a stub would answer every lookup with a
+    truthy placeholder.
+    """
+
+    @staticmethod
+    def _real_player(pm, name="Hero", entertainment=50):
+        from player import Player
+        hero = Player(name)
+        hero.vitals = {"Entertainment": entertainment}
+        pm.player = hero
+        return hero
+
+    def _chest(self, graph, hidden=True):
+        from graph import EDGE_IN
+
+        add_player(graph, "Hero")
+        add_item(graph, "chest", tags=["container"],
+                 properties={"description": "A wooden chest."})
+        graph.add_edge(Edge(source="item_chest", target="area_test", type=EDGE_IN))
+        for name in ("loot", "coin"):
+            add_item(graph, name,
+                     properties={"current_state": "hidden"} if hidden else {})
+            graph.add_edge(Edge(source=f"item_{name}", target="item_chest", type=EDGE_IN))
+
+    def _examine(self, item_actions, player_manager, target="chest"):
+        player_manager.lighting.can_see_in_dark = MagicMock(return_value=True)
+        item_actions.matching._match_item_name = MagicMock(return_value=target)
+        return item_actions.get_item_desc(player_manager, target)
+
+    def test_examining_a_chest_marks_its_contents_discovered(self, graph, player_manager, item_actions):
+        self._chest(graph)
+        hero = self._real_player(player_manager)
+
+        self._examine(item_actions, player_manager)
+
+        assert "loot" in hero.discovered_items
+        assert "coin" in hero.discovered_items
+        assert "chest" in hero.discovered_items      # the container itself, as before
+        assert hero.has_seen("item_loot")
+
+    def test_revealed_contents_reach_the_client_as_known(self, graph, player_manager, item_actions):
+        """The readers that decide 'known' are client-side and all read
+        `discovered_items`, so the serialised payload is the whole contract."""
+        self._chest(graph)
+        hero = self._real_player(player_manager)
+        assert hero.to_dict()["discovered_items"] == []
+
+        self._examine(item_actions, player_manager)
+
+        assert {"loot", "coin"} <= set(hero.to_dict()["discovered_items"])
+
+    def test_a_second_character_who_looks_gets_credit_too(self, graph, player_manager, item_actions):
+        """The node state is already un-hidden by the first look, so the reveal is
+        a no-op the second time round — which is exactly why the per-player stamp
+        has to be independent of it."""
+        self._chest(graph)
+        self._real_player(player_manager, "Hero")
+        self._examine(item_actions, player_manager)
+
+        rival = self._real_player(player_manager, "Rival")
+        player_manager.active_player = "Rival"
+        self._examine(item_actions, player_manager, target="chest")
+
+        assert "loot" in rival.discovered_items
+
+    def test_re_examining_does_not_report_a_discovery_again(self, graph, player_manager, item_actions):
+        self._chest(graph)
+        self._real_player(player_manager)
+        first = self._examine(item_actions, player_manager)
+        assert "Taking in 2 new things." in first
+
+        second = self._examine(item_actions, player_manager)
+        assert "Taking in" not in second
+        assert "Inside you see: loot, coin." in second
+
+    def test_a_single_new_thing_is_not_pluralised(self, graph, player_manager, item_actions):
+        from graph import EDGE_IN
+
+        add_player(graph, "Hero")
+        add_item(graph, "chest", tags=["container"],
+                 properties={"description": "A wooden chest."})
+        graph.add_edge(Edge(source="item_chest", target="area_test", type=EDGE_IN))
+        add_item(graph, "loot", properties={"current_state": "hidden"})
+        graph.add_edge(Edge(source="item_loot", target="item_chest", type=EDGE_IN))
+        self._real_player(player_manager)
+
+        result = self._examine(item_actions, player_manager)
+        assert "Taking in 1 new thing." in result
+
+    def test_contents_already_visible_are_still_credited(self, graph, player_manager, item_actions):
+        """Examine reveals what is in the container whether or not it was hidden —
+        the hidden flag only decided whether the *node state* had to change."""
+        self._chest(graph, hidden=False)
+        hero = self._real_player(player_manager)
+
+        self._examine(item_actions, player_manager)
+
+        assert {"loot", "coin"} <= hero.discovered_items
+
+    def test_a_locked_container_reveals_nothing(self, graph, player_manager, item_actions):
+        self._chest(graph)
+        graph.get_node("item_chest").properties["current_state"] = "locked"
+        hero = self._real_player(player_manager)
+
+        result = self._examine(item_actions, player_manager)
+
+        assert "Inside you see" not in result
+        assert "loot" not in hero.discovered_items
+
+    def test_a_table_with_items_on_it_credits_them_too(self, graph, player_manager, item_actions):
+        """Not just `in` — anything the examine reports, it should also credit."""
+        from graph import EDGE_IN, EDGE_ON
+
+        add_player(graph, "Hero")
+        add_item(graph, "table", properties={"description": "A long table."})
+        graph.add_edge(Edge(source="item_table", target="area_test", type=EDGE_IN))
+        pen = add_item(graph, "Ink Pen")
+        graph.add_edge(Edge(source=pen.id, target="item_table", type=EDGE_ON))
+        hero = self._real_player(player_manager)
+
+        self._examine(item_actions, player_manager, target="table")
+
+        assert "Ink Pen" in hero.discovered_items
+
+
 # ═══════════════ TASK 160: SPATIAL PLACEMENT & GIVE ═══════════════
 
 

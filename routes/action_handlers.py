@@ -44,6 +44,28 @@ _ACTIVITY_NON_INTERRUPTING = {
 }
 
 
+def _roster(world):
+    """The live character roster, or an empty mapping.
+
+    `PlayerManager.players` is the registry, and `engine/relief.witnesses` reads
+    it rather than re-deriving occupancy, so a foreground relieve and a
+    background one count the same onlookers.
+    """
+    manager = getattr(world, "player_manager", None)
+    return getattr(manager, "players", None) or {}
+
+
+def _reachable_items(world, container_id):
+    """Item nodes `container_id` holds, by any spatial relation.
+
+    Delegates to the one shared definition of reachability so this handler and
+    `BackgroundSimulation` cannot disagree about whether a fixture is "in" the
+    room (task-551).
+    """
+    from engine.world_scopes import spatial_item_nodes
+    return spatial_item_nodes(getattr(world, "graph", None), container_id)
+
+
 def _activity_cmd_allowed(cmd, allowed):
     if cmd in allowed:
         return True
@@ -324,57 +346,43 @@ def handle_take_action(app):
             player = world.player
             if player and "Bladder" in player.vitals:
                 player.vitals["Bladder"] = 0
-                toilet_found = False
-                if world.current_area:
-                    area_id = world._get_current_area_id()
-                    for edge in list(world.graph.get_edges_for_target(area_id, EDGE_IN)):
-                        node = world.graph.get_node(edge.source)
-                        if node and node.type == "item":
-                            tags = node.properties.get("tags", [])
-                            if "toilet" in tags or "bathroom" in tags:
-                                toilet_found = True
-                                break
-                    if not toilet_found:
-                        # Some areas are restrooms without a Toilet item — the
-                        # area's own tags count too.
-                        area_node = world.graph.get_node(area_id)
-                        if area_node:
-                            atags = [str(t).lower() for t in (area_node.properties.get("tags") or [])]
-                            if any(t in atags for t in ("restroom", "bathroom", "toilet")):
-                                toilet_found = True
-                if toilet_found:
+                # task-551: permission is universal, so there is no branch here
+                # that can refuse. What is left is the *comfort* distinction, and
+                # it is scored by the same helper the background tier reads — which
+                # also fixes the two tiers disagreeing: this used to test only
+                # `toilet`/`bathroom`/`restroom` here, so a room tagged `latrine`
+                # or `privy` was a restroom to the engine and a corner to the
+                # player.
+                from engine import relief as _relief
+                area_id = world._get_current_area_id()
+                proper = _relief.has_fixture(
+                    world.graph, area_id, lambda aid: _reachable_items(world, aid))
+                if proper:
                     add_output("You relieve yourself. Ah, much better.")
                 else:
-                    area_node = world.graph.get_node(world._get_current_area_id())
-                    if area_node:
-                        env = area_node.properties.get("environment")
-                        if env is not None:
-                            existing = env.get("smell", "")
-                            env["smell"] = (existing + "; urine" if existing else "urine")
+                    _relief.mark_smell(world.graph, area_id)
                     # T4: public relieve is a shame event — an internal hit
                     # always (Sanity), a social hit only when someone actually
                     # witnesses it (being alone keeps it between you and the
                     # puddle).
-                    try:
-                        player.vitals["Sanity"] = max(0, min(100, player.vitals.get("Sanity", 100) - 2))
-                        area_name = world.current_area.name if world.current_area else None
-                        witnessed = [
-                            n for n, o in world.player_manager.players.items()
-                            if n != world.active_player
-                            and o.current_area == area_name
-                            and o.state != "dead"
-                        ]
-                        if witnessed:
-                            player.vitals["Social"] = max(0, min(100, player.vitals.get("Social", 100) - 3))
-                    except Exception:
-                        pass
+                    onlookers = _relief.witnesses(
+                        world.graph, area_id, _roster(world),
+                        exclude_name=world.active_player)
+                    _relief.apply_dignity_cost(player, onlookers > 0)
                     world.effects.execute(
                         "spawn_item",
                         {"item_id": "puddle"},
                         {},
                         game_state=world,
                     )
-                    add_output("You relieve yourself in a corner. That's going to stink up the place.")
+                    if onlookers:
+                        add_output(
+                            f"You relieve yourself where {onlookers} others can see. "
+                            "That is going to stink up the place.")
+                    else:
+                        add_output(
+                            "You relieve yourself in a corner. That's going to "
+                            "stink up the place.")
             else:
                 add_output("You don't feel the need.")
             was_movement = False

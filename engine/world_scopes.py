@@ -159,6 +159,28 @@ def _items_in_area(graph, area_id: str) -> List[str]:
     return out
 
 
+def spatial_item_nodes(graph, container_id) -> List:
+    """Item *nodes* a container holds by any spatial relation (task-551).
+
+    The one definition of "what can be reached in here", so the background
+    simulation and a route handler asking the same question get the same answer.
+    It used to be spelled out twice — as a class attribute in
+    `background_simulation.REACHABLE_RELATIONS` and as `_SPATIAL_TYPES` in
+    `routes/population_ops.py` — and the tiers drifting apart on it is how
+    `engine/relief.py` ended up unable to tell whether a fixture was in reach.
+    """
+    out = []
+    if graph is None or not container_id:
+        return out
+    for edge in graph.get_edges_for_target(container_id):
+        if edge.type not in SPATIAL_TYPES:
+            continue
+        node = graph.get_node(edge.source)
+        if node is not None and getattr(node, "type", None) == "item":
+            out.append(node)
+    return out
+
+
 def characters_in_areas(graph, players, area_ids: Iterable[str]) -> int:
     area_ids = set(area_ids)
     name_to_id = _area_name_to_id(graph)

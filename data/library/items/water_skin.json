@@ -1,19 +1,38 @@
 {
-  "name": "Water Skin",
-  "description": "A leather water skin, half full.",
-  "actions": "take,drop,examine,drink",
-  "uses": 3,
-  "weight": 2,
-  "current_state": "half",
-  "light_level": "dim",
-  "defense": 0,
-  "damage": 0,
-  "insulation": 0,
-  "tags": [
-    "drink",
-    "container",
-    "water"
-  ],
-  "triggers": [],
-  "contents": []
+ "name": "Water Skin",
+ "description": "A leather water skin, half full.",
+ "actions": "take,drop,examine,drink",
+ "uses": 3,
+ "weight": 2,
+ "current_state": "half",
+ "light_level": "dim",
+ "defense": 0,
+ "damage": 0,
+ "insulation": 0,
+ "tags": [
+  "drink",
+  "container",
+  "water"
+ ],
+ "triggers": [
+  {
+   "trigger_type": "on_drink",
+   "effects": [
+    {
+     "type": "adjust_vital",
+     "params": {
+      "stat": "Thirst",
+      "amount": -50,
+      "target": "self"
+     }
+    }
+   ],
+   "target_name": "",
+   "target_state": "",
+   "conditions": {},
+   "success_message": "",
+   "fail_message": ""
+  }
+ ],
+ "contents": []
 }
