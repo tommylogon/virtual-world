@@ -289,6 +289,211 @@ Noted gap: `world_scopes.project()` (the scope *summary card*) lists
 The graph view is fine — `project_subgraph` includes ways with both endpoints
 inside. Whether the summary should list internal ways is still open.
 
+## How a big painted map reads (task-526, 2026-09-27)
+
+A compiled area draws as a card whose width is its **name** plus padding, and the
+name does not shrink with the map pitch the way the padding does. So a single
+global pitch could not serve both a 6×8 camp and a 200×133 world: at the old 40px
+default the cards overlapped into a blob, and the only fix was dialling the
+spacing control to ~200 by hand. Two halves:
+
+- **Compact dots below `MAP_CARD_MIN_PITCH` (140px/cell).** An area becomes a
+  `dot` sized from the *cell* (55% of the pitch, clamped 6–28px), so it always
+  fits its own cell and stays visible when a whole world is zoomed out. Names are
+  hidden while compact — through the **existing** label LOD, not a second
+  mechanism — because a name is what does not fit. The tooltip, inspector, search
+  and badges still name every place. 140 is where the clamped card box still fits
+  its cell, so the switch happens exactly where the boxes stop colliding.
+  Map layout only: the graph view and Levels have no lattice and no overlap.
+- **Auto pitch from the painted extent.** `paintedExtent()` measures the drawn
+  cells (areas only — ways sit on the lattice between them, and a hand-authored
+  area has no cell), then `autoMapSpacing()` aims for `AUTO_SPAN_PX` (1600px)
+  across the longest side, clamped to 24–300px, rounded to a tidy multiple.
+  Nothing painted → no opinion, and the current pitch stands.
+
+Two rules that are easy to get wrong here:
+
+- **The pitch is decided before anything reads it.** Node sizes, the lattice and
+  the background art are all derived from it, so `applyAutoMapSpacing()` runs at
+  the top of `loadGraphData` and re-derives the art when the pitch moves. Deciding
+  it after the layout is the bug-52 shape: two sources of truth for one position.
+- **A layer's rect is in px, so a pitch change makes every picture stale** — and
+  the ordinary per-scope reconcile cannot fix that in the whole-world view, which
+  has no single grid. `reconcileAllForGapChange()` re-derives *every* mounted
+  reference from **its own** scope's grid and offset, then reframes the camera
+  (the old framing was computed for the old pitch). It writes nothing: it runs on
+  a load path, so `fitToPaintedGrid` — which persists the fitted rect — is the
+  wrong call there and stays reserved for a deliberate manual nudge.
+- **Auto is the default; the stepper is the override, and it is visible.**
+  Nudging the stepper persists `graphMapSpacingAuto=false`, so a person who wants
+  40px/cell on a 200-cell world keeps it through reloads and scope switches. The
+  stepper shows `80 auto` while derived, an `A` button hands the pitch back, and
+  the menu says why the places are dots. Without the `auto` mark, a first nudge
+  would silently look like adjusting a number the user had already chosen. And a
+  *stored* pitch that differs from the built-in 40 default counts as a choice
+  already made — someone who dialled the map to 260 by hand is not re-derived
+  over on their next load.
+
+On the goblin camp's real scopes this lands on dots everywhere (20×9 → 80px,
+20×8 → 80px, 20×30 → 55px), which is the honest answer: a 20-cell-wide map at a
+card pitch is 2800px of canvas, so no pitch shows the whole map *and* keeps the
+cards from overlapping. Cards come back by raising the pitch a notch.
+
+## Naming a cell, and what a town is made of (task-560, task-561, 2026-09-27)
+
+Paining a settlement needs two things the wilderness did not, and both were
+missing.
+
+**A cell can have a name.** Without it every place is `<label> (<scope> x,y)`, so
+a 19-location town is 19 coordinate names and `go inn` has nothing to match. A
+name lives in a `names` map on the scope record — *beside* `layers`, not on one,
+because a name is metadata **about** a cell rather than paint on it: there is no
+name vocabulary, the eraser must not wipe it, and "clear this cell" must not
+silently unname a place. The compiler prefers it for the display name and keeps
+the fallback. Two rules that are easy to get wrong:
+
+- A name repeated **inside one scope** falls back to the generated form, so no
+  single area offers two exits with the same name — which is all `go <name>` needs,
+  since `NameMatching.resolve_exit` collects the current area's exits first. Two
+  *scopes* may reuse a name, exactly as two hand-authored areas may: ids are the
+  key, names are labels resolved to it.
+- A merged region takes a name from **any** of its cells, not just its anchor.
+  Naming the middle of a High Street is the natural thing to do; making the author
+  know that the anchor is the top-left-most cell would be a rule with no purpose.
+
+**A cell can have a type.** Building types are **biomes**, not features — a
+building is a *place*, while a feature is something painted on the road layer that
+*replaces* the cell's biome. (The file had `town`/`village`/`building` as features,
+which meant painting "building" produced a cell the compiler read as a *road*: a
+house that merged with the street and described itself as a thoroughfare.) 31
+types across nine categories, each carrying three tag families so a later task can
+ask the question an author actually has: `building`+`settlement`, a category
+(residential / religious / commercial / civic / craft / industrial / military /
+rural / transport), and **purposes** — `sleeps`, `food`, `drink`, `hygiene`,
+`trade`, `craft`, `worship`, `medical`, `storage`, `transport`. Those purpose tags
+are what task-566 will ask for when a tired traveller looks for a bed.
+
+Two consequences worth stating:
+
+- **A building is exempt from the wild-country contract, deliberately.** The
+  validator demands a forage tag and resource/hostile distribution for every
+  biome; nobody forages berries off a smithy's wall and no wildlife spawns in a
+  bank, so `biomes.validate` skips those checks for a record tagged `building`. It
+  is a documented exemption, not an omission — a building is still a biome, and it
+  still owes a name, a surface and description fragments.
+- **`terrain: "urban"` is currently a no-op.** The prose classifier has classes for
+  forest/rock/water/farm and falls through to `open`; a new class for buildings
+  would apply to wilderness cells too, so that waits for a settlement register.
+
+A town is then a bounded set of **named, typed** cells, and a district is a child
+scope on a cell of it — the same mechanism a building's interior uses, one rung up
+(the world already nests three deep). What is still missing is everything between
+the cell and the door: edge semantics (task-562), entering a building (task-563)
+and per-kind merging (task-564).
+
+## What a cell is *to movement* (task-562, 2026-09-27)
+
+A painted cell used to be either a place or nothing, which is enough for
+wilderness and not enough for a floor plan. A Japanese high-school plan needs
+blanks you cannot walk through, windows you can see through but not through, and
+a door you can — and all three *occupy a cell* while not being places. So a biome
+record may declare what its cell is to movement, and **the vocabulary decides**:
+`engine.biomes.cell_kind` reads a `not_a_place` tag plus a namespaced
+`cell_kind:` tag, and the compiler asks that rather than knowing that `wall` is
+special. Adding a `hedge` or a `turnstile` later needs no code.
+
+| value | kind | what it does |
+|---|---|---|
+| `wall` | `solid` | nothing passes it, nothing sees through it |
+| `void` | `solid` | nothing there at all — a courtyard, a gap, an unwalkable hole |
+| `window` | `see_through` | you can look through it; you cannot walk through it |
+| `door` | `passable` | not a place, but a way may cross it |
+
+Four rules, each of which is a decision rather than an implementation detail:
+
+- **A wall works by occupying a cell.** The two rooms either side of it are no
+  longer adjacent, so no way is minted — the wall *is* the absence of a route.
+  A door occupies the same cell, so the route it stands for has to be built
+  explicitly: it joins the two places on **opposite** sides, which is the only
+  reading available (any three of four cardinal neighbours contain an opposite
+  pair). A door with a place on one side only leads nowhere, and the report says
+  so, because that is invisible in the node counts.
+- **A passable cell between two *storeys* is a stairwell, not a door.** The storey
+  is the stronger signal about what you do crossing it, and a "door" that quietly
+  climbed a floor would be a lie in the pass message.
+- **A window is not a route**, so it mints no way; the place it faces records it in
+  `properties.windows`, so the description can say there is a window in that wall.
+  A window with a place on two sides is a passage in disguise — that is a door —
+  and one with none is a window onto nothing, which is still a window.
+- **The storey is part of a region's identity.** Merging is 8-neighbour and was
+  storey-blind, so a classroom above a classroom of the same kind became one place
+  with a staircase inside it. A region is one storey's worth of one thing.
+
+Every way now carries `kind` (`open` / `door` / `stairs` / `entrance`) and
+`floor_step`, the number of storeys the edge crosses — so task-525's gate and
+task-563's `in` have a value to read rather than to re-derive. **A sealed room is
+still rescued** by `link_islands`, which is a deliberate reachability guarantee
+rather than something the author painted; making a sealed room genuinely
+unreachable belongs with task-525 and task-564, not here.
+
+## Entering a building (task-563)
+
+A building cell is a place you go **into**, not a cell you step sideways onto.
+Standing in the street, `in` enters the inn; you do not first walk east onto the
+doorstep and then go in. The building-ness comes from the vocabulary again — a
+`building` tag on the biome record (`engine.biomes.is_building`) — so a modder's
+`watermill` is a building without a line of compiler changes.
+
+**Where the doors are.** One `in` way per **cardinal** side that already has a
+way. Cardinal, because a door is on a wall and a diagonal neighbour is a corner
+of the plot. "Already has a way" is read from the pairs the compiler actually
+connected, not from adjacency, so a side sealed by a wall gets no door and a
+side reached *through* a painted doorway does — the doorway is what connected the
+pair.
+
+**Where the `in` leads.**
+
+| the cell has | the way | state | `out` from the other side |
+|---|---|---|---|
+| an interior (a materialized child scope) | to the interior's entry area | `open` | the doorstep, via the child gateway |
+| no interior | to the building's own cell — the plot | `closed` + `refusal_message` | n/a: the plot's exits are compass |
+
+The interior case is **one-way on purpose**. Inside, `out` has to keep meaning
+one thing, or the word is ambiguous; so coming out of the inn lands you on the
+doorstep cell, and the adjacent temple is one turn from there. That is also what
+makes `dash_to_area`'s chained second hop work.
+
+The shut door is one-way for a sharper reason. The street already has a compass
+way onto the plot, so a way *back* would be a second connection for the same pair
+— and two ways both answering to `out` on the plot means a bare "out" picks one
+at random. That is not hypothetical: it is what the first version did, and
+walking in through the street door and typing "out" got you shut out by the
+alley door you had not used. One way in; the plot keeps its compass exits and says
+so plainly (`Visible exits: west, east`).
+
+A building with no interior is not a hole in the world — it is a building that
+owes an interior, and it says so: the way is `closed` and carries a
+`refusal_message` drawn from the building's category (a watch house is barred, an
+inn is shut, a smithy's bench is cold). `refusal_message` is a **way property
+the movement system honours**: it raises that line instead of walking through,
+and it holds until the way's state is `open`, which is exactly what a knock, a
+key, or an author painting the interior does. A `closed` way without the property
+keeps the pre-existing behaviour of being pushed through on approach, so nothing
+else in the game changed.
+
+**Both compile orders work.** The parent records its door sides on the placement
+(`placements[id].sides`) and mints the ways when the interior is already
+materialized; the interior mints them from those sides when it compiles *after*
+the parent, which is the common flow (generate the town, then draw the inside).
+The ways carry `child_scope_id`, so ungenerating the interior removes them with it
+even though their provenance names the parent.
+
+The editor knows all of this before anything is generated: the vocabulary payload
+carries each building's `refusal`, and the cell inspector's `enter` row shows
+`in → The Inn` or `in → The inn's door is shut.` — from the same
+`world_compile.building_refusal` the compiler uses, so the preview cannot drift
+from the world.
+
 ## Still open
 
 

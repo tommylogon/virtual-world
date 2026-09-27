@@ -1364,6 +1364,66 @@
     }
 
     /**
+     * Re-derive **every** mounted reference's art, for a change that applies to the
+     * whole canvas rather than one scope — the map pitch moving (task-526).
+     *
+     * The whole-world view has no single grid, which is why the ordinary reconcile
+     * stops there. But the pitch is global: when it changes, every layer's derived
+     * rect is stale, because a rect is in **px** and the cells it came from are in
+     * cells. Skipping this is how the map ends up drawn at the old scale over areas
+     * laid out at the new one — the bug-52 shape, reached from the other side.
+     *
+     * Each layer is still derived from *its own* scope's grid and offset, never from
+     * the active scope, so this cannot move one zone's picture onto another's.
+     * Layers that are not a scope's reference (hand-placed art) are left alone.
+     */
+    async function reconcileAllForGapChange() {
+        if (typeof graphManager === 'undefined' || !graphManager) return;
+        state._reconciledFor = null;              // the gap is part of the signature
+        const mounted = state.layers || [];
+        if (!mounted.length) return;
+        let scopes = [];
+        try {
+            const data = await ApiClient.getWorldScopes(true);
+            scopes = (data && data.scopes) || [];
+        } catch (error) {
+            return;                                // no scope list: nothing to derive
+        }
+        let changed = false;
+        for (const scope of scopes) {
+            const scopeId = scope && scope.id;
+            if (!scopeId) continue;
+            let payload = _cachedGrid(scopeId);
+            if (!payload) {
+                try { payload = await ApiClient.getWorldGrid(scopeId); } catch (error) { continue; }
+                _cacheGrid(scopeId, payload);
+            }
+            const layer = _referenceLayerFor(scopeId, payload);
+            const gridRect = paintedGridRect(payload && payload.grid);
+            if (!layer || !gridRect) continue;
+            const before = JSON.stringify(layer.rect);
+            const gap = _mapUnitsPerCell();
+            const offset = _scopeOffset(scopeId);
+            _applyReferenceLayout(layer, payload, {
+                x: gridRect.x + offset.x * gap,
+                y: gridRect.y + offset.y * gap,
+                width: gridRect.width,
+                height: gridRect.height,
+            }, scopeId);
+            if (JSON.stringify(layer.rect) !== before) changed = true;
+        }
+        if (changed) {
+            _render();
+            // Reframe, because the pitch is what the previous framing was computed
+            // for: a map derived to "span about 1600px" and then left in the corner
+            // of an unchanged viewport is not the thing the auto pitch promised.
+            // Safe to move the camera *here* specifically — this runs only when the
+            // pitch actually moved, and every ordinary load preserves the view.
+            try { _network()?.fit({ animation: false }); } catch (error) { /* ignore */ }
+        }
+    }
+
+    /**
      * Fetch (and cache) a scope's grid payload. The cache is what lets a zone drag
      * move the right art synchronously instead of guessing, and it is dropped when
      * the world is reloaded so a stale grid can never place a picture.
@@ -2049,6 +2109,7 @@
         fitToNodes,
         fitToPaintedGrid,
         refreshForScope,
+        reconcileAllForGapChange,
         setEditing,
         setCropping,
         setZoneMove,

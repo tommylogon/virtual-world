@@ -113,6 +113,17 @@
         body: JSON.stringify(body || {}),
     });
 
+    /**
+     * What each structure kind is *to movement*, in the author's terms (task-562).
+     * The cells here never become places, so the panel has to say what they do
+     * instead of reporting "biome: wall" and leaving it at that.
+     */
+    const STRUCTURE_NOTES = {
+        solid: 'solid — nothing passes it',
+        see_through: 'you can see through it, not walk through it',
+        passable: 'a threshold — you go through it',
+    };
+
     // ───────────────────────────── open/close ──────────────────────────
 
     async function ensureVocab() {
@@ -142,6 +153,51 @@
         if (layer === 'biome') return state.vocab.biomes || [];
         if (layer === 'road') return state.vocab.features || [];
         return [];
+    }
+
+    /**
+     * The biome palette, split so a town can be painted (task-561).
+     *
+     * 47 biomes in one column is unpickable, and the author's question when
+     * painting a settlement is not "which biome" but "which *building*". So
+     * building types are gathered into one section and sorted by their category
+     * (residential, religious, commercial, civic, craft, military, industrial,
+     * rural, transport), with the wild terrain above it where it already was. The
+     * grouping is cosmetic — a `select` cannot nest, so it is one flat list with
+     * "— Buildings —" and "— Category —" separators that cannot be painted.
+     */
+    function _biomePalette(layer) {
+        const options = _layerOptions(layer);
+        if (layer !== 'biome') return options.map((o) => ({ ...o, group: null }));
+        const CATEGORIES = ['residential', 'religious', 'commercial', 'civic',
+            'craft', 'industrial', 'military', 'rural', 'transport'];
+        const wild = [];
+        const buildings = new Map(CATEGORIES.map((c) => [c, []]));
+        const structure = [];
+        for (const option of options) {
+            const tags = (option.tags || []).map((t) => String(t).toLowerCase());
+            // Structure — wall, void, window, door — is neither terrain nor a
+            // building, and it is what makes a floor plan mean anything (task-562),
+            // so it gets its own section rather than being sorted by its category.
+            if (tags.includes('not_a_place')) { structure.push({ ...option, group: null }); continue; }
+            if (!tags.includes('building')) { wild.push({ ...option, group: null }); continue; }
+            const category = CATEGORIES.find((c) => tags.includes(c)) || 'other';
+            if (!buildings.has(category)) buildings.set(category, []);
+            buildings.get(category).push({ ...option, group: category });
+        }
+        const out = wild.slice();
+        if (out.length) out.push({ separator: '— Buildings —' });
+        for (const category of [...CATEGORIES, 'other']) {
+            const group = buildings.get(category);
+            if (!group || !group.length) continue;
+            out.push({ separator: `— ${category[0].toUpperCase()}${category.slice(1)} —` });
+            out.push(...group);
+        }
+        if (structure.length) {
+            out.push({ separator: '— Structure —' });
+            out.push(...structure);
+        }
+        return out;
     }
 
     function _defaultValueForLayer(layer) {
@@ -495,8 +551,8 @@
     }
 
     function _valueControl() {
-        const options = _layerOptions(state.layer);
-        if (state.layer === 'floor' || !options.length) {
+        const options = _biomePalette(state.layer);
+        if (state.layer === 'floor' || !options.filter((o) => !o.separator).length) {
             // No vocabulary (fetch failed) or a numeric layer: free text.
             const input = _el('input',
                 'width:130px;padding:3px 6px;border-radius:5px;border:1px solid ' +
@@ -515,9 +571,20 @@
         // area, so the valid ids are the only choices.
         const sel = _el('select', 'padding:3px;border-radius:5px;min-width:160px;');
         sel.setAttribute('data-role', 'wp-value');
-        const ids = options.map((o) => o.id);
+        const paintable = options.filter((o) => !o.separator);
+        const ids = paintable.map((o) => o.id);
         if (ids.indexOf(state.value) < 0) state.value = ids[0];
+        // A separator is a disabled option rather than a group: `select` cannot
+        // nest, and a disabled option cannot be painted, so the section headers
+        // can never be chosen by accident.
         options.forEach((o) => {
+            if (o.separator) {
+                const sep = _el('option', null, o.separator);
+                sep.disabled = true;
+                sep.value = '';
+                sel.appendChild(sep);
+                return;
+            }
             const opt = _el('option', null, `${o.name} (${o.id})`);
             opt.value = o.id;
             sel.appendChild(opt);
@@ -1385,8 +1452,18 @@
         if (!info) return '';
         if (info.empty) return `(${info.x},${info.y}) — nothing here`;
         const bits = [];
-        if (info.biome) bits.push(String(info.biome).replace(/_/g, ' '));
+        // The author's name leads, because it is the thing they wrote (task-560);
+        // the paint layers are the evidence for it.
+        if (info.name) bits.push(info.name);
+        else if (info.biome) bits.push(String(info.biome).replace(/_/g, ' '));
         if (info.road) bits.push(String(info.road).replace(/_/g, ' '));
+        // A structure cell says what it is, because it is not a place and the
+        // author needs to know that before generating (task-562).
+        if (info.kind) bits.push(STRUCTURE_NOTES[info.kind] || info.kind);
+        // A building without an interior says so on hover, because "the door is
+        // locked" is a thing the author wants to notice *while* painting, not
+        // discover in play (task-563).
+        if (info.enter && !info.child) bits.push(info.enter);
         if (info.floor !== null) bits.push(GM().floorLabel(info.floor));
         if (info.area) bits.push(`📍 ${info.area.name}`);
         if (info.child) bits.push(`🏠 ${info.child.name || info.child.id}`);
@@ -1397,10 +1474,10 @@
         const el = state.cellInfoEl;
         if (!el) return;
         const cell = _cellAtPointer(p);
-        const info = cell ? GM().cellInfo(p, cell.x, cell.y) : null;
+        const info = cell ? GM().cellInfo(p, cell.x, cell.y, state.vocab) : null;
         // Konva fires mousemove per pixel; only touch the DOM when the cell or
         // its content actually changed.
-        const key = info ? `${info.key}|${info.biome}|${info.road}|${info.floor}|` +
+        const key = info ? `${info.key}|${info.name}|${info.biome}|${info.road}|${info.floor}|` +
             `${info.area ? info.area.id : ''}|${info.child ? info.child.id : ''}` : '';
         if (key === state.cellInfoKey) return;
         state.cellInfoKey = key;
@@ -1415,7 +1492,7 @@
     function _cellPanel(p) {
         const at = state.inspected;
         if (!at || !p.scope.has_grid) return null;
-        const info = GM().cellInfo(p, at.x, at.y);
+        const info = GM().cellInfo(p, at.x, at.y, state.vocab);
         const wrap = _el('div', 'border:1px solid var(--border,#3a3a44);border-radius:8px;' +
             'padding:8px;margin-bottom:10px;font-size:12px;');
         wrap.setAttribute('data-role', 'wp-cellpanel');
@@ -1437,9 +1514,34 @@
         row('biome', info.biome ? String(info.biome).replace(/_/g, ' ') : '—');
         row('road', info.road ? String(info.road).replace(/_/g, ' ') : '—');
         row('floor', GM().floorLabel(info.floor));
+        // Structure is not a place, and saying so is the point: the author just
+        // painted a wall and it will not appear in the graph (task-562).
+        row('structure', info.kind
+            ? `not a place — ${STRUCTURE_NOTES[info.kind] || info.kind}`
+            : '—');
+        // A building is entered with `in`; a shut one is the author's cue that it
+        // still owes an interior (task-563).
+        row('enter', info.enter || '—');
         row('area', info.area ? `${info.area.name} (${info.area.id})` : '—');
         row('sub-zone', info.child ? `${info.child.name || info.child.id} (${info.child.id})` : '—');
         wrap.appendChild(rows);
+
+        // The cell's name (task-560) — what the place is *called*, which is what
+        // it compiles to. First, because a painted town is a list of names, and
+        // "Building 3,4" is not an address.
+        const nameRow = _el('div', 'display:flex;gap:6px;align-items:center;margin-top:6px;');
+        nameRow.appendChild(_el('span', 'color:var(--text-muted,#999);min-width:78px;', 'name'));
+        const nameInput = _el('input', 'flex:1;min-width:0;padding:2px 6px;border-radius:5px;' +
+            'border:1px solid var(--border,#444);background:var(--bg-card,#2a2a32);color:var(--text,#ddd);');
+        nameInput.value = info.name || '';
+        nameInput.placeholder = 'unnamed — compiles to a coordinate';
+        nameInput.title = 'The name this place compiles to. Needed for a town: a building is not addressable until it has one.';
+        nameInput.addEventListener('change', () => {
+            setCellName(p, info.x, info.y, nameInput.value);
+        });
+        nameInput.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') nameInput.blur(); });
+        nameRow.appendChild(nameInput);
+        wrap.appendChild(nameRow);
 
         const actions = _el('div', 'display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;');
         if (info.area) {
@@ -1487,6 +1589,29 @@
             render();
         } catch (e) {
             _status(`Clear failed: ${e.message || e}`, true);
+        }
+    }
+
+    /**
+     * Set (or clear) one cell's author name (task-560).
+     *
+     * Its own route rather than a paint layer, because a name is not paint: there
+     * is no name vocabulary, the eraser should not wipe it, and "clear this cell"
+     * must not silently unname a place. An empty box clears it, and the server drops
+     * the entry entirely so an unnamed scope loads byte-identically.
+     */
+    async function setCellName(p, x, y, name) {
+        const wanted = String(name || '').trim();
+        try {
+            state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/name`,
+                { x, y, name: wanted });
+            _status(wanted
+                ? `Named (${x},${y}) “${wanted}”.`
+                : `Cleared the name on (${x},${y}).`);
+            _notify(true);
+            render();
+        } catch (e) {
+            _status(`Name failed: ${e.message || e}`, true);
         }
     }
 

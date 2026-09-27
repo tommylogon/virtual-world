@@ -544,6 +544,17 @@ class MovementSystem:
                     f"The {direction} is one-way — you can't go back that way."
                 )
         state = way_node.properties.get("current_state")
+        # `refusal_message` is what a way says instead of letting you through, and
+        # it holds until the way is actually `open` — which is what makes a
+        # compiled building door change its mind when a knock, a key or an author
+        # painting the interior opens it (task-563). Checked *before* the state
+        # machine so a `closed` way refuses rather than silently auto-opening,
+        # and so a themed line replaces the generic "the door is locked" without
+        # every closed way in the game having to be re-authored.
+        refusal = str(way_node.properties.get("refusal_message") or "").strip()
+        if refusal and state != "open" and not phasing:
+            self._learn_way_aspect(way_node, direction, str(state or "closed"))
+            raise ValueError(refusal)
         if state == "locked" and not phasing:
             self._learn_way_aspect(way_node, direction, "locked")
             raise ValueError(f"The {direction} is locked. You need to unlock it first.")

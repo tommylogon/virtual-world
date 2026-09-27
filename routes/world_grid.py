@@ -18,6 +18,7 @@ from .world_grid_ops import (
     handle_scope_areas,
     handle_scope_grid,
     handle_set_reference,
+    handle_set_cell_name,
     handle_set_scope_grid,
     handle_set_scope_offset,
     handle_ungenerate_scope,
@@ -57,6 +58,10 @@ def register_world_grid_routes(app):
     @app.route('/api/world/scopes/<scope_id>/grid/paint_batch', methods=['POST'])
     def world_scope_grid_paint_batch(scope_id):
         return handle_paint_batch(app, scope_id)
+
+    @app.route('/api/world/scopes/<scope_id>/grid/name', methods=['POST'])
+    def world_scope_grid_name(scope_id):
+        return handle_set_cell_name(app, scope_id)
 
     @app.route('/api/world/scopes/<scope_id>/grid/place', methods=['POST'])
     def world_scope_grid_place(scope_id):

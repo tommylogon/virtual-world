@@ -506,3 +506,72 @@ class TestGoToApproach:
         world = self._door_world()
         with pytest.raises(ValueError, match="No exit"):
             world.move_to_area("to the cake")
+
+
+class TestRefusalMessage:
+    """`refusal_message`: what a way says instead of letting you through.
+
+    Written for a compiled building's front door (task-563), which is `closed`
+    with a themed line so a knock, a key or an author painting the interior can
+    open it later — but nothing here is building-specific, which is the point of
+    putting it on the way.
+    """
+
+    def _shut_world(self, state="closed"):
+        world = VirtualWorld()
+        world.movement.add_area(Area("Street", "A cobbled street.", []))
+        world.movement.add_area(Area("The Inn", "A low-beamed inn.", []))
+        world.movement.connect_areas("Street", "The Inn", "enter the inn", "out",
+                                     state=state)
+        self._door_id = [n.id for n in world.graph.nodes.values()
+                         if n.type == "way"][0]
+        # The compiled door carries `aliases: ["in"]`, which is how "go in" still
+        # resolves now that the direction is a phrase (task-563).
+        world.graph.get_node(self._door_id).properties["aliases"] = ["in"]
+        world.graph.get_node(self._door_id).properties["refusal_message"] = (
+            "The inn's door is shut.")
+        world.name_matcher._set_player_area(world.active_player, "Street")
+        player = world.player_manager.get_player(world.active_player)
+        player.vitals["Energy"] = 100
+        return world
+
+    def test_a_shut_door_refuses_with_its_own_line(self):
+        world = self._shut_world()
+        with pytest.raises(ValueError, match="The inn's door is shut."):
+            world.move_to_area("in")
+        assert world.player.current_area == "Street"
+
+    def test_a_closed_door_with_a_refusal_does_not_auto_open(self):
+        """A plain `closed` way lets you walk through it; a refused one does not.
+
+        Without this, the refusal would be cosmetic: the auto-open below it would
+        step you through a door the world just said was shut.
+        """
+        world = self._shut_world()
+        with pytest.raises(ValueError):
+            world.move_to_area("in")
+        assert world.graph.get_node(self._door_id).properties["current_state"] == "closed"
+
+    def test_opening_the_way_lets_you_in(self):
+        world = self._shut_world()
+        with pytest.raises(ValueError, match="shut"):
+            world.move_to_area("in")
+        world.toggle_way("in", "open")
+        world.move_to_area("in")
+        assert world.player.current_area == "The Inn"
+
+    def test_a_refusal_replaces_the_generic_locked_line(self):
+        world = self._shut_world(state="locked")
+        with pytest.raises(ValueError, match="The inn's door is shut.") as caught:
+            world.move_to_area("in")
+        # The generic wording is gone, and so is the "unlock it first" advice,
+        # which was the engine guessing at an interaction this door does not have.
+        assert "unlock" not in str(caught.value)
+
+    def test_a_way_without_a_refusal_keeps_the_ordinary_behaviour(self):
+        world = self._shut_world()
+        del world.graph.get_node(self._door_id).properties["refusal_message"]
+        # No refusal: the pre-existing `closed` auto-open still applies, so nothing
+        # else in the game changed behaviour.
+        world.move_to_area("in")
+        assert world.player.current_area == "The Inn"

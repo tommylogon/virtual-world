@@ -339,7 +339,307 @@ def test_a_storey_step_is_not_a_cliff_inside_a_building():
 # ── storey semantics (recipe grid.v2) ─────────────────────────────────────
 
 
-def test_floor_is_a_storey_index_and_is_unbounded():
+def test_an_author_name_is_the_display_name_a_painted_place_compiles_to():
+    """Task-560: naming a cell is what makes a painted town addressable.
+
+    Without it a 19-location town is 19 coordinate names, and a building is
+    "Building 3,4" forever.
+    """
+    m = _painted({(0, 0): "tavern", (1, 0): "temple", (2, 0): "shop"})
+    m["wild"]["names"] = {"0,0": "The Stag Inn", "1,0": "The Shrine"}
+    patch = world_compile.compile_grid(m, "wild")
+    by_cell = {n.properties["cell"]["x"]: n.name
+               for n in patch.nodes if n.type == "area"}
+    assert by_cell[0] == "The Stag Inn", "the author's name wins"
+    assert by_cell[1] == "The Shrine"
+    assert "(Wild" in by_cell[2], "an unnamed cell keeps the generated form"
+
+
+def test_a_repeated_name_inside_one_scope_falls_back_so_no_area_offers_two():
+    """`go <name>` collects the current area's exits first, so one area must never
+    offer two exits with the same name. Ids stay the authoritative key."""
+    m = _painted({(0, 0): "tavern", (1, 0): "shop", (2, 0): "inn"})
+    m["wild"]["names"] = {"0,0": "The Stag Inn", "1,0": "The Stag Inn"}
+    patch = world_compile.compile_grid(m, "wild")
+    names = [n.name for n in patch.nodes if n.type == "area"]
+    assert names.count("The Stag Inn") == 1, "only the first keeps the name"
+    assert len(set(names)) == len(names), "and every area is still uniquely named"
+
+
+def test_a_region_takes_the_name_of_a_cell_in_it():
+    """A merged region is one place, and naming the middle of a High Street is the
+    natural thing to do — so the first named cell in the run speaks for all of it,
+    rather than the author having to know the anchor is the top-left-most one."""
+    m = _painted(roads={(0, 0): "road", (1, 0): "road", (2, 0): "road"},
+                 merge=True)
+    m["wild"]["names"] = {"1,0": "Millbrook High Street"}
+    patch = world_compile.compile_grid(m, "wild", region_merge=True)
+    roads = [n.name for n in patch.nodes if n.type == "area"]
+    assert roads == ["Millbrook High Street"], roads
+
+
+def test_a_wall_separates_two_rooms_a_door_joins_them():
+    """The clearest statement of the model, with real taxonomy ids so nothing here
+    depends on an unknown-id fallback:
+
+        tavern | wall | temple
+        shop   | door | warehouse
+
+    The wall is not a way between the tavern and the temple. The door is a way
+    between the shop and the warehouse — occupying the same cell a wall would.
+    """
+    painted = {(0, 0): "tavern", (1, 0): "wall", (2, 0): "temple",
+               (0, 1): "shop", (1, 1): "door", (2, 1): "warehouse"}
+    patch = world_compile.compile_grid(_painted(painted), "wild")
+    areas = {tuple(a.properties["cell"].values()): a
+             for a in patch.nodes if a.type == "area"}
+    assert (1, 0) not in areas and (1, 1) not in areas, "structure is never a place"
+    assert set(areas) == {(0, 0), (2, 0), (0, 1), (2, 1)}
+
+    def connected(a, b):
+        return any({w.properties["area_from_id"], w.properties["area_to_id"]}
+                   == {a.id, b.id} for w in patch.nodes if w.type == "way")
+
+    tavern, temple = areas[(0, 0)], areas[(2, 0)]
+    shop, warehouse = areas[(0, 1)], areas[(2, 1)]
+    assert not connected(tavern, temple), "a wall is not a way"
+    assert connected(tavern, shop), "open ground is a way"
+    assert connected(temple, warehouse), "open ground is a way"
+    assert connected(shop, warehouse), "a door is a way"
+    door_ways = [w for w in patch.nodes if w.type == "way"
+                 and w.properties["kind"] == "door"]
+    assert len(door_ways) == 1, "and exactly one kind of door way"
+
+
+def test_a_void_is_not_a_place_either():
+    painted = {(0, 0): "tavern", (1, 0): "void", (2, 0): "temple"}
+    # `link_islands=False` so what is left reflects *only* what was painted: a void
+    # between two places is not a route, rather than being rescued by the island
+    # linker (which has its own test below).
+    patch = world_compile.compile_grid(_painted(painted), "wild", link_islands=False)
+    areas = [n for n in patch.nodes if n.type == "area"]
+    assert len(areas) == 2, [a.properties["cell"] for a in areas]
+    assert not [n for n in patch.nodes if n.type == "way"]
+
+
+def test_structure_cells_are_not_places():
+    """Task-562: a wall, a void, a window and a door are not places.
+
+    Before edge semantics every painted cell became an area, so a wall *was* a
+    room and the gap it left read as the way between two rooms — the exact inverse
+    of what a floor plan means.
+    """
+    painted = {(0, 0): "tavern", (1, 0): "wall", (2, 0): "temple",
+               (1, 1): "void"}
+    patch = world_compile.compile_grid(_painted(painted), "wild")
+    cells = {tuple(n.properties["cell"].values())
+             for n in patch.nodes if n.type == "area"}
+    assert (1, 0) not in cells, "no area on a wall"
+    assert (1, 1) not in cells, "no area on a void"
+    assert any("structure cell" in note for note in patch.report.notes), \
+        patch.report.notes
+
+
+def test_a_passable_cell_between_two_storeys_is_a_stairwell_not_a_door():
+    """The storey is the stronger signal about what you do crossing it. A "door" that
+    quietly climbs a floor would be a lie in the pass message."""
+    painted = {(0, 0): "tavern", (0, 1): "door", (0, 2): "library"}
+    m = _painted(painted, floors={(0, 2): "1"})
+    ways = [n for n in world_compile.compile_grid(m, "wild", link_islands=False).nodes
+            if n.type == "way"]
+    assert len(ways) == 1
+    assert ways[0].properties["kind"] == "stairs", "it climbs"
+    assert ways[0].properties["floor_step"] == 1
+    assert "climb" in ways[0].properties["pass_message"].lower()
+
+
+def test_a_door_with_places_all_round_it_joins_the_two_on_opposite_sides():
+    """The opposite pair is what decides, and it is always the right reading: with
+    four cardinal neighbours, any three contain an opposite pair, so a door with
+    places all around it is a door in a wall with a room either side."""
+    painted = {(0, 0): "tavern", (1, 0): "door", (2, 0): "temple",
+               (0, 1): "shop", (1, 1): "warehouse", (2, 1): "library"}
+    patch = world_compile.compile_grid(_painted(painted), "wild", link_islands=False)
+    door_ways = [w for w in patch.nodes if w.type == "way"
+                 and w.properties.get("kind") in ("door", "stairs")]
+    assert len(door_ways) == 1, [w.name for w in door_ways]
+    way = door_ways[0]
+    assert {way.properties["area_from_id"], way.properties["area_to_id"]} == {
+        "area_wild_0_0", "area_wild_2_0"}, "west and east, across the door"
+    assert any("threshold" in note for note in patch.report.notes), patch.report.notes
+
+
+def test_a_door_with_a_place_on_one_side_leads_nowhere_and_says_so():
+    """Invisible in the node counts, so the report has to mention it — a door that
+    goes nowhere is nearly always a mis-painted one."""
+    painted = {(0, 0): "tavern", (1, 0): "door", (2, 0): "wall"}
+    patch = world_compile.compile_grid(_painted(painted), "wild", link_islands=False)
+    assert any("lead nowhere" in note for note in patch.report.notes), \
+        patch.report.notes
+    assert not [n for n in patch.nodes if n.type == "way"]
+
+
+def test_a_window_with_places_on_both_sides_is_a_passage_in_disguise():
+    """A window with a place either side is a doorway, and treating it as a window
+    would hide a route the author drew — or invent one, if it were treated as a
+    door. So it is neither: a window is a window."""
+    painted = {(0, 0): "tavern", (1, 0): "window", (2, 0): "temple"}
+    patch = world_compile.compile_grid(_painted(painted), "wild", link_islands=False)
+    assert not [n for n in patch.nodes if n.type == "way"], \
+        "a window is not a route, however tempting it looks"
+    assert not [n for n in patch.nodes
+                if n.type == "area" and n.properties.get("windows")], \
+        "and it is not claimed by either place"
+
+
+def test_a_sealed_room_is_rescued_by_island_linking_and_that_is_stated():
+    """A wall can leave a room unreachable, and `link_islands` (on by default) joins
+    it to the nearest place with a single way. Worth a test, because "a wall is not
+    a way" and "the room is reachable" are both true, and the second is a deliberate
+    rescue rather than something the author painted.
+
+    Making a sealed room genuinely unreachable is a different decision and belongs
+    with entering a building (task-563), not here.
+    """
+    painted = {(0, 0): "tavern", (1, 0): "wall", (2, 0): "temple"}
+    patch = world_compile.compile_grid(_painted(painted), "wild")
+    assert any("island" in note for note in patch.report.notes), patch.report.notes
+    ways = [n for n in patch.nodes if n.type == "way"]
+    assert len(ways) == 1, "exactly one rescue way, not a way through the wall"
+    assert ways[0].properties["kind"] == "open", "and it is an open rescue"
+
+
+def test_a_window_is_not_a_route_but_its_place_knows_about_it():
+    """You can see through a window; you cannot walk through it. So it mints no
+    way, and the room it belongs to records it."""
+    painted = {(0, 0): "classroom", (1, 0): "window"}
+    patch = world_compile.compile_grid(_painted(painted), "wild")
+    assert not [n for n in patch.nodes if n.type == "way"], "a window is not a route"
+    room = next(n for n in patch.nodes if n.type == "area")
+    assert room.properties["windows"] == [{"x": 1, "y": 0, "facing": "west"}]
+
+
+def test_a_storey_step_is_a_climb_not_a_stride():
+    """The floor layer finally does something at the edges (task-562). A step is a
+    climb; *blocking* a big one is still task-525's decision."""
+    painted = {(0, 0): "hallway", (1, 0): "classroom"}
+    m = _painted(painted, floors={(0, 0): "2"})
+    ways = [n for n in world_compile.compile_grid(m, "wild").nodes
+            if n.type == "way"]
+    assert len(ways) == 1
+    assert ways[0].properties["kind"] == "stairs"
+    assert ways[0].properties["floor_step"] == 2, "the number a gate will read"
+    assert "climb" in ways[0].properties["pass_message"].lower()
+
+    # Same storey: a plain open step, and the property says so.
+    flat = [n for n in world_compile.compile_grid(_painted(painted), "wild").nodes
+            if n.type == "way"]
+    assert flat[0].properties["kind"] == "open"
+    assert flat[0].properties["floor_step"] == 0
+
+
+def test_a_region_never_spans_two_storeys():
+    """Found by compiling a two-storey plan: merging is 8-neighbour and was
+    storey-blind, so a classroom above a classroom of the same kind became one
+    place with a staircase inside it."""
+    painted = {(0, 0): "tavern", (1, 0): "tavern", (0, 1): "tavern"}
+    m = _painted(painted, floors={(0, 1): "1"}, merge=True)
+    below = [n for n in world_compile.compile_grid(m, "wild", region_merge=True).nodes
+             if n.type == "area"]
+    assert len(below) == 2, [a.properties["cell"] for a in below]
+    assert sorted(a.properties["floor"] for a in below) == [0, 1]
+
+
+def test_a_high_school_plan_end_to_end():
+    """The plan that exposed the gap: a corridor, two classrooms that merge, a
+    blank between two more, a window that only sees, and a storey above."""
+    painted = {
+        (0, 0): "hallway", (0, 1): "hallway", (0, 2): "stairway",
+        (1, 1): "classroom", (2, 1): "classroom",   # same kind: they merge
+        (3, 1): "wall", (4, 1): "classroom",        # the blank blocks the row
+        (5, 1): "window",                            # sees out of (4,1)
+        (1, 2): "classroom",                         # the storey above
+    }
+    m = _painted(painted, floors={(0, 2): "1", (1, 2): "1"}, merge=True)
+    patch = world_compile.compile_grid(m, "wild", region_merge=True)
+    areas = [n for n in patch.nodes if n.type == "area"]
+    ways = [n for n in patch.nodes if n.type == "way"]
+
+    def at(x, y):
+        return next((a for a in areas
+                     if a.properties["cell"] == {"x": x, "y": y}), None)
+
+    # Nothing on structure is ever a place.
+    assert at(3, 1) is None, "a wall is not a room"
+    assert at(5, 1) is None, "a window is not a room"
+    # The two adjacent classrooms merged into one place, anchored at the first.
+    assert at(1, 1) is not None, "the merged classroom keeps its first cell"
+    assert at(2, 1) is None, "and the second cell is part of it, not a place"
+    # The upper storey is its own place, not part of the classroom below it.
+    assert at(1, 2) is not None and at(1, 2).properties["floor"] == 1
+
+    # The window is recorded on the room it faces, and mints no way.
+    behind = at(4, 1)
+    assert behind.properties["windows"] == [{"x": 5, "y": 1, "facing": "west"}]
+
+    # A storey step is a climb; once on the upper storey the way is level again,
+    # which is the whole point of the storey model.
+    stairs = [w for w in ways if w.properties.get("kind") == "stairs"]
+    assert stairs, [w.properties.get("kind") for w in ways]
+    assert all(w.properties["floor_step"] == 1 for w in stairs)
+    stairway, upper = at(0, 2), at(1, 2)
+    level = next(w for w in ways
+                 if {w.properties["area_from_id"], w.properties["area_to_id"]}
+                 == {stairway.id, upper.id})
+    assert level.properties["kind"] == "open", "the storey above is level"
+
+    # Every way is one of the three kinds the model knows, never an accident.
+    assert {w.properties["kind"] for w in ways} <= {"open", "door", "stairs"}
+    # And the report says what the structure did, since it is invisible in the
+    # node counts.
+    assert any("structure cell" in note for note in patch.report.notes), \
+        patch.report.notes
+    assert any("window" in note for note in patch.report.notes), patch.report.notes
+
+
+def test_a_road_painted_over_a_wall_is_still_a_road():
+    """The road layer replaces the biome, exactly as it does everywhere else — a
+    road is a place even where the thing under it is a wall."""
+    m = _painted({(0, 0): "wall", (1, 0): "wall"}, roads={(1, 0): "road"})
+    areas = [n for n in world_compile.compile_grid(m, "wild").nodes
+             if n.type == "area"]
+    assert [a.properties["cell"] for a in areas] == [{"x": 1, "y": 0}]
+
+
+def test_a_name_is_metadata_not_paint():
+    """Names survive the eraser and an unnamed scope loads byte-identically."""
+    record = {"id": "s", "name": "S", "kind": "scope", "state": "unmade",
+              "grid": {"w": 2, "h": 2, "cell_scale": 1.0}, "layers": {}}
+    wg.normalise_grid(record)
+    assert "names" not in record, "no empty container is invented"
+
+    assert wg.set_name(record, 1, 0, "The Stag Inn") == "The Stag Inn"
+    assert record["names"] == {"1,0": "The Stag Inn"}
+    assert wg.name_at(record, 1, 0) == "The Stag Inn"
+    assert wg.name_at(record, 0, 0) is None
+
+    # A name is not paint: clearing the cell keeps it.
+    wg.paint(record, "road", 1, 0, None)
+    assert wg.name_at(record, 1, 0) == "The Stag Inn"
+
+    assert wg.set_name(record, 1, 0, "  ") is None, "whitespace clears"
+    assert "names" not in record, "and the container goes with the last name"
+
+
+def test_a_bad_name_costs_one_name_not_the_map():
+    record = {"id": "s", "name": "S", "kind": "scope", "state": "unmade",
+              "grid": {"w": 2, "h": 2, "cell_scale": 1.0}, "layers": {},
+              "names": {"1,0": "The Stag Inn", "not a cell": "nope", "2,2": ""}}
+    wg.normalise_grid(record)
+    assert record["names"] == {"1,0": "The Stag Inn"}
+
+
+def test_a_storey_is_a_storey_index_and_is_unbounded():
     """0 ground, 1 up, -1 down — and as far as an author wants to go.
 
     The old mapping wrote the ground *material* onto `floor` and had no way to
@@ -610,6 +910,214 @@ def test_a_baked_zone_compiles_once_then_refuses():
     generation.apply_patch(g, m, patch)
     with pytest.raises(ValueError):
         world_compile.compile_grid(m, "wild")
+
+
+# ───────────────────── buildings: entered with 'in' (task-563) ─────────────────────
+
+
+def _town_with_building(biome="inn", h=1, w=3):
+    """A one-row town: street | building | alley.
+
+    Both outer cells are roads so the building has two *cardinal* sides that have
+    a way and no diagonal neighbour to muddy the count.
+    """
+    m = {"root": {"id": "root", "name": "Root", "children": ["town"]},
+         "town": {"id": "town", "name": "Town"}}
+    wg.ensure_grid(m["town"], w, h, mode="town")
+    for x in (0, w - 1):
+        wg.paint(m["town"], "biome", x, 0, "farmland")
+        wg.paint(m["town"], "road", x, 0, "road")
+    wg.paint(m["town"], "biome", 1, 0, biome)
+    return m
+
+
+def _enter_ways(patch):
+    return [n for n in patch.nodes if n.id.startswith("way_enter_")]
+
+
+def _town_with_inn_building():
+    """The same street, with an interior scope placed on the inn's cell."""
+    m = _town_with_building()
+    m["root"]["children"].append("inn")
+    m["inn"] = {"id": "inn", "name": "The Inn"}
+    wg.ensure_grid(m["inn"], 1, 1, mode="interior")
+    wg.paint(m["inn"], "biome", 0, 0, "cottage")
+    wg.place(m, "town", "inn", 1, 0)
+    return m
+
+
+def test_a_building_with_no_interior_gets_a_shut_in_way():
+    patch = world_compile.compile_grid(_town_with_building(), "town")
+    ways = _enter_ways(patch)
+    # One per side that has a way: the street to the west, the alley to the east.
+    assert len(ways) == 2
+    street_door = next(w for w in ways
+                       if w.properties["area_from_id"] == "area_town_0_0")
+    assert street_door.properties["aliases"] == ["in"]
+    assert street_door.properties["direction"] == "enter the inn"
+    assert street_door.properties["current_state"] == "closed"
+    assert "inn" in street_door.properties["refusal_message"]
+    # It leads to the building's own cell — the doorstep — and is one-way *in*,
+    # because the place beside a building already has a compass way onto the
+    # plot: a way back would be a second connection for the same pair, and two
+    # ways both answering to `out` on the plot means "out" picks one at random.
+    assert street_door.properties["area_to_id"] == "area_town_1_0"
+    assert len([e for e in patch.edges
+                if e.source == "area_town_0_0" and e.target == street_door.id]) == 1
+    assert any(e.source == street_door.id and e.target == "area_town_1_0"
+               for e in patch.edges)
+    assert not [e for e in patch.edges
+                if e.source == "area_town_1_0" and e.target == street_door.id]
+    # The plot's own way out is the compass one, so `out` is not ambiguous there.
+    plot_exits = {e.properties.get("direction")
+                  for e in patch.edges if e.source == "area_town_1_0"}
+    assert plot_exits == {"east", "west"}
+    # A painted door cell and a building's front door are different facts.
+    assert street_door.properties["kind"] == "entrance"
+
+
+def test_the_building_cell_is_still_a_place():
+    """The plot remains an area; it is the doorstep, not the inside.
+
+    Dropping it would break the `out` side of every interior and the placement
+    record that a parent gateway points at.
+    """
+    patch = world_compile.compile_grid(_town_with_building(), "town")
+    area = next(n for n in patch.nodes if n.id == "area_town_1_0")
+    assert area.properties["building"] == "inn"
+
+
+def test_a_building_with_an_interior_is_entered_with_in():
+    m = _town_with_inn_building()
+    generation.apply_patch(WorldGraph(), m, world_compile.compile_grid(m, "inn"))
+    patch = world_compile.compile_grid(m, "town")
+    ways = _enter_ways(patch)
+    assert len(ways) == 2
+    street_door = next(w for w in ways
+                       if w.properties["area_from_id"] == "area_town_0_0")
+    # It leads to the interior's entry area, and it is already open.
+    assert street_door.properties["area_to_id"] == "area_inn_0_0"
+    assert street_door.properties["current_state"] == "open"
+    assert "refusal_message" not in street_door.properties
+    # One-way on purpose: inside, `out` must keep meaning the doorstep the child
+    # gateway points at, and a second way out would make the word ambiguous.
+    assert not [e for e in patch.edges if e.source == "area_inn_0_0"
+                and e.target == street_door.id]
+    # Cleanup ownership, so ungenerating the interior takes the way with it.
+    assert street_door.properties["child_scope_id"] == "inn"
+
+
+def test_the_parent_first_order_still_emits_the_in_ways():
+    """Generate the town, *then* draw the interior — the common flow.
+
+    The parent could not mint the ways then (there was no entry area to point at),
+    so the child mints them from the door sides the parent recorded.
+    """
+    m = _town_with_inn_building()
+    g = WorldGraph()
+    generation.apply_patch(g, m, world_compile.compile_grid(m, "town"))
+    # The interior is placed but not generated, so there is nothing to go into and
+    # nothing to refuse: a shut door here would be a lie about the world.
+    assert not [nid for nid in g.nodes if nid.startswith("way_enter_")]
+    sides = m["town"]["placements"]["inn"]["sides"]
+    assert {s["area_id"] for s in sides} == {"area_town_0_0", "area_town_2_0"}
+
+    child_patch = world_compile.compile_grid(m, "inn")
+    ways = _enter_ways(child_patch)
+    assert len(ways) == 2
+    assert {w.properties["area_to_id"] for w in ways} == {"area_inn_0_0"}
+    # Provenance says the parent (it owns the neighbour areas) but the way names
+    # the child, which is how ungenerate finds and removes it.
+    assert all(w.properties["world_scope_id"] == "town" for w in ways)
+    assert all(w.properties["child_scope_id"] == "inn" for w in ways)
+
+
+def test_a_walled_side_gets_no_door():
+    """A side with no way gets no door — you cannot knock on a blank wall."""
+    m = _town_with_building(w=4)
+    wg.paint(m["town"], "biome", 2, 0, "wall")
+    patch = world_compile.compile_grid(m, "town", link_islands=False)
+    ways = _enter_ways(patch)
+    assert [w.properties["area_from_id"] for w in ways] == ["area_town_0_0"]
+
+
+def test_a_building_is_not_reached_through_a_wall_or_a_diagonal():
+    """A diagonal neighbour is a corner of the plot, not a door in it."""
+    m = _town_with_building(w=3, h=2)
+    wg.paint(m["town"], "biome", 0, 1, "farmland")
+    patch = world_compile.compile_grid(m, "town", link_islands=False)
+    ways = _enter_ways(patch)
+    assert {w.properties["area_from_id"] for w in ways} == {
+        "area_town_0_0", "area_town_2_0"}
+
+
+def test_wilderness_cells_get_no_doors():
+    """A plain field is not a building: nothing changes for every existing world."""
+    m = _painted(FOUR)
+    assert not _enter_ways(world_compile.compile_grid(m, "wild"))
+
+
+def test_a_road_painted_over_a_building_is_not_a_building():
+    m = _town_with_building()
+    wg.paint(m["town"], "road", 1, 0, "road")
+    patch = world_compile.compile_grid(m, "town")
+    assert not _enter_ways(patch)
+
+
+def test_refusals_are_drawn_from_the_building_category():
+    lines = {biome: world_compile.building_refusal(biome)
+             for biome in ("inn", "smithy", "watch_house", "barn", "cottage")}
+    for biome, line in lines.items():
+        assert line.endswith("."), line
+        assert world_compile.building_subject(biome) in line
+    # A watch house is military (barred), an inn is commercial (shut) — the point
+    # of the table is that two buildings of one *kind* do not read as clones.
+    assert "locked" in lines["watch_house"]
+    assert "shut" in lines["inn"] or "sign" in lines["inn"]
+    # Deterministic: the same id always refuses the same way.
+    assert lines["inn"] == world_compile.building_refusal("inn")
+
+
+def test_the_report_says_how_many_doors_are_shut():
+    m = _town_with_building()
+    notes = " ".join(world_compile.compile_grid(m, "town").report.notes)
+    assert "2 building door(s) entered with 'in'" in notes
+    assert "2 shut" in notes
+
+
+def test_the_building_door_appears_in_the_streets_exits():
+    """The compiled door is an exit of a real world, with no engine change.
+
+    Same shape as the gateway test: the direction string is the exit's key, and
+    the short `in` handle survives as an alias. This is the difference between
+    "the compiler emitted a node" and "a character standing in the street can
+    say go in".
+    """
+    from app import create_app
+    world = create_app({"TESTING": True}).world
+    m = _town_with_inn_building()
+    generation.apply_patch(world.graph, m, world_compile.compile_grid(m, "inn"))
+    generation.apply_patch(world.graph, m, world_compile.compile_grid(m, "town"))
+
+    street = world.graph.get_node("area_town_0_0").name
+    exits = world.area_description.build_exits_for_area(street)
+    assert "enter the inn" in exits
+    assert "enter the inn" in str(world.area_description.build_exits_for_area(
+        world.graph.get_node("area_town_2_0").name))
+    door = next(n for n in world.graph.nodes.values()
+                if n.id.startswith("way_enter_")
+                and n.properties["area_from_id"] == "area_town_0_0")
+    assert "in" in door.properties["aliases"]
+
+
+def test_ungenerate_removes_a_building_door():
+    m = _town_with_inn_building()
+    g = WorldGraph()
+    generation.apply_patch(g, m, world_compile.compile_grid(m, "town"))
+    generation.apply_patch(g, m, world_compile.compile_grid(m, "inn"))
+    assert [nid for nid in g.nodes if nid.startswith("way_enter_")]
+    world_scopes.ungenerate_scope(m, g, "inn")
+    assert not [nid for nid in g.nodes if nid.startswith("way_enter_")]
 
 
 # ───────────────────────── child-scope gateways ──────────────────────────

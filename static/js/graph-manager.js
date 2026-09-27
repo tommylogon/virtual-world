@@ -50,6 +50,12 @@ class GraphManager {
         })();
         this._nodeLabelsShown = null;   // last applied decision (avoid churn)
         this._labelCache = null;        // decorated labels saved while hidden
+        // Map pitch ownership (task-526): true while the pitch is the derived
+        // default (re-derived from the painted extent on every load), false once
+        // the user nudges it. Read from the persisted config so a reload keeps the
+        // choice they made rather than re-deriving over it.
+        this._mapSpacingAuto = (typeof config !== 'undefined' && config)
+            ? config.graphMapSpacingAuto !== false : true;
         this._showItems = false;
         this._showOnlyInhabitedAreas = true;
         this._revealedAreaIds = new Set();
@@ -407,12 +413,21 @@ class GraphManager {
      * areas in Map mode. Persists to `config.graphMapSpacing`, re-lays the
      * painted grid at the new pitch, and re-aligns the map art. `delta` is
      * relative (e.g. +20 / -20 from the toolbar's +/- buttons).
+     *
+     * Nudging is a *decision*, so it ends auto-pitching (task-526): a person who
+     * wants 40px/cell on a 200-cell world has to keep 40px/cell through reloads
+     * and scope switches. `setAutoMapSpacing(true)` hands the pitch back.
      */
     async setMapSpacing(delta) {
         const current = this._mapSpacingValue();
         const next = Math.max(20, Math.min(400, Math.round(current + Number(delta || 0))));
-        if (typeof config !== 'undefined' && config) config.graphMapSpacing = next;
+        if (typeof config !== 'undefined' && config) {
+            config.graphMapSpacing = next;
+            config.graphMapSpacingAuto = false;
+        }
+        this._mapSpacingAuto = false;
         try { storage.setConfig('graphMapSpacing', next); } catch (e) { /* keep the session value */ }
+        try { storage.setConfig('graphMapSpacingAuto', '0'); } catch (e) { /* keep the session value */ }
         this._syncMapSpacingButton();
         this._lastSig = '';
         // Node boxes and item rings scale with the pitch, so the group options
@@ -421,11 +436,41 @@ class GraphManager {
             try { GraphNetwork.applyGraphSettings(); } catch (e) { /* ignore */ }
         }
         await this.loadGraphData();
-        // The art is positioned in px, so a pitch change must re-fit it; only
-        // meaningful for a painted scope in Map mode.
-        if (this._scopeFilter && this._cardinalLayout
-                && window.GraphBackground && window.GraphBackground.fitToPaintedGrid) {
-            try { await window.GraphBackground.fitToPaintedGrid(); } catch (e) { /* ignore */ }
+        // The art is positioned in px, so a pitch change must re-fit it. With a
+        // scope selected that is `fitToPaintedGrid` (which also *saves* the fitted
+        // rect — what a deliberate nudge wants). In the whole-world view there is
+        // no single grid for it to fit to, so every mounted reference is
+        // re-derived from its own scope instead, without writing the world.
+        if (this._cardinalLayout && window.GraphBackground) {
+            try {
+                if (this._scopeFilter && window.GraphBackground.fitToPaintedGrid) {
+                    await window.GraphBackground.fitToPaintedGrid();
+                } else if (window.GraphBackground.reconcileAllForGapChange) {
+                    await window.GraphBackground.reconcileAllForGapChange();
+                }
+            } catch (e) { /* ignore */ }
+        }
+    }
+
+    /**
+     * Hand the map pitch back to auto-pitching (task-526), or take it back with
+     * `false`. Re-derives from the painted extent on the next load, so it reloads
+     * the graph by the same path a manual nudge does: the pitch feeds node sizes,
+     * the lattice and the background art at once.
+     */
+    async setAutoMapSpacing(enabled) {
+        const on = enabled !== false;
+        this._mapSpacingAuto = on;
+        if (typeof config !== 'undefined' && config) config.graphMapSpacingAuto = on;
+        try { storage.setConfig('graphMapSpacingAuto', on ? '1' : '0'); } catch (e) { /* session value stands */ }
+        this._syncMapSpacingButton();
+        this._lastSig = '';
+        await this.loadGraphData();
+        if (this._cardinalLayout && window.GraphBackground
+                && window.GraphBackground.reconcileAllForGapChange) {
+            // The load path already re-derived the art when the pitch moved; this
+            // is the belt to that braces, and it writes nothing.
+            try { await window.GraphBackground.reconcileAllForGapChange(); } catch (e) { /* ignore */ }
         }
     }
 
@@ -436,9 +481,35 @@ class GraphManager {
         } catch (e) { return 40; }
     }
 
+    /**
+     * Show the effective pitch, and mark whether it is derived or the user's own
+     * (task-526). Without the mark, an auto pitch looks exactly like a hand-set
+     * one, so the +/- buttons would silently end auto-pitching on what looks like
+     * a first nudge on an already-chosen number.
+     */
     _syncMapSpacingButton() {
         const el = document.getElementById('map-spacing');
-        if (el) el.textContent = String(this._mapSpacingValue());
+        if (el) {
+            el.textContent = this._mapSpacingAuto
+                ? `${this._mapSpacingValue()} auto`
+                : String(this._mapSpacingValue());
+        }
+        const autoBtn = document.getElementById('map-spacing-auto');
+        if (autoBtn) {
+            autoBtn.setAttribute('aria-pressed', this._mapSpacingAuto ? 'true' : 'false');
+            autoBtn.title = this._mapSpacingAuto
+                ? 'Pitch is derived from the painted extent. Click to fix it and use − / +.'
+                : 'Pitch is yours. Click to derive it from the painted extent again.';
+        }
+        // A compact map has no names on it, so say why rather than leaving the
+        // user to wonder why their rooms turned into dots.
+        const note = document.getElementById('map-compact-note');
+        if (note) {
+            const compact = this._cardinalLayout === true
+                && typeof GraphLayoutEngine !== 'undefined'
+                && GraphLayoutEngine.mapCompact && GraphLayoutEngine.mapCompact();
+            note.hidden = !compact;
+        }
     }
 
     _buildTooltip(nodeData) { return GraphNetwork.buildTooltip(nodeData); }

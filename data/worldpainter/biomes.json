@@ -1,381 +1,1486 @@
 {
   "version": 1,
   "biomes": {
-    "sparse_forest": {
-      "name": "Sparse Forest",
-      "terrain": "forest",
-      "tags": ["forest", "woods"],
-      "forage_skills": ["survival", "perception"],
+    "bank": {
+      "name": "Bank",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "commercial",
+        "trade"
+      ],
       "surface": "dirt",
       "descriptions": [
-        "Scattered trees open onto patches of grass.",
-        "Thin woodland, easy to walk and hard to hide in."
+        "A bank of iron counters, a grille, and very little noise.",
+        "Warded windows and a clerk who looks up once."
       ]
     },
-    "dense_forest": {
-      "name": "Dense Forest",
-      "terrain": "forest",
-      "tags": ["forest", "woods", "dense"],
-      "forage_skills": ["survival"],
+    "barn": {
+      "name": "Barn",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "rural",
+        "storage"
+      ],
       "surface": "dirt",
       "descriptions": [
-        "Close-set trunks swallow the light a few steps in.",
-        "Underbrush claws at the legs with every stride."
-      ]
-    },
-    "pine_forest": {
-      "name": "Pine Forest",
-      "terrain": "forest",
-      "tags": ["forest", "woods", "pine"],
-      "forage_skills": ["survival"],
-      "surface": "pine_needles",
-      "descriptions": [
-        "Straight pines rise from a hush of fallen needles.",
-        "The air smells of resin and cold bark."
-      ]
-    },
-    "hills": {
-      "name": "Hills",
-      "terrain": "rock",
-      "tags": ["hills", "hill"],
-      "forage_skills": ["survival", "perception"],
-      "surface": "grass",
-      "descriptions": [
-        "Rolling ground folds away into shallow valleys.",
-        "Windswept grass over hard, stony soil."
-      ]
-    },
-    "mountains": {
-      "name": "Mountains",
-      "terrain": "rock",
-      "tags": ["mountains", "mountain", "rocky"],
-      "forage_skills": ["survival", "history"],
-      "surface": "stone",
-      "descriptions": [
-        "Bare rock climbs in broken steps toward the peaks.",
-        "Cold stone and thin air, with scree underfoot."
-      ]
-    },
-    "cliff": {
-      "name": "Cliff",
-      "terrain": "rock",
-      "tags": ["cliff", "rocky"],
-      "forage_skills": ["survival"],
-      "surface": "stone",
-      "descriptions": [
-        "The ground ends at a sheer drop.",
-        "A rock face falls away, wind pulling at the edge."
-      ]
-    },
-    "ravine": {
-      "name": "Ravine",
-      "terrain": "rock",
-      "tags": ["ravine", "rocky"],
-      "forage_skills": ["survival", "history"],
-      "surface": "stone",
-      "descriptions": [
-        "A narrow cut in the land, walls close on either side.",
-        "The path threads down through broken rock."
-      ]
-    },
-    "chasm": {
-      "name": "Chasm",
-      "terrain": "rock",
-      "tags": ["chasm", "rocky"],
-      "forage_skills": ["history"],
-      "surface": "stone",
-      "descriptions": [
-        "A crack in the world, too wide to cross and too deep to see.",
-        "Cold air rises from a darkness with no visible bottom."
+        "A barn, dim and cavernous, stacked to the ridgepole.",
+        "Sacks under the eaves and mice in the loft."
       ]
     },
     "beach": {
       "name": "Beach",
       "terrain": "water",
-      "tags": ["beach", "shore"],
-      "forage_skills": ["survival", "perception"],
+      "tags": [
+        "beach",
+        "shore"
+      ],
+      "forage_skills": [
+        "survival",
+        "perception"
+      ],
       "surface": "sand",
       "descriptions": [
         "Wet sand slopes down to the waterline.",
         "Driftwood and stranded weed mark the tide line."
       ]
     },
-    "lake": {
-      "name": "Lake",
-      "terrain": "water",
-      "tags": ["lake", "water"],
-      "forage_skills": ["survival"],
-      "surface": "shallow_water",
+    "brothel": {
+      "name": "Brothel",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "commercial",
+        "sleeps"
+      ],
+      "surface": "dirt",
       "descriptions": [
-        "Still water stretches out, flat and grey.",
-        "Reeds crowd the shallows at the water's edge."
+        "A discreet house behind an unmarked door.",
+        "Lamplight in an upper window, and no sign at all."
       ]
     },
-    "river": {
-      "name": "River",
-      "terrain": "water",
-      "tags": ["river", "water"],
-      "forage_skills": ["survival"],
-      "surface": "shallow_water",
+    "castle": {
+      "name": "Castle",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "military",
+        "sleeps"
+      ],
+      "surface": "stone",
       "descriptions": [
-        "A current runs steadily between its banks.",
-        "Water hurries over a stony bed."
+        "A castle: curtain wall, gatehouse, and a keep above the town.",
+        "Stone high enough to see the river, and hard to leave."
+      ]
+    },
+    "cemetery": {
+      "name": "Cemetery",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "religious",
+        "worship"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A cemetery of leaning markers and long grass.",
+        "Names cut in stone, and nobody left to read them."
+      ]
+    },
+    "chapel": {
+      "name": "Chapel",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "religious",
+        "worship"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A small chapel, barely more than a room with a pew.",
+        "Plain benches, one window, and a bell rope nobody pulls."
+      ]
+    },
+    "chasm": {
+      "name": "Chasm",
+      "terrain": "rock",
+      "tags": [
+        "chasm",
+        "rocky"
+      ],
+      "forage_skills": [
+        "history"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A crack in the world, too wide to cross and too deep to see.",
+        "Cold air rises from a darkness with no visible bottom."
+      ]
+    },
+    "cliff": {
+      "name": "Cliff",
+      "terrain": "rock",
+      "tags": [
+        "cliff",
+        "rocky"
+      ],
+      "forage_skills": [
+        "survival"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "The ground ends at a sheer drop.",
+        "A rock face falls away, wind pulling at the edge."
+      ]
+    },
+    "cottage": {
+      "name": "Cottage",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "residential",
+        "sleeps"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A small dwelling with a thatched roof and one door.",
+        "A house low to the ground, garden patch behind it."
       ]
     },
     "deep_water": {
       "name": "Deep Water",
       "terrain": "water",
-      "tags": ["deep_water", "water", "ocean"],
-      "forage_skills": ["survival"],
+      "tags": [
+        "deep_water",
+        "water",
+        "ocean"
+      ],
+      "forage_skills": [
+        "survival"
+      ],
       "surface": "deep_water",
       "descriptions": [
         "The bottom drops away into dark, moving water.",
         "Cold water, too deep to stand in."
       ]
     },
+    "dense_forest": {
+      "name": "Dense Forest",
+      "terrain": "forest",
+      "tags": [
+        "forest",
+        "woods",
+        "dense"
+      ],
+      "forage_skills": [
+        "survival"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "Close-set trunks swallow the light a few steps in.",
+        "Underbrush claws at the legs with every stride."
+      ]
+    },
+    "door": {
+      "name": "Door",
+      "terrain": "urban",
+      "tags": [
+        "structure",
+        "not_a_place",
+        "cell_kind:passable",
+        "threshold",
+        "perceivable"
+      ],
+      "descriptions": [
+        "A threshold: not a place of its own, but you go through it.",
+        "A doorway between two places, standing open or not."
+      ],
+      "surface": "stone"
+    },
+    "farmland": {
+      "name": "Farmland",
+      "terrain": "farm",
+      "tags": [
+        "farmland",
+        "field"
+      ],
+      "forage_skills": [
+        "survival",
+        "perception"
+      ],
+      "surface": "tilled_soil",
+      "descriptions": [
+        "Tilled rows run to a low boundary hedge.",
+        "Open fields, worked and fenced."
+      ]
+    },
+    "fast_food": {
+      "name": "Fast Food",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "commercial",
+        "food"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A bright window, a menu board, and tables turned to the wall.",
+        "A counter, a queue, and a smell of fried everything."
+      ]
+    },
+    "ferry_landing": {
+      "name": "Ferry Landing",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "transport",
+        "transport"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A ferry landing: a ramp, a rope, and a boat that comes and goes.",
+        "Planks slick with spray, and the river moving past."
+      ]
+    },
+    "hills": {
+      "name": "Hills",
+      "terrain": "rock",
+      "tags": [
+        "hills",
+        "hill"
+      ],
+      "forage_skills": [
+        "survival",
+        "perception"
+      ],
+      "surface": "grass",
+      "descriptions": [
+        "Rolling ground folds away into shallow valleys.",
+        "Windswept grass over hard, stony soil."
+      ]
+    },
+    "infirmary": {
+      "name": "Infirmary",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "civic",
+        "medical",
+        "sleeps"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "An infirmary of low beds and a smell of boiled linen.",
+        "Rows of cots, a lamp at each end, and someone breathing hard."
+      ]
+    },
+    "inn": {
+      "name": "Inn",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "residential",
+        "sleeps",
+        "food",
+        "drink"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "An inn with a common room, a kitchen and rooms let by the night.",
+        "Beds for the road, and a fire kept low in the hearth."
+      ]
+    },
+    "lake": {
+      "name": "Lake",
+      "terrain": "water",
+      "tags": [
+        "lake",
+        "water"
+      ],
+      "forage_skills": [
+        "survival"
+      ],
+      "surface": "shallow_water",
+      "descriptions": [
+        "Still water stretches out, flat and grey.",
+        "Reeds crowd the shallows at the water's edge."
+      ]
+    },
+    "library": {
+      "name": "Library",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "civic"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A library, shelves to the ceiling and long tables under the windows.",
+        "Paper, dust, and the particular silence of a reading room."
+      ]
+    },
+    "mall": {
+      "name": "Shopping Mall",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "commercial",
+        "trade"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A covered arcade of many shops under one roof.",
+        "Long galleries, escalators, and light that never changes."
+      ]
+    },
+    "mansion": {
+      "name": "Mansion",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "residential",
+        "sleeps"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A mansion of many rooms and a garden nobody can afford to keep.",
+        "A wide front, a carriage gate, and a garden gone to seed."
+      ]
+    },
+    "market": {
+      "name": "Market",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "commercial",
+        "trade",
+        "food"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A market square, stalls pitched and voices carrying across it.",
+        "Trestles, awnings, and produce heaped in crates."
+      ]
+    },
+    "mill": {
+      "name": "Mill",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "industrial",
+        "craft"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A mill turning by the water, sacks waiting on the bank.",
+        "A wheel in the race, and the millrace's constant mutter."
+      ]
+    },
+    "mountains": {
+      "name": "Mountains",
+      "terrain": "rock",
+      "tags": [
+        "mountains",
+        "mountain",
+        "rocky"
+      ],
+      "forage_skills": [
+        "survival",
+        "history"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "Bare rock climbs in broken steps toward the peaks.",
+        "Cold stone and thin air, with scree underfoot."
+      ]
+    },
     "ocean": {
       "name": "Ocean",
       "terrain": "water",
-      "tags": ["ocean", "water"],
-      "forage_skills": ["survival"],
+      "tags": [
+        "ocean",
+        "water"
+      ],
+      "forage_skills": [
+        "survival"
+      ],
       "surface": "deep_water",
       "descriptions": [
         "Open water to the horizon, restless and salt-heavy.",
         "Long swells roll in under a wide sky."
       ]
     },
-    "stream": {
-      "name": "Stream",
+    "orchard": {
+      "name": "Orchard",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "rural",
+        "food"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "An orchard of old trees, grass long under them.",
+        "Rows of trees and the smell of fruit in season."
+      ]
+    },
+    "pine_forest": {
+      "name": "Pine Forest",
+      "terrain": "forest",
+      "tags": [
+        "forest",
+        "woods",
+        "pine"
+      ],
+      "forage_skills": [
+        "survival"
+      ],
+      "surface": "pine_needles",
+      "descriptions": [
+        "Straight pines rise from a hush of fallen needles.",
+        "The air smells of resin and cold bark."
+      ]
+    },
+    "ravine": {
+      "name": "Ravine",
+      "terrain": "rock",
+      "tags": [
+        "ravine",
+        "rocky"
+      ],
+      "forage_skills": [
+        "survival",
+        "history"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A narrow cut in the land, walls close on either side.",
+        "The path threads down through broken rock."
+      ]
+    },
+    "residential": {
+      "name": "Residential",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "residential",
+        "sleeps"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A building put to living, with windows lit and washing out.",
+        "Dwelling places, shoulder to shoulder along the street."
+      ]
+    },
+    "river": {
+      "name": "River",
       "terrain": "water",
-      "tags": ["stream", "water"],
-      "forage_skills": ["survival"],
+      "tags": [
+        "river",
+        "water"
+      ],
+      "forage_skills": [
+        "survival"
+      ],
       "surface": "shallow_water",
       "descriptions": [
-        "A narrow stream chatters over pebbles.",
-        "Shallow water threads between mossy stones."
+        "A current runs steadily between its banks.",
+        "Water hurries over a stony bed."
+      ]
+    },
+    "ruin": {
+      "name": "Ruin",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "rural"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "Broken walls half-buried in growth, and no roof left.",
+        "A shell of a building, open to the weather."
+      ]
+    },
+    "school": {
+      "name": "School",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "civic"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A schoolroom, benches in rows and a slate at the front.",
+        "Copybooks and ink, and the noise of a dozen children."
+      ]
+    },
+    "shop": {
+      "name": "Shop",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "commercial",
+        "trade"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A shop with goods stacked to the ceiling and a counter at the door.",
+        "A narrow front, a bell over the frame, everything in reach."
+      ]
+    },
+    "shrine": {
+      "name": "Shrine",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "religious",
+        "worship"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A wayside shrine, small, with offerings left at its foot.",
+        "A stone figure under a lean-to, incense and old flowers."
+      ]
+    },
+    "smithy": {
+      "name": "Smithy",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "craft",
+        "craft"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A smithy open to the street, the forge fire visible from the road.",
+        "An anvil, a quench trough, and hammer-sore arms."
+      ]
+    },
+    "sparse_forest": {
+      "name": "Sparse Forest",
+      "terrain": "forest",
+      "tags": [
+        "forest",
+        "woods"
+      ],
+      "forage_skills": [
+        "survival",
+        "perception"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "Scattered trees open onto patches of grass.",
+        "Thin woodland, easy to walk and hard to hide in."
       ]
     },
     "spring": {
       "name": "Spring",
       "terrain": "water",
-      "tags": ["spring", "water"],
-      "forage_skills": ["survival"],
+      "tags": [
+        "spring",
+        "water"
+      ],
+      "forage_skills": [
+        "survival"
+      ],
       "surface": "wet_ground",
       "descriptions": [
         "Clear water wells up from the ground, cold and clean.",
         "A small spring seeps out of the hillside."
       ]
     },
-    "farmland": {
-      "name": "Farmland",
-      "terrain": "farm",
-      "tags": ["farmland", "field"],
-      "forage_skills": ["survival", "perception"],
-      "surface": "tilled_soil",
+    "stable": {
+      "name": "Stable",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "rural",
+        "sleeps"
+      ],
+      "surface": "dirt",
       "descriptions": [
-        "Tilled rows run to a low boundary hedge.",
-        "Open fields, worked and fenced."
+        "A stable of stalls and tethering rings, warm with animal breath.",
+        "Hay, dung, and horses shifting on their feet."
+      ]
+    },
+    "stream": {
+      "name": "Stream",
+      "terrain": "water",
+      "tags": [
+        "stream",
+        "water"
+      ],
+      "forage_skills": [
+        "survival"
+      ],
+      "surface": "shallow_water",
+      "descriptions": [
+        "A narrow stream chatters over pebbles.",
+        "Shallow water threads between mossy stones."
+      ]
+    },
+    "tavern": {
+      "name": "Tavern",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "commercial",
+        "food",
+        "drink"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A taproom loud with talk, a back room quieter, and a door that shuts.",
+        "Benches, a bar, and the smell of a fire that never quite goes out."
+      ]
+    },
+    "temple": {
+      "name": "Temple",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "religious",
+        "worship"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A temple of dressed stone, its doors open onto a dim hall.",
+        "Columns, a high roof, and lamps burning along the aisle."
+      ]
+    },
+    "tenement": {
+      "name": "Tenement",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "residential",
+        "sleeps"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A block of stacked dwellings sharing stairwells and a courtyard.",
+        "Four storeys of windows, laundry on the lines below."
+      ]
+    },
+    "town_hall": {
+      "name": "Town Hall",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "civic"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A town hall, its doors open and its notices thick on the board.",
+        "A public building, and the queue that forms outside it."
+      ]
+    },
+    "void": {
+      "name": "Void",
+      "terrain": "urban",
+      "tags": [
+        "structure",
+        "not_a_place",
+        "cell_kind:solid",
+        "impassable",
+        "empty"
+      ],
+      "descriptions": [
+        "Nothing here — a gap, a courtyard, unwalkable. Not a place.",
+        "Open air where a place was never made."
+      ]
+    },
+    "wall": {
+      "name": "Wall",
+      "terrain": "urban",
+      "tags": [
+        "structure",
+        "not_a_place",
+        "cell_kind:solid",
+        "impassable"
+      ],
+      "descriptions": [
+        "Solid wall. Nothing passes it and nothing sees through it.",
+        "A blank of masonry, thick enough to be a room's own boundary."
+      ],
+      "surface": "stone"
+    },
+    "warehouse": {
+      "name": "Warehouse",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "industrial",
+        "storage"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A warehouse stacked to the roof with crates and sacks.",
+        "Loading doors, rat-holes, and sacks heavy as men."
+      ]
+    },
+    "watch_house": {
+      "name": "Watch House",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "military"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A watch house, small and thick-walled, with a brazier by the door.",
+        "A fire, a bench for the guard, and a view of the road."
+      ]
+    },
+    "window": {
+      "name": "Window",
+      "terrain": "urban",
+      "tags": [
+        "structure",
+        "not_a_place",
+        "cell_kind:see_through",
+        "closed",
+        "perceivable"
+      ],
+      "descriptions": [
+        "A window: you can see through it, you cannot walk through it.",
+        "Shut against the weather, and a way to see out of the room."
+      ],
+      "surface": "stone"
+    },
+    "workshop": {
+      "name": "Workshop",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "craft",
+        "craft"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A workshop, its benches buried under half-made things.",
+        "Shavings on the floor and a smell of hot metal and glue."
       ]
     }
   },
   "features": {
     "road": {
       "name": "Road",
-      "tags": ["road"],
-      "biomes": ["sparse_forest", "dense_forest", "farmland", "hills"],
-      "descriptions": ["A worn track cut through the land."]
+      "tags": [
+        "road"
+      ],
+      "biomes": [
+        "sparse_forest",
+        "dense_forest",
+        "farmland",
+        "hills"
+      ],
+      "descriptions": [
+        "A worn track cut through the land."
+      ]
     },
     "bridge": {
       "name": "Bridge",
-      "tags": ["road", "bridge"],
-      "biomes": ["river", "stream", "ravine", "chasm"],
-      "descriptions": ["A span carries the road over the gap."]
+      "tags": [
+        "road",
+        "bridge"
+      ],
+      "biomes": [
+        "river",
+        "stream",
+        "ravine",
+        "chasm"
+      ],
+      "descriptions": [
+        "A span carries the road over the gap."
+      ]
     },
     "ford": {
       "name": "Ford",
-      "tags": ["road", "river"],
-      "biomes": ["river", "stream"],
-      "descriptions": ["The road drops through shallow water here."]
+      "tags": [
+        "road",
+        "river"
+      ],
+      "biomes": [
+        "river",
+        "stream"
+      ],
+      "descriptions": [
+        "The road drops through shallow water here."
+      ]
     },
     "tunnel": {
       "name": "Tunnel",
-      "tags": ["tunnel", "underground"],
-      "biomes": ["mountains", "hills"],
-      "descriptions": ["A bored passage runs through the rock."]
+      "tags": [
+        "tunnel",
+        "underground"
+      ],
+      "biomes": [
+        "mountains",
+        "hills"
+      ],
+      "descriptions": [
+        "A bored passage runs through the rock."
+      ]
     },
     "town": {
       "name": "Town",
-      "tags": ["settlement", "town"],
-      "biomes": ["farmland"],
-      "descriptions": ["A dense knot of streets and roofs."]
+      "tags": [
+        "settlement",
+        "town"
+      ],
+      "biomes": [
+        "farmland"
+      ],
+      "descriptions": [
+        "A dense knot of streets and roofs."
+      ]
     },
     "village": {
       "name": "Village",
-      "tags": ["settlement", "village"],
-      "biomes": ["farmland", "sparse_forest"],
-      "descriptions": ["A handful of buildings around a common."]
+      "tags": [
+        "settlement",
+        "village"
+      ],
+      "biomes": [
+        "farmland",
+        "sparse_forest"
+      ],
+      "descriptions": [
+        "A handful of buildings around a common."
+      ]
     },
     "building": {
       "name": "Building",
-      "tags": ["building", "shelter"],
-      "biomes": ["farmland", "sparse_forest", "hills"],
-      "descriptions": ["A single roofed structure with walls and a door."]
+      "tags": [
+        "building",
+        "shelter"
+      ],
+      "biomes": [
+        "farmland",
+        "sparse_forest",
+        "hills"
+      ],
+      "descriptions": [
+        "A single roofed structure with walls and a door."
+      ]
     },
     "ruin": {
       "name": "Ruin",
-      "tags": ["ruin", "ruins"],
-      "biomes": ["hills", "mountains", "dense_forest", "farmland"],
-      "descriptions": ["Broken walls half-buried in growth."]
+      "tags": [
+        "ruin",
+        "ruins"
+      ],
+      "biomes": [
+        "hills",
+        "mountains",
+        "dense_forest",
+        "farmland"
+      ],
+      "descriptions": [
+        "Broken walls half-buried in growth."
+      ]
     },
     "gate": {
       "name": "Gate",
-      "tags": ["road", "gate"],
-      "biomes": ["farmland", "hills"],
-      "descriptions": ["A gate bars the road between posts."]
+      "tags": [
+        "road",
+        "gate"
+      ],
+      "biomes": [
+        "farmland",
+        "hills"
+      ],
+      "descriptions": [
+        "A gate bars the road between posts."
+      ]
     }
   },
   "resource_distribution": {
     "sparse_forest": [
-      {"tags": ["berry", "fruit"], "weight": 4},
-      {"tags": ["herb", "medicinal"], "weight": 3},
-      {"tags": ["root", "food"], "weight": 2},
-      {"tags": ["junk", "scrap"], "weight": 1}
+      {
+        "tags": [
+          "berry",
+          "fruit"
+        ],
+        "weight": 4
+      },
+      {
+        "tags": [
+          "herb",
+          "medicinal"
+        ],
+        "weight": 3
+      },
+      {
+        "tags": [
+          "root",
+          "food"
+        ],
+        "weight": 2
+      },
+      {
+        "tags": [
+          "junk",
+          "scrap"
+        ],
+        "weight": 1
+      }
     ],
     "dense_forest": [
-      {"tags": ["berry", "fruit"], "weight": 3},
-      {"tags": ["herb", "medicinal"], "weight": 3},
-      {"tags": ["root", "food"], "weight": 3},
-      {"tags": ["grub", "bait"], "weight": 2},
-      {"tags": ["junk", "scrap"], "weight": 1}
+      {
+        "tags": [
+          "berry",
+          "fruit"
+        ],
+        "weight": 3
+      },
+      {
+        "tags": [
+          "herb",
+          "medicinal"
+        ],
+        "weight": 3
+      },
+      {
+        "tags": [
+          "root",
+          "food"
+        ],
+        "weight": 3
+      },
+      {
+        "tags": [
+          "grub",
+          "bait"
+        ],
+        "weight": 2
+      },
+      {
+        "tags": [
+          "junk",
+          "scrap"
+        ],
+        "weight": 1
+      }
     ],
     "pine_forest": [
-      {"tags": ["root", "food"], "weight": 3},
-      {"tags": ["herb", "medicinal"], "weight": 2},
-      {"tags": ["grub", "bait"], "weight": 2},
-      {"tags": ["junk", "scrap"], "weight": 1}
+      {
+        "tags": [
+          "root",
+          "food"
+        ],
+        "weight": 3
+      },
+      {
+        "tags": [
+          "herb",
+          "medicinal"
+        ],
+        "weight": 2
+      },
+      {
+        "tags": [
+          "grub",
+          "bait"
+        ],
+        "weight": 2
+      },
+      {
+        "tags": [
+          "junk",
+          "scrap"
+        ],
+        "weight": 1
+      }
     ],
     "hills": [
-      {"tags": ["herb", "medicinal"], "weight": 3},
-      {"tags": ["root", "food"], "weight": 2},
-      {"tags": ["scrap", "junk"], "weight": 2},
-      {"tags": ["tool"], "weight": 1}
+      {
+        "tags": [
+          "herb",
+          "medicinal"
+        ],
+        "weight": 3
+      },
+      {
+        "tags": [
+          "root",
+          "food"
+        ],
+        "weight": 2
+      },
+      {
+        "tags": [
+          "scrap",
+          "junk"
+        ],
+        "weight": 2
+      },
+      {
+        "tags": [
+          "tool"
+        ],
+        "weight": 1
+      }
     ],
     "mountains": [
-      {"tags": ["scrap", "junk"], "weight": 3},
-      {"tags": ["antique"], "weight": 2},
-      {"tags": ["coin", "currency"], "weight": 2},
-      {"tags": ["junk"], "weight": 1}
+      {
+        "tags": [
+          "scrap",
+          "junk"
+        ],
+        "weight": 3
+      },
+      {
+        "tags": [
+          "antique"
+        ],
+        "weight": 2
+      },
+      {
+        "tags": [
+          "coin",
+          "currency"
+        ],
+        "weight": 2
+      },
+      {
+        "tags": [
+          "junk"
+        ],
+        "weight": 1
+      }
     ],
     "cliff": [
-      {"tags": ["scrap", "junk"], "weight": 3},
-      {"tags": ["junk"], "weight": 2},
-      {"tags": ["antique"], "weight": 1}
+      {
+        "tags": [
+          "scrap",
+          "junk"
+        ],
+        "weight": 3
+      },
+      {
+        "tags": [
+          "junk"
+        ],
+        "weight": 2
+      },
+      {
+        "tags": [
+          "antique"
+        ],
+        "weight": 1
+      }
     ],
     "ravine": [
-      {"tags": ["antique"], "weight": 3},
-      {"tags": ["scrap", "junk"], "weight": 2},
-      {"tags": ["junk"], "weight": 2}
+      {
+        "tags": [
+          "antique"
+        ],
+        "weight": 3
+      },
+      {
+        "tags": [
+          "scrap",
+          "junk"
+        ],
+        "weight": 2
+      },
+      {
+        "tags": [
+          "junk"
+        ],
+        "weight": 2
+      }
     ],
     "chasm": [
-      {"tags": ["antique"], "weight": 3},
-      {"tags": ["relic", "religious"], "weight": 1},
-      {"tags": ["junk"], "weight": 1}
+      {
+        "tags": [
+          "antique"
+        ],
+        "weight": 3
+      },
+      {
+        "tags": [
+          "relic",
+          "religious"
+        ],
+        "weight": 1
+      },
+      {
+        "tags": [
+          "junk"
+        ],
+        "weight": 1
+      }
     ],
     "beach": [
-      {"tags": ["scrap", "junk"], "weight": 3},
-      {"tags": ["junk"], "weight": 3},
-      {"tags": ["coin", "currency"], "weight": 1}
+      {
+        "tags": [
+          "scrap",
+          "junk"
+        ],
+        "weight": 3
+      },
+      {
+        "tags": [
+          "junk"
+        ],
+        "weight": 3
+      },
+      {
+        "tags": [
+          "coin",
+          "currency"
+        ],
+        "weight": 1
+      }
     ],
     "lake": [
-      {"tags": ["herb", "medicinal"], "weight": 2},
-      {"tags": ["food"], "weight": 1},
-      {"tags": ["junk"], "weight": 2}
+      {
+        "tags": [
+          "herb",
+          "medicinal"
+        ],
+        "weight": 2
+      },
+      {
+        "tags": [
+          "food"
+        ],
+        "weight": 1
+      },
+      {
+        "tags": [
+          "junk"
+        ],
+        "weight": 2
+      }
     ],
     "river": [
-      {"tags": ["herb", "medicinal"], "weight": 2},
-      {"tags": ["food"], "weight": 1},
-      {"tags": ["junk"], "weight": 2}
+      {
+        "tags": [
+          "herb",
+          "medicinal"
+        ],
+        "weight": 2
+      },
+      {
+        "tags": [
+          "food"
+        ],
+        "weight": 1
+      },
+      {
+        "tags": [
+          "junk"
+        ],
+        "weight": 2
+      }
     ],
     "deep_water": [
-      {"tags": ["junk"], "weight": 1}
+      {
+        "tags": [
+          "junk"
+        ],
+        "weight": 1
+      }
     ],
     "ocean": [
-      {"tags": ["scrap", "junk"], "weight": 2},
-      {"tags": ["junk"], "weight": 2},
-      {"tags": ["coin", "currency"], "weight": 1}
+      {
+        "tags": [
+          "scrap",
+          "junk"
+        ],
+        "weight": 2
+      },
+      {
+        "tags": [
+          "junk"
+        ],
+        "weight": 2
+      },
+      {
+        "tags": [
+          "coin",
+          "currency"
+        ],
+        "weight": 1
+      }
     ],
     "stream": [
-      {"tags": ["herb", "medicinal"], "weight": 2},
-      {"tags": ["food"], "weight": 1},
-      {"tags": ["junk"], "weight": 2}
+      {
+        "tags": [
+          "herb",
+          "medicinal"
+        ],
+        "weight": 2
+      },
+      {
+        "tags": [
+          "food"
+        ],
+        "weight": 1
+      },
+      {
+        "tags": [
+          "junk"
+        ],
+        "weight": 2
+      }
     ],
     "spring": [
-      {"tags": ["herb", "medicinal"], "weight": 2},
-      {"tags": ["junk"], "weight": 1}
+      {
+        "tags": [
+          "herb",
+          "medicinal"
+        ],
+        "weight": 2
+      },
+      {
+        "tags": [
+          "junk"
+        ],
+        "weight": 1
+      }
     ],
     "farmland": [
-      {"tags": ["root", "food"], "weight": 3},
-      {"tags": ["berry", "fruit"], "weight": 2},
-      {"tags": ["food"], "weight": 2},
-      {"tags": ["tool"], "weight": 1}
+      {
+        "tags": [
+          "root",
+          "food"
+        ],
+        "weight": 3
+      },
+      {
+        "tags": [
+          "berry",
+          "fruit"
+        ],
+        "weight": 2
+      },
+      {
+        "tags": [
+          "food"
+        ],
+        "weight": 2
+      },
+      {
+        "tags": [
+          "tool"
+        ],
+        "weight": 1
+      }
     ]
   },
   "hostile_distribution": {
     "sparse_forest": [
-      {"kind": "bandit", "base_chance": 0.02, "per_area_from_settlement": 0.01, "max_chance": 0.3},
-      {"kind": "predator", "base_chance": 0.03, "per_area_from_settlement": 0.005, "max_chance": 0.25}
+      {
+        "kind": "bandit",
+        "base_chance": 0.02,
+        "per_area_from_settlement": 0.01,
+        "max_chance": 0.3
+      },
+      {
+        "kind": "predator",
+        "base_chance": 0.03,
+        "per_area_from_settlement": 0.005,
+        "max_chance": 0.25
+      }
     ],
     "dense_forest": [
-      {"kind": "predator", "base_chance": 0.05, "per_area_from_settlement": 0.01, "max_chance": 0.4},
-      {"kind": "monster", "base_chance": 0.01, "per_area_from_settlement": 0.005, "max_chance": 0.15}
+      {
+        "kind": "predator",
+        "base_chance": 0.05,
+        "per_area_from_settlement": 0.01,
+        "max_chance": 0.4
+      },
+      {
+        "kind": "monster",
+        "base_chance": 0.01,
+        "per_area_from_settlement": 0.005,
+        "max_chance": 0.15
+      }
     ],
     "pine_forest": [
-      {"kind": "predator", "base_chance": 0.04, "per_area_from_settlement": 0.01, "max_chance": 0.35},
-      {"kind": "bandit", "base_chance": 0.01, "per_area_from_settlement": 0.01, "max_chance": 0.2}
+      {
+        "kind": "predator",
+        "base_chance": 0.04,
+        "per_area_from_settlement": 0.01,
+        "max_chance": 0.35
+      },
+      {
+        "kind": "bandit",
+        "base_chance": 0.01,
+        "per_area_from_settlement": 0.01,
+        "max_chance": 0.2
+      }
     ],
     "hills": [
-      {"kind": "bandit", "base_chance": 0.03, "per_area_from_settlement": 0.01, "max_chance": 0.3},
-      {"kind": "predator", "base_chance": 0.02, "per_area_from_settlement": 0.005, "max_chance": 0.2}
+      {
+        "kind": "bandit",
+        "base_chance": 0.03,
+        "per_area_from_settlement": 0.01,
+        "max_chance": 0.3
+      },
+      {
+        "kind": "predator",
+        "base_chance": 0.02,
+        "per_area_from_settlement": 0.005,
+        "max_chance": 0.2
+      }
     ],
     "mountains": [
-      {"kind": "monster", "base_chance": 0.04, "per_area_from_settlement": 0.01, "max_chance": 0.4},
-      {"kind": "predator", "base_chance": 0.03, "per_area_from_settlement": 0.01, "max_chance": 0.3}
+      {
+        "kind": "monster",
+        "base_chance": 0.04,
+        "per_area_from_settlement": 0.01,
+        "max_chance": 0.4
+      },
+      {
+        "kind": "predator",
+        "base_chance": 0.03,
+        "per_area_from_settlement": 0.01,
+        "max_chance": 0.3
+      }
     ],
     "cliff": [
-      {"kind": "predator", "base_chance": 0.03, "per_area_from_settlement": 0.01, "max_chance": 0.25}
+      {
+        "kind": "predator",
+        "base_chance": 0.03,
+        "per_area_from_settlement": 0.01,
+        "max_chance": 0.25
+      }
     ],
     "ravine": [
-      {"kind": "bandit", "base_chance": 0.03, "per_area_from_settlement": 0.015, "max_chance": 0.35},
-      {"kind": "monster", "base_chance": 0.02, "per_area_from_settlement": 0.01, "max_chance": 0.25}
+      {
+        "kind": "bandit",
+        "base_chance": 0.03,
+        "per_area_from_settlement": 0.015,
+        "max_chance": 0.35
+      },
+      {
+        "kind": "monster",
+        "base_chance": 0.02,
+        "per_area_from_settlement": 0.01,
+        "max_chance": 0.25
+      }
     ],
     "chasm": [
-      {"kind": "monster", "base_chance": 0.05, "per_area_from_settlement": 0.02, "max_chance": 0.5}
+      {
+        "kind": "monster",
+        "base_chance": 0.05,
+        "per_area_from_settlement": 0.02,
+        "max_chance": 0.5
+      }
     ],
     "beach": [
-      {"kind": "predator", "base_chance": 0.02, "per_area_from_settlement": 0.01, "max_chance": 0.2},
-      {"kind": "bandit", "base_chance": 0.01, "per_area_from_settlement": 0.005, "max_chance": 0.15}
+      {
+        "kind": "predator",
+        "base_chance": 0.02,
+        "per_area_from_settlement": 0.01,
+        "max_chance": 0.2
+      },
+      {
+        "kind": "bandit",
+        "base_chance": 0.01,
+        "per_area_from_settlement": 0.005,
+        "max_chance": 0.15
+      }
     ],
     "lake": [
-      {"kind": "predator", "base_chance": 0.02, "per_area_from_settlement": 0.01, "max_chance": 0.2}
+      {
+        "kind": "predator",
+        "base_chance": 0.02,
+        "per_area_from_settlement": 0.01,
+        "max_chance": 0.2
+      }
     ],
     "river": [
-      {"kind": "predator", "base_chance": 0.02, "per_area_from_settlement": 0.01, "max_chance": 0.2}
+      {
+        "kind": "predator",
+        "base_chance": 0.02,
+        "per_area_from_settlement": 0.01,
+        "max_chance": 0.2
+      }
     ],
     "deep_water": [
-      {"kind": "monster", "base_chance": 0.03, "per_area_from_settlement": 0.02, "max_chance": 0.4}
+      {
+        "kind": "monster",
+        "base_chance": 0.03,
+        "per_area_from_settlement": 0.02,
+        "max_chance": 0.4
+      }
     ],
     "ocean": [
-      {"kind": "monster", "base_chance": 0.03, "per_area_from_settlement": 0.02, "max_chance": 0.4}
+      {
+        "kind": "monster",
+        "base_chance": 0.03,
+        "per_area_from_settlement": 0.02,
+        "max_chance": 0.4
+      }
     ],
     "stream": [
-      {"kind": "predator", "base_chance": 0.02, "per_area_from_settlement": 0.01, "max_chance": 0.2}
+      {
+        "kind": "predator",
+        "base_chance": 0.02,
+        "per_area_from_settlement": 0.01,
+        "max_chance": 0.2
+      }
     ],
     "spring": [
-      {"kind": "predator", "base_chance": 0.02, "per_area_from_settlement": 0.01, "max_chance": 0.2}
+      {
+        "kind": "predator",
+        "base_chance": 0.02,
+        "per_area_from_settlement": 0.01,
+        "max_chance": 0.2
+      }
     ],
     "farmland": [
-      {"kind": "bandit", "base_chance": 0.04, "per_area_from_settlement": 0.015, "max_chance": 0.35},
-      {"kind": "predator", "base_chance": 0.01, "per_area_from_settlement": 0.005, "max_chance": 0.15}
+      {
+        "kind": "bandit",
+        "base_chance": 0.04,
+        "per_area_from_settlement": 0.015,
+        "max_chance": 0.35
+      },
+      {
+        "kind": "predator",
+        "base_chance": 0.01,
+        "per_area_from_settlement": 0.005,
+        "max_chance": 0.15
+      }
     ]
   }
 }

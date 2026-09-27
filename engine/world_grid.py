@@ -131,7 +131,7 @@ def normalise_grid(record: dict) -> dict:
         return record
     if not any(key in record for key in ("grid", "layers", "placements",
                                          "area_placements", "mode",
-                                         "map_offset")):
+                                         "map_offset", "names")):
         return record
 
     grid = record.get("grid")
@@ -200,6 +200,9 @@ def normalise_grid(record: dict) -> dict:
         # placed already exists in the graph. Same shape, same leniency.
         record["area_placements"] = _clean_placement_map(record.get("area_placements"))
 
+    if "names" in record:
+        record["names"] = _clean_name_map(record.get("names"))
+
     if "map_offset" in record:
         clean_offset = _clean_offset(record.get("map_offset"))
         if clean_offset and (clean_offset["x"] or clean_offset["y"]):
@@ -250,6 +253,26 @@ def _clean_placement_map(raw) -> Dict[str, dict]:
             if x is None or y is None:
                 continue
             clean[str(key)] = {"x": x, "y": y}
+    return clean
+
+
+def _clean_name_map(raw) -> Dict[str, str]:
+    """The author-named cells of a scope (task-560), minus anything unusable.
+
+    A name is *metadata about* a cell, not paint on it, so it lives beside
+    ``layers`` rather than on one: there is no name vocabulary, and a name is not
+    something you paint over. An empty or whitespace-only name is dropped, and so
+    is a name on an unparseable cell key, so a bad save costs one name rather than
+    the whole map.
+    """
+    clean: Dict[str, str] = {}
+    if isinstance(raw, dict):
+        for key, name in raw.items():
+            if parse_cell_key(str(key)) is None:
+                continue
+            text = str(name or "").strip()
+            if text:
+                clean[str(key)] = text
     return clean
 
 
@@ -432,6 +455,37 @@ def paint_many(record: dict, edits: List[dict]) -> int:
 def painter_at(record: dict, layer: str, x: int, y: int):
     """The value painted at a cell, or ``None``."""
     return layer_cells(record, layer).get(cell_key(x, y))
+
+
+def name_at(record: dict, x: int, y: int) -> Optional[str]:
+    """The author's name for a cell, or ``None`` (task-560).
+
+    A name is optional and orthogonal to paint: a named cell may be unpainted, and
+    a painted cell may be unnamed (it then compiles to a generated name). Nothing
+    else in the grid depends on it — the compiler prefers it for the *display
+    name* only, and ids stay the authoritative key.
+    """
+    value = ((record or {}).get("names") or {}).get(cell_key(x, y))
+    text = str(value or "").strip()
+    return text or None
+
+
+def set_name(record: dict, x: int, y: int, name: Optional[str]) -> Optional[str]:
+    """Set (or clear) the author's name for one cell. Returns the name now in force.
+
+    An empty name *removes* the entry rather than storing "", so a scope that is
+    unnamed again loads byte-identically to one that never had names.
+    """
+    names = record.setdefault("names", {})
+    key = cell_key(x, y)
+    text = str(name or "").strip()
+    if text:
+        names[key] = text
+    else:
+        names.pop(key, None)
+    if not names:
+        record.pop("names", None)
+    return text or None
 
 
 def layer_cells(record: dict, layer: str) -> dict:

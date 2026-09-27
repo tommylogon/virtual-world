@@ -174,6 +174,59 @@ window.GraphNetwork = {
             ? GraphLayoutEngine.mapScale() : 1;
     },
 
+    /**
+     * Draw the painted map's areas as compact dots instead of named cards
+     * (task-526). False outside the Map layout, so the graph view and Levels are
+     * untouched at every pitch.
+     */
+    mapCompact() {
+        if (!graphManager || graphManager._cardinalLayout !== true) return false;
+        return !!(typeof GraphLayoutEngine !== 'undefined'
+            && GraphLayoutEngine.mapCompact && GraphLayoutEngine.mapCompact());
+    },
+
+    /**
+     * Adopt a pitch derived from the painted extent, unless the user has taken the
+     * pitch into their own hands (task-526).
+     *
+     * Runs at the top of every graph load, *before* anything reads the pitch: node
+     * sizes, the lattice and the background art are all derived from it, so a pitch
+     * decided afterwards would leave them disagreeing. Returns true when the pitch
+     * moved, so the caller can re-fit the art (which is positioned in px).
+     *
+     * The override is a stored flag, not a comparison against the last value: a
+     * user who deliberately sits at 40px/cell must keep 40px/cell on every load,
+     * and a scope switch must not silently re-derive it out from under them.
+     */
+    applyAutoMapSpacing(nodesObj) {
+        if (!graphManager || graphManager._cardinalLayout !== true) return false;
+        if (graphManager._mapSpacingAuto === false) return false;
+        if (typeof config === 'undefined' || !config) return false;
+        let next;
+        try {
+            next = GraphLayoutEngine.autoMapSpacing(nodesObj);
+        } catch (err) {
+            return false;
+        }
+        if (!next) return false;
+        const current = Number(config.graphMapSpacing);
+        if (Number.isFinite(current) && Math.round(current) === next) return false;
+        config.graphMapSpacing = next;
+        // Deliberately not persisted: this is a derived default, so the stored
+        // value stays "whatever the user last chose" and the flag stays the truth
+        // about whether they chose one.
+        if (graphManager._syncMapSpacingButton) graphManager._syncMapSpacingButton();
+        if (window.GraphBackground && window.GraphBackground.reconcileAllForGapChange) {
+            // The art is positioned in px from this same pitch, so it has to move
+            // with it — for *every* mounted reference, because the whole-world view
+            // has no single grid and the ordinary per-scope reconcile stops there.
+            // Not `fitToPaintedGrid`: that persists the world, and this is a load
+            // path. Not awaited — a grid fetch per scope must not stall the layout.
+            try { void window.GraphBackground.reconcileAllForGapChange(); } catch (err) { /* ignore */ }
+        }
+        return true;
+    },
+
     applyGraphSettings() {
         if (!graphManager.network) return;
         graphManager._lastSig = '';
@@ -289,6 +342,15 @@ window.GraphNetwork = {
             graphManager._graphNodesObj = nodesObj;
             graphManager._graphEdgesArr = edgesArr;
             graphManager._edgeTooltipHtml = {};
+
+            // Decide the map pitch before anything reads it: node sizes, the
+            // lattice and the background art are all derived from it, so a pitch
+            // settled afterwards would leave them disagreeing (task-526).
+            try { this.applyAutoMapSpacing(nodesObj); } catch (err) { /* keep the current pitch */ }
+            // The stepper reads the effective pitch and whether it is derived, and
+            // the menu says so when the map is drawing dots — both cheap DOM writes
+            // that must be told the truth on every load, not only when it moves.
+            if (graphManager._syncMapSpacingButton) graphManager._syncMapSpacingButton();
 
             // Visibility (floor filter, inhabited-areas, items/triggers toggles,
             // revealed areas/items, search) is applied in place later by
@@ -569,6 +631,11 @@ window.GraphNetwork = {
      */
     _nodeLabelPolicy() {
         if (!graphManager._showNodeLabels) return false;
+        // A compact map draws areas as bare dots, so a name under every dot is
+        // the wall of text the dot switch exists to avoid (task-526). The
+        // decision is cached and restored with every other label change, so
+        // raising the pitch brings the names back verbatim.
+        if (GraphNetwork.mapCompact()) return false;
         const total = Object.keys(graphManager._graphNodesObj || {}).length;
         const max = Number((typeof config !== 'undefined' && config && config.graphLabelMaxNodes)) || 400;
         if (total <= max) return true;
@@ -797,6 +864,16 @@ window.GraphNetwork = {
             // The image branch below overrides this with circularImage.
             shape: { area: 'box', item: 'diamond', way: 'triangle', character: 'ellipse' }[nodeData.type] || 'ellipse'
         };
+
+        // A compact map draws a painted area as a bare dot (task-526). A card's
+        // width is driven by its *name*, which does not shrink with the pitch, so
+        // below the card threshold the boxes are what overlap. The dot is sized
+        // from the cell instead, so it always fits its own cell.
+        if (nodeData.type === 'area' && GraphNetwork.mapCompact()) {
+            nodeConfig.shape = 'dot';
+            nodeConfig.size = (typeof GraphLayoutEngine !== 'undefined'
+                && GraphLayoutEngine.mapDotSize) ? GraphLayoutEngine.mapDotSize() : 8;
+        }
 
         // Saved layout: a node whose x/y were persisted to the world (right-click
         // → 🗺 → 💾 Save layout) loads back in place instead of being freshly

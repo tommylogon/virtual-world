@@ -40,6 +40,63 @@ def test_painter_vocabulary_lists_real_ids(tmp_path):
     assert vocab["layers"] == ["biome", "road", "floor"]
     assert set(vocab["modes"]) == {"world", "town", "interior"}
 
+    # A building carries the line its door will give, so the cell inspector can
+    # show it (task-563). Built by the compiler's own function, so the preview
+    # cannot drift from what the world says.
+    by_id = {b["id"]: b for b in vocab["biomes"]}
+    assert by_id["inn"]["refusal"].startswith("The inn's ")
+    assert by_id["watch_house"]["refusal"] != by_id["inn"]["refusal"]
+    # Nothing that is not a building has a door at all.
+    assert by_id["sparse_forest"]["refusal"] == ""
+    assert by_id["wall"]["refusal"] == ""
+
+
+def test_setting_a_cell_name_round_trips_and_clears(tmp_path):
+    """A name is metadata about a cell, not paint on it (task-560), so it has its
+    own route: the eraser must not wipe it, and clearing must remove the entry."""
+    client = _app(tmp_path).test_client()
+    scope = client.post("/api/world/scopes", json={
+        "name": "Downtown", "mode": "town", "w": 6, "h": 4,
+    }).get_json()["scope"]["id"]
+
+    set_name = client.post(f"/api/world/scopes/{scope}/grid/name",
+                           json={"x": 3, "y": 1, "name": "The Stag Inn"})
+    assert set_name.status_code == 200, set_name.get_data(as_text=True)
+    payload = set_name.get_json()
+    assert payload["name"] == "The Stag Inn"
+    assert payload["names"] == {"3,1": "The Stag Inn"}, "the payload carries it"
+
+    # A name is not paint: clearing the cell keeps it.
+    cleared = client.post(f"/api/world/scopes/{scope}/grid/paint",
+                          json={"layer": "road", "x": 3, "y": 1, "value": None})
+    assert cleared.get_json()["names"] == {"3,1": "The Stag Inn"}
+
+    gone = client.post(f"/api/world/scopes/{scope}/grid/name",
+                       json={"x": 3, "y": 1, "name": "   "})
+    assert gone.get_json()["names"] == {}, "whitespace clears it"
+    assert gone.get_json()["name"] is None
+
+    # A painted building with a name: both facts, independently.
+    client.post(f"/api/world/scopes/{scope}/grid/paint",
+                json={"layer": "biome", "x": 3, "y": 1, "value": "tavern"})
+    client.post(f"/api/world/scopes/{scope}/grid/name",
+                json={"x": 3, "y": 1, "name": "The Crooked Mug"})
+    both = client.get(f"/api/world/scopes/{scope}/grid").get_json()
+    assert both["layers"]["biome"] == {"3,1": "tavern"}
+    assert both["names"] == {"3,1": "The Crooked Mug"}
+
+
+def test_a_cell_name_rejects_nonsense(tmp_path):
+    client = _app(tmp_path).test_client()
+    scope = client.post("/api/world/scopes", json={
+        "name": "Downtown", "mode": "town", "w": 4, "h": 4}).get_json()["scope"]["id"]
+    for body in ({"x": 1}, {"x": "a", "y": 1, "name": "x"},
+                 {"x": 1, "y": 1, "name": 7}):
+        bad = client.post(f"/api/world/scopes/{scope}/grid/name", json=body)
+        assert bad.status_code == 400, (body, bad.get_data(as_text=True))
+    assert client.post("/api/world/scopes/nope/grid/name",
+                       json={"x": 1, "y": 1, "name": "x"}).status_code == 404
+
 
 def test_get_grid_reports_scope_and_breadcrumb(tmp_path):
     client = _app(tmp_path).test_client()

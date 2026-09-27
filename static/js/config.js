@@ -53,7 +53,19 @@ class ConfigManager {
         // Map-layout pitch (task-523 follow-up): px per painted cell, i.e. the
         // padding between areas in Map mode. 40px = an area every 40px with the
         // way at the midpoint; raise it to de-clutter a dense painted grid.
-        this.graphMapSpacing = parseInt(await storage.getConfig('graphMapSpacing')) || 40;
+        const storedMapSpacing = parseInt(await storage.getConfig('graphMapSpacing'));
+        this.graphMapSpacing = storedMapSpacing || 40;
+        // Whether that pitch is the *derived default* or the user's own choice
+        // (task-526). Auto derives the pitch from the painted extent on every load,
+        // so it has to be able to tell "the user has not chosen" from "the user
+        // chose exactly this". An explicit flag settles it once the user has
+        // touched the stepper; before that, a stored pitch that differs from the
+        // built-in 40 default *is* a choice — someone who dialled the map to
+        // 260px/cell by hand must not be re-derived over on their next load.
+        const storedMapSpacingAuto = await storage.getConfig('graphMapSpacingAuto');
+        this.graphMapSpacingAuto = storedMapSpacingAuto === '1'
+            || (storedMapSpacingAuto !== '0'
+                && (!storedMapSpacing || storedMapSpacing === 40));
         // Node separation (graph/separation.js): nearby item/character nodes
         // push apart unless an edge already joins them. `min` is the distance
         // under which they repel, `max` the distance beyond which a pair is

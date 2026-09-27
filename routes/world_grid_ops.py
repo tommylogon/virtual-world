@@ -151,6 +151,7 @@ def _grid_payload(manifest: Dict[str, dict], scope_id: str, graph=None) -> dict:
         "mode": rec.get("mode"),
         "reference": world_grid.reference(rec),
         "layers": dict(rec.get("layers") or {}),
+        "names": dict(rec.get("names") or {}),
         "map_offset": world_grid.map_offset(rec),
         "placements": placements,
         "feature": world_grid.feature_layer(rec),
@@ -200,7 +201,19 @@ def handle_painter_vocabulary(app):
     spawns there). Served from the taxonomy (``data/worldpainter/biomes.json``).
     """
     return jsonify({
-        "biomes": [{"id": key, "name": (rec or {}).get("name", key)}
+        # `tags` ride along because the editor groups the palette by them: a town
+        # author picks a *building* from 30-odd types, which is only usable if the
+        # list is grouped by category instead of being one flat 47-entry column
+        # (task-561). It is also what makes the types self-describing to anything
+        # else that reads the vocabulary.
+        "biomes": [{"id": key, "name": (rec or {}).get("name", key),
+                    "tags": list((rec or {}).get("tags") or []),
+                    # What this building's door says when it has no interior to go
+                    # into (task-563). Sent from the same function the compiler
+                    # uses, so the line the painter reads in the cell inspector is
+                    # the line the world gives — one implementation, not two.
+                    "refusal": (world_compile.building_refusal(key)
+                                if biomes_mod.is_building(key) else "")}
                    for key, rec in sorted(biomes_mod.biomes().items())],
         "features": [{"id": key, "name": (rec or {}).get("name", key)}
                      for key, rec in sorted(biomes_mod.features().items())],
@@ -325,6 +338,40 @@ def handle_paint_cell(app, scope_id):
     _commit(app, manifest)
     return jsonify({"status": "painted", "layer": layer, "x": x, "y": y,
                     "value": data.get("value"),
+                    **_grid_payload(manifest, scope_id, app.world.graph)})
+
+
+def handle_set_cell_name(app, scope_id):
+    """POST /api/world/scopes/<scope_id>/grid/name — set one cell's name.
+
+    Body: ``{x, y, name}``. An empty/whitespace ``name`` clears it.
+
+    A name is *metadata about* a cell, not paint on it, so it is a map beside the
+    layers rather than a fourth layer: there is no name vocabulary, and a name is
+    not something you paint over or erase with the eraser. The compiler uses it for
+    the place's **display name** (task-560) and nothing else — ids stay the
+    authoritative key.
+    """
+    data = request.get_json(silent=True) or {}
+    manifest = _load(app)
+    if scope_id not in manifest:
+        return _error(f"Scope '{scope_id}' not found", 404)
+    record = manifest[scope_id]
+    try:
+        x, y = int(data.get("x")), int(data.get("y"))
+    except (TypeError, ValueError):
+        return _error("x and y are required integers")
+    name = data.get("name")
+    if name is not None and not isinstance(name, str):
+        return _error("name must be a string")
+
+    try:
+        _snapshot(app, label=f"name cell {x},{y} on {record.get('name', scope_id)}")
+        now = world_grid.set_name(record, x, y, name)
+    except ValueError as exc:
+        return _error(str(exc))
+    _commit(app, manifest)
+    return jsonify({"status": "named", "x": x, "y": y, "name": now,
                     **_grid_payload(manifest, scope_id, app.world.graph)})
 
 

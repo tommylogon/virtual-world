@@ -315,14 +315,59 @@ window.GraphLayoutEngine = {
      * Node sizes were fixed pixel constants, so raising the pitch spread the
      * areas further apart while their boxes stayed the same size — the map
      * became specks on a field. 1 at the default 40px cell, so nothing changes
-     * by default. The clamp matters: at pitch 260 the raw ratio is 6.5, and a
-     * 6.5× box is not a readable map, it is a smear. *Spacing* follows the
+     * by default. The clamp matters in both directions: at pitch 260 the raw
+     * ratio is 6.5, and a 6.5× box is not a readable map, it is a smear; at
+     * pitch 20 a full-size box is wider than the cell it sits in, so the
+     * drawing shrinks too (down to `MAP_SCALE_MIN`). *Spacing* follows the
      * pitch exactly (see :func:`mapSpacing`); only the drawing is clamped.
      */
     mapScale() {
         const spacing = GraphLayoutEngine.mapSpacing();
         if (!(spacing > 0)) return 1;
-        return Math.max(1, Math.min(2.5, spacing / GraphLayoutEngine.PAINT_UNITS_PER_CELL));
+        const ratio = spacing / GraphLayoutEngine.PAINT_UNITS_PER_CELL;
+        return Math.max(GraphLayoutEngine.MAP_SCALE_MIN, Math.min(2.5, ratio));
+    },
+
+    /** Floor for :func:`mapScale` — a dot-sized map is the limit, not a smear. */
+    MAP_SCALE_MIN: 0.4,
+
+    /**
+     * Pixels per cell below which an area is drawn as a compact dot instead of a
+     * named card (task-526).
+     *
+     * A card is `text width + 2 × 27px` of margin, and the text does **not** get
+     * narrower with the pitch the way the box padding does — a 12-character room
+     * name is ~85px of type at the default. So below roughly this pitch the cards
+     * overlap into the "physics blob" the map used to look like, and the fix is
+     * not a bigger pitch by hand but a *smaller mark*: the cell is the unit of
+     * the map, and a dot fits in it at any pitch. Above it the cards are back and
+     * the map reads as a set of places.
+     *
+     * Chosen so a small painted zone (the 6×8 goblin camp grid) stays on cards by
+     * default, while the old 40px default — and anything auto-derived below it —
+     * reads as topology instead of overlapping boxes.
+     */
+    MAP_CARD_MIN_PITCH: 140,
+
+    /**
+     * Draw compact dots rather than named cards?
+     *
+     * Only in the Map layout (checked by the caller): the graph view and Levels
+     * keep their cards at every pitch, because those layouts are not a cell
+     * lattice and have no overlap to solve.
+     */
+    mapCompact() {
+        return GraphLayoutEngine.mapSpacing() < GraphLayoutEngine.MAP_CARD_MIN_PITCH;
+    },
+
+    /**
+     * Dot diameter for the compact map, in px — tied to the **cell**, not to
+     * `mapScale`, so a dot always sits inside its own cell whatever the pitch
+     * (and stays visible when zoomed out on a 200×133 world).
+     */
+    mapDotSize() {
+        const spacing = GraphLayoutEngine.mapSpacing();
+        return Math.max(6, Math.min(28, spacing * 0.55));
     },
 
     /**
@@ -358,6 +403,77 @@ window.GraphLayoutEngine = {
         }
         return false;
     },
+
+    /**
+     * The painted extent of a scope in cells: `{w, h}`, or `null` when nothing
+     * carries a `cell`.
+     *
+     * Measured from the nodes themselves rather than from the scope record, so it
+     * works on the subgraph the graph already has in hand and reflects what is
+     * actually *drawn* (a 200×133 grid with 30 painted cells is 30 cells wide as
+     * far as the reader is concerned).
+     */
+    paintedExtent(nodesObj) {
+        let maxX = -1;
+        let maxY = -1;
+        for (const node of Object.values(nodesObj || {})) {
+            const cell = node && node.type === 'area' && (node.properties || {}).cell;
+            if (!cell) continue;
+            const x = Number(cell.x);
+            const y = Number(cell.y);
+            if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+            if (x > maxX) maxX = x;
+            if (y > maxY) maxY = y;
+        }
+        if (maxX < 0 || maxY < 0) return null;
+        return { w: maxX + 1, h: maxY + 1 };
+    },
+
+    /**
+     * A map pitch that makes this scope readable without hand-tuning (task-526).
+     *
+     * The problem it solves: one global pitch cannot serve both a 6×8 camp and a
+     * 200×133 world. Too tight and the cards overlap into a blob; too wide and a
+     * small zone is a speck in a sea of empty canvas. So derive the pitch from the
+     * painted extent — aim for the map to span roughly `AUTO_SPAN_PX`, then clamp.
+     *
+     * Returns `null` when there is nothing painted to fit, so the caller keeps
+     * whatever pitch the user has. This is the *default*; the toolbar's stepper is
+     * the override (see `graphManager.setMapSpacing`).
+     *
+     * @param {Object} nodesObj - the nodes being laid out
+     * @param {number} [spanPx] - target on-screen width of the painted extent
+     * @returns {number|null}
+     */
+    autoMapSpacing(nodesObj, spanPx) {
+        const extent = GraphLayoutEngine.paintedExtent(nodesObj);
+        if (!extent) return null;
+        const span = Number(spanPx) > 0 ? Number(spanPx) : GraphLayoutEngine.AUTO_SPAN_PX;
+        const longest = Math.max(extent.w, extent.h);
+        if (!(longest > 0)) return null;
+        const raw = span / longest;
+        const pitch = Math.max(GraphLayoutEngine.AUTO_SPACING_MIN,
+            Math.min(GraphLayoutEngine.AUTO_SPACING_MAX, raw));
+        // A tidy stepper value: multiples of 10 once the pitch is roomy enough
+        // for the difference to be visible, multiples of 5 below that.
+        const step = pitch >= 100 ? 10 : 5;
+        return Math.round(pitch / step) * step;
+    },
+
+    /**
+     * On-screen width a painted map should span, in px (task-526).
+     *
+     * Sized to what a person can take in at once rather than to a container: a
+     * 6-cell-wide zone gets a roomy ~200px pitch (cards, readable names), a
+     * 200-cell-wide world gets a tight ~30px one (dots, whole map in view). At
+     * 1600px this lands a 6×8 camp at 200px/cell — the pitch a person picks by
+     * hand today, which is the point: the default is now the informed one.
+     */
+    AUTO_SPAN_PX: 1600,
+
+    /** Clamp for the derived pitch — never tighter than this, never wider. */
+    AUTO_SPACING_MIN: 24,
+    AUTO_SPACING_MAX: 300,
 
     /**
      * Painted coords → canvas position. Pure, so it is unit-tested.

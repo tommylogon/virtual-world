@@ -330,13 +330,105 @@ test('cellInfo reports everything on a cell (task-540)', () => {
 
     // An empty cell says so, rather than printing three blank fields.
     const bare = GM.cellInfo({ layers: {}, placements: [], area_placements: [] }, 0, 0);
-    assertEq(bare, { x: 0, y: 0, key: '0,0', biome: null, road: null, floor: null,
-                     area: null, child: null, painted: false, empty: true }, 'bare cell');
+    assertEq(bare, { x: 0, y: 0, key: '0,0', name: null, biome: null, road: null,
+                     floor: null, kind: null, enter: '', area: null, child: null,
+                     painted: false, empty: true }, 'bare cell');
 
     // A feature id with no card (a scope that was deleted) still names something.
     const orphan = GM.cellInfo({ layers: {}, feature: { '1,1': 'gone' },
                                  placements: [], area_placements: [] }, 1, 1);
     assertEq(orphan.child, { id: 'gone', name: 'gone', kind: null }, 'orphan child');
+});
+
+test('a cell can carry a name, which is not paint (task-560)', () => {
+    const payload = {
+        scope: { id: 'downtown' },
+        // A name is metadata *about* a cell, so it lives in its own map beside
+        // the layers — the eraser must not wipe it, and there is no vocabulary.
+        names: { '3,1': 'The Stag Inn' },
+        layers: { biome: { '3,1': 'tavern' } },
+        placements: [], area_placements: [],
+    };
+    const info = GM.cellInfo(payload, 3, 1);
+    assertEq(info.name, 'The Stag Inn', 'the author name');
+    assertEq(info.biome, 'tavern', 'and the paint, independently');
+
+    assertEq(GM.cellName(payload, 0, 0), null, 'unnamed cell');
+    assertEq(GM.cellName({ names: { '0,0': '   ' } }, 0, 0), null, 'blank is no name');
+    assertEq(GM.cellName(null, 0, 0), null, 'no payload');
+
+    // A named cell with nothing painted is still worth saying out loud, so the
+    // "nothing here" case has to account for a name.
+    const namedOnly = GM.cellInfo({ names: { '2,2': 'The Old Oak' },
+                                   layers: {}, placements: [], area_placements: [] },
+                                  2, 2);
+    assertEq(namedOnly.empty, false, 'a name is something on the cell');
+    assertEq(namedOnly.painted, false, 'but it is not paint');
+});
+
+test('a structure cell says what it is to movement (task-562)', () => {
+    // The vocabulary carries the tags, so it is passed to cellInfo rather than read
+    // from state — which keeps cellInfo a pure function of its arguments.
+    const vocab = { biomes: [
+        { id: 'classroom', name: 'Classroom', tags: [] },
+        { id: 'wall', name: 'Wall', tags: ['structure', 'not_a_place', 'cell_kind:solid'] },
+        { id: 'window', name: 'Window', tags: ['structure', 'not_a_place', 'cell_kind:see_through'] },
+        { id: 'door', name: 'Door', tags: ['structure', 'not_a_place', 'cell_kind:passable'] },
+    ] };
+    const at = (id) => GM.cellInfo(
+        { layers: { biome: { '1,1': id } }, placements: [], area_placements: [] },
+        1, 1, vocab);
+
+    assertEq(at('classroom').kind, null, 'a place has no cell kind');
+    assertEq(at('wall').kind, 'solid');
+    assertEq(at('window').kind, 'see_through');
+    assertEq(at('door').kind, 'passable');
+    // A structure cell is still *painted* — the author drew it on purpose, and
+    // "not a place" is a different statement from "nothing here".
+    assertEq(at('wall').painted, true);
+    assertEq(at('wall').empty, false);
+    // Without a vocabulary we cannot know, and must not guess a way through a wall.
+    const blind = GM.cellInfo({ layers: { biome: { '1,1': 'wall' } } }, 1, 1);
+    assertEq(blind.kind, null, 'no vocabulary, no claim');
+
+    // Structure has its own colours: a hash colour would make a wall look like a
+    // biome, which is the one thing it must not do.
+    assertEq(GM.layerColor('biome', 'wall'), '#55525c', 'a wall is grey');
+    assertEq(GM.layerColor('biome', 'window'), '#8fc4d8', 'a window is light');
+    assertEq(GM.layerColor('biome', 'door'), '#a8763f', 'a door is wood');
+    assertEq(GM.layerColor('biome', 'void'), '#22222a', 'a void is nothing');
+});
+
+test('a building cell is entered with in, and says so when shut (task-563)', () => {
+    // The refusal sentence is sent by the server from the same function the
+    // compiler uses, so the preview and the world cannot drift apart.
+    const vocab = { biomes: [
+        { id: 'inn', name: 'Inn', tags: ['building', 'commercial'],
+          refusal: "The inn's door is shut." },
+        { id: 'sparse_forest', name: 'Sparse Forest', tags: [] },
+    ] };
+    const at = (id, extra) => GM.cellInfo(
+        Object.assign({ layers: { biome: { '2,1': id } }, placements: [],
+                        area_placements: [] }, extra || {}),
+        2, 1, vocab);
+
+    assertEq(at('inn').enter, "in → The inn's door is shut.", 'a shut door');
+    assertEq(GM.cellEnter(vocab, 'sparse_forest', null), '', 'not a building');
+    assertEq(GM.cellEnter(vocab, null, null), '', 'no cell, no door');
+
+    // With an interior on the cell, `in` goes there instead — and the refusal is
+    // not shown, because there is something on the other side of the door.
+    const withChild = at('inn', {
+        feature: { '2,1': 'inn' },
+        placements: [{ id: 'inn', name: 'The Inn', kind: 'interior' }],
+    });
+    assertEq(withChild.enter, 'in → The Inn', 'into the interior');
+
+    // A road painted over a building cell makes it a street, not a building —
+    // which is what the compiler does with the same cell.
+    const roaded = at('inn', { layers: { biome: { '2,1': 'inn' },
+                                     road: { '2,1': 'road' } } });
+    assertEq(roaded.enter, '', 'a road is not a building');
 });
 
 test('the floor layer is a storey index, unbounded and whole', () => {

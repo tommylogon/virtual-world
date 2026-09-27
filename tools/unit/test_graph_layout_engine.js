@@ -141,7 +141,7 @@ test('hasPaintedCoords tells a painted node from a hand-placed one', () => {
     assertFalse(GraphLayoutEngine.hasPaintedCoords(null), 'no node');
 });
 
-test('mapScale is 1 at the default pitch and clamped at a wide one (bug-53)', () => {
+test('mapScale tracks the pitch and is clamped at both ends (bug-53, task-526)', () => {
     assertEq(GraphLayoutEngine.mapScale(), 1, 'default 40px pitch scales nothing');
     config = { graphMapSpacing: 80 };
     assertEq(GraphLayoutEngine.mapScale(), 2, 'double pitch doubles the drawing');
@@ -149,9 +149,96 @@ test('mapScale is 1 at the default pitch and clamped at a wide one (bug-53)', ()
     // readable while the *spacing* still follows the pitch exactly.
     config = { graphMapSpacing: 260 };
     assertEq(GraphLayoutEngine.mapScale(), 2.5, 'clamped at 2.5x');
-    config = { graphMapSpacing: 10 };   // below the default: never shrink below 1
-    assertEq(GraphLayoutEngine.mapScale(), 1, 'never below 1');
+    // The low end matters too (task-526): at a tight pitch a full-size mark is
+    // bigger than the cell it sits in, so the drawing shrinks with the pitch down
+    // to a floor. Before this, the low clamp was 1 — a 20px cell kept a 42px box.
+    config = { graphMapSpacing: 20 };
+    assertEq(GraphLayoutEngine.mapScale(), 0.5, 'half the pitch halves the drawing');
+    config = { graphMapSpacing: 4 };
+    assertEq(GraphLayoutEngine.mapScale(), GraphLayoutEngine.MAP_SCALE_MIN,
+             'floored, so a tiny pitch cannot vanish');
     config = undefined;
+});
+
+test('a tight pitch draws dots, a roomy one draws cards (task-526)', () => {
+    const threshold = GraphLayoutEngine.MAP_CARD_MIN_PITCH;
+    // A card's width is its *name* plus margin, and type does not shrink with the
+    // pitch — which is why the default 40px map used to look like a physics blob.
+    assertEq(threshold, 140, 'the threshold is a named constant, not a magic number');
+    config = { graphMapSpacing: 40 };
+    assertTrue(GraphLayoutEngine.mapCompact(), 'the old default is compact');
+    config = { graphMapSpacing: 20 };
+    assertTrue(GraphLayoutEngine.mapCompact(), 'and so is a tighter one');
+    assertTrue(GraphLayoutEngine.mapScale() < 1, 'whose marks also shrink below full size');
+    config = { graphMapSpacing: threshold };
+    assertFalse(GraphLayoutEngine.mapCompact(), 'exactly at the threshold cards are back');
+    // Why that number: at the threshold the (clamped) card box still fits its cell,
+    // so the switch happens where the boxes stop colliding, not before.
+    const cardHalfWidth = 27 * GraphLayoutEngine.mapScale();
+    assertTrue(cardHalfWidth * 2 <= threshold, 'a card fits the cell at the threshold');
+    config = { graphMapSpacing: 260 };
+    assertFalse(GraphLayoutEngine.mapCompact(), 'a wide pitch keeps its cards');
+    config = undefined;
+});
+
+test('the dot is sized from the cell, so it always fits it (task-526)', () => {
+    // Tied to the pitch rather than to mapScale: a dot has to sit inside its own
+    // cell at any pitch, and stay visible when a 200-cell world is zoomed out.
+    config = { graphMapSpacing: 40 };
+    const small = GraphLayoutEngine.mapDotSize();
+    config = { graphMapSpacing: 200 };
+    const large = GraphLayoutEngine.mapDotSize();
+    assertTrue(large > small, 'a roomier cell gets a roomier dot');
+    assertTrue(small <= 40 * 0.55 + 1e-9, 'and the dot never exceeds its cell');
+    assertTrue(small >= 6, 'but never vanishes');
+    config = { graphMapSpacing: 400 };
+    assertTrue(GraphLayoutEngine.mapDotSize() <= 28, 'nor swells past legibility');
+    config = undefined;
+});
+
+test('paintedExtent measures the drawn area in cells (task-526)', () => {
+    const painted = {
+        a: { type: 'area', properties: { cell: { x: 0, y: 0 } } },
+        b: { type: 'area', properties: { cell: { x: 5, y: 2 } } },
+        c: { type: 'area', properties: { cell: { x: 1, y: 7 } } },
+        // A way sits on the lattice too but is not a place to measure the map by.
+        w: { type: 'way', properties: { cell: { x: 99, y: 99 } } },
+        // A hand-authored area has no cell and must not stretch the extent.
+        hand: { type: 'area', properties: { x: 500, y: 500 } },
+    };
+    assertEq(GraphLayoutEngine.paintedExtent(painted), { w: 6, h: 8 },
+             'one past the furthest painted cell');
+    assertEq(GraphLayoutEngine.paintedExtent({}), null, 'nothing painted');
+    assertEq(GraphLayoutEngine.paintedExtent(null), null, 'no nodes at all');
+    assertEq(GraphLayoutEngine.paintedExtent({ bad: { type: 'area', properties: { cell: { x: 'x', y: 1 } } } }),
+             null, 'an unparseable cell is not an extent');
+});
+
+test('autoMapSpacing fits a small zone and a big one without hand-tuning (task-526)', () => {
+    // One global pitch cannot serve both: too tight overlaps, too wide scatters.
+    const small = {};   // a 6x8 camp
+    small.a = { type: 'area', properties: { cell: { x: 5, y: 7 } } };
+    const big = {};     // a 200x133 world
+    big.a = { type: 'area', properties: { cell: { x: 199, y: 132 } } };
+
+    const smallPitch = GraphLayoutEngine.autoMapSpacing(small);
+    const bigPitch = GraphLayoutEngine.autoMapSpacing(big);
+    // The small zone lands roomy — which is the pitch a person picks by hand today,
+    // and above the card threshold, so it still reads as named places.
+    assertEq(smallPitch, 200, 'a 6x8 camp gets a card pitch');
+    assertTrue(smallPitch >= GraphLayoutEngine.MAP_CARD_MIN_PITCH, 'and stays on cards');
+    // The big one lands tight, but never tighter than the floor.
+    assertTrue(bigPitch < smallPitch, 'a 200x133 world gets a tighter pitch');
+    assertTrue(bigPitch >= GraphLayoutEngine.AUTO_SPACING_MIN, 'never below the floor');
+    assertTrue(bigPitch <= GraphLayoutEngine.AUTO_SPACING_MAX, 'never above the ceiling');
+
+    // Both are drawn on one screen: pitch x the longest side ~ the target span.
+    const span = GraphLayoutEngine.AUTO_SPAN_PX;
+    assertTrue(Math.abs(smallPitch * 8 - span) <= 10, 'small map spans the target');
+    assertEq(GraphLayoutEngine.autoMapSpacing({}), null, 'nothing painted -> no opinion');
+    assertEq(GraphLayoutEngine.autoMapSpacing(null), null, 'no nodes -> no opinion');
+    // Tidy stepper values, not 213.333.
+    assertEq(smallPitch % 10, 0, 'roomy pitches land on a multiple of 10');
 });
 
 test('mapBesideOffsets keep the 40px look and follow a wider pitch (bug-53)', () => {

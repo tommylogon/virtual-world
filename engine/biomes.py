@@ -44,6 +44,40 @@ HOSTILE_KINDS = ("predator", "bandit", "monster")
 #: stand on, not a storey — see :func:`ground_surface`.
 DEFAULT_SURFACE = "dirt"
 
+#: How a painted cell is *traversable* (task-562).
+#:
+#: A cell used to be either a place or nothing, which is enough for wilderness and
+#: not enough for a floor plan: a Japanese high-school plan needs blanks you cannot
+#: walk through, windows you can see through but not through, and a door you can.
+#: So a biome record may declare what its cell *is to movement*, and the vocabulary
+#: decides — the compiler asks this, rather than knowing that `wall` and `void` are
+#: special, so a modder can add a `hedge` or a `turnstile` the same way.
+#:
+#: - ``place`` — a place. Compiles to an area, as before.
+#: - ``solid`` — not a place, and nothing crosses it (a wall, a blank between
+#:   rooms, a cliff face). It is also *not* something you can see through.
+#: - ``see_through`` — not a place, and nothing walks through it, but you can
+#:   *see* through it: a shut window. The adjacent place records it, so the
+#:   description can say there is a window there and the map can draw one.
+#: - ``passable`` — not a place, but a way may cross it: a door or a gateway
+#:   between the two places it stands between.
+CELL_KINDS = ("place", "solid", "see_through", "passable")
+
+#: The tag a record uses to say it is not a place at all, and the prefix its cell
+#: kind is declared with (``cell_kind:solid``). Kept as tags rather than a new
+#: field so a record stays the same shape as every other biome, and so
+#: `area_tags()` reports it to the editor.
+NOT_A_PLACE_TAG = "not_a_place"
+CELL_KIND_TAG_PREFIX = "cell_kind:"
+
+#: The kind to read when a record does not declare one we know. A *place*, on
+#: purpose: the alternative (solid) means a misspelled or renamed biome id quietly
+#: deletes the author's cells from the map — a wall where their classroom was. An
+#: unknown id still compiles to an area and still carries the "no area tag foraging
+#: recognises" warning, and `compile_grid` lists unknown ids in its report, so a
+#: typo is visible rather than destructive.
+DEFAULT_UNKNOWN_CELL_KIND = "place"
+
 _cache: Dict[str, dict] = {}
 
 
@@ -82,10 +116,56 @@ def biome(biome_id, path: Optional[str] = None) -> Optional[dict]:
     return biomes(path).get(str(biome_id))
 
 
+def cell_kind(biome_id, path: Optional[str] = None) -> str:
+    """How a cell painted with this biome is *traversable* (task-562).
+
+    One of :data:`CELL_KINDS`. A record with no ``not_a_place`` tag is a place,
+    which is every biome that shipped before edge semantics — so this reads as
+    "a place" for the whole existing wilderness taxonomy without touching it.
+
+    A cell painted with an id the taxonomy does not know is a *place*, not a hole:
+    see :data:`DEFAULT_UNKNOWN_CELL_KIND` for why a typo compiles loudly (a warning
+    in the generate report) rather than destructively. The editor's dropdown makes
+    typos unlikely, but a hand-edited taxonomy or a renamed record is not a
+    hypothetical.
+    """
+    rec = biome(biome_id, path)
+    if rec is None:
+        return DEFAULT_UNKNOWN_CELL_KIND
+    tags = [str(t).lower() for t in (rec.get("tags") or [])]
+    if NOT_A_PLACE_TAG not in tags:
+        return "place"
+    # The kind is a namespaced tag (``cell_kind:solid``) rather than a field, so a
+    # record keeps the same shape as every other biome and `area_tags()` reports it
+    # to the editor for free.
+    for tag in tags:
+        if tag.startswith(CELL_KIND_TAG_PREFIX):
+            kind = tag.split(":", 1)[1].strip()
+            return kind if kind in CELL_KINDS else DEFAULT_UNKNOWN_CELL_KIND
+    return DEFAULT_UNKNOWN_CELL_KIND
+
+
 def area_tags(biome_id, path: Optional[str] = None) -> List[str]:
     """The engine area tags a painted area of *biome_id* carries."""
     rec = biome(biome_id, path) or {}
     return [str(t).lower() for t in (rec.get("tags") or [])]
+
+
+#: The tag that makes a record a *building* (task-561/563). A building cell is a
+#: thing you **go into** with ``in`` rather than a place you step sideways onto,
+#: so the tag is what the compiler asks — vocabulary-driven like
+#: :func:`cell_kind`, so a modder's ``watermill`` joins without a code change.
+BUILDING_TAG = "building"
+
+
+def is_building(biome_id, path: Optional[str] = None) -> bool:
+    """Whether this biome paints a *building* (task-563).
+
+    True for the 31 building types of task-561 and false for terrain, road
+    features and structure. Read from the tag rather than a list of ids, so the
+    taxonomy stays the single source of truth for what a cell is.
+    """
+    return BUILDING_TAG in area_tags(biome_id, path)
 
 
 def forage_skill_bonus(biome_id, path: Optional[str] = None) -> Dict[str, int]:
@@ -160,6 +240,31 @@ def validate(data: Optional[dict] = None, path: Optional[str] = None) -> List[st
     skills = set(foraging.SKILL_TABLES)
     vocab = _forage_vocabulary()
 
+    def _tags(rec: dict) -> set:
+        return {str(t).lower() for t in (rec.get("tags") or [])}
+
+    def is_made(rec: dict) -> bool:
+        """A *made* place (task-561) — a building, not wild country.
+
+        A building is authored as a biome so it can be a cell with an identity and
+        prose, but the wild-country contract does not apply to it: nobody forages
+        berries off a smithy's wall, and no wildlife spawns in a bank. Demanding a
+        forage tag and distribution rules for one would mean writing fiction to
+        satisfy a linter, so those checks are skipped — deliberately, not by
+        omission. A made place is still a *place*, so it owes a surface and prose.
+        """
+        return "building" in _tags(rec)
+
+    def is_structure(rec: dict) -> bool:
+        """Not a place at all (task-562) — a wall, a window, a door, a void.
+
+        A structure cell never compiles to an area, so it has no ground, nothing to
+        forage and nowhere for wildlife to be: the checks that ask those questions
+        do not apply to it, and asking anyway would produce a nonsense complaint
+        about a wall needing a surface.
+        """
+        return NOT_A_PLACE_TAG in _tags(rec)
+
     for bid, rec in bios.items():
         if not isinstance(rec, dict):
             problems.append(f"biome {bid}: not an object")
@@ -171,17 +276,19 @@ def validate(data: Optional[dict] = None, path: Optional[str] = None) -> List[st
         tags = [str(t).lower() for t in (rec.get("tags") or [])]
         if not tags:
             problems.append(f"biome {bid}: no area tags")
-        elif not (set(tags) & recognized):
+        elif not (set(tags) & recognized) and not is_made(rec) and not is_structure(rec):
             problems.append(
                 f"biome {bid}: no area tag foraging recognises "
                 f"({sorted(recognized)}); areas would be barren")
         for skill in (rec.get("forage_skills") or []):
             if str(skill).lower() not in skills:
                 problems.append(f"biome {bid}: unknown forage skill '{skill}'")
-        if not rec.get("surface") and not rec.get("floor"):
+        if not rec.get("surface") and not rec.get("floor") and not is_structure(rec):
             # `floor` on a record used to mean the ground material; it is now the
             # storey index (engine/world_grid.PAINT_LAYERS), so a taxonomy that
-            # only has the old key is accepted but flagged by being unrenamed.
+            # only has the old key is accepted but flagged by being unrenamed. A
+            # structure cell is exempt for a different reason: a void has no ground
+            # at all, and a wall is never walked on.
             problems.append(f"biome {bid}: missing surface (ground material)")
         if not [d for d in (rec.get("descriptions") or []) if str(d).strip()]:
             problems.append(f"biome {bid}: no description fragments")
@@ -218,7 +325,7 @@ def validate(data: Optional[dict] = None, path: Optional[str] = None) -> List[st
             if weight is None or weight <= 0:
                 problems.append(f"resource_distribution[{bid}]: non-positive weight")
     for bid in bios:
-        if bid not in resources:
+        if bid not in resources and not (is_made(bios[bid]) or is_structure(bios[bid])):
             problems.append(f"resource_distribution: biome '{bid}' has no rules")
 
     hostiles = data.get("hostile_distribution") or {}
@@ -241,7 +348,7 @@ def validate(data: Optional[dict] = None, path: Optional[str] = None) -> List[st
             if base is not None and cap is not None and cap < base:
                 problems.append(f"hostile_distribution[{bid}]: max_chance < base_chance")
     for bid in bios:
-        if bid not in hostiles:
+        if bid not in hostiles and not (is_made(bios[bid]) or is_structure(bios[bid])):
             problems.append(f"hostile_distribution: biome '{bid}' has no rules")
 
     return problems

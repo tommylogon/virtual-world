@@ -256,12 +256,13 @@
                             </div>
                             <div class="menu-heading">Map grid</div>
                             <div class="menu-grid">
-                                <span class="stepper" title="Map layout only — pixels per painted cell (the padding between areas). Raise it to de-clutter a dense grid.">
+                                <span class="stepper" title="Map layout only — pixels per painted cell (the padding between areas). Auto derives it from the painted extent so a small zone and a 200-cell world are each readable; nudge to take it over. Below 140px per cell, areas draw as compact dots instead of named cards, because a name is wider than a cell.">
                                     <button class="stepper-btn" onclick="graphManager.setMapSpacing(-20)" aria-label="Tighter map spacing">−</button>
                                     <span id="map-spacing" class="stepper-value">40</span>
                                     <button class="stepper-btn" onclick="graphManager.setMapSpacing(20)" aria-label="Roomier map spacing">+</button>
+                                    <button id="map-spacing-auto" class="stepper-btn" aria-pressed="true" onclick="graphManager.setAutoMapSpacing(this.getAttribute('aria-pressed') !== 'true')" aria-label="Derive the map pitch from the painted extent">A</button>
                                 </span>
-                                <span class="menu-note">Only used by the 🗺️ Map layout.</span>
+                                <span class="menu-note">Only used by the 🗺️ Map layout. <span id="map-compact-note" hidden>Places are drawn as dots at this pitch — zoom or raise it to name them.</span></span>
                             </div>
                         </div>
                     </div>

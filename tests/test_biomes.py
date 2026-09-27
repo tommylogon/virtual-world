@@ -13,13 +13,29 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from engine import biomes, foraging
 
 
+def _is_wild(biome_id):
+    """A biome that has to satisfy the *wild-country* contract.
+
+    Two kinds do not, for two different reasons: a **building** is a made place
+    (task-561) — the inside of a smithy has no berries and no wildlife — and a
+    **structure** cell is not a place at all (task-562): a void has no ground to
+    name a material for, and a wall is never walked on. Everything else is
+    wilderness and owes a forage tag and distribution rules.
+    """
+    tags = {str(t).lower() for t in biomes.area_tags(biome_id)}
+    return "building" not in tags and biomes.NOT_A_PLACE_TAG not in tags
+
+
 def test_shipped_taxonomy_validates_clean():
     assert biomes.validate() == []
 
 
-def test_every_biome_has_a_tag_foraging_recognises():
+def test_every_wild_biome_has_a_tag_foraging_recognises():
+    """Wild country must be forageable, or an area painted with it is barren."""
     recognized = {str(t).lower() for t in foraging.AREA_SKILL_BONUS}
     for bid in biomes.biomes():
+        if not _is_wild(bid):
+            continue
         tags = set(biomes.area_tags(bid))
         assert tags & recognized, f"{bid} would be barren: {sorted(tags)}"
 
@@ -45,10 +61,16 @@ def test_forage_bonus_is_derived_from_foraging():
     assert biomes.forage_skill_bonus("dense_forest").get("survival", 0) > 0
 
 
-def test_every_biome_declares_a_surface_and_no_record_uses_floor_for_it():
+def test_every_place_declares_a_surface_and_no_record_uses_floor_for_it():
     """`surface` is the ground material; `floor` is a storey index (see
-    `engine/world_grid.PAINT_LAYERS`), so a taxonomy record must not use it."""
+    `engine/world_grid.PAINT_LAYERS`), so a taxonomy record must not use it.
+
+    A structure cell is exempt from the surface: a void has no ground to name a
+    material for, and a wall is not walked on (task-562)."""
     for bid, rec in biomes.biomes().items():
+        if not _is_wild(bid) and biomes.NOT_A_PLACE_TAG in {
+                str(t).lower() for t in (rec.get("tags") or [])}:
+            continue
         assert rec.get("surface"), f"{bid} has no ground material"
         assert "floor" not in rec, (
             f"{bid} uses 'floor' for a material; it means the storey index")
@@ -65,9 +87,31 @@ def test_ground_surface_falls_back_and_tolerates_the_legacy_key():
     assert biomes.forage_skill_bonus("farmland").get("survival", 0) > 0
 
 
-def test_every_biome_has_resource_and_hostile_rules():
-    assert set(biomes.resource_distribution()) == set(biomes.biomes())
-    assert set(biomes.hostile_distribution()) == set(biomes.biomes())
+def test_every_wild_biome_has_resource_and_hostile_rules():
+    """Only wild country owes distribution rules (see `_is_wild`). A building is a
+    made place and a structure cell is not a place at all; both are exempt, and the
+    exemption is written down rather than an omission."""
+    wild = {b for b in biomes.biomes() if _is_wild(b)}
+    assert len(wild) >= 12, "the taxonomy still has wilderness in it"
+    assert set(biomes.resource_distribution()) == wild
+    assert set(biomes.hostile_distribution()) == wild
+    # The exemptions are the validator's too, so nothing is reported.
+    assert not [p for p in biomes.validate() if p.startswith("biome ")]
+
+
+def test_cell_kind_reads_the_vocabulary_not_a_hardcoded_list():
+    """The vocabulary decides what a cell is to movement, so a modder can add a
+    `hedge` or a `turnstile` without touching the compiler (task-562)."""
+    assert biomes.cell_kind("sparse_forest") == "place", "wild country is a place"
+    assert biomes.cell_kind("tavern") == "place", "so is a building"
+    assert biomes.cell_kind("wall") == "solid"
+    assert biomes.cell_kind("void") == "solid"
+    assert biomes.cell_kind("window") == "see_through"
+    assert biomes.cell_kind("door") == "passable"
+    # An unknown id is a *place*, not a hole: deleting the author's cell over a typo
+    # would be far worse than an area that reads thin (and the compile report names
+    # the unknown ids).
+    assert biomes.cell_kind("no_such_biome") == "place"
 
 
 def test_features_reference_known_biomes():

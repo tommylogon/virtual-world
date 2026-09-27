@@ -13,7 +13,7 @@
  * the material lives in the biome/road record's `surface`.
  *
  * @module grid-model — WorldPainter grid view-model and cell maths
- * @contributes cell keys, drill-down mode suggestion, render rows, layer colours, storey reads, placed areas, compile estimate, cell inspector, scope-grouped area picker
+ * @contributes cell keys, drill-down mode suggestion, render rows, layer colours, storey reads, cell names, placed areas, compile estimate, cell inspector, scope-grouped area picker
  * @powers WorldPainter editor grid rendering, placement and inspection (task-495, task-528, task-540, task-541)
  * @relates static/js/worldpainter/editor.js; engine/world_grid.py; routes/world_grid_ops.py
  * @docs docs/design/worldpainter-knowledge-and-fog.md
@@ -33,6 +33,13 @@
         chasm: '#3a3a42', ravine: '#4a4640', beach: '#cbb78a', spring: '#4f9bb0',
         stream: '#3f88a0', river: '#2f6f96', lake: '#245a7a', deep_water: '#1b3a5b',
         ocean: '#1b3a5b',
+        // Structure (task-562): the cells that are *not* places. They need their own
+        // colours, because a hash colour would make a wall look like a biome and the
+        // whole point of painting one is that it changes what the map means. A void
+        // is deliberately dark like a chasm — "nothing you can stand on" — and a
+        // window is the one cell you can see *through*, so it reads lighter than the
+        // wall it sits in.
+        wall: '#55525c', void: '#22222a', window: '#8fc4d8', door: '#a8763f',
     };
     const ROAD_COLORS = {
         road: '#8a7d5f', bridge: '#7a5a3a', ford: '#5f7f96', gate: '#6f7276',
@@ -178,6 +185,21 @@
     function featureAt(payload, x, y) {
         const feature = (payload && payload.feature) || {};
         return feature[cellKey(x, y)] || null;
+    }
+
+    /**
+     * The author's name for a cell, or `null` (task-560).
+     *
+     * A name is metadata *about* a cell, not paint on it, so it lives in its own
+     * `names` map beside `layers` — there is no name vocabulary, and the eraser
+     * should not wipe a name. A named cell may be unpainted, so this never implies
+     * anything about `painted`.
+     */
+    function cellName(payload, x, y) {
+        const names = (payload && payload.names) || {};
+        const value = names[cellKey(x, y)];
+        const text = value == null ? '' : String(value).trim();
+        return text || null;
     }
 
     function placementFor(payload, childId) {
@@ -468,14 +490,15 @@
      * What is on a cell (task-540) — the payload half of the painter's cell
      * inspector, kept pure so it can be unit-tested without a canvas.
      *
-     * Returns `{x, y, key, biome, road, floor, area, child, painted, empty}`:
+     * Returns `{x, y, key, name, biome, road, floor, area, child, painted, empty}`:
      * the three paint layers (with `floor` as a numeric storey index — `null`
      * when the author painted no storey, which still counts as *painted* when it
-     * is 0), the hand-placed area on the cell, and the child scope placed on it.
+     * is 0), the author-set **name** for the cell (task-560, `null` when unnamed),
+     * the hand-placed area on the cell, and the child scope placed on it.
      * `empty` is true when nothing is there at all, which is the case the hover
      * readout needs to say "nothing here" instead of printing three empty fields.
      */
-    function cellInfo(payload, x, y) {
+    function cellInfo(payload, x, y, vocab) {
         const biome = cellValue(payload, 'biome', x, y) || null;
         const road = cellValue(payload, 'road', x, y) || null;
         const floor = floorNumber(cellValue(payload, 'floor', x, y));
@@ -486,15 +509,60 @@
         const card = (payload && payload.placements || []).find((c) => c.id === childId);
         const child = childId ? { id: childId, name: card ? card.name : childId,
                                   kind: card ? card.kind : null } : null;
+        const name = cellName(payload, x, y);
         return {
             x, y,
             key: cellKey(x, y),
+            name,
             biome, road, floor,
+            // Structure, and what it is to movement (task-562). `null` for a cell
+            // that will become a place, so the inspector can say "not a place"
+            // instead of leaving the author to wonder why their wall is gone.
+            // The vocabulary is passed in rather than read from `state`, so this
+            // stays a pure function of its arguments and unit-testable.
+            kind: cellKind(vocab, biome),
+            // A building is entered with `in`, not walked onto (task-563). Null
+            // for anything that is not a building, and for a road painted over a
+            // building — the compiler does not treat that cell as one either.
+            enter: cellEnter(vocab, road ? null : biome, child),
             area: area ? { id: area.id, name: area.name, x: area.x, y: area.y } : null,
             child,
             painted: Boolean(biome || road || floor !== null),
-            empty: !biome && !road && floor === null && !area && !child,
+            empty: !biome && !road && floor === null && !name
+                   && !area && !child,
         };
+    }
+
+    /** How a painted cell is to movement, or null when it is a place (task-562). */
+    function cellKind(vocab, biomeId) {
+        if (!biomeId) return null;
+        const biome = ((vocab && vocab.biomes) || []).find((b) => b.id === biomeId);
+        const tags = ((biome && biome.tags) || []).map((t) => String(t).toLowerCase());
+        if (!tags.includes('not_a_place')) return null;
+        for (const tag of tags) {
+            if (tag.indexOf('cell_kind:') === 0) return tag.split(':')[1];
+        }
+        return 'solid';
+    }
+
+    /**
+     * How a building cell is entered, or '' when it is not a building (task-563).
+     *
+     * A building is a place you go *into*: `in` from any side that has a way. With
+     * a child scope on the cell, `in` leads to that interior; without one the door
+     * is shut and the world answers with a refusal drawn from the building's
+     * category. The vocabulary carries that sentence (`biomes[].refusal`, built by
+     * the same `world_compile.building_refusal` the compiler uses), so the line
+     * the author reads here is the line the world gives — one implementation
+     * rather than two, which is the only way a preview stays true.
+     */
+    function cellEnter(vocab, biomeId, child) {
+        if (!biomeId) return '';
+        const biome = ((vocab && vocab.biomes) || []).find((b) => b.id === biomeId);
+        const tags = ((biome && biome.tags) || []).map((t) => String(t).toLowerCase());
+        if (!tags.includes('building')) return '';
+        if (child) return `in → ${child.name || child.id}`;
+        return biome && biome.refusal ? `in → ${biome.refusal}` : 'in';
     }
 
     /**
@@ -619,7 +687,8 @@
         cellKey, parseCellKey, cellId, nextMode, layerColor,
         floorNumber, floorLabel,
         lineCells, routeCells, routeStats, estimateCompile,
-        cellValue, featureAt, placementFor, buildRows, featureMap,
+        cellValue, cellName, cellKind, cellEnter, featureAt, placementFor,
+        buildRows, featureMap,
         pruneGrid, childrenAvailable,
         areaMap, areaAt, areaPlacementFor, placeableAreas, areaGroups, cellInfo,
         fitReferenceRect, gridForImageAspect, strandedCount,
