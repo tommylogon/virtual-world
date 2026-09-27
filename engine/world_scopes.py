@@ -97,6 +97,55 @@ def own_area_ids(graph, scope_id: str) -> set:
             and (getattr(node, "properties", {}) or {}).get("world_scope_id") == scope_id}
 
 
+def assign_area_membership(manifest: Dict[str, dict], area_id: str,
+                           new_scope: Optional[str],
+                           previous_scope: Optional[str] = None) -> str:
+    """Mirror an area's scope change in the manifest (task-539).
+
+    ``world_scope_id`` on the node is the single source of truth; a scope record's
+    ``area_ids`` list is the denormalized mirror that :func:`area_ids_in_scope`
+    also reads, so both ends have to move together or a moved area keeps showing
+    up in the old scope's count and canvas. This only touches the manifest — the
+    caller owns the node side, because only it knows whether the area exists and
+    is hand-authored enough to move.
+
+    Membership is not map placement. An area that was parked on a cell of the
+    scope it is leaving is *released* (its ``area_placements`` entry is dropped),
+    because that cell reservation belongs to the scope that owned the area; the
+    caller clears the node's ``cell``/``x``/``y`` to match. A placement in
+    ``new_scope`` itself is left alone, so re-assigning an area to the scope it
+    already sits on is a no-op.
+
+    Returns ``"assigned"``, ``"removed"`` or ``"unchanged"``.
+    """
+    area_id = str(area_id)
+    new_scope = str(new_scope) if new_scope else None
+    previous_scope = str(previous_scope) if previous_scope else None
+    if new_scope and new_scope not in manifest:
+        raise ValueError(f"no such scope {new_scope!r}")
+
+    if new_scope == previous_scope:
+        return "unchanged"
+
+    if new_scope:
+        ids = manifest[new_scope].setdefault("area_ids", [])
+        if area_id not in ids:
+            ids.append(area_id)
+    if previous_scope and previous_scope in manifest:
+        record = manifest[previous_scope]
+        ids = record.get("area_ids")
+        if isinstance(ids, list) and area_id in ids:
+            ids.remove(area_id)
+        # The cell it was parked on lived in the scope it just left. Leaving the
+        # reservation behind would have that grid hold a cell for an area that is
+        # no longer its member (and could block generate from ever using it).
+        world_grid.unplace_area(manifest, previous_scope, area_id)
+        if not record.get("area_placements"):
+            record.pop("area_placements", None)
+
+    return "assigned" if new_scope else "removed"
+
+
 def _area_name_to_id(graph) -> Dict[str, str]:
     return {node.name: node_id for node_id, node in graph.nodes.items()
             if getattr(node, "type", "") == "area"}
@@ -290,8 +339,9 @@ def delete_scope(manifest: Dict[str, dict], graph, scope_id: str,
     - Deletes its **generated** graph nodes (provenance
       ``properties.generated.scope_id``): areas, ways, gateways and the items
       that generation placed. Hand-authored nodes are left alone rather than
-      guessed at.
-    - Returns ``{scope_ids, unplaced_from, deleted_nodes}``.
+      guessed at — except hand-*placed* areas (task-528), whose reserved cell
+      lived in the record being deleted: they keep the area and lose the cell.
+    - Returns ``{scope_ids, unplaced_from, deleted_nodes, released_areas}``.
     """
     if scope_id not in manifest:
         raise ValueError(f"scope {scope_id!r} not found")
@@ -333,16 +383,29 @@ def delete_scope(manifest: Dict[str, dict], graph, scope_id: str,
             unplaced_from.append(other_id)
 
     deleted = 0
+    unplaced_areas: List[str] = []
     for node_id, node in list(graph.nodes.items()):
-        generated = (getattr(node, "properties", {}) or {}).get("generated") or {}
+        props = getattr(node, "properties", {}) or {}
+        generated = props.get("generated") or {}
         if generated.get("scope_id") in doomed_set:
             graph.remove_node(node_id)
             deleted += 1
+            continue
+        # A hand-placed area (task-528) survives its scope, but the cell it was
+        # parked on lived in that scope's record — which is about to disappear.
+        # Leaving `cell` behind would make the whole graph think it has a
+        # painted grid (layout-engine's has_painted_grid) on the strength of a
+        # cell nothing reserves any more, and a later scope with the same id
+        # could generate a second area on it. So release the cell, keep the area.
+        if props.get("cell") and props.get("world_scope_id") in doomed_set:
+            released = {k: v for k, v in props.items() if k not in ("cell", "x", "y")}
+            node.properties = released
+            unplaced_areas.append(node_id)
 
     for dead in doomed:
         manifest.pop(dead, None)
     return {"scope_ids": doomed, "unplaced_from": unplaced_from,
-            "deleted_nodes": deleted}
+            "deleted_nodes": deleted, "released_areas": unplaced_areas}
 
 
 def ungenerate_scope(manifest: Dict[str, dict], graph, scope_id: str) -> dict:

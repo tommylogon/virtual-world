@@ -5,12 +5,46 @@
  * References the global graphManager singleton.
  *
  * @module graph/event-handlers — graph click/context/manipulation handlers
- * @contributes GraphEventHandlers: node/edge click, right-click context, addNode/addEdge callbacks
+ * @contributes GraphEventHandlers: node/edge click, shift-click bulk selection, right-click context, addNode/addEdge callbacks
  * @powers selecting and right-clicking nodes, and drawing new nodes/edges
  * @relates wired in GraphNetwork.init; delegates to GraphContextMenu + GraphNodeOps + GraphBackground
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
 window.GraphEventHandlers = {
+    /**
+     * The modifier keys of a vis.js interaction (bug-49).
+     *
+     * `params.event` is **not** the DOM event. vis-network wraps the original
+     * input in its own pointer object (Hammer), and that wrapper proxies the
+     * geometry the context menu needs (`clientX`/`clientY`) but **not** the
+     * keyboard state — so `params.event.shiftKey` is always `undefined` and a
+     * shift-click silently behaved like a plain click: the inspector opened and
+     * no bulk selection was made. The real event is `params.event.srcEvent`.
+     *
+     * All three shapes are unwrapped here rather than at each call site: the
+     * wrapper, a bare DOM event, and the array some vis builds pass.
+     *
+     * @param {Object} params - vis.js event parameters
+     * @returns {{shiftKey: boolean, ctrlKey: boolean, metaKey: boolean, altKey: boolean}}
+     */
+    modifiers(params) {
+        const raw = params && params.event;
+        const list = Array.isArray(raw) ? raw : [raw];
+        for (const ev of list) {
+            if (!ev) continue;
+            const src = ev.srcEvent || ev;
+            if (src.shiftKey || src.ctrlKey || src.metaKey || src.altKey) {
+                return {
+                    shiftKey: !!src.shiftKey,
+                    ctrlKey: !!src.ctrlKey,
+                    metaKey: !!src.metaKey,
+                    altKey: !!src.altKey,
+                };
+            }
+        }
+        return { shiftKey: false, ctrlKey: false, metaKey: false, altKey: false };
+    },
+
     /**
      * Handles click events on the vis.js network.
      * Opens the inspector for the clicked node or edge, or hides the inspector on empty click.
@@ -27,7 +61,8 @@ window.GraphEventHandlers = {
         }
         if (params.nodes.length > 0) {
             // task-378: shift-click toggles bulk selection (no inspector open).
-            if (params.event?.shiftKey && !graphManager._pendingConnection) {
+            // `modifiers` reads srcEvent — params.event itself has no shiftKey.
+            if (GraphEventHandlers.modifiers(params).shiftKey && !graphManager._pendingConnection) {
                 graphManager._toggleBulkSelect(params.nodes[0]);
                 return;
             }

@@ -57,6 +57,10 @@ window.GraphFocus = {
         if (wasActive && !q) {
             GraphFocus._restoreAfterSearch();
         }
+        // Keep-in-place only means anything while matches are on screen, so the
+        // toolbar greys it out for an empty query instead of letting it flip a
+        // preference that does nothing (task-530).
+        if (window.GraphToolbar) GraphToolbar.syncDisabled();
     },
 
     /**
@@ -352,6 +356,7 @@ window.GraphFocus = {
         if (!cb) return;
         cb.checked = !!on;
         if (cb.parentElement) cb.parentElement.classList.toggle('active', !!on);
+        if (window.GraphToolbar) GraphToolbar.syncDisabled();
     }
 };
 

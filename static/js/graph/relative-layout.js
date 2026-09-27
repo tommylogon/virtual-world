@@ -64,7 +64,19 @@ window.GraphRelativeLayout = {
             const raw = cfg && Number(cfg.graphItemEdgeLength);
             if (raw) length = raw;
         } catch (err) { /* keep the default */ }
-        const scale = Math.max(0.25, Math.min(length / this.ORBIT.baseEdgeLength, 3.5));
+        // The orbit is a *map* measurement when a painted grid owns the layout:
+        // at the 40px default these are the numbers above, and on a 260px map the
+        // ring grows with the cells so an item still reads as beside its room
+        // rather than inside it (bug-53). In the graph view the map scale is 1,
+        // so nothing changes there.
+        let mapScale = 1;
+        try {
+            if (typeof graphManager !== 'undefined' && graphManager && graphManager._cardinalLayout === true
+                    && typeof GraphLayoutEngine !== 'undefined' && GraphLayoutEngine.mapScale) {
+                mapScale = GraphLayoutEngine.mapScale();
+            }
+        } catch (err) { /* keep the default */ }
+        const scale = Math.max(0.25, Math.min(length / this.ORBIT.baseEdgeLength, 3.5)) * mapScale;
         return {
             length,
             scale,

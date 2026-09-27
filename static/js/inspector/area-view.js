@@ -4,9 +4,9 @@
  * task-216: renders lit-html TemplateResults through InspectorPanel (single panel owner).
  *
  * @module inspector/area-view — the area (room) inspector
- * @contributes InspectorAreaView: description/environment/light/noise editing, AI room improvement
- * @powers inspecting and editing a room and its exits
- * @relates renders through InspectorPanel; uses inspector/helpers + way-authoring
+ * @contributes InspectorAreaView: description/environment/light/noise editing, scope membership, AI room improvement
+ * @powers inspecting and editing a room, its scope membership and its exits
+ * @relates renders through InspectorPanel; uses inspector/helpers + way-authoring; scope list via api.getWorldScopes
  * @docs docs/virtualWorld/World Building/Rooms & Areas.md
  */
 
@@ -57,6 +57,7 @@ window.InspectorAreaView = (() => {
             ${RV._renderDescriptionSection(description, actualNodeId)}
             ${RV._renderEnvironmentSection(env, actualNodeId)}
             ${RV._renderFloorSection(props, actualNodeId)}
+            ${RV._renderScopeSection(props, actualNodeId)}
             ${window.InspectorHelpers.graphGravityControl(actualNodeId, props)}
 
             <div class="inspector-section"><h3>🚪 Exits <span class="section-hint">(${exitEntries.length} found)</span></h3>
@@ -133,6 +134,8 @@ window.InspectorAreaView = (() => {
         if (window.InspectorTemplateSync) {
             window.InspectorTemplateSync.populateSelector('area', actualNodeId);
         }
+
+        RV._fillScopeSelect(actualNodeId, props.world_scope_id || '');
 
         if (window.events) events.setAreaFilter(name);
 
@@ -363,6 +366,123 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
                 <span style="font-size:10px;color:var(--text-muted);">${floorValue === 0 ? 'Ground' : `Floor ${floorValue}`}</span>
             </div>
         </div>`;
+    };
+
+    /**
+     * Render the scope-membership section (task-539).
+     *
+     * `world_scope_id` *is* membership — the WorldPainter and the graph's scope
+     * views read nothing else — so it belongs here, next to the area, instead of
+     * being something you can only change by parking the area on a painted cell
+     * (which is placement, a different thing). Map placement is shown in the same
+     * section so the two are read as one fact rather than two hidden ones.
+     *
+     * @param {object} props - Node properties
+     * @param {string} actualNodeId - Graph node ID
+     * @returns {TemplateResult}
+     */
+    RV._renderScopeSection = function(props, actualNodeId) {
+        const cell = props.cell || null;
+        const placement = cell ? `cell (${cell.x},${cell.y})` : null;
+        return htmlTag`<div class="inspector-section"><h3>🗺️ Scope</h3>
+            <div class="field" style="display:flex;align-items:center;gap:8px;">
+                <select id="area-scope-${actualNodeId}" style="flex:1;"
+                    title="Which scope this area belongs to. Membership decides what
+                           each scope's view lists — it is not the same as putting the
+                           area on a painted cell.">
+                    <option value="">loading scopes…</option>
+                </select>
+            </div>
+            <div style="font-size:9px;color:var(--text-muted);margin-top:3px;">
+                ${placement
+                    ? htmlTag`On the map at ${placement} — <button class="btn btn-sm btn-ghost" style="font-size:9px;" @click=${() => RV._openInPainter(actualNodeId, props)}>open in WorldPainter</button>`
+                    : 'Not placed on any painted cell. Membership alone decides which scope lists it.'}
+            </div>
+        </div>`;
+    };
+
+    /**
+     * Populate the scope select once the scope list arrives (task-539). The
+     * options come from the server, so a new scope needs no front-end change.
+     */
+    RV._fillScopeSelect = function(actualNodeId, currentScopeId) {
+        const sel = document.getElementById(`area-scope-${actualNodeId}`);
+        if (!sel) return;
+        api.getWorldScopes(true).then((data) => {
+            // The world may have changed under the panel; re-render is cheap and
+            // the element is gone if the author moved on.
+            const live = document.getElementById(`area-scope-${actualNodeId}`);
+            if (!live) return;
+            const scopes = (data && data.scopes) || [];
+            live.innerHTML = '';
+            const none = document.createElement('option');
+            none.value = '';
+            none.textContent = '— no scope —';
+            live.appendChild(none);
+            scopes.forEach((s) => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                // `depth` comes from flat_scopes' depth-first walk, so a nested
+                // scope reads as a child of the one above it.
+                opt.textContent = `${'  '.repeat(s.depth || 0)}${s.name}`;
+                if (s.id === currentScopeId) opt.selected = true;
+                live.appendChild(opt);
+            });
+            if (currentScopeId && !scopes.some((s) => s.id === currentScopeId)) {
+                // A scope id with no record (hand-edited data) still has to be
+                // visible as the current value, or the select would lie.
+                const orphan = document.createElement('option');
+                orphan.value = currentScopeId;
+                orphan.textContent = `${currentScopeId} (missing)`;
+                orphan.selected = true;
+                live.appendChild(orphan);
+            }
+            const nameOf = (id) => {
+                const hit = scopes.find((s) => s.id === id);
+                return hit ? hit.name : (id || 'its scope');
+            };
+            live.addEventListener('change', async (ev) => {
+                const target = ev.target.value;
+                const previous = currentScopeId;
+                if (target === previous) return;
+                try {
+                    // "— no scope —" has no id to post to, so the *current* scope
+                    // is the route and the area goes in `remove`.
+                    const routeId = target || previous;
+                    if (!routeId) throw new Error('this area belongs to no scope to remove it from');
+                    await api.setScopeAreas(routeId, target ? [actualNodeId] : [],
+                        target ? [] : [actualNodeId]);
+                    await worldState.fetch();
+                    if (window.worldSync) window.worldSync.refresh();
+                    // The name, not the id — the author just picked it from a list
+                    // of names, and a raw id in the log reads as "nothing renamed".
+                    RV._toast(target
+                        ? `Moved into ${nameOf(target)}.`
+                        : `Removed from ${nameOf(previous)}.`);
+                    VW.inspector.showNode(actualNodeId);
+                } catch (e) {
+                    RV._toast(`Scope change failed: ${e.message || e}`, true);
+                    ev.target.value = previous;
+                }
+            });
+        }).catch(() => {
+            if (sel.isConnected) sel.innerHTML = '<option value="">scopes unavailable</option>';
+        });
+    };
+
+    /** Open the WorldPainter on the grid cell this area is parked on (task-539). */
+    RV._openInPainter = function(actualNodeId, props) {
+        const scopeId = props.world_scope_id;
+        if (!scopeId || !window.VW || !window.VW.worldPainter) return;
+        // `open` replaces an open painter itself, so there is nothing to close here.
+        window.VW.worldPainter.open(scopeId, { tool: 'area', areaId: actualNodeId });
+    };
+
+    /** Status line for the scope section (no toast helper is imported here). */
+    RV._toast = function(message, isError) {
+        if (window.events && typeof window.events.log === 'function') {
+            window.events.log(message, isError ? 'error' : 'system-msg');
+        }
     };
 
     /**

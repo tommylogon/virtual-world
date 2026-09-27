@@ -245,6 +245,24 @@ class ApiClient {
         return resp.ok;
     }
 
+    /** Reassign areas to a scope — **membership only** (task-539).
+     *
+     * This is deliberately not `updateNode({properties: {world_scope_id}})`:
+     * membership also has to move in the manifest's `area_ids` mirror, and a
+     * multi-selection has to land as one undo step. `add`/`remove` are arrays;
+     * leaving a scope releases any cell the area was parked on there, while a cell
+     * it holds in the target scope is kept. */
+    static async setScopeAreas(scopeId, add = [], remove = []) {
+        const resp = await fetch(`/api/world/scopes/${encodeURIComponent(scopeId)}/areas`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ add, remove })
+        });
+        const data = await resp.json().catch(() => null);
+        if (!resp.ok) throw new Error((data && data.error) || `scope areas failed: ${resp.status}`);
+        return data;
+    }
+
     /** Duplicate an area / item / way / character — one atomic write on the
      *  backend. `includeChildren=false` clones only the node (+ triggers),
      *  skipping its attached items. */

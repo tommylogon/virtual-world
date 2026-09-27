@@ -344,3 +344,68 @@ def test_map_offset_survives_manifest_normalisation():
     })
     assert normalised["forest"]["map_offset"] == {"x": 2.5, "y": -1.0}
     assert "map_offset" not in normalised["bad"]
+
+
+# ----------------- placed areas (task-528) ---------------------------------
+
+
+def test_place_area_records_the_cell_and_reports_the_outcome():
+    m = _gridded_manifest()
+    assert wg.place_area(m, "forest", "area_hills", 1, 2) == "placed"
+    assert wg.area_placement_of(m["forest"], "area_hills") == (1, 2)
+    assert wg.area_placement_at(m["forest"], 1, 2) == "area_hills"
+    # Placing the same area again is a move, not a second entry.
+    assert wg.place_area(m, "forest", "area_hills", 0, 0) == "moved"
+    assert wg.area_placements(m["forest"]) == {"area_hills": {"x": 0, "y": 0}}
+    assert wg.area_placement_at(m["forest"], 1, 2) is None
+
+
+def test_place_area_forbids_an_occupied_cell_unless_displacing():
+    m = _gridded_manifest()
+    wg.place_area(m, "forest", "area_hills", 1, 1)
+    with pytest.raises(ValueError, match="already holds area"):
+        wg.place_area(m, "forest", "area_lake", 1, 1)
+    assert wg.place_area(m, "forest", "area_lake", 1, 1,
+                         on_overlap="displace") == "displaced"
+    assert wg.area_placements(m["forest"]) == {"area_lake": {"x": 1, "y": 1}}
+    # Re-placing the area that is already there is a move, never an overlap error.
+    assert wg.place_area(m, "forest", "area_lake", 2, 2) == "moved"
+
+
+def test_place_area_rejects_a_gridless_scope_an_unknown_scope_and_a_bad_cell():
+    m = {"bare": {"id": "bare", "name": "Bare", "state": "unmade"}}
+    with pytest.raises(ValueError, match="no grid"):
+        wg.place_area(m, "bare", "area_hills", 0, 0)
+    with pytest.raises(ValueError, match="no such scope"):
+        wg.place_area(m, "ghost", "area_hills", 0, 0)
+    m2 = _gridded_manifest()
+    with pytest.raises(ValueError, match="outside the grid"):
+        wg.place_area(m2, "forest", "area_hills", 99, 99)
+    with pytest.raises(ValueError, match="unknown on_overlap"):
+        wg.place_area(m2, "forest", "area_hills", 0, 0, on_overlap="merge")
+
+
+def test_unplace_area_frees_the_cell_and_drops_the_empty_container():
+    m = _gridded_manifest()
+    wg.place_area(m, "forest", "area_hills", 1, 1)
+    wg.unplace_area(m, "forest", "area_hills")
+    assert "area_placements" not in m["forest"]
+    # Unplacing something that is not placed is a no-op, not a crash.
+    wg.unplace_area(m, "forest", "area_hills")
+    with pytest.raises(ValueError, match="no such scope"):
+        wg.unplace_area(m, "ghost", "area_hills")
+
+
+def test_normalise_grid_cleans_a_malformed_area_placement_map():
+    rec = {"grid": {"w": 2, "h": 2},
+           "area_placements": {"area_hills": {"x": 1, "y": 1},
+                               "broken": {"x": "left", "y": 0},
+                               "also_broken": {"x": 0},
+                               "not_a_map": 7}}
+    wg.normalise_grid(rec)
+    assert rec["area_placements"] == {"area_hills": {"x": 1, "y": 1}}
+    # A gridless scope that only has area placements is still normalised (the
+    # key alone has to be enough to enter the cleaner).
+    rec2 = {"area_placements": {"area_hills": {"x": "2", "y": None}}}
+    wg.normalise_grid(rec2)
+    assert rec2["area_placements"] == {}

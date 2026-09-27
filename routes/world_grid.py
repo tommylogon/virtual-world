@@ -11,14 +11,17 @@ from .world_grid_ops import (
     handle_painter_vocabulary,
     handle_paint_batch,
     handle_paint_cell,
+    handle_place_area,
     handle_place_feature,
     handle_remove_feature,
     handle_rename_scope,
+    handle_scope_areas,
     handle_scope_grid,
     handle_set_reference,
     handle_set_scope_grid,
     handle_set_scope_offset,
     handle_ungenerate_scope,
+    handle_unplace_area,
 )
 
 
@@ -58,6 +61,18 @@ def register_world_grid_routes(app):
     @app.route('/api/world/scopes/<scope_id>/grid/place', methods=['POST'])
     def world_scope_grid_place(scope_id):
         return handle_place_feature(app, scope_id)
+
+    @app.route('/api/world/scopes/<scope_id>/grid/place_area', methods=['POST'])
+    def world_scope_grid_place_area(scope_id):
+        return handle_place_area(app, scope_id)
+
+    @app.route('/api/world/scopes/<scope_id>/grid/unplace_area', methods=['POST'])
+    def world_scope_grid_unplace_area(scope_id):
+        return handle_unplace_area(app, scope_id)
+
+    @app.route('/api/world/scopes/<scope_id>/areas', methods=['POST'])
+    def world_scope_areas(scope_id):
+        return handle_scope_areas(app, scope_id)
 
     @app.route('/api/world/scopes/<scope_id>/grid/remove', methods=['POST'])
     def world_scope_grid_remove(scope_id):

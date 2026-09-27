@@ -109,11 +109,14 @@ def create_app(config=None):
                         # single PRE-state snapshot; a post-state push here
                         # would make the first Undo a no-op.
                         label = None
-                    elif path == '/api/world/scopes' or path.endswith('/grid') \
-                            or '/grid/' in path:
-                        # task-495: WorldPainter grid handlers push their own
-                        # PRE-state snapshot for the same reason (the post-state
-                        # push here would shadow it and make Undo a no-op).
+                    elif path.startswith('/api/world/scopes'):
+                        # task-495 / task-539: every WorldPainter scope handler
+                        # pushes its own PRE-state snapshot, for the same reason
+                        # (a post-state push here would shadow it and make the
+                        # first Undo a no-op). Matched as a prefix rather than a
+                        # list of suffixes: `/rename`, `/delete` and `/offset`
+                        # were missed by the suffix list and each of them pushed
+                        # twice, so one Undo after a rename did nothing visible.
                         label = None
                     elif path.startswith('/api/graph/node/') and not path.endswith(('/image', '/rename')):
                         label = f"edited node {path.rsplit('/', 1)[-1]}"

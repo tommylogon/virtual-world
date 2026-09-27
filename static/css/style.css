@@ -24,6 +24,11 @@
     --yellow: #d29922;
     --font: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+    /* The app is dark-only, so tell the OS too. Without this the browser paints
+     * native widgets in the LIGHT scheme: a `<select>` popup came up white with
+     * this palette's light option text on it (unreadable), and scrollbars and
+     * form-control accents did not belong either. */
+    color-scheme: dark;
 }
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; }
@@ -177,6 +182,200 @@ body {
 .toolbar-btn[data-tool] { font-size: 11px; padding: 3px 8px; }
 /* Active feedback for toggle buttons (Triggers, Items, Inhabited, Labels…) */
 .toolbar-btn.active { background: var(--bg-hover); color: var(--accent); border-color: var(--accent-dim); }
+/* Honest affordances (task-530): a control that cannot run right now says so
+ * instead of silently doing nothing. The label never changes — only disabled. */
+.toolbar-btn:disabled, .menu-toggle:disabled, .dropdown-item:disabled {
+    opacity: .42; cursor: not-allowed; background: transparent; color: var(--text-dim);
+    border-color: var(--border);
+}
+.toolbar-btn:disabled:hover, .menu-toggle:disabled:hover, .dropdown-item:disabled:hover {
+    background: transparent; color: var(--text-dim);
+}
+
+/* ===== Graph toolbar zones (task-530) =====
+ * The bar is three labelled zones: Do (create/history), Where (scope + search),
+ * Look (layout/overlays/canvas). A control that a zone does not need goes
+ * behind that zone's popover instead of taking a slot in the bar. */
+/* position: relative so a zone is the containing block for its own absolutely
+ * positioned children (the undo-history panel, which sets no offsets). */
+.toolbar-zone { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; position: relative; }
+.toolbar-zone-where { flex: 1 1 320px; min-width: 0; }
+.toolbar-btn-primary { color: var(--text); border-color: var(--accent-dim); }
+
+/* Scope chip: the single most important control on a painted world — what is
+ * loaded, and how much of it. */
+.scope-chip {
+    display: inline-flex; align-items: center; gap: 4px; max-width: 190px;
+    background: var(--bg-input); border: 1px solid var(--border); border-radius: 999px;
+    padding: 2px 6px 2px 8px;
+}
+.scope-chip:focus-within { border-color: var(--accent); }
+.scope-chip-icon { font-size: 11px; line-height: 1; }
+.scope-chip select {
+    background: transparent; border: 0; outline: none; color: var(--text);
+    font-family: var(--font); font-size: 11px; cursor: pointer;
+    max-width: 150px; text-overflow: ellipsis;
+}
+/* Options inherit the select's colour, and a native popup may paint its own
+   background — so the options carry the palette themselves. */
+.scope-chip option, .menu-select option, .graph-search option {
+    background: var(--bg-card); color: var(--text); font-family: var(--font);
+}
+.scope-stats { font-size: 10px; color: var(--text-muted); white-space: nowrap; }
+.scope-stats:empty { display: none; }
+
+/* Search + Keep layout travel together: Keep only means something while there
+ * is a query, so it sits inside the search box and greys out without one. */
+.search-box {
+    display: flex; align-items: center; gap: 4px; flex: 1 1 150px; min-width: 0;
+    background: var(--bg-input); border: 1px solid var(--border); border-radius: 4px;
+    padding: 1px 4px 1px 6px;
+}
+.search-box:focus-within { border-color: var(--accent); }
+.search-box .search-icon { font-size: 10px; opacity: .7; }
+.search-box .graph-search { flex: 1 1 auto; min-width: 0; width: auto; border: 0; background: transparent; }
+.keep-toggle {
+    display: inline-flex; align-items: center; gap: 3px; cursor: pointer;
+    font-size: 10px; color: var(--text-dim); white-space: nowrap;
+    padding: 1px 5px; border: 1px solid transparent; border-radius: 999px;
+}
+.keep-toggle input { margin: 0; cursor: pointer; }
+.keep-toggle:hover { color: var(--text); }
+.keep-toggle.active { color: var(--accent); border-color: var(--accent-dim); }
+.keep-toggle.disabled { opacity: .42; cursor: not-allowed; }
+.keep-toggle.disabled:hover { color: var(--text-dim); }
+
+/* Layout axis: one segmented control, three fixed labels, state in
+ * aria-selected — the old three toggles each rewrote their own text. */
+.toolbar-segment {
+    display: inline-flex; align-items: center;
+    border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+}
+.toolbar-segment .toolbar-btn {
+    border: 0; border-right: 1px solid var(--border); border-radius: 0;
+}
+.toolbar-segment .toolbar-btn:last-child { border-right: 0; }
+.toolbar-segment .toolbar-btn[aria-selected="true"] {
+    background: var(--bg-hover); color: var(--accent);
+}
+.toolbar-segment .toolbar-btn:disabled { background: transparent; }
+
+/* Popovers inside the toolbar (Build ▾, View ▾, More ▾). Hidden by default —
+ * they are opened by GraphToolbar.togglePopover, which flips the inline display
+ * and the `menu-open` class the global closeTopMenus() helper looks for. */
+.toolbar-dropdown { position: relative; }
+.toolbar-menu {
+    display: none;
+    position: absolute; top: 100%; left: 0; z-index: 200;
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px;
+    padding: 4px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); min-width: 190px;
+}
+.toolbar-menu .dropdown-item { font-size: 11px; }
+.menu-sep { height: 1px; margin: 4px 2px; background: var(--border); }
+.menu-heading {
+    padding: 6px 8px 3px; font-size: 9px; font-weight: 600; letter-spacing: .05em;
+    text-transform: uppercase; color: var(--text-muted);
+}
+.menu-grid { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 4px 4px; }
+.menu-toggle {
+    display: inline-flex; align-items: center; gap: 4px; cursor: pointer;
+    padding: 3px 8px; font-size: 11px; font-family: var(--font);
+    border: 1px solid var(--border); border-radius: 999px;
+    background: transparent; color: var(--text-dim); white-space: nowrap;
+}
+.menu-toggle:hover { background: var(--bg-hover); color: var(--text); }
+.menu-toggle.active { background: var(--bg-hover); color: var(--accent); border-color: var(--accent-dim); }
+.menu-select { gap: 6px; }
+.menu-select select {
+    background: var(--bg-input); color: var(--text); border: 1px solid var(--border);
+    border-radius: 4px; font-family: var(--font); font-size: 10px; padding: 1px 4px; cursor: pointer;
+}
+.menu-note { font-size: 9.5px; color: var(--text-muted); align-self: center; }
+.toolbar-view-menu { min-width: 300px; }
+.stepper {
+    display: inline-flex; align-items: center; gap: 2px;
+    background: var(--bg-input); border: 1px solid var(--border);
+    border-radius: 999px; padding: 1px 4px;
+}
+.stepper-btn {
+    border: 0; background: transparent; color: var(--text-dim); cursor: pointer;
+    font-size: 12px; line-height: 1.2; padding: 0 4px; font-family: var(--font);
+}
+.stepper-btn:hover { color: var(--text); }
+.stepper-value { font-size: 10px; color: var(--text); min-width: 20px; text-align: center; }
+
+/* Legend: the panel can always be closed from inside (task-530 used to have no
+ * close affordance and force-opened itself on every overlay change). */
+.graph-legend-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    font-size: 10px; font-weight: 600; color: var(--text-dim); margin-bottom: 4px;
+}
+.graph-legend-close {
+    background: var(--bg-input); border: 1px solid var(--border); border-radius: 4px;
+    color: var(--text-dim); cursor: pointer; font-size: 9px; line-height: 1.5; padding: 0 5px;
+}
+.graph-legend-close:hover { color: var(--text); border-color: var(--accent-dim); }
+
+/* ===== Contextual scope bar (task-531) =====
+ * A thin second row that exists only while one world scope is loaded: the zone
+ * breadcrumb, what is actually loaded, and the two ways out. It replaces the
+ * scope chip's count while it is on screen, so the numbers are never stated
+ * twice; a narrow window drops the bar (and keeps the chip's count) instead. */
+.scope-bar {
+    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+    padding: 4px 12px; background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    font-size: 11px; overflow: visible;
+}
+.scope-bar[hidden] { display: none; }
+#graph-toolbar.scope-bar-open .scope-stats { display: none; }
+.scope-breadcrumb { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; min-width: 0; }
+.scope-crumb {
+    background: transparent; border: 1px solid transparent; border-radius: 4px;
+    color: var(--text-dim); cursor: pointer; font-family: var(--font); font-size: 11px;
+    padding: 1px 6px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.scope-crumb:hover { background: var(--bg-hover); color: var(--text); }
+.scope-crumb.current { color: var(--text); font-weight: 600; cursor: default; }
+.scope-crumb.current:hover { background: transparent; color: var(--text); }
+.scope-crumb-sep { color: var(--text-muted); font-size: 10px; }
+.scope-bar-stats { color: var(--text-muted); font-size: 10.5px; white-space: nowrap; }
+.scope-bar-stats:empty { display: none; }
+.scope-bar-btn {
+    background: transparent; border: 1px solid var(--border); border-radius: 4px;
+    color: var(--text-dim); cursor: pointer; font-family: var(--font); font-size: 11px;
+    padding: 2px 8px; white-space: nowrap;
+}
+.scope-bar-btn:hover { background: var(--bg-hover); color: var(--text); }
+
+/* ===== Narrow-window overflow (task-532) =====
+ * At a narrow width the bar relocates its secondary controls into More ▾
+ * (GraphToolbar._applyCollapse) rather than wrapping into extra rows, so the
+ * relocated buttons have to read as menu items. */
+.toolbar-overflow-group { display: flex; flex-direction: column; gap: 2px; }
+.toolbar-overflow-group[hidden] { display: none; }
+.toolbar-overflow-group .toolbar-btn {
+    width: 100%; text-align: left; display: block;
+}
+/* In the bar these are icon-only; in the menu they get their name back, because
+ * a column of bare emoji next to real menu items reads as decoration. */
+.toolbar-overflow-group .toolbar-btn[data-overflow-label]::after {
+    content: attr(data-overflow-label);
+    margin-left: 6px;
+    color: var(--text-dim);
+}
+.toolbar-overflow-group .toolbar-btn:hover[data-overflow-label]::after { color: var(--text); }
+.toolbar-overflow-group .toolbar-dropdown { width: 100%; }
+.toolbar-overflow-group .toolbar-dropdown > .toolbar-btn { width: 100%; }
+/* The last zone's menu opens leftwards, or it hangs off the window edge. */
+.toolbar-zone[aria-label="More tools"] .toolbar-menu { left: auto; right: 0; }
+/* The undo-history panel is absolutely positioned with inline offsets; inside the
+ * overflow it flies out sideways instead of covering the items below it. */
+.toolbar-overflow-group #undo-history-menu {
+    top: -4px !important; left: 100% !important; margin-left: 6px; margin-top: 0;
+}
+/* One control left in the Do zone: the divider between it and nothing is noise. */
+.toolbar-zone.collapsed > .toolbar-divider { display: none; }
 
 /* ===== Graph Canvas ===== */
 #graph-container { flex: 1; min-height: 0; position: relative; }
@@ -2030,6 +2229,22 @@ label.chip-toggle.on { background: rgba(88, 166, 255, 0.12); border-color: var(-
 @media (max-width: 1200px) {
     #left-panel { width: 280px; min-width: 240px; }
     #right-panel { width: 320px; min-width: 260px; }
+}
+/* Graph toolbar, narrow windows (bug_18 / task-530 / task-532). The bar wraps
+ * rather than overflowing, and the controls you need most — what is loaded and
+ * the search — get a full row of their own before anything crowds them. Below
+ * 900px the secondary controls move into More ▾ (see toolbar.js), so the
+ * contextual scope bar is dropped rather than given a row of its own. */
+@media (max-width: 1240px) {
+    /* No room for a second row here, so the bar goes and the scope chip keeps
+     * reporting what is loaded on its own. */
+    .scope-bar { display: none; }
+    .scope-stats { display: inline; }
+}
+@media (max-width: 1000px) {
+    .toolbar-zone-where { flex: 1 1 100%; order: -1; }
+    .scope-chip { max-width: 240px; }
+    .toolbar-divider { display: none; }
 }
 @media (max-width: 900px) {
     #main-layout { flex-direction: column; height: auto; }

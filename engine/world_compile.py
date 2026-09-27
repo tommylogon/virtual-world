@@ -20,6 +20,33 @@ Decisions recorded here (see the Progress note on task-496):
 - Cell identity is the stable ``world_grid.cell_id`` anchor, so a reference to a
   cell survives edits elsewhere on the grid.
 
+The observer-view model (2026-09-26, locked with the author):
+
+- **Every painted cell is a place, roads included.** A cell that carries only a
+  road compiles like any other; the compile set is
+  ``biome_of | road_of``, not ``biome_of``. A cell holding a *hand-placed* area
+  (task-528) is still skipped, so Generate cannot mint a second place on top.
+- **A road cell replaces its biome.** One place per cell, and the road is that
+  place's *identity*: region merging groups by ``road:<value>`` when a road is
+  painted and ``biome:<value>`` otherwise (``identity`` below), so a run of road
+  merges into one road area while a road cell beside forest stays its own place.
+  The biome underneath is kept as ``properties.biome`` plus description context.
+  ``static/js/worldpainter/grid-model.js`` mirrors this, so the painter's area
+  estimate matches what Generate mints.
+- **A description composes the place's character**, via
+  :func:`classify_company`, from the terrain class of its neighbours plus the
+  elevation step of its neighbours (``cliff_dirs``). A neighbour is named for
+  what its place is, so a road neighbour is a road even when a biome sits under
+  it.
+- **Compass outdoors, narrative on feature entry.** Grid passages stay compass
+  directions. A child-scope gateway carries a phrase from :func:`_entry_phrases`
+  ("enter the inn", "climb down into the cave") plus ``aliases: ["in", "out"]``,
+  so the pre-existing ``go in`` / ``go out`` keep resolving and the engine needs
+  no change — movement resolves by the direction string.
+- **Floors inform prose now, gate movement later.** ``properties.elevation``
+  feeds the cliff phrasing only; blocking or costing a climb on a floor step is
+  task-525.
+
 Determinism is absolute: no ``random``, no clock. The same manifest + scope +
 options yield identical nodes/edges, choosing description fragments by a stable
 hash of ``seed:cell``.
@@ -113,47 +140,184 @@ def _join_dirs(directions: List[str]) -> str:
     return ", ".join(directions[:-1]) + " and " + directions[-1]
 
 
-def _area_description(cell: Tuple[int, int], biome_id: str, road: Optional[str],
-                      neighbours: Dict[str, str], directions: List[str],
-                      child_scope_id: Optional[str], seed: str) -> str:
-    """Deterministic prose from the cell's own tile, exits and neighbours.
+# ─────────────────────── place character (task-496) ────────────────────────
+#
+# The observer-view model: a place is not "a biome with some neighbours", it is
+# a *character* read off the surrounding cells. "A road in the woods" and "a road
+# along the forest line" are the same tile with different company, and only the
+# company distinguishes them. That company is classified below, then composed
+# into one deterministic sentence. No LLM, no randomness.
 
-    No LLM: a fragment from the biome, the road feature if painted, the exits,
-    and the notable neighbouring biomes. Example: "A worn track cut through the
-    land. Paths lead east and west. Dense forest lies to the north."
+#: Terrain classes the classifier distinguishes. Keyed by a biome's ``terrain``
+#: field, so a new biome joins a class by declaring its terrain rather than by
+#: a code change here.
+_TERRAIN_CLASSES = {
+    "forest": "woods",
+    "rock": "rock",
+    "water": "water",
+    "farm": "cultivated",
+}
+DEFAULT_TERRAIN_CLASS = "open"
+
+#: Cardinal directions the classifier reads company from. Diagonals are
+#: included: a rockface to the north-east still shapes the path.
+_SENSE_DIRECTIONS = ("north", "south", "east", "west",
+                     "northeast", "northwest", "southeast", "southwest")
+
+#: A floor difference at or above this reads as a cliff rather than a slope.
+#: This is *prose only* — gating traversal on a large delta is task-525.
+CLIFF_FLOOR_DELTA = 2
+
+
+def terrain_class(biome_id: Optional[str], road: Optional[str] = None) -> str:
+    """The company a neighbouring cell provides to a place's character.
+
+    A road cell reads as ``road`` (it is a thoroughfare, whatever lies under it);
+    otherwise the biome's declared terrain decides. ``None``/unknown → ``open``.
     """
-    biome_rec = biomes_mod.biome(biome_id)
+    if road:
+        return "road"
+    rec = biomes_mod.biome(biome_id) if biome_id else None
+    return _TERRAIN_CLASSES.get(str((rec or {}).get("terrain") or ""),
+                                DEFAULT_TERRAIN_CLASS)
+
+
+def classify_company(company: Dict[str, str]) -> str:
+    """Compose the place's character from what surrounds it (deterministic).
+
+    The rules, in the order they are checked:
+
+    - **rock on opposite sides** (including a cliff-sized floor step promoted to
+      rock) → a narrow path with a rockface rising and ground dropping away.
+    - **rock on one side** → a road cut along its foot.
+    - **woods on both sides** → "a road in the woods"; on one side → "a road
+      along the forest line", naming it.
+    - **water on both sides** → a road carried over it; on one side → beside it.
+    - **cultivated** → a road between fields.
+    - otherwise → open country.
+
+    "Both sides" means *opposite* sides — a place with a cliff north and open
+    ground south is along the cliff, not between cliffs. Diagonals count as a
+    side, since a rockface to the north-east still shapes the road.
+
+    ``company`` maps direction → terrain class (see :func:`terrain_class`).
+    Returns "" when there is nothing to say, so the caller keeps its default.
+    """
+    sides = {d: company.get(d) for d in _SENSE_DIRECTIONS}
+    present = {c for c in sides.values() if c and c != "open"}
+    opposite = {"north": "south", "south": "north", "east": "west", "west": "east",
+                "northeast": "southwest", "southwest": "northeast",
+                "northwest": "southeast", "southeast": "northwest"}
+
+    def dirs_of(cls: str) -> List[str]:
+        return [d for d in _SENSE_DIRECTIONS if sides.get(d) == cls]
+
+    def straddles(cls: str) -> bool:
+        """True when the place has this class on *opposite* sides of it.
+
+        "Between" and "in" need two opposing walls; a single neighbour is
+        "along"/"beside"/"at the foot of". Diagonals count as a side, since a
+        rockface to the north-east still shapes the road.
+        """
+        found = dirs_of(cls)
+        return any(opposite.get(d) in found for d in found)
+
+    # Rock first: a cliff is the strongest thing about a place. Both sides means
+    # a place genuinely *between* cliffs — the narrow-path case.
+    if straddles("rock"):
+        return "a narrow path, rockface rising on one side and dropping away on the other"
+    rock = dirs_of("rock")
+    if rock:
+        side = rock[0]
+        if "woods" in present:
+            return "a road cut along the foot of the rockface, the trees closing the other side"
+        if "water" in present:
+            return f"a road cut along the base of the cliff above the water to the {side}"
+        return f"a road cut along the foot of the rockface to the {side}"
+    if "woods" in present:
+        if straddles("woods"):
+            return "a road in the woods"
+        return f"a road along the forest line, the trees close on the {dirs_of('woods')[0]}"
+    if "water" in present:
+        if straddles("water"):
+            return "a road carried over the water"
+        return f"a road running beside the water to the {dirs_of('water')[0]}"
+    if "cultivated" in present:
+        return "a road running between cultivated fields"
+    return "a road across open country"
+
+
+def _cliff_company(company: Dict[str, str], cliffs: Set[str]) -> None:
+    """Promote cliff-sized floor deltas into ``rock`` so the classifier sees them.
+
+    Kept out of :func:`classify_company` so that function stays a pure function
+    of company (and therefore trivially testable); the elevation read lives here,
+    where the grid is in scope.
+
+    A promoted direction *outranks* whatever terrain stood there: standing on a
+    shelf two floors above a drop reads as a rockface even with woods on the
+    other side, so the class is overwritten rather than only filling gaps.
+    """
+    for direction in cliffs:
+        company[direction] = "rock"
+
+
+def _area_description(cell: Tuple[int, int], biome_id: Optional[str],
+                      road: Optional[str], neighbours: Dict[str, str],
+                      directions: List[str], child_scope_id: Optional[str],
+                      seed: str, company: Optional[Dict[str, str]] = None) -> str:
+    """Deterministic prose from the cell's own tile, exits and company.
+
+    No LLM. The place's *character* — "a road along the forest line" — is
+    classified from the surrounding cells by :func:`classify_company` rather than
+    guessed, and a road cell is a place in its own right, not a path across a
+    biome.
+    """
+    biome_rec = biomes_mod.biome(biome_id) if biome_id else None
     key = wg.cell_key(*cell)
     parts: List[str] = []
+    road_rec = (biomes_mod.features() or {}).get(str(road)) or {} if road else {}
 
-    own = _fragment(biome_rec, key, seed)
-    if own:
-        parts.append(own)
     if road:
-        feature = (biomes_mod.features() or {}).get(str(road)) or {}
-        frag = _fragment(feature, f"road:{key}", seed)
+        # A road cell leads with what the road IS, then what it is like here.
+        frag = _fragment(road_rec, f"road:{key}", seed)
         if frag:
             parts.append(frag)
-        label = "road" if str(road) == "road" else f"{road} road"
+        character = classify_company(company or {})
+        if character:
+            parts.append(character.capitalize() + ".")
         if directions:
-            parts.append(f"The {label} runs {_join_dirs(sorted(directions))}.")
-        else:
-            parts.append(f"The {label} crosses here.")
+            parts.append(f"It runs {_join_dirs(sorted(directions))} from here.")
+    else:
+        own = _fragment(biome_rec, key, seed)
+        if own:
+            parts.append(own)
+        # A biome cell beside a road still gets the road's company, so a forest
+        # with a track through it reads as such.
+        if company and "road" in set(company.values()):
+            parts.append("A track runs through it.")
+        if directions:
+            parts.append("Paths lead " + _join_dirs(sorted(directions)) + ".")
+
     if child_scope_id:
         parts.append(f"{child_scope_id.replace('_', ' ').title()} stands here.")
-    if directions and not road:
-        parts.append("Paths lead " + _join_dirs(sorted(directions)) + ".")
 
-    own_tags = set(biomes_mod.area_tags(biome_id))
-    for direction in ("north", "south", "east", "west"):
-        nb = neighbours.get(direction)
-        if not nb or nb == biome_id:
-            continue
-        if set(biomes_mod.area_tags(nb)) & own_tags:
-            continue  # same family — not worth calling out
-        nb_rec = biomes_mod.biome(nb) or {}
-        nb_name = (nb_rec.get("name") or nb).replace("_", " ")
-        parts.append(f"{nb_name.capitalize()} lies to the {direction}.")
+    if not road:
+        own_tags = set(biomes_mod.area_tags(biome_id) if biome_id else [])
+        for direction in ("north", "south", "east", "west"):
+            nb = neighbours.get(direction)
+            if not nb or nb == biome_id:
+                continue
+            if set(biomes_mod.area_tags(nb)) & own_tags:
+                continue  # same family — not worth calling out
+            # A road neighbour is already covered by the "track runs through it"
+            # line above, and reading it as a biome would print "Road lies to
+            # the south". Phrased without a verb so plural names agree.
+            if nb in (biomes_mod.features() or {}):
+                continue
+            nb_rec = biomes_mod.biome(nb) or {}
+            nb_name = (nb_rec.get("name") or nb).replace("_", " ")
+            parts.append(f"{nb_name.capitalize()} to the {direction}.")
 
     text = " ".join(p.strip() for p in parts if p and p.strip())
     return text if text.endswith(".") else text + "."
@@ -166,7 +330,32 @@ def _area_id(scope_id: str, cell: Tuple[int, int]) -> str:
     return f"area_{scope_id}_{cell[0]}_{cell[1]}"
 
 
-def _area_name(scope_label: str, biome_id: str, anchor: Tuple[int, int]) -> str:
+def _place_label(cell: Tuple[int, int], biome_of: Dict[Tuple[int, int], str],
+                 road_of: Dict[Tuple[int, int], str]) -> str:
+    """The display name fragment for a cell's place (task-496).
+
+    A road cell is named for the road — it *is* a road, not forest-with-a-path —
+    and falls back to the biome underneath so a road painted without a biome
+    still reads sensibly.
+    """
+    road = road_of.get(cell)
+    if road:
+        rec = (biomes_mod.features() or {}).get(str(road)) or {}
+        name = rec.get("name")
+        if name and str(name).lower() != "road":
+            return str(name)
+        return "Road"
+    return _biome_label(biome_of.get(cell))
+
+
+def _biome_label(biome_id: Optional[str]) -> str:
+    rec = biomes_mod.biome(biome_id) if biome_id else None
+    return str((rec or {}).get("name") or str(biome_id or "Open ground").replace("_", " ").title())
+
+
+def _place_name(scope_label: str, cell: Tuple[int, int],
+                biome_of: Dict[Tuple[int, int], str],
+                road_of: Dict[Tuple[int, int], str]) -> str:
     """A display name unique to its scope (task-496).
 
     The cell coordinates alone are not unique across scopes: a zone painted over
@@ -175,9 +364,8 @@ def _area_name(scope_label: str, biome_id: str, anchor: Tuple[int, int]) -> str:
     then pick the wrong area. Qualifying by the scope's display name keeps names
     unique in practice; ids stay the authoritative key.
     """
-    biome_rec = biomes_mod.biome(biome_id) or {}
-    name = biome_rec.get("name") or str(biome_id).replace("_", " ").title()
-    return f"{name} ({scope_label} {anchor[0]},{anchor[1]})"
+    label = _place_label(cell, biome_of, road_of)
+    return f"{label} ({scope_label} {cell[0]},{cell[1]})"
 
 
 def _way_id(scope_id: str, area_a: str, area_b: str) -> str:
@@ -234,6 +422,65 @@ def _way_edges(area_from: str, area_to: str, way_id: str,
     ]
 
 
+def _entry_phrases(child_name: str, feature: Optional[str],
+                   delta: Optional[float]) -> Tuple[str, str, List[str]]:
+    """The narrative direction pair for entering a placed feature (task-496).
+
+    Outdoors a cell-to-cell move is a compass word (``north``/``south``/…),
+    which stays. Entering a *feature* is not a compass move — you go **in** — so
+    the pair is narrative and sourced from what the placement actually is: the
+    feature painted on the parent cell, and the floor step between the two
+    places. A cave mouth in a cliff says "climb down into the cave", a plain
+    cell says "enter".
+
+    Returns ``(in_phrase, out_phrase, aliases)``. ``aliases`` are the short
+    words kept working as exit handles (``go in``, ``go out``) — the matcher's
+    alias tier reads them, so widening the vocabulary never takes a command away.
+    """
+    feature_name = str((biomes_mod.features() or {}).get(str(feature or ""), {})
+                       .get("name") or "").lower()
+    # Lower-cased, and without a leading article, so the phrase reads
+    # "enter the mine" rather than "enter The Mine" — it is a handle a player
+    # types and an agent reads mid-sentence, not a proper noun.
+    subject = child_name.replace("_", " ").strip().lower()
+    if subject.startswith("the "):
+        subject = subject[4:]
+
+    climb = delta is not None and delta >= CLIFF_FLOOR_DELTA
+    drop = delta is not None and delta <= -CLIFF_FLOOR_DELTA
+
+    if feature_name in ("tunnel", "cave") or "mine" in feature_name:
+        return ("climb down into the tunnel" if climb else "enter the tunnel",
+                "climb back out of the tunnel", ["in", "out", "tunnel"])
+    if feature_name == "ford":
+        return ("wade across the ford", "wade back across", ["in", "out", "ford"])
+    if feature_name == "bridge":
+        return ("cross the bridge", "cross back over", ["in", "out", "bridge"])
+    if feature_name == "gate":
+        return ("pass through the gate", "pass back through", ["in", "out", "gate"])
+    if climb:
+        return (f"climb up into {subject}", f"climb back down out of {subject}",
+                ["in", "out"])
+    if drop:
+        return (f"climb down into {subject}", f"climb back up out of {subject}",
+                ["in", "out"])
+    if subject:
+        return (f"enter {subject}", "leave", ["in", "out"])
+    return (GATEWAY_IN, GATEWAY_OUT, [])
+
+
+def _elevation_value(layer: Dict[str, object],
+                     cell: Tuple[int, int]) -> Optional[float]:
+    """A cell's elevation as a float, or None when unpainted/unparseable."""
+    value = (layer or {}).get(wg.cell_key(*cell))
+    if value in (None, ""):
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def _gateway_id(parent_id: str, child_id: str) -> str:
     return f"way_gateway_{parent_id}_{child_id}"
 
@@ -241,11 +488,16 @@ def _gateway_id(parent_id: str, child_id: str) -> str:
 def _gateway(parent_id: str, child_id: str, parent_area: str, parent_name: str,
              entry_area: str, entry_name: str, child_name: str,
              recipe_id: str, seed: str, tick: int,
-             cell: Optional[Tuple[int, int]] = None) -> Tuple[Node, List[Edge]]:
+             cell: Optional[Tuple[int, int]] = None,
+             enter: str = GATEWAY_IN, leave: str = GATEWAY_OUT,
+             aliases: Optional[List[str]] = None) -> Tuple[Node, List[Edge]]:
     """The way from a parent's placed cell into a child scope's entry area.
 
     Deterministic and self-contained: it depends only on ids/names both sides
     already record, so whichever scope compiles second emits identical content.
+
+    ``enter``/``leave`` are the narrative direction pair (see
+    :func:`_entry_phrases`); ``aliases`` keep the short handles working.
     """
     way_id = _gateway_id(parent_id, child_id)
     props = {
@@ -253,8 +505,8 @@ def _gateway(parent_id: str, child_id: str, parent_area: str, parent_name: str,
         "area_to": entry_name,
         "area_from_id": parent_area,
         "area_to_id": entry_area,
-        "direction": GATEWAY_IN,
-        "return_direction": GATEWAY_OUT,
+        "direction": enter,
+        "return_direction": leave,
         "current_state": "open",
         # You cannot see through into a whole child scope from outside it.
         "see_through": False,
@@ -263,6 +515,10 @@ def _gateway(parent_id: str, child_id: str, parent_area: str, parent_name: str,
         "child_scope_id": child_id,
         "generated": provenance(parent_id, recipe_id, seed, tick)["generated"],
     }
+    if aliases:
+        # The matcher reads aliases as exit handles (its alias tier), so "go in"
+        # keeps resolving even though the direction is now a phrase.
+        props["aliases"] = list(aliases)
     if cell is not None:
         # Sit on the parent cell it opens from, so the entrance appears in place.
         props["x"] = cell[0] * CELL_CANVAS_UNITS
@@ -271,25 +527,31 @@ def _gateway(parent_id: str, child_id: str, parent_area: str, parent_name: str,
                 name=f"Entrance to {child_name}", properties=props)
     edges = [
         Edge(source=parent_area, target=way_id, type=EDGE_CONNECTION,
-             properties={"direction": GATEWAY_IN}),
+             properties={"direction": enter}),
         Edge(source=way_id, target=entry_area, type=EDGE_CONNECTION,
-             properties={"direction": GATEWAY_IN}),
+             properties={"direction": enter}),
         Edge(source=entry_area, target=way_id, type=EDGE_CONNECTION,
-             properties={"direction": GATEWAY_OUT}),
+             properties={"direction": leave}),
         Edge(source=way_id, target=parent_area, type=EDGE_CONNECTION,
-             properties={"direction": GATEWAY_OUT}),
+             properties={"direction": leave}),
     ]
     return node, edges
 
 
-def _regions(cells: List[Tuple[int, int]], biome_of: Dict[Tuple[int, int], str]):
-    """Flood-fill 8-neighbour cells of the same biome into ordered regions."""
+def _regions(cells: List[Tuple[int, int]], identity):
+    """Flood-fill 8-neighbour cells of the same *identity* into ordered regions.
+
+    ``identity`` maps a cell to what kind of place it is — the road if one is
+    painted, else the biome (task-496). Passing the identity function rather
+    than a biome map is what lets a run of road cells merge into one road area
+    while staying distinct from the forest beside it.
+    """
     remaining = set(cells)
     regions: List[List[Tuple[int, int]]] = []
     for start in sorted(cells, key=lambda c: (c[1], c[0])):
         if start not in remaining:
             continue
-        biome = biome_of[start]
+        kind = identity(start)
         stack = [start]
         remaining.discard(start)
         comp = []
@@ -298,7 +560,7 @@ def _regions(cells: List[Tuple[int, int]], biome_of: Dict[Tuple[int, int], str])
             comp.append(cell)
             for dx, dy in DIRECTIONS.values():
                 nb = (cell[0] + dx, cell[1] + dy)
-                if nb in remaining and biome_of.get(nb) == biome:
+                if nb in remaining and identity(nb) == kind:
                     remaining.discard(nb)
                     stack.append(nb)
         regions.append(sorted(comp, key=lambda c: (c[1], c[0])))
@@ -398,11 +660,98 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
             if value not in (None, ""):
                 biome_of[(x, y)] = str(value)
 
-    cells = sorted(biome_of, key=lambda c: (c[1], c[0]))
+    road_of: Dict[Tuple[int, int], str] = {}
+    for y in range(height):
+        for x in range(width):
+            value = road_layer.get(wg.cell_key(x, y))
+            if value not in (None, ""):
+                road_of[(x, y)] = str(value)
+
+    # **Every painted cell is a place** (task-496, observer-view model). A
+    # road-only cell is no longer dropped: it compiles to an area whose terrain
+    # IS the road. A road cell *replaces* its biome rather than adding a second
+    # node on the same cell — one place per cell, and the biome underneath is
+    # context for the description, not an extra area.
+    cells = sorted(set(biome_of) | set(road_of), key=lambda c: (c[1], c[0]))
+
+    # A cell holding a hand-placed area belongs to that area, not to the paint
+    # (task-528). Drop it from the compile set *before* regions are formed, so a
+    # merged region cannot swallow the cell either: the author gets one area on
+    # that cell whether or not a biome is painted under it, and Generate can
+    # never create a second one on top. The paint itself stays on the record, so
+    # the WorldPainter still shows the cell.
+    placed = wg.area_placements(record)
+    if placed:
+        occupied = {wg.cell_key(x, y)
+                    for x, y in ((pos["x"], pos["y"]) for pos in placed.values())}
+        cells = [c for c in cells if wg.cell_key(*c) not in occupied]
+        if not cells:
+            raise ValueError(
+                f"scope {scope_id!r} paints no cells left to compile: every painted "
+                f"cell holds a hand-placed area ({len(placed)} placed)")
+
     if not cells:
         raise ValueError(f"scope {scope_id!r} paints no cells")
 
-    regions = _regions(cells, biome_of) if region_merge else [[c] for c in cells]
+    def cell_road(cell: Tuple[int, int]) -> Optional[str]:
+        return road_of.get(cell)
+
+    def cell_biome(cell: Tuple[int, int]) -> Optional[str]:
+        return biome_of.get(cell)
+
+    def identity(cell: Tuple[int, int]) -> str:
+        """What *kind* of place this cell is: the road if painted, else the biome.
+
+        Region merging groups by this, so a run of road cells merges into one
+        road area while a road cell beside forest stays its own place — the road
+        is a character of the cell, not a coat of paint over a shared biome.
+        """
+        road = road_of.get(cell)
+        if road:
+            return f"road:{road}"
+        return f"biome:{biome_of.get(cell)}"
+
+    def elevation_at(cell: Tuple[int, int]) -> Optional[float]:
+        value = elevation_layer.get(wg.cell_key(*cell))
+        if value in (None, ""):
+            return None
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return None
+
+    def cliff_dirs(cell: Tuple[int, int]) -> Set[str]:
+        """Directions whose neighbour stands a cliff-height above/below.
+
+        Read only for *prose* (task-496): a big floor delta makes a place read
+        as a narrow path with a rockface. Gating traversal on the same delta is
+        task-525's decision, deliberately not taken here.
+
+        An unpainted elevation counts as ground level (0), not as "unknown" —
+        the painter only asks for a number where the ground actually rises, and
+        an author marking a cliff at cell A should not also have to number every
+        plain cell around it. A cell that *is* painted still compares against
+        its neighbours' painted values.
+        """
+        painted_here = elevation_at(cell)
+        here = 0.0 if painted_here is None else painted_here
+        out: Set[str] = set()
+        for direction, (dx, dy) in DIRECTIONS.items():
+            nb = (cell[0] + dx, cell[1] + dy)
+            # Any in-bounds cell counts, not just a painted one: a cliff face is
+            # terrain whether or not it became a place, and an author who marks a
+            # step up in elevation should not also have to paint a biome there.
+            if not (0 <= nb[0] < width and 0 <= nb[1] < height):
+                continue
+            other = elevation_at(nb)
+            if other is None:
+                continue
+            if abs(other - here) >= CLIFF_FLOOR_DELTA:
+                out.add(direction)
+        return out
+
+    region_lists = _regions(cells, identity) if region_merge else [[c] for c in cells]
+    regions: List[List[Tuple[int, int]]] = region_lists
     cell_region: Dict[Tuple[int, int], int] = {}
     for index, region in enumerate(regions):
         for cell in region:
@@ -410,13 +759,13 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
     region_anchor = {i: region[0] for i, region in enumerate(regions)}
     area_id_of_region = {i: _area_id(scope_id, region_anchor[i])
                          for i in range(len(regions))}
-    region_area_name = {i: _area_name(scope_label, biome_of[region_anchor[i]],
-                                      region_anchor[i])
+    region_area_name = {i: _place_name(scope_label, region_anchor[i], biome_of, road_of)
                         for i in range(len(regions))}
     # A scope's own entry area is its first region (regions are ordered by
     # (y, x), so region 0 is the top-left-most). A placed child links here.
     entry_area_id = area_id_of_region[0]
     entry_area_name = region_area_name[0]
+    entry_anchor = region_anchor[0]
 
     nodes: List[Node] = []
     area_scope_assignments: Dict[str, str] = {}
@@ -425,43 +774,61 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
 
     for index, region in enumerate(regions):
         anchor = region_anchor[index]
-        biome_id = biome_of[anchor]
+        biome_id = cell_biome(anchor)
+        road = cell_road(anchor)
         area_id = area_id_of_region[index]
         area_scope_assignments[area_id] = scope_id
 
         # Neighbours are anything adjacent to a *region* cell but outside the
         # region; a direction counts as an exit when such a neighbour exists.
+        # A road cell beside unpainted ground has no neighbour there and no exit.
         neighbours: Dict[str, str] = {}
+        company: Dict[str, str] = {}
         directions: List[str] = []
         for cell in region:
             for direction, (dx, dy) in DIRECTIONS.items():
                 nb = (cell[0] + dx, cell[1] + dy)
-                if nb not in biome_of or cell_region[nb] == index:
+                if nb not in cells or cell_region[nb] == index:
                     continue
-                neighbours.setdefault(direction, biome_of[nb])
+                # A neighbour is named for what its place *is*, and a road cell's
+                # place is a road — so the road label wins over the biome under
+                # it. Otherwise a forest cell would report a road neighbour as
+                # "sparse forest to the south" when the place next door is a road.
+                neighbours.setdefault(direction, cell_road(nb) or cell_biome(nb) or "")
+                company.setdefault(direction, terrain_class(cell_biome(nb), cell_road(nb)))
                 if direction not in directions:
                     directions.append(direction)
 
-        road = road_layer.get(wg.cell_key(*anchor))
+        # Elevation is a description input now (task-496): a cliff-sized step
+        # makes the place read as a narrow path with a rockface.
+        _cliff_company(company, cliff_dirs(anchor))
+
         child_scope_id = wg.occupant_at(record, *anchor)
 
+        # A road cell's tags and floor come from the *road*; the biome under it
+        # is context. Without a road the biome decides, as before.
         biome_rec = biomes_mod.biome(biome_id) or {}
-        tags = list(biomes_mod.area_tags(biome_id))
-        if road:
-            for tag in (biomes_mod.features().get(str(road)) or {}).get("tags", []):
+        road_rec = (biomes_mod.features() or {}).get(str(road)) or {} if road else {}
+        tags = list(road_rec.get("tags") or []) if road else []
+        if not road:
+            tags = list(biomes_mod.area_tags(biome_id))
+        elif biome_id:
+            # Keep the terrain's tags too, so a road through forest still forages
+            # as forest and reads as a road *in* woods rather than bare tarmac.
+            for tag in biomes_mod.area_tags(biome_id):
                 if tag not in tags:
                     tags.append(str(tag))
-        if child_scope_id:
+        if child_scope_id and "feature" not in tags:
             tags.append("feature")
 
         props = {
             "world_scope_id": scope_id,
             "tags": tags,
-            "floor": biome_rec.get("floor", "dirt"),
+            "floor": (road_rec.get("floor") or biome_rec.get("floor", "dirt")),
             "environment": dict(biome_rec.get("environment") or DEFAULT_ENVIRONMENT),
             "description": _area_description(
                 anchor, biome_id, road, neighbours, directions,
-                child_scope_id, seed),
+                child_scope_id, seed, company=company),
             # Canvas position from the painted cell (task-496). The graph view
             # reads ``properties.x``/``y`` directly, so with physics off a
             # generated scope lays out in the shape it was painted instead of a
@@ -475,13 +842,17 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
             props["elevation"] = elevation
         if road:
             props["road"] = road
+        if biome_id:
+            # Kept even on a road cell: the biome underneath is the context the
+            # description and the tags read ("a road in the woods").
+            props["biome"] = biome_id
         if child_scope_id:
             props["child_scope_id"] = child_scope_id
         props.update(provenance(scope_id, recipe_id, seed, tick))
 
         nodes.append(Node(
             id=area_id, type="area",
-            name=_area_name(scope_label, biome_id, anchor), properties=props))
+            name=region_area_name[index], properties=props))
 
     edges: List[Edge] = []
     emitted_pairs: Set[Tuple[int, int]] = set()
@@ -494,6 +865,10 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
         from_name = region_area_name[region_a]
         to_name = region_area_name[region_b]
         way_id = _way_id(scope_id, from_area, to_area)
+        # A road cell's way walks on the road; a biome cell's on its floor. A
+        # road-only cell has no biome, so it falls back to a made surface.
+        road_floor = (biomes_mod.features() or {}).get(
+            str(cell_road(cell) or ""), {}).get("floor")
         way_props = {
             "area_from": from_name,
             "area_to": to_name,
@@ -502,7 +877,7 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
             "direction": direction,
             "current_state": "open",
             "see_through": True,
-            "floor": (biomes_mod.biome(floor_biome) or {}).get("floor", "dirt"),
+            "floor": road_floor or (biomes_mod.biome(floor_biome) or {}).get("floor", "dirt"),
             "pass_message": f"You follow the path {direction} toward {to_name}.",
             "world_scope_id": scope_id,
             # Midpoint of the two cells, so a way sits between its areas
@@ -520,7 +895,7 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
         for direction in _SCAN_DIRECTIONS:
             dx, dy = DIRECTIONS[direction]
             nb = (cell[0] + dx, cell[1] + dy)
-            if nb not in biome_of:
+            if nb not in cell_region:
                 continue
             region_a = cell_region[cell]
             region_b = cell_region[nb]
@@ -531,7 +906,7 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
                 continue  # one passage per region boundary pair
             emitted_pairs.add(pair)
             emit_passage(region_a, region_b, cell, nb,
-                         _direction_between(cell, nb), biome_of[cell])
+                         _direction_between(cell, nb), cell_biome(cell) or "")
 
     # ── link disconnected islands ──
     # An island (a cell/cluster with no painted 8-neighbour) would compile to an
@@ -564,6 +939,65 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
                             biome_of[ca])
                 connected.update(comp)
 
+    def _entry_delta(parent_rec: dict, child_id: str,
+                     cell: Optional[Tuple[int, int]]) -> Optional[float]:
+        """Floor step from a placement's parent cell down into the child.
+
+        Both sides come off the records — the parent cell from this scope's
+        elevation layer, the child from the ``entry_elevation`` it recorded when
+        *it* compiled. So whichever scope compiles second derives the same
+        phrase. An unpainted or unnumbered side reads as ground level.
+        """
+        parent_floor = 0.0
+        if cell is not None:
+            here = elevation_at(cell)
+            parent_floor = 0.0 if here is None else here
+        child = manifest.get(child_id) or {}
+        if "entry_elevation" not in child:
+            return None            # child not compiled with elevation yet
+        try:
+            child_floor = float(child["entry_elevation"])
+        except (TypeError, ValueError):
+            return None
+        return child_floor - parent_floor
+
+    def _parent_cell_feature(manifest_: Dict[str, dict], child_id: str,
+                             cell: Optional[Tuple[int, int]]) -> Optional[str]:
+        """The road feature painted on the parent cell this child sits on."""
+        if cell is None:
+            return None
+        for parent in manifest_.values():
+            if child_id in (parent.get("placements") or {}):
+                layer = (parent.get("layers") or {}).get("road") or {}
+                value = layer.get(wg.cell_key(*cell))
+                return str(value) if value not in (None, "") else None
+        return None
+
+    def _reverse_entry_delta(manifest_: Dict[str, dict], parent_id: str,
+                             child_id: str) -> Optional[float]:
+        """The same floor step, read from this scope's side (child-compiles-second).
+
+        Mirrors :func:`_entry_delta` so both emission paths produce the same
+        direction pair, whichever scope happened to compile second.
+        """
+        child = manifest_.get(child_id) or {}
+        if "entry_elevation" not in child:
+            return None
+        parent = manifest_.get(parent_id) or {}
+        pos = (parent.get("placements") or {}).get(child_id) or {}
+        parent_floor = 0.0
+        try:
+            px, py = int(pos.get("x")), int(pos.get("y"))
+            value = ((parent.get("layers") or {}).get("elevation") or {}).get(
+                wg.cell_key(px, py))
+            parent_floor = float(value) if value not in (None, "") else 0.0
+        except (TypeError, ValueError):
+            parent_floor = 0.0
+        try:
+            return float(child["entry_elevation"]) - parent_floor
+        except (TypeError, ValueError):
+            return None
+
     # ── child-scope gateways (task-496) ──
     # Every placement's compiled area is persisted on the parent, so a child
     # generated *after* this parent can still find its way in. The gateway
@@ -589,11 +1023,16 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
             continue  # unpainted parent cell, or the child is not materialized
         child_entry = str(child.get("entry_area_id")
                           or sorted(child["area_ids"])[0])
+        # The entry phrase is sourced from the placement: the road feature on the
+        # parent cell, and the floor step between the two places.
+        enter, leave, handles = _entry_phrases(
+            str(child.get("name") or child_id), cell_road(cell),
+            _entry_delta(record, child_id, cell))
         node, gw_edges = _gateway(
             scope_id, str(child_id), clean["area_id"], clean["area_name"],
             child_entry, str(child.get("entry_area_name") or child_entry),
             str(child.get("name") or child_id), recipe_id, seed, tick,
-            cell=cell)
+            cell=cell, enter=enter, leave=leave, aliases=handles)
         if node.id not in gateway_ids:
             gateway_ids.add(node.id)
             nodes.append(node)
@@ -612,11 +1051,15 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
             pos_cell = (int(pos.get("x")), int(pos.get("y")))
         except (TypeError, ValueError):
             pos_cell = None
+        enter, leave, handles = _entry_phrases(
+            str(record.get("name") or scope_id), _parent_cell_feature(manifest, scope_id, pos_cell),
+            _reverse_entry_delta(manifest, parent_id, scope_id))
         node, gw_edges = _gateway(
             str(parent_id), scope_id,
             str(pos["area_id"]), str(pos.get("area_name") or pos["area_id"]),
             entry_area_id, entry_area_name, str(record.get("name") or scope_id),
-            recipe_id, seed, tick, cell=pos_cell)
+            recipe_id, seed, tick, cell=pos_cell,
+            enter=enter, leave=leave, aliases=handles)
         if node.id not in gateway_ids:
             gateway_ids.add(node.id)
             nodes.append(node)
@@ -648,7 +1091,14 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
     )
     updates: Dict = {"state": "materialized",
                      "entry_area_id": entry_area_id,
-                     "entry_area_name": entry_area_name}
+                     "entry_area_name": entry_area_name,
+                     # The entry *cell*, so a parent compiling later can read the
+                     # floor step between its cell and this scope's inside and
+                     # phrase the gateway ("climb down into the cave") from
+                     # something both sides of the compile agree on.
+                     "entry_cell": {"x": entry_anchor[0], "y": entry_anchor[1]},
+                     "entry_elevation": _elevation_value(
+                         elevation_layer, entry_anchor)}
     if placement_updates:
         updates["placements"] = placement_updates
     return GenerationPatch(

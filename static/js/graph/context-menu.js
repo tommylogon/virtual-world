@@ -4,7 +4,7 @@
  * Extracted from graph-manager.js. References the global graphManager singleton.
  *
  * @module graph/context-menu — right-click menus for graph nodes and edges
- * @contributes GraphContextMenu: per-type items (inspect/edit/duplicate/delete, add item/character/trigger)
+ * @contributes GraphContextMenu: per-type items (inspect/edit/duplicate/delete, add item/character/trigger, place on map)
  * @powers the graph's right-click actions on areas, items, ways, and characters
  * @relates driven by GraphEventHandlers.onContext; delegates to GraphNodeOps + the inspector
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
@@ -40,6 +40,7 @@ window.GraphContextMenu = {
             items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_to')}>👆 Connect to…</div>`);
             items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('create_trigger')}>⚡ Add Trigger Edge</div>`);
             items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_trigger')}>⚡ Connect Trigger to…</div>`);
+            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('place_on_map')}>📍 Place on Map…</div>`);
         } else if (nodeData?.type === 'item') {
             items.push(contextMenuHtmlTag`<div class="context-menu-separator"></div>`);
             items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('edit')}>✏️ Edit Item</div>`);
@@ -182,6 +183,19 @@ window.GraphContextMenu = {
             case 'connect_trigger':
                 graphManager.startPendingConnection(target.nodeId, 'triggers');
                 break;
+            case 'place_on_map': {
+                // task-528: hand this area to the WorldPainter's place tool. The
+                // scope to open is the area's own, or the world root when it has
+                // none yet — the author can switch scope in the painter.
+                const props = target.nodeData?.properties || {};
+                const scopeId = props.world_scope_id || 'world';
+                if (window.VW && VW.worldPainter && typeof VW.worldPainter.open === 'function') {
+                    VW.worldPainter.open(scopeId, { tool: 'area', areaId: target.nodeId });
+                } else if (typeof toastError === 'function') {
+                    toastError('The WorldPainter is not available.');
+                }
+                break;
+            }
             case 'attach_item':
                 graphManager._createEdgeWithType(target.nodeId);
                 break;

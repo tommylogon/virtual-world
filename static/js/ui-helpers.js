@@ -93,6 +93,9 @@ function reinitChoices(container) {
 function closeTopMenus() {
     document.querySelectorAll('.dropdown-menu.menu-open').forEach(m => { m.style.display = 'none'; m.classList.remove('menu-open'); });
     document.removeEventListener('click', closeTopMenus);
+    // Toolbar popovers carry aria-expanded; this helper is called straight from
+    // their menu items, so it has to leave the triggers' state truthful too.
+    if (window.GraphToolbar) GraphToolbar.syncAria();
 }
 
 function toggleTopMenu(ev, id) {

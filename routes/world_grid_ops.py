@@ -60,7 +60,41 @@ def _breadcrumb(manifest: Dict[str, dict], scope_id: str) -> List[dict]:
     return trail
 
 
-def _grid_payload(manifest: Dict[str, dict], scope_id: str) -> dict:
+def _unplaced_areas(graph, manifest: Dict[str, dict]) -> List[dict]:
+    """Hand-authored areas not parked on any grid — the place tool's candidates.
+
+    An area qualifies when it is an ``area`` node, carries no ``generated``
+    provenance, and has no cell anywhere. Generated areas are excluded on purpose:
+    they already own a cell, and re-pointing one would fight the scope that
+    generated it (see the task-528 refusal in :func:`handle_place_area`).
+
+    Every candidate carries its **owning scope** (``scope_id``/``scope_name``), not
+    just that it has none: the picker groups by scope (task-541), so an area of a
+    child scope is never listed as if it belonged to the map being painted. An
+    area with no scope at all is genuinely free-floating and is grouped with the
+    scope being edited.
+    """
+    if graph is None:
+        return []
+    placed: set = set()
+    for record in (manifest or {}).values():
+        placed.update(world_grid.area_placements(record))
+    out: List[dict] = []
+    for node_id, node in getattr(graph, "nodes", {}).items():
+        if getattr(node, "type", "") != "area":
+            continue
+        props = getattr(node, "properties", {}) or {}
+        if props.get("generated") or props.get("cell") or node_id in placed:
+            continue
+        owner = props.get("world_scope_id")
+        out.append({"id": node_id, "name": getattr(node, "name", node_id),
+                    "scope_id": owner,
+                    "scope_name": (manifest.get(owner) or {}).get("name") if owner else None})
+    out.sort(key=lambda area: str(area["name"]).lower())
+    return out
+
+
+def _grid_payload(manifest: Dict[str, dict], scope_id: str, graph=None) -> dict:
     """Everything the editor needs to render one scope's grid."""
     rec = manifest[scope_id]
     w, h = world_grid.grid_size(rec)
@@ -75,6 +109,16 @@ def _grid_payload(manifest: Dict[str, dict], scope_id: str) -> dict:
             "x": pos["x"],
             "y": pos["y"],
         })
+    area_placements = []
+    for area_id, pos in world_grid.area_placements(rec).items():
+        node = graph.get_node(area_id) if graph is not None else None
+        area_placements.append({
+            "id": area_id,
+            "name": getattr(node, "name", area_id) if node is not None else area_id,
+            "x": pos["x"],
+            "y": pos["y"],
+        })
+    area_placements.sort(key=lambda area: str(area["name"]).lower())
     children = []
     for child_id in world_scopes.direct_child_ids(manifest, scope_id):
         child = manifest[child_id]
@@ -110,6 +154,8 @@ def _grid_payload(manifest: Dict[str, dict], scope_id: str) -> dict:
         "map_offset": world_grid.map_offset(rec),
         "placements": placements,
         "feature": world_grid.feature_layer(rec),
+        "area_placements": area_placements,
+        "unplaced_areas": _unplaced_areas(graph, manifest),
         "children": children,
         "parent": parent,
         "breadcrumb": _breadcrumb(manifest, scope_id),
@@ -143,7 +189,7 @@ def handle_scope_grid(app, scope_id):
     manifest = _load(app)
     if scope_id not in manifest:
         return _error(f"Scope '{scope_id}' not found", 404)
-    return jsonify(_grid_payload(manifest, scope_id))
+    return jsonify(_grid_payload(manifest, scope_id, app.world.graph))
 
 
 def handle_painter_vocabulary(app):
@@ -223,7 +269,7 @@ def handle_create_scope(app):
         if scope_id not in siblings:
             siblings.append(scope_id)
     _commit(app, manifest)
-    return jsonify({"status": "created", **_grid_payload(manifest, scope_id)})
+    return jsonify({"status": "created", **_grid_payload(manifest, scope_id, app.world.graph)})
 
 
 def handle_set_scope_grid(app, scope_id):
@@ -252,7 +298,7 @@ def handle_set_scope_grid(app, scope_id):
     except (TypeError, ValueError) as exc:
         return _error(str(exc))
     _commit(app, manifest)
-    return jsonify({"status": "saved", **_grid_payload(manifest, scope_id)})
+    return jsonify({"status": "saved", **_grid_payload(manifest, scope_id, app.world.graph)})
 
 
 def handle_paint_cell(app, scope_id):
@@ -279,7 +325,7 @@ def handle_paint_cell(app, scope_id):
     _commit(app, manifest)
     return jsonify({"status": "painted", "layer": layer, "x": x, "y": y,
                     "value": data.get("value"),
-                    **_grid_payload(manifest, scope_id)})
+                    **_grid_payload(manifest, scope_id, app.world.graph)})
 
 
 def handle_place_feature(app, scope_id):
@@ -311,7 +357,238 @@ def handle_place_feature(app, scope_id):
     except ValueError as exc:
         return _error(str(exc))
     _commit(app, manifest)
-    return jsonify({"status": outcome, **_grid_payload(manifest, scope_id)})
+    return jsonify({"status": outcome, **_grid_payload(manifest, scope_id, app.world.graph)})
+
+
+# ─────────────────────── placing existing areas (task-528) ────────────────
+
+
+def _set_area_membership(manifest: Dict[str, dict], area_id: str,
+                         new_scope: str, previous_scope: Optional[str]) -> None:
+    """Mirror a scope move in the manifest's denormalized ``area_ids`` lists.
+
+    Thin wrapper over :func:`world_scopes.assign_area_membership`, which owns the
+    rules (and the cell release on leaving a scope).
+    """
+    world_scopes.assign_area_membership(manifest, area_id, new_scope, previous_scope)
+
+
+def _movable_area(graph, area_id: str):
+    """The area node behind *area_id*, or ``(None, reason)`` saying why not.
+
+    A generated area cannot be reassigned: it already owns a cell on the grid of
+    the scope that generated it, and moving it would fight that scope. The
+    refusal text matches :func:`handle_place_area` so both routes explain
+    themselves the same way.
+    """
+    node = graph.get_node(area_id)
+    if node is None:
+        return None, f"No area '{area_id}' in the world"
+    if getattr(node, "type", "") != "area":
+        return None, f"'{area_id}' is a {getattr(node, 'type', '?')}, not an area"
+    props = getattr(node, "properties", {}) or {}
+    generated = props.get("generated")
+    if generated:
+        return None, (
+            f"'{getattr(node, 'name', area_id)}' was generated by "
+            f"'{generated.get('scope_id')}' and already owns its cell — "
+            f"regenerating that scope would put it back. Paint or generate the "
+            f"grid instead of moving a generated area.")
+    return node, ""
+
+
+def handle_scope_areas(app, scope_id):
+    """POST /api/world/scopes/<scope_id>/areas — reassign areas to this scope.
+
+    Body: ``{add: [area_id, ...], remove: [area_id, ...]}``. **Membership only**
+    (task-539): this moves ``world_scope_id`` and the manifest's ``area_ids``
+    mirror, and nothing else. A child scope's interior areas belong to that
+    scope, but they do not each need a painted cell on the parent's grid — that
+    is the distinction :func:`handle_place_area` cannot express, because placing
+    an area also parks it on a cell.
+
+    One request is **one undo step**, and ``add``/``remove`` are lists so a
+    multi-selection of nodes moves at once. Leaving a scope releases any cell the
+    area was parked on there; a cell it holds in *this* scope is untouched, so
+    "make it a member of the scope it already sits on" is a no-op.
+    """
+    data = request.get_json(silent=True) or {}
+    manifest = _load(app)
+    if scope_id not in manifest:
+        return _error(f"Scope '{scope_id}' not found", 404)
+
+    def _ids(key):
+        raw = data.get(key) or []
+        if isinstance(raw, str):
+            raw = [raw]
+        return [str(a).strip() for a in raw if str(a).strip()]
+
+    add = _ids("add")
+    remove = _ids("remove")
+    if not add and not remove:
+        return _error("add and/or remove must list at least one area id")
+    overlap = sorted(set(add) & set(remove))
+    if overlap:
+        return _error(f"{', '.join(overlap)} is both added and removed")
+
+    graph = app.world.graph
+    # Validate everything before the snapshot, so a refusal leaves no junk undo
+    # entry and no half-applied move.
+    plan = []
+    for area_id in add:
+        node, reason = _movable_area(graph, area_id)
+        if node is None:
+            return _error(reason)
+        plan.append((area_id, (node.properties or {}).get("world_scope_id"), scope_id))
+    for area_id in remove:
+        node, reason = _movable_area(graph, area_id)
+        if node is None:
+            return _error(reason)
+        plan.append((area_id, (node.properties or {}).get("world_scope_id"), None))
+
+    _snapshot(app, label=(f"move {len(add)} area(s) to {manifest[scope_id].get('name', scope_id)}"
+                          if add else f"remove {len(remove)} area(s) from "
+                                      f"{manifest[scope_id].get('name', scope_id)}"))
+    outcomes = {}
+    for area_id, previous, target in plan:
+        try:
+            _set_area_membership(manifest, area_id, target, previous)
+        except ValueError as exc:
+            return _error(str(exc))
+        node = graph.get_node(area_id)
+        props = dict(getattr(node, "properties", {}) or {})
+        released = False
+        if target:
+            props["world_scope_id"] = target
+            if previous and previous != target:
+                # The cell it was parked on belonged to the scope it just left.
+                released = bool(props.pop("cell", None))
+                props.pop("x", None)
+                props.pop("y", None)
+        else:
+            props.pop("world_scope_id", None)
+            released = bool(props.pop("cell", None))
+            props.pop("x", None)
+            props.pop("y", None)
+        node.properties = props
+        outcomes[area_id] = "assigned" if target else "removed"
+        if released:
+            outcomes[f"{area_id}:cell"] = "released"
+    _commit(app, manifest)
+    return jsonify({"status": "ok", "scope_id": scope_id, "areas": outcomes,
+                    **_grid_payload(manifest, scope_id, graph)})
+
+
+def handle_place_area(app, scope_id):
+    """POST /api/world/scopes/<scope_id>/grid/place_area — park an area on a cell.
+
+    Body: ``{area_id, x, y, on_overlap?}``. The counterpart of
+    ``/grid/generate``: generate makes areas *from* cells, this puts an area the
+    author already wrote *onto* one (task-528).
+
+    One request, one undo step, because the node side and the manifest side are
+    useless apart: ``properties.cell``/``x``/``y`` place the area on the map,
+    ``world_scope_id`` makes it a member of the scope, and ``area_placements`` is
+    the record that stops generate from compiling a second area on that cell.
+    """
+    data = request.get_json(silent=True) or {}
+    manifest = _load(app)
+    if scope_id not in manifest:
+        return _error(f"Scope '{scope_id}' not found", 404)
+    record = manifest[scope_id]
+    area_id = str(data.get("area_id") or "").strip()
+    if not area_id:
+        return _error("area_id is required")
+    try:
+        x, y = int(data.get("x")), int(data.get("y"))
+    except (TypeError, ValueError):
+        return _error("x and y are required integers")
+    on_overlap = str(data.get("on_overlap") or "forbid")
+
+    graph = app.world.graph
+    node = graph.get_node(area_id)
+    if node is None:
+        return _error(f"No area '{area_id}' in the world")
+    if getattr(node, "type", "") != "area":
+        return _error(f"'{area_id}' is a {getattr(node, 'type', '?')}, not an area")
+    props = getattr(node, "properties", {}) or {}
+    if props.get("generated"):
+        return _error(
+            f"'{getattr(node, 'name', area_id)}' was generated by "
+            f"'{props['generated'].get('scope_id')}' and already owns its cell — "
+            f"regenerating that scope would put it back. Paint or generate the grid "
+            f"instead of moving a generated area.")
+
+    # Validate before the snapshot so a refusal does not leave a junk undo entry.
+    if not world_grid.has_grid(record):
+        return _error(f"Scope '{scope_id}' has no grid to place on")
+    if not world_grid.in_bounds(record, x, y):
+        return _error(f"cell ({x},{y}) is outside the grid")
+    occupant = world_grid.area_placement_at(record, x, y)
+    if occupant and occupant != area_id and on_overlap != "displace":
+        other = graph.get_node(occupant)
+        return _error(
+            f"cell ({x},{y}) already holds "
+            f"'{getattr(other, 'name', occupant) if other else occupant}'; "
+            f"unplace it first or displace it")
+
+    try:
+        _snapshot(app, label=f"place {getattr(node, 'name', area_id)} on {record.get('name', scope_id)}")
+        outcome = world_grid.place_area(manifest, scope_id, area_id, x, y,
+                                        on_overlap=on_overlap)
+    except ValueError as exc:
+        return _error(str(exc))
+
+    # `cell` is what flips the map into painted-grid mode; `x`/`y` are the canvas
+    # coordinates the layout reads (cell * 40, the compiler's own unit pair).
+    previous_scope = props.get("world_scope_id")
+    new_props = dict(props)
+    new_props["world_scope_id"] = scope_id
+    new_props["cell"] = {"x": x, "y": y}
+    new_props["x"] = x * world_compile.CELL_CANVAS_UNITS
+    new_props["y"] = y * world_compile.CELL_CANVAS_UNITS
+    node.properties = new_props
+    if occupant and occupant != area_id and on_overlap == "displace":
+        displaced = graph.get_node(occupant)
+        if displaced is not None:
+            dprops = dict(getattr(displaced, "properties", {}) or {})
+            dprops.pop("cell", None)
+            displaced.properties = dprops
+    _set_area_membership(manifest, area_id, scope_id, previous_scope)
+    _commit(app, manifest)
+    return jsonify({"status": outcome, "area_id": area_id, "cell": {"x": x, "y": y},
+                    **_grid_payload(manifest, scope_id, graph)})
+
+
+def handle_unplace_area(app, scope_id):
+    """POST /api/world/scopes/<scope_id>/grid/unplace_area — free an area's cell.
+
+    Body: ``{area_id}``. The area itself survives, and so does its scope
+    membership; only the position goes, so the graph places it by physics again
+    and the cell is free for a biome to be painted on it.
+    """
+    data = request.get_json(silent=True) or {}
+    manifest = _load(app)
+    if scope_id not in manifest:
+        return _error(f"Scope '{scope_id}' not found", 404)
+    area_id = str(data.get("area_id") or "").strip()
+    if not area_id:
+        return _error("area_id is required")
+    if area_id not in world_grid.area_placements(manifest[scope_id]):
+        return _error(f"'{area_id}' is not placed on this grid")
+    graph = app.world.graph
+    node = graph.get_node(area_id)
+
+    _snapshot(app, label=f"unplace {getattr(node, 'name', area_id)}")
+    world_grid.unplace_area(manifest, scope_id, area_id)
+    if node is not None:
+        new_props = dict(getattr(node, "properties", {}) or {})
+        for key in ("cell", "x", "y"):
+            new_props.pop(key, None)
+        node.properties = new_props
+    _commit(app, manifest)
+    return jsonify({"status": "unplaced", "area_id": area_id,
+                    **_grid_payload(manifest, scope_id, graph)})
 
 
 #: Image types the reference picker may offer (mirrors the background uploader).
@@ -381,7 +658,7 @@ def handle_set_reference(app, scope_id):
     except ValueError as exc:
         return _error(str(exc))
     _commit(app, manifest)
-    return jsonify({"status": "saved", **_grid_payload(manifest, scope_id)})
+    return jsonify({"status": "saved", **_grid_payload(manifest, scope_id, app.world.graph)})
 
 
 def handle_paint_batch(app, scope_id):
@@ -408,7 +685,7 @@ def handle_paint_batch(app, scope_id):
         return _error(str(exc))
     _commit(app, manifest)
     return jsonify({"status": "painted", "count": count,
-                    **_grid_payload(manifest, scope_id)})
+                    **_grid_payload(manifest, scope_id, app.world.graph)})
 
 
 def handle_generate_scope(app, scope_id):
@@ -464,7 +741,7 @@ def handle_generate_scope(app, scope_id):
     except ValueError as exc:
         return _error(str(exc), 409)
     _commit(app, manifest)
-    payload = _grid_payload(manifest, scope_id)
+    payload = _grid_payload(manifest, scope_id, app.world.graph)
     payload["status"] = "generated"
     payload["report"] = report.to_dict()
     return jsonify(payload)
@@ -487,7 +764,7 @@ def handle_ungenerate_scope(app, scope_id):
     except ValueError as exc:
         return _error(str(exc))
     _commit(app, manifest)
-    payload = _grid_payload(manifest, scope_id)
+    payload = _grid_payload(manifest, scope_id, app.world.graph)
     payload["status"] = "ungenerated"
     payload["deleted_nodes"] = result["deleted_nodes"]
     return jsonify(payload)
@@ -512,7 +789,7 @@ def handle_remove_feature(app, scope_id):
     if not removed:
         return _error(f"{child_id!r} is not placed in {scope_id!r}", 404)
     _commit(app, manifest)
-    return jsonify({"status": "removed", **_grid_payload(manifest, scope_id)})
+    return jsonify({"status": "removed", **_grid_payload(manifest, scope_id, app.world.graph)})
 
 
 def handle_rename_scope(app, scope_id):

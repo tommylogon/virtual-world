@@ -1,4 +1,4 @@
-"""Route tests for the WorldPainter grid authoring API (task-495)."""
+"""Route tests for the WorldPainter grid authoring API (task-495, task-528)."""
 
 import sys
 from pathlib import Path
@@ -6,6 +6,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app import create_app
+from engine import world_scopes
+from graph import Node
 
 
 MANIFEST = {
@@ -495,3 +497,354 @@ def test_ungenerate_removes_nodes_but_keeps_the_grid(tmp_path):
 
     assert client.post("/api/world/scopes/ghost/grid/ungenerate",
                        json={}).status_code == 404
+
+
+# --------------------- placing existing areas (task-528) --------------------
+
+
+def _authored_area(app, area_id="area_hills", name="Northern Hills", **props):
+    """A hand-authored area: no ``generated`` provenance, so it can be placed."""
+    app.world.graph.add_node(Node(
+        id=area_id, type="area", name=name, properties=dict(props)))
+
+
+def test_place_area_sets_cell_membership_and_manifest_together(tmp_path):
+    app = _app(tmp_path)
+    client = app.test_client()
+    client.post("/api/world/scopes/the_pines/grid", json={"w": 4, "h": 4})
+    _authored_area(app)
+
+    resp = client.post("/api/world/scopes/the_pines/grid/place_area",
+                       json={"area_id": "area_hills", "x": 2, "y": 3})
+    assert resp.status_code == 200
+    body = resp.get_json()
+    assert body["status"] == "placed" and body["cell"] == {"x": 2, "y": 3}
+
+    node = app.world.graph.get_node("area_hills")
+    assert node.properties["world_scope_id"] == "the_pines"
+    assert node.properties["cell"] == {"x": 2, "y": 3}
+    # The layout reads canvas coordinates, the compiler writes cell * 40.
+    assert node.properties["x"] == 80 and node.properties["y"] == 120
+    assert app.world.world_scopes["the_pines"]["area_ids"] == ["area_hills"]
+    assert app.world.world_scopes["the_pines"]["area_placements"] == {
+        "area_hills": {"x": 2, "y": 3}}
+
+    # The payload carries the placement, and the placed area leaves the candidate
+    # list (the default world has hand-authored areas of its own in there).
+    assert [(a["id"], a["x"], a["y"]) for a in body["area_placements"]] == [
+        ("area_hills", 2, 3)]
+    assert "area_hills" not in {a["id"] for a in body["unplaced_areas"]}
+
+
+def test_place_area_moves_membership_from_the_previous_scope(tmp_path):
+    app = _app(tmp_path)
+    client = app.test_client()
+    client.post("/api/world/scopes/the_pines/grid", json={"w": 2, "h": 2})
+    client.post("/api/world/scopes/apt_3b/grid", json={"w": 2, "h": 2})
+    _authored_area(app, world_scope_id="apt_3b")
+    app.world.world_scopes["apt_3b"]["area_ids"] = ["area_hills"]
+
+    assert client.post("/api/world/scopes/the_pines/grid/place_area",
+                       json={"area_id": "area_hills", "x": 1, "y": 1}).status_code == 200
+    assert app.world.world_scopes["the_pines"]["area_ids"] == ["area_hills"]
+    assert "area_hills" not in app.world.world_scopes["apt_3b"]["area_ids"]
+
+
+def test_place_area_refuses_what_it_should(tmp_path):
+    app = _app(tmp_path)
+    client = app.test_client()
+    client.post("/api/world/scopes/the_pines/grid", json={"w": 2, "h": 2})
+    _authored_area(app)
+    _authored_area(app, area_id="area_gen", name="Generated",
+                   generated={"scope_id": "apt_3b", "recipe_id": "r"})
+    app.world.graph.add_node(Node(id="way_1", type="way", name="A to B"))
+
+    def place(body):
+        return client.post("/api/world/scopes/the_pines/grid/place_area", json=body)
+
+    assert place({"x": 0, "y": 0}).status_code == 400
+    assert place({"area_id": "nope", "x": 0, "y": 0}).status_code == 400
+    assert "No area" in place({"area_id": "ghost", "x": 0, "y": 0}).get_json()["error"]
+    assert "not an area" in place({"area_id": "way_1", "x": 0, "y": 0}).get_json()["error"]
+    gen = place({"area_id": "area_gen", "x": 0, "y": 0})
+    assert gen.status_code == 400 and "generated" in gen.get_json()["error"]
+    assert place({"area_id": "area_hills", "x": 9, "y": 9}).status_code == 400
+    assert client.post("/api/world/scopes/ghost/grid/place_area",
+                       json={"area_id": "area_hills", "x": 0, "y": 0}).status_code == 404
+
+    # A grid-less scope is refused too (not a crash).
+    app.world.world_scopes["bare"] = {"id": "bare", "name": "Bare", "state": "unmade"}
+    assert client.post("/api/world/scopes/bare/grid/place_area",
+                       json={"area_id": "area_hills", "x": 0, "y": 0}).status_code == 400
+    # Nothing was half-written by any of those refusals.
+    assert "area_placements" not in app.world.world_scopes["the_pines"]
+
+
+def test_place_area_occupied_cell_needs_displace(tmp_path):
+    app = _app(tmp_path)
+    client = app.test_client()
+    client.post("/api/world/scopes/the_pines/grid", json={"w": 2, "h": 2})
+    _authored_area(app, area_id="area_hills", name="Northern Hills")
+    _authored_area(app, area_id="area_lake", name="Murk Lake")
+    assert client.post("/api/world/scopes/the_pines/grid/place_area",
+                       json={"area_id": "area_hills", "x": 1, "y": 1}).status_code == 200
+
+    # The refusal names the *occupant*, so the author knows which one to move.
+    clash = client.post("/api/world/scopes/the_pines/grid/place_area",
+                        json={"area_id": "area_lake", "x": 1, "y": 1})
+    assert clash.status_code == 400 and "Northern Hills" in clash.get_json()["error"]
+
+    ok = client.post("/api/world/scopes/the_pines/grid/place_area",
+                     json={"area_id": "area_lake", "x": 1, "y": 1,
+                           "on_overlap": "displace"})
+    assert ok.status_code == 200 and ok.get_json()["status"] == "displaced"
+    rec = app.world.world_scopes["the_pines"]
+    assert rec["area_placements"] == {"area_lake": {"x": 1, "y": 1}}
+    # The displaced area keeps its membership but loses the cell it sat on.
+    displaced = app.world.graph.get_node("area_hills")
+    assert "cell" not in displaced.properties
+    assert "area_hills" in rec["area_ids"]
+
+
+def test_place_area_is_one_undo_step(tmp_path):
+    app = _app(tmp_path)
+    client = app.test_client()
+    client.post("/api/world/scopes/the_pines/grid", json={"w": 2, "h": 2})
+    _authored_area(app)
+    client.post("/api/world/scopes/the_pines/grid/place_area",
+                json={"area_id": "area_hills", "x": 0, "y": 1})
+    assert app.world.graph.get_node("area_hills").properties.get("cell")
+
+    assert client.post("/api/undo", json={}).status_code == 200
+    node = app.world.graph.get_node("area_hills")
+    assert node is not None
+    assert "cell" not in node.properties
+    assert "area_placements" not in app.world.world_scopes["the_pines"]
+    assert not app.world.world_scopes["the_pines"]["area_ids"]
+
+
+def test_unplace_area_frees_the_cell_but_keeps_the_area(tmp_path):
+    app = _app(tmp_path)
+    client = app.test_client()
+    client.post("/api/world/scopes/the_pines/grid", json={"w": 2, "h": 2})
+    _authored_area(app)
+    client.post("/api/world/scopes/the_pines/grid/place_area",
+                json={"area_id": "area_hills", "x": 0, "y": 0})
+
+    resp = client.post("/api/world/scopes/the_pines/grid/unplace_area",
+                       json={"area_id": "area_hills"})
+    assert resp.status_code == 200 and resp.get_json()["status"] == "unplaced"
+    node = app.world.graph.get_node("area_hills")
+    assert node is not None
+    assert not {"cell", "x", "y"} & set(node.properties)
+    assert node.properties["world_scope_id"] == "the_pines"
+    rec = app.world.world_scopes["the_pines"]
+    assert "area_placements" not in rec and rec["area_ids"] == ["area_hills"]
+    # Freed, it becomes a candidate again.
+    assert "area_hills" in {a["id"] for a in resp.get_json()["unplaced_areas"]}
+
+    assert client.post("/api/world/scopes/the_pines/grid/unplace_area",
+                       json={"area_id": "area_hills"}).status_code == 400
+
+
+def test_generate_never_compiles_onto_a_placed_area(tmp_path):
+    """The cell belongs to the hand-placed area; the biome paint under it loses."""
+    app = _app(tmp_path)
+    client = app.test_client()
+    client.post("/api/world/scopes",
+                json={"id": "wild", "name": "Wild", "mode": "world", "w": 2, "h": 1})
+    _paint(client, "wild", {(0, 0): "sparse_forest", (1, 0): "dense_forest"})
+    _authored_area(app, area_id="area_hills", name="Northern Hills")
+    client.post("/api/world/scopes/wild/grid/place_area",
+                json={"area_id": "area_hills", "x": 0, "y": 0})
+
+    assert client.post("/api/world/scopes/wild/grid/generate", json={}).status_code == 200
+    graph = app.world.graph
+    # The hand-placed area is untouched and no second area was minted on its cell.
+    assert graph.get_node("area_hills").properties.get("generated") is None
+    assert graph.get_node("area_wild_0_0") is None
+    assert graph.get_node("area_wild_1_0") is not None
+
+    # Ungenerating leaves the hand-placed area alone (it has no provenance).
+    assert client.post("/api/world/scopes/wild/grid/ungenerate", json={}).status_code == 200
+    assert graph.get_node("area_hills") is not None
+
+# ------------------- scope membership only, no cell (task-539) ---------------
+
+
+def test_reassign_area_moves_membership_without_a_cell(tmp_path):
+    """A child scope's interiors belong to it without being parked on its grid."""
+    app = _app(tmp_path)
+    client = app.test_client()
+    client.post("/api/world/scopes/the_pines/grid", json={"w": 2, "h": 2})
+    _authored_area(app, world_scope_id="the_pines")
+    app.world.world_scopes["the_pines"]["area_ids"] = ["area_hills"]
+
+    resp = client.post("/api/world/scopes/apt_3b/areas",
+                       json={"add": ["area_hills"]})
+    assert resp.status_code == 200
+    assert resp.get_json()["areas"]["area_hills"] == "assigned"
+
+    props = app.world.graph.get_node("area_hills").properties
+    assert props["world_scope_id"] == "apt_3b"
+    # Membership is not placement: no cell was invented.
+    assert not {"cell", "x", "y"} & set(props)
+    # The manifest mirror moved too, or the counts would disagree with the graph.
+    assert app.world.world_scopes["apt_3b"]["area_ids"] == ["area_hills"]
+    assert "area_hills" not in app.world.world_scopes["the_pines"]["area_ids"]
+    # The area now lists in the child scope's own level and not the parent's.
+    assert "area_hills" in world_scopes.own_area_ids(app.world.graph, "apt_3b")
+    assert "area_hills" not in world_scopes.own_area_ids(app.world.graph, "the_pines")
+
+
+def test_reassign_is_one_undo_step_for_a_whole_selection(tmp_path):
+    app = _app(tmp_path)
+    client = app.test_client()
+    _authored_area(app, area_id="area_tent", name="Tent", world_scope_id="the_pines")
+    _authored_area(app, area_id="area_pit", name="Pit", world_scope_id="the_pines")
+    before = len(app._undo_stack)
+
+    resp = client.post("/api/world/scopes/apt_3b/areas",
+                       json={"add": ["area_tent", "area_pit"]})
+    assert resp.status_code == 200
+    assert app.world.world_scopes["apt_3b"]["area_ids"] == ["area_tent", "area_pit"]
+    # A whole selection moves as a single edit, so one Undo puts both back.
+    assert len(app._undo_stack) == before + 1
+    assert client.post("/api/undo").status_code == 200
+    assert app.world.graph.get_node("area_tent").properties["world_scope_id"] == "the_pines"
+    assert app.world.graph.get_node("area_pit").properties["world_scope_id"] == "the_pines"
+
+
+def test_reassign_out_of_a_scope_releases_the_cell_it_was_parked_on(tmp_path):
+    app = _app(tmp_path)
+    client = app.test_client()
+    client.post("/api/world/scopes/the_pines/grid", json={"w": 3, "h": 3})
+    _authored_area(app)
+    assert client.post("/api/world/scopes/the_pines/grid/place_area",
+                       json={"area_id": "area_hills", "x": 1, "y": 2}).status_code == 200
+
+    resp = client.post("/api/world/scopes/apt_3b/areas",
+                       json={"add": ["area_hills"]})
+    assert resp.status_code == 200
+    body = resp.get_json()
+    # The cell belonged to the scope the area just left; both ends are cleared.
+    assert body["areas"]["area_hills:cell"] == "released"
+    props = app.world.graph.get_node("area_hills").properties
+    assert not {"cell", "x", "y"} & set(props)
+    rec = app.world.world_scopes["the_pines"]
+    assert not (rec.get("area_placements") or {})
+
+
+def test_reassign_keeps_a_cell_the_area_already_holds_in_the_target_scope(tmp_path):
+    app = _app(tmp_path)
+    client = app.test_client()
+    client.post("/api/world/scopes/the_pines/grid", json={"w": 3, "h": 3})
+    _authored_area(app)
+    client.post("/api/world/scopes/the_pines/grid/place_area",
+                json={"area_id": "area_hills", "x": 1, "y": 2})
+
+    # Re-assigning to the scope it already sits on changes nothing about the cell.
+    resp = client.post("/api/world/scopes/the_pines/areas",
+                       json={"add": ["area_hills"]})
+    assert resp.status_code == 200
+    assert app.world.graph.get_node("area_hills").properties["cell"] == {"x": 1, "y": 2}
+    assert app.world.world_scopes["the_pines"]["area_placements"] == {
+        "area_hills": {"x": 1, "y": 2}}
+
+
+def test_removing_an_area_clears_its_scope_and_cell(tmp_path):
+    app = _app(tmp_path)
+    client = app.test_client()
+    client.post("/api/world/scopes/the_pines/grid", json={"w": 2, "h": 2})
+    _authored_area(app, world_scope_id="the_pines")
+    client.post("/api/world/scopes/the_pines/grid/place_area",
+                json={"area_id": "area_hills", "x": 0, "y": 0})
+
+    resp = client.post("/api/world/scopes/the_pines/areas",
+                       json={"remove": ["area_hills"]})
+    assert resp.status_code == 200
+    props = app.world.graph.get_node("area_hills").properties
+    assert "world_scope_id" not in props
+    assert not {"cell", "x", "y"} & set(props)
+    rec = app.world.world_scopes["the_pines"]
+    assert "area_hills" not in rec.get("area_ids", [])
+    assert not (rec.get("area_placements") or {})
+
+
+def test_reassign_refuses_generated_areas_and_unknown_ids(tmp_path):
+    app = _app(tmp_path)
+    client = app.test_client()
+    client.post("/api/world/scopes",
+                json={"id": "wild", "name": "Wild", "mode": "world", "w": 1, "h": 1})
+    _paint(client, "wild", {(0, 0): "sparse_forest"})
+    client.post("/api/world/scopes/wild/grid/generate", json={})
+    generated = [n for n in app.world.graph.nodes.values()
+                 if getattr(n, "type", "") == "area"
+                 and (n.properties or {}).get("generated")]
+
+    resp = client.post("/api/world/scopes/apt_3b/areas",
+                       json={"add": [generated[0].id]})
+    assert resp.status_code == 400
+    assert "generated" in resp.get_json()["error"]
+
+    assert client.post("/api/world/scopes/apt_3b/areas",
+                       json={"add": ["area_ghost"]}).status_code == 400
+    _authored_area(app, area_id="item_thing", name="Thing", kind="junk")
+    app.world.graph.get_node("item_thing").type = "item"
+    assert client.post("/api/world/scopes/apt_3b/areas",
+                       json={"add": ["item_thing"]}).status_code == 400
+    assert client.post("/api/world/scopes/ghost/areas",
+                       json={"add": ["x"]}).status_code == 404
+    assert client.post("/api/world/scopes/apt_3b/areas", json={}).status_code == 400
+
+
+def test_grid_payload_names_the_owning_scope_of_each_candidate(tmp_path):
+    """task-541: the picker groups by scope, so it needs the name, not just the id."""
+    app = _app(tmp_path)
+    client = app.test_client()
+    _authored_area(app, area_id="area_tent", name="Tent", world_scope_id="apt_3b")
+    _authored_area(app, area_id="area_orphan", name="Orphan")
+
+    body = client.get("/api/world/scopes/the_pines/grid").get_json()
+    by_id = {a["id"]: a for a in body["unplaced_areas"]}
+    assert by_id["area_tent"]["scope_id"] == "apt_3b"
+    assert by_id["area_tent"]["scope_name"] == "Apartment 3B"
+    assert by_id["area_orphan"]["scope_id"] is None
+    assert by_id["area_orphan"]["scope_name"] is None
+
+
+def test_every_scope_route_is_one_undo_step(tmp_path):
+    """Every WorldPainter scope handler pushes its own pre-state snapshot, so the
+    route-level after_request hook must not add a second one (bug-50): a double
+    push makes the first Undo a no-op, because it pops the POST state."""
+    app = _app(tmp_path)
+    client = app.test_client()
+    client.post("/api/world/scopes",
+                json={"id": "wild", "name": "Wild", "mode": "world", "w": 2, "h": 2})
+    base = len(app._undo_stack)
+
+    assert client.post("/api/world/scopes/wild/rename",
+                       json={"name": "Renamed"}).status_code == 200
+    assert len(app._undo_stack) == base + 1, "one entry for the rename"
+    assert app.world.world_scopes["wild"]["name"] == "Renamed"
+    assert client.post("/api/undo").status_code == 200
+    assert app.world.world_scopes["wild"]["name"] == "Wild", "one undo reverts it"
+
+    base = len(app._undo_stack)
+    assert client.post("/api/world/scopes/wild/offset",
+                       json={"x": 3, "y": 4}).status_code == 200
+    assert len(app._undo_stack) == base + 1, "one entry for the zone move"
+    assert client.post("/api/undo").status_code == 200
+    assert (app.world.world_scopes["wild"].get("map_offset") or {}).get("x") in (0, None)
+
+    base = len(app._undo_stack)
+    _paint(client, "wild", {(0, 0): "sparse_forest"})
+    assert len(app._undo_stack) == base + 1, "one entry for a paint"
+    assert client.post("/api/undo").status_code == 200
+    assert "0,0" not in (app.world.world_scopes["wild"].get("layers") or {}).get("biome", {})
+
+    base = len(app._undo_stack)
+    assert client.post("/api/world/scopes/wild/delete", json={}).status_code == 200
+    assert len(app._undo_stack) == base + 1, "one entry for the delete"
+    assert client.post("/api/undo").status_code == 200
+    assert "wild" in app.world.world_scopes, "one undo brings the scope back"

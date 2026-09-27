@@ -207,6 +207,36 @@ def test_delete_scope_cascades_to_descendants():
         assert dead not in m
 
 
+def test_delete_scope_releases_a_hand_placed_area_but_keeps_it():
+    """task-528: the cell was reserved by the record being deleted."""
+    m = world_scopes.normalise_manifest(MANIFEST)
+    g = _graph()
+    g.add_node(Node(id="area_hills", type="area", name="Northern Hills",
+                    properties={"world_scope_id": "apartment_3b", "tags": ["wild"],
+                                "cell": {"x": 2, "y": 3}, "x": 80, "y": 120}))
+
+    result = world_scopes.delete_scope(m, g, "apartment_3b")
+
+    assert result["released_areas"] == ["area_hills"]
+    node = g.get_node("area_hills")
+    assert node is not None                       # the area itself survives
+    assert "cell" not in node.properties          # its reservation is gone
+    assert "x" not in node.properties and "y" not in node.properties
+    assert node.properties["tags"] == ["wild"]    # unrelated props untouched
+
+
+def test_delete_scope_leaves_a_placed_area_of_a_survivor_alone():
+    m = world_scopes.normalise_manifest(MANIFEST)
+    g = _graph()
+    g.add_node(Node(id="area_hills", type="area", name="Northern Hills",
+                    properties={"world_scope_id": "the_pines", "cell": {"x": 1, "y": 1},
+                                "x": 40, "y": 40}))
+
+    world_scopes.delete_scope(m, g, "apartment_3b")
+    node = g.get_node("area_hills")
+    assert node.properties["cell"] == {"x": 1, "y": 1}
+
+
 def test_missing_manifest_is_safe():
     m = world_scopes.normalise_manifest(None)
     out = world_scopes.project(m, _graph(), _players(), "root")

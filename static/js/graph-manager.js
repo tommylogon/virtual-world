@@ -26,6 +26,10 @@ class GraphManager {
         this._searchQuery = '';
         this._viewMode = 'graph';
         this._cardinalLayout = false;
+        // task-530: set by the load path when the painted grid laid the nodes out.
+        // The painted lattice owns positions, so physics must be disabled — and
+        // the toolbar shows that instead of pretending the toggle still works.
+        this._paintedGridLayout = false;
         this._showEdgeLabels = true;
         this._edgeLabelSize = 8;
         // Node-name labels: a manual toggle plus zoom LOD, because a dense
@@ -55,6 +59,34 @@ class GraphManager {
         if (window.GraphBackground) await window.GraphBackground.init();
         await this._applyEngineConfigDefaults();
         this._syncMapSpacingButton();
+        this._watchScopeChanges();
+    }
+
+    /**
+     * Keep the scope picker and the scope bar in step with the manifest
+     * (bug-50). Both are derived from `loadScopeFilterOptions`, and nothing
+     * called it after a rename, so a scope the author had just renamed kept
+     * showing its **old** name in the graph's picker and breadcrumb until a full
+     * page reload — including a rename made by an external agent over MCP or
+     * reverted by Undo, since those publish the same `world_changed` event.
+     *
+     * The predicate is deliberately narrow. Painting, placing and offset drags
+     * also live under `/api/world/scopes/...` and are far too frequent to
+     * refetch the list for; the routes below are the only ones that can change
+     * a scope's *name or place in the tree*, plus the whole-world operations
+     * (undo, redo, reset, load) that can revert one.
+     */
+    _watchScopeChanges() {
+        if (!window.appEvents) return;
+        const WHOLE_WORLD = /^\/(api\/(undo|redo|reset|load)|api\/load-game\/)/;
+        appEvents.on('world:changed', (ev) => {
+            const path = String((ev && ev.path) || '');
+            const renamesScope = path.startsWith('/api/world/scopes')   // created
+                || /\/rename$/.test(path)                              // renamed
+                || /\/delete$/.test(path)                              // deleted
+                || WHOLE_WORLD.test(path);                            // undo/redo/reset/load
+            if (renamesScope) this.loadScopeFilterOptions();
+        });
     }
 
     // ───────────── Bulk selection (task-378 / audit #12) ─────────────
@@ -72,6 +104,8 @@ class GraphManager {
         this._bulkSelection.clear();
         try { this.network?.unselectAll(); } catch (e) { /* ignore */ }
         if (this._bulkBar) { this._bulkBar.remove(); this._bulkBar = null; }
+        // The bar carries the populated scope list, so a fresh one has to refill.
+        this._bulkScopesFilled = false;
     }
     _updateBulkBar() {
         if (!this._bulkSelection.size) {
@@ -84,6 +118,10 @@ class GraphManager {
             bar.style.cssText = 'position:absolute;left:12px;bottom:12px;z-index:50;display:flex;align-items:center;gap:6px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:11px;box-shadow:0 8px 24px rgba(0,0,0,.5);';
             bar.innerHTML =
                 '<span id="bulk-count" style="color:var(--text-muted);"></span>' +
+                '<select id="bulk-scope" title="Move every selected area into one scope. ' +
+                'Membership only — a scope is not a painted cell. One undo step for the whole selection." ' +
+                'style="font-size:11px;padding:2px;border-radius:5px;max-width:150px;">' +
+                '<option value="">🗺️ Scope…</option></select>' +
                 '<button class="btn btn-sm" id="bulk-tag">🏷 Tag</button>' +
                 '<button class="btn btn-sm" id="bulk-state">⚠ State</button>' +
                 '<button class="btn btn-sm" id="bulk-delete" style="background:#3a1a1a;color:#ff6b6b;">🗑 Delete</button>' +
@@ -92,13 +130,76 @@ class GraphManager {
             bar.querySelector('#bulk-state').addEventListener('click', () => graphManager._bulkState());
             bar.querySelector('#bulk-delete').addEventListener('click', () => graphManager._bulkDelete());
             bar.querySelector('#bulk-clear').addEventListener('click', () => graphManager._clearBulkSelection());
+            bar.querySelector('#bulk-scope').addEventListener('change', (ev) => {
+                const target = ev.target.value;
+                ev.target.value = '';       // so the same scope can be picked twice
+                if (target) graphManager._bulkScope(target);
+            });
             const host = document.getElementById('graph-container');
             (host || document.body).appendChild(bar);
             this._bulkBar = bar;
+            this._fillBulkScopes();
         }
         const count = this._bulkBar.querySelector('#bulk-count');
         if (count) count.textContent = `${this._bulkSelection.size} selected — `;
     }
+
+    /**
+     * Fill the bulk bar's scope picker once (task-539). The option list comes
+     * from the server, so a new scope needs no front-end change, and the
+     * placeholder is always re-selected afterwards so the control reads as a
+     * one-shot action rather than a filter.
+     */
+    async _fillBulkScopes() {
+        const sel = this._bulkBar && this._bulkBar.querySelector('#bulk-scope');
+        if (!sel || this._bulkScopesFilled) return;
+        this._bulkScopesFilled = true;
+        try {
+            const data = await ApiClient.getWorldScopes(true);
+            const scopes = (data && data.scopes) || [];
+            sel.innerHTML = '<option value="">🗺️ Scope…</option>';
+            scopes.forEach((s) => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                // flat_scopes is depth-first with a `depth`, so a nested scope
+                // reads as a child of the one above it.
+                opt.textContent = `${'  '.repeat(s.depth || 0)}${s.name}`;
+                sel.appendChild(opt);
+            });
+        } catch (e) {
+            this._bulkScopesFilled = false;   // let a later selection retry
+            sel.innerHTML = '<option value="">scopes unavailable</option>';
+        }
+    }
+
+    /**
+     * Move the whole selection into one scope (task-539), in a single request so
+     * it is one undo step. The route refuses generated areas, so if the
+     * selection mixes hand-written and generated areas nothing is moved and the
+     * reason is reported.
+     */
+    async _bulkScope(scopeId) {
+        const ids = [...this._bulkSelection];
+        if (!ids.length || !scopeId) return;
+        // The display name, not the id: the picker already had the name on screen
+        // and a message like "moved into deep_woods_2" undoes a rename in the
+        // author's eyes.
+        const label = (this._scopeSummaries || []).find((s) => s.id === scopeId)?.name || scopeId;
+        try {
+            await ApiClient.setScopeAreas(scopeId, ids, []);
+            await worldState.fetch();
+            this._clearBulkSelection();
+            if (typeof window.worldSync !== 'undefined' && window.worldSync?.refresh) {
+                window.worldSync.refresh();
+            }
+            if (typeof toastSuccess === 'function') {
+                toastSuccess(`Moved ${ids.length} area(s) into ${label}.`);
+            }
+        } catch (e) {
+            if (typeof toastError === 'function') toastError(`Scope change failed: ${e.message || e}`);
+        }
+    }
+
     async _bulkTag() {
         const tags = prompt('Add tag(s) to the selected nodes (comma-separated):');
         if (!tags || !tags.trim()) return;
@@ -147,8 +248,6 @@ class GraphManager {
                 // Hierarchical mode owns positions: the solver would drag nodes
                 // off their levels, so the stored preference is not applied there.
                 const on = this._physicsEnabled && !this._levelsMode();
-                const pb = document.getElementById('btn-physics');
-                if (pb) pb.textContent = on ? '⏸ Physics' : '▶ Physics';
                 if (this.network) {
                     this.network.setOptions({ physics: { enabled: on } });
                 }
@@ -203,6 +302,12 @@ class GraphManager {
             // place every zone correctly after a drag. Populated even when the
             // picker element is absent, so the layout still has the offsets.
             this._scopeOffsets = {};
+            // task-531: keep the summaries themselves. Each entry carries
+            // `parent_id`, which is all the scope bar's breadcrumb needs to walk
+            // up the zone tree — the only endpoint that returns a breadcrumb is
+            // the WorldPainter's per-scope grid payload, and one request per scope
+            // change is not worth it for a trail this short.
+            this._scopeSummaries = data.scopes || [];
             for (const scope of data.scopes || []) {
                 if (scope.map_offset) this._scopeOffsets[scope.id] = scope.map_offset;
             }
@@ -222,6 +327,10 @@ class GraphManager {
         } catch (e) {
             console.warn('Failed to load scope filter options:', e);
         }
+        // The scope bar and its breadcrumb read _scopeSummaries, and a scenario
+        // switch resets _scopeFilter without touching the picker (saveload-view),
+        // so repaint rather than assume the previous state still holds.
+        if (window.GraphToolbar) GraphToolbar.syncAll();
     }
 
     /**
@@ -232,20 +341,49 @@ class GraphManager {
     setScopeFilter(scopeId) {
         this._scopeFilter = scopeId || null;
         this._lastSig = '';
-        this.loadGraphData();
+        if (window.GraphToolbar) GraphToolbar.syncAll();
+        const loaded = this.loadGraphData();
+        // A painted scope's art is derived from that scope's grid, and switching
+        // scope loads a subgraph without a world fetch, so the map has to be
+        // re-derived here or it keeps the previous grid's cells (bug-51).
+        if (window.GraphBackground && typeof window.GraphBackground.refreshForScope === 'function') {
+            loaded.then(() => window.GraphBackground.refreshForScope()).catch(() => { });
+        }
+        return loaded;
     }
 
+    /**
+     * Which layout the graph is in, as one of GraphToolbar.LAYOUTS. The layout
+     * axis used to be three independent toggles whose state lived in their own
+     * labels; the segmented control and every disabled rule read this instead.
+     * @returns {'graph'|'map'|'levels'}
+     */
+    activeLayout() {
+        if (this._levelsMode()) return 'levels';
+        return this._cardinalLayout ? 'map' : 'graph';
+    }
+
+    /**
+     * Turn the Map layout on/off. Returns false when the toggle is refused
+     * because another layout owns positions (Levels) — the Map tab is disabled
+     * in that state, this is the programmatic guard behind it (bug-48).
+     * @returns {boolean} whether the layout changed
+     */
     toggleCardinalLayout() {
+        if (this._levelsMode()) {
+            if (typeof toastError === 'function') {
+                toastError('Map is unavailable while Levels owns the layout — pick Graph first, then Map.');
+            }
+            return false;
+        }
         this._cardinalLayout = !this._cardinalLayout;
-        const btn = document.getElementById('btn-cardinal');
-        if (btn) btn.textContent = this._cardinalLayout ? '🗺️ Map' : '🔮 Graph';
+        if (window.GraphToolbar) GraphToolbar.syncAll();
         this._physicsEnabled = true;
-        const pb = document.getElementById('btn-physics');
-        if (pb) pb.textContent = this._cardinalLayout ? '▶ Physics' : '⏸ Physics';
         // Clear signature so loadGraphData doesn't skip the reload
         this._lastSig = '';
         this.loadGraphData();
         this._saveGraphConfigKey('graph.physics_enabled', this._physicsEnabled);
+        return true;
     }
 
     async loadGraphData() {
@@ -266,6 +404,11 @@ class GraphManager {
         try { storage.setConfig('graphMapSpacing', next); } catch (e) { /* keep the session value */ }
         this._syncMapSpacingButton();
         this._lastSig = '';
+        // Node boxes and item rings scale with the pitch, so the group options
+        // have to be rebuilt before the data is re-laid out (bug-53).
+        if (window.GraphNetwork && typeof GraphNetwork.applyGraphSettings === 'function') {
+            try { GraphNetwork.applyGraphSettings(); } catch (e) { /* ignore */ }
+        }
         await this.loadGraphData();
         // The art is positioned in px, so a pitch change must re-fit it; only
         // meaningful for a painted scope in Map mode.
@@ -769,8 +912,7 @@ class GraphManager {
     togglePhysics() {
         graphManager._physicsEnabled = !graphManager._physicsEnabled;
         graphManager.network.setOptions({ physics: { enabled: graphManager._physicsEnabled } });
-        const btn = document.getElementById('btn-physics');
-        if (btn) btn.textContent = graphManager._physicsEnabled ? '⏸ Physics' : '▶ Physics';
+        if (window.GraphToolbar) GraphToolbar.syncAll();
         graphManager._saveGraphConfigKey('graph.physics_enabled', graphManager._physicsEnabled);
     }
 
@@ -805,11 +947,13 @@ class GraphManager {
 
     toggleItems() {
         GraphNetwork.toggleItems();
+        if (window.GraphToolbar) GraphToolbar.syncAll();
         graphManager._saveGraphConfigKey('graph.show_items', graphManager._showItems);
     }
 
     toggleInhabitedAreas() {
         GraphNetwork.toggleInhabitedAreas();
+        if (window.GraphToolbar) GraphToolbar.syncAll();
         graphManager._saveGraphConfigKey('graph.show_only_inhabited', graphManager._showOnlyInhabitedAreas);
     }
 
@@ -817,8 +961,7 @@ class GraphManager {
 
     toggleEdgeLabels() {
         this._showEdgeLabels = !this._showEdgeLabels;
-        const btn = document.getElementById('btn-edge-labels');
-        if (btn) btn.classList.toggle('active', this._showEdgeLabels);
+        if (window.GraphToolbar) GraphToolbar.syncToggles();
         this._lastSig = '';
         this.loadGraphData();
     }
@@ -831,8 +974,7 @@ class GraphManager {
     toggleNodeLabels() {
         this._showNodeLabels = !this._showNodeLabels;
         try { localStorage.setItem('vw_graphNodeLabels', this._showNodeLabels ? '1' : '0'); } catch (e) { /* ignore */ }
-        const btn = document.getElementById('btn-node-labels');
-        if (btn) btn.classList.toggle('active', this._showNodeLabels);
+        if (window.GraphToolbar) GraphToolbar.syncToggles();
         GraphNetwork.applyNodeLabelVisibility(true);
     }
 
@@ -877,7 +1019,7 @@ class GraphManager {
         const current = this._floorOptions.includes(this._floorFilter) ? this._floorFilter : 'all';
         this._floorFilter = current;
         window.Lit.render(graphManagerHtmlTag`${this._floorOptions.map(f =>
-            graphManagerHtmlTag`<option value=${f} ?selected=${f === current}>${f === 'all' ? '🏢 All Floors' : `🏢 Floor ${f}`}</option>`)}`, sel);
+            graphManagerHtmlTag`<option value=${f} ?selected=${f === current}>${f === 'all' ? 'All floors' : `Floor ${f}`}</option>`)}`, sel);
         sel.value = current;
     }
 
@@ -890,18 +1032,17 @@ class GraphManager {
 
     // --- View mode switching: Graph / Map / Overlays ---
 
+    /**
+     * Switch the *overlay* (the recolouring view) — the layout is a separate
+     * axis, owned by the segmented control (see activeLayout/toggleCardinalLayout).
+     * `graph` clears the overlay; `light` | `heat` | `sound` | `trigger` |
+     * `cardinal` apply one. Nothing here renames a control: the toolbar repaints
+     * itself from state via GraphToolbar.syncAll().
+     *
+     * @param {'graph'|'light'|'heat'|'sound'|'trigger'|'cardinal'} mode
+     */
     setViewMode(mode) {
         this._viewMode = mode;
-        document.querySelectorAll('.view-toggle').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.view === mode);
-        });
-        document.querySelectorAll('.overlay-toggle').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.overlay === mode);
-        });
-        // Update dropdown button text to reflect active overlay
-        const overlayBtn = document.getElementById('btn-overlays');
-        const overlayNames = { light:'💡 Light', heat:'🌡️ Heat', sound:'🔊 Sound', trigger:'⚡ Triggers', cardinal:'🧭 Cardinal' };
-        if (overlayBtn) overlayBtn.textContent = overlayNames[mode] || '📊 Overlays ▾';
         const container = document.getElementById('graph-container');
         container.querySelectorAll('.view-overlay').forEach(el => el.remove());
         const visEl = container.querySelector('.vis-network') || container.querySelector('canvas');
@@ -913,11 +1054,7 @@ class GraphManager {
             // Disengage cardinal layout first so loadGraphData doesn't re-apply it
             if (this._cardinalLayout) {
                 this._cardinalLayout = false;
-                const cb = document.getElementById('btn-cardinal');
-                if (cb) cb.textContent = '🗺️ Map';
                 this._physicsEnabled = true;
-                const pb = document.getElementById('btn-physics');
-                if (pb) pb.textContent = this._levelsMode() ? '▶ Physics' : '⏸ Physics';
             }
             if (this.network) {
                 GraphNetwork.applyOverlay('structural');
@@ -928,14 +1065,10 @@ class GraphManager {
             if (visEl) visEl.style.display = '';
             if (this.network) {
                 this.network.setOptions({ physics: { enabled: false } });
-                if (mode === 'cardinal' && !this._cardinalLayout) {
-                    this._viewMode = mode;
-                    this.toggleCardinalLayout();
-                } else {
-                    GraphNetwork.applyOverlay(mode);
-                }
+                GraphNetwork.applyOverlay(mode);
             }
         }
+        if (window.GraphToolbar) GraphToolbar.syncAll();
     }
 
     _renderCurrentView() {
@@ -947,22 +1080,6 @@ class GraphManager {
         const visEl = container.querySelector('.vis-network') || container.querySelector('canvas');
         if (visEl) visEl.style.display = '';
         if (this.network) GraphNetwork.applyOverlay(this._viewMode);
-    }
-
-    _toggleOverlayDropdown() {
-        const menu = document.getElementById('overlay-dropdown');
-        if (!menu) return;
-        const shown = menu.style.display !== 'none';
-        menu.style.display = shown ? 'none' : 'block';
-        if (!shown) {
-            const close = (e) => {
-                if (!menu.contains(e.target) && e.target.id !== 'btn-overlays') {
-                    menu.style.display = 'none';
-                    document.removeEventListener('click', close);
-                }
-            };
-            setTimeout(() => document.addEventListener('click', close), 0);
-        }
     }
 
     _buildLegendHTML() { return GraphNetwork.buildLegendHTML(); }

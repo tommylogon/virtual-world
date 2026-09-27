@@ -297,6 +297,9 @@ class ConfigManager {
         
         VW.llm._manualMode = !!this.manualMode;
         if (!VW.llm._manualMode) VW.llm._manualResponse = null;
+        // "Paste Response" in the graph toolbar is only usable in Manual Response
+        // Mode, so it is enabled/disabled from this one place (task-530).
+        if (window.GraphToolbar) GraphToolbar.syncDisabled();
         
         const profileSelect = document.getElementById('profile-select');
         const currentProfile = profileSelect?.value;
@@ -385,6 +388,8 @@ class ConfigManager {
             VW.llm._manualMode = !!this.manualMode;
             if (!VW.llm._manualMode) VW.llm._manualResponse = null;
         }
+        // Manual Response Mode gates the graph toolbar's "Paste Response".
+        if (window.GraphToolbar) GraphToolbar.syncAll();
         
         (async () => {
             const modelSelect = document.getElementById('agent-model-select');

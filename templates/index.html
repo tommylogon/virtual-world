@@ -164,106 +164,152 @@
 
         <!-- CENTER VIEWPORT -->
         <main id="center-viewport" aria-label="World visualization">
+            <!-- task-530: three zones (Do / Where / Look) with progressive
+                 disclosure. The bar used to be ~36 peer controls; rare settings
+                 live in the View popover and session actions in More. State is
+                 shown with aria-selected / aria-pressed, never by renaming a
+                 button — see static/js/graph/toolbar.js. -->
             <div id="graph-toolbar" class="editor-toolbar" role="toolbar" aria-label="Graph tools">
-                <!-- Create -->
-                <div class="toolbar-group" aria-label="Create nodes">
-                    <button class="toolbar-btn" data-tool="add_area" onclick="addRoomViaGraph()">🏠 Area</button>
-                    <button class="toolbar-btn" data-tool="add_item" onclick="addItemViaGraph()">📦 Item</button>
-                    <button class="toolbar-btn" data-tool="add_way" onclick="connectRoomsViaGraph()">🚪 Way</button>
-                    <button class="toolbar-btn" onclick="openLibraryBrowser()">📚 Library</button>
-                    <button class="toolbar-btn" onclick="VW.structures.openBrowseDialog()">📦 Structures</button>
-                    <button class="toolbar-btn" data-help="worldpainter" onclick="VW.worldPainter.open()" title="Paint scope grids (world / town / interior)">🗺️ WorldPainter</button>
+                <!-- DO — create and history -->
+                <div class="toolbar-zone" aria-label="Create and history">
+                    <div class="toolbar-dropdown menu-anchor">
+                        <button class="toolbar-btn toolbar-btn-primary" id="btn-build" aria-haspopup="menu" aria-expanded="false" onclick="GraphToolbar.togglePopover(event,'build-menu')" title="Create an area, item or way, or open a library">➕ Build ▾</button>
+                        <div id="build-menu" class="dropdown-menu toolbar-menu" role="menu" aria-label="Create">
+                            <button class="dropdown-item" data-tool="add_area" role="menuitem" onclick="closeTopMenus();addRoomViaGraph()">🏠 Area</button>
+                            <button class="dropdown-item" data-tool="add_item" role="menuitem" onclick="closeTopMenus();addItemViaGraph()">📦 Item</button>
+                            <button class="dropdown-item" data-tool="add_way" role="menuitem" onclick="closeTopMenus();connectRoomsViaGraph()">🚪 Way</button>
+                            <div class="menu-sep" role="separator"></div>
+                            <button class="dropdown-item" role="menuitem" onclick="closeTopMenus();openLibraryBrowser()">📚 Library</button>
+                            <button class="dropdown-item" role="menuitem" onclick="closeTopMenus();VW.structures.openBrowseDialog()">📦 Structures</button>
+                            <button class="dropdown-item" data-help="worldpainter" role="menuitem" onclick="closeTopMenus();VW.worldPainter.open()" title="Paint scope grids (world / town / interior)">🗺️ WorldPainter</button>
+                        </div>
+                    </div>
+                    <span class="toolbar-divider"></span>
+                    <button class="toolbar-btn" id="btn-undo" data-overflow-label="Undo" onclick="graphEditor.undo()" title="Undo (Ctrl+Z)">↩️</button>
+                    <button class="toolbar-btn" id="btn-redo" data-overflow-label="Redo" onclick="graphEditor.redo()" title="Redo (Ctrl+Shift+Z)">↪️</button>
+                    <div class="toolbar-dropdown menu-anchor" id="undo-history-anchor">
+                        <button class="toolbar-btn" data-role="undo-history-toggle" data-overflow-label="Undo history" onclick="UndoHistory.toggle()" title="Undo history">📜</button>
+                        <div id="undo-history-menu" style="display:none;position:absolute;top:100%;left:0;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:4px;z-index:15000;min-width:240px;max-width:320px;margin-top:4px;"></div>
+                    </div>
                 </div>
-                <div class="toolbar-divider"></div>
-                <!-- History -->
-                <div class="toolbar-group" aria-label="Undo / redo">
-                    <button class="toolbar-btn" onclick="graphEditor.undo()" title="Undo">↩️</button>
-                    <button class="toolbar-btn" onclick="graphEditor.redo()" title="Redo">↪️</button>
-                    <button class="toolbar-btn" data-role="undo-history-toggle" onclick="UndoHistory.toggle()" title="Undo history">📜</button>
-                    <div id="undo-history-menu" style="display:none;position:absolute;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:4px;z-index:15000;min-width:240px;max-width:320px;margin-top:4px;"></div>
+                <span class="toolbar-divider"></span>
+                <!-- WHERE — what is loaded, and finding things in it -->
+                <div class="toolbar-zone toolbar-zone-where" aria-label="Scope and search">
+                    <div class="scope-chip" title="Load one world scope into the graph — a painted world is too large to load whole">
+                        <span class="scope-chip-icon" aria-hidden="true">🌍</span>
+                        <select id="graph-scope-filter" data-help="scope-filter" onchange="graphManager.setScopeFilter(this.value)" aria-label="Loaded world scope" title="Load only one world scope into the graph"></select>
+                    </div>
+                    <span id="scope-stats" class="scope-stats" aria-live="polite" title="How much of the world is loaded right now"></span>
+                    <div class="search-box">
+                        <span class="search-icon" aria-hidden="true">🔍</span>
+                        <input class="graph-search" type="text" id="graph-search" placeholder="Search nodes or tags..." oninput="graphManager.filterNodes(this.value)" onkeydown="if(event.key==='Enter'){GraphNetwork.settleSearch();}" onblur="GraphNetwork.settleSearch()" title="Filter graph nodes by name or tag">
+                        <label class="keep-toggle" id="keep-label" title="Keep matches where they are instead of gathering them into a cluster">
+                            <input type="checkbox" id="search-keep-in-place" onchange="GraphFocus.setKeepInPlace(this.checked); this.parentElement.classList.toggle('active', this.checked)">
+                            <span>Keep layout</span>
+                        </label>
+                    </div>
                 </div>
-                <div class="toolbar-divider"></div>
-                <!-- View modes -->
-                <div class="toolbar-group" aria-label="View mode">
-                    <button class="toolbar-btn view-toggle active" data-view="graph" onclick="graphManager.setViewMode('graph')" title="Force-directed graph view">🔮 Graph</button>
-                    <button class="toolbar-btn" id="btn-cardinal" onclick="graphManager.toggleCardinalLayout()" title="Map layout: use painted grid positions when the world was painted, otherwise arrange areas from exit directions">🗺️ Map</button>
-                    <span style="display:inline-flex;align-items:center;gap:2px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;padding:2px 4px;" title="Map mode: pixels per painted cell (padding between areas). Raise it to de-clutter a dense grid.">
-                        <button class="toolbar-btn" style="padding:0 6px;font-size:12px;line-height:1.2;" onclick="graphManager.setMapSpacing(-20)" title="Tighter map spacing">−</button>
-                        <span id="map-spacing" style="font-size:10px;color:var(--text);min-width:22px;text-align:center;">40</span>
-                        <button class="toolbar-btn" style="padding:0 6px;font-size:12px;line-height:1.2;" onclick="graphManager.setMapSpacing(20)" title="Roomier map spacing">+</button>
-                    </span>
-                    <div class="toolbar-dropdown menu-anchor" style="position:relative;">
-                        <button class="toolbar-btn" id="btn-overlays" data-help="overlays" onclick="graphManager._toggleOverlayDropdown()" title="Graph overlay views">📊 Overlays ▾</button>
-                        <div id="overlay-dropdown" class="dropdown-menu" style="display:none;position:absolute;top:100%;left:0;z-index:200;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:4px;box-shadow:0 8px 24px rgba(0,0,0,0.5);min-width:160px;">
-                            <button class="dropdown-item overlay-toggle" data-overlay="light" onclick="graphManager.setViewMode('light');graphManager._toggleOverlayDropdown()" title="Color areas by ambient light">💡 Light</button>
-                            <button class="dropdown-item overlay-toggle" data-overlay="heat" onclick="graphManager.setViewMode('heat');graphManager._toggleOverlayDropdown()" title="Color areas by temperature">🌡️ Heat</button>
-                            <button class="dropdown-item overlay-toggle" data-overlay="sound" onclick="graphManager.setViewMode('sound');graphManager._toggleOverlayDropdown()" title="Color areas by noise level">🔊 Sound</button>
-                            <button class="dropdown-item overlay-toggle" data-overlay="trigger" onclick="graphManager.setViewMode('trigger');graphManager._toggleOverlayDropdown()" title="Highlight trigger sources and targets">⚡ Triggers</button>
-                            <button class="dropdown-item overlay-toggle" data-overlay="cardinal" onclick="graphManager.setViewMode('cardinal');graphManager._toggleOverlayDropdown()" title="Show door directions geographically">🧭 Cardinal</button>
+                <span class="toolbar-divider"></span>
+                <!-- LOOK — layout, overlays, visibility, labels -->
+                <div class="toolbar-zone" aria-label="Look">
+                    <div class="toolbar-segment" id="layout-segment" role="tablist" aria-label="Layout mode">
+                        <button class="toolbar-btn" id="btn-layout-graph" role="tab" data-layout="graph" aria-selected="true" onclick="GraphToolbar.setLayout('graph')" title="Free graph layout — nodes sit where you put them (or wherever physics settles them)">🔮 Graph</button>
+                        <button class="toolbar-btn" id="btn-cardinal" role="tab" data-layout="map" aria-selected="false" onclick="GraphToolbar.setLayout('map')" title="Map layout: use painted grid positions when the world was painted, otherwise arrange areas from exit directions">🗺️ Map</button>
+                        <button class="toolbar-btn" id="btn-layout-mode" role="tab" data-layout="levels" aria-selected="false" onclick="GraphToolbar.setLayout('levels')" title="Hierarchical layout — nodes sit by relation level, physics off">🌳 Levels</button>
+                    </div>
+                    <div class="toolbar-dropdown menu-anchor">
+                        <button class="toolbar-btn" id="btn-overlays" data-help="overlays" aria-haspopup="menu" aria-expanded="false" onclick="GraphToolbar.togglePopover(event,'view-menu')" title="Overlays, what is shown on the canvas, labels and the legend">👁 View ▾</button>
+                        <div id="view-menu" class="dropdown-menu toolbar-menu toolbar-view-menu" role="menu" aria-label="View options">
+                            <div class="menu-heading">Overlay</div>
+                            <div class="menu-grid">
+                                <button class="menu-toggle overlay-toggle" data-overlay="none" aria-pressed="true" onclick="GraphToolbar.setOverlay('none')" title="No overlay — the structural graph">None</button>
+                                <button class="menu-toggle overlay-toggle" data-overlay="light" aria-pressed="false" onclick="GraphToolbar.setOverlay('light')" title="Color areas by ambient light">💡 Light</button>
+                                <button class="menu-toggle overlay-toggle" data-overlay="heat" aria-pressed="false" onclick="GraphToolbar.setOverlay('heat')" title="Color areas by temperature">🌡️ Heat</button>
+                                <button class="menu-toggle overlay-toggle" data-overlay="sound" aria-pressed="false" onclick="GraphToolbar.setOverlay('sound')" title="Color areas by noise level">🔊 Sound</button>
+                                <button class="menu-toggle overlay-toggle" data-overlay="trigger" aria-pressed="false" onclick="GraphToolbar.setOverlay('trigger')" title="Highlight trigger sources and targets">⚡ Triggers</button>
+                                <button class="menu-toggle overlay-toggle" data-overlay="cardinal" aria-pressed="false" onclick="GraphToolbar.setOverlay('cardinal')" title="Label ways with their compass direction (a label overlay — it does not change the layout)">🧭 Way directions</button>
+                            </div>
+                            <div class="menu-heading">Show on canvas</div>
+                            <div class="menu-grid">
+                                <button class="menu-toggle" id="btn-inhabited" aria-pressed="true" onclick="graphManager.toggleInhabitedAreas()" title="Hide areas with no characters present">🏘 Inhabited</button>
+                                <button class="menu-toggle" id="btn-images" aria-pressed="true" onclick="graphManager.toggleImages()" title="Show node image thumbnails on the graph (where set)">🖼 Images</button>
+                                <button class="menu-toggle" id="btn-triggers" data-help="triggers" aria-pressed="false" onclick="graphManager.toggleTriggers()" title="Show/hide trigger nodes in graph">🔩 Trigger nodes</button>
+                                <button class="menu-toggle" id="btn-items" aria-pressed="false" onclick="graphManager.toggleItems()" title="Show/hide item nodes in graph">👁 Item nodes</button>
+                                <label class="menu-toggle menu-select" title="Filter the graph to a single floor of areas">
+                                    <span>🏢 Floors</span>
+                                    <select id="floor-filter" onchange="graphManager.setFloorFilter(this.value)">
+                                        <option value="all">All floors</option>
+                                    </select>
+                                </label>
+                            </div>
+                            <div class="menu-heading">Labels &amp; legend</div>
+                            <div class="menu-grid">
+                                <button class="menu-toggle" id="btn-edge-labels" aria-pressed="true" onclick="graphManager.toggleEdgeLabels()" title="Show all edge type labels">🏷 Edge labels</button>
+                                <button class="menu-toggle" id="btn-node-labels" aria-pressed="true" onclick="graphManager.toggleNodeLabels()" title="Show node names. Names auto-hide at overview zoom on a dense painted map (toggle off to force-hide).">🔤 Names</button>
+                                <button class="menu-toggle" id="btn-legend" aria-pressed="false" onclick="graphManager.toggleLegend()" title="Toggle legend">📖 Legend</button>
+                                <span class="stepper" title="Edge label size">
+                                    <button class="stepper-btn" onclick="graphManager.setEdgeLabelSize(-1)" aria-label="Smaller edge labels">−</button>
+                                    <span id="edge-label-size" class="stepper-value">8</span>
+                                    <button class="stepper-btn" onclick="graphManager.setEdgeLabelSize(1)" aria-label="Larger edge labels">+</button>
+                                </span>
+                            </div>
+                            <div class="menu-heading">Map grid</div>
+                            <div class="menu-grid">
+                                <span class="stepper" title="Map layout only — pixels per painted cell (the padding between areas). Raise it to de-clutter a dense grid.">
+                                    <button class="stepper-btn" onclick="graphManager.setMapSpacing(-20)" aria-label="Tighter map spacing">−</button>
+                                    <span id="map-spacing" class="stepper-value">40</span>
+                                    <button class="stepper-btn" onclick="graphManager.setMapSpacing(20)" aria-label="Roomier map spacing">+</button>
+                                </span>
+                                <span class="menu-note">Only used by the 🗺️ Map layout.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="toolbar-btn" id="btn-fit" data-overflow-label="Fit all nodes" onclick="graphManager.fitView()" title="Zoom to fit all nodes">⊞</button>
+                    <!-- Physics and Export PNG keep their own text in the overflow
+                         ("⏸ Physics", "📷 PNG"); only the icon-only controls need a
+                         name added when they move into the menu. -->
+                    <button class="toolbar-btn" id="btn-physics" aria-pressed="true" onclick="graphManager.togglePhysics()" title="Pause the simulation and freeze every node where it is">⏸ Physics</button>
+                    <button class="toolbar-btn" id="btn-export-png" onclick="GraphExport.openDialog()" title="Export the graph as a high-resolution PNG (map background included)">📷 PNG</button>
+                </div>
+                <div class="toolbar-spacer"></div>
+                <!-- Rarely used -->
+                <div class="toolbar-zone" aria-label="More tools">
+                    <div class="toolbar-dropdown menu-anchor">
+                        <button class="toolbar-btn" id="btn-more" data-help="more" aria-haspopup="menu" aria-expanded="false" onclick="GraphToolbar.togglePopover(event,'graph-more-menu')" title="More graph tools">⋯ More ▾</button>
+                        <div id="graph-more-menu" class="dropdown-menu toolbar-menu" role="menu" aria-label="More graph tools">
+                            <!-- task-532: at a narrow window the bar's secondary
+                                 controls are moved INTO this group, so they stay
+                                 reachable instead of wrapping into extra rows. -->
+                            <div id="toolbar-overflow" class="toolbar-overflow-group" hidden>
+                                <div class="menu-heading">Canvas</div>
+                            </div>
+                            <div class="menu-sep" role="separator"></div>
+                            <button class="dropdown-item" role="menuitem" onclick="closeTopMenus();graphEditor.showTemplates()">📋 Templates</button>
+                            <button class="dropdown-item" role="menuitem" onclick="closeTopMenus();VW.inspector.showWorldLore()" title="Edit world lore entries">🌍 Lore</button>
+                            <button class="dropdown-item" role="menuitem" onclick="closeTopMenus();graphManager.toggleTagPanel()" title="Toggle tag filter / indicators">🏷️ Tags</button>
+                            <button class="dropdown-item" role="menuitem" onclick="closeTopMenus();openWorldSync()" title="Sync world entities to library">📋 Sync to Library</button>
+                            <button class="dropdown-item" role="menuitem" onclick="closeTopMenus();printWorld()" title="Printer-friendly world summary">🖨️ Print</button>
+                            <div class="menu-sep" role="separator"></div>
+                            <button class="dropdown-item" role="menuitem" onclick="closeTopMenus();copyPromptToClipboard()" title="Copy the last prompt to the clipboard (also in the ⌘K palette)">📋 Copy Prompt</button>
+                            <button class="dropdown-item" id="menu-paste-response" role="menuitem" onclick="closeTopMenus();openPasteModal()" title="Paste a manual LLM response">📝 Paste Response</button>
                         </div>
                     </div>
                 </div>
-                <div class="toolbar-divider"></div>
-                <!-- Canvas -->
-                <div class="toolbar-group" aria-label="Canvas controls">
-                    <button class="toolbar-btn" id="btn-physics" onclick="graphManager.togglePhysics()" title="Toggle physics (freeze/unfreeze node positions)">⏸ Physics</button>
-<button class="toolbar-btn" id="btn-layout-mode" onclick="graphManager.toggleLayoutMode()" title="Free physics layout with contents following their parent. Click for hierarchical levels.">🌳 Levels</button>
-                    <button class="toolbar-btn" onclick="graphManager.fitView()" title="Zoom to fit all nodes">⊞ Fit</button>
-                    <button class="toolbar-btn" id="btn-export-png" onclick="GraphExport.openDialog()" title="Export the graph as a high-resolution PNG (map background included)">📷 PNG</button>
-                    <input class="graph-search" type="text" id="graph-search" placeholder="🔍 Search nodes or tags..." oninput="graphManager.filterNodes(this.value)" onkeydown="if(event.key==='Enter'){GraphNetwork.settleSearch();}" onblur="GraphNetwork.settleSearch()" title="Filter graph nodes by name or tag">
-                    <label class="toolbar-btn" style="display:inline-flex;align-items:center;gap:3px;cursor:pointer;font-size:10px;" title="Freeze hidden nodes but keep matches in place (for spatial review)">
-                        <input type="checkbox" id="search-keep-in-place" style="margin:0;cursor:pointer;" onchange="GraphFocus.setKeepInPlace(this.checked); this.parentElement.classList.toggle('active', this.checked)">
-                        <span>KEEP</span>
-                    </label>
-                    <select id="graph-scope-filter" class="graph-search" data-help="scope-filter" style="max-width:170px;cursor:pointer;" title="Load only one world scope into the graph — keeps a huge painted world from loading every node at once" onchange="graphManager.setScopeFilter(this.value)"></select>
-                </div>
-                <div class="toolbar-divider"></div>
-                <!-- Visibility toggles -->
-                <div class="toolbar-group" aria-label="Show on graph">
-                    <button class="toolbar-btn active" id="btn-inhabited" onclick="graphManager.toggleInhabitedAreas()" title="Hide areas with no characters present">🏘 Inhabited</button>
-                    <button class="toolbar-btn active" id="btn-images" onclick="graphManager.toggleImages()" title="Show node image thumbnails on the graph (where set)">🖼 Images</button>
-                    <button class="toolbar-btn" id="btn-triggers" data-help="triggers" onclick="graphManager.toggleTriggers()" title="Show/hide trigger nodes in graph">🔩 Triggers</button>
-                    <button class="toolbar-btn" id="btn-items" onclick="graphManager.toggleItems()" title="Show/hide item nodes in graph">📦 Items</button>
-                    <select id="floor-filter" class="graph-search" style="width:auto;max-width:140px;padding:4px 6px;font-size:10px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="graphManager.setFloorFilter(this.value)" title="Filter graph to a single floor of areas">
-                        <option value="all">🏢 All Floors</option>
-                    </select>
-                </div>
-                <div class="toolbar-divider"></div>
-                <!-- Edge labels -->
-                <div class="toolbar-group" aria-label="Edge labels">
-                    <button class="toolbar-btn active" id="btn-edge-labels" onclick="graphManager.toggleEdgeLabels()" title="Show all edge type labels">🏷 Labels</button>
-                    <button class="toolbar-btn active" id="btn-node-labels" onclick="graphManager.toggleNodeLabels()" title="Show node names. Names auto-hide at overview zoom on a dense painted map (toggle off to force-hide).">🔤 Names</button>
-                    <span style="display:inline-flex;align-items:center;gap:2px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;padding:2px 4px;">
-                        <button class="toolbar-btn" style="padding:0 6px;font-size:12px;line-height:1.2;" onclick="graphManager.setEdgeLabelSize(-1)" title="Smaller edge labels">−</button>
-                        <span id="edge-label-size" style="font-size:10px;color:var(--text);min-width:14px;text-align:center;">8</span>
-                        <button class="toolbar-btn" style="padding:0 6px;font-size:12px;line-height:1.2;" onclick="graphManager.setEdgeLabelSize(1)" title="Larger edge labels">+</button>
-                    </span>
-                </div>
-                <div class="toolbar-divider"></div>
-                <!-- Rarely used -->
-                <div class="toolbar-group menu-anchor" style="position:relative;" aria-label="More tools">
-                    <button class="toolbar-btn" data-help="more" onclick="toggleTopMenu(event,'graph-more-menu')" title="More graph tools">⋯ More ▾</button>
-                    <div id="graph-more-menu" class="dropdown-menu top-menu top-menu-left" style="display:none;" role="menu" aria-label="More graph tools">
-                        <button class="dropdown-item" onclick="closeTopMenus();graphEditor.showTemplates()" role="menuitem">📋 Templates</button>
-                        <button class="dropdown-item" onclick="closeTopMenus();VW.inspector.showWorldLore()" role="menuitem" title="Edit world lore entries">🌍 Lore</button>
-                        <button class="dropdown-item" onclick="closeTopMenus();graphManager.toggleLegend()" role="menuitem" title="Toggle legend">📖 Legend</button>
-                        <button class="dropdown-item" onclick="closeTopMenus();graphManager.toggleTagPanel()" role="menuitem" title="Toggle tag filter / indicators">🏷️ Tags</button>
-                        <button class="dropdown-item" onclick="closeTopMenus();openWorldSync()" role="menuitem" title="Sync world entities to library">📋 Sync to Library</button>
-                        <button class="dropdown-item" onclick="closeTopMenus();printWorld()" role="menuitem" title="Printer-friendly world summary">🖨️ Print</button>
-                        <button class="dropdown-item" onclick="closeTopMenus();GraphExport.openDialog()" role="menuitem" title="Export the graph as a high-resolution PNG">📷 Export PNG</button>
-                    </div>
-                </div>
-                <div class="toolbar-spacer"></div>
-                <div class="toolbar-group">
-                    <button class="toolbar-btn" onclick="copyPromptToClipboard()" title="Copy last prompt to clipboard">📋 Copy Prompt</button>
-                    <button class="toolbar-btn" onclick="openPasteModal()" title="Paste a manual LLM response">📝 Paste Response</button>
-                </div>
+            </div>
+            <!-- task-531: second tier of the toolbar. Shown only while a world
+                 scope is loaded: where am I, how much of it, and the two ways
+                 out. Generation stays in the WorldPainter's own toolbar. -->
+            <div id="scope-bar" class="scope-bar" hidden aria-label="Loaded world scope">
+                <nav id="scope-breadcrumb" class="scope-breadcrumb" aria-label="Scope path"></nav>
+                <span id="scope-bar-stats" class="scope-bar-stats" aria-live="polite"></span>
+                <span class="toolbar-spacer"></span>
+                <button class="scope-bar-btn" id="scope-open-painter" onclick="GraphToolbar.openScopeInWorldPainter()" title="Open this scope in the WorldPainter — the only surface that can paint or generate it">🖌 Open in WorldPainter</button>
+                <button class="scope-bar-btn" id="scope-show-whole" onclick="GraphToolbar.showWholeWorld()" title="Unload this scope and put every area, way and character back on the canvas">← Show whole world</button>
             </div>
             <div id="graph-container" role="img" aria-label="Interactive relationship graph">
                 <div class="graph-zoom-cluster" role="group" aria-label="Zoom controls">
                     <button onclick="graphManager.zoomIn()" title="Zoom in" aria-label="Zoom in">＋</button>
                     <button onclick="graphManager.zoomOut()" title="Zoom out" aria-label="Zoom out">－</button>
-                    <button onclick="graphManager.fitView()" title="Fit all nodes" aria-label="Fit all nodes">⊞</button>
                 </div>
             </div>
 
@@ -446,7 +492,7 @@
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-end-of-turn-memory" onchange="config.endOfTurnMemory=this.checked;config.save();events.log('🧠 End-of-turn memory '+(this.checked?'enabled':'disabled'),'system-msg');"> 🧠 End-of-turn Memory</label><span class="toggle-desc">Ask the character to write a memory after its action resolves. Off by default — memories are normally written at the <b>start</b> of a turn.</span></div>
                         <div class="toggle-row"><label class="toggle-label"><select id="agent-api-format" style="width:160px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.apiFormat=this.value;config.save();"><option value="auto">Auto</option><option value="chat-completions">Chat Completions</option><option value="responses">Responses API</option></select> API Format</label><span class="toggle-desc">Responses API: /v1/responses for LM Studio / DeepSeek reasoning models (stateful chat &amp; MCP not supported)</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-show-logs" onchange="config.showLogs=this.checked;config.save();"> 📋 Show LLM Logs</label><span class="toggle-desc">Log LLM requests to event stream</span></div>
-                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-manual-mode" onchange="config.manualMode=this.checked;llmClient._manualMode=this.checked;llmClient._manualResponse=null;config.save();VW?.events?.log(this.checked?'✋ Manual response mode enabled. Use 📋 Copy Prompt / 📝 Paste Response in graph toolbar.':'✋ Manual response mode disabled.','system-msg');"> ✋ Manual Response Mode</label><span class="toggle-desc">Skip API call, paste a manual response instead</span></div>
+                        <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-manual-mode" onchange="config.manualMode=this.checked;llmClient._manualMode=this.checked;llmClient._manualResponse=null;config.save();if(window.GraphToolbar)GraphToolbar.syncAll();VW?.events?.log(this.checked?'✋ Manual response mode enabled. Use 📋 Copy Prompt / 📝 Paste Response in the graph toolbar under ⋯ More.':'✋ Manual response mode disabled.','system-msg');"> ✋ Manual Response Mode</label><span class="toggle-desc">Skip API call, paste a manual response instead</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-auto-generate-descriptions" onchange="config.autoGenerateDescriptions=this.checked;config.save();(async()=>{try{await ApiClient.setAutoGenerateDescriptions(this.checked);}catch(e){}})();events.log('🪄 Auto-generate descriptions '+(this.checked?'enabled':'disabled'),'system-msg');"> 🪄 Auto-Generate Descriptions</label><span class="toggle-desc">Generate appearance description on equip/unequip</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-auto-retry-invalid" onchange="config.autoRetryInvalid=this.checked;config.save();events.log('🔁 Invalid-action auto-retry '+(this.checked?'enabled':'disabled'),'system-msg');"> 🔁 Auto-Retry Invalid Actions</label><span class="toggle-desc">Give the agent one same-turn retry when its action fails (error fed back)</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-structured-output" onchange="config.structuredOutput=this.checked;config.save();events.log('🧱 Structured output '+(this.checked?'enabled':'disabled')+(this.checked?'':' — back to plain JSON prompts'),'system-msg');"> 🧱 Structured Output</label><span class="toggle-desc">Send response_format (JSON schema) with every structured LLM call — provider-enforced valid JSON instead of prompt-begging. Auto-falls back if the provider rejects it.</span></div>
@@ -1111,6 +1157,7 @@
     <script src="/static/js/event-stream.js"></script>
     <script src="/static/js/world-state.js"></script>
     <script src="/static/js/agent/simultaneous.js"></script>
+    <script src="/static/js/agent/sim-round.js"></script>
     <script src="/static/js/config.js"></script>
     <script src="/static/js/api.js"></script>
     <script src="/static/js/prompt-docs.js"></script>
@@ -1178,6 +1225,7 @@
     <script src="/static/js/graph/tooltips.js"></script>
     <script src="/static/js/graph/focus.js"></script>
     <script src="/static/js/graph/network-manager.js"></script>
+    <script src="/static/js/graph/toolbar.js"></script>
     <script src="/static/js/graph/graph-background.js"></script>
     <script src="/static/js/graph/graph-export.js"></script>
     <script src="/static/js/graph/edge-inspector.js"></script>

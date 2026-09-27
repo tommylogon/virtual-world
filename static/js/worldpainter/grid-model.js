@@ -10,8 +10,8 @@
  * are child scopes placed at a cell.
  *
  * @module grid-model — WorldPainter grid view-model and cell maths
- * @contributes cell keys, drill-down mode suggestion, render rows, layer colours
- * @powers WorldPainter editor grid rendering and placement (task-495)
+ * @contributes cell keys, drill-down mode suggestion, render rows, layer colours, placed areas, compile estimate, cell inspector, scope-grouped area picker
+ * @powers WorldPainter editor grid rendering, placement and inspection (task-495, task-528, task-540, task-541)
  * @relates static/js/worldpainter/editor.js; engine/world_grid.py; routes/world_grid_ops.py
  * @docs docs/design/worldpainter-knowledge-and-fog.md
  */
@@ -218,18 +218,45 @@
      * the node cost *before* minting it (a 5,000-cell paint is 5,000 areas plus
      * their passages, which is what makes the graph view choke).
      *
-     * Mirrors `engine/world_compile.compile_grid`: biome cells become areas;
-     * without merge it is one area per cell and a way per adjacent pair
+     * Mirrors `engine/world_compile.compile_grid`: every painted cell becomes an
+     * area, whether it carries a biome, a road, or both (task-496 — a road cell
+     * is a place in its own right, and the road *is* the cell's identity, so a
+     * road painted over forest merges with other road cells but never with
+     * forest). Without merge it is one area per cell and a way per adjacent pair
      * (8-neighbour, so diagonals connect), with merge it is one area per
-     * same-biome flood-fill region. Each disconnected component beyond the main
-     * one becomes one extra "link" way (an island joined to the nearest cell).
+     * same-identity flood-fill region. Each disconnected component beyond the
+     * main one becomes one extra "link" way (an island joined to the nearest
+     * cell).
      */
     function estimateCompile(payload, regionMerge) {
-        const biome = (payload && payload.layers && payload.layers.biome) || {};
-        const cells = Object.keys(biome);
+        const layers = (payload && payload.layers) || {};
+        const biome = layers.biome || {};
+        const road = layers.road || {};
+        // Ordered (y, x) like the compiler's own cell order, so the estimate and
+        // the mint agree on which region is "first" (the scope's entry area).
+        const cells = Object.keys(biome).concat(Object.keys(road))
+            .filter((k, i, all) => all.indexOf(k) === i)
+            .sort((a, b) => {
+                const pa = parseCellKey(a) || { x: 0, y: 0 };
+                const pb = parseCellKey(b) || { x: 0, y: 0 };
+                return (pa.y - pb.y) || (pa.x - pb.x);
+            });
         if (!cells.length) return { areas: 0, ways: 0, total: 0, isolated: 0, links: 0 };
+        // What *kind* of place a cell is: the road if painted, else the biome.
+        const identity = (k) => {
+            const r = road[k];
+            if (r != null && r !== '') return `road:${r}`;
+            return `biome:${biome[k]}`;
+        };
         const present = {};
         cells.forEach((k) => { present[k] = true; });
+        // A cell holding a hand-placed area is not compiled (task-528), so the
+        // estimate has to drop it too — otherwise the header promises one more
+        // area than Generate actually mints.
+        const taken = Object.keys(areaMap(payload));
+        taken.forEach((k) => { delete present[k]; });
+        const liveCells = cells.filter((k) => present[k]);
+        if (!liveCells.length) return { areas: 0, ways: 0, total: 0, isolated: 0, links: 0, placed: taken.length };
         // 8-neighbour deltas. The four "south half" ones (east, south, south-
         // east, south-west) count each shared pair exactly once; the full ring
         // is used for connectivity checks and region flood-fill.
@@ -241,22 +268,22 @@
         const ring = (k) => [at(k, 1, 0), at(k, -1, 0), at(k, 0, 1), at(k, 0, -1),
                              at(k, 1, 1), at(k, -1, 1), at(k, 1, -1), at(k, -1, -1)];
 
-        // One region per cell, or a same-biome flood-fill (8-neighbour) region
+        // One region per cell, or a same-identity flood-fill (8-neighbour) region
         // under merge.
         const regionOf = {};
         let rid = 0;
         if (!regionMerge) {
-            cells.forEach((k) => { regionOf[k] = rid++; });
+            liveCells.forEach((k) => { regionOf[k] = rid++; });
         } else {
-            cells.forEach((start) => {
+            liveCells.forEach((start) => {
                 if (regionOf[start] != null) return;
-                const biomeId = biome[start];
+                const kind = identity(start);
                 const stack = [start];
                 regionOf[start] = rid;
                 while (stack.length) {
                     const k = stack.pop();
                     ring(k).forEach((nk) => {
-                        if (nk && present[nk] && regionOf[nk] == null && biome[nk] === biomeId) {
+                        if (nk && present[nk] && regionOf[nk] == null && identity(nk) === kind) {
                             regionOf[nk] = rid;
                             stack.push(nk);
                         }
@@ -268,7 +295,7 @@
 
         // One way per adjacent region pair (each pair counted once).
         const pairs = {};
-        cells.forEach((k) => {
+        liveCells.forEach((k) => {
             halfNeighbours(k).forEach((nk) => {
                 if (!nk || !present[nk] || regionOf[nk] === regionOf[k]) return;
                 const a = regionOf[k];
@@ -309,6 +336,189 @@
 
     function childrenAvailable(payload) {
         return ((payload && payload.children) || []).filter((c) => !c.placed);
+    }
+
+    // ── placed areas (task-528) ────────────────────────────────────────────
+    //
+    // A placed area is an area node the author wrote by hand, parked on a cell
+    // (`area_placements` in the payload). It is a different kind of occupant from
+    // a child-scope placement: the node already exists in the graph, and the
+    // compiler skips the cell so Generate cannot mint a second area on top.
+
+    /** `{cellKey: area}` for every placed area, mirroring `featureMap`. */
+    function areaMap(payload) {
+        const out = {};
+        ((payload && payload.area_placements) || []).forEach((a) => {
+            out[cellKey(a.x, a.y)] = a;
+        });
+        return out;
+    }
+
+    /** The area placed on a cell, or null. */
+    function areaAt(payload, x, y) {
+        return areaMap(payload)[cellKey(x, y)] || null;
+    }
+
+    /** Where an area is placed on this grid, or null. */
+    function areaPlacementFor(payload, areaId) {
+        return ((payload && payload.area_placements) || [])
+            .find((a) => a.id === areaId) || null;
+    }
+
+    /**
+     * Every area the place tool's picker offers, flattened across the scope
+     * groups — the areas already on this grid, this scope's unplaced areas, and
+     * the ones that belong to another scope. The editor renders the groups
+     * (see :func:`areaGroups`); this is the flat view of the same list.
+     */
+    function placeableAreas(payload, selectedId) {
+        const groups = areaGroups(payload, selectedId);
+        return groups.reduce((all, g) => all.concat(g.areas), []);
+    }
+
+    /**
+     * The picker grouped by scope (task-541).
+     *
+     * A flat list of every unplaced area in the world made a child scope's
+     * interior show up in the *world* map's picker as if it belonged there, so
+     * membership is what decides the grouping:
+     *
+     * 1. `placed`  — already parked on THIS grid (with their cell), still
+     *    selectable so they can be moved to another cell.
+     * 2. `mine`    — belongs to this scope and has no cell: the things you came
+     *    here to place. An area with no scope at all counts as this scope's, since
+     *    it belongs to nobody and this is the map being painted.
+     * 3. `elsewhere` — a member of some *other* scope. Kept reachable, but under
+     *    its own heading with that scope's name, because picking one is a
+     *    membership change (task-539) and should not read as a placement.
+     */
+    function areaGroups(payload, selectedId) {
+        const scopeId = (payload && payload.scope && payload.scope.id) || null;
+        const placed = areaMap(payload);
+        const byId = {};
+        Object.keys(placed).forEach((k) => { byId[placed[k].id] = placed[k]; });
+        const candidates = ((payload && payload.unplaced_areas) || []);
+        const mine = [];
+        const elsewhere = [];
+        candidates.forEach((a) => {
+            // The server already leaves placed areas out of `unplaced_areas`, but
+            // an area on this grid belongs in the `placed` group only — never
+            // listed twice.
+            if (byId[a.id]) return;
+            const entry = { ...a, placedHere: null };
+            if (!a.scope_id || a.scope_id === scopeId) mine.push(entry);
+            else elsewhere.push(entry);
+        });
+        const onGrid = (payload && payload.area_placements) || [];
+        const groups = [
+            { key: 'placed', label: `On this grid (${onGrid.length})`, areas: onGrid.map(
+                (a) => ({ id: a.id, name: a.name, x: a.x, y: a.y, scope_id: scopeId,
+                           placedHere: { x: a.x, y: a.y } })) },
+            { key: 'mine', label: `This scope, not placed (${mine.length})`, areas: mine },
+            { key: 'elsewhere', label: 'Elsewhere in the world', areas: elsewhere },
+        ];
+        if (selectedId && !groups.some((g) => g.areas.some((a) => a.id === selectedId))) {
+            // Never drop the selection out of the picker: the author has to be able
+            // to move the area they already picked.
+            const here = byId[selectedId];
+            const known = candidates.find((a) => a.id === selectedId);
+            if (!here) {
+                const group = !known || !known.scope_id || known.scope_id === scopeId
+                    ? groups[1] : groups[2];
+                group.areas.push({ id: selectedId, name: known ? known.name : selectedId,
+                                   scope_id: known ? known.scope_id : scopeId,
+                                   placedHere: null });
+                group.label = group.label.replace(/\(\d+\)/, `(${group.areas.length})`);
+            }
+        }
+        return groups.filter((g) => g.areas.length);
+    }
+
+    /**
+     * What is on a cell (task-540) — the payload half of the painter's cell
+     * inspector, kept pure so it can be unit-tested without a canvas.
+     *
+     * Returns `{x, y, key, biome, road, elevation, area, child, painted, empty}`:
+     * the three paint layers, the hand-placed area on the cell, and the child
+     * scope placed on it. `empty` is true when nothing is there at all, which is
+     * the case the hover readout needs to say "nothing here" instead of printing
+     * three empty fields.
+     */
+    function cellInfo(payload, x, y) {
+        const biome = cellValue(payload, 'biome', x, y) || null;
+        const road = cellValue(payload, 'road', x, y) || null;
+        const elevation = cellValue(payload, 'elevation', x, y);
+        const area = areaAt(payload, x, y);
+        // `feature` is the derived `{cellKey: child_scope_id}` view; the readable
+        // card (name, kind, state) comes from the scope's own `placements` list.
+        const childId = featureAt(payload, x, y);
+        const card = (payload && payload.placements || []).find((c) => c.id === childId);
+        const child = childId ? { id: childId, name: card ? card.name : childId,
+                                  kind: card ? card.kind : null } : null;
+        return {
+            x, y,
+            key: cellKey(x, y),
+            biome, road,
+            elevation: (elevation === null || elevation === undefined || elevation === '')
+                ? null : elevation,
+            area: area ? { id: area.id, name: area.name, x: area.x, y: area.y } : null,
+            child,
+            painted: Boolean(biome || road || elevation != null),
+            empty: !biome && !road && elevation == null && !area && !child,
+        };
+    }
+
+    /**
+     * A grid whose aspect ratio matches a reference image (the `▦ match` button).
+     *
+     * The painter fits the image *into* the grid (contain, centred), so a grid
+     * with a different ratio than the picture leaves empty bands — the painted
+     * cells and the art then disagree about where the place is. Matching the
+     * aspect removes the bands: the width is kept (it is what the author already
+     * laid out horizontally) and the height is derived.
+     *
+     * Returns `null` for an image whose size is unknown, so the caller can say
+     * "load an image first" instead of posting a nonsense grid. The height is
+     * clamped to `[1, MAX_GRID_CELLS / w]`: a very wide picture on a narrow grid
+     * would otherwise ask for a height of 0 (or a 1px sliver of a cell), and the
+     * compiler would mint an absurd number of cells.
+     */
+    const MAX_GRID_CELLS = 20000;
+    function gridForImageAspect(gridW, imgW, imgH) {
+        const iw = Number(imgW) || 0;
+        const ih = Number(imgH) || 0;
+        if (iw <= 0 || ih <= 0) return null;
+        const w = Math.max(1, Math.min(400, Number(gridW) || 160));
+        const raw = Math.round(w * ih / iw);
+        const h = Math.max(1, Math.min(MAX_GRID_CELLS, Math.floor(MAX_GRID_CELLS / w), raw));
+        return { w, h, cells: w * h, aspect: iw / ih };
+    }
+
+    /**
+     * How much of a grid's content would fall outside it if it were resized to
+     * `{w, h}` — the number the `▦ match` button shows before it acts, because a
+     * shrink *prunes* out-of-bounds paint and placements server-side
+     * (`world_grid.ensure_grid`) rather than leaving them dangling.
+     */
+    function strandedCount(payload, w, h) {
+        const nw = Number(w) || 0;
+        const nh = Number(h) || 0;
+        if (!payload || nw < 1 || nh < 1) return 0;
+        let count = 0;
+        Object.keys((payload.layers) || {}).forEach((layer) => {
+            Object.keys(payload.layers[layer] || {}).forEach((key) => {
+                const cell = parseCellKey(key);
+                if (!cell) return;
+                if (cell.x < 0 || cell.y < 0 || cell.x >= nw || cell.y >= nh) count += 1;
+            });
+        });
+        ((payload.area_placements) || []).forEach((a) => {
+            if (a.x < 0 || a.y < 0 || a.x >= nw || a.y >= nh) count += 1;
+        });
+        ((payload.placements) || []).forEach((a) => {
+            if (a.x < 0 || a.y < 0 || a.x >= nw || a.y >= nh) count += 1;
+        });
+        return count;
     }
 
     /**
@@ -381,7 +591,9 @@
         lineCells, routeCells, routeStats, estimateCompile,
         cellValue, featureAt, placementFor, buildRows, featureMap,
         pruneGrid, childrenAvailable,
-        fitReferenceRect, referenceHandlePoints, referenceHandleDrag,
+        areaMap, areaAt, areaPlacementFor, placeableAreas, areaGroups, cellInfo,
+        fitReferenceRect, gridForImageAspect, strandedCount,
+        referenceHandlePoints, referenceHandleDrag,
     };
     // main.js (loaded last) does `window.VW = {}` and re-registers singletons, so
     // the bare global is what survives; VW.gridModel is (re)attached there too.

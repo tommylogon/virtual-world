@@ -269,8 +269,7 @@ window.GraphLayoutEngine = {
             }
         });
 
-        const physicsBtn = document.getElementById('btn-physics');
-        if (physicsBtn) physicsBtn.textContent = '⏸ Physics';
+        if (window.GraphToolbar) GraphToolbar.syncAll();
 
         setTimeout(() => {
             graphManager.network.redraw();
@@ -307,6 +306,42 @@ window.GraphLayoutEngine = {
     /** Canvas px per painted *unit*, for `gridPosition` (spacing / 40). */
     get GRID_SCALE() {
         return GraphLayoutEngine.mapSpacing() / GraphLayoutEngine.PAINT_UNITS_PER_CELL;
+    },
+
+    /**
+     * How much larger everything drawn on a painted map should be than in the
+     * graph view, derived from the map pitch (bug-53).
+     *
+     * Node sizes were fixed pixel constants, so raising the pitch spread the
+     * areas further apart while their boxes stayed the same size — the map
+     * became specks on a field. 1 at the default 40px cell, so nothing changes
+     * by default. The clamp matters: at pitch 260 the raw ratio is 6.5, and a
+     * 6.5× box is not a readable map, it is a smear. *Spacing* follows the
+     * pitch exactly (see :func:`mapSpacing`); only the drawing is clamped.
+     */
+    mapScale() {
+        const spacing = GraphLayoutEngine.mapSpacing();
+        if (!(spacing > 0)) return 1;
+        return Math.max(1, Math.min(2.5, spacing / GraphLayoutEngine.PAINT_UNITS_PER_CELL));
+    },
+
+    /**
+     * Where loose nodes (items, characters) sit beside the painted area that
+     * holds them, in **cells of the current pitch**.
+     *
+     * These were absolute pixels tuned at the 40px default, so on a 260px map an
+     * item landed practically on top of its room. As cell multiples they look
+     * identical at the default and scale everywhere else — the same geometry the
+     * WorldPainter draws, so "beside the room" means one thing at any pitch.
+     */
+    mapBesideOffsets() {
+        const pitch = GraphLayoutEngine.mapSpacing();
+        return {
+            itemX: -1.75 * pitch, itemY: 1.75 * pitch,
+            charX: 3.25 * pitch, charY: 0,
+            step: 1.125 * pitch,
+            perRow: 4,
+        };
     },
 
     /**
@@ -407,9 +442,23 @@ window.GraphLayoutEngine = {
             const p = GraphLayoutEngine.scopedGridPosition(
                 (node || {}).properties, node, offsets);
             if (!p) continue;
-            updates.push({ id, x: p.x, y: p.y, physics: false, fixed: { x: false, y: false } });
+            // An AREA on the painted lattice is pinned: the cells are the map, and
+            // the background art is drawn to them. Everything else (ways, items,
+            // characters) is left free, so the solver can pull the loose nodes in
+            // next to their areas — the grid path places no way nodes at all, so
+            // without the solver they pile up wherever they were last saved and
+            // every edge then crosses the whole map. Physics may be on in Map
+            // mode (task-530), which is what makes those edges readable.
+            const isArea = node.type === 'area';
+            updates.push({
+                id,
+                x: p.x,
+                y: p.y,
+                physics: false,
+                fixed: isArea ? { x: true, y: true } : { x: false, y: false },
+            });
             placed.add(id);
-            if (node.type === 'area') anchors[id] = p;
+            if (isArea) anchors[id] = p;
         }
 
         // Items/characters without their own coords sit beside their area.
@@ -425,19 +474,37 @@ window.GraphLayoutEngine = {
         for (const [areaId, ids] of Object.entries(heldIn)) {
             const anchor = anchors[areaId];
             if (!anchor) continue;
+            const beside = GraphLayoutEngine.mapBesideOffsets();
             ids.forEach((id, index) => {
                 if (placed.has(id) || !nodesDS.get(id)) return;
                 const isChar = (nodesObj[id] || {}).type === 'character';
                 updates.push({
                     id,
-                    x: anchor.x + (isChar ? 130 : -70) + (index % 4) * 45,
-                    y: anchor.y + (isChar ? 0 : 70) + Math.floor(index / 4) * 45,
+                    x: anchor.x + (isChar ? beside.charX : beside.itemX) + (index % beside.perRow) * beside.step,
+                    y: anchor.y + (isChar ? beside.charY : beside.itemY)
+                        + Math.floor(index / beside.perRow) * beside.step,
                     physics: false,
                     fixed: { x: false, y: false },
                 });
             });
         }
         return updates;
+    },
+
+    /**
+     * Whether a node's coordinates are *painted* — i.e. the WorldPainter
+     * compiler's `cell * 40` engine units, which the Map layout scales by the map
+     * pitch — rather than a canvas position someone dragged.
+     *
+     * `cell` is the discriminator, not the numbers: the compiler and
+     * `place_area` write `cell` next to the coords, while a node dragged in the
+     * graph has only numeric `x`/`y`. Both look the same to a numeric check, and
+     * treating a dragged node as painted would scale its position a second time.
+     */
+    hasPaintedCoords(properties) {
+        const p = properties || {};
+        return !!p.cell && typeof p.x === 'number' && typeof p.y === 'number'
+            && isFinite(p.x) && isFinite(p.y);
     },
 
     /**
@@ -449,17 +516,29 @@ window.GraphLayoutEngine = {
      * @param {Object} [offsets] - `{scopeId: {x,y}}` cells; defaults to graphManager
      */
     _applyGridLayout(nodesObj, nodesDS, offsets) {
-        const frozen = (id) =>
-            (((nodesObj[id] || {}).properties || {}).central_gravity_enabled === false);
+        // A node the author froze ("Physics enabled" off in the inspector) is
+        // normally left exactly where it is — that is the point of the flag. A
+        // node with *painted* coordinates is the exception: its cell **is** its
+        // position and the background art is drawn to those same cells, so
+        // exempting it left the area at whatever pitch it was last saved at while
+        // the art re-fitted to the current one — the map and its areas ended up on
+        // two different grids (bug-52). The scenario builders default every area
+        // to physics-off, so this hit any imported world rather than a choice.
+        // The exemption still stands for a node with no painted coords.
+        const frozen = (id) => {
+            const props = ((nodesObj[id] || {}).properties) || {};
+            return props.central_gravity_enabled === false
+                && !GraphLayoutEngine.hasPaintedCoords(props);
+        };
         const updates = GraphLayoutEngine._gridUpdates(nodesObj, nodesDS, offsets)
             .filter((u) => u && !frozen(u.id));
         nodesDS.update(updates);
         graphManager.network.setOptions({ physics: { enabled: false } });
-        // Clear the flag too: the caller re-enables physics from this flag after
-        // the load, so setting only the button text left physics coming back on.
-        graphManager._physicsEnabled = false;
-        const physicsBtn = document.getElementById('btn-physics');
-        if (physicsBtn) physicsBtn.textContent = '▶ Physics';
+        // The solver is off for this placement pass only. The user's preference
+        // (`graphManager._physicsEnabled`) is deliberately NOT cleared here: the
+        // load path restores it when the user wants physics in Map mode, so the
+        // painted lattice is a starting point rather than a freeze.
+        if (window.GraphToolbar) GraphToolbar.syncAll();
         setTimeout(() => {
             graphManager.network.redraw();
             graphManager.network.fit({ animation: { duration: 400, easingFunction: 'easeInOutQuad' } });

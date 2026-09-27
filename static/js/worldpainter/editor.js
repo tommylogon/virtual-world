@@ -17,7 +17,7 @@
  * default, with an explicit "displace" confirmation.
  *
  * @module worldpainter/editor — WorldPainter grid editing overlay
- * @contributes the 3-mode scope grid editor UI: paint, feature place/move/remove, drill-down
+ * @contributes the 3-mode scope grid editor UI: paint, feature place/move/remove, area placement, cell inspection, drill-down
  * @powers WorldPainter authored worlds (task-495) feeding the grid-to-graph compiler (task-496)
  * @relates static/js/worldpainter/grid-model.js; routes/world_grid_ops.py; engine/world_grid.py
  * @docs docs/design/worldpainter-knowledge-and-fog.md
@@ -52,6 +52,10 @@
         refEdit: false,       // adjust mode: move/resize/crop the reference image
         refDrag: null,        // {kind, key, start, rect, crop} during a ref edit
         selectedChild: null,
+        selectedArea: null,   // area picked by the 📍 Area place tool (task-528)
+        inspected: null,      // {x, y} the cell the inspector panel is showing (task-540)
+        cellInfoEl: null,     // HUD hover readout for the cell under the pointer
+        cellInfoKey: null,    // last hovered cell+content, to skip pointless DOM writes
         merge: false,
         view: null,            // {scale} — Konva owns the live transform
         route: [],             // waypoints for the route/trail tool
@@ -149,7 +153,19 @@
         return options[0].id;
     }
 
-    async function open(scopeId) {
+    /**
+     * Open the painter on a scope.
+     *
+     * `options` arms the editor for a job: `{tool: 'area', areaId}` comes from
+     * the graph's "Place on map…" action (task-528), so the author lands straight
+     * in the place tool with the area they clicked already picked.
+     */
+    async function open(scopeId, options) {
+        const opts = options || {};
+        state.selectedArea = null;
+        state.inspected = null;   // a cell of the previous scope means nothing here
+        if (opts.tool) state.tool = opts.tool;
+        if (opts.areaId) state.selectedArea = opts.areaId;
         if (state.overlay && document.body.contains(state.overlay)) {
             state.overlay.remove();
         }
@@ -185,10 +201,25 @@
         state.payload = null;
     }
 
-    /** Space = pan, so left-drag is free for painting. */
+    /** Space = pan, so left-drag is free for painting. Escape leaves a mode. */
     function _bindKeys() {
         _unbindKeys();
         state._keyDown = (e) => {
+            if (e.key === 'Escape') {
+                // Route points and a picked area are half-finished work: drop
+                // them and go back to painting rather than leaving the tool armed.
+                if (state.tool !== 'paint' || state.route.length || state.selectedArea
+                    || state.inspected) {
+                    state.tool = 'paint';
+                    state.route = [];
+                    state.selectedArea = null;
+                    state.inspected = null;
+                    if (state.routeInfoEl) state.routeInfoEl.textContent = _routeLabel();
+                    _redrawDecor();
+                    render();
+                }
+                return;
+            }
             if (e.code !== 'Space' || state.spaceDown) return;
             state.spaceDown = true;
             if (state.stage) state.stage.draggable(true);
@@ -316,6 +347,8 @@
         const p = state.payload;
         if (!p) return showChooser();
         state.routeInfoEl = null;   // the old HUD element dies with the panel
+        state.cellInfoEl = null;
+        state.cellInfoKey = null;
         const box = _renderShell('🗺️ WorldPainter');
 
         box.appendChild(_breadcrumb(p.breadcrumb));
@@ -327,8 +360,11 @@
             return;
         }
 
-        box.appendChild(_featureBar(p));
-        box.appendChild(_grid(p));
+            box.appendChild(_featureBar(p));
+            if (state.tool === 'area') box.appendChild(_areaBar(p));
+            box.appendChild(_grid(p));
+            const panel = _cellPanel(p);
+            if (panel) box.appendChild(panel);
         _renderChildren(box, p);
         if (state.status) {
             const color = state.statusError ? '#e66' : '#9c9';
@@ -359,16 +395,28 @@
         wrap.appendChild(modeBadge);
 
         const tools = [['paint', '🖌 Paint'], ['erase', '🧽 Erase'],
-            ['route', '🧭 Route'], ['feature', '🏠 Feature']];
+            ['route', '🧭 Route'], ['feature', '🏠 Feature'], ['area', '📍 Area'],
+            ['inspect', '🔍 Inspect']];
         tools.forEach(([id, label]) => {
-            const btn = _btn(label, () => { state.tool = id; render(); },
-                state.tool === id ? 'outline:2px solid #7ab;' : '');
+            const btn = _btn(label, () => {
+                state.tool = id;
+                if (id !== 'area') state.selectedArea = null;
+                render();
+            }, state.tool === id ? 'outline:2px solid #7ab;' : '');
             if (id === 'route') {
                 btn.title = 'Click waypoints, then ✓ Paint route — paints the '
                     + 'current layer along the line (1 cell = 1 turn).';
             } else if (id === 'feature') {
                 btn.title = 'Place a sub-zone (child scope) at a cell — not a '
                     + 'road. Roads/bridges are painted on the road layer.';
+            } else if (id === 'area') {
+                btn.title = 'Put an area you already wrote (Northern Hills, Murk '
+                    + 'Lake…) on a cell of this map. Pick the area, then click where '
+                    + 'it belongs. Generate will not put a second area on that cell.';
+            } else if (id === 'inspect') {
+                btn.title = 'Read a cell without changing it: what is painted on it, '
+                    + 'and which area or child scope sits there. Right-click does the '
+                    + 'same on any tool.';
             }
             wrap.appendChild(btn);
         });
@@ -567,6 +615,69 @@
         return wrap;
     }
 
+    /**
+     * The place tool's picker (task-528/541): the areas that can go on a cell of
+     * THIS map, grouped by scope. Only shown while the tool is active, so the
+     * painter's default surface stays as it was.
+     *
+     * Grouping is the point: a flat list of every unplaced area in the world made
+     * a child scope's interior look like it belonged on the world map.
+     */
+    function _areaBar(p) {
+        const wrap = _el('div', 'display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px;');
+        wrap.appendChild(_el('span', 'font-size:12px;color:var(--text-muted,#999);', 'Area:'));
+        const sel = _el('select', 'padding:3px;border-radius:5px;min-width:200px;');
+        sel.setAttribute('data-role', 'wp-area');
+        const none = _el('option', null, '— pick an area to place —');
+        none.value = '';
+        sel.appendChild(none);
+        const groups = GM().areaGroups(p, state.selectedArea);
+        groups.forEach((g) => {
+            const og = _el('optgroup');
+            og.label = g.key === 'elsewhere'
+                ? `${g.label} — picking one moves it here`
+                : g.label;
+            g.areas.forEach((a) => {
+                const where = a.placedHere ? ` (${a.placedHere.x},${a.placedHere.y})` : '';
+                const opt = _el('option', null, a.name + where);
+                opt.value = a.id;
+                if (a.id === state.selectedArea) opt.selected = true;
+                og.appendChild(opt);
+            });
+            sel.appendChild(og);
+        });
+        sel.addEventListener('change', () => {
+            state.selectedArea = sel.value || null;
+            render();
+        });
+        wrap.appendChild(sel);
+        if (!groups.length) {
+            wrap.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);',
+                `No areas available here — every area of “${p.scope.name}” already sits on a map.`));
+        } else {
+            wrap.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);',
+                'Then click a cell. Click a placed 📍 to take it off the map again.'));
+        }
+        // A 200x133 world draws cells about 5px wide, so the marker cannot carry
+        // a name. The list is how you see what is where: name + cell, and picking
+        // one lets you move it.
+        const placedHere = (p.area_placements || []).filter(
+            (a) => !groups.some((g) => g.areas.some((x) => x.id === a.id)));
+        if (placedHere.length) {
+            const list = _el('div', 'display:flex;flex-wrap:wrap;gap:6px;width:100%;margin-top:2px;');
+            placedHere.forEach((a) => {
+                const chip = _btn(`📍 ${a.name} (${a.x},${a.y})`, () => {
+                    state.selectedArea = a.id;
+                    render();
+                }, 'font-size:11px;padding:1px 7px;border-radius:10px;' +
+                    'border-color:#2f7d5a;color:#9fd8bd;', `Move "${a.name}" — click, then click a new cell`);
+                list.appendChild(chip);
+            });
+            wrap.appendChild(list);
+        }
+        return wrap;
+    }
+
     // ───────────────────── grid surface (Konva canvas) ────────────────────
     //
     // Konva draws the grid on a canvas as a fixed number of shapes (background
@@ -614,6 +725,15 @@
             _redrawGrid();
         });
         hud.appendChild(alpha);
+        // What the cell under the pointer holds (task-540). A marker on a 200x133
+        // world is ~5px and carries no name, so this is the only way to tell a
+        // painted cell from a placed area while moving the mouse.
+        const readout = _el('span', 'font-size:11px;color:#9ab;margin-left:6px;' +
+            'max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;');
+        readout.setAttribute('data-role', 'wp-cellinfo');
+        readout.textContent = 'hover a cell to read it';
+        state.cellInfoEl = readout;
+        hud.appendChild(readout);
         if (state.tool === 'route') {
             const info = _el('span', 'font-size:11px;color:#7ab;margin-left:6px;');
             info.setAttribute('data-role', 'wp-route-info');
@@ -719,16 +839,35 @@
         return wrap;
     }
 
+    /**
+     * Make the grid the image's aspect ratio (the `▦ match` button).
+     *
+     * The painter fits the image *into* the grid, so a grid with a different
+     * ratio leaves empty bands and the painted cells and the art disagree about
+     * where a place is. A shrink **prunes** out-of-bounds paint and placements
+     * server-side (`world_grid.ensure_grid`), so the count is shown and confirmed
+     * first — losing a hand-placed area to a one-click convenience is not a trade
+     * worth making silently.
+     */
     async function _gridFromReference(p) {
         const img = state.refImage;
         if (!img || !img.naturalWidth) { _status('Load a reference image first.'); return; }
-        const w = Math.max(1, Math.min(400, (p.grid && p.grid.w) || 160));
-        const h = Math.max(1, Math.round(w * img.naturalHeight / img.naturalWidth));
+        const next = GM().gridForImageAspect(p.grid && p.grid.w, img.naturalWidth, img.naturalHeight);
+        if (!next) { _status('That image has no readable size — try another file.', true); return; }
+        const stranded = GM().strandedCount(p, next.w, next.h);
+        if (stranded > 0) {
+            const go = window.confirm(
+                `Match the grid to the image (${img.naturalWidth}×${img.naturalHeight})?\n\n`
+                + `The grid becomes ${next.w}×${next.h} cells, and ${stranded} painted cell(s) or `
+                + `placement(s) currently outside it will be removed. This can be undone.`);
+            if (!go) return;
+        }
         try {
             state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid`,
-                { w, h, cell_scale: (p.grid && p.grid.cell_scale) || 1, mode: p.mode });
+                { w: next.w, h: next.h, cell_scale: (p.grid && p.grid.cell_scale) || 1, mode: p.mode });
             state.view = null;   // refit to the new aspect
-            _status(`Grid set to ${w}×${h} (image aspect ${img.naturalWidth}×${img.naturalHeight}).`, false);
+            _status(`Grid set to ${next.w}×${next.h} (image aspect ${img.naturalWidth}×${img.naturalHeight})`
+                + (stranded ? `, ${stranded} out-of-bounds cell(s) removed` : '') + '.', false);
         } catch (e) {
             _status(`Grid failed: ${e.message}`, true);
         }
@@ -1046,7 +1185,31 @@
             ctx.fillStyle = '#fff';
             ctx.fillText('🏠', pl.x * CELL + CELL / 2, pl.y * CELL + CELL / 2);
         });
+        // Placed areas (task-528) sit in the same decor layer but are a different
+        // kind of thing — a node that already exists, not a child scope — so they
+        // get their own colour and a corner notch instead of the house glyph.
+        (p.area_placements || []).forEach((a) => {
+            const selected = a.id === state.selectedArea;
+            ctx.fillStyle = selected ? '#f5c542' : '#2f7d5a';
+            ctx.fillRect(a.x * CELL + 2, a.y * CELL + 2, CELL - 4, CELL - 4);
+            ctx.strokeStyle = '#d9f2e5';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(a.x * CELL + 2.5, a.y * CELL + 2.5, CELL - 5, CELL - 5);
+            // A name is worth showing when the cell is big enough to hold one;
+            // at 1x the map is a mosaic and only the marker reads.
+            if (CELL >= 26) {
+                ctx.fillStyle = '#d9f2e5';
+                ctx.font = '9px sans-serif';
+                ctx.fillText(_ellipsize(a.name, 12), a.x * CELL + CELL / 2,
+                    a.y * CELL + CELL + 8);
+            }
+        });
         ctx.restore();
+    }
+
+    function _ellipsize(text, max) {
+        const s = String(text == null ? '' : text);
+        return s.length > max ? `${s.slice(0, max - 1)}…` : s;
     }
 
     function _drawRoute(ctx) {
@@ -1150,8 +1313,8 @@
         });
         stage.on('mousemove', () => {
             if (state.refEdit) { _refMouseMove(p); return; }
-            if (!state.stroking) return;
-            if (_strokeAdd(p, _cellAtPointer(p))) _redrawDecor();
+            if (state.stroking && _strokeAdd(p, _cellAtPointer(p))) _redrawDecor();
+            _updateCellInfo(p);
         });
         stage.on('mouseup mouseleave', () => {
             if (state.refEdit) { _refMouseUp(); return; }
@@ -1165,6 +1328,14 @@
             const cell = _cellAtPointer(p);
             if (cell) _gridClick(p, cell);
         });
+        // Right-click is "what is this?" on any tool, so a cell is never a dead
+        // end you have to switch tools to inspect.
+        stage.on('contextmenu', (e) => {
+            e.evt.preventDefault();
+            if (state.refEdit) return;
+            const cell = _cellAtPointer(p);
+            if (cell) inspectCell(p, cell.x, cell.y);
+        });
         stage.on('wheel', (e) => {
             e.evt.preventDefault();
             const old = stage.scaleX();
@@ -1176,7 +1347,6 @@
             _captureView();
             _redrawGrid();
         });
-        stage.on('contextmenu', (e) => { e.evt.preventDefault(); });
     }
 
     function _cellAtPointer(p) {
@@ -1192,6 +1362,124 @@
         const fmap = GM().featureMap(p);
         const placement = fmap[GM().cellKey(cell.x, cell.y)] || null;
         onCellClick(p, cell.x, cell.y, placement);
+    }
+
+    // ─────────────────────── cell inspector (task-540) ──────────────────
+    //
+    // Placing an area or painting a cell used to leave no way to find out what
+    // had ended up there: the marker is ~5px on a big map and carries no name.
+    // Hover reads the cell from the payload, and a click (or right-click on any
+    // tool) opens a panel with the same facts plus the actions that apply to
+    // exactly that cell.
+
+    /** One line describing a cell, for the HUD hover readout. */
+    function _cellLine(info) {
+        if (!info) return '';
+        if (info.empty) return `(${info.x},${info.y}) — nothing here`;
+        const bits = [];
+        if (info.biome) bits.push(String(info.biome).replace(/_/g, ' '));
+        if (info.road) bits.push(String(info.road).replace(/_/g, ' '));
+        if (info.elevation != null) bits.push(`elev ${info.elevation}`);
+        if (info.area) bits.push(`📍 ${info.area.name}`);
+        if (info.child) bits.push(`🏠 ${info.child.name || info.child.id}`);
+        return `(${info.x},${info.y}) ${bits.join(' · ')}`;
+    }
+
+    function _updateCellInfo(p) {
+        const el = state.cellInfoEl;
+        if (!el) return;
+        const cell = _cellAtPointer(p);
+        const info = cell ? GM().cellInfo(p, cell.x, cell.y) : null;
+        // Konva fires mousemove per pixel; only touch the DOM when the cell or
+        // its content actually changed.
+        const key = info ? `${info.key}|${info.biome}|${info.road}|${info.elevation}|` +
+            `${info.area ? info.area.id : ''}|${info.child ? info.child.id : ''}` : '';
+        if (key === state.cellInfoKey) return;
+        state.cellInfoKey = key;
+        el.textContent = _cellLine(info) || 'hover a cell to read it';
+    }
+
+    function inspectCell(p, x, y) {
+        state.inspected = { x, y };
+        render();
+    }
+
+    function _cellPanel(p) {
+        const at = state.inspected;
+        if (!at || !p.scope.has_grid) return null;
+        const info = GM().cellInfo(p, at.x, at.y);
+        const wrap = _el('div', 'border:1px solid var(--border,#3a3a44);border-radius:8px;' +
+            'padding:8px;margin-bottom:10px;font-size:12px;');
+        wrap.setAttribute('data-role', 'wp-cellpanel');
+        const head = _el('div', 'display:flex;gap:8px;align-items:center;flex-wrap:wrap;');
+        head.appendChild(_el('strong', null, `Cell (${info.x},${info.y})`));
+        head.appendChild(_el('span', 'color:var(--text-muted,#999);',
+            info.empty ? 'nothing on this cell' : 'what is on this cell'));
+        head.appendChild(_btn('✕', () => { state.inspected = null; render(); },
+            'margin-left:auto;padding:1px 7px;', 'Close the cell panel'));
+        wrap.appendChild(head);
+
+        const rows = _el('div', 'display:flex;flex-direction:column;gap:2px;margin-top:6px;');
+        const row = (label, value) => {
+            const r = _el('div', 'display:flex;gap:6px;align-items:baseline;');
+            r.appendChild(_el('span', 'color:var(--text-muted,#999);min-width:78px;', label));
+            r.appendChild(_el('span', null, value));
+            rows.appendChild(r);
+        };
+        row('biome', info.biome ? String(info.biome).replace(/_/g, ' ') : '—');
+        row('road', info.road ? String(info.road).replace(/_/g, ' ') : '—');
+        row('elevation', info.elevation != null ? String(info.elevation) : '—');
+        row('area', info.area ? `${info.area.name} (${info.area.id})` : '—');
+        row('sub-zone', info.child ? `${info.child.name || info.child.id} (${info.child.id})` : '—');
+        wrap.appendChild(rows);
+
+        const actions = _el('div', 'display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;');
+        if (info.area) {
+            actions.appendChild(_btn(`📍 Move ${info.area.name}`, () => {
+                state.tool = 'area';
+                state.selectedArea = info.area.id;
+                render();
+            }, '', 'Switch to the Area tool with this area picked, then click its new cell'));
+            actions.appendChild(_btn('🗑 Unplace', () => unplaceArea(info.area.id),
+                '', 'Take this area off the map; the area itself is untouched'));
+            if (window.VW && window.VW.inspector) {
+                actions.appendChild(_btn('🔎 Open area', () => {
+                    state.overlay.remove();
+                    window.VW.inspector.showNode(info.area.id);
+                }, '', 'Open this area in the graph inspector'));
+            }
+        }
+        if (info.child) {
+            actions.appendChild(_btn(`📂 Open ${info.child.name || info.child.id}`, () => {
+                load(info.child.id);
+            }, '', 'Drill into this sub-zone'));
+            actions.appendChild(_btn('🗑 Remove sub-zone', () => removeFeature(info.child.id),
+                '', 'Take the child scope off this cell (the scope itself is kept)'));
+        }
+        if (info.painted) {
+            actions.appendChild(_btn('🧽 Clear paint', () => clearCell(p, info.x, info.y),
+                '', 'Erase every paint layer on this one cell (one undo step)'));
+        }
+        if (!actions.childNodes.length) {
+            actions.appendChild(_el('span', 'color:var(--text-muted,#999);',
+                'Nothing to do here — paint it, or place an area/feature on it.'));
+        }
+        wrap.appendChild(actions);
+        return wrap;
+    }
+
+    /** Erase all three paint layers on one cell, in a single request/undo step. */
+    async function clearCell(p, x, y) {
+        try {
+            state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/paint_batch`, {
+                edits: GM().PAINT_LAYERS.map((layer) => ({ layer, x, y, value: null })),
+            });
+            _status(`Cleared the paint on (${x},${y}).`);
+            _notify(true);
+            render();
+        } catch (e) {
+            _status(`Clear failed: ${e.message || e}`, true);
+        }
     }
 
     function _zoomBy(p, factor) {
@@ -1263,6 +1551,10 @@
     // ───────────────────────────── mutations ───────────────────────────
 
     async function onCellClick(p, x, y, placement) {
+        if (state.tool === 'inspect') {
+            inspectCell(p, x, y);
+            return;
+        }
         if (state.tool === 'route') {
             // Collect waypoints; the HUD's "Paint route" rasterises the line and
             // batch-paints it in one request (a 240-cell trail is one undo).
@@ -1282,8 +1574,65 @@
             }
             return;
         }
+        if (state.tool === 'area') {
+            await onAreaCellClick(p, x, y);
+            return;
+        }
         if (!p.scope.has_grid) return;
         return _paintAt(p, x, y);
+    }
+
+    /**
+     * Place tool (task-528). One click places the picked area; a click on a cell
+     * that already holds one offers to take it off the map, so removing needs no
+     * second mode to learn.
+     */
+    async function onAreaCellClick(p, x, y) {
+        if (!p.scope.has_grid) { _status('This scope has no grid to place on.', true); return; }
+        const here = GM().areaAt(p, x, y);
+        if (here) {
+            if (!window.confirm(`Take "${here.name}" off this map? The area itself stays.`)) return;
+            await unplaceArea(here.id);
+            return;
+        }
+        if (!state.selectedArea) {
+            _status('Pick an area from the Area dropdown first.');
+            return;
+        }
+        await placeArea(state.selectedArea, x, y);
+    }
+
+    async function placeArea(areaId, x, y, onOverlap) {
+        const p = state.payload;
+        try {
+            state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/place_area`,
+                { area_id: areaId, x, y, on_overlap: onOverlap || 'forbid' });
+            _status(`Placed on cell (${x},${y}).`);
+            _notify(true);
+            render();
+        } catch (e) {
+            // The server names the occupant, so a clash is actionable as-is.
+            const msg = String(e.message || e);
+            if (/already holds/.test(msg) && window.confirm(`${msg}\n\nDisplace it?`)) {
+                await placeArea(areaId, x, y, 'displace');
+                return;
+            }
+            _status(`Place failed: ${msg}`, true);
+        }
+    }
+
+    async function unplaceArea(areaId) {
+        const p = state.payload;
+        try {
+            state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/unplace_area`,
+                { area_id: areaId });
+            if (state.selectedArea === areaId) state.selectedArea = null;
+            _status('Taken off the map (the area itself is untouched).');
+            _notify(true);
+            render();
+        } catch (e) {
+            _status(`Unplace failed: ${e.message || e}`, true);
+        }
     }
 
     /** Cells an N×N brush covers, clipped to the grid. */

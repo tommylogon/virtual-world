@@ -92,9 +92,18 @@ window.GraphNetwork = {
         // Hierarchical mode: vis places every node by relation level, so physics
         // is off and each parent sits a level above its children (task-485).
         const levels = (cfg.graphLayoutMode || 'free') === 'levels';
+        // The solver's spring length is a world-relative distance, so on a painted
+        // map it has to follow the pitch: at 40px a 100px spring is a short hop,
+        // and on a 260px map the same spring is a 5x-too-short leash, so the
+        // solver stretches every edge across the canvas instead of settling the
+        // loose nodes next to the rooms they belong to (bug-53). An explicit
+        // `graphSpringLength` is the author's own number and always wins.
+        const mapK = GraphNetwork.mapSizeScale();
+        const spring = (fallback) => (cfg.graphSpringLength != null
+            ? cfg.graphSpringLength : Math.round(fallback * mapK));
         const physicsBase = solver === 'barnesHut'
-            ? { barnesHut: { gravitationalConstant: cfg.graphGravitationalConstant ?? -3000, centralGravity: 0.3, springLength: cfg.graphSpringLength ?? 120, springConstant: cfg.graphSpringConstant ?? 0.04, damping: cfg.graphDamping ?? 0.09 } }
-            : { forceAtlas2Based: { gravitationalConstant: cfg.graphGravitationalConstant ?? -40, centralGravity: 0.005, springLength: cfg.graphSpringLength ?? 100, springConstant: cfg.graphSpringConstant ?? 0.02, damping: cfg.graphDamping ?? 0.4 } };
+            ? { barnesHut: { gravitationalConstant: cfg.graphGravitationalConstant ?? -3000, centralGravity: 0.3, springLength: spring(120), springConstant: cfg.graphSpringConstant ?? 0.04, damping: cfg.graphDamping ?? 0.09 } }
+            : { forceAtlas2Based: { gravitationalConstant: cfg.graphGravitationalConstant ?? -40, centralGravity: 0.005, springLength: spring(100), springConstant: cfg.graphSpringConstant ?? 0.02, damping: cfg.graphDamping ?? 0.4 } };
         return {
             physics: {
                 enabled: !levels, solver,
@@ -134,17 +143,35 @@ window.GraphNetwork = {
                 addEdge: (data, callback) => GraphEventHandlers.onAddEdge(data, callback)
             },
             groups: {
-                // NOTE: `shape` is deliberately NOT set on groups. vis-network's
-                // group options override a node's own `shape`, so an image node
-                // (shape: circularImage) was silently drawn as its group shape and
-                // the image never appeared. Shapes are assigned per node in
-                // buildNodeConfig instead; groups keep color/font/size only.
-                area:      { color: { background: '#2d333b', border: '#58a6ff' }, font: { color: '#c9d1d9', size: 14 }, borderWidth: 2, margin: { top: 21, bottom: 21, left: 27, right: 27 } },
-                item:      { color: { background: '#3d2e1a', border: '#e3b341' }, font: { color: '#e3b341', size: 12 }, size: 18, borderWidth: 1 },
-                way:      { color: { background: '#1a3a2a', border: '#4ec9b0' }, font: { color: '#4ec9b0' }, size: 14, borderWidth: 1 },
-                character: { color: { background: '#2a1a3d', border: '#bc8cff' }, font: { color: '#bc8cff', size: 14 }, size: 24, borderWidth: 2 }
+            // NOTE: `shape` is deliberately NOT set on groups. vis-network's
+            // group options override a node's own `shape`, so an image node
+            // (shape: circularImage) was silently drawn as its group shape and
+            // the image never appeared. Shapes are assigned per node in
+            // buildNodeConfig instead; groups keep color/font/size only.
+            //
+            // Sizes scale with the map pitch so a wide painted map does not turn
+            // its rooms into specks (bug-53). Fonts only get an explicit size
+            // where they already had one, so a scaled way label is not a surprise.
+            area: { color: { background: '#2d333b', border: '#58a6ff' }, font: { color: '#c9d1d9', size: 14 * GraphNetwork.mapSizeScale() }, borderWidth: 2, margin: { top: 21 * GraphNetwork.mapSizeScale(), bottom: 21 * GraphNetwork.mapSizeScale(), left: 27 * GraphNetwork.mapSizeScale(), right: 27 * GraphNetwork.mapSizeScale() } },
+            item: { color: { background: '#3d2e1a', border: '#e3b341' }, font: { color: '#e3b341', size: 12 * GraphNetwork.mapSizeScale() }, size: 18 * GraphNetwork.mapSizeScale(), borderWidth: 1 },
+            way: { color: { background: '#1a3a2a', border: '#4ec9b0' }, font: { color: '#4ec9b0' }, size: 14 * GraphNetwork.mapSizeScale(), borderWidth: 1 },
+            character: { color: { background: '#2a1a3d', border: '#bc8cff' }, font: { color: '#bc8cff', size: 14 * GraphNetwork.mapSizeScale() }, size: 24 * GraphNetwork.mapSizeScale(), borderWidth: 2 }
             }
         };
+    },
+
+    /**
+     * The size factor for nodes drawn on a painted map (bug-53): the map pitch
+     * relative to the default 40px cell, and **only** in the Map layout.
+     *
+     * Node boxes are fixed pixel sizes, so a wide pitch spread the rooms out and
+     * left their labels as specks between them. 1 everywhere else, so the graph
+     * view and Levels look exactly as they always have.
+     */
+    mapSizeScale() {
+        if (!graphManager || graphManager._cardinalLayout !== true) return 1;
+        return (typeof GraphLayoutEngine !== 'undefined' && GraphLayoutEngine.mapScale)
+            ? GraphLayoutEngine.mapScale() : 1;
     },
 
     applyGraphSettings() {
@@ -153,8 +180,6 @@ window.GraphNetwork = {
         const levelsOn = ((typeof config !== 'undefined' && config && config.graphLayoutMode) || 'free') === 'levels';
         graphManager._physicsEnabled = !levelsOn;
         graphManager.network.setOptions(GraphNetwork.buildOptions());
-        const physicsBtn = document.getElementById('btn-physics');
-        if (physicsBtn) physicsBtn.textContent = levelsOn ? '▶ Physics' : '⏸ Physics';
         // Settings changed, so let the contents re-derive their arrangement —
         // otherwise a moved "Item Edge Length" (Hug Parent) would not re-orbit
         // anything, because remembered offsets win.
@@ -164,6 +189,7 @@ window.GraphNetwork = {
         // simulate — and stabilize() would turn the solver back on and undo it.
         if (levelsOn) {
             GraphNetwork._syncLayoutButton();
+            if (window.GraphToolbar) GraphToolbar.syncAll();
             return;
         }
         // Re-run the simulation with the new force parameters. After the
@@ -173,6 +199,7 @@ window.GraphNetwork = {
         try {
             graphManager.network.stabilize(200);
         } catch (err) { /* ignore — settings apply on the next reload */ }
+        if (window.GraphToolbar) GraphToolbar.syncAll();
     },
 
     /**
@@ -415,14 +442,15 @@ window.GraphNetwork = {
                 if (!newNodeIds.has(id)) continue;
                 graphManager.network.moveNode(id, pos.x, pos.y);
             }
-            // Apply cardinal-based area layout only in MAP mode: the Map button
-            // (`_cardinalLayout`) or the map view overlay (`_viewMode`). In the
-            // graph view nodes are placed by hand (restored from `properties.x/y`),
-            // so auto-anchoring areas, ways and loose nodes there moved a way the
-            // user had just positioned. Not in hierarchical mode either: that
-            // layout owns every position.
-            const mapMode = graphManager._cardinalLayout === true
-                || graphManager._viewMode === 'cardinal';
+            // Apply cardinal-based area layout only in MAP mode: the Map tab
+            // (`_cardinalLayout`). In the graph view nodes are placed by hand
+            // (restored from `properties.x/y`), so auto-anchoring areas, ways
+            // and loose nodes there moved a way the user had just positioned.
+            // Not in hierarchical mode either: that layout owns every position.
+            // The "way directions" overlay deliberately does NOT count as map
+            // mode any more — it only labels ways (task-530), so picking it must
+            // never rearrange the canvas behind the user's back.
+            const mapMode = graphManager._cardinalLayout === true;
             // `worldState.areas` is a legacy per-area map that a generated
             // scope may not populate; the layout itself handles that (the
             // cardinal path no-ops on an empty map), and the painted-grid path
@@ -431,6 +459,10 @@ window.GraphNetwork = {
             if (!levelsOn && mapMode) {
                 layoutKind = GraphLayoutEngine.applyCardinalLayout(nodesObj);
             }
+            // A painted grid owns every position, so the toolbar must show
+            // physics as unavailable rather than offering a toggle that the
+            // next reload silently undoes.
+            graphManager._paintedGridLayout = layoutKind === 'grid';
 
 
         // Items, characters and triggers sit relative to whatever holds them,
@@ -445,11 +477,16 @@ window.GraphNetwork = {
         }
 
 
-            // A painted grid is a map, not a simulation: leave physics off. Only
-            // the cardinal fallback wants physics re-enabled to settle the
-            // derived anchors — re-enabling it here after the grid layout is what
-            // dragged painted nodes off their lattice.
-            if (wasPhysics && layoutKind !== 'grid') {
+            // Physics follows the user's choice, in Map mode too. The grid layout
+            // turns the solver off only to place the lattice; the preference is
+            // restored below, so a painted scope with physics on simulates after
+            // every reload instead of being silently frozen. Consequence, by
+            // design: nodes drift off the painted cells, and the map art (which is
+            // positioned to that lattice) stops lining up with them. Locking the
+            // node layout (🔒 in the background menu) still wins over both.
+            // To go back to the old behaviour, restore `layoutKind !== 'grid'`.
+            if (wasPhysics) {
+                graphManager._physicsEnabled = true;
                 graphManager.network.setOptions({ physics: { enabled: true } });
             }
 
@@ -491,6 +528,9 @@ window.GraphNetwork = {
 
             // Re-render overlay views (map/outline) if active
             if (graphManager._viewMode !== 'graph') graphManager._renderCurrentView();
+            // The toolbar's loaded-node stat reads _graphNodesObj, so repaint it
+            // only now that the new dataset is in place (task-530).
+            if (window.GraphToolbar) GraphToolbar.syncAll();
         } catch (err) {
             console.warn("Graph API unavailable:", err);
         }
@@ -572,8 +612,9 @@ window.GraphNetwork = {
             nodesDS.update(updates);
             graphManager.network.redraw();
         }
-        const btn = document.getElementById('btn-node-labels');
-        if (btn) btn.classList.toggle('active', graphManager._showNodeLabels);
+        // The zoom LOD never changes the toggle itself: the button shows the
+        // manual preference, the LOD is a rendering decision.
+        if (window.GraphToolbar) GraphToolbar.syncToggles();
     },
 
     /**
@@ -624,6 +665,7 @@ window.GraphNetwork = {
      * Toggle vis's hierarchical (level) layout against the free physics layout
      * (task-485). Levels needs no per-frame work: the layout engine places every
      * node from the relation levels, so nothing drifts and nothing is stretched.
+     * The button keeps a fixed label; GraphToolbar paints the state.
      */
     toggleLayoutMode() {
         const cfg = (typeof config !== 'undefined' && config) || {};
@@ -634,39 +676,34 @@ window.GraphNetwork = {
     },
 
     _syncLayoutButton() {
-        const cfg = (typeof config !== 'undefined' && config) || {};
-        const btn = document.getElementById('btn-layout-mode');
-        if (!btn) return;
-        const levels = cfg.graphLayoutMode === 'levels';
-        btn.textContent = levels ? '🌳 Levels on' : '🌳 Levels';
-        btn.title = levels
-            ? 'Hierarchical layout is on: nodes sit by relation level (physics off). Click for free physics.'
-            : 'Free physics layout with contents following their parent. Click for hierarchical levels.';
+        if (window.GraphToolbar) GraphToolbar.syncLayout();
     },
     /**
-     * Toggles physics simulation on/off for the vis.js network.
-     * Updates the physics button text accordingly.
+     * Toggles physics simulation on/off for the vis.js network. The button's
+     * label is fixed ("⏸ Physics") and its state is aria-pressed; the toolbar
+     * disables it with a reason when a layout or overlay owns positions.
      */
     togglePhysics() {
         graphManager._physicsEnabled = !graphManager._physicsEnabled;
         graphManager.network.setOptions({ physics: { enabled: graphManager._physicsEnabled } });
-        const btn = document.getElementById('btn-physics');
-        if (btn) btn.textContent = graphManager._physicsEnabled ? '⏸ Physics' : '▶ Physics';
+        if (window.GraphToolbar) GraphToolbar.syncAll();
     },
 
     /**
-     * Toggles the graph legend overlay visibility.
+     * Toggles the graph legend overlay visibility. The legend also has its own
+     * ✕ (GraphToolbar.closeLegend); both go through the same flag so the View ▾
+     * toggle and the panel can never disagree.
      */
     toggleLegend() {
         if (!graphManager._legendEl) return;
         graphManager._legendVisible = !graphManager._legendVisible;
         graphManager._legendEl.style.display = graphManager._legendVisible ? 'block' : 'none';
+        if (window.GraphToolbar) GraphToolbar.syncToggles();
     },
 
     toggleTriggers() {
         graphManager._showTriggers = !graphManager._showTriggers;
-        const btn = document.getElementById('btn-triggers');
-        if (btn) btn.classList.toggle('active', graphManager._showTriggers);
+        if (window.GraphToolbar) GraphToolbar.syncToggles();
         GraphNetwork.applyVisibility();
     },
 
@@ -681,16 +718,14 @@ window.GraphNetwork = {
         try {
             localStorage.setItem('vw_graphShowImages', graphManager._showImages ? '1' : '0');
         } catch (e) { /* ignore */ }
-        const btn = document.getElementById('btn-images');
-        if (btn) btn.classList.toggle('active', graphManager._showImages);
+        if (window.GraphToolbar) GraphToolbar.syncToggles();
         graphManager._lastSig = '';
         GraphNetwork.loadGraphData();
     },
 
     toggleItems() {
         graphManager._showItems = !graphManager._showItems;
-        const btn = document.getElementById('btn-items');
-        if (btn) btn.classList.toggle('active', graphManager._showItems);
+        if (window.GraphToolbar) GraphToolbar.syncToggles();
         if (graphManager._showItems) {
             this.hideRevealedItems();
         }
@@ -699,8 +734,7 @@ window.GraphNetwork = {
 
     toggleInhabitedAreas() {
         graphManager._showOnlyInhabitedAreas = !graphManager._showOnlyInhabitedAreas;
-        const btn = document.getElementById('btn-inhabited');
-        if (btn) btn.classList.toggle('active', graphManager._showOnlyInhabitedAreas);
+        if (window.GraphToolbar) GraphToolbar.syncToggles();
         if (!graphManager._showOnlyInhabitedAreas) {
             graphManager._revealedAreaIds.clear();
         }
@@ -895,30 +929,53 @@ window.GraphNetwork = {
     },
 
     /**
+     * Legend panel chrome: title + a ✕. Every legend body (structural and the
+     * per-overlay ones) is wrapped in it, so the panel is always closable —
+     * task-530: it used to force itself open on every overlay change with no
+     * way back except a menu item two clicks away.
+     * @param {string} title - panel heading
+     * @param {string} [body] - rows; omit for the default structural rows
+     * @returns {string} legend HTML
+     */
+    legendChrome(title, body) {
+        const rows = body === undefined ? GraphNetwork.buildLegendRows() : body;
+        return `<div class="graph-legend-inner">
+            <div class="graph-legend-head">
+                <span>${title}</span>
+                <button class="graph-legend-close" data-legend-close type="button" title="Close the legend" aria-label="Close the legend">✕</button>
+            </div>
+            ${rows}
+        </div>`;
+    },
+
+    /**
      * Builds and returns the HTML content for the graph legend.
      * Shows node type colors and state color mappings.
      *
      * @returns {string} Legend HTML string
      */
     buildLegendHTML() {
-        return `<div class="graph-legend-inner">
-            <div style="font-size:10px;font-weight:600;color:var(--text-dim);margin-bottom:4px;">📖 Legend</div>
+        return GraphNetwork.legendChrome('📖 Legend');
+    },
+
+    /** The structural legend's rows (everything that is not the panel chrome). */
+    buildLegendRows() {
+        return `
             <div class="legend-row"><span class="legend-swatch" style="background:#2d333b;border:2px solid #58a6ff;"></span> Area</div>
             <div class="legend-row"><span class="legend-swatch legend-diamond" style="background:#3d2e1a;border:2px solid #e3b341;"></span> Item</div>
             <div class="legend-row"><span class="legend-swatch legend-triangle" style="background:#1a3a2a;border:2px solid #4ec9b0;"></span> Way</div>
             <div class="legend-row"><span class="legend-swatch legend-ellipse" style="background:#2a1a3d;border:2px solid #bc8cff;"></span> Character</div>
             <div style="font-size:9px;color:var(--text-muted);margin:4px 0 2px;">Way states:</div>
             <div class="legend-row"><span class="legend-swatch" style="background:#3a1a1a;border:2px solid #f85149;"></span><span style="font-size:9px;"> locked · broken</span></div>
-            <div class="legend-row"><span class="legend-swatch" style="background:#1a3a2a;border:2px solid #3fb950;"></span><span style="font-size:9px;"> open</span></div>
+            <div class="legend-row"><span class="legend-swatch" style="background:#1a3a1a;border:2px solid #3fb950;"></span><span style="font-size:9px;"> open</span></div>
             <div class="legend-row"><span class="legend-swatch" style="background:#2d3a1a;border:2px solid #e3b341;"></span><span style="font-size:9px;"> closed</span></div>
-            <div class="legend-row"><span class="legend-swatch" style="background:#1a3a2a;border:2px solid #58a6ff;"></span><span style="font-size:9px;"> one-way (blue border)</span></div>
+            <div class="legend-row"><span class="legend-swatch" style="background:#1a3a1a;border:2px solid #58a6ff;"></span><span style="font-size:9px;"> one-way (blue border)</span></div>
             <div class="legend-row"><span class="legend-swatch" style="background:#3a2a1a;border:2px solid #f0883e;"></span><span style="font-size:9px;"> blocked</span></div>
             <div style="font-size:9px;color:var(--text-muted);margin:4px 0 2px;">Item states:</div>
             <div class="legend-row"><span class="legend-swatch" style="background:#3d2a0a;border:2px solid #f0883e;"></span><span style="font-size:9px;"> lit</span></div>
             <div class="legend-row"><span class="legend-swatch" style="background:#2d2d2d;border:2px solid #6e7681;"></span><span style="font-size:9px;"> broken</span></div>
             <div class="legend-row"><span class="legend-swatch" style="background:#2d251a;border:2px solid #8b7355;"></span><span style="font-size:9px;"> depleted</span></div>
-            ${typeof NodeBadges !== 'undefined' ? NodeBadges.legendHtml() : ''}
-        </div>`;
+            ${typeof NodeBadges !== 'undefined' ? NodeBadges.legendHtml() : ''}`;
     },
 
     // ──────────────────────────────────────────────
@@ -1174,30 +1231,34 @@ window.GraphNetwork = {
         if (graphManager._physicsEnabled && !levelsOn) {
             graphManager.network.setOptions({ physics: { enabled: true } });
         }
-        GraphNetwork._updateOverlayLegend('structural');
     },
 
     /**
      * Update the legend for the current overlay view.
+     *
+     * The panel is updated IN PLACE and never opened here: it used to force
+     * itself open on every overlay change — including on the way back to the
+     * structural view — and had no close affordance at all (task-530). Open it
+     * from View ▾ ▸ Legend, or close it with its own ✕.
      */
     _updateOverlayLegend(mode, extraData) {
         if (!graphManager._legendEl) return;
-        let inner = '';
+        let title = null;
+        let rows = '';
         if (mode === 'structural') {
-            inner = GraphNetwork.buildLegendHTML();
+            return;   // the structural legend is already in the panel
         } else if (mode === 'light') {
-            inner = `<div class="graph-legend-inner">
-                <div style="font-size:10px;font-weight:600;color:var(--text-dim);margin-bottom:4px;">💡 Light Overlay</div>
+            title = '💡 Light Overlay';
+            rows = `
                 <div class="legend-row"><span class="legend-swatch" style="background:#0a0a0a;border:1px solid #333;"></span> pitch black 0-20</div>
                 <div class="legend-row"><span class="legend-swatch" style="background:#16162a;border:1px solid #4a4a7e;"></span> dim 21-40</div>
                 <div class="legend-row"><span class="legend-swatch" style="background:#1e2430;border:1px solid #58a6ff;"></span> normal 41-70</div>
                 <div class="legend-row"><span class="legend-swatch" style="background:#3a3518;border:1px solid #e3b341;"></span> bright 71-90</div>
                 <div class="legend-row"><span class="legend-swatch" style="background:#4a4020;border:1px solid #fff;"></span> blinding 91-100</div>
-                <div class="legend-row" style="margin-top:4px;"><span class="legend-swatch" style="background:#3d2a0a;border:1px solid #f0883e;"></span><span style="font-size:9px;"> lit item</span></div>
-            </div>`;
+                <div class="legend-row" style="margin-top:4px;"><span class="legend-swatch" style="background:#3d2a0a;border:1px solid #f0883e;"></span><span style="font-size:9px;"> lit item</span></div>`;
         } else if (mode === 'heat') {
-            inner = `<div class="graph-legend-inner">
-                <div style="font-size:10px;font-weight:600;color:var(--text-dim);margin-bottom:4px;">🌡️ Heat Overlay</div>
+            title = '🌡️ Heat Overlay';
+            rows = `
                 <div class="legend-row"><span class="legend-swatch" style="background:#0a0a2e;border:1px solid #6e9eff;"></span> ≤ -20°C freezing</div>
                 <div class="legend-row"><span class="legend-swatch" style="background:#101840;border:1px solid #7eb8ff;"></span> -5°C cold</div>
                 <div class="legend-row"><span class="legend-swatch" style="background:#1a2840;border:1px solid #58a6ff;"></span> 15°C cool</div>
@@ -1205,38 +1266,33 @@ window.GraphNetwork = {
                 <div class="legend-row"><span class="legend-swatch" style="background:#3a2a18;border:1px solid #e3b341;"></span> 35°C warm</div>
                 <div class="legend-row"><span class="legend-swatch" style="background:#4a2818;border:1px solid #f0883e;"></span> 45°C hot</div>
                 <div class="legend-row"><span class="legend-swatch" style="background:#4a1010;border:1px solid #f85149;"></span> ≥ 50°C blazing</div>
-                <div class="legend-row" style="margin-top:4px;"><span class="legend-swatch" style="background:#4a2818;border:1px solid #f0883e;"></span><span style="font-size:9px;"> heat source</span></div>
-            </div>`;
+                <div class="legend-row" style="margin-top:4px;"><span class="legend-swatch" style="background:#4a2818;border:1px solid #f0883e;"></span><span style="font-size:9px;"> heat source</span></div>`;
         } else if (mode === 'sound') {
-            inner = `<div class="graph-legend-inner">
-                <div style="font-size:10px;font-weight:600;color:var(--text-dim);margin-bottom:4px;">🔊 Sound Overlay</div>
+            title = '🔊 Sound Overlay';
+            rows = `
                 <div class="legend-row"><span class="legend-swatch" style="background:#0a0a0a;border:1px solid #333;"></span> silent</div>
                 <div class="legend-row"><span class="legend-swatch" style="background:#121220;border:1px solid #4a4a7e;"></span> quiet</div>
                 <div class="legend-row"><span class="legend-swatch" style="background:#2d333b;border:1px solid #58a6ff;"></span> moderate</div>
                 <div class="legend-row"><span class="legend-swatch" style="background:#3a2a18;border:1px solid #e3b341;"></span> loud</div>
-                <div class="legend-row"><span class="legend-swatch" style="background:#4a1010;border:1px solid #f85149;"></span> deafening</div>
-            </div>`;
+                <div class="legend-row"><span class="legend-swatch" style="background:#4a1010;border:1px solid #f85149;"></span> deafening</div>`;
         } else if (mode === 'trigger') {
-            inner = `<div class="graph-legend-inner">
-                <div style="font-size:10px;font-weight:600;color:var(--text-dim);margin-bottom:4px;">⚡ Trigger Overlay</div>
+            title = '⚡ Trigger Overlay';
+            rows = `
                 <div class="legend-row"><span class="legend-swatch" style="background:#2d333b;border:2px solid #bc8cff;"></span> trigger node</div>
                 <div class="legend-row"><span class="legend-swatch" style="background:#1a1a1a;border:1px solid #333;"></span> non-trigger node</div>
-                <div class="legend-row"><span style="color:#bc8cff;font-size:14px;">━━▶</span> trigger edge</div>
-                <div class="legend-row"><span style="color:#30363d;font-size:14px;">╌╌▶</span> normal edge</div>
-            </div>`;
+                <div class="legend-row"><span style="color:#bc8cff;font-size:14px;">━─▶</span> trigger edge</div>
+                <div class="legend-row"><span style="color:#30363d;font-size:14px;">──▶</span> normal edge</div>`;
         } else if (mode === 'cardinal') {
-            inner = `<div class="graph-legend-inner">
-                <div style="font-size:10px;font-weight:600;color:var(--text-dim);margin-bottom:4px;">🧭 Cardinal Overlay</div>
-                <div style="font-size:9px;color:var(--text-muted);">Ways labeled with direction</div>
+            title = '🧭 Way directions';
+            rows = `
+                <div style="font-size:9px;color:var(--text-muted);">Ways labeled with their direction</div>
                 <div style="font-size:9px;color:var(--text-muted);">N S E W NE NW SE SW U D</div>
-                <div style="font-size:9px;color:var(--text-muted);margin-top:4px;">Areas arranged geographically</div>
-            </div>`;
+                <div style="font-size:9px;color:var(--text-muted);margin-top:4px;">A label overlay — it does not rearrange anything</div>`;
         }
-        if (inner) {
-            window.Lit.render(networkManagerHtmlTag`${window.Lit.unsafeHTML(inner)}`, graphManager._legendEl);
-            graphManager._legendVisible = true;
-            graphManager._legendEl.style.display = 'block';
-        }
+        if (!title) return;
+        window.Lit.render(networkManagerHtmlTag`${window.Lit.unsafeHTML(GraphNetwork.legendChrome(title, rows))}`, graphManager._legendEl);
+        // In place only: the panel keeps whatever visibility the user chose.
+        if (window.GraphToolbar) GraphToolbar.syncToggles();
     },
 
     /**
@@ -1260,13 +1316,7 @@ window.GraphNetwork = {
                 case 'heat': GraphNetwork._applyHeatOverlay(); break;
                 case 'sound': GraphNetwork._applySoundOverlay(); break;
                 case 'trigger': GraphNetwork._applyTriggerOverlay(); break;
-                case 'cardinal': {
-                    if (graphManager._viewMode !== 'cardinal') {
-                        graphManager._viewMode = mode;
-                    }
-                    GraphNetwork._applyCardinalOverlay();
-                    break;
-                }
+                case 'cardinal': GraphNetwork._applyCardinalOverlay(); break;
             }
             const dt = Math.round(performance.now() - t0);
             const overlayNames = { light:'Light', heat:'Heat', sound:'Sound', trigger:'Trigger', cardinal:'Cardinal' };

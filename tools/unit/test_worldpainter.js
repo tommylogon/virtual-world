@@ -195,3 +195,225 @@ test('referenceHandlePoints puts corners on the rect and edges mid-span', () => 
     assertEq(pts.n, { x: 3, y: 2 }, 'n edge midpoint');
     assertEq(pts.e, { x: 5, y: 5 }, 'e edge midpoint');
 });
+
+// ── placed areas (task-528) ───────────────────────────────────────────────
+
+const PLACED = {
+    area_placements: [{ id: 'area_hills', name: 'Northern Hills', x: 2, y: 1 }],
+    unplaced_areas: [{ id: 'area_lake', name: 'Murk Lake' },
+                     { id: 'area_river', name: 'Raven River' }],
+};
+
+test('areaAt finds the area on a cell, and areaMap keys them by cell', () => {
+    assertEq(GM.areaAt(PLACED, 2, 1).id, 'area_hills', 'placed area');
+    assertEq(GM.areaAt(PLACED, 0, 0), null, 'empty cell');
+    assertEq(Object.keys(GM.areaMap(PLACED)), ['2,1'], 'cell keys');
+    assertEq(GM.areaPlacementFor(PLACED, 'area_hills'), { id: 'area_hills', name: 'Northern Hills', x: 2, y: 1 }, 'by id');
+    assertEq(GM.areaPlacementFor(PLACED, 'area_lake'), null, 'not placed here');
+});
+
+test('placeableAreas lists every area the picker offers, and never drops the picked one', () => {
+    // task-541: the picker is grouped by scope, so the flat list is now the areas
+    // on this grid plus every candidate — the already-placed one leads.
+    assertEq(GM.placeableAreas(PLACED).map((a) => a.id),
+        ['area_hills', 'area_lake', 'area_river'], 'placed first, then candidates');
+    // A picked area that already sits on this map stays in the list (so it can
+    // be moved), flagged with where it is.
+    const picked = GM.placeableAreas(PLACED, 'area_hills');
+    assertEq(picked.map((a) => a.id), ['area_hills', 'area_lake', 'area_river'], 'picked kept');
+    assertEq(picked[0].placedHere, { x: 2, y: 1 }, 'placement known, and in the placed group');
+    assertEq(GM.placeableAreas(PLACED, 'area_ghost').map((a) => a.id),
+        ['area_hills', 'area_lake', 'area_river', 'area_ghost'], 'unknown id is still selectable');
+});
+
+test('the place helpers tolerate a payload with neither list', () => {
+    assertEq(GM.areaMap({}), {}, 'no placements');
+    assertEq(GM.areaAt(null, 3, 3), null, 'no payload');
+    assertEq(GM.placeableAreas(undefined), [], 'no candidates');
+    assertEq(GM.areaGroups({}, null), [], 'no groups');
+    assertEq(GM.areaPlacementFor({}, 'x'), null, 'not placed');
+});
+
+test('gridForImageAspect makes the grid the picture (the match button)', () => {
+    // The painter fits the image *into* the grid, so a different ratio leaves
+    // empty bands. Matching the aspect keeps the width and derives the height.
+    assertEq(GM.gridForImageAspect(20, 300, 100), { w: 20, h: 7, cells: 140, aspect: 3 },
+        'a 3:1 picture on a 20-wide grid');
+    assertEq(GM.gridForImageAspect(20, 100, 300), { w: 20, h: 60, cells: 1200, aspect: 1 / 3 },
+        'a tall picture');
+    // A very wide picture on a wide grid would ask for a fraction of a cell.
+    assertEq(GM.gridForImageAspect(400, 4000, 100).h, 10, 'height never below 1');
+    assertEq(GM.gridForImageAspect(20, 0, 0), null, 'no readable image → no grid');
+    assertEq(GM.gridForImageAspect(20, null, null), null, 'null size → no grid');
+    // The cell count stays sane, so the compiler cannot be asked to mint a
+    // quarter of a million cells from a mistyped width.
+    const wide = GM.gridForImageAspect(400, 100, 40000);
+    assertTrue(wide.cells <= 20000, `cells capped (${wide.cells})`);
+});
+
+test('strandedCount says what a shrink would prune', () => {
+    // `▦ match` shrinks the grid, and `ensure_grid` prunes out-of-bounds paint
+    // and placements — so the count is shown and confirmed before that happens.
+    const payload = {
+        layers: { biome: { '0,0': 'hills', '19,9': 'hills' }, road: { '20,0': 'road' } },
+        area_placements: [{ id: 'a1', x: 1, y: 1 }, { id: 'a2', x: 30, y: 2 }],
+        placements: [{ id: 'child', x: 3, y: 3 }, { id: 'child2', x: 0, y: 40 }],
+    };
+    // Shrinking to 10x10: (19,9) and (20,0) both fall outside, as do a2 and child2.
+    assertEq(GM.strandedCount(payload, 10, 10), 4, 'four things would be pruned');
+    assertEq(GM.strandedCount(payload, 40, 50), 0, 'growing strands nothing');
+    // 20x10 keeps the cell at (19,9) — the edge is inclusive — and prunes the rest.
+    assertEq(GM.strandedCount(payload, 20, 10), 3, 'exactly on the edge survives');
+    assertEq(GM.strandedCount(null, 10, 10), 0, 'no payload');
+    assertEq(GM.strandedCount(payload, 0, 0), 0, 'no grid');
+});
+
+test('areaGroups keeps a child scope out of the parent map picker (task-541)', () => {
+    // Painting the world map: the camp's rooms are members of the camp, so they
+    // must not read as this map's areas — only as an explicit "elsewhere" group.
+    const payload = {
+        scope: { id: 'world', name: 'World' },
+        area_placements: [{ id: 'area_gate', name: 'The Gate', x: 4, y: 4 }],
+        unplaced_areas: [
+            { id: 'area_hall', name: 'Great Hall', scope_id: 'world', scope_name: 'World' },
+            { id: 'area_tent', name: 'Tent', scope_id: 'goblin_camp', scope_name: 'Goblin Camp' },
+            { id: 'area_pit', name: 'Sewer Pit', scope_id: 'goblin_camp', scope_name: 'Goblin Camp' },
+            { id: 'area_loose', name: 'Wanderer Camp', scope_id: null, scope_name: null },
+        ],
+    };
+    const groups = GM.areaGroups(payload, null);
+    const byKey = {};
+    groups.forEach((g) => { byKey[g.key] = g.areas.map((a) => a.id); });
+    assertEq(Object.keys(byKey), ['placed', 'mine', 'elsewhere'], 'three groups, in order');
+    assertEq(byKey.placed, ['area_gate'], 'already on this grid');
+    // Free-floating areas count as this scope's: they belong to nobody.
+    assertEq(byKey.mine, ['area_hall', 'area_loose'], 'this scope + unowned');
+    assertEq(byKey.elsewhere, ['area_tent', 'area_pit'], 'the camp belongs elsewhere');
+    assertEq(groups[2].areas[0].scope_name, 'Goblin Camp', 'the other scope is named');
+
+    // On the camp's own map they are ordinary candidates. The unowned area is
+    // still offered here: it belongs to nobody, so any map may claim it.
+    const camp = GM.areaGroups({ ...payload, scope: { id: 'goblin_camp' } }, null);
+    const campKeys = camp.reduce((acc, g) => { acc[g.key] = g.areas.map((a) => a.id); return acc; }, {});
+    assertEq(campKeys.mine, ['area_tent', 'area_pit', 'area_loose'], "the camp's rooms + unowned");
+    assertEq(campKeys.elsewhere, ['area_hall'], 'the world map hall is elsewhere');
+
+    // An area on this grid is never listed twice, even if the server also offers it.
+    const dup = GM.areaGroups({
+        scope: { id: 'world' },
+        area_placements: [{ id: 'area_hall', name: 'Great Hall', x: 1, y: 1 }],
+        unplaced_areas: [{ id: 'area_hall', name: 'Great Hall', scope_id: 'world' }],
+    }, null);
+    assertEq(dup.flatMap((g) => g.areas.map((a) => a.id)), ['area_hall'], 'listed once');
+});
+
+test('cellInfo reports everything on a cell (task-540)', () => {
+    const payload = {
+        scope: { id: 'camp' },
+        layers: { biome: { '2,1': 'sparse_forest' }, road: { '2,1': 'road' },
+                  elevation: { '2,1': '3' } },
+        placements: [{ id: 'deep_woods', name: 'Deep Woods', kind: 'scope' }],
+        feature: { '2,1': 'deep_woods' },
+        area_placements: [{ id: 'area_pit', name: 'Sewer Pit', x: 2, y: 1 }],
+    };
+    const info = GM.cellInfo(payload, 2, 1);
+    assertEq(info.key, '2,1', 'cell key');
+    assertEq(info.biome, 'sparse_forest', 'biome layer');
+    assertEq(info.road, 'road', 'road layer');
+    assertEq(info.elevation, '3', 'elevation layer');
+    assertEq(info.area.name, 'Sewer Pit', 'placed area');
+    // The feature layer is {cellKey: child_id}; the readable name comes from the
+    // scope's own placement card.
+    assertEq(info.child, { id: 'deep_woods', name: 'Deep Woods', kind: 'scope' }, 'child scope');
+    assertEq(info.painted, true, 'painted');
+    assertEq(info.empty, false, 'not empty');
+
+    // An empty cell says so, rather than printing three blank fields.
+    const bare = GM.cellInfo({ layers: {}, placements: [], area_placements: [] }, 0, 0);
+    assertEq(bare, { x: 0, y: 0, key: '0,0', biome: null, road: null, elevation: null,
+                     area: null, child: null, painted: false, empty: true }, 'bare cell');
+
+    // A feature id with no card (a scope that was deleted) still names something.
+    const orphan = GM.cellInfo({ layers: {}, feature: { '1,1': 'gone' },
+                                 placements: [], area_placements: [] }, 1, 1);
+    assertEq(orphan.child, { id: 'gone', name: 'gone', kind: null }, 'orphan child');
+});
+
+test('estimateCompile drops cells a hand-placed area owns (task-528)', () => {
+    // Two painted cells, one of them occupied: generate mints one area, and the
+    // estimate must not promise two.
+    const payload = {
+        layers: { biome: { '5,3': 'sparse_forest', '6,3': 'dense_forest' } },
+        area_placements: [{ id: 'area_bathroom', name: 'Bathroom', x: 5, y: 3 }],
+    };
+    const est = GM.estimateCompile(payload, false);
+    assertEq(est.areas, 1, 'one compiled area');
+    assertEq(est.ways, 0, 'the lone compiled cell has no neighbour left to link');
+    // Merged, the same answer: the occupied cell never enters a region.
+    assertEq(GM.estimateCompile(payload, true).areas, 1, 'merge too');
+
+    // Every painted cell taken → nothing to compile, and it says so rather than
+    // promising an area that cannot be minted.
+    const all = {
+        layers: { biome: { '5,3': 'sparse_forest' } },
+        area_placements: [{ id: 'a', name: 'A', x: 5, y: 3 }],
+    };
+    assertEq(GM.estimateCompile(all, false).areas, 0, 'no cells left');
+});
+
+test('estimateCompile counts road cells as places, and the road as identity (task-496)', () => {
+    // A road painted over the forest line: three cells, all of them places.
+    // Without merge that is 3 areas + 2 ways (a 3-cell run, 8-neighbour).
+    const p = {
+        layers: {
+            biome: { '0,0': 'sparse_forest', '1,0': 'sparse_forest', '2,0': 'sparse_forest' },
+            road: { '1,0': 'road' },
+        },
+    };
+    const flat = GM.estimateCompile(p, false);
+    assertEq(flat.areas, 3, 'the road cell is a place, not a gap in the forest');
+    assertEq(flat.ways, 2, 'one way per adjacent pair along the run');
+
+    // Merged, the road cell stays its own place: the road *is* the cell's
+    // identity, so it never merges into forest. The forest is cut in two by the
+    // road, and the stubs are two cells apart, so 8-neighbour merging cannot join
+    // them either — two forest regions plus the road.
+    const merged = GM.estimateCompile(p, true);
+    assertEq(merged.areas, 3, 'two forest stubs + the road region');
+    assertEq(merged.ways, 2, 'each forest stub touches the road once');
+
+    // Three distinct identities in a row: forest, road, hills — three places.
+    const beside = {
+        layers: {
+            biome: { '0,0': 'sparse_forest', '2,0': 'hills' },
+            road: { '1,0': 'road' },
+        },
+    };
+    assertEq(GM.estimateCompile(beside, true).areas, 3, 'forest, road and hills are three places');
+
+    // A run of road merges with itself into one road area.
+    const run = {
+        layers: {
+            biome: { '0,0': 'hills', '1,0': 'hills', '2,0': 'hills' },
+            road: { '0,0': 'road', '1,0': 'road', '2,0': 'road' },
+        },
+    };
+    assertEq(GM.estimateCompile(run, true).areas, 1, 'a whole road run is one area');
+    assertEq(GM.estimateCompile(run, false).areas, 3, 'one area per cell without merge');
+
+    // Road-only cells compile at all: a road painted with no biome under it is
+    // still a place, and two of them make a way.
+    const only = { layers: { road: { '4,4': 'road', '5,4': 'road' } } };
+    assertEq(GM.estimateCompile(only, false).areas, 2, 'road-only cells are places');
+    assertEq(GM.estimateCompile(only, false).ways, 1, 'and they are joined');
+    assertEq(GM.estimateCompile(only, true).areas, 1, 'and they merge as one road');
+
+    // A hand-placed area still wins over a road painted on its cell.
+    const taken = {
+        layers: { road: { '0,0': 'road', '1,0': 'road' } },
+        area_placements: [{ id: 'area_gate', name: 'The Gate', x: 0, y: 0 }],
+    };
+    assertEq(GM.estimateCompile(taken, false).areas, 1, 'the occupied cell is skipped');
+    assertEq(GM.estimateCompile(taken, true).areas, 1, 'merge too');
+});
+

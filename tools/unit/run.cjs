@@ -33,6 +33,13 @@ const win = {
     assertEq: null,
     assertTrue: null,
     assertFalse: null,
+    // `vm` contexts do not inherit the host's timers, and several modules
+    // schedule work (a layout redraw, a debounce). Synchronous stubs keep a test
+    // from having to care: nothing under test depends on the delay.
+    setTimeout: (fn) => { fn(); return 0; },
+    clearTimeout: () => {},
+    setInterval: () => 0,
+    clearInterval: () => {},
 };
 win.window = win;
 vm.createContext(win);
@@ -64,6 +71,7 @@ load('static/js/shared/trigger-suggest-ai.js');
 load('static/js/shared/trigger-graph.js');
 load('static/js/agent/vital-thresholds.js');
 load('static/js/agent/simultaneous.js');
+load('static/js/agent/sim-round.js');
 load('static/js/agent/turn-queue.js');
 load('static/js/agent/action-normalizer.js');
 load('static/js/agent/response-parser.js');
@@ -80,12 +88,15 @@ load('static/js/nl-editor/tools.js');
 load('static/js/nl-editor/agent-loop.js');
 load('static/js/graph/graph-background.js');
 load('static/js/graph/graph-export.js');
+load('static/js/graph/event-handlers.js');
 load('static/js/graph/tooltips.js');
 load('static/js/graph/separation.js');
 load('static/js/graph/relative-layout.js');
 load('static/js/graph/layout-engine.js');
+load('static/js/graph/toolbar.js');
 load('static/js/soak/soak-format.js');
 load('static/js/soak/soak-charts.js');
+load('static/js/soak/soak-spacetime.js');
 load('static/js/ui/timeskip.js');
 load('static/js/worldpainter/grid-model.js');
 

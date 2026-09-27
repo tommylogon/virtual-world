@@ -203,12 +203,17 @@ scope, so the node count is per zone, not per world.
 
 ## Description and direction model (2026-09-26)
 
-Locked with the author; the compiler's next pass targets this.
+Locked with the author; **implemented in `engine/world_compile.py` (2026-09-27)**.
 
 - **Every painted cell is a place, roads included.** A road cell *replaces* its
   biome — one node per cell, the biome is description *context*, not a second
   area. A road-only cell now compiles instead of being dropped by
   `cells = sorted(biome_of)`.
+- **The road is the cell's identity, not a coat of paint.** Region merging groups
+  by `road:<value>` when a road is painted and `biome:<value>` otherwise, so a run
+  of road merges into one road area while a road cell beside forest stays its own
+  place. The WorldPainter's "≈ N areas" estimate (`grid-model.estimateCompile`)
+  groups the same way, so the header matches what Generate mints.
 - **A description composes the place's character** from its neighbours and
   elevation, it does not just list them: "a road along the forest line" (woods
   to the north), "a road in the woods" (woods both sides), "a narrow path, the
@@ -216,15 +221,58 @@ Locked with the author; the compiler's next pass targets this.
   read from floor/elevation). It may look one hop further to say where a road
   *leads* ("the road west leads back into the sparse woods"). Deterministic, no
   LLM — the fragment catalogue is the hook.
+- **A neighbour is named for what its place is.** Where a cell carries both a road
+  and a biome, the prose neighbour line uses the road, because the neighbouring
+  *place* is a road area; a biome cell beside a road instead gets "A track runs
+  through it." rather than the road being named as a biome.
 - **Directions: compass outdoors, narrative on feature entry.** Exterior
   cell-to-cell moves stay `north/south/east/west` (+ diagonals). Entering a
   **feature** uses a narrative phrase (`enter`, `enter the mine`,
   `climb up the rockface`, existing `in`/`out`) carried by the edge, sourced from
   the feature/placement rather than hardcoded. Movement already resolves by the
-  direction string, so the vocabulary widens with **no engine change**.
+  direction string, so the vocabulary widens with **no engine change**. Every
+  phrase also carries `aliases: ["in", "out"]`, so `go in` / `go out` keep
+  working.
 - **Floors inform prose now, gate movement later.** `properties.elevation`
-  feeds the cliff phrasing; a floor delta past ~3 floors requiring a climb (and
-  potentially blocking the step) is deferred to **task-525**.
+  feeds the cliff phrasing (`CLIFF_FLOOR_DELTA = 2` floors by default); a floor
+  delta past ~3 floors requiring a climb (and potentially blocking the step) is
+  deferred to **task-525**.
+
+## Membership, placement, and reading a cell (2026-09-27)
+
+Three things the author asked for, and the distinction that makes them coherent:
+
+- **Membership ≠ placement.** `world_scope_id` on an area node *is* scope
+  membership — the scope views read nothing else — and it is edited **on the
+  node**: the area inspector has a **🗺️ Scope** section with a dropdown of every
+  scope, so a child scope's whole interior can be moved into it in one go
+  (`POST /api/world/scopes/<id>/areas` with `{add, remove}` lists, one undo step,
+  both ends of the manifest mirror moved together). A cell on a painted grid is
+  *placement*, which stays with the 📍 Area tool. That is why the goblin camp's
+  rooms belong to the camp without being parked as cells on the world's grid —
+  which is also why they stop showing up in the world scope's own view. Leaving a
+  scope releases any cell the area held there; a cell it holds in the target
+  scope is kept, so re-assigning an area to the scope it already sits on is a
+  no-op. A **generated** area cannot be reassigned at all: it already owns a
+  cell on the grid of the scope that generated it.
+- **The place tool's picker is grouped by scope** (task-541): *On this grid*,
+  *This scope, not placed*, and an explicit *Elsewhere in the world* group
+  naming the other scope (picking one there is a membership change, not a
+  placement). An area with no scope counts as this scope's. The payload already
+  carried each candidate's `scope_id`/`scope_name`; it just was not used.
+- **Every cell can be read** (task-540): hovering the grid shows the cell's paint
+  layers, its placed area and its sub-zone in the HUD; the 🔍 Inspect tool — or a
+  right-click on *any* tool — opens a panel with the same facts plus the actions
+  that apply to that cell (move/unplace the area, open the area in the graph,
+  open or remove the sub-zone, clear the paint). A placed area on a 200×133 map
+  is a ~5px marker with no name, so this was the only way to tell what was where.
+
+Noted gap: `world_scopes.project()` (the scope *summary card*) lists
+`boundary_ways` only, so an interior's internal doors are missing from that card.
+The graph view is fine — `project_subgraph` includes ways with both endpoints
+inside. Whether the summary should list internal ways is still open.
+
+## Still open
 
 
 

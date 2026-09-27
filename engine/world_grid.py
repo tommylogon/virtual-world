@@ -18,10 +18,14 @@ keys, so a scope with no grid costs nothing and older saves load unchanged::
                             "road":  {"<x>,<y>": value},   # road/surface id
                             "elevation": {"<x>,<y>": number}}
     record["placements"] = {child_scope_id: {"x": int, "y": int}}
+    record["area_placements"] = {area_id: {"x": int, "y": int}}   (task-528)
 
 Features — a village inside a forest — are **child scopes placed at a cell**, so
 they live in ``placements`` rather than a separate paint layer;
 :func:`feature_layer` derives the ``feature`` paint view the editor draws.
+An area the author wrote by hand can also be placed on a cell (task-528); those
+live in ``area_placements``, keyed by area node id, and the compiler skips an
+occupied cell so the two never collide.
 
 Coordinates are integer ``(x, y)`` with ``(0, 0)`` at the top-left and ``y``
 increasing downward, matching a normal image grid. A cell's **stable identity**
@@ -103,7 +107,8 @@ def normalise_grid(record: dict) -> dict:
     """
     if not isinstance(record, dict):
         return record
-    if not any(key in record for key in ("grid", "layers", "placements", "mode",
+    if not any(key in record for key in ("grid", "layers", "placements",
+                                         "area_placements", "mode",
                                          "map_offset")):
         return record
 
@@ -158,6 +163,12 @@ def normalise_grid(record: dict) -> dict:
                 clean_placements[str(child_id)] = clean
         record["placements"] = clean_placements
 
+    if "area_placements" in record:
+        # Hand-placed *areas* on cells (task-528) — the mirror of `placements`,
+        # keyed by area node id instead of child scope id, because the thing being
+        # placed already exists in the graph. Same shape, same leniency.
+        record["area_placements"] = _clean_placement_map(record.get("area_placements"))
+
     if "map_offset" in record:
         clean_offset = _clean_offset(record.get("map_offset"))
         if clean_offset and (clean_offset["x"] or clean_offset["y"]):
@@ -174,8 +185,7 @@ def normalise_grid(record: dict) -> dict:
 def _as_int(value) -> Optional[int]:
     try:
         return int(value)
-    except (TypeError, ValueError):
-        return None
+    except (TypeError, ValueError):        return None
 
 
 def _as_float(value, default: float) -> float:
@@ -191,6 +201,25 @@ def _finite(value) -> bool:
     except (TypeError, ValueError):
         return False
     return number == number and number not in (float("inf"), float("-inf"))
+
+
+def _clean_placement_map(raw) -> Dict[str, dict]:
+    """Coerce a ``{key: {"x","y"}}`` map, dropping anything unusable.
+
+    Shared by ``placements`` and ``area_placements`` (task-528) so a hand-edited or
+    legacy record cannot crash a load; a key without two integer coordinates is
+    simply not a placement.
+    """
+    clean: Dict[str, dict] = {}
+    if isinstance(raw, dict):
+        for key, pos in raw.items():
+            if not isinstance(pos, dict):
+                continue
+            x, y = _as_int(pos.get("x")), _as_int(pos.get("y"))
+            if x is None or y is None:
+                continue
+            clean[str(key)] = {"x": x, "y": y}
+    return clean
 
 
 # ─────────────────────────────── grid ─────────────────────────────────────
@@ -508,6 +537,90 @@ def occupant_at(record: dict, x: int, y: int) -> Optional[str]:
         if pos["x"] == int(x) and pos["y"] == int(y):
             return child
     return None
+
+
+# ─────────────────────── placed areas (task-528) ───────────────────────────
+#
+# A *placed area* is an area node the author wrote by hand, parked on a cell of a
+# painted grid. It is the mirror of `placements`, keyed by area node id rather than
+# by child scope id, because the thing being placed already exists in the graph.
+#
+# Why it lives on the scope record and not only on the node: the node's
+# `properties.cell` says where the area *is*, but only the record can answer "is
+# this cell already taken?" — which is what keeps a hand-placed area and a
+# compiled one from landing on top of each other when the grid is generated.
+
+
+def area_placements(record: dict) -> Dict[str, dict]:
+    """A copy of ``{area_id: {"x","y"}}`` for a scope (task-528)."""
+    return dict((record or {}).get("area_placements") or {})
+
+
+def area_placement_of(record: dict, area_id: str) -> Optional[Tuple[int, int]]:
+    """The cell an area is placed on in this scope, or ``None``."""
+    pos = area_placements(record).get(str(area_id))
+    if not pos:
+        return None
+    return pos["x"], pos["y"]
+
+
+def area_placement_at(record: dict, x: int, y: int) -> Optional[str]:
+    """The area placed at a cell, if any (task-528)."""
+    for area_id, pos in area_placements(record).items():
+        if pos["x"] == int(x) and pos["y"] == int(y):
+            return area_id
+    return None
+
+
+def place_area(manifest: Dict[str, dict], scope_id: str, area_id: str,
+               x: int, y: int, *, on_overlap: str = "forbid") -> str:
+    """Park area *area_id* on a cell of *scope_id*'s grid (task-528).
+
+    Returns ``"placed"``, ``"moved"`` or ``"displaced"``, matching :func:`place`:
+    a cell that already holds a *placed area* is refused unless the caller opts
+    into ``on_overlap="displace"``. A cell holding a child-scope placement is left
+    alone — that is a different kind of occupant and the compiler already knows
+    how to tag a cell with a child.
+
+    This only records the reservation; the caller owns the graph side (the node's
+    ``world_scope_id`` / ``cell`` / ``x`` / ``y``), because only it knows whether
+    the area is hand-authored enough to place.
+    """
+    if on_overlap not in ON_OVERLAP:
+        raise ValueError(f"unknown on_overlap {on_overlap!r}; expected {ON_OVERLAP}")
+    scope = manifest.get(scope_id)
+    if scope is None:
+        raise ValueError(f"no such scope {scope_id!r}")
+    if not has_grid(scope):
+        raise ValueError(f"scope {scope_id!r} has no grid")
+    if not in_bounds(scope, x, y):
+        raise ValueError(f"cell ({x},{y}) is outside the grid")
+
+    current = scope.setdefault("area_placements", {})
+    occupant = area_placement_at(scope, x, y)
+    outcome = "placed"
+    if occupant is not None and occupant != str(area_id):
+        if on_overlap == "forbid":
+            raise ValueError(
+                f"cell ({x},{y}) already holds area {occupant!r}; move or unplace it first")
+        current.pop(occupant, None)
+        outcome = "displaced"
+    if current.get(str(area_id)) is not None:
+        outcome = "moved"
+    current[str(area_id)] = {"x": int(x), "y": int(y)}
+    return outcome
+
+
+def unplace_area(manifest: Dict[str, dict], scope_id: str, area_id: str) -> None:
+    """Free the cell an area occupies in this scope (task-528). A no-op otherwise."""
+    scope = manifest.get(scope_id)
+    if scope is None:
+        raise ValueError(f"no such scope {scope_id!r}")
+    current = scope.get("area_placements") or {}
+    if str(area_id) in current:
+        current.pop(str(area_id), None)
+        if not current:
+            scope.pop("area_placements", None)
 
 
 def place(manifest: Dict[str, dict], parent_id: str, child_id: str,
