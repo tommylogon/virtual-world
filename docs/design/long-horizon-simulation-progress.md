@@ -7,7 +7,7 @@ while keeping LLM cost proportional to *novelty and attention*, not to time or
 population. Then let the user watch it, follow a character, and drop in to
 interact.
 
-Related: [[reversibility-contract]], [[trace-format]], tasks 397 (scopes),
+Related: [[reversibility-contract]], [[lived-log-format]], tasks 397 (scopes),
 399 (background simulation), 403 (unified memory).
 
 ---
@@ -96,14 +96,14 @@ round. Remaining: a server-side batch `advance` and a non-blocking human
 
 ### Done: the objective trace
 
-- **`engine/trace.py`** — `record / recent / since / summarize_window / rollup /
+- **`engine/lived_log.py`** — `record / recent / since / summarize_window / rollup /
   load / to_list`. Bounded at 200 entries, salient-first retention, run
   collapsing. No LLM.
-- **Integrated** — `Player.trace_log`, `Player.to_dict`, and
+- **Integrated** — `Player.lived_log`, `Player.to_dict`, and
   `engine/serialization._deserialize_player` round-trip it.
 - **Wired** — need tier crossings (`why="needs:<vital>"`), deaths (`salient`),
   and resolved actions in `apply_action`.
-- **Tests** — `tests/test_trace.py` (7). Soak reports trace volume.
+- **Tests** — `tests/test_lived_log.py` (7). Soak reports trace volume.
 
 This is task-399's "append-only facts log."
 
@@ -131,7 +131,7 @@ These are filed as tasks — see §9 for the current map.
 
 1. **Background schedules / work / coarse social** (task-409) so background
    characters do more than survive.
-2. **Promotion/demotion** (task-412) — `trace.summarize_window` builds the LLM
+2. **Promotion/demotion** (task-412) — `lived_log.summarize_window` builds the LLM
    catch-up summary on promotion; demotion rolls the foreground span into the
    trace (reversibility contract).
 3. **Scenario hygiene** (task-408) — reachability is now fixed (30/30, see §7);
@@ -144,19 +144,19 @@ These are filed as tasks — see §9 for the current map.
 | File | Change |
 |---|---|
 | `vital_rates.py` | **new** — canonical per-minute rates + `change()` |
-| `player.py` | decay defaults from `vital_rates`; `trace_log` + serialization |
+| `player.py` | decay defaults from `vital_rates`; `lived_log` + serialization |
 | `virtual_world_engine.py` | `baseline_decay` from `vital_rates` |
 | `engine/tick_manager.py` | all drains → per-minute; trace on needs/death/act |
 | `engine/activities.py` | per-minute activity regen |
-| `engine/trace.py` | **new** — trace store |
-| `engine/serialization.py` | restore `trace` |
+| `engine/lived_log.py` | **new** — lived-log store |
+| `engine/serialization.py` | restore `lived_log` |
 | `data/library/traits/high_metabolism.json` | **new** goblin metabolism trait |
 | `data/scenarios/kraktooth_goblin_camp.json` | temperate forecast; decay_rates |
 | `world_template.json` | decay_rates migrated |
 | `tools/soak_sim.py` | **new/expanded** — reporting, debug, isolation |
 | `tools/migrate_decay_rates.py` | **new** — rate migration |
-| `tests/test_trace.py` | **new**; `test_activities.py`, `test_social_company.py` updated to per-minute |
-| `docs/design/reversibility-contract.md`, `docs/design/trace-format.md` | **new** contracts |
+| `tests/test_lived_log.py` | **new**; `test_activities.py`, `test_social_company.py` updated to per-minute |
+| `docs/design/reversibility-contract.md`, `docs/design/lived-log-format.md` | **new** contracts |
 
 ## 6. Test status
 

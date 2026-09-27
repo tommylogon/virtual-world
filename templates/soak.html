@@ -1,5 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<!-- `soak-doc` on <html> is load-bearing, see the matching rule in soak.css:
+     the shared shell sets `html, body { height: 100%; overflow: hidden }` for its
+     fixed editor layout, and `html` is the viewport-propagation root, so a page
+     cannot scroll by fixing <body> alone. -->
+<html lang="en" class="soak-doc">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -168,6 +172,7 @@
                 <button type="button" class="soak-tab active" data-tab="overview">Overview</button>
                 <button type="button" class="soak-tab" data-tab="vitals">Vitals</button>
                 <button type="button" class="soak-tab" data-tab="survival">Survival</button>
+                <button type="button" class="soak-tab" data-tab="spacetime">Space-time</button>
                 <button type="button" class="soak-tab" data-tab="growth">Growth</button>
                 <button type="button" class="soak-tab" data-tab="characters">Characters</button>
                 <button type="button" class="soak-tab" data-tab="events">Events</button>
@@ -243,6 +248,52 @@
                             <input type="search" id="soak-death-search" class="soak-search" placeholder="filter by name / cause / area">
                         </div>
                         <div id="soak-deaths-table" class="soak-table-wrap"></div>
+                    </div>
+                </div>
+
+                <!-- SPACE-TIME (task-544) -->
+                <div class="soak-pane" data-pane="spacetime">
+                    <div class="soak-card">
+                            <div class="soak-card-head">
+                            <h3>Space-time</h3>
+                            <span class="soak-hint">who was where, when — did they ever share a room?</span>
+                            <div class="soak-controls">
+                                <label class="soak-check-inline" for="soak-st-from">from</label>
+                                <input type="number" id="soak-st-from" class="soak-range-input" min="0" step="1" value="0">
+                                <label class="soak-check-inline" for="soak-st-to">to</label>
+                                <input type="number" id="soak-st-to" class="soak-range-input" min="0" step="1" value="0">
+                                <button type="button" id="soak-st-full" class="soak-btn soak-btn-ghost">Full run</button>
+                                <label class="soak-check-inline"><input type="checkbox" id="soak-st-ribbons" checked> condition ribbons</label>
+                            </div>
+                        </div>
+                        <div class="soak-alerts" id="soak-st-density"></div>
+                        <div id="soak-st-integrity" class="soak-alerts"></div>
+                        <div id="soak-st-lanes" class="soak-chart-box soak-spacetime-box"></div>
+                        <div id="soak-st-legend" class="soak-legend"></div>
+                    </div>
+                    <div class="soak-row-2">
+                        <div class="soak-card">
+                            <div class="soak-card-head"><h3>Who shared a room</h3>
+                                <span class="soak-hint">collisions, by total shared ticks</span></div>
+                            <div id="soak-st-collisions" class="soak-table-wrap"></div>
+                        </div>
+                        <div class="soak-card">
+                            <div class="soak-card-head"><h3>Occupancy</h3>
+                                <span class="soak-hint">time &times; area, zoomed out</span></div>
+                            <div id="soak-st-heatmap" class="soak-chart-box"></div>
+                        </div>
+                    </div>
+                    <div class="soak-card">
+                        <div class="soak-card-head"><h3>Why</h3>
+                            <span class="soak-hint" id="soak-st-why-hint">which rule drove the behaviour</span></div>
+                        <div id="soak-st-why" class="soak-chart-box"></div>
+                        <div id="soak-st-why-legend" class="soak-legend"></div>
+                    </div>
+                    <div class="soak-card">
+                        <div class="soak-card-head"><h3>Action composition</h3>
+                            <span class="soak-hint">what they spent their time on</span></div>
+                        <div id="soak-st-kinds" class="soak-donut-box"></div>
+                        <div id="soak-st-kinds-legend" class="soak-legend soak-legend-stack"></div>
                     </div>
                 </div>
 
@@ -371,6 +422,7 @@
 <script src="/static/js/soak/soak-presets.js"></script>
 <script src="/static/js/soak/soak-api.js"></script>
 <script src="/static/js/soak/soak-charts.js"></script>
+<script src="/static/js/soak/soak-spacetime.js"></script>
 <script src="/static/js/soak/soak-state.js"></script>
 <script src="/static/js/soak/soak-ui.js"></script>
 <script src="/static/js/soak/soak-app.js"></script>

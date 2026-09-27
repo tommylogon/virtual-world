@@ -50,6 +50,58 @@ test('condition emotes use the character pronouns', () => {
     assertTrue(out.includes('scratch at an itch'), 'itch flavor used');
 });
 
+test('a sneeze interrupts speech without replacing it (task-534)', () => {
+    const sneezy = { tags: ['female'], conditions: { sneeze: [{}] } };
+    const out = withRandom(0.0, () => INV.speech('I am quite well.', sneezy));
+    assertTrue(out.includes('I am quite well.'), 'the line survives the sneeze');
+    assertTrue(out.includes('sneeze'), 'sneeze injected');
+});
+
+test('a sneeze emote is pronoun-rendered (task-534)', () => {
+    const sneezy = { tags: ['male'], conditions: { sneeze: [{}] } };
+    const out = withRandom(0.0, () => INV.emote('*he turns away*', sneezy));
+    assertTrue(out.startsWith('*he turns away*'), 'emote preserved');
+    assertTrue(!out.includes('{they}'), 'no unrendered placeholder');
+    assertTrue(/sneeze/i.test(out), 'sneeze flavor used');
+});
+
+test('goosebumps still drive an emote (task-534 regression)', () => {
+    // Guard against the body-reaction table being reworked: these two predate
+    // task-534 and must keep working.
+    const chilled = { tags: ['female'], conditions: { goosebumps: [{}] } };
+    const out = withRandom(0.0, () => INV.emote('*she shivers*', chilled));
+    assertTrue(out.includes('goosebumps'), 'goosebumps flavor used');
+});
+
+test('a character with no body reaction is unaffected (task-534)', () => {
+    // Note: condition-driven *emotes* have no chance roll — the presence of the
+    // condition fires the pool unconditionally. So "unaffected" means no
+    // matching condition at all, not an unlucky roll.
+    const out = withRandom(0.99, () => INV.emote('*she waits*', FEMALE));
+    assertEq(out, null, 'nothing leaks in without a condition');
+});
+
+test('sneeze is condition-driven, never random (task-534)', () => {
+    // A sneeze is a state, not a tic: it must never come out of the random
+    // baseline pool. Asserting `null` here would be wrong — at a low roll the
+    // generic hiccup/burp/yelp baseline legitimately fires, and that is a
+    // *different* reaction. The invariant is about which pool sneeze comes from.
+    for (const value of [0.0, 0.03, 0.5, 0.99]) {
+        const out = withRandom(value, () => INV.speech('Hello.', FEMALE));
+        assertTrue(!out || !out.toLowerCase().includes('sneeze'),
+            `a random sneeze at roll ${value}: ${out}`);
+    }
+    // And the baseline is a different reaction, not a sneeze in disguise.
+    const baseline = withRandom(0.0, () => INV.speech('Hello.', FEMALE));
+    assertTrue(['hic', 'burp', 'yelp'].some((k) => baseline.includes(`*${k}*`)),
+        `expected a generic baseline reaction, got ${baseline}`);
+
+    const sneezy = { tags: ['female'], conditions: { sneeze: [{}] } };
+    const out = withRandom(0.99, () => INV.emote('*she waits*', sneezy));
+    assertTrue(out && out.toLowerCase().includes('sneeze'),
+        'but a conditioned sneeze always fires');
+});
+
 test('jittery raises the involuntary chance', () => {
     const plain = { tags: [], conditions: {} };
     const jittery = { tags: [], conditions: {}, traits: { jittery: true } };

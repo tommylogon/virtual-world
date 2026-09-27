@@ -117,6 +117,8 @@ function startAgent() { agent.start(); }
 function stopAgent() { agent.stop(); }
 function agentStepOnce() { agent.stepOnce(); }
 function cancelStep() { agent.cancel(); }
+/** task-533: pass your turn in a simultaneous round and let the world advance. */
+function endSimRoundNow() { agent.endSimRound(); }
 
 // File save dialog (native "Save As") with fallback
 async function saveFileWithDialog(blob, suggestedName) { WorldExport.saveFileWithDialog(blob, suggestedName); }

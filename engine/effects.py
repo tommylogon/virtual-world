@@ -27,6 +27,7 @@ from engine.effect_handlers.ways import HANDLERS as WAY_HANDLERS
 from engine.effect_handlers.scry import HANDLERS as SCRY_HANDLERS
 from engine.effect_handlers.weather import HANDLERS as WEATHER_HANDLERS
 from engine.effect_handlers.tags import HANDLERS as TAG_HANDLERS
+from engine.effect_handlers.spells import HANDLERS as SPELL_HANDLERS
 
 HANDLERS = {}
 HANDLERS.update(VITAL_HANDLERS)
@@ -43,6 +44,7 @@ HANDLERS.update(WAY_HANDLERS)
 HANDLERS.update(SCRY_HANDLERS)
 HANDLERS.update(WEATHER_HANDLERS)
 HANDLERS.update(TAG_HANDLERS)
+HANDLERS.update(SPELL_HANDLERS)
 
 
 class Effects:

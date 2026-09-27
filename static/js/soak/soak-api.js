@@ -1,7 +1,7 @@
 /**
  * @module soak-api — fetch wrappers for /api/soak
- * @contributes a thin, error-normalising HTTP client for soak runs, exports and character series
- * @powers starting/stopping runs, incremental polling, report + CSV downloads, run comparison
+ * @contributes a thin, error-normalising HTTP client for soak runs, exports, character series and telemetry
+ * @powers starting/stopping runs, incremental polling, report + CSV downloads, run comparison, the space-time view
  * @relates used by soak-state.js; mirrors routes/soak.py
  * @docs none
  */
@@ -51,5 +51,12 @@
             `/api/soak/runs/${id}/characters/${encodeURIComponent(name)}/series`),
         samples: (id) => request(`/api/soak/runs/${id}/samples`),
         events: (id) => request(`/api/soak/runs/${id}/events`),
+        // task-543/544: the run's measurement store. This is the space-time
+        // view's only data source — deliberately NOT a character's lived_log,
+        // which is capped at 200 entries and salience-filtered and therefore
+        // cannot answer "where was everyone".
+        telemetry: (id, withEvents) => request(
+            `/api/soak/runs/${id}/telemetry?events=${withEvents ? 1 : 0}`),
+        telemetryJsonlUrl: (id) => `/api/soak/runs/${id}/telemetry.jsonl`,
     };
-})();
+}());

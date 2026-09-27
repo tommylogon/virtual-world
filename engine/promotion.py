@@ -36,7 +36,7 @@ import logging
 from collections import Counter
 from typing import Any, Dict, List, Optional
 
-from engine import trace as trace_mod
+from engine import lived_log as lived_log_mod
 
 logger = logging.getLogger(__name__)
 
@@ -263,9 +263,15 @@ def _tick(gs, tick: Optional[int]) -> int:
 
 
 def _span(player, since_exclusive: int) -> List[Dict[str, Any]]:
-    """Trace entries strictly after *since_exclusive* (the background span)."""
-    return [e for e in trace_mod.ensure(player)
-            if int(e.get("t", 0) or 0) > int(since_exclusive)]
+    """Lived-log entries strictly after *since_exclusive* (the background span).
+
+    The tick comes from the module's reader, not a bare ``e.get("t", 0)``:
+    task-542 renamed the key to ``tick``, and a stale ``t`` read here fails
+    *silently* — every entry reads as tick 0, the span comes back empty, and a
+    promotion writes no memory at all rather than raising.
+    """
+    return [e for e in lived_log_mod.ensure(player)
+            if lived_log_mod._tick_of(e) > int(since_exclusive)]
 
 
 def _why_labels(entries, prefix: str) -> set:
@@ -301,7 +307,7 @@ def _importance(entries) -> int:
 
 def _record(player, tick: int, kind: str, what: str, why: str) -> None:
     try:
-        trace_mod.record(player, tick, kind, what, why=why,
+        lived_log_mod.record(player, tick, kind, what, why=why,
                          area=getattr(player, "current_area", "") or "",
                          tags=["fidelity"])
     except Exception as e:

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 
 from flask import Response, jsonify, request
 
@@ -212,6 +213,42 @@ def samples(run_id: str):
     return jsonify({"samples": run.samples(),
                     "tracked_vitals": run.tracked_vitals,
                     "summary": run.summary})
+
+
+def telemetry(run_id: str):
+    """task-543: presence intervals, the ``why`` breakdown and the action stream.
+
+    This is the run's own measurement store, never a character state — the
+    space-time view is drawn from it, and deliberately not from anyone's
+    ``lived_log`` (which is capped at 200 entries and salience-filtered, so it
+    cannot answer "where was everyone").
+
+    ``?events=1`` includes the action stream, which is the unbounded half of the
+    store; without it you get the intervals, the breakdown and the counts.
+    """
+    run = soak_runner.get_run(run_id)
+    if run is None:
+        return _error("Unknown run", 404)
+    include_events = request.args.get("events", "0") not in ("0", "", "false")
+    return jsonify(run.telemetry_payload(include_events=include_events))
+
+
+def telemetry_jsonl(run_id: str):
+    """The full run as JSONL, straight off disk.
+
+    Deliberately independent of what is still held in memory: reading a 7-day
+    audit should never be gated on what fitted in the recorder's hot window.
+    """
+    run = soak_runner.get_run(run_id)
+    if run is None:
+        return _error("Unknown run", 404)
+    recorder = run.telemetry
+    path = getattr(recorder, "jsonl_path", None) if recorder is not None else None
+    if not path or not os.path.isfile(path):
+        return _error("No telemetry file for that run", 404)
+    with open(path, "r", encoding="utf-8") as handle:
+        body = handle.read()
+    return _download(body, f"soak-{run_id}-telemetry.jsonl", "application/x-ndjson")
 
 
 def _download(body: str, filename: str, mimetype: str) -> Response:

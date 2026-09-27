@@ -12,7 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from player import Player
-from engine import promotion, trace as trace_mod
+from engine import promotion, lived_log as lived_log_mod
 from graph import Node, WorldGraph
 
 
@@ -75,7 +75,7 @@ def _player(area="Chief's Pit"):
 
 
 def _bg(p, gs, kind="act", what="worked", why="schedule:work"):
-    trace_mod.record(p, gs.time_ticks, kind, what, why=why, area=p.current_area)
+    lived_log_mod.record(p, gs.time_ticks, kind, what, why=why, area=p.current_area)
 
 
 def _bg_memories(p):
@@ -159,7 +159,7 @@ def test_foreground_actions_are_never_summarized_as_background():
 
     # A foreground action between the two spans.
     gs.time_ticks = 40
-    trace_mod.record(p, gs.time_ticks, "plan", "FOREGROUND_MARKER",
+    lived_log_mod.record(p, gs.time_ticks, "plan", "FOREGROUND_MARKER",
                      why="goal:plan", area=p.current_area)
 
     promotion.offload(gs, p)
@@ -217,13 +217,13 @@ def test_a_reloaded_player_does_not_double_consolidate():
     promotion.promote(gs, p)
     assert len(_bg_memories(p)) == 1
 
-    # Reload the marks *and the trace* onto a fresh player and promote again:
+    # Reload the marks *and the lived log* onto a fresh player and promote again:
     # the span is already consolidated, so no second memory is written.
     payload = p.to_dict()
     reloaded = _player()
     reloaded.last_offload_tick = payload["last_offload_tick"]
     reloaded.background_consolidated_through = payload["background_consolidated_through"]
-    trace_mod.load(reloaded, payload["trace"])
+    lived_log_mod.load(reloaded, payload["lived_log"])
     reloaded.simulation_mode = "background"
     gs.time_ticks = 25
     assert promotion.promote(gs, reloaded) is None

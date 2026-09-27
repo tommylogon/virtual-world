@@ -293,11 +293,11 @@ class Player:
         # not seen.
         self.memory_index = {}
 
-        # === TRACE (objective history) ===
-        # Bounded list of plain dicts written by engine.trace — the mechanical
-        # "what happened and why" record. Distinct from subjective memories;
-        # see docs/design/trace-format.md.
-        self.trace_log = []
+        # === LIVED LOG (objective history, task-542) ===
+        # Bounded list of plain dicts written by engine.lived_log — the mechanical
+        # "what happened and why" record. Distinct from subjective memories, and
+        # distinct from soak telemetry; see docs/design/lived-log-format.md.
+        self.lived_log = []
 
         # === SIMULATION FIDELITY (task-399) ===
         # simulation_mode is a runtime fidelity, orthogonal to
@@ -1048,7 +1048,7 @@ class Player:
             "memory_index": dict(self.memory_index),
             "patrol_route": list(getattr(self, "patrol_route", [])),
             "patrol_index": getattr(self, "patrol_index", 0),
-            "trace": [dict(e) for e in getattr(self, "trace_log", [])],
+            "lived_log": [dict(e) for e in getattr(self, "lived_log", [])],
             "simulation_mode": getattr(self, "simulation_mode", "active"),
             "next_due_tick": int(getattr(self, "next_due_tick", 0)),
             "last_offload_tick": int(getattr(self, "last_offload_tick", 0)),

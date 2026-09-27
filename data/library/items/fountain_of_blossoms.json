@@ -1,0 +1,59 @@
+{
+  "name": "Fountain of Blossoms",
+  "description": "The spell that almost got her exiled. It turns any water source into a geyser of blossoms: beautiful, fragrant, and absolutely catastrophic for water quality. She casts it only when she is very sure the water does not matter.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "normal",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "spell",
+    "magic",
+    "flower",
+    "water",
+    "elven"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "params": {
+            "item_id": "flowers",
+            "into": "area",
+            "message": "A fountain of blossoms erupts from the ground, glorious and overwhelming."
+          },
+          "type": "spawn_item"
+        },
+        {
+          "params": {
+            "light": 15,
+            "temperature": 2,
+            "air": "sweet",
+            "smell": "roses",
+            "message": "The area is drenched in floral sweetness and soft light."
+          },
+          "type": "adjust_environment"
+        },
+        {
+          "params": {
+            "text": "The whole place is pink and white and dripping with petals, and the elders are definitely going to notice.",
+            "message": "The world turns pink and white. The elders are definitely going to notice."
+          },
+          "type": "append_description"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

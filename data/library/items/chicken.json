@@ -1,0 +1,39 @@
+{
+  "name": "chicken",
+  "description": "A plump brown hen, entirely real and deeply offended by the situation.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 2.0,
+  "current_state": "normal",
+  "light_level": "normal",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 2,
+  "tags": [
+   "animal",
+   "bird",
+   "poultry",
+   "small"
+  ],
+  "triggers": [
+   {
+    "trigger_type": [
+     "on_examine"
+    ],
+    "effects": [
+     {
+      "params": {
+       "message": "The chicken regards you with the flat, historical patience of a creature that has been underestimated its entire life."
+      },
+      "type": "message"
+     }
+    ],
+    "target_name": "",
+    "target_state": "",
+    "conditions": {},
+    "success_message": "",
+    "fail_message": ""
+   }
+  ],
+  "contents": []
+}

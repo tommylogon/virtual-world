@@ -1,0 +1,52 @@
+{
+  "name": "Ember Companion",
+  "description": "The little ember she talks to in the Frozen Thicket. She learned to give it a shape, a voice, a tiny flickering personality. It follows her, keeps her warm, and never argues.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "normal",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "spell",
+    "magic",
+    "fire",
+    "companion",
+    "elven"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "params": {
+            "item_id": "everflame_ember",
+            "into": "area",
+            "current_state": "lit",
+            "message": "A tiny ember wakes in your palm. It hums contentedly."
+          },
+          "type": "spawn_item"
+        },
+        {
+          "params": {
+            "node_id": "everflame_ember",
+            "follow_distance": 1,
+            "duration": 300,
+            "message": "The ember settles beside you, a quiet warm presence that does not wander off."
+          },
+          "type": "bind_companion"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

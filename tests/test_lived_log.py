@@ -1,10 +1,11 @@
-"""Objective character trace (engine.trace) — see docs/design/trace-format.md."""
+"""Objective per-character record of what was lived (engine.lived_log) —
+see docs/design/lived-log-format.md. Renamed from `trace` by task-542."""
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from engine import trace as T
+from engine import lived_log as T
 from player import Player
 
 
@@ -15,7 +16,8 @@ def test_record_appends_expected_shape():
     log = T.ensure(p)
     assert len(log) == 1
     e = log[0]
-    assert e["t"] == 10
+    assert e["tick"] == 10
+    assert "t" not in e, "the cryptic 't' key must not be written any more"
     assert e["kind"] == "act"
     assert e["what"] == "took a ration"
     assert e["why"] == "needs:hunger"
@@ -24,12 +26,12 @@ def test_record_appends_expected_shape():
     assert e["tags"] == ["need"]
 
 
-def test_record_tolerates_player_without_trace_log():
+def test_record_tolerates_player_without_lived_log():
     class Bare:
         pass
     b = Bare()
     T.record(b, 1, "move", "went north")
-    assert len(b.trace_log) == 1
+    assert len(b.lived_log) == 1
 
 
 def test_cap_prefers_salient_and_newest():
@@ -74,16 +76,41 @@ def test_since_and_summarize_window():
 def test_load_and_to_list_roundtrip():
     src = Player("Belne")
     T.record(src, 7, "observe", "saw a fire", area="Gathering Pit")
-    data = src.to_dict()["trace"]
+    data = T.to_list(src)
     dst = Player("Belne")
     T.load(dst, data)
     assert T.to_list(dst) == data
     assert T.to_list(Player("Empty")) == []
 
 
-def test_player_to_dict_includes_trace():
+def test_load_migrates_the_legacy_t_key():
+    """Task-542 back-compat. The failure this guards is silent, not loud: if
+    `load()` copies entries verbatim, a legacy entry keeps `t`, every reader
+    falls back to 0, `rollup`'s sort scrambles them and `since()` finds nothing.
+    Nothing raises, so only an assertion catches it."""
+    legacy = [{"t": 41, "kind": "move", "what": "went north", "why": "",
+               "area": "Tunnel", "tags": [], "salient": False}]
+    p = Player("Grub")
+    T.load(p, legacy)
+    assert p.lived_log[0]["tick"] == 41
+    assert "t" not in p.lived_log[0]
+    # The readers must see the migrated tick, not 0.
+    assert len(T.since(p, 40)) == 1
+    assert len(T.since(p, 42)) == 0
+    assert "t=41" in T.summarize_window(p)[0]
+
+
+def test_load_survives_garbage_entries():
+    p = Player("Grub")
+    T.load(p, [None, "nope", {"tick": 3, "what": "ok"}])
+    assert len(p.lived_log) == 1
+    assert p.lived_log[0]["what"] == "ok"
+
+
+def test_player_to_dict_includes_lived_log():
     p = Player("Croak-Mother")
     T.record(p, 3, "need", "Thirst crossed 75", why="needs:thirst")
     d = p.to_dict()
-    assert "trace" in d
-    assert d["trace"][0]["why"] == "needs:thirst"
+    assert "lived_log" in d
+    assert d["lived_log"][0]["why"] == "needs:thirst"
+    assert d["lived_log"][0]["tick"] == 3

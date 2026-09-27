@@ -2,6 +2,22 @@
    Reuses the editor's CSS variables from style.css (with local fallbacks) so the
    two surfaces share a theme without the soak page depending on editor layout. */
 
+/* Opt back into page scrolling. The shared app shell sets
+   `html, body { height: 100%; overflow: hidden }` for its fixed three-column
+   editor layout, and this page inherits it. That is correct for the editor — its
+   panels each own a scrollbar — but wrong here: the Soak page is an ordinary
+   scrolling document whose sidebar merely *sticks*. Without this, any pane taller
+   than the viewport (an 18-lane space-time chart, say) is cut off with no way to
+   reach the bottom.
+
+   It must be undone on **both** `html` and `body`. `html` is the viewport
+   propagation root: its `overflow` is what the viewport uses, and a `body`
+   override is ignored when `html` says `hidden`. Overriding `body` alone leaves
+   the page unscrollable, which is exactly the bug this fixes.
+   `html.soak-doc` comes from templates/soak.html. */
+html.soak-doc { height: auto; overflow: visible; }
+html.soak-doc, html.soak-doc body { height: auto; overflow: visible; }
+
 .soak-body {
     --s-bg: var(--bg, #0d1117);
     --s-card: var(--bg-card, #161b22);
@@ -69,6 +85,7 @@
 @media (max-width: 1100px) { .soak-sidebar { position: static; max-height: none; } }
 
 .soak-main { min-width: 0; }
+.soak-pane, .soak-card, .soak-chart-box { max-width: 100%; }
 
 .soak-panel {
     background: var(--s-card);
@@ -219,6 +236,12 @@
 .soak-tab.active { color: var(--s-text); border-bottom-color: var(--s-accent); }
 .soak-panes { display: flex; flex-direction: column; gap: 12px; }
 .soak-pane { display: none; flex-direction: column; gap: 12px; }
+/* A flex item defaults to `min-width: auto`, so one wide child — a table, or a
+   chart laid out at its natural width — stretches the item, then the card, then
+   the whole grid column, and the page ends up wider than the viewport with no way
+   to read the left-hand side. `min-width: 0` lets the card shrink to the column
+   and lets the child's own `overflow-x: auto` do its job. */
+.soak-pane > *, .soak-row-2 > * { min-width: 0; }
 .soak-pane.active { display: flex; }
 
 .soak-card { background: var(--s-card); border: 1px solid var(--s-border); border-radius: var(--s-radius); padding: 12px; }
@@ -308,3 +331,63 @@ table.soak-table tr.clickable { cursor: pointer; }
 .soak-toast-warn { border-color: var(--s-orange); }
 .soak-toast-error { border-color: var(--s-red); }
 @keyframes soakToastIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ── space-time (task-544) ──
+   The swimlane is drawn at 1 layout unit = 1 px and takes its natural height.
+   Deliberately NOT sized to fit, and deliberately NOT a nested scroll region:
+
+   * An SVG given a `max-height` is scaled down to fit, and because a viewBox
+     scales uniformly that squeezes the *time* axis too. Eighteen lanes of stacked
+     presence bands then collapse into a block of colour that still looks like a
+     chart. Hence its own class rather than `soak-chart-tall`, whose 340px cap
+     exists for the overview vitals chart and silently applies to any chart in
+     that box.
+   * A scroll area inside a scroll area is how you get "I can only see part of it
+     and I can't work out how to scroll". The page scrolls (see `.soak-body`), so
+     this box does not need to. It only guards the horizontal axis, for a cast
+     wide enough to overflow the card. */
+.soak-spacetime-box { overflow-x: auto; }
+svg.soak-spacetime { display: block; height: auto; max-width: none; margin: 0; }
+
+.soak-lane { fill: var(--s-inset); opacity: .45; }
+.soak-lane-label { fill: var(--s-dim); font-size: 11px; }
+.soak-grid-line { stroke: var(--s-border-light); stroke-width: 1; }
+.soak-band { cursor: crosshair; }
+.soak-band:hover { stroke: var(--s-text); stroke-width: 1; }
+/* The condition ribbon sits under its character's band and stays quiet. It
+   marks an incident, so when it is loud it is useless — the band is the data,
+   the ribbon is the annotation. */
+.soak-ribbon { fill: var(--s-orange); opacity: .45; }
+.soak-death-line { stroke: var(--s-red); stroke-width: 1; stroke-dasharray: 2 3; opacity: .55; }
+.soak-death-dot { fill: var(--s-red); }
+
+.soak-why-stack { margin-top: 10px; }
+/* Clickable legend entries. A legend you can click is the cheapest possible
+   drill-down: with twenty-three goblins the real question is usually "what did
+   *this one* do", and hunting for one colour across a crowded chart is exactly
+   the visual search this view exists to remove. */
+.soak-legend-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: none; border: 1px solid transparent; border-radius: 4px;
+    padding: 2px 6px; font: inherit; font-size: 11px; color: var(--s-dim);
+    cursor: pointer;
+}
+.soak-legend-btn:hover { background: var(--s-hover); color: var(--s-text); border-color: var(--s-border); }
+.soak-legend-btn.on { background: var(--s-inset); color: var(--s-text); border-color: var(--s-accent); }
+.soak-link-btn {
+    background: none; border: none; padding: 0; font: inherit; font-size: 11px;
+    color: var(--s-accent); cursor: pointer; text-decoration: underline dotted;
+}
+.soak-link-btn:hover { color: var(--s-text); }
+.soak-empty-inline {
+    padding: 14px; font-size: 11px; color: var(--s-muted);
+    background: var(--s-inset); border: 1px dashed var(--s-border);
+    border-radius: 6px; text-align: center;
+}
+.soak-range-input {
+    width: 82px; padding: 3px 6px; font-size: 11px;
+    background: var(--s-inset); color: var(--s-text);
+    border: 1px solid var(--s-border); border-radius: 5px;
+}
+table.soak-table-compact td, table.soak-table-compact th { padding: 3px 8px; }
+td.soak-num { text-align: right; font-family: var(--font-mono, monospace); }

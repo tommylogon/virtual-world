@@ -28,7 +28,7 @@ from dataclasses import dataclass, field
 from engine.background_simulation import BackgroundSimulation, TASK_MINUTES
 from engine import interrupts as interrupts_mod
 from engine import fear as fear_mod
-from engine.trace import record, summarize_window
+from engine.lived_log import record, summarize_window
 
 logger = logging.getLogger(__name__)
 

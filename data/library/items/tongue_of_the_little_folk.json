@@ -1,0 +1,54 @@
+{
+  "name": "Tongue of the Little Folk",
+  "description": "The elven tongue for beasts. Lyrie knows it well, because she learned it the hard way. Animals still do not quite understand her, but she never stops trying. She leaves acorns out as apologies.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "normal",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "spell",
+    "magic",
+    "beast",
+    "elven"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "params": {
+            "node_id": "self",
+            "tag": "animal_tongue",
+            "message": "Your ears crackle and pop in a way beasts seem to recognize."
+          },
+          "type": "add_tag"
+        },
+        {
+          "params": {
+            "message": "You chirrup a wumbling greeting. Something small and alive considers her seriously from the underbrush."
+          },
+          "type": "message"
+        },
+        {
+          "params": {
+            "instructions": "You are a small forest creature (bird, squirrel, rabbit or fox) that has been addressed in animal tongue. Reply in a single short burst of animal-speak: chitters, chirps, huffs or clicks. Never full sentences. Sometimes you are annoyed, sometimes curious, sometimes entirely indifferent.",
+            "fallback_message": "A small creature stares a moment, then darts away through the grass."
+          },
+          "type": "llm_respond"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

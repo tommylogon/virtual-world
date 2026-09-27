@@ -310,7 +310,7 @@ def test_memories_and_traces_use_the_narrative_vocabulary():
     assert any(t in NARRATIVE_TAGS.values() for t in memory["tags"])
     assert memory["importance"] >= 4
 
-    entry = actor.trace_log[-1]
+    entry = actor.lived_log[-1]
     assert entry["kind"] == "social"
     assert entry["why"].startswith("social:")
     assert entry["area"] == AREA
@@ -321,8 +321,8 @@ def test_both_sides_get_their_own_trace_entry():
     world = _world()
     actor, target = _pair(world)
     perform(world, actor, target, "", AREA, 0, action="chat")
-    assert actor.trace_log[-1]["kind"] == "social"
-    assert target.trace_log[-1]["kind"] == "social"
+    assert actor.lived_log[-1]["kind"] == "social"
+    assert target.lived_log[-1]["kind"] == "social"
 
 
 def test_a_relationship_delta_records_its_cause():
@@ -330,7 +330,7 @@ def test_a_relationship_delta_records_its_cause():
     world = _world()
     actor, target = _pair(world, closeness=70)
     perform(world, actor, target, "", AREA, 0, action="chat")
-    rel_entries = [e for e in actor.trace_log if e["kind"] == "relationship"]
+    rel_entries = [e for e in actor.lived_log if e["kind"] == "relationship"]
     for entry in rel_entries:
         assert entry["delta"]["cause"] in ACTIONS
         assert entry["delta"]["with"] == "Vekka"

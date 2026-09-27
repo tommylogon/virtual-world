@@ -1,0 +1,62 @@
+{
+  "name": "Vincent's Embrace",
+  "description": "Named for a grapevine who listened for three days. This spell lets her ask the green world for small favors: a hidden path, a safe resting place, something to eat. Plants oblige, slowly.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "normal",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "spell",
+    "magic",
+    "plant",
+    "elven"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "params": {
+            "keywords": "Grapevine",
+            "salience_boost": 4,
+            "message": "The leaves rustle. The forest keeps its secrets if you ask nicely."
+          },
+          "type": "surface_memory"
+        },
+        {
+          "params": {
+            "stat": "Sanity",
+            "amount": 10,
+            "target": "self",
+            "message": "The forest seems to lean in, protective."
+          },
+          "type": "adjust_vital"
+        },
+        {
+          "params": {
+            "radius_areas": 1,
+            "types": [
+              "item",
+              "way"
+            ],
+            "duration": 20,
+            "message": "Through the undergrowth you see what was hidden: a narrow trail, a cache of berries, a place to rest out of the wind."
+          },
+          "type": "reveal_hidden"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

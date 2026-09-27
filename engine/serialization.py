@@ -172,6 +172,13 @@ class WorldSerializer:
             ),
             "relationships": getattr(p, 'relationships', {}),
             "activity": getattr(p, 'activity', None),
+            # The bounded objective record of what this character lived
+            # (engine/lived_log.py). Serialized here as of task-542: the reader
+            # below has always accepted a "trace" key, but nothing ever *wrote*
+            # it, so the whole store was silently lost on every reload. A scenario
+            # payload drops it again in to_scenario_dict — it is runtime history,
+            # not authored content.
+            "lived_log": [dict(e) for e in (getattr(p, 'lived_log', []) or [])],
             "memories": getattr(p, 'memories', []),
             "memory_index": dict(getattr(p, 'memory_index', {}) or {}),
             "schedule": list(getattr(p, 'schedule', []) or []),
@@ -283,8 +290,11 @@ class WorldSerializer:
         if "Energy" in p.vitals:
             p.vitals["Energy"] = max(0, min(100, p.vitals["Energy"]))
         p.decay_rates = pdata.get("decay_rates", p.decay_rates)
-        from engine.trace import load as _trace_load
-        _trace_load(p, pdata.get("trace"))
+        from engine.lived_log import load as _lived_log_load
+        # Task-542 renamed the save key "trace" -> "lived_log". Both are read, in
+        # this order, so a save written before the rename still loads; engine/
+        # lived_log.load() likewise accepts the old per-entry "t" tick key.
+        _lived_log_load(p, pdata.get("lived_log", pdata.get("trace")))
         p.simulation_mode = pdata.get("simulation_mode", "active")
         try:
             p.next_due_tick = int(pdata.get("next_due_tick", 0) or 0)
@@ -407,6 +417,10 @@ class WorldSerializer:
         data.pop("delayed_events", None)
         for pdata in data.get("players", {}).values():
             pdata.pop("recent_hearing", None)
+            # A character does not *author* their lived history, so it is runtime
+            # state in the same way recent_hearing is (task-542). Keeping it would
+            # grow a scenario file by 200 entries per character on the first save.
+            pdata.pop("lived_log", None)
             # task-403/425: a scenario is authored content, so it carries no
             # runtime *perception*. Merely loading a scenario observes every
             # character's starting area (engine/observation.py), and saving it
@@ -429,9 +443,9 @@ class WorldSerializer:
         #   - `ways` / `item_registry` were legacy attrs only the loader
         #     populated and nothing consumed.
         # Every field of an `areas` entry that mattered already lives on the
-        # node (`name`, `description`, `environment`, `floor`, `properties`);
-        # `ambient_light`/`light_description` are recomputed each tick and
-        # `items` was always empty (placement is the graph's `in` edges).
+        # node (`name`, `description`, `environment`, `floor`, `surface`,
+        # `properties`); `ambient_light`/`light_description` are recomputed each
+        # tick and `items` was always empty (placement is the graph's `in` edges).
         #
         # The LIVE payload (to_dict) keeps all of them: the frontend reads
         # worldState.areas / .ways (agent-engine, agent-lens, inspector,

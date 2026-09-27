@@ -1,0 +1,58 @@
+{
+  "name": "Spark of the Baking Incident",
+  "description": "Fire salts instead of flour. The kitchen exploded. Elder Caelum's eyebrows never grew back. This spell makes a sudden burst of flame, not a controlled one but a passionate, enthusiastic one. She still bakes him a cake every year. She buys it now.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "normal",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "spell",
+    "magic",
+    "fire",
+    "elven"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "params": {
+            "item_id": "candle",
+            "into": "area",
+            "current_state": "lit",
+            "message": "A shower of sparks erupts from her hands. One candle ignites. The curtains are fine. Probably."
+          },
+          "type": "spawn_item"
+        },
+        {
+          "params": {
+            "temperature": 8,
+            "light": 40,
+            "message": "The room brightens and warms rapidly."
+          },
+          "type": "adjust_environment"
+        },
+        {
+          "params": {
+            "keywords": "Baking Incident",
+            "salience_boost": 5,
+            "message": "For a moment you smell burnt sugar and regret."
+          },
+          "type": "surface_memory"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

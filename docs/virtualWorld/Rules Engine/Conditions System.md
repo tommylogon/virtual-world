@@ -104,6 +104,7 @@ Each entry in the condition catalog (library file or `player.py` fallback, `COND
 | `hallucinating` | auto-fail perception/concentration/willpower; +2/−3; excludes `paranoid` | 30 | `refresh` |
 | `itch` | involuntary flavor; `known: False`; read by the involuntary-action pass | 10 | `refresh` |
 | `goosebumps` | involuntary flavor; `known: False`; read by the involuntary-action pass | 5 | `noop` |
+| `sneeze` | involuntary flavor; `known: False`; ends on `blow_nose`/`cure`/`duration`; read by the involuntary-action pass | 3 | `refresh` |
 
 **Mature conditions** (`warming_up` … `satisfied`) carry `"mature": true`; they are hidden from library listings/pickers while `world.mature_content` is off, and `Player.sync_pleasure_vitals` strips them when the toggle is turned off. They are deliberately **not** in `CONDITION_HIERARCHY` — the mature prompt path renders their first-person lines itself (gated on `config.matureContent`), so they never leak into the generic perception line.
 

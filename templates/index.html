@@ -83,6 +83,7 @@
                 <button class="sim-btn" id="sim-pause" onclick="stopAgent()" title="Pause">⏸</button>
                 <button class="sim-btn" id="sim-step" onclick="agentStepOnce()" title="Step Once">⏭</button>
                 <button class="sim-btn" id="sim-cancel" onclick="cancelStep()" title="Cancel current step" style="display:none;color:var(--red);">✕</button>
+                <button class="sim-btn" id="sim-end-round" onclick="endSimRoundNow()" title="End round — pass your turn and advance the world" style="display:none;">⏭️</button>
                 <input type="number" id="sim-max-steps" class="sim-max-steps" value="10" min="0" title="Max steps before auto-stop (0 = unlimited)">
                 <span class="sim-steps-label" title="Max steps before auto-stop (0 = unlimited)">steps</span>
                 <span id="sim-rate-limit" class="sim-rate-limit" hidden aria-live="polite" title="API rate limit cooldown"></span>

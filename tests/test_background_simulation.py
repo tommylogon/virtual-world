@@ -47,7 +47,7 @@ def test_background_eats_when_hungry():
     assert p.vitals["Hunger"] <= 40          # ate (−45) despite decay
     assert w.graph.get_node(food.id) is None  # single-use item consumed
     assert any(e["what"].startswith("ate") and e["why"] == "needs:eat"
-               for e in p.trace_log)
+               for e in p.lived_log)
 
 
 def test_background_drinks_when_thirsty():
@@ -59,7 +59,7 @@ def test_background_drinks_when_thirsty():
     # DRINK_RESTORE fallback constant no longer sets the drop. Assert it quenched,
     # not a fixed amount (the world's water_pitcher is authored at -15).
     assert p.vitals["Thirst"] < 80
-    assert any(e["why"] == "needs:drink" for e in p.trace_log)
+    assert any(e["why"] == "needs:drink" for e in p.lived_log)
 
 
 def test_a_focused_character_owes_nothing_at_a_one_minute_turn():
@@ -199,7 +199,7 @@ def test_a_hungry_character_eats_once_per_turn_at_every_turn_length():
         assert not hasattr(bgs, "_action_credit")
         w.tick_turn()
 
-        meals = [e for e in p.trace_log if e.get("why") == "needs:eat"]
+        meals = [e for e in p.lived_log if e.get("why") == "needs:eat"]
         assert len(meals) == 1, (
             f"T={minutes_per_tick}: ate {len(meals)} times in one turn"
         )
@@ -289,7 +289,7 @@ def test_background_sleeps_when_tired():
     w.tick_turn()
     assert p.activity and p.activity.get("type") == "sleeping"
     assert any(e["what"] == "went to sleep" and e["why"] == "needs:energy"
-               for e in p.trace_log)
+               for e in p.lived_log)
 
 
 def test_background_drinks_from_water_area():
@@ -299,7 +299,7 @@ def test_background_drinks_from_water_area():
     p = _bg_player(w, Thirst=80, Hunger=5, Energy=90)
     w.tick_turn()
     assert p.vitals["Thirst"] <= 40
-    assert any(e["why"] == "needs:drink" for e in p.trace_log)
+    assert any(e["why"] == "needs:drink" for e in p.lived_log)
 
 
 def test_areas_with_detects_food_area():

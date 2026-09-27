@@ -1,0 +1,46 @@
+{
+  "name": "Mending Touch",
+  "description": "The spell she tried to use on the chicken cart. She wanted to fix the wheel. It turned the cart into a chicken. But the principle was right: mending. If she concentrates very hard, she can make worn things whole again. Mostly.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "normal",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "spell",
+    "magic",
+    "mending",
+    "elven"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use_on"
+      ],
+      "effects": [
+        {
+          "params": {
+            "message": "She presses her hands to the worn thing and closes her eyes. Her brow furrows with effort. For a moment nothing happens. Then a soft green glow, and the cracks knit together."
+          },
+          "type": "message"
+        },
+        {
+          "params": {
+            "delta": 5,
+            "message": "The thing feels sturdier in your hands."
+          },
+          "type": "adjust_uses"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

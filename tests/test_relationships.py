@@ -101,7 +101,7 @@ def test_every_delta_records_its_cause_on_the_trace():
     a, _ = _pair(10)
     apply_relationship_delta(a, "Vekka", -30, "combat", tick=5, area_id="Training Pit")
 
-    entry = a.trace_log[-1]
+    entry = a.lived_log[-1]
     assert entry["kind"] == "relationship"
     assert entry["why"] == "social:combat"
     assert entry["area"] == "Training Pit"
@@ -113,11 +113,11 @@ def test_every_delta_records_its_cause_on_the_trace():
 
 def test_a_zero_delta_still_stamps_the_interaction_but_writes_no_trace():
     a, _ = _pair(10)
-    before = len(a.trace_log)
+    before = len(a.lived_log)
     apply_relationship_delta(a, "Vekka", 0, "meeting", tick=7)
     assert a.relationships["Vekka"]["last_interaction_tick"] == 7
     assert a.relationships["Vekka"]["interaction_count"] == 1
-    assert len(a.trace_log) == before
+    assert len(a.lived_log) == before
 
 
 def test_the_interaction_stamp_advances():
@@ -144,8 +144,8 @@ def test_a_symmetric_delta_moves_both_sides_by_the_same_amount():
 def test_each_side_gets_its_own_trace_entry():
     a, b = _pair(0)
     apply_symmetric_delta(a, b, 3, "meeting", tick=4)
-    assert a.trace_log[-1]["delta"]["with"] == "Vekka"
-    assert b.trace_log[-1]["delta"]["with"] == "Rikka"
+    assert a.lived_log[-1]["delta"]["with"] == "Vekka"
+    assert b.lived_log[-1]["delta"]["with"] == "Rikka"
 
 
 # ── record creation ──────────────────────────────────────────────────────

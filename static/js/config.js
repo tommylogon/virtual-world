@@ -169,6 +169,9 @@ class ConfigManager {
             TurnQueue.initialize();
         }
         await this.save();
+        // The "End round" control only exists in a simultaneous mode (task-533),
+        // so switching modes has to re-evaluate the toolbar.
+        VW?.ui?.updateButtons?.();
         if (window.appEvents) appEvents.emit('state:updated', worldState?.data);
     }
 

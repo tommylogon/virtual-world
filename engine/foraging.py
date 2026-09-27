@@ -576,7 +576,7 @@ def _spawn_into_area(gs, item_id, area_id):
 
 def _trace(gs, player, area_name, *, why, text, tags=None):
     try:
-        from engine.trace import record
+        from engine.lived_log import record
         record(player, getattr(gs, "time_ticks", 0), "act", text, why=why,
                area=area_name, tags=tags or ["forage"])
     except Exception:

@@ -1,0 +1,53 @@
+{
+  "name": "Siren's Lullaby",
+  "description": "The Singing Fish. She sang to cheer it up. It died. She has not sung near water since. The lullaby still soothes, but there is something about it that unnerves living things just a little.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "normal",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "spell",
+    "magic",
+    "song",
+    "elven"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "params": {
+            "message": "She hums a soft, wordless tune. The tension in the air eases. A bird nearby tilts its head, then flies away a little faster than before."
+          },
+          "type": "message"
+        },
+        {
+          "params": {
+            "spikes": {
+              "calm": 18.0,
+              "peaceful": 14.0,
+              "anxious": -8.0,
+              "uneasy": -6.0
+            },
+            "radius_areas": 1,
+            "include_caster": true,
+            "message": "The song drifts outward. Living things nearby feel strangely comforted, then vaguely unsettled."
+          },
+          "type": "broadcast_emotion"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

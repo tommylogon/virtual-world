@@ -21,7 +21,10 @@ Managed by `TickManager` in `engine/tick_manager.py`.
 ### Tick System
 
 - **Each turn** = 1 time tick
-- **Time per tick**: `time_per_tick_minutes = 5` (configurable in `virtual_world_engine.py:47`)
+- **Time per tick**: `time_per_tick_minutes`, engine default **1** minute
+  (`virtual_world_engine.py`; the `world_template.json` scenario boots at 5).
+  This corrects an earlier "= 5" claim here that contradicted the engine default
+  stated in the table above.
 - **Clock start**: 08:00 by default (`clock_start_hour = 8`, `clock_start_minute = 0`)
 
 ### Time Calculation
@@ -91,7 +94,15 @@ Defined in `virtual_world_engine.py:83-92`:
 | `drop` | 1 | 0 |
 | `fumble` | 2 | 3 |
 
-Action costs are multiplied by time ticks consumed. Trait modifiers are applied additively via `TraitSystem.get_action_cost_mods()`.
+Action costs are **energy only**. They used to be multiplied by time ticks
+consumed, which made an action's time cost depend on `time_per_tick_minutes` and
+so change meaning with the pace setting; task-436 removed the `time` key from the
+cost table and `tests/test_action_costs.py` asserts no entry has one. Trait
+modifiers are applied additively via `TraitSystem.get_action_cost_mods()`.
+
+An action's effect on *time* is not a cost: a turn **is** a timeframe, so every
+action inside it is free in game time and the round advances once at the end. See
+`docs/virtualWorld/Simulation Model.md:52-68`.
 
 ### Time Advance Per Turn
 

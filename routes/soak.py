@@ -17,3 +17,10 @@ def register_soak_routes(app):
                      'soak_character_series', soak_ops.character_series, methods=['GET'])
     app.add_url_rule('/api/soak/runs/<run_id>/events', 'soak_events', soak_ops.events, methods=['GET'])
     app.add_url_rule('/api/soak/runs/<run_id>/samples', 'soak_samples', soak_ops.samples, methods=['GET'])
+    # task-543: the run's measurement store — presence intervals + the `why`
+    # breakdown. Deliberately a separate endpoint from /characters: the
+    # space-time view reads this, not anyone's lived_log.
+    app.add_url_rule('/api/soak/runs/<run_id>/telemetry', 'soak_telemetry',
+                     soak_ops.telemetry, methods=['GET'])
+    app.add_url_rule('/api/soak/runs/<run_id>/telemetry.jsonl', 'soak_telemetry_jsonl',
+                     soak_ops.telemetry_jsonl, methods=['GET'])

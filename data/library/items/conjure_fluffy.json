@@ -1,0 +1,56 @@
+{
+  "name": "Conjure Fluffy",
+  "description": "A rock that looks like a sheep. She named him Fluffy. He never moved, but he was good company in the snow. This spell conjures something that is not quite real but feels true, useful when you are lost and every tree looks the same.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "normal",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "spell",
+    "magic",
+    "illusion",
+    "companion",
+    "elven"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "params": {
+            "message": "She closes her eyes and holds out her hands. When she opens them there is a small, fuzzy shape sitting in her palms, and it blinks at her."
+          },
+          "type": "message"
+        },
+        {
+          "params": {
+            "character_id": "fluffy",
+            "name": "Fluffy",
+            "description": "A small, fuzzy sheep made of down and wishful thinking. It has kind eyes and no discernible mass. It does not move unless you believe very hard.",
+            "greeting": "It blinks slowly at you, and the blinking is the most convincing part.",
+            "duration": 100,
+            "vanish_on_area_leave": true,
+            "dialogue": [
+              "Fluffy chews on nothing. It is a very peaceful nothing.",
+              "Fluffy leans against your leg. It weighs almost nothing, which is somehow the point."
+            ],
+            "message": "Fluffy materializes at your feet. He is very quiet and very warm."
+          },
+          "type": "create_illusory_companion"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

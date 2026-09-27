@@ -566,7 +566,7 @@ def _subject_ids(gs, actor_name: str, target_name: str, area_id: str) -> list:
 def _trace(player, tick, action, tier, area_name, counterpart, vitals, role,
            actor_name) -> None:
     try:
-        from engine.trace import record
+        from engine.lived_log import record
     except Exception:
         return
     record(
@@ -1037,7 +1037,7 @@ def _attempt_theft(gs, thief, target, item, area_name: str, tick: int) -> dict:
     _bump_theft_today(thief, gs, tick)
 
     try:
-        from engine.trace import record
+        from engine.lived_log import record
         record(thief, tick, "act",
                f"{'stole' if success else 'failed to steal'} {item.name} "
                f"from {target.name}",

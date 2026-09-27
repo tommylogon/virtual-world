@@ -1,0 +1,57 @@
+{
+  "name": "Whisper of Green",
+  "description": "Named for Vincent the grapevine. Plants speak slowly, in rustles and sap, and they remember everything. This spell lets her ask them small questions: where water hides, which way is safe, whether a storm is coming.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "normal",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "spell",
+    "magic",
+    "plant",
+    "elven"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "params": {
+            "keywords": "Grapevine",
+            "salience_boost": 4,
+            "message": "For a moment you smell turned earth and old rain, and you remember talking for three days to something that never once talked back."
+          },
+          "type": "surface_memory"
+        },
+        {
+          "params": {
+            "stat": "Sanity",
+            "amount": 5,
+            "target": "self",
+            "message": "The green world feels like an old friend."
+          },
+          "type": "adjust_vital"
+        },
+        {
+          "params": {
+            "instructions": "You are a nearby plant (bush, vine, tree or flower) addressed through plant-whisper magic. Reply in one short, slow, earthy sentence thick with rustle, sap, root and leaf imagery. Be patient. Be ancient. Be kind.",
+            "fallback_message": "A branch brushes your arm. The plant has nothing important to say right now."
+          },
+          "type": "llm_respond"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

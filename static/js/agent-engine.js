@@ -937,7 +937,14 @@ class AgentEngine {
      * task-101 "simultaneous": every autonomous character has its own act
      * countdown. Each loop iteration decrements all countdowns; the first
      * character ready processes its full turn through the normal per-character
-     * pipeline, then its countdown restarts. The human never auto-acts.
+     * pipeline, then its countdown restarts.
+     *
+     * The human is never *auto-acted*, but they are a participant in the round
+     * (task-533): once every autonomous character has taken their turn, the
+     * human is prompted at their own cadence. That ordering is the point — the
+     * human is the one the round is waiting on, so they are asked last. They can
+     * also pass with the "End round" control, which resolves them without acting
+     * so a round can never hang on an idle player.
      */
     async _simultaneousStep() {
         if (!worldState.data) await worldState.fetch();
@@ -949,22 +956,48 @@ class AgentEngine {
             }
         }
         window.VWSimultaneous.tickCountdowns(this._simCountdowns);
-        const ready = names.filter(name => {
+        const alive = name => {
             const p = players[name];
-            if (!p) return false;
-            if (!events.isAutonomous(name)) return false;   // humans compose their own turns
-            if (p.state === 'dead' && !config.ghostMode) return false;
+            return p && (p.state !== 'dead' || config.ghostMode);
+        };
+        const ready = names.filter(name => {
+            if (!alive(name)) return false;
+            if (!events.isAutonomous(name)) return false;
             return this._simCountdowns[name] <= 0;
         });
-        if (!ready.length) return;
-        const charName = ready[0];
-        this._simCountdowns[charName] = window.VWSimultaneous.cooldownFor(players[charName]);
-        const prevControlling = config.controllingPlayer;
-        config.controllingPlayer = charName;
-        try {
-            await this.step();
-        } finally {
-            config.controllingPlayer = prevControlling;
+        if (ready.length) {
+            const charName = ready[0];
+            this._simCountdowns[charName] = window.VWSimultaneous.cooldownFor(players[charName]);
+            const prevControlling = config.controllingPlayer;
+            config.controllingPlayer = charName;
+            try {
+                await this.step();
+            } finally {
+                config.controllingPlayer = prevControlling;
+            }
+            this.markSimResolved(charName);
+            await this._closeSimRoundIfComplete();
+            return;
+        }
+        // Nobody autonomous is ready. If the human is the only thing left in the
+        // round and their own countdown has come up, prompt them — waiting here
+        // is what makes the round genuinely wait for the player (task-533).
+        if (!this._simRoundComplete()) {
+            const human = names.find(name =>
+                !events.isAutonomous(name) && alive(name)
+                && this._simCountdowns[name] <= 0);
+            if (human) {
+                this._simCountdowns[human] = window.VWSimultaneous.cooldownFor(players[human]);
+                const prevControlling = config.controllingPlayer;
+                config.controllingPlayer = human;
+                try {
+                    await this._humanTurn(human);
+                } finally {
+                    config.controllingPlayer = prevControlling;
+                }
+                this.markSimResolved(human);
+                await this._closeSimRoundIfComplete();
+            }
         }
     }
 
@@ -989,7 +1022,27 @@ class AgentEngine {
         }
         window.VWSimultaneous.tickCountdowns(this._simRoomCountdowns);
         const area = window.VWSimultaneous.firstReadyRoom(rooms, this._simRoomCountdowns);
-        if (area === null) return;
+        if (area === null) {
+            // No room ready. The human is still a round participant (task-533),
+            // so once every room has gone they get prompted at their own cadence.
+            if (this._simRoundComplete()) return;
+            const human = Object.keys(players).find(name =>
+                !events.isAutonomous(name)
+                && (players[name]?.state !== 'dead' || config.ghostMode)
+                && this._simCountdowns[name] <= 0);
+            if (!human) return;
+            this._simCountdowns[human] = window.VWSimultaneous.cooldownFor(players[human]);
+            const prevHuman = config.controllingPlayer;
+            config.controllingPlayer = human;
+            try {
+                await this._humanTurn(human);
+            } finally {
+                config.controllingPlayer = prevHuman;
+            }
+            this.markSimResolved(human);
+            await this._closeSimRoundIfComplete();
+            return;
+        }
         const order = rooms[area];
         this._simRoomCountdowns[area] = window.VWSimultaneous.roomCooldown(order, players);
         const prevControlling = config.controllingPlayer;
@@ -998,10 +1051,75 @@ class AgentEngine {
                 if (this._cancelRequested || !config.running) break;
                 config.controllingPlayer = charName;
                 await this.step();
+                this.markSimResolved(charName);
             }
         } finally {
             config.controllingPlayer = prevControlling;
         }
+        await this._closeSimRoundIfComplete();
+    }
+
+    /**
+     * Record that *name* has taken their turn in the current simultaneous round.
+     * @param {string} name
+     */
+    markSimResolved(name) {
+        if (!name) return;
+        if (!this._simRound) this._simRound = new Set();
+        window.VWSimRound.markResolved(this._simRound, name);
+    }
+
+    /**
+     * Everyone whose turn counts toward a round: every living character, human
+     * included. The human is a participant, not an exemption — a slow player
+     * stalls the world, which is the same contract turn-based mode already has.
+     * @returns {string[]}
+     */
+    _simParticipants() {
+        return window.VWSimRound.participants(worldState.data?.players || {}, {
+            ghostMode: config.ghostMode
+        });
+    }
+
+    /** True when every participant has taken their turn this round. */
+    _simRoundComplete() {
+        return window.VWSimRound.isComplete(this._simParticipants(), this._simRound);
+    }
+
+    /**
+     * Close the round if everyone has gone: run the world turn pipeline and
+     * start a fresh round.
+     *
+     * This is the whole of task-533. Simultaneous mode used to step characters
+     * but never call `endTurn()`, so `tick_turn()` never ran: no vitals decay, no
+     * background simulation, no soak orders, no item ticks, no time triggers,
+     * and a frozen clock. Nothing in the world happened at all.
+     */
+    async _closeSimRoundIfComplete() {
+        if (!this._simRoundComplete()) return false;
+        this._simRound = new Set();
+        await TurnQueue.endTurn();
+        if (worldState.data) VW?.ui?.renderAll(worldState.data);
+        return true;
+    }
+
+    /**
+     * The "End round" control: resolve every human participant without acting,
+     * so a round can never hang on an idle player.
+     *
+     * Deliberately no timeout. The world advances only because the player said
+     * so — it does not quietly run on while someone is reading. Autonomics are
+     * not touched; only the human's own turn is surrendered, and only if they
+     * have not already taken it.
+     */
+    async endSimRound() {
+        const human = this._simParticipants().find(name => !events.isAutonomous(name));
+        if (!human) return false;
+        if (!(this._simRound || new Set()).has(human)) {
+            events.log(`⏭️ ${human} passes — round closed.`, 'system-msg');
+            this.markSimResolved(human);
+        }
+        return this._closeSimRoundIfComplete();
     }
     stop(reason = 'Agent stopped.') {
         config.running = false; VW?.ui?.updateButtons(); events.log(reason, 'system-msg');

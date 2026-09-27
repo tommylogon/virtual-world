@@ -2,7 +2,7 @@ import logging
 from graph import EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED
 from player import BLOCKING_CONDITIONS
 from engine.vitals import is_drive
-from engine.trace import record as trace_record
+from engine.lived_log import record as lived_record
 from vital_rates import (
     change,
     tick_minutes,
@@ -93,7 +93,7 @@ class TickManager:
         if not target:
             return
         if action_name:
-            trace_record(
+            lived_record(
                 target, getattr(self.player_manager, "time_ticks", 0), "act",
                 f"action:{action_name}", why="", area=target.current_area,
                 tags=["act"])
@@ -424,7 +424,7 @@ class TickManager:
                                     msg += " " + need_advice[stat]
                                 if pname == self.player_manager.active_player:
                                     self.player_manager.add_log_entry(msg)
-                                trace_record(
+                                lived_record(
                                     p, self.player_manager.time_ticks, "need",
                                     f"{stat} crossed {t}",
                                     why=f"needs:{stat.lower()}",
@@ -435,7 +435,7 @@ class TickManager:
                                 msg += " " + need_advice[stat]
                             if pname == self.player_manager.active_player:
                                 self.player_manager.add_log_entry(msg)
-                            trace_record(
+                            lived_record(
                                 p, self.player_manager.time_ticks, "need",
                                 f"{stat} fell to {t}",
                                 why=f"needs:{stat.lower()}",
@@ -455,7 +455,7 @@ class TickManager:
                 cause_of_death = " and ".join(cause_parts) if cause_parts else "unknown causes"
 
                 p.state = "dead"
-                trace_record(
+                lived_record(
                     p, self.player_manager.time_ticks, "death",
                     f"died of {cause_of_death}",
                     why="cause:death", area=p.current_area, salient=True)
@@ -708,9 +708,15 @@ class TickManager:
             # (no-op unless mature_content on).
             self._pleasure_tick(p, pname)
 
+            # "HP is below maximum", not "HP is below 100". The literal only ever
+            # worked because Max_HP was hardcoded to 100 everywhere; against a
+            # real stat block (a 7-HP goblin) it is permanently true, so the
+            # character regenerates every turn and can never be finished off.
+            _hp_ceiling = p.vitals.get("Max_HP", 100)
             if (p.vitals.get("Energy", 0) > 25 and p.vitals.get("Hunger", 0) > 25 and
                 p.vitals.get("Thirst", 0) > 25 and p.vitals.get("Sanity", 0) > 25 and
-                p.vitals.get("HP", 100) < 100 and 35 <= p.vitals.get("Temperature", 37) <= 39):
+                p.vitals.get("HP", _hp_ceiling) < _hp_ceiling and
+                35 <= p.vitals.get("Temperature", 37) <= 39):
                 regen_mult = float(TraitSystem.get_hp_regen_multiplier(p) or 1.0)
                 self._decay(p, "HP", HP_REGEN * max(1.0, regen_mult))
 
@@ -842,6 +848,17 @@ class TickManager:
                 apply_orders(self.gs)
             except Exception as e:
                 logger.warning("[tick] soak orders: %s", e)
+
+        # ── Spell conjurations and durations (task-391) ──
+        # Companions cast by an effect are inert at cast time and live out their
+        # duration here, so an effect never has to reason about the tick loop.
+        # Outside the `skip_npcs` guard on purpose: a conjured thing is not an
+        # NPC, and a fast-forward must still let it expire.
+        try:
+            from engine.companions import process_companions
+            process_companions(self.gs)
+        except Exception as e:
+            logger.warning("[tick] companions: %s", e)
 
         # ── Delayed events now due (task-90) ──
         # Fired AFTER the clock advances, so an event scheduled 5 ticks from

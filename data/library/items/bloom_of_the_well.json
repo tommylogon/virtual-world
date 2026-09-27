@@ -1,0 +1,56 @@
+{
+  "name": "Bloom of the Well",
+  "description": "What the Exile Scare taught her: beauty has consequences. This spell makes flowers break open from almost anything, and the result is always a little too much. The well ran with blossoms for a week. Her hands still shake when she thinks about it.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "normal",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "spell",
+    "magic",
+    "flower",
+    "plant",
+    "elven"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "params": {
+            "item_id": "flowers",
+            "into": "area",
+            "message": "Blossoms erupt from the ground in a glorious, messy cascade."
+          },
+          "type": "spawn_item"
+        },
+        {
+          "params": {
+            "light": 10,
+            "air": "sweet",
+            "message": "The air turns sweet and the light softens."
+          },
+          "type": "adjust_environment"
+        },
+        {
+          "params": {
+            "message": "She watches the flowers bloom and smiles, then winces. \"Not too much... not too much...\""
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

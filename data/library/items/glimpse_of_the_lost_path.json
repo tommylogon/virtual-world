@@ -1,0 +1,49 @@
+{
+  "name": "Glimpse of the Lost Path",
+  "description": "Three days lost in the woods. She learned to ask the forest for directions. Not a map, just a feeling: a pull, a sense of which way leads home. It is not always right, but it is always hopeful.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "normal",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "spell",
+    "magic",
+    "navigation",
+    "elven"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "params": {
+            "keywords": "The Present",
+            "salience_boost": 3,
+            "message": "Three days of walking, and every hour of them, comes back to you at once."
+          },
+          "type": "surface_memory"
+        },
+        {
+          "params": {
+            "target": "",
+            "message": "You catch a glimpse of a familiar landmark -- the village, the well, the tree with the low branch. You think you know which way to go.",
+            "fail_message": "You reach for a sense of direction and find only trees, and more trees."
+          },
+          "type": "scry"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

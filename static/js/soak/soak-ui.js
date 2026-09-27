@@ -1,8 +1,8 @@
 /**
  * @module soak-ui — DOM rendering + interaction for the Soak Lab
- * @contributes form binding, progress/stat readouts, tab panes, all charts and tables, toasts, shortcuts
+ * @contributes form binding, progress/stat readouts, tab panes, all charts and tables, the space-time view, toasts, shortcuts
  * @powers the entire /soak dashboard experience
- * @relates consumes soak-state.js, soak-charts.js, soak-presets.js, soak-format.js
+ * @relates consumes soak-state.js, soak-charts.js, soak-spacetime.js, soak-presets.js, soak-format.js
  * @docs none
  */
 (function () {
@@ -12,12 +12,13 @@
     const C = window.SoakCharts;
     const P = window.SoakPresets;
     const S = window.SoakState;
+    const ST = window.SoakSpacetime;
     const el = (id) => document.getElementById(id);
     const esc = F.esc;
 
     const GROWTH_LABELS = {
         game_log: 'Game log', turn_events: 'Turn events', delayed_events: 'Delayed events',
-        graph_nodes: 'Graph nodes', total_memories: 'Memories', total_trace: 'Traces',
+        graph_nodes: 'Graph nodes', total_memories: 'Memories', total_lived_log: 'Lived log',
     };
     const CHART_COLORS = ['#58a6ff', '#3fb950', '#e3b341', '#f85149', '#bc8cff', '#f778ba'];
 
@@ -32,6 +33,10 @@
         eventKinds: null,
         eventSearch: '',
         eventAutoscroll: true,
+        // The one character the space-time view is isolated to, or null for all.
+        // Kept out of the run config deliberately: it is a view choice, not part
+        // of the experiment, so it must not leak into a saved run or a compare.
+        stCharacter: null,
         deathSearch: '',
         charSearch: '',
         charFilter: 'all',
@@ -481,8 +486,394 @@
         )).join('');
     }
 
+    // ───────────────────── space-time (task-544) ─────────────────────
+    //
+    // Everything here is drawn from the run's telemetry payload, never from a
+    // character's lived_log. That is not a style choice: the lived log is capped
+    // at 200 salience-filtered entries per character, so it can describe a
+    // character's afternoon but it cannot say where a camp's twenty-three
+    // goblins were on day two. See docs/design/lived-log-format.md.
+
+    // The default window, in *game* minutes. Six hours is the largest span a
+    // goblin camp is still readable at: 23 characters, 18 areas and a few
+    // thousand presence intervals fit as distinguishable bands, where three days
+    // of the same data collapses into a solid block of colour that looks like an
+    // answer and is not one. "Full run" is right there for when the mass itself
+    // is the finding.
+    const ST_DEFAULT_WINDOW_MINUTES = 360;
+
+    function stRange() {
+        const run = (data() && data().run) || {};
+        const last = Number(run.tick || 0);
+        const minutes = Number(run.minutes_per_tick || 1) || 1;
+        const from = Number(el('soak-st-from').value || 0);
+        const to = Number(el('soak-st-to').value || 0);
+        const lo = Math.max(0, Math.min(from, to));
+        return {
+            from: lo,
+            to: Math.min(last, Math.max(from, to)),
+            last, minutes,
+        };
+    }
+
+    function syncRangeInputs(payload) {
+        const run = (data() && data().run) || {};
+        const last = Number(run.tick || 0);
+        const minutes = Number(run.minutes_per_tick || 1) || 1;
+        const from = el('soak-st-from');
+        const to = el('soak-st-to');
+        if (from.max !== String(last)) { from.max = String(last); to.max = String(last); }
+        // Zero means "follow the run" until the user types a real bound, so the
+        // inputs never fight the poll while a run is still going.
+        if (!from.dataset.touched) from.value = 0;
+        if (!to.dataset.touched) {
+            const windowTicks = Math.max(1, Math.round(ST_DEFAULT_WINDOW_MINUTES / minutes));
+            to.value = Math.min(last, windowTicks);
+        }
+    }
+
+    async function renderSpacetime() {
+        const box = el('soak-st-lanes');
+        if (!box) return;
+        let payload;
+        try {
+            payload = await S.telemetry(false);
+        } catch (e) {
+            box.innerHTML = `<div class="soak-alert soak-alert-warn">${esc(e.message)}</div>`;
+            return;
+        }
+        if (!payload) return;
+        if (payload.enabled === false) {
+            box.innerHTML = '<div class="soak-empty-inline">Telemetry was off for this run. '
+                + 'Start a new run with <strong>telemetry</strong> on to get space-time data.</div>';
+            return;
+        }
+        syncRangeInputs(payload);
+        const range = stRange();
+        const minutes = Number(((data() && data().run) || {}).minutes_per_tick || 1) || 1;
+        const deaths = (data() && data().deaths) || [];
+        const ribbons = el('soak-st-ribbons') && el('soak-st-ribbons').checked;
+
+        // A character who is not in the roster (a stale selection after a new run)
+        // must not silently produce an empty chart.
+        if (ui.stCharacter && !(payload.characters || []).includes(ui.stCharacter)) {
+            ui.stCharacter = null;
+        }
+        const shown = ST.filterCharacter(payload, ui.stCharacter);
+        const solo = !!ui.stCharacter;
+
+        const layout = ST.buildLayout(
+            Object.assign({}, shown, { from_tick: range.from, to_tick: range.to }),
+            // Lay out at the container's real pixel width so 1 layout unit is
+            // 1 px. A fixed width would either leave dead space or force the
+            // whole diagram to be scaled down to fit. One character does not need
+            // the full width — a single lane stretched across a 2,500px card is
+            // harder to read, not easier.
+            { from: range.from, to: range.to,
+              width: solo ? 640 : Math.max(720, box.clientWidth - 8) });
+
+        box.innerHTML = ST.renderSwimlanes(layout, shown, {
+            minutesPerTick: minutes,
+            // Deaths for other characters would be drawn on a chart that no
+            // longer contains them, so they are filtered with the rest.
+            deaths: solo ? deaths.filter((d) => d.name === ui.stCharacter) : deaths,
+            condition_spans: ribbons ? (shown.condition_spans || []) : [],
+        });
+
+        renderSpaceTimeIntegrity(payload);
+        renderSpaceTimeDensity(layout);
+        renderSpaceTimeLegend(payload);
+        // Computed from the UNFILTERED payload, then narrowed to the selected
+        // character's pairs. See ST.collisionsFor for why: the reason to drill
+        // into one goblin is to find out who they were with.
+        renderCollisions(ST.collisionsFor(payload, ui.stCharacter, range.from, range.to));
+        el('soak-st-heatmap').innerHTML = ST.renderHeatmap(layout, shown, {
+            minutesPerTick: minutes, buckets: solo ? 40 : 56,
+        });
+        renderWhy(payload, range, minutes);
+        renderKinds(payload);
+    }
+
+    /**
+     * Say so when the window is too dense to read.
+     *
+     * A cramped swimlane is worse than an absent one, because it looks like it
+     * answered the question. Past roughly a thousand bands the lanes merge into
+     * a block of colour and individual intervals stop being distinguishable, so
+     * the view stops being evidence and starts being decoration. The threshold
+     * is about legibility, not performance — it draws fine, it just cannot be
+     * read.
+     */
+    function renderSpaceTimeDensity(layout) {
+        const box = el('soak-st-density');
+        if (!box) return;
+        if (layout.visibleIntervals <= 900) {
+            box.innerHTML = '';
+            return;
+        }
+        box.innerHTML = `<div class="soak-alert soak-alert-warn">${F.fmtInt(layout.visibleIntervals)}`
+            + ` presence intervals in this window — dense enough that individual stays`
+            + ` stop being distinguishable. Narrow the range, or read the occupancy`
+            + ` heatmap below for the whole run.</div>`;
+    }
+
+    function renderSpaceTimeIntegrity(payload) {
+        const box = el('soak-st-integrity');
+        const integrity = payload.integrity || {};
+        const messages = [];
+        if (integrity.gaps) {
+            // A gap means presence is *unknown* for that window, not that nobody
+            // was there. Said out loud, because a swimlane with a hole in it
+            // otherwise reads as an absence the data does not support.
+            messages.push(['warn', `${integrity.gaps} gap${integrity.gaps === 1 ? '' : 's'} in the `
+                + 'presence intervals — some stretches are unknown, not empty.']);
+        }
+        if (integrity.overlaps) {
+            messages.push(['warn', `${integrity.overlaps} overlapping presence interval`
+                + `${integrity.overlaps === 1 ? '' : 's'} for the same character.`]);
+        }
+        if (payload.rejected_events) {
+            // Surfaced rather than swallowed: an unknown `why` tag means the
+            // vocabulary and the engine have drifted apart.
+            const top = Object.entries(payload.rejected_why || {})
+                .sort((a, b) => b[1] - a[1]).slice(0, 3)
+                .map(([tag, n]) => `${tag || '(blank)'}×${n}`).join(', ');
+            messages.push(['warn', `${payload.rejected_events} event(s) had a \`why\` outside the `
+                + `telemetry vocabulary and were excluded from the breakdown: ${esc(top)}`]);
+        }
+        if (payload.truncated_events) {
+            messages.push(['info', `The in-memory action stream kept the most recent `
+                + `${F.fmtInt(payload.truncated_events)} event(s) only — export the JSONL for the full run.`]);
+        }
+        box.innerHTML = messages.map(([kind, text]) => (
+            `<div class="soak-alert soak-alert-${kind}">${text}</div>`
+        )).join('');
+    }
+
+    function renderSpaceTimeLegend(payload) {
+        const characters = payload.characters || [];
+        const selected = ui.stCharacter;
+        el('soak-st-legend').innerHTML =
+            (selected
+                ? `<button type="button" class="soak-btn soak-btn-ghost" data-st-clear="1">`
+                  + `← Show everyone</button>`
+                : '')
+            + characters.slice(0, 40).map((name) => (
+                `<button type="button" class="soak-legend-item soak-legend-btn${selected === name ? ' on' : ''}"`
+                + ` data-st-character="${esc(name)}" title="Show only ${esc(name)}">`
+                + `<i class="soak-legend-swatch" style="background:`
+                + `${ST.characterColor(name, characters)}"></i>${esc(name)}</button>`
+            )).join('')
+            + (characters.length > 40
+                ? `<span class="soak-hint">+${characters.length - 40} more</span>` : '');
+    }
+
+    function renderCollisions(collisions) {
+        const box = el('soak-st-collisions');
+        const solo = ui.stCharacter;
+        if (!collisions || !collisions.length) {
+            box.innerHTML = solo
+                ? `<div class="soak-empty-inline">${esc(solo)} shared a room with nobody`
+                  + ` in this window.</div>`
+                : '<div class="soak-empty-inline">Nobody shared a room in this window. '
+                  + 'Either the cast is spread out, or nothing moved.</div>';
+            return;
+        }
+        const heading = solo
+            ? `<div class="soak-hint" style="margin-bottom:6px">${esc(solo)} shared a room with`
+              + ` &mdash; click a name to isolate them:</div>`
+            : '';
+        const rows = collisions.map((row) => {
+            const pairs = row.pairs.slice(0, 5)
+                .map((p) => `<button type="button" class="soak-link-btn" data-st-pair="${esc(p.pair)}">`
+                    + `${esc(p.pair)}</button> <span class="soak-hint">${F.fmtInt(p.ticks)}t</span>`)
+                .join('<br>');
+            return `<tr><td>${esc(row.area)}</td><td class="soak-num">${F.fmtInt(row.ticks)}</td><td>${pairs}</td></tr>`;
+        }).join('');
+        box.innerHTML = heading + `<table class="soak-table"><thead><tr><th>Area</th><th>Shared ticks</th>`
+            + `<th>Who</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
+
+    async function renderWhy(payload, range, minutes) {
+        const box = el('soak-st-why');
+        if (!box) return;
+        const why = payload.why || [];
+        if (!why.length) {
+            box.innerHTML = '<div class="soak-empty-inline">No decided actions recorded in this window.</div>';
+            el('soak-st-why-legend').innerHTML = '';
+            el('soak-st-why-hint').textContent = 'which rule drove the behaviour';
+            return;
+        }
+        // The ranked distribution is the core panel, not an extra: `why` is the
+        // only field that says which rule drove the behaviour, and without it the
+        // view answers "who was where" but not "what decided it".
+        const groups = why.map((row) => row.group);
+        const total = why.reduce((sum, row) => sum + row.count, 0);
+        const rows = why.map((row) => (
+            `<tr><td>${esc(row.group)}</td><td class="soak-num">${F.fmtInt(row.count)}</td>`
+            + `<td class="soak-num">${F.pct(row.share, 0)}</td></tr>`
+        )).join('');
+        const table = `<table class="soak-table soak-table-compact"><thead><tr><th>Rule</th>`
+            + `<th>Actions</th><th>Share</th></tr></thead><tbody>${rows}</tbody></table>`;
+
+        // Stacked over time, because a rule *starting to dominate* is the finding
+        // a flat bar chart cannot show.
+        let stack = '';
+        let stackEvents = [];
+        try {
+            const full = await S.telemetry(true);
+            stackEvents = (full && full.events) || [];
+        } catch (e) { stackEvents = []; }
+        if (stackEvents.length) {
+            const series = ST.whyOverTime(stackEvents, range.from, range.to, 48);
+            stack = renderWhyStack(series, minutes, range, box.clientWidth);
+        }
+
+        box.innerHTML = table + stack;
+        el('soak-st-why-legend').innerHTML = why.map((row) => (
+            `<span class="soak-legend-item"><i class="soak-legend-swatch" style="background:`
+            + `${whyColor(row.group, groups)}"></i>`
+            + `${esc(row.group)} · ${F.fmtInt(row.count)}</span>`
+        )).join('');
+        const unattributed = payload.unattributed || 0;
+        el('soak-st-why-hint').textContent = unattributed
+            ? `which rule drove the behaviour · ${F.fmtInt(total)} decided, `
+              + `${F.fmtInt(unattributed)} with no rule (not ranked)`
+            : 'which rule drove the behaviour';
+    }
+
+    // Why-group colours are keyed by the group *list*, not a counter: an earlier
+    // version built the palette from a running count and looked each key up in
+    // that list, so every group after the first missed and fell back to grey.
+    // The whole stack then rendered as one grey mass.
+    function whyColor(group, groups) {
+        return ST.characterColor(group, groups || []);
+    }
+
+    function renderWhyStack(series, minutes, range, width) {
+        const W = Math.max(720, width || 900); const H = 150; const padLeft = 34; const padBottom = 24;
+        const plotW = W - padLeft - 8;
+        let peak = 1;
+        series.groups.forEach((group) => {
+            series.series.get(group).forEach((v) => { if (v > peak) peak = v; });
+        });
+        const xOf = (b) => padLeft + ((b + 0.5) / series.buckets) * plotW;
+        const yOf = (v) => H - padBottom - (v / peak) * (H - padBottom - 8);
+        let svg = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" class="soak-chart" role="img">`;
+        // Stack from the baseline up so the total is the envelope.
+        const totals = new Array(series.buckets).fill(0);
+        series.groups.forEach((group) => {
+            const values = series.series.get(group);
+            let path = '';
+            const top = [];
+            values.forEach((v, b) => { totals[b] += v; });
+            values.forEach((v, b) => {
+                const base = yOf(totals[b] - v);
+                const topY = yOf(totals[b]);
+                top.push([xOf(b), base, topY]);
+            });
+            // A filled band per group between its lower and upper envelope.
+            const up = top.map((p, i) => `${i ? 'L' : 'M'} ${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' ');
+            const down = top.slice().reverse()
+                .map((p) => `L ${p[0].toFixed(1)} ${p[2].toFixed(1)}`).join(' ');
+            path = `${up} ${down} Z`;
+            svg += `<path d="${path}" fill="${whyColor(group, series.groups)}" opacity="0.75">`
+                + `<title>${esc(group)}</title></path>`;
+        });
+        [0, 0.5, 1].forEach((f) => {
+            const value = Math.round(peak * (1 - f));
+            const y = H - padBottom - f * (H - padBottom - 8);
+            svg += `<text x="${padLeft}" y="${y - 2}" class="soak-axis-label">${esc(F.fmtInt(value))}</text>`;
+        });
+        [0, 0.5, 1].forEach((f) => {
+            const value = range.from + (range.to - range.from) * f;
+            const x = padLeft + f * plotW;
+            svg += `<text x="${x.toFixed(1)}" y="${H - 6}" text-anchor="middle" class="soak-axis-label">`
+                + `${esc(ST.formatTick(value, minutes))}</text>`;
+        });
+        svg += '</svg>';
+        return `<div class="soak-why-stack">${svg}</div>`;
+    }
+
+    function renderKinds(payload) {
+        const kinds = payload.kinds || [];
+        const box = el('soak-st-kinds');
+        if (!kinds.length) {
+            box.innerHTML = '<div class="soak-empty-inline">No actions recorded.</div>';
+            el('soak-st-kinds-legend').innerHTML = '';
+            return;
+        }
+        const palette = ['#58a6ff', '#3fb950', '#e3b341', '#f85149', '#bc8cff', '#f778ba',
+            '#56d4dd', '#d29922', '#7ee787', '#ff7b72'];
+        const slices = kinds.slice(0, 8).map((row, i) => ({
+            label: row.kind, value: row.count, color: palette[i % palette.length],
+        }));
+        if (kinds.length > 8) {
+            const rest = kinds.slice(8).reduce((sum, row) => sum + row.count, 0);
+            slices.push({ label: `${kinds.length - 8} more`, value: rest, color: '#6e7681' });
+        }
+        box.innerHTML = C.renderDonut({ slices, size: 190, thickness: 28, centerLabel: 'actions' });
+        el('soak-st-kinds-legend').innerHTML = kinds.slice(0, 8).map((row, i) => (
+            `<span class="soak-legend-item"><i class="soak-legend-swatch" style="background:`
+            + `${palette[i % palette.length]}"></i>`
+            + `${esc(row.kind)} · ${F.fmtInt(row.count)}</span>`
+        )).join('');
+    }
+
+    function bindSpacetime() {
+        ['soak-st-from', 'soak-st-to'].forEach((id) => {
+            const node = el(id);
+            if (!node) return;
+            node.addEventListener('input', () => { node.dataset.touched = '1'; });
+            node.addEventListener('change', () => { scheduleCharts(); });
+        });
+        const full = el('soak-st-full');
+        if (full) {
+            full.addEventListener('click', () => {
+                const run = (data() && data().run) || {};
+                // Explicitly "the whole run", which is different from "untouched
+                // default" — the default is a legible window, not the full span.
+                const last = Number(run.tick || 0);
+                el('soak-st-from').dataset.touched = '1';
+                el('soak-st-to').dataset.touched = '1';
+                el('soak-st-from').value = 0;
+                el('soak-st-to').value = last;
+                scheduleCharts();
+            });
+        }
+        const ribbons = el('soak-st-ribbons');
+        if (ribbons) ribbons.addEventListener('change', () => scheduleCharts());
+
+        // One delegated listener for both the legend and the collision pairs,
+        // because both re-render their own container on selection — a per-node
+        // listener would have to be rebound after every draw.
+        const pane = document.querySelector('[data-pane="spacetime"]');
+        if (!pane) return;
+        pane.addEventListener('click', (ev) => {
+            const charNode = ev.target.closest('[data-st-character]');
+            if (charNode) {
+                const name = charNode.getAttribute('data-st-character');
+                ui.stCharacter = ui.stCharacter === name ? null : name;
+                renderCharts();
+                return;
+            }
+            const pairNode = ev.target.closest('[data-st-pair]');
+            if (pairNode) {
+                // "Gribba + Vekka" -> the first name. A two-person filter would
+                // need a pair mode for a question nobody has asked yet.
+                const first = pairNode.getAttribute('data-st-pair').split(' + ')[0];
+                ui.stCharacter = first;
+                renderCharts();
+                return;
+            }
+            if (ev.target.closest('[data-st-clear]')) {
+                ui.stCharacter = null;
+                renderCharts();
+            }
+        });
+    }
+
     function ensureVitalMetrics() {
-        if (ui.vitalMetrics && ui.vitalMetrics.length) return;
         const core = S.coreVitals();
         ui.vitalMetrics = ['Hunger', 'Thirst', 'Energy', 'HP'].filter((v) => core.includes(v));
         if (!ui.vitalMetrics.length) ui.vitalMetrics = core.slice(0, 4);
@@ -783,7 +1174,7 @@
         const runsById = {};
         (S.state.runs || []).forEach((r) => { runsById[r.id] = r; });
         const fields = ['ticks_completed', 'characters', 'deaths', 'survivors', 'ticks_per_second',
-            'game_log_entries', 'total_memories', 'total_trace', 'graph_nodes'];
+            'game_log_entries', 'total_memories', 'total_lived_log', 'graph_nodes'];
         const getVal = (body, id, field) => {
             if (body.summary && body.summary[field] !== undefined) return body.summary[field];
             const r = runsById[id] || {};
@@ -839,6 +1230,7 @@
         case 'overview': renderOverview(); break;
         case 'vitals': renderVitals(); break;
         case 'survival': renderSurvival(); break;
+        case 'spacetime': renderSpacetime(); break;
         case 'growth': renderGrowthMetrics(); renderGrowth(); break;
         case 'characters': renderCharacters(); break;
         case 'events': renderEvents(); break;
@@ -1015,8 +1407,9 @@
     function init() {
         bindForm();
         bindState();
+        bindSpacetime();
         renderEventKinds();
     }
 
     window.SoakUI = { init, toast, switchTab };
-})();
+}());

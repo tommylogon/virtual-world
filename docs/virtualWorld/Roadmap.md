@@ -4,38 +4,47 @@ Where the world is going, in what order, and why. This is a proposal, not a
 promise: it is re-aimed whenever the simulation teaches us something. Part of
 [[_Index]].
 
-*Written 2026-09-24, after `e4af71c`. Updated 2026-09-26.*
+*Written 2026-09-24, after `e4af71c`. Updated 2026-09-27, after `2a8d989`.*
 
 ## Where we are
 
 | Status | Count |
 |---|---|
-| Done | 340 |
-| Review | 142 |
+| Done | 314 |
+| Review | 144 |
 | In progress | 8 |
-| Todo | 91 |
+| Todo | 100 |
 
-Since the last revision the graph **map** became usable on a compiled world:
-zones can be dragged and their offset persists (task-523), the reference map can
-be resized/cropped (task-524), a zone can be **ungenerated** back to a clean
-slate while its painted grid is kept, and a regenerate now genuinely re-stamps
-the existing nodes. The author locked the world model: every painted cell is a
+(Counted from the folders, which are authoritative — not the frontmatter. The
+previous revision's Done figure of 340 does not match the folder, so the table is
+re-based here rather than trusted.)
+
+The **observer-view block is implemented and in review.** Every painted cell is a
 place, a road cell replaces its biome, a description composes the place's
-*character* from its neighbours, and directions are compass outdoors / narrative
-on feature entry. Dense maps now hide labels at overview zoom (label LOD), the
-map pitch has a live spacing control, and the WorldPainter has an Ungenerate
-button.
+*character* from its neighbours and the storey beside it, and feature entries
+carry a narrative phrase. The same session closed the authoring gaps that made it
+unusable: a hand-written area can be parked on a cell, scope membership is edited
+on the node (so a child scope's interior moves wholesale, and stops showing in the
+parent), every cell can be read on hover or click, and the place tool's picker is
+grouped by scope.
 
-The epic in flight is **WorldPainter → a compiled world**: paint a grid, compile
-it into real areas and ways, and let the graph load one scope at a time. The
-payoff is a world large enough that the *attention* model — not the node count —
-is the limit. The observer-view description model and the narrative
-feature-entry directions are the next slice of that epic.
+Map drawing then had to be taught to agree with itself. Four bugs, all the same
+shape — two sources of truth for one position: art drifting off its grid, a pitch
+change splitting the map from its areas, a rename that never reached the picker,
+and a zone drag that moved whichever map was selected. **One rule now: the art is
+derived from its scope's grid plus that scope's offset, and nothing else.** Node
+boxes, item offsets and the solver's spring follow the pitch, so a wide map reads
+as a map instead of specks.
+
+The epic still in flight is **WorldPainter → a compiled world**. The compiler and
+its authoring loop are done; what remains is making a *big* painted world
+comfortable, and proving the whole thing end to end in play.
 
 ## The three rules that decide the order
 
 1. **One copy of every truth.** Ids key nodes, never names (task-446); one dice
-   path (`engine/checks.py`); one depletion rule (task-508). A second
+   path (`engine/checks.py`); one depletion rule (task-508); the map art's position
+   is derived from the grid and the scope offset, never hand-nudged. A second
    implementation is a bug waiting for a reason to disagree.
 2. **Scale is bounded by attention, never by turn length.** The cheap tier must
    always be a *valid but suboptimal* policy, and LLM calls must never scale with
@@ -44,25 +53,40 @@ feature-entry directions are the next slice of that epic.
 3. **Document the non-obvious in code and here.** Kilo has repeatedly
    misread these systems because the comments and docs were thin.
 
-## Now — finish WorldPainter (next 1–2 sessions)
-
-The compiler is the keystone; fog-of-war, zone fidelity and chunk persistence
-are all waiting on a world that has been compiled once.
+## Now — make the big painted world comfortable (next 1–2 sessions)
 
 | Task | Why now |
 |---|---|
-| task-496 grid→graph compiler | Cells become areas + ways in the *existing* formats, so the engine does not change. Now also: every painted cell is a place, a road cell replaces its biome, and a description composes the place's character (see the Decisions block in the task). Deterministic, LLM-free. |
-| task-529 feature-entry directions | Narrative move verbs on the exterior→feature seam (`enter`, `climb up the rockface`); exteriors keep compass. No engine change. |
-| task-528 assign / promote areas | Turn hand-placed areas into a zone: assign them to a scope, or promote the selection to a placed feature. |
-| task-526 map scale rendering | Dots below a spacing/zoom threshold, cards above; an auto default spacing, so a dense map is readable without hand-tuning the pitch. |
+| task-526 map scale rendering | Dots below a spacing/zoom threshold, cards above; an auto default spacing, so a dense map is readable without hand-tuning the pitch. The pitch now scales the drawing, so this is the last piece of "a big map reads well". |
 | task-527 graph steady-state perf | Profile and fix the main-thread drag on a large painted map (labels/edges/redraw). Measured, not guessed — a previous hypothesis was wrong. |
-| task-398 deterministic structure generation | The generator is the only sanctioned way to mint an unmade scope, and it must be reproducible and editable after the fact. |
-| task-520 canvas scale (review) | Verify the acceptance: a 16k-cell grid pans/zooms, the route tool reports cells · turns · hours, a route paints in one request with one undo entry. |
-| task-397 world scopes | Finish the projection so the editor/runtime can address a zone without inventing a second spatial model. |
 | task-400 Pines vertical slice | The end-to-end proof: a painted region compiled, walked, and trusted. Small on purpose. |
+| task-398 deterministic structure generation | The generator is the only sanctioned way to mint an unmade scope, and it must be reproducible and editable after the fact. |
+| task-397 world scopes | Finish the projection so the editor/runtime can address a zone without inventing a second spatial model. |
+| task-520 canvas scale (review) | Verify the acceptance: a 16k-cell grid pans/zooms, the route tool reports cells · turns · hours, a route paints in one request with one undo entry. |
+| task-525 storey-delta traversal gate | The compiler now writes `properties.floor` as a **storey index** (0 ground, 1 up, -1 down, unbounded — an 80-storey tower, a lake bottom at -2, -900 in a hole to hell) and the prose reads it; the ground material moved to `properties.surface`. A step past ~3 storeys should require a climb (and may block the step). The data exists — the gate does not. |
+| task-529 the last third of feature entries | The phrase is carried by the edge and resolves in both directions (landed with task-496), but the *area description* does not yet offer it ("a cave mouth yawns here; you could enter"). |
+| task-535 promote a selection into a child scope | The membership move landed (task-539); turning a *selection* into a new zone with a gateway is the remaining half. |
+| task-536 WorldPainter tool rail | Marquee cell selection and moving a painted selection, so a region is edited as a region. |
 
-**Exit test:** paint a zone, compile it, load only that scope in the graph, walk
-it in play, commit it — with no engine change.
+**Exit test:** paint a big zone, compile it, load only that scope, walk it in
+play, commit it — with no engine change.
+
+## Also in flight, on other threads
+
+Not part of the sequence above, but they change what the world can be asked to do,
+so they are named here rather than lost in the task tree:
+
+- **Soak telemetry and the lived log** (task-542 review, 543 review, 544 in
+  progress): the trace/soak split, presence intervals and an action-stream
+  capture, and a space-time swimlane view. This is the measurement instrument the
+  long-horizon work needs.
+- **The character model** (task-534 in progress, 545–547 todo): health and vitals
+  with real max HP, hit dice and armour class; recording *which region* raised
+  stimulation; frustration when it leads nowhere; who saw whom this turn.
+- **Items** (task-537): a spell-effect and condition catalogue review list, with
+  the effect handlers and library items landing alongside it.
+- **Simultaneous rounds** (task-533): the turn pipeline that never ran, and the
+  End-round control.
 
 ## Next — the simulation contract debt (2–3 sessions)
 
@@ -94,8 +118,8 @@ the same damage, and no mechanic has a second implementation.
 ## Then — scale & knowledge (the big one)
 
 Attention (task-411), awareness channels (task-418), the relational spatial model
-(task-419), fog of war (task-499), zone-driven fidelity (task-500), elevation
-sightlines (task-498), the elevation/floor traversal gate (task-525), chunk
+(task-419), fog of war (task-499), zone-driven fidelity (task-500), storey
+sightlines (task-498), the storey-delta traversal gate (task-525), chunk
 persistence (task-401) and the projection benchmark
 (task-402). Characters: canonical character nodes (task-457), id-first identity
 (task-446), nicknames (task-447), the life-experience generator (task-404),
@@ -104,26 +128,35 @@ structured appearance/personality (task-507).
 ## Then — UI & tooling
 
 Library browser overhaul (task-510), expression pack (task-512), the help-center
-audit (task-521), the graph toolbar redesign + Map/Levels fix (task-530 /
-bug-48), save/load UX + list perf (task-455/454), Playwright persistence
-(task-444), and the trigger-graph overhaul (task-502/388).
+audit (task-521), the trigger-graph overhaul (task-502/388), save/load UX + list
+perf (task-455/454), and Playwright persistence (task-444). The graph toolbar
+redesign, the contextual scope bar and the narrow-window overflow menu have landed
+(task-530/531/532); what is left there is **bug-48** — the map layout is silently
+ignored while Levels owns the layout.
 
 ## Always-on hygiene
 
-- **Drain review.** 142 tasks sit in review; a dedicated drain session keeps the
-  folder honest rather than letting review become a second todo.
+- **Drain review.** 144 tasks sit in review — more than the todo list. A dedicated
+  drain session keeps the folder honest rather than letting review become a second
+  todo. Start with the ones this session produced (task-496, 528, 530, 531, 532,
+  539, 540, 541, 548 and bug-49…53), since they are the ones whose acceptance
+  nobody has re-read yet.
 - **13 pre-existing JS unit failures** (`test_plan_tracker.js`) — fix or delete
   the stale expectations.
-- **Stale tasks** (`task-409`'s action-budget blocker is retired; task-475's
-  gaps are recorded in code) must be re-read against the current design before
-  acting.
+- **Stale tasks must be re-read against the current design before acting**
+  (task-409's action-budget blocker is retired; task-475's gaps are recorded in
+  code; task-529's acceptance was still literally "TODO" while most of it had
+  already landed inside task-496).
+- **`docs/design/js-module-index.md` is generated.** Regenerate it with
+  `python tools/js_module_index.py --write` after adding a module, and never hand
+  it into a commit that does not include the modules it names.
 
 ## Risks to watch
 
-- **WorldPainter clobber trap** (task-289/290/317): decide grid-canonical vs
-  baked-and-hand-edited *per zone* before compiling, or a re-compile will erase
-  hand edits.
-- **The review backlog hides real debt.** 142 review tasks is bigger than the
-  todo list; if it is not drained, "done" stops meaning done.
+- **The review backlog hides real debt.** 144 review tasks is bigger than the todo
+  list; if it is not drained, "done" stops meaning done.
 - **Performance is not the first proof.** task-400 is deliberately small — do
   not let a vertical slice turn into a million-node benchmark.
+- **A committed scenario is not a committed model.** `data/scenarios/*` moves fast
+  while the author paints; it is content, so it should ride its own commit rather
+  than a code change's.

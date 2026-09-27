@@ -1,7 +1,7 @@
 /**
  * @module soak-state — the Soak Lab store: config, run list, incremental polling
- * @contributes single-source app state, cursor-based sample/event merging, poll lifecycle, run selection
- * @powers live progress, run history, character/report loading, compare + export data access
+ * @contributes single-source app state, cursor-based sample/event merging, poll lifecycle, run selection, telemetry cache
+ * @powers live progress, run history, character/report loading, compare + export data access, the space-time view
  * @relates consumes soak-api.js; observed by soak-ui.js and seeded by soak-app.js
  * @docs none
  */
@@ -263,6 +263,39 @@
         return body;
     }
 
+    /**
+     * The run's telemetry payload (task-543/544).
+     *
+     * Cached per run because the space-time view re-reads it on every tab switch
+     * and every range change, and it is the heaviest thing the lab fetches: a
+     * week-long run is tens of thousands of intervals. `withEvents` opts into the
+     * unbounded action stream, which only the "why over time" stack needs.
+     *
+     * Not cached across run selection — a stale payload from a previous run would
+     * draw the wrong lanes, which is worse than a slow redraw.
+     */
+    async function telemetry(withEvents) {
+        const id = state.selectedRunId;
+        if (!id) return null;
+        const key = `telemetry::${id}::${withEvents ? 'full' : 'slim'}`;
+        if (SERIES_CACHE.has(key)) return SERIES_CACHE.get(key);
+        const body = await window.SoakApi.telemetry(id, withEvents);
+        SERIES_CACHE.set(key, body);
+        // A run that is still going gains intervals every tick, so the cached
+        // copy is dropped on the next poll rather than left to go stale.
+        if (state.data && state.data.run && state.data.run.status === 'running') {
+            SERIES_CACHE.delete(key);
+        }
+        return body;
+    }
+
+    /** Drop a run's cached series (used when a run is deleted or restarted). */
+    function invalidate(id) {
+        Array.from(SERIES_CACHE.keys())
+            .filter((key) => key.includes(id))
+            .forEach((key) => SERIES_CACHE.delete(key));
+    }
+
     function setPollingPaused(paused) {
         state.pollingPaused = !!paused;
         emit('paused', state.pollingPaused);
@@ -279,7 +312,7 @@
     window.SoakState = {
         state, init, on, emit, setConfig, getConfig, coreVitals,
         refreshRuns, start, stop, removeRun, selectRun, selected, selectedRun,
-        loadCharacters, characterSeries, fullSamples, applySnapshot,
-        setPollingPaused, debug, destroy,
+        loadCharacters, characterSeries, fullSamples, telemetry, invalidate,
+        applySnapshot, setPollingPaused, debug, destroy,
     };
-})();
+}());

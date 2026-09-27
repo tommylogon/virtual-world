@@ -1,4 +1,5 @@
 """Tests for the /api/soak endpoints (routes/soak.py + routes/soak_ops.py)."""
+import json
 import sys
 import time
 from pathlib import Path
@@ -9,6 +10,9 @@ from app import create_app
 from engine import soak_runner as sr
 
 SMALL = "data/scenarios/combat_pit.json"
+# A scenario with a real cast that actually makes background decisions, so the
+# action stream is non-empty. Heavier to load, so used only where needed.
+CAMP = "data/scenarios/kraktooth_goblin_camp.json"
 
 
 def _client():
@@ -95,6 +99,48 @@ def test_start_poll_report_export_and_delete():
     removed = client.delete(f"/api/soak/runs/{run_id}")
     assert removed.status_code == 200
     assert client.get(f"/api/soak/runs/{run_id}").status_code == 404
+    _drain()
+
+
+def test_telemetry_endpoint_serves_the_space_time_data():
+    """task-543/544: the view is drawn from this endpoint, not from a character's
+    lived_log. Events are opt-in (`?events=1`) because they are the unbounded
+    half of the store; the default response is the bounded, drawable half."""
+    _drain()
+    client, _ = _client()
+    resp = client.post('/api/soak/runs', json={
+        "scenario": CAMP, "ticks": 20, "background_all": True, "telemetry": True,
+    })
+    run_id = resp.get_json()["run"]["id"]
+    _wait_for_finish(client, run_id)
+
+    body = client.get(f"/api/soak/runs/{run_id}/telemetry").get_json()
+    assert body["enabled"] is True
+    assert body["intervals"]
+    assert body["characters"] and body["areas"]
+    assert body["integrity_ok"] is True
+    assert "events" not in body, "events must be opt-in, not the default payload"
+
+    with_events = client.get(f"/api/soak/runs/{run_id}/telemetry?events=1").get_json()
+    assert with_events["events"]
+
+    # The full run is downloadable as JSONL regardless of the hot window.
+    download = client.get(f"/api/soak/runs/{run_id}/telemetry.jsonl")
+    assert download.status_code == 200
+    assert download.mimetype == "application/x-ndjson"
+    lines = [json.loads(line) for line in download.data.decode("utf-8").splitlines()
+             if line.strip()]
+    assert lines, "the JSONL export must not be empty for a run with telemetry"
+    # Every line is typed, so a consumer can filter the mixed stream. Presence
+    # lines appear when an interval *closes*, so the first line is not
+    # necessarily one — a character standing still has an open interval until the
+    # run ends.
+    kinds = {line["type"] for line in lines}
+    assert "presence" in kinds
+    assert "action" in kinds
+
+    assert client.get('/api/soak/runs/nope/telemetry').status_code == 404
+    assert client.get('/api/soak/runs/nope/telemetry.jsonl').status_code == 404
     _drain()
 
 

@@ -83,6 +83,54 @@ Every character resolves to a control mode via `events.getControlMode(charName)`
   ring buffer (`events.logParseError`, last 20) and surface as clickable bubbles that expand
   the raw response, so bad outputs are debuggable from the stream itself.
 
+## Involuntary Reactions (task-166, task-534)
+
+`agent/involuntary.js` post-processes every speech line and emote an attended
+character emits, so a hiccup or a sneeze lands *inside* the line instead of
+replacing it. It is a LIVEGAME layer only: background NPCs and simple NPCs have
+no speech/emote emission path, so the cheap tier never pays for it, and the roll
+is **per emitted line, not per turn** (it stays correct under the
+timeframe-and-flow model, task-436/437).
+
+**Where the flavor comes from**
+
+| Source | Example | Odds |
+|---|---|---|
+| Active condition | `frightened` → stutter, `hypothermia` → shiver, `sick`/`poisoned` → cough, `social_breakdown`/`hallucinating` → ramble, `paranoid` → stutter, `sneeze` → sneeze | per-condition `chance` on `SPEECH_TRIGGERS` |
+| Condition emote pool | `itch`, `goosebumps`, `sneeze`, plus the conditions above, each with its own pronoun-aware suffix list in `EMOTE_TRIGGERS` | none — see below |
+| Situational startle | a new shout/scream in `recent_hearing` → yelp | `STARTLE_SPEECH_CHANCE` / `STARTLE_EMOTE_CHANCE` |
+| Trait | `jittery` (aliases `nervous`, `clumsy`) multiplies every roll by `NERVOUS_BOOST` | ×1.8 |
+| Random baseline | hiccup / burp / yelp with no trigger at all | `RANDOM_SPEECH_CHANCE` 0.06, `RANDOM_EMOTE_CHANCE` 0.04 |
+
+**Non-obvious behaviors worth knowing**
+
+- **Condition-driven emotes have no chance roll at all.** The `EMOTE_TRIGGERS`
+  loop fires the pool unconditionally whenever the condition is present; only
+  the *speech* path and the random baseline roll. A conditioned sneeze therefore
+  always shows up as an emote, and never as the random baseline tic.
+- **The two condition loops resolve ties differently.** `speech()` keeps rolling
+  past a condition whose roll fails and can land on a later one, so with two
+  active conditions either may fire; `emote()` returns on the **first** matching
+  condition in table order and never considers the next. With both `sneeze` and
+  `frightened` active, the emote is decided by declaration order, not by
+  severity — reorder the table and the output changes.
+- **A startle short-circuits everything.** When the engine reports
+  `context.startled`, both `speech()` and `emote()` take the yelp branch first and
+  never reach the condition pools, so an active condition silently loses to a
+  loud noise on that line.
+- **A startle fires once per hearing entry, per turn.** `AgentEngine._detectStartle()`
+  tracks which entries already startled a character so a lingering shout does
+  not yelp forever, and caches the result per turn so the speech and the emote
+  agree instead of disagreeing inside one turn.
+- **The body-reaction conditions are applied by content, not by this module.**
+  `itch`, `goosebumps` and `sneeze` live in `engine/player_conditions.py` with
+  catalog entries in `data/library/conditions/`. All three are non-erotic and
+  carry `"mature": false`, so they are never hidden or stripped by the world's
+  `mature_content` toggle. A trigger or action has to apply the condition; if
+  nothing does, it simply never fires.
+- **Injection happens before the text is sent**, so the room and the event stream
+  both see the interrupted line.
+
 ## Structured Actions (task-160)
 
 The LLM emits a **structured action object** instead of free-text commands:
@@ -237,6 +285,7 @@ Settings panel controls: API key/base/model/temperature, turn-based mode + order
 
 - [[dev_tasks/done/prompting/task-160-parameterized-actions-in-prompts|task-160: Parameterized actions]]
 - [[dev_tasks/done/characters/task-178-unify-memory-systems|task-178: Unified memory]]
+- [[Rules Engine/Conditions System]]
 - [[Gameplay/Character Spatial Position]]
 - [[AI & Narration/Memory System]]
 - [[AI & Narration/Turn-Based System]]

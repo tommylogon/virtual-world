@@ -198,8 +198,8 @@ def apply_relationship_delta(player, other_name: str, delta, cause: str,
 
     if trace and amount:
         try:
-            from engine.trace import record as trace_record
-            trace_record(
+            from engine.lived_log import record as lived_record
+            lived_record(
                 player, int(tick or 0), "relationship",
                 f"closeness toward {label} {amount:+d}",
                 why=f"social:{cause}",

@@ -1,0 +1,59 @@
+{
+  "name": "Fluffy",
+  "personality": "You are Fluffy: a small, fuzzy shape conjured out of down and wishful thinking. You are not real. You do not move unless someone believes very hard. You are warm, quiet, and enormous company.",
+  "description": "A small, fuzzy sheep made of down and wishful thinking. It has kind eyes and no discernible mass. It does not move unless you believe very hard. It blinks slowly at you, and the blinking is the most convincing part.",
+  "base_description": "A small, fuzzy sheep of down and wishful thinking.",
+  "unknown_name": "",
+  "stats": {
+   "CHA": 18,
+   "CON": 6,
+   "DEX": 4,
+   "INT": 5,
+   "STR": 2,
+   "WIS": 12
+  },
+  "vitals": {
+   "Bladder": 50,
+   "Energy": 70,
+   "Entertainment": 80,
+   "HP": 8,
+   "Hunger": 40,
+   "Hygiene": 70,
+   "Max_HP": 8,
+   "Sanity": 95,
+   "Social": 80,
+   "Temperature": 39,
+   "Thirst": 40
+  },
+  "decay_rates": {},
+  "skills": {},
+  "traits": {},
+  "tags": [
+   "animal",
+   "sheep",
+   "small",
+   "illusory",
+   "companion"
+  ],
+  "interest_tags": [],
+  "state": "awake",
+  "conditions": {},
+  "equipped": {},
+  "activity": null,
+  "inventory": [],
+  "emotion": {
+   "current": "neutral",
+   "description": "",
+   "intensity": 0
+  },
+  "memories": [],
+  "relationships": {},
+  "behaviors": [],
+  "npc_behavior": "idle",
+  "npc_action_interval": 0,
+  "npc_state": "idle",
+  "simple_npc": false,
+  "autonomy": false,
+  "recent_hearing": [],
+  "carcass": null
+}

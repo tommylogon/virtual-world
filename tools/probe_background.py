@@ -92,7 +92,7 @@ def main():
 
     counts = Counter()
     for p in world.players.values():
-        for e in p.trace_log:
+        for e in p.lived_log:
             counts[(e["kind"], e["why"])] += 1
 
     remaining = Counter()

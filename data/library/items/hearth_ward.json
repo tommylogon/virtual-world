@@ -1,0 +1,51 @@
+{
+  "name": "Hearth Ward",
+  "description": "A protective blessing learned from watching the village elders. Lyrie does not have the precision for grand wards, but she can make a small, wobbling circle of safety around herself. It is not much, but it is home.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "normal",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "spell",
+    "magic",
+    "ward",
+    "protection",
+    "elven"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "params": {
+            "status_type": "blessed",
+            "severity": 1,
+            "duration": 50,
+            "message": "A warm, fuzzy feeling settles around you. The cold softens at the edges of your senses."
+          },
+          "type": "apply_area_status"
+        },
+        {
+          "params": {
+            "temperature": 3,
+            "light": 10,
+            "message": "A small, warm circle of light surrounds you."
+          },
+          "type": "adjust_environment"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

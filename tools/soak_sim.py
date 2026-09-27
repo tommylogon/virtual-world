@@ -185,7 +185,7 @@ def main():
     say(f"  growth          : log {summary['game_log_entries']:,} |"
         f" turn_events {summary['turn_events']:,} | delayed {summary['delayed_events']:,} |"
         f" graph {summary['graph_nodes']:,} | memories {summary['total_memories']:,} |"
-        f" trace {summary['total_trace']:,}")
+        f" lived {summary['total_lived_log']:,}")
 
     if run.deaths:
         say("")

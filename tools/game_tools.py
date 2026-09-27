@@ -108,10 +108,18 @@ def get_tools(world):
         made *which* actions moved the clock an accident of that table (``open``
         did not, ``look`` did). task-436 removed that source; the flag now means
         only what its name says.
+
+        The flag is **consumed**, not just read. It is a one-shot suppression for
+        the action that follows a self-timed task, so clearing it here is what
+        stops the very first ``rest`` in a world's life from muting the clock
+        for every MCP action afterwards. Leaving it set is what made the clock
+        silently stop advancing on this path forever.
         """
         try:
             if not getattr(world, "_clock_advanced_by_task", False):
                 world.tick(1)
+            else:
+                world._clock_advanced_by_task = False
         except Exception:
             pass
     def tool_move(direction: str):

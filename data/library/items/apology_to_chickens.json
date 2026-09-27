@@ -1,0 +1,48 @@
+{
+  "name": "Apology to Chickens",
+  "description": "The Chicken Cart incident left her with a lifelong habit: she apologizes to chickens. This spell extends that apology into a subtle pacification, and fowl (and sometimes other skittish creatures) calm down around her.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "normal",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "spell",
+    "magic",
+    "beast",
+    "elven"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use_on"
+      ],
+      "effects": [
+        {
+          "params": {
+            "condition": "charmed",
+            "target": "target",
+            "duration": 5,
+            "message": "She looks at the creature with big, earnest eyes. It seems to relax."
+          },
+          "type": "apply_condition"
+        },
+        {
+          "params": {
+            "message": "\"I am sorry about the cart,\" she whispers."
+          },
+          "type": "message"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

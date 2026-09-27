@@ -494,6 +494,416 @@
         "uses": -1,
         "weight": 0.1
       }
+    },
+    {
+      "name": "Hearth Ember",
+      "node_id": "item_hearth_ember",
+      "library_id": "hearth_ember",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "use"
+        ],
+        "current_state": "normal",
+        "description": "A pocket of warmth Lyrie learned out of necessity. She cups her hands and a soft heat blooms between her palms, curling up her arms and toes. It is the only spell that behaves exactly like she wants it to, probably because she has cast it a thousand times in the snow.",
+        "equip_slots": [],
+        "hidden": false,
+        "library_id": "hearth_ember",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "spell",
+          "magic",
+          "fire",
+          "warmth"
+        ],
+        "uses": -1,
+        "weight": 0.1
+      }
+    },
+    {
+      "name": "Tongue of the Little Folk",
+      "node_id": "item_tongue_of_the_little_folk",
+      "library_id": "tongue_of_the_little_folk",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "use"
+        ],
+        "current_state": "normal",
+        "description": "The elven tongue for beasts. Lyrie knows it well, because she learned it the hard way. Animals still do not quite understand her, but she never stops trying. She leaves acorns out as apologies.",
+        "equip_slots": [],
+        "hidden": false,
+        "library_id": "tongue_of_the_little_folk",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "spell",
+          "magic",
+          "beast",
+          "elven"
+        ],
+        "uses": -1,
+        "weight": 0.1
+      }
+    },
+    {
+      "name": "Whisper of Green",
+      "node_id": "item_whisper_of_green",
+      "library_id": "whisper_of_green",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "use"
+        ],
+        "current_state": "normal",
+        "description": "Named for Vincent the grapevine. Plants speak slowly, in rustles and sap, and they remember everything. This spell lets her ask them small questions: where water hides, which way is safe, whether a storm is coming.",
+        "equip_slots": [],
+        "hidden": false,
+        "library_id": "whisper_of_green",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "spell",
+          "magic",
+          "plant",
+          "elven"
+        ],
+        "uses": -1,
+        "weight": 0.1
+      }
+    },
+    {
+      "name": "Bloom of the Well",
+      "node_id": "item_bloom_of_the_well",
+      "library_id": "bloom_of_the_well",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "use"
+        ],
+        "current_state": "normal",
+        "description": "What the Exile Scare taught her: beauty has consequences. This spell makes flowers break open from almost anything, and the result is always a little too much. The well ran with blossoms for a week. Her hands still shake when she thinks about it.",
+        "equip_slots": [],
+        "hidden": false,
+        "library_id": "bloom_of_the_well",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "spell",
+          "magic",
+          "flower",
+          "plant",
+          "elven"
+        ],
+        "uses": -1,
+        "weight": 0.1
+      }
+    },
+    {
+      "name": "Transfigure: Poultry",
+      "node_id": "item_transfigure_poultry",
+      "library_id": "transfigure_poultry",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "use"
+        ],
+        "current_state": "normal",
+        "description": "The Chicken Cart. She tried to fix a wheel with magic and made it into a chicken. She still apologizes to poultry. The spell is theoretically about transmutation, but in practice it just turns things into birds.",
+        "equip_slots": [],
+        "hidden": false,
+        "library_id": "transfigure_poultry",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "spell",
+          "magic",
+          "transmutation",
+          "elven"
+        ],
+        "uses": -1,
+        "weight": 0.1
+      }
+    },
+    {
+      "name": "Conjure Fluffy",
+      "node_id": "item_conjure_fluffy",
+      "library_id": "conjure_fluffy",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "use"
+        ],
+        "current_state": "normal",
+        "description": "A rock that looks like a sheep. She named him Fluffy. He never moved, but he was good company in the snow. This spell conjures something that is not quite real but feels true, useful when you are lost and every tree looks the same.",
+        "equip_slots": [],
+        "hidden": false,
+        "library_id": "conjure_fluffy",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "spell",
+          "magic",
+          "illusion",
+          "companion",
+          "elven"
+        ],
+        "uses": -1,
+        "weight": 0.1
+      }
+    },
+    {
+      "name": "Siren's Lullaby",
+      "node_id": "item_sirens_lullaby",
+      "library_id": "sirens_lullaby",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "use"
+        ],
+        "current_state": "normal",
+        "description": "The Singing Fish. She sang to cheer it up. It died. She has not sung near water since. The lullaby still soothes, but there is something about it that unnerves living things just a little.",
+        "equip_slots": [],
+        "hidden": false,
+        "library_id": "sirens_lullaby",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "spell",
+          "magic",
+          "song",
+          "elven"
+        ],
+        "uses": -1,
+        "weight": 0.1
+      }
+    },
+    {
+      "name": "Spark of the Baking Incident",
+      "node_id": "item_spark_of_the_baking_incident",
+      "library_id": "spark_of_the_baking_incident",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "use"
+        ],
+        "current_state": "normal",
+        "description": "Fire salts instead of flour. The kitchen exploded. Elder Caelum's eyebrows never grew back. This spell makes a sudden burst of flame, not a controlled one but a passionate, enthusiastic one. She still bakes him a cake every year. She buys it now.",
+        "equip_slots": [],
+        "hidden": false,
+        "library_id": "spark_of_the_baking_incident",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "spell",
+          "magic",
+          "fire",
+          "elven"
+        ],
+        "uses": -1,
+        "weight": 0.1
+      }
+    },
+    {
+      "name": "Apology to Chickens",
+      "node_id": "item_apology_to_chickens",
+      "library_id": "apology_to_chickens",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "use"
+        ],
+        "current_state": "normal",
+        "description": "The Chicken Cart incident left her with a lifelong habit: she apologizes to chickens. This spell extends that apology into a subtle pacification, and fowl (and sometimes other skittish creatures) calm down around her.",
+        "equip_slots": [],
+        "hidden": false,
+        "library_id": "apology_to_chickens",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "spell",
+          "magic",
+          "beast",
+          "elven"
+        ],
+        "uses": -1,
+        "weight": 0.1
+      }
+    },
+    {
+      "name": "Vincent's Embrace",
+      "node_id": "item_vincents_embrace",
+      "library_id": "vincents_embrace",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "use"
+        ],
+        "current_state": "normal",
+        "description": "Named for a grapevine who listened for three days. This spell lets her ask the green world for small favors: a hidden path, a safe resting place, something to eat. Plants oblige, slowly.",
+        "equip_slots": [],
+        "hidden": false,
+        "library_id": "vincents_embrace",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "spell",
+          "magic",
+          "plant",
+          "elven"
+        ],
+        "uses": -1,
+        "weight": 0.1
+      }
+    },
+    {
+      "name": "Fountain of Blossoms",
+      "node_id": "item_fountain_of_blossoms",
+      "library_id": "fountain_of_blossoms",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "use"
+        ],
+        "current_state": "normal",
+        "description": "The spell that almost got her exiled. It turns any water source into a geyser of blossoms: beautiful, fragrant, and absolutely catastrophic for water quality. She casts it only when she is very sure the water does not matter.",
+        "equip_slots": [],
+        "hidden": false,
+        "library_id": "fountain_of_blossoms",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "spell",
+          "magic",
+          "flower",
+          "water",
+          "elven"
+        ],
+        "uses": -1,
+        "weight": 0.1
+      }
+    },
+    {
+      "name": "Ember Companion",
+      "node_id": "item_ember_companion",
+      "library_id": "ember_companion",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "use"
+        ],
+        "current_state": "normal",
+        "description": "The little ember she talks to in the Frozen Thicket. She learned to give it a shape, a voice, a tiny flickering personality. It follows her, keeps her warm, and never argues.",
+        "equip_slots": [],
+        "hidden": false,
+        "library_id": "ember_companion",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "spell",
+          "magic",
+          "fire",
+          "companion",
+          "elven"
+        ],
+        "uses": -1,
+        "weight": 0.1
+      }
+    },
+    {
+      "name": "Mending Touch",
+      "node_id": "item_mending_touch",
+      "library_id": "mending_touch",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "use"
+        ],
+        "current_state": "normal",
+        "description": "The spell she tried to use on the chicken cart. She wanted to fix the wheel. It turned the cart into a chicken. But the principle was right: mending. If she concentrates very hard, she can make worn things whole again. Mostly.",
+        "equip_slots": [],
+        "hidden": false,
+        "library_id": "mending_touch",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "spell",
+          "magic",
+          "mending",
+          "elven"
+        ],
+        "uses": -1,
+        "weight": 0.1
+      }
+    },
+    {
+      "name": "Glimpse of the Lost Path",
+      "node_id": "item_glimpse_of_the_lost_path",
+      "library_id": "glimpse_of_the_lost_path",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "use"
+        ],
+        "current_state": "normal",
+        "description": "Three days lost in the woods. She learned to ask the forest for directions. Not a map, just a feeling: a pull, a sense of which way leads home. It is not always right, but it is always hopeful.",
+        "equip_slots": [],
+        "hidden": false,
+        "library_id": "glimpse_of_the_lost_path",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "spell",
+          "magic",
+          "navigation",
+          "elven"
+        ],
+        "uses": -1,
+        "weight": 0.1
+      }
+    },
+    {
+      "name": "Hearth Ward",
+      "node_id": "item_hearth_ward",
+      "library_id": "hearth_ward",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "use"
+        ],
+        "current_state": "normal",
+        "description": "A protective blessing learned from watching the village elders. Lyrie does not have the precision for grand wards, but she can make a small, wobbling circle of safety around herself. It is not much, but it is home.",
+        "equip_slots": [],
+        "hidden": false,
+        "library_id": "hearth_ward",
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "spell",
+          "magic",
+          "ward",
+          "protection",
+          "elven"
+        ],
+        "uses": -1,
+        "weight": 0.1
+      }
     }
   ],
   "memories": [

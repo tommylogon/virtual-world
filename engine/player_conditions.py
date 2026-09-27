@@ -501,6 +501,19 @@ CONDITION_DEFINITIONS = {
         }, "stack": "noop", "default_duration": 5,
         "excludes": [],
     },
+    "sneeze": {
+        "name": "Sneeze", "description": "Your nose won't stop tickling.",
+        "blocks_actions": False, "blocks_movement": False, "blocks_speech": False,
+        "auto_fail_checks": [], "auto_fail_saves": [],
+        "attack_mod": 0, "defense_mod": 0, "speed_mult": 1.0,
+        "movement_mode": None, "drops_held_items": False,
+        "periodic": {}, "ends_on": ["blow_nose", "cure", "duration"],
+        "known": False, "symptoms": {
+            3: "Your eyes water and your nose twitches.",
+            1: "The sneeze builds and you cannot stop it.",
+        }, "stack": "refresh", "default_duration": 3,
+        "excludes": [],
+    },
 }
 
 # Defaults for library-loaded conditions

@@ -1,0 +1,84 @@
+{
+  "name": "Transfigure: Poultry",
+  "description": "The Chicken Cart. She tried to fix a wheel with magic and made it into a chicken. She still apologizes to poultry. The spell is theoretically about transmutation, but in practice it just turns things into birds.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "normal",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "spell",
+    "magic",
+    "transmutation",
+    "elven"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use_on"
+      ],
+      "effects": [
+        {
+          "params": {
+            "message": "She squints, mutters a word that sounds a great deal like 'chicken', and --"
+          },
+          "type": "message"
+        },
+        {
+          "params": {
+            "target": "target",
+            "target_template": "chicken",
+            "message": "The object clucks, feathers bursting from its surface, and struts off before you can reconsider."
+          },
+          "type": "polymorph_target"
+        },
+        {
+          "params": {
+            "condition": "amused",
+            "target": "self",
+            "duration": 5,
+            "message": "Well. That was embarrassing."
+          },
+          "type": "apply_condition"
+        },
+        {
+          "params": {
+            "delay_ticks": 50,
+            "target": "self",
+            "label": "Transfigure: Poultry reverts"
+          },
+          "type": "schedule_trigger"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
+    {
+      "trigger_type": [
+        "on_delayed"
+      ],
+      "effects": [
+        {
+          "params": {
+            "target": "target",
+            "revert": true,
+            "message": "The chicken ruffles, looks deeply put out, and is suddenly a cart wheel again."
+          },
+          "type": "polymorph_target"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

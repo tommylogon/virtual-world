@@ -1,13 +1,21 @@
 /**
  * involuntary.js — task-166: involuntary actions (hiccups, burps, yelps,
- * stutters) injected into agent speech/emotes.
+ * stutters) injected into agent speech/emotes. Extended by task-534 with the
+ * body-reaction set: cough, shiver, ramble, and sneeze.
  *
  * Non-blocking flavor only: these methods return a possibly-modified string
  * and NEVER replace the intended action. Injection is driven by active
  * character conditions (frightened → stutter, cold → shiver, sick/poisoned
- * → cough), a situational startle (a sudden loud sound → yelp), the `jittery`
- * trait, plus a low random baseline so life happens even without a trigger
- * condition.
+ * → cough, sneeze → sneeze), a situational startle (a sudden loud sound →
+ * yelp), the `jittery` trait, plus a low random baseline so life happens even
+ * without a trigger condition.
+ *
+ * The body-reaction conditions — `itch`, `goosebumps`, `sneeze` — are defined
+ * with their siblings in `engine/player_conditions.py` and catalogued in
+ * `data/library/conditions/`. All three are non-erotic and deliberately carry
+ * `"mature": false`, so they are never gated behind the world's mature_content
+ * toggle. What applies a condition is content (a trigger or an action); this
+ * module only reacts to it, so a condition nothing applies simply never fires.
  *
  * This is a LIVEGAME layer: it runs where a character's line is emitted
  * (agent-engine), for the attended/LLM-agent set. Background and simple NPCs
@@ -16,7 +24,7 @@
  * it stays correct under the timeframe-and-flow model (task-436/437).
  *
  * @module agent/involuntary — involuntary speech/emote flavour
- * @contributes Involuntary: hiccup/burp/yelp/stutter injection from conditions + a small random baseline
+ * @contributes Involuntary: hiccup/burp/yelp/stutter/cough/shiver/sneeze/ramble injection from conditions + a small random baseline
  * @powers the "*a hiccup catches her off guard*" moments in agent output
  * @relates called by agent-engine when framing speech/emotes; never replaces the intended action
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
@@ -50,6 +58,9 @@ window.Involuntary = (() => {
         social_breakdown: { type: 'ramble', chance: 0.25 },
         paranoid: { type: 'stutter', chance: 0.40 },
         hallucinating: { type: 'ramble', chance: 0.45 },
+        // A sneeze is an onset rather than a pause, but it is spliced the same
+        // way as a cough: the line survives, the sound interrupts it.
+        sneeze: { type: 'sneeze', chance: 0.55 },
     };
 
     // condition_id -> emote suffixes (also used for random generic flavor).
@@ -82,6 +93,11 @@ window.Involuntary = (() => {
         goosebumps: [
             '*goosebumps prickle over {their} skin*',
             '*{they} rub {their} arms against the goosebumps*',
+        ],
+        sneeze: [
+            '*a sneeze builds and catches in {their} nose*',
+            '*{they} sneeze suddenly, eyes watering*',
+            '*a wet sneeze escapes before {they} can stop it*',
         ],
         paranoid: [
             '*{they} glance around, eyes darting*',
@@ -224,6 +240,9 @@ window.Involuntary = (() => {
         }
         for (const cid of Object.keys(EMOTE_TRIGGERS)) {
             if (_hasCondition(player, cid)) {
+                // First match wins and there is no roll here, so with two active
+                // conditions the emote is decided by table order, not severity.
+                // Reordering the table changes output; do not sort it by intuition.
                 const pool = EMOTE_TRIGGERS[cid];
                 const pick = pool[Math.floor(Math.random() * pool.length)];
                 return `${emoteText} ${_render(pick, player)}`.trim();

@@ -4,7 +4,7 @@ How a backgrounded character can be *promoted* to full cognition, and *demoted*
 back, without ever becoming a different person. This is the rule that makes
 "same characters, two fidelities" safe instead of a source of retcons.
 
-Related: [[trace-format]], and tasks 397 (scopes), 399 (background sim),
+Related: [[lived-log-format]], and tasks 397 (scopes), 399 (background sim),
 403 (unified memory).
 
 ## Principle
@@ -61,7 +61,7 @@ On promotion the character must receive:
 
 1. Their **current state** (already real — no update needed).
 2. A **catch-up summary** built from the trace since they were last foreground
-   (`engine/trace.summarize_window`), so the LLM knows what happened to them
+   (`engine/lived_log.summarize_window`), so the LLM knows what happened to them
    and can act as someone who lived it.
 3. Their **standing goal/plan**, if any.
 
@@ -70,10 +70,10 @@ past.
 
 ## Demotion handoff
 
-On demotion the foreground span is rolled into the trace: the character keeps
+On demotion the foreground span is rolled into the lived log: the character keeps
 their state, and the *reasons* and *facts* of what they just did are recorded
-(see trace format). No memory is deleted; live memories stay in the memory
-store and the trace covers the mechanical span.
+(see [[lived-log-format]]). No memory is deleted; live memories stay in the memory
+store and the lived log covers the mechanical span.
 
 ## Invariants that must hold across any promote/demote
 

@@ -1,0 +1,57 @@
+{
+  "name": "Hearth Ember",
+  "description": "A pocket of warmth Lyrie learned out of necessity. She cups her hands and a soft heat blooms between her palms, curling up her arms and toes. It is the only spell that behaves exactly like she wants it to, probably because she has cast it a thousand times in the snow.",
+  "actions": "examine,use",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "spell",
+    "magic",
+    "fire",
+    "warmth"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_use"
+      ],
+      "effects": [
+        {
+          "params": {
+            "condition": "hypothermia",
+            "target": "self",
+            "message": "The deep cold lets go of you, finger by finger."
+          },
+          "type": "remove_condition"
+        },
+        {
+          "params": {
+            "stat": "Temperature",
+            "amount": 2,
+            "target": "self",
+            "message": "Warmth spreads all the way to your toes."
+          },
+          "type": "adjust_vital"
+        },
+        {
+          "params": {
+            "temperature": 5,
+            "message": "The air around you turns comfortably warm."
+          },
+          "type": "adjust_environment"
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

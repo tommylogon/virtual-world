@@ -105,6 +105,12 @@ EFFECT_TYPES = [
     "clear_area_status",
     # task-231: wet/dry clothing state.
     "set_wet",
+    # task-391: Lyrie's spellbook. Durations are in ticks.
+    "polymorph_target",
+    "create_illusory_companion",
+    "broadcast_emotion",
+    "bind_companion",
+    "reveal_hidden",
 ]
 
 # task-242: effects agents may bind via the `bind`/`enchant` action. This is

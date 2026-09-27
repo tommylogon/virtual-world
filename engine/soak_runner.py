@@ -17,12 +17,21 @@ and never touches ``app.world`` or the scenario file.
 
 Note: ``random.seed`` is process-global, so the registry allows a single active
 run at a time; that also keeps the soak from saturating the box.
+
+**Telemetry (task-543).** Alongside the aggregate samples and the per-character
+vitals series, a run records an orthogonal stream in ``engine/soak_telemetry.py``:
+one record per **area change** (presence intervals) plus one per action and
+condition crossing, each carrying the ``why`` tag that decided it. That is what
+answers "who did what, why, where" — the average-Energy chart cannot, and the
+per-character lived log cannot either because it is salience-filtered and capped
+at 200 entries. It lives on the run, never on the player, and never in the save.
 """
 from __future__ import annotations
 
 import csv
 import io
 import json
+import os
 import random
 import statistics
 import threading
@@ -33,6 +42,8 @@ from collections import deque
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Callable, Optional
+
+from engine.soak_telemetry import TelemetryRecorder, recording, summarise as summarise_intervals
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -172,6 +183,11 @@ class SoakConfig:
     sample_every: int = 0          # 0 = auto (~MAX_SAMPLES samples)
     track_vitals: list = field(default_factory=list)  # empty = defaults
     track_characters: bool = True
+    # task-543: record presence intervals + an action stream (with `why`) into
+    # the run's own telemetry store. On by default — it is the stream that makes
+    # "who did what, why, where" answerable, and it costs one dict per *move*,
+    # not per tick. Off only for a run explicitly measuring something else.
+    telemetry: bool = True
     label: str = ""
 
     @classmethod
@@ -192,7 +208,8 @@ class SoakConfig:
             except (TypeError, ValueError):
                 cfg.minutes_per_tick = None
         for flag in ("engine_decay", "background_all", "mature",
-                     "neutral_environment", "debug_hp", "track_characters"):
+                     "neutral_environment", "debug_hp", "track_characters",
+                     "telemetry"):
             if flag in data:
                 cfg.__dict__[flag] = bool(data.get(flag))
         cfg.decay_overrides = parse_kv_pairs(data.get("decay_overrides"))
@@ -266,6 +283,12 @@ class SoakRun:
         self.summary: Optional[dict] = None
         self.characters: list = []
         self._scenario_path: Optional[Path] = None
+
+        # task-543: the run's own measurement store. Owned by the run, kept off
+        # the player and out of the save, discarded with the run. See
+        # engine/soak_telemetry.py for why this is not the lived log.
+        self.telemetry = None
+        self._prev_conditions: dict = {}
 
     # ── identity / labels ──
 
@@ -432,14 +455,14 @@ class SoakRun:
                 writer.writerow(["tick", "game_span", "wall_s", "ticks_per_second",
                                  "alive", "dead",
                                  "game_log", "turn_events", "delayed_events",
-                                 "graph_nodes", "total_memories", "total_trace"])
+                                 "graph_nodes", "total_memories", "total_lived_log"])
                 for s in self._samples:
                     g = s.get("growth") or {}
                     writer.writerow([s.get("tick"), s.get("game_span"), s.get("wall_s"),
                                      s.get("ticks_per_second"), s.get("alive"), s.get("dead"),
                                      g.get("game_log"), g.get("turn_events"),
                                      g.get("delayed_events"), g.get("graph_nodes"),
-                                     g.get("total_memories"), g.get("total_trace")])
+                                     g.get("total_memories"), g.get("total_lived_log")])
             else:  # samples
                 vitals = self.tracked_vitals or list(CORE_VITALS)
                 header = ["tick", "game_span", "wall_s", "ticks_per_second",
@@ -447,7 +470,7 @@ class SoakRun:
                 for v in vitals:
                     header += [f"{v}_avg", f"{v}_min", f"{v}_max"]
                 header += ["game_log", "turn_events", "delayed_events",
-                           "graph_nodes", "total_memories", "total_trace"]
+                           "graph_nodes", "total_memories", "total_lived_log"]
                 writer.writerow(header)
                 for s in self._samples:
                     row = [s.get("tick"), s.get("game_span"), s.get("wall_s"),
@@ -458,7 +481,7 @@ class SoakRun:
                     g = s.get("growth") or {}
                     row += [g.get("game_log"), g.get("turn_events"),
                             g.get("delayed_events"), g.get("graph_nodes"),
-                            g.get("total_memories"), g.get("total_trace")]
+                            g.get("total_memories"), g.get("total_lived_log")]
                     writer.writerow(row)
         return buf.getvalue()
 
@@ -488,6 +511,7 @@ class SoakRun:
 
             self._apply_config(world, players, config, minutes_per_tick)
             self._init_tracking(world, players)
+            self._start_telemetry(world, players)
 
             ticks = config.ticks
             sample_every = config.sample_every or max(1, ticks // MAX_SAMPLES)
@@ -501,43 +525,54 @@ class SoakRun:
             last_death_count = 0
             milestone = 0
 
-            for i in range(1, ticks + 1):
-                if self._cancel.is_set():
-                    self._add_event("warn", "Cancelled by user")
-                    break
-                world.tick_turn()
-                self._collect_deaths(i, players, minutes_per_tick)
+            # The `recording` scope is what makes background decisions fan out to
+            # telemetry: one-way, active only inside this block, so the live app
+            # and any sibling path are unaffected. Installed even when telemetry
+            # is off, with a None recorder, to keep one code path.
+            with recording(self.telemetry):
+                for i in range(1, ticks + 1):
+                    if self._cancel.is_set():
+                        self._add_event("warn", "Cancelled by user")
+                        break
+                    world.tick_turn()
+                    self._collect_deaths(i, players, minutes_per_tick)
+                    self._collect_telemetry(i, players)
 
-                if config.debug_hp:
-                    self._collect_hp_drops(i, world, players)
+                    if config.debug_hp:
+                        self._collect_hp_drops(i, world, players)
 
-                now = time.perf_counter()
-                elapsed = now - t0
-                with self._lock:
-                    self.tick = i
-                    self.elapsed_s = elapsed
-                    self.ticks_per_second = i / max(elapsed, 1e-9)
-                    self.instant_tps = (i - (self._samples[-1]["tick"] if self._samples else 0)) / max(now - last_sample, 1e-9)
-                    self.progress_frac = min(1.0, i / ticks)
-                    self.eta_s = (ticks - i) / max(self.ticks_per_second, 1e-9)
+                    now = time.perf_counter()
+                    elapsed = now - t0
+                    with self._lock:
+                        self.tick = i
+                        self.elapsed_s = elapsed
+                        self.ticks_per_second = i / max(elapsed, 1e-9)
+                        self.instant_tps = (i - (self._samples[-1]["tick"] if self._samples else 0)) / max(now - last_sample, 1e-9)
+                        self.progress_frac = min(1.0, i / ticks)
+                        self.eta_s = (ticks - i) / max(self.ticks_per_second, 1e-9)
 
-                if i % sample_every == 0 or i == ticks:
-                    self._record_sample(i, world, players, minutes_per_tick, elapsed)
-                    last_sample = now
-                    bucket = int(self.progress_frac * 10)
-                    if bucket > milestone and bucket < 10:
-                        milestone = bucket
-                        self._add_event("info", f"{bucket * 10}% · {fmt_span(i, minutes_per_tick)} · "
-                                                f"{self.ticks_per_second:,.1f} ticks/s")
-                    if len(self.deaths) != last_death_count:
-                        last_death_count = len(self.deaths)
+                    if i % sample_every == 0 or i == ticks:
+                        self._record_sample(i, world, players, minutes_per_tick, elapsed)
+                        last_sample = now
+                        bucket = int(self.progress_frac * 10)
+                        if bucket > milestone and bucket < 10:
+                            milestone = bucket
+                            self._add_event("info", f"{bucket * 10}% · {fmt_span(i, minutes_per_tick)} · "
+                                                    f"{self.ticks_per_second:,.1f} ticks/s")
+                        if len(self.deaths) != last_death_count:
+                            last_death_count = len(self.deaths)
 
-                if on_tick:
-                    on_tick(i)
-                # Cancel may have arrived during a sample/event flush.
-                if self._cancel.is_set():
-                    break
+                    if on_tick:
+                        on_tick(i)
+                    # Cancel may have arrived during a sample/event flush.
+                    if self._cancel.is_set():
+                        break
 
+            # Close every open presence interval at the tick the run actually
+            # reached — not at the configured tick count, which a cancelled run
+            # never reaches. Leaving one open would make the last interval look
+            # like it ran to the end of time.
+            self._stop_telemetry(self.tick)
             wall = time.perf_counter() - t0
             self._finalize(world, players, minutes_per_tick, wall)
         except Exception as exc:  # noqa: BLE001 - surface any failure to the UI
@@ -644,8 +679,62 @@ class SoakRun:
             "delayed_events": len(getattr(world, "delayed_events", []) or []),
             "graph_nodes": len(world.graph.nodes),
             "total_memories": sum(len(getattr(p, "memories", []) or []) for p in players.values()),
-            "total_trace": sum(len(getattr(p, "trace_log", []) or []) for p in players.values()),
+            "total_lived_log": sum(len(getattr(p, "lived_log", []) or []) for p in players.values()),
         }
+
+    # ── telemetry (task-543) ─────────────────────────────────────────────
+
+    def _start_telemetry(self, world, players) -> None:
+        """Create the run's recorder and seed every character's first interval.
+
+        The seed matters: without it, a character that never moves produces *no*
+        interval at all and the swimlane has no band to draw, which reads as
+        "this character was nowhere" rather than "this character never left".
+        So the opening position is recorded as an interval from tick 0.
+        """
+        if not self.config.telemetry:
+            self.telemetry = None
+            return
+        path = None
+        try:
+            directory = ROOT / "data" / "soak_telemetry"
+            os.makedirs(directory, exist_ok=True)
+            path = str(directory / f"{self.id}.jsonl")
+        except Exception:  # noqa: BLE001 - a read-only disk must not fail the run
+            path = None
+        self.telemetry = TelemetryRecorder(self.id, jsonl_path=path)
+        self._prev_conditions = {
+            name: set((getattr(p, "conditions", {}) or {}).keys())
+            for name, p in players.items()
+        }
+        for name, p in players.items():
+            self.telemetry.observe_area(name, getattr(p, "current_area", None), 0)
+
+    def _stop_telemetry(self, tick: int) -> None:
+        if self.telemetry is None:
+            return
+        self.telemetry.close_all(tick)
+        self.telemetry.close()
+
+    def telemetry_payload(self, include_events: bool = False) -> dict:
+        """The dashboard's view of the run: presence intervals, the ``why``
+        breakdown, and the counts. Events are opt-in because they are the
+        unbounded half of the store."""
+        if self.telemetry is None:
+            return {"run_id": self.id, "enabled": False, "intervals": [],
+                    "condition_spans": [], "conditions": [], "events": [],
+                    "characters": [], "areas": [], "why": [], "kinds": [],
+                    "counts": {"intervals": 0, "events": 0}}
+        payload = self.telemetry.to_payload(include_events=include_events,
+                                            end_tick=self.tick)
+        payload["enabled"] = True
+        integrity = summarise_intervals(payload["intervals"])
+        payload["integrity"] = integrity
+        # A gap means presence is *unknown* for that window, not that nobody was
+        # there. Surfaced rather than hidden so a swimlane cannot quietly imply
+        # an absence the data does not support.
+        payload["integrity_ok"] = integrity["gaps"] == 0 and integrity["overlaps"] == 0
+        return payload
 
     # ── per-tick collection ──
 
@@ -673,8 +762,42 @@ class SoakRun:
                     self.dead = len(self._death_by_name)
                     self.alive = max(0, self.character_count - self.dead)
                     self.deaths_by_cause[cause] = self.deaths_by_cause.get(cause, 0) + 1
+                # task-543: close their presence interval so the swimlane band
+                # ends at the death tick rather than running on to end of run.
+                if self.telemetry is not None:
+                    self.telemetry.death(name, tick, cause,
+                                         area=getattr(p, "current_area", None) or "")
+                    self.telemetry.close_character(name, tick)
                 self._add_event("death", f"☠ {name} died ({cause}) at {record['game_span']}"
                                          + (f" in {record['area']}" if record["area"] else ""))
+
+    def _collect_telemetry(self, tick: int, players) -> None:
+        """task-543: presence and condition crossings, both diffed rather than
+        sampled. Called once per tick over the cast, the same order as the death
+        sweep, and it writes a record only on a *change* — so the interval count
+        scales with moves, not with run length.
+
+        Presence needs no hook in the decision path because a character's area is
+        state the runner can simply read. Conditions are the same shape: gained
+        and lost are both crossings, so both are event-driven.
+        """
+        recorder = self.telemetry
+        if recorder is None:
+            return
+        dead = self._death_by_name
+        for name, p in players.items():
+            if name in dead:
+                continue
+            recorder.observe_area(name, getattr(p, "current_area", None), tick)
+            current = set((getattr(p, "conditions", {}) or {}).keys())
+            previous = self._prev_conditions.get(name, set())
+            if current != previous:
+                area = getattr(p, "current_area", None) or ""
+                for condition in sorted(current - previous):
+                    recorder.condition(name, tick, condition, True, area)
+                for condition in sorted(previous - current):
+                    recorder.condition(name, tick, condition, False, area)
+                self._prev_conditions[name] = current
 
     def _collect_hp_drops(self, tick: int, world, players) -> None:
         for name, p in players.items():
@@ -803,7 +926,7 @@ class SoakRun:
             "delayed_events": len(getattr(world, "delayed_events", []) or []),
             "graph_nodes": len(world.graph.nodes),
             "total_memories": sum(len(getattr(p, "memories", []) or []) for p in players.values()),
-            "total_trace": sum(len(getattr(p, "trace_log", []) or []) for p in players.values()),
+            "total_lived_log": sum(len(getattr(p, "lived_log", []) or []) for p in players.values()),
             "survivor_vitals": survivor_vitals,
             "survivors_list": survivors,
             "sample_count": len(self._samples),

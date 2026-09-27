@@ -116,27 +116,74 @@ def handle_save(self, params, context, item_node=None, game_state=None):
     return outputs
 
 
-def handle_heal(self, params, context, item_node=None, game_state=None):
-    """Restore a vital stat (HP by default) on the active player.
+def _vital_ceiling(vitals: dict, stat: str) -> float:
+    """The ceiling for *stat* on a vitals dict.
 
-    game_state must provide: game_state.player
+    HP and the other capped vitals carry an explicit ``Max_{stat}`` companion;
+    everything else in the 0-100 model tops out at 100. Temperature is the
+    exception in the other direction — it is anatomical (~37) and is driven by
+    its own band model in ``tick_manager``, not by this ceiling.
+    """
+    max_key = f"Max_{stat}"
+    if max_key in vitals:
+        return vitals[max_key]
+    if stat == "HP":
+        return 100
+    if stat == "Temperature":
+        return 100.0
+    return 100
+
+
+def handle_heal(self, params, context, item_node=None, game_state=None):
+    """Restore a vital stat (HP by default).
+
+    params:
+      amount (int) — how much to restore.
+      stat (str)   — which vital. Canonical spelling ("HP", "Energy"), resolved
+                     case-insensitively against the target's vitals.
+      target (str) — "self" (default) or a character name. Mirrors
+                     ``apply_condition`` and ``adjust_vital``, which both accept a
+                     target; this used to always act on ``game_state.player``.
+      message      — narration.
+
+    The result is clamped to the target's own ceiling — ``Max_HP`` for HP — rather
+    than a hardcoded 100. The old literal was harmless only because ``Max_HP`` was
+    itself always 100; the moment a stat block declared a real maximum, healing a
+    7-HP goblin by 5 produced 12 HP. See task-538.
     """
     amount = int(params.get("amount", 10))
     stat = params.get("stat", "HP")
+    target = params.get("target", "self")
     outputs = []
-    if game_state and game_state.player:
-        if stat in game_state.player.vitals:
-            game_state.player.vitals[stat] = min(
-                100, game_state.player.vitals.get(stat, 100) + amount
-            )
-            msg = params.get("message", f"You restore {amount} {stat}.")
-            outputs.append(msg)
-        else:
-            game_state.player.vitals["HP"] = min(
-                100, game_state.player.vitals.get("HP", 100) + amount
-            )
-            outputs.append(f"You heal {amount} HP.")
-    return outputs
+    if not game_state:
+        return outputs
+
+    subject = None
+    if target == "self":
+        subject = getattr(game_state, "player", None)
+    else:
+        players = getattr(game_state, "players", {}) or {}
+        subject = players.get(self._resolve_player_name(game_state, target))
+    if subject is None:
+        return outputs
+
+    vitals = subject.vitals
+    key = _resolve_vital_key(vitals, stat)
+    if key is None:
+        # Unknown vital name: fall back to HP rather than inventing a new key.
+        key = "HP"
+    ceiling = _vital_ceiling(vitals, key)
+    before = vitals.get(key, 0)
+    vitals[key] = max(0.0, min(ceiling, before + amount))
+    restored = vitals[key] - before
+
+    if restored <= 0:
+        return [params.get(
+            "message",
+            f"{getattr(subject, 'name', 'You')} cannot be restored further.",
+        )]
+
+    return [params.get("message", f"You restore {restored:g} {key}.")]
 
 
 #: Vitals are keyed canonically ("Thirst"); authored data spells them loosely

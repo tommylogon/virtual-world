@@ -371,6 +371,13 @@ class UIController {
         if (cancelBtn) cancelBtn.style.display = (config.busy || config.running) ? 'inline-flex' : 'none';
         const maxInput = document.getElementById('sim-max-steps');
         if (maxInput) maxInput.disabled = config.running;
+        // task-533: only meaningful in a simultaneous mode, where a round waits
+        // on the player. Turn-based mode already closes a round on its own.
+        const endRoundBtn = document.getElementById('sim-end-round');
+        if (endRoundBtn) {
+            const showEndRound = !!config.simultaneousMode && !config.busy;
+            endRoundBtn.style.display = showEndRound ? 'inline-flex' : 'none';
+        }
     }
 
     setStatus(text, kind) {

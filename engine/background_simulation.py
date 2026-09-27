@@ -32,7 +32,7 @@ import random
 from collections import deque
 
 from graph import EDGE_IN, EDGE_CARRYING, EDGE_TRIGGERS
-from engine.trace import record
+from engine.lived_log import record
 from vital_rates import tick_minutes
 
 logger = logging.getLogger(__name__)
