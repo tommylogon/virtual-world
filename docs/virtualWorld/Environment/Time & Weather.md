@@ -188,7 +188,21 @@ Moon phase affects outdoor night ambient light (task-230). Full moon makes outdo
 
 ## Time-of-Day Lighting
 
-Outdoor rooms (tagged `"outdoor"`) get ambient light from the current game time, weather, and moon phase — not from a static `environment.light` value (task-230).
+Outdoor rooms get ambient light from the current game time, weather, and moon
+phase — not from a static `environment.light` value (task-230).
+
+**Which tag means "outdoor".** Two spellings are in use for this one fact, and
+neither is going away on its own:
+
+| Tag | Read by |
+|-----|---------|
+| `outdoor` | the time-of-day light curve (`engine/lighting.py:138`) and the moon text |
+| `exterior` | the forecast's `apply_scope` (`virtual_world_engine.py:1288`), the heat reservoirs (`environment_propagation.py:133,139`), `tick_manager.py:129` |
+
+Both are honoured by the description prose (`engine/area_description.py`
+`_is_open_sky`). **The WorldPainter compiler currently emits neither**, so a
+painted world gets no time-of-day light and no forecast at all — see
+**bug-54**. Hand-authored scenarios carry the tag explicitly.
 
 ### Light Levels by Time of Day
 
@@ -211,6 +225,48 @@ Outdoor rooms (tagged `"outdoor"`) get ambient light from the current game time,
 | windy | 80% |
 
 Stormy and foggy weather nullify or halve the moon phase bonus.
+
+The multiplier is applied to the **time-of-day curve**, not to an authored
+`environment.light`: a hand-set value is a light source, and a torch does not
+care that it is raining. Read it through
+`engine.weather_forecast.weather_light_mult()`, which returns `1.0` for an
+unset or unrecognised value — so a world with no forecast is unaffected.
+
+> Until bug-54 this table was **defined and read by nothing**: a midday
+> thunderstorm was exactly as bright as a clear midday. The reader now lives in
+> `LightingSystem._own_light`.
+
+## What the Weather Looks Like (task-559)
+
+An outdoor area narrates its weather, its wind and the time of day. Indoors it
+narrates none of them — a storm is not something you hear through a stone wall,
+and an indoor room has no dawn.
+
+| Source | Sentences |
+|--------|-----------|
+| `environment.weather` | one per state: rain, storm, fog, snow, cloud. `clear` says nothing (it would be noise on every outdoor description). `windy` defers to the wind magnitude, which is more specific |
+| `environment.wind` | one per magnitude from `breeze` up. Skipped when the area's `noise` is already `windy`/`howling`, so an authored noise never doubles up |
+| game hour | one time-of-day line: the small hours, dawn, morning, midday, afternoon, golden hour, dusk, night |
+
+The day/night split in the time-of-day bands is **05:00 / 19:00** — the same
+boundary the moon text and the "guess time" action use, so the sky never
+disagrees with itself.
+
+The weather vocabulary is `WEATHER_STATES`, and nothing validates the `weather`
+field on save, so a hand-authored world may carry a spelling that is not in the
+list. Readers normalise through `engine.weather_forecast.normalize_weather()`
+(`sunny` → `clear`, `overcast` → `cloudy`, `thunderstorm` → `stormy`, …) rather
+than each keeping a private alias list — the guess-time DC table had already
+drifted into a second list. An unrecognised value stays unrecognised and falls
+through to each reader's default instead of silently becoming `clear`.
+
+### Reading the time
+
+The `guess time` action runs a Survival check whose DC is the weather
+(`WEATHER_TIME_DC`: clear 10 → stormy 20) and reports precision by tier: the
+exact minute naming the sun or the stars, then the hour bucket, then a rough
+guess, then "probably the middle of the day". Fog and storms genuinely make it
+harder.
 
 ### Indoor Rooms
 

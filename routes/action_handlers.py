@@ -474,14 +474,14 @@ def handle_take_action(app):
             else:
                 area_node = world.graph.get_node(area_id)
                 env = (area_node.properties or {}).get("environment", {}) if area_node else {}
-                weather = str(env.get("weather", "clear")).lower()
-
-                weather_dc = {
-                    "clear": 10, "sunny": 10,
-                    "cloudy": 15, "overcast": 15,
-                    "rainy": 18, "stormy": 20,
-                    "foggy": 18, "snowy": 18, "windy": 16
-                }.get(weather, 15)
+                # The DC table lives in engine.weather_forecast so it cannot
+                # drift from WEATHER_STATES again — it had grown a second,
+                # private list that also knew "sunny" and "overcast"
+                # (task-559).
+                from engine.weather_forecast import (
+                    WEATHER_TIME_DC, WEATHER_TIME_DC_DEFAULT, normalize_weather)
+                weather = normalize_weather(env.get("weather", "clear"))
+                weather_dc = WEATHER_TIME_DC.get(weather, WEATHER_TIME_DC_DEFAULT)
 
                 skill = "Survival"
                 try:

@@ -23,7 +23,60 @@ import random
 from typing import Any, Optional
 
 #: Weather states (canonical order — also used by adjust_weather cycling).
+#: This list is the single weather vocabulary: the light multiplier, the
+#: guess-time skill DC and the description prose are all keyed by these values.
+#: Nothing validates the ``weather`` field on save, so a hand-authored world may
+#: carry a spelling that is not here — readers normalise with
+#: :func:`normalize_weather` rather than each keeping a private alias list
+#: (task-559; the guess-time table had already drifted into a second list that
+#: also knew ``sunny`` and ``overcast``).
 WEATHER_STATES = ["clear", "cloudy", "windy", "rainy", "stormy", "foggy", "snowy"]
+
+#: Spellings seen in older and hand-authored worlds, mapped to a canonical
+#: state. Read-time only: nothing rewrites a stored value, so a world that says
+#: ``overcast`` keeps saying it and still behaves like ``cloudy`` everywhere.
+WEATHER_ALIASES = {
+    "sunny": "clear",
+    "fair": "clear",
+    "overcast": "cloudy",
+    "drizzle": "rainy",
+    "downpour": "stormy",
+    "thunderstorm": "stormy",
+    "sleet": "snowy",
+    "mist": "foggy",
+}
+
+
+def normalize_weather(value: Any) -> str:
+    """Canonical weather state for any input, ``""`` when it is not a state.
+
+    Readers go through this so one alias table serves the light multiplier, the
+    skill DC and the prose. Returns ``""`` rather than guessing, so an unknown
+    value still falls through to each reader's default instead of silently
+    becoming ``clear``.
+    """
+    text = str(value or "").strip().lower()
+    if not text:
+        return ""
+    text = WEATHER_ALIASES.get(text, text)
+    return text if text in WEATHER_STATES else ""
+
+
+#: Survival DC for reading the sky out of a forecast, per canonical weather
+#: state (task-559). Moved here from the action handler so the DC table and
+#: :data:`WEATHER_STATES` cannot drift apart again.
+WEATHER_TIME_DC = {
+    "clear": 10,
+    "cloudy": 15,
+    "windy": 16,
+    "rainy": 18,
+    "foggy": 18,
+    "snowy": 18,
+    "stormy": 20,
+}
+
+#: DC used for a state with no entry (including an unrecognised value).
+WEATHER_TIME_DC_DEFAULT = 15
 
 #: Wind states (task-231).
 WIND_STATES = ["none", "breeze", "wind", "gale", "storm", "hurricane"]
@@ -44,10 +97,24 @@ WIND_CHILL = {"none": 0, "breeze": -1, "wind": -3, "gale": -6, "storm": -10, "hu
 HUMIDITY_TEMP_MOD = {"dry": (0, 0), "humid": (2, -1), "wet": (3, -2), "flooding": (4, -3)}
 
 #: Weather → ambient light multiplier (Time & Weather.md: "Weather Modifier").
+#: This table had **no readers** — it was defined, documented and never applied,
+#: so a midday thunderstorm was exactly as bright as a clear midday
+#: (bug-54). :func:`weather_light_mult` is the reader; ``LightingSystem``
+#: scales the time-of-day curve by it.
 WEATHER_LIGHT_MULT = {
     "clear": 1.0, "cloudy": 0.7, "rainy": 0.5, "stormy": 0.3,
     "foggy": 0.4, "windy": 0.8, "snowy": 0.6,
 }
+
+
+def weather_light_mult(weather: Any) -> float:
+    """Ambient light multiplier for a weather state.
+
+    Returns ``1.0`` for an unset, unknown or unrecognised value, so a world
+    with no forecast is completely unaffected — only a world that actually
+    authors weather sees its light change.
+    """
+    return WEATHER_LIGHT_MULT.get(normalize_weather(weather), 1.0)
 
 #: Which weather obscures the sky (moon bonus rules, task-229).
 OBSCURING_WEATHER = {"stormy", "foggy"}

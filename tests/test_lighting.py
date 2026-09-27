@@ -5,7 +5,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pytest
 from graph import WorldGraph, Node, Edge, EDGE_CONNECTION, EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED
-from engine.lighting import LightingSystem
+from engine.lighting import LightingSystem, outdoor_light_for_hour
 
 
 class FakePlayerManager:
@@ -455,3 +455,78 @@ class TestGetItemLightContribution:
                                   light_level="blinding", tags=["light_source"])
             graph.add_edge(Edge(source=item.id, target=area_id, type=EDGE_IN))
         assert lighting.get_item_light_contribution(area_id) == 100
+
+
+# ─────────────────── TestWeatherDimsTheSky ───────────────────
+
+
+class TestWeatherDimsTheSky:
+    """The weather → light multiplier (bug-54).
+
+    ``WEATHER_LIGHT_MULT`` was defined, documented and read by nothing, so a
+    midday thunderstorm was exactly as bright as a clear midday. These tests
+    pin the reader, and pin the two things it must NOT do: change a world with
+    no forecast, or dim an authored light source.
+    """
+
+    @staticmethod
+    def _outdoor(graph, env=None, tags=("outdoor",), area_id="area_Field"):
+        graph.add_node(Node(
+            id=area_id, type="area", name=area_id.replace("area_", "Area "),
+            properties={"tags": list(tags), "environment": env or {}},
+        ))
+        return area_id
+
+    def test_storm_is_darker_than_clear(self, lighting, graph):
+        lighting.hour_provider = lambda: 12
+        self._outdoor(graph, {"weather": "clear"}, area_id="area_Clear")
+        self._outdoor(graph, {"weather": "stormy"}, area_id="area_Storm")
+        clear = lighting.get_ambient_light("area_Clear")
+        stormy = lighting.get_ambient_light("area_Storm")
+        noon = outdoor_light_for_hour(12)
+        assert clear == noon
+        assert stormy == round(noon * 0.3)
+        assert stormy < clear
+
+    def test_no_weather_is_unchanged(self, lighting, graph):
+        """The backwards-compatibility guarantee: a world with no forecast must
+        light exactly as it did before the multiplier existed."""
+        lighting.hour_provider = lambda: 12
+        self._outdoor(graph, {})
+        assert lighting.get_ambient_light("area_Field") == outdoor_light_for_hour(12)
+
+    def test_unknown_weather_is_unchanged(self, lighting, graph):
+        lighting.hour_provider = lambda: 12
+        self._outdoor(graph, {"weather": "meteor shower"})
+        assert lighting.get_ambient_light("area_Field") == outdoor_light_for_hour(12)
+
+    def test_alias_is_normalised(self, lighting, graph):
+        """A world spelling it "overcast" gets the cloudy multiplier."""
+        lighting.hour_provider = lambda: 12
+        self._outdoor(graph, {"weather": "overcast"})
+        assert lighting.get_ambient_light("area_Field") == round(outdoor_light_for_hour(12) * 0.7)
+
+    def test_authored_light_is_not_dimmed(self, lighting, graph):
+        """The multiplier scales the sky, not a light source. A torch in the
+        rain still burns as bright as a torch in the sun."""
+        lighting.hour_provider = lambda: 12
+        self._outdoor(graph, {"light": 60, "weather": "stormy"})
+        assert lighting.get_ambient_light("area_Field") == 60
+
+    def test_indoor_area_is_untouched(self, lighting, graph):
+        """Weather does not reach inside: an interior area keeps its own light."""
+        lighting.hour_provider = lambda: 12
+        self._outdoor(graph, {"weather": "stormy"}, tags=("indoor",))
+        assert lighting.get_ambient_light("area_Field") == 80  # the default
+
+    def test_moon_bonus_is_not_double_dipped(self, lighting, graph):
+        """Stormy weather nulls the moon outright (task-229), so the two rules
+        must not stack a 0.3 multiplier on top of a zeroed bonus."""
+        lighting.hour_provider = lambda: 22
+        lighting.moon_provider = lambda: {"name": "full_moon", "light_bonus": 25}
+        self._outdoor(graph, {"weather": "stormy"})
+        night = outdoor_light_for_hour(22)
+        assert lighting.get_ambient_light("area_Field") == round(night * 0.3)
+        # And the same night under a clear sky DOES get the moon's 25.
+        self._outdoor(graph, {"weather": "clear"}, area_id="area_Clear")
+        assert lighting.get_ambient_light("area_Clear") == min(100, night + 25)

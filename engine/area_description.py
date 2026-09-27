@@ -71,6 +71,118 @@ def light_description(ambient_light: int) -> str:
     return "pitch_black"
 
 
+# ── Outdoor sky tables (task-559) ──
+#
+# Before this, `env["weather"]` was mechanically live (it drove the light
+# multiplier and the guess-time DC) but never narrated: a character standing in
+# a thunderstorm got a temperature sentence, an air sentence and a light level,
+# and not one word about the rain. The sun was worse — daylight was a light
+# curve plus an hour comparison, so nothing ever said it was dawn.
+
+#: One sentence per canonical weather state. An empty string means "say
+#: nothing": a clear sky needs no announcement, and ``windy`` is narrated from
+#: the ``wind`` magnitude instead (see :data:`WIND_PROSE`) so a gale does not
+# produce two sentences about wind. ``tests/test_weather_narration.py`` asserts
+# every value in ``WEATHER_STATES`` has an entry here — a state with no
+# sentence is exactly the bug this table fixes, and the forecast may write any
+# value in that list.
+WEATHER_PROSE = {
+    "clear": "",
+    "cloudy": "A flat grey lid of cloud sits over the place.",
+    "windy": "",
+    "rainy": "Rain is falling, cold and steady.",
+    "stormy": "The storm is breaking overhead — rain lashes sideways and the wind screams.",
+    "foggy": "Fog has swallowed the place; shapes fade a short way off.",
+    "snowy": "Snow is falling, and it muffles every sound.",
+}
+
+#: Wind prose, keyed by the ``wind`` magnitude the forecast writes. ``none`` and
+#: an unset key say nothing.
+WIND_PROSE = {
+    "breeze": "A light breeze moves through.",
+    "wind": "The wind is steady and searching.",
+    "gale": "The gale tugs at everything not bolted down.",
+    "storm": "The wind screams past you.",
+    "hurricane": "The wind is a maelstrom — it is hard to stand.",
+}
+
+#: Time-of-day bands for **outdoor** prose, as ``(start_hour, sentence)``; the
+#: first band at or below the hour wins. The day/night split is deliberately
+#: 05:00 / 19:00 — the same boundary the moon text and the guess-time action
+#: already use. A third split here would let the sky disagree with itself
+#: ("the sun is down" while the moon is still being narrated).
+TIME_OF_DAY_BANDS = [
+    (0, "The night is deep and still."),
+    (3, "The small hours of the night."),
+    (5, "First light is greying the horizon."),
+    (7, "The sun is up, and the morning is cool and new."),
+    (11, "The sun stands high overhead."),
+    (15, "The afternoon light lies long across the place."),
+    (17, "The light is going golden; the day is winding down."),
+    (19, "The sun is down and the sky is darkening."),
+    (22, "Night has settled over the place."),
+]
+
+
+def time_of_day_prose(hour) -> str:
+    """Outdoor time-of-day sentence for an hour (0-23), ``""`` if unknown."""
+    try:
+        hour = int(hour)
+    except (TypeError, ValueError):
+        return ""
+    if hour < 0 or hour > 23:
+        return ""
+    text = TIME_OF_DAY_BANDS[0][1]
+    for start, sentence in TIME_OF_DAY_BANDS:
+        if hour >= start:
+            text = sentence
+        else:
+            break
+    return text
+
+
+def _is_open_sky(tags) -> bool:
+    """True when an area is under the open sky.
+
+    Two spellings are in use for this one fact: ``outdoor`` is what the
+    lighting system and the moon text key off (``LightingSystem.is_outdoor_area``)
+    and ``exterior`` is what the forecast's ``apply_scope`` and the heat
+    reservoirs key off. Neither spelling is going away on its own, so accept
+    either — a world authored with one spelling still gets weather prose.
+    """
+    if not tags:
+        return False
+    if isinstance(tags, str):
+        tags = [t.strip() for t in tags.split(",")]
+    return bool({"outdoor", "exterior"} & {str(t).strip().lower() for t in tags})
+
+
+def weather_description(weather, wind_level, noise) -> List[str]:
+    """Sentences for the sky above an outdoor area, in reading order.
+
+    ``weather`` and ``wind_level`` are the canonicalised values (see
+    ``engine.weather_forecast.normalize_weather``); ``noise`` is the area's raw
+    noise descriptor, kept only to avoid saying the same thing twice.
+    """
+    from engine.weather_forecast import normalize_weather
+
+    lines: List[str] = []
+    weather = normalize_weather(weather)
+    # ``WEATHER_PROSE["windy"]`` is deliberately empty: a wind-ish *weather*
+    # state is narrated from the ``wind`` magnitude below, which is strictly
+    # more informative, so no suppression logic is needed here. A ``stormy``
+    # state keeps its own sentence — rain breaking overhead is news the wind
+    # sentence does not carry.
+    sentence = WEATHER_PROSE.get(weather, "")
+    if sentence:
+        lines.append(sentence)
+
+    wind_line = WIND_PROSE.get(str(wind_level or "").strip().lower(), "")
+    if wind_line and str(noise or "").strip().lower() not in ("windy", "howling"):
+        lines.append(wind_line)
+    return lines
+
+
 class AreaDescription:
     """Builds area descriptions with lighting, items, environment, players,
     exits, and environmental warnings."""
@@ -213,25 +325,34 @@ class AreaDescription:
             light_prefix = "The light is blinding — you squint against the glare, eyes watering."
 
         # task-229: moonlight adds flavor to outdoor night areas.
+        #
+        # This block used to read an undefined local ``node``. Python resolves
+        # ``node`` as a local because it is assigned *later* in this method
+        # (in the item/people loops), so line 1 of the block raised
+        # UnboundLocalError — and the bare ``except Exception: pass`` below
+        # swallowed it. The moon has therefore never been narrated anywhere,
+        # at any hour, in any world (task-559). The node is looked up properly
+        # now, and the except is narrowed to the provider errors it was written
+        # for so the next real failure is not invisible.
         moon_desc = ""
-        try:
-            tags = node.properties.get("tags", []) if node else []
-            if "outdoor" in tags:
-                hour = self.lighting.hour_provider() if self.lighting.hour_provider else None
-                if hour is not None and (hour >= 19 or hour < 5):
-                    if self.lighting.moon_provider is not None:
+        area_node = self.graph.get_node(area_id) if area_id else None
+        if _is_open_sky(area_node.properties.get("tags", []) if area_node else []):
+            hour = self.lighting.hour_provider() if self.lighting.hour_provider else None
+            if hour is not None and (hour >= 19 or hour < 5):
+                if self.lighting.moon_provider is not None:
+                    try:
                         mp = self.lighting.moon_provider()
-                        if isinstance(mp, dict):
-                            mname = mp.get("name", "")
-                            micon = mp.get("icon", "🌑")
-                            if mname == "full_moon":
-                                moon_desc = f" {micon} The full moon hangs bright overhead, casting silver light across the scene."
-                            elif mname == "blood_moon":
-                                moon_desc = f" {micon} An eerie red moon stains the sky — the world is bathed in crimson."
-                            elif mname in ("gibbous", "waning"):
-                                moon_desc = f" {micon} Moonlight filters through the night sky, softening the shadows."
-        except Exception:
-            pass
+                    except (AttributeError, KeyError, TypeError, ValueError):
+                        mp = None
+                    if isinstance(mp, dict):
+                        mname = mp.get("name", "")
+                        micon = mp.get("icon", "🌑")
+                        if mname == "full_moon":
+                            moon_desc = f" {micon} The full moon hangs bright overhead, casting silver light across the scene."
+                        elif mname == "blood_moon":
+                            moon_desc = f" {micon} An eerie red moon stains the sky — the world is bathed in crimson."
+                        elif mname in ("gibbous", "waning"):
+                            moon_desc = f" {micon} Moonlight filters through the night sky, softening the shadows."
 
         spill_desc = ""
         if area_id:
@@ -333,6 +454,17 @@ class AreaDescription:
                 "crackling": "Something crackles nearby.",
             }
             env_summary.append(noise_prose.get(noise, f"You hear {noise}."))
+        # task-559: the sky, if there is one. The weather a forecast writes is
+        # only audible/visible outdoors, so this is gated on the same open-sky
+        # test the moon text uses — a storm is not something you hear through a
+        # stone wall, and an indoor room has no dawn.
+        if _is_open_sky(area_node.properties.get("tags", []) if area_node else []):
+            env_summary.extend(weather_description(
+                env.get("weather", ""), env.get("wind", ""), env.get("noise", "")))
+            hour = self.lighting.hour_provider() if self.lighting.hour_provider else None
+            tod = time_of_day_prose(hour)
+            if tod:
+                env_summary.append(tod)
         if env_summary:
             desc += "\n" + "\n".join(env_summary)
 

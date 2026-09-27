@@ -155,7 +155,14 @@ class LightingSystem:
             except (TypeError, ValueError):
                 hour = None
         if hour is not None and self.is_outdoor_area(area_id):
-            curve = outdoor_light_for_hour(hour)
+            # The weather dims the sky (bug-54). The multiplier is applied to
+            # the **time-of-day curve**, never to an authored explicit
+            # ``environment.light``: a hand-set value is a light source, and a
+            # torch does not care that it is raining. With no weather authored
+            # the multiplier is 1.0, so this is a no-op for a world with no
+            # forecast.
+            from engine.weather_forecast import weather_light_mult
+            curve = int(round(outdoor_light_for_hour(hour) * weather_light_mult(env.get("weather"))))
             own = max(curve, own) if explicit else curve
             # task-229: the moon adds light to outdoor NIGHT areas — unless
             # the sky is obscured (stormy nullifies, foggy halves the bonus).
@@ -169,7 +176,13 @@ class LightingSystem:
                     if isinstance(phase, dict):
                         bonus = int(phase.get("light_bonus", 0) or 0)
                 if bonus:
-                    weather = str((env or {}).get("weather", "") or "")
+                    # Normalised so a world that spells it "overcast" is treated
+                    # like "cloudy" here as everywhere else (task-559). The two
+                    # branches are the ``OBSCURING_WEATHER`` set in
+                    # engine.weather_forecast, except that fog only *halves*
+                    # the bonus where a storm removes it.
+                    from engine.weather_forecast import normalize_weather
+                    weather = normalize_weather((env or {}).get("weather", ""))
                     if weather == "stormy":
                         bonus = 0
                     elif weather == "foggy":
