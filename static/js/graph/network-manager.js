@@ -19,6 +19,91 @@ const networkManagerHtmlTag = (strings, ...values) => window.Lit.html(strings, .
 // shorter so attached items cluster around the node that holds them.
 const GRAPH_ATTACH_EDGE_TYPES = new Set(['in', 'on', 'under', 'behind', 'beside', 'at', 'carrying', 'equipped', 'known']);
 
+/**
+ * How wide an edge label may get before it wraps (task-558).
+ *
+ * Wide enough that the labels people actually write — "west", "enter the inn",
+ * "climb down the mine shaft" — stay on one line, so nothing that reads well
+ * today starts reading differently. Narrow enough that a runaway label (an
+ * `unlocks` edge carrying a whole `properties.description`) wraps instead of
+ * running across half the canvas.
+ */
+const EDGE_LABEL_WRAP = 160;
+
+/**
+ * Edge length from the label *as it will be drawn*, not as it was written.
+ *
+ * This is the part of task-558 that is not one line. The old formula multiplied
+ * the raw character count by a per-character width, which is right for one line
+ * and wrong for three: the same 60 characters spread over three lines are a much
+ * narrower block and need a much shorter edge, and a formula that cannot see the
+ * line count either stretches the layout or lets a wrapped label collide with the
+ * nodes at either end. So the label is wrapped *here* — the same wrap, at the same
+ * width, that vis will draw — and the edge is sized from the widest line plus a
+ * line of height for each extra one.
+ */
+function _labelEdgeLength(label) {
+    const text = String(label || '').trim();
+    if (!text) return 45;
+    const lines = _wrapLabel(text, EDGE_LABEL_WRAP);
+    const widest = lines.reduce((n, line) => Math.max(n, line.length), 0);
+    const CHAR = 3.2;                 // the old per-character estimate, kept
+    const LINE = 9;                   // one line of 8px label plus its leading
+    return Math.min(130, Math.max(45, 35 + widest * CHAR + (lines.length - 1) * LINE));
+}
+
+/**
+ * Break a label into the lines vis will draw: on spaces, greedy. A single word
+ * longer than the wrap width is left as one line — a long id or URL has no spaces
+ * to break on, and cutting it mid-word would make it unusable.
+ */
+function _wrapLabel(text, maxWidth) {
+    const words = String(text).split(/\s+/).filter(Boolean);
+    if (!words.length) return [''];
+    const maxChars = Math.max(1, Math.floor(maxWidth / 3.2));
+    const lines = [];
+    let current = '';
+    words.forEach((word) => {
+        if (!current) { current = word; return; }
+        if (current.length + 1 + word.length <= maxChars) {
+            current = `${current} ${word}`;
+        } else {
+            lines.push(current);
+            current = word;
+        }
+    });
+    if (current) lines.push(current);
+    return lines;
+}
+
+/**
+ * The opening of a prose label, whole sentences only, never more than *maxLines*
+ * lines (task-558).
+ *
+ * Cutting a description mid-sentence to fit is worse than ending it early: "the
+ * key is warm and it" tells the reader nothing, while "The key is warm from the
+ * pocket." is a label that means what it says. When the prose is one long sentence
+ * with no break to be had, the *character* budget takes over, because an
+ * edge-sized canvas cannot show it all and a truncated-but-complete-looking label
+ * that goes quiet at the cap is still worse than an ellipsis.
+ */
+function _firstSentence(text, maxLines) {
+    const body = String(text || '').trim();
+    if (!body) return '';
+    const maxChars = Math.floor(maxLines * (EDGE_LABEL_WRAP / 3.2));
+    const sentences = body.match(/[^.!?]+[.!?]+/g);
+    if (sentences) {
+        let out = '';
+        sentences.forEach((s) => {
+            if (out.length && `${out} ${s}`.trim().length > maxChars) return;
+            out = `${out} ${s}`.trim();
+        });
+        if (out.length >= body.replace(/\s*$/, '').length) return out;
+        return `${out.replace(/[\s.]+$/, '')}…`;
+    }
+    return body.length <= maxChars ? body : `${body.slice(0, maxChars - 1).trimEnd()}…`;
+}
+
 window.GraphNetwork = {
     /**
      * Initializes the vis.js Network on the graph container element.
@@ -404,7 +489,13 @@ window.GraphNetwork = {
                 if (graphManager._showEdgeLabels) {
                     edgeLabel = edgeType;
                 } else if (edgeType === 'unlocks') {
-                    edgeLabel = edgeObj.properties?.description || 'unlocks';
+                    // A whole `properties.description` is arbitrary-length
+                    // author-written prose, which is the one label that cannot be
+                    // trusted to be short (task-558). Three lines is what fits the
+                    // edge without pushing its ends apart; the full text stays on
+                    // the hover tooltip that is already built for this edge.
+                    edgeLabel = _firstSentence(
+                        edgeObj.properties?.description || 'unlocks', 3);
                 }
 
                 // Collapse bidirectional connection pairs into a single visual edge
@@ -467,8 +558,7 @@ window.GraphNetwork = {
                         // Size to the label actually drawn along the edge: an
                         // unlabelled edge can be short, a long one needs room.
                         // Capped so a two-sided label can't stretch the layout.
-                        const labelLength = String(edgeLabel || '').length;
-                        edgeLength = Math.min(130, Math.max(45, 35 + labelLength * 3.2));
+                        edgeLength = _labelEdgeLength(edgeLabel);
                     }
                 } else if (isAttachment) {
                     const len = (config || {}).graphItemEdgeLength || 35;
@@ -489,6 +579,12 @@ window.GraphNetwork = {
                     dashes: style.dashes !== undefined ? style.dashes : defaultDashes,
                     color: { color: style.color || defaultColor, highlight: '#4ec9b0' },
                     font: { color: style.color || defaultColor, size: graphManager._edgeLabelSize || 8, align: 'horizontal', strokeWidth: 2, strokeColor: '#0d1117', background: 'rgba(13,17,23,0.85)' },
+                    // Edge labels are drawn on a canvas, so they wrap by **width**
+                    // and not by the reader: `widthConstraint` breaks a long label
+                    // onto more lines instead of letting it run off the edge (task-558).
+                    // Edges only — a way *node*'s name is a node label, and growing
+                    // the node box for it collides with the map layout's margins.
+                    widthConstraint: { maximum: EDGE_LABEL_WRAP },
                     width: style.width || 1,
                     smooth: isAttachment ? false : undefined
                 });

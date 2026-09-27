@@ -22,7 +22,64 @@
     'use strict';
 
     const MODES = ['world', 'town', 'interior'];
-    const PAINT_LAYERS = ['biome', 'road', 'floor'];
+    // Mirrors engine/world_grid.py PAINT_LAYERS. A layer missing from either list
+    // is dropped on save (the backend normalises against its own tuple) or paints
+    // a colour nothing reads — so the two must move together.
+    const PAINT_LAYERS = ['biome', 'road', 'floor', 'climate'];
+
+    // The coarse climates a grid may be painted with, and the colours that make
+    // one readable at a glance (task-557). The **ids and base °C come from the
+    // server** (`/api/world/painter/vocabulary`) and land in `CLIMATE_IDS` /
+    // `CLIMATE_BASE`; only the colour is decided here, because a colour is a
+    // display choice the backend has no opinion about. `CLIMATES` below is the
+    // offline fallback so the module is usable in the unit sandbox with no fetch —
+    // a palette showing one base while the compiler writes another is exactly the
+    // disagreement the server payload exists to prevent.
+    const CLIMATE_COLORS = {
+        arctic: '#7fb3d5', alpine: '#a8bfc9', temperate: '#7fbf7f',
+        arid: '#d9b26a', tropical: '#4f9f6a',
+    };
+    const CLIMATE_LABELS = {
+        arctic: 'Arctic', alpine: 'Alpine', temperate: 'Temperate',
+        arid: 'Arid', tropical: 'Tropical',
+    };
+    const CLIMATES = {
+        arctic: { label: 'Arctic', base: -8, color: CLIMATE_COLORS.arctic },
+        alpine: { label: 'Alpine', base: 2, color: CLIMATE_COLORS.alpine },
+        temperate: { label: 'Temperate', base: 21, color: CLIMATE_COLORS.temperate },
+        arid: { label: 'Arid', base: 31, color: CLIMATE_COLORS.arid },
+        tropical: { label: 'Tropical', base: 27, color: CLIMATE_COLORS.tropical },
+    };
+    const CLIMATE_IDS = Object.keys(CLIMATES);
+    const DEFAULT_CLIMATE = 'temperate';
+
+    /**
+     * Adopt the server's climate list: ids and base °C from the backend, colours
+     * kept from the local table. Called once the vocabulary arrives, so a new
+     * climate is a backend change and nothing else.
+     */
+    function useClimatesFromVocab(vocab) {
+        const list = vocab && (vocab.climates || (vocab.c && vocab.c.climates));
+        if (!Array.isArray(list) || !list.length) return false;
+        const next = {};
+        const ids = [];
+        list.forEach((row) => {
+            const id = String((row && row.id) || '').trim();
+            if (!id) return;
+            next[id] = {
+                label: (CLIMATE_LABELS[id] || id),
+                base: Number(row.base),
+                color: (CLIMATE_COLORS[id] || '#888'),
+            };
+            ids.push(id);
+        });
+        if (!ids.length) return false;
+        Object.keys(CLIMATES).forEach((k) => { delete CLIMATES[k]; });
+        ids.forEach((id) => { CLIMATES[id] = next[id]; });
+        CLIMATE_IDS.length = 0;
+        ids.forEach((id) => CLIMATE_IDS.push(id));
+        return true;
+    }
 
     // Keys are the real ids in `data/worldpainter/biomes.json` / `features`, so a
     // painted cell reads at a glance; anything else gets a deterministic hash
@@ -95,6 +152,13 @@
             const f = Math.max(-4, Math.min(4, n));
             const light = f >= 0 ? 76 - f * 4 : 76 + f * 7;
             return `hsl(${f < 0 ? 28 : 208},${8 + Math.abs(f) * 10}%,${Math.max(34, light)}%)`;
+        }
+        if (layer === 'climate') {
+            // A known climate gets its own colour; an unknown one is a typo the
+            // generate report will name, and here it reads as a hash so it is
+            // visibly *not* one of the five rather than quietly temperate.
+            return (CLIMATES[key] && CLIMATES[key].color)
+                || `hsl(${_hash(key) % 360},70%,55%)`;
         }
         return `hsl(${_hash(key) % 360},40%,50%)`;
     }
@@ -684,6 +748,7 @@
 
     const gridModel = {
         MODES, PAINT_LAYERS, BIOME_COLORS, ROAD_COLORS,
+        CLIMATES, CLIMATE_IDS, DEFAULT_CLIMATE, useClimatesFromVocab,
         cellKey, parseCellKey, cellId, nextMode, layerColor,
         floorNumber, floorLabel,
         lineCells, routeCells, routeStats, estimateCompile,

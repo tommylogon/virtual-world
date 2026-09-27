@@ -662,6 +662,21 @@ class AreaDescription:
                     )
 
                 if state == "open" and target_name:
+                    # A seam that owns its own phrase is a **move**, not another
+                    # bearing: "you could go down the tunnel" is what a player
+                    # reading the room wants, where `[go down the tunnel] is clear`
+                    # reads as a fourth compass exit and hides the fact that this
+                    # one is somewhere you choose to go rather than a wall you walk
+                    # into. Only the phrase-carrying seams are worded this way, so
+                    # the compass list stays a compass list (task-529).
+                    entry_phrase = str(way_node.properties.get("entry_phrase") or "")
+                    if entry_phrase:
+                        detail = ""
+                        if not way_node.properties.get("see_through"):
+                            detail = f" — {target_name} is on the other side"
+                        exits_desc.append(f"You could {entry_phrase}{detail}.")
+                        seen_ways.add(way_id)
+                        continue
                     vid = edge.properties.get("visible_in_direction", "") or ""
                     way_tags = {str(t).lower().strip() for t in way_node.properties.get("tags", []) or []}
                     open_word = "is clear" if ("exterior" in way_tags or "natural" in way_tags) else "is open"
@@ -698,6 +713,19 @@ class AreaDescription:
                         clue_str = f" ({', '.join(env_clues)})" if env_clues else ""
                         exits_desc.append(f"[{handle}] {target_name} is visible beyond{clue_str}.{beyond_suffix}")
                 else:
+                    # A shut seam is worded as an offer too, because that is how a
+                    # closed door reads on a street: the way exists, and it does not
+                    # open yet. A refusal message is the author's own line, so it is
+                    # used verbatim rather than re-described.
+                    entry_phrase = str(way_node.properties.get("entry_phrase") or "")
+                    if entry_phrase:
+                        refusal = str(way_node.properties.get("refusal_message") or "").strip()
+                        if refusal:
+                            exits_desc.append(f"You could {entry_phrase}, but {refusal[0].lower()}{refusal[1:]}")
+                        else:
+                            exits_desc.append(f"You could {entry_phrase}, but it is closed.")
+                        seen_ways.add(way_id)
+                        continue
                     vid = edge.properties.get("visible_in_direction", "") or ""
                     if vid and way_node.properties.get("see_through"):
                         exits_desc.append(f"[{handle}] is closed — through it you can see {vid}{beyond_suffix}")

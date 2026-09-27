@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: environment
 priority: high
 ---
@@ -57,16 +57,51 @@ waiting to happen: they can disagree, and the engine has no copy to arbitrate.
 
 ## Acceptance
 
-- A scenario with `"season": "winter"` produces measurably colder outdoor
-  temperatures than the same world in summer, with no forecast entry changed.
-- The engine reads a season; there is no backend code path where a scenario
-  can set a season and have it ignored.
-- `sky-scape.js` no longer carries its own month→season table.
-- Season is derived from the clock, so a world that crosses a season boundary
-  without a save/load changes season.
+## Acceptance
 
-## Files
+- [x] **One server-side month→season resolver**: `engine/weather_forecast.py`
+      gained `SEASON_BY_MONTH`, `season_for_month()` and `resolve_season()`. It
+      uses the same boundaries the old frontend table did (Dec-Feb winter,
+      Mar-May spring, Jun-Aug summer, Sep-Nov autumn) — changing them would change
+      what "winter" means in every existing world.
+- [x] **The engine reads a season, and there is no path where one is ignored.**
+      `world_state.season` is now consumed by the temperature model, so a scenario
+      that says `"season": "winter"` and is otherwise identical to one saying
+      `"summer"` is 11 °C colder at midday with no forecast entry changed.
+- [x] **Precedence is decided and documented: an authored `world_state.season`
+      wins over the clock.** A scenario stating a season is making a claim about
+      its world and should not be overruled by whatever month the calendar is on.
+      With none authored the clock decides, so a world crossing a boundary changes
+      season **with no save and no reload** (checked: month 1 and 12 both resolve
+      to winter from the clock alone).
+- [x] **An unrecognised season falls through to the clock** rather than becoming a
+      state the temperature model has no bias for. A broken save is still a
+      readable world.
+- [x] **`sky-scape.js` no longer carries a month→season table.** The
+      `SEASON_BY_MONTH` const is deleted and the second, inline copy in the iframe
+      `postMessage` is deleted with it — the duplicate that could disagree with
+      itself. Both read `world.current_season()` through one helper.
+- [x] **The engine ships its answer to the browser**, in
+      `/api/settings/forecast` and the tick state, so the sky widget reads the
+      engine's season rather than recomputing one. A month-based fallback remains
+      only for the frames before the first state arrives, and it is the old table
+      used for nothing else.
+- [x] **Season changes are narrated** the way forecast entry changes are
+      (`[Season] Winter arrives.`), so a world visibly turns to winter. The first
+      tick does not narrate, so starting a world does not announce the weather.
+- [x] **A month outside 1-12 clamps rather than raising**, because the same clock
+      that hands the resolver a month also renders it.
 
-- new resolver in `engine/weather_forecast.py` or the time module
-- `static/js/sky-scape.js:36-48, 218-228` — delete the duplicated tables
-- `docs/virtualWorld/Environment/Time & Weather.md` — season is now real
+## Notes
+
+- **`world.current_season()` is the one entry point** — the temperature model, the
+  narration and the API payload all call it, so the engine and the browser cannot
+  end up in different seasons. `resolve_season()` is the pure function under it,
+  which is what makes the precedence table testable without a world.
+- The season is a **bias on the shape**, not a temperature: winter is −7 °C on the
+  curve, so a tropical base with a winter bias is still warm and a temperate base
+  in winter is properly cold. That is why `SEASON_TEMP_BIAS` lives in 553's table
+  rather than being a second temperature model here.
+- `DEFAULT_SEASON` is `summer`, which is what the old frontend fell back to and
+  what the shipping scenarios declare — so their temperature behaviour is
+  unchanged.

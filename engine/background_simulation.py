@@ -62,6 +62,13 @@ def _surface_need_recall(gs, player, need):
 THIRST_THRESHOLD = 45     # drive: high = parched; act before it gets urgent
 HUNGER_THRESHOLD = 50     # drive: high = starving
 ENERGY_THRESHOLD = 30     # resource: low = tired
+#: Energy at which a tired character starts *looking* for a bed rather than
+#: sleeping where it stands (task-566). Above :data:`ENERGY_THRESHOLD`, because
+#: a character that is not tired yet should not be walking across town to book a
+#: room, and well above the critical 15, so this never competes with "lie down
+#: now". The gap is the space where seeking a bed is a decision rather than a
+#: panic — which is the point: a town should be something a character *walks* to.
+REST_SEEK_ENERGY = 55
 BLADDER_THRESHOLD = 60    # drive: high = needs to go; well before it maxes at 100
 HYGIENE_THRESHOLD = 40    # resource: low = filthy; go wash
 ENTERTAINMENT_THRESHOLD = 40  # resource: low = bored; go do something
@@ -362,6 +369,20 @@ class BackgroundSimulation:
             self._sleep(p)
             served.add("sleep")
             return TASK_MINUTES["sleep"]
+
+        # Tired, and nowhere to be tired *in* (task-566). A painted town has beds
+        # in it — the inn carries `sleeps`, so does a guest room — and before the
+        # venue lookup a character had no way to know that, so it lay down on the
+        # street or stood in the tap room until dawn. This asks where a bed is and
+        # walks there, one hop at a time, and says so in the log.
+        if "seek_rest" not in served and energy <= REST_SEEK_ENERGY:
+            if self._seek_venue(p, "rest", "tiredness"):
+                served.add("seek_rest")
+                return TASK_MINUTES["travel"]
+            # No bed in reach: fall through and sleep where they stand, which is
+            # what the branch above does. A world with no beds is not a reason to
+            # leave a character awake.
+            served.add("seek_rest")
 
         if hunger >= HUNGER_THRESHOLD:
             _surface_need_recall(self.gs, p, "hunger")
@@ -917,13 +938,21 @@ class BackgroundSimulation:
         self.gs.add_log_entry(f"[{p.name}] {verb} the {node.name}.")
 
     def _sleep(self, p):
+        from engine import venues
         try:
             self.gs.activities.start_activity(p.name, "sleeping")
         except Exception:
             return
         record(p, self.gs.time_ticks, "act", "went to sleep", why="needs:energy",
                area=p.current_area, tags=["need"])
-        self.gs.add_log_entry(f"[{p.name}] settles down to sleep.")
+        # Sleeping *somewhere* is what makes a place somewhere: a bed the
+        # character has used is the one they go back to next time (task-566), and
+        # this is the only place that counter moves on a night spent in the road.
+        if p.current_area:
+            venues.remember_venue(p, p.current_area)
+        self.gs.add_log_entry(f"[{p.name}] settles down to sleep in {p.current_area}."
+                              if p.current_area
+                              else f"[{p.name}] settles down to sleep.")
 
     @staticmethod
     def _verb_for_need(need):
@@ -991,6 +1020,36 @@ class BackgroundSimulation:
         if not direction:
             return False
         return self._hop(p, target_name, direction, need, tags)
+
+    def _seek_venue(self, p, venue, reason):
+        """One hop toward the place that serves *venue*, saying why (task-566).
+
+        Returns True when it moved, False when there was nowhere to go — and
+        False is the useful answer, because every caller falls back to what it
+        would have done anyway. That is deliberate: a world with no beds, no
+        baths and no smithies should leave the simulation behaving exactly as it
+        did before this module existed, not full of characters standing in the
+        road waiting for a building that was never painted.
+
+        The step is a real step. The venue lookup ranks by hops along the same
+        ``build_exits_for_area`` graph the rest of the sim walks, so the
+        direction returned is one ``movement.move_to_area`` accepts — a venue is
+        never somewhere a character is routed that the player could not go.
+        """
+        from engine import venues
+        spec = venues.venue(venue)
+        if not spec or not p.current_area:
+            return False
+        target = venues.choose_venue(self.gs, p, venue)
+        if not target or target == p.current_area:
+            return False
+        if not self._travel_to_area(p, target, reason):
+            return False
+        # Arriving is what makes a place familiar, and it is the only place the
+        # counter moves: standing one room away from the inn is not a visit.
+        if p.current_area == target:
+            venues.remember_venue(p, target)
+        return True
 
     def _pursue_schedule(self, p):
         """Walk to and carry out the step the clock is in (task-409).

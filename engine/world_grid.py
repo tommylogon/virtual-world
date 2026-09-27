@@ -19,6 +19,7 @@ keys, so a scope with no grid costs nothing and older saves load unchanged::
                             "floor": {"<x>,<y>": int}}     # storey index
     record["placements"] = {child_scope_id: {"x": int, "y": int}}
     record["area_placements"] = {area_id: {"x": int, "y": int}}   (task-528)
+    record["boundary_overrides"] = {way_id: {"action": ..., ...}}  (task-528)
 
 The ``floor`` layer is a **storey index**, not a height or a material: 0 is the
 ground plane, 1 one storey up, -1 one down, and the scale is *unbounded* — three
@@ -52,6 +53,23 @@ into replacing the occupant. "Merge" is deliberately *not* implemented here — 
 would have to redefine child-scope identity, and the design note
 (``docs/design/worldpainter-knowledge-and-fog.md``) leaves grid-canonical vs
 baked handling to the compiler (task-496).
+
+The two placement kinds do not share a cell. A feature is read by the compiler as
+a **region** on that cell, while a hand-placed area *removes* the cell from the
+compile set (task-528), so a cell holding both would be in neither and the feature
+gateway would be skipped in silence. :func:`place` therefore refuses an
+area-occupied cell even under ``displace``; the author unplaces the area first.
+
+Boundary overrides
+------------------
+The compiler mints a way from a hand-placed area to every painted cell touching
+it, so a placed area is walkable from the road rather than an island in the graph.
+Those ways are the compiler's *first draft*, not the last word: the author owns
+them once minted, and :func:`set_boundary_override` records the decision on the
+scope so a later Generate respects it. ``suppress`` means "I deleted this and do
+not want it back"; ``hand`` means "I wrote my own way for this seam" and names it.
+Both stop the compiler re-minting the pair. Keyed by the generated way id, which
+is stable across runs because it is derived from the two area ids.
 """
 
 from __future__ import annotations
@@ -67,7 +85,45 @@ MODES = ("world", "town", "interior")
 #:
 #: ``floor`` holds a **storey index** (see the module docstring), not a height
 #: fraction and not a ground material.
-PAINT_LAYERS = ("biome", "road", "floor")
+#:
+#: ``climate`` is a **coarse enum** — arctic / temperate / arid / tropical /
+#: alpine — that compiles to a per-area ``base_temperature`` (task-557). It is an
+#: enum rather than a continuous value for three reasons, each of which cost
+#: something last time: an enum is one brush instead of a value-and-falloff
+#: control, it survives save/reload without a float to drift, and the per-region
+#: aggregation ("which climate is this area, when its cells disagree?") stays a
+#: majority vote instead of a mean that invents a climate nobody painted. It is
+#: **not** part of a region's identity — a climate change across a road does not
+#: split the area, the way a road change does.
+#:
+#: The deleted ``elevation`` layer lived here once and warns against the obvious
+#: mistake: one word must not mean two things. ``floor`` is a storey index, and
+#: elevation as a painted *height* is gone because "elevation" said both.
+PAINT_LAYERS = ("biome", "road", "floor", "climate")
+
+#: The coarse climates a grid may be painted with, and the °C each compiles to
+#: (task-557). The numbers are the **base** — the year's average for a place —
+#: and the diurnal and seasonal curve is added on top by task-553's model, so a
+#: temperate world is 21 °C on an average day and genuinely colder at 04:00 in
+#: winter. Values are the mid-point of each band's real range rather than its
+#: extreme, so a painted arctic is cold without being the coldest thing on earth.
+#:
+#: The key is the taxonomy's, and an unpainted cell is **temperate** (21.0) — the
+#: value the engine has always used — rather than "unknown". A world with no
+#: climate layer must not compile differently from one that paints everything.
+CLIMATE_BASE_C = {
+    "arctic": -8.0,
+    "alpine": 2.0,
+    "temperate": 21.0,
+    "arid": 31.0,
+    "tropical": 27.0,
+}
+
+#: The climate an unpainted cell reads as. Temperate on purpose: it is the
+#: engine's long-standing 21 °C default, so "no climate painted" and "temperate
+#: painted" are the same world, and a scope that never chose a climate is not
+#: silently arctic.
+DEFAULT_CLIMATE = "temperate"
 
 #: Layer keys accepted when *reading* a record, mapped to the layer they now
 #: belong to. The ``elevation`` layer was a 0..1 height the author never agreed
@@ -77,7 +133,15 @@ PAINT_LAYERS = ("biome", "road", "floor")
 #: :data:`PAINT_LAYERS`.
 LEGACY_LAYER_KEYS = {"elevation": "floor"}
 
-ON_OVERLAP = ("forbid", "displace")
+ON_OVERLAP = ("forbid", "displace", "gateway")
+
+#: What an author can decide about a compiler-minted boundary way (see the module
+#: docstring). ``suppress`` — deleted, do not re-mint. ``hand`` — replaced by the
+#: author's own way, named in the entry; the compiler must not mint the pair again
+#: or it would duplicate the seam. There is deliberately no ``force``: handing the
+#: seam *back* to the compiler is "clear the entry", not a third action, because
+#: "auto again" is what an absent record already means.
+OVERRIDE_ACTIONS = ("suppress", "hand")
 
 
 # ───────────────────────────── identities ─────────────────────────────────
@@ -130,8 +194,8 @@ def normalise_grid(record: dict) -> dict:
     if not isinstance(record, dict):
         return record
     if not any(key in record for key in ("grid", "layers", "placements",
-                                         "area_placements", "mode",
-                                         "map_offset", "names")):
+                                         "area_placements", "boundary_overrides",
+                                         "mode", "map_offset", "names")):
         return record
 
     grid = record.get("grid")
@@ -199,6 +263,10 @@ def normalise_grid(record: dict) -> dict:
         # keyed by area node id instead of child scope id, because the thing being
         # placed already exists in the graph. Same shape, same leniency.
         record["area_placements"] = _clean_placement_map(record.get("area_placements"))
+
+    if "boundary_overrides" in record:
+        record["boundary_overrides"] = _clean_override_map(
+            record.get("boundary_overrides"))
 
     if "names" in record:
         record["names"] = _clean_name_map(record.get("names"))
@@ -273,6 +341,30 @@ def _clean_name_map(raw) -> Dict[str, str]:
             text = str(name or "").strip()
             if text:
                 clean[str(key)] = text
+    return clean
+
+
+def _clean_override_map(raw) -> Dict[str, dict]:
+    """Coerce ``{way_id: {"action": ...}}``, dropping anything unusable.
+
+    The key is a generated way id, so an override is meaningless without one: a
+    bare string, or an entry naming an unknown action, is not a decision the
+    compiler can act on, and keeping it would silently suppress nothing while
+    looking like it did.
+    """
+    clean: Dict[str, dict] = {}
+    if isinstance(raw, dict):
+        for way_id, decision in raw.items():
+            if not isinstance(decision, dict):
+                continue
+            action = str(decision.get("action") or "")
+            if action not in OVERRIDE_ACTIONS:
+                continue
+            entry: Dict[str, object] = {"action": action}
+            custom = decision.get("way_id")
+            if custom:
+                entry["way_id"] = str(custom)
+            clean[str(way_id)] = entry
     return clean
 
 
@@ -455,6 +547,24 @@ def paint_many(record: dict, edits: List[dict]) -> int:
 def painter_at(record: dict, layer: str, x: int, y: int):
     """The value painted at a cell, or ``None``."""
     return layer_cells(record, layer).get(cell_key(x, y))
+
+
+def climate_at(record: dict, x: int, y: int) -> str:
+    """The coarse climate painted on a cell, or :data:`DEFAULT_CLIMATE`.
+
+    A painted value that is not one of :data:`CLIMATE_BASE_C`'s keys reads as
+    ``""`` — an unknown climate is a typo, and guessing at it would quietly
+    compile a region into some climate the author did not paint. The compiler is
+    what turns "" into a decision; this reader only reports.
+    """
+    value = (painter_at(record, "climate", x, y) or "").strip().lower()
+    return value if value in CLIMATE_BASE_C else ""
+
+
+def climate_base_c(climate: str) -> float:
+    """The base °C for a climate name, defaulting to temperate."""
+    return CLIMATE_BASE_C.get(str(climate or "").strip().lower(),
+                              CLIMATE_BASE_C[DEFAULT_CLIMATE])
 
 
 def name_at(record: dict, x: int, y: int) -> Optional[str]:
@@ -746,13 +856,77 @@ def unplace_area(manifest: Dict[str, dict], scope_id: str, area_id: str) -> None
             scope.pop("area_placements", None)
 
 
+# ────────────────────── boundary ways (task-528) ───────────────────────────
+#
+# The compiler mints a way from a hand-placed area to every painted cell touching
+# it. Those ways are a draft the author then owns, and this is how the author's
+# decision outlives a Generate — see the module docstring.
+
+
+def boundary_overrides(record: dict) -> Dict[str, dict]:
+    """A copy of ``{generated way id: decision}`` for a scope."""
+    return dict((record or {}).get("boundary_overrides") or {})
+
+
+def boundary_override(record: dict, way_id: str) -> Optional[dict]:
+    """The author's decision about one boundary way, or ``None``."""
+    return boundary_overrides(record).get(str(way_id))
+
+
+def is_boundary_overridden(record: dict, way_id: str) -> bool:
+    """True when a Generate must **not** mint this way (deleted or hand-replaced)."""
+    return str(way_id) in boundary_overrides(record)
+
+
+def set_boundary_override(record: dict, way_id: str, action: str, *,
+                          hand_way_id: Optional[str] = None) -> dict:
+    """Record the author's decision about a boundary way; returns the entry.
+
+    ``action`` is one of :data:`OVERRIDE_ACTIONS`. ``hand`` requires
+    ``hand_way_id``: "I wrote my own way" is not actionable without saying which,
+    because the point of the record is that the compiler leaves that seam alone
+    and an unnamed substitute would leave the reader unable to tell a replaced
+    seam from a merely deleted one.
+
+    Passing ``action=None`` clears the entry — the way back to "Generate decides",
+    which is also what an absent record means.
+    """
+    if action is None:
+        current = record.get("boundary_overrides") or {}
+        current.pop(str(way_id), None)
+        if not current:
+            record.pop("boundary_overrides", None)
+        return {}
+    action = str(action)
+    if action not in OVERRIDE_ACTIONS:
+        raise ValueError(
+            f"unknown boundary override {action!r}; expected one of "
+            f"{', '.join(OVERRIDE_ACTIONS)}")
+    entry: Dict[str, object] = {"action": action}
+    if action == "hand":
+        if not hand_way_id:
+            raise ValueError("a 'hand' override needs the author's way_id")
+        entry["way_id"] = str(hand_way_id)
+    elif hand_way_id:
+        raise ValueError(
+            f"a {action!r} override takes no way_id; only 'hand' names a way")
+    record.setdefault("boundary_overrides", {})[str(way_id)] = entry
+    return entry
+
+
 def place(manifest: Dict[str, dict], parent_id: str, child_id: str,
           x: int, y: int, *, on_overlap: str = "forbid") -> str:
     """Place child scope *child_id* at a cell of *parent_id*'s grid.
 
-    Returns ``"placed"``, ``"moved"`` or ``"displaced"``. Raises ``ValueError``
-    for a missing parent/child, a grid-less parent, an out-of-bounds cell, an
-    unknown overlap policy, or a forbidden overlap.
+    Returns ``"placed"``, ``"moved"``, ``"displaced"`` or ``"gated"``. Raises
+    ``ValueError`` for a missing parent/child, a grid-less parent, an out-of-bounds
+    cell, an unknown overlap policy, or a forbidden overlap.
+
+    ``on_overlap="gateway"`` is the one policy that shares a cell with a
+    hand-placed *area*, and it is the only way to do so: the area becomes the
+    **doorstep** and the child's gateway is the author's own (see the body, and
+    task-535's promote). The other two refuse, because a cell holding both kinds
+    is a cell the compiler has to choose over and it would choose neither.
     """
     if on_overlap not in ON_OVERLAP:
         raise ValueError(f"unknown on_overlap {on_overlap!r}; expected {ON_OVERLAP}")
@@ -775,9 +949,36 @@ def place(manifest: Dict[str, dict], parent_id: str, child_id: str,
                 f"cell ({x},{y}) already holds {occupant!r}; move or remove it first")
         current.pop(occupant, None)
         outcome = "displaced"
+    # A hand-placed *area* (task-528) and a feature cannot share a cell by
+    # accident: the compiler has to choose. A feature placement is read as a
+    # **region** (``compile_grid`` looks the cell up in ``cell_region``), and an area
+    # placement deletes that cell from the compile set — so a cell holding both
+    # would be in neither, and the gateway would be skipped in silence. Unlike a
+    # displaced feature (a record entry), evicting an area also has to clear the
+    # *node's* ``cell``/``x``/``y``, which the route owns and this layer does not.
+    placed_area = area_placement_at(parent, x, y)
+    doorstep = None
+    if placed_area is not None:
+        if on_overlap != "gateway":
+            raise ValueError(
+                f"cell ({x},{y}) already holds the hand-placed area {placed_area!r}; "
+                f"unplace it before placing a feature here")
+        # …unless sharing the cell is the *point* (task-535). Promoting a selection
+        # into a scope and putting the scope where the entrance already stands means
+        # the hand-placed area becomes the **doorstep** the new gateway opens from.
+        # That is a different seam, not a colliding one: the cell is not a region,
+        # so the compiler mints no gateway and the author's own way is the only one —
+        # which is exactly right, because the author wired it. The occupant is
+        # recorded so the generate report can say so rather than leave the author
+        # wondering why no gateway appeared.
+        doorstep = placed_area
     if current.get(child_id) is not None:
         outcome = "moved"
-    current[child_id] = {"x": int(x), "y": int(y)}
+    entry: Dict[str, object] = {"x": int(x), "y": int(y)}
+    if doorstep:
+        entry["gateway_from"] = doorstep
+        outcome = "gated" if outcome == "placed" else outcome
+    current[child_id] = entry
     return outcome
 
 

@@ -36,9 +36,17 @@ def test_painter_vocabulary_lists_real_ids(tmp_path):
 
     assert "road" in {f["id"] for f in vocab["features"]}
     # `floor` is the storey layer (0 ground, 1 up, -1 down, unbounded); the
-    # 0..1 `elevation` height layer it replaced is gone.
-    assert vocab["layers"] == ["biome", "road", "floor"]
+    # 0..1 `elevation` height layer it replaced is gone. `climate` is the coarse
+    # enum of task-557, which compiles to a per-area base_temperature.
+    assert vocab["layers"] == ["biome", "road", "floor", "climate"]
     assert set(vocab["modes"]) == {"world", "town", "interior"}
+
+    # The climates come from the same table the compiler aggregates against, so
+    # the palette cannot show one base °C while the compiler writes another.
+    climate_ids = {c["id"] for c in vocab["climates"]}
+    assert climate_ids == {"arctic", "alpine", "temperate", "arid", "tropical"}
+    assert vocab["default_climate"] == "temperate"
+    assert all(isinstance(c["base"], (int, float)) for c in vocab["climates"])
 
     # A building carries the line its door will give, so the cell inspector can
     # show it (task-563). Built by the compiler's own function, so the preview
@@ -282,10 +290,14 @@ def test_delete_scope_refuses_children_and_deletes_generated_nodes(tmp_path):
     assert client.get(f"/api/world/scopes/{sid}/grid").status_code == 404
 
 
-def _paint(client, scope_id, cells):
+def _paint(client, scope_id, cells, roads=None):
     for (x, y), biome in cells.items():
         resp = client.post(f"/api/world/scopes/{scope_id}/grid/paint",
                            json={"layer": "biome", "x": x, "y": y, "value": biome})
+        assert resp.status_code == 200
+    for (x, y), value in (roads or {}).items():
+        resp = client.post(f"/api/world/scopes/{scope_id}/grid/paint",
+                           json={"layer": "road", "x": x, "y": y, "value": value})
         assert resp.status_code == 200
 
 
@@ -727,6 +739,155 @@ def test_generate_never_compiles_onto_a_placed_area(tmp_path):
     # Ungenerating leaves the hand-placed area alone (it has no provenance).
     assert client.post("/api/world/scopes/wild/grid/ungenerate", json={}).status_code == 200
     assert graph.get_node("area_hills") is not None
+
+
+# ------------------- boundary ways and the author's call (task-528) --------
+
+
+def _wild_with_a_placed_area(client, app, *, w=3, h=2):
+    """A painted world scope with `Camp Entrance Trail` placed at (1,0)."""
+    client.post("/api/world/scopes", json={"id": "wild", "name": "Wild",
+                                           "mode": "world", "w": w, "h": h})
+    _paint(client, "wild", {(0, 0): "sparse_forest", (2, 0): "dense_forest"},
+           roads={(0, 1): "road", (1, 1): "road", (2, 1): "road"})
+    _authored_area(app, area_id="area_trail", name="Camp Entrance Trail")
+    assert client.post("/api/world/scopes/wild/grid/place_area",
+                       json={"area_id": "area_trail", "x": 1, "y": 0}).status_code == 200
+    return "way_wild_area_trail_area_wild_1_1"
+
+
+def test_generate_mints_a_boundary_way_from_a_placed_area_to_the_road(tmp_path):
+    app = _app(tmp_path)
+    client = app.test_client()
+    seam = _wild_with_a_placed_area(client, app)
+
+    report = client.post("/api/world/scopes/wild/grid/generate",
+                         json={}).get_json()["report"]
+    assert any("1 hand-placed area(s) on the grid, 5 way(s) minted" in note
+               for note in report["notes"])
+
+    node = app.world.graph.get_node(seam)
+    assert node is not None and node.type == "way"
+    assert node.properties["direction"] == "south"
+    assert node.properties["kind"] == "open"
+    assert node.properties["area_from_id"] == "area_trail"
+    assert node.properties["area_to_id"] == "area_wild_1_1"
+    # The way is named for the author's area, which only the graph knows.
+    assert node.properties["area_from"] == "Camp Entrance Trail"
+
+
+def test_suppressing_a_seam_deletes_it_and_it_stays_deleted(tmp_path):
+    app = _app(tmp_path)
+    client = app.test_client()
+    seam = _wild_with_a_placed_area(client, app)
+    client.post("/api/world/scopes/wild/grid/generate", json={})
+    assert app.world.graph.get_node(seam) is not None
+    before = len(app._undo_stack)
+
+    resp = client.post("/api/world/scopes/wild/grid/boundary_override",
+                       json={"way_id": seam, "action": "suppress"})
+    assert resp.status_code == 200
+    assert resp.get_json()["status"] == "suppress"
+    assert resp.get_json()["deleted_node"] is True
+    # One operation, so one undo step: the node and the record go together.
+    assert len(app._undo_stack) == before + 1
+    assert app.world.graph.get_node(seam) is None
+
+    # The painter can see the decision, and a regenerate respects it.
+    payload = client.get("/api/world/scopes/wild/grid").get_json()
+    assert [(row["way_id"], row["action"]) for row in payload["boundary_overrides"]] \
+        == [(seam, "suppress")]
+    assert client.post("/api/world/scopes/wild/grid/ungenerate",
+                       json={}).status_code == 200
+    assert client.post("/api/world/scopes/wild/grid/generate",
+                       json={"allow_regenerate": True}).status_code == 200
+    assert app.world.graph.get_node(seam) is None
+
+
+def test_a_hand_written_replacement_is_recorded_with_its_own_way(tmp_path):
+    app = _app(tmp_path)
+    client = app.test_client()
+    seam = _wild_with_a_placed_area(client, app)
+    client.post("/api/world/scopes/wild/grid/generate", json={})
+    app.world.graph.add_node(Node(id="way_my_step", type="way", name="The Old Stile"))
+
+    resp = client.post("/api/world/scopes/wild/grid/boundary_override",
+                       json={"way_id": seam, "action": "hand",
+                             "hand_way_id": "way_my_step"})
+    assert resp.status_code == 200
+    assert app.world.graph.get_node(seam) is None
+    assert app.world.graph.get_node("way_my_step") is not None
+    row = resp.get_json()["boundary_overrides"][0]
+    assert row["action"] == "hand" and row["hand_way_id"] == "way_my_step"
+    assert row["name"] == seam            # the generated one is gone, so its id
+
+    # A 'hand' override with no way named is not actionable, so it is refused.
+    assert client.post("/api/world/scopes/wild/grid/boundary_override",
+                       json={"way_id": seam, "action": "hand"}).status_code == 400
+
+
+def test_clearing_an_override_hands_the_seam_back(tmp_path):
+    app = _app(tmp_path)
+    client = app.test_client()
+    seam = _wild_with_a_placed_area(client, app)
+    client.post("/api/world/scopes/wild/grid/generate", json={})
+    client.post("/api/world/scopes/wild/grid/boundary_override",
+                json={"way_id": seam, "action": "suppress"})
+
+    resp = client.post("/api/world/scopes/wild/grid/boundary_override",
+                       json={"way_id": seam, "action": "auto"})
+    assert resp.status_code == 200 and resp.get_json()["status"] == "cleared"
+    assert resp.get_json()["boundary_overrides"] == []
+    assert client.post("/api/world/scopes/wild/grid/generate",
+                       json={"allow_regenerate": True}).status_code == 200
+    assert app.world.graph.get_node(seam) is not None
+
+
+def test_overriding_a_way_that_is_not_a_boundary_is_refused(tmp_path):
+    app = _app(tmp_path)
+    client = app.test_client()
+    seam = _wild_with_a_placed_area(client, app)
+    client.post("/api/world/scopes/wild/grid/generate", json={})
+    road_way = "way_wild_area_wild_0_1_area_wild_1_1"
+
+    # Generated, but between two compiled areas: the compiler's to own.
+    assert app.world.graph.get_node(road_way) is not None
+    assert client.post("/api/world/scopes/wild/grid/boundary_override",
+                       json={"way_id": road_way,
+                             "action": "suppress"}).status_code == 400
+
+    app.world.graph.add_node(Node(id="way_hand", type="way", name="Hand Written"))
+    assert client.post("/api/world/scopes/wild/grid/boundary_override",
+                       json={"way_id": "way_hand",
+                             "action": "suppress"}).status_code == 400
+    assert client.post("/api/world/scopes/wild/grid/boundary_override",
+                       json={"way_id": "way_nope",
+                             "action": "suppress"}).status_code == 404
+    assert app.world.graph.get_node(seam) is not None   # nothing else disturbed
+
+
+def test_a_feature_cannot_be_placed_on_a_hand_placed_areas_cell(tmp_path):
+    """The silent one: a feature on a reserved cell is read as a region, and an
+    area placement *removes* the cell from the compile set, so the gateway would
+    be skipped without a word. The two kinds cannot share a cell."""
+    app = _app(tmp_path)
+    client = app.test_client()
+    _wild_with_a_placed_area(client, app)
+    client.post("/api/world/scopes", json={"id": "deep_woods", "name": "Deep woods",
+                                           "parent_id": "wild"})
+
+    resp = client.post("/api/world/scopes/wild/grid/place",
+                       json={"child_id": "deep_woods", "x": 1, "y": 0})
+    assert resp.status_code == 400
+    assert "area_trail" in resp.get_json()["error"]
+    # Not even displacing gets past it.
+    assert client.post("/api/world/scopes/wild/grid/place",
+                       json={"child_id": "deep_woods", "x": 1, "y": 0,
+                             "on_overlap": "displace"}).status_code == 400
+    # A painted, unoccupied cell is still fine.
+    assert client.post("/api/world/scopes/wild/grid/place",
+                       json={"child_id": "deep_woods", "x": 0, "y": 1}).status_code == 200
+
 
 # ------------------- scope membership only, no cell (task-539) ---------------
 

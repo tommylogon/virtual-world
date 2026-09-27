@@ -55,13 +55,33 @@ Do not hand-number, hand-move, or hand-check these. Use the helper:
 - `python tools/tasks.py move --id N [--kind task|bug] --status review`
 - `python tools/tasks.py list [--status ...] [--area ...] [--kind ...]`
 - `python tools/tasks.py validate`
+- `python tools/tasks.py index [--clear]` (derived frontmatter cache; only
+  needed after an external tool rewrote many files at once)
 
 Areas: `bugs`, `characters`, `conditions`, `docs`, `gameplay`, `graph`, `items`,
 `library`, `refactor`, `testing`, `triggers`, `ui`, `world`.
 
+Frontmatter is read as **real YAML** — a list value stays a list, and a value
+may contain a colon if it is quoted. `validate` fails on a block that does not
+parse rather than quietly ignoring it. Dependency keys are `related`, `blocks`,
+`blocked_by`, `supersedes`, `parent`, `children`, `depends_on`; each takes a
+list or a bare id:
+
+```yaml
+---
+status: todo
+area: world
+blocks: [task-570, task-572]
+blocked_by: [task-446]
+---
+```
+
+Note: some task files carry a UTF-8 BOM; the reader strips it, but a new file
+should be written without one.
+
 Workflow: `new` when filing a task, `move` it as it progresses
 (`todo` -> `inprogress` -> `review` -> `done`), and `validate` after filing or
-moving several. `validate` also flags dangling `Related:`/`Blocks:` references.
+moving several. `validate` also flags dangling dependency references.
 
 ## Conventions
 

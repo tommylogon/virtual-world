@@ -1,6 +1,6 @@
 ---
 id: 266
-title: Condition: Blind (`blind`) — catalog definition + sensory mode
+title: "Condition: Blind (`blind`) — catalog definition + sensory mode"
 status: done
 priority: high
 created: 2026-08-17

@@ -33,8 +33,11 @@ window.SkyScape = (() => {
         'new_moon': '🌑', 'crescent': '🌒', 'quarter': '🌓', 'gibbous': '🌔',
         'full_moon': '🌕', 'waning': '🌖', 'blood_moon': '🔴',
     };
-    const SEASON_BY_MONTH = ['winter', 'winter', 'spring', 'spring', 'spring',
-        'summer', 'summer', 'summer', 'autumn', 'autumn', 'autumn', 'winter'];
+    // The month→season table is **not here** (task-554). It was duplicated in
+    // this file — once as SEASON_BY_MONTH and once inline in the iframe
+    // postMessage — while the engine read a season nowhere, so "winter" only ever
+    // meant a sky tint. The engine resolves the season from the clock and ships it
+    // in world_state; these two functions are the one place it is read.
 
     let _modalEl = null;
     let _timer = null;
@@ -44,8 +47,19 @@ window.SkyScape = (() => {
     function _monthName(m) {
         return ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][m % 13] || '';
     }
+    /**
+     * The season the engine says it is, with the old month table as a fallback
+     * only for the frames before the first state arrives. That fallback is
+     * deliberately the *old* table and nothing more: a second real table is what
+     * this change removed.
+     */
     function _season(state) {
-        return SEASON_BY_MONTH[Math.max(1, Math.min(12, (state?.game_month || 1))) - 1] || 'summer';
+        const fromEngine = state?.season;
+        if (typeof fromEngine === 'string' && fromEngine) return fromEngine;
+        const m = Math.max(1, Math.min(12, (state?.game_month || 1)));
+        return ['winter', 'winter', 'spring', 'spring', 'spring',
+            'summer', 'summer', 'summer', 'autumn', 'autumn', 'autumn',
+            'winter'][m - 1] || 'summer';
     }
 
     /** Effective weather: override wins, else the forecast entry at "now". */
@@ -214,9 +228,8 @@ window.SkyScape = (() => {
         const state = _state();
         const t = (state?.game_time || '09:40').split(':').map(Number);
         const hour = (t[0] || 0) + (t[1] || 0) / 60;
-        const m = Math.max(1, Math.min(12, state?.game_month || 1));
-        const seasonMap = ['winter', 'winter', 'spring', 'spring', 'spring', 'summer', 'summer', 'summer', 'autumn', 'autumn', 'autumn', 'winter'];
-        const season = seasonMap[m - 1] || 'winter';
+        // The engine's season, from the same helper the header uses (task-554).
+        const season = _season(state);
         const weather = effectiveWeather(state);
         const weatherMap = { clear: 'clear', cloudy: 'overcast', rainy: 'rain', stormy: 'storm', snowy: 'snow', foggy: 'fog', windy: 'partly' };
         const moonIdx = { new_moon: 0, crescent: 1, quarter: 2, gibbous: 3, full_moon: 4, waning: 5, blood_moon: 4 };

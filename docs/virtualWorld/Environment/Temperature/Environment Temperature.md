@@ -8,11 +8,45 @@ Stored as an integer in each room's `environment` dict:
 area_node.properties["environment"]["temperature"] = 21  # default: 21°C
 ```
 
-| Property | Default | Range |
-|----------|---------|-------|
-| `temperature` | 21°C | -50 to 100°C |
+| Property | Default | Range | Who writes it |
+|----------|---------|-------|---------------|
+| `base_temperature` | 21.0°C | no clamp | **the author** — a painted climate (task-557) or world data |
+| `temperature` | 21°C | -50 to 100°C | **the simulation** — forecast, propagation, heat sources |
+
+**Two keys because they are two different facts** (task-553). "This is a mountain
+range" and "right now it is 6 °C" are not the same statement, and a save that
+carried only the second would lose the first the moment a tick overwrote it.
 
 Default for new areas is 21°C (room temperature). The `adjust_environment` effect clamps to -50..100, but the engine itself has **no clamp** on the value — volcanic caves at 200°C or dragon fire at 500°C work fine (drift just scales proportionally).
+
+## The Outdoor Curve
+
+`temperature` for an **exterior** area is not a literal any more. Each tick,
+`virtual_world_engine._apply_forecast_env` computes:
+
+```
+temperature = base_temperature + temp_curve_for_hour(hour, season) + temperature_mod
+```
+
+- **`base_temperature`** — the area's own authored baseline, `21.0` when it has
+  none.
+- **`temp_curve_for_hour`** — the diurnal swing, an anchor table of
+  `(hour, °C delta)` pairs interpolated, in `engine/weather_forecast.py`. It
+  reaches −5 °C at 04:00 and +3.5 °C at 14:00: an 8.5 °C swing, deliberately
+  shallow.
+- **`temperature_mod`** — the forecast's own delta. A value of `0` is honoured
+  (it says "no change"), not dropped as falsy.
+
+**The curve is opt-in, and that is the compatibility guarantee.** It applies when
+the area has a `base_temperature` **or** the world has a season. An area with
+neither stays at a flat 21 °C — the number every world has always reported —
+because simulating a diurnal swing around a *placeholder* would invent variation
+nobody asked for, in every world that never chose a climate.
+
+The season comes from the clock (`world.current_season()`): an authored
+`world_state.season` wins, otherwise the calendar decides, so a world turns to
+winter without a save or a reload. See task-554 and
+`Time & Weather.md`.
 
 ## How It's Set
 
@@ -20,6 +54,9 @@ Default for new areas is 21°C (room temperature). The `adjust_environment` effe
 2. **Effects** — `set_environment` (absolute) or `adjust_environment` (incremental) triggers
 3. **Manual editing** — Inspector panel or world data
 4. **NPC behaviors** — NPC actions can call `set_environment`
+5. **Climate paint** — a WorldPainter `climate` layer compiles to a per-area
+   `base_temperature`, so a painted map has a temperature across it rather than
+   one number everywhere (task-557)
 
 ## Heat Propagation
 

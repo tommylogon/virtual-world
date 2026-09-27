@@ -12,6 +12,7 @@ Usage:
     python tools/tasks.py move --id 447 [--kind task] --status review
     python tools/tasks.py list [--status todo] [--area ui] [--kind task]
     python tools/tasks.py validate [--quiet]
+    python tools/tasks.py index [--clear]
     python tools/tasks.py help [command]
     python tools/tasks.py
 
@@ -20,6 +21,14 @@ one-shot so scripts can call them.
 
 Folder is authoritative for status: todo / inprogress / review / done / cancelled.
 A file's own ``status:`` frontmatter is advisory and is updated on ``move``.
+
+Frontmatter is read as real YAML (``PyYAML``, with a small fallback when it is
+not installed), so a list value stays a list. Dependency keys are
+``related``, ``blocks``, ``blocked_by``, ``supersedes``, ``parent``,
+``children`` and ``depends_on``; each takes a list or a bare id. Parsed
+frontmatter and titles are cached in ``.tasks-index.json`` keyed by mtime+size.
+That cache is derived only -- it changes no result, and ``index --clear``
+deletes it.
 
 On Windows, ``tools\\tasks.bat`` forwards to this script with the same
 arguments, e.g. ``tools\\tasks.bat help`` or ``tasks list --status todo``.
@@ -30,12 +39,18 @@ from __future__ import annotations
 
 import argparse
 import datetime as _dt
+import json
 import re
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+
+try:
+    import yaml  # real YAML, so lists and quoted values survive
+except ImportError:  # pragma: no cover - fallback keeps the tool usable
+    yaml = None
 
 # ── layout ───────────────────────────────────────────────────────────────
 
@@ -44,6 +59,13 @@ KINDS = ("task", "bug")
 TERMINAL_STATUSES = {"done", "cancelled"}
 ID_RE = re.compile(r"^(?P<kind>task|bug)-(?P<num>\d+)-(?P<slug>[^/]+)\.md$")
 REF_RE = re.compile(r"\b(task|bug)-(\d+)\b", re.IGNORECASE)
+
+# "# task-568: Town cells" -> "Town cells". Also matches "Bug 22 — ...".
+TITLE_ID_PREFIX_RE = re.compile(
+    r"^\s*(?:task|bug)\s*-?\s*\d+\s*[:\u2014\u2013-]\s*", re.IGNORECASE)
+
+INDEX_NAME = ".tasks-index.json"
+INDEX_VERSION = 2
 
 
 def default_root() -> Path:
@@ -54,9 +76,11 @@ def default_root() -> Path:
 
 
 class Entry:
-    __slots__ = ("path", "kind", "num", "slug", "status", "area")
+    __slots__ = ("path", "kind", "num", "slug", "status", "area",
+                 "_fm", "_fm_error", "_title")
 
-    def __init__(self, path: Path, root: Path):
+    def __init__(self, path: Path, root: Path, fm: Optional[Dict] = None,
+                 fm_error: str = "", title: Optional[str] = None):
         self.path = path
         m = ID_RE.match(path.name)
         self.kind = m.group("kind") if m else ""
@@ -67,42 +91,236 @@ class Entry:
         self.status = parts[0] if parts and parts[0] in STATUSES else ""
         # area = first directory under the status dir, if any
         self.area = parts[1] if self.status and len(parts) > 2 else ""
+        self._fm = fm
+        self._fm_error = fm_error
+        self._title = title
 
     @property
     def id(self) -> str:
         return f"{self.kind}-{self.num}" if self.kind else self.path.name
 
+    def frontmatter(self) -> Dict:
+        """Parsed frontmatter, loading it from disk if not cached."""
+        if self._fm is None:
+            self._fm, self._fm_error = parse_frontmatter(read_text(self.path))
+        return self._fm
+
+    def frontmatter_error(self) -> str:
+        """Non-empty when a frontmatter block exists but does not parse."""
+        if self._fm is None:
+            self._fm, self._fm_error = parse_frontmatter(read_text(self.path))
+        return self._fm_error
+
     def title(self) -> str:
-        fm = read_frontmatter(self.path)
-        if fm.get("title"):
-            return fm["title"]
-        for line in read_text(self.path).splitlines():
-            if line.startswith("# "):
-                return line[2:].strip()
-        return self.slug.replace("-", " ")
+        if self._title is None:
+            self._title = self._compute_title()
+        return self._title
+
+    def _compute_title(self) -> str:
+        fm = self.frontmatter()
+        raw = fm.get("title")
+        if not raw:
+            for line in read_text(self.path).splitlines():
+                if line.startswith("# "):
+                    raw = line[2:].strip()
+                    break
+        # A heading of only "Bug 12:" is a real thing in the tree; fall back
+        # to the slug rather than printing an empty column.
+        cleaned = clean_title(str(raw)) if raw else ""
+        return cleaned or self.slug.replace("-", " ")
+
+
+def clean_title(raw: str) -> str:
+    """Drop a leading ``task-123:``/``Bug 12 —`` prefix and tidy whitespace."""
+    return re.sub(r"\s+", " ", TITLE_ID_PREFIX_RE.sub("", raw)).strip()
 
 
 def read_text(path: Path) -> str:
-    return path.read_text(encoding="utf-8", errors="replace")
+    # utf-8-sig transparently drops a leading BOM. 65 task files carry one,
+    # and without this their frontmatter is invisible to every reader.
+    return path.read_text(encoding="utf-8-sig", errors="replace")
 
 
-def read_frontmatter(path: Path) -> Dict[str, str]:
-    text = read_text(path)
+def _split_frontmatter(text: str) -> Optional[str]:
+    """Return the raw frontmatter block, or None if the file has none."""
     if not text.startswith("---"):
-        return {}
+        return None
     end = text.find("\n---", 3)
     if end == -1:
-        return {}
-    out: Dict[str, str] = {}
-    for line in text[3:end].splitlines():
-        if ":" in line:
-            k, v = line.split(":", 1)
-            out[k.strip()] = v.strip()
+        return None
+    return text[3:end]
+
+
+def _parse_frontmatter_fallback(block: str) -> Dict:
+    """Minimal ``key: value`` / ``key: [a, b]`` reader for envs without PyYAML."""
+    out: Dict = {}
+    for line in block.splitlines():
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        if ":" not in line:
+            continue
+        key, _, value = line.partition(":")
+        value = value.strip()
+        if value.startswith("[") and value.endswith("]"):
+            items = [v.strip().strip("'\"") for v in value[1:-1].split(",")]
+            out[key.strip()] = [i for i in items if i]
+        else:
+            out[key.strip()] = value.strip("'\"")
     return out
 
 
-def iter_entries(root: Path) -> List[Entry]:
-    return [Entry(p, root) for p in sorted(root.rglob("*.md"))]
+def _jsonable(value):
+    """Coerce YAML-native types to JSON-safe ones.
+
+    PyYAML hands back ``datetime.date`` for ``created: 2026-08-17``, which the
+    index cache cannot store. Normalising here rather than at dump time keeps
+    a cold run and a cached run returning the *same* types.
+    """
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, (list, tuple)):
+        return [_jsonable(v) for v in value]
+    if isinstance(value, dict):
+        return {str(k): _jsonable(v) for k, v in value.items()}
+    return str(value)
+
+
+def parse_frontmatter(text: str) -> Tuple[Dict, str]:
+    """Return ``(data, error)``.
+
+    ``error`` is non-empty only when a frontmatter block is present but
+    unparseable — the data is still returned as best-effort so the file stays
+    usable, but ``validate`` reports the error rather than hiding it.
+    """
+    block = _split_frontmatter(text)
+    if block is None:
+        return {}, ""
+    if yaml is None:
+        return _jsonable(_parse_frontmatter_fallback(block)), ""
+    try:
+        data = yaml.safe_load(block)
+    except Exception as exc:
+        return _jsonable(_parse_frontmatter_fallback(block)), (
+            f"{type(exc).__name__}: {str(exc).splitlines()[0]}")
+    if data is None:
+        return {}, ""
+    if not isinstance(data, dict):
+        return {}, f"frontmatter is {type(data).__name__}, expected a mapping"
+    return _jsonable({str(k): v for k, v in data.items()}), ""
+
+
+def _as_refs(value) -> List[str]:
+    """Normalise a dependency value into a list of 'task-N' ids.
+
+    Accepts a YAML list, a single id, or a comma/space separated string, so
+    ``blocks: task-570`` and ``blocks: [task-570]`` behave the same.
+    """
+    if value is None:
+        return []
+    items = value if isinstance(value, list) else re.split(r"[,\s]+", str(value))
+    out: List[str] = []
+    for item in items:
+        for kind, num in REF_RE.findall(str(item)):
+            out.append(f"{kind.lower()}-{int(num)}")
+    return out
+
+
+def _parse_one(path: Path, root: Path) -> Tuple[Entry, int, int]:
+    e = Entry(path, root)
+    e.frontmatter()          # populate _fm / _fm_error
+    e.title()                # populate _title
+    st = path.stat()
+    return e, st.st_mtime_ns, st.st_size
+
+
+def _index_path(root: Path) -> Path:
+    return root / INDEX_NAME
+
+
+def _load_index(root: Path) -> Optional[Dict[str, List]]:
+    p = _index_path(root)
+    if not p.exists():
+        return None
+    try:
+        blob = json.loads(p.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    if blob.get("version") != INDEX_VERSION:
+        return None
+    recs = blob.get("entries")
+    return recs if isinstance(recs, dict) else None
+
+
+def _save_index(root: Path, recs: Dict[str, List]) -> None:
+    payload = {"version": INDEX_VERSION, "entries": recs}
+    target = _index_path(root)
+    tmp = target.with_suffix(".json.tmp")
+    try:
+        # Write-and-rename so a crash cannot leave a half-written cache. A
+        # corrupt file is survivable anyway (_load_index returns None), but a
+        # torn one still costs a full rescan on every command.
+        tmp.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+        tmp.replace(target)
+    except OSError:
+        try:
+            tmp.unlink()
+        except OSError:
+            pass
+
+
+def _rescan(root: Path, paths: List[Path], save: bool) -> List[Entry]:
+    out: List[Entry] = []
+    new_recs: Dict[str, List] = {}
+    for p in paths:
+        try:
+            e, mtime_ns, size = _parse_one(p, root)
+        except OSError:
+            continue  # vanished between rglob and stat
+        out.append(e)
+        new_recs[str(p.relative_to(root))] = [
+            mtime_ns, size, e.kind, e.num, e.slug, e.status, e.area,
+            e.title(), e.frontmatter(), e.frontmatter_error(),
+        ]
+    if save:
+        _save_index(root, new_recs)
+    return out
+
+
+def _cache_hit(recs: Dict[str, List], paths: List[Path], root: Path) -> Optional[List[Entry]]:
+    """Return cached entries only if every record is present *and* current.
+
+    A record must also be well-shaped: a hand-edited or externally rewritten
+    cache must rescan rather than hand a wrong type to a caller.
+    """
+    if set(recs) != {str(p.relative_to(root)) for p in paths}:
+        return None
+    try:
+        for p in paths:
+            rec = recs[str(p.relative_to(root))]
+            st = p.stat()
+            if rec[0] != st.st_mtime_ns or rec[1] != st.st_size:
+                return None
+            if not isinstance(rec[7], str) or not isinstance(rec[8], dict):
+                return None
+    except (OSError, IndexError, TypeError, KeyError):
+        return None
+    return [Entry(root / rel, root, fm=rec[8], fm_error=rec[9], title=rec[7])
+            for rel, rec in recs.items()]
+
+
+def iter_entries(root: Path, use_cache: bool = True) -> List[Entry]:
+    """Every markdown file under ``root`` as an Entry.
+
+    Parsed frontmatter and titles are cached on disk, keyed by mtime+size, so
+    repeated commands do not re-read ~650 files. The cache is derived only:
+    delete it, or pass ``use_cache=False``, and the result is identical.
+    """
+    paths = sorted(root.rglob("*.md"))
+    if not use_cache:
+        return _rescan(root, paths, save=False)
+    if (hit := _cache_hit(_load_index(root) or {}, paths, root)) is not None:
+        return hit
+    return _rescan(root, paths, save=True)
 
 
 # ── git ──────────────────────────────────────────────────────────────────
@@ -233,6 +451,22 @@ def cmd_move(args) -> int:
     return 0
 
 
+def cmd_index(args) -> int:
+    p = _index_path(args.root)
+    if args.clear:
+        if p.exists():
+            p.unlink()
+            print(f"removed {p}")
+        else:
+            print("no index present")
+        return 0
+    entries = _rescan(args.root, sorted(args.root.rglob("*.md")), save=True)
+    if not p.exists():
+        print("warn: could not write the index (read-only tree?)", file=sys.stderr)
+    print(f"{len(entries)} files indexed -> {p}")
+    return 0
+
+
 def cmd_list(args) -> int:
     rows = [e for e in iter_entries(args.root) if e.kind]
     if args.status:
@@ -274,11 +508,24 @@ def cmd_validate(args) -> int:
             warnings.append(f"filename does not match {ID_RE.pattern}: {e.path}")
         if e.kind and not e.status:
             warnings.append(f"not under a status folder: {e.path}")
-        fm_status = read_frontmatter(e.path).get("status")
-        if fm_status and e.status and _norm(fm_status) != _norm(e.status):
-            warnings.append(f"frontmatter status '{fm_status}' != folder '{e.status}': {e.path}")
-        # Referenced ids
-        for line in read_text(e.path).splitlines():
+
+        fm_err = e.frontmatter_error()
+        if fm_err:
+            errors.append(f"malformed frontmatter ({fm_err}): {e.path}")
+
+        fm_status = e.frontmatter().get("status")
+        if fm_status is not None and e.status and _norm(str(fm_status)) != _norm(e.status):
+            warnings.append(
+                f"frontmatter status '{fm_status}' != folder '{e.status}': {e.path}")
+
+        # Referenced ids. Prose lines and frontmatter lists both count.
+        lines = read_text(e.path).splitlines()
+        for key in ("related", "blocks", "blocked_by", "supersedes", "parent",
+                    "children", "depends_on"):
+            for ref in _as_refs(e.frontmatter().get(key)):
+                if ref not in known_ids:
+                    warnings.append(f"dangling {key} reference {ref} in {e.path.name}")
+        for line in lines:
             if re.match(r"\*\*(Related|Supersedes|Blocks|Depends on|Blocked by|Parent|Children)\b", line):
                 for kind, num in REF_RE.findall(line):
                     ref = f"{kind.lower()}-{int(num)}"
@@ -309,12 +556,13 @@ The FOLDER is authoritative for status; the `status:` frontmatter is
 advisory and is rewritten on `move`. Moves use `git mv` when possible.
 
 Commands:
-  next-id   print the next free id for a kind
-  new       scaffold a new task/bug file from the template
-  move      move a file between status folders (updates frontmatter)
-  list      list tasks/bugs, optionally filtered
-  validate  check ids, filenames, folders and cross-references
-  help      show this guide, or `help <command>` for one command
+    next-id   print the next free id for a kind
+    new       scaffold a new task/bug file from the template
+    move      move a file between status folders (updates frontmatter)
+    list      list tasks/bugs, optionally filtered
+    validate  check ids, filenames, folders and cross-references
+    index     rebuild or clear the derived frontmatter cache
+    help      show this guide, or `help <command>` for one command
 
 Run with no command for an interactive menu (type `q` to quit).
 
@@ -404,6 +652,19 @@ reported as warnings, everything else as errors (exit code 1).
   python tools/tasks.py validate
   python tools/tasks.py validate --quiet
 """,
+    "index": """\
+index [--clear]
+
+The tree is re-read and the derived frontmatter cache (`.tasks-index.json`) is
+rewritten. The cache is only ever a speed-up: it is keyed by mtime+size and
+deleting it changes no result. `list` and `validate` maintain it automatically;
+you only need this after an external tool rewrote many files at once.
+
+  --clear   delete the cache rather than rebuild it
+
+  python tools/tasks.py index
+  python tools/tasks.py index --clear
+""",
     "help": """\
 help [command]
 
@@ -434,7 +695,8 @@ Dev-task helper — interactive mode
   3) move       move between status folders
   4) list       list tasks/bugs
   5) validate   check ids, filenames, folders and refs
-  6) help       show the full guide
+  6) index      rebuild/clear the frontmatter cache
+  7) help       show the full guide
   q) quit
 """
 
@@ -515,7 +777,9 @@ def cmd_interactive(args) -> int:
             cmd_list(argparse.Namespace(root=args.root, status=status, area=area, kind=kind))
         elif choice in ("5", "validate"):
             cmd_validate(argparse.Namespace(root=args.root, quiet=False))
-        elif choice in ("6", "help"):
+        elif choice in ("6", "index"):
+            cmd_index(argparse.Namespace(root=args.root, clear=False))
+        elif choice in ("7", "help"):
             cmd_help(argparse.Namespace(topic=None))
         else:
             print("  unknown choice")
@@ -558,6 +822,10 @@ def build_parser() -> argparse.ArgumentParser:
     v = sub.add_parser("validate", help="check ids, filenames, folders and refs")
     v.add_argument("--quiet", action="store_true")
     v.set_defaults(func=cmd_validate)
+
+    ix = sub.add_parser("index", help="rebuild or clear the derived frontmatter cache")
+    ix.add_argument("--clear", action="store_true", help="delete the cache instead")
+    ix.set_defaults(func=cmd_index)
 
     hp = sub.add_parser("help", help="show the guide, or help for one command")
     hp.add_argument("topic", nargs="?", choices=sorted(HELP_TOPICS))

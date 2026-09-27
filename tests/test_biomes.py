@@ -16,14 +16,18 @@ from engine import biomes, foraging
 def _is_wild(biome_id):
     """A biome that has to satisfy the *wild-country* contract.
 
-    Two kinds do not, for two different reasons: a **building** is a made place
-    (task-561) — the inside of a smithy has no berries and no wildlife — and a
+    Three kinds do not, for three different reasons: a **building** is a made
+    place (task-561) — the inside of a smithy has no berries and no wildlife; a
     **structure** cell is not a place at all (task-562): a void has no ground to
-    name a material for, and a wall is never walked on. Everything else is
-    wilderness and owes a forage tag and distribution rules.
+    name a material for, and a wall is never walked on; and an **indoor room**
+    (task-568) is made for the first of those reasons — a bedroom is not
+    wilderness, and asking a `hallway` for a forage tag would mean writing
+    fiction to satisfy a linter. Everything else is wilderness and owes a forage
+    tag and distribution rules.
     """
     tags = {str(t).lower() for t in biomes.area_tags(biome_id)}
-    return "building" not in tags and biomes.NOT_A_PLACE_TAG not in tags
+    return ("building" not in tags and biomes.NOT_A_PLACE_TAG not in tags
+            and biomes.INDOOR_TAG not in tags)
 
 
 def test_shipped_taxonomy_validates_clean():

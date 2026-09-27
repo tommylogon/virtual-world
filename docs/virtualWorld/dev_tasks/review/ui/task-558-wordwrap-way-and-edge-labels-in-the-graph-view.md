@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: ui
 priority: low
 ---
@@ -74,11 +74,35 @@ on it. This is a latent breakage risk independent of the wordwrap.
 
 ## Acceptance
 
-- A long way name wraps onto multiple lines instead of stretching the edge or
-  being clipped.
-- Wrapped labels do not overlap nodes or each other (the edge length is
-  computed from the wrapped line count, not the raw character count).
-- Short labels are unaffected: a way called "west" looks exactly as before.
-- Full text remains reachable on hover.
-- vis-network is pinned to a specific version, and the app works on it.
-- `node tools/unit/run.cjs` passes.
+## Acceptance
+
+- [x] **Long way labels wrap instead of stretching or clipping**:
+      `widthConstraint: { maximum: EDGE_LABEL_WRAP }` on every edge — edges only.
+- [x] **The edge length is computed from the wrapped line count**, not the raw
+      character count. `_labelEdgeLength()` wraps the label *the same way vis will,
+      at the same width*, then sizes from the widest line plus a line of height
+      per extra line, so wrapped labels do not overlap nodes or each other.
+- [x] **Short labels are unaffected**: "west" is one line and gets the same length
+      as before, because the character estimate is kept and only the line count is
+      new.
+- [x] **The worst offender is fixed**: an `unlocks` edge carries a whole
+      `properties.description` on its label, so it is now cut to whole sentences
+      and at most three lines (`_firstSentence`). The full text stays on the hover
+      tooltip that already existed.
+- [x] **Full text remains reachable on hover.**
+- [x] **vis-network is pinned** to `9.1.9` in `templates/index.html`, with a
+      comment saying to bump it deliberately and check the graph view when doing
+      so. 9.1.9 is the 9.x line this code was written against and it supports
+      `widthConstraint`.
+- [x] `node tools/unit/run.cjs` passes — 368 passed, with the 13 pre-existing
+      `test_plan_tracker.js` failures unchanged.
+- [x] **Way nodes were deliberately not touched.** They are nodes, not edges;
+      `nodes.widthConstraint` grows the node box, which collides with the map
+      layout's fixed margins and the `mapSizeScale()` font math. Way names keep
+      the existing label-LOD policy (`_nodeLabelPolicy`) and the tooltip.
+
+## Notes
+
+- A single word longer than the wrap width (a URL, a long id) is left as one line
+  rather than cut mid-word: there is nothing to break on, and half an id is
+  useless where half a sentence is merely annoying.

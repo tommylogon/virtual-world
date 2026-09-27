@@ -105,6 +105,17 @@ OPPOSITE = {
 #: visited once. The four "south half" deltas cover every 8-neighbour pair
 #: exactly once (a north neighbour is found from that cell's ``south``, etc.).
 _SCAN_DIRECTIONS = ("east", "south", "southeast", "southwest")
+#: All eight, for a scan that does **not** start from every cell.
+#:
+#: :data:`_SCAN_DIRECTIONS` is a south-half subset and is only correct when the
+#: scan walks *every* cell of the grid — each 8-neighbour pair is then found once,
+#: from the cell that owns the southern or eastern end. A scan that starts from a
+#: subset (the boundary of a hand-placed area, task-528) must look all eight ways
+#: from each of its cells, or it silently misses everything north and west of them.
+#: Double-minting is not the price: the boundary pass keys what it minted on the
+#: way id, which is derived from the two area ids in sorted order, so a pair both
+#: ends scan is still one way.
+_BOUNDARY_SCAN = tuple(DIRECTIONS)
 #: The four cardinal steps. Used where a diagonal is *not* the same thing as a
 #: neighbour: which room a window faces, and which two rooms a doorway joins
 #: (task-562). A diagonal place is a corner of the room, not the other side of a
@@ -435,6 +446,21 @@ def _way_id(scope_id: str, area_a: str, area_b: str) -> str:
     return f"way_{scope_id}_{a}_{b}"
 
 
+def _placed_area_name(graph, area_id: str) -> str:
+    """The name of a hand-placed area node (task-528), or ``""`` when unresolvable.
+
+    A placed area is not compiled from paint — it is a node the author already
+    wrote — so its name lives in the graph and nowhere in the manifest. The
+    boundary way has to speak it ("Camp Entrance Trail to Road"), which is why
+    ``compile_grid`` takes the graph. ``""`` means "cannot name it": no graph was
+    passed, or the record names a node that is no longer there, and the caller
+    reports the placement rather than minting a way with a dangling end.
+    """
+    node = graph.get_node(str(area_id)) if graph is not None else None
+    name = str(getattr(node, "name", "") or "").strip()
+    return name
+
+
 def _direction_between(a: Tuple[int, int], b: Tuple[int, int]) -> str:
     for name, (dx, dy) in DIRECTIONS.items():
         if (a[0] + dx, a[1] + dy) == b:
@@ -485,8 +511,10 @@ def _way_edges(area_from: str, area_to: str, way_id: str,
 
 
 def _entry_phrases(child_name: str, feature: Optional[str],
-                   delta: Optional[float]) -> Tuple[str, str, List[str]]:
-    """The narrative direction pair for entering a placed feature (task-496).
+                   delta: Optional[float], *,
+                   override: Optional[str] = None
+                   ) -> Tuple[str, str, List[str], Optional[str]]:
+    """The narrative direction pair for entering a placed feature (task-496, 529).
 
     Outdoors a cell-to-cell move is a compass word (``north``/``south``/…),
     which stays. Entering a *feature* is not a compass move — you go **in** — so
@@ -495,9 +523,17 @@ def _entry_phrases(child_name: str, feature: Optional[str],
     places. A cave mouth in a cliff says "climb down into the cave", a plain
     cell says "enter".
 
-    Returns ``(in_phrase, out_phrase, aliases)``. ``aliases`` are the short
-    words kept working as exit handles (``go in``, ``go out``) — the matcher's
-    alias tier reads them, so widening the vocabulary never takes a command away.
+    Returns ``(in_phrase, out_phrase, aliases, phrase_in)`` where ``phrase_in`` is
+    the same inward phrase or ``None`` when the seam is an ordinary compass step —
+    the area description uses it to *offer* the move ("you could go down the
+    tunnel") instead of listing it as another bracket to type (task-529).
+
+    Two sources outrank the template chain, and both are read here so the ordering
+    lives in one place: the **record** (a ``tunnel`` says "go down the tunnel") and
+    the **placement's** ``entry_phrase``, which is the author naming *this* mouth
+    of a tunnel a world may have several of. ``aliases`` are the short words kept
+    working as exit handles (``go in``, ``go out``) — the matcher's alias tier
+    reads them, so widening the vocabulary never takes a command away.
     """
     feature_name = str((biomes_mod.features() or {}).get(str(feature or ""), {})
                        .get("name") or "").lower()
@@ -511,24 +547,47 @@ def _entry_phrases(child_name: str, feature: Optional[str],
     climb = delta is not None and delta >= CLIFF_FLOOR_DELTA
     drop = delta is not None and delta <= -CLIFF_FLOOR_DELTA
 
+    def done(inward: str, outward: str, aliases: List[str]
+             ) -> Tuple[str, str, List[str], Optional[str]]:
+        return (inward, outward, aliases, inward or None)
+
+    # The author, for this placement (task-529). A bare phrase covers both ways
+    # unless the record has something to say, and an override never loses the
+    # short "in"/"out" handles — those are what the matcher's alias tier reads.
+    own = str(override or "").strip()
+    if own:
+        from_record = biomes_mod.entry_phrases(feature) or {}
+        outward = str(from_record.get("out") or "").strip() or "leave"
+        aliases = list(from_record.get("aliases") or []) or ["in", "out"]
+        return done(own, outward, aliases)
+
+    # The vocabulary (task-529): a record that declares its own seam says so, and a
+    # record that declares only the way back still gets to own the way back.
+    declared = biomes_mod.entry_phrases(feature)
+    if declared:
+        inward = declared["in"] or (f"enter {subject}" if subject else "")
+        outward = declared["out"] or (f"leave {subject}" if subject else "leave")
+        aliases = list(declared.get("aliases") or ["in", "out"])
+        return done(inward, outward, aliases)
+
     if feature_name in ("tunnel", "cave") or "mine" in feature_name:
-        return ("climb down into the tunnel" if climb else "enter the tunnel",
-                "climb back out of the tunnel", ["in", "out", "tunnel"])
+        return done("climb down into the tunnel" if climb else "enter the tunnel",
+                    "climb back out of the tunnel", ["in", "out", "tunnel"])
     if feature_name == "ford":
-        return ("wade across the ford", "wade back across", ["in", "out", "ford"])
+        return done("wade across the ford", "wade back across", ["in", "out", "ford"])
     if feature_name == "bridge":
-        return ("cross the bridge", "cross back over", ["in", "out", "bridge"])
+        return done("cross the bridge", "cross back over", ["in", "out", "bridge"])
     if feature_name == "gate":
-        return ("pass through the gate", "pass back through", ["in", "out", "gate"])
+        return done("pass through the gate", "pass back through", ["in", "out", "gate"])
     if climb:
-        return (f"climb up into {subject}", f"climb back down out of {subject}",
-                ["in", "out"])
+        return done(f"climb up into {subject}", f"climb back down out of {subject}",
+                    ["in", "out"])
     if drop:
-        return (f"climb down into {subject}", f"climb back up out of {subject}",
-                ["in", "out"])
+        return done(f"climb down into {subject}", f"climb back up out of {subject}",
+                    ["in", "out"])
     if subject:
-        return (f"enter {subject}", "leave", ["in", "out"])
-    return (GATEWAY_IN, GATEWAY_OUT, [])
+        return done(f"enter {subject}", "leave", ["in", "out"])
+    return done(GATEWAY_IN, GATEWAY_OUT, [])
 
 
 def _floor_value(layer: Dict[str, object],
@@ -547,6 +606,14 @@ def _floor_value(layer: Dict[str, object],
         return None
 
 
+#: Placement keys the **compiler** writes, and which a rebuild therefore
+#: overwrites. Everything else on a placement is the author's and must survive a
+#: Generate (task-529's ``entry_phrase`` is the first such field).
+_DERIVED_PLACEMENT_KEYS = frozenset({
+    "x", "y", "area_id", "area_name", "sides",
+})
+
+
 def _gateway_id(parent_id: str, child_id: str) -> str:
     return f"way_gateway_{parent_id}_{child_id}"
 
@@ -556,7 +623,8 @@ def _gateway(parent_id: str, child_id: str, parent_area: str, parent_name: str,
              recipe_id: str, seed: str, tick: int,
              cell: Optional[Tuple[int, int]] = None,
              enter: str = GATEWAY_IN, leave: str = GATEWAY_OUT,
-             aliases: Optional[List[str]] = None) -> Tuple[Node, List[Edge]]:
+             aliases: Optional[List[str]] = None,
+             entry_phrase: Optional[str] = None) -> Tuple[Node, List[Edge]]:
     """The way from a parent's placed cell into a child scope's entry area.
 
     Deterministic and self-contained: it depends only on ids/names both sides
@@ -564,6 +632,8 @@ def _gateway(parent_id: str, child_id: str, parent_area: str, parent_name: str,
 
     ``enter``/``leave`` are the narrative direction pair (see
     :func:`_entry_phrases`); ``aliases`` keep the short handles working.
+    ``entry_phrase`` is the same inward phrase, recorded so the area description
+    can *offer* the move rather than list it as another bracket to type (task-529).
     """
     way_id = _gateway_id(parent_id, child_id)
     props = {
@@ -581,6 +651,13 @@ def _gateway(parent_id: str, child_id: str, parent_area: str, parent_name: str,
         "child_scope_id": child_id,
         "generated": provenance(parent_id, recipe_id, seed, tick)["generated"],
     }
+    if entry_phrase:
+        # The seam is a *move*, not a direction, and the description has to be able
+        # to say so. The id is a child scope, so the phrase is always present here;
+        # the `in` ways of task-563 carry their own for the same reason.
+        props["entry_phrase"] = entry_phrase
+        props["entry_target"] = entry_name
+        props["pass_message"] = f"You {entry_phrase}."
     if aliases:
         # The matcher reads aliases as exit handles (its alias tier), so "go in"
         # keeps resolving even though the direction is now a phrase.
@@ -748,6 +825,15 @@ def _enter_way(scope_id: str, child_id: Optional[str], from_area: str,
         # even though the provenance says the parent (the gateway's rule), so
         # regenerating an interior cannot leave a way pointing into nothing.
         props["child_scope_id"] = child_id
+    # The phrase is recorded as a phrase, not only as a direction (task-529), so
+    # the description can offer the move — "you could enter the tavern" — instead
+    # of listing `[enter the tavern]` beside the compass ways like a fourth wall.
+    # A building record may say it differently ("push through the tavern door"),
+    # and a building that owns an interior overrides it the same way a placement
+    # does.
+    props["entry_phrase"] = str(
+        (biomes_mod.biome(biome_id) or {}).get("entry_phrase") or enter)
+    props["entry_target"] = to_name
     node = Node(id=way_id, type="way", name=f"{from_name} - {subject} door",
                 properties=props)
     # Only the two edges that let you in — see the docstring on why there is no
@@ -762,20 +848,48 @@ def _enter_way(scope_id: str, child_id: Optional[str], from_area: str,
     ]
 
 
-def _regions(cells: List[Tuple[int, int]], identity):
+def _regions(cells: List[Tuple[int, int]], identity, *,
+             default_merge: bool = True,
+             always_merge: Optional[Set[Tuple[int, int]]] = None,
+             never_merge: Optional[Set[Tuple[int, int]]] = None):
     """Flood-fill 8-neighbour cells of the same *identity* into ordered regions.
 
     ``identity`` maps a cell to what kind of place it is — the road if one is
     painted, else the biome (task-496). Passing the identity function rather
     than a biome map is what lets a run of road cells merge into one road area
     while staying distinct from the forest beside it.
+
+    ``default_merge`` is the scope's own merge switch, and it is the *default*, not
+    the rule: ``always_merge`` and ``never_merge`` are per-kind overrides of it
+    (task-564), passed as *cells* rather than as rules because the rule is resolved
+    by the caller, which has the biome and road layers and the taxonomy.
+
+    Two overrides, and they are resolved in one place on purpose. A region is
+    exactly a connected set of like cells, so a cell in ``never_merge`` never joins
+    the region of the cell it is scanning from, and a cell in ``always_merge``
+    joins it even with the switch off — otherwise turning the switch off to stop a
+    terrace of cottages becoming one house would also shred a corridor into ten
+    one-cell rooms, which is the other half of the same problem.
     """
     remaining = set(cells)
+    always_merge = always_merge or set()
+    never_merge = never_merge or set()
+
+    def joins(cell, nb) -> bool:
+        """May ``cell`` and its like-identity neighbour ``nb`` be one place?"""
+        if identity(nb) != identity(cell):
+            return False
+        both_forced = cell in always_merge and nb in always_merge
+        if both_forced:
+            return True
+        if cell in never_merge or nb in never_merge:
+            return False
+        return default_merge
+
     regions: List[List[Tuple[int, int]]] = []
     for start in sorted(cells, key=lambda c: (c[1], c[0])):
         if start not in remaining:
             continue
-        kind = identity(start)
         stack = [start]
         remaining.discard(start)
         comp = []
@@ -784,11 +898,139 @@ def _regions(cells: List[Tuple[int, int]], identity):
             comp.append(cell)
             for dx, dy in DIRECTIONS.values():
                 nb = (cell[0] + dx, cell[1] + dy)
-                if nb in remaining and identity(nb) == kind:
+                if nb in remaining and joins(cell, nb):
                     remaining.discard(nb)
                     stack.append(nb)
         regions.append(sorted(comp, key=lambda c: (c[1], c[0])))
     return regions
+
+
+def _region_climate(cells: List[Tuple[int, int]], cell_climate
+                    ) -> Tuple[str, bool]:
+    """One climate for a region, and whether its cells disagreed (task-557).
+
+    Returns ``(climate, mixed)``.
+
+    **Majority of cells, ties broken by the region's first cell in row-major
+    order.** Both halves are there for a reason. A majority is how a real climate
+    is summarised — one place is one climate, and a handful of cells painted the
+    other way does not make the place two climates. The tie-break makes the
+    answer *deterministic*: an even split of a 2-cell region would otherwise
+    depend on iteration order, and a grid that compiled differently on two
+    machines is the bug this whole task is about.
+
+    Unpainted cells are not votes. They are ``None`` here and simply do not count,
+    so a region that is one painted cell of ``arctic`` in a sea of nothing is
+    arctic — and a region with nothing painted at all is left for the caller to
+    treat as temperate, which is the engine's long-standing 21 °C.
+    """
+    votes: Dict[str, int] = {}
+    first: Dict[str, Tuple[int, int]] = {}
+    for cell in sorted(cells, key=lambda c: (c[1], c[0])):
+        climate = cell_climate(cell)
+        if not climate:
+            continue
+        votes[climate] = votes.get(climate, 0) + 1
+        if climate not in first:
+            first[climate] = cell
+    if not votes:
+        return "", False
+    best = max(votes.values())
+    tied = [c for c, n in votes.items() if n == best]
+    if len(tied) == 1:
+        winner = tied[0]
+    else:
+        winner = min(tied, key=lambda c: (first[c][1], first[c][0]))
+    return winner, len(votes) > 1
+
+
+def _merge_always_cells(cells: List[Tuple[int, int]], cell_biome, cell_road
+                        ) -> Set[Tuple[int, int]]:
+    """Cells whose kind says "merge me with my like" (task-564)."""
+    return {c for c in cells
+            if biomes_mod.merge_rule(cell_biome(c) or cell_road(c)) == biomes_mod.MERGE_ALWAYS}
+
+
+def _merge_never_cells(cells: List[Tuple[int, int]], cell_biome, cell_road
+                       ) -> Set[Tuple[int, int]]:
+    """Cells whose kind says "never merge me" (task-564) — every building.
+
+    A building cell is a **plot**: the terrace next door is another building, and a
+    merged pair would be one house with one door and the wrong number of beds. The
+    rule comes from :func:`biomes_mod.merge_rule`, which reads ``merge:never`` off
+    the record and reports every building as never-merge without 31 records having
+    to say so.
+    """
+    return {c for c in cells
+            if biomes_mod.merge_rule(cell_biome(c) or cell_road(c)) == biomes_mod.MERGE_NEVER}
+
+
+#: Storeys you may stride between on open ground before the step stops being a
+#: walk (task-525). Three is chosen so an ordinary building is free — a house with
+#: a cellar is two — and a cliff, a keep wall or the side of a ravine is not.
+#: Per-scope overridable; see :func:`_climb_threshold`.
+DEFAULT_MAX_STOREY_STEP = 3
+
+
+def _climb_threshold(record: Dict[str, dict]) -> int:
+    """How many storeys a stride may cross in this scope (task-525).
+
+    **Per scope**, not global and not per biome, because the two scopes that care
+    about a storey want different numbers: a wilderness world wants three (a cliff
+    is a cliff) and a mountain range wants eight (its whole subject is height). A
+    global setting would make one of those two wrong for the other, and a
+    per-biome one would mean the answer depends on which *end* you are standing on.
+
+    An interior opts out entirely by being an interior, not by raising the number:
+    see the ``mode`` check in :func:`_climb_step`.
+    """
+    raw = (record.get("climb") or {}).get("max_storey_step")
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return DEFAULT_MAX_STOREY_STEP
+    return max(0, value)
+
+
+def _climb_step(record: Dict[str, dict], scope_id: str, cell, nb,
+                cell_road, threshold: int, scope_mode: str,
+                to_name: str) -> Optional[dict]:
+    """Decide whether one grid step is a climb rather than a walk (task-525).
+
+    ``None`` means it is an ordinary step and the caller emits the usual way.
+
+    Where a storey step is **terrain**, a step past the threshold needs a climb,
+    and the way says so and refuses to be walked. Two things keep it from being a
+    silent trap:
+
+    - **Only in ``world`` scopes.** A storey step inside a town or an interior is a
+      staircase, not a rockface: rooms stack freely, and a plan is *supposed* to
+      put a cellar four storeys under a hall. Gating those would make the indoor
+      vocabulary of task-568 unusable, so interior stacking is never gated.
+    - **A road across the step is a built path** and carries you. That is the
+      "unless a feature provides the move" clause, and it reuses the road layer the
+      author is already painting rather than inventing a `ledge` vocabulary — paint
+      the switchbacks, and the cliff is walkable; leave it as grass, and it is not.
+    """
+    if scope_mode != "world":
+        return None
+    step = abs(wg.floor_at(record, *cell) - wg.floor_at(record, *nb))
+    if step <= threshold:
+        return None
+    rising = wg.floor_at(record, *nb) > wg.floor_at(record, *cell)
+    road_here = str(cell_road(cell) or "")
+    road_there = str(cell_road(nb) or "")
+    provided_by = "road" if (road_here and road_there) else None
+    verb = "climb" if rising else "drop"
+    return {
+        "storeys": step,
+        "rising": rising,
+        "provided_by": provided_by,
+        # Said as a place, because that is what the description composes from.
+        "refusal": (f"The {verb} is {step} storeys of bare ground — you would need "
+                    f"a path cut into it, or a way round."),
+        "message": (f"You {verb} {step} storeys by the path to {to_name}."),
+    }
 
 
 def _nearest_cells(cells_a: Set[Tuple[int, int]], cells_b: Set[Tuple[int, int]],
@@ -845,12 +1087,19 @@ def _region_components(n_regions: int,
 def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
                  region_merge: bool = False, link_islands: bool = True,
                  recipe_id: str = RECIPE_ID,
-                 seed: Optional[str] = None, tick: int = 0) -> GenerationPatch:
+                 seed: Optional[str] = None, tick: int = 0,
+                 graph=None) -> GenerationPatch:
     """Compile one scope's painted grid into an area/way ``GenerationPatch``.
 
     ``link_islands`` joins each disconnected component to the main landmass with
     a single way between the closest pair of cells, so a lone painted cell or a
     far island is reachable instead of compiling to a dead end.
+
+    ``graph`` is needed only for the boundary ways of hand-placed areas
+    (task-528): a placed area is an existing node, and the way that names it has
+    to read that node's name. Without it the compiler still mints every other way
+    and reports the placements it could not name, rather than minting a way called
+    ``to area_whatever``.
 
     Raises ``ValueError`` when the scope is missing, has no grid, paints no
     cells, or its ``paint_policy`` is ``baked`` and it is already materialized.
@@ -874,12 +1123,15 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
     # (rooms, decks, a storey of a skyscraper, the airlock of a spaceship), where
     # a storey step is a staircase rather than a rockface.
     outdoor = str(record.get("mode") or "world") == "world"
+    #: Painted climates that are not one of the five, for the report (task-557).
+    unknown_climates: Set[str] = set()
 
     width, height = wg.grid_size(record)
     layers = record.get("layers") or {}
     biome_layer = layers.get("biome") or {}
     road_layer = layers.get("road") or {}
     floor_layer = wg.layer_cells(record, "floor")
+    climate_layer = wg.layer_cells(record, "climate")
 
     biome_of: Dict[Tuple[int, int], str] = {}
     for y in range(height):
@@ -895,6 +1147,19 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
             if value not in (None, ""):
                 road_of[(x, y)] = str(value)
 
+    climate_of: Dict[Tuple[int, int], str] = {}
+    for y in range(height):
+        for x in range(width):
+            value = climate_layer.get(wg.cell_key(x, y))
+            text = str(value or "").strip().lower()
+            if text in wg.CLIMATE_BASE_C:
+                climate_of[(x, y)] = text
+            elif text:
+                # A climate that is not one of the five is a typo, and it is worth
+                # saying so: silently compiling it to temperate would leave the
+                # author staring at a temperate map they never painted.
+                unknown_climates.add(f"{text!r} at ({x},{y})")
+
     # **Every painted cell is a place** (task-496, observer-view model). A
     # road-only cell is no longer dropped: it compiles to an area whose terrain
     # IS the road. A road cell *replaces* its biome rather than adding a second
@@ -907,6 +1172,10 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
 
     def cell_biome(cell: Tuple[int, int]) -> Optional[str]:
         return biome_of.get(cell)
+
+    def cell_climate(cell: Tuple[int, int]) -> Optional[str]:
+        """The coarse climate painted on a cell, or ``None`` when unpainted."""
+        return climate_of.get(cell)
 
     def is_structure(cell: Tuple[int, int]) -> bool:
         """A cell that is structure rather than a place (task-562).
@@ -942,15 +1211,25 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
     # never create a second one on top. The paint itself stays on the record, so
     # the WorldPainter still shows the cell.
     placed = wg.area_placements(record)
+    placed_areas: Dict[Tuple[int, int], str] = {}
     if placed:
         occupied = {wg.cell_key(x, y)
                     for x, y in ((pos["x"], pos["y"]) for pos in placed.values())}
         cells = [c for c in cells if wg.cell_key(*c) not in occupied]
+        # The same placements, keyed the other way round: the boundary pass below
+        # walks *from* a placed cell, so it needs cell → area id. A malformed
+        # coordinate was already dropped by ``normalise_grid``, so a direct index
+        # is safe; a record built in memory (a test, a route) is not, hence the
+        # guard rather than an assumption.
+        for area_id, pos in sorted(placed.items()):
+            try:
+                placed_areas[(int(pos["x"]), int(pos["y"]))] = str(area_id)
+            except (KeyError, TypeError, ValueError):
+                continue
         if not cells:
             raise ValueError(
                 f"scope {scope_id!r} paints no cells left to compile: every painted "
                 f"cell holds a hand-placed area ({len(placed)} placed)")
-
     if not cells:
         raise ValueError(f"scope {scope_id!r} paints no cells")
 
@@ -1015,7 +1294,28 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
                 out.add(direction)
         return out
 
-    region_lists = _regions(cells, identity) if region_merge else [[c] for c in cells]
+    # Region merging (task-564) is **per kind**, not one switch for the scope.
+    # `_regions` is a flood fill over equal identities, so the switch has always
+    # been "merge everything"; what a floor plan needs is a rule per kind inside
+    # that fill, or one of three things happens:
+    #   * a corridor painted as a ten-cell run is ten anonymous rooms;
+    #   * a terrace of cottages is one enormous house with one door;
+    #   * turning the switch off to fix the second undoes the first.
+    # So a cell whose kind declares ``merge:always`` merges whatever the switch
+    # says, a ``merge:never`` kind never does, and everything else follows the
+    # switch — which is exactly the behaviour every biome shipped with, so a
+    # wilderness scope compiles identically to before.
+    #
+    # A steep grid step is a climb, not a walk, and this is the one thing about it
+    # the scope decides rather than the cell: how many storeys a stride may cross
+    # before it needs a path (task-525). Read once, here, so every emitter below
+    # gates the same number and the generate report can name it.
+    scope_mode = str(record.get("mode") or "")
+    climb_threshold = _climb_threshold(record)
+    always_merge = _merge_always_cells(cells, cell_biome, cell_road)
+    never_merge = _merge_never_cells(cells, cell_biome, cell_road)
+    region_lists = _regions(cells, identity, default_merge=region_merge,
+                            always_merge=always_merge, never_merge=never_merge)
     regions: List[List[Tuple[int, int]]] = region_lists
     cell_region: Dict[Tuple[int, int], int] = {}
     for index, region in enumerate(regions):
@@ -1106,6 +1406,9 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
     #: Ids of the ``in`` ways already emitted, so a building whose region touches
     #: the same neighbour on two sides does not mint the way twice (task-563).
     enter_way_ids: Set[str] = set()
+    #: ``(area id, climate)`` for every region whose cells did not agree on one
+    #: climate, reported so a stray brush stroke is visible (task-557).
+    climate_mixed_regions: List[Tuple[str, str]] = []
 
     for index, region in enumerate(regions):
         anchor = region_anchor[index]
@@ -1113,6 +1416,7 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
         road = cell_road(anchor)
         area_id = area_id_of_region[index]
         area_scope_assignments[area_id] = scope_id
+        cells_of_index = region
 
         # Neighbours are anything adjacent to a *region* cell but outside the
         # region; a direction counts as an exit when such a neighbour exists.
@@ -1184,6 +1488,32 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
             # Kept even on a road cell: the biome underneath is the context the
             # description and the tags read ("a road in the woods").
             props["biome"] = biome_id
+        # The region's climate, aggregated from its cells into a `base_temperature`
+        # (task-557). **Climate is not part of a region's identity** — it is a
+        # property of the place, aggregated the way a real climate is: one climate
+        # per area, majority of cells, ties broken by the region's first cell in
+        # the compiler's stable (row-major) order so the same grid always gives
+        # the same answer. A climate boundary therefore never splits an area the
+        # way a road does: painting the far half of a field arid leaves one field
+        # with one climate, which is the only reading an author would accept.
+        #
+        # **World scopes only.** A `town` or `interior` is built space, and the
+        # outdoor temperature model is world-scoped (task-525 makes the same
+        # distinction for a storey step being a staircase rather than a rockface).
+        # A hall is not −8 °C because someone painted arctic on it: interior air is
+        # the propagation model's business, not a climate brush's.
+        region_climate, climate_mixed = ("", False)
+        if outdoor:
+            region_climate, climate_mixed = _region_climate(cells_of_index,
+                                                             cell_climate)
+        if region_climate or climate_mixed:
+            props["climate"] = region_climate or wg.DEFAULT_CLIMATE
+            env = props.setdefault("environment", {})
+            env["base_temperature"] = wg.climate_base_c(region_climate)
+            if climate_mixed:
+                # Said, not silent: a region whose cells disagree is the author's
+                # brush straying, and they should hear about it once.
+                climate_mixed_regions.append((area_id, region_climate))
         if child_scope_id:
             props["child_scope_id"] = child_scope_id
         # A building cell is a place you go *into* rather than a cell you step
@@ -1207,14 +1537,22 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
     edges: List[Edge] = []
     emitted_pairs: Set[Tuple[int, int]] = set()
 
-    def emit_passage(region_a: int, region_b: int,
+    def emit_passage(from_area: str, from_name: str, to_area: str, to_name: str,
                      cell: Tuple[int, int], nb: Tuple[int, int],
                      direction: str, floor_biome: str,
-                     kind: str = "open") -> None:
-        from_area = area_id_of_region[region_a]
-        to_area = area_id_of_region[region_b]
-        from_name = region_area_name[region_a]
-        to_name = region_area_name[region_b]
+                     kind: str = "open", *,
+                     climb: Optional[dict] = None) -> str:
+        """Mint one way between two named places and return its id.
+
+        The two areas are passed by id rather than looked up from a region index,
+        so the same emitter serves a region boundary, a painted doorway, an
+        island link **and** the boundary of a hand-placed area (task-528), which
+        is a place the region table knows nothing about.
+
+        *climb* is a steep-step decision from task-525 — ``None`` for every way
+        that is an ordinary step, and a dict when the storey delta is too big to
+        walk. See :func:`_climb_step` for what it decides and what opens the step.
+        """
         way_id = _way_id(scope_id, from_area, to_area)
         road_id = cell_road(cell)
         storey_delta = abs(wg.floor_at(record, *cell) - wg.floor_at(record, *nb))
@@ -1269,24 +1607,52 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
         # A pass message that says what the edge *is* (task-562), because that is
         # the difference the author painted and the character should feel it.
         if kind == "stairs":
+            # A stairway the author drew on one storey crosses no storey, so the
+            # count would read "You climb 0 storeys" — true of the geometry and
+            # nonsense as a sentence. The *kind* is what they painted, so it is
+            # what the sentence says; the number is only there when there is one
+            # (task-568).
             way_props["pass_message"] = (
                 f"You climb {storey_delta} storey"
-                f"{'s' if storey_delta != 1 else ''} to {to_name}.")
+                f"{'s' if storey_delta != 1 else ''} to {to_name}."
+                if storey_delta else f"You take the stairs to {to_name}.")
         elif kind == "door":
             way_props["pass_message"] = f"You go through the door into {to_name}."
-        if kind == "door":
-            # A door is named rather than steered: `way_handle` prefers a
-            # non-empty direction, so an *empty* one is what makes "go through the
-            # door" resolve (see engine/matching.py). The direction stays set for
-            # the command the author expects ("go east"), and the way's name is what
-            # a *name-based* exit matches on.
-            way_props["handle"] = "door"
-            way_props["aliases"] = ["door", "through", "in", "out"]
+        if climb:
+            # A storey step too big to stride (task-525). This is the one way kind
+            # that is decided by *data the author can change on the cell*, not by
+            # what the cell is: a road across the step is a built path and carries
+            # you, so the same pair compiles as a climb or a walk depending on the
+            # paint. `current_state` is what movement reads — a way with a refusal
+            # and no open state cannot be walked, which is the whole point — so
+            # this has to set it, and it has to say *why* in the refusal rather
+            # than leaving the character to find out.
+            way_props["climb"] = dict(climb)
+            way_props["climb_required"] = not climb.get("provided_by")
+            if climb.get("provided_by"):
+                way_props["current_state"] = "open"
+            else:
+                way_props["current_state"] = "closed"
+                way_props["refusal_message"] = climb["refusal"]
+                way_props["pass_message"] = climb["message"]
+        if kind in ("door", "stairs"):
+            # A threshold is *named* rather than only steered: `way_handle` prefers
+            # a non-empty direction, so a *named* handle is what makes "go through
+            # the door" and "go up the stairs" resolve (see engine/matching.py).
+            # The direction stays set for the command the author expects ("go
+            # east"), and the handle is what a *name-based* exit matches on. A
+            # stairway is a climb whether or not the storey layer says so — the
+            # author painted `stairway` on one storey — so both spellings get one.
+            way_props["handle"] = "door" if kind == "door" else "stairs"
+            way_props["aliases"] = (["door", "through", "in", "out"] if kind == "door"
+                                    else ["stairs", "stairway", "up", "down",
+                                          "in", "out"])
         nodes.append(Node(id=way_id, type="way",
                           name=f"{from_name} - door" if kind == "door"
                                else f"{from_name} to {to_name}",
                           properties=way_props))
         edges.extend(_way_edges(from_area, to_area, way_id, direction))
+        return way_id
 
     for cell in cells:
         for direction in _SCAN_DIRECTIONS:
@@ -1306,9 +1672,13 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
             # *blocking* a big one is task-525's decision; recording the kind is
             # what lets it be made later without re-deriving it.
             step = abs(wg.floor_at(record, *cell) - wg.floor_at(record, *nb))
-            emit_passage(region_a, region_b, cell, nb,
-                         _direction_between(cell, nb), cell_biome(cell) or "",
-                         "stairs" if step >= 1 else "open")
+            emit_passage(area_id_of_region[region_a], region_area_name[region_a],
+                         area_id_of_region[region_b], region_area_name[region_b],
+                         cell, nb, _direction_between(cell, nb),
+                         cell_biome(cell) or "", "stairs" if step >= 1 else "open",
+                         climb=_climb_step(record, scope_id, cell, nb, cell_road,
+                                           climb_threshold, scope_mode,
+                                           region_area_name[region_b]))
 
     # ── doors: emit the routes a passable structure cell stands for ──
     # A wall stops a route because it occupies the cell between two places, so the
@@ -1324,17 +1694,89 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
         # A passable cell between two *different* storeys is a stairwell, whatever
         # it was painted as: the storey is the stronger signal about what you do
         # crossing it, and a "door" that quietly climbs a floor would be a lie in
-        # the pass message.
-        climbs = wg.floor_at(record, *before) != wg.floor_at(record, *after)
-        emit_passage(region_a, region_b, before, after,
-                     _direction_between(before, after), cell_biome(before) or "",
-                     "stairs" if climbs else "door")
+        # the pass message. The other half of that rule is the author saying so
+        # directly — a cell painted `stairway` between two rooms on the *same*
+        # storey, which is a loft stair or a step down to a cellar drawn flat
+        # (task-568). Both spellings must agree, or the same plan compiles two
+        # different ways depending on which cell the author happened to mark.
+        step = abs(wg.floor_at(record, *before) - wg.floor_at(record, *after))
+        climbs = step > 0 or biomes_mod.is_stair(cell_biome(cell))
+        emit_passage(area_id_of_region[region_a], region_area_name[region_a],
+                     area_id_of_region[region_b], region_area_name[region_b],
+                     before, after, _direction_between(before, after),
+                     cell_biome(before) or "", "stairs" if climbs else "door")
         doorways.append({
             "x": cell[0], "y": cell[1],
             "from": area_id_of_region[region_a],
             "to": area_id_of_region[region_b],
-            "kind": "stairwell" if climbs else "door",
+            # Named for the cell the author painted, not just the storey step: a
+            # stairway drawn on one storey is still a stairway, and the map should
+            # draw it as one.
+            "kind": "stairway" if biomes_mod.is_stair(cell_biome(cell))
+                    else ("stairwell" if step > 0 else "door"),
         })
+
+    # ── hand-placed areas: ways out to the places around them (task-528) ──
+    # A placed area is reserved on its cell and therefore *not* a region, so the
+    # boundary pass above never sees it: the author's own place arrives on the map
+    # with no way to the road beside it and is an island in the graph. This pass
+    # gives every placed area a way to each painted cell touching it, on the same
+    # terms as any other boundary — compass direction, one per pair, `kind` from
+    # the storey step — so "place my watch house on the map" makes it walkable
+    # rather than decorative.
+    #
+    # **A draft, not a decision.** The author owns these ways the moment they are
+    # minted: they can edit, delete, or replace them, and `boundary_overrides`
+    # records that so the next Generate leaves the seam alone. That is why the
+    # override is consulted *here* rather than at the end — a suppressed seam must
+    # not be minted even once, or a regenerate would resurrect what the author
+    # deleted.
+    boundary_ways = 0
+    boundary_suppressed = 0
+    boundary_unnamed: List[str] = []
+    #: Generated way ids already minted *or* deliberately skipped for a placed
+    #: area's seam, so a pair joined from both of its cells is one way and a
+    #: suppressed seam is skipped once rather than counted twice.
+    seen_boundary_ids: Set[str] = set()
+    for cell, area_id in sorted(placed_areas.items()):
+        placed_name = _placed_area_name(graph, area_id)
+        if not placed_name:
+            # No node to point at: a way whose endpoint is a name in the manifest
+            # but a ghost in the graph is worse than no way, and the author is
+            # told which placement is the problem rather than left with a hole.
+            boundary_unnamed.append(area_id)
+            continue
+        for direction in _BOUNDARY_SCAN:
+            dx, dy = DIRECTIONS[direction]
+            nb = (cell[0] + dx, cell[1] + dy)
+            region_index = cell_region.get(nb)
+            if region_index is not None:
+                other_area = area_id_of_region[region_index]
+                other_name = region_area_name[region_index]
+            else:
+                other_area = placed_areas.get(nb)
+                if not other_area:
+                    continue
+                other_name = _placed_area_name(graph, other_area)
+                if not other_name:
+                    continue
+            way_id = _way_id(scope_id, area_id, other_area)
+            if way_id in seen_boundary_ids:
+                continue          # one passage per pair, either direction
+            if wg.is_boundary_overridden(record, way_id):
+                boundary_suppressed += 1
+                seen_boundary_ids.add(way_id)
+                continue
+            seen_boundary_ids.add(way_id)
+            step = abs(wg.floor_at(record, *cell) - wg.floor_at(record, *nb))
+            emit_passage(area_id, placed_name, other_area, other_name,
+                         cell, nb, _direction_between(cell, nb),
+                         cell_biome(cell) or "", "stairs" if step >= 1 else "open",
+                         # A placed area can be parked on a cliff as easily as on a
+                         # road, so its seams obey the same gate (task-525).
+                         climb=_climb_step(record, scope_id, cell, nb, cell_road,
+                                           climb_threshold, scope_mode, other_name))
+            boundary_ways += 1
 
     # ── buildings: you go in, you do not walk on (task-563) ──
     # A building cell is entered with `in` from every side that already has a
@@ -1433,7 +1875,9 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
                         emitted_pairs.add(pair)
                         linked += 1
                         emit_passage(
-                            region_a, region_b, ca, cb,
+                            area_id_of_region[region_a], region_area_name[region_a],
+                            area_id_of_region[region_b], region_area_name[region_b],
+                            ca, cb,
                             _compass_direction(cb[0] - ca[0], cb[1] - ca[1]),
                             # `cell_biome(... ) or ""`, not `biome_of[ca]`.
                             # A cell is a place if it has a biome **or a road**
@@ -1511,6 +1955,9 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
     # itself is emitted by whichever scope compiles second: the parent here if
     # the child is already materialized, otherwise the child when it compiles.
     placement_updates: Dict[str, dict] = {}
+    #: Hand-placed areas that are a child's **doorstep** rather than a compiled
+    #: region (task-535). Reported, never minted: the author's own way is the seam.
+    hand_gated: List[str] = []
     for child_id, pos in sorted((record.get("placements") or {}).items()):
         if not isinstance(pos, dict):
             continue
@@ -1518,7 +1965,15 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
             cell = (int(pos.get("x")), int(pos.get("y")))
         except (TypeError, ValueError):
             continue
-        clean: Dict = {"x": cell[0], "y": cell[1]}
+        # The author's own fields on the placement are carried through first, so a
+        # Generate cannot drop them: ``clean`` is rebuilt from the cell every time
+        # (that is how the derived area id and door sides stay correct), and a
+        # regenerate would otherwise quietly delete anything the compiler did not
+        # write — an ``entry_phrase`` for this mouth of a tunnel, say (task-529).
+        # Derived keys are then overwritten, so a stale id never survives.
+        clean: Dict = {k: v for k, v in pos.items() if k not in _DERIVED_PLACEMENT_KEYS}
+        clean["x"] = cell[0]
+        clean["y"] = cell[1]
         region_index = cell_region.get(cell)
         if region_index is not None:
             clean["area_id"] = area_id_of_region[region_index]
@@ -1530,6 +1985,14 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
         # naming for the sake of one string.
         if cell in sides_by_cell:
             clean["sides"] = sides_by_cell[cell]
+        # A placement sharing its cell with a hand-placed area is *hand-gated*
+        # (task-535): the author promoted a selection into this child and pointed
+        # it at the entrance they had already parked there, so the seam is their
+        # own way rather than a compiled gateway. The cell is not a region, so
+        # nothing is minted here — and without a word in the report the author
+        # would be left wondering why no gateway appeared.
+        if pos.get("gateway_from"):
+            hand_gated.append(str(pos["gateway_from"]))
         placement_updates[str(child_id)] = clean
 
         child = manifest.get(child_id) or {}
@@ -1538,15 +2001,18 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
         child_entry = str(child.get("entry_area_id")
                           or sorted(child["area_ids"])[0])
         # The entry phrase is sourced from the placement: the road feature on the
-        # parent cell, and the floor step between the two places.
-        enter, leave, handles = _entry_phrases(
+        # parent cell, the floor step between the two places, and the author's own
+        # wording for this mouth of it (task-529).
+        enter, leave, handles, phrase = _entry_phrases(
             str(child.get("name") or child_id), cell_road(cell),
-            _entry_delta(record, child_id, cell))
+            _entry_delta(record, child_id, cell),
+            override=pos.get("entry_phrase"))
         node, gw_edges = _gateway(
             scope_id, str(child_id), clean["area_id"], clean["area_name"],
             child_entry, str(child.get("entry_area_name") or child_entry),
             str(child.get("name") or child_id), recipe_id, seed, tick,
-            cell=cell, enter=enter, leave=leave, aliases=handles)
+            cell=cell, enter=enter, leave=leave, aliases=handles,
+            entry_phrase=phrase)
         if node.id not in gateway_ids:
             gateway_ids.add(node.id)
             nodes.append(node)
@@ -1565,15 +2031,16 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
             pos_cell = (int(pos.get("x")), int(pos.get("y")))
         except (TypeError, ValueError):
             pos_cell = None
-        enter, leave, handles = _entry_phrases(
+        enter, leave, handles, phrase = _entry_phrases(
             str(record.get("name") or scope_id), _parent_cell_feature(manifest, scope_id, pos_cell),
-            _reverse_entry_delta(manifest, parent_id, scope_id))
+            _reverse_entry_delta(manifest, parent_id, scope_id),
+            override=pos.get("entry_phrase"))
         node, gw_edges = _gateway(
             str(parent_id), scope_id,
             str(pos["area_id"]), str(pos.get("area_name") or pos["area_id"]),
             entry_area_id, entry_area_name, str(record.get("name") or scope_id),
             recipe_id, seed, tick, cell=pos_cell,
-            enter=enter, leave=leave, aliases=handles)
+            enter=enter, leave=leave, aliases=handles, entry_phrase=phrase)
         if node.id not in gateway_ids:
             gateway_ids.add(node.id)
             nodes.append(node)
@@ -1613,6 +2080,13 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
 
     notes = [f"{len(regions)} area(s), {len(emitted_pairs)} passage(s)"
              + (" (region-merged)" if region_merge else "")]
+    if hand_gated:
+        shown = ", ".join(sorted(hand_gated)[:4])
+        if len(hand_gated) > 4:
+            shown += " …"
+        notes.append(f"{len(hand_gated)} placement(s) gated on a hand-placed area "
+                     f"({shown}): no gateway minted, the author's own way is the "
+                     f"seam")
     if structure:
         # Structure is invisible in the node count, so say it: a scope that lost 40
         # cells to walls is not a scope that compiled 40 fewer places by accident.
@@ -1624,6 +2098,18 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
                      + ", ".join(f"{n} {k}" for k, n in sorted(kinds.items())))
     if windows:
         notes.append(f"{len(windows)} window(s) recorded on the places they face")
+    if climate_mixed_regions:
+        # One region, one climate, and the author hears when the brush disagreed
+        # with itself rather than finding out by wondering why a field is not as
+        # cold as the corner they painted.
+        notes.append(f"{len(climate_mixed_regions)} area(s) had cells painted with "
+                     f"more than one climate; the majority won (task-557)")
+    if unknown_climates:
+        shown = sorted(unknown_climates)[:4]
+        notes.append(f"WARNING: {len(unknown_climates)} unknown climate value(s) "
+                     f"ignored: {', '.join(shown)}"
+                     f"{' …' if len(unknown_climates) > 4 else ''}. Expected one of "
+                     f"{', '.join(sorted(wg.CLIMATE_BASE_C))}.")
     if entered:
         # Say the split, not just the total: "4 in-ways, 2 of them shut" tells the
         # author which buildings still owe an interior, and the refusal strings
@@ -1645,6 +2131,36 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
     if isolated:
         notes.append(f"{isolated} area(s) have no exits (nothing else painted "
                      f"to link to)")
+    if placed_areas:
+        # A placed area that minted nothing is the case the author cannot see:
+        # no way, no warning, just a place on the map that nothing reaches. Say
+        # it by name, and say how many seams the author has taken over, so a
+        # Generate that mints fewer ways than last time is not a mystery.
+        notes.append(f"{len(placed_areas)} hand-placed area(s) on the grid"
+                     + (f", {boundary_ways} way(s) minted out to the places "
+                        f"around them" if boundary_ways else
+                        " (none touches a painted place yet)"))
+    if boundary_suppressed:
+        notes.append(f"{boundary_suppressed} boundary way(s) left as the author "
+                     f"set them (deleted or hand-replaced)")
+    # Counted from the minted ways rather than as it happens, so "one more climb"
+    # cannot drift from what the graph actually holds.
+    climbs_gated = sum(1 for n in nodes
+                       if n.type == "way" and (n.properties or {}).get("climb_required"))
+    if climbs_gated:
+        # A gated climb is a way the author cannot walk until they paint a path
+        # over it, so it is said out loud — in the report and, per way, in the
+        # refusal the character would hit.
+        notes.append(f"{climbs_gated} step(s) cross more than {climb_threshold} "
+                     f"storey{'s' if climb_threshold != 1 else ''} and need a path; "
+                     f"paint a road over them to open them")
+    elif climb_threshold != DEFAULT_MAX_STOREY_STEP:
+        notes.append(f"climb threshold: {climb_threshold} storey for this scope "
+                     f"(default {DEFAULT_MAX_STOREY_STEP}); no step crossed it")
+    if boundary_unnamed:        notes.append(f"WARNING: {len(boundary_unnamed)} hand-placed area(s) could "
+                     f"not be named, so no boundary way was minted for them: "
+                     f"{', '.join(sorted(boundary_unnamed)[:6])}"
+                     f"{' …' if len(boundary_unnamed) > 6 else ''}")
     report = GenerationReport(
         scope_id=scope_id, recipe_id=recipe_id, seed=str(seed),
         area_ids=sorted(area_scope_assignments),

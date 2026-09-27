@@ -163,6 +163,10 @@ def register_settings_routes(app):
                 "game_day": int(world.game_day),
                 "game_month": int(world.game_month),
                 "game_year": int(world.game_year),
+                # The engine resolves the season (task-554) and ships it here, so
+                # the sky widget reads the answer instead of keeping its own copy
+                # of the month→season table.
+                "season": world.current_season(),
                 "time": world.get_current_time(),
             })
         except Exception as e:

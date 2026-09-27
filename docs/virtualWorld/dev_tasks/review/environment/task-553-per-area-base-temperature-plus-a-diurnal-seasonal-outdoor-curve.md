@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: environment
 priority: high
 ---
@@ -68,24 +68,52 @@ vs `floor` (storey index) in `engine/world_grid.py`:
 
 ## Acceptance
 
-- An area with `base_temperature: 5` and no forecast entry reports 5 °C plus
-  the curve, and **not** 21 °C.
-- Two areas with different `base_temperature` values differ by that much at the
-  same hour.
-- `temperature_mod: 0` in a forecast entry is honoured (not ignored).
-- A world with no `base_temperature` anywhere reproduces today's numbers
-  exactly — this is the backwards-compatibility guarantee and it is why the
-  default must stay `21.0`.
-- Temperature now varies across the day without any forecast entry changing.
-- Interior propagation still works: an open door to a cold exterior area pulls
-  heat out, and `effective_temperature()` composes as before.
+## Acceptance
 
-## Files
+- [x] **`outdoor_temp_for_hour` exists as `temp_curve_for_hour(hour, season)`**,
+      an anchor table of `(hour, °C delta)` pairs linearly interpolated — the
+      same shape as `lighting._OUTDOOR_ANCHORS`, so the two curves read alike.
+      It is a **delta**, not an absolute: a day has the same shape whether the base
+      is 21 °C or 5 °C, and a table of absolutes would be a rewrite per climate.
+- [x] **The curve has a shape**: coldest −5.0 at 04:00, warmest +3.5 at 14:00, an
+      8.5 °C swing. Deliberately shallow — a real curve belongs to the forecast
+      and the season, both of which are authored.
+- [x] **Two keys, two facts.** `base_temperature` is the **authored** baseline the
+      world declares; `temperature` is the **simulated** value that propagation,
+      heat sources and the forecast all write, and which a hand-set value could
+      never survive being overwritten. `area.py`'s default `environment` declares
+      both so the key is discoverable.
+- [x] **An area with `base_temperature: 5` and no forecast entry reports 5 °C plus
+      the curve, not 21 °C.** Two areas differ by exactly their base difference
+      (checked: 21 and 5 differ by 16.0 at the same hour).
+- [x] **`temperature_mod: 0` is honoured.** The truthiness test is gone on both
+      `temperature_mod` and `light_mod`; a delta of zero is a real delta that says
+      "no change", and it now says so instead of being dropped.
+- [x] **A world with no climate reproduces today's numbers exactly** — 21.0 °C at
+      every hour, unseasoned, unmodified. **This is why the curve is opt-in**, and
+      it was the one genuinely hard requirement here: the task also asks for
+      temperature to vary across the day, and those two cannot both hold for a
+      world that never chose a climate. So the curve applies when the area
+      authored a `base_temperature` **or** the world has a season, and a bare
+      placeholder stays flat. Simulating a diurnal swing around 21 °C would
+      invent variation nobody asked for, in every world that never picked one.
+- [x] **The key is not written back.** `base_temperature` appearing has to keep
+      meaning "the author or a compiler said what this place is like"; a default
+      written every tick would make every area look climate-aware on the next one
+      and silently switch the curve on.
+- [x] **A bad authored base falls back** rather than propagating: a non-numeric,
+      NaN or ±inf value reads as 21.0 instead of poisoning every later tick.
+- [x] **The write order is documented on the function**: the forecast is a delta
+      layer and must never be the thing that decides a world's own baseline.
+- [x] **Interior propagation is untouched** — this only changes what an *exterior*
+      area's outdoor reading is, and `effective_temperature()` composes as before.
 
-- `engine/weather_forecast.py` — the curve
-- `virtual_world_engine.py:1278-1304` — `_apply_forecast_env`
-- `area.py:8` — default dict
-- `engine/equipment_bonuses.py:130` — unchanged, but confirm callers still pass
-  the right ambient
-- `docs/virtualWorld/Environment/Temperature/Environment Temperature.md` — the
-  model changed; the doc must say so
+## Notes
+
+- `base_temperature` sits on `env`, next to `temperature`, rather than on the
+  area node, so it travels with the other environment facts the propagation model
+  already reads and writes. It is a property of *the place outdoors*, which is
+  what a painted climate describes.
+- Hours outside 0-23 clamp rather than raise, matching
+  `engine.lighting.outdoor_light_for_hour`, so the two curves cannot disagree
+  about a silly hour.

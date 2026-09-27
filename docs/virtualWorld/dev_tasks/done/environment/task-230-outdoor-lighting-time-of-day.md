@@ -1,6 +1,10 @@
 ---
 group: Environment & Climate
 status: done
+priority: high
+filed: 2026-08-15
+supersedes: [task-80-outdoor-lighting-day-night.md]
+---
 
 ## Implemented (2026-08-21)
 
@@ -13,10 +17,6 @@ status: done
   `current_game_hour()` (ticks × time_per_tick + clock start, % 24) — ALL existing
   `get_ambient_light` call sites get time-aware outdoor lighting with zero call-site changes.
 - Tests: `tests/test_realism_perception.py` — curve values (5) + outdoor/indoor/floor/provider cases (6).
-priority: high
-filed: 2026-08-15
-supersedes: [task-80-outdoor-lighting-day-night.md]
----
 
 # Task 230: Time-of-Day Outdoor Lighting
 

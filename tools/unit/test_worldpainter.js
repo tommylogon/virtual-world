@@ -434,7 +434,10 @@ test('a building cell is entered with in, and says so when shut (task-563)', () 
 test('the floor layer is a storey index, unbounded and whole', () => {
     // 0 ground, 1 up, -1 down, and as far as the author wants: three stacked
     // rooms, a lake bottom, an 80-storey tower, a hole to hell at -900.
-    assertEq(GM.PAINT_LAYERS, ['biome', 'road', 'floor'], 'layer list');
+    // `climate` is the coarse enum of task-557, which compiles to a per-area
+    // base_temperature. It must stay in this list or the backend drops the layer
+    // on save (engine/world_grid.py normalises against the same tuple).
+    assertEq(GM.PAINT_LAYERS, ['biome', 'road', 'floor', 'climate'], 'layer list');
     assertEq(GM.floorNumber('3'), 3, 'above');
     assertEq(GM.floorNumber('-900'), -900, 'far below');
     assertEq(GM.floorNumber('80'), 80, 'far above');
@@ -536,5 +539,53 @@ test('estimateCompile counts road cells as places, and the road as identity (tas
     };
     assertEq(GM.estimateCompile(taken, false).areas, 1, 'the occupied cell is skipped');
     assertEq(GM.estimateCompile(taken, true).areas, 1, 'merge too');
+});
+
+// ─── the climate layer (task-557) ──────────────────────────────────────────
+
+test('the five climates each carry a base °C and a colour', () => {
+    assertEq(GM.CLIMATE_IDS.length, 5, 'five coarse climates');
+    GM.CLIMATE_IDS.forEach((id) => {
+        const c = GM.CLIMATES[id];
+        assertTrue(!!c && typeof c.base === 'number', `${id} has a numeric base`);
+        assertTrue(!!c.label, `${id} has a label`);
+        assertTrue(/^#[0-9a-f]{6}$/i.test(c.color || ''), `${id} has a hex colour`);
+    });
+    assertEq(GM.CLIMATES.arctic.base < GM.CLIMATES.temperate.base, true,
+        'arctic is colder than temperate');
+    assertEq(GM.DEFAULT_CLIMATE, 'temperate', 'unpainted is temperate');
+});
+
+test('a climate cell paints in its own colour, an unknown one visibly is not', () => {
+    assertEq(GM.layerColor('climate', 'arctic'), GM.CLIMATES.arctic.color, 'known');
+    const typo = GM.layerColor('climate', 'tropcial');
+    assertTrue(typo !== GM.CLIMATES.arctic.color, 'a typo is not painted as a climate');
+    assertEq(GM.layerColor('climate', ''), null, 'unpainted has no colour');
+});
+
+test('the server decides the base °C; the editor only supplies colours', () => {
+    const before = GM.CLIMATE_IDS.slice();
+    // A sixth climate, as the backend would send it: the ids and the number are
+    // adopted, the colour falls back rather than the value being invented here.
+    assertTrue(GM.useClimatesFromVocab({
+        climates: [{ id: 'frozen', base: -30 }, { id: 'arctic', base: -9 }],
+    }), 'a server list is adopted');
+    assertEq(GM.CLIMATE_IDS, ['frozen', 'arctic'], 'ids replaced wholesale');
+    assertEq(GM.CLIMATES.frozen.base, -30, 'the server base wins');
+    assertEq(GM.CLIMATES.arctic.base, -9, 'even for a climate we knew');
+    assertTrue(!!GM.CLIMATES.frozen.color, 'a new climate still gets a colour');
+    // An empty or missing list changes nothing, so a bad response cannot empty
+    // the palette.
+    assertEq(GM.useClimatesFromVocab({ climates: [] }), false, 'empty refused');
+    assertEq(GM.CLIMATE_IDS, ['frozen', 'arctic'], 'and left the list alone');
+    // Put the offline defaults back for the rest of the file.
+    GM.useClimatesFromVocab({
+        climates: [
+            { id: 'arctic', base: -8 }, { id: 'alpine', base: 2 },
+            { id: 'temperate', base: 21 }, { id: 'arid', base: 31 },
+            { id: 'tropical', base: 27 },
+        ],
+    });
+    assertEq(GM.CLIMATE_IDS.length, before.length, 'restored');
 });
 

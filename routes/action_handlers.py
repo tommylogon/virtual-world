@@ -149,6 +149,10 @@ def handle_get_state(app):
             state["game_day"] = int(app.world.game_day)
             state["game_month"] = int(app.world.game_month)
             state["game_year"] = int(app.world.game_year)
+            # task-554: the engine's season, shipped with the clock so the sky
+            # widget and any agent reading the state agree with the temperature
+            # model instead of each carrying their own month→season table.
+            state["season"] = app.world.current_season()
             state["calendar_config"] = dict(getattr(app.world, "calendar_config", {}) or {})
             moon = app.world.current_moon_phase()
             moon["game_day"] = int(app.world.game_day)

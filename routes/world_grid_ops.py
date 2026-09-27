@@ -23,7 +23,7 @@ from typing import Dict, List, Optional
 from flask import jsonify, request
 
 from engine import biomes as biomes_mod
-from engine import generation, world_compile, world_grid, world_scopes
+from engine import generation, interior_gen, world_compile, world_grid, world_scopes
 
 
 # ─────────────────────────────── helpers ──────────────────────────────────
@@ -94,6 +94,51 @@ def _unplaced_areas(graph, manifest: Dict[str, dict]) -> List[dict]:
     return out
 
 
+def _boundary_ways(graph, rec: Dict[str, dict], scope_id: str) -> List[dict]:
+    """The boundary ways this scope minted around its hand-placed areas (task-528).
+
+    A boundary way is recognised by its **endpoints** rather than by its id: one
+    of them is an area the author parked on this grid. That is the same test
+    :func:`handle_boundary_override` uses, kept in one place so the painter can
+    never offer to remove a way the route would then refuse.
+
+    Only this scope's own generated ways, and only ones that still stand: a seam
+    the author removed is in ``boundary_overrides`` instead, so the list is "what
+    Generate put here", with ``overridden`` marking the ones already handed back.
+    """
+    placed_ids = set(world_grid.area_placements(rec))
+    if graph is None or not placed_ids:
+        return []
+    overrides = world_grid.boundary_overrides(rec)
+    out: List[dict] = []
+    for node_id, node in getattr(graph, "nodes", {}).items():
+        if getattr(node, "type", "") != "way":
+            continue
+        props = getattr(node, "properties", {}) or {}
+        if str((props.get("generated") or {}).get("scope_id") or "") != str(scope_id):
+            continue
+        ends = [str(props.get("area_from_id") or ""), str(props.get("area_to_id") or "")]
+        froms = [(a, b) for a, b in zip(ends, ends[::-1]) if a in placed_ids]
+        if not froms:
+            continue
+        placed_id, other_id = froms[0]
+        other = graph.get_node(other_id) if other_id else None
+        out.append({
+            "way_id": node_id,
+            "name": getattr(node, "name", node_id),
+            "area_id": placed_id,
+            "area_name": getattr(graph.get_node(placed_id), "name", placed_id),
+            "to_id": other_id,
+            "to_name": getattr(other, "name", other_id) if other is not None else other_id,
+            "direction": props.get("direction"),
+            "kind": props.get("kind"),
+            "cell": props.get("cell"),
+            "overridden": node_id in overrides,
+        })
+    out.sort(key=lambda row: (str(row["area_name"]).lower(), str(row["to_name"]).lower()))
+    return out
+
+
 def _grid_payload(manifest: Dict[str, dict], scope_id: str, graph=None) -> dict:
     """Everything the editor needs to render one scope's grid."""
     rec = manifest[scope_id]
@@ -119,6 +164,22 @@ def _grid_payload(manifest: Dict[str, dict], scope_id: str, graph=None) -> dict:
             "y": pos["y"],
         })
     area_placements.sort(key=lambda area: str(area["name"]).lower())
+    # The author's decisions about the boundary ways the compiler minted for
+    # those placements (task-528), so the painter can mark a seam as theirs
+    # instead of leaving the author to remember which ones they touched.
+    boundary_overrides = []
+    for way_id, decision in world_grid.boundary_overrides(rec).items():
+        node = graph.get_node(way_id) if graph is not None else None
+        boundary_overrides.append({
+            "way_id": way_id,
+            "action": decision.get("action"),
+            "hand_way_id": decision.get("way_id"),
+            "name": getattr(node, "name", way_id) if node is not None else way_id,
+        })
+    boundary_overrides.sort(key=lambda row: str(row["name"]).lower())
+    # …and the seams themselves, so the painter can offer each one back or take it
+    # away without the author having to find the way in the graph first (task-528).
+    boundary_ways = _boundary_ways(graph, rec, scope_id)
     children = []
     for child_id in world_scopes.direct_child_ids(manifest, scope_id):
         child = manifest[child_id]
@@ -156,6 +217,8 @@ def _grid_payload(manifest: Dict[str, dict], scope_id: str, graph=None) -> dict:
         "placements": placements,
         "feature": world_grid.feature_layer(rec),
         "area_placements": area_placements,
+        "boundary_overrides": boundary_overrides,
+        "boundary_ways": boundary_ways,
         "unplaced_areas": _unplaced_areas(graph, manifest),
         "children": children,
         "parent": parent,
@@ -217,6 +280,15 @@ def handle_painter_vocabulary(app):
                    for key, rec in sorted(biomes_mod.biomes().items())],
         "features": [{"id": key, "name": (rec or {}).get("name", key)}
                      for key, rec in sorted(biomes_mod.features().items())],
+        # The coarse climates, from the same table the compiler aggregates against
+        # (task-557). Sent rather than duplicated in the editor, because a palette
+        # showing one base °C while the compiler writes another is the kind of
+        # disagreement nobody notices until a painted mountain is the wrong
+        # temperature. The editor adds only the *colour*, which is a display
+        # decision the backend has no opinion about.
+        "climates": [{"id": key, "base": base}
+                     for key, base in sorted(world_grid.CLIMATE_BASE_C.items())],
+        "default_climate": world_grid.DEFAULT_CLIMATE,
         "layers": list(world_grid.PAINT_LAYERS),
         "modes": list(world_grid.MODES),
     })
@@ -642,6 +714,194 @@ def handle_unplace_area(app, scope_id):
 _IMAGE_EXTS = {"png", "jpg", "jpeg", "gif", "webp", "svg", "bmp"}
 
 
+def handle_promote_scope(app):
+    """POST /api/world/promote — make a selection of areas a child scope (task-535).
+
+    Body: ``{scope_id, name, area_ids, parent_id?, cell?: {x, y}, entry_area_id?,
+    mode?, enter?, leave?}``.
+
+    One undoable step for the whole thing, because it *is* one thing: the areas
+    change scope, the scope record appears, the placement is written and the
+    gateway is minted. Split across two requests the world would pass through a
+    state where the areas belong to a scope that does not exist yet.
+
+    ``cell`` is the parent's painted cell the gateway opens from, and it has to be
+    a place — the refusal says so rather than minting a way from a wall. Without
+    ``parent_id`` the selection still becomes a scope, just an unplaced one: the
+    author may be grouping before deciding where it lives.
+    """
+    data = request.get_json(silent=True) or {}
+    manifest = _load(app)
+    area_ids = data.get("area_ids")
+    if isinstance(area_ids, str):
+        area_ids = [area_ids]
+    if not area_ids:
+        return _error("area_ids is required — select the areas to promote")
+    cell = data.get("cell")
+    where = None
+    if isinstance(cell, dict):
+        try:
+            where = (int(cell.get("x")), int(cell.get("y")))
+        except (TypeError, ValueError):
+            return _error("cell must be {'x': int, 'y': int}")
+    elif cell is not None:
+        return _error("cell must be {'x': int, 'y': int}")
+
+    _snapshot(app, label="promote selection to a scope")
+    try:
+        result = world_scopes.promote_to_scope(
+            manifest, app.world.graph,
+            scope_id=str(data.get("scope_id") or ""),
+            name=str(data.get("name") or ""),
+            area_ids=area_ids,
+            parent_id=data.get("parent_id"),
+            cell=where,
+            entry_area_id=data.get("entry_area_id"),
+            mode=str(data.get("mode") or "interior"),
+            enter=data.get("enter"),
+            leave=data.get("leave"),
+        )
+    except ValueError as exc:
+        # The snapshot was pushed before the call, so a refusal would leave an undo
+        # step that does nothing. Better: nothing happened, and nothing to undo.
+        app._undo_stack.pop()
+        return _error(str(exc))
+    _commit(app, manifest)
+    return jsonify({"status": "promoted", **result,
+                    "scope": world_scopes.scope_summary(
+                        manifest, app.world.graph,
+                        app.world.player_manager.players, result["scope_id"])})
+
+
+def handle_generate_interior(app, scope_id):
+    """POST /api/world/scopes/<scope_id>/grid/interior — paint a plan (task-567).
+
+    Body: ``{building, storeys?}``.
+
+    **Paints, does not generate areas.** The plan goes into the scope's grid as
+    ordinary cells and the scope stays ``unmade``, so the author edits it in the
+    painter and then runs ⚙ Generate like any other hand-drawn interior. That is
+    deliberate: one code path turns paint into places (:mod:`engine.world_compile`),
+    and a generated interior is not a second kind of thing.
+
+    Author edits are protected and **detected, not locked** — the scope records
+    what the generator wrote, and a cell whose value no longer matches is left
+    alone. So a re-run after editing does half its work and says which half, and a
+    cell the author never touched is brought back in line with the plan.
+
+    One undoable step, like every other grid write.
+    """
+    data = request.get_json(silent=True) or {}
+    manifest = _load(app)
+    if scope_id not in manifest:
+        return _error(f"Scope '{scope_id}' not found", 404)
+    building = str(data.get("building") or "").strip()
+    if not building:
+        return _error("building is required — a building type, e.g. 'tavern'")
+    if not biomes_mod.is_building(building):
+        return _error(f"{building!r} is not a building type")
+    storeys = data.get("storeys")
+    try:
+        storeys = int(storeys) if storeys is not None else None
+    except (TypeError, ValueError):
+        return _error("storeys must be a whole number")
+
+    _snapshot(app, label=f"interior {building}")
+    try:
+        patch = interior_gen.generate_interior(
+            manifest, scope_id, building, storeys=storeys)
+    except ValueError as exc:
+        app._undo_stack.pop()
+        return _error(str(exc))
+    _commit(app, manifest)
+    return jsonify({"status": "painted",
+                    "building": building,
+                    "scope_id": scope_id,
+                    "report": patch.report.to_dict(),
+                    **_grid_payload(manifest, scope_id, app.world.graph)})
+
+
+def handle_boundary_override(app, scope_id):
+    """POST /api/world/scopes/<scope_id>/grid/boundary_override — own a seam.
+
+    The compiler mints a way from a hand-placed area to every painted cell
+    touching it (task-528). That way is a *draft*: this route is how the author
+    takes it over, in one undoable step, so the decision survives a later
+    Generate instead of being overwritten by it.
+
+    Body: ``{way_id, action, hand_way_id?}``.
+
+    - ``action: "suppress"`` — the author deleted this way and does not want it
+      back. The generated node is removed now, and the pair is never re-minted.
+    - ``action: "hand"`` — the author wrote their own way for this seam and names
+      it in ``hand_way_id``. The generated one is removed, so the seam is not
+      walkable twice.
+    - ``action: "auto"`` (or omitted) — hand the seam back: drop the record, and
+      the next Generate mints it again. Not a third decision, just the absence of
+      one.
+
+    Refuses a way this scope did not generate, and a generated way that is not a
+    boundary way (a road between two compiled areas is the compiler's to own
+    regardless of what the author does to it here).
+    """
+    data = request.get_json(silent=True) or {}
+    manifest = _load(app)
+    if scope_id not in manifest:
+        return _error(f"Scope '{scope_id}' not found", 404)
+    record = manifest[scope_id]
+    way_id = str(data.get("way_id") or "").strip()
+    if not way_id:
+        return _error("way_id is required")
+    action = str(data.get("action") or "auto").strip()
+    hand_way_id = str(data.get("hand_way_id") or "").strip() or None
+
+    graph = app.world.graph
+    node = graph.get_node(way_id)
+    if node is None and not world_grid.boundary_override(record, way_id):
+        return _error(f"no way {way_id!r} to override; generate the scope first", 404)
+    generated = (getattr(node, "properties", {}) or {}).get("generated") or {}
+    props = getattr(node, "properties", {}) or {}
+    # A boundary way is recognised by its **endpoints**: one of them is a
+    # hand-placed area of this scope. Everything else the compiler mints is its
+    # own to own — a road between two compiled areas is not something the author
+    # overrides here, they edit it in the graph like any other generated node.
+    placed_ids = set(world_grid.area_placements(record))
+    endpoints = {str(props.get("area_from_id") or ""), str(props.get("area_to_id") or "")}
+    if node is not None and not (endpoints & placed_ids):
+        if not generated:
+            return _error(
+                f"'{getattr(node, 'name', way_id)}' is hand-authored; there is "
+                f"nothing to override — edit or delete the way itself")
+        return _error(
+            f"'{getattr(node, 'name', way_id)}' does not touch a hand-placed "
+            f"area of '{record.get('name', scope_id)}'; only the ways minted "
+            f"around a placement can be overridden")
+    if action == "auto":
+        world_grid.set_boundary_override(record, way_id, None)
+    else:
+        try:
+            world_grid.set_boundary_override(record, way_id, action,
+                                             hand_way_id=hand_way_id)
+        except ValueError as exc:
+            return _error(str(exc))
+
+    # Removing the node is part of the same operation, not a second one: leaving
+    # it would mean a suppressed way still standing in the graph until the next
+    # Generate, which is the exact "I deleted this and it came back" the record
+    # exists to prevent. One snapshot, so one undo reverts both halves.
+    deleted = False
+    if node is not None and action in ("suppress", "hand"):
+        _snapshot(app, label=f"override {getattr(node, 'name', way_id)}")
+        graph.remove_node(way_id)
+        deleted = True
+    elif node is None:
+        _snapshot(app, label=f"override {way_id}")
+    _commit(app, manifest)
+    return jsonify({"status": "cleared" if action == "auto" else action,
+                    "way_id": way_id, "deleted_node": deleted,
+                    **_grid_payload(manifest, scope_id, graph)})
+
+
 def _background_urls(app):
     """Background images available to a reference overlay.
 
@@ -767,7 +1027,10 @@ def handle_generate_scope(app, scope_id):
             region_merge=bool(data.get("region_merge")),
             link_islands=bool(data.get("link_islands", True)),
             seed=data.get("seed"),
-            tick=int(tick))
+            tick=int(tick),
+            # Hand-placed areas are existing nodes, and their boundary ways have
+            # to speak their names (task-528).
+            graph=app.world.graph)
     except ValueError as exc:
         # Missing scope, no grid, no painted cells, or a baked zone.
         return _error(str(exc))

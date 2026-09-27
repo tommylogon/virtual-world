@@ -793,12 +793,864 @@
         "A workshop, its benches buried under half-made things.",
         "Shavings on the floor and a smell of hot metal and glue."
       ]
+    },
+    "hallway": {
+      "name": "Hallway",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "circulation",
+        "merge:always"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A hallway running the length of the place, with doors off both sides.",
+        "The passage everyone crosses to get anywhere else, worn pale down the middle."
+      ]
+    },
+    "corridor": {
+      "name": "Corridor",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "circulation",
+        "merge:always"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A narrow corridor, one person wide, lamps set low in the wall.",
+        "A service corridor: bare, straight, and nobody's idea of a destination."
+      ]
+    },
+    "stairway": {
+      "name": "Stairway",
+      "terrain": "indoor",
+      "tags": [
+        "structure",
+        "not_a_place",
+        "cell_kind:passable",
+        "stair",
+        "vertical"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "Stairs: not a place of its own, but you go up or down them.",
+        "A flight between two floors, worn hollow in the middle of each tread."
+      ]
+    },
+    "bedroom": {
+      "name": "Bedroom",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "sleeping",
+        "sleeps",
+        "privacy"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A bedroom, one bed, and a window somebody keeps curtained.",
+        "A room built for sleeping in, and for the quiet after."
+      ]
+    },
+    "bunkroom": {
+      "name": "Bunk Room",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "sleeping",
+        "sleeps"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A bunk room, beds in rows and one aisle down the middle.",
+        "Sleeping quarters for more people than the building was drawn for."
+      ]
+    },
+    "guest_room": {
+      "name": "Guest Room",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "sleeping",
+        "sleeps",
+        "hospitality"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A guest room, made up and ready for whoever turns up.",
+        "The room at the end of the hall that is kept for visitors."
+      ]
+    },
+    "kitchen": {
+      "name": "Kitchen",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "cooking",
+        "food",
+        "craft"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A kitchen, hot from the range and loud from the knife on the board.",
+        "Pot, fire, and a table worn pale where the dough is worked."
+      ]
+    },
+    "scullery": {
+      "name": "Scullery",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "cooking",
+        "service"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A scullery, wet stone floor and everything washed in one place.",
+        "The room behind the kitchen where the washing up happens."
+      ]
+    },
+    "dining_hall": {
+      "name": "Dining Hall",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "eating",
+        "food",
+        "drink"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A dining hall, long tables laid for more than are eating.",
+        "Benches the length of the room and a fire at the far end."
+      ]
+    },
+    "mess_hall": {
+      "name": "Mess Hall",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "eating",
+        "food"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A mess hall: benches, trays, and the noise of a whole company eating.",
+        "Somewhere to sit down and eat, and nowhere to be private about it."
+      ]
+    },
+    "storeroom": {
+      "name": "Storeroom",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "storage"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A storeroom, shelves to the ceiling and a list nailed to the door.",
+        "Crates, sacks, and a room that smells of keeping things dry."
+      ]
+    },
+    "cellar": {
+      "name": "Cellar",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "storage",
+        "below_ground"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A cellar, cold and low, reached by steps that lose the light.",
+        "Barrels below the floor, and the damp that never quite leaves."
+      ]
+    },
+    "pantry": {
+      "name": "Pantry",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "storage",
+        "food"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A pantry, jars ranked on shelves, everything used by date.",
+        "Flour, salt, and the food kept for the days nobody planned for."
+      ]
+    },
+    "armory": {
+      "name": "Armoury",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "storage",
+        "military",
+        "arms"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "An armoury: racks of arms, each one signed out to somebody.",
+        "Spears, blades and shields, and a ledger of who has what."
+      ]
+    },
+    "workroom": {
+      "name": "Workroom",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "workshop",
+        "craft"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A workroom, benches cleared for whatever is being made this week.",
+        "Half-finished things on every surface, and shavings underfoot."
+      ]
+    },
+    "forge": {
+      "name": "Forge",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "workshop",
+        "craft",
+        "fire"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A forge, the fire banked and the anvil cold until morning.",
+        "Soot on the walls, a quench trough, and the heat that never quite leaves."
+      ]
+    },
+    "oratory": {
+      "name": "Oratory",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "worship",
+        "religious",
+        "quiet"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "An oratory, a few benches and a lectern, kept plain on purpose.",
+        "A small room for prayer, where the speaking is done by one person."
+      ]
+    },
+    "crypt": {
+      "name": "Crypt",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "worship",
+        "below_ground",
+        "quiet"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A crypt, niches cut into the walls and stone that holds the cold.",
+        "Under the floor, out of the weather, and not often visited."
+      ]
+    },
+    "classroom": {
+      "name": "Classroom",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "study",
+        "records",
+        "quiet"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A classroom, benches in rows facing a board nobody has cleaned.",
+        "Desks in ranks, a lectern, and the smell of chalk and old paper."
+      ]
+    },
+    "study": {
+      "name": "Study",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "records",
+        "quiet",
+        "privacy"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A study, one desk, and more paper than shelf.",
+        "Somewhere to write things down that are not for everyone."
+      ]
+    },
+    "archive": {
+      "name": "Archive",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "records",
+        "storage",
+        "quiet"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "An archive, shelves of ledgers going back further than anyone remembers.",
+        "Records kept dry, indexed, and consulted by people who no longer need them."
+      ]
+    },
+    "stall": {
+      "name": "Stall",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "trade",
+        "commercial"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A market stall, the day's goods out and the day's takings counted.",
+        "A board, a cloth, and a trade that depends on where you set it up."
+      ]
+    },
+    "counting_house": {
+      "name": "Counting House",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "trade",
+        "commercial",
+        "records"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A counting house, ledgers open and a clerk who never looks up.",
+        "Where the money is counted and the debts are written down."
+      ]
+    },
+    "guardroom": {
+      "name": "Guard Room",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "service",
+        "military",
+        "watch"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A guard room, a stove, and a bench nobody is meant to sleep on.",
+        "Where the watch sits between turns, close enough to hear the door."
+      ]
+    },
+    "washroom": {
+      "name": "Wash Room",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "service"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A wash room, tubs and a stone floor that is always damp.",
+        "Where the washing happens, and where the hot water runs out first."
+      ]
+    },
+    "latrine": {
+      "name": "Latrine",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "service",
+        "private"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A latrine, one seat, a bucket, and a door that latches from the inside.",
+        "The smallest room in the building and the one nobody volunteers for."
+      ]
+    },
+    "laundry": {
+      "name": "Laundry",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "service",
+        "work"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A laundry, sheets over lines and the whole room damp to the shoulder.",
+        "Boiling water, soap, and more washing than there are hands for."
+      ]
+    },
+    "porch": {
+      "name": "Porch",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "threshold",
+        "shelter",
+        "outdoor"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A porch under the roof, dry to wait on and open to the weather.",
+        "The step inside, where the rain stops and the door is still shut."
+      ]
+    },
+    "courtyard": {
+      "name": "Courtyard",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "outdoor",
+        "sky",
+        "open"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A courtyard walled on three sides, with the sky straight overhead.",
+        "Open to the air and closed to the road, and warmer than the rooms."
+      ]
+    },
+    "balcony": {
+      "name": "Balcony",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "outdoor",
+        "height",
+        "perch"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A balcony, narrow enough that two people cannot pass on it.",
+        "Out over the drop, with a rail and a long way down past it."
+      ]
+    },
+    "bathroom": {
+      "name": "Bathroom",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "service",
+        "private",
+        "water"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A bathroom, a tub and a stone floor that is always damp.",
+        "Water, a mirror gone spotty, and somewhere to shut the door."
+      ]
+    },
+    "hearth_room": {
+      "name": "Hearth Room",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "living",
+        "fire",
+        "shelter"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A hearth room: the fire, a long settle, and the whole family in it.",
+        "The warmest room in the house and the one everybody ends up in."
+      ]
+    },
+    "parlour": {
+      "name": "Parlour",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "living",
+        "quiet",
+        "formal"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A parlour, kept for guests and rarely sat in.",
+        "Good chairs nobody leans on, and a fire laid but not lit."
+      ]
+    },
+    "taproom": {
+      "name": "Tap Room",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "eating",
+        "drink",
+        "social"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A tap room, wet boards and the noise of everyone in the place.",
+        "A bar down one side, benches down the other, and no quiet corner."
+      ]
+    },
+    "great_hall": {
+      "name": "Great Hall",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "living",
+        "civic",
+        "fire"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A great hall, tall enough that a voice carries to the far wall.",
+        "One long table, a fire at each end, and a ceiling nobody here can reach."
+      ]
+    },
+    "council_chamber": {
+      "name": "Council Chamber",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "civic",
+        "formal",
+        "quiet"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A council chamber, a horseshoe of tables and the argument going round it.",
+        "Seats ranked by who arrived first, and minutes kept of who said what."
+      ]
+    },
+    "nave": {
+      "name": "Nave",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "worship",
+        "religious",
+        "quiet"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A nave, the length of the building, with the windows high up.",
+        "Pews in rows and a walk down the middle nobody needs to walk."
+      ]
+    },
+    "vestry": {
+      "name": "Vestry",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "worship",
+        "religious",
+        "private",
+        "storage"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A vestry, where the vestments are kept and the door is shut.",
+        "Robes on pegs, a chest, and a lamp burning low."
+      ]
+    },
+    "ward": {
+      "name": "Ward",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "service",
+        "sleeps",
+        "care"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A ward, beds in rows and someone moving quietly between them.",
+        "Where the hurt are put, and where the smell of vinegar never quite goes."
+      ]
+    },
+    "cell_block": {
+      "name": "Cell Block",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "service",
+        "holding",
+        "locked"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A cell block, a corridor of doors and the sound of somebody not asleep.",
+        "Doors down one side, a barred window at the end, and a guard's stool."
+      ]
+    },
+    "dungeon": {
+      "name": "Dungeon",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "service",
+        "below_ground",
+        "holding",
+        "dark"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A dungeon, below the waterline, and colder than the stair that leads to it.",
+        "Vaulted and low, with rings set in the floor and nothing else down here."
+      ]
+    },
+    "hayloft": {
+      "name": "Hayloft",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "storage",
+        "work"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A hayloft, reached by a ladder, smelling of dust and dry grass.",
+        "Hay up to the eaves and one small window to throw the bales down from."
+      ]
+    },
+    "animal_pen": {
+      "name": "Animal Pen",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "storage",
+        "animals",
+        "farm"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A pen, fenced at knee height, with the ground worn to mud in the middle.",
+        "Fodder on the ground, a gate that latches, and the noise of animals at rest."
+      ]
+    },
+    "tack_room": {
+      "name": "Tack Room",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "storage",
+        "work",
+        "craft"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A tack room: bridles on pegs, saddles on racks, everything oiled and hung.",
+        "Harness and mending, all of it labelled in somebody's careful hand."
+      ]
+    },
+    "stacks": {
+      "name": "Stacks",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "records",
+        "quiet",
+        "cluttered"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "Stacks, shelf after shelf, and a ladder that has to be moved to reach them.",
+        "Books in runs nobody has straightened since the last flood."
+      ]
+    },
+    "shopfront": {
+      "name": "Shop Front",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "trade",
+        "commercial",
+        "shelter"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A shop front: a counter, a door that rings, and the street coming in cold.",
+        "Goods on shelves at eye level and the good stock somewhere out the back."
+      ]
+    },
+    "office": {
+      "name": "Office",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "trade",
+        "records",
+        "quiet"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "An office: a desk, a window onto the yard, and a door that shuts.",
+        "Paperwork, and a clerk who has worked out which visitors waste their time."
+      ]
+    },
+    "mill_room": {
+      "name": "Mill Room",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "workshop",
+        "craft",
+        "noise"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A mill room, the wheels turning and the whole floor shaking with it.",
+        "Mechanism, flour to the ankle, and a noise you learn to talk over."
+      ]
+    },
+    "gallery": {
+      "name": "Gallery",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "living",
+        "formal",
+        "public"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A gallery, hung floor to ceiling, lit to flatter what is on the wall.",
+        "Rooms read as a walk, each doorway the start of the next one."
+      ]
+    },
+    "vault": {
+      "name": "Vault",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "storage",
+        "below_ground",
+        "locked",
+        "secure"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A vault, below ground, behind a door with more than one lock on it.",
+        "Iron doors, a wheel handle, and shelves nobody has opened in years."
+      ]
+    },
+    "reading_room": {
+      "name": "Reading Room",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "records",
+        "study",
+        "quiet",
+        "public"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A reading room, long tables, and the rule that nobody speaks.",
+        "Desks under lamps, a ledger of who has had which volume out."
+      ]
+    },
+    "assembly_hall": {
+      "name": "Assembly Hall",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "civic",
+        "social",
+        "public"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "An assembly hall, benches filling up and a platform nobody is using yet.",
+        "Enough chairs for the whole town, arranged to be argued at from both sides."
+      ]
+    },
+    "altar_room": {
+      "name": "Altar Room",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "worship",
+        "religious",
+        "quiet"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "The altar room, behind the screen, where only the celebrant stands.",
+        "A raised step, a table with cloth over it, and a door that stays shut."
+      ]
+    },
+    "yard_room": {
+      "name": "Yard Room",
+      "terrain": "indoor",
+      "tags": [
+        "indoor",
+        "room",
+        "work",
+        "workshop",
+        "store"
+      ],
+      "surface": "dirt",
+      "descriptions": [
+        "A yard room — half roofed, open to the weather, and the busiest part of the place.",
+        "A lean-to with benches under it and a yard to work in."
+      ]
     }
   },
-  "features": {
-    "road": {
-      "name": "Road",
-      "tags": [
+    "features": {
+      "road": {
+        "name": "Road",
+        "tags": [
         "road"
       ],
       "biomes": [
@@ -823,6 +1675,13 @@
         "ravine",
         "chasm"
       ],
+      "entry_phrase": "cross the bridge",
+      "exit_phrase": "cross back over",
+      "entry_aliases": [
+        "in",
+        "out",
+        "bridge"
+      ],
       "descriptions": [
         "A span carries the road over the gap."
       ]
@@ -837,6 +1696,13 @@
         "river",
         "stream"
       ],
+      "entry_phrase": "wade across the ford",
+      "exit_phrase": "wade back across",
+      "entry_aliases": [
+        "in",
+        "out",
+        "ford"
+      ],
       "descriptions": [
         "The road drops through shallow water here."
       ]
@@ -850,6 +1716,13 @@
       "biomes": [
         "mountains",
         "hills"
+      ],
+      "entry_phrase": "go down the tunnel",
+      "exit_phrase": "come back up the tunnel",
+      "entry_aliases": [
+        "in",
+        "out",
+        "tunnel"
       ],
       "descriptions": [
         "A bored passage runs through the rock."
@@ -909,6 +1782,13 @@
         "dense_forest",
         "farmland"
       ],
+      "entry_phrase": "climb in through the broken wall",
+      "exit_phrase": "climb back out of the ruin",
+      "entry_aliases": [
+        "in",
+        "out",
+        "ruin"
+      ],
       "descriptions": [
         "Broken walls half-buried in growth."
       ]
@@ -922,6 +1802,13 @@
       "biomes": [
         "farmland",
         "hills"
+      ],
+      "entry_phrase": "pass through the gate",
+      "exit_phrase": "pass back through the gate",
+      "entry_aliases": [
+        "in",
+        "out",
+        "gate"
       ],
       "descriptions": [
         "A gate bars the road between posts."

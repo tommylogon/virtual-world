@@ -1,6 +1,6 @@
 ---
 type: bug
-status: todo
+status: review
 area: bugs
 priority: medium
 ---
@@ -16,4 +16,30 @@ loadGraphData only applies the painted-grid layout when !levelsOn, so with the L
 
 ## Acceptance
 
-- TODO
+## Acceptance
+
+- [x] **The rule is decided and documented in one place**: Levels places every
+      node itself, so Map would silently do nothing. Map is therefore **refused**
+      while Levels owns the layout, rather than Levels being refused in Map mode —
+      which keeps hierarchical levels usable on a painted world, where they are
+      the whole point.
+- [x] **The refusal is visible, not silent**: the Map tab is `disabled` with a
+      `title` explaining why, and the programmatic guard
+      (`graphManager.toggleCardinalLayout`) toasts the same sentence and returns
+      `false` if anything reaches for it.
+- [x] **One source of truth**: `activeLayout()` returns `'graph' | 'map' |
+      'levels'` and the segmented control and every disabled rule read that
+      instead of consulting `_cardinalLayout` and `graphLayoutMode` separately.
+- [x] **The rule is a pure function, so it is tested rather than remembered**:
+      `GraphToolbar.mapTabDisabled(state)` decides from a plain state object, and
+      `tools/unit/test_graph_toolbar.js` covers it —
+      "Map is unavailable while Levels owns the layout" and "Map is available in
+      the other two layouts" (graph, map, and an empty state).
+
+## Notes
+
+- This was **already fixed in the code** when the task was re-read; the work left
+  was the acceptance above, which is what the task's "Add a test or documented
+  invariant so 'Map does nothing' cannot recur" asked for. The implementation
+  names bug-48 in `toggleCardinalLayout`, `mapTabDisabled` and the network load
+  path, so the invariant and its origin stay together.

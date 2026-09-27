@@ -1,0 +1,394 @@
+{
+  "version": 1,
+  "_about": [
+    "Interior plans for building types, read by engine/interior_gen.py (task-567).",
+    "",
+    "A plan is drawn, not coded: `plan` is a list of rows of one-character tokens",
+    "and `legend` maps each token to a biome id (or null for an empty cell). The",
+    "result is painted into the child scope's grid as ordinary cells, so the",
+    "standard compiler (task-496) builds the areas, the doorways, the merge rules",
+    "(task-564) and the descriptions. The generator mints no areas of its own,",
+    "which is why an author can edit a generated interior by editing paint.",
+    "",
+    "Token conventions used by most plans: `=` is a wall, so is the outside of the",
+    "plan; a space is a door; a digit counts 1-9 storeys (a stair cell also needs",
+    "to be in the legend, or it will not be a place).",
+    "",
+    "`repeat_storeys` reuses `plan` on every storey above the first, which is what",
+    "an apartment block or a keep is: the same plan, stacked. `storeys` is the",
+    "default height when the caller does not say otherwise; a building with a",
+    "generator ignores it and says so in its report."
+  ],
+  "plans": {
+    "cottage": {
+      "label": "Cottage",
+      "storeys": 1,
+      "legend": { "=": "wall", " ": "door", "H": "hearth_room", "K": "kitchen", "B": "bedroom", "L": "latrine", "S": "storeroom" },
+      "plan": [
+        "=BBK=",
+        "== =",
+        "=HLH=",
+        "==S="
+      ]
+    },
+    "inn": {
+      "label": "Inn",
+      "storeys": 2,
+      "legend": { "=": "wall", " ": "door", "T": "taproom", "K": "kitchen", "D": "dining_hall", "B": "bedroom", "G": "guest_room", "S": "storeroom", "C": "cellar", "L": "latrine", "H": "hallway", "A": "stairway" },
+      "plan": [
+        "=TTT=",
+        "=TTD=",
+        "=BHG=",
+        "=BBL=",
+        "=KKH=",
+        "=S A=",
+        "=CCC="
+      ],
+      "floors": [0, 0, 0, 0, 0, 0, -1]
+    },
+    "tavern": {
+      "label": "Tavern",
+      "storeys": 1,
+      "legend": { "=": "wall", " ": "door", "T": "taproom", "K": "kitchen", "D": "dining_hall", "B": "bunkroom", "S": "storeroom", "C": "cellar", "L": "latrine", "H": "hallway", "A": "stairway" },
+      "plan": [
+        "=TTTK=",
+        "=TTDH=",
+        "=DLL =",
+        "=SSSC=",
+        "===A="
+      ],
+      "floors": [0, 0, 0, -1, -1]
+    },
+    "fast_food": {
+      "label": "Fast food",
+      "storeys": 1,
+      "legend": { "=": "wall", " ": "door", "F": "shopfront", "K": "kitchen", "D": "mess_hall", "L": "latrine", "S": "storeroom", "W": "washroom" },
+      "plan": [
+        "=FFF=",
+        "=DKD=",
+        "=WWS=",
+        "=  L"
+      ]
+    },
+    "shop": {
+      "label": "Shop",
+      "storeys": 1,
+      "legend": { "=": "wall", " ": "door", "F": "shopfront", "S": "storeroom", "O": "office", "C": "counting_house", "L": "latrine" },
+      "plan": [
+        "=FFF=",
+        "=SSO=",
+        "=  C",
+        "=LL="
+      ]
+    },
+    "market": {
+      "label": "Market",
+      "storeys": 1,
+      "legend": { "=": "wall", " ": "door", "P": "stall", "S": "storeroom", "O": "office", "C": "counting_house" },
+      "plan": [
+        "=PPP=",
+        "=PPP=",
+        "=SSO=",
+        "==C="
+      ]
+    },
+    "residential": {
+      "label": "Apartment block",
+      "storeys": 3,
+      "repeat_storeys": true,
+      "legend": { "=": "wall", " ": "door", "H": "hallway", "B": "bedroom", "K": "kitchen", "L": "latrine", "P": "parlour", "A": "stairway" },
+      "plan": [
+        "=HHH=",
+        "=BKB=",
+        "=LLP=",
+        "= A ="
+      ]
+    },
+    "tenement": {
+      "label": "Tenement",
+      "storeys": 3,
+      "repeat_storeys": true,
+      "legend": { "=": "wall", " ": "door", "H": "hallway", "B": "bunkroom", "K": "kitchen", "L": "latrine", "A": "stairway" },
+      "plan": [
+        "=HH=",
+        "=BK=",
+        "=LL=",
+        "=A ="
+      ]
+    },
+    "mansion": {
+      "label": "Mansion",
+      "storeys": 2,
+      "legend": { "=": "wall", " ": "door", "G": "great_hall", "P": "parlour", "L": "gallery", "B": "bedroom", "G2": "guest_room", "S": "study", "C": "cellar", "A": "stairway" },
+      "plan": [
+        "=GGGL=",
+        "=PP L=",
+        "=BBGS=",
+        "=CCCA="
+      ],
+      "floors": [0, 0, 0, -1]
+    },
+    "school": {
+      "label": "School",
+      "storeys": 2,
+      "legend": { "=": "wall", " ": "door", "R": "classroom", "H": "hallway", "T": "study", "L": "latrine", "A": "archive", "Y": "assembly_hall" },
+      "plan": [
+        "=RRR=",
+        "=RHR=",
+        "=T T=",
+        "=LLL=",
+        "=Y Y=",
+        "=AAA="
+      ],
+      "floors": [0, 0, 0, 0, 0, 1]
+    },
+    "library": {
+      "label": "Library",
+      "storeys": 1,
+      "legend": { "=": "wall", " ": "door", "K": "stacks", "S": "study", "A": "archive", "R": "reading_room", "L": "latrine" },
+      "plan": [
+        "=KKK=",
+        "=KSK=",
+        "= R =",
+        "=ALL="
+      ]
+    },
+    "smithy": {
+      "label": "Smithy",
+      "storeys": 1,
+      "legend": { "=": "wall", " ": "door", "F": "forge", "W": "workroom", "T": "tack_room", "S": "storeroom", "C": "cellar" },
+      "plan": [
+        "=FWW=",
+        "=FTT=",
+        "=SS =",
+        "=CC="
+      ],
+      "floors": [0, 0, 0, -1]
+    },
+    "workshop": {
+      "label": "Workshop",
+      "storeys": 1,
+      "legend": { "=": "wall", " ": "door", "W": "workroom", "O": "office", "S": "storeroom", "Y": "yard_room" },
+      "plan": [
+        "=WWW=",
+        "=WWO=",
+        "=SS =",
+        "=  ="
+      ]
+    },
+    "temple": {
+      "label": "Temple",
+      "storeys": 1,
+      "legend": { "=": "wall", " ": "door", "N": "nave", "V": "vestry", "O": "oratory", "C": "crypt", "A": "altar_room" },
+      "plan": [
+        "=NNN=",
+        "=N N=",
+        "=OO =",
+        "=VV=",
+        "=CC=",
+        "=AA="
+      ],
+      "floors": [0, 0, 0, 0, -1, 1]
+    },
+    "chapel": {
+      "label": "Chapel",
+      "storeys": 1,
+      "legend": { "=": "wall", " ": "door", "O": "oratory", "V": "vestry", "B": "crypt" },
+      "plan": [
+        "=OOO=",
+        "=O O=",
+        "=VV=",
+        "=BB="
+      ],
+      "floors": [0, 0, 0, -1]
+    },
+    "shrine": {
+      "label": "Shrine",
+      "storeys": 1,
+      "legend": { "=": "wall", " ": "door", "O": "oratory", "V": "vestry" },
+      "plan": [
+        "=OO=",
+        "=O =",
+        "=VV="
+      ]
+    },
+    "town_hall": {
+      "label": "Town hall",
+      "storeys": 2,
+      "legend": { "=": "wall", " ": "door", "C": "council_chamber", "G": "great_hall", "O": "office", "A": "archive", "L": "latrine", "S": "stairway" },
+      "plan": [
+        "=CCC=",
+        "=G G=",
+        "=OOA=",
+        "=LLS=",
+        "=A ="
+      ],
+      "floors": [0, 0, 0, 0, 0]
+    },
+    "bank": {
+      "label": "Bank",
+      "storeys": 1,
+      "legend": { "=": "wall", " ": "door", "C": "counting_house", "V": "vault", "O": "office", "G": "guardroom", "L": "latrine" },
+      "plan": [
+        "=FFF=",
+        "=CVO=",
+        "= G =",
+        "=LLV=",
+        "=VV="
+      ],
+      "floors": [0, 0, 0, 0, -1]
+    },
+    "warehouse": {
+      "label": "Warehouse",
+      "storeys": 1,
+      "legend": { "=": "wall", " ": "door", "S": "storeroom", "O": "office", "H": "hayloft", "P": "animal_pen" },
+      "plan": [
+        "=SSS=",
+        "=SSH=",
+        "=SSO=",
+        "=  P"
+      ]
+    },
+    "barn": {
+      "label": "Barn",
+      "storeys": 1,
+      "legend": { "=": "wall", " ": "door", "S": "storeroom", "H": "hayloft", "P": "animal_pen", "T": "tack_room", "W": "workroom" },
+      "plan": [
+        "=HHP=",
+        "=T W=",
+        "=SSS=",
+        "=  P"
+      ]
+    },
+    "stable": {
+      "label": "Stable",
+      "storeys": 1,
+      "legend": { "=": "wall", " ": "door", "P": "animal_pen", "H": "hayloft", "T": "tack_room", "S": "storeroom", "W": "washroom" },
+      "plan": [
+        "=PPP=",
+        "=PTH=",
+        "=WSS=",
+        "=  ="
+      ]
+    },
+    "mill": {
+      "label": "Mill",
+      "storeys": 2,
+      "legend": { "=": "wall", " ": "door", "M": "mill_room", "S": "storeroom", "O": "office", "C": "cellar", "A": "stairway", "H": "hallway" },
+      "plan": [
+        "=MMM=",
+        "=MMS=",
+        "=OCS=",
+        "=HA ="
+      ],
+      "floors": [1, 1, 0, 0]
+    },
+    "infirmary": {
+      "label": "Infirmary",
+      "storeys": 2,
+      "legend": { "=": "wall", " ": "door", "W": "ward", "L": "washroom", "S": "study", "C": "cell_block", "A": "archive", "T": "stairway" },
+      "plan": [
+        "=WWW=",
+        "=W L=",
+        "=SSS=",
+        "=CTC=",
+        "=AT="
+      ],
+      "floors": [0, 0, 0, -1, 0]
+    },
+    "watch_house": {
+      "label": "Watch house",
+      "storeys": 2,
+      "legend": { "=": "wall", " ": "door", "G": "guardroom", "S": "storeroom", "C": "cell_block", "A": "stairway", "H": "hallway" },
+      "plan": [
+        "=GGG=",
+        "=H  =",
+        "=S A=",
+        "=CC="
+      ],
+      "floors": [0, 0, 0, -1]
+    },
+    "castle": {
+      "label": "Castle",
+      "storeys": 3,
+      "repeat_storeys": true,
+      "legend": { "=": "wall", " ": "door", "G": "great_hall", "C": "council_chamber", "P": "parlour", "B": "bedroom", "A": "armory", "K": "cell_block", "D": "dungeon", "S": "stairway", "H": "hallway", "V": "vestry" },
+      "plan": [
+        "=GGG=",
+        "=CCP=",
+        "=BBS=",
+        "=H H=",
+        "=SSS=",
+        "=KKK=",
+        "=DDD="
+      ],
+      "floors": [1, 1, 0, 0, 0, 0, -1]
+    },
+    "brothel": {
+      "label": "Brothel",
+      "storeys": 2,
+      "legend": { "=": "wall", " ": "door", "P": "parlour", "B": "bedroom", "W": "washroom", "H": "hallway", "S": "stairway", "L": "latrine" },
+      "plan": [
+        "=PPP=",
+        "=PBB=",
+        "=HHL=",
+        "=S W=",
+        "=  ="
+      ],
+      "floors": [1, 1, 0, 0, 0]
+    },
+    "ferry_landing": {
+      "label": "Ferry landing",
+      "storeys": 1,
+      "legend": { "=": "wall", " ": "door", "H": "hallway", "O": "office", "S": "storeroom", "C": "counting_house", "L": "washroom" },
+      "plan": [
+        "=HHH=",
+        "=OOC=",
+        "=SS =",
+        "=LL="
+      ]
+    },
+    "cemetery": {
+      "label": "Caretaker's house",
+      "storeys": 1,
+      "legend": { "=": "wall", " ": "door", "H": "hearth_room", "B": "bedroom", "S": "storeroom", "K": "kitchen" },
+      "plan": [
+        "=HB=",
+        "=KS=",
+        "=  ="
+      ]
+    },
+    "ruin": {
+      "label": "Ruin",
+      "storeys": 1,
+      "legend": { "=": "wall", " ": "door", "C": "crypt", "S": "storeroom", "V": "vestry", ".": "void" },
+      "plan": [
+        "=CVS=",
+        "== =",
+        "=...="
+      ],
+      "floors": [0, 0, -1]
+    },
+    "orchard": {
+      "label": "Orchard house",
+      "storeys": 1,
+      "legend": { "=": "wall", " ": "door", "K": "kitchen", "H": "hearth_room", "S": "storeroom", "W": "workroom" },
+      "plan": [
+        "=HH=",
+        "=KW=",
+        "= S="
+      ]
+    }
+  },
+  "fallback": {
+    "label": "Plain interior",
+    "legend": { "=": "wall", " ": "door", "H": "hallway", "P": "parlour", "S": "storeroom", "B": "bedroom", "K": "kitchen", "L": "latrine" },
+    "plan": [
+      "=HHH=",
+      "=PBK=",
+      "=LSL=",
+      "=  ="
+    ],
+    "floors": [0, 0, 0, 0]
+  }
+}

@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: world
 priority: medium
 ---
@@ -71,10 +71,72 @@ stay out. Continuous numeric paint layers are exactly what the deleted
 
 ## Acceptance
 
-- Painting a climate cell survives save → reload → compile.
-- Two areas painted with different climates report different outdoor
-  temperatures, with no forecast entry authored.
-- The climate layer does **not** split areas: a climate change across a region
-  keeps one area, and a road still does.
-- Unpainted is `temperate` (today's 21 °C behaviour), not "unknown".
-- An existing world with no climate layer compiles byte-identically.
+## Acceptance
+
+- [x] **The layer is whitelisted** in `engine/world_grid.py` `PAINT_LAYERS`,
+      `static/js/worldpainter/grid-model.js` and the unit test. Checked the round
+      trip the task warned about: a painted climate cell survives `normalise_grid`
+      and is still there after save/reload, because the backend no longer drops an
+      unlisted layer.
+- [x] **One enum vocabulary of five** — `arctic`, `alpine`, `temperate`, `arid`,
+      `tropical` — with a base °C each, in `CLIMATE_BASE_C`. Enum, not float: no
+      save bloat, one brush instead of a value-and-falloff control, and the
+      aggregation below stays a majority vote rather than a mean that invents a
+      climate nobody painted.
+- [x] **Two areas painted with different climates report different temperatures,
+      with no forecast entry authored**: `arctic` compiles to
+      `base_temperature: -8.0` and `tropical` to `27.0` on the same grid.
+- [x] **The climate layer does NOT split areas.** Climate is absent from
+      `identity()`, so a region keeps one place across a climate boundary — five
+      forest cells with two of them tropical is still **one** area. A road still
+      does split: forest/road/forest is three areas.
+- [x] **Aggregation is majority of cells, ties broken by the region's first cell
+      in row-major order.** Both halves earn their place: a majority is how a real
+      climate is summarised, and the tie-break is what makes the answer
+      *deterministic* — an even split of a two-cell region must not depend on
+      iteration order, because a grid that compiles differently twice is the bug
+      this task exists to prevent. Unpainted cells are not votes.
+- [x] **Unpainted is `temperate` (21 °C), not "unknown"** — and, stronger than the
+      acceptance asked, an area in a world with **no** climate layer gets *no*
+      `climate` and *no* `base_temperature` key at all, so it reads the engine's
+      long-standing 21 °C and a world that never chose a climate compiles exactly
+      as it did before.
+- [x] **An existing world with no climate layer compiles unchanged**, which follows
+      from the two points above: nothing is written that was not painted, so there
+      is nothing to differ.
+- [x] **A disagreeing region is reported**, not silent:
+      "1 area(s) had cells painted with more than one climate; the majority won".
+- [x] **An unknown climate is a reported typo, not a silent temperate**:
+      `WARNING: 1 unknown climate value(s) ignored: 'tropcial' at (1,1). Expected
+      one of alpine, arctic, arid, temperate, tropical.` The cell still shows a
+      distinct colour while painting, so it is visibly *not* one of the five.
+- [x] **Only `world` scopes compile a climate.** A `town` or `interior` gets no
+      `climate` and no `base_temperature`: the outdoor model is world-scoped (the
+      same distinction task-525 makes for a storey step being a staircase rather
+      than a rockface), and a hall is not −8 °C because someone painted arctic on
+      it.
+- [x] **A legend is shown while painting** — a colour chip per climate labelled
+      with the °C it compiles to, plus "unpainted is Temperate", and a title
+      explaining the majority rule and the world-scope limit.
+- [x] **The server owns the values.** `/api/world/painter/vocabulary` ships
+      `climates` and `default_climate` from the same table the compiler aggregates
+      against, and the editor adopts them (`useClimatesFromVocab`), supplying only
+      the *colour*. A palette showing one base °C while the compiler writes another
+      is the kind of disagreement nobody notices until a painted mountain is the
+      wrong temperature; a new climate is now a backend change and nothing else.
+- [x] Unit tests: `PAINT_LAYERS` asserts the new layer, and three new tests cover
+      the vocabulary, the colours (including the typo case) and the server-adoption
+      path. `node tools/unit/run.cjs` — 371 passed, the 13 pre-existing
+      `test_plan_tracker.js` failures unchanged.
+
+## Notes
+
+- **The deleted `elevation` layer's warning is respected, and the new layer dodges
+  it.** `elevation` was removed because one word meant two things (a painted
+  height *and* a storey). `climate` means exactly one thing — a coarse outdoor
+  thermal band — and it is an enum so the per-region question has one answer
+  rather than a continuum. If elevation ever comes back as a painted layer it
+  still needs a different justification than the one it lost under.
+- The climate values are the **mid-point of each band's range**, not its extreme:
+  a painted arctic is cold without being the coldest thing on earth, and the
+  diurnal and seasonal curve is added on top by task-553's model.

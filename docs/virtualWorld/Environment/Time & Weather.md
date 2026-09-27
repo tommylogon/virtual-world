@@ -73,6 +73,39 @@ windows can be derived from game minutes.
 
 `game_day`, `game_month`, and `game_year` are derived from `time_ticks` (task-228). Calendar config (`minutes_per_day`, `days_per_month`, `months_per_year`) is stored in world state and exposed via `/api/state`.
 
+### Season — the engine's, not the sky widget's (task-554)
+
+`world.current_season()` is the **only** place a season is resolved, and it
+resolves in this order:
+
+1. **An authored `world_state.season` wins** (`spring`/`summer`/`autumn`/`winter`,
+   case-insensitive). A scenario that says `"season": "winter"` is making a
+   statement about its world and is not overruled by whatever month the clock is on.
+2. **Otherwise the calendar decides**, via `SEASON_BY_MONTH` in
+   `engine/weather_forecast.py`: Dec-Feb winter, Mar-May spring, Jun-Aug summer,
+   Sep-Nov autumn. These are the northern-hemisphere boundaries the old frontend
+   table used, kept deliberately — changing them would change what "winter" means
+   in every existing world.
+3. An unrecognised season name **falls through to the clock** rather than becoming
+   a state the temperature model has no bias for, so a broken save is still a
+   readable world.
+
+Because the clock decides when nothing is authored, **a world that crosses a
+season boundary changes season with no save and no reload**. A change is narrated
+the way a forecast entry change is: `[Season] Winter arrives.` (The first tick
+does not narrate, so starting a world does not announce the weather.)
+
+Consequences worth knowing:
+
+- The season is a **bias on the temperature curve** (−7 °C in winter, +4 °C in
+  summer), not a temperature. A tropical base with a winter bias is still warm.
+  See `Temperature\Environment Temperature.md`.
+- The browser **asks**: `season` ships in `/api/settings/forecast` and in the tick
+  state, and the sky widget reads it. It used to keep two copies of the
+  month→season table, which could disagree with each other, while the backend read
+  a season nowhere — so `"season": "winter"` only ever meant a sky tint.
+
+
 ### Time Advancement
 
 - **`advance_clock(ticks=1)`** (`tick_manager.py:63`): Advances `time_ticks` counter only. Does not apply vital decay.

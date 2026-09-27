@@ -4,8 +4,10 @@ Thin registrar only — handlers live in ``routes/world_grid_ops.py``.
 """
 
 from .world_grid_ops import (
+    handle_boundary_override,
     handle_create_scope,
     handle_delete_scope,
+    handle_generate_interior,
     handle_generate_scope,
     handle_list_backgrounds,
     handle_painter_vocabulary,
@@ -13,6 +15,7 @@ from .world_grid_ops import (
     handle_paint_cell,
     handle_place_area,
     handle_place_feature,
+    handle_promote_scope,
     handle_remove_feature,
     handle_rename_scope,
     handle_scope_areas,
@@ -74,6 +77,19 @@ def register_world_grid_routes(app):
     @app.route('/api/world/scopes/<scope_id>/grid/unplace_area', methods=['POST'])
     def world_scope_grid_unplace_area(scope_id):
         return handle_unplace_area(app, scope_id)
+
+    @app.route('/api/world/scopes/<scope_id>/grid/boundary_override',
+               methods=['POST'])
+    def world_scope_grid_boundary_override(scope_id):
+        return handle_boundary_override(app, scope_id)
+
+    @app.route('/api/world/promote', methods=['POST'])
+    def world_promote():
+        return handle_promote_scope(app)
+
+    @app.route('/api/world/scopes/<scope_id>/grid/interior', methods=['POST'])
+    def world_scope_grid_interior(scope_id):
+        return handle_generate_interior(app, scope_id)
 
     @app.route('/api/world/scopes/<scope_id>/areas', methods=['POST'])
     def world_scope_areas(scope_id):

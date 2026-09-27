@@ -14,11 +14,9 @@ priority: high
 ## Goal
 
 Generate substantial life experience for characters — events, outcomes, fears,
-hopes, dreams, wants, likes, dislikes, trauma, and everything that makes people
-feel real — beyond what a personality summary can convey.
+hopes, dreams, wants, likes, dislikes, trauma, and everything that makes people feel real — beyond what a personality summary can convey.
 
-Aura/Diary (`F:\AI\Aura\Diary`) is the closest reference implementation and
-should inform the design, but the goal is a VirtualWorld-native system, not a
+Aura/Diary (`F:\AI\Aura\Diary`) is the closest reference implementation and should inform the design, but the goal is a VirtualWorld-native system, not a
 Neo4j integration.
 
 ## What Aura/Diary teaches us

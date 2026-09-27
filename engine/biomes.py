@@ -78,6 +78,36 @@ CELL_KIND_TAG_PREFIX = "cell_kind:"
 #: typo is visible rather than destructive.
 DEFAULT_UNKNOWN_CELL_KIND = "place"
 
+#: How a *kind* merges with its like neighbours (task-564), declared as a tag on
+#: the record (``merge:always``) for the same reason ``cell_kind:`` is: a modder
+#: adding a ``cellar`` or a ``subway`` gets the behaviour without a code change.
+#:
+#: - ``always`` — same-kind cells always become one place, whatever the scope's
+#:   merge switch says. A hallway is a *shape*, not a count: ten cells of corridor
+#:   are one corridor, and with the switch off a plan would otherwise be a row of
+#:   anonymous one-cell rooms.
+#: - ``never`` — same-kind neighbours are always separate places. A building cell
+#:   is a *plot*: two adjacent cottages are two cottages, and merging them would
+#:   quietly make a terrace one enormous house with one door.
+#: - ``""`` (the default) — the scope's own switch decides, which is what every
+#:   terrain cell, road and room wants.
+MERGE_ALWAYS = "always"
+MERGE_NEVER = "never"
+MERGE_TAG_PREFIX = "merge:"
+MERGE_RULES = (MERGE_ALWAYS, MERGE_NEVER)
+
+#: The tag that says a passable cell is a *stair* (task-568). A passable cell
+#: between two storeys already mints a stairway, because the storey is the strongest
+#: signal about what crossing it does; this tag lets the author make the same claim
+#: directly, and the two produce one kind of way.
+STAIR_TAG = "stair"
+
+#: Marks a record as an **indoor room** (task-568). Rooms are exempt from the
+#: wild-country contract for the same reason buildings are: nobody forages
+#: mushrooms in a latrine, and no wildlife spawns in a corridor. Read as a tag, so
+#: a modder adding a room gets the exemption by being one.
+INDOOR_TAG = "indoor"
+
 _cache: Dict[str, dict] = {}
 
 
@@ -168,6 +198,69 @@ def is_building(biome_id, path: Optional[str] = None) -> bool:
     return BUILDING_TAG in area_tags(biome_id, path)
 
 
+def merge_rule(biome_id, path: Optional[str] = None) -> str:
+    """How cells of this kind merge (task-564): ``"always"``, ``"never"`` or ``""``.
+
+    ``""`` means "the scope's merge switch decides", which is every biome that
+    shipped before per-kind rules. A **building** is ``"never"`` without having to
+    say so in 31 records: a plot is a building, so two adjacent building cells are
+    two buildings whatever the taxonomy says. Everything else reads its tag.
+    """
+    if is_building(biome_id, path):
+        return MERGE_NEVER
+    for tag in area_tags(biome_id, path):
+        if tag.startswith(MERGE_TAG_PREFIX):
+            rule = tag.split(":", 1)[1].strip()
+            if rule in MERGE_RULES:
+                return rule
+    return ""
+
+
+def is_stair(biome_id, path: Optional[str] = None) -> bool:
+    """Whether this cell is a *stairway* (task-568).
+
+    A passable cell between two storeys mints a stairway on its own — the storey
+    step is the strongest signal about what crossing it does. This is the author
+    making the same claim directly, so a plan can have a stair between two rooms
+    drawn on one storey (a loft stair, a cellar stair) where the floor layer says
+    nothing. Both spellings produce the same ``kind: "stairs"`` way.
+    """
+    return STAIR_TAG in area_tags(biome_id, path)
+
+
+def entry_phrases(record_id, path: Optional[str] = None) -> Optional[dict]:
+    """The narrative move a record asks for when you enter it (task-529).
+
+    Returns ``{"in": ..., "out": ..., "aliases": [...]}`` when the record declares
+    an entry, and ``None`` when it does not — which is the signal to fall back to
+    deriving one from the placement (see ``world_compile._entry_phrases``).
+
+    Three sources, most specific first, and the reason they are checked in that
+    order is that they are three different authors:
+
+    - the **record** (a `tunnel` says "go down the tunnel") — the vocabulary,
+      shared by every world, and what a modder edits;
+    - the **placement** (`placements[child].entry_phrase`) — *this* mouth of *this*
+      tunnel, because a mine with two adits has two ways in and only the author
+      knows which is which;
+    - the derived phrase — the last resort, and the only one that can be wrong
+      without anybody noticing.
+
+    The pair is read together: a record that declares only ``entry_phrase`` still
+    gets a sensible way back out, and vice versa.
+    """
+    rec = features(path).get(str(record_id)) or biomes(path).get(str(record_id))
+    if not rec:
+        return None
+    inward = str(rec.get("entry_phrase") or "").strip()
+    outward = str(rec.get("exit_phrase") or "").strip()
+    if not inward and not outward:
+        return None
+    aliases = [str(a).strip().lower() for a in (rec.get("entry_aliases") or [])
+               if str(a).strip()]
+    return {"in": inward, "out": outward, "aliases": aliases or None}
+
+
 def forage_skill_bonus(biome_id, path: Optional[str] = None) -> Dict[str, int]:
     """``foraging.AREA_SKILL_BONUS`` merged over a biome's tags (max per skill).
 
@@ -252,8 +345,14 @@ def validate(data: Optional[dict] = None, path: Optional[str] = None) -> List[st
         forage tag and distribution rules for one would mean writing fiction to
         satisfy a linter, so those checks are skipped — deliberately, not by
         omission. A made place is still a *place*, so it owes a surface and prose.
+
+        An **indoor room** (task-568) is made in the same sense and for the same
+        reason: a bedroom is not wilderness, so a `hallway` must not be told it
+        "would be barren" nor given a resource distribution. It is read from the
+        `indoor` tag, so a modder adding a `cellar` is exempt without saying so.
         """
-        return "building" in _tags(rec)
+        tags = _tags(rec)
+        return "building" in tags or INDOOR_TAG in tags
 
     def is_structure(rec: dict) -> bool:
         """Not a place at all (task-562) — a wall, a window, a door, a void.

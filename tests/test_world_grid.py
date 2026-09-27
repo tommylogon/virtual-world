@@ -409,3 +409,76 @@ def test_normalise_grid_cleans_a_malformed_area_placement_map():
     rec2 = {"area_placements": {"area_hills": {"x": "2", "y": None}}}
     wg.normalise_grid(rec2)
     assert rec2["area_placements"] == {}
+
+
+# ─── boundary overrides (task-528) ────────────────────────────────────────
+
+
+def test_a_feature_is_refused_a_cell_holding_a_hand_placed_area():
+    """The two kinds cannot share a cell — and the compiler is silent about it.
+
+    A feature is read as a *region* on its cell; an area placement *removes* the
+    cell from the compile set. A cell holding both is in neither, and the gateway
+    is skipped without a word, so the collision is refused at placement time.
+    """
+    m = _gridded_manifest()
+    m["deep_woods"] = {"id": "deep_woods", "name": "Deep woods",
+                       "parent_id": "forest", "state": "unmade"}
+    wg.place_area(m, "forest", "area_hills", 1, 1)
+
+    with pytest.raises(ValueError, match="area_hills"):
+        wg.place(m, "forest", "deep_woods", 1, 1)
+    # `displace` evicts another *feature*; it must not quietly evict an area,
+    # whose cell the node itself also holds.
+    with pytest.raises(ValueError, match="unplace it"):
+        wg.place(m, "forest", "deep_woods", 1, 1, on_overlap="displace")
+    assert wg.placements(m["forest"]) == {}
+    # Freeing the cell lets the feature take it.
+    wg.unplace_area(m, "forest", "area_hills")
+    assert wg.place(m, "forest", "deep_woods", 1, 1) == "placed"
+
+
+def test_boundary_override_records_and_clears_the_authors_call():
+    rec = {"grid": {"w": 2, "h": 2}}
+    assert wg.boundary_overrides(rec) == {}
+    assert not wg.is_boundary_overridden(rec, "way_a")
+
+    entry = wg.set_boundary_override(rec, "way_a", "suppress")
+    assert entry == {"action": "suppress"}
+    assert wg.is_boundary_overridden(rec, "way_a")
+    assert wg.boundary_override(rec, "way_a") == {"action": "suppress"}
+
+    assert wg.set_boundary_override(rec, "way_a", "hand",
+                                    hand_way_id="way_mine") == {
+        "action": "hand", "way_id": "way_mine"}
+    assert wg.boundary_override(rec, "way_a")["way_id"] == "way_mine"
+
+    # Clearing is "hand it back", and the empty container goes with it.
+    wg.set_boundary_override(rec, "way_a", None)
+    assert wg.boundary_overrides(rec) == {}
+    assert "boundary_overrides" not in rec
+
+
+def test_boundary_override_refuses_what_it_cannot_act_on():
+    rec = {"grid": {"w": 2, "h": 2}}
+    with pytest.raises(ValueError, match="unknown boundary override"):
+        wg.set_boundary_override(rec, "way_a", "maybe")
+    with pytest.raises(ValueError, match="needs the author's way_id"):
+        wg.set_boundary_override(rec, "way_a", "hand")
+    with pytest.raises(ValueError, match="takes no way_id"):
+        wg.set_boundary_override(rec, "way_b", "suppress", hand_way_id="way_c")
+
+
+def test_normalise_grid_cleans_a_malformed_override_map():
+    rec = {"boundary_overrides": {
+        "way_good": {"action": "suppress"},
+        "way_handed": {"action": "hand", "way_id": "way_mine", "extra": 1},
+        "way_unknown_action": {"action": "maybe"},
+        "way_not_a_map": 7,
+        "way_bare_string": "suppress",
+    }}
+    wg.normalise_grid(rec)
+    assert rec["boundary_overrides"] == {
+        "way_good": {"action": "suppress"},
+        "way_handed": {"action": "hand", "way_id": "way_mine"},
+    }

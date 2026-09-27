@@ -1039,6 +1039,19 @@ class VirtualWorld:
         months_per_year = max(1, int(cfg.get("months_per_year", 12)))
         return ((self.game_day - 1) // (days_per_month * months_per_year)) + 1
 
+    def current_season(self) -> str:
+        """The season this world is in (task-554).
+
+        The one entry point: the temperature model, the season narration and the
+        `/api/settings/forecast` payload that feeds the sky widget all call this,
+        so the engine and the browser cannot end up in different seasons. An
+        authored ``world_state.season`` wins over the clock — a scenario stating
+        it is winter means winter — and with none authored the calendar decides,
+        so crossing a boundary changes the season with no save and no reload.
+        """
+        from engine.weather_forecast import resolve_season
+        return resolve_season(getattr(self, "world_state", None) or {})
+
     def set_game_time(self, hour=None, minute=None):
         """task-234 set_time: rotate the clock-start offset so the displayed
         time matches. Tick count (and thus game progression) is preserved;
@@ -1275,12 +1288,56 @@ class VirtualWorld:
             if message:
                 self.add_log_entry(f"[Weather] {message}")
 
+        # 5. Narrate the season turning, the same way (task-554). Without this the
+        #    year changes silently: the temperature moves, the sky widget tints, and
+        #    nothing says why. The world visibly turns to winter.
+        season = self.current_season()
+        if season != getattr(self, "_season_last", None):
+            first = getattr(self, "_season_last", None) is None
+            self._season_last = season
+            if not first:
+                self.add_log_entry(f"[Season] {season.capitalize()} arrives.")
+
     def _apply_forecast_env(self, eff: dict):
-        """Write the effective weather baseline onto exterior (or all) areas."""
+        """Write the effective weather baseline onto exterior (or all) areas.
+
+        **Write order matters here, and the forecast is a delta layer.** The
+        world's own baseline — the area's own ``base_temperature`` plus the
+        diurnal and seasonal curve (task-553) — is decided here, and
+        ``temperature_mod`` is *added* to it. The forecast is never the thing that
+        decides what a mountain is: an entry that says "-4" means four degrees
+        below whatever that place already was. The order below is the whole
+        contract, and ``env["temperature"]`` stays the simulated value that
+        ``environment_propagation`` and heat sources write — two keys, two facts
+        (the same split as ``surface`` vs ``floor``).
+
+        **The curve is opt-in, and that is the compatibility guarantee.** An area
+        that authored no ``base_temperature`` in a world with no season stays at a
+        flat 21 °C, which is the number every existing world has always reported.
+        The moment either exists — the author paints a climate (task-557) or the
+        clock crosses into winter (task-554) — the area has a real baseline and a
+        real day. Simulating a diurnal swing around a *placeholder* would invent
+        variation nobody asked for, in every world that never chose a climate.
+        """
         from engine.runtime_config import config as _cfg
+        from engine.weather_forecast import (OUTDOOR_BASE_C, resolve_season,
+                                             temp_curve_for_hour)
         scope = str(_cfg.get("forecast.apply_scope", "exterior"))
-        temp_mod = eff.get("temperature_mod") or 0
-        light_mod = eff.get("light_mod") or 0
+        # `is not None` rather than truthiness: an authored 0 is a real delta that
+        # says "no change", and a truthiness test would drop it on the floor.
+        temp_mod = eff.get("temperature_mod")
+        light_mod = eff.get("light_mod")
+        # Read the clock defensively. `world_state` is a plain attribute, and a
+        # bare `VirtualWorld` built without a scenario (a test, an embedding) has
+        # none — this ran before task-553 and did not care, so a hard
+        # `self.world_state.get(...)` here would be a new crash for every such
+        # world. `game_hour` is the derived hour and falls back to midday, which is
+        # what a world with no calendar has always looked like.
+        state = getattr(self, "world_state", None) or {}
+        hour = int(state.get("game_hour", 12) or 0)
+        # The engine is the only place a season is read (task-554), so the clock —
+        # not a save file and not a sky widget — is what turns the year.
+        season = self.current_season()
         for node in self.graph.nodes.values():
             if node.type != "area":
                 continue
@@ -1296,10 +1353,24 @@ class VirtualWorld:
                 env["humidity"] = eff["humidity"]
             if eff.get("air"):
                 env["air"] = eff["air"]
-            if temp_mod:
-                # temperature_mod is a delta from the outdoor base (21°C).
-                env["temperature"] = round(21.0 + float(temp_mod), 1)
-            if light_mod:
+            # The world's own climate. An area that authored no
+            # `base_temperature` reads the long-standing 21 °C default, which is
+            # what makes this change invisible to every existing world — and, more
+            # importantly, is why the key is **not** written back here: "the key is
+            # present" has to keep meaning "the author or a compiler said what this
+            # place is like", and a default written every tick would make every
+            # area look climate-aware on the next one.
+            authored = "base_temperature" in env
+            try:
+                base = float(env.get("base_temperature", OUTDOOR_BASE_C))
+            except (TypeError, ValueError):
+                base = OUTDOOR_BASE_C
+            if not (base == base and base not in (float("inf"), float("-inf"))):
+                base = OUTDOOR_BASE_C      # NaN or ±inf is a bad save, not a climate
+            curve = temp_curve_for_hour(hour, season) if (authored or season) else 0.0
+            delta = curve + (float(temp_mod) if temp_mod is not None else 0.0)
+            env["temperature"] = round(base + delta, 1)
+            if light_mod is not None:
                 env["light"] = round(min(100, 80 + float(light_mod)))
             node.updated = time.time()
 

@@ -11,9 +11,10 @@ is easily testable and safe for route handlers to call.
 
 from __future__ import annotations
 
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, Iterable, List, Optional, Tuple
 
 from engine import world_grid
+from graph import EDGE_CONNECTION, Edge, Node
 
 SPATIAL_TYPES = {"in", "on", "under", "behind", "beside", "at"}
 
@@ -430,6 +431,207 @@ def delete_scope(manifest: Dict[str, dict], graph, scope_id: str,
             "deleted_nodes": deleted, "released_areas": unplaced_areas}
 
 
+def promote_to_scope(manifest: Dict[str, dict], graph, *, scope_id: str,
+                      name: str, area_ids: List[str],
+                      parent_id: Optional[str] = None,
+                      cell: Optional[Tuple[int, int]] = None,
+                      entry_area_id: Optional[str] = None,
+                      mode: str = "interior",
+                      enter: Optional[str] = None,
+                      leave: Optional[str] = None,
+                      ) -> dict:
+    """Make a selection of existing areas into a new child scope (task-535).
+
+    The deferred half of task-528. Task-528 parks an area you already wrote onto a
+    cell; this takes a *selection* and makes a scope out of it, so a hand-authored
+    interior becomes a level of the world without being redrawn: the areas move
+    with their names, their items and their ways, and one gateway is minted from
+    the parent's painted cell into the selection's entry area.
+
+    Returns ``{scope_id, name, area_ids, entry_area_id, parent_id, cell, way_id,
+    released_from}``, where ``released_from`` maps each promoted area to the scope
+    it came out of.
+
+    Four decisions are made here, and they are the reason this is a helper and not
+    a route:
+
+    - **Validate before mutating.** Every refusal below happens before the
+      manifest, the nodes or the placement are touched, so a rejected promotion
+      leaves the world exactly as it was — a half-created scope whose areas have
+      already moved is worse than no promotion at all.
+    - **The scope is ``baked``.** It is authored, not compiled: these areas came
+      from paint or from the author's hand, and the compiler's own rule is to
+      refuse a baked materialized scope. So the record carries no grid, and
+      Generate on it says so rather than quietly replacing a hand-drawn interior
+      with regions.
+    - **The gateway is hand-authored and carries no ``generated`` block.**
+      ``world_compile._gateway`` stamps ``generated.scope_id`` with the *parent*,
+      which would make Ungenerate on the parent delete a gateway the author made
+      by promoting something — the exact "it deleted my work" that task-528's
+      boundary ways exist to prevent. The parent is left knowing only *where* the
+      child is (``placements``); the way belongs to nobody's recipe.
+    - **The entry is a choice, not a fallback.** ``entry_area_id`` when the author
+      names one, else the first selected area **by id** — deterministic, and not
+      "the top-left-most" as the compiler picks, because a promoted selection has
+      no painted anchor to be top-left-most of.
+
+    Raises ``ValueError`` for an empty selection, a duplicate scope id, an unknown
+    parent, a selected id that is not an area, an entry outside the selection, or
+    a cell that is not a painted place on the parent's grid.
+    """
+    scope_id = str(scope_id or "").strip()
+    name = str(name or "").strip()
+    if not scope_id:
+        raise ValueError("scope_id is required")
+    if not name:
+        raise ValueError("name is required")
+    if scope_id in manifest:
+        raise ValueError(f"scope {scope_id!r} already exists")
+
+    wanted: List[str] = []
+    for raw in (area_ids or []):
+        area_id = str(raw or "").strip()
+        if not area_id or area_id in wanted:
+            continue
+        node = graph.get_node(area_id)
+        if node is None or getattr(node, "type", "") != "area":
+            raise ValueError(f"{area_id!r} is not an area in this world")
+        wanted.append(area_id)
+    if not wanted:
+        raise ValueError("select at least one area to promote")
+
+    entry = str(entry_area_id or "").strip() or sorted(wanted)[0]
+    if entry not in wanted:
+        raise ValueError(f"entry area {entry!r} is not in the selection")
+
+    gateway_place = None
+    if parent_id is not None:
+        parent_id = str(parent_id)
+        if parent_id not in manifest:
+            raise ValueError(f"no such parent scope {parent_id!r}")
+        if world_grid.cell_of(manifest[parent_id], scope_id):
+            raise ValueError(f"{scope_id!r} is already placed on this map")
+        # The gateway is minted from a *painted* place, and a hand-placed area
+        # holding the cell is refused for the same reason a compiled one is: that
+        # cell is deleted from the parent's compile set, so a gateway there would
+        # be skipped in silence.
+        if cell is not None:
+            x, y = int(cell[0]), int(cell[1])
+            gateway_place = _gateway_place(manifest, graph, parent_id, x, y)
+            if gateway_place is None:
+                raise ValueError(
+                    f"cell ({x},{y}) is not a painted place in {parent_id!r}; "
+                    f"a gateway opens from a place, not from a wall")
+
+    # ── from here on the world changes ──
+    record = {
+        "id": scope_id,
+        "name": name,
+        "parent_id": parent_id,
+        "mode": str(mode or "interior"),
+        # Authored, not compiled — see the docstring.
+        "paint_policy": "baked",
+        "state": "materialized",
+        "area_ids": list(wanted),
+        "entry_area_id": entry,
+        "entry_area_name": str(getattr(graph.get_node(entry), "name", entry)),
+    }
+    manifest[scope_id] = record
+    if parent_id is not None:
+        children = manifest[parent_id].setdefault("children", [])
+        if scope_id not in children:
+            children.append(scope_id)
+
+    # Membership moves at both ends: the node's ``world_scope_id`` is the source of
+    # truth and the manifest's list is the denormalized mirror, so both have to go
+    # or a moved area keeps appearing in the old scope's count and canvas. Moving
+    # out of the parent also releases the parent's cell reservation for it, which is
+    # what frees the cell the gateway opens from.
+    released_from: Dict[str, str] = {}
+    for area_id in wanted:
+        node = graph.get_node(area_id)
+        props = getattr(node, "properties", None)
+        old = str((props or {}).get("world_scope_id") or "")
+        if old and old in manifest and old != scope_id:
+            released_from[area_id] = old
+        assign_area_membership(manifest, area_id, scope_id, old or None)
+        if isinstance(props, dict):
+            props["world_scope_id"] = scope_id
+            # The painted cell belonged to the scope that owned the area; inside
+            # the new scope the position is hand-authored canvas space, so the
+            # painted marker goes — otherwise the layout engine would read engine
+            # units as canvas pixels and place the area somewhere else entirely.
+            props.pop("cell", None)
+
+    way_id = ""
+    if gateway_place is not None and cell is not None:
+        place_area_id, place_name = gateway_place
+        way_id = f"way_gateway_{parent_id}_{scope_id}"
+        inward = str(enter or f"enter {name.lower()}")
+        outward = str(leave or "leave")
+        graph.nodes[way_id] = Node(
+            id=way_id, type="way", name=f"{place_name} - {name}",
+            properties={
+                "area_from": place_name,
+                "area_to": record["entry_area_name"],
+                "area_from_id": place_area_id,
+                "area_to_id": entry,
+                "direction": inward,
+                "return_direction": outward,
+                "current_state": "open",
+                "see_through": False,
+                "pass_message": f"You {inward}.",
+                "world_scope_id": parent_id,
+                "child_scope_id": scope_id,
+                "entry_phrase": inward,
+                "entry_target": record["entry_area_name"],
+                "aliases": ["in", "out"],
+                # The author's own way, on purpose: **no** `generated` block. See
+                # the docstring — a parent-stamped one would die with the parent's
+                # next Ungenerate.
+                "authored": True,
+            })
+        for source, target, direction in (
+                (place_area_id, way_id, inward),
+                (way_id, entry, inward),
+                (entry, way_id, outward),
+                (way_id, place_area_id, outward)):
+            graph.add_edge(Edge(source=source, target=target, type=EDGE_CONNECTION,
+                                properties={"direction": direction}))
+        world_grid.place(manifest, parent_id, scope_id, int(cell[0]), int(cell[1]),
+                         on_overlap="gateway")
+        manifest[parent_id]["placements"][scope_id].update(
+            {"area_id": place_area_id, "area_name": place_name})
+
+    return {"scope_id": scope_id, "name": name, "area_ids": list(wanted),
+            "entry_area_id": entry, "parent_id": parent_id,
+            "cell": [int(cell[0]), int(cell[1])] if cell else None,
+            "way_id": way_id, "released_from": released_from}
+
+
+def _gateway_place(manifest: Dict[str, dict], graph, parent_id: str, x: int, y: int
+                   ) -> Optional[Tuple[str, str]]:
+    """The place a gateway out of ``parent_id`` opens from a cell, as ``(id, name)``.
+
+    A hand-placed area on the cell wins (task-528, and the normal case for a
+    promoted entrance — the thing being promoted is usually parked beside the road
+    first), else the compiled region anchored there. ``None`` when the cell holds
+    nothing a way can start from, which the caller turns into a refusal.
+    """
+    for area_id in (world_grid.area_placement_at(manifest[parent_id], x, y) or "",):
+        if not area_id:
+            break
+        node = graph.get_node(area_id)
+        if node is not None:
+            return area_id, str(getattr(node, "name", area_id))
+        return None
+    compiled = f"area_{parent_id}_{x}_{y}"
+    node = graph.get_node(compiled)
+    if node is None:
+        return None
+    return compiled, str(getattr(node, "name", compiled))
+
+
 def ungenerate_scope(manifest: Dict[str, dict], graph, scope_id: str) -> dict:
     """Delete a scope's generated nodes but keep the scope and its painted grid.
 
@@ -440,23 +642,48 @@ def ungenerate_scope(manifest: Dict[str, dict], graph, scope_id: str) -> dict:
     survives with its paint, reference, map offset and placements; only
     ``state``/``area_ids``/entry and the compiled ``placements`` area links are
     reset, so a later Generate starts from a clean slate. Returns
-    ``{scope_id, deleted_nodes}``.
+    ``{scope_id, deleted_nodes, kept_ways}``.
+
+    **A baked scope cannot be ungenerated** (task-535). A scope promoted from a
+    selection of the author's own areas is ``paint_policy: "baked"``: nothing in it
+    was compiled, so there is nothing to undo, and a "delete everything this scope
+    generated" that emptied it would take a hand-drawn interior with it. So the
+    refusal is explicit rather than a no-op — Generate is the button that would
+    have something to do, and it says why it will not.
+
+    **A hand-authored way into this scope is kept**, and reported in
+    ``kept_ways``. A *compiled* gateway dies with the scope it points at, because
+    the scope is being emptied; an author's own does not, because Ungenerate is an
+    undo of a Generate and the author never ran one. It is reported rather than
+    silently left pointing at nothing.
     """
     if scope_id not in manifest:
         raise ValueError(f"scope {scope_id!r} not found")
     record = manifest[scope_id]
+    if str(record.get("paint_policy") or "") == "baked":
+        raise ValueError(
+            f"scope {scope_id!r} is authored, not generated — there is nothing to "
+            f"ungenerate. Delete the scope if you mean to throw it away.")
 
     deleted = 0
+    kept_ways: List[str] = []
     for node_id, node in list(graph.nodes.items()):
         props = getattr(node, "properties", {}) or {}
         generated = props.get("generated") or {}
-        # A parent's gateway into this scope dies with the scope it points at,
-        # even though its provenance names the parent.
         into_scope = (getattr(node, "type", None) == "way"
                       and str(props.get("child_scope_id") or "") == scope_id)
-        if generated.get("scope_id") == scope_id or into_scope:
+        if not into_scope:
+            if generated.get("scope_id") == scope_id:
+                graph.remove_node(node_id)
+                deleted += 1
+            continue
+        # A parent's *compiled* gateway into this scope dies with it, even though
+        # its provenance names the parent.
+        if generated:
             graph.remove_node(node_id)
             deleted += 1
+        else:
+            kept_ways.append(node_id)
 
     # Compiled placement links point at areas that no longer exist; drop them so
     # a regenerate re-links rather than following a dangling id.
@@ -471,7 +698,7 @@ def ungenerate_scope(manifest: Dict[str, dict], graph, scope_id: str) -> dict:
     record["area_ids"] = []
     record.pop("entry_area_id", None)
     record.pop("entry_area_name", None)
-    return {"scope_id": scope_id, "deleted_nodes": deleted}
+    return {"scope_id": scope_id, "deleted_nodes": deleted, "kept_ways": kept_ways}
 
 
 def project_subgraph(manifest: Dict[str, dict], graph, players, scope_id: str,

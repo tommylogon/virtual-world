@@ -53,6 +53,12 @@
         refDrag: null,        // {kind, key, start, rect, crop} during a ref edit
         selectedChild: null,
         selectedArea: null,   // area picked by the 📍 Area place tool (task-528)
+        // Cell selection and the marquee being dragged (task-536). Keyed by scope
+        // id, because a selection is *this map's* selection: switching tools keeps
+        // it, switching maps must not smuggle it across.
+        selection: {},         // {scopeId: {'x,y': true}}
+        marquee: null,         // {anchor: {x, y}, to: {x, y}} while dragging
+        nudged: null,          // last move offset, for the status line
         inspected: null,      // {x, y} the cell the inspector panel is showing (task-540)
         cellInfoEl: null,     // HUD hover readout for the cell under the pointer
         cellInfoKey: null,    // last hovered cell+content, to skip pointless DOM writes
@@ -130,6 +136,9 @@
         if (state.vocab) return state.vocab;
         try {
             state.vocab = await _req('/api/world/painter/vocabulary', { cache: 'no-store' });
+            // The climates come from the backend, ids and base °C both (task-557);
+            // only the colour is local, so a new climate needs no editor change.
+            GM().useClimatesFromVocab(state.vocab);
         } catch (e) {
             // The editor still works without it (free-text values), just no dropdown.
             state.vocab = { biomes: [], features: [], layers: GM().PAINT_LAYERS, modes: GM().MODES };
@@ -149,10 +158,55 @@
     }
 
     function _layerOptions(layer) {
-        if (!state.vocab) return [];
-        if (layer === 'biome') return state.vocab.biomes || [];
-        if (layer === 'road') return state.vocab.features || [];
+        if (layer === 'biome') {
+            return (state.vocab && state.vocab.b ? state.vocab.b : state.vocab.biomes || [])
+                .map((r) => ({ value: r.id, label: r.name, tags: r.tags }));
+        }
+        if (layer === 'road') {
+            return (state.vocab && state.vocab.f ? state.vocab.f : state.vocab.features || [])
+                .map((r) => ({ value: r.id, label: r.name, tags: r.tags }));
+        }
+        if (layer === 'climate') {
+            // The coarse climates, each labelled with the base °C it compiles to,
+            // because that number is the whole point of painting it (task-557) and
+            // it otherwise lives only in the generate report.
+            return GM().CLIMATE_IDS.map((id) => {
+                const c = GM().CLIMATES[id] || {};
+                return { value: id, label: `${c.label} (${c.base}°C)`, tags: ['climate'] };
+            });
+        }
         return [];
+    }
+
+    /** A climate legend, shown while the climate layer is active (task-557). */
+    function _climateLegend() {
+        if (state.layer !== 'climate') return null;
+        const box = _el('div', 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;' +
+            'padding:4px 8px;margin-bottom:6px;border:1px solid var(--border,#3a3a44);' +
+            'border-radius:6px;font-size:11px;');
+        box.setAttribute('data-role', 'wp-climate-legend');
+        box.appendChild(_el('span', 'color:var(--text-muted,#999);',
+            'compiles to base_temperature:'));
+        GM().CLIMATE_IDS.forEach((id) => {
+            const c = GM().CLIMATES[id] || {};
+            const chip = _el('span',
+                'display:inline-flex;align-items:center;gap:4px;padding:1px 6px;'
+                + 'border-radius:9px;border:1px solid var(--border,#3a3a44);',
+                c.label);
+            const swatch = _el('span',
+                'display:inline-block;width:9px;height:9px;border-radius:2px;',
+                '');
+            swatch.style.background = c.color;
+            chip.insertBefore(swatch, chip.firstChild);
+            chip.title = `${c.label}: ${c.base}°C base, plus the day's curve`;
+            box.appendChild(chip);
+        });
+        box.appendChild(_el('span', 'color:var(--text-muted,#777);',
+            '· unpainted is Temperate'));
+        box.title = 'A region takes the majority climate of its cells, and a '
+            + 'climate boundary never splits an area. Only world scopes compile '
+            + 'a climate; a town or interior keeps its own air.';
+        return box;
     }
 
     /**
@@ -165,27 +219,58 @@
      * rural, transport), with the wild terrain above it where it already was. The
      * grouping is cosmetic — a `select` cannot nest, so it is one flat list with
      * "— Buildings —" and "— Category —" separators that cannot be painted.
+     *
+     * **Rooms** get the same treatment for the same reason, and it matters more
+     * here: the indoor vocabulary is *purpose* first (where does a person sleep,
+     * where do they cook) and an author drawing a floor plan is asking exactly
+     * that question, not "which of the 80 biomes". Rooms sit between the wild
+     * terrain and the buildings, because a plan is where terrain gives way to
+     * rooms and a building is the thing you arrive at.
      */
     function _biomePalette(layer) {
         const options = _layerOptions(layer);
         if (layer !== 'biome') return options.map((o) => ({ ...o, group: null }));
         const CATEGORIES = ['residential', 'religious', 'commercial', 'civic',
             'craft', 'industrial', 'military', 'rural', 'transport'];
+        // A room's purpose, in the order a plan is drawn: arrive, move, then
+        // the rooms you pass. Circulation first because it is what everything else
+        // connects to, and the two "why people gather" purposes (living, civic)
+        // before the service ones, which is the order a reader thinks in.
+        const ROOM_PURPOSES = ['circulation', 'living', 'sleeping', 'cooking',
+            'eating', 'storage', 'workshop', 'worship', 'records', 'study',
+            'trade', 'civic', 'service', 'outdoor'];
         const wild = [];
+        const rooms = new Map(ROOM_PURPOSES.map((c) => [c, []]));
         const buildings = new Map(CATEGORIES.map((c) => [c, []]));
         const structure = [];
         for (const option of options) {
             const tags = (option.tags || []).map((t) => String(t).toLowerCase());
-            // Structure — wall, void, window, door — is neither terrain nor a
-            // building, and it is what makes a floor plan mean anything (task-562),
-            // so it gets its own section rather than being sorted by its category.
+            // Structure — wall, void, window, door, stairway — is neither terrain
+            // nor a room nor a building, and it is what makes a floor plan mean
+            // anything (task-562/568), so it gets its own section rather than
+            // being sorted by its category.
             if (tags.includes('not_a_place')) { structure.push({ ...option, group: null }); continue; }
+            if (tags.includes('indoor')) {
+                const purpose = ROOM_PURPOSES.find((c) => tags.includes(c)) || 'other';
+                if (!rooms.has(purpose)) rooms.set(purpose, []);
+                rooms.get(purpose).push({ ...option, group: purpose });
+                continue;
+            }
             if (!tags.includes('building')) { wild.push({ ...option, group: null }); continue; }
             const category = CATEGORIES.find((c) => tags.includes(c)) || 'other';
             if (!buildings.has(category)) buildings.set(category, []);
             buildings.get(category).push({ ...option, group: category });
         }
         const out = wild.slice();
+        if ([...rooms.values()].some((g) => g.length)) {
+            out.push({ separator: '— Rooms —' });
+            for (const purpose of [...ROOM_PURPOSES, 'other']) {
+                const group = rooms.get(purpose);
+                if (!group || !group.length) continue;
+                out.push({ separator: `— ${purpose[0].toUpperCase()}${purpose.slice(1)} —` });
+                out.push(...group);
+            }
+        }
         if (out.length) out.push({ separator: '— Buildings —' });
         for (const category of [...CATEGORIES, 'other']) {
             const group = buildings.get(category);
@@ -261,11 +346,36 @@
         state.payload = null;
     }
 
-    /** Space = pan, so left-drag is free for painting. Escape leaves a mode. */
+    /**
+     * Keys for the rail and the selection (task-536).
+     *
+     * One handler, because the interesting cases are *combinations* — Escape with
+     * a selection and a half-finished route, Ctrl+A while a route is being drawn
+     * — and two handlers deciding what each of them does is how a key ends up
+     * meaning two things. The order is deliberate: the selection is dropped before
+     * the tool is reset, so Escape peels off the least-committed thing first.
+     *
+     * Space = pan, so left-drag is free for painting or marqueeing.
+     */
     function _bindKeys() {
         _unbindKeys();
         state._keyDown = (e) => {
+            const tag = (e.target && e.target.tagName) || '';
+            const typing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+            const p = state.payload;
+
             if (e.key === 'Escape') {
+                if (typing) return;
+                // The selection is the least-committed thing on screen: drop it
+                // before dropping a route or resetting the tool.
+                if (p && _selectedCells(p).length) {
+                    _setSelection(p, {});
+                    state.marquee = null;
+                    _status('Selection cleared.');
+                    _redrawDecor();
+                    render();
+                    return;
+                }
                 // Route points and a picked area are half-finished work: drop
                 // them and go back to painting rather than leaving the tool armed.
                 if (state.tool !== 'paint' || state.route.length || state.selectedArea
@@ -280,15 +390,50 @@
                 }
                 return;
             }
+            if (typing) return;
+
+            if ((e.ctrlKey || e.metaKey) && (e.key || '').toLowerCase() === 'a' && p) {
+                e.preventDefault();
+                const keys = {};
+                for (let y = 0; y < p.grid.h; y += 1) {
+                    for (let x = 0; x < p.grid.w; x += 1) keys[GM().cellKey(x, y)] = true;
+                }
+                _setSelection(p, keys);
+                _status(`Selected all ${p.grid.w * p.grid.h} cells.`);
+                _redrawDecor();
+                render();
+                return;
+            }
+            if (e.ctrlKey || e.metaKey) return;
+
+            const tool = TOOLS.find(
+                (t) => t[2].toLowerCase() === (e.key || '').toLowerCase());
+            if (tool) { e.preventDefault(); _selectTool(tool[0]); return; }
+
+            // Arrow keys (or WASD) nudge a selection. They only do that when there
+            // is one to nudge: with nothing selected an arrow key is the map's to
+            // use, and a selection the author cannot see is not worth guessing at.
+            const nudge = {
+                arrowup: [0, -1], w: [0, -1],
+                arrowdown: [0, 1], s: [0, 1],
+                arrowleft: [-1, 0], a: [-1, 0],
+                arrowright: [1, 0], d: [1, 0],
+            }[(e.key || '').toLowerCase()];
+            if (nudge && p && _selectedCells(p).length) {
+                e.preventDefault();
+                _nudge(p, nudge[0], nudge[1]);
+                return;
+            }
+
             if (e.code !== 'Space' || state.spaceDown) return;
             state.spaceDown = true;
-            if (state.stage) state.stage.draggable(true);
+            _syncDraggable();
             e.preventDefault();
         };
         state._keyUp = (e) => {
             if (e.code !== 'Space') return;
             state.spaceDown = false;
-            if (state.stage) state.stage.draggable(!_isPaintTool());
+            _syncDraggable();
         };
         document.addEventListener('keydown', state._keyDown);
         document.addEventListener('keyup', state._keyUp);
@@ -413,6 +558,10 @@
 
         box.appendChild(_breadcrumb(p.breadcrumb));
         box.appendChild(_toolbar(p));
+        // The climate legend only exists while the climate layer is active, and
+        // it sits directly under the layer control that switches to it (task-557).
+        const legend = _climateLegend();
+        if (legend) box.appendChild(legend);
 
         if (!p.scope.has_grid) {
             box.appendChild(_noGridPanel(p));
@@ -422,7 +571,12 @@
 
             box.appendChild(_featureBar(p));
             if (state.tool === 'area') box.appendChild(_areaBar(p));
-            box.appendChild(_grid(p));
+            // Rail beside the canvas, not above it: the tool column and the map it
+            // acts on are read together, and the map gets the width back (task-536).
+            const withRail = _el('div', 'display:flex;gap:10px;align-items:flex-start;');
+            withRail.appendChild(_toolRail(p));
+            withRail.appendChild(_grid(p));
+            box.appendChild(withRail);
             const panel = _cellPanel(p);
             if (panel) box.appendChild(panel);
         _renderChildren(box, p);
@@ -445,6 +599,138 @@
         return row;
     }
 
+    /**
+     * The tool rail (task-536): a vertical column down the left of the canvas.
+     *
+     * Four tool buttons in a top row is a toolbar for four things; eight is a
+     * toolbar for a spreadsheet. A rail keeps the active tool obvious, gives each
+     * one a key, and leaves the width for the map — which is the thing being
+     * looked at. The layer/value/brush controls stay in the top row on purpose:
+     * they are not options of one tool but of the four that write paint (paint,
+     * erase, route, feature), and putting them in the rail would mean the author
+     * switches tools to change a setting that outlives the switch. What the rail
+     * *does* own is the options that belong to the active tool: the selection
+     * panel under Select, the nudge readout under Move.
+     */
+    const TOOLS = [
+        ['select', '⬚ Select', 'V',
+            'Click cells to select, shift-click to add, drag for a marquee. '
+            + 'Ctrl+A all, Escape clear. With cells selected, Paint and Erase '
+            + 'apply to the whole selection in one request.'],
+        ['paint', '🖌 Paint', 'P', 'Paint the current layer and value. Drag to stroke.'],
+        ['erase', '🧽 Erase', 'E', 'Clear the current layer on a cell. Drag to stroke.'],
+        ['move', '✥ Move', 'M',
+            'Shift the selected cells\' contents one cell. Arrow keys, or WASD, '
+            + 'or the nudge buttons. Clamped to the grid; one request, one undo.'],
+        ['route', '🧭 Route', 'R', 'Click waypoints, then ✓ Paint route — paints the '
+            + 'current layer along the line (1 cell = 1 turn).'],
+        ['feature', '🏠 Feature', 'F', 'Place a sub-zone (child scope) at a cell — not a '
+            + 'road. Roads/bridges are painted on the road layer.'],
+        ['area', '📍 Area', 'A', 'Put an area you already wrote (Northern Hills, Murk '
+            + 'Lake…) on a cell of this map. Pick the area, then click where '
+            + 'it belongs. Generate will not put a second area on that cell.'],
+        ['inspect', '🔍 Inspect', 'I', 'Read a cell without changing it: what is painted '
+            + 'on it, and which area or child scope sits there. Right-click does the '
+            + 'same on any tool.'],
+    ];
+
+    function _toolRail(p) {
+        const rail = _el('div', 'display:flex;flex-direction:column;gap:4px;flex:0 0 auto;');
+        rail.setAttribute('data-role', 'wp-rail');
+        TOOLS.forEach(([id, label, key, hint]) => {
+            const active = state.tool === id;
+            const btn = _btn(label, () => _selectTool(id),
+                'text-align:left;white-space:nowrap;'
+                + (active ? 'outline:2px solid #7ab;background:#1e3550;' : ''),
+                `${hint}\n\nShortcut: ${key}`);
+            btn.setAttribute('data-tool', id);
+            if (active) btn.setAttribute('aria-pressed', 'true');
+            rail.appendChild(btn);
+        });
+        const options = _railOptions(p);
+        if (options) {
+            rail.appendChild(_el('hr', 'border:0;border-top:1px solid var(--border,#3a3a44);'
+                + 'width:100%;margin:6px 0;'));
+            rail.appendChild(options);
+        }
+        return rail;
+    }
+
+    /** The options that belong to the *active* tool (task-536). */
+    function _railOptions(p) {
+        const count = _selectedCells(p).length;
+        if (state.tool === 'select') {
+            const box = _el('div', 'display:flex;flex-direction:column;gap:4px;align-items:flex-start;');
+            box.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);',
+                count ? `${count} cell${count === 1 ? '' : 's'} selected` : 'no cells selected'));
+            box.appendChild(_btn('Select all', () => {
+                const cells = {};
+                for (let y = 0; y < p.grid.h; y += 1) {
+                    for (let x = 0; x < p.grid.w; x += 1) cells[GM().cellKey(x, y)] = true;
+                }
+                _setSelection(p, cells);
+                _status(`Selected all ${p.grid.w * p.grid.h} cells.`);
+            }, 'width:100%;', 'Select every cell on this grid (Ctrl+A)'));
+            box.appendChild(_btn('Clear', () => {
+                _setSelection(p, {});
+                _status('Selection cleared.');
+            }, 'width:100%;', 'Select nothing (Escape)'));
+            if (count) {
+                box.appendChild(_btn('Invert', () => {
+                    const next = {};
+                    for (let y = 0; y < p.grid.h; y += 1) {
+                        for (let x = 0; x < p.grid.w; x += 1) {
+                            const k = GM().cellKey(x, y);
+                            if (!_sel(p)[k]) next[k] = true;
+                        }
+                    }
+                    _setSelection(p, next);
+                }, 'width:100%;', 'Select everything you had not selected'));
+            }
+            return box;
+        }
+        if (state.tool === 'move') {
+            const box = _el('div', 'display:flex;flex-direction:column;gap:4px;align-items:flex-start;');
+            box.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);',
+                count ? `Move ${count} cell${count === 1 ? '' : 's'}` : 'Select cells first'));
+            const grid = _el('div', 'display:grid;grid-template-columns:repeat(3,1fr);gap:2px;');
+            grid.appendChild(_el('span'));
+            grid.appendChild(_btn('↑', () => _nudge(p, 0, -1), 'padding:2px 6px;', 'Up'));
+            grid.appendChild(_el('span'));
+            grid.appendChild(_btn('←', () => _nudge(p, -1, 0), 'padding:2px 6px;', 'Left'));
+            grid.appendChild(_btn('↓', () => _nudge(p, 0, 1), 'padding:2px 6px;', 'Down'));
+            grid.appendChild(_btn('→', () => _nudge(p, 1, 0), 'padding:2px 6px;', 'Right'));
+            box.appendChild(grid);
+            return box;
+        }
+        return null;
+    }
+
+    /**
+     * Whether the canvas pans on a plain left-drag, re-decided on every tool
+     * change (task-536).
+     *
+     * A drag means a different thing per tool — pan, paint stroke, marquee, and now
+     * "nothing" under Move — and `draggable` is set once when the stage is wired.
+     * A tool switch therefore has to re-ask, or the author selects a tool and drags
+     * the map across instead of moving their cells.
+     */
+    function _syncDraggable() {
+        if (!state.stage) return;
+        const toolOwnsDrag = _isPaintTool() || state.tool === 'select'
+            || state.tool === 'move';
+        state.stage.draggable(state.spaceDown || (!state.refEdit && !toolOwnsDrag));
+    }
+
+    function _selectTool(id) {
+        state.tool = id;
+        if (id !== 'area') state.selectedArea = null;
+        if (id !== 'move') state.nudged = null;
+        state.marquee = null;
+        _syncDraggable();
+        render();
+    }
+
     function _toolbar(p) {
         const wrap = _el('div', 'display:flex;flex-wrap:wrap;gap:8px;align-items:center;' +
             'padding:8px;border:1px solid var(--border,#3a3a44);border-radius:8px;margin-bottom:8px;');
@@ -454,33 +740,8 @@
             `mode: ${p.mode || 'unset'}`);
         wrap.appendChild(modeBadge);
 
-        const tools = [['paint', '🖌 Paint'], ['erase', '🧽 Erase'],
-            ['route', '🧭 Route'], ['feature', '🏠 Feature'], ['area', '📍 Area'],
-            ['inspect', '🔍 Inspect']];
-        tools.forEach(([id, label]) => {
-            const btn = _btn(label, () => {
-                state.tool = id;
-                if (id !== 'area') state.selectedArea = null;
-                render();
-            }, state.tool === id ? 'outline:2px solid #7ab;' : '');
-            if (id === 'route') {
-                btn.title = 'Click waypoints, then ✓ Paint route — paints the '
-                    + 'current layer along the line (1 cell = 1 turn).';
-            } else if (id === 'feature') {
-                btn.title = 'Place a sub-zone (child scope) at a cell — not a '
-                    + 'road. Roads/bridges are painted on the road layer.';
-            } else if (id === 'area') {
-                btn.title = 'Put an area you already wrote (Northern Hills, Murk '
-                    + 'Lake…) on a cell of this map. Pick the area, then click where '
-                    + 'it belongs. Generate will not put a second area on that cell.';
-            } else if (id === 'inspect') {
-                btn.title = 'Read a cell without changing it: what is painted on it, '
-                    + 'and which area or child scope sits there. Right-click does the '
-                    + 'same on any tool.';
-            }
-            wrap.appendChild(btn);
-        });
-
+        // The tools themselves live in the left rail now (task-536); what is left
+        // here is what the *write* tools share, plus the compile controls.
         wrap.appendChild(_el('span', 'font-size:12px;color:var(--text-muted,#999);',
             'layer'));
         const layerSel = _el('select', 'padding:3px;border-radius:5px;');
@@ -518,6 +779,15 @@
 
         wrap.appendChild(_btn('▦ Grid…', () => _openGridDialog(p)));
         wrap.appendChild(_btn('➕ Add feature…', () => _promptNewScope(p.scope.id)));
+        // A building *type* brings its own floor plan (task-567). Only meaningful
+        // on an interior scope, and offering it elsewhere would let an author paint
+        // rooms onto a world map, which is a wall grid already says something.
+        if (p.scope.mode === 'interior') {
+            wrap.appendChild(_btn('🏠 Paint an interior…', paintInterior, '',
+                'Paint a building type\'s floor plan in as cells: a tavern gets a '
+                + 'tap room, kitchen and cellar. It is a draft — edit the cells, '
+                + 'then Generate.'));
+        }
 
         // Compile the painted grid into real area/way nodes (task-496/398).
         const merge = _el('input');
@@ -1016,9 +1286,15 @@
         stage.add(bg);
         stage.add(paint);
         stage.add(decor);
+        // The selection sits above the cells and below nothing else that matters:
+        // it has to be visible while the author drags a marquee over painted
+        // ground, and it is rebuilt on every redraw rather than added to the decor
+        // batch (which is rebuilt too, but one shape type at a time).
+        const select = new window.Konva.Layer({ listening: false });
+        stage.add(select);
         state.stage = stage;
+        state.layers = { ref: refLayer, bg, paint, decor, select };
         state.shapes = { bgShape, paintShape, featureShape, routeShape };
-        state.layers = { ref: refLayer, bg, paint, decor };
         _wireGrid(p);
         if (state.view) {
             // Rebuild (paint/layer change) keeps the author's place on the map.
@@ -1040,17 +1316,48 @@
     }
 
     /**
-     * Redraw only the decor layer (in-progress paint stroke + feature markers +
-     * route waypoints). A paint *drag* changes nothing else: the ref/bg/paint
-     * layers keep their canvases and the stage transform is unchanged until
-     * mouse-up. Calling ``stage.batchDraw()`` on every painted cell re-rasterised
-     * the reference image each frame, which made painting crawl once a large
-     * reference (deep_forest) was loaded.
+     * Redraw only the decor + selection layers (in-progress paint stroke, feature
+     * markers, route waypoints, cell selection). A paint *drag* changes nothing
+     * else: the ref/bg/paint layers keep their canvases and the stage transform is
+     * unchanged until mouse-up. Calling ``stage.batchDraw()`` on every painted cell
+     * re-rasterised the reference image each frame, which made painting crawl once
+     * a large reference (deep_forest) was loaded.
      */
     function _redrawDecor() {
         const layers = state.layers;
         if (layers && layers.decor) layers.decor.batchDraw();
         else _redrawGrid();
+        _drawSelection(state.payload, layers && layers.select);
+        if (layers && layers.select) layers.select.batchDraw();
+    }
+
+    function _drawSelection(p, layer) {
+        if (!p || !layer) return;
+        layer.destroyChildren();
+        const sel = _sel(p);
+        const keys = Object.keys(sel);
+        keys.forEach((k) => {
+            const c = GM().parseCellKey(k);
+            if (!c) return;
+            layer.add(new window.Konva.Rect({
+                x: c.x * CELL + 1, y: c.y * CELL + 1,
+                width: CELL - 2, height: CELL - 2,
+                fill: 'rgba(122,170,255,0.22)', stroke: '#7abff', strokeWidth: 1,
+                listening: false,
+            }));
+        });
+        if (state.marquee) {
+            const a = state.marquee.anchor;
+            const b = state.marquee.to;
+            layer.add(new window.Konva.Rect({
+                x: Math.min(a.x, b.x) * CELL,
+                y: Math.min(a.y, b.y) * CELL,
+                width: (Math.abs(b.x - a.x) + 1) * CELL,
+                height: (Math.abs(b.y - a.y) + 1) * CELL,
+                fill: 'rgba(122,170,255,0.14)', stroke: '#7ab', strokeWidth: 1,
+                dash: [4, 3], listening: false,
+            }));
+        }
     }
 
     function _ensureRefImage(p) {
@@ -1369,15 +1676,32 @@
         const stage = state.stage;
         let dragged = false;
         // Paint/erase drag = paint. Pan is space-drag (or the zoom buttons), so a
-        // stroke is never interrupted by a pan. In reference-adjust mode the drag
-        // belongs to the picture, so only space pans there.
-        stage.draggable(state.spaceDown || (!state.refEdit && !_isPaintTool()));
-        stage.on('dragstart', () => { dragged = true; });
+        // stroke is never interrupted by a pan. Select drag = marquee, decided by
+        // the active tool and nothing else — a drag means different things under
+        // different tools, and which one is always the tool the author can see.
+        // In reference-adjust mode the drag belongs to the picture, so only space
+        // pans there.
+        const dragPaints = () => _isPaintTool() || state.tool === 'move';
+        stage.draggable(state.spaceDown || (!state.refEdit && !dragPaints()
+            && state.tool !== 'select'));        stage.on('dragstart', () => { dragged = true; });
         stage.on('dragend', _captureView);
 
         stage.on('mousedown', (e) => {
             if (state.refEdit && !state.spaceDown) { _refMouseDown(p); return; }
-            if (!_isPaintTool() || state.spaceDown || (e.evt && e.evt.button !== 0)) return;
+            if (e.evt && e.evt.button !== 0) return;
+            if (state.tool === 'select' && !state.spaceDown) {
+                const cell = _cellAtPointer(p);
+                if (!cell) return;
+                state.marquee = { anchor: cell, to: cell,
+                    add: !!(e.evt && e.evt.shiftKey) };
+                _redrawDecor();
+                return;
+            }
+            if (!_isPaintTool() || state.spaceDown) return;
+            // A selection is the whole point of the Select tool: with cells
+            // selected, a paint click is one batch over all of them rather than a
+            // single-cell edit the author then has to repeat by hand.
+            if (_selectedCells(p).length) { _applyToSelection(p); return; }
             state.stroke = [];
             state.strokeKeys = {};
             state.strokeLayer = state.layer;
@@ -1388,11 +1712,20 @@
         });
         stage.on('mousemove', () => {
             if (state.refEdit) { _refMouseMove(p); return; }
-            if (state.stroking && _strokeAdd(p, _cellAtPointer(p))) _redrawDecor();
+            const cell = _cellAtPointer(p);
+            if (state.marquee && cell) {
+                if (cell.x !== state.marquee.to.x || cell.y !== state.marquee.to.y) {
+                    state.marquee.to = cell;
+                    _redrawDecor();
+                }
+                return;
+            }
+            if (state.stroking && _strokeAdd(p, cell)) _redrawDecor();
             _updateCellInfo(p);
         });
         stage.on('mouseup mouseleave', () => {
             if (state.refEdit) { _refMouseUp(); return; }
+            if (state.marquee) { _commitMarquee(p); return; }
             if (state.stroking) _commitStroke(p);
         });
 
@@ -1400,6 +1733,7 @@
             if (state.refEdit) return;    // adjust mode owns the pointer
             if (dragged) { dragged = false; return; }
             if (_isPaintTool()) return;   // already committed by the stroke
+            if (state.tool === 'select') return;   // committed by the marquee
             const cell = _cellAtPointer(p);
             if (cell) _gridClick(p, cell);
         });
@@ -1424,6 +1758,161 @@
         });
     }
 
+    // ───────────────── cell selection and move (task-536) ───────────────
+
+    /** The cell keys selected on this scope, as a set-like object. */
+    function _sel(p) {
+        const id = (p && p.scope && p.scope.id) || state.scopeId || '';
+        if (!state.selection[id]) state.selection[id] = {};
+        return state.selection[id];
+    }
+
+    function _selectedCells(p) {
+        return Object.keys(_sel(p)).map((k) => GM().parseCellKey(k))
+            .filter(Boolean)
+            .map((c) => ({ x: c.x, y: c.y }));
+    }
+
+    function _setSelection(p, keys) {
+        _sel(p);
+        state.selection[(p && p.scope && p.scope.id) || state.scopeId] = keys;
+    }
+
+    /** The cells a marquee from the anchor to `to` covers, clipped to the grid. */
+    function _marqueeCells(p, to) {
+        const a = (state.marquee && state.marquee.anchor) || to;
+        const x0 = Math.max(0, Math.min(a.x, to.x));
+        const x1 = Math.min(p.grid.w - 1, Math.max(a.x, to.x));
+        const y0 = Math.max(0, Math.min(a.y, to.y));
+        const y1 = Math.min(p.grid.h - 1, Math.max(a.y, to.y));
+        const out = {};
+        for (let y = y0; y <= y1; y += 1) {
+            for (let x = x0; x <= x1; x += 1) out[GM().cellKey(x, y)] = true;
+        }
+        return out;
+    }
+
+    /**
+     * Shift the selected cells' contents one cell, in one request (task-536).
+     *
+     * A move is *not* a paint of the destination on top of the source: the source
+     * has to end up empty or the move is a smear, and a smear of a road leaves the
+     * map with two of them. So it is one batch — clear every source cell on every
+     * layer it has, then write each value at its new home — which means one undo
+     * step, one request, and a rejection of the whole thing if any cell would land
+     * off the grid. Clamping is what the task asks for and it is also the honest
+     * behaviour: a cell shifted past the edge is dropped from the move, not
+     * silently wrapped to the other side.
+     */
+    async function _nudge(p, dx, dy) {
+        const cells = _selectedCells(p);
+        if (!cells.length) { _status('Nothing selected — use the ⬚ Select tool first.', true); return; }
+        const layers = GM().PAINT_LAYERS;
+        const layerCells = {};
+        layers.forEach((l) => { layerCells[l] = p.layers[l] || {}; });
+        const edits = [];
+        const moving = [];
+        cells.forEach((c) => {
+            const nx = c.x + dx;
+            const ny = c.y + dy;
+            if (nx < 0 || ny < 0 || nx >= p.grid.w || ny >= p.grid.h) return;   // clamped off
+            moving.push({ from: c, to: { x: nx, y: ny } });
+        });
+        if (!moving.length) {
+            _status('The whole selection is against that edge — nowhere to move it.');
+            return;
+        }
+        // Clear first, then write: a value moving one cell east must not be
+        // cleared by its own neighbour's clear on the next step of the same batch.
+        moving.forEach(({ from }) => layers.forEach((l) => {
+            const k = GM().cellKey(from.x, from.y);
+            if (layerCells[l][k] != null) {
+                edits.push({ layer: l, x: from.x, y: from.y, value: null });
+            }
+        }));
+        moving.forEach(({ from, to }) => layers.forEach((l) => {
+            const k = GM().cellKey(from.x, from.y);
+            const value = layerCells[l][k];
+            if (value != null) edits.push({ layer: l, x: to.x, y: to.y, value });
+        }));
+        try {
+            state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/paint_batch`,
+                { edits });
+            const next = {};
+            moving.forEach(({ to }) => { next[GM().cellKey(to.x, to.y)] = true; });
+            _setSelection(p, next);
+            const dropped = cells.length - moving.length;
+            _status(`Moved ${moving.length} cell${moving.length === 1 ? '' : 's'}`
+                + (dropped ? `, ${dropped} left at the edge.` : '.'));
+            _notify(true);
+            render();
+        } catch (e) {
+            _status(`Move failed: ${e.message || e}`, true);
+        }
+    }
+
+    /** Paint the active value (or erase) across the whole selection, one request. */
+    async function _applyToSelection(p) {
+        const cells = _selectedCells(p);
+        if (!cells.length) return false;
+        const layer = state.layer;
+        const value = state.tool === 'erase' ? null : state.value;
+        if (state.tool === 'paint' && (value == null || value === '')) {
+            _status('Pick a value to paint first.', true);
+            return true;
+        }
+        try {
+            state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/paint_batch`,
+                { edits: cells.map((c) => ({ layer, x: c.x, y: c.y, value })) });
+            _status(`${state.tool === 'erase' ? 'Cleared' : 'Painted'} ${cells.length} `
+                + `cell${cells.length === 1 ? '' : 's'} on ${layer}.`);
+            _notify(true);
+            render();
+        } catch (e) {
+            _status(`${state.tool === 'erase' ? 'Clear' : 'Paint'} failed: ${e.message || e}`, true);
+        }
+        return true;
+    }
+
+    /** Key handling for the rail: one key per tool, plus selection and nudges. */
+    function _wireKeys() {
+        document.addEventListener('keydown', (e) => {
+            if (!state.body || !state.scopeId) return;
+            const tag = (e.target && e.target.tagName) || '';
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+            if (e.ctrlKey || e.metaKey) {
+                if ((e.key || '').toLowerCase() === 'a') {
+                    e.preventDefault();
+                    const p = state.payload;
+                    if (!p) return;
+                    const keys = {};
+                    for (let y = 0; y < p.grid.h; y += 1) {
+                        for (let x = 0; x < p.grid.w; x += 1) keys[GM().cellKey(x, y)] = true;
+                    }
+                    _setSelection(p, keys);
+                    _status(`Selected all ${p.grid.w * p.grid.h} cells.`);
+                    render();
+                }
+                return;
+            }
+            const tool = TOOLS.find(([, , key]) => key.toLowerCase() === (e.key || '').toLowerCase());
+            if (tool) { e.preventDefault(); _selectTool(tool[0]); return; }
+            const nudge = { arrowup: [0, -1], w: [0, -1], arrowdown: [0, 1], s: [0, 1],
+                arrowleft: [-1, 0], a: [-1, 0], arrowright: [1, 0], d: [1, 0] }[(e.key || '').toLowerCase()];
+            if (nudge && _selectedCells(state.payload).length) {
+                e.preventDefault();
+                _nudge(state.payload, nudge[0], nudge[1]);
+                return;
+            }
+            if (e.key === 'Escape') {
+                _setSelection(state.payload, {});
+                state.marquee = null;
+                _status('Selection cleared.');
+                render();
+            }
+        });
+    }
+
     function _cellAtPointer(p) {
         const rp = state.stage && state.stage.getRelativePointerPosition();
         if (!rp) return null;
@@ -1431,6 +1920,35 @@
         const y = Math.floor(rp.y / CELL);
         if (x < 0 || y < 0 || x >= p.grid.w || y >= p.grid.h) return null;
         return { x, y };
+    }
+
+    /** Turn a finished drag into a selection (task-536). */
+    function _commitMarquee(p) {
+        const drag = state.marquee;
+        state.marquee = null;
+        if (!drag) return;
+        const keys = _marqueeCells(p, drag.to);
+        const k = GM().cellKey(drag.anchor.x, drag.anchor.y);
+        const single = Object.keys(keys).length === 1;
+        if (drag.add) {
+            // Shift adds to what was already selected; it never clears, which is
+            // the whole point of holding shift.
+            _setSelection(p, Object.assign({}, _sel(p), keys));
+        } else if (single && _sel(p)[k]) {
+            // A click on an already-selected cell takes it back. The same gesture
+            // that made the selection removes it, so there is no state where the
+            // only way out of a stray selection is a keyboard shortcut.
+            const next = { ..._sel(p) };
+            delete next[k];
+            _setSelection(p, next);
+        } else {
+            _setSelection(p, keys);
+        }
+        const n = Object.keys(_sel(p)).length;
+        _status(n ? `${n} cell${n === 1 ? '' : 's'} selected.`
+            : 'Selection cleared.');
+        _redrawDecor();
+        render();
     }
 
     function _gridClick(p, cell) {
@@ -1575,7 +2093,95 @@
                 'Nothing to do here — paint it, or place an area/feature on it.'));
         }
         wrap.appendChild(actions);
+        // The ways Generate minted out of the area placed on this cell, and what
+        // the author has already done about them (task-528). Listed here because
+        // the seam is the author\'s decision, and the cell it belongs to is the
+        // one place the painter can show it next to the thing it joins.
+        const seams = _seamPanel(p, info.area && info.area.id);
+        if (seams) wrap.appendChild(seams);
+        // …and the one action that changes what an area *is* rather than where it
+        // sits: promote it into a child scope, with the gateway to it (task-535).
+        if (info.area) {
+            wrap.appendChild(_btn('🪜 Make this a scope…',
+                () => promoteArea(info.area.id), 'margin-top:8px;width:100%;',
+                'Turn this area into a child scope of '
+                + `${p.scope.name}, with a way in from its cell`));
+        }
         return wrap;
+    }
+
+    /**
+     * The boundary ways of one placed area, each with a way to take it away or
+     * hand it back.
+     *
+     * Removing a seam here deletes the generated way *and* records the decision,
+     * so it does not come back on the next Generate — the record is the whole
+     * reason the two live in one request. A seam already handed over (a hand
+     * written way of the author\'s own) is listed as such, with only "Restore".
+     */
+    function _seamPanel(p, areaId) {
+        if (!areaId) return null;
+        const rows = (p.boundary_ways || []).filter((w) => w.area_id === areaId);
+        const taken = (p.boundary_overrides || []).filter((o) => {
+            const row = rows.find((w) => w.way_id === o.way_id);
+            return row === undefined;
+        });
+        if (!rows.length && !taken.length) return null;
+
+        const box = _el('div', 'margin-top:8px;padding-top:8px;border-top:1px solid ' +
+            'var(--border,#3a3a44);display:flex;flex-direction:column;gap:3px;');
+        box.setAttribute('data-role', 'wp-seams');
+        box.appendChild(_el('div', 'color:var(--text-muted,#999);font-size:11px;',
+            'Ways out of this area — Generate made these, you decide'));
+
+        const line = (label, title, action) => {
+            const r = _el('div', 'display:flex;gap:6px;align-items:center;');
+            const text = _el('span', 'flex:1;min-width:0;', label);
+            text.title = title || label;
+            r.appendChild(text);
+            if (action) r.appendChild(action);
+            box.appendChild(r);
+        };
+
+        rows.forEach((w) => {
+            const seamId = w.way_id;
+            const where = w.to_name || w.to_id || 'somewhere';
+            const label = w.direction ? `${w.direction} → ${where}` : `to ${where}`;
+            if (w.overridden) {
+                line(label, 'You have taken this seam over; Generate leaves it alone', null);
+                return;
+            }
+            line(label, 'Remove this way. Generate will not put it back.',
+                _btn('✕', () => setSeam(p, seamId, 'suppress'), 'padding:1px 7px;',
+                    'Delete this way and keep Generate from re-adding it'));
+        });
+
+        // A seam the author removed (or replaced) has no node left to list, so it
+        // is read back from the record — otherwise restoring it would need a
+        // remembered way id, which is exactly what an author should not have to do.
+        taken.forEach((o) => {
+            const restore = _btn('↺', () => setSeam(p, o.way_id, 'auto'),
+                'padding:1px 7px;', 'Hand this seam back to Generate');
+            const what = o.action === 'hand' && o.hand_way_id
+                ? `your own way (${o.hand_way_id})` : 'removed by you';
+            line(`to ${what}`, 'Generate left this one alone; restore it', restore);
+        });
+        return box;
+    }
+
+    /** Take one boundary seam over, or hand it back to the compiler (task-528). */
+    async function setSeam(p, wayId, action) {
+        try {
+            state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/boundary_override`,
+                { way_id: wayId, action });
+            _status(action === 'auto'
+                ? 'Generate will mint that way again.'
+                : 'Way removed — Generate will not put it back.');
+            _notify(true);
+            render();
+        } catch (e) {
+            _status(`Could not change that way: ${e.message || e}`, true);
+        }
     }
 
     /** Erase all three paint layers on one cell, in a single request/undo step. */
@@ -1766,6 +2372,109 @@
         } catch (e) {
             _status(`Unplace failed: ${e.message || e}`, true);
         }
+    }
+
+    /**
+     * Make the selected area into a child scope of this one, placed on the cell
+     * it is standing on (task-535).
+     *
+     * The cell it is on is the natural home for the scope: it is where the author
+     * put the area, so the new scope's gateway opens from exactly the doorstep
+     * they chose. If that cell already holds a hand-placed area, that area becomes
+     * the doorstep (the server's `gateway` overlap) — which is the goblin camp
+     * case: an entrance parked by the road, with the camp itself promoted behind
+     * it.
+     *
+     * The name is asked for first because a scope is a level of the world and its
+     * name appears in the breadcrumb, the scope list and every way named after it.
+     * `prompt` rather than a modal: this is one field, and the painter is already
+     * a modal over a canvas.
+     */
+    /**
+     * Paint a building type's plan into this scope (task-567).
+     *
+     * The point of the prompt's wording is that this is a *draft*: the plan goes
+     * in as paint, the scope stays unmade, and the author edits the cells (with
+     * the rail's marquee, if they like) before running ⚙ Generate. So the button
+     * says "paint" and the status says what happened, rather than either of them
+     * claiming an interior was built.
+     */
+    async function paintInterior() {
+        const p = state.payload;
+        const options = (state.vocab && state.vocab.b ? state.vocab.b
+            : (state.vocab.biomes || []))
+            .filter((r) => (r.tags || []).indexOf('building') >= 0)
+            .map((r) => r.id);
+        if (!options.length) {
+            _status('No building types in the vocabulary.', true);
+            return;
+        }
+        const pick = window.prompt(
+            `Paint which building's interior into "${p.scope.name}"?\n\n`
+            + options.join(', '),
+            options.indexOf('inn') >= 0 ? 'inn' : options[0]);
+        if (!pick || !options.indexOf(pick)) {
+            if (pick) _status(`${pick} is not a building type.`, true);
+            return;
+        }
+        try {
+            const res = await _post(
+                `/${encodeURIComponent(p.scope.id)}/grid/interior`, { building: pick });
+            state.payload = res;
+            const notes = (res.report && res.report.notes) || [];
+            _status(`Painted the ${pick} plan — edit the cells, then ⚙ Generate.`);
+            for (let i = 0; i < Math.min(notes.length, 2); i += 1) {
+                _status(notes[i]);
+            }
+            _notify(true);
+            render();
+        } catch (e) {
+            _status(`Could not paint that interior: ${e.message || e}`, true);
+        }
+    }
+
+    async function promoteArea(areaId) {
+        const p = state.payload;
+        const area = (p.areas || []).find((a) => a.id === areaId);
+        if (!area) return;
+        const defaultName = `${area.name} interior`;
+        const name = (window.prompt(
+            'Name for the new child scope:', defaultName) || '').trim();
+        if (!name) return;
+        const cell = area.cell || {};
+        const hasCell = Number.isInteger(cell.x) && Number.isInteger(cell.y);
+        const body = {
+            scope_id: (window.prompt(
+                'Id for the new scope (lower-case, no spaces):',
+                _slug(name)) || '').trim() || _slug(name),
+            name,
+            area_ids: [areaId],
+            parent_id: p.scope.id,
+            entry_area_id: areaId,
+            mode: 'interior',
+        };
+        if (hasCell) body.cell = { x: cell.x, y: cell.y };
+        try {
+            const res = await _post('/promote', body);
+            state.selectedArea = null;
+            // The parent grid is what moved (a placement appeared, an area left),
+            // so the whole payload is re-read rather than patched by hand.
+            await _reloadPayload();
+            _status(`"${res.name}" is now a scope of its own, entered from `
+                + `${hasCell ? `cell (${cell.x},${cell.y})` : 'nowhere yet'}.`);
+            _notify(true);
+        } catch (e) {
+            _status(`Promote failed: ${e.message || e}`, true);
+        }
+    }
+
+    /** A scope id: lower-case, dashes, no leading or trailing separator. */
+    function _slug(text) {
+        return String(text || '')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '_')
+            .replace(/^_+|_+$/g, '')
+            .slice(0, 40) || 'scope';
     }
 
     /** Cells an N×N brush covers, clipped to the grid. */

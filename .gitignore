@@ -33,6 +33,9 @@ saves/
 *.swo
 *~
 
+# Derived dev-task frontmatter cache (rebuilt by `python tools/tasks.py index`)
+docs/virtualWorld/dev_tasks/.tasks-index.json
+
 # OS
 .DS_Store
 Thumbs.db

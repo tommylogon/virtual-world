@@ -119,6 +119,133 @@ def weather_light_mult(weather: Any) -> float:
 #: Which weather obscures the sky (moon bonus rules, task-229).
 OBSCURING_WEATHER = {"stormy", "foggy"}
 
+#: The outdoor base every world has always had, in °C (task-553). It is the default
+#: for ``env.base_temperature`` and the reason a world with no climate authored
+#: anywhere reproduces its old numbers exactly: the curve is added *to* this, and
+#: an unseasoned, unmodified world at 21.0 reads 21.0 as it did before.
+OUTDOOR_BASE_C = 21.0
+
+#: Outdoor temperature across the day, as **deltas from the base** in °C
+#: (task-553). Same shape as ``lighting._OUTDOOR_ANCHORS`` — ``(hour, delta)``
+#: pairs, linearly interpolated — so the two curves are read the same way and a
+#: new hour is added in one place.
+#:
+#: Deltas rather than absolute values on purpose: the *shape* of a day is the same
+#: whether the base is 21 °C or 5 °C, and a table of absolutes would have to be
+#: rewritten per climate. The numbers are deliberately shallow — a night a few
+#: degrees under, an afternoon a few over. A real curve belongs to the forecast
+#: (``temperature_mod``) and to the season, both of which are authored.
+TEMP_CURVE_ANCHORS = [
+    (0, -4.0), (4, -5.0), (7, -3.0), (9, 0.0), (13, 3.5), (16, 2.5), (19, -0.5),
+    (22, -3.0), (24, -4.0),
+]
+
+#: Season → the °C the season pulls the daily curve by (task-554). Signed, and
+#: deliberately not a "temperature" — the season is a *bias on the shape*, so a
+#: tropical base with a winter bias is still warm and a temperate base in winter
+#: is properly cold. Keyed by the canonical season names the engine resolves.
+SEASON_TEMP_BIAS = {
+    "spring": 1.0,
+    "summer": 4.0,
+    "autumn": -1.0,
+    "winter": -7.0,
+}
+
+#: The canonical seasons, in the order the year runs (task-554).
+SEASONS = ("spring", "summer", "autumn", "winter")
+
+#: Month → season, 1-12 (task-554).
+#:
+#: **This table used to exist twice in the frontend and nowhere in the engine.**
+#: `static/js/sky-scape.js` had two copies of it — one in `SEASON_BY_MONTH` and
+#: one inline in the iframe `postMessage` — and the backend read a season nowhere,
+#: so `"season": "winter"` in a save was a value no code path ever looked at. The
+#: engine is the only place a month can be read now, and the frontend asks it,
+#: because two copies of a calendar boundary can disagree and there is nothing to
+#: arbitrate between them.
+#:
+#: The boundaries are the northern-hemisphere ones the old table used (Dec-Feb
+#: winter, Mar-May spring, Jun-Aug summer, Sep-Nov autumn), kept deliberately:
+#: changing them would change what "winter" means in every existing world.
+SEASON_BY_MONTH = {
+    12: "winter", 1: "winter", 2: "winter",
+    3: "spring", 4: "spring", 5: "spring",
+    6: "summer", 7: "summer", 8: "summer",
+    9: "autumn", 10: "autumn", 11: "autumn",
+}
+
+#: The season a world with no clock and no override is in. ``summer`` is what the
+#: old frontend fell back to, and the scenarios that ship say ``"summer"``, so
+#: this keeps their temperature behaviour unchanged.
+DEFAULT_SEASON = "summer"
+
+
+def season_for_month(month: Any) -> str:
+    """The season for a game month 1-12 (task-554).
+
+    Mirrors the boundaries ``sky-scape.js`` used, which are the northern
+    hemisphere's. A month outside 1-12 clamps rather than raising, because the
+    same clock that hands this function a month also renders it, and a sky widget
+    that crashes on day 0 is worse than one that says summer.
+    """
+    try:
+        m = max(1, min(12, int(month)))
+    except (TypeError, ValueError):
+        return DEFAULT_SEASON
+    return SEASON_BY_MONTH[m]
+
+
+def resolve_season(world_state: Any) -> str:
+    """The season the engine is in, from the clock or an explicit override (task-554).
+
+    Order, and the reason for it: an **authored** ``world_state.season`` wins over
+    the clock, because a scenario that says ``"season": "winter"`` is making a
+    statement about its world and should not have it silently overruled by whatever
+    month the clock happens to be on. With no authored season, the clock decides,
+    so a world that plays across a season boundary **changes season without a
+    save or a reload** — the whole point of moving this out of the sky widget.
+
+    A recognised season name is returned as-is (case-insensitively); an
+    unrecognised one falls through to the clock rather than becoming a state the
+    temperature model has no bias for.
+    """
+    state = world_state or {}
+    authored = str(state.get("season") or "").strip().lower()
+    if authored in SEASON_TEMP_BIAS:
+        return authored
+    month = state.get("game_month")
+    if month not in (None, ""):
+        return season_for_month(month)
+    return authored if authored in SEASONS else DEFAULT_SEASON
+
+
+def temp_curve_for_hour(hour: Any, season: Any = None) -> float:
+    """The outdoor temperature **delta** for an hour, in °C (task-553).
+
+    The diurnal curve, plus a season bias, as a delta on
+    :data:`OUTDOOR_BASE_C`. An hour outside 0-23 is clamped rather than rejected,
+    matching :func:`engine.lighting.outdoor_light_for_hour` so the two curves
+    cannot disagree about a silly hour.
+
+    An unknown or missing season contributes nothing: a world that never set one
+    gets a plain diurnal day, which is the shape it had before this existed (flat,
+    but at least honest about the time of day).
+    """
+    hour = max(0, min(23, int(hour)))
+    delta = OUTDOOR_BASE_C  # only used as the "below every anchor" fallback
+    for (h0, v0), (h1, v1) in zip(TEMP_CURVE_ANCHORS, TEMP_CURVE_ANCHORS[1:]):
+        if h0 <= hour <= h1:
+            if h1 == h0:
+                delta = v0
+                break
+            frac = (hour - h0) / (h1 - h0)
+            delta = v0 + (v1 - v0) * frac
+            break
+    else:
+        delta = TEMP_CURVE_ANCHORS[-1][1]
+    bias = SEASON_TEMP_BIAS.get(str(season or "").strip().lower())
+    return delta + (bias if bias is not None else 0.0)
+
 #: Default transition table for deterministic/random modes when the scenario
 #: doesn't author one (mirrors Time & Weather.md / task-227 example).
 DEFAULT_TRANSITION_TABLE = {

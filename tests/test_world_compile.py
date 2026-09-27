@@ -541,13 +541,31 @@ def test_a_storey_step_is_a_climb_not_a_stride():
 def test_a_region_never_spans_two_storeys():
     """Found by compiling a two-storey plan: merging is 8-neighbour and was
     storey-blind, so a classroom above a classroom of the same kind became one
-    place with a staircase inside it."""
-    painted = {(0, 0): "tavern", (1, 0): "tavern", (0, 1): "tavern"}
+    place with a staircase inside it.
+
+    Painted with a *room*, not a tavern: a building cell is ``merge: never``
+    (task-564 — two adjacent cottages are two cottages), so three tavern cells
+    would be three areas and the test would pass without testing anything. A
+    classroom is a kind that does merge, which is what this is about.
+    """
+    painted = {(0, 0): "classroom", (1, 0): "classroom", (0, 1): "classroom"}
     m = _painted(painted, floors={(0, 1): "1"}, merge=True)
     below = [n for n in world_compile.compile_grid(m, "wild", region_merge=True).nodes
              if n.type == "area"]
+    # Two on the ground (merged), one above on its own storey.
     assert len(below) == 2, [a.properties["cell"] for a in below]
     assert sorted(a.properties["floor"] for a in below) == [0, 1]
+
+
+def test_a_building_is_never_merged_with_its_neighbour():
+    """The other half of task-564, and the reason the test above is painted with
+    a room: a building cell is a *plot*, so a terrace of cottages is three houses
+    with three doors, not one house with one."""
+    painted = {(0, 0): "cottage", (1, 0): "cottage", (2, 0): "cottage"}
+    m = _painted(painted, merge=True)
+    areas = [n for n in world_compile.compile_grid(m, "wild", region_merge=True).nodes
+             if n.type == "area"]
+    assert len(areas) == 3, [a.properties["cell"] for a in areas]
 
 
 def test_a_high_school_plan_end_to_end():
@@ -559,8 +577,10 @@ def test_a_high_school_plan_end_to_end():
         (3, 1): "wall", (4, 1): "classroom",        # the blank blocks the row
         (5, 1): "window",                            # sees out of (4,1)
         (1, 2): "classroom",                         # the storey above
+        (0, 3): "hallway",                          # and one more up the stair
     }
-    m = _painted(painted, floors={(0, 2): "1", (1, 2): "1"}, merge=True)
+    m = _painted(painted, floors={(0, 2): "1", (1, 2): "1", (0, 3): "1"},
+                 merge=True, h=4)
     patch = world_compile.compile_grid(m, "wild", region_merge=True)
     areas = [n for n in patch.nodes if n.type == "area"]
     ways = [n for n in patch.nodes if n.type == "way"]
@@ -572,6 +592,12 @@ def test_a_high_school_plan_end_to_end():
     # Nothing on structure is ever a place.
     assert at(3, 1) is None, "a wall is not a room"
     assert at(5, 1) is None, "a window is not a room"
+    # …and a **stairway** is structure too (task-568 gave it a real id and a
+    # `passable` kind), so it is a threshold between two places rather than a
+    # place of its own. Before that id existed this cell was an unknown biome and
+    # compiled to a room called "Stairway", which is exactly the gap task-568
+    # closed — so the assertion below is the fix, stated as a test.
+    assert at(0, 2) is None, "a stairway is a way between rooms, not a room"
     # The two adjacent classrooms merged into one place, anchored at the first.
     assert at(1, 1) is not None, "the merged classroom keeps its first cell"
     assert at(2, 1) is None, "and the second cell is part of it, not a place"
@@ -587,11 +613,25 @@ def test_a_high_school_plan_end_to_end():
     stairs = [w for w in ways if w.properties.get("kind") == "stairs"]
     assert stairs, [w.properties.get("kind") for w in ways]
     assert all(w.properties["floor_step"] == 1 for w in stairs)
-    stairway, upper = at(0, 2), at(1, 2)
-    level = next(w for w in ways
+    # The stairs are the **threshold itself** now, not a way between two rooms:
+    # the stairway cell joins the hallway below it to the hallway above it, and
+    # that single way is the climb. (The two hallways are one region, anchored at
+    # its first cell, so (0,0) is the lower one.)
+    below, upper = at(0, 0), at(0, 3)
+    climb = next(w for w in ways
                  if {w.properties["area_from_id"], w.properties["area_to_id"]}
-                 == {stairway.id, upper.id})
-    assert level.properties["kind"] == "open", "the storey above is level"
+                 == {below.id, upper.id})
+    assert climb.properties["kind"] == "stairs", "the storey step is the climb"
+    assert climb.properties["handle"] == "stairs", "and it is nameable"
+    assert climb.properties["aliases"] == ["stairs", "stairway", "up", "down",
+                                           "in", "out"]
+    # A storey step of one between *rooms* on either side of it is a climb too,
+    # even though neither room is a hallway — the storey, not the kind, decides.
+    across = next(w for w in ways
+                  if {w.properties["area_from_id"], w.properties["area_to_id"]}
+                  == {at(1, 1).id, at(1, 2).id})
+    assert across.properties["kind"] == "stairs"
+    assert across.properties["floor_step"] == 1
 
     # Every way is one of the three kinds the model knows, never an accident.
     assert {w.properties["kind"] for w in ways} <= {"open", "door", "stairs"}
@@ -739,17 +779,26 @@ def test_a_biome_neighbour_is_still_named_when_it_is_not_a_road():
 
 
 def test_entry_phrases_come_from_the_placement_not_a_hardcoded_in_out():
+    # The record owns its own seam (task-529), so `tunnel` says "go down the
+    # tunnel" and the derived "enter the tunnel" is now the *fallback*, not the
+    # answer. The three sources are checked in the order they are consulted:
+    # placement override, then record, then derived from the placement's name.
     assert world_compile._entry_phrases("the mine", "tunnel", None)[0] == (
-        "enter the tunnel")
+        "go down the tunnel")
     assert world_compile._entry_phrases("the crossing", "ford", None)[0] == (
         "wade across the ford")
     assert world_compile._entry_phrases("the gatehouse", "gate", None)[0] == (
         "pass through the gate")
     assert world_compile._entry_phrases("the mine", "bridge", None)[0] == (
         "cross the bridge")
+    # …and an override beats both, verbatim, because a mine with two adits has two
+    # ways in and only the author knows which is which.
+    assert world_compile._entry_phrases("the mine", "tunnel", None,
+                                        override="crawl down the old adit")[0] == (
+        "crawl down the old adit")
     # A plain placement with nothing painted says what it is.
     assert world_compile._entry_phrases("Inn", None, None) == (
-        "enter inn", "leave", ["in", "out"])
+        "enter inn", "leave", ["in", "out"], "enter inn")
 
 
 def test_entry_phrases_read_the_floor_step():
@@ -759,9 +808,21 @@ def test_entry_phrases_read_the_floor_step():
 
 
 def test_every_entry_phrase_keeps_the_short_handles_as_aliases():
+    # Four values back, not three: the inward phrase is returned twice, once as
+    # the `direction` movement resolves by and once as the `entry_phrase` the
+    # area description offers (task-529).
     for feature in (None, "road", "tunnel", "ford", "bridge", "gate"):
-        _, _, aliases = world_compile._entry_phrases("inn", feature, 2.0)
+        _, _, aliases, _ = world_compile._entry_phrases("inn", feature, 2.0)
         assert "in" in aliases and "out" in aliases, feature
+
+
+def test_an_override_keeps_the_short_handles():
+    """An author's own wording must not take a command away (task-529): "go in"
+    still works even when the phrase is theirs."""
+    _, _, aliases, phrase = world_compile._entry_phrases(
+        "the mine", "tunnel", None, override="crawl down the old adit")
+    assert "in" in aliases and "out" in aliases
+    assert phrase == "crawl down the old adit"
 
 
 def test_the_old_go_in_still_resolves_through_the_alias_tier():
@@ -1217,13 +1278,16 @@ def test_gateway_is_walkable_in_and_out():
 
     gw_id = "way_gateway_town_inn"
     assert g.get_node(gw_id) is not None
-    enter, leave, _ = world_compile._entry_phrases("inn", None, None)
+    enter, leave, _, phrase = world_compile._entry_phrases("inn", None, None)
     into_gateway = {e.target: e.properties["direction"]
                     for e in g.get_edges_for_source("area_town_0_0")}
     assert into_gateway[gw_id] == enter
     out_of_gateway = {e.target: e.properties["direction"]
                       for e in g.get_edges_for_source("area_inn_0_0")}
     assert out_of_gateway[gw_id] == leave
+    # The way also carries the phrase as a phrase, so the town can *offer* the
+    # move instead of listing another bracket to type (task-529).
+    assert g.get_node(gw_id).properties["entry_phrase"] == phrase
 
 
 def test_regenerating_the_parent_does_not_duplicate_the_gateway():
@@ -1375,4 +1439,182 @@ def test_ungenerate_leaves_a_placed_area_alone():
     # The scope's own generated areas are gone, and the cell is free again.
     assert g.get_node("area_wild_0_0") is None
     assert wg.area_placement_of(m["wild"], "area_hills") == (0, 0)
+
+
+# ─── boundary ways out of a placed area (task-528) ─────────────────────────
+
+
+def _placed_on_a_road(area_id="area_trail", name="Camp Entrance Trail", at=(1, 0)):
+    """A 3x1 painted scope with a hand-placed area on the north side of a road.
+
+    The road runs ``(0,1) (1,1) (2,1)``, so the placed cell at ``(1,0)`` touches
+    the road directly below and the road cells either side of it diagonally — which
+    is the case a south-half-only scan would silently miss.
+    """
+    m = _painted(roads={(0, 1): "road", (1, 1): "road", (2, 1): "road"},
+                 biomes={(0, 0): "sparse_forest", (2, 0): "dense_forest"},
+                 w=3, h=2)
+    wg.place_area(m, "wild", area_id, *at)
+    g = WorldGraph()
+    g.add_node(Node(id=area_id, type="area", name=name,
+                    properties={"world_scope_id": "wild",
+                                "cell": {"x": at[0], "y": at[1]}}))
+    return m, g
+
+
+def _boundary_ways(patch, *area_ids):
+    """The ways touching any of *area_ids* (default: the one placed area)."""
+    placed = {str(a) for a in (area_ids or ("area_trail",))}
+    return [n for n in patch.nodes if n.type == "way"
+            and placed & {str(n.properties.get("area_from_id")),
+                          str(n.properties.get("area_to_id"))}]
+
+
+def test_a_placed_area_gets_a_way_to_every_place_touching_it():
+    m, g = _placed_on_a_road()
+    patch = world_compile.compile_grid(m, "wild", region_merge=False, graph=g)
+
+    ways = {n.id: n for n in _boundary_ways(patch)}
+    # All eight neighbours, from a scan that only starts at the placed cell: the
+    # road below, the two roads either side, and the two forests on top row.
+    assert set(ways) == {
+        "way_wild_area_trail_area_wild_0_0",
+        "way_wild_area_trail_area_wild_2_0",
+        "way_wild_area_trail_area_wild_0_1",
+        "way_wild_area_trail_area_wild_1_1",
+        "way_wild_area_trail_area_wild_2_1",
+    }
+    # Same terms as any other boundary, so a character walks it with no special
+    # casing: a compass direction, an open seam, a surface, a midpoint position.
+    to_road = ways["way_wild_area_trail_area_wild_1_1"]
+    assert to_road.properties["direction"] == "south"
+    assert to_road.properties["kind"] == "open"
+    assert to_road.properties["current_state"] == "open"
+    assert to_road.properties["cell"] == {"x": 1.0, "y": 0.5}
+    assert to_road.properties["surface"]
+    assert to_road.properties["area_from_id"] == "area_trail"
+    assert to_road.properties["area_to_id"] == "area_wild_1_1"
+    # The way is named for the placed area the author wrote, not for a cell.
+    assert to_road.properties["area_from"] == "Camp Entrance Trail"
+    # Four connection edges, like every generated way.
+    seam_edges = [e for e in patch.edges
+                  if "way_wild_area_trail_area_wild_1_1" in (e.source, e.target)]
+    assert len(seam_edges) == 4
+
+
+def test_a_storey_step_out_of_a_placed_area_is_a_climb():
+    m, g = _placed_on_a_road()
+    wg.paint(m["wild"], "floor", 1, 0, 2)          # the placed cell is two up
+    patch = world_compile.compile_grid(m, "wild", region_merge=False, graph=g)
+
+    seam = [n for n in _boundary_ways(patch)
+            if n.properties["area_to_id"] == "area_wild_1_1"]
+    assert len(seam) == 1
+    assert seam[0].properties["kind"] == "stairs"
+    assert seam[0].properties["floor_step"] == 2
+    assert "climb" in seam[0].properties["pass_message"]
+
+
+def test_two_placed_areas_side_by_side_get_one_way_not_two():
+    m = _painted(roads={(0, 1): "road"}, biomes={(1, 0): "sparse_forest"},
+                 w=3, h=2)
+    wg.place_area(m, "wild", "area_trail", 0, 0)
+    wg.place_area(m, "wild", "area_well", 1, 0)
+    g = WorldGraph()
+    for area_id, name in (("area_trail", "Trail"), ("area_well", "Well")):
+        g.add_node(Node(id=area_id, type="area", name=name))
+
+    patch = world_compile.compile_grid(m, "wild", region_merge=False, graph=g)
+    ids = [n.id for n in _boundary_ways(patch, "area_trail", "area_well")]
+    assert ids.count("way_wild_area_trail_area_well") == 1
+    # And both are joined to the road, not left as two islands beside it.
+    assert "way_wild_area_trail_area_wild_0_1" in ids
+    assert "way_wild_area_well_area_wild_0_1" in ids
+
+
+def test_the_report_says_how_many_seams_were_minted():
+    m, g = _placed_on_a_road()
+    patch = world_compile.compile_grid(m, "wild", region_merge=False, graph=g)
+    assert any("1 hand-placed area(s) on the grid, 5 way(s) minted" in note
+               for note in patch.report.notes)
+
+
+def test_a_placed_area_with_no_node_is_reported_not_given_a_nameless_way():
+    """The record knows the placement; only the graph knows its name."""
+    m = _painted(roads={(1, 1): "road"}, biomes={(0, 0): "sparse_forest"}, w=3, h=2)
+    wg.place_area(m, "wild", "area_trail", 1, 0)
+
+    patch = world_compile.compile_grid(m, "wild", region_merge=False, graph=WorldGraph())
+    assert _boundary_ways(patch) == []
+    assert any("could not be named" in note and "area_trail" in note
+               for note in patch.report.notes)
+
+
+def test_without_a_graph_the_boundary_pass_reports_and_the_rest_compiles():
+    """`graph` is only needed to name a placement; everything else still mints."""
+    m, g = _placed_on_a_road()
+    patch = world_compile.compile_grid(m, "wild", region_merge=False)
+    assert _boundary_ways(patch) == []
+    assert [n for n in patch.nodes if n.type == "area"]     # the painted ones minted
+    assert any("could not be named" in note for note in patch.report.notes)
+
+
+# ─── the author owns a minted seam (task-528) ──────────────────────────────
+
+
+def test_a_suppressed_seam_is_not_minted_again():
+    m, g = _placed_on_a_road()
+    first = world_compile.compile_grid(m, "wild", region_merge=False, graph=g)
+    seam = "way_wild_area_trail_area_wild_1_1"
+    assert seam in [n.id for n in first.nodes]
+
+    wg.set_boundary_override(m["wild"], seam, "suppress")
+    again = world_compile.compile_grid(m, "wild", region_merge=False, graph=g)
+    assert seam not in [n.id for n in again.nodes]
+    # The other seams are untouched: suppressing one is not suppressing the area.
+    assert len(_boundary_ways(again)) == 4
+    assert any("1 boundary way(s) left as the author set them" in note
+               for note in again.report.notes)
+
+
+def test_a_hand_replaced_seam_is_not_minted_again():
+    m, g = _placed_on_a_road()
+    wg.set_boundary_override(m["wild"], "way_wild_area_trail_area_wild_1_1",
+                             "hand", hand_way_id="way_my_own_step")
+    patch = world_compile.compile_grid(m, "wild", region_merge=False, graph=g)
+    assert "way_wild_area_trail_area_wild_1_1" not in [n.id for n in patch.nodes]
+    assert wg.boundary_override(m["wild"], "way_wild_area_trail_area_wild_1_1") == {
+        "action": "hand", "way_id": "way_my_own_step"}
+
+
+def test_clearing_an_override_hands_the_seam_back_to_the_compiler():
+    m, g = _placed_on_a_road()
+    seam = "way_wild_area_trail_area_wild_1_1"
+    wg.set_boundary_override(m["wild"], seam, "suppress")
+    wg.set_boundary_override(m["wild"], seam, None)
+
+    patch = world_compile.compile_grid(m, "wild", region_merge=False, graph=g)
+    assert seam in [n.id for n in patch.nodes]
+    assert wg.boundary_overrides(m["wild"]) == {}
+
+
+def test_an_override_only_survives_on_the_record_not_the_graph():
+    """The point of the record: a regenerate must not undo the author's call."""
+    m, g = _placed_on_a_road()
+    patch = world_compile.compile_grid(m, "wild", region_merge=False, graph=g)
+    generation.apply_patch(g, m, patch)
+
+    seam = "way_wild_area_trail_area_wild_1_1"
+    g.remove_node(seam)                      # the author deletes it
+    wg.set_boundary_override(m["wild"], seam, "suppress")
+
+    # Ungenerate + Generate is the WorldPainter's "start over" and it must not
+    # resurrect a way the author removed.
+    world_scopes.ungenerate_scope(m, g, "wild")
+    again = world_compile.compile_grid(m, "wild", region_merge=False, graph=g)
+    generation.apply_patch(g, m, again, allow_regenerate=True)
+    assert g.get_node(seam) is None
+    assert len([n for n in g.nodes.values()
+                if n.type == "way" and "area_trail" in str(
+                    (n.properties or {}).get("area_from_id"))]) == 4
 
