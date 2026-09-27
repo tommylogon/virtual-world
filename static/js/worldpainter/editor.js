@@ -157,22 +157,28 @@
         return state.backgrounds;
     }
 
+    /**
+     * The values the current layer may be painted with, in the **vocabulary's own
+     * shape** — `{id, name, tags}` — because that is what the palette groups, the
+     * select renders (`${o.name} (${o.id})`) and `_defaultValueForLayer` reads
+     * (`o.id`). Wrapping them as `{value, label}` here would have every consumer
+     * reading `undefined` and a dropdown full of it.
+     */
     function _layerOptions(layer) {
-        if (layer === 'biome') {
-            return (state.vocab && state.vocab.b ? state.vocab.b : state.vocab.biomes || [])
-                .map((r) => ({ value: r.id, label: r.name, tags: r.tags }));
-        }
-        if (layer === 'road') {
-            return (state.vocab && state.vocab.f ? state.vocab.f : state.vocab.features || [])
-                .map((r) => ({ value: r.id, label: r.name, tags: r.tags }));
-        }
+        const vocab = state.vocab || {};
+        if (layer === 'biome') return (vocab.b || vocab.biomes || []).slice();
+        if (layer === 'road') return (vocab.f || vocab.features || []).slice();
         if (layer === 'climate') {
-            // The coarse climates, each labelled with the base °C it compiles to,
-            // because that number is the whole point of painting it (task-557) and
-            // it otherwise lives only in the generate report.
+            // Shaped like a record so one renderer serves every layer, with the
+            // base °C in the name because that number is the whole point of
+            // painting it (task-557) and it otherwise lives only in the report.
             return GM().CLIMATE_IDS.map((id) => {
                 const c = GM().CLIMATES[id] || {};
-                return { value: id, label: `${c.label} (${c.base}°C)`, tags: ['climate'] };
+                return {
+                    id,
+                    name: `${c.label} (${c.base}°C)`,
+                    tags: ['climate'],
+                };
             });
         }
         return [];
@@ -1032,9 +1038,19 @@
     // same payload the DOM version used drives it, so the backend is unchanged.
 
     function _grid(p) {
+        // `flex:1 1 auto; min-width:0` is load-bearing since the rail moved beside
+        // the grid (task-536). This element used to be a child of the panel's
+        // *column* flex box, where `align-items:stretch` gave it the full width for
+        // free; as a flex item in a **row** it takes its content width instead, and
+        // its only child is the absolutely-positioned holder, which contributes
+        // nothing — so without this the wrapper collapsed to 0px, the 900px canvas
+        // overflowed a zero-width box, and the grid simply did not appear.
+        // `min-width:0` is the other half: a flex item's default `min-width:auto`
+        // refuses to shrink below its content, which fights the zoom buttons.
         const wrap = _el('div',
-            'position:relative;height:480px;border:1px solid var(--border,#3a3a44);' +
-            'border-radius:8px;background:#0d0d11;overflow:hidden;margin-bottom:10px;');
+            'flex:1 1 auto;min-width:0;position:relative;height:480px;'
+            + 'border:1px solid var(--border,#3a3a44);'
+            + 'border-radius:8px;background:#0d0d11;overflow:hidden;margin-bottom:10px;');
         wrap.setAttribute('data-role', 'wp-grid');
         const holder = _el('div', 'position:absolute;inset:0;');
         wrap.appendChild(holder);
