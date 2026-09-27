@@ -4,6 +4,155 @@ All notable changes to VirtualWorld. See `docs/virtualWorld/Scenario Workflows &
 
 ---
 
+## Unreleased — "A Town You Can Walk Into" (2026-09-27)
+
+A painted map stopped being a picture of a world and became a place you can
+stand in. The WorldPainter session that began with "every painted cell is a
+place" finished the job in the other direction: **a cell can now be a name, a
+building, a wall, or a door** — and a building is something you go *into*. Along
+the way the compiler's worst lie was found and cut out: `floor` was a *material*
+where it should have been a *storey index*, which had been quietly merging a
+classroom with the one above it. A separate pass gave the weather a voice, and in
+doing so discovered that **the moon has never been narrated, in any world, ever**.
+
+Commits: `362bb24` (the town), `4467da8` (storeys), `6b8598c` (weather),
+`b885878` (camp state + filed follow-ups).
+
+### 🏙 You go *into* a building, you do not walk onto it (task-563)
+
+`engine/world_compile.py` · `engine/biomes.py` · `engine/movement.py` ·
+`data/worldpainter/biomes.json`
+
+- A building cell is entered with **`in`** from every *cardinal* side that already
+  has a way, so standing in the street you type `in` instead of stepping sideways
+  onto the doorstep first. Cardinal, because a door is on a wall and a diagonal
+  neighbour is a corner of the plot; "already has a way" is read from the pairs the
+  compiler actually connected, so a walled side gets no door and a side reached
+  *through* a painted doorway does.
+- **With an interior** the way leads to it, and is one-way: inside, `out` has to
+  keep meaning one thing, so you come out onto the doorstep and the adjacent
+  building is one turn from there — which is also what makes `dash_to_area`'s
+  chained second hop work.
+- **With no interior** the way is a `closed` door carrying a `refusal_message`
+  drawn from the building's category: *"The smithy's door is shut and the bench
+  is cold."* A watch house is barred, an inn is shut. The refusal holds until the
+  way is `open`, which is what a knock, a key, or an author painting the interior
+  does — so a building that owes an interior says so instead of being a hole.
+- `refusal_message` is a **general way property** the movement system honours,
+  checked *before* the state machine (a `closed` way otherwise auto-opens on
+  approach, which would make the refusal cosmetic). A way without it keeps every
+  existing behaviour, including the auto-open.
+- **One-way in both cases**, for a sharper reason found by walking it: the street
+  already has a compass way onto the plot, so a way *back* was a second connection
+  for the same pair, and two ways both answering to `out` on the plot meant
+  walking in the street door and typing "out" got you shut out by the alley door
+  you had not used.
+- The painter knows all of this before anything is generated: the vocabulary
+  payload carries each building's refusal and the cell inspector shows
+  `in → The Inn` or `in → The inn's door is shut.` — from the same
+  `world_compile.building_refusal` the compiler uses, so the preview cannot drift
+  from the world.
+
+### 🧱 A cell can be something that is *not* a place (task-562)
+
+`engine/biomes.py` · `data/worldpainter/biomes.json` · the painter's palette
+
+- `wall` and `void` block, `window` sees through without passing, `door` is a
+  threshold — and the *vocabulary* decides, via `biomes.cell_kind`, so adding a
+  `hedge` or a `turnstile` later needs no code.
+- **A wall works by occupying a cell**: the two rooms either side of it are no
+  longer adjacent, so no way is minted. A door occupies the same cell, so the
+  route it stands for is built explicitly, joining the two places on *opposite*
+  sides. A passable cell between two **storeys** is a stairwell whatever it was
+  painted as, and every way now carries `kind` and `floor_step` so task-525's gate
+  and task-563's `in` have a number to read instead of re-deriving one.
+- An unknown biome id compiles to a place with a **warning** instead of silently
+  becoming a barren area. A typo is invisible in node counts, so it is named.
+
+### 🏠 31 kinds of building, and a name you wrote (task-561, task-560)
+
+`data/worldpainter/biomes.json` · `engine/world_compile.py` · the painter
+
+- Buildings as **biomes**, not features — they used to be features, which made a
+  house compile as a road. 31 types across 9 categories, each tagged with a
+  category and its purposes (`sleeps`, `food`, `craft`, `worship`, …), which is
+  the hook task-566 needs to let the simulation seek a place by function.
+- A cell can be **named** by the author, on a `names` map beside the paint layers
+  because a name is metadata and not paint (the eraser must not wipe it). The
+  compiler prefers the authored name, with a duplicate-inside-a-scope fallback so
+  no area ever offers two exits with one name.
+
+### 🏢 A storey is a number, not a floor (4467da8)
+
+`engine/world_compile.py` · `engine/world_grid.py` · `graph.py` · 24 files
+
+The one correction that made the rest possible. `floor` had been a **material** —
+dirt, stone, wood — on a layer the graph compared for walking, while a separate
+`elevation` layer held the height. So `floor` is now a whole-number **storey
+index**: 0 ground, 1 up, -1 down, unbounded (three stacked rooms, a lake bottom
+at -2, an 80-storey tower, -900 in a hole to hell). What you stand on is a
+different fact and lives on `properties.surface`. Legacy files migrate on load,
+the recipe id moved to `grid.v2`, and every consumer that formatted a floor as a
+material — the inspector, the map, the world export — now reads a number.
+
+### 🗺 The map learned to size itself (task-526)
+
+`static/js/graph/layout-engine.js` · `network-manager.js` · `graph-background.js`
+
+A compiled area draws as a card whose width is its **name** plus padding, and the
+name does not shrink with the pitch the way the padding does — so one global
+pitch could not serve both a 6×8 camp and a 200×133 world. The pitch is now
+**derived from the painted extent** (a 20×9 zone gets 80px/cell, a 200×133 world
+30px) with the stepper as a visible override and an `A` button to hand it back,
+and below 140px/cell an area draws as a cell-sized dot with no name, through the
+existing label LOD rather than a second mechanism. A layer's rect is in px, so a
+pitch change makes every picture stale: the whole-world view re-derives every
+mounted reference from its own scope's grid and reframes.
+
+### 🌧 The weather has a voice, and the moon is back (task-559)
+
+`engine/area_description.py` · `engine/weather_forecast.py` · `routes/action_handlers.py`
+
+`env["weather"]` had exactly two readers in the whole backend: the light
+multiplier and the DC of `guess time`. Nothing ever said it was raining. Now
+there is one sentence per state in `WEATHER_STATES` (so a forecast can never
+write a state with no sentence), one per wind magnitude, and a time-of-day line
+for exteriors — all gated on an open sky, because a storm is not something you
+hear through a stone wall.
+
+- **The moon has never been narrated, in any world, ever.** `get_area_description`
+  read a local `node` on the first line of the moon block, but Python resolved
+  `node` as a local because it is assigned *later* in the same method — so the
+  line raised `UnboundLocalError` and the bare `except Exception: pass`
+  underneath swallowed it. Proven by AST and by a repro that produced no moon
+  text at 22:00 with a full moon. The except is now narrowed to the provider
+  errors it was written for, so the next real failure is not invisible too.
+- Wind was one phenomenon under two keys: `noise_prose` read `noise`, the forecast
+  wrote `wind`, so an *authored* `noise: "windy"` narrated wind and a forecast
+  gale did not.
+- Two divergent weather vocabularies are now one. `WEATHER_ALIASES` +
+  `normalize_weather()` live in `weather_forecast.py`, the DC table moved next to
+  the vocabulary, and the private list in the action handler — which knew
+  `sunny`/`overcast`, neither of which the forecast can write — is deleted.
+
+### 📋 Filed for next
+
+- **task-568 an indoor vocabulary.** A building you can enter is somewhere you can
+  be *in*, and there is still nothing to paint it with: `classroom`, `hallway`,
+  `stairway`, `kitchen` are unknown ids, so a real floor plan compiles to bare
+  places plus a warning.
+- **task-564 per-kind merge rules**, and the two-`in`-exits ambiguity on a street
+  that faces two buildings.
+- **task-567** a building's interior generated from its type, then edited.
+  **task-566** the simulation seeking a place by function. **task-565** the goblin
+  camp's stale `deep_woods_2` id. **task-557** a coarse climate layer.
+  **task-525** the storey-delta traversal gate — the data exists, the gate does not.
+- **bug-54** compiled areas carry no `outdoor`/`exterior` tag, so weather is
+  invisible to them at the engine level. **task-556** the state snow needs,
+  **task-553/554/555** base temperature, season, and wind with a direction.
+
+---
+
 ## Unreleased — "The Camp Breathes" (2026-09-24)
 
 One theme runs through the whole day: **characters stop being generic and start

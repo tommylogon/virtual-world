@@ -4,16 +4,16 @@ Where the world is going, in what order, and why. This is a proposal, not a
 promise: it is re-aimed whenever the simulation teaches us something. Part of
 [[_Index]].
 
-*Written 2026-09-24, after `e4af71c`. Updated 2026-09-27, after `2a8d989`.*
+*Written 2026-09-24, after `e4af71c`. Updated 2026-09-27, after `b885878`.*
 
 ## Where we are
 
 | Status | Count |
 |---|---|
-| Done | 314 |
-| Review | 144 |
+| Done | 347 |
+| Review | 159 |
 | In progress | 8 |
-| Todo | 100 |
+| Todo | 110 |
 
 (Counted from the folders, which are authoritative — not the frontmatter. The
 previous revision's Done figure of 340 does not match the folder, so the table is
@@ -40,6 +40,18 @@ The epic still in flight is **WorldPainter → a compiled world**. The compiler 
 its authoring loop are done; what remains is making a *big* painted world
 comfortable, and proving the whole thing end to end in play.
 
+**A town is now something you can stand in.** The last session closed the gap
+between "a grid of coloured cells" and "a place you walk into": a cell can be
+*named* (task-560), it can be a *building* of one of 31 typed kinds (task-561), a
+cell can be something that is not a place at all — a wall, a window, a door
+(task-562) — and a building is entered with `in` from any side that has a way
+(task-563), which refuses with a line drawn from its category until something
+opens it. Storeys became a whole-number index rather than a material (4467da8), so
+merging can no longer fuse a classroom with the one above it, and `map render`
+learned to derive its own pitch from the painted extent (task-526). What is
+missing is the vocabulary to write a floor plan with — `classroom`, `hallway`,
+`stairway` are still unknown ids that compile to bare places with a warning.
+
 ## The three rules that decide the order
 
 1. **One copy of every truth.** Ids key nodes, never names (task-446); one dice
@@ -61,6 +73,7 @@ comfortable, and proving the whole thing end to end in play.
 | task-560/561 towns: named, typed cells | **Landed (review).** A cell can be named (a `names` map beside the layers, because a name is metadata and not paint) and the compiler prefers it, with the duplicate-inside-a-scope fallback so no area offers two exits with one name. 31 building types across 9 categories as *biomes* (they used to be features, which made a house compile as a road), each tagged with a category and its purposes — the hook task-566 needs. |
 | task-562 edge semantics | **Landed (review).** A cell can be something that is *not* a place: `wall`/`void` block, `window` sees through but does not pass, `door` is a threshold — declared in the vocabulary (`biomes.cell_kind`), so the compiler asks rather than hardcoding. Every way carries `kind` (open/door/stairs/entrance) and `floor_step`, so a storey step reads as a climb and task-525/563 have a number to read. A wall blocks by occupying a cell, so a floor plan finally means what it says; merging is now storey-aware, since a classroom above a classroom was becoming one place with a staircase in it. |
 | task-563 entering a building | **Landed (review).** A building is a place you go *into*: one `in` way per cardinal side that already has a way, so you type `in` from the street instead of stepping onto the doorstep. With an interior it leads there (one-way, so `out` inside keeps meaning the doorstep and the adjacent temple is one turn); with no interior it is a `closed` door carrying a themed `refusal_message` — a watch house is barred, an inn is shut — which the movement system honours until the state is `open`, so a knock or a key opens it later. `refusal_message` is a general way property, not a building hack; a plain `closed` door still opens on approach as before. |
+| task-568 an indoor vocabulary | A building you can enter is somewhere you can be *in*, and there is still nothing to paint it with: `classroom`, `hallway`, `stairway`, `corridor`, `kitchen` are unknown ids, so a real floor plan compiles to bare places plus a warning. The 31 building types imply the rooms; the rooms are the last thing between a plan and a place. |
 | task-527 graph steady-state perf | Profile and fix the main-thread drag on a large painted map (labels/edges/redraw). Measured, not guessed — a previous hypothesis was wrong. |
 | task-400 Pines vertical slice | The end-to-end proof: a painted region compiled, walked, and trusted. Small on purpose. |
 | task-398 deterministic structure generation | The generator is the only sanctioned way to mint an unmade scope, and it must be reproducible and editable after the fact. |
@@ -139,11 +152,11 @@ ignored while Levels owns the layout.
 
 ## Always-on hygiene
 
-- **Drain review.** 144 tasks sit in review — more than the todo list. A dedicated
+- **Drain review.** 159 tasks sit in review — more than the todo list. A dedicated
   drain session keeps the folder honest rather than letting review become a second
-  todo. Start with the ones this session produced (task-496, 528, 530, 531, 532,
-  539, 540, 541, 548 and bug-49…53), since they are the ones whose acceptance
-  nobody has re-read yet.
+  todo. Start with the ones this session produced (task-496, 526, 528, 530, 531,
+  532, 539, 540, 541, 548, 559, 560, 561, 562, 563 and bug-49…54), since they are
+  the ones whose acceptance nobody has re-read yet.
 - **13 pre-existing JS unit failures** (`test_plan_tracker.js`) — fix or delete
   the stale expectations.
 - **Stale tasks must be re-read against the current design before acting**
@@ -156,7 +169,7 @@ ignored while Levels owns the layout.
 
 ## Risks to watch
 
-- **The review backlog hides real debt.** 144 review tasks is bigger than the todo
+- **The review backlog hides real debt.** 159 review tasks is bigger than the todo
   list; if it is not drained, "done" stops meaning done.
 - **Performance is not the first proof.** task-400 is deliberately small — do
   not let a vertical slice turn into a million-node benchmark.
