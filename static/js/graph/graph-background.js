@@ -1561,12 +1561,18 @@
             if (!position)
                 continue;
             // A node with painted coordinates stores the compiler's *engine* units
-            // (`cell * 40`), which the Map layout scales by the map pitch. Writing a
-            // canvas position over them would scale it a second time on the next
-            // layout, so the map would drift further every save (bug-52). The cell
-            // already holds the position; there is nothing to save.
+            // (`cell * 40`), which the Map layout scales by the map pitch and
+            // translates by its scope's `map_offset`. Writing a canvas position
+            // over them would scale it a second time and re-add the offset on the
+            // next layout, so the map would drift further every save (bug-52).
+            // The cell already holds the position; there is nothing to save.
+            // `hasPaintedCoords` is the one shared discriminator — a bare
+            // `props.cell` check only caught areas, so ways and characters (whose
+            // stored coords are already canvas pixels) were still being
+            // double-converted here on every save.
             const props = ((graphManager._graphNodesObj || {})[id] || {}).properties || {};
-            if (props.cell) {
+            if (typeof GraphLayoutEngine !== 'undefined' && GraphLayoutEngine
+                    && GraphLayoutEngine.hasPaintedCoords(props)) {
                 skippedPainted += 1;
                 continue;
             }

@@ -416,6 +416,46 @@ test('a dragged frozen node has its position written so a reload keeps it', () =
     }
 });
 
+test('dropping a painted node never overwrites its engine units', () => {
+    // A painted node's `properties.x/y` are `cell * 40`, which the map layout
+    // scales by the pitch and translates by the scope offset. Writing a canvas
+    // position over them double-converts, so the node ends up further away on
+    // every later layout. Areas were exempted by bug-52; ways and characters
+    // were not, and this runs on every dragEnd.
+    const previousGraphManager = globalThis.graphManager;
+    globalThis.graphManager = {
+        _graphNodesObj: {
+            way_painted: {
+                type: 'way',
+                properties: { cell: { x: 0.5, y: 1 }, x: 20, y: 40, central_gravity_enabled: false },
+            },
+            char_painted: {
+                type: 'character',
+                properties: { cell: { x: 3, y: 3 }, x: 120, y: 120, central_gravity_enabled: false },
+            },
+            way_hand: { type: 'way', properties: { central_gravity_enabled: false } },
+        },
+        _graphEdgesArr: [],
+        network: {
+            body: {
+                nodes: {
+                    way_painted: { x: 12.3, y: 56.8 },
+                    char_painted: { x: 300, y: 400 },
+                    way_hand: { x: 12.34, y: 56.78 },
+                },
+            },
+        },
+    };
+    try {
+        const ops = GraphRelativeLayout.frozenDropOps(['way_painted', 'char_painted', 'way_hand']);
+        assertEq(ops.length, 1, 'only the hand-placed node is written back');
+        assertEq(ops[0].payload.node_id, 'way_hand');
+        assertEq(ops[0].payload.patch.properties, { x: 12.3, y: 56.8 });
+    } finally {
+        globalThis.graphManager = previousGraphManager;
+    }
+});
+
 test('a parent can set how its own contents are arranged', () => {
     const nodes = {
         area_a: { type: 'area', properties: { layout_child_distance: 90, layout_child_spacing: 40, layout_max_radius: 200 } },

@@ -198,3 +198,80 @@ test('items are placed beside their area at the current pitch (bug-53)', () => {
         config = undefined;
     }
 });
+
+test('a hand-placed node keeps its canvas position: no rescale, no offset', () => {
+    // `properties.x/y` is an overloaded field. The compiler writes ENGINE units
+    // (`cell * 40`), which the map layout scales by the pitch and translates by
+    // the scope offset; a node dragged in the graph stores CANVAS pixels in the
+    // same field, which must be used verbatim. Treating the second as the first
+    // compounds the pitch and re-adds the offset on every layout, so a node
+    // creeps further from everything each time it is saved or re-laid out.
+    const nodes = {
+        area_painted: {
+            type: 'area',
+            properties: { cell: { x: 2, y: 1 }, x: 80, y: 40, world_scope_id: 'town' },
+        },
+        char_kael: { type: 'character', properties: { x: -477, y: -405 } },
+        way_hand: { type: 'way', properties: { x: 812, y: 76 } },
+    };
+    const ds = { get: (id) => (id in nodes ? { id } : null), update: () => {} };
+    const offsets = { town: { x: 3, y: 1 } };          // 3 cells right, 1 down
+    try {
+        // A 2x pitch: engine units are 2x, canvas pixels are not rescaled.
+        config = { graphMapSpacing: 80 };
+        const out = GraphLayoutEngine._gridUpdates(nodes, ds, offsets);
+        const byId = {};
+        out.forEach((u) => { byId[u.id] = u; });
+
+        // Painted: (80,40) engine units * 2 = (160,80), + offset 3*80, 1*80.
+        assertEq(byId.area_painted.x, 400, 'a painted node is scaled and offset');
+        assertEq(byId.area_painted.y, 160, 'on both axes');
+
+        // Hand-placed: taken literally. Before the fix these came back as
+        // -477*2 and -477*2+240, and the next save stored that back.
+        assertEq(byId.char_kael.x, -477, 'a hand-placed character is used as-is');
+        assertEq(byId.char_kael.y, -405, 'on both axes');
+        assertEq(byId.way_hand.x, 812, 'a hand-placed way is used as-is');
+        assertEq(byId.way_hand.y, 76, 'on both axes');
+    } finally {
+        config = undefined;
+    }
+});
+
+test('the grid layout gives ways to the solver but leaves areas pinned', () => {
+    // Task-530's intent: areas sit on their painted cells, ways are free so the
+    // solver pulls them in next to their areas. `physics: false` on every node
+    // (the bug) left the global toggle spinning on an empty node list, so
+    // enabling physics appeared to do nothing at all.
+    const nodes = {
+        area_a: { type: 'area', properties: { cell: { x: 0, y: 0 }, x: 0, y: 0 } },
+        way_door: { type: 'way', properties: { cell: { x: 0.5, y: 0 }, x: 20, y: 0 } },
+        way_frozen: {
+            type: 'way',
+            properties: { cell: { x: 0.5, y: 0 }, x: 20, y: 0, central_gravity_enabled: false },
+        },
+        char_kael: { type: 'character', properties: { x: 100, y: 0 } },
+    };
+    const ds = { get: (id) => (id in nodes ? { id } : null), update: () => {} };
+    const out = GraphLayoutEngine._gridUpdates(nodes, ds, {});
+    const byId = {};
+    out.forEach((u) => { byId[u.id] = u; });
+
+    assertEq(byId.area_a.physics, false, 'an area is pinned to its cell');
+    assertTrue(byId.area_a.fixed.x, 'and held there');
+    assertEq(byId.way_door.physics, true, 'a way is simulated');
+    assertEq(byId.way_door.fixed.x, false, 'so the solver may move it');
+    assertEq(byId.way_frozen.physics, false, "an author's frozen way stays put");
+    // Items/characters are leashed by GraphRelativeLayout and kept out of the
+    // global gravity field on purpose; the grid pass must not contradict that.
+    assertEq(byId.char_kael.physics, false, 'a character is not in the solver');
+});
+
+test('isFrozen follows the author flag, with a safe fallback', () => {
+    assertTrue(GraphLayoutEngine.isFrozen({ properties: { central_gravity_enabled: false } }),
+        'physics off in the inspector');
+    assertTrue(GraphLayoutEngine.isFrozen({ properties: { layout_static: true } }),
+        'layout_static');
+    assertFalse(GraphLayoutEngine.isFrozen({ properties: {} }), 'default is dynamic');
+    assertFalse(GraphLayoutEngine.isFrozen(null), 'a missing node is dynamic');
+});

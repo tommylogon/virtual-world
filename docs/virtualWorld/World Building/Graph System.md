@@ -404,14 +404,39 @@ The toolbar's **🗺️ Map** button toggles a cardinal-direction-based grid lay
 
 **What gets positioned:**
 
-| Element | Placed | Frozen? |
-|---------|--------|---------|
-| **Area nodes** | BFS grid based on exit cardinals | ✅ physics off, fixed |
-| **Way nodes** | Midpoint between their two connected rooms | ✅ physics off, fixed |
-| **Item nodes** | Scattered below their parent room (3-column grid) | ❌ physics on, settles via edge |
-| **Character nodes** | Stacked to the right of their current room | ❌ physics on, settles via edge |
+| Element | Placed | Physics? |
+|---------|--------|----------|
+| **Area nodes** | BFS grid based on exit cardinals | ❌ pinned, `fixed` |
+| **Way nodes** | Midpoint between their two connected rooms | ✅ simulated, settles via edge |
+| **Item nodes** | Scattered below their parent room (3-column grid) | ❌ leashed beside the parent |
+| **Character nodes** | Stacked to the right of their current room | ❌ leashed beside the parent |
 
-**Per-node physics:** Areas and ways use `physics: false` + `fixed: {x: true, y: true}` so they stay frozen in place. Items and characters use `physics: true` (default) — they settle naturally via their `location` edge springs while the layout is active.
+**Per-node physics:** Areas are pinned to their cells, because the cells *are* the
+map and the background art is drawn to them. Ways are deliberately **simulated**: the
+layout places no way nodes of its own, so without the solver they pile up wherever
+they were last saved and every edge then crosses the whole map (task-530). Items and
+characters are the opposite of simulated — `GraphRelativeLayout` leashes them to
+their parent and keeps them out of the global gravity field, because a node left in
+it gets dragged off its parent no matter how stiff the edge, and holding it back
+would need a per-frame sweep. An author-frozen node (`central_gravity_enabled: false`,
+the inspector's "Physics enabled") keeps physics off whatever its type.
+
+**Two coordinate spaces.** `properties.x`/`y` is overloaded, and `properties.cell`
+is what tells them apart:
+
+- **Engine units** — the WorldPainter compiler writes `cell * 40`, and the map layout
+  scales them by the map pitch and translates them by the scope's `map_offset`
+  (task-523). The compiler stamps `cell` on **areas and ways** so these are
+  recognisable; a way's `cell` is the half-integer midpoint of the two cells it joins.
+- **Canvas pixels** — a node dragged in the graph stores where it was dropped, and
+  the map layout uses it verbatim. Characters and items are always in this space.
+
+`map_offset` is a *render-time* translation and is never written back into stored
+coordinates. Saving a layout must therefore skip painted nodes: writing canvas pixels
+over engine units would rescale them on the next layout *and* re-add the scope offset,
+so the node would creep further away on every save. Use
+`GraphLayoutEngine.hasPaintedCoords(props)` for that check rather than a bare
+`props.cell` test, which silently misses ways and characters.
 
 **Two guards (bug-45):** the cardinal layout only auto-moves nodes in **map mode** — in graph/manual
 view, hand-placed nodes stay where they were put — and a **frozen** node

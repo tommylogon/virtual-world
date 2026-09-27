@@ -843,6 +843,18 @@ window.GraphRelativeLayout = {
         for (const id of ids || []) {
             const props = (nodes[id] || {}).properties || {};
             if (!this.isStatic(nodes[id])) continue;
+            // A PAINTED node's `properties.x/y` are the compiler's engine units
+            // (`cell * 40`), which the map layout scales by the map pitch and
+            // translates by the scope's `map_offset`. Writing a canvas position
+            // over them double-converts: the next layout scales the pixels again
+            // and adds the offset again, so a node that is dragged once ends up
+            // further from everything on every later save. Areas were exempted
+            // (bug-52); ways and characters were not, and this runs on every
+            // dragEnd, which is why the creep was so easy to trigger.
+            if (GraphLayoutEngine && typeof GraphLayoutEngine.hasPaintedCoords === 'function'
+                    && GraphLayoutEngine.hasPaintedCoords(props)) {
+                continue;
+            }
             const body = network.body?.nodes?.[id];
             if (!body || !Number.isFinite(body.x) || !Number.isFinite(body.y)) continue;
             ops.push({

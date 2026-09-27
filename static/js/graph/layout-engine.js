@@ -423,6 +423,25 @@ window.GraphLayoutEngine = {
     },
 
     /**
+     * Whether the *author* placed this node rather than letting the solver move
+     * it: the inspector's "Physics enabled" off (`central_gravity_enabled:
+     * false`) or an explicit `layout_static: true`, which are the same intent.
+     *
+     * Delegates to `GraphRelativeLayout.isStatic` so the layout and the leash
+     * agree on one rule instead of two copies of it that can drift apart.
+     * @param {Object} node
+     * @returns {boolean}
+     */
+    isFrozen(node) {
+        if (typeof GraphRelativeLayout !== 'undefined' && GraphRelativeLayout
+                && typeof GraphRelativeLayout.isStatic === 'function') {
+            return GraphRelativeLayout.isStatic(node);
+        }
+        const props = (node || {}).properties || {};
+        return props.central_gravity_enabled === false || props.layout_static === true;
+    },
+
+    /**
      * Position updates for a painted map: every node with coords at its painted
      * cell (plus its scope's map offset, task-523), and items/characters held in
      * an area beside that area. Shared by the initial layout and the live
@@ -439,22 +458,40 @@ window.GraphLayoutEngine = {
 
         for (const [id, node] of Object.entries(nodesObj)) {
             if (!nodesDS.get(id)) continue;
-            const p = GraphLayoutEngine.scopedGridPosition(
-                (node || {}).properties, node, offsets);
+            const props = (node || {}).properties || {};
+            // Painted coords are the compiler's ENGINE units, so they are scaled
+            // by the map pitch and translated by the scope's offset. A node the
+            // author placed by hand — and every character/item, whose stored
+            // position is already a CANVAS pixel — must be used verbatim:
+            // re-scaling it compounds the pitch, and re-adding the offset walks
+            // it further out on every single layout, so a node that is dragged
+            // once creeps away from everything for good (bug-52's latent twin,
+            // which the `cell`-only guard never closed for ways or characters).
+            let p = null;
+            if (GraphLayoutEngine.hasPaintedCoords(props)) {
+                p = GraphLayoutEngine.scopedGridPosition(props, node, offsets);
+            } else if (typeof props.x === 'number' && typeof props.y === 'number'
+                    && isFinite(props.x) && isFinite(props.y)) {
+                p = { x: props.x, y: props.y };
+            }
             if (!p) continue;
-            // An AREA on the painted lattice is pinned: the cells are the map, and
-            // the background art is drawn to them. Everything else (ways, items,
-            // characters) is left free, so the solver can pull the loose nodes in
-            // next to their areas — the grid path places no way nodes at all, so
-            // without the solver they pile up wherever they were last saved and
-            // every edge then crosses the whole map. Physics may be on in Map
-            // mode (task-530), which is what makes those edges readable.
             const isArea = node.type === 'area';
+            const isWay = node.type === 'way';
+            // Areas are pinned: the cells are the map, and the background art is
+            // drawn to them. Ways are left free, so the solver pulls them in next
+            // to their areas — the grid path places no way nodes of its own, so
+            // without the solver they pile up wherever they were last saved and
+            // every edge then crosses the whole map (task-530). Items and
+            // characters are NOT simulated: `GraphRelativeLayout` leashes them to
+            // their area and deliberately keeps them out of the global gravity
+            // field, because in it they are dragged off their parent no matter
+            // how stiff the edge. An author-frozen node keeps physics off too.
+            const frozen = GraphLayoutEngine.isFrozen(node);
             updates.push({
                 id,
                 x: p.x,
                 y: p.y,
-                physics: false,
+                physics: isWay && !frozen,
                 fixed: isArea ? { x: true, y: true } : { x: false, y: false },
             });
             placed.add(id);
