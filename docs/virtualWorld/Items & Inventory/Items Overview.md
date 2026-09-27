@@ -259,6 +259,41 @@ Container items are referenced in:
 - `get_item_desc()` at `item_actions.py:102-110` — shows contents when examining an unlocked container
 - `take_item()` at `item_actions.py:260-310` — allows taking items from inside containers
 
+### Examining a container reveals *and* credits its contents (task-494)
+
+`examine <container>` writes **two different things**, and they are not
+interchangeable:
+
+| | What it writes | Whose it affects | Lifetime |
+|---|---|---|---|
+| The reveal | `current_state: "hidden"` → `"normal"` on each child | **the node** — every character, forever | persisted in the save |
+| The credit | an observation memory + an entry in `player.discovered_items` | **this character only** | per-player, serialised |
+
+Only the second one makes the contents render as *known*, because all three
+readers of "known" are client-side and all read `player.discovered_items`:
+`contextual-actions.js` `isDiscovered()` (which also drops the `examine` verb
+bracket once discovered), `room-context.js` (the unexamined-attention list and
+the blind filter), and `memory-context.js` (the `=== ALREADY KNOWN ===` block).
+Without the credit, the first character to open a chest unhid the loot for
+everyone and still left it looking unseen — and a second character who looked
+later got nothing at all, because the reveal had already happened.
+
+The credit is applied to **everything the examine reports**, not just `in`:
+anything on, under, behind, beside or at the container counts too. It is
+idempotent, so a second look at a known chest reports contents without claiming
+a fresh discovery. A `locked` container reveals and credits nothing.
+
+Note the distinction from **reachability**. Contents are *targetable* before any
+examine — `matching._match_item_name` (`matching.py:299-324`) and
+`item_reach.find_reachable` (`item_reach.py:176-186`, which walks to arbitrary
+depth) both add container contents to the candidate set. So `take apple` out of
+a basket resolves with no examine having happened. What examine changes is
+whether the character *knows* it is there, not whether the engine can find it.
+
+Carried-container contents are **not** auto-listed anywhere: `get_inventory`,
+`scene.you.carrying` and the `inventory` command all read direct `EDGE_CARRYING`
+edges only, with no recursion into containers.
+
 ## spawn_item Triggers
 
 The `spawn_item` effect (`effects.py:143-175`) creates items in the current room:
