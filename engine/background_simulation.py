@@ -32,6 +32,7 @@ import random
 from collections import deque
 
 from graph import EDGE_IN, EDGE_CARRYING, EDGE_TRIGGERS
+from engine import relief as _relief
 from engine.lived_log import record
 from vital_rates import tick_minutes
 
@@ -81,7 +82,16 @@ MEAL_RESTORE = 45         # Hunger (drive) reduced by this when eating
 DRINK_RESTORE = 50        # Thirst (drive) reduced by this when drinking
 
 #: A relief site: an area tag (a latrine) or a fixture standing in the area.
-RELIEF_TAGS = ("latrine", "toilet", "privy", "restroom", "bathroom")
+#: Re-exported from `engine.relief`, which both tiers read so the background
+#: goblin and the human at the keyboard agree on what a restroom is. This is the
+#: *comfort* vocabulary — task-551 made it emphatically not a permission one.
+RELIEF_TAGS = _relief.RELIEF_TAGS
+#: At or above this the character relieves where they stand. Below it they are
+#: willing to walk `PRIVACY_SEARCH_HOPS` ways for somewhere better. The split is
+#: what stops a character oscillating between two equally mediocre rooms and
+#: what stops one dawdling while the `engine/interrupts.py:33` involuntary
+#: threshold closes on it.
+RELIEF_URGENT = 90
 #: A washing site: an area tag (a river) or a fixture (a wash spot, a shower).
 BATH_TAGS = ("bathing", "wash", "shower", "bath", "washing")
 BATH_HYGIENE = 70         # fallback when a fixture does not author its own amount
@@ -362,14 +372,24 @@ class BackgroundSimulation:
                 return TASK_MINUTES["travel"]
 
         if v.get("Bladder", 0) >= BLADDER_THRESHOLD:
-            if "relieve" not in served and self._relieve(p):
-                served.add("relieve")
-                self._begin_task(p, "relieving", TASK_MINUTES["relieve"], remaining)
-                return TASK_MINUTES["relieve"]
-            if self._travel_toward(p, RELIEF_TAGS, "bladder"):
-                return TASK_MINUTES["travel"]
-            # Nowhere to go. The engine already docks Hygiene when the meter
-            # maxes, which is the honest outcome for a camp with no latrine.
+            # Relief is permitted anywhere (task-551); privacy is a preference,
+            # not a gate. So the order is: do it here if this is a decent place or
+            # the need is urgent, otherwise take a step or two towards somewhere
+            # better, and *failing that* do it here anyway. The old code ended
+            # this branch in `return None`, so a world with no latrine simply had
+            # characters who never went.
+            if "relieve" not in served:
+                decent = self._decency(p) <= 0 or v.get("Bladder", 0) >= RELIEF_URGENT
+                if decent and self._relieve(p):
+                    served.add("relieve")
+                    self._begin_task(p, "relieving", TASK_MINUTES["relieve"], remaining)
+                    return TASK_MINUTES["relieve"]
+                if self._travel_to_privacy(p):
+                    return TASK_MINUTES["travel"]
+                if self._relieve(p):
+                    served.add("relieve")
+                    self._begin_task(p, "relieving", TASK_MINUTES["relieve"], remaining)
+                    return TASK_MINUTES["relieve"]
             return None
 
         if v.get("Hygiene", 100) <= HYGIENE_THRESHOLD:
@@ -482,15 +502,128 @@ class BackgroundSimulation:
         node_tags = {str(t).lower() for t in (node.properties.get("tags") or [])}
         return bool(set(tags) & node_tags)
 
+    def _decency(self, p):
+        """How decent the character's *current* area is as a place to relieve.
+
+        Lower is better; see `engine.relief.score_privacy`. Zero or less means
+        "just do it here".
+        """
+        return self._privacy_score(self._resolve_area_id(p.current_area), p)
+
+    def _privacy_score(self, area_id, p):
+        return _relief.score_privacy(
+            self.gs.graph, area_id,
+            players=getattr(self.gs, "players", None),
+            exclude_name=getattr(p, "name", None),
+            spatial_items=self._spatial_items,
+        )
+
     def _relieve(self, p):
-        offered, _ = self._service_here(p, RELIEF_TAGS)
-        if not offered:
-            return False
+        """Relieve oneself, here, wherever 'here' happens to be (task-551).
+
+        There is no longer any gate: a world with no latrine is a world where
+        people still go. What the old `_service_here(p, RELIEF_TAGS)` check
+        really bought was the *dignity* distinction, and that is what survives —
+        a proper place is silent, an improvised one costs Sanity and, if anyone
+        saw, Social. Same numbers as the foreground handler, which is the point
+        of both reading `engine.relief`.
+        """
         p.vitals["Bladder"] = 0
-        record(p, self.gs.time_ticks, "act", f"relieved themselves in {p.current_area}",
-               why="needs:relieve", area=p.current_area, tags=["need"])
-        self.gs.add_log_entry(f"[{p.name}] relieves themselves.")
+        area_id = self._resolve_area_id(p.current_area)
+        proper = _relief.has_fixture(self.gs.graph, area_id, self._spatial_items)
+        onlookers = _relief.witnesses(
+            self.gs.graph, area_id, getattr(self.gs, "players", None),
+            exclude_name=p.name)
+        if proper:
+            record(p, self.gs.time_ticks, "act",
+                   f"relieved themselves in {p.current_area}",
+                   why="needs:relieve", area=p.current_area, tags=["need"])
+            self.gs.add_log_entry(f"[{p.name}] relieves themselves.")
+            return True
+
+        _relief.mark_smell(self.gs.graph, area_id)
+        _relief.apply_dignity_cost(p, onlookers > 0)
+        record(p, self.gs.time_ticks, "act",
+               f"relieved themselves improvisionally in {p.current_area}",
+               why="needs:relieve:public", area=p.current_area,
+               tags=["need", "dignity"])
+        if onlookers:
+            self.gs.add_log_entry(
+                f"[{p.name}] relieves themselves where {onlookers} others can see.")
+        else:
+            self.gs.add_log_entry(
+                f"[{p.name}] finds a corner of {p.current_area} and relieves themselves.")
         return True
+
+    def _travel_to_privacy(self, p):
+        """One hop towards the best place to relieve within reach (task-551).
+
+        `_target_step` returns the *first* area a BFS reaches, which is why every
+        background character in the Kraktooth camp funnelled into the single
+        `Waste Disposal` room: nearest was the whole policy. This ranks every
+        area within `PRIVACY_SEARCH_HOPS` instead and heads for the best, so a
+        character standing in a crowded hall steps into the empty one next door
+        rather than walking the building to a latrine everyone is already using.
+
+        Returns False when nothing nearby is better than standing still, which is
+        what makes this safe to call unconditionally: the caller then relieves
+        where it is.
+        """
+        start = p.current_area
+        if not start:
+            return False
+        from engine import traversal
+        avoid = traversal.avoid(self.gs, p)
+        here = self._decency(p)
+        best_area = None
+        best_score = here
+        seen = {start}
+        queue = deque([(start, 0, None)])
+        while queue:
+            current, depth, first = queue.popleft()
+            if depth >= _relief.PRIVACY_SEARCH_HOPS:
+                continue
+            for label, exit_data in self.gs.build_exits_for_area(
+                    current, include_hidden=True).items():
+                if avoid:
+                    from engine.traversal import avoid_key
+                    if avoid_key(current, label) in avoid:
+                        continue
+                target = exit_data.get("target")
+                if not target or target in seen:
+                    continue
+                seen.add(target)
+                # `build_exits_for_area` hands back display *names*, but scoring
+                # and every other graph lookup key on the node id. Score the
+                # resolved id, travel to the name.
+                score = self._privacy_score(self._resolve_area_id(target), p)
+                # Strictly better only. A tie means "as good as here", and taking
+                # a tie would walk a character across a camp for nothing.
+                if score < best_score:
+                    best_score, best_area = score, target
+                queue.append((target, depth + 1, first or label))
+        if not best_area or best_area == start:
+            return False
+        direction = self._exit_label_toward(p, start, best_area)
+        if not direction:
+            return False
+        return self._hop(p, best_area, direction, reason="privacy")
+
+    def _exit_label_toward(self, p, area_name, target):
+        """The exit label that starts the shortest path *area_name* → *target*."""
+        seen = {area_name}
+        queue = deque([(area_name, None)])
+        while queue:
+            current, first = queue.popleft()
+            if current == target:
+                return first
+            for label, exit_data in self.gs.build_exits_for_area(
+                    current, include_hidden=True).items():
+                nxt = exit_data.get("target")
+                if nxt and nxt not in seen:
+                    seen.add(nxt)
+                    queue.append((nxt, first or label))
+        return None
 
     def _wash(self, p):
         offered, fixture = self._service_here(p, BATH_TAGS)
@@ -907,17 +1040,15 @@ class BackgroundSimulation:
 
     #: Spatial relations a forager can reach *through*. An area holds things in,
     #: on, under, behind, beside or at it, and an item can hold the same ways —
-    #: berries in a bush, bread on a table, a pouch beside a log.
+    #: berries in a bush, bread on a table, a pouch beside a log. The list itself
+    #: lives in `engine/world_scopes.SPATIAL_TYPES` (task-551), which is the one
+    #: place that decides what "reachable" means.
     REACHABLE_RELATIONS = ("in", "on", "under", "behind", "beside", "at")
 
     def _spatial_items(self, container_id):
         """Items *container_id* holds by any spatial relation."""
-        graph = self.gs.graph
-        for rel in self.REACHABLE_RELATIONS:
-            for edge in graph.get_edges_for_target(container_id, rel):
-                node = graph.get_node(edge.source)
-                if node is not None and node.type == "item":
-                    yield node
+        from engine.world_scopes import spatial_item_nodes
+        return iter(spatial_item_nodes(self.gs.graph, container_id))
 
     def _find_consumable(self, p, tags, depth=1, verb=None):
         """Nearest edible thing the character can actually reach.
