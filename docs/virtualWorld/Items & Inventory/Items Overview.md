@@ -44,6 +44,7 @@ Items in the graph are `Node` objects with `type="item"` (`virtual_world/graph.p
 | `harvest` | dict | — | What taking from a pool yields: `{"item": <library id>, "label": <optional word players may use>, "size": <max per attempt>, "skill": <optional>, "dc": <optional>}`. A node with a `harvest` spec is a **pool** — see below |
 | `owner` | str | absent (unowned) | Whose thing this is: a character name or node id (`"Gribba"`, `"player_gribba"` — the same person). Makes a non-owner refused by `take`/`give`/`use`; `steal` is the contested override |
 | `personal` (tag) | tag | absent | Informational marker: a treasured object, however it stands. Does **not** block anyone on its own — permission follows `owner` |
+| `recreation` (tag) | tag | absent | Something to pass a bored hour with. Carried items with this tag are a fallback for the background sim (task-517): a goblin with a drum in their pack can entertain themselves where the camp has none. The area's own fixture is always preferred, so a camp with a drum behaves exactly as before |
 
 ### `uses` vs `quantity`
 

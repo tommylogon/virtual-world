@@ -1,0 +1,47 @@
+{
+  "name": "nested cups",
+  "description": "three beaten-copper cups that nest into one another, thin enough to vanish entirely into the smallest. A rhythmic clatter on a hard floor is the only sound they make.",
+  "actions": "examine,take,drop,use",
+  "uses": -1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "none",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "equip_slots": [],
+  "tags": [
+    "recreation",
+    "performance"
+  ],
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": "",
+      "effects": [
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Entertainment",
+            "amount": 14,
+            "target": "self",
+            "success_message": "copper on stone, accelerating, and a third cup appears from nowhere at the top of it."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Energy",
+            "amount": -5,
+            "target": "self"
+          }
+        }
+      ]
+    }
+  ],
+  "contents": []
+}

@@ -123,9 +123,15 @@ BATH_TAGS = ("bathing", "wash", "shower", "bath", "washing")
 BATH_HYGIENE = 70         # fallback when a fixture does not author its own amount
 #: A recreational site: a fixture (a drum, a dice game, a fire) or an area that
 #: is itself the gathering place. The amount comes from the fixture's authored
-#: `adjust_vital Entertainment`, like washing.
+#: `adjust_vital Entertainment`, like washing. A *carried* item with the same
+#: tag counts too, as a fallback (task-517).
 RECREATION_TAGS = ("recreation",)
 ENTERTAINMENT_RESTORE = 15  # fallback when a fixture does not author its own amount
+
+#: What an hour of carried entertainment costs in Energy. The area-fixture path
+#: has always been free, and stays free — this only prices the fallback, so
+#: the camp-with-a-drum path is untouched.
+RECREATION_ENERGY_COST = 5
 
 #: Finding something in the *field* (an item you are not carrying) is a skill
 #: check, not a guarantee: a perceptive forager eats, a clumsy one goes hungry
@@ -677,8 +683,34 @@ class BackgroundSimulation:
         self.gs.add_log_entry(f"[{p.name}] washes up.")
         return True
 
+    def _carried_recreation(self, p):
+        """The first carried item tagged ``recreation`` that still has something
+        left in it, or None.
+
+        Carried, not standing: a drum on a stand is a fixture the area already
+        offers, and a character who *carries* one has brought their own
+        entertainment — which is the point of task-517, since before this a
+        goblin with Rikka's kit in their pack had no way to spend a bored hour
+        unless the camp happened to contain a drum as well.
+        """
+        player_id = self.gs._player_node_id(p.name)
+        for edge in self.gs.graph.get_edges_for_target(player_id, EDGE_CARRYING):
+            node = self.gs.graph.get_node(edge.source)
+            if node is None or not self._has_tag(node, RECREATION_TAGS):
+                continue
+            if str(node.properties.get("current_state", "")).lower() == "hidden":
+                continue
+            # `uses: -1` is "no charge model" — a deck of cards does not wear
+            # out. A positive count is finite and must be respected here or a
+            # character beats a spent drum forever.
+            uses = node.properties.get("uses", -1)
+            if isinstance(uses, (int, float)) and 0 <= uses < 1:
+                continue
+            return node
+        return None
+
     def _recreate(self, p):
-        """Pass the time with something recreational (task-425).
+        """Pass the time with something recreational (task-425, task-517).
 
         Entertainment had no recurring source at all: novelty paid once per area
         and once per item, ever, and `ACTIVITY_REGEN` has nothing recreational,
@@ -688,19 +720,59 @@ class BackgroundSimulation:
         The need gate is also the anti-spam: after using one, Entertainment sits
         above the threshold for the better part of a day, so a character does not
         stand at the drum beating it every ten minutes.
+
+        A **carried** item is the fallback (task-517), and only a fallback: the
+        area is checked first, so a camp with a drum behaves exactly as it did.
+        A carried find spends a charge where the item is finite and costs a
+        little Energy either way, because an hour of entertainment is effort.
         """
         offered, fixture = self._service_here(p, RECREATION_TAGS)
+        source = None
         if not offered:
-            return False
-        amount = self._fixture_amount(fixture, "entertainment",
+            carried = self._carried_recreation(p)
+            if carried is None:
+                return False
+            source = carried
+        amount = self._fixture_amount(fixture or source, "entertainment",
                                       default=ENTERTAINMENT_RESTORE)
         p.vitals["Entertainment"] = max(
             0, min(100, p.vitals.get("Entertainment", 0) + amount))
+        if source is not None:
+            # Only the fallback is priced. The fixture path has always been
+            # free and stays free — a camp with a drum must not start costing
+            # its goblins Energy, which would move every existing soak.
+            p.vitals["Energy"] = max(
+                0, min(100, p.vitals.get("Energy", 100) - RECREATION_ENERGY_COST))
+            self._spend_recreation_uses(source)
+            record(p, self.gs.time_ticks, "act",
+                   f"passed the time with their {source.name}",
+                   why="needs:entertainment", area=p.current_area, tags=["need"])
+            self.gs.add_log_entry(
+                f"[{p.name}] passes the time with their {source.name}.")
+            return True
         record(p, self.gs.time_ticks, "act", f"passed the time in {p.current_area}",
                why="needs:entertainment", area=p.current_area, tags=["need"])
         self.gs.add_log_entry(
             f"[{p.name}] finds some entertainment in the {p.current_area}.")
         return True
+
+    @staticmethod
+    def _spend_recreation_uses(node):
+        """Spend one charge on a finite carried recreation item.
+
+        Reuses the shared spend rule (positive count down by one, ``-1`` is a
+        permanent item) so a deck of cards and a half-worn drum behave the same
+        way here as they do in the foreground consume path. The spent node is
+        left in place with an ``unlit``-style state rather than removed: a used-
+        up drum is still a drum, and ``_carried_recreation`` is what refuses to
+        pick it again.
+        """
+        uses = node.properties.get("uses", -1)
+        if not (isinstance(uses, (int, float)) and uses > 0):
+            return
+        node.properties["uses"] = max(0, uses - 1)
+        if node.properties["uses"] == 0:
+            node.properties["current_state"] = "used_up"
 
     def _recuperate(self, p):
         """Rest a while to steady the mind (task-432).
