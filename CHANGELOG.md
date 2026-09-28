@@ -4,6 +4,285 @@ All notable changes to VirtualWorld. See `docs/virtualWorld/Scenario Workflows &
 
 ---
 
+## Unreleased — "A World That Notices" (2026-09-28)
+
+Four worktree lanes (one serial spine, three parallel arms) closed 28 tasks in
+a day, and the theme is that **the simulation stopped faking three things it was
+supposed to know**. Sound stopped being "within two rooms". Being seen stopped
+being unrecorded. Fear stopped being impossible. Alongside that, characters
+gained a real fear response, items became objects with parts and owners, and
+distant parts of the world stopped costing full price to exist.
+
+A plain-language version of this release, for readers who do not know the
+codebase, is in `docs/virtualWorld/Patch Notes 2026-09-28.md`.
+
+### 🔊 Audibility replaces hop radius (task-418)
+
+`engine/sound.py` · `engine/awareness.py` · `engine/background_social.py`
+
+- `radius_hops` was a proxy: "within two rooms" meant "co-present at one
+  remove", which is not a distance the world has. **AwarenessChannel** is the
+  replacement seam — `propagate(graph, origin_area_id, context) -> area_id ->
+  strength 0..1` — with `SoundChannel` implemented and a test double proving a
+  second channel needs nothing but `propagate`.
+- A **locked door is a latch, not a soundproof wall**: locked and closed get the
+  same barrier, so a shout crosses one locked door and exclusion comes from a
+  *chain*. The arithmetic is in the test names because the arithmetic is the
+  test.
+- Caching keys on graph revision **and** a door fingerprint, because
+  `way.properties["current_state"] = "locked"` mutates in place and never bumps
+  the revision — caching on revision alone would keep a door's pre-lock
+  awareness after it was locked, which is the case the channel exists for.
+- `select_attended` calls `characters_by_area` once per *audible* area and never
+  for an area nothing perceives, so cost is bounded by how much of the world is
+  audible from the anchors rather than by population. 200 characters in one room
+  attends 8 and iterates the roster dict zero times.
+
+### 👁 Who saw whom, and what a character fears (tasks-547, 552, 484, 354)
+
+`engine/observation_signal.py` · `engine/fear.py` · `engine/background_social.py`
+
+- **The load-bearing fix: `engine/fear.py` was inert twice over.** A 3-day
+  Kraktooth soak recorded *zero* threat actions with five humans living inside
+  the goblin camp. The first conclusion — nothing can represent "that is not
+  mine" — was right. The second was wrong and mattered more: `fear_sources`
+  matched a co-present character on the **graph node's** `tags`, and a
+  character node is created bare (`Node(id=..., type="character", name=...)`),
+  so it never carries tags at all. Every shipped character puts its species in
+  `player.tags`. So `fear_tags: ["goblin"]` on a human would have done nothing,
+  and the field round-trips saves correctly, so it looked entirely functional.
+  `character_tags()` now reads `player.tags`, the trait keys and the node.
+- task-552 adds `run_fear_pass()`, called before the social pass so fear can
+  pre-empt sociability. Fear produces a visible threat: a line, a trace, a
+  memory, a Social cost, an `afraid` spike and a closeness cost. Four reactions
+  from a draw seeded by `(character, source, tick)`, so five characters do not
+  flee in lockstep.
+- task-547 records who observed whom per turn and whether it was public, built
+  on the bystander-reaction pass. Not serialized — it is derived per-turn state,
+  which also keeps the task off the `serialization` and `player` hubs.
+  Noticing and commenting are separate facts: an observer whose reaction
+  resolves to "ignore" is recorded even though it emits no line.
+- task-484 is only the `ends_on` half. `frightened` gates behaviour toward one
+  named source, so a flag kept after that source left was a stuck flag that sat
+  for its full 30-minute timer. The tuning numbers are **deliberately
+  untouched** — no shipped scenario authors a single fear yet, so there is
+  nothing to calibrate against.
+- task-354 is the MVP the task file specifies: pack identity is a `pack:<name>`
+  entry in the existing tags rather than a new `Player.pack` attribute
+  (`player.py` is a hub), and packmate awareness walks the area graph rather
+  than using a flat distance.
+
+### 🧟 Undead defend themselves properly (task-490)
+
+`engine/combat.py` · `engine/conditions.py` · `engine/undead.py`
+
+- 5e resistance **halves** and immunity **negates**; a halved point of damage
+  is nothing, and this is not the flat subtraction `aggregate_bonuses` already
+  applies to equipped items. Folding undead into that would also make a sword
+  do less damage to a ghost, which is what neither rule means.
+- The rule is resistance to damage from **nonmagical weapons** — about the
+  weapon, not the injury. The first cut keyed on damage types, so a mundane
+  sword did full damage to a ghost while lightning halved no matter what struck
+  with it, which is backwards. The profile carries a `NONMAGICAL_WEAPON`
+  sentinel and the caller says where the hit came from, because a bare fist is
+  not a nonmagical weapon.
+- Ghost and zombie lists genuinely differ, and a test asserts they differ by
+  exactly exhaustion — so a well-meaning edit fails instead of silently
+  rewriting the rule.
+
+### 🎒 Items with parts, owners, and counts (tasks-493, 504, 515, 517)
+
+`engine/items/action_contract.py` · `engine/items/ownership.py` · `engine/room_perception.py`
+
+- task-493: containment is an ordinary `in` edge; the only thing that says "this
+  is a component" is that the part does not declare `take` in its `actions`.
+  Every verb that *moves* an item now asks — before this only `take` read the
+  action list, so a part was untakeable but still droppable, stealable and
+  giveable. **Charge is the generic `uses`**: no `power` property, and a test
+  asserts no library item invents one. Depletion is explicit — a used-up part
+  goes `unlit`, fires `on_depleted` and **keeps its place**, because the old
+  path cut the `in` edge and fished the battery out of the phone.
+- task-504: one node can now stand for many. "40 berries" reads correctly and
+  costs one node. Underneath it is the pooled resource node: `take 3 berries`
+  reaches the thicket, spawns 3 real copies and decrements the pool, handing the
+  node to the task-424 `on_depleted` teardown at zero. Kept distinct from
+  `uses` — a stack of 40 berries is not one berry with 40 charges, and a tree is
+  not something you can carry. `lint_library` gains `resource_pools` so a
+  quantity without a yield fails at lint time.
+- task-515: `owner` is a node property, not an edge. An item with no `owner` is
+  nobody's in particular and behaves exactly as before. **A missing or
+  incapacitated owner lifts the refusal** — a dead goblin's knife is not a
+  sacred object — but an owner who is merely *elsewhere* still owns it. A
+  Social/Intimidation check does **not** lift it: `steal` is already a roll, and
+  a second one hidden inside `take` would make an ordinary verb unpredictable.
+  So the verbs refuse plainly and `steal` is the way through, never blocked,
+  just harder.
+- task-517: a carried item is a **fallback** and the area is still checked first,
+  deliberately — a camp with a drum must behave exactly as it did. `uses: -1`
+  means no charge model; a drum at zero charges reports False rather than
+  topping a character up from an empty drum for the rest of the run.
+
+### 🌳 The world has a shape you can navigate (task-397)
+
+`static/js/graph/scope-tree.js` · `engine/world_scopes.py` · `routes/graph.py`
+
+- A hierarchy **over** the existing graph, not a second spatial model. A scope
+  is a durable grouping and load/view boundary; its leaf areas stay normal
+  `area` nodes, so every existing movement rule is unchanged.
+- `scope-tree.js` nests the payload the server already sends
+  (`GET /api/world/scopes?flat=1` already carries `parent_id` and `depth`) into
+  a collapsible tree. No new endpoint, no per-scope request. The rules are pure
+  functions (`buildTree`, `visibleRows`, `toggleCollapsed`, `rowLabel`) with 16
+  unit tests, so the panel's behaviour is checked rather than eyeballed.
+- An unmade scope reads **"Apartment 3B — not built"** rather than "0 areas",
+  because a materialised-but-empty scope is a different fact.
+- `visibleRows` carries a cycle guard: a card renders at most once, because
+  hanging the panel is the one failure an author cannot work around.
+
+### 🏠 The apartment recipe (task-398)
+
+`engine/generation.py` · `engine/library_nodes.py` · `routes/library_ops.py`
+
+- The contract in `engine/generation.py` was implemented but nothing consumed
+  it. This adds the first real recipe: an apartment of three areas with a front
+  door in from a hallway, and tag-aware furniture.
+- **Same seed gives a byte-identical patch**; a second apply is refused and
+  leaves the graph untouched; a manual edit to a generated item survives a
+  refused second generate; every generated node carries provenance.
+- `engine/library_nodes.py` exists because `materialize_library_item` takes a
+  Flask app and mints ids from `time.time()`. Fine for a player picking
+  something up, unusable for a generator, which must be able to name the node it
+  wants and produce the same patch for the same seed. Child and trigger ids are
+  derived from the parent id (`<id>_content_0`, `trigger_<id>_<type>_0`).
+- The recipe generates **no resident** — the task forbids silently
+  manufacturing an LLM character, so it takes no resident argument at all.
+
+### 🏔 Chunk persistence begins (task-401 → 581, 582, 583, 584)
+
+task-401 became an umbrella over four ordered sub-tasks. Nothing is built yet;
+this is the split, recorded so each piece is independently reviewable. 581
+(stable area ids) is worth landing on its own merits: it removes a real
+correctness hazard — a duplicate area name splitting a character's location —
+whether or not chunking ever happens.
+
+### 🔧 The goblin camp, cleaned up (tasks-408, 550, 565, 522)
+
+`data/scenarios/kraktooth_goblin_camp.json` · `data/worldpainter/` · `routes/world_grid_ops.py`
+
+- task-408: 46 authored character nodes collapsed to 23 via `character_*`
+  aliases, 422 way endpoints canonicalised to area ids, `high_metabolism`
+  attached to the 10 goblins, 21 camp areas plus Eldenford and its inhabitants
+  tagged with `held_by`/`faction`. **Folder-based authoring** compiles to a
+  single JSON, because asking an LLM to emit one huge scenario JSON kept
+  producing broken output.
+- task-550: faction and ownership are tags, so the camp's single water source
+  and waste disposal are a claimed resource and using someone else's is an
+  event. A camp's water is the camp's.
+- task-565: the scope's id was still `deep_woods_2` because ids are minted once
+  as a slug of the name and the rename route only touches the display name. The
+  project rule is that **ids change and display names do not**.
+- task-522: a plain close action must **not** close an outdoor way — you cannot
+  close a road into a forest by hand. Blocking is done by an item or trigger
+  (fallen tree, barricade, rockslide). Selection is a deterministic FNV-1a
+  ordering, connectivity is re-checked per candidate, and each blocked way gets
+  `blocked_by`, `blocked_description`, `refusal_message` and `prevent_close`.
+
+### ⚡ The tick loop stopped guessing who is together (task-416)
+
+`engine/tick_manager.py`
+
+- Co-presence was reconstructed inline wherever needed, scanning the whole
+  roster once per character — quadratic in population. It is now a reverse
+  index (area → character) built once per turn and kept live, so a lookup
+  returns exactly what the old scan would have, in the same roster order.
+- The standing-item sweep is one area-major pass, sorted by area id then node
+  id, so it is a pure function of the graph. That fixed two **pre-existing
+  determinism bugs**: the old passes ran in insertion order, then trigger-index
+  set order. Flat co-present read at 160 characters: 45.0 → 32.5 µs.
+- The acting queue is deliberately untouched: area grouping decides the order
+  of scoped evaluation only, never who acts.
+
+### 🕯 Fog, sightlines, and parts of the world that are not loaded (tasks-499, 498, 421, 411, 500)
+
+`engine/fog.py` · `engine/beyond_visibility.py` · `engine/barriers.py` · `engine/zones.py`
+
+- task-499: an area/scope-level known set per character. Unknown cells are fog
+  on the map; walking, examining or finding a map item reveals them.
+- task-498: sightlines chain along a run of open/see-through ways, broken by a
+  floor step or a turn.
+- task-421: `engine/barriers.py` gives light the same way-state ladder sound
+  already had, with separate cost and transmission tables.
+- task-500: zones are the spatial key for the fidelity tiers, so a distant zone
+  exists as a scope record and materialises its areas on approach. The loader
+  refuses occupied, baked, hand-authored and orphaned-parent zones and recovers
+  its seed.
+- task-411: an attention cap with deterministic eviction and threshold
+  hysteresis, with save/load state.
+
+### 🧟 A ghost was free to gawk (bug fix)
+
+`engine/background_social.py`
+
+`is_undead_ghost(player_name: str)` looks a character up **by name**. A call site
+was handing it the `Player` **object**, so the dict lookup could never match and
+the guard has never once fired. A ghost was therefore free to gawk at, and
+comment on, whatever was happening. The mismatch between the two sibling guards
+is what made it visible: one passed `npc.name` and was always correct. One of the
+two had to be wrong, and the signature said which.
+
+### Two bug reports closed as "was not ours" (bug-28, bug-29)
+
+`tests/test_speech_verbatim.py` · `tools/unit/test_conversation_context.js`
+
+Neither has a live repro, so **this changes no behaviour** — it is the
+investigation plus regression guards.
+
+- bug-28: the corruption was real, the transform is gone. Across all three
+  exports it is exactly apostrophe-to-space plus a full lowercase; em dashes,
+  interrobangs, ellipses and `*burp*` all survived. The "letter scrambling" in
+  the report was a *second, separate* thing and not ours — the event log line
+  already reads `Pleas edont try to be cnormal` **stored mangled before any
+  prompt was built**, so it is the NPC agent's own generated line, upstream of
+  the engine entirely.
+- bug-29: premise disproven on the artifact. The two cited lines are different
+  utterances by the same speaker, not one utterance twice. The predicted
+  alternative — speaker-label instability — is also unreachable today.
+  Recorded rather than patched, since patching unreachable code on a disproven
+  bug would be inventing a fix.
+
+### 🧪 The test baseline was fiction, and 55 of 60 failures were one bug
+
+`tests/test_mcp_*.py` · `AGENTS.md`
+
+`mcp_server.py` was never broken — it registers 85 tools cleanly. **FastMCP ≥ 3
+returns the plain function from `@mcp.tool()`**, not a wrapper exposing `.fn`,
+and 62 test call sites still used `.fn()`. All 69 MCP tests now pass.
+
+This matters beyond the count. The old documented baseline was "~60 failed", and
+**55 of those 60 were the MCP tests**, which made the "compare to baseline"
+merge gate nearly blind — a lane could introduce 50 genuine regressions and
+still be "at baseline". The real baseline is now **5 failed / 4274 passed**, and
+`AGENTS.md` names each of the five.
+
+### 🛠 Working in parallel without a merge bonfire
+
+`.kilo/lanes/` · `docs/design/worktree-parallelisation-plan.md` · `docs/design/typescript-migration-plan.md`
+
+- All 272 actionable dev tasks were mapped to the files they touch, then cut
+  into **one serial spine and three parallel arms**. Eight files are the merge
+  magnets (`engine/tick_manager.py` alone is claimed by 13 queued and 12 review
+  tasks); one lane owns them. `templates/index.html` and `tools/unit/run.cjs` are
+  shared append-only, not hubs. Past four lanes the merge debt exceeds the gain
+  (K=4: 385 colliding pairs; K=8: 442).
+- A size-ordered TypeScript migration plan: 151 files, 64,620 lines, six waves.
+  `window.Lit` gates 46% of the corpus and is undeclared, so it is a W0
+  prerequisite; and only 15 of 151 files convert without touching
+  `static/js/types/globals.d.ts`, making it a hub in the same sense.
+- `bug-54` was used twice. The test-isolation bug is now `bug-55` and
+  `tools/tasks.py validate` exits 0 for the first time in a while.
+
+---
+
 ## Unreleased — "A Town You Can Walk Into" (2026-09-27)
 
 A painted map stopped being a picture of a world and became a place you can
