@@ -115,19 +115,18 @@
      * remedy inline; a warn is folded behind a count so a map with six naming
      * reminders does not bury the one that matters.
      */
-    function _blockerBadge(blockers, p) {
+    function _blockerBadge(blockers) {
         const blocks = blockers.filter((b) => b && b.severity === 'block');
         const warns = blockers.filter((b) => b && b.severity !== 'block');
+        // A block is what the author must deal with; a warn is only interesting
+        // once there is nothing blocking, so the panel shows one set or the other
+        // rather than letting six naming reminders bury the one that matters.
         const lead = blocks.length ? blocks : warns;
         const tone = blocks.length ? '#f77' : '#c96';
-        const label = blocks.length
-            ? `⚠ ${blocks.length} thing${blocks.length > 1 ? 's' : ''} to fix before Generate`
-            : `⚠ ${warns.length} thing${warns.length > 1 ? 's' : ''} to know`;
 
         const badge = _el('span', 'display:inline-flex;align-items:center;gap:4px;' +
             'font-size:11px;padding:2px 7px;border-radius:10px;cursor:help;' +
-            `color:${tone};border:1px solid ${tone}55;background:${tone}12;`, label);
-        badge.setAttribute('data-role', 'wp-blockers');
+            `color:${tone};border:1px solid ${tone}55;background:${tone}12;`);
         _help(badge, 'wp-blockers');
 
         const detail = _el('div', 'display:none;flex-direction:column;gap:5px;' +
@@ -148,27 +147,32 @@
         }
         if (warns.length > lead.length) {
             const more = _el('div', 'font-size:11px;color:var(--text-muted,#999);');
-            more.textContent = `…and ${warns.length - lead.length} more. Hover ⚙ Generate for the full report.`;
+            more.textContent = `…and ${warns.length - lead.length} more. `
+                + 'Hover ⚙ Generate for the full report.';
             detail.appendChild(more);
         }
 
-        // The bar sits under the toolbar row, so it needs a wrapping parent: a
-        // button/label inside a plain `div` flow would break the row's alignment.
-        const wrap = _el('span', 'display:contents;');
-        const toggle = () => {
-            const showing = detail.style.display !== 'none';
-            detail.style.display = showing ? 'none' : 'flex';
-            badge.textContent = showing ? label
-                : (blocks.length ? '▲ fix these' : '▲ see these');
-        };
-        badge.addEventListener('click', toggle);
-        // Hovering Generate with a scope that cannot compile should say so
-        // anyway, so the reason is never more than one hover away.
+        const closedLabel = blocks.length
+            ? `⚠ ${blocks.length} to fix before Generate`
+            : `⚠ ${warns.length} to know`;
+        badge.textContent = closedLabel;
+        badge.setAttribute('data-role', 'wp-blockers');
+        let open = false;
+        badge.addEventListener('click', () => {
+            open = !open;
+            detail.style.display = open ? 'flex' : 'none';
+            badge.textContent = open ? '▲ hide' : closedLabel;
+        });
+
+        // Its own row under the toolbar, so it needs a wrapping container:
+        // appended straight into the toolbar's `div` flow, the badge and the
+        // expanded panel would be laid out as toolbar buttons and the panel's
+        // full-width text would be squeezed into a flex item.
         const holder = _el('span', 'display:flex;flex-wrap:wrap;align-items:center;gap:8px;' +
             'flex-basis:100%;width:100%;');
         holder.appendChild(badge);
         holder.appendChild(detail);
-        return wrap;
+        return holder;
     }
 
     async function _req(url, options) {
@@ -1074,7 +1078,7 @@
         // it got that way nor how out of it. Said here, the button and its
         // reason are side by side.
         const blockers = Array.isArray(p.blockers) ? p.blockers : [];
-        if (blockers.length) wrap.appendChild(_blockerBadge(blockers, p));
+        if (blockers.length) wrap.appendChild(_blockerBadge(blockers));
         // A building *type* brings its own floor plan (task-567). Only meaningful
         // on an interior scope, and offering it elsewhere would let an author paint
         // rooms onto a world map, which is a wall grid already says something.
