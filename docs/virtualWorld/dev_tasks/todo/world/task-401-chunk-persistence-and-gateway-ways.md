@@ -3,12 +3,30 @@ type: task
 status: todo
 area: world
 priority: medium
+children: [task-581, task-582, task-583, task-584]
 ---
 
 # task-401: Chunk persistence, scoped indexes, and gateway ways
 
 **Filed:** 2026-09-08  
-**Depends on:** task-397 through task-400.
+**Depends on:** task-397 through task-400.  
+**Split 2026-09-28** into the four sub-tasks below. This file is the umbrella: the
+goal, the reasoning and the acceptance for the whole effort stay here, the work
+does not.
+
+## Sub-tasks
+
+| Sub-task | Covers |
+|---|---|
+| [task-581](../../refactor/task-581-stable-area-ids-and-one-authoritative-location-for-characters-and-items.md) | Stable area ids; one authoritative location record per character and unique item. The precondition — display-name `current_area` cannot survive duplicate names across chunks. |
+| [task-582](../../world/task-582-chunk-load-unload-and-merge-apis-on-worldgraph.md) | `WorldGraph` load / unload / merge APIs with ownership checks. `load_from_dict()` clears the graph, so it cannot be the chunk loader. |
+| [task-583](../../world/task-583-global-scope-index-gateway-ways-and-load-before-you-move.md) | The global index, gateway ways naming a remote `target_area_id` + `target_scope_id`, load-before-resolve in movement, and replacing global node/edge scans. |
+| [task-584](../../world/task-584-cross-chunk-ownership-rules-for-carried-items-triggers-and-delayed-events.md) | Ownership and transaction rules for carried/equipped items, triggers and delayed events across an unload; the deferred-event policy. |
+
+Order: 581 → 582 → 583 → 584. Each is independently reviewable, and 581 is
+worth landing on its own merits: it removes a real correctness hazard (a
+duplicate area name splitting a character's location) whether or not chunking
+ever happens.
 
 ## Goal
 
@@ -48,6 +66,10 @@ load the relevant scope when due or resolve through an explicit safe deferred
 policy. Silently dropping them is forbidden.
 
 ## Acceptance
+
+This umbrella is satisfied when all four sub-tasks are in `done`. The criteria
+below are the aggregate the sub-tasks have to add up to; the last one is
+task-402's to measure and is only claimed here as a dependency, not re-done.
 
 - Load two adjacent chunks, move an agent/item across a gateway, unload and
   reload both, and retain exactly one authoritative location.

@@ -1,6 +1,6 @@
 ---
 type: task
-status: review
+status: done
 area: world
 priority: low
 ---

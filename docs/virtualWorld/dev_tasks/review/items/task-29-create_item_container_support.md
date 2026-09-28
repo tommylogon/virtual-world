@@ -1,6 +1,7 @@
 ---
 group: Items & Crafting
 wiki: "[[Items & Inventory/Items Overview]]"
+status: review
 ---
 
 # Create Item Modal: Container Contents Support

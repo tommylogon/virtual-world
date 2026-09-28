@@ -1,6 +1,6 @@
 ---
 group: Characters
-status: review
+status: done
 ---
 # Pack Logic for Simple NPCs
 
