@@ -34,6 +34,7 @@ for _path in (ROOT, TOOLS_DIR):
         sys.path.insert(0, str(_path))
 
 from build_scenario import build_scenario, load_component_dir_at  # noqa: E402
+from engine.character_identity import authored_character_node_id  # noqa: E402
 
 MANIFEST_RUNTIME_KEYS = (
     "active_player", "clock_start_hour", "clock_start_minute", "game_time",
@@ -97,6 +98,62 @@ def compile_players(folder: Path, dir_names, scenario: dict) -> dict:
     return {k: players[k] for k in sorted(players)}
 
 
+def author_character_aliases(scenario: dict) -> int:
+    """Add the authored ``character_<slug>`` node for every player.
+
+    ``build_scenario`` emits only the runtime ``player_<Name>`` anchor, which is
+    right for a clean graph but drops the identity alias: the loader
+    (``engine/character_identity.collapse_character_identity``) collapses an
+    authored node into the anchor and keeps the retired id resolvable, and
+    ``tests/test_character_identity.py`` asserts that alias exists for the camp.
+    A compiled scenario must be able to satisfy the same contract, so the
+    authored node is emitted here with the prose and the ``in`` edge that the
+    collapse merges across.
+
+    Returns the number of alias nodes added.
+    """
+    nodes = scenario["graph"]["nodes"]
+    edges = scenario["graph"]["edges"]
+    placed = {
+        str(edge.get("source"))
+        for edge in edges
+        if isinstance(edge, dict) and edge.get("type") == "in"
+    }
+    name_to_id = {
+        n.get("name"): n["id"]
+        for n in nodes.values() if n.get("type") == "area" and n.get("name")
+    }
+
+    added = 0
+    for key, player in scenario["players"].items():
+        name = player.get("name") or key
+        authored_id = authored_character_node_id(name)
+        anchor_id = f"player_{name}".replace(" ", "_")
+        if authored_id in nodes:
+            continue
+        if anchor_id not in nodes:
+            # An alias for no anchor collapses into nothing; skip it rather than
+            # ship a second node that never merges.
+            continue
+        props = {
+            prose: player[prose]
+            for prose in ("description", "base_description", "personality")
+            if player.get(prose)
+        }
+        props["tags"] = list(player.get("tags") or [])
+        if player.get("traits"):
+            props["traits"] = dict(player["traits"])
+        nodes[authored_id] = {
+            "id": authored_id, "type": "character", "name": name, "properties": props,
+        }
+        added += 1
+        area_id = name_to_id.get(player.get("current_area"))
+        if area_id and authored_id not in placed:
+            edges.append({"source": authored_id, "target": area_id,
+                          "type": "in", "properties": {}})
+    return added
+
+
 def compile_scenario(folder: Path) -> dict:
     folder = Path(folder)
     manifest = {}
@@ -110,7 +167,11 @@ def compile_scenario(folder: Path) -> dict:
     graph_scenario = build_scenario(folder, runtime_overrides, dir_names)
 
     graph_scenario["players"] = compile_players(folder, dir_names, graph_scenario)
+    author_character_aliases(graph_scenario)
+    title = manifest.get("title") or manifest.get("name") or folder.name
     graph_scenario["_scenario_name"] = manifest.get("name") or folder.name
+    graph_scenario["name"] = title
+    graph_scenario["meta"] = dict(manifest.get("meta") or {}, title=title)
     return graph_scenario
 
 
