@@ -55,6 +55,18 @@ DEFAULTS: dict = {
     "heat.max_delta": 2.0,
     # engine/lighting.py
     "light.spill_factor": 0.5,
+    # engine/barriers.py (task-421) — light's TRANSMISSION per way state. Sound
+    # has a matching `sound.way_*` set; the two share one state ladder, not one
+    # number, because a cost and a fraction run in opposite directions.
+    "light.way_open": 1.0,
+    "light.way_see_through": 0.75,
+    "light.way_closed": 0.25,
+    "light.way_locked": 0.1,
+    "light.way_blocked": 0.0,
+    "light.way_hidden": 0.0,
+    # engine/beyond_visibility.py (task-498) — how many ways a sightline runs
+    # through. A taste decision, so it lives where it can be argued with.
+    "sightline.depth": 3,
     # engine/weather_forecast.py
     "forecast.apply_scope": "exterior",
     # engine/emotion.py (task-96)
@@ -212,6 +224,13 @@ SCHEMA: dict[str, dict] = {
     "heat.base_rate": {"section": "heat", "label": "Heat exchange rate per tick", "type": "float"},
     "heat.max_delta": {"section": "heat", "label": "Max °C change per tick", "type": "float"},
     "light.spill_factor": {"section": "light", "label": "Light spill fraction", "type": "float"},
+    "light.way_open": {"section": "light", "label": "Open door light transmission", "type": "float"},
+    "light.way_see_through": {"section": "light", "label": "See-through (window) light transmission", "type": "float"},
+    "light.way_closed": {"section": "light", "label": "Closed door light transmission", "type": "float"},
+    "light.way_locked": {"section": "light", "label": "Locked door light transmission", "type": "float"},
+    "light.way_blocked": {"section": "light", "label": "Blocked passage light transmission", "type": "float"},
+    "light.way_hidden": {"section": "light", "label": "Hidden panel light transmission", "type": "float"},
+    "sightline.depth": {"section": "light", "label": "Sightline depth (ways a view runs through)", "type": "int"},
     "emotion.decay_per_tick": {"section": "emotion", "label": "Mood drift toward baseline per tick", "type": "float"},
     "emotion.llm_spike_max": {"section": "emotion", "label": "Max spike from a declared feeling", "type": "float"},
     "emotion.recall_spike_scale": {"section": "emotion", "label": "Memory-recall re-feel scaling", "type": "float"},

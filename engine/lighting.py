@@ -1,6 +1,7 @@
 from typing import Dict, List, Optional
 
 from graph import EDGE_CONNECTION, EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED
+from engine import barriers as _barriers
 from engine.runtime_config import config as _config
 
 #: Fraction of a lit neighbor area's light that spills through an open door.
@@ -205,15 +206,32 @@ class LightingSystem:
         best_spill = 0
         for edge in self.graph.get_edges_for_source(area_id, EDGE_CONNECTION):
             door = self.graph.get_node(edge.target)
-            if door and door.type == "way" and (door.properties.get("current_state") == "open" or door.properties.get("see_through")):
-                for conn in self.graph.get_edges_for_source(door.id, EDGE_CONNECTION):
-                    if conn.target != area_id:
-                        o_light = min(100, self._neighbour_light(conn.target))
-                        spill = max(0, int(o_light * _spill_factor()))
-                        if spill > best_spill:
-                            best_spill = spill
-                        break
+            if not door or door.type != "way":
+                continue
+            transmission = _barriers.get_light_transmission(door)
+            if transmission <= 0:
+                continue
+            for conn in self.graph.get_edges_for_source(door.id, EDGE_CONNECTION):
+                if conn.target != area_id:
+                    o_light = min(100, self._neighbour_light(conn.target))
+                    spill = max(0, int(o_light * _spill_factor() * transmission))
+                    if spill > best_spill:
+                        best_spill = spill
+                    break
         return best_spill
+
+    def _barrier_signature(self) -> str:
+        """Fingerprint of every way's barrier behaviour, for the cache key.
+
+        The graph revision covers nodes and edges appearing or disappearing, but
+        mutating a way's ``current_state`` in place does not bump it — so a door
+        closed after the last recompute left the cache reporting a sealed room as
+        still spilling. This is the second half of the key that closes that gap
+        without a per-call walk of the whole graph.
+        """
+        return _barriers.signature(
+            n for n in self.graph.nodes.values() if n.type == "way"
+        )
 
     def recompute_area_lights(self, hour: Optional[int] = None) -> None:
         """Compute every area's effective light once per tick (task-407).
@@ -221,7 +239,8 @@ class LightingSystem:
         Two passes over areas: first each area's own light and brightest item,
         then spill from neighbours' stored values — so no neighbour is scanned
         twice. ``get_ambient_light`` returns this stamp when called without an
-        explicit env/hour and the graph has not changed since.
+        explicit env/hour and neither the graph nor the barriers have changed
+        since.
         """
         areas = [n for n in self.graph.nodes.values() if n.type == "area"]
         own: Dict[str, int] = {}
@@ -238,20 +257,28 @@ class LightingSystem:
             best_spill = 0
             for edge in self.graph.get_edges_for_source(node.id, EDGE_CONNECTION):
                 door = self.graph.get_node(edge.target)
-                if door and door.type == "way" and (
-                        door.properties.get("current_state") == "open"
-                        or door.properties.get("see_through")):
-                    for conn in self.graph.get_edges_for_source(door.id, EDGE_CONNECTION):
-                        if conn.target == node.id:
-                            continue
-                        if conn.target in authored:
-                            o_light = min(100, max(authored[conn.target], best_items.get(conn.target, 0)))
-                            best_spill = max(best_spill, int(o_light * _spill_factor()))
-                        break
+                if not door or door.type != "way":
+                    continue
+                # task-421: the same barrier table sound reads. A see-through way
+                # is no longer worth as much as an open one, and a closed or
+                # locked door leaks a fraction instead of nothing at all.
+                transmission = _barriers.get_light_transmission(door)
+                if transmission <= 0:
+                    continue
+                for conn in self.graph.get_edges_for_source(door.id, EDGE_CONNECTION):
+                    if conn.target == node.id:
+                        continue
+                    if conn.target in authored:
+                        o_light = min(100, max(authored[conn.target], best_items.get(conn.target, 0)))
+                        best_spill = max(
+                            best_spill, int(o_light * _spill_factor() * transmission)
+                        )
+                    break
             result[node.id] = max(own[node.id], best_items.get(node.id, 0), best_spill)
 
         self._area_light = result
         self._area_light_rev = self.graph.get_revision()
+        self._area_light_barriers = self._barrier_signature()
 
     def get_ambient_light(self, area_id: str, env: Optional[Dict] = None, hour: Optional[int] = None) -> int:
         """Get effective light for a area, considering its own sources,
@@ -264,7 +291,9 @@ class LightingSystem:
         """
         if env is None and hour is None:
             cache = getattr(self, "_area_light", None)
-            if cache is not None and getattr(self, "_area_light_rev", None) == self.graph.get_revision():
+            if (cache is not None
+                    and getattr(self, "_area_light_rev", None) == self.graph.get_revision()
+                    and getattr(self, "_area_light_barriers", None) == self._barrier_signature()):
                 hit = cache.get(area_id)
                 if hit is not None:
                     return hit

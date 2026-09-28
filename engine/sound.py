@@ -6,6 +6,7 @@ using graph-scan approach similar to the lighting system.
 from typing import List, Dict, Optional, Set, Tuple
 import heapq
 from graph import WorldGraph, Node, Edge, EDGE_CONNECTION, EDGE_IN
+from engine import barriers as _barriers
 from engine.runtime_config import config as _config
 
 
@@ -24,13 +25,7 @@ def _speech_levels() -> Dict[str, int]:
 
 
 def _way_barriers() -> Dict[str, float]:
-    return {
-        "open": _config_get_float("sound.way_open", 0.5),
-        "closed": _config_get_float("sound.way_closed", 1),
-        "locked": _config_get_float("sound.way_locked", 1),
-        "blocked": _config_get_float("sound.way_blocked", 1),
-        "hidden": _config_get_float("sound.way_hidden", 2),
-    }
+    return {state: _barriers.sound_cost(state) for state in _barriers.WAY_STATES}
 
 
 def _noise_levels() -> Dict[str, int]:
@@ -66,11 +61,18 @@ def _config_get_float(key: str, default: float) -> float:
 SPEECH_LEVELS = _speech_levels()
 WAY_BARRIERS = _way_barriers()
 NOISE_LEVELS = _noise_levels()
-WAY_BARRIER_SEE_THROUGH = _config_get_float("sound.way_see_through", 0.75)
+WAY_BARRIER_SEE_THROUGH = _config_get_float(
+    "sound.way_see_through", _barriers.DEFAULT_SOUND_COSTS["see_through"]
+)
 
 
 def get_way_barrier(way_node: Node) -> float:
     """Get the sound barrier value for a way (door/connection).
+
+    The numbers live in ``engine/barriers.py`` (task-421), which light reads too —
+    sound's cost and light's transmission are two named tables over one shared
+    state ladder, so the two systems can no longer disagree about which states
+    exist or about a see-through way.
 
     Per-door override: an optional ``sound_barrier`` float property applies while
     the way is in a solid state (closed/blocked/locked) — one value covers all
@@ -85,23 +87,7 @@ def get_way_barrier(way_node: Node) -> float:
         latch on an already-closed door and adds no acoustic mass, so locked and
         blocked share the closed value.
     """
-    current_state = way_node.properties.get("current_state", "open")
-
-    # Author-set acoustic mass wins for solid doors, regardless of which of the
-    # three solid states it's currently in.
-    if current_state in ("closed", "blocked", "locked"):
-        custom = way_node.properties.get("sound_barrier")
-        try:
-            return float(custom)
-        except (TypeError, ValueError):
-            pass
-
-    # See-through ways (windows, grates) have partial obstruction — cost more
-    # than an open doorway but less than a solid closed door
-    if way_node.properties.get("see_through", False):
-        return _config_get_float("sound.way_see_through", 0.75)
-
-    return _way_barriers().get(current_state, _config_get_float("sound.way_open", 0.5))
+    return _barriers.get_sound_cost(way_node)
 
 
 def get_area_noise_level(area_node: Node, graph: WorldGraph) -> int:

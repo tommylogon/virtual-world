@@ -39,12 +39,22 @@ BASELINE = {
 
 @pytest.fixture(autouse=True)
 def isolated_config(tmp_path):
-    """Point the singleton RuntimeConfig at a throwaway file + reset each test."""
-    original = runtime_config.config._config_file
+    """Point the singleton RuntimeConfig at a throwaway file + reset each test.
+
+    Restores ``_values`` as well as the path. ``config.save()`` merges into the
+    live ``_values`` dict, so a test that saves an override (say
+    ``sound.way_open = 0.9``) left it there after the path was put back — and
+    every later test in the session, in any file, then read the polluted number.
+    That is what made ``engine/sound.py`` and ``engine/lighting.py`` tests
+    order-dependent: they passed alone and failed in a full run.
+    """
+    original_path = runtime_config.config._config_file
+    original_values = runtime_config.config.values
     runtime_config.config._config_file = str(tmp_path / "engine_config.json")
     runtime_config.config.reset()
     yield
-    runtime_config.config._config_file = original
+    runtime_config.config._values = original_values
+    runtime_config.config._config_file = original_path
 
 
 def _make_client():
