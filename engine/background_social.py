@@ -19,6 +19,15 @@ or the camp becomes a relationship treadmill in the crowded areas. Task-417's
 Relationship changes go through `engine/relationships.py` (task-420) so each one
 carries a cause, and the band ladder that decides whether a tease is affectionate
 or hostile is the same one the prompt renders — `closeness_band` / `band_at_least`.
+
+The threat pass (task-552) lives here too, and it runs *before* the social one.
+``engine/fear.py`` already knows how to find what a character fears
+(``fear_tags`` against co-located tags) and how to apply the source-gated
+``frightened`` condition, but nothing in the background tier ever asked it. A
+3-day Kraktooth soak recorded **zero** threat actions for exactly that reason:
+there was no substrate, not a low rate. Fear is a direction, not a scalar — a
+farmer fears ``goblin``, a goblin does not list ``goblin``, so a camp can exist
+without panicking at itself.
 """
 
 from __future__ import annotations
@@ -490,6 +499,11 @@ def perform(gs, actor, target, area_id: str, area_name: str, tick: int,
     """
     actor_name = getattr(actor, "name", "")
     target_name = getattr(target, "name", "")
+    if _fear_source_for(gs, actor, target):
+        # Fear pre-empts sociability (task-552). A character does not chat with
+        # the thing it fears, so the pass has to check before it draws an action
+        # rather than after — otherwise the social roll would still decide.
+        return None
     if action is None:
         action = choose_action(actor, target, tick)
     if action == "ignore" or action not in ACTIONS:
@@ -1072,4 +1086,208 @@ def run_theft_pass(gs, tick: Optional[int] = None) -> list:
             if target is None or item is None:
                 continue
             outcomes.append(_attempt_theft(gs, thief, target, item, area_name, tick))
+    return outcomes
+
+
+# ───────────────────────────── threat pass (task-552) ──────────────────────
+
+#: Minimum game minutes between one character's recorded fear reactions. Without
+#: it a character standing next to what it fears would log an identical flee on
+#: every tick of the condition.
+FEAR_COOLDOWN_MINUTES = 45
+
+#: How a frightened background character answers the thing it fears. This is the
+#: "does fear move anyone" question: fear has to produce an *action* with a
+#: ``threat:`` why, or it is a silent vital and the soak telemetry cannot tell
+#: "no mechanic exists" from "no fear arose".
+#:
+#: - ``flee``   — backs off; the one that changes where the character is next tick
+#: - ``hide``   — withdraws and goes quiet
+#: - ``freeze`` — stops dead, the prey response
+#: - ``shout``  — calls for help, which is the only one that acts *on* the other
+#:   party rather than on the self
+FEAR_REACTIONS = ("flee", "hide", "freeze", "shout")
+
+#: Reaction -> the event line the log and the trace carry. Written in the
+#: module's third-person register, like APPROACH_VERBS below.
+FEAR_LINES = {
+    "flee": "backs away from {source}, putting distance between them",
+    "hide": "shrinks away from {source} and goes quiet",
+    "freeze": "freezes, refusing to move while {source} is in sight",
+    "shout": "shouts for help, keeping {source} in view",
+}
+
+#: Reaction -> (vital, delta) and the ``afraid`` affect spike. Fear costs Social,
+#: because a frightened character is not socially available, and it pushes the
+#: affect map rather than only the legacy single-emotion field — ``afraid`` on
+#: the map is what selects the expression portrait, and the whole point is that
+#: the reaction is visible.
+FEAR_COSTS = {
+    "flee": ({"Social": -6.0}, 8.0),
+    "hide": ({"Social": -4.0}, 6.0),
+    "freeze": ({"Social": -3.0}, 9.0),
+    "shout": ({"Social": -2.0}, 11.0),
+}
+
+#: Reaction -> (relationship delta toward the source, cause). Fear is not hatred:
+#: it costs closeness rather than building a grudge, so a second encounter can
+#: still be resolved by running away. A `shout` is the one that hardens, because
+#: calling for help invites consequences.
+FEAR_RELATIONSHIP = {
+    "flee": (-3, "flee"),
+    "hide": (-2, "hide"),
+    "freeze": (-1, "freeze"),
+    "shout": (-5, "shout"),
+}
+
+
+def _fear_source_for(gs, player, other):
+    """The fear source *player* sees in *other*, or None.
+
+    Delegates to the fear engine so the pass and the fear condition can never
+    disagree about what counts as a fear source (task-552).
+    """
+    from engine import fear as fear_mod
+    try:
+        return fear_mod.fear_sources_for_character(gs, player, other)
+    except Exception:
+        return None
+
+
+def _fear_off_cooldown(player, gs, tick: int) -> bool:
+    """True when this character has not just recorded a fear reaction."""
+    try:
+        minutes_per_tick = float(getattr(gs, "time_per_tick_minutes", 1) or 1)
+    except (TypeError, ValueError):
+        minutes_per_tick = 1.0
+    gap = max(1, int(round(FEAR_COOLDOWN_MINUTES / max(0.001, minutes_per_tick))))
+    last = getattr(player, "_fear_last_tick", None)
+    return last is None or (int(tick) - int(last)) >= gap
+
+
+def choose_fear_reaction(player, source_name: str, tick: int) -> str:
+    """Pick how this character answers *source_name*, deterministically.
+
+    Seeded from ``(player, source, tick)`` like every other roll in this module,
+    so a replay reproduces the same camp history. Cowardly characters flee more
+    often than they face anything down, which is what makes a crowd of five
+    react in five different directions rather than in lockstep.
+    """
+    rng = random.Random(f"fear:{getattr(player, 'name', '')}:{source_name}:{tick}")
+    traits = _traits(player)
+    weights = {
+        "flee": 3.0 + (2.0 if traits["social_gain"] < 0 else 0.0),
+        "hide": 2.0 + (1.0 if traits["loner"] else 0.0),
+        "freeze": 1.5,
+        "shout": 1.0 + (1.5 if traits["hostile"] else 0.0),
+    }
+    names = list(FEAR_REACTIONS)
+    return rng.choices(names, weights=[weights[n] for n in names], k=1)[0]
+
+
+def _record_fear(gs, player, source_name, reaction, area_name, tick) -> dict:
+    """The visible half of a fear: a line, a trace, a memory, and the numbers."""
+    from engine.lived_log import record as _log
+
+    line = FEAR_LINES[reaction].format(source=source_name)
+    vitals, afraid_delta = FEAR_COSTS[reaction]
+    _apply_vitals(player, vitals)
+    # The affect map, not just the legacy field: `afraid` there is what picks the
+    # expression portrait, so this is the difference between a fear the world
+    # shows and a fear that only exists in a vital.
+    try:
+        player.spike_emotion("afraid", afraid_delta)
+    except Exception:
+        pass
+    _apply_emotion(player, "afraid", min(1.0, afraid_delta / 20.0))
+
+    rel_delta, cause = FEAR_RELATIONSHIP[reaction]
+    if rel_delta:
+        try:
+            area_id = gs.area_node_id(area_name) if area_name else ""
+        except Exception:
+            area_id = ""
+        apply_relationship_delta(player, source_name, rel_delta, cause,
+                                 tick=tick, area_id=area_id)
+
+    try:
+        subject_ids = []
+        node = gs.graph.get_node(gs._player_node_id(source_name))
+        if node is not None:
+            subject_ids.append(node.id)
+    except Exception:
+        subject_ids = []
+
+    tags = ["threat", "threat:" + reaction, "fear:" + str(source_name)]
+    try:
+        _log(player, tick, "threat", line, why=f"threat:{reaction}",
+             area=area_name, tags=tags, salient=True,
+             delta=dict(vitals) or None)
+    except Exception:
+        pass
+    try:
+        player.add_memory(
+            f"{line} in {area_name}" if area_name else line, tick,
+            importance=5, memory_type="threat", tags=tags,
+            source="background", entity_ids=subject_ids, location=area_name,
+        )
+    except Exception:
+        pass
+    try:
+        player._fear_last_tick = int(tick)
+    except Exception:
+        pass
+
+    return {
+        "actor": getattr(player, "name", ""), "source": source_name,
+        "reaction": reaction, "action": reaction, "why": f"threat:{reaction}",
+        "line": line, "area": area_name, "vitals": dict(vitals),
+    }
+
+
+def run_fear_pass(gs, tick: Optional[int] = None) -> list:
+    """Every background character reacts to what *it* fears (task-552).
+
+    Deliberately character-relative: a fear source is only a threat to someone
+    who lists its tag. That is what lets five humans live inside a goblin camp
+    while the goblins go about their business — the humans are the ones who
+    should be recorded fleeing, and only once somebody authors a ``fear_tags``
+    entry do they. A world where nobody fears anything produces no rows here,
+    which is the honest result and exactly what the Kraktooth soak was measuring
+    before this pass existed.
+    """
+    if gs is None:
+        return []
+    if tick is None:
+        tick = getattr(gs, "time_ticks", 0)
+
+    from engine import fear as fear_mod
+
+    players = getattr(getattr(gs, "player_manager", None), "players", None) or {}
+    outcomes = []
+    for player in list(players.values()):
+        if not is_background(player) or not is_available(player):
+            continue
+        sources = fear_mod.fear_sources(gs, player)
+        # Release first (task-484): a fear whose source has walked away is a
+        # stuck flag, and the social gate below reads the condition. Letting the
+        # pass clear it is what stops a character refusing to approach a goblin
+        # that left the camp an hour ago.
+        fear_mod.release_absent_fears(gs, player, sources)
+        if not sources:
+            continue
+        primary = sources[0]
+        source_name = primary.get("name") or primary.get("id") or ""
+        if not source_name:
+            continue
+        if not _fear_off_cooldown(player, gs, tick):
+            # Already reacting to this. Keep the condition alive, but do not log
+            # the same flight on every tick it lasts.
+            fear_mod.apply_frightening(gs, player, sources)
+            continue
+        reaction = choose_fear_reaction(player, source_name, tick)
+        fear_mod.apply_frightening(gs, player, sources)
+        area_name = getattr(player, "current_area", None) or ""
+        outcomes.append(_record_fear(gs, player, source_name, reaction,
+                                     area_name, tick))
     return outcomes

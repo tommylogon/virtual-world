@@ -249,7 +249,13 @@ class BackgroundSimulation:
         try:
             from engine.background_social import (
                 run_social_pass, run_social_approach, run_theft_pass,
+                run_fear_pass,
             )
+            # Fear first (task-552): something that frightens a character has to
+            # be able to pre-empt the social pass below, or the only consequence
+            # is a vital, and "zero threat actions" stays indistinguishable from
+            # "no mechanic exists".
+            run_fear_pass(self.gs)
             run_social_pass(self.gs)
             run_social_approach(self.gs)
             # Actor-driven agenda last (task-468): a thief reaches for something
