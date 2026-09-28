@@ -3,7 +3,119 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from engine.character_spatial import (
+    apply_positional_fidelity,
+    check_spatial_invariants,
+    pool_remaining,
+    select_area_anchors,
+    set_character_position,
+    spawn_from_pool,
+)
+from area import Area
+from graph import EDGE_AT, EDGE_IN, Edge, Node
 from virtual_world_engine import VirtualWorld
+
+
+def _world_with_an_area(area_name="Round Trip Room"):
+    """A bare VirtualWorld has no areas at all, so nothing spatial can exist yet."""
+    world = VirtualWorld()
+    if area_name not in getattr(world, "areas", {}):
+        world.movement.add_area(Area(area_name, "a room.", []))
+    return world
+
+
+def test_the_at_edge_survives_save_load_roundtrip():
+    """Positional detail is the fidelity budget, so losing it on reload would
+    silently demote an attended character back to 'somewhere in the area'."""
+    world = _world_with_an_area()
+    pname = world.active_player
+    pid = world.player_manager.get_player_node_id(pname)
+    world.set_player_area(pname, "Round Trip Room")
+    world.graph.add_node(Node(id="round_trip_boulder", type="item",
+                              name="boulder", properties={}))
+
+    set_character_position(world.graph, pid, "round_trip_boulder")
+    assert world.get_current_area_id(), "the area was set, so the test is not vacuous"
+
+    reloaded = VirtualWorld()
+    reloaded.load_from_dict(world.to_scenario_dict())
+    reloaded_pid = reloaded.player_manager.get_player_node_id(pname)
+    targets = [e.target for e in reloaded.graph.get_edges_for_source(reloaded_pid, EDGE_AT)]
+    assert targets == ["round_trip_boulder"]
+
+
+def test_a_pooled_anchor_survives_save_load_and_keeps_depleting():
+    """The remaining count is world state, not scenery: a reloaded pool must
+    not hand back gravel that was already taken."""
+    world = _world_with_an_area()
+    pname = world.active_player
+    world.set_player_area(pname, "Round Trip Room")
+    area = world.get_current_area_id()
+    world.graph.add_node(Node(
+        id="round_trip_gravel", type="item", name="gravel",
+        properties={"anchor_kind": "pooled", "anchor": True,
+                    "pool": {"remaining": 5, "max_spawn": 2, "unit": "handful",
+                             "item": {"name": "pebble"}}}))
+    world.graph.add_edge(Edge(source="round_trip_gravel", target=area, type=EDGE_IN))
+    spawn_from_pool(world.graph, world.graph.get_node("round_trip_gravel"), area)
+    assert pool_remaining(world.graph.get_node("round_trip_gravel")) == 3
+
+    reloaded = VirtualWorld()
+    reloaded.load_from_dict(world.to_scenario_dict())
+    pool = reloaded.graph.get_node("round_trip_gravel")
+    assert pool_remaining(pool) == 3, "the pool did not refill on load"
+
+    spawned = spawn_from_pool(reloaded.graph, pool, reloaded.get_current_area_id())
+    assert len(spawned) == 2
+    assert pool_remaining(pool) == 1
+
+
+def test_the_anchor_budget_is_the_same_after_a_reload():
+    """A budget that changed on save would make an area read differently
+    depending on how it was loaded."""
+    world = VirtualWorld()
+    area = world.get_current_area_id()
+    for i in range(12):
+        world.graph.add_node(Node(
+            id=f"budget_rock_{i:02d}", type="item", name=f"rock {i}",
+            properties={"anchor": True}))
+        world.graph.add_edge(Edge(source=f"budget_rock_{i:02d}", target=area, type=EDGE_IN))
+    before = select_area_anchors(world.graph, area)
+
+    reloaded = VirtualWorld()
+    reloaded.load_from_dict(world.to_scenario_dict())
+    assert select_area_anchors(reloaded.graph, reloaded.get_current_area_id()) == before
+
+
+def test_a_reloaded_world_still_satisfies_the_spatial_invariants():
+    world = VirtualWorld()
+    pname = world.active_player
+    pid = world.player_manager.get_player_node_id(pname)
+    world.graph.add_node(Node(id="reload_boulder", type="item",
+                              name="boulder", properties={}))
+    set_character_position(world.graph, pid, "reload_boulder")
+
+    reloaded = VirtualWorld()
+    reloaded.load_from_dict(world.to_scenario_dict())
+    assert check_spatial_invariants(reloaded.graph) == []
+
+
+def test_positional_fidelity_applies_to_a_saved_world():
+    """Attending a character is expressible in a scenario and survives it."""
+    world = VirtualWorld()
+    pid = world.player_manager.get_player_node_id(world.active_player)
+    world.graph.add_node(Node(id="fid_boulder", type="item",
+                              name="boulder", properties={}))
+    result = apply_positional_fidelity(
+        world.graph, {world.active_player: pid}, [world.active_player],
+        anchor_for={world.active_player: "fid_boulder"})
+    assert result["at_edges"] == 1
+
+    reloaded = VirtualWorld()
+    reloaded.load_from_dict(world.to_scenario_dict())
+    rpid = reloaded.player_manager.get_player_node_id(world.active_player)
+    assert [e.target for e in reloaded.graph.get_edges_for_source(rpid, EDGE_AT)] \
+        == ["fid_boulder"]
 
 
 def test_player_tags_survive_save_load_roundtrip():
