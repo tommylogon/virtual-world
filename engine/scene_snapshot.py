@@ -25,6 +25,8 @@ from graph import (
 )
 from engine.room_perception import (
     characters_in_area,
+    describe_item_quantity,
+    item_quantity,
     normalize_requires,
     resolve_area_node,
     visible_area_items,
@@ -174,7 +176,10 @@ def build_scene(world: Any, player_name: str) -> Dict[str, Any]:
             available = []
         scene["items"].append({
             "id": node.id,
-            "name": node.name,
+            "name": describe_item_quantity(node),
+            # task-504: the count is emitted raw as well, beside uses/max_uses,
+            # so the panel can show "40" without re-parsing the label.
+            "quantity": item_quantity(node),
             "state": node.properties.get("current_state", ""),
             "desc": _first_sentence(desc),
             "available_actions": available,
@@ -271,13 +276,14 @@ def build_scene(world: Any, player_name: str) -> Dict[str, Any]:
                 desc = ""
         return {
             "id": node.id,
-            "name": node.name,
+            "name": describe_item_quantity(node),
             "actions": actions,
             "desc": _first_sentence(desc),
             # task-161 presentation: durability without numbers (ratio-driven
             # labels are computed client-side).
             "uses": node.properties.get("uses", -1),
             "max_uses": node.properties.get("max_uses", 0),
+            "quantity": item_quantity(node),
         }
 
     carrying = []

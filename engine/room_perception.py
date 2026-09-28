@@ -100,6 +100,92 @@ def visible_area_items(graph, area_id, include_hidden: bool = False, player=None
     return items
 
 
+#: Ceiling on a rendered pool. A generator that hands out a nonsense number
+#: shouldn't put six digits in front of "berries".
+MAX_ITEM_QUANTITY = 10000
+
+#: Tokens an author can put in a description to do the counting themselves.
+#: When one is present the description *is* the item's line and the label
+#: carries no number of its own.
+QUANTITY_TOKENS = ("{qty}", "{quantity}", "{name}")
+
+
+def item_quantity(node) -> int:
+    """How many of this kind an item node stands for (task-504).
+
+    Absent means 1, so every existing item and every existing save reads
+    exactly as it did before the property existed. Zero, negatives and junk
+    read as 1 as well: a drained pool is removed from the world rather than
+    rendered as "0 berries".
+    """
+    raw = (getattr(node, "properties", None) or {}).get("quantity", 1)
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return 1
+    if value < 1:
+        return 1
+    return min(value, MAX_ITEM_QUANTITY)
+
+
+def pluralise(name, count: int, plural: Optional[str] = None) -> str:
+    """``berry`` at one, ``berries`` at three — but only if the item authored
+    it. Irregulars come from the ``plural`` property; the naive ``+s`` is the
+    fallback for everything else. The stored ``name`` always stays singular
+    (matching deliberately does not pluralise, so a plural in ``name`` would
+    stop ``take berries`` from resolving).
+    """
+    word = str(name or "").strip()
+    if count == 1 or not word:
+        return word
+    authored = str(plural or "").strip()
+    return authored or f"{word}s"
+
+
+def describe_item_quantity(node) -> str:
+    """``"40 berries"`` for a pooled node, ``"iron key"`` for a plain one.
+
+    A count is shown only when the item AUTHORS one. Absent means "one of
+    these" and renders exactly as it always did, which is what keeps every
+    existing item and save unchanged; an authored ``quantity`` is shown even
+    at 1, so "you see 1 giant tree" and "you see 40 berries" read alike.
+
+    THE one place an item name picks up a count. Both perception paths call
+    this — the AGENT path through ``area_description.get_area_items``, the
+    PANEL path through ``scene_snapshot`` — so the two can never disagree
+    about how much of something is standing there.
+    """
+    if node is None:
+        return ""
+    props = getattr(node, "properties", None) or {}
+    name = str(getattr(node, "name", "") or "")
+    if "quantity" not in props:
+        return name
+    count = item_quantity(node)
+    return f"{count} {pluralise(name, count, props.get('plural'))}"
+
+
+def describe_item(node, description: str = "") -> str:
+    """``"40 berries, dark fruit on low branches."`` — label plus description.
+
+    A description carrying a ``{qty}``/``{name}`` token *is* the line: the
+    prose does the counting, so the label drops its own number. Otherwise the
+    count is prefixed, which is why "you see 1 giant tree" still reads
+    uniformly with "you see 40 berries".
+    """
+    if node is None:
+        return ""
+    count = item_quantity(node)
+    props = getattr(node, "properties", None) or {}
+    desc = " ".join(str(description or "").split())
+    if any(token in desc for token in QUANTITY_TOKENS):
+        return (desc.replace("{qty}", str(count))
+                   .replace("{quantity}", str(count))
+                   .replace("{name}", str(node.name or "")))
+    label = describe_item_quantity(node)
+    return f"{label}, {desc}" if desc else label
+
+
 def characters_in_area(graph, area_id, exclude_name: Optional[str] = None) -> list:
     """Character nodes present in the area (EDGE_IN), optionally excluding
     the viewer by name."""

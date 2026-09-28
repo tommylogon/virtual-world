@@ -39,6 +39,62 @@ Items in the graph are `Node` objects with `type="item"` (`virtual_world/graph.p
 | `library_id` | str | — | Reference back to the library item ID when built from the library |
 | `triggers` | list[dict] | — | Library-only; converted to `EDGE_TRIGGERS` edges when placed in world |
 | `contents` | list | `[]` | **UI-only.** See "Container Items" below. |
+| `quantity` | int | absent (= 1) | How many **of this kind** the node stands for. A count is rendered only when authored — absent means "one of these" and every existing item and save reads exactly as before. See "Pooled resource nodes" below |
+| `plural` | str | `name + "s"` | Authored plural for `quantity > 1`. Irregulars are written, not guessed (`"mice"`, `"wild berry canes"`) |
+| `harvest` | dict | — | What taking from a pool yields: `{"item": <library id>, "label": <optional word players may use>, "size": <max per attempt>, "skill": <optional>, "dc": <optional>}`. A node with a `harvest` spec is a **pool** — see below |
+
+### `uses` vs `quantity`
+
+Two different things have both been called "how much of this there is", and
+they are deliberately not the same counter:
+
+| | `uses` (task-155) | `quantity` (task-504) |
+|---|---|---|
+| Attaches to | an individual item copy | the node's identity / the pool |
+| Meaning | charges left on **this** copy (a lantern's fuel, a bread's bites) | how many **of this kind** the node stands for |
+| Example | one full waterskin `uses: 3` | one thicket `quantity: 10` |
+| Consumed by | `use` / `consume` | `take` / harvest (spawns copies) |
+| Default | `-1` (untracked) | absent (= 1) |
+
+A stack of 40 berries is not one berry with 40 charges, and a tree standing in
+a forest is not something you can carry at all.
+
+### Pooled resource nodes
+
+A **pooled resource node** is an item node whose `quantity` may be large and
+which does **not** move as a whole. On `take` / harvest it:
+
+1. spawns `k` real item copies (`k = min(asked, harvest.size, remaining)`) into
+   the taker, or into the area when the taker's pack is full;
+2. decrements the pool's `quantity` by `k`;
+3. at `quantity == 0` hands the node to the task-424 `on_depleted` teardown, so a
+   pool that authored its own goodbye gets to say it first.
+
+Harvest is skill-gated, and the check scales the yield rather than gating the
+attempt — a failed check still nets a scanty handful. `take 3 berries` reaches
+the thicket that grows them, matched on the `harvest.item` library id (or an
+optional `harvest.label`).
+
+```json
+{
+  "name": "wild berry thicket",
+  "description": "a dense thicket of wild berry canes, {qty} of them heavy with dark fruit.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "quantity": 10,
+  "plural": "wild berry canes",
+  "harvest": { "item": "berries", "size": 3, "skill": "Survival", "dc": 10 }
+}
+```
+
+A `{qty}` / `{name}` token in the description *is* the item's line — the prose
+does the counting, so the label drops its own number. Without a token the count
+is prefixed, which is why "you see 1 giant tree" and "you see 40 berries" read
+alike.
+
+Pools never stack: `stackable_twins` refuses any node with `quantity > 1`,
+because stacking runs the other way (many carried copies merged into one node)
+and merging a pool would fold its count into a copy's `uses`.
 
 ### Example: Apple (`data/library/items/apple.json`)
 

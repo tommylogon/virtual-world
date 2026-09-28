@@ -28,7 +28,7 @@ import sys
 DEFAULT_LIB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "library")
 
 ERROR_CHECKS = ("dead_interests", "missing_slots", "tag_case_drift", "broken_contents",
-                "unauthored_consumables")
+                "unauthored_consumables", "resource_pools")
 WARNING_CHECKS = ("singleton_tags", "area_tag_gaps")
 ALL_CHECKS = ERROR_CHECKS + WARNING_CHECKS
 
@@ -220,6 +220,50 @@ def check_singleton_tags(items, report):
         report.warn("singleton_tags", f"{len(singles)} single-use tags: {detail}")
 
 
+def check_resource_pools(items, report):
+    """Pooled resource nodes (task-504) must declare a yield that exists.
+
+    A pool is one node standing for many of a kind in the world, emptied by
+    taking from it. Three ways to author one wrong, all silent at runtime:
+    a ``quantity`` with no ``harvest`` spec (takeable whole, which is the bug
+    the model exists to fix), a ``harvest`` naming a library id that is not
+    there (taking yields nothing), and a ``harvest`` yielding the pool itself.
+    """
+    for item_id, item in sorted(items.items()):
+        harvest = item.get("harvest")
+        quantity = item.get("quantity")
+
+        if isinstance(harvest, dict):
+            yield_id = content_ref_id(harvest.get("item"))
+            if not yield_id:
+                report.error("resource_pools", f"items/{item_id}: harvest spec names no item")
+            elif yield_id == item_id:
+                report.error("resource_pools",
+                             f"items/{item_id}: harvest yields itself — that is an infinite pool")
+            elif yield_id not in items:
+                report.error("resource_pools",
+                             f"items/{item_id}: harvest yields '{yield_id}', which is not in the library")
+            if harvest.get("size") is not None:
+                try:
+                    if int(harvest["size"]) < 1:
+                        raise ValueError
+                except (TypeError, ValueError):
+                    report.error("resource_pools",
+                                 f"items/{item_id}: harvest size must be a positive whole number")
+            if "quantity" not in item:
+                report.warn("resource_pools",
+                            f"items/{item_id}: harvest spec but no quantity — it will pool exactly one")
+            continue
+
+        if quantity is not None and not isinstance(harvest, dict):
+            report.error("resource_pools",
+                         f"items/{item_id}: quantity {quantity!r} with no harvest spec — "
+                         f"it would be takeable whole")
+        elif quantity is not None:
+            report.error("resource_pools",
+                         f"items/{item_id}: harvest must be an object, got {type(harvest).__name__}")
+
+
 def check_area_tag_gaps(areas, report):
     """Library areas carrying no tags at all (informational)."""
     untagged = [area_id for area_id, area in sorted(areas.items())
@@ -238,6 +282,7 @@ CHECKS = {
     ),
     "broken_contents": lambda ctx, r: check_broken_contents(ctx["items"], r),
     "unauthored_consumables": lambda ctx, r: check_unauthored_consumables(ctx["items"], r),
+    "resource_pools": lambda ctx, r: check_resource_pools(ctx["items"], r),
     "singleton_tags": lambda ctx, r: check_singleton_tags(ctx["items"], r),
     "area_tag_gaps": lambda ctx, r: check_area_tag_gaps(ctx["areas"], r),
 }

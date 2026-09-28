@@ -10,6 +10,7 @@ import re
 from typing import Optional
 
 from graph import EDGE_IN, EDGE_CONNECTION, EDGE_CARRYING, EDGE_EQUIPPED
+from engine.room_perception import describe_item, item_quantity
 
 
 #: Reflexive/possessive pronouns from the 1st ("myself") and 2nd ("yourself")
@@ -420,9 +421,13 @@ class NarrationSystem:
         for edge in self.graph.get_edges_for_target(area_node_id, EDGE_IN):
             node = self.graph.get_node(edge.source)
             if node and node.type == "item" and node.properties.get("current_state") != "hidden":
+                # task-504: the narrator is told how much is out there, so it
+                # never invents "a berry bush" where forty berries stand.
                 items.append(
                     {
                         "name": node.name,
+                        "quantity": item_quantity(node),
+                        "label": describe_item(node, node.properties.get("description", "")),
                         "description": node.properties.get("description", "")[:200],
                     }
                 )

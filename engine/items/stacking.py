@@ -35,6 +35,15 @@ def stackable_twins(node_a, node_b) -> bool:
     (library_id, or same base name) AND identical usable identity."""
     if node_a is None or node_b is None:
         return False
+    # task-504: stacking is the OTHER direction from a pool. A pool is one node
+    # standing for many of a kind in the world; a stack is many copies merged
+    # into one carried node. Merging the two would sum a pool's count into a
+    # carried copy's `uses` and destroy the pool, so a pool is never a twin of
+    # anything — including another pool at a different size.
+    from engine.room_perception import item_quantity
+
+    if item_quantity(node_a) > 1 or item_quantity(node_b) > 1:
+        return False
     pa, pb = node_a.properties or {}, node_b.properties or {}
     same_kind = bool(
         pa.get("library_id") and pa.get("library_id") == pb.get("library_id")

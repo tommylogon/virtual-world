@@ -304,6 +304,13 @@ class Effects:
                 # the authored starting value, so a spawned plant came up with no
                 # counter at all.
                 "parameters",
+                # task-504: how many of this kind the node stands for, the
+                # authored plural for it, and what taking it yields. A pooled
+                # bush spawned without its `harvest` spec would come up as an
+                # ordinary takeable prop, so these have to survive hydration.
+                "quantity",
+                "plural",
+                "harvest",
             ):
                 if extra_field in lib_data:
                     value = lib_data[extra_field]
