@@ -67,7 +67,17 @@ class TickManager:
         self.trigger_system = trigger_system
         self.npc_behaviors = npc_behaviors
         self._last_sound_sources = {}  # Track sound sources to avoid duplicate notifications
-
+        # task-416: per-tick presence index, rebuilt at the top of every turn.
+        self._presence_by_area = {}   # area name -> {registry key: player}
+        self._presence_area_of = {}   # registry key -> area name
+        self._presence_roster = 0     # roster size the index was built from
+        # task-416: standing-item placement, cached against the graph revision.
+        self._standing_by_area = {}
+        self._standing_revision = None
+        # task-418: awareness index, built on first use. It caches per-area aware
+        # sets on the graph *and* door-state revision, so this is a singleton for
+        # the life of the manager, not per tick.
+        self._awareness = None
     def minutes_per_tick(self) -> float:
         """Game minutes one tick covers. Scenario- and Engine-Config-settable."""
         return tick_minutes(self.gs)
@@ -86,6 +96,250 @@ class TickManager:
     def _get_equipment_bonuses(player, graph):
         from engine.equipment_bonuses import aggregate_bonuses
         return aggregate_bonuses(player, graph)
+
+    # ── task-416: per-tick presence index ──────────────────────────────────
+    #
+    # Co-presence used to be reconstructed inline wherever it was needed —
+    # `for n, op in players.items() if op.current_area == <this room>` — which
+    # is a full scan of the roster for every character, every tick. The index
+    # below is built once per tick and then kept live: a character that changes
+    # area is moved between buckets in constant time instead of by rescanning,
+    # so a lookup returns exactly what the old scan would have returned.
+    #
+    # The acting queue is untouched: the character loop below still walks
+    # `player_manager.players` in registry order. Area grouping is used for
+    # *scoped evaluation* only, never to decide who acts.
+
+    def _presence_reset(self):
+        """Rebuild the area -> character index from scratch. Once per tick."""
+        by_area = {}
+        area_of = {}
+        for key, player in self.player_manager.players.items():
+            area = getattr(player, "current_area", None)
+            if not area:
+                continue
+            by_area.setdefault(area, {})[key] = player
+            area_of[key] = area
+        self._presence_by_area = by_area
+        self._presence_area_of = area_of
+        self._presence_roster = len(self.player_manager.players)
+
+    def _presence_sync(self, key, player):
+        """Re-file one character if it moved, or refresh its cached object."""
+        area = getattr(player, "current_area", None)
+        if self._presence_area_of.get(key) == area:
+            bucket = self._presence_by_area.get(area)
+            if bucket is not None and key in bucket:
+                bucket[key] = player
+            return
+        previous = self._presence_area_of.pop(key, None)
+        if previous is not None:
+            bucket = self._presence_by_area.get(previous)
+            if bucket is not None:
+                bucket.pop(key, None)
+                if not bucket:
+                    del self._presence_by_area[previous]
+        if area:
+            self._presence_by_area.setdefault(area, {})[key] = player
+            self._presence_area_of[key] = area
+
+    def _presence_resync(self):
+        """Full refresh after a phase that may have moved anyone (NPC pass, soak)."""
+        if len(self.player_manager.players) != self._presence_roster:
+            self._presence_reset()
+            return
+        for key, player in self.player_manager.players.items():
+            self._presence_sync(key, player)
+
+    def area_of(self, key):
+        """The area name this character is currently filed under, or None."""
+        return self._presence_area_of.get(key)
+
+    def characters_in(self, area_name):
+        """(registry key, player) pairs standing in `area_name`, in roster order."""
+        return list(self._presence_by_area.get(area_name, {}).items())
+
+    def co_present(self, key):
+        """Living, non-spectral characters sharing `key`'s area, in roster order.
+
+        Same set and same order the old inline scan produced, without the scan.
+        """
+        area = self._presence_area_of.get(key)
+        if not area:
+            return []
+        return [other for other, op in self._presence_by_area.get(area, {}).items()
+                if other != key and op.state != "dead"
+                and not self.gs.is_undead_ghost(other)]
+
+    # ── task-418: awareness → the attended set ───────────────────────────
+
+    def awareness(self):
+        """The awareness index (sound channel), built on first use.
+
+        One index for the life of the manager: it caches per-area aware sets on
+        the graph *and* door-state revision, so a door locking invalidates
+        exactly what it should and a tick that changes nothing recomputes
+        nothing.
+        """
+        if self._awareness is None:
+            from engine.awareness import AwarenessIndex, SoundChannel
+            self._awareness = AwarenessIndex(self.graph, [SoundChannel()])
+        return self._awareness
+
+    def attended_set(self, anchors=(), cap=8, recency=None, hooks=None):
+        """Who should run at full fidelity, given what the anchors can perceive.
+
+        There is no hop radius here. A character is a candidate because an anchor
+        is in their room, or because a channel says they are audible from one —
+        and the roster is never scanned: candidates come from the task-416
+        presence buckets of the audible rooms only. Returns a list of registry
+        keys, highest priority first, at most `cap` long.
+        """
+        from engine.awareness import normalise_anchors, select_attended
+
+        anchors = normalise_anchors(anchors)
+        if not anchors or cap <= 0:
+            return []
+        self._presence_resync()
+
+        anchor_areas = {}
+        for anchor in anchors:
+            area_name = self.area_of(anchor.id)
+            if area_name:
+                anchor_areas[anchor.id] = self.player_manager.area_node_id(area_name)
+        if not anchor_areas:
+            return []
+
+        index = self.awareness()
+        aware = {area_id: index.aware_from(area_id)
+                 for area_id in set(anchor_areas.values())}
+
+        # The channels speak area *ids*; the presence buckets speak area *names*.
+        # Resolve the handful of ids involved once, rather than per lookup.
+        names = {}
+        for area_id in {a for spread in aware.values() for a in spread} | set(aware):
+            node = self.graph.get_node(area_id)
+            if node is not None:
+                names[area_id] = node.name
+
+        def characters_by_area(area_id):
+            name = names.get(area_id)
+            if not name:
+                return ()
+            return [key for key, _ in self.characters_in(name)]
+
+        return select_attended(anchors, anchor_areas, aware,
+                               characters_by_area, cap,
+                               recency=recency, hooks=hooks)
+
+    # ── task-416: area-major standing-item sweep ────────────────────────────
+
+    def _standing_items_by_area(self):
+        """area node id -> [item nodes] for every item lying in a room.
+
+        Which item sits in which area changes only when the graph changes, so
+        the map is cached against the graph revision — the old sweep paid one
+        indexed in-edge lookup per area on *every* tick to rebuild it. Item
+        *state* is not cached: the caller reads it fresh each turn.
+
+        The stamp is the graph revision plus the node and edge counts. Effect
+        handlers that append to ``graph.edges`` or assign ``graph.nodes``
+        directly bypass the revision, exactly as they bypass the graph's own
+        edge index; the counts catch that without giving up the cache.
+        """
+        stamp = (self.graph.get_revision(), len(self.graph.nodes),
+                 len(self.graph.edges))
+        if self._standing_revision == stamp:
+            return self._standing_by_area
+        by_area = {}
+        for node in self.graph.nodes.values():
+            if node.type != "area":
+                continue
+            items = []
+            for edge in self.graph.get_edges_for_target(node.id, EDGE_IN):
+                item = self.graph.get_node(edge.source)
+                if item is not None and item.type == "item":
+                    items.append(item)
+            if items:
+                by_area[node.id] = items
+        self._standing_revision = stamp
+        self._standing_by_area = by_area
+        return by_area
+
+    def _sweep_area_items(self):
+        """Fire an area's own on_tick items, in sorted area-id order.
+
+        A lit object in a room and a plain item owning an on_tick trigger (a
+        bush, a nest, a shrine) both belong to the *area*, so they are
+        evaluated together here rather than in two graph-order passes. Sorted
+        area ids make the sweep reproducible from a fixed seed; areas with
+        nothing to tick are never visited at all.
+        """
+        standing = self._standing_items_by_area()
+        tick_sources = set(self.graph.get_trigger_sources("on_tick"))
+
+        visit = set()
+        for area_name in self._presence_by_area:
+            area_id = self.player_manager.area_node_id(area_name)
+            if self.graph.get_node(area_id) is not None:
+                visit.add(area_id)
+        for area_id, items in standing.items():
+            for item in items:
+                if (item.id in tick_sources
+                        or item.properties.get("current_state") in ("lit", "on")):
+                    visit.add(area_id)
+                    break
+
+        handled = set()
+        for area_id in sorted(visit):
+            # Sorted by node id inside the area too, so the whole sweep is a
+            # pure function of the graph and not of how it was built.
+            for item_node in sorted(standing.get(area_id, ()), key=lambda n: n.id):
+                # A trigger fired earlier in this sweep may have removed it.
+                if self.graph.get_node(item_node.id) is not item_node:
+                    continue
+                if item_node.properties.get("current_state") in ("lit", "on"):
+                    self._burn_down_area_item(item_node)
+                elif (item_node.id in tick_sources
+                      and not self.graph.get_edges_for_source(item_node.id, EDGE_CARRYING)
+                      and not self.graph.get_edges_for_source(item_node.id, EDGE_EQUIPPED)):
+                    # task-406: carried/equipped items already fired in the
+                    # character loop above, so they are not fired a second time.
+                    self._fire_standing_on_tick(item_node)
+                else:
+                    continue
+                handled.add(item_node.id)
+
+        # An on_tick item the world has not placed anywhere — in no area, in
+        # nobody's hands — has no area to belong to, but it still ticks. It
+        # sorts by node id so the tail is as reproducible as the sweep above.
+        for node_id in sorted(tick_sources - handled):
+            item_node = self.graph.get_node(node_id)
+            if (item_node is None or item_node.type != "item"
+                    or item_node.properties.get("current_state") in ("lit", "on")
+                    or self.graph.get_edges_for_source(node_id, EDGE_CARRYING)
+                    or self.graph.get_edges_for_source(node_id, EDGE_EQUIPPED)):
+                continue
+            self._fire_standing_on_tick(item_node)
+
+    def _fire_standing_on_tick(self, item_node):
+        for line in self.trigger_system._execute_triggers(
+                item_node, "on_tick", game_state=self.gs) or ():
+            self.player_manager.add_log_entry(line)
+
+    def _burn_down_area_item(self, item_node):
+        """A lit object left in a room ticks, burns down, and finally goes out."""
+        uses_before = item_node.properties.get("uses", -1)
+        if uses_before == -1:
+            return  # permanent sources (e.g. a lit stove) never burn out
+        self._fire_standing_on_tick(item_node)
+        if item_node.properties.get("uses", -1) == 0 and uses_before > 0:
+            item_node.properties["current_state"] = "unlit"
+            self.player_manager.add_log_entry(f"The {item_node.name} burns out.")
+            for line in self.trigger_system._execute_triggers(
+                    item_node, "on_depleted", game_state=self.gs) or ():
+                self.player_manager.add_log_entry(line)
+            self.graph.remove_node(item_node.id)
 
     def apply_action(self, action_name, override_cost=None, player=None):
         """Apply action costs to a player's vitals based on action type and traits."""
@@ -173,6 +427,10 @@ class TickManager:
     def tick_turn(self, skip_npcs=False):
         """Apply baseline vital decay and environmental effects to ALL characters.
         When skip_npcs=True, NPC behavior processing is skipped (used during rest)."""
+        # task-416: one reverse index for the whole turn. Co-presence below is
+        # a bucket lookup instead of a scan of the roster per character.
+        self._presence_reset()
+
         # task-399: apply queued fidelity transitions at this one boundary,
         # before any character is resolved, so activate/offload is atomic and a
         # character can never act twice in a turn under two different modes.
@@ -257,6 +515,9 @@ class TickManager:
         for pname, p in self.player_manager.players.items():
             if p.state == "dead":
                 continue
+            # task-416: keep the bucket this character sits in current, so a
+            # co-presence read below is a lookup, not a scan.
+            self._presence_sync(pname, p)
 
             # Keep each character's clock in step with the world's, so anything
             # that converts an authored game-minute window into tick deltas
@@ -515,7 +776,7 @@ class TickManager:
                     light = self.lighting.get_ambient_light(area_node.id)
                     if light < 20:
                         self._decay(p, "Sanity", -ENV_DARK_SANITY)
-                    others_here = [n for n, op in self.player_manager.players.items() if op.current_area == player_area_name and n != pname and op.state != "dead" and not self.gs.is_undead_ghost(n)]
+                    others_here = self.co_present(pname)
                     # ── Social need is company-aware ──
                     # Being with others feeds Social; being alone drains it
                     # FASTER than the baseline decay being alone used to (the
@@ -755,60 +1016,15 @@ class TickManager:
                                     if pname == self.player_manager.active_player:
                                         self.player_manager.add_log_entry(o)
 
-        # ── Area lit items burn down (shared room objects, once per tick) ──
+        # ── task-416: area-major standing-item sweep ──
         # The per-player loop above only ticks carried/equipped items. Embers,
         # torches, or other lit objects dropped in a room would never deplete
-        # otherwise.
-        for node in list(self.graph.nodes.values()):
-            if node.type != "area":
-                continue
-            for edge in self.graph.get_edges_for_target(node.id, EDGE_IN):
-                item_node = self.graph.get_node(edge.source)
-                if not item_node or item_node.type != "item":
-                    continue
-                if item_node.properties.get("current_state") not in ("lit", "on"):
-                    continue
-                uses_before = item_node.properties.get("uses", -1)
-                if uses_before == -1:
-                    continue  # permanent sources (e.g. a lit stove) never burn out
-                tick_outputs = self.trigger_system._execute_triggers(
-                    item_node, "on_tick", game_state=self.gs
-                )
-                if tick_outputs:
-                    for o in tick_outputs:
-                        self.player_manager.add_log_entry(o)
-                if item_node.properties.get("uses", -1) == 0 and uses_before > 0:
-                    item_node.properties["current_state"] = "unlit"
-                    self.player_manager.add_log_entry(f"The {item_node.name} burns out.")
-                    dep_outputs = self.trigger_system._execute_triggers(
-                        item_node, "on_depleted", game_state=self.gs
-                    )
-                    if dep_outputs:
-                        for o in dep_outputs:
-                            self.player_manager.add_log_entry(o)
-                    self.graph.remove_node(item_node.id)
-
-        # ── task-406: standing items ──
-        # The loops above only tick carried/equipped items and lit/on items in
-        # a room, so a plain item owning an on_tick trigger (a bush, a nest, a
-        # shrine) never ticked. Fire it here, exactly once, skipping anything
-        # the loops above already handled — carried/equipped items and lit/on
-        # items keep their existing paths and are not double-fired.
-        for source_id in self.graph.get_trigger_sources("on_tick"):
-            item_node = self.graph.get_node(source_id)
-            if item_node is None or item_node.type != "item":
-                continue
-            if item_node.properties.get("current_state") in ("lit", "on"):
-                continue
-            if (self.graph.get_edges_for_source(item_node.id, EDGE_CARRYING)
-                    or self.graph.get_edges_for_source(item_node.id, EDGE_EQUIPPED)):
-                continue
-            tick_outputs = self.trigger_system._execute_triggers(
-                item_node, "on_tick", game_state=self.gs
-            )
-            if tick_outputs:
-                for o in tick_outputs:
-                    self.player_manager.add_log_entry(o)
+        # otherwise, and a plain item owning an on_tick trigger (a bush, a nest,
+        # a shrine) never ticked at all before task-406. Both belong to their
+        # *area*, so they run here together, in sorted area-id order, exactly
+        # once per tick. Areas with nothing to tick are not visited.
+        self._presence_resync()
+        self._sweep_area_items()
 
         self.advance_clock(1)
 
@@ -916,7 +1132,11 @@ class TickManager:
     def _process_sound_sources(self):
         """Process sound sources each tick - propagate sound from active items."""
         from engine.sound import get_sound_sources_in_area, get_areas_hearing_sound_source, format_heard_narration
-        
+
+        # task-416: the NPC / soak / background passes above may have moved
+        # anyone, so re-file before asking who is in a hearing area.
+        self._presence_resync()
+
         # Build areas dict
         areas_dict = {}
         for node in self.graph.nodes.values():
@@ -954,11 +1174,8 @@ class TickManager:
                     if not hearing_area:
                         continue
                     
-                    # Find characters in this area
-                    for pname, player_obj in self.player_manager.players.items():
-                        if getattr(player_obj, "current_area", None) != hearing_area.name:
-                            continue
-                        
+                    # Find characters in this area (task-416: index lookup)
+                    for pname, player_obj in self.characters_in(hearing_area.name):
                         # Add to recent hearing if not already notified this tick
                         notification_key = f"{source_key}_{hearing_area_id}_{pname}"
                         if notification_key not in self._last_sound_sources:
