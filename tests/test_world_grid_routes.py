@@ -1068,3 +1068,162 @@ def test_every_scope_route_is_one_undo_step(tmp_path):
     assert len(app._undo_stack) == base + 1, "one entry for the delete"
     assert client.post("/api/undo").status_code == 200
     assert "wild" in app.world.world_scopes, "one undo brings the scope back"
+
+
+# ── POST /api/world/promote (task-535) ──────────────────────────────────────
+
+def _promote_ready(app):
+    """A painted world scope with one hand-authored area parked on a cell."""
+    client = app.test_client()
+    client.post("/api/world/scopes",
+                json={"id": "wild", "name": "Wild", "mode": "world", "w": 4, "h": 4})
+    _paint(client, "wild", {(1, 1): "sparse_forest", (3, 1): "sparse_forest"})
+    _authored_area(app, area_id="area_village", name="Eldenford")
+    client.post("/api/world/scopes/wild/grid/place_area",
+                json={"area_id": "area_village", "x": 1, "y": 1})
+    return client
+
+
+def test_promote_turns_a_placed_area_into_a_child_scope(tmp_path):
+    app = _app(tmp_path)
+    client = _promote_ready(app)
+
+    resp = client.post("/api/world/promote", json={
+        "scope_id": "village", "name": "Eldenford", "area_ids": ["area_village"],
+        "parent_id": "wild", "cell": {"x": 1, "y": 1},
+        "entry_area_id": "area_village", "mode": "interior"})
+    assert resp.status_code == 200
+    body = resp.get_json()
+    assert body["status"] == "promoted" and body["scope_id"] == "village"
+    assert body["released_from"] == {"area_village": "wild"}
+
+    record = app.world.world_scopes["village"]
+    assert record["parent_id"] == "wild" and record["paint_policy"] == "baked"
+    assert app.world.graph.get_node("area_village").properties["world_scope_id"] == "village"
+    assert app.world.world_scopes["wild"].get("area_placements", {}) == {}
+    # The payload the painter re-reads shows the scope as a placed child.
+    grid = client.get("/api/world/scopes/wild/grid").get_json()
+    assert [(p["id"], p["x"], p["y"]) for p in grid["placements"]] == [("village", 1, 1)]
+
+
+def test_grid_payload_carries_the_area_row_the_promote_button_reads(tmp_path):
+    """The 🪜 button resolves its area from `area_placements`, not `areas`.
+
+    The painter's promote looked for `payload.areas`, a key this payload has
+    never carried, so the button silently returned and did nothing. The row
+    shape it now reads is pinned here, because only the route and the browser
+    know about it.
+    """
+    app = _app(tmp_path)
+    client = _promote_ready(app)
+    payload = client.get("/api/world/scopes/wild/grid").get_json()
+    assert "areas" not in payload
+
+    row = [a for a in payload["area_placements"] if a["id"] == "area_village"][0]
+    assert row == {"id": "area_village", "name": "Eldenford", "x": 1, "y": 1}
+
+
+def test_promote_route_mints_no_self_gateway(tmp_path):
+    """The painter's one-area button promotes the area standing on the cell.
+
+    The gateway used to resolve to that same area, so the promote answered with
+    a way named "Eldenford - Eldenford" leaving and re-entering one area. The
+    scope takes the cell and no way is minted.
+    """
+    app = _app(tmp_path)
+    client = _promote_ready(app)
+
+    body = client.post("/api/world/promote", json={
+        "scope_id": "village", "name": "Eldenford", "area_ids": ["area_village"],
+        "parent_id": "wild", "cell": {"x": 1, "y": 1},
+        "entry_area_id": "area_village"}).get_json()
+    assert body["way_id"] == ""
+    assert app.world.graph.get_node("way_gateway_wild_village") is None
+    ways = [n for n in app.world.graph.nodes.values()
+            if getattr(n, "type", "") == "way" and "Eldenford" in str(n.name)]
+    assert ways == [], f"a way naming the village on both sides: {[w.name for w in ways]}"
+
+
+def test_promote_route_mints_a_gateway_from_a_doorstep_left_behind(tmp_path):
+    app = _app(tmp_path)
+    client = _promote_ready(app)
+    _authored_area(app, area_id="area_road", name="Human Road")
+    client.post("/api/world/scopes/wild/grid/place_area",
+                json={"area_id": "area_road", "x": 3, "y": 1})
+
+    body = client.post("/api/world/promote", json={
+        "scope_id": "village", "name": "Eldenford", "area_ids": ["area_village"],
+        "parent_id": "wild", "cell": {"x": 3, "y": 1},
+        "entry_area_id": "area_village"}).get_json()
+    way = app.world.graph.get_node(body["way_id"])
+    assert way.name == "Human Road - Eldenford"
+    assert way.properties["area_from_id"] == "area_road"
+    assert way.properties["area_to_id"] == "area_village"
+
+
+def test_promote_is_one_undo_step(tmp_path):
+    app = _app(tmp_path)
+    client = _promote_ready(app)
+    base = len(app._undo_stack)
+
+    assert client.post("/api/world/promote", json={
+        "scope_id": "village", "name": "Eldenford", "area_ids": ["area_village"],
+        "parent_id": "wild", "cell": {"x": 1, "y": 1},
+        "entry_area_id": "area_village"}).status_code == 200
+    assert len(app._undo_stack) == base + 1, "one entry for the whole promote"
+
+    # The scope, its placement and the parent's cell reservation are one step.
+    # (Node properties are left alone: the fixture area is injected straight into
+    # the graph, so what survives a reload is the serialiser's business, not this
+    # route's.)
+    assert client.post("/api/undo", json={}).status_code == 200
+    assert "village" not in app.world.world_scopes
+    wild = app.world.world_scopes["wild"]
+    assert "village" not in (wild.get("placements") or {})
+    assert wild.get("area_placements", {}) == {"area_village": {"x": 1, "y": 1}}
+    assert app.world.graph.get_node("way_gateway_wild_village") is None
+
+
+def test_promote_refuses_what_it_should(tmp_path):
+    app = _app(tmp_path)
+    client = _promote_ready(app)
+    app.world.world_scopes["taken"] = {"id": "taken", "name": "Taken",
+                                       "kind": "scope", "state": "unmade"}
+    app.world.graph.add_node(Node(id="way_1", type="way", name="A to B"))
+
+    def promote(**kw):
+        body = {"scope_id": "village", "name": "Eldenford",
+                "area_ids": ["area_village"], "parent_id": "wild",
+                "cell": {"x": 1, "y": 1}, "entry_area_id": "area_village"}
+        body.update(kw)
+        return client.post("/api/world/promote", json=body)
+
+    assert promote(scope_id="taken").status_code == 400
+    assert "already exists" in promote(scope_id="taken").get_json()["error"]
+    assert "not an area" in promote(area_ids=["way_1"]).get_json()["error"]
+    assert "not an area" in promote(area_ids=["ghost"]).get_json()["error"]
+    assert "entry area" in promote(entry_area_id="area_road").get_json()["error"]
+    assert "parent" in promote(parent_id="nowhere").get_json()["error"]
+    assert "painted place" in promote(cell={"x": 3, "y": 3}).get_json()["error"]
+    assert "village" not in app.world.world_scopes
+    assert client.post("/api/world/promote", json={"name": "x"}).status_code == 400
+
+
+def test_a_refused_promote_leaves_nothing_to_undo(tmp_path):
+    """The handler pops the snapshot it pushed, so a refusal does not dangle."""
+    app = _app(tmp_path)
+    client = _promote_ready(app)
+    app.world.world_scopes["taken"] = {"id": "taken", "name": "Taken",
+                                       "kind": "scope", "state": "unmade"}
+    base = len(app._undo_stack)
+
+    assert client.post("/api/world/promote", json={
+        "scope_id": "taken", "name": "Eldenford", "area_ids": ["area_village"],
+        "parent_id": "wild", "cell": {"x": 1, "y": 1}}).status_code == 400
+    assert len(app._undo_stack) == base, "a refusal adds no undo entry"
+
+    # The next undo therefore reverts the op *before* the refusal, not nothing.
+    assert client.post("/api/undo", json={}).status_code == 200
+    assert app.world.world_scopes["wild"].get("area_placements") in (None, {})
+    assert app.world.graph.get_node("area_village") is not None
+

@@ -494,6 +494,82 @@ carries each building's `refusal`, and the cell inspector's `enter` row shows
 `world_compile.building_refusal` the compiler uses, so the preview cannot drift
 from the world.
 
+## Telling the author what to do (task-521, 2026-09-28)
+
+The compiler always knew which scopes it would refuse. It said so only *after* the
+author pressed **⚙ Generate**, and what it said was a rule rather than a remedy. The
+two refusals that actually cost an author a session were:
+
+- **`paint_policy: "baked"`.** A scope made with **🪜 Make this a scope…** is
+  promoted from areas the author had already written, so it is *authored* rather
+  than painted and carries no paint at all. It fails with a sentence that explains
+  neither how it got that way nor how to get out of it — and `paint_policy` was
+  not in the grid payload, so the editor could not show it either. The only place
+  the field was readable was the save file.
+- **A placement on an unpainted parent cell.** The scope sits on world cell (17,3)
+  and the parent's paint has a gap there, so `_gateway` skips it
+  (`world_compile.py`, the placement loop) and **no gateway is ever minted**. No
+  error, no warning, no report line — the scope is simply unreachable, forever.
+
+So there are three distinct layers of guidance, and only the first was ever filed:
+
+### 1. Preflight — the refusals, as advice
+
+`engine.world_compile.preflight(manifest, scope_id)` returns
+`[{code, severity, text, remedy}]`, and `_grid_payload` ships it as `blockers`. The
+editor renders it beside **⚙ Generate** and puts the blocked conditions in the
+button's own tooltip, so the reason is never more than one hover away.
+
+**`block` is a condition `compile_grid` refuses; `warn` is advice.** The two must
+not drift, and `test_preflight_and_the_compiler_refuse_the_same_baked_scope` holds
+the seam. A `block` may also be a condition the compiler *starts* refusing once the
+author carries out the remedy — the un-painted-placement case is that kind: it is
+not refused at all, it is silently ineffective.
+
+The area count in the `node-cap` warning reuses `_regions` rather than counting
+painted cells, so it agrees with what Generate mints under the scope's merge switch
+and the per-kind merge rules; a painted-cell count reads ~4× high on a merged street
+and cries wolf about a map that is fine.
+
+The `unnamed` warning fires for `town`/`interior` scopes, or for any scope with at
+least one name already. A wilderness cell compiling to `Sparse Forest (world 7,4)`
+is named correctly and is not nagged; a *half*-named world map still is.
+
+`entry-corner` is the one that is advice rather than a defect, and it is the least
+guessable fact in the whole system: **a gateway opens into the top-left-most
+painted region**, because that is region 0. Paint the approach first if you want
+travellers to arrive at the gate rather than at whatever happens to be furthest up
+and left.
+
+### 2. A per-mode checklist inside the editor
+
+`editor.js`'s `_checklist` writes out what a scope of this **mode** needs, in
+order: a `world` is ground and roads, a `town` is ground → streets → walls → gates
+→ buildings → **names** → interiors, an `interior` is rooms → doors → storeys →
+names.
+
+Progress is **derived from the payload, not remembered in `localStorage`**. A
+checkbox the author can tick without doing the thing is worse than no checklist,
+and the state that decides "done" already exists on the record. The panel opens
+itself for an empty scope and gets out of the way once there is paint, until the
+author clicks it — after which their choice sticks.
+
+### 3. Tips
+
+21 `data-help` hooks and matching tips under a `WorldPainter` group, plus a
+`paint-a-town` tour. `tools/unit/test_help_center.js` guards the registry: unique
+ids, a group and a body on every tip, every tour step naming a real tip, every
+tour reachable from a tip, and **every `data-help` key the app emits having a tip
+behind it** — a control hooked to nothing is a button that does nothing when
+clicked, and nothing about that throws.
+
+The dead-hook check reads the *sources* rather than a DOM, matching both
+`data-help="…"` attributes and the painter's `_help(el, '…')` helper, and
+reconstructing the tool rail's eight `wp-tool-*` keys from the `TOOLS` table since
+those are built at runtime as `'wp-tool-' + id`. It has already paid for itself:
+it found that the **❓ Help button itself** carried `data-help="help"` with no tip
+behind it.
+
 ## Still open
 
 

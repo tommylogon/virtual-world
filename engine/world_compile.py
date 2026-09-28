@@ -1084,6 +1084,216 @@ def _region_components(n_regions: int,
     return list(grouped.values())
 
 
+# ───────────────────────────── preflight ───────────────────────────────────
+
+#: Preflight severities. ``block`` is a condition :func:`compile_grid` refuses —
+#: or one it starts refusing the moment the author carries out the remedy.
+#: ``warn`` is advice: nothing is refused, but the result will not be what the
+#: author expected, and a silent result is what made this worth building.
+BLOCK = "block"
+WARN = "warn"
+
+#: Upper bound on the nodes one area can add, used only to warn *before* the
+#: limit is hit. A cell is scanned in four directions (:data:`_SCAN_DIRECTIONS`),
+#: so a scope of N areas mints at most ~4N ways on top of its N areas. The real
+#: check is in :func:`engine.generation.apply_patch`; this is the early warning
+#: that lets the author halve the scope rather than discover it as a 400.
+_WAYS_PER_AREA_UPPER = 4
+
+
+def _painted_cells(record: Dict[str, dict]) -> Set[Tuple[int, int]]:
+    """The cells of *record* that hold a biome or a road, as ``(x, y)`` pairs.
+
+    The compile set before the structure and hand-placed-area passes
+    (task-496's observer view: a road-only cell is a place like any other).
+    """
+    out: Set[Tuple[int, int]] = set()
+    for layer in ("biome", "road"):
+        for key, value in (record.get("layers") or {}).get(layer, {}).items():
+            if value in (None, ""):
+                continue
+            pos = wg.parse_cell_key(key)
+            if pos is not None:
+                out.add(pos)
+    return out
+
+
+def preflight(manifest: Dict[str, dict], scope_id: str, *,
+              region_merge: bool = False,
+              max_nodes: int = 20_000) -> List[Dict[str, str]]:
+    """Why this scope cannot be compiled yet, shaped as advice.
+
+    :func:`compile_grid` already knows every one of these conditions. It only
+    speaks *after* the author presses Generate, and what it says is a rule rather
+    than a remedy. The worst case is a scope made by promoting areas you had
+    already written: it is always ``baked``, it never carries paint, and it
+    fails with a sentence that explains neither how it got that way nor how to
+    get out of it — and nothing in the editor says so beforehand, because the
+    one field that would have (``paint_policy``) is not in the grid payload.
+
+    This is the same knowledge turned for the painter: a list of
+    ``{code, severity, text, remedy}`` the editor renders beside Generate, so a
+    scope that cannot compile explains itself *before* the click.
+
+    **Keep this in step with :func:`compile_grid`.** A ``block`` must be a
+    condition that function refuses, or one it will refuse once the remedy is
+    carried out; anything advisory belongs at ``warn``. The area count reuses
+    :func:`_regions` rather than counting painted cells, so it agrees with what
+    Generate mints under the scope's merge switch and the per-kind merge rules —
+    a painted-cell count would read as ~4x too high on a merged street and would
+    cry wolf about a map that is fine.
+    """
+    out: List[Dict[str, str]] = []
+
+    def add(code: str, severity: str, text: str, remedy: str = "") -> None:
+        out.append({"code": code, "severity": severity, "text": text,
+                    "remedy": remedy})
+
+    record = manifest.get(scope_id)
+    if record is None:
+        add("no-scope", BLOCK,
+            f"There is no scope called “{scope_id}”.",
+            "It may have been deleted. Open the WorldPainter from a scope that "
+            "still exists.")
+        return out
+
+    label = str(record.get("name") or scope_id)
+    if not wg.has_grid(record):
+        add("no-grid", BLOCK, f"“{label}” has no grid yet.",
+            "Open ▦ Grid… and give it a width and a height. One cell is one "
+            "minute of walking, so the size is how long the place takes to cross.")
+        return out
+
+    layers = record.get("layers") or {}
+    biome_of: Dict[Tuple[int, int], str] = {}
+    road_of: Dict[Tuple[int, int], str] = {}
+    for target, layer in ((biome_of, "biome"), (road_of, "road")):
+        for key, value in (layers.get(layer) or {}).items():
+            if value in (None, ""):
+                continue
+            pos = wg.parse_cell_key(key)
+            if pos is not None:
+                target[pos] = str(value)
+    painted = set(biome_of) | set(road_of)
+
+    # ── will this be refused? ──
+    if (record.get("paint_policy") == PAINT_POLICY_BAKED
+            and record.get("state") == "materialized"):
+        add("baked", BLOCK,
+            f"“{label}” was made by promoting areas you had already written, so "
+            f"it is authored rather than painted, and Generate has nothing to "
+            f"compile.",
+            "Delete this scope and make a new one with ➕ Add feature… — that "
+            "one starts empty and is paintable. The promoted areas are released "
+            "back to unplaced and keep their names and contents.")
+    if not painted:
+        add("no-paint", BLOCK, f"“{label}” has nothing painted on it.",
+            "Pick a layer and drag on the grid. Every painted cell becomes a "
+            "place, so an unpainted cell is simply not there.")
+
+    # A wall, a void, a window or a door occupies its cell and says how it
+    # connects, but never becomes a place (task-562); a road painted over one is
+    # still a road, because the road layer replaces the biome everywhere.
+    def is_place(cell: Tuple[int, int]) -> bool:
+        if road_of.get(cell):
+            return True
+        return biomes_mod.cell_kind(biome_of.get(cell)) == "place"
+
+    cells = {c for c in painted if is_place(c)}
+    # A cell holding a hand-placed area belongs to that area, not to the paint
+    # (task-528), and the compiler drops it before forming regions.
+    placed = wg.area_placements(record)
+    if placed:
+        occupied = {wg.cell_key(pos["x"], pos["y"]) for pos in placed.values()}
+        cells = {c for c in cells if wg.cell_key(*c) not in occupied}
+        if painted and not cells:
+            add("all-occupied", BLOCK,
+                f"Every painted cell of “{label}” already holds a hand-placed "
+                f"area ({len(placed)} placed), so nothing is left to compile.",
+                "Erase the paint under those cells, or take the areas off the "
+                "grid with the Area tool, and paint somewhere else.")
+
+    # ── is the parent able to reach it? ──
+    parent_id = str(record.get("parent_id") or "")
+    parent = manifest.get(parent_id) if parent_id else None
+    placement = wg.cell_of(parent, scope_id) if isinstance(parent, dict) else None
+    parent_label = str(parent.get("name") or parent_id) if isinstance(parent, dict) else ""
+    if placement is not None:
+        px, py = placement
+        if (px, py) not in _painted_cells(parent):
+            add("orphan-placement", BLOCK,
+                f"“{label}” sits on cell ({px},{py}) of “{parent_label}”, which "
+                f"is not painted, so no gateway will ever connect the two.",
+                f"Paint that cell on “{parent_label}” — a road usually fits the "
+                f"gap a place like this leaves — or move the scope onto a cell "
+                f"that is painted.")
+        else:
+            standing = wg.area_placement_at(parent, px, py)
+            if standing:
+                add("placed-over-area", WARN,
+                    f"“{label}” sits on the hand-placed area “{standing}”, so "
+                    f"“{parent_label}” compiles no region there and the gateway "
+                    f"is skipped.",
+                    "Move the scope to a painted cell with no hand-placed area "
+                    "on it, or promote that area into the scope instead.")
+
+    # ── what will it actually produce? ──
+    regions: List[List[Tuple[int, int]]] = []
+    if cells:
+        def identity(cell: Tuple[int, int]) -> str:
+            road = road_of.get(cell)
+            kind = f"road:{road}" if road else f"biome:{biome_of.get(cell)}"
+            return f"{kind}|floor:{wg.floor_at(record, *cell)}"
+
+        ordered = sorted(cells, key=lambda c: (c[1], c[0]))
+        regions = _regions(ordered, identity, default_merge=region_merge,
+                           always_merge=_merge_always_cells(
+                               ordered, biome_of.get, road_of.get),
+                           never_merge=_merge_never_cells(
+                               ordered, biome_of.get, road_of.get))
+        if len(regions) * _WAYS_PER_AREA_UPPER > max_nodes:
+            add("node-cap", WARN,
+                f"“{label}” would compile to about {len(regions)} areas, which "
+                f"is over the {max_nodes:,}-node limit for a single Generate.",
+                "Turn on “merge same-biome” so a run of like cells becomes one "
+                "place, or split the scope into a child scope and keep the "
+                "detail one rung down.")
+
+    names = {k: v for k, v in (record.get("names") or {}).items() if v}
+    # Naming matters where a cell is a place someone is *addressed at* — a town
+    # or an interior, where "go inn" has to match something. A wilderness cell is
+    # scenery and compiles to "Sparse Forest (world 7,4)", which is the right name
+    # for it, so a scope with nothing named at all is not nagged. The one
+    # wilderness case worth raising is a half-named map: the author named the
+    # road that matters and left the other fifty.
+    naming_expected = str(record.get("mode") or "world") in ("town", "interior") or bool(names)
+    if cells and naming_expected and len(names) < len(cells):
+        add("unnamed", WARN,
+            f"{len(cells) - len(names)} of {len(cells)} painted places have no "
+            f"name, so they compile to coordinates like “Inn "
+            f"({label} 12,7)” and cannot be asked for by name.",
+            "Right-click a cell and use the name field. A building is not "
+            "addressable until it has one — “go inn” has nothing to match "
+            "otherwise.")
+
+    if placement is not None and regions:
+        anchor = regions[0][0]
+        add("entry-corner", WARN,
+            f"Anyone arriving from “{parent_label}” lands on the top-left-most "
+            f"painted place, ({anchor[0]},{anchor[1]}), because that is the "
+            f"region the gateway opens into.",
+            "If that is not the gate you want travellers to arrive at, paint "
+            "that approach first so it becomes the top-left-most place.")
+
+    if str(record.get("state") or "") == "materialized":
+        add("regenerate", WARN,
+            f"“{label}” has already been generated.",
+            "Generate will offer to redo it. Anything edited by hand in the "
+            "graph afterwards is replaced — that is what a Generate is.")
+
+    return out
+
+
 def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
                  region_merge: bool = False, link_islands: bool = True,
                  recipe_id: str = RECIPE_ID,
@@ -1108,11 +1318,20 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
     if record is None:
         raise ValueError(f"no such scope {scope_id!r}")
     if not wg.has_grid(record):
-        raise ValueError(f"scope {scope_id!r} has no grid")
+        raise ValueError(
+            f"scope {scope_id!r} has no grid. Open 'Grid…' and give it a width "
+            f"and a height — one cell is one minute of walking.")
     if (record.get("paint_policy") == PAINT_POLICY_BAKED
             and record.get("state") == "materialized"):
+        # The remedy, not the rule: a scope reaches this state by being promoted
+        # from areas the author had already written, and "compile it once" is
+        # advice that cannot be followed — there is no paint to compile. See
+        # :func:`preflight`, which says the same thing before the click.
         raise ValueError(
-            f"scope {scope_id!r} is baked; compile it once then author by hand")
+            f"scope {scope_id!r} is baked: it was made by promoting existing "
+            f"areas, so it has no paint of its own to compile. Delete it and "
+            f"make a new scope with 'Add feature', which starts empty and is "
+            f"paintable; the promoted areas are released back to unplaced.")
 
     if seed is None:
         seed = f"{scope_id}:{recipe_id}"
@@ -1229,9 +1448,13 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
         if not cells:
             raise ValueError(
                 f"scope {scope_id!r} paints no cells left to compile: every painted "
-                f"cell holds a hand-placed area ({len(placed)} placed)")
+                f"cell holds a hand-placed area ({len(placed)} placed). Erase the "
+                f"paint under those cells or take the areas off the grid, then "
+                f"paint somewhere else.")
     if not cells:
-        raise ValueError(f"scope {scope_id!r} paints no cells")
+        raise ValueError(
+            f"scope {scope_id!r} paints no cells. Every painted cell is a place, "
+            f"so there is nothing here yet — pick a layer and drag on the grid.")
 
     def identity(cell: Tuple[int, int]) -> str:
         """What *kind* of place this cell is: the road if painted, else the biome.

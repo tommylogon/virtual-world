@@ -206,6 +206,11 @@ def _grid_payload(manifest: Dict[str, dict], scope_id: str, graph=None) -> dict:
             "state": rec["state"],
             "mode": rec.get("mode"),
             "has_grid": world_grid.has_grid(rec),
+            # The editor cannot see this anywhere else, and it is the difference
+            # between "Generate failed" and an explanation. `baked` is the reason
+            # a scope promoted from existing areas can never be compiled, and it
+            # used to be readable only in the save file.
+            "paint_policy": rec.get("paint_policy") or world_compile.PAINT_POLICY_CANONICAL,
         },
         "grid": ({"w": w, "h": h, "cell_scale": (rec.get("grid") or {}).get("cell_scale", 1.0)}
                  if world_grid.has_grid(rec) else None),
@@ -223,6 +228,10 @@ def _grid_payload(manifest: Dict[str, dict], scope_id: str, graph=None) -> dict:
         "children": children,
         "parent": parent,
         "breadcrumb": _breadcrumb(manifest, scope_id),
+        # Why this scope cannot be compiled yet, and what to do about it. The
+        # compiler's own refusals, as advice, so a scope explains itself before
+        # the author presses Generate rather than after.
+        "blockers": world_compile.preflight(manifest, scope_id),
     }
 
 

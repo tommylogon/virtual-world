@@ -71,6 +71,10 @@
         routeInfoEl: null,
         overlay: null,
         body: null,
+        // The per-mode checklist's open/closed state. `checklistTouched` records
+        // that the author clicked it, which stops it re-deciding for them.
+        checklistOpen: true,
+        checklistTouched: false,
         status: '',
         statusError: false,
     };
@@ -91,6 +95,80 @@
         if (title) b.title = title;
         b.addEventListener('click', onClick);
         return b;
+    }
+
+    /**
+     * Hook a painter control into the HelpCenter (task-521). The launcher button
+     * was the only hinted control in this overlay, so every in-editor control —
+     * the ones you actually have to understand — was unhelpfully silent.
+     */
+    function _help(el, key) {
+        if (el) el.setAttribute('data-help', key);
+        return el;
+    }
+
+    /**
+     * The preflight bar: what blocks this scope from compiling, and what to do.
+     *
+     * Renders beside ⚙ Generate rather than behind it, because the whole point is
+     * that the author finds out *before* pressing it. A block is stated with its
+     * remedy inline; a warn is folded behind a count so a map with six naming
+     * reminders does not bury the one that matters.
+     */
+    function _blockerBadge(blockers, p) {
+        const blocks = blockers.filter((b) => b && b.severity === 'block');
+        const warns = blockers.filter((b) => b && b.severity !== 'block');
+        const lead = blocks.length ? blocks : warns;
+        const tone = blocks.length ? '#f77' : '#c96';
+        const label = blocks.length
+            ? `⚠ ${blocks.length} thing${blocks.length > 1 ? 's' : ''} to fix before Generate`
+            : `⚠ ${warns.length} thing${warns.length > 1 ? 's' : ''} to know`;
+
+        const badge = _el('span', 'display:inline-flex;align-items:center;gap:4px;' +
+            'font-size:11px;padding:2px 7px;border-radius:10px;cursor:help;' +
+            `color:${tone};border:1px solid ${tone}55;background:${tone}12;`, label);
+        badge.setAttribute('data-role', 'wp-blockers');
+        _help(badge, 'wp-blockers');
+
+        const detail = _el('div', 'display:none;flex-direction:column;gap:5px;' +
+            'flex-basis:100%;width:100%;margin-top:2px;padding:6px 8px;border-radius:6px;' +
+            'border:1px solid var(--border,#3a3a44);background:rgba(13,17,23,0.6);');
+        for (const b of lead) {
+            if (!b) continue;
+            const row = _el('div', 'font-size:11px;line-height:1.45;' +
+                `color:${b.severity === 'block' ? '#f77' : '#c96'};`);
+            row.appendChild(_el('b', null, b.severity === 'block' ? '✖ ' : '⚠ '));
+            row.appendChild(document.createTextNode(b.text || ''));
+            if (b.remedy) {
+                const fix = _el('div', 'color:var(--text-muted,#999);padding-left:12px;');
+                fix.textContent = '→ ' + b.remedy;
+                row.appendChild(fix);
+            }
+            detail.appendChild(row);
+        }
+        if (warns.length > lead.length) {
+            const more = _el('div', 'font-size:11px;color:var(--text-muted,#999);');
+            more.textContent = `…and ${warns.length - lead.length} more. Hover ⚙ Generate for the full report.`;
+            detail.appendChild(more);
+        }
+
+        // The bar sits under the toolbar row, so it needs a wrapping parent: a
+        // button/label inside a plain `div` flow would break the row's alignment.
+        const wrap = _el('span', 'display:contents;');
+        const toggle = () => {
+            const showing = detail.style.display !== 'none';
+            detail.style.display = showing ? 'none' : 'flex';
+            badge.textContent = showing ? label
+                : (blocks.length ? '▲ fix these' : '▲ see these');
+        };
+        badge.addEventListener('click', toggle);
+        // Hovering Generate with a scope that cannot compile should say so
+        // anyway, so the reason is never more than one hover away.
+        const holder = _el('span', 'display:flex;flex-wrap:wrap;align-items:center;gap:8px;' +
+            'flex-basis:100%;width:100%;');
+        holder.appendChild(badge);
+        holder.appendChild(detail);
+        return wrap;
     }
 
     async function _req(url, options) {
@@ -114,6 +192,21 @@
     }
 
     const _post = (path, body) => _req(BASE + path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body || {}),
+    });
+
+    /**
+     * A POST to a path that is not under `/api/world/scopes`.
+     *
+     * `/api/world/promote` is the one WorldPainter endpoint that lives outside
+     * the scopes prefix, so `_post('/promote', …)` asked for
+     * `/api/world/scopes/promote` — which matches the scope *read* route, so the
+     * server answered 405 and the painter said "Promote failed". Absolute path
+     * or nothing.
+     */
+    const _post_root = (path, body) => _req(path, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body || {}),
@@ -564,6 +657,7 @@
 
         box.appendChild(_breadcrumb(p.breadcrumb));
         box.appendChild(_toolbar(p));
+        box.appendChild(_checklist(p));
         // The climate legend only exists while the climate layer is active, and
         // it sits directly under the layer control that switches to it (task-557).
         const legend = _climateLegend();
@@ -651,6 +745,9 @@
                 `${hint}\n\nShortcut: ${key}`);
             btn.setAttribute('data-tool', id);
             if (active) btn.setAttribute('aria-pressed', 'true');
+            // Hooked into the HelpCenter per tool (task-521). The rail was eight
+            // buttons with hover strings and no coach card behind any of them.
+            _help(btn, 'wp-tool-' + id);
             rail.appendChild(btn);
         });
         const options = _railOptions(p);
@@ -737,6 +834,189 @@
         render();
     }
 
+    /**
+     * The per-mode "what do I do now" list, with live progress.
+     *
+     * The painter explained its *controls* and never its *sequence*. A new scope
+     * showed a tool rail, four layers and a Generate button, and nothing said
+     * that a town is painted ground → streets → walls → buildings → names, or
+     * that a cell with no name cannot be asked for by name. That ordering is the
+     * part which is not inferable from the UI, so it is written out here.
+     *
+     * Progress is **derived from the payload, not remembered in localStorage**:
+     * a checkbox an author can tick without doing the thing is worse than no
+     * checklist, and the state that decides "done" already exists on the record.
+     * The panel opens itself for a scope with nothing on it yet and gets out of
+     * the way once there is paint.
+     */
+    function _checklist(p) {
+        const steps = _checklistSteps(p);
+        const done = steps.filter((s) => s.done).length;
+        const allDone = done === steps.length;
+
+        // Self-showing while the author has not taken control of it: open for a
+        // scope with nothing on it, collapse once there is real paint. Once they
+        // click it, their choice sticks — an author who collapsed it to get on
+        // with painting should not have it pop back open on the next stroke.
+        if (!state.checklistTouched) {
+            state.checklistOpen = done === 0 || !_paintedCount(p);
+        }
+        const toggle = _btn(
+            allDone ? '✔ all done' : `📋 ${done}/${steps.length} — what next`,
+            () => {
+                state.checklistOpen = !state.checklistOpen;
+                state.checklistTouched = true;
+                render();
+            },
+            'font-size:11px;padding:2px 8px;',
+            allDone
+                ? 'Every step for this mode is done.'
+                : 'What this kind of scope needs, in the order it needs it.');
+        _help(toggle, 'wp-checklist');
+
+        const wrap = _el('div',
+            'border:1px solid var(--border,#3a3a44);border-radius:8px;margin-bottom:8px;' +
+            'padding:6px 8px;background:rgba(13,17,23,0.35);');
+        wrap.setAttribute('data-role', 'wp-checklist');
+        wrap.appendChild(toggle);
+        if (!state.checklistOpen) return wrap;
+
+        const mode = p.mode || 'world';
+        const hint = _el('div', 'font-size:11px;color:var(--text-muted,#999);' +
+            'padding:4px 0 6px;line-height:1.5;');
+        hint.textContent = _checklistIntro(mode);
+        wrap.appendChild(hint);
+
+        for (const s of steps) {
+            const row = _el('div', 'display:flex;gap:6px;align-items:flex-start;' +
+                'padding:3px 0;font-size:12px;line-height:1.45;' +
+                (s.done ? 'color:var(--text-muted,#999);' : 'color:var(--text,#ddd);'));
+            row.appendChild(_el('span', 'flex:0 0 auto;width:14px;text-align:center;',
+                s.done ? '✔' : '○'));
+            const text = _el('div', 'flex:1;min-width:0;');
+            text.appendChild(_el('b', null, s.title + ' '));
+            text.appendChild(document.createTextNode(s.how));
+            if (s.done && s.note) {
+                text.appendChild(_el('div', 'color:#7a7;', '→ ' + s.note));
+            }
+            row.appendChild(text);
+            wrap.appendChild(row);
+        }
+        return wrap;
+    }
+
+    function _paintedCount(p) {
+        const layers = (p && p.layers) || {};
+        const n = (layer) => Object.keys(layers[layer] || {}).length;
+        return n('biome') + n('road');
+    }
+
+    function _checklistIntro(mode) {
+        if (mode === 'town') {
+            return 'A town is painted inside-out: the ground it stands on, the streets '
+                + 'across it, the wall around it, then the buildings on it, then the '
+                + 'names that make them addressable. Every painted cell becomes a '
+                + 'place; walls are structure and never do, which is what makes them '
+                + 'walls.';
+        }
+        if (mode === 'interior') {
+            return 'An interior is a floor plan. Paint rooms, join them with doors, '
+                + 'put a storey number where the level changes, and name the rooms — '
+                + 'corridors always merge into one place, rooms never do.';
+        }
+        return 'A world scope is deliberately coarse: the shape of the land and how '
+            + 'you get around it. Detail belongs one rung down in a child scope, so '
+            + 'a single Generate never mints thousands of places at once.';
+    }
+
+    /**
+     * Steps per mode, each with a `done` predicate over the payload.
+     *
+     * The `how` half of each line is the part that is not inferable from a
+     * tooltip: which *order*, which *layer*, and which value type. The `done`
+     * half only ever reads state the server already told us, so a step cannot
+     * claim itself satisfied by something that does not compile.
+     */
+    function _checklistSteps(p) {
+        const mode = p.mode || 'world';
+        const layers = (p && p.layers) || {};
+        const biomeCells = Object.keys(layers.biome || {});
+        const roadCells = Object.keys(layers.road || {});
+        const names = Object.values(p.names || {}).filter(Boolean).length;
+        const children = (p.children || []).length;
+        const generated = p.scope.state === 'materialized';
+        const wallCells = biomeCells.filter((k) => /(^|,)wall$/.test(
+            String((layers.biome || {})[k] || ''))).length;
+        const buildingCells = biomeCells.filter((k) => {
+            const v = String((layers.biome || {})[k] || '');
+            return /cottage|house|residential|tenement|inn|tavern|shop|smithy|workshop|warehouse|mill|barn|chapel|shrine|temple|town_hall|market|mansion|brothel|school|infirmary|library|stable|watch_house|bank|fast_food|mall/.test(v);
+        }).length;
+
+        const grid = {
+            title: 'Size the grid.',
+            how: 'One cell is one minute of walking, so the size is how long the '
+                + 'place takes to cross. ▦ Grid… sets it.',
+            done: !!p.scope.has_grid,
+        };
+        const ground = {
+            title: 'Paint the ground.',
+            how: 'Biome layer, a big brush, dragged over the area. Tick "merge '
+                + 'same-biome" or every cell becomes its own area.',
+            done: biomeCells.length > 0,
+        };
+        const roads = {
+            title: 'Lay the roads.',
+            how: 'Road layer, value "road", with the 🧭 Route tool — click '
+                + 'waypoints, then ✓ Paint route.',
+            done: roadCells.length > 0,
+        };
+        const namesStep = {
+            title: 'Name the places.',
+            how: 'Right-click a cell, use the name field. A place with no name '
+                + 'compiles to "Inn (Eldenford 12,7)" and cannot be asked for.',
+            done: names > 0 && names >= (biomeCells.length + roadCells.length) * 0.5,
+        };
+        const generate = {
+            title: 'Generate.',
+            how: 'Turns the painted cells into real areas and ways. Do it last, '
+                + 'and generate the parent before its children so the gateways '
+                + 'between them get minted.',
+            done: generated,
+            note: 'already generated — Ungenerate to start over',
+        };
+        const reference = {
+            title: 'Line the art up.',
+            how: 'Load a reference image, then ▦ match so the grid takes the '
+                + "image's aspect and a cell is the same place in both.",
+            done: !!(p.reference && p.reference.image),
+        };
+
+        if (mode === 'town') {
+            return [grid, ground, roads,
+                { title: 'Wall it in.', how: 'Biome layer, value "wall", along the '
+                    + 'perimeter. Walls are structure: they never become places, '
+                    + 'which is exactly what makes them walls.',
+                    done: wallCells > 0 },
+                { title: 'Open the gates.', how: 'Road layer, values "gate" and '
+                    + '"bridge", on the wall line where a road leaves. This is how '
+                    + 'a town gets more than one way in.',
+                    done: roadCells.some((k) => /gate|bridge|ford|tunnel/.test(
+                        String((layers.road || {})[k] || ''))) },
+                { title: 'Place the buildings.', how: 'One cell each, from the '
+                    + 'Buildings section of the value list. Buildings never merge, '
+                    + 'so a terrace stays a terrace.', done: buildingCells > 0 },
+                namesStep,
+                { title: 'Give the buildings interiors.', how: '➕ Add feature… '
+                    + 'names a child scope (mode becomes interior), then 🏠 Feature '
+                    + 'places it on the building\'s cell.', done: children > 0 },
+                generate];
+        }
+        if (mode === 'interior') {
+            return [grid, ground, roads, namesStep, generate];
+        }
+        return [grid, reference, ground, roads, namesStep, generate];
+    }
+
     function _toolbar(p) {
         const wrap = _el('div', 'display:flex;flex-wrap:wrap;gap:8px;align-items:center;' +
             'padding:8px;border:1px solid var(--border,#3a3a44);border-radius:8px;margin-bottom:8px;');
@@ -766,8 +1046,8 @@
             state.value = _defaultValueForLayer(state.layer);
             render();
         });
-        wrap.appendChild(layerSel);
-        wrap.appendChild(_valueControl());
+        _help(wrap.appendChild(layerSel), 'wp-layer');
+        wrap.appendChild(_help(_valueControl(), 'wp-value'));
 
         // Brush size: paints an N×N block per click — the difference between a
         // forest being 8 clicks or 800. Also widens a route/trail.
@@ -781,18 +1061,28 @@
             brushSel.appendChild(opt);
         });
         brushSel.addEventListener('change', () => { state.brush = parseInt(brushSel.value, 10) || 1; });
-        wrap.appendChild(brushSel);
+        _help(wrap.appendChild(brushSel), 'wp-brush');
 
         wrap.appendChild(_btn('▦ Grid…', () => _openGridDialog(p)));
         wrap.appendChild(_btn('➕ Add feature…', () => _promptNewScope(p.scope.id)));
+
+        // Why this scope cannot be compiled yet, and what to do about it
+        // (engine/world_compile.preflight). The compiler refuses the same
+        // conditions, but it refuses them *after* the click and only states the
+        // rule — so a scope promoted from existing areas (always `baked`, never
+        // carrying paint) used to fail with a sentence that explained neither how
+        // it got that way nor how out of it. Said here, the button and its
+        // reason are side by side.
+        const blockers = Array.isArray(p.blockers) ? p.blockers : [];
+        if (blockers.length) wrap.appendChild(_blockerBadge(blockers, p));
         // A building *type* brings its own floor plan (task-567). Only meaningful
         // on an interior scope, and offering it elsewhere would let an author paint
         // rooms onto a world map, which is a wall grid already says something.
         if (p.scope.mode === 'interior') {
-            wrap.appendChild(_btn('🏠 Paint an interior…', paintInterior, '',
+            wrap.appendChild(_help(_btn('🏠 Paint an interior…', paintInterior, '',
                 'Paint a building type\'s floor plan in as cells: a tavern gets a '
                 + 'tap room, kitchen and cellar. It is a draft — edit the cells, '
-                + 'then Generate.'));
+                + 'then Generate.'), 'wp-paint-interior'));
         }
 
         // Compile the painted grid into real area/way nodes (task-496/398).
@@ -801,7 +1091,7 @@
         merge.checked = !!state.merge;
         merge.setAttribute('data-role', 'wp-merge');
         merge.addEventListener('change', () => { state.merge = merge.checked; render(); });
-        wrap.appendChild(merge);
+        _help(wrap.appendChild(merge), 'wp-merge');
         wrap.appendChild(_el('span', 'font-size:12px;color:var(--text-muted,#999);',
             'merge same-biome'));
 
@@ -817,10 +1107,17 @@
               + 'nearest painted cell with a single way (not one per neighbour).'
             : 'Areas and ways this grid will compile to';
         estEl.setAttribute('data-role', 'wp-estimate');
-        wrap.appendChild(estEl);
-        wrap.appendChild(_btn('⚙ Generate', () => generate(), 'outline:1px solid #7ab;'));
-        wrap.appendChild(_btn('🧹 Ungenerate', () => ungenerate(),
-            'color:#c96;', 'Delete this zone\'s generated nodes but keep its painted grid, so you can regenerate a clean slate.'));
+        _help(wrap.appendChild(estEl), 'wp-estimate');
+        const blocked = blockers.filter((b) => b && b.severity === 'block');
+        wrap.appendChild(_help(_btn('⚙ Generate', () => generate(), 'outline:1px solid #7ab;',
+            blocked.length
+                ? 'This scope cannot be compiled yet — ' + blocked.map((b) => b.text).join(' ')
+                : 'Turn this scope\'s painted cells into real areas and ways.'),
+            'wp-generate'));
+        wrap.appendChild(_help(
+            _btn('🧹 Ungenerate', () => ungenerate(), 'color:#c96;',
+                'Delete this zone\'s generated nodes but keep its painted grid, so you can regenerate a clean slate.'),
+            'wp-ungenerate'));
 
         wrap.appendChild(_btn('⟳', () => load(state.scopeId)));
         return wrap;
@@ -1178,8 +1475,8 @@
             wrap.appendChild(op);
             // One click: make the grid the image's aspect, so painted cells and
             // the reference share geometry instead of fighting at different ratios.
-            wrap.appendChild(_btn('▦ match', () => _gridFromReference(p),
-                'padding:1px 6px;font-size:11px;'));
+            wrap.appendChild(_help(_btn('▦ match', () => _gridFromReference(p),
+                'padding:1px 6px;font-size:11px;'), 'wp-reference'));
             // Move/resize/crop the picture (task-524). The rect is stored in cell
             // units, so the graph map layout draws the same geometry.
             const adjustBtn = _btn(state.refEdit ? '✔ adjust' : '✥ adjust', () => {
@@ -1191,7 +1488,7 @@
                     : 'Reference adjust off.', false);
             }, 'padding:1px 6px;font-size:11px;');
             adjustBtn.title = 'Move, resize and crop the reference image';
-            wrap.appendChild(adjustBtn);
+            _help(wrap.appendChild(adjustBtn), 'wp-reference-adjust');
             const resetBtn = _btn('⤢ reset', () => updateReference({ reset: true }),
                 'padding:1px 6px;font-size:11px;');
             resetBtn.title = 'Fit the whole image to the grid again (clears move/resize/crop)';
@@ -2451,14 +2748,20 @@
 
     async function promoteArea(areaId) {
         const p = state.payload;
-        const area = (p.areas || []).find((a) => a.id === areaId);
-        if (!area) return;
+        // The area is a row of `area_placements` (id/name/x/y) — the payload
+        // carries no `areas` list, so looking there found nothing and returned
+        // silently, leaving the button a no-op with no prompt and no request.
+        const area = ((p.area_placements || []).find((a) => a.id === areaId))
+            || ((p.unplaced_areas || []).find((a) => a.id === areaId));
+        if (!area) {
+            _status(`No area '${areaId}' on this map to make a scope of.`, true);
+            return;
+        }
         const defaultName = `${area.name} interior`;
         const name = (window.prompt(
             'Name for the new child scope:', defaultName) || '').trim();
         if (!name) return;
-        const cell = area.cell || {};
-        const hasCell = Number.isInteger(cell.x) && Number.isInteger(cell.y);
+        const hasCell = Number.isInteger(area.x) && Number.isInteger(area.y);
         const body = {
             scope_id: (window.prompt(
                 'Id for the new scope (lower-case, no spaces):',
@@ -2469,15 +2772,15 @@
             entry_area_id: areaId,
             mode: 'interior',
         };
-        if (hasCell) body.cell = { x: cell.x, y: cell.y };
+        if (hasCell) body.cell = { x: area.x, y: area.y };
         try {
-            const res = await _post('/promote', body);
+            const res = await _post_root('/api/world/promote', body);
             state.selectedArea = null;
             // The parent grid is what moved (a placement appeared, an area left),
             // so the whole payload is re-read rather than patched by hand.
             await _reloadPayload();
             _status(`"${res.name}" is now a scope of its own, entered from `
-                + `${hasCell ? `cell (${cell.x},${cell.y})` : 'nowhere yet'}.`);
+                + `${hasCell ? `cell (${area.x},${area.y})` : 'nowhere yet'}.`);
             _notify(true);
         } catch (e) {
             _status(`Promote failed: ${e.message || e}`, true);

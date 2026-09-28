@@ -33,6 +33,13 @@ const win = {
     assertEq: null,
     assertTrue: null,
     assertFalse: null,
+    // Test affordance for reading repo files from inside the vm sandbox, where
+    // `require` does not exist. Guard tests that check the *sources* (rather
+    // than a runtime registry) use these; nothing under test reads a file.
+    __readFile: (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8'),
+    __exists: (rel) => fs.existsSync(path.join(ROOT, rel)),
+    __listDir: (rel) => fs.readdirSync(path.join(ROOT, rel), { withFileTypes: true })
+        .map((d) => (d.isDirectory() ? d.name + '/' : d.name)),
     // `vm` contexts do not inherit the host's timers, and several modules
     // schedule work (a layout redraw, a debounce). Synchronous stubs keep a test
     // from having to care: nothing under test depends on the delay.
@@ -40,7 +47,43 @@ const win = {
     clearTimeout: () => {},
     setInterval: () => 0,
     clearInterval: () => {},
+    // help-center.js runs `init()` at load, which installs document listeners and
+    // reads the seen-flags out of localStorage. Neither exists in a bare vm
+    // context, so both are stubbed permissively: a fake element absorbs any
+    // createElement/appendChild chain and the listener registrations are no-ops.
+    // Nothing under test touches the DOM — the registry is plain data.
+    localStorage: {
+        _v: new Map(),
+        getItem(k) { return this._v.has(k) ? this._v.get(k) : null; },
+        setItem(k, val) { this._v.set(k, String(val)); },
+        removeItem(k) { this._v.delete(k); },
+    },
+    document: {
+        readyState: 'complete',
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        querySelector: () => null,
+        querySelectorAll: () => [],
+        getElementById: () => null,
+        createElement: () => makeStubEl(),
+        head: makeStubEl(),
+        body: makeStubEl(),
+    },
 };
+function makeStubEl() {
+    const el = {
+        style: {}, dataset: {}, classList: { add: () => {}, remove: () => {} },
+        children: [], textContent: '', innerHTML: '', className: '',
+        setAttribute() {}, getAttribute: () => null, removeAttribute() {},
+        appendChild(c) { this.children.push(c); return c; },
+        removeChild() {}, remove() {}, insertBefore(c) { this.children.push(c); return c; },
+        addEventListener() {}, removeEventListener() {},
+        querySelector: () => null, querySelectorAll: () => [],
+        getBoundingClientRect: () => ({ left: 0, top: 0, width: 0, height: 0 }),
+        scrollIntoView() {},
+    };
+    return el;
+}
 win.window = win;
 vm.createContext(win);
 
@@ -98,6 +141,9 @@ load('static/js/soak/soak-format.js');
 load('static/js/soak/soak-charts.js');
 load('static/js/soak/soak-spacetime.js');
 load('static/js/ui/timeskip.js');
+// Loads after the document/localStorage stubs above; its `init()` only installs
+// listeners, so the registry it exports is intact for the guard test.
+load('static/js/ui/help-center.js');
 load('static/js/worldpainter/grid-model.js');
 
 // ── discover + run test files ──

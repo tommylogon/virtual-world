@@ -1618,3 +1618,132 @@ def test_an_override_only_survives_on_the_record_not_the_graph():
                 if n.type == "way" and "area_trail" in str(
                     (n.properties or {}).get("area_from_id"))]) == 4
 
+
+# ── preflight (task-521) ────────────────────────────────────────────────────
+# The compiler's own refusals, shaped as advice so the painter can say them
+# *before* the click. These two are the ones that cost a real author a session:
+# a scope promoted from areas they had already written, and a scope sitting on an
+# unpainted cell of its parent, which silently never gets a gateway at all.
+
+
+def _codes(manifest, scope_id, **kw):
+    return {b["code"]: b for b in world_compile.preflight(manifest, scope_id, **kw)}
+
+
+def test_preflight_reports_nothing_for_a_healthy_scope():
+    m = _painted(FOUR)
+    found = _codes(m, "wild")
+    for code in ("baked", "no-paint", "no-grid", "orphan-placement", "unnamed"):
+        assert code not in found, f"{code} should not fire on a healthy scope"
+
+
+def test_preflight_names_a_promoted_scope_and_its_remedy():
+    m = _painted(FOUR)
+    m["wild"]["paint_policy"] = world_compile.PAINT_POLICY_BAKED
+    m["wild"]["state"] = "materialized"
+
+    found = _codes(m, "wild")
+    assert found["baked"]["severity"] == world_compile.BLOCK
+    # The remedy has to name the way out rather than restate the rule: "compile
+    # it once then author by hand" is advice a promoted scope cannot follow,
+    # because promoting is exactly how it ended up carrying no paint.
+    assert "Add feature" in found["baked"]["remedy"]
+
+
+def test_preflight_and_the_compiler_refuse_the_same_baked_scope():
+    """The two must not drift: a blocker that still compiles is worse than none."""
+    m = _painted(FOUR)
+    m["wild"]["paint_policy"] = world_compile.PAINT_POLICY_BAKED
+    m["wild"]["state"] = "materialized"
+    assert "baked" in _codes(m, "wild")
+    with pytest.raises(ValueError, match="baked"):
+        world_compile.compile_grid(m, "wild")
+
+
+def test_preflight_flags_a_scope_placed_on_an_unpainted_parent_cell():
+    m = _painted(FOUR)
+    m["wild"]["parent_id"] = "root"
+    wg.ensure_grid(m["root"], 4, 4, mode="world")
+    wg.paint(m["root"], "road", 3, 3, "road")
+    wg.place(m, "root", "wild", 2, 2)          # a hole in the parent's paint
+
+    found = _codes(m, "wild")
+    assert found["orphan-placement"]["severity"] == world_compile.BLOCK
+    assert "(2,2)" in found["orphan-placement"]["text"]
+
+
+def test_preflight_is_quiet_about_a_placement_on_a_painted_cell():
+    m = _painted(FOUR)
+    m["wild"]["parent_id"] = "root"
+    wg.ensure_grid(m["root"], 4, 4, mode="world")
+    wg.paint(m["root"], "road", 3, 3, "road")
+    wg.place(m, "root", "wild", 3, 3)
+    assert "orphan-placement" not in _codes(m, "wild")
+
+
+def test_preflight_does_not_nag_a_wilderness_map_for_names():
+    """A forest cell compiling to "Sparse Forest (world 7,4)" is named correctly."""
+    m = _painted(FOUR)
+    assert "unnamed" not in _codes(m, "wild")
+
+
+def test_preflight_wants_names_in_a_town():
+    m = _painted(FOUR)
+    m["wild"]["mode"] = "town"
+    found = _codes(m, "wild")
+    assert found["unnamed"]["severity"] == world_compile.WARN
+    assert "name field" in found["unnamed"]["remedy"]
+
+
+def test_preflight_quiet_on_names_once_a_town_is_named():
+    m = _painted(FOUR)
+    m["wild"]["mode"] = "town"
+    for (x, y) in FOUR:
+        wg.set_name(m["wild"], x, y, "Place")
+    assert "unnamed" not in _codes(m, "wild")
+
+
+def test_preflight_warns_before_the_node_cap_with_the_switch_as_the_remedy():
+    """A road run merges into one area, so the count has to follow the switch."""
+    m = _manifest({}, w=6, h=3)
+    for x in range(6):
+        wg.paint(m["wild"], "road", x, 1, "road")
+
+    # Six separate road cells do not merge when the switch is off, and one road
+    # does when it is on. The estimate has to see that difference, or it cries
+    # wolf about a map that is fine. `max_nodes` is lowered so the cap is
+    # reachable without painting 20,000 cells.
+    unmerged = world_compile.preflight(m, "wild", region_merge=False,
+                                       max_nodes=8)
+    merged = world_compile.preflight(m, "wild", region_merge=True, max_nodes=8)
+    assert "node-cap" in {b["code"] for b in unmerged}
+    assert "merge same-biome" in next(
+        b for b in unmerged if b["code"] == "node-cap")["remedy"]
+    assert "node-cap" not in {b["code"] for b in merged}
+
+
+def test_preflight_explains_where_travellers_arrive():
+    """The gateway opens into the top-left-most region, which is not obvious."""
+    m = _manifest({}, w=4, h=4)
+    m["wild"]["parent_id"] = "root"
+    wg.ensure_grid(m["root"], 4, 4, mode="world")
+    wg.paint(m["root"], "road", 0, 0, "road")
+    wg.place(m, "root", "wild", 0, 0)
+    wg.paint(m["wild"], "biome", 3, 3, "cottage")
+
+    found = _codes(m, "wild")
+    assert "entry-corner" in found
+    assert "(3,3)" in found["entry-corner"]["text"]
+
+
+def test_preflight_reports_a_missing_grid_and_stops_there():
+    """Nothing else can be judged without a grid, so it is the only finding."""
+    m = {"root": {"id": "root", "name": "Root"},
+         "bare": {"id": "bare", "name": "Bare"}}
+    assert [b["code"] for b in world_compile.preflight(m, "bare")] == ["no-grid"]
+
+
+def test_preflight_reports_an_unknown_scope():
+    m = _painted(FOUR)
+    assert _codes(m, "nope")["no-scope"]["severity"] == world_compile.BLOCK
+

@@ -48,6 +48,12 @@ localStorage; the default re-shows next session.
   turns → hours), `▦ Grid…` presets/shrink-prune, reference image + `▦ match`,
   and the merge-same-biome toggle. The launcher button is hinted; the controls
   inside the overlay are not.
+  **DONE in task-575** (2026-09-28): 21 `data-help` hooks and matching tips under
+  a `WorldPainter` group, a `paint-a-town` tour, and `tools/unit/test_help_center.js`
+  guarding the registry — which also found the ❓ Help button itself unhinted.
+  Note task-575 added a **second** layer this task did not scope: preflight
+  blockers in the editor, because a tip cannot tell an author that *this* scope
+  cannot be compiled.
 - **World scopes / graph view** (task-397, task-400): beyond the shipped
   `scope-filter` tip — the scope *tree* is only a flat picker today, and an
   unmade-scope `Generate` affordance (task-398) has no hint yet.

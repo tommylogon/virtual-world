@@ -316,3 +316,166 @@ def test_load_without_manifest_is_backward_compatible(tmp_path):
     assert client.post("/api/load", json=_minimal_scenario()).status_code == 200
     root = client.get("/api/world/scopes").get_json()
     assert root["scope"] is None and root["children"] == []
+
+
+# ── promote_to_scope (task-535) ────────────────────────────────────────────
+
+def _promote_manifest():
+    """A painted world scope with a village and a road parked on cells."""
+    return {
+        "world": {
+            "id": "world", "name": "World", "kind": "scope", "mode": "world",
+            "state": "materialized",
+            "grid": {"w": 20, "h": 10, "cell_scale": 1.0},
+            "layers": {"biome": {"9,5": "sparse_forest", "17,3": "sparse_forest"},
+                       "road": {}},
+            "area_ids": ["area_eldenford_village", "area_human_road"],
+            "area_placements": {"area_eldenford_village": {"x": 17, "y": 3},
+                                "area_human_road": {"x": 9, "y": 5}},
+            "placements": {},
+            "children": [],
+        }
+    }
+
+
+def _promote_graph():
+    g = WorldGraph()
+    g.add_node(Node(id="area_eldenford_village", type="area", name="Eldenford",
+                    properties={"world_scope_id": "world", "cell": {"x": 17, "y": 3}}))
+    g.add_node(Node(id="area_human_road", type="area", name="Human Road",
+                    properties={"world_scope_id": "world"}))
+    g.add_node(Node(id="way_1", type="way", name="A to B"))
+    return g
+
+
+def test_promote_makes_the_areas_a_scope_of_the_parent():
+    m, g = _promote_manifest(), _promote_graph()
+    res = world_scopes.promote_to_scope(
+        m, g, scope_id="eldenford_interior", name="Eldenford",
+        area_ids=["area_eldenford_village"], parent_id="world", cell=(17, 3),
+        entry_area_id="area_eldenford_village", mode="interior")
+
+    record = m["eldenford_interior"]
+    assert res["scope_id"] == "eldenford_interior"
+    assert record["parent_id"] == "world" and "eldenford_interior" in m["world"]["children"]
+    assert record["entry_area_id"] == "area_eldenford_village"
+    assert record["entry_area_name"] == "Eldenford"
+    # Authored, not compiled — so Generate and Ungenerate both refuse it.
+    assert record["paint_policy"] == "baked"
+    # Membership moves at both ends, and the old scope lets go of the cell.
+    assert g.get_node("area_eldenford_village").properties["world_scope_id"] == "eldenford_interior"
+    assert m["eldenford_interior"]["area_ids"] == ["area_eldenford_village"]
+    assert m["world"]["area_ids"] == ["area_human_road"]
+    assert m["world"]["area_placements"] == {"area_human_road": {"x": 9, "y": 5}}
+    assert res["released_from"] == {"area_eldenford_village": "world"}
+    # The painted marker is cleared: inside the scope, position is canvas space.
+    assert "cell" not in g.get_node("area_eldenford_village").properties
+
+
+def test_promote_of_a_placed_area_makes_no_way_to_itself():
+    """The selection is the thing on the cell, so there is nothing to walk from.
+
+    A gateway here resolved to the promoted area itself and produced a way named
+    "Eldenford - Eldenford" that left and re-entered one area. The scope takes
+    the cell and no way is minted; the village's own ways out are its entrance.
+    """
+    m, g = _promote_manifest(), _promote_graph()
+    res = world_scopes.promote_to_scope(
+        m, g, scope_id="eldenford_interior", name="Eldenford",
+        area_ids=["area_eldenford_village"], parent_id="world", cell=(17, 3),
+        entry_area_id="area_eldenford_village", mode="interior")
+
+    assert res["way_id"] == ""
+    assert g.get_node("way_gateway_world_eldenford_interior") is None
+    assert not [n for n in g.nodes.values()
+                if getattr(n, "type", "") == "way" and n.name == "Eldenford - Eldenford"]
+    # Placed on the cell, with no gateway claim attached to the placement.
+    assert m["world"]["placements"] == {"eldenford_interior": {"x": 17, "y": 3}}
+
+
+def test_promote_mints_a_gateway_from_a_doorstep_that_stays_in_the_parent():
+    m, g = _promote_manifest(), _promote_graph()
+    res = world_scopes.promote_to_scope(
+        m, g, scope_id="camp_interior", name="goblin camp",
+        area_ids=["area_eldenford_village"], parent_id="world", cell=(9, 5),
+        entry_area_id="area_eldenford_village", mode="interior")
+
+    way = g.get_node(res["way_id"])
+    assert way.name == "Human Road - goblin camp"
+    assert way.properties["area_from_id"] == "area_human_road"
+    assert way.properties["area_to_id"] == "area_eldenford_village"
+    # The author's own way: a parent-stamped `generated` block would let
+    # Ungenerate on the parent delete it.
+    assert "generated" not in way.properties
+    assert way.properties["authored"] is True
+    placed = m["world"]["placements"]["camp_interior"]
+    assert placed["gateway_from"] == "area_human_road"
+    # The road shares the cell with the new scope, which is the one overlap
+    # policy that allows it.
+    assert m["world"]["area_placements"]["area_human_road"] == {"x": 9, "y": 5}
+
+
+def test_promote_gateway_survives_ungenerating_the_parent():
+    m, g = _promote_manifest(), _promote_graph()
+    res = world_scopes.promote_to_scope(
+        m, g, scope_id="camp_interior", name="goblin camp",
+        area_ids=["area_eldenford_village"], parent_id="world", cell=(9, 5),
+        entry_area_id="area_eldenford_village", mode="interior")
+    world_scopes.ungenerate_scope(m, g, "world")
+    assert g.get_node(res["way_id"]) is not None
+
+
+def test_promote_refuses_everything_before_it_mutates():
+    m, g = _promote_manifest(), _promote_graph()
+    before = repr(m)
+
+    def promote(**kw):
+        args = {"scope_id": "s", "name": "S", "area_ids": ["area_eldenford_village"],
+                "parent_id": "world", "cell": (17, 3)}
+        args.update(kw)
+        with pytest.raises(ValueError):
+            world_scopes.promote_to_scope(m, g, **args)
+        assert repr(m) == before, "a refusal must leave the manifest untouched"
+
+    promote(scope_id="")
+    promote(name="")
+    promote(area_ids=[])
+    promote(scope_id="world")
+    promote(area_ids=["way_1"])
+    promote(area_ids=["nope"])
+    promote(entry_area_id="area_human_road")
+    promote(cell=(99, 99))
+    promote(parent_id="nowhere")
+    assert g.get_node("area_eldenford_village").properties["world_scope_id"] == "world"
+
+
+def test_promote_refuses_a_cell_that_is_not_a_painted_place():
+    m, g = _promote_manifest(), _promote_graph()
+    with pytest.raises(ValueError, match="painted place"):
+        world_scopes.promote_to_scope(
+            m, g, scope_id="s", name="S", area_ids=["area_eldenford_village"],
+            parent_id="world", cell=(4, 4),
+            entry_area_id="area_eldenford_village")
+
+
+def test_promote_without_a_parent_groups_without_placing():
+    m, g = _promote_manifest(), _promote_graph()
+    res = world_scopes.promote_to_scope(
+        m, g, scope_id="grouping", name="Grouping",
+        area_ids=["area_eldenford_village"], entry_area_id="area_eldenford_village")
+    assert res["way_id"] == "" and res["cell"] is None
+    assert "grouping" not in m["world"]["placements"]
+    assert m["grouping"]["parent_id"] is None
+
+
+def test_promote_entry_defaults_to_the_first_selected_area_by_id():
+    m, g = _promote_manifest(), _promote_graph()
+    m["world"]["area_ids"].append("area_barn")
+    g.add_node(Node(id="area_barn", type="area", name="Barn",
+                    properties={"world_scope_id": "world"}))
+    res = world_scopes.promote_to_scope(
+        m, g, scope_id="stead", name="Stead", parent_id="world",
+        area_ids=["area_barn", "area_eldenford_village"])
+    # Deterministic, and not "top-left-most" as the compiler picks.
+    assert res["entry_area_id"] == "area_barn"
+

@@ -472,8 +472,17 @@ def promote_to_scope(manifest: Dict[str, dict], graph, *, scope_id: str,
       child is (``placements``); the way belongs to nobody's recipe.
     - **The entry is a choice, not a fallback.** ``entry_area_id`` when the author
       names one, else the first selected area **by id** — deterministic, and not
-      "the top-left-most" as the compiler picks, because a promoted selection has
+      the "top-left-most" as the compiler picks, because a promoted selection has
       no painted anchor to be top-left-most of.
+    - **No gateway when the doorstep is one of the promoted areas.** Promoting a
+      single placed area — the shape the painter's one-area button can only offer
+      — puts the selection on the very cell it already sat on, so the "place a
+      gateway opens from" resolves to the area being promoted. A way from a place
+      to itself goes nowhere, so none is minted and the scope simply takes the
+      cell; the promoted area's own ways out stay the entrance. A doorstep that
+      is *not* in the selection still gets the gateway, which is the case the
+      ``gateway`` overlap mode exists for.
+
 
     Raises ``ValueError`` for an empty selection, a duplicate scope id, an unknown
     parent, a selected id that is not an area, an entry outside the selection, or
@@ -527,6 +536,11 @@ def promote_to_scope(manifest: Dict[str, dict], graph, *, scope_id: str,
     record = {
         "id": scope_id,
         "name": name,
+        # A promoted selection is a plain scope. Without this the record reached
+        # `scope_summary` — which reads `kind` as a hard key — and the route 500'd
+        # on every promote; `normalise_manifest` would have papered over it on the
+        # next load, long after the author saw the failure.
+        "kind": DEFAULT_KIND,
         "parent_id": parent_id,
         "mode": str(mode or "interior"),
         # Authored, not compiled — see the docstring.
@@ -566,42 +580,55 @@ def promote_to_scope(manifest: Dict[str, dict], graph, *, scope_id: str,
     way_id = ""
     if gateway_place is not None and cell is not None:
         place_area_id, place_name = gateway_place
-        way_id = f"way_gateway_{parent_id}_{scope_id}"
-        inward = str(enter or f"enter {name.lower()}")
-        outward = str(leave or "leave")
-        graph.nodes[way_id] = Node(
-            id=way_id, type="way", name=f"{place_name} - {name}",
-            properties={
-                "area_from": place_name,
-                "area_to": record["entry_area_name"],
-                "area_from_id": place_area_id,
-                "area_to_id": entry,
-                "direction": inward,
-                "return_direction": outward,
-                "current_state": "open",
-                "see_through": False,
-                "pass_message": f"You {inward}.",
-                "world_scope_id": parent_id,
-                "child_scope_id": scope_id,
-                "entry_phrase": inward,
-                "entry_target": record["entry_area_name"],
-                "aliases": ["in", "out"],
-                # The author's own way, on purpose: **no** `generated` block. See
-                # the docstring — a parent-stamped one would die with the parent's
-                # next Ungenerate.
-                "authored": True,
-            })
-        for source, target, direction in (
-                (place_area_id, way_id, inward),
-                (way_id, entry, inward),
-                (entry, way_id, outward),
-                (way_id, place_area_id, outward)):
-            graph.add_edge(Edge(source=source, target=target, type=EDGE_CONNECTION,
-                                properties={"direction": direction}))
-        world_grid.place(manifest, parent_id, scope_id, int(cell[0]), int(cell[1]),
-                         on_overlap="gateway")
-        manifest[parent_id]["placements"][scope_id].update(
-            {"area_id": place_area_id, "area_name": place_name})
+        # The area standing on the cell is often *in the selection* — promoting
+        # one placed area is exactly that: it is the whole selection, promoted
+        # from the cell it already sat on. A gateway from a place to itself is a
+        # way that goes nowhere ("Eldenford - Eldenford"), and a doorstep that
+        # just moved into the child is not a doorstep at all. So no way is
+        # minted: the promoted area's own ways out (task-528's boundary seams, or
+        # the author's) are the entrance, and the cell is left to the scope. The
+        # cell was released when membership moved (see
+        # :func:`assign_area_membership`), so the placement needs no gateway
+        # overlap either.
+        if place_area_id not in wanted:
+            way_id = f"way_gateway_{parent_id}_{scope_id}"
+            inward = str(enter or f"enter {name.lower()}")
+            outward = str(leave or "leave")
+            graph.nodes[way_id] = Node(
+                id=way_id, type="way", name=f"{place_name} - {name}",
+                properties={
+                    "area_from": place_name,
+                    "area_to": record["entry_area_name"],
+                    "area_from_id": place_area_id,
+                    "area_to_id": entry,
+                    "direction": inward,
+                    "return_direction": outward,
+                    "current_state": "open",
+                    "see_through": False,
+                    "pass_message": f"You {inward}.",
+                    "world_scope_id": parent_id,
+                    "child_scope_id": scope_id,
+                    "entry_phrase": inward,
+                    "entry_target": record["entry_area_name"],
+                    "aliases": ["in", "out"],
+                    # The author's own way, on purpose: **no** `generated` block. See
+                    # the docstring — a parent-stamped one would die with the parent's
+                    # next Ungenerate.
+                    "authored": True,
+                })
+            for source, target, direction in (
+                    (place_area_id, way_id, inward),
+                    (way_id, entry, inward),
+                    (entry, way_id, outward),
+                    (way_id, place_area_id, outward)):
+                graph.add_edge(Edge(source=source, target=target, type=EDGE_CONNECTION,
+                                    properties={"direction": direction}))
+            world_grid.place(manifest, parent_id, scope_id, int(cell[0]), int(cell[1]),
+                             on_overlap="gateway")
+            manifest[parent_id]["placements"][scope_id].update(
+                {"area_id": place_area_id, "area_name": place_name})
+        else:
+            world_grid.place(manifest, parent_id, scope_id, int(cell[0]), int(cell[1]))
 
     return {"scope_id": scope_id, "name": name, "area_ids": list(wanted),
             "entry_area_id": entry, "parent_id": parent_id,
