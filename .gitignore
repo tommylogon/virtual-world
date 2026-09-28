@@ -36,6 +36,9 @@ saves/
 # Derived dev-task frontmatter cache (rebuilt by `python tools/tasks.py index`)
 docs/virtualWorld/dev_tasks/.tasks-index.json
 
+# Runtime port lock, written by the test/app run in every worktree
+.kilo-local-port
+
 # Copyrighted D&D source books — keep local, never commit.
 # The extracted tables and rules live in docs/dm-tools-reference.md instead.
 # (docs/dev_tasks.pdf and docs/non_dev_tasks.pdf are generated project artifacts and stay tracked.)

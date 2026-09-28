@@ -36,11 +36,36 @@ Project guidance for automated agents working in this repo.
 
 - `tests/test_mcp_*.py` fail with `'function' object has no attribute 'fn'`
   (FastMCP tool-wrapper mismatch in the environment).
-- `tests/test_social_company.py` and `tests/test_tick_time_scaling.py` have known
-  failures.
+- `tests/test_social_company.py`, `tests/test_tick_time_scaling.py` and
+  `tests/test_character_identity.py` have known failures.
 
-Baseline is roughly **60 failed / 3239 passed**. Do not try to "fix" these unless
-explicitly asked; compare against the baseline instead.
+Baseline is **61 failed / 4202 passed**, measured on a clean `master` worktree on
+2026-09-28. Do not try to "fix" these unless explicitly asked; compare against
+the baseline instead.
+
+**Compare the failure *names*, not the counts.** The counts drift as tests are
+added, so a matching total proves nothing; a matching set does. Save both
+outputs and diff the `FAILED` lines:
+
+```powershell
+python -m pytest -q --tb=no 2>&1 | Tee-Object -FilePath mine.txt
+git worktree add --detach "$env:TEMP\vw-baseline" master   # a clean checkout
+python -m pytest -q --tb=no 2>&1 | Tee-Object -FilePath baseline.txt  # in that worktree
+Compare-Object (Get-Content baseline.txt | ? { $_ -like 'FAILED*' } | Sort-Object) `
+              (Get-Content mine.txt      | ? { $_ -like 'FAILED*' } | Sort-Object)
+```
+
+The two `test_character_identity.py` failures (`test_collapse_is_idempotent`,
+`test_kraktooth_loads_as_one_node_per_character`) are the canonical-node
+problem task-457 describes; going green there is its natural acceptance.
+
+### Gotchas in a managed worktree
+
+- **Never `git stash`.** Stashes are shared across worktrees, so a stash here is
+  visible to every other lane. Rebase or merge `master` in instead.
+- **Never `npm install` / run the JS gates in a worktree without checking
+  `git status` afterwards.** npm rewrites `package-lock.json`'s `"name"` field to
+  the worktree directory name. Revert it: `git checkout -- package-lock.json`.
 
 ## Dev tasks (todo / inprogress / review / done / cancelled)
 
