@@ -144,7 +144,7 @@ travels to the name. This bit me for a while; it is commented at the call site.
   option once a hub forms. That negative feedback is the whole fix.
 - Full suite **59 → 62 failed / 4017 → 4030 passed**. The +3 are a pre-existing
   order-dependent flake in `tests/test_social_company.py`, proven pre-existing by
-  re-running with this work stashed; filed as bug-54. Net new failures: **0**.
+  re-running with this work stashed; filed as bug-55. Net new failures: **0**.
 
 ## Acceptance
 

@@ -5,7 +5,10 @@ area: testing
 priority: medium
 ---
 
-# bug-54: test_social_company passes alone but fails in the full suite (create_app is not isolated per call)
+# bug-55: test_social_company passes alone but fails in the full suite (create_app is not isolated per call)
+
+**Renumbered** 2026-09-28 from bug-54, which was already taken by the weather
+`WEATHER_LIGHT_MULT` bug in `todo/bugs/`.
 
 **Filed:** 2026-09-27
 **Related:** task-551
