@@ -17,6 +17,10 @@ from .player_ops import (
     handle_update_player,
     handle_import_player,
     handle_generate_character_description,
+    handle_get_character_record,
+    handle_set_character_record,
+    handle_clear_character_record,
+    handle_character_affect,
     handle_get_vital,
     handle_update_vital,
 )
@@ -88,6 +92,22 @@ def register_players_routes(app):
     @app.route('/api/players/<name>/generate-description', methods=['POST'])
     def api_generate_character_description(name):
         return handle_generate_character_description(app, name)
+
+    @app.route('/api/players/<name>/record', methods=['GET'])
+    def api_get_character_record(name):
+        return handle_get_character_record(app, name)
+
+    @app.route('/api/players/<name>/record', methods=['PUT'])
+    def api_set_character_record(name):
+        return handle_set_character_record(app, name)
+
+    @app.route('/api/players/<name>/record', methods=['DELETE'])
+    def api_clear_character_record(name):
+        return handle_clear_character_record(app, name)
+
+    @app.route('/api/players/<name>/affect', methods=['GET', 'POST'])
+    def api_character_affect(name):
+        return handle_character_affect(app, name)
 
     @app.route('/api/players/<name>/vitals/<vital_name>', methods=['GET'])
     def api_get_vital(name, vital_name):

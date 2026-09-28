@@ -1,11 +1,21 @@
 # engine/npc_behaviors.py — NPC behavior and AI hunting system extracted from VirtualWorld
 
+import logging
 import random
 import time
 from collections import deque
 from typing import Optional, Dict, List, Any
 
 from graph import EDGE_CONNECTION
+
+logger = logging.getLogger(__name__)
+
+from engine.observation_signal import (
+    OFF_WATCH_ACTIVITIES,
+    OFF_WATCH_CONDITIONS,
+    PUBLIC_LIGHT_FLOOR,
+    get_observation_signals,
+)
 
 
 # ────────────────────── NPC perception & reaction (task-214) ──────────────────
@@ -234,7 +244,13 @@ class NPCBehaviorSystem:
             return None
         if getattr(npc, "state", None) == "dead":
             return None
-        if self.gs.is_undead_ghost(npc):
+        # `npc.name`, not `npc`: is_undead_ghost looks the character up BY NAME
+        # in player_manager.players, so it was handed a Player object as a dict
+        # key, the lookup could never match, and this exclusion has never fired
+        # in the life of the engine. A ghost was therefore free to gawk and
+        # comment like anything else. Same one-word shape as _can_observe below,
+        # which got it right.
+        if self.gs.is_undead_ghost(npc.name):
             return None
         if stimulus_type in SEXUAL_STIMULI and not getattr(self.gs, "mature_content", False):
             return None
@@ -246,16 +262,67 @@ class NPCBehaviorSystem:
             return None
         return self._emit_reaction(npc, reaction)
 
-    def process_bystander_reactions(self, actor_name: str, target_name: str,
-                                    stimulus_type: str,
-                                    stimulus_data: dict = None,
-                                    max_reactions: int = 1) -> List[str]:
-        """Every simple NPC sharing the actor's area reacts to the stimulus.
+    def _can_observe(self, npc, target, stimulus_type) -> bool:
+        """Cheap eligibility gate — is this character a candidate observer at all?
 
-        Simple NPCs are the tier with no LLM; agent/human characters already
-        perceive through their own prompts, so they are not double-handled here.
-        Capped at *max_reactions* lines per stimulus so a crowded room does not
-        flood the log/prompt with one comment per bystander.
+        Kept separate from the DC roll so a tier that is not *looking* (dead,
+        spectral, or in a non-mature world reading a sexual stimulus) never
+        costs a d20 and never leaves a record.
+        """
+        if npc is None or target is None or npc.name == getattr(target, "name", None):
+            return False
+        if getattr(npc, "state", None) == "dead":
+            return False
+        if self.gs.is_undead_ghost(npc.name):
+            return False
+        if stimulus_type in SEXUAL_STIMULI and not getattr(self.gs, "mature_content", False):
+            return False
+        return True
+
+    def _is_public_observation(self, npc) -> bool:
+        """Was this sighting open to the room, rather than a private catch?
+
+        Answers "was there an audience", which ``body_parts.is_exposed`` cannot:
+        that answers "is this body part covered", and a covered body part in an
+        empty room is nobody's business. Someone who noticed something in the
+        dark, or who is asleep or unconscious, is a witness but not an onlooker —
+        the record keeps them, marked covert.
+
+        Deliberately reads conditions and the activity rather than ``state``:
+        ``Player.state`` is derived from a precedence hierarchy in which ``awake``
+        outranks a lesser condition, so a character can be asleep and still read
+        as ``awake`` (task-547).
+        """
+        try:
+            for condition in OFF_WATCH_CONDITIONS:
+                if npc.has_condition(condition):
+                    return False
+        except Exception:
+            return False
+        activity = getattr(npc, "activity", None) or {}
+        if str(activity.get("type") or "") in OFF_WATCH_ACTIVITIES:
+            return False
+        return self._ambient_light(getattr(npc, "current_area", None)) >= PUBLIC_LIGHT_FLOOR
+
+    def record_observations(self, actor_name: str, target_name: str,
+                            stimulus_type: str,
+                            stimulus_data: dict = None) -> List[dict]:
+        """One structured perception pass: who saw *target*, and how openly.
+
+        Every character tier that can look is included — agent-driven and human
+        characters as well as simple NPCs. The old pass skipped them because it
+        only ever returned reaction *lines*, which those tiers already narrate
+        through their own prompts; a "was I seen" record is not a line, and the
+        tiers a player most expects to be watching are exactly the ones that were
+        being dropped (task-547).
+
+        Returns one dict per observer who passed the roll::
+
+            {"observer": name, "player": <Player>, "public": bool,
+             "tick": int, "stimulus_type": str}
+
+        The same results are written to the process-wide observation-signal log,
+        so later effects can read them without re-running perception.
         """
         if self.gs is None:
             return []
@@ -266,20 +333,132 @@ class NPCBehaviorSystem:
         area = getattr(actor, "current_area", None)
         if not area:
             return []
-        lines = []
+
+        tick = int(getattr(self.gs, "time_ticks", 0) or 0)
+        log = get_observation_signals()
+        records = []
         for pname, npc in list(self.gs.players.items()):
-            if len(lines) >= max_reactions:
-                break
             if pname in (actor_name, target_name):
-                continue
-            if not getattr(npc, "simple_npc", False):
                 continue
             if getattr(npc, "current_area", None) != area:
                 continue
-            line = self.process_npc_reaction(npc, target, stimulus_type, stimulus_data)
+            if not self._can_observe(npc, target, stimulus_type):
+                continue
+            dc = self.calculate_perception_difficulty(npc, target, stimulus_type)
+            if not self.check_perception(npc, dc):
+                # Failed the check: they are not an observer, so nothing is
+                # recorded. Acceptance is explicit that a character who fails
+                # perception does not appear in the record.
+                continue
+            public = self._is_public_observation(npc)
+            log.record(npc.name, target_name, tick=tick, public=public,
+                       stimulus_type=stimulus_type)
+            records.append({
+                "observer": npc.name,
+                "player": npc,
+                "public": public,
+                "tick": tick,
+                "stimulus_type": stimulus_type,
+            })
+        return records
+
+    def process_bystander_reactions(self, actor_name: str, target_name: str,
+                                    stimulus_type: str,
+                                    stimulus_data: dict = None,
+                                    max_reactions: int = 1) -> List[str]:
+        """Emit reaction *lines* for the simple NPCs who witnessed a stimulus.
+
+        Simple NPCs are the tier with no LLM; agent/human characters already
+        perceive through their own prompts, so they are not double-handled here.
+        Capped at *max_reactions* lines per stimulus so a crowded room does not
+        flood the log/prompt with one comment per bystander.
+
+        The cap bounds *lines*, not observers: perception runs once for every
+        tier via :meth:`record_observations`, and the cap is applied afterwards.
+        Previously the cap broke out of the candidate loop, so it silently
+        truncated the observer set too (task-547).
+        """
+        if self.gs is None:
+            return []
+        records = self.record_observations(actor_name, target_name,
+                                           stimulus_type, stimulus_data)
+        lines: List[str] = []
+        for record in records:
+            if len(lines) >= max_reactions:
+                break
+            npc = record["player"]
+            if not getattr(npc, "simple_npc", False):
+                continue
+            reaction = self._reaction_type(npc, stimulus_type)
+            if reaction == "ignore":
+                # They saw it and chose not to react. Still an observation --
+                # already recorded -- but no line to show.
+                continue
+            line = self._emit_reaction(npc, reaction)
             if line:
                 lines.append(line)
         return lines
+
+    def _apply_pack_signal(self, pname: str, player, trigger_type: str) -> None:
+        """Let a pack tell this character what a packmate is dealing with.
+
+        Two things, both cheap and both idempotent:
+
+        * a packmate's call **names a target** here, so
+          ``player.pack_target`` is set even for a character that never saw the
+          fight itself;
+        * if this character is being threatened, it **calls for help** — the
+          "warn each other" half of task-354, throttled so a cornered rat does
+          not have the whole sewer howling every tick.
+
+        This does not move anyone. Movement stays with the behaviour rules and
+        the legacy wander/flee fallback, because "attack the same target" is
+        something a behaviour definition can already say and "walk over there"
+        is not this task's business.
+        """
+        try:
+            from engine import pack as pack_mod
+        except Exception:
+            return
+        try:
+            if pack_mod.pack_of(player) is None:
+                return
+
+            target = pack_mod.coordinated_target(self.gs, player)
+            if target and getattr(player, "pack_target", None) != target:
+                player.pack_target = target
+
+            threat = self._nearest_threat(pname, player)
+            if not threat:
+                return
+            if pack_mod.on_call_cooldown(self.gs, player, self.gs.time_ticks):
+                return
+            pack_mod.call_for_help(self.gs, player, cause=threat,
+                                   tick=self.gs.time_ticks)
+        except Exception as e:
+            # A pack signal is a nicety; it must never take a tick down.
+            logger.debug("[npc_behaviors] pack signal for %s: %s", pname, e)
+
+    def _nearest_threat(self, pname: str, player) -> Optional[str]:
+        """A living non-packmate in this character's own area, or None."""
+        area = getattr(player, "current_area", None)
+        if not area:
+            return None
+        from engine import pack as pack_mod
+        mine = pack_mod.pack_of(player)
+        for other_name, other in (getattr(self.gs, "players", None) or {}).items():
+            if other_name == pname or other is player:
+                continue
+            if getattr(other, "current_area", None) != area:
+                continue
+            if getattr(other, "state", "") == "dead":
+                continue
+            if other_name == getattr(player, "pack_target", None):
+                continue
+            if mine and pack_mod.pack_of(other) == mine:
+                continue
+            return other_name
+        return None
 
     def process_simple_npcs(self, trigger_type="on_tick", extra_context=None):
         """Process simple NPC behaviors and legacy wander/flee.
@@ -291,6 +470,10 @@ class NPCBehaviorSystem:
                 continue
             if player.state == "dead":
                 continue
+            # A packmate's call reaches further than this character's own eyes,
+            # and it may name a target this one had not noticed (task-354). Runs
+            # before the behaviour loop so a behaviour can act on the target.
+            self._apply_pack_signal(pname, player, trigger_type)
             # Busy/sleeping simple NPCs don't act (task-131)
             if player.state in ("sleeping", "unconscious"):
                 continue

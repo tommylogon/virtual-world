@@ -36,11 +36,36 @@ Project guidance for automated agents working in this repo.
 
 - `tests/test_mcp_*.py` fail with `'function' object has no attribute 'fn'`
   (FastMCP tool-wrapper mismatch in the environment).
-- `tests/test_social_company.py` and `tests/test_tick_time_scaling.py` have known
-  failures.
+- `tests/test_social_company.py`, `tests/test_tick_time_scaling.py` and
+  `tests/test_character_identity.py` have known failures.
 
-Baseline is roughly **60 failed / 3239 passed**. Do not try to "fix" these unless
-explicitly asked; compare against the baseline instead.
+Baseline is **61 failed / 4202 passed**, measured on a clean `master` worktree on
+2026-09-28. Do not try to "fix" these unless explicitly asked; compare against
+the baseline instead.
+
+**Compare the failure *names*, not the counts.** The counts drift as tests are
+added, so a matching total proves nothing; a matching set does. Save both
+outputs and diff the `FAILED` lines:
+
+```powershell
+python -m pytest -q --tb=no 2>&1 | Tee-Object -FilePath mine.txt
+git worktree add --detach "$env:TEMP\vw-baseline" master   # a clean checkout
+python -m pytest -q --tb=no 2>&1 | Tee-Object -FilePath baseline.txt  # in that worktree
+Compare-Object (Get-Content baseline.txt | ? { $_ -like 'FAILED*' } | Sort-Object) `
+              (Get-Content mine.txt      | ? { $_ -like 'FAILED*' } | Sort-Object)
+```
+
+The two `test_character_identity.py` failures (`test_collapse_is_idempotent`,
+`test_kraktooth_loads_as_one_node_per_character`) are the canonical-node
+problem task-457 describes; going green there is its natural acceptance.
+
+### Gotchas in a managed worktree
+
+- **Never `git stash`.** Stashes are shared across worktrees, so a stash here is
+  visible to every other lane. Rebase or merge `master` in instead.
+- **Never `npm install` / run the JS gates in a worktree without checking
+  `git status` afterwards.** npm rewrites `package-lock.json`'s `"name"` field to
+  the worktree directory name. Revert it: `git checkout -- package-lock.json`.
 
 ## Dev tasks (todo / inprogress / review / done / cancelled)
 
@@ -93,3 +118,32 @@ moving several. `validate` also flags dangling dependency references.
 - Do not edit `.kilo/agent-manager.json` directly; it is managed UI/recovery
   state, not an API.
 - Only commit when explicitly asked.
+
+### Is this mechanic actually wired?
+
+A mechanic that exists, works, and is never called looks *exactly* like a
+mechanic with a low event rate. Three separate instances turned up in one pass,
+so check all three before concluding anything from a telemetry table or a soak:
+
+1. **Is anything calling it?** A working `fear_sources` with no caller is
+   indistinguishable from "no fears arose". `rg` the function name outside its
+   own module.
+2. **Is it reading the right object?** A character graph node is created *bare*
+   — `Node(id=..., type="character", name=...)` — and carries no `tags`,
+   `traits` or any other definition. Anything looking a character up by its
+   **node** sees nothing; the data lives on the `Player`. `engine/fear.py`
+   spent a long time matching against the node before this was caught.
+3. **Has anyone authored any?** A field can be serialized, round-trip a save and
+   look entirely functional while every value in every scenario is `[]`. Nothing
+   in a soak will move until data exists, and no code change fixes that.
+
+A fourth, quieter one: **a guard whose lookup can never match.** `is_undead_ghost`
+takes a *name*; a call site passing the `Player` object compiles, runs, and
+always returns False, so the guard silently never fires. When two similar guards
+disagree, one of them is a no-op — check the signature rather than assuming both
+are right.
+
+Corollary for tests: a test that passes for the wrong reason is worse than no
+test. Prefer asserting the *mechanism* (which value was read, which branch ran)
+over asserting a substring that some other layer could also produce.
+

@@ -90,3 +90,44 @@ test('buildConversationInstinct includes anti-repeat rule when own speech exists
 test('buildConversationInstinct empty when nothing notable', () => {
     assertEq(CC.buildConversationInstinct({ vitals: { social: 50 } }, 'Lyrie'), '');
 });
+
+// ── verbatim speech text (bug-28) ──
+//
+// A 2026-08-23 export showed the anti-repeat section quoting a character's own
+// line back as "that s— that s advanced dlc content" — apostrophes replaced by
+// spaces and everything lowercased — while the "You said:" echo of the same
+// utterance in the same turn was verbatim. The transform no longer exists; these
+// pin the invariant so a normalising pass cannot creep back in.
+
+const PUNCTY = "NO. No licking — that's NOT weird, I'm sure! You've... *stop*";
+
+test('ownRecentSpeech preserves apostrophes and capitalisation', () => {
+    const player = { recent_hearing: [{ type: 'speech', speaker: 'Lyrie', text: PUNCTY }] };
+    assertEq(CC.ownRecentSpeech(player, 'Lyrie'), [`"${PUNCTY}"`]);
+});
+
+test('buildConversationInstinct emits the line verbatim', () => {
+    const player = { recent_hearing: [{ type: 'speech', speaker: 'Lyrie', text: PUNCTY }] };
+    const block = CC.buildConversationInstinct(player, 'Lyrie');
+    assertTrue(block.includes(`"${PUNCTY}"`), 'own line quoted verbatim');
+    assertTrue(block.includes('NOT weird'), 'original capitalisation kept');
+    // The two shapes the historical transform produced: ' -> space, and lowercase.
+    assertFalse(block.includes('that s'), 'apostrophe was replaced by a space');
+    assertFalse(block.includes('"no. no licking'), 'line was lowercased');
+});
+
+test('markSpeechLine leaves the spoken text untouched', () => {
+    const line = '[Heard] a voice said: "I\'m fine, don\'t worry — truly"';
+    assertEq(
+        CC.markSpeechLine(line, 'I\'m fine, don\'t worry — truly', 'Lyrie', {}),
+        line
+    );
+});
+
+test('dedupe is case-insensitive but keeps the first spelling', () => {
+    const player = { recent_hearing: [
+        { type: 'speech', speaker: 'Lyrie', text: 'I\'m Fine.' },
+        { type: 'speech', speaker: 'Lyrie', text: "i'm fine." },
+    ] };
+    assertEq(CC.ownRecentSpeech(player, 'Lyrie'), ['"I\'m Fine."']);
+});
