@@ -49,6 +49,75 @@ runs the cheap policy.
 
 Scale is therefore bounded by *attention*, not by world size.
 
+### Perception is a channel, not a radius (task-418, landed)
+
+"Could they hear me?" was answered by a **hop radius** — `radius_hops: 2` — which
+counts edges on the graph. A wall that happened to be one extra edge away did not
+muffle anything, and a sound that crossed a room was identical to one that
+crossed a corridor. It also made audibility a property of the *graph* rather than
+of the world, which is why a text world and a gridded world could not share the
+same attention budget.
+
+Audibility is now a **channel** with attenuation, in `engine/awareness.py`: sound
+carries through ways and is blocked by closed ones, and a listener is added to the
+attended set when the signal actually reaches them. `radius_hops` and
+`hysteresis` are **retired** — task-411's copy of them is superseded, and code
+that still reads them is reading a dead field. task-418 carries the channel table
+and the barrier parity rules.
+
+## Where a character is (task-419, landed)
+
+A character has **one** spatial anchor at a time, and it is **relational**: `at`
+the piano, `at` the stranger, `in` the alley — a relation to another node, not a
+coordinate in a room. Two consequences the old model got wrong:
+
+- A position is **walked to**. Any action that physically involves something
+  (`open`, `go`, `give`, `attack`) steps the character there through the normal
+  action flow; there is no separate `examine` first.
+- There is an **anchor budget**. A character at the piano and *also* at the door
+  was a bug, not richness.
+
+Full mechanics, relation vocabulary and code map:
+[[Gameplay/Character Spatial Position]] — source of truth
+`engine/character_spatial.py`.
+
+## Scopes: a place is a node, not a range (task-397, landed)
+
+A **world scope** is a named, addressable region of the world with a parent, so
+`Millbrook Falls > Downtown > The Pines > Floor 2` is a path a system can name and
+a user can navigate. A scope is the unit of loading, of generation and of
+projection:
+
+- A graph request may ask for **one scope's projection** instead of the whole
+  graph. The editor does this; the default view does not reveal the items a scope
+  merely contains.
+- A scope carries its own membership, so moving a building's interior moves the
+  whole interior rather than scattering its rooms.
+- An **unmade** scope is a declared-but-unbuilt place. It is a valid thing to
+  point at, which is what makes generation (below) and chunking (task-401)
+  possible at all.
+
+A zone is therefore addressed by scope; nothing in the model needs a second
+spatial representation to describe "inside".
+
+## Making a place (task-398, landed)
+
+An unmade scope with a **recipe** can be built deterministically: the same seed,
+recipe version and clean fixture produce the same patch, and a second run creates
+no duplicate nodes. The first recipe is `apartment.v1`
+(`engine/generation_recipes.py`), which builds a three-area interior with real
+ways, real items placed through the ordinary spatial edges, and provenance on
+everything it made.
+
+The rule that keeps this from becoming a second authoring system: **generated is a
+provenance flag, not an ownership claim.** Once a person edits a generated item,
+that edit outranks the recipe and a later generation cannot erase it. Generation
+is the sanctioned way to mint an unmade scope, never a way to overwrite a made
+one.
+
+The `Generate` button and the preview surface are not built yet —
+**task-580**.
+
 ## Time: a turn is a timeframe
 
 - A **turn** is a timeframe of N game minutes. The world clock may run faster or
@@ -83,6 +152,20 @@ simulation and the UI. `simultaneous` is the fourth mode on that same dial —
 resolve against a snapshot and commit together — not a separate axis.
 
 See **task-437**.
+
+That task is still open, and the honest reading of where we are: the *item* half
+is fixed, the *actor* half is not. The two whole-graph item passes are now one
+**area-major sweep** (task-416, landed) — a lit object left in a room and a plain
+item owning an `on_tick` trigger both belong to their *area*, so they are
+evaluated area by area (`_sweep_area_items` in `engine/tick_manager.py`), and
+co-presence is a live reverse index rather than a per-turn scan.
+
+The **acting queue is deliberately untouched** by that work: characters still
+walk `player_manager.players` in registry order, so log order, need-threshold
+messages and death handling are byte-for-byte unchanged. Area grouping is used
+only where it is a scoped-evaluation win. Ordering the *actors* is still
+task-437, and until it lands a resolution-order bug is a real, reproducible
+hazard.
 
 ### Timeskip actions
 
@@ -169,3 +252,7 @@ story — rather than a bar the player fights.
 - [[NPC Behavior System]] — the simple/background policies.
 - [[Vitals System]] — the meters themselves.
 - [[Activities & States]] — durations and blocking activities.
+- [[Gameplay/Character Spatial Position]] — one `at` per character, and the
+  relations a spatial anchor may hold.
+- [[World Building/World Scopes]] — the scope hierarchy, projections, unmade
+  scopes and generation recipes.

@@ -245,6 +245,60 @@ lands — not by how many arms are running.
 
 ---
 
+## Outcome — 2026-09-28 (the first round landed)
+
+The plan was executed as written and the prediction held. Merged to `master` in
+the prescribed order, with **no conflicts at all**:
+
+| Step | Commit | Lane |
+|---|---|---|
+| 1 | `6868120` | merge `wt-a-perception` (perception, sound, light, presentation) |
+| 2 | `479a2c7` | merge `wt-b-items` (items, inventory, equipment, data migrations) |
+| 3 | `3dd4b68` | merge `wt-c-characters` (characters, NPC behaviour, social, speech) |
+| 4 | `fbe36fa` | `wt-0-spine` (task-416, 397, 418, 419, 398), rebased onto `master` after each arm |
+
+What the plan got right, and it is worth keeping:
+
+- **The hub analysis was exact.** No arm touched any of the eight hub files, so the
+  spine's claim was never contested and the rebase after each arm was trivial. The
+  two files two arms did both touch — `engine/runtime_config.py` (A/C) and
+  `engine/background_simulation.py` (B/C) — resolved without a hand.
+- **Treating the append-only files as append-only worked.** `templates/index.html`
+  and `tools/unit/run.cjs` took edits from all four lanes and merged cleanly, which
+  is what the plan predicted. Had they been treated as hubs, the spine would have
+  absorbed four extra handoffs for nothing.
+- **The `review` folder was the right place to land, not `done`.** 29 tasks moved
+  `todo` → `review` across the round and were promoted to `done` only after the
+  merged tree was clean, so "the lane finished its file" and "the work is
+  accepted" stayed separable.
+
+Where the plan was wrong, or incomplete:
+
+- **It assumed the merge would be the hard part.** It was the easy part. The
+  expensive thing was the *gate*: a dirty `master` baseline (61 pre-existing
+  failures) means every lane has to diff failure *names* against a clean
+  worktree, and no amount of lane separation removes that cost.
+- **It could not see the serial dependencies inside one lane.** `397 → 398 → 400 →
+  401 → 402` is all spine work; parallelising around it bought less than the file
+  footprints implied, because the spine cannot start 400 until 398 is merged, and
+  cannot start 401 until 400 is proved.
+- **One item from §5 is now stale:** "cut the worktrees and let the arms run while
+  the spine grinds through task-397" is done, so the next round is not a
+  re-cut — it is a fresh partition of whatever remains in the queues, against a
+  `master` that now contains the spine's scope tree, awareness channels, spatial
+  model and generation recipes.
+
+Standing advice for the next round, from what this one taught:
+
+- Keep the append-only rule, and add the one that caught us out: **a guard whose
+  lookup can never match is not a low event rate.** Three mechanics looked
+  healthy and were dead on arrival (see the checklist now in `AGENTS.md`).
+- Re-derive the hub table before the next cut. The spine's own commits changed
+  what is expensive: `engine/awareness.py`, `engine/character_spatial.py` and
+  `engine/generation_recipes.py` are now the seam a second lane will collide on.
+
+---
+
 ## Appendix — how the file footprints were derived
 
 `docs/virtualWorld/dev_tasks/{todo,inprogress,review}/<area>/<kind>-<id>-<slug>.md`

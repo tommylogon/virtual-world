@@ -3,6 +3,18 @@
 Four worktrees, branched from `master`. One is a **serial spine**, three are
 **parallel arms**. Do not run the arms and the spine in the same files.
 
+> **Status 2026-09-28 — round 1 landed.** All four lanes merged to `master` with
+> no conflicts: WT-A `6868120`, WT-B `479a2c7`, WT-C `3dd4b68`, then the spine
+> `fbe36fa` (task-416, 397, 418, 419, 398). 29 tasks went `todo` → `review` and
+> were promoted to `done` on the merged tree. The rules below are unchanged and
+> were the reason it worked — in particular **no arm touched a hub file**, and the
+> two files two arms both touched merged without a hand. What the round cost was
+> not the merge but the gate: a dirty `master` baseline means every lane diffs
+> failure *names* against a clean worktree. Before cutting the next round, re-derive
+> the hub table: `engine/awareness.py`, `engine/character_spatial.py` and
+> `engine/generation_recipes.py` are now the seam a second lane will collide on.
+> See `docs/design/worktree-parallelisation-plan.md` for the full outcome.
+
 | Lane | Worktree | Owns | Tasks | Merges |
 |---|---|---|---|---|
 | WT-0 | `wt-0-spine` | the 8 hub files + world scale | 42 (a queue) | last |

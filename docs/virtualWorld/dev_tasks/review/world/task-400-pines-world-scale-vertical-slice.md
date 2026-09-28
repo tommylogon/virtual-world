@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: world
 priority: high
 ---
@@ -76,8 +76,45 @@ Authored slice (data only, via `tools/author_pines_slice.py`):
   bounded `background` memory (see task-399). Tests: `tests/test_pines_slice.py`
   (7).
 
-Still open (blocked on **task-398**, deterministic scoped generation, which is
-still `todo`): generating Apartment 3B from preview, walking from Hallway 3 into
-its new areas, and proving no duplicate generated nodes on save/reload. The
-scope/placement data and the background-life proof are in place; the generator
-they call does not exist yet.
+## Progress — 2026-09-28 (the generator is now actually reachable)
+
+The 2026-09-24 note said the remaining work was blocked on task-398 because "the
+generator they call does not exist yet". The generator existed; **nothing called
+it**. `generation_recipes.get_recipe()` had exactly one caller — its own test —
+while `POST /api/world/scopes/<id>/grid/generate` only ever ran the *grid*
+compiler. An unmade scope that declared a recipe could therefore not be generated
+at all, by any route, in any client. This is the third instance of the failure
+mode now written up in `AGENTS.md`: a working mechanic, correctly tested, never
+called.
+
+- **Wired** (`routes/world_grid_ops.py`): a scope carrying a `recipe` generates
+  through that recipe, via the same `apply_patch` contract the grid compiler
+  uses. Seed comes from the body or the scope record and is required — a recipe
+  with no seed is not reproducible, so it is a 400 rather than a surprise. The
+  entry area is the scope's `entry_area_id`, else the parent scope's first area
+  (the hallway a child apartment opens off).
+- **Data**: `apartment_3b` now declares `"entry_area_id": "area_hallway_3"`
+  explicitly rather than relying on the fallback.
+- **Proved end to end** (`tests/test_pines_slice.py::TestGenerationEndToEnd`):
+  - generating through the API produces the three areas and materialises the
+    scope, with an empty `unresolved_tags` (asked-for tags the library could not
+    satisfy stay visible rather than substituted);
+  - **Miki walks in through the movement system** — `set_current_area`,
+    `toggle_way("apartment door", "open")`, `move_to_area` — and reaches the
+    living room and then the bedroom. The previous proof was structural only
+    ("the way node exists"), which passed while the question of whether the door
+    was actually enterable was untested;
+  - a second generate is refused 409 and adds no node ids;
+  - save/reload keeps every generated node and the `materialized` state, and a
+    re-run after reload still refuses rather than doubling;
+  - a hand edit is not erased by a refused second invocation.
+- **Found and filed:** `allow_regenerate: True` *does* revert a hand edit, which
+  contradicts task-398's acceptance — **task-585**.
+
+### Still open
+
+- **task-580** — the `Generate` button and the preview surface. The backend
+  endpoint now works and nothing in the UI calls it, so demo step 5 ("from
+  preview") is the only part of the script left, and it is a surface, not a
+  mechanic.
+- **task-585** — the `allow_regenerate` contract (see above).

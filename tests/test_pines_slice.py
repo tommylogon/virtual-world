@@ -1,5 +1,7 @@
-"""Pines vertical slice (task-400): authored scopes + schedules, and the
-task-399 offload/advance/activate proof on a real scenario."""
+"""Pines vertical slice (task-400): authored scopes + schedules, the task-399
+offload/advance/activate proof on a real scenario, and the end-to-end generation
+proof — generate Apartment 3B through the API, walk in through the front door,
+and reload without duplicates."""
 import json
 import sys
 from pathlib import Path
@@ -10,6 +12,9 @@ from app import create_app
 from engine import promotion, world_scopes
 
 PINES = Path(__file__).parent.parent / "data" / "scenarios" / "pines.json"
+APARTMENT = "apartment_3b"
+HALLWAY = "area_hallway_3"
+ROOMS = ("living", "bedroom", "bathroom")
 
 
 def _world():
@@ -18,6 +23,14 @@ def _world():
     with open(PINES, encoding="utf-8-sig") as fh:
         world.load_from_dict(json.load(fh))
     return world
+
+
+def _client():
+    """A test client on a freshly loaded Pines, with the app kept on the world."""
+    app = create_app({"TESTING": True})
+    with open(PINES, encoding="utf-8-sig") as fh:
+        app.world.load_from_dict(json.load(fh))
+    return app, app.test_client()
 
 
 class TestScopeManifest:
@@ -100,3 +113,108 @@ class TestBackgroundProof:
         promotion.promote(world, miki)
         after = len([m for m in miki.memories if m.get("source") == "background"])
         assert after - before <= 1
+
+
+def _generated_area_ids(world, scope=APARTMENT):
+    manifest = world_scopes.normalise_manifest(world.world_scopes)
+    return world_scopes.area_ids_in_scope(manifest, world.graph, scope)
+
+
+class TestGenerationEndToEnd:
+    """The part of the demo that was still open: the scope declared a recipe and
+    nothing ran it, so an unmade scope could not be generated at all."""
+
+    def test_the_recipe_reachable_from_the_api_generates_the_apartment(self):
+        app, client = _client()
+        assert _generated_area_ids(app.world) == set(), "premise: still unmade"
+
+        res = client.post(f"/api/world/scopes/{APARTMENT}/grid/generate", json={})
+        assert res.status_code == 200, res.get_data(as_text=True)
+        payload = res.get_json()
+        assert payload["status"] == "generated"
+        assert payload["report"]["recipe_id"] == "apartment.v1"
+        assert payload["report"]["seed"] == "pines-3b-01"
+        # An empty report means asked-for tags the library could not satisfy —
+        # it must be visible, never silently substituted.
+        assert payload["report"]["unresolved_tags"] == {}
+
+        areas = _generated_area_ids(app.world)
+        assert {f"area_{APARTMENT}_{room}" for room in ROOMS} <= areas
+        manifest = world_scopes.normalise_manifest(app.world.world_scopes)
+        assert manifest[APARTMENT]["state"] == "materialized"
+
+    def test_a_second_generate_is_refused_and_duplicates_nothing(self):
+        app, client = _client()
+        client.post(f"/api/world/scopes/{APARTMENT}/grid/generate", json={})
+        before = set(app.world.graph.nodes)
+
+        res = client.post(f"/api/world/scopes/{APARTMENT}/grid/generate", json={})
+        assert res.status_code == 409
+        assert set(app.world.graph.nodes) == before
+
+    def test_the_generated_interior_is_entered_through_the_movement_system(self):
+        """Not "the way node exists" — a real walk, so the door is reachable the
+        way every other door in Pines is (by name; the recipe sets no handle)."""
+        app, client = _client()
+        client.post(f"/api/world/scopes/{APARTMENT}/grid/generate", json={})
+        world = app.world
+        world.active_player = "miki"
+        world.set_current_area("hallway 3")
+        assert world._get_current_area_id() == HALLWAY, "premise: standing in the hall"
+
+        world.toggle_way("apartment door", "open")
+        world.move_to_area("apartment door")
+        assert world._get_current_area_id() == f"area_{APARTMENT}_living"
+
+        # And the interior is internally walkable too, not just enterable.
+        world.toggle_way("bedroom door", "open")
+        world.move_to_area("bedroom door")
+        assert world._get_current_area_id() == f"area_{APARTMENT}_bedroom"
+
+    def test_generated_items_are_takeable_not_just_present(self):
+        app, client = _client()
+        client.post(f"/api/world/scopes/{APARTMENT}/grid/generate", json={})
+        world = app.world
+        living = f"area_{APARTMENT}_living"
+        items = [n for n in world.graph.nodes.values()
+                 if n.type == "item"
+                 and any(e.source == n.id and e.target == living
+                         for e in world.graph.get_edges_for_source(n.id))]
+        assert items, "the living room generated nothing to look at"
+
+    def test_reload_keeps_the_generated_nodes_and_re_generates_no_duplicates(self):
+        app, client = _client()
+        client.post(f"/api/world/scopes/{APARTMENT}/grid/generate", json={})
+        world = app.world
+        generated = {n.id for n in world.graph.nodes.values()
+                     if (n.properties.get("generated") or {}).get("scope_id") == APARTMENT}
+
+        saved = json.loads(json.dumps(world.to_dict()))
+        world.load_from_dict(saved)
+        assert generated <= set(world.graph.nodes), "a generated node did not survive"
+        manifest = world_scopes.normalise_manifest(world.world_scopes)
+        assert manifest[APARTMENT]["state"] == "materialized"
+
+        # A reload must not make the scope unmade, and re-running must not double.
+        res = client.post(f"/api/world/scopes/{APARTMENT}/grid/generate", json={})
+        assert res.status_code == 409
+        again = [n.id for n in world.graph.nodes.values() if n.id in generated]
+        assert len(again) == len(generated)
+
+    def test_a_hand_edit_is_not_erased_by_a_second_invocation(self):
+        """task-398's rule: generated is provenance, not ownership. A plain second
+        generate is refused, and the refused call leaves the edit alone.
+
+        The explicit ``allow_regenerate`` opt-in is a different promise and
+        currently overwrites it — see task-585, filed from this test.
+        """
+        app, client = _client()
+        client.post(f"/api/world/scopes/{APARTMENT}/grid/generate", json={})
+        world = app.world
+        item = next(n for n in world.graph.nodes.values()
+                    if n.type == "item" and (n.properties.get("generated") or {}))
+        world.graph.get_node(item.id).properties["description"] = "hand-edited"
+
+        res = client.post(f"/api/world/scopes/{APARTMENT}/grid/generate", json={})
+        assert res.status_code == 409
+        assert world.graph.get_node(item.id).properties["description"] == "hand-edited"

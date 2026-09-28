@@ -12823,7 +12823,8 @@
       "parent_id": "pines_floor_3",
       "state": "unmade",
       "recipe": "apartment.v1",
-      "seed": "pines-3b-01"
+      "seed": "pines-3b-01",
+      "entry_area_id": "area_hallway_3"
     },
     "pines_roof": {
       "id": "pines_roof",
