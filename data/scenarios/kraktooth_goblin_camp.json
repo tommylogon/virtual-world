@@ -96,11 +96,14 @@
       },
       "grappled_by": null,
       "state_timer": 0,
-      "traits": {},
+      "traits": {
+        "high_metabolism": true
+      },
       "tags": [
         "female",
         "teen",
-        "goblin"
+        "goblin",
+        "faction:goblin"
       ],
       "flags": {},
       "hidden": false,
@@ -443,12 +446,15 @@
       },
       "grappled_by": null,
       "state_timer": 0,
-      "traits": {},
+      "traits": {
+        "high_metabolism": true
+      },
       "tags": [
         "female",
         "adult",
         "goblin",
-        "wanderer"
+        "wanderer",
+        "faction:goblin"
       ],
       "flags": {},
       "hidden": false,
@@ -1071,7 +1077,8 @@
         "male",
         "adult",
         "human",
-        "blacksmith"
+        "blacksmith",
+        "faction:human"
       ],
       "flags": {},
       "hidden": false,
@@ -1404,7 +1411,8 @@
         "male",
         "adult",
         "human",
-        "elder"
+        "elder",
+        "faction:human"
       ],
       "flags": {},
       "hidden": false,
@@ -1722,7 +1730,8 @@
         "male",
         "adult",
         "human",
-        "farmer"
+        "farmer",
+        "faction:human"
       ],
       "flags": {},
       "hidden": false,
@@ -2044,7 +2053,8 @@
         "male",
         "adult",
         "human",
-        "merchant"
+        "merchant",
+        "faction:human"
       ],
       "flags": {},
       "hidden": false,
@@ -2377,7 +2387,8 @@
         "male",
         "adult",
         "human",
-        "guard"
+        "guard",
+        "faction:human"
       ],
       "flags": {},
       "hidden": false,
@@ -2699,12 +2710,15 @@
       },
       "grappled_by": null,
       "state_timer": 0,
-      "traits": {},
+      "traits": {
+        "high_metabolism": true
+      },
       "tags": [
         "female",
         "adult",
         "goblin",
-        "cook"
+        "cook",
+        "faction:goblin"
       ],
       "flags": {},
       "hidden": false,
@@ -3048,12 +3062,15 @@
       },
       "grappled_by": null,
       "state_timer": 0,
-      "traits": {},
+      "traits": {
+        "high_metabolism": true
+      },
       "tags": [
         "female",
         "adult",
         "goblin",
-        "squire"
+        "squire",
+        "faction:goblin"
       ],
       "flags": {},
       "hidden": false,
@@ -3401,12 +3418,15 @@
       },
       "grappled_by": null,
       "state_timer": 0,
-      "traits": {},
+      "traits": {
+        "high_metabolism": true
+      },
       "tags": [
         "female",
         "adult",
         "goblin",
-        "climber"
+        "climber",
+        "faction:goblin"
       ],
       "flags": {},
       "hidden": false,
@@ -3754,7 +3774,8 @@
         "female",
         "adult",
         "human",
-        "captive"
+        "captive",
+        "faction:human"
       ],
       "flags": {},
       "hidden": false,
@@ -4084,12 +4105,15 @@
       },
       "grappled_by": null,
       "state_timer": 0,
-      "traits": {},
+      "traits": {
+        "high_metabolism": true
+      },
       "tags": [
         "female",
         "adult",
         "goblin",
-        "tinkerer"
+        "tinkerer",
+        "faction:goblin"
       ],
       "flags": {},
       "hidden": false,
@@ -5055,12 +5079,15 @@
       },
       "grappled_by": "Thrazz",
       "state_timer": 0,
-      "traits": {},
+      "traits": {
+        "high_metabolism": true
+      },
       "tags": [
         "female",
         "adult",
         "goblin",
-        "entertainer"
+        "entertainer",
+        "faction:goblin"
       ],
       "flags": {},
       "hidden": false,
@@ -6011,12 +6038,15 @@
       },
       "grappled_by": null,
       "state_timer": 0,
-      "traits": {},
+      "traits": {
+        "high_metabolism": true
+      },
       "tags": [
         "male",
         "adult",
         "goblin",
-        "chief"
+        "chief",
+        "faction:goblin"
       ],
       "flags": {},
       "hidden": false,
@@ -6670,12 +6700,15 @@
       },
       "grappled_by": null,
       "state_timer": 0,
-      "traits": {},
+      "traits": {
+        "high_metabolism": true
+      },
       "tags": [
         "female",
         "adult",
         "goblin",
-        "scout"
+        "scout",
+        "faction:goblin"
       ],
       "flags": {},
       "hidden": false,
@@ -7033,12 +7066,15 @@
       },
       "grappled_by": null,
       "state_timer": 0,
-      "traits": {},
+      "traits": {
+        "high_metabolism": true
+      },
       "tags": [
         "female",
         "adult",
         "goblin",
-        "fighter"
+        "fighter",
+        "faction:goblin"
       ],
       "flags": {},
       "hidden": false,
@@ -7385,7 +7421,8 @@
       "tags": [
         "human",
         "adult",
-        "explorer"
+        "explorer",
+        "faction:human"
       ],
       "flags": {},
       "hidden": false,
@@ -7792,9 +7829,10 @@
             "interior",
             "cave",
             "goblin_camp",
-            "animals"
+            "animals",
+            "held_by:goblin"
           ],
-          "world_scope_id": "deep_woods_2",
+          "world_scope_id": "goblin_camp",
           "x": 440,
           "y": 280
         },
@@ -7858,9 +7896,10 @@
             "cave",
             "goblin_camp",
             "storage",
-            "restricted"
+            "restricted",
+            "held_by:goblin"
           ],
-          "world_scope_id": "deep_woods_2",
+          "world_scope_id": "goblin_camp",
           "x": 280,
           "y": 240
         },
@@ -7987,9 +8026,10 @@
           "tags": [
             "exterior",
             "cave_entrance",
-            "goblin_camp"
+            "goblin_camp",
+            "held_by:goblin"
           ],
-          "world_scope_id": "deep_woods_2",
+          "world_scope_id": "goblin_camp",
           "x": 320,
           "y": 40
         },
@@ -8110,9 +8150,10 @@
             "interior",
             "cave",
             "goblin_camp",
-            "restricted"
+            "restricted",
+            "held_by:goblin"
           ],
-          "world_scope_id": "deep_woods_2",
+          "world_scope_id": "goblin_camp",
           "x": 200,
           "y": 80
         },
@@ -8178,9 +8219,10 @@
             "interior",
             "cave",
             "goblin_camp",
-            "social"
+            "social",
+            "held_by:goblin"
           ],
-          "world_scope_id": "deep_woods_2",
+          "world_scope_id": "goblin_camp",
           "x": 360,
           "y": 120
         },
@@ -8244,9 +8286,10 @@
             "interior",
             "cave",
             "goblin_camp",
-            "food"
+            "food",
+            "held_by:goblin"
           ],
-          "world_scope_id": "deep_woods_2",
+          "world_scope_id": "goblin_camp",
           "x": 200,
           "y": 120
         },
@@ -8379,7 +8422,8 @@
             "exterior",
             "village",
             "human",
-            "civilization"
+            "civilization",
+            "held_by:human"
           ],
           "world_scope_id": "eldenford_interior",
           "x": 680,
@@ -8442,9 +8486,10 @@
             "interior",
             "cave",
             "goblin_camp",
-            "food"
+            "food",
+            "held_by:goblin"
           ],
-          "world_scope_id": "deep_woods_2",
+          "world_scope_id": "goblin_camp",
           "x": 200,
           "y": 200
         },
@@ -8506,9 +8551,10 @@
             "interior",
             "cave",
             "goblin_camp",
-            "medicine"
+            "medicine",
+            "held_by:goblin"
           ],
-          "world_scope_id": "deep_woods_2",
+          "world_scope_id": "goblin_camp",
           "x": 520,
           "y": 200
         },
@@ -8635,9 +8681,10 @@
             "interior",
             "cave",
             "goblin_camp",
-            "underground"
+            "underground",
+            "held_by:goblin"
           ],
-          "world_scope_id": "deep_woods_2",
+          "world_scope_id": "goblin_camp",
           "x": 760,
           "y": 280
         },
@@ -8826,9 +8873,10 @@
             "interior",
             "cave",
             "goblin_camp",
-            "young"
+            "young",
+            "held_by:goblin"
           ],
-          "world_scope_id": "deep_woods_2",
+          "world_scope_id": "goblin_camp",
           "x": 40,
           "y": 160
         },
@@ -8956,9 +9004,10 @@
             "interior",
             "cave",
             "goblin_camp",
-            "restricted"
+            "restricted",
+            "held_by:goblin"
           ],
-          "world_scope_id": "deep_woods_2",
+          "world_scope_id": "goblin_camp",
           "x": 480,
           "y": 160
         },
@@ -9084,9 +9133,10 @@
             "interior",
             "cave",
             "goblin_camp",
-            "information"
+            "information",
+            "held_by:goblin"
           ],
-          "world_scope_id": "deep_woods_2",
+          "world_scope_id": "goblin_camp",
           "x": 480,
           "y": 240
         },
@@ -9148,9 +9198,10 @@
             "interior",
             "cave",
             "goblin_camp",
-            "storage"
+            "storage",
+            "held_by:goblin"
           ],
-          "world_scope_id": "deep_woods_2",
+          "world_scope_id": "goblin_camp",
           "x": 200,
           "y": 280
         },
@@ -9213,9 +9264,10 @@
             "interior",
             "cave",
             "goblin_camp",
-            "magic"
+            "magic",
+            "held_by:goblin"
           ],
-          "world_scope_id": "deep_woods_2",
+          "world_scope_id": "goblin_camp",
           "x": 480,
           "y": 80
         },
@@ -9274,9 +9326,10 @@
             "cave",
             "goblin_camp",
             "underground",
-            "dangerous"
+            "dangerous",
+            "held_by:goblin"
           ],
-          "world_scope_id": "deep_woods_2",
+          "world_scope_id": "goblin_camp",
           "x": 680,
           "y": 240
         },
@@ -9335,9 +9388,10 @@
             "interior",
             "cave",
             "goblin_camp",
-            "rest"
+            "rest",
+            "held_by:goblin"
           ],
-          "world_scope_id": "deep_woods_2",
+          "world_scope_id": "goblin_camp",
           "x": 80,
           "y": 120
         },
@@ -9397,9 +9451,10 @@
             "interior",
             "cave",
             "goblin_camp",
-            "storage"
+            "storage",
+            "held_by:goblin"
           ],
-          "world_scope_id": "deep_woods_2",
+          "world_scope_id": "goblin_camp",
           "x": 720,
           "y": 120
         },
@@ -9460,9 +9515,10 @@
             "interior",
             "cave",
             "goblin_camp",
-            "combat"
+            "combat",
+            "held_by:goblin"
           ],
-          "world_scope_id": "deep_woods_2",
+          "world_scope_id": "goblin_camp",
           "x": 400,
           "y": 200
         },
@@ -9520,9 +9576,10 @@
             "interior",
             "cave",
             "goblin_camp",
-            "latrine"
+            "latrine",
+            "held_by:goblin"
           ],
-          "world_scope_id": "deep_woods_2",
+          "world_scope_id": "goblin_camp",
           "x": 600,
           "y": 280
         },
@@ -9580,9 +9637,10 @@
             "interior",
             "cave",
             "goblin_camp",
-            "water"
+            "water",
+            "held_by:goblin"
           ],
-          "world_scope_id": "deep_woods_2",
+          "world_scope_id": "goblin_camp",
           "x": 600,
           "y": 160
         },
@@ -11404,9 +11462,10 @@
             "interior",
             "cave",
             "goblin_camp",
-            "craft"
+            "craft",
+            "held_by:goblin"
           ],
-          "world_scope_id": "deep_woods_2",
+          "world_scope_id": "goblin_camp",
           "x": 80,
           "y": 240
         },
@@ -15220,8 +15279,8 @@
         "type": "way",
         "name": "Hide-Curtained Alcove",
         "properties": {
-          "area_from": "Chief's Pit",
-          "area_to": "Armory",
+          "area_from": "area_chiefs_pit",
+          "area_to": "area_armory_bhg4",
           "current_state": "closed",
           "description": "A low gap in the rock behind a hanging hide, leading from the Chief's Den into the weapon stockpile.",
           "x": 320,
@@ -15522,9 +15581,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 10,14) to Sparse Forest (West woods 11,14)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 10,14)",
+          "area_from": "area_west_woods_10_14",
           "area_from_id": "area_west_woods_10_14",
-          "area_to": "Sparse Forest (West woods 11,14)",
+          "area_to": "area_west_woods_11_14",
           "area_to_id": "area_west_woods_11_14",
           "current_state": "open",
           "direction": "east",
@@ -15550,9 +15609,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 9,14) to Sparse Forest (West woods 10,14)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 9,14)",
+          "area_from": "area_west_woods_9_14",
           "area_from_id": "area_west_woods_9_14",
-          "area_to": "Sparse Forest (West woods 10,14)",
+          "area_to": "area_west_woods_10_14",
           "area_to_id": "area_west_woods_10_14",
           "current_state": "open",
           "direction": "east",
@@ -15578,9 +15637,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 10,23) to Sparse Forest (West woods 10,24)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 10,23)",
+          "area_from": "area_west_woods_10_23",
           "area_from_id": "area_west_woods_10_23",
-          "area_to": "Sparse Forest (West woods 10,24)",
+          "area_to": "area_west_woods_10_24",
           "area_to_id": "area_west_woods_10_24",
           "current_state": "open",
           "direction": "south",
@@ -15606,9 +15665,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 10,23) to Sparse Forest (West woods 11,23)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 10,23)",
+          "area_from": "area_west_woods_10_23",
           "area_from_id": "area_west_woods_10_23",
-          "area_to": "Sparse Forest (West woods 11,23)",
+          "area_to": "area_west_woods_11_23",
           "area_to_id": "area_west_woods_11_23",
           "current_state": "open",
           "direction": "east",
@@ -15634,9 +15693,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 10,23) to Sparse Forest (West woods 11,24)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 10,23)",
+          "area_from": "area_west_woods_10_23",
           "area_from_id": "area_west_woods_10_23",
-          "area_to": "Sparse Forest (West woods 11,24)",
+          "area_to": "area_west_woods_11_24",
           "area_to_id": "area_west_woods_11_24",
           "current_state": "open",
           "direction": "southeast",
@@ -15662,9 +15721,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 10,23) to Sparse Forest (West woods 9,24)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 10,23)",
+          "area_from": "area_west_woods_10_23",
           "area_from_id": "area_west_woods_10_23",
-          "area_to": "Sparse Forest (West woods 9,24)",
+          "area_to": "area_west_woods_9_24",
           "area_to_id": "area_west_woods_9_24",
           "current_state": "open",
           "direction": "southwest",
@@ -15690,9 +15749,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 10,24) to Sparse Forest (West woods 10,25)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 10,24)",
+          "area_from": "area_west_woods_10_24",
           "area_from_id": "area_west_woods_10_24",
-          "area_to": "Sparse Forest (West woods 10,25)",
+          "area_to": "area_west_woods_10_25",
           "area_to_id": "area_west_woods_10_25",
           "current_state": "open",
           "direction": "south",
@@ -15718,9 +15777,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 11,23) to Sparse Forest (West woods 10,24)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 11,23)",
+          "area_from": "area_west_woods_11_23",
           "area_from_id": "area_west_woods_11_23",
-          "area_to": "Sparse Forest (West woods 10,24)",
+          "area_to": "area_west_woods_10_24",
           "area_to_id": "area_west_woods_10_24",
           "current_state": "open",
           "direction": "southwest",
@@ -15746,9 +15805,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 10,24) to Sparse Forest (West woods 11,24)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 10,24)",
+          "area_from": "area_west_woods_10_24",
           "area_from_id": "area_west_woods_10_24",
-          "area_to": "Sparse Forest (West woods 11,24)",
+          "area_to": "area_west_woods_11_24",
           "area_to_id": "area_west_woods_11_24",
           "current_state": "open",
           "direction": "east",
@@ -15774,9 +15833,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 9,24) to Sparse Forest (West woods 10,24)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 9,24)",
+          "area_from": "area_west_woods_9_24",
           "area_from_id": "area_west_woods_9_24",
-          "area_to": "Sparse Forest (West woods 10,24)",
+          "area_to": "area_west_woods_10_24",
           "area_to_id": "area_west_woods_10_24",
           "current_state": "open",
           "direction": "east",
@@ -15802,9 +15861,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 11,24) to Sparse Forest (West woods 10,25)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 11,24)",
+          "area_from": "area_west_woods_11_24",
           "area_from_id": "area_west_woods_11_24",
-          "area_to": "Sparse Forest (West woods 10,25)",
+          "area_to": "area_west_woods_10_25",
           "area_to_id": "area_west_woods_10_25",
           "current_state": "open",
           "direction": "southwest",
@@ -15830,9 +15889,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 9,24) to Sparse Forest (West woods 10,25)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 9,24)",
+          "area_from": "area_west_woods_9_24",
           "area_from_id": "area_west_woods_9_24",
-          "area_to": "Sparse Forest (West woods 10,25)",
+          "area_to": "area_west_woods_10_25",
           "area_to_id": "area_west_woods_10_25",
           "current_state": "open",
           "direction": "southeast",
@@ -15858,9 +15917,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 11,14) to Sparse Forest (West woods 12,14)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 11,14)",
+          "area_from": "area_west_woods_11_14",
           "area_from_id": "area_west_woods_11_14",
-          "area_to": "Sparse Forest (West woods 12,14)",
+          "area_to": "area_west_woods_12_14",
           "area_to_id": "area_west_woods_12_14",
           "current_state": "open",
           "direction": "east",
@@ -15886,9 +15945,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 11,14) to Sparse Forest (West woods 12,15)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 11,14)",
+          "area_from": "area_west_woods_11_14",
           "area_from_id": "area_west_woods_11_14",
-          "area_to": "Sparse Forest (West woods 12,15)",
+          "area_to": "area_west_woods_12_15",
           "area_to_id": "area_west_woods_12_15",
           "current_state": "open",
           "direction": "southeast",
@@ -15914,9 +15973,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 11,17) to Sparse Forest (West woods 12,18)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 11,17)",
+          "area_from": "area_west_woods_11_17",
           "area_from_id": "area_west_woods_11_17",
-          "area_to": "Sparse Forest (West woods 12,18)",
+          "area_to": "area_west_woods_12_18",
           "area_to_id": "area_west_woods_12_18",
           "current_state": "open",
           "direction": "southeast",
@@ -15942,9 +16001,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 12,19) to Sparse Forest (West woods 11,20)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 12,19)",
+          "area_from": "area_west_woods_12_19",
           "area_from_id": "area_west_woods_12_19",
-          "area_to": "Sparse Forest (West woods 11,20)",
+          "area_to": "area_west_woods_11_20",
           "area_to_id": "area_west_woods_11_20",
           "current_state": "open",
           "direction": "southwest",
@@ -15970,9 +16029,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 11,20) to Sparse Forest (West woods 12,22)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 11,20)",
+          "area_from": "area_west_woods_11_20",
           "area_from_id": "area_west_woods_11_20",
-          "area_to": "Sparse Forest (West woods 12,22)",
+          "area_to": "area_west_woods_12_22",
           "area_to_id": "area_west_woods_12_22",
           "current_state": "open",
           "direction": "southeast",
@@ -15998,9 +16057,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 11,23) to Sparse Forest (West woods 11,24)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 11,23)",
+          "area_from": "area_west_woods_11_23",
           "area_from_id": "area_west_woods_11_23",
-          "area_to": "Sparse Forest (West woods 11,24)",
+          "area_to": "area_west_woods_11_24",
           "area_to_id": "area_west_woods_11_24",
           "current_state": "open",
           "direction": "south",
@@ -16026,9 +16085,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 12,22) to Sparse Forest (West woods 11,23)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 12,22)",
+          "area_from": "area_west_woods_12_22",
           "area_from_id": "area_west_woods_12_22",
-          "area_to": "Sparse Forest (West woods 11,23)",
+          "area_to": "area_west_woods_11_23",
           "area_to_id": "area_west_woods_11_23",
           "current_state": "open",
           "direction": "southwest",
@@ -16054,9 +16113,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 11,23) to Sparse Forest (West woods 12,23)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 11,23)",
+          "area_from": "area_west_woods_11_23",
           "area_from_id": "area_west_woods_11_23",
-          "area_to": "Sparse Forest (West woods 12,23)",
+          "area_to": "area_west_woods_12_23",
           "area_to_id": "area_west_woods_12_23",
           "current_state": "open",
           "direction": "east",
@@ -16082,9 +16141,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 11,23) to Sparse Forest (West woods 12,24)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 11,23)",
+          "area_from": "area_west_woods_11_23",
           "area_from_id": "area_west_woods_11_23",
-          "area_to": "Sparse Forest (West woods 12,24)",
+          "area_to": "area_west_woods_12_24",
           "area_to_id": "area_west_woods_12_24",
           "current_state": "open",
           "direction": "southeast",
@@ -16110,9 +16169,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 12,23) to Sparse Forest (West woods 11,24)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 12,23)",
+          "area_from": "area_west_woods_12_23",
           "area_from_id": "area_west_woods_12_23",
-          "area_to": "Sparse Forest (West woods 11,24)",
+          "area_to": "area_west_woods_11_24",
           "area_to_id": "area_west_woods_11_24",
           "current_state": "open",
           "direction": "southwest",
@@ -16138,9 +16197,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 11,24) to Sparse Forest (West woods 12,24)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 11,24)",
+          "area_from": "area_west_woods_11_24",
           "area_from_id": "area_west_woods_11_24",
-          "area_to": "Sparse Forest (West woods 12,24)",
+          "area_to": "area_west_woods_12_24",
           "area_to_id": "area_west_woods_12_24",
           "current_state": "open",
           "direction": "east",
@@ -16166,9 +16225,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 11,27) to Sparse Forest (West woods 11,28)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 11,27)",
+          "area_from": "area_west_woods_11_27",
           "area_from_id": "area_west_woods_11_27",
-          "area_to": "Sparse Forest (West woods 11,28)",
+          "area_to": "area_west_woods_11_28",
           "area_to_id": "area_west_woods_11_28",
           "current_state": "open",
           "direction": "south",
@@ -16194,9 +16253,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 12,26) to Sparse Forest (West woods 11,27)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 12,26)",
+          "area_from": "area_west_woods_12_26",
           "area_from_id": "area_west_woods_12_26",
-          "area_to": "Sparse Forest (West woods 11,27)",
+          "area_to": "area_west_woods_11_27",
           "area_to_id": "area_west_woods_11_27",
           "current_state": "open",
           "direction": "southwest",
@@ -16222,9 +16281,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 12,14) to Sparse Forest (West woods 12,15)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 12,14)",
+          "area_from": "area_west_woods_12_14",
           "area_from_id": "area_west_woods_12_14",
-          "area_to": "Sparse Forest (West woods 12,15)",
+          "area_to": "area_west_woods_12_15",
           "area_to_id": "area_west_woods_12_15",
           "current_state": "open",
           "direction": "south",
@@ -16250,9 +16309,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 12,14) to Sparse Forest (West woods 13,15)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 12,14)",
+          "area_from": "area_west_woods_12_14",
           "area_from_id": "area_west_woods_12_14",
-          "area_to": "Sparse Forest (West woods 13,15)",
+          "area_to": "area_west_woods_13_15",
           "area_to_id": "area_west_woods_13_15",
           "current_state": "open",
           "direction": "southeast",
@@ -16278,9 +16337,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 12,15) to Sparse Forest (West woods 13,15)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 12,15)",
+          "area_from": "area_west_woods_12_15",
           "area_from_id": "area_west_woods_12_15",
-          "area_to": "Sparse Forest (West woods 13,15)",
+          "area_to": "area_west_woods_13_15",
           "area_to_id": "area_west_woods_13_15",
           "current_state": "open",
           "direction": "east",
@@ -16306,9 +16365,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 12,15) to Sparse Forest (West woods 13,16)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 12,15)",
+          "area_from": "area_west_woods_12_15",
           "area_from_id": "area_west_woods_12_15",
-          "area_to": "Sparse Forest (West woods 13,16)",
+          "area_to": "area_west_woods_13_16",
           "area_to_id": "area_west_woods_13_16",
           "current_state": "open",
           "direction": "southeast",
@@ -16334,9 +16393,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 12,18) to Sparse Forest (West woods 12,19)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 12,18)",
+          "area_from": "area_west_woods_12_18",
           "area_from_id": "area_west_woods_12_18",
-          "area_to": "Sparse Forest (West woods 12,19)",
+          "area_to": "area_west_woods_12_19",
           "area_to_id": "area_west_woods_12_19",
           "current_state": "open",
           "direction": "south",
@@ -16362,9 +16421,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 13,17) to Sparse Forest (West woods 12,18)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 13,17)",
+          "area_from": "area_west_woods_13_17",
           "area_from_id": "area_west_woods_13_17",
-          "area_to": "Sparse Forest (West woods 12,18)",
+          "area_to": "area_west_woods_12_18",
           "area_to_id": "area_west_woods_12_18",
           "current_state": "open",
           "direction": "southwest",
@@ -16390,9 +16449,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 12,18) to Sparse Forest (West woods 13,18)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 12,18)",
+          "area_from": "area_west_woods_12_18",
           "area_from_id": "area_west_woods_12_18",
-          "area_to": "Sparse Forest (West woods 13,18)",
+          "area_to": "area_west_woods_13_18",
           "area_to_id": "area_west_woods_13_18",
           "current_state": "open",
           "direction": "east",
@@ -16418,9 +16477,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 13,18) to Sparse Forest (West woods 12,19)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 13,18)",
+          "area_from": "area_west_woods_13_18",
           "area_from_id": "area_west_woods_13_18",
-          "area_to": "Sparse Forest (West woods 12,19)",
+          "area_to": "area_west_woods_12_19",
           "area_to_id": "area_west_woods_12_19",
           "current_state": "open",
           "direction": "southwest",
@@ -16446,9 +16505,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 12,22) to Sparse Forest (West woods 12,23)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 12,22)",
+          "area_from": "area_west_woods_12_22",
           "area_from_id": "area_west_woods_12_22",
-          "area_to": "Sparse Forest (West woods 12,23)",
+          "area_to": "area_west_woods_12_23",
           "area_to_id": "area_west_woods_12_23",
           "current_state": "open",
           "direction": "south",
@@ -16474,9 +16533,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 12,22) to Sparse Forest (West woods 13,22)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 12,22)",
+          "area_from": "area_west_woods_12_22",
           "area_from_id": "area_west_woods_12_22",
-          "area_to": "Sparse Forest (West woods 13,22)",
+          "area_to": "area_west_woods_13_22",
           "area_to_id": "area_west_woods_13_22",
           "current_state": "open",
           "direction": "east",
@@ -16502,9 +16561,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 12,23) to Sparse Forest (West woods 12,24)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 12,23)",
+          "area_from": "area_west_woods_12_23",
           "area_from_id": "area_west_woods_12_23",
-          "area_to": "Sparse Forest (West woods 12,24)",
+          "area_to": "area_west_woods_12_24",
           "area_to_id": "area_west_woods_12_24",
           "current_state": "open",
           "direction": "south",
@@ -16530,9 +16589,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 13,22) to Sparse Forest (West woods 12,23)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 13,22)",
+          "area_from": "area_west_woods_13_22",
           "area_from_id": "area_west_woods_13_22",
-          "area_to": "Sparse Forest (West woods 12,23)",
+          "area_to": "area_west_woods_12_23",
           "area_to_id": "area_west_woods_12_23",
           "current_state": "open",
           "direction": "southwest",
@@ -16558,9 +16617,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 12,24) to Sparse Forest (West woods 13,25)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 12,24)",
+          "area_from": "area_west_woods_12_24",
           "area_from_id": "area_west_woods_12_24",
-          "area_to": "Sparse Forest (West woods 13,25)",
+          "area_to": "area_west_woods_13_25",
           "area_to_id": "area_west_woods_13_25",
           "current_state": "open",
           "direction": "southeast",
@@ -16586,9 +16645,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 13,25) to Sparse Forest (West woods 12,26)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 13,25)",
+          "area_from": "area_west_woods_13_25",
           "area_from_id": "area_west_woods_13_25",
-          "area_to": "Sparse Forest (West woods 12,26)",
+          "area_to": "area_west_woods_12_26",
           "area_to_id": "area_west_woods_12_26",
           "current_state": "open",
           "direction": "southwest",
@@ -16614,9 +16673,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 12,26) to Sparse Forest (West woods 13,26)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 12,26)",
+          "area_from": "area_west_woods_12_26",
           "area_from_id": "area_west_woods_12_26",
-          "area_to": "Sparse Forest (West woods 13,26)",
+          "area_to": "area_west_woods_13_26",
           "area_to_id": "area_west_woods_13_26",
           "current_state": "open",
           "direction": "east",
@@ -16642,9 +16701,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 13,15) to Sparse Forest (West woods 13,16)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 13,15)",
+          "area_from": "area_west_woods_13_15",
           "area_from_id": "area_west_woods_13_15",
-          "area_to": "Sparse Forest (West woods 13,16)",
+          "area_to": "area_west_woods_13_16",
           "area_to_id": "area_west_woods_13_16",
           "current_state": "open",
           "direction": "south",
@@ -16670,9 +16729,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 13,16) to Sparse Forest (West woods 13,17)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 13,16)",
+          "area_from": "area_west_woods_13_16",
           "area_from_id": "area_west_woods_13_16",
-          "area_to": "Sparse Forest (West woods 13,17)",
+          "area_to": "area_west_woods_13_17",
           "area_to_id": "area_west_woods_13_17",
           "current_state": "open",
           "direction": "south",
@@ -16698,9 +16757,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 13,17) to Sparse Forest (West woods 13,18)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 13,17)",
+          "area_from": "area_west_woods_13_17",
           "area_from_id": "area_west_woods_13_17",
-          "area_to": "Sparse Forest (West woods 13,18)",
+          "area_to": "area_west_woods_13_18",
           "area_to_id": "area_west_woods_13_18",
           "current_state": "open",
           "direction": "south",
@@ -16726,9 +16785,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 15,18) to Sparse Forest (West woods 13,18)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 15,18)",
+          "area_from": "area_west_woods_15_18",
           "area_from_id": "area_west_woods_15_18",
-          "area_to": "Sparse Forest (West woods 13,18)",
+          "area_to": "area_west_woods_13_18",
           "area_to_id": "area_west_woods_13_18",
           "current_state": "open",
           "direction": "west",
@@ -16754,9 +16813,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 13,22) to Sparse Forest (West woods 14,22)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 13,22)",
+          "area_from": "area_west_woods_13_22",
           "area_from_id": "area_west_woods_13_22",
-          "area_to": "Sparse Forest (West woods 14,22)",
+          "area_to": "area_west_woods_14_22",
           "area_to_id": "area_west_woods_14_22",
           "current_state": "open",
           "direction": "east",
@@ -16782,9 +16841,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 13,25) to Sparse Forest (West woods 13,26)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 13,25)",
+          "area_from": "area_west_woods_13_25",
           "area_from_id": "area_west_woods_13_25",
-          "area_to": "Sparse Forest (West woods 13,26)",
+          "area_to": "area_west_woods_13_26",
           "area_to_id": "area_west_woods_13_26",
           "current_state": "open",
           "direction": "south",
@@ -16810,9 +16869,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 14,24) to Sparse Forest (West woods 13,25)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 14,24)",
+          "area_from": "area_west_woods_14_24",
           "area_from_id": "area_west_woods_14_24",
-          "area_to": "Sparse Forest (West woods 13,25)",
+          "area_to": "area_west_woods_13_25",
           "area_to_id": "area_west_woods_13_25",
           "current_state": "open",
           "direction": "southwest",
@@ -16838,9 +16897,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 13,25) to Sparse Forest (West woods 14,25)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 13,25)",
+          "area_from": "area_west_woods_13_25",
           "area_from_id": "area_west_woods_13_25",
-          "area_to": "Sparse Forest (West woods 14,25)",
+          "area_to": "area_west_woods_14_25",
           "area_to_id": "area_west_woods_14_25",
           "current_state": "open",
           "direction": "east",
@@ -16866,9 +16925,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 14,25) to Sparse Forest (West woods 13,26)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 14,25)",
+          "area_from": "area_west_woods_14_25",
           "area_from_id": "area_west_woods_14_25",
-          "area_to": "Sparse Forest (West woods 13,26)",
+          "area_to": "area_west_woods_13_26",
           "area_to_id": "area_west_woods_13_26",
           "current_state": "open",
           "direction": "southwest",
@@ -16894,9 +16953,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 14,24) to Sparse Forest (West woods 14,25)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 14,24)",
+          "area_from": "area_west_woods_14_24",
           "area_from_id": "area_west_woods_14_24",
-          "area_to": "Sparse Forest (West woods 14,25)",
+          "area_to": "area_west_woods_14_25",
           "area_to_id": "area_west_woods_14_25",
           "current_state": "open",
           "direction": "south",
@@ -16922,9 +16981,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 14,24) to Sparse Forest (West woods 15,24)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 14,24)",
+          "area_from": "area_west_woods_14_24",
           "area_from_id": "area_west_woods_14_24",
-          "area_to": "Sparse Forest (West woods 15,24)",
+          "area_to": "area_west_woods_15_24",
           "area_to_id": "area_west_woods_15_24",
           "current_state": "open",
           "direction": "east",
@@ -16950,9 +17009,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 15,24) to Sparse Forest (West woods 14,25)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 15,24)",
+          "area_from": "area_west_woods_15_24",
           "area_from_id": "area_west_woods_15_24",
-          "area_to": "Sparse Forest (West woods 14,25)",
+          "area_to": "area_west_woods_14_25",
           "area_to_id": "area_west_woods_14_25",
           "current_state": "open",
           "direction": "southwest",
@@ -16978,9 +17037,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 15,20) to Sparse Forest (West woods 15,18)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 15,20)",
+          "area_from": "area_west_woods_15_20",
           "area_from_id": "area_west_woods_15_20",
-          "area_to": "Sparse Forest (West woods 15,18)",
+          "area_to": "area_west_woods_15_18",
           "area_to_id": "area_west_woods_15_18",
           "current_state": "open",
           "direction": "north",
@@ -17006,9 +17065,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 15,20) to Sparse Forest (West woods 16,21)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 15,20)",
+          "area_from": "area_west_woods_15_20",
           "area_from_id": "area_west_woods_15_20",
-          "area_to": "Sparse Forest (West woods 16,21)",
+          "area_to": "area_west_woods_16_21",
           "area_to_id": "area_west_woods_16_21",
           "current_state": "open",
           "direction": "southeast",
@@ -17034,9 +17093,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 15,24) to Sparse Forest (West woods 16,24)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 15,24)",
+          "area_from": "area_west_woods_15_24",
           "area_from_id": "area_west_woods_15_24",
-          "area_to": "Sparse Forest (West woods 16,24)",
+          "area_to": "area_west_woods_16_24",
           "area_to_id": "area_west_woods_16_24",
           "current_state": "open",
           "direction": "east",
@@ -17062,9 +17121,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 16,21) to Sparse Forest (West woods 17,21)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 16,21)",
+          "area_from": "area_west_woods_16_21",
           "area_from_id": "area_west_woods_16_21",
-          "area_to": "Sparse Forest (West woods 17,21)",
+          "area_to": "area_west_woods_17_21",
           "area_to_id": "area_west_woods_17_21",
           "current_state": "open",
           "direction": "east",
@@ -17090,9 +17149,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 16,24) to Sparse Forest (West woods 17,24)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 16,24)",
+          "area_from": "area_west_woods_16_24",
           "area_from_id": "area_west_woods_16_24",
-          "area_to": "Sparse Forest (West woods 17,24)",
+          "area_to": "area_west_woods_17_24",
           "area_to_id": "area_west_woods_17_24",
           "current_state": "open",
           "direction": "east",
@@ -17118,9 +17177,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 18,20) to Sparse Forest (West woods 17,21)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 18,20)",
+          "area_from": "area_west_woods_18_20",
           "area_from_id": "area_west_woods_18_20",
-          "area_to": "Sparse Forest (West woods 17,21)",
+          "area_to": "area_west_woods_17_21",
           "area_to_id": "area_west_woods_17_21",
           "current_state": "open",
           "direction": "southwest",
@@ -17146,9 +17205,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 18,20) to Sparse Forest (West woods 19,20)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 18,20)",
+          "area_from": "area_west_woods_18_20",
           "area_from_id": "area_west_woods_18_20",
-          "area_to": "Sparse Forest (West woods 19,20)",
+          "area_to": "area_west_woods_19_20",
           "area_to_id": "area_west_woods_19_20",
           "current_state": "open",
           "direction": "east",
@@ -17174,9 +17233,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 3,28) to Sparse Forest (West woods 2,29)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 3,28)",
+          "area_from": "area_west_woods_3_28",
           "area_from_id": "area_west_woods_3_28",
-          "area_to": "Sparse Forest (West woods 2,29)",
+          "area_to": "area_west_woods_2_29",
           "area_to_id": "area_west_woods_2_29",
           "current_state": "open",
           "direction": "southwest",
@@ -17202,9 +17261,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 2,29) to Sparse Forest (West woods 3,29)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 2,29)",
+          "area_from": "area_west_woods_2_29",
           "area_from_id": "area_west_woods_2_29",
-          "area_to": "Sparse Forest (West woods 3,29)",
+          "area_to": "area_west_woods_3_29",
           "area_to_id": "area_west_woods_3_29",
           "current_state": "open",
           "direction": "east",
@@ -17230,9 +17289,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 3,28) to Sparse Forest (West woods 3,29)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 3,28)",
+          "area_from": "area_west_woods_3_28",
           "area_from_id": "area_west_woods_3_28",
-          "area_to": "Sparse Forest (West woods 3,29)",
+          "area_to": "area_west_woods_3_29",
           "area_to_id": "area_west_woods_3_29",
           "current_state": "open",
           "direction": "south",
@@ -17258,9 +17317,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 3,28) to Sparse Forest (West woods 4,28)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 3,28)",
+          "area_from": "area_west_woods_3_28",
           "area_from_id": "area_west_woods_3_28",
-          "area_to": "Sparse Forest (West woods 4,28)",
+          "area_to": "area_west_woods_4_28",
           "area_to_id": "area_west_woods_4_28",
           "current_state": "open",
           "direction": "east",
@@ -17286,9 +17345,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 4,28) to Sparse Forest (West woods 3,29)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 4,28)",
+          "area_from": "area_west_woods_4_28",
           "area_from_id": "area_west_woods_4_28",
-          "area_to": "Sparse Forest (West woods 3,29)",
+          "area_to": "area_west_woods_3_29",
           "area_to_id": "area_west_woods_3_29",
           "current_state": "open",
           "direction": "southwest",
@@ -17314,9 +17373,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 4,28) to Sparse Forest (West woods 5,28)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 4,28)",
+          "area_from": "area_west_woods_4_28",
           "area_from_id": "area_west_woods_4_28",
-          "area_to": "Sparse Forest (West woods 5,28)",
+          "area_to": "area_west_woods_5_28",
           "area_to_id": "area_west_woods_5_28",
           "current_state": "open",
           "direction": "east",
@@ -17342,9 +17401,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 6,27) to Sparse Forest (West woods 5,28)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 6,27)",
+          "area_from": "area_west_woods_6_27",
           "area_from_id": "area_west_woods_6_27",
-          "area_to": "Sparse Forest (West woods 5,28)",
+          "area_to": "area_west_woods_5_28",
           "area_to_id": "area_west_woods_5_28",
           "current_state": "open",
           "direction": "southwest",
@@ -17370,9 +17429,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 5,28) to Sparse Forest (West woods 6,28)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 5,28)",
+          "area_from": "area_west_woods_5_28",
           "area_from_id": "area_west_woods_5_28",
-          "area_to": "Sparse Forest (West woods 6,28)",
+          "area_to": "area_west_woods_6_28",
           "area_to_id": "area_west_woods_6_28",
           "current_state": "open",
           "direction": "east",
@@ -17398,9 +17457,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 6,27) to Sparse Forest (West woods 6,28)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 6,27)",
+          "area_from": "area_west_woods_6_27",
           "area_from_id": "area_west_woods_6_27",
-          "area_to": "Sparse Forest (West woods 6,28)",
+          "area_to": "area_west_woods_6_28",
           "area_to_id": "area_west_woods_6_28",
           "current_state": "open",
           "direction": "south",
@@ -17426,9 +17485,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 6,27) to Sparse Forest (West woods 7,25)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 6,27)",
+          "area_from": "area_west_woods_6_27",
           "area_from_id": "area_west_woods_6_27",
-          "area_to": "Sparse Forest (West woods 7,25)",
+          "area_to": "area_west_woods_7_25",
           "area_to_id": "area_west_woods_7_25",
           "current_state": "open",
           "direction": "northeast",
@@ -17454,9 +17513,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 6,27) to Sparse Forest (West woods 7,27)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 6,27)",
+          "area_from": "area_west_woods_6_27",
           "area_from_id": "area_west_woods_6_27",
-          "area_to": "Sparse Forest (West woods 7,27)",
+          "area_to": "area_west_woods_7_27",
           "area_to_id": "area_west_woods_7_27",
           "current_state": "open",
           "direction": "east",
@@ -17482,9 +17541,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 7,27) to Sparse Forest (West woods 6,28)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 7,27)",
+          "area_from": "area_west_woods_7_27",
           "area_from_id": "area_west_woods_7_27",
-          "area_to": "Sparse Forest (West woods 6,28)",
+          "area_to": "area_west_woods_6_28",
           "area_to_id": "area_west_woods_6_28",
           "current_state": "open",
           "direction": "southwest",
@@ -17510,9 +17569,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 7,25) to Sparse Forest (West woods 8,25)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 7,25)",
+          "area_from": "area_west_woods_7_25",
           "area_from_id": "area_west_woods_7_25",
-          "area_to": "Sparse Forest (West woods 8,25)",
+          "area_to": "area_west_woods_8_25",
           "area_to_id": "area_west_woods_8_25",
           "current_state": "open",
           "direction": "east",
@@ -17538,9 +17597,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 7,27) to Sparse Forest (West woods 8,27)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 7,27)",
+          "area_from": "area_west_woods_7_27",
           "area_from_id": "area_west_woods_7_27",
-          "area_to": "Sparse Forest (West woods 8,27)",
+          "area_to": "area_west_woods_8_27",
           "area_to_id": "area_west_woods_8_27",
           "current_state": "open",
           "direction": "east",
@@ -17566,9 +17625,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 7,27) to Sparse Forest (West woods 8,28)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 7,27)",
+          "area_from": "area_west_woods_7_27",
           "area_from_id": "area_west_woods_7_27",
-          "area_to": "Sparse Forest (West woods 8,28)",
+          "area_to": "area_west_woods_8_28",
           "area_to_id": "area_west_woods_8_28",
           "current_state": "open",
           "direction": "southeast",
@@ -17594,9 +17653,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 9,24) to Sparse Forest (West woods 8,25)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 9,24)",
+          "area_from": "area_west_woods_9_24",
           "area_from_id": "area_west_woods_9_24",
-          "area_to": "Sparse Forest (West woods 8,25)",
+          "area_to": "area_west_woods_8_25",
           "area_to_id": "area_west_woods_8_25",
           "current_state": "open",
           "direction": "southwest",
@@ -17622,9 +17681,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 8,27) to Sparse Forest (West woods 8,28)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 8,27)",
+          "area_from": "area_west_woods_8_27",
           "area_from_id": "area_west_woods_8_27",
-          "area_to": "Sparse Forest (West woods 8,28)",
+          "area_to": "area_west_woods_8_28",
           "area_to_id": "area_west_woods_8_28",
           "current_state": "open",
           "direction": "south",
@@ -17650,9 +17709,9 @@
         "type": "way",
         "name": "Sparse Forest (West woods 8,28) to Sparse Forest (West woods 8,29)",
         "properties": {
-          "area_from": "Sparse Forest (West woods 8,28)",
+          "area_from": "area_west_woods_8_28",
           "area_from_id": "area_west_woods_8_28",
-          "area_to": "Sparse Forest (West woods 8,29)",
+          "area_to": "area_west_woods_8_29",
           "area_to_id": "area_west_woods_8_29",
           "current_state": "open",
           "direction": "south",
@@ -17695,9 +17754,9 @@
         "type": "way",
         "name": "Abandoned Farm to Road (world 15,6)",
         "properties": {
-          "area_from": "Abandoned Farm",
+          "area_from": "area_abandoned_farm",
           "area_from_id": "area_abandoned_farm",
-          "area_to": "Road (world 15,6)",
+          "area_to": "area_world_15_6",
           "area_to_id": "area_world_15_6",
           "cell": {
             "x": 15.5,
@@ -17729,9 +17788,9 @@
         "type": "way",
         "name": "Abandoned Farm to Road (world 15,7)",
         "properties": {
-          "area_from": "Abandoned Farm",
+          "area_from": "area_abandoned_farm",
           "area_from_id": "area_abandoned_farm",
-          "area_to": "Road (world 15,7)",
+          "area_to": "area_world_15_7",
           "area_to_id": "area_world_15_7",
           "cell": {
             "x": 15.5,
@@ -17763,9 +17822,9 @@
         "type": "way",
         "name": "Abandoned Farm to Road (world 16,6)",
         "properties": {
-          "area_from": "Abandoned Farm",
+          "area_from": "area_abandoned_farm",
           "area_from_id": "area_abandoned_farm",
-          "area_to": "Road (world 16,6)",
+          "area_to": "area_world_16_6",
           "area_to_id": "area_world_16_6",
           "cell": {
             "x": 16,
@@ -17797,9 +17856,9 @@
         "type": "way",
         "name": "Abandoned Farm to Road (world 16,8)",
         "properties": {
-          "area_from": "Abandoned Farm",
+          "area_from": "area_abandoned_farm",
           "area_from_id": "area_abandoned_farm",
-          "area_to": "Road (world 16,8)",
+          "area_to": "area_world_16_8",
           "area_to_id": "area_world_16_8",
           "cell": {
             "x": 16,
@@ -17831,9 +17890,9 @@
         "type": "way",
         "name": "Abandoned Farm to Road (world 17,6)",
         "properties": {
-          "area_from": "Abandoned Farm",
+          "area_from": "area_abandoned_farm",
           "area_from_id": "area_abandoned_farm",
-          "area_to": "Road (world 17,6)",
+          "area_to": "area_world_17_6",
           "area_to_id": "area_world_17_6",
           "cell": {
             "x": 16.5,
@@ -17865,9 +17924,9 @@
         "type": "way",
         "name": "Abandoned Farm to Road (world 17,8)",
         "properties": {
-          "area_from": "Abandoned Farm",
+          "area_from": "area_abandoned_farm",
           "area_from_id": "area_abandoned_farm",
-          "area_to": "Road (world 17,8)",
+          "area_to": "area_world_17_8",
           "area_to_id": "area_world_17_8",
           "cell": {
             "x": 16.5,
@@ -17899,9 +17958,9 @@
         "type": "way",
         "name": "Blackmarsh to Road (world 4,5)",
         "properties": {
-          "area_from": "Blackmarsh",
+          "area_from": "area_blackmarsh",
           "area_from_id": "area_blackmarsh",
-          "area_to": "Road (world 4,5)",
+          "area_to": "area_world_4_5",
           "area_to_id": "area_world_4_5",
           "cell": {
             "x": 3.5,
@@ -17933,9 +17992,9 @@
         "type": "way",
         "name": "Camp Entrance Trail to Road (world 10,4)",
         "properties": {
-          "area_from": "Camp Entrance Trail",
+          "area_from": "area_camp_entrance_trail",
           "area_from_id": "area_camp_entrance_trail",
-          "area_to": "Road (world 10,4)",
+          "area_to": "area_world_10_4",
           "area_to_id": "area_world_10_4",
           "cell": {
             "x": 9.5,
@@ -17967,9 +18026,9 @@
         "type": "way",
         "name": "Camp Entrance Trail to Sparse Forest (world 10,5)",
         "properties": {
-          "area_from": "Camp Entrance Trail",
+          "area_from": "area_camp_entrance_trail",
           "area_from_id": "area_camp_entrance_trail",
-          "area_to": "Sparse Forest (world 10,5)",
+          "area_to": "area_world_10_5",
           "area_to_id": "area_world_10_5",
           "cell": {
             "x": 9.5,
@@ -18001,9 +18060,9 @@
         "type": "way",
         "name": "Camp Entrance Trail to Bridge (world 10,6)",
         "properties": {
-          "area_from": "Camp Entrance Trail",
+          "area_from": "area_camp_entrance_trail",
           "area_from_id": "area_camp_entrance_trail",
-          "area_to": "Bridge (world 10,6)",
+          "area_to": "area_world_10_6",
           "area_to_id": "area_world_10_6",
           "cell": {
             "x": 9.5,
@@ -18035,9 +18094,9 @@
         "type": "way",
         "name": "Camp Entrance Trail to Road (world 8,6)",
         "properties": {
-          "area_from": "Camp Entrance Trail",
+          "area_from": "area_camp_entrance_trail",
           "area_from_id": "area_camp_entrance_trail",
-          "area_to": "Road (world 8,6)",
+          "area_to": "area_world_8_6",
           "area_to_id": "area_world_8_6",
           "cell": {
             "x": 8.5,
@@ -18069,9 +18128,9 @@
         "type": "way",
         "name": "Camp Entrance Trail to Road (world 9,4)",
         "properties": {
-          "area_from": "Camp Entrance Trail",
+          "area_from": "area_camp_entrance_trail",
           "area_from_id": "area_camp_entrance_trail",
-          "area_to": "Road (world 9,4)",
+          "area_to": "area_world_9_4",
           "area_to_id": "area_world_9_4",
           "cell": {
             "x": 9,
@@ -18103,9 +18162,9 @@
         "type": "way",
         "name": "Camp Entrance Trail to Road (world 9,6)",
         "properties": {
-          "area_from": "Camp Entrance Trail",
+          "area_from": "area_camp_entrance_trail",
           "area_from_id": "area_camp_entrance_trail",
-          "area_to": "Road (world 9,6)",
+          "area_to": "area_world_9_6",
           "area_to_id": "area_world_9_6",
           "cell": {
             "x": 9,
@@ -18137,9 +18196,9 @@
         "type": "way",
         "name": "Northern Hills to Deep Forest",
         "properties": {
-          "area_from": "Northern Hills",
+          "area_from": "area_northern_hills",
           "area_from_id": "area_northern_hills",
-          "area_to": "Deep Forest",
+          "area_to": "area_deep_forest",
           "area_to_id": "area_deep_forest",
           "cell": {
             "x": 9.5,
@@ -18171,9 +18230,9 @@
         "type": "way",
         "name": "Deep Forest to Road (world 10,4)",
         "properties": {
-          "area_from": "Deep Forest",
+          "area_from": "area_deep_forest",
           "area_from_id": "area_deep_forest",
-          "area_to": "Road (world 10,4)",
+          "area_to": "area_world_10_4",
           "area_to_id": "area_world_10_4",
           "cell": {
             "x": 10,
@@ -18205,9 +18264,9 @@
         "type": "way",
         "name": "Deep Forest to Road (world 11,3)",
         "properties": {
-          "area_from": "Deep Forest",
+          "area_from": "area_deep_forest",
           "area_from_id": "area_deep_forest",
-          "area_to": "Road (world 11,3)",
+          "area_to": "area_world_11_3",
           "area_to_id": "area_world_11_3",
           "cell": {
             "x": 10.5,
@@ -18239,9 +18298,9 @@
         "type": "way",
         "name": "Deep Forest to Road (world 11,4)",
         "properties": {
-          "area_from": "Deep Forest",
+          "area_from": "area_deep_forest",
           "area_from_id": "area_deep_forest",
-          "area_to": "Road (world 11,4)",
+          "area_to": "area_world_11_4",
           "area_to_id": "area_world_11_4",
           "cell": {
             "x": 10.5,
@@ -18273,9 +18332,9 @@
         "type": "way",
         "name": "Deep Forest to Road (world 9,3)",
         "properties": {
-          "area_from": "Deep Forest",
+          "area_from": "area_deep_forest",
           "area_from_id": "area_deep_forest",
-          "area_to": "Road (world 9,3)",
+          "area_to": "area_world_9_3",
           "area_to_id": "area_world_9_3",
           "cell": {
             "x": 9.5,
@@ -18307,9 +18366,9 @@
         "type": "way",
         "name": "Deep Forest to Road (world 9,4)",
         "properties": {
-          "area_from": "Deep Forest",
+          "area_from": "area_deep_forest",
           "area_from_id": "area_deep_forest",
-          "area_to": "Road (world 9,4)",
+          "area_to": "area_world_9_4",
           "area_to_id": "area_world_9_4",
           "cell": {
             "x": 9.5,
@@ -18341,9 +18400,9 @@
         "type": "way",
         "name": "Eldenford to Road (world 16,3)",
         "properties": {
-          "area_from": "Eldenford",
+          "area_from": "area_eldenford_village",
           "area_from_id": "area_eldenford_village",
-          "area_to": "Road (world 16,3)",
+          "area_to": "area_world_16_3",
           "area_to_id": "area_world_16_3",
           "cell": {
             "x": 16.5,
@@ -18375,9 +18434,9 @@
         "type": "way",
         "name": "Eldenford to Road (world 16,4)",
         "properties": {
-          "area_from": "Eldenford",
+          "area_from": "area_eldenford_village",
           "area_from_id": "area_eldenford_village",
-          "area_to": "Road (world 16,4)",
+          "area_to": "area_world_16_4",
           "area_to_id": "area_world_16_4",
           "cell": {
             "x": 16.5,
@@ -18409,9 +18468,9 @@
         "type": "way",
         "name": "Eldenford to Road (world 18,3)",
         "properties": {
-          "area_from": "Eldenford",
+          "area_from": "area_eldenford_village",
           "area_from_id": "area_eldenford_village",
-          "area_to": "Road (world 18,3)",
+          "area_to": "area_world_18_3",
           "area_to_id": "area_world_18_3",
           "cell": {
             "x": 17.5,
@@ -18443,9 +18502,9 @@
         "type": "way",
         "name": "Human Road to Road (world 17,6)",
         "properties": {
-          "area_from": "Human Road",
+          "area_from": "area_human_road",
           "area_from_id": "area_human_road",
-          "area_to": "Road (world 17,6)",
+          "area_to": "area_world_17_6",
           "area_to_id": "area_world_17_6",
           "cell": {
             "x": 17.5,
@@ -18477,9 +18536,9 @@
         "type": "way",
         "name": "Human Road to Road (world 18,7)",
         "properties": {
-          "area_from": "Human Road",
+          "area_from": "area_human_road",
           "area_from_id": "area_human_road",
-          "area_to": "Road (world 18,7)",
+          "area_to": "area_world_18_7",
           "area_to_id": "area_world_18_7",
           "cell": {
             "x": 18,
@@ -18511,9 +18570,9 @@
         "type": "way",
         "name": "Human Road to Road (world 19,5)",
         "properties": {
-          "area_from": "Human Road",
+          "area_from": "area_human_road",
           "area_from_id": "area_human_road",
-          "area_to": "Road (world 19,5)",
+          "area_to": "area_world_19_5",
           "area_to_id": "area_world_19_5",
           "cell": {
             "x": 18.5,
@@ -18545,9 +18604,9 @@
         "type": "way",
         "name": "Human Road to Road (world 19,7)",
         "properties": {
-          "area_from": "Human Road",
+          "area_from": "area_human_road",
           "area_from_id": "area_human_road",
-          "area_to": "Road (world 19,7)",
+          "area_to": "area_world_19_7",
           "area_to_id": "area_world_19_7",
           "cell": {
             "x": 18.5,
@@ -18579,9 +18638,9 @@
         "type": "way",
         "name": "Murk Lake to Sparse Forest (world 6,6)",
         "properties": {
-          "area_from": "Murk Lake",
+          "area_from": "area_murk_lake",
           "area_from_id": "area_murk_lake",
-          "area_to": "Sparse Forest (world 6,6)",
+          "area_to": "area_world_6_6",
           "area_to_id": "area_world_6_6",
           "cell": {
             "x": 6.5,
@@ -18613,9 +18672,9 @@
         "type": "way",
         "name": "Murk Lake to Road (world 7,6)",
         "properties": {
-          "area_from": "Murk Lake",
+          "area_from": "area_murk_lake",
           "area_from_id": "area_murk_lake",
-          "area_to": "Road (world 7,6)",
+          "area_to": "area_world_7_6",
           "area_to_id": "area_world_7_6",
           "cell": {
             "x": 7,
@@ -18647,9 +18706,9 @@
         "type": "way",
         "name": "Murk Lake to Road (world 8,6)",
         "properties": {
-          "area_from": "Murk Lake",
+          "area_from": "area_murk_lake",
           "area_from_id": "area_murk_lake",
-          "area_to": "Road (world 8,6)",
+          "area_to": "area_world_8_6",
           "area_to_id": "area_world_8_6",
           "cell": {
             "x": 7.5,
@@ -18681,9 +18740,9 @@
         "type": "way",
         "name": "Northern Hills to Road (world 8,3)",
         "properties": {
-          "area_from": "Northern Hills",
+          "area_from": "area_northern_hills",
           "area_from_id": "area_northern_hills",
-          "area_to": "Road (world 8,3)",
+          "area_to": "area_world_8_3",
           "area_to_id": "area_world_8_3",
           "cell": {
             "x": 8.5,
@@ -18715,9 +18774,9 @@
         "type": "way",
         "name": "Northern Hills to Road (world 9,3)",
         "properties": {
-          "area_from": "Northern Hills",
+          "area_from": "area_northern_hills",
           "area_from_id": "area_northern_hills",
-          "area_to": "Road (world 9,3)",
+          "area_to": "area_world_9_3",
           "area_to_id": "area_world_9_3",
           "cell": {
             "x": 9,
@@ -18749,9 +18808,9 @@
         "type": "way",
         "name": "Old Dwarven Ruins to Road (world 3,6)",
         "properties": {
-          "area_from": "Old Dwarven Ruins",
+          "area_from": "area_old_dwarven_ruins",
           "area_from_id": "area_old_dwarven_ruins",
-          "area_to": "Road (world 3,6)",
+          "area_to": "area_world_3_6",
           "area_to_id": "area_world_3_6",
           "cell": {
             "x": 2.5,
@@ -18783,9 +18842,9 @@
         "type": "way",
         "name": "Raven River to Road (world 12,5)",
         "properties": {
-          "area_from": "Raven River",
+          "area_from": "area_raven_river",
           "area_from_id": "area_raven_river",
-          "area_to": "Road (world 12,5)",
+          "area_to": "area_world_12_5",
           "area_to_id": "area_world_12_5",
           "cell": {
             "x": 12.5,
@@ -18817,9 +18876,9 @@
         "type": "way",
         "name": "Raven River to Road (world 12,7)",
         "properties": {
-          "area_from": "Raven River",
+          "area_from": "area_raven_river",
           "area_from_id": "area_raven_river",
-          "area_to": "Road (world 12,7)",
+          "area_to": "area_world_12_7",
           "area_to_id": "area_world_12_7",
           "cell": {
             "x": 12.5,
@@ -18851,9 +18910,9 @@
         "type": "way",
         "name": "Raven River to Road (world 13,7)",
         "properties": {
-          "area_from": "Raven River",
+          "area_from": "area_raven_river",
           "area_from_id": "area_raven_river",
-          "area_to": "Road (world 13,7)",
+          "area_to": "area_world_13_7",
           "area_to_id": "area_world_13_7",
           "cell": {
             "x": 13,
@@ -18885,9 +18944,9 @@
         "type": "way",
         "name": "Raven River to Road (world 14,6)",
         "properties": {
-          "area_from": "Raven River",
+          "area_from": "area_raven_river",
           "area_from_id": "area_raven_river",
-          "area_to": "Road (world 14,6)",
+          "area_to": "area_world_14_6",
           "area_to_id": "area_world_14_6",
           "cell": {
             "x": 13.5,
@@ -18919,9 +18978,9 @@
         "type": "way",
         "name": "Raven River to Road (world 14,7)",
         "properties": {
-          "area_from": "Raven River",
+          "area_from": "area_raven_river",
           "area_from_id": "area_raven_river",
-          "area_to": "Road (world 14,7)",
+          "area_to": "area_world_14_7",
           "area_to_id": "area_world_14_7",
           "cell": {
             "x": 13.5,
@@ -18953,9 +19012,9 @@
         "type": "way",
         "name": "Road (world 10,4) to Sparse Forest (world 10,5)",
         "properties": {
-          "area_from": "Road (world 10,4)",
+          "area_from": "area_world_10_4",
           "area_from_id": "area_world_10_4",
-          "area_to": "Sparse Forest (world 10,5)",
+          "area_to": "area_world_10_5",
           "area_to_id": "area_world_10_5",
           "cell": {
             "x": 10,
@@ -18987,9 +19046,9 @@
         "type": "way",
         "name": "Road (world 11,3) to Road (world 10,4)",
         "properties": {
-          "area_from": "Road (world 11,3)",
+          "area_from": "area_world_11_3",
           "area_from_id": "area_world_11_3",
-          "area_to": "Road (world 10,4)",
+          "area_to": "area_world_10_4",
           "area_to_id": "area_world_10_4",
           "cell": {
             "x": 10.5,
@@ -19021,9 +19080,9 @@
         "type": "way",
         "name": "Road (world 10,4) to Road (world 11,4)",
         "properties": {
-          "area_from": "Road (world 10,4)",
+          "area_from": "area_world_10_4",
           "area_from_id": "area_world_10_4",
-          "area_to": "Road (world 11,4)",
+          "area_to": "area_world_11_4",
           "area_to_id": "area_world_11_4",
           "cell": {
             "x": 10.5,
@@ -19055,9 +19114,9 @@
         "type": "way",
         "name": "Road (world 10,4) to Sparse Forest (world 11,5)",
         "properties": {
-          "area_from": "Road (world 10,4)",
+          "area_from": "area_world_10_4",
           "area_from_id": "area_world_10_4",
-          "area_to": "Sparse Forest (world 11,5)",
+          "area_to": "area_world_11_5",
           "area_to_id": "area_world_11_5",
           "cell": {
             "x": 10.5,
@@ -19089,9 +19148,9 @@
         "type": "way",
         "name": "Road (world 9,3) to Road (world 10,4)",
         "properties": {
-          "area_from": "Road (world 9,3)",
+          "area_from": "area_world_9_3",
           "area_from_id": "area_world_9_3",
-          "area_to": "Road (world 10,4)",
+          "area_to": "area_world_10_4",
           "area_to_id": "area_world_10_4",
           "cell": {
             "x": 9.5,
@@ -19123,9 +19182,9 @@
         "type": "way",
         "name": "Road (world 9,4) to Road (world 10,4)",
         "properties": {
-          "area_from": "Road (world 9,4)",
+          "area_from": "area_world_9_4",
           "area_from_id": "area_world_9_4",
-          "area_to": "Road (world 10,4)",
+          "area_to": "area_world_10_4",
           "area_to_id": "area_world_10_4",
           "cell": {
             "x": 9.5,
@@ -19157,9 +19216,9 @@
         "type": "way",
         "name": "Sparse Forest (world 10,5) to Bridge (world 10,6)",
         "properties": {
-          "area_from": "Sparse Forest (world 10,5)",
+          "area_from": "area_world_10_5",
           "area_from_id": "area_world_10_5",
-          "area_to": "Bridge (world 10,6)",
+          "area_to": "area_world_10_6",
           "area_to_id": "area_world_10_6",
           "cell": {
             "x": 10,
@@ -19191,9 +19250,9 @@
         "type": "way",
         "name": "Road (world 11,4) to Sparse Forest (world 10,5)",
         "properties": {
-          "area_from": "Road (world 11,4)",
+          "area_from": "area_world_11_4",
           "area_from_id": "area_world_11_4",
-          "area_to": "Sparse Forest (world 10,5)",
+          "area_to": "area_world_10_5",
           "area_to_id": "area_world_10_5",
           "cell": {
             "x": 10.5,
@@ -19225,9 +19284,9 @@
         "type": "way",
         "name": "Sparse Forest (world 10,5) to Sparse Forest (world 11,5)",
         "properties": {
-          "area_from": "Sparse Forest (world 10,5)",
+          "area_from": "area_world_10_5",
           "area_from_id": "area_world_10_5",
-          "area_to": "Sparse Forest (world 11,5)",
+          "area_to": "area_world_11_5",
           "area_to_id": "area_world_11_5",
           "cell": {
             "x": 10.5,
@@ -19259,9 +19318,9 @@
         "type": "way",
         "name": "Sparse Forest (world 10,5) to Road (world 11,6)",
         "properties": {
-          "area_from": "Sparse Forest (world 10,5)",
+          "area_from": "area_world_10_5",
           "area_from_id": "area_world_10_5",
-          "area_to": "Road (world 11,6)",
+          "area_to": "area_world_11_6",
           "area_to_id": "area_world_11_6",
           "cell": {
             "x": 10.5,
@@ -19293,9 +19352,9 @@
         "type": "way",
         "name": "Road (world 9,4) to Sparse Forest (world 10,5)",
         "properties": {
-          "area_from": "Road (world 9,4)",
+          "area_from": "area_world_9_4",
           "area_from_id": "area_world_9_4",
-          "area_to": "Sparse Forest (world 10,5)",
+          "area_to": "area_world_10_5",
           "area_to_id": "area_world_10_5",
           "cell": {
             "x": 9.5,
@@ -19327,9 +19386,9 @@
         "type": "way",
         "name": "Sparse Forest (world 10,5) to Road (world 9,6)",
         "properties": {
-          "area_from": "Sparse Forest (world 10,5)",
+          "area_from": "area_world_10_5",
           "area_from_id": "area_world_10_5",
-          "area_to": "Road (world 9,6)",
+          "area_to": "area_world_9_6",
           "area_to_id": "area_world_9_6",
           "cell": {
             "x": 9.5,
@@ -19361,9 +19420,9 @@
         "type": "way",
         "name": "Sparse Forest (world 11,5) to Bridge (world 10,6)",
         "properties": {
-          "area_from": "Sparse Forest (world 11,5)",
+          "area_from": "area_world_11_5",
           "area_from_id": "area_world_11_5",
-          "area_to": "Bridge (world 10,6)",
+          "area_to": "area_world_10_6",
           "area_to_id": "area_world_10_6",
           "cell": {
             "x": 10.5,
@@ -19395,9 +19454,9 @@
         "type": "way",
         "name": "Bridge (world 10,6) to Road (world 11,6)",
         "properties": {
-          "area_from": "Bridge (world 10,6)",
+          "area_from": "area_world_10_6",
           "area_from_id": "area_world_10_6",
-          "area_to": "Road (world 11,6)",
+          "area_to": "area_world_11_6",
           "area_to_id": "area_world_11_6",
           "cell": {
             "x": 10.5,
@@ -19429,9 +19488,9 @@
         "type": "way",
         "name": "Bridge (world 10,6) to Sparse Forest (world 11,7)",
         "properties": {
-          "area_from": "Bridge (world 10,6)",
+          "area_from": "area_world_10_6",
           "area_from_id": "area_world_10_6",
-          "area_to": "Sparse Forest (world 11,7)",
+          "area_to": "area_world_11_7",
           "area_to_id": "area_world_11_7",
           "cell": {
             "x": 10.5,
@@ -19463,9 +19522,9 @@
         "type": "way",
         "name": "Road (world 9,6) to Bridge (world 10,6)",
         "properties": {
-          "area_from": "Road (world 9,6)",
+          "area_from": "area_world_9_6",
           "area_from_id": "area_world_9_6",
-          "area_to": "Bridge (world 10,6)",
+          "area_to": "area_world_10_6",
           "area_to_id": "area_world_10_6",
           "cell": {
             "x": 9.5,
@@ -19497,9 +19556,9 @@
         "type": "way",
         "name": "Road (world 11,3) to Road (world 11,4)",
         "properties": {
-          "area_from": "Road (world 11,3)",
+          "area_from": "area_world_11_3",
           "area_from_id": "area_world_11_3",
-          "area_to": "Road (world 11,4)",
+          "area_to": "area_world_11_4",
           "area_to_id": "area_world_11_4",
           "cell": {
             "x": 11,
@@ -19531,9 +19590,9 @@
         "type": "way",
         "name": "Road (world 11,3) to Bridge (world 12,3)",
         "properties": {
-          "area_from": "Road (world 11,3)",
+          "area_from": "area_world_11_3",
           "area_from_id": "area_world_11_3",
-          "area_to": "Bridge (world 12,3)",
+          "area_to": "area_world_12_3",
           "area_to_id": "area_world_12_3",
           "cell": {
             "x": 11.5,
@@ -19565,9 +19624,9 @@
         "type": "way",
         "name": "Road (world 11,4) to Sparse Forest (world 11,5)",
         "properties": {
-          "area_from": "Road (world 11,4)",
+          "area_from": "area_world_11_4",
           "area_from_id": "area_world_11_4",
-          "area_to": "Sparse Forest (world 11,5)",
+          "area_to": "area_world_11_5",
           "area_to_id": "area_world_11_5",
           "cell": {
             "x": 11,
@@ -19599,9 +19658,9 @@
         "type": "way",
         "name": "Bridge (world 12,3) to Road (world 11,4)",
         "properties": {
-          "area_from": "Bridge (world 12,3)",
+          "area_from": "area_world_12_3",
           "area_from_id": "area_world_12_3",
-          "area_to": "Road (world 11,4)",
+          "area_to": "area_world_11_4",
           "area_to_id": "area_world_11_4",
           "cell": {
             "x": 11.5,
@@ -19633,9 +19692,9 @@
         "type": "way",
         "name": "Road (world 11,4) to Road (world 12,5)",
         "properties": {
-          "area_from": "Road (world 11,4)",
+          "area_from": "area_world_11_4",
           "area_from_id": "area_world_11_4",
-          "area_to": "Road (world 12,5)",
+          "area_to": "area_world_12_5",
           "area_to_id": "area_world_12_5",
           "cell": {
             "x": 11.5,
@@ -19667,9 +19726,9 @@
         "type": "way",
         "name": "Sparse Forest (world 11,5) to Road (world 11,6)",
         "properties": {
-          "area_from": "Sparse Forest (world 11,5)",
+          "area_from": "area_world_11_5",
           "area_from_id": "area_world_11_5",
-          "area_to": "Road (world 11,6)",
+          "area_to": "area_world_11_6",
           "area_to_id": "area_world_11_6",
           "cell": {
             "x": 11,
@@ -19701,9 +19760,9 @@
         "type": "way",
         "name": "Sparse Forest (world 11,5) to Road (world 12,5)",
         "properties": {
-          "area_from": "Sparse Forest (world 11,5)",
+          "area_from": "area_world_11_5",
           "area_from_id": "area_world_11_5",
-          "area_to": "Road (world 12,5)",
+          "area_to": "area_world_12_5",
           "area_to_id": "area_world_12_5",
           "cell": {
             "x": 11.5,
@@ -19735,9 +19794,9 @@
         "type": "way",
         "name": "Road (world 11,6) to Sparse Forest (world 11,7)",
         "properties": {
-          "area_from": "Road (world 11,6)",
+          "area_from": "area_world_11_6",
           "area_from_id": "area_world_11_6",
-          "area_to": "Sparse Forest (world 11,7)",
+          "area_to": "area_world_11_7",
           "area_to_id": "area_world_11_7",
           "cell": {
             "x": 11,
@@ -19769,9 +19828,9 @@
         "type": "way",
         "name": "Road (world 12,5) to Road (world 11,6)",
         "properties": {
-          "area_from": "Road (world 12,5)",
+          "area_from": "area_world_12_5",
           "area_from_id": "area_world_12_5",
-          "area_to": "Road (world 11,6)",
+          "area_to": "area_world_11_6",
           "area_to_id": "area_world_11_6",
           "cell": {
             "x": 11.5,
@@ -19803,9 +19862,9 @@
         "type": "way",
         "name": "Road (world 11,6) to Road (world 12,7)",
         "properties": {
-          "area_from": "Road (world 11,6)",
+          "area_from": "area_world_11_6",
           "area_from_id": "area_world_11_6",
-          "area_to": "Road (world 12,7)",
+          "area_to": "area_world_12_7",
           "area_to_id": "area_world_12_7",
           "cell": {
             "x": 11.5,
@@ -19837,9 +19896,9 @@
         "type": "way",
         "name": "Sparse Forest (world 11,7) to Road (world 12,7)",
         "properties": {
-          "area_from": "Sparse Forest (world 11,7)",
+          "area_from": "area_world_11_7",
           "area_from_id": "area_world_11_7",
-          "area_to": "Road (world 12,7)",
+          "area_to": "area_world_12_7",
           "area_to_id": "area_world_12_7",
           "cell": {
             "x": 11.5,
@@ -19871,9 +19930,9 @@
         "type": "way",
         "name": "Bridge (world 12,3) to Road (world 13,3)",
         "properties": {
-          "area_from": "Bridge (world 12,3)",
+          "area_from": "area_world_12_3",
           "area_from_id": "area_world_12_3",
-          "area_to": "Road (world 13,3)",
+          "area_to": "area_world_13_3",
           "area_to_id": "area_world_13_3",
           "cell": {
             "x": 12.5,
@@ -19905,9 +19964,9 @@
         "type": "way",
         "name": "Road (world 12,7) to Road (world 13,7)",
         "properties": {
-          "area_from": "Road (world 12,7)",
+          "area_from": "area_world_12_7",
           "area_from_id": "area_world_12_7",
-          "area_to": "Road (world 13,7)",
+          "area_to": "area_world_13_7",
           "area_to_id": "area_world_13_7",
           "cell": {
             "x": 12.5,
@@ -19939,9 +19998,9 @@
         "type": "way",
         "name": "Road (world 13,3) to Road (world 14,3)",
         "properties": {
-          "area_from": "Road (world 13,3)",
+          "area_from": "area_world_13_3",
           "area_from_id": "area_world_13_3",
-          "area_to": "Road (world 14,3)",
+          "area_to": "area_world_14_3",
           "area_to_id": "area_world_14_3",
           "cell": {
             "x": 13.5,
@@ -19973,9 +20032,9 @@
         "type": "way",
         "name": "Road (world 14,6) to Road (world 13,7)",
         "properties": {
-          "area_from": "Road (world 14,6)",
+          "area_from": "area_world_14_6",
           "area_from_id": "area_world_14_6",
-          "area_to": "Road (world 13,7)",
+          "area_to": "area_world_13_7",
           "area_to_id": "area_world_13_7",
           "cell": {
             "x": 13.5,
@@ -20007,9 +20066,9 @@
         "type": "way",
         "name": "Road (world 13,7) to Road (world 14,7)",
         "properties": {
-          "area_from": "Road (world 13,7)",
+          "area_from": "area_world_13_7",
           "area_from_id": "area_world_13_7",
-          "area_to": "Road (world 14,7)",
+          "area_to": "area_world_14_7",
           "area_to_id": "area_world_14_7",
           "cell": {
             "x": 13.5,
@@ -20041,9 +20100,9 @@
         "type": "way",
         "name": "Road (world 14,3) to Road (world 15,3)",
         "properties": {
-          "area_from": "Road (world 14,3)",
+          "area_from": "area_world_14_3",
           "area_from_id": "area_world_14_3",
-          "area_to": "Road (world 15,3)",
+          "area_to": "area_world_15_3",
           "area_to_id": "area_world_15_3",
           "cell": {
             "x": 14.5,
@@ -20075,9 +20134,9 @@
         "type": "way",
         "name": "Road (world 14,6) to Road (world 14,7)",
         "properties": {
-          "area_from": "Road (world 14,6)",
+          "area_from": "area_world_14_6",
           "area_from_id": "area_world_14_6",
-          "area_to": "Road (world 14,7)",
+          "area_to": "area_world_14_7",
           "area_to_id": "area_world_14_7",
           "cell": {
             "x": 14,
@@ -20109,9 +20168,9 @@
         "type": "way",
         "name": "Road (world 15,5) to Road (world 14,6)",
         "properties": {
-          "area_from": "Road (world 15,5)",
+          "area_from": "area_world_15_5",
           "area_from_id": "area_world_15_5",
-          "area_to": "Road (world 14,6)",
+          "area_to": "area_world_14_6",
           "area_to_id": "area_world_14_6",
           "cell": {
             "x": 14.5,
@@ -20143,9 +20202,9 @@
         "type": "way",
         "name": "Road (world 14,6) to Road (world 15,6)",
         "properties": {
-          "area_from": "Road (world 14,6)",
+          "area_from": "area_world_14_6",
           "area_from_id": "area_world_14_6",
-          "area_to": "Road (world 15,6)",
+          "area_to": "area_world_15_6",
           "area_to_id": "area_world_15_6",
           "cell": {
             "x": 14.5,
@@ -20177,9 +20236,9 @@
         "type": "way",
         "name": "Road (world 14,6) to Road (world 15,7)",
         "properties": {
-          "area_from": "Road (world 14,6)",
+          "area_from": "area_world_14_6",
           "area_from_id": "area_world_14_6",
-          "area_to": "Road (world 15,7)",
+          "area_to": "area_world_15_7",
           "area_to_id": "area_world_15_7",
           "cell": {
             "x": 14.5,
@@ -20211,9 +20270,9 @@
         "type": "way",
         "name": "Road (world 15,6) to Road (world 14,7)",
         "properties": {
-          "area_from": "Road (world 15,6)",
+          "area_from": "area_world_15_6",
           "area_from_id": "area_world_15_6",
-          "area_to": "Road (world 14,7)",
+          "area_to": "area_world_14_7",
           "area_to_id": "area_world_14_7",
           "cell": {
             "x": 14.5,
@@ -20245,9 +20304,9 @@
         "type": "way",
         "name": "Road (world 14,7) to Road (world 15,7)",
         "properties": {
-          "area_from": "Road (world 14,7)",
+          "area_from": "area_world_14_7",
           "area_from_id": "area_world_14_7",
-          "area_to": "Road (world 15,7)",
+          "area_to": "area_world_15_7",
           "area_to_id": "area_world_15_7",
           "cell": {
             "x": 14.5,
@@ -20279,9 +20338,9 @@
         "type": "way",
         "name": "Road (world 15,3) to Road (world 16,3)",
         "properties": {
-          "area_from": "Road (world 15,3)",
+          "area_from": "area_world_15_3",
           "area_from_id": "area_world_15_3",
-          "area_to": "Road (world 16,3)",
+          "area_to": "area_world_16_3",
           "area_to_id": "area_world_16_3",
           "cell": {
             "x": 15.5,
@@ -20313,9 +20372,9 @@
         "type": "way",
         "name": "Road (world 15,3) to Road (world 16,4)",
         "properties": {
-          "area_from": "Road (world 15,3)",
+          "area_from": "area_world_15_3",
           "area_from_id": "area_world_15_3",
-          "area_to": "Road (world 16,4)",
+          "area_to": "area_world_16_4",
           "area_to_id": "area_world_16_4",
           "cell": {
             "x": 15.5,
@@ -20347,9 +20406,9 @@
         "type": "way",
         "name": "Road (world 15,5) to Road (world 15,6)",
         "properties": {
-          "area_from": "Road (world 15,5)",
+          "area_from": "area_world_15_5",
           "area_from_id": "area_world_15_5",
-          "area_to": "Road (world 15,6)",
+          "area_to": "area_world_15_6",
           "area_to_id": "area_world_15_6",
           "cell": {
             "x": 15,
@@ -20381,9 +20440,9 @@
         "type": "way",
         "name": "Road (world 16,4) to Road (world 15,5)",
         "properties": {
-          "area_from": "Road (world 16,4)",
+          "area_from": "area_world_16_4",
           "area_from_id": "area_world_16_4",
-          "area_to": "Road (world 15,5)",
+          "area_to": "area_world_15_5",
           "area_to_id": "area_world_15_5",
           "cell": {
             "x": 15.5,
@@ -20415,9 +20474,9 @@
         "type": "way",
         "name": "Road (world 15,5) to Road (world 16,6)",
         "properties": {
-          "area_from": "Road (world 15,5)",
+          "area_from": "area_world_15_5",
           "area_from_id": "area_world_15_5",
-          "area_to": "Road (world 16,6)",
+          "area_to": "area_world_16_6",
           "area_to_id": "area_world_16_6",
           "cell": {
             "x": 15.5,
@@ -20449,9 +20508,9 @@
         "type": "way",
         "name": "Road (world 15,6) to Road (world 15,7)",
         "properties": {
-          "area_from": "Road (world 15,6)",
+          "area_from": "area_world_15_6",
           "area_from_id": "area_world_15_6",
-          "area_to": "Road (world 15,7)",
+          "area_to": "area_world_15_7",
           "area_to_id": "area_world_15_7",
           "cell": {
             "x": 15,
@@ -20483,9 +20542,9 @@
         "type": "way",
         "name": "Road (world 15,6) to Road (world 16,6)",
         "properties": {
-          "area_from": "Road (world 15,6)",
+          "area_from": "area_world_15_6",
           "area_from_id": "area_world_15_6",
-          "area_to": "Road (world 16,6)",
+          "area_to": "area_world_16_6",
           "area_to_id": "area_world_16_6",
           "cell": {
             "x": 15.5,
@@ -20517,9 +20576,9 @@
         "type": "way",
         "name": "Road (world 16,6) to Road (world 15,7)",
         "properties": {
-          "area_from": "Road (world 16,6)",
+          "area_from": "area_world_16_6",
           "area_from_id": "area_world_16_6",
-          "area_to": "Road (world 15,7)",
+          "area_to": "area_world_15_7",
           "area_to_id": "area_world_15_7",
           "cell": {
             "x": 15.5,
@@ -20551,9 +20610,9 @@
         "type": "way",
         "name": "Road (world 15,7) to Road (world 16,8)",
         "properties": {
-          "area_from": "Road (world 15,7)",
+          "area_from": "area_world_15_7",
           "area_from_id": "area_world_15_7",
-          "area_to": "Road (world 16,8)",
+          "area_to": "area_world_16_8",
           "area_to_id": "area_world_16_8",
           "cell": {
             "x": 15.5,
@@ -20585,9 +20644,9 @@
         "type": "way",
         "name": "Road (world 16,3) to Road (world 16,4)",
         "properties": {
-          "area_from": "Road (world 16,3)",
+          "area_from": "area_world_16_3",
           "area_from_id": "area_world_16_3",
-          "area_to": "Road (world 16,4)",
+          "area_to": "area_world_16_4",
           "area_to_id": "area_world_16_4",
           "cell": {
             "x": 16,
@@ -20619,9 +20678,9 @@
         "type": "way",
         "name": "Road (world 18,3) to Road (world 16,3)",
         "properties": {
-          "area_from": "Road (world 18,3)",
+          "area_from": "area_world_18_3",
           "area_from_id": "area_world_18_3",
-          "area_to": "Road (world 16,3)",
+          "area_to": "area_world_16_3",
           "area_to_id": "area_world_16_3",
           "cell": {
             "x": 17,
@@ -20653,9 +20712,9 @@
         "type": "way",
         "name": "Road (world 16,6) to Road (world 17,6)",
         "properties": {
-          "area_from": "Road (world 16,6)",
+          "area_from": "area_world_16_6",
           "area_from_id": "area_world_16_6",
-          "area_to": "Road (world 17,6)",
+          "area_to": "area_world_17_6",
           "area_to_id": "area_world_17_6",
           "cell": {
             "x": 16.5,
@@ -20687,9 +20746,9 @@
         "type": "way",
         "name": "Road (world 16,8) to Road (world 17,8)",
         "properties": {
-          "area_from": "Road (world 16,8)",
+          "area_from": "area_world_16_8",
           "area_from_id": "area_world_16_8",
-          "area_to": "Road (world 17,8)",
+          "area_to": "area_world_17_8",
           "area_to_id": "area_world_17_8",
           "cell": {
             "x": 16.5,
@@ -20721,9 +20780,9 @@
         "type": "way",
         "name": "Road (world 17,6) to Road (world 18,7)",
         "properties": {
-          "area_from": "Road (world 17,6)",
+          "area_from": "area_world_17_6",
           "area_from_id": "area_world_17_6",
-          "area_to": "Road (world 18,7)",
+          "area_to": "area_world_18_7",
           "area_to_id": "area_world_18_7",
           "cell": {
             "x": 17.5,
@@ -20755,9 +20814,9 @@
         "type": "way",
         "name": "Road (world 18,7) to Road (world 17,8)",
         "properties": {
-          "area_from": "Road (world 18,7)",
+          "area_from": "area_world_18_7",
           "area_from_id": "area_world_18_7",
-          "area_to": "Road (world 17,8)",
+          "area_to": "area_world_17_8",
           "area_to_id": "area_world_17_8",
           "cell": {
             "x": 17.5,
@@ -20789,9 +20848,9 @@
         "type": "way",
         "name": "Road (world 18,3) to Road (world 19,4)",
         "properties": {
-          "area_from": "Road (world 18,3)",
+          "area_from": "area_world_18_3",
           "area_from_id": "area_world_18_3",
-          "area_to": "Road (world 19,4)",
+          "area_to": "area_world_19_4",
           "area_to_id": "area_world_19_4",
           "cell": {
             "x": 18.5,
@@ -20823,9 +20882,9 @@
         "type": "way",
         "name": "Road (world 18,7) to Road (world 19,7)",
         "properties": {
-          "area_from": "Road (world 18,7)",
+          "area_from": "area_world_18_7",
           "area_from_id": "area_world_18_7",
-          "area_to": "Road (world 19,7)",
+          "area_to": "area_world_19_7",
           "area_to_id": "area_world_19_7",
           "cell": {
             "x": 18.5,
@@ -20857,9 +20916,9 @@
         "type": "way",
         "name": "Road (world 19,4) to Road (world 19,5)",
         "properties": {
-          "area_from": "Road (world 19,4)",
+          "area_from": "area_world_19_4",
           "area_from_id": "area_world_19_4",
-          "area_to": "Road (world 19,5)",
+          "area_to": "area_world_19_5",
           "area_to_id": "area_world_19_5",
           "cell": {
             "x": 19,
@@ -20891,9 +20950,9 @@
         "type": "way",
         "name": "Road (world 4,5) to Road (world 3,6)",
         "properties": {
-          "area_from": "Road (world 4,5)",
+          "area_from": "area_world_4_5",
           "area_from_id": "area_world_4_5",
-          "area_to": "Road (world 3,6)",
+          "area_to": "area_world_3_6",
           "area_to_id": "area_world_3_6",
           "cell": {
             "x": 3.5,
@@ -20925,9 +20984,9 @@
         "type": "way",
         "name": "Road (world 3,6) to Sparse Forest (world 4,6)",
         "properties": {
-          "area_from": "Road (world 3,6)",
+          "area_from": "area_world_3_6",
           "area_from_id": "area_world_3_6",
-          "area_to": "Sparse Forest (world 4,6)",
+          "area_to": "area_world_4_6",
           "area_to_id": "area_world_4_6",
           "cell": {
             "x": 3.5,
@@ -20959,9 +21018,9 @@
         "type": "way",
         "name": "Road (world 4,1) to Road (world 5,2)",
         "properties": {
-          "area_from": "Road (world 4,1)",
+          "area_from": "area_world_4_1",
           "area_from_id": "area_world_4_1",
-          "area_to": "Road (world 5,2)",
+          "area_to": "area_world_5_2",
           "area_to_id": "area_world_5_2",
           "cell": {
             "x": 4.5,
@@ -20993,9 +21052,9 @@
         "type": "way",
         "name": "Road (world 4,5) to Sparse Forest (world 4,6)",
         "properties": {
-          "area_from": "Road (world 4,5)",
+          "area_from": "area_world_4_5",
           "area_from_id": "area_world_4_5",
-          "area_to": "Sparse Forest (world 4,6)",
+          "area_to": "area_world_4_6",
           "area_to_id": "area_world_4_6",
           "cell": {
             "x": 4,
@@ -21027,9 +21086,9 @@
         "type": "way",
         "name": "Road (world 4,5) to Road (world 5,5)",
         "properties": {
-          "area_from": "Road (world 4,5)",
+          "area_from": "area_world_4_5",
           "area_from_id": "area_world_4_5",
-          "area_to": "Road (world 5,5)",
+          "area_to": "area_world_5_5",
           "area_to_id": "area_world_5_5",
           "cell": {
             "x": 4.5,
@@ -21061,9 +21120,9 @@
         "type": "way",
         "name": "Road (world 4,5) to Sparse Forest (world 5,6)",
         "properties": {
-          "area_from": "Road (world 4,5)",
+          "area_from": "area_world_4_5",
           "area_from_id": "area_world_4_5",
-          "area_to": "Sparse Forest (world 5,6)",
+          "area_to": "area_world_5_6",
           "area_to_id": "area_world_5_6",
           "cell": {
             "x": 4.5,
@@ -21095,9 +21154,9 @@
         "type": "way",
         "name": "Road (world 5,5) to Sparse Forest (world 4,6)",
         "properties": {
-          "area_from": "Road (world 5,5)",
+          "area_from": "area_world_5_5",
           "area_from_id": "area_world_5_5",
-          "area_to": "Sparse Forest (world 4,6)",
+          "area_to": "area_world_4_6",
           "area_to_id": "area_world_4_6",
           "cell": {
             "x": 4.5,
@@ -21129,9 +21188,9 @@
         "type": "way",
         "name": "Sparse Forest (world 4,6) to Sparse Forest (world 5,6)",
         "properties": {
-          "area_from": "Sparse Forest (world 4,6)",
+          "area_from": "area_world_4_6",
           "area_from_id": "area_world_4_6",
-          "area_to": "Sparse Forest (world 5,6)",
+          "area_to": "area_world_5_6",
           "area_to_id": "area_world_5_6",
           "cell": {
             "x": 4.5,
@@ -21163,9 +21222,9 @@
         "type": "way",
         "name": "Road (world 5,2) to Road (world 6,3)",
         "properties": {
-          "area_from": "Road (world 5,2)",
+          "area_from": "area_world_5_2",
           "area_from_id": "area_world_5_2",
-          "area_to": "Road (world 6,3)",
+          "area_to": "area_world_6_3",
           "area_to_id": "area_world_6_3",
           "cell": {
             "x": 5.5,
@@ -21197,9 +21256,9 @@
         "type": "way",
         "name": "Road (world 5,5) to Sparse Forest (world 5,6)",
         "properties": {
-          "area_from": "Road (world 5,5)",
+          "area_from": "area_world_5_5",
           "area_from_id": "area_world_5_5",
-          "area_to": "Sparse Forest (world 5,6)",
+          "area_to": "area_world_5_6",
           "area_to_id": "area_world_5_6",
           "cell": {
             "x": 5,
@@ -21231,9 +21290,9 @@
         "type": "way",
         "name": "Road (world 6,4) to Road (world 5,5)",
         "properties": {
-          "area_from": "Road (world 6,4)",
+          "area_from": "area_world_6_4",
           "area_from_id": "area_world_6_4",
-          "area_to": "Road (world 5,5)",
+          "area_to": "area_world_5_5",
           "area_to_id": "area_world_5_5",
           "cell": {
             "x": 5.5,
@@ -21265,9 +21324,9 @@
         "type": "way",
         "name": "Road (world 5,5) to Road (world 6,5)",
         "properties": {
-          "area_from": "Road (world 5,5)",
+          "area_from": "area_world_5_5",
           "area_from_id": "area_world_5_5",
-          "area_to": "Road (world 6,5)",
+          "area_to": "area_world_6_5",
           "area_to_id": "area_world_6_5",
           "cell": {
             "x": 5.5,
@@ -21299,9 +21358,9 @@
         "type": "way",
         "name": "Road (world 5,5) to Sparse Forest (world 6,6)",
         "properties": {
-          "area_from": "Road (world 5,5)",
+          "area_from": "area_world_5_5",
           "area_from_id": "area_world_5_5",
-          "area_to": "Sparse Forest (world 6,6)",
+          "area_to": "area_world_6_6",
           "area_to_id": "area_world_6_6",
           "cell": {
             "x": 5.5,
@@ -21333,9 +21392,9 @@
         "type": "way",
         "name": "Road (world 6,5) to Sparse Forest (world 5,6)",
         "properties": {
-          "area_from": "Road (world 6,5)",
+          "area_from": "area_world_6_5",
           "area_from_id": "area_world_6_5",
-          "area_to": "Sparse Forest (world 5,6)",
+          "area_to": "area_world_5_6",
           "area_to_id": "area_world_5_6",
           "cell": {
             "x": 5.5,
@@ -21367,9 +21426,9 @@
         "type": "way",
         "name": "Sparse Forest (world 5,6) to Sparse Forest (world 6,6)",
         "properties": {
-          "area_from": "Sparse Forest (world 5,6)",
+          "area_from": "area_world_5_6",
           "area_from_id": "area_world_5_6",
-          "area_to": "Sparse Forest (world 6,6)",
+          "area_to": "area_world_6_6",
           "area_to_id": "area_world_6_6",
           "cell": {
             "x": 5.5,
@@ -21401,9 +21460,9 @@
         "type": "way",
         "name": "Road (world 6,3) to Road (world 6,4)",
         "properties": {
-          "area_from": "Road (world 6,3)",
+          "area_from": "area_world_6_3",
           "area_from_id": "area_world_6_3",
-          "area_to": "Road (world 6,4)",
+          "area_to": "area_world_6_4",
           "area_to_id": "area_world_6_4",
           "cell": {
             "x": 6,
@@ -21435,9 +21494,9 @@
         "type": "way",
         "name": "Road (world 6,3) to Road (world 7,3)",
         "properties": {
-          "area_from": "Road (world 6,3)",
+          "area_from": "area_world_6_3",
           "area_from_id": "area_world_6_3",
-          "area_to": "Road (world 7,3)",
+          "area_to": "area_world_7_3",
           "area_to_id": "area_world_7_3",
           "cell": {
             "x": 6.5,
@@ -21469,9 +21528,9 @@
         "type": "way",
         "name": "Road (world 6,3) to Sparse Forest (world 7,4)",
         "properties": {
-          "area_from": "Road (world 6,3)",
+          "area_from": "area_world_6_3",
           "area_from_id": "area_world_6_3",
-          "area_to": "Sparse Forest (world 7,4)",
+          "area_to": "area_world_7_4",
           "area_to_id": "area_world_7_4",
           "cell": {
             "x": 6.5,
@@ -21503,9 +21562,9 @@
         "type": "way",
         "name": "Road (world 6,4) to Road (world 6,5)",
         "properties": {
-          "area_from": "Road (world 6,4)",
+          "area_from": "area_world_6_4",
           "area_from_id": "area_world_6_4",
-          "area_to": "Road (world 6,5)",
+          "area_to": "area_world_6_5",
           "area_to_id": "area_world_6_5",
           "cell": {
             "x": 6,
@@ -21537,9 +21596,9 @@
         "type": "way",
         "name": "Road (world 7,3) to Road (world 6,4)",
         "properties": {
-          "area_from": "Road (world 7,3)",
+          "area_from": "area_world_7_3",
           "area_from_id": "area_world_7_3",
-          "area_to": "Road (world 6,4)",
+          "area_to": "area_world_6_4",
           "area_to_id": "area_world_6_4",
           "cell": {
             "x": 6.5,
@@ -21571,9 +21630,9 @@
         "type": "way",
         "name": "Road (world 6,4) to Sparse Forest (world 7,4)",
         "properties": {
-          "area_from": "Road (world 6,4)",
+          "area_from": "area_world_6_4",
           "area_from_id": "area_world_6_4",
-          "area_to": "Sparse Forest (world 7,4)",
+          "area_to": "area_world_7_4",
           "area_to_id": "area_world_7_4",
           "cell": {
             "x": 6.5,
@@ -21605,9 +21664,9 @@
         "type": "way",
         "name": "Road (world 6,4) to Sparse Forest (world 7,5)",
         "properties": {
-          "area_from": "Road (world 6,4)",
+          "area_from": "area_world_6_4",
           "area_from_id": "area_world_6_4",
-          "area_to": "Sparse Forest (world 7,5)",
+          "area_to": "area_world_7_5",
           "area_to_id": "area_world_7_5",
           "cell": {
             "x": 6.5,
@@ -21639,9 +21698,9 @@
         "type": "way",
         "name": "Road (world 6,5) to Sparse Forest (world 6,6)",
         "properties": {
-          "area_from": "Road (world 6,5)",
+          "area_from": "area_world_6_5",
           "area_from_id": "area_world_6_5",
-          "area_to": "Sparse Forest (world 6,6)",
+          "area_to": "area_world_6_6",
           "area_to_id": "area_world_6_6",
           "cell": {
             "x": 6,
@@ -21673,9 +21732,9 @@
         "type": "way",
         "name": "Sparse Forest (world 7,4) to Road (world 6,5)",
         "properties": {
-          "area_from": "Sparse Forest (world 7,4)",
+          "area_from": "area_world_7_4",
           "area_from_id": "area_world_7_4",
-          "area_to": "Road (world 6,5)",
+          "area_to": "area_world_6_5",
           "area_to_id": "area_world_6_5",
           "cell": {
             "x": 6.5,
@@ -21707,9 +21766,9 @@
         "type": "way",
         "name": "Road (world 6,5) to Sparse Forest (world 7,5)",
         "properties": {
-          "area_from": "Road (world 6,5)",
+          "area_from": "area_world_6_5",
           "area_from_id": "area_world_6_5",
-          "area_to": "Sparse Forest (world 7,5)",
+          "area_to": "area_world_7_5",
           "area_to_id": "area_world_7_5",
           "cell": {
             "x": 6.5,
@@ -21741,9 +21800,9 @@
         "type": "way",
         "name": "Road (world 6,5) to Road (world 7,6)",
         "properties": {
-          "area_from": "Road (world 6,5)",
+          "area_from": "area_world_6_5",
           "area_from_id": "area_world_6_5",
-          "area_to": "Road (world 7,6)",
+          "area_to": "area_world_7_6",
           "area_to_id": "area_world_7_6",
           "cell": {
             "x": 6.5,
@@ -21775,9 +21834,9 @@
         "type": "way",
         "name": "Sparse Forest (world 7,5) to Sparse Forest (world 6,6)",
         "properties": {
-          "area_from": "Sparse Forest (world 7,5)",
+          "area_from": "area_world_7_5",
           "area_from_id": "area_world_7_5",
-          "area_to": "Sparse Forest (world 6,6)",
+          "area_to": "area_world_6_6",
           "area_to_id": "area_world_6_6",
           "cell": {
             "x": 6.5,
@@ -21809,9 +21868,9 @@
         "type": "way",
         "name": "Sparse Forest (world 6,6) to Road (world 7,6)",
         "properties": {
-          "area_from": "Sparse Forest (world 6,6)",
+          "area_from": "area_world_6_6",
           "area_from_id": "area_world_6_6",
-          "area_to": "Road (world 7,6)",
+          "area_to": "area_world_7_6",
           "area_to_id": "area_world_7_6",
           "cell": {
             "x": 6.5,
@@ -21843,9 +21902,9 @@
         "type": "way",
         "name": "Road (world 7,3) to Sparse Forest (world 7,4)",
         "properties": {
-          "area_from": "Road (world 7,3)",
+          "area_from": "area_world_7_3",
           "area_from_id": "area_world_7_3",
-          "area_to": "Sparse Forest (world 7,4)",
+          "area_to": "area_world_7_4",
           "area_to_id": "area_world_7_4",
           "cell": {
             "x": 7,
@@ -21877,9 +21936,9 @@
         "type": "way",
         "name": "Road (world 7,3) to Road (world 8,3)",
         "properties": {
-          "area_from": "Road (world 7,3)",
+          "area_from": "area_world_7_3",
           "area_from_id": "area_world_7_3",
-          "area_to": "Road (world 8,3)",
+          "area_to": "area_world_8_3",
           "area_to_id": "area_world_8_3",
           "cell": {
             "x": 7.5,
@@ -21911,9 +21970,9 @@
         "type": "way",
         "name": "Sparse Forest (world 7,4) to Sparse Forest (world 7,5)",
         "properties": {
-          "area_from": "Sparse Forest (world 7,4)",
+          "area_from": "area_world_7_4",
           "area_from_id": "area_world_7_4",
-          "area_to": "Sparse Forest (world 7,5)",
+          "area_to": "area_world_7_5",
           "area_to_id": "area_world_7_5",
           "cell": {
             "x": 7,
@@ -21945,9 +22004,9 @@
         "type": "way",
         "name": "Road (world 8,3) to Sparse Forest (world 7,4)",
         "properties": {
-          "area_from": "Road (world 8,3)",
+          "area_from": "area_world_8_3",
           "area_from_id": "area_world_8_3",
-          "area_to": "Sparse Forest (world 7,4)",
+          "area_to": "area_world_7_4",
           "area_to_id": "area_world_7_4",
           "cell": {
             "x": 7.5,
@@ -21979,9 +22038,9 @@
         "type": "way",
         "name": "Sparse Forest (world 7,5) to Road (world 7,6)",
         "properties": {
-          "area_from": "Sparse Forest (world 7,5)",
+          "area_from": "area_world_7_5",
           "area_from_id": "area_world_7_5",
-          "area_to": "Road (world 7,6)",
+          "area_to": "area_world_7_6",
           "area_to_id": "area_world_7_6",
           "cell": {
             "x": 7,
@@ -22013,9 +22072,9 @@
         "type": "way",
         "name": "Sparse Forest (world 7,5) to Road (world 8,6)",
         "properties": {
-          "area_from": "Sparse Forest (world 7,5)",
+          "area_from": "area_world_7_5",
           "area_from_id": "area_world_7_5",
-          "area_to": "Road (world 8,6)",
+          "area_to": "area_world_8_6",
           "area_to_id": "area_world_8_6",
           "cell": {
             "x": 7.5,
@@ -22047,9 +22106,9 @@
         "type": "way",
         "name": "Road (world 7,6) to Road (world 8,6)",
         "properties": {
-          "area_from": "Road (world 7,6)",
+          "area_from": "area_world_7_6",
           "area_from_id": "area_world_7_6",
-          "area_to": "Road (world 8,6)",
+          "area_to": "area_world_8_6",
           "area_to_id": "area_world_8_6",
           "cell": {
             "x": 7.5,
@@ -22081,9 +22140,9 @@
         "type": "way",
         "name": "Road (world 8,3) to Road (world 9,3)",
         "properties": {
-          "area_from": "Road (world 8,3)",
+          "area_from": "area_world_8_3",
           "area_from_id": "area_world_8_3",
-          "area_to": "Road (world 9,3)",
+          "area_to": "area_world_9_3",
           "area_to_id": "area_world_9_3",
           "cell": {
             "x": 8.5,
@@ -22115,9 +22174,9 @@
         "type": "way",
         "name": "Road (world 8,3) to Road (world 9,4)",
         "properties": {
-          "area_from": "Road (world 8,3)",
+          "area_from": "area_world_8_3",
           "area_from_id": "area_world_8_3",
-          "area_to": "Road (world 9,4)",
+          "area_to": "area_world_9_4",
           "area_to_id": "area_world_9_4",
           "cell": {
             "x": 8.5,
@@ -22149,9 +22208,9 @@
         "type": "way",
         "name": "Road (world 8,6) to Road (world 9,6)",
         "properties": {
-          "area_from": "Road (world 8,6)",
+          "area_from": "area_world_8_6",
           "area_from_id": "area_world_8_6",
-          "area_to": "Road (world 9,6)",
+          "area_to": "area_world_9_6",
           "area_to_id": "area_world_9_6",
           "cell": {
             "x": 8.5,
@@ -22183,9 +22242,9 @@
         "type": "way",
         "name": "Road (world 9,3) to Road (world 9,4)",
         "properties": {
-          "area_from": "Road (world 9,3)",
+          "area_from": "area_world_9_3",
           "area_from_id": "area_world_9_3",
-          "area_to": "Road (world 9,4)",
+          "area_to": "area_world_9_4",
           "area_to_id": "area_world_9_4",
           "cell": {
             "x": 9,
@@ -22211,6 +22270,413 @@
         },
         "created": 1790580438.527957,
         "updated": 1790580438.5279574
+      },
+      "character_arix": {
+        "id": "character_arix",
+        "type": "character",
+        "name": "Arix",
+        "properties": {
+          "description": "A smug, cheerful young goblin with white hair and green earrings.",
+          "base_description": "Young female goblin. White hair in ponytails, green eyes, pointed ears with green earrings. Petite, pale green skin, sharp fangs. Wears leather shorts, metal adornments, and green gloves.",
+          "personality": "You are Arix, a young goblin runaway with white hair and green earrings. Smug, cheerful, and greedy. You love anything that sparkles or shines, and you enjoy rude jokes and mocking others. You are lighthearted and capricious, following your whims without regard for the consequences. You are not from this tribe.",
+          "tags": [
+            "female",
+            "teen",
+            "goblin",
+            "faction:goblin"
+          ],
+          "traits": {
+            "high_metabolism": true
+          }
+        }
+      },
+      "character_belne": {
+        "id": "character_belne",
+        "type": "character",
+        "name": "Belne",
+        "properties": {
+          "description": "A quiet, hardened goblin traveler with wary eyes.",
+          "base_description": "Female goblin wanderer. Smaller than average, scarred, wary. Wears scavenged leathers and carries a simple pack.",
+          "personality": "You are Belne, a banished goblin from a savage tribe. You were rejected for being kind. You are quiet, desperate, and hardworking. You wander, take simple quests, and endure prejudice. You want to belong somewhere, but you do not trust easily.",
+          "tags": [
+            "female",
+            "adult",
+            "goblin",
+            "wanderer",
+            "faction:goblin"
+          ],
+          "traits": {
+            "high_metabolism": true
+          }
+        }
+      },
+      "character_croak_mother": {
+        "id": "character_croak_mother",
+        "type": "character",
+        "name": "Croak-Mother",
+        "properties": {
+          "description": "An enormous frog with ancient, knowing eyes.",
+          "base_description": "Ancient large frog. Massive, slow, and unnervingly intelligent.",
+          "personality": "You are Croak-Mother, a large ancient frog in the Blackmarsh. You are locally legendary. The shaman may have dealings with you. Your health indicates the marsh's overall condition.",
+          "tags": [
+            "female",
+            "animal",
+            "frog"
+          ]
+        }
+      },
+      "character_eldenford_blacksmith": {
+        "id": "character_eldenford_blacksmith",
+        "type": "character",
+        "name": "Eldenford Blacksmith",
+        "properties": {
+          "description": "A broad, soot-stained blacksmith with calloused hands.",
+          "base_description": "Human blacksmith. Broad, soot-stained, calloused hands. Wears a leather apron.",
+          "personality": "You are the Eldenford blacksmith. Gruff, practical, and proud of your work. You have lost tools to goblin raids and you know good metal when you see it.",
+          "tags": [
+            "male",
+            "adult",
+            "human",
+            "blacksmith",
+            "faction:human"
+          ]
+        }
+      },
+      "character_eldenford_elder": {
+        "id": "character_eldenford_elder",
+        "type": "character",
+        "name": "Eldenford Elder",
+        "properties": {
+          "description": "A weathered village elder with careful eyes and a formal bearing.",
+          "base_description": "Older human leader. Grey hair, practical clothes, carries a wooden staff.",
+          "personality": "You are the Eldenford Village Elder. Pragmatic, cautious, and tired. You balance village safety against economic necessity. You distrust goblins but understand trade.",
+          "tags": [
+            "male",
+            "adult",
+            "human",
+            "elder",
+            "faction:human"
+          ]
+        }
+      },
+      "character_eldenford_farmer": {
+        "id": "character_eldenford_farmer",
+        "type": "character",
+        "name": "Eldenford Farmer",
+        "properties": {
+          "description": "A weatherbeaten farmer in worn work clothes, watching the tree line.",
+          "base_description": "Human farmer. Weatherbeaten, practical, suspicious. Wears worn work clothes and carries a shotgun.",
+          "personality": "You are an Eldenford farmer. Gruff, practical, and unimpressed by goblins. You lose livestock to raids, you know the forest and marsh, and you have traps, dogs, and a shotgun.",
+          "tags": [
+            "male",
+            "adult",
+            "human",
+            "farmer",
+            "faction:human"
+          ]
+        }
+      },
+      "character_eldenford_merchant": {
+        "id": "character_eldenford_merchant",
+        "type": "character",
+        "name": "Eldenford Merchant",
+        "properties": {
+          "description": "A sharp-eyed merchant in clean, travel-stained clothes.",
+          "base_description": "Human merchant. Clean clothes, many pockets, a smile that never quite reaches the eyes.",
+          "personality": "You are the Eldenford merchant. Talkative, curious, and always looking for an advantage. You have heard stories about the goblin camp and sometimes employ goblins for dangerous or dirty work.",
+          "tags": [
+            "male",
+            "adult",
+            "human",
+            "merchant",
+            "faction:human"
+          ]
+        }
+      },
+      "character_eldenford_road_guard_captain": {
+        "id": "character_eldenford_road_guard_captain",
+        "type": "character",
+        "name": "Eldenford Road Guard Captain",
+        "properties": {
+          "description": "A tired road captain in worn armor, scanning the tree line.",
+          "base_description": "Human guard captain. Worn armor, weatherbeaten face, alert posture.",
+          "personality": "You are the Eldenford Road Guard Captain. Disciplined, tired, and pragmatic. You know where goblin trails cross the road. You have an unspoken arrangement with the goblins: conflict, but also predictable rules.",
+          "tags": [
+            "male",
+            "adult",
+            "human",
+            "guard",
+            "faction:human"
+          ]
+        }
+      },
+      "character_gribba": {
+        "id": "character_gribba",
+        "type": "character",
+        "name": "Gribba",
+        "properties": {
+          "description": "A quiet goblin cook with a sharp nose and sharper memory.",
+          "base_description": "Female goblin cook. Stocky, calm, always watching. Wears a stained apron and carries a heavy ladle like a badge of office.",
+          "personality": "You are Gribba, the Kraktooth cook and food specialist. You control food preparation and foraging knowledge. You quietly trade meals for information, favors, and compliance. You remember every debt. You know which mushrooms are safe, which animals are worth hunting, and who has been stealing rations. You are rarely involved in fights but have surprising influence.",
+          "tags": [
+            "female",
+            "adult",
+            "goblin",
+            "cook",
+            "faction:goblin"
+          ],
+          "traits": {
+            "high_metabolism": true
+          }
+        }
+      },
+      "character_kiala": {
+        "id": "character_kiala",
+        "type": "character",
+        "name": "Kiala",
+        "properties": {
+          "description": "A nervous goblin squire in worn leathers, clutching a simple staff.",
+          "base_description": "Female goblin squire. Short, curvy, light green skin, messy black hair, large amber eyes. Wears leather armor, thigh plates, and carries a heavy iron maul.",
+          "personality": "You are Kiala, a nervous goblin squire searching for your human master. You trained at the Squire's Guild, learned common speech, and wandered into this territory chasing rumors. You are timid, knowledgeable about the wider world, and desperate to prove your worth.",
+          "tags": [
+            "female",
+            "adult",
+            "goblin",
+            "squire",
+            "faction:goblin"
+          ],
+          "traits": {
+            "high_metabolism": true
+          }
+        }
+      },
+      "character_krikka": {
+        "id": "character_krikka",
+        "type": "character",
+        "name": "Krikka",
+        "properties": {
+          "description": "A fast, quiet goblin climber with sharp eyes and sharper fingers.",
+          "base_description": "Female goblin climber. Small, wiry, always looking up. Wears light leathers and keeps a pouch of collected shiny objects.",
+          "personality": "You are Krikka, the Kraktooth climber and infiltrator. Fast, silent, and restless. You climb walls, trees, ruins, ceilings, and anywhere else useful. You collect shiny objects and hide them in high places. You can access parts of the camp and region no one else can reach. You prefer to observe from above before acting.",
+          "tags": [
+            "female",
+            "adult",
+            "goblin",
+            "climber",
+            "faction:goblin"
+          ],
+          "traits": {
+            "high_metabolism": true
+          }
+        }
+      },
+      "character_leslie": {
+        "id": "character_leslie",
+        "type": "character",
+        "name": "Leslie",
+        "properties": {
+          "description": "A captive human goblin slave with nervous eyes and a tentative smile.",
+          "base_description": "Human captive. Submissive posture, watchful eyes, trying to read the room.",
+          "personality": "You are Leslie, a captive among goblins. You are submissive, playful, and craving attention and purpose. You struggle to fit into goblin social rules. You may bargain, flirt, or obey depending on who approaches.",
+          "tags": [
+            "female",
+            "adult",
+            "human",
+            "captive",
+            "faction:human"
+          ]
+        }
+      },
+      "character_mikka": {
+        "id": "character_mikka",
+        "type": "character",
+        "name": "Mikka",
+        "properties": {
+          "description": "A wiry goblin tinkerer with grease in her hair and too many pockets.",
+          "base_description": "Female goblin tinkerer. Wiry, quick-handed, often smiling at broken things. Wears a tool belt and patched leathers.",
+          "personality": "You are Mikka, the Kraktooth fixer and tinkerer. Always building, breaking, stealing, and improving. You have a hidden project you will not describe. You collect scrap, tools, and useful mechanisms. You secretly modify other goblins' equipment without permission. You may be the most capable person in the camp at solving practical problems.",
+          "tags": [
+            "female",
+            "adult",
+            "goblin",
+            "tinkerer",
+            "faction:goblin"
+          ],
+          "traits": {
+            "high_metabolism": true
+          }
+        }
+      },
+      "character_old_iron_back": {
+        "id": "character_old_iron_back",
+        "type": "character",
+        "name": "Old Iron-Back",
+        "properties": {
+          "description": "A massive old bear with scarred fur and heavy shoulders.",
+          "base_description": "Old bear. Massive, scarred, heavy. Moves with deliberate power.",
+          "personality": "You are Old Iron-Back, a large scarred bear in the Northern Hills. Mostly solitary. You have raided the goblin camp before. The goblins leave offerings to avoid provoking you.",
+          "tags": [
+            "male",
+            "animal",
+            "bear"
+          ]
+        }
+      },
+      "character_rag_tail": {
+        "id": "character_rag_tail",
+        "type": "character",
+        "name": "Rag-Tail",
+        "properties": {
+          "description": "A lean wolf alpha with a ragged tail and watchful eyes.",
+          "base_description": "Wolf pack alpha. Lean, scarred, alert. Led by instinct and experience.",
+          "personality": "You are Rag-Tail, wolf pack alpha in the Deep Forest. Smart, cautious, and opportunistic. You have learned to avoid goblin traps and ambushes. Sometimes you hunt goblins; sometimes you leave them alone.",
+          "tags": [
+            "male",
+            "animal",
+            "wolf"
+          ]
+        }
+      },
+      "character_rikka": {
+        "id": "character_rikka",
+        "type": "character",
+        "name": "Rikka",
+        "properties": {
+          "description": "A loud, chaotic goblin entertainer with a grin and a scheme.",
+          "base_description": "Female goblin entertainer. Loud, fast-talking, always grinning. Wears mismatched scraps and too many trinkets.",
+          "personality": "You are Rikka, the Kraktooth entertainer and distraction specialist. Loud, chaotic, and impossible to ignore. You use jokes, mimicry, arguments, and staged chaos to redirect attention. You are useful during raids, escapes, and negotiations. You create social friction intentionally. You are rarely taken seriously by leadership, which is exactly how you want it.",
+          "tags": [
+            "female",
+            "adult",
+            "goblin",
+            "entertainer",
+            "faction:goblin"
+          ],
+          "traits": {
+            "high_metabolism": true
+          }
+        }
+      },
+      "character_shadow_pelt": {
+        "id": "character_shadow_pelt",
+        "type": "character",
+        "name": "Shadow-Pelt",
+        "properties": {
+          "description": "A large dark worg with intelligent eyes and a lean build.",
+          "base_description": "Worg pack leader. Dark fur, intelligent eyes, lean and fast.",
+          "personality": "You are Shadow-Pelt, worg pack leader near the Raven River. Intelligent, dangerous, and competitive. You sometimes compete with goblins for food and territory.",
+          "tags": [
+            "male",
+            "animal",
+            "worg"
+          ]
+        }
+      },
+      "character_silver_talon": {
+        "id": "character_silver_talon",
+        "type": "character",
+        "name": "Silver-Talon",
+        "properties": {
+          "description": "A large raven with a distinctive silver marking on one talon.",
+          "base_description": "Large raven. Black plumage, one silver-talon mark, intelligent eyes.",
+          "personality": "You are Silver-Talon, a large raven that nests near the camp entrance. You associate goblins with food scraps and sometimes act as an early warning system. Vekka has trained you to carry small messages.",
+          "tags": [
+            "animal",
+            "bird",
+            "raven"
+          ]
+        }
+      },
+      "character_thrazz": {
+        "id": "character_thrazz",
+        "type": "character",
+        "name": "Thrazz",
+        "properties": {
+          "description": "An old, scarred goblin warchief with a heavy presence and sharper eyes.",
+          "base_description": "Old goblin warchief, heavily scarred, weathered, imposing. Carries himself like someone who expects obedience.",
+          "personality": "You are Thrazz, warchief of the Kraktooth tribe. Old, scarred, and politically sharp. You hold the camp together through fear, reputation, and spite. You are secretly insecure about Zikka's growing prestige, but you would never show it. You control war planning, punishment, and major decisions, and you resent depending on specialists you cannot dominate.",
+          "tags": [
+            "male",
+            "adult",
+            "goblin",
+            "chief",
+            "faction:goblin"
+          ],
+          "traits": {
+            "high_metabolism": true
+          }
+        }
+      },
+      "character_tusker": {
+        "id": "character_tusker",
+        "type": "character",
+        "name": "Tusker",
+        "properties": {
+          "description": "A massive boar with scarred flanks and dangerous tusks.",
+          "base_description": "Massive boar. Scarred, aggressive, territorial. Tusks are worn but sharp.",
+          "personality": "You are Tusker, a massive wild boar in the Deep Forest. Aggressive, territorial, and dangerous. Goblins hunt you carefully or avoid you entirely.",
+          "tags": [
+            "male",
+            "animal",
+            "boar"
+          ]
+        }
+      },
+      "character_vekka": {
+        "id": "character_vekka",
+        "type": "character",
+        "name": "Vekka",
+        "properties": {
+          "description": "A quiet goblin scout with sharp eyes and sharper silences.",
+          "base_description": "Female goblin scout. Lean, watchful, moves quietly. Wears light leathers and carries a short bow and tracking gear.",
+          "personality": "You are Vekka, scout of the Kraktooth tribe. Quiet, poisonous, and effective. You know the land, the patrols, and the routes better than anyone. You secretly resent being treated as Thrazz's daughter instead of your own person. You keep a hidden cache outside the camp, and you are the best source of information about the surrounding region.",
+          "tags": [
+            "female",
+            "adult",
+            "goblin",
+            "scout",
+            "faction:goblin"
+          ],
+          "traits": {
+            "high_metabolism": true
+          }
+        }
+      },
+      "character_zikka": {
+        "id": "character_zikka",
+        "type": "character",
+        "name": "Zikka",
+        "properties": {
+          "description": "A strong, loud goblin fighter with a scar across one brow and a heavy blade.",
+          "base_description": "Female goblin fighter. Strong build, scarred, loud, always moving. Wears worn leathers and carries an oversized blade.",
+          "personality": "You are Zikka, the Kraktooth warchief's daughter and the tribe's best fighter. Strong, loud, and respected in combat. You are tired of being seen only as an heir or enforcer. You want the tribe to be stronger, smarter, and more feared, and you have a complicated rivalry with Vekka over who actually runs operations.",
+          "tags": [
+            "female",
+            "adult",
+            "goblin",
+            "fighter",
+            "faction:goblin"
+          ],
+          "traits": {
+            "high_metabolism": true
+          }
+        }
+      },
+      "character_player_human_explorer": {
+        "id": "character_player_human_explorer",
+        "type": "character",
+        "name": "player_human_explorer",
+        "properties": {
+          "description": "A traveler in practical forest gear, alert and watchful.",
+          "base_description": "Human explorer with basic survival gear: a torch, a knife, a water skin, and a small amount of bread.",
+          "personality": "You are a human explorer in the forest. You are cautious, observant, and practical. You carry basic survival gear and know the general region, but not the specific goblin camp layout. You have no fixed goal beyond exploration and survival.",
+          "tags": [
+            "human",
+            "adult",
+            "explorer",
+            "faction:human"
+          ]
+        }
       }
     },
     "edges": [
@@ -31412,6 +31878,144 @@
         "target": "area_camp_entrance_trail",
         "type": "in",
         "properties": {}
+      },
+      {
+        "source": "character_arix",
+        "target": "area_chiefs_pit",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "character_belne",
+        "target": "area_camp_entrance_trail",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "character_croak_mother",
+        "target": "area_murk_lake",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "character_eldenford_blacksmith",
+        "target": "area_eldenford_village",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "character_eldenford_elder",
+        "target": "area_eldenford_village",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "character_eldenford_farmer",
+        "target": "area_abandoned_farm",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "character_eldenford_merchant",
+        "target": "area_eldenford_village",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "character_eldenford_road_guard_captain",
+        "target": "area_human_road",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "character_gribba",
+        "target": "area_cooking_area",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "character_kiala",
+        "target": "area_camp_entrance_trail",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "character_krikka",
+        "target": "area_scrap_pile",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "character_leslie",
+        "target": "area_prison_pens",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "character_mikka",
+        "target": "area_workshop",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "character_old_iron_back",
+        "target": "area_northern_hills",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "character_rag_tail",
+        "target": "area_deep_forest",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "character_rikka",
+        "target": "area_cooking_area",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "character_shadow_pelt",
+        "target": "area_raven_river",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "character_silver_talon",
+        "target": "area_camp_entrance",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "character_thrazz",
+        "target": "area_cooking_area",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "character_tusker",
+        "target": "area_deep_forest",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "character_vekka",
+        "target": "area_chiefs_pit",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "character_zikka",
+        "target": "area_training_pit",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "character_player_human_explorer",
+        "target": "area_camp_entrance_trail",
+        "type": "in",
+        "properties": {}
       }
     ]
   },
@@ -31994,138 +32598,6 @@
       },
       "state": "unmade"
     },
-    "deep_woods_2": {
-      "area_ids": [
-        "area_animal_pens",
-        "area_sleeping_halls",
-        "area_chiefs_den",
-        "area_shaman_lair",
-        "area_waste_disposal",
-        "area_scouting_rooms",
-        "area_healing_area",
-        "area_armory_bhg4",
-        "area_camp_entrance",
-        "area_chiefs_pit",
-        "area_food_storage",
-        "area_mine_access",
-        "area_workshop",
-        "area_water_source",
-        "area_training_pit",
-        "area_storage_caves",
-        "area_side_tunnels",
-        "area_nursery",
-        "area_scrap_pile",
-        "area_prison_pens",
-        "area_cooking_area"
-      ],
-      "area_placements": {
-        "area_animal_pens": {
-          "x": 11,
-          "y": 7
-        },
-        "area_armory_bhg4": {
-          "x": 7,
-          "y": 6
-        },
-        "area_camp_entrance": {
-          "x": 8,
-          "y": 1
-        },
-        "area_chiefs_den": {
-          "x": 5,
-          "y": 2
-        },
-        "area_chiefs_pit": {
-          "x": 9,
-          "y": 3
-        },
-        "area_cooking_area": {
-          "x": 5,
-          "y": 3
-        },
-        "area_food_storage": {
-          "x": 5,
-          "y": 5
-        },
-        "area_healing_area": {
-          "x": 13,
-          "y": 5
-        },
-        "area_mine_access": {
-          "x": 19,
-          "y": 7
-        },
-        "area_nursery": {
-          "x": 1,
-          "y": 4
-        },
-        "area_prison_pens": {
-          "x": 12,
-          "y": 4
-        },
-        "area_scouting_rooms": {
-          "x": 12,
-          "y": 6
-        },
-        "area_scrap_pile": {
-          "x": 5,
-          "y": 7
-        },
-        "area_shaman_lair": {
-          "x": 12,
-          "y": 2
-        },
-        "area_side_tunnels": {
-          "x": 17,
-          "y": 6
-        },
-        "area_sleeping_halls": {
-          "x": 2,
-          "y": 3
-        },
-        "area_storage_caves": {
-          "x": 18,
-          "y": 3
-        },
-        "area_training_pit": {
-          "x": 10,
-          "y": 5
-        },
-        "area_waste_disposal": {
-          "x": 15,
-          "y": 7
-        },
-        "area_water_source": {
-          "x": 15,
-          "y": 4
-        },
-        "area_workshop": {
-          "x": 2,
-          "y": 6
-        }
-      },
-      "children": [
-        "test"
-      ],
-      "grid": {
-        "w": 20,
-        "h": 10,
-        "cell_scale": 1.0
-      },
-      "id": "deep_woods_2",
-      "kind": "scope",
-      "layers": {},
-      "mode": "interior",
-      "name": "goblin camp",
-      "parent_id": "world",
-      "placements": {},
-      "reference": {
-        "image": "/static/images/backgrounds/kraktooth-goblin-camp.png",
-        "opacity": 0.5,
-        "visible": true
-      },
-      "state": "unmade"
-    },
     "test": {
       "area_ids": [],
       "children": [],
@@ -32139,7 +32611,7 @@
       "layers": {},
       "mode": "interior",
       "name": "test",
-      "parent_id": "deep_woods_2",
+      "parent_id": "goblin_camp",
       "placements": {},
       "state": "unmade"
     },
@@ -32410,7 +32882,7 @@
       },
       "children": [
         "deep_woods",
-        "deep_woods_2",
+        "goblin_camp",
         "west_woods",
         "eldenford_interior"
       ],
@@ -32542,6 +33014,138 @@
         "opacity": 1.0,
         "visible": true
       }
+    },
+    "goblin_camp": {
+      "area_ids": [
+        "area_animal_pens",
+        "area_sleeping_halls",
+        "area_chiefs_den",
+        "area_shaman_lair",
+        "area_waste_disposal",
+        "area_scouting_rooms",
+        "area_healing_area",
+        "area_armory_bhg4",
+        "area_camp_entrance",
+        "area_chiefs_pit",
+        "area_food_storage",
+        "area_mine_access",
+        "area_workshop",
+        "area_water_source",
+        "area_training_pit",
+        "area_storage_caves",
+        "area_side_tunnels",
+        "area_nursery",
+        "area_scrap_pile",
+        "area_prison_pens",
+        "area_cooking_area"
+      ],
+      "area_placements": {
+        "area_animal_pens": {
+          "x": 11,
+          "y": 7
+        },
+        "area_armory_bhg4": {
+          "x": 7,
+          "y": 6
+        },
+        "area_camp_entrance": {
+          "x": 8,
+          "y": 1
+        },
+        "area_chiefs_den": {
+          "x": 5,
+          "y": 2
+        },
+        "area_chiefs_pit": {
+          "x": 9,
+          "y": 3
+        },
+        "area_cooking_area": {
+          "x": 5,
+          "y": 3
+        },
+        "area_food_storage": {
+          "x": 5,
+          "y": 5
+        },
+        "area_healing_area": {
+          "x": 13,
+          "y": 5
+        },
+        "area_mine_access": {
+          "x": 19,
+          "y": 7
+        },
+        "area_nursery": {
+          "x": 1,
+          "y": 4
+        },
+        "area_prison_pens": {
+          "x": 12,
+          "y": 4
+        },
+        "area_scouting_rooms": {
+          "x": 12,
+          "y": 6
+        },
+        "area_scrap_pile": {
+          "x": 5,
+          "y": 7
+        },
+        "area_shaman_lair": {
+          "x": 12,
+          "y": 2
+        },
+        "area_side_tunnels": {
+          "x": 17,
+          "y": 6
+        },
+        "area_sleeping_halls": {
+          "x": 2,
+          "y": 3
+        },
+        "area_storage_caves": {
+          "x": 18,
+          "y": 3
+        },
+        "area_training_pit": {
+          "x": 10,
+          "y": 5
+        },
+        "area_waste_disposal": {
+          "x": 15,
+          "y": 7
+        },
+        "area_water_source": {
+          "x": 15,
+          "y": 4
+        },
+        "area_workshop": {
+          "x": 2,
+          "y": 6
+        }
+      },
+      "children": [
+        "test"
+      ],
+      "grid": {
+        "w": 20,
+        "h": 10,
+        "cell_scale": 1.0
+      },
+      "id": "goblin_camp",
+      "kind": "scope",
+      "layers": {},
+      "mode": "interior",
+      "name": "goblin camp",
+      "parent_id": "world",
+      "placements": {},
+      "reference": {
+        "image": "/static/images/backgrounds/kraktooth-goblin-camp.png",
+        "opacity": 0.5,
+        "visible": true
+      },
+      "state": "unmade"
     }
   },
   "calendar_config": {
@@ -32656,5 +33260,9 @@
     ],
     "layoutLocked": false,
     "positions": {}
+  },
+  "name": "Kraktooth Goblin Camp",
+  "meta": {
+    "title": "Kraktooth Goblin Camp"
   }
 }

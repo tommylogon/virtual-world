@@ -179,6 +179,40 @@ python tools/validate_scenario.py --input data/scenarios/kraktooth_goblin_camp.j
 python tools/load_scenario.py --file data/scenarios/kraktooth_goblin_camp.json
 ```
 
+## Maintenance passes on a checked-in scenario
+
+`data/scenarios/kraktooth_goblin_camp.json` is a live-world dump, so these
+invariants drift. Every pass is idempotent and **dry-run by default** — add
+`--write` to apply, and re-run to confirm it reports zero.
+
+```bash
+# Way endpoints address an area by NODE ID (id -> exact name -> folded name).
+python tools/canonicalize_way_ids.py            # 422 name-addressed endpoints
+python tools/canonicalize_way_ids.py --all
+
+# The authored character_* node exists for every player, so the loader's
+# identity collapse has something to collapse and the retired id stays an
+# alias. Run after tools/migrate_character_identity.py --write.
+python tools/author_character_aliases.py
+
+# Attach a data/library/traits trait to the characters carrying a tag.
+python tools/attach_traits.py high_metabolism --tag goblin
+
+# Stamp name / meta.title so the picker stops labelling it world_template.
+python tools/set_scenario_title.py "Kraktooth Goblin Camp"
+```
+
+`tools/scenario_refs.py` holds the shared `AreaResolver`. **An ambiguous
+reference is an error, not a guess** — two areas whose names fold together have
+no single correct answer, and picking one would move a way onto the wrong side of
+the camp. `canonicalize_way_ids` additionally cross-checks every resolution
+against the `connection` edges, which are the truth about which areas a way
+touches.
+
+The title pass is a workaround for bug-47: `engine/serialization.py` round-trips
+`_scenario_name` but not `name` / `meta`, so saving the world from the editor
+drops the title again. Re-run the pass until that hub file preserves the keys.
+
 ## Benefits
 
 1. **Reusability**: Areas, items, characters can be reused across scenarios
