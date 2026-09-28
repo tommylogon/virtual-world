@@ -14,7 +14,7 @@ Design notes (deliberate departures from F:\\AI\\Aura\\Diary):
 
 Tunables come from ``engine/runtime_config`` at call time (task-304 rule):
 ``emotion.decay_per_tick``, ``emotion.recall_spike_scale``,
-``emotion.llm_spike_max``.
+``emotion.llm_spike_max``, ``emotion.semantic_labels``.
 """
 
 from __future__ import annotations
@@ -437,12 +437,167 @@ def _generic_bands(key: str) -> tuple[str, str, str]:
     )
 
 
-def map_label(label) -> list[tuple[str, float]]:
+#: Dimension -> a short phrase to embed, for resolving a label the keyword map
+#: has never seen (task-505). Mirrors ``DIM_ANCHORS`` in
+#: ``static/js/shared/emotion-mapper.js`` phrase for phrase, so a label resolved
+#: in the browser and the same label resolved on the server land on the same
+#: dimension. Keep the two in step.
+DIM_ANCHORS: dict[str, str] = {
+    "happy": "happy joy glad", "elated": "elated ecstatic overjoyed",
+    "excited": "excited thrilled", "proud": "proud accomplished",
+    "sad": "sad sorrowful", "lonely": "lonely isolated",
+    "melancholic": "melancholic wistful gloomy",
+    "nostalgic": "nostalgic reminiscing fond memories",
+    "afraid": "afraid scared frightened", "anxious": "anxious nervous worried",
+    "uneasy": "uneasy unsettled", "dread": "dread foreboding doom",
+    "spooked": "spooked creeped out chills", "angry": "angry mad furious",
+    "irritated": "irritated annoyed", "resentful": "resentful bitter",
+    "aroused": "aroused turned on desire", "eager": "eager keen enthusiastic",
+    "craving": "craving longing wanting", "curious": "curious inquisitive intrigued",
+    "affectionate": "affectionate warm fond", "loving": "loving adoring devoted",
+    "grateful": "grateful thankful", "admiring": "admiring in awe of",
+    "ashamed": "ashamed humiliated", "embarrassed": "embarrassed mortified self-conscious",
+    "guilty": "guilty remorseful", "envious": "envious covetous",
+    "jealous": "jealous possessive", "disgusted": "disgusted repulsed revulsion",
+    "repulsed": "repulsed sickened", "calm": "calm serene tranquil",
+    "content": "content at ease", "peaceful": "peaceful peaceful",
+    "satisfied": "satisfied fulfilled", "surprised": "surprised astonished startled",
+}
+
+#: Below this cosine similarity a semantic match is noise, not a meaning, and the
+#: label stays unresolved. Same value as the browser mapper so the two agree on
+#: when to give up.
+SEMANTIC_MIN_SIMILARITY = 0.15
+
+#: Anchor vectors, computed once. None until the first semantic resolution, and
+#: left as None if the provider is unavailable so every later call retries
+#: cheaply instead of re-attempting a model load per label.
+_ANCHOR_VECTORS: dict[str, list[float]] | None = None
+
+#: Set once the provider turns out to be unusable, so a missing embedding model
+#: costs one failed attempt rather than a model-load exception on every emotion
+#: label. Cleared by :func:`reset_anchor_cache`.
+_SEMANTIC_UNAVAILABLE = False
+
+
+def semantic_labels_enabled() -> bool:
+    """Whether novel labels may be resolved semantically (task-505).
+
+    Off by default: the keyword map is the fast path and covers the authored
+    vocabulary, and a semantic miss costs an embedding call. Turning it on is
+    an explicit choice that a world without an embedding provider would pay for
+    on every unrecognised label.
+    """
+    return bool(runtime_config.get("emotion.semantic_labels", False))
+
+
+def _anchor_vectors(embed_fn) -> dict[str, list[float]] | None:
+    """Embed every dimension anchor once and memoise the result."""
+    global _ANCHOR_VECTORS, _SEMANTIC_UNAVAILABLE
+    if _ANCHOR_VECTORS is not None:
+        return _ANCHOR_VECTORS
+    if _SEMANTIC_UNAVAILABLE:
+        return None
+    dims = list(DIM_ANCHORS)
+    try:
+        vectors = embed_fn([DIM_ANCHORS[d] for d in dims])
+    except Exception:
+        vectors = None
+    # An explicit embed_fn is a caller's choice, so a failure there is theirs to
+    # see again. The default provider is remembered as unavailable instead, so
+    # a world with no embedding model pays one attempt, not one per label.
+    remember_failure = embed_fn is _default_embed
+    if not vectors or len(vectors) != len(dims) or any(
+            not _is_usable_vector(v) for v in vectors):
+        if remember_failure:
+            _SEMANTIC_UNAVAILABLE = True
+        return None
+    _ANCHOR_VECTORS = {d: list(v) for d, v in zip(dims, vectors)}
+    return _ANCHOR_VECTORS
+
+
+def _default_embed(texts):
+    """Embed via the server-side provider; the only place that imports it."""
+    from embeddings import embed_batch, embed as _embed
+    if isinstance(texts, str):
+        return _embed(texts)
+    return embed_batch(texts)
+
+
+def _is_usable_vector(vector) -> bool:
+    """Reject the zero vector ``embeddings.embed`` returns when the model fails.
+
+    A zero vector would cosine to 0 against everything and silently resolve to
+    whichever dimension happens to be first, which is worse than no answer.
+    """
+    return bool(vector) and any(float(x) for x in vector)
+
+
+def _cosine(a, b) -> float:
+    if not _is_usable_vector(a) or not _is_usable_vector(b) or len(a) != len(b):
+        return 0.0
+    dot = sum(float(x) * float(y) for x, y in zip(a, b))
+    na = sum(float(x) * float(x) for x in a) ** 0.5
+    nb = sum(float(y) * float(y) for y in b) ** 0.5
+    return dot / max(1e-12, na * nb)
+
+
+def reset_anchor_cache() -> None:
+    """Drop the memoised anchor vectors (provider changed, or a test)."""
+    global _ANCHOR_VECTORS, _SEMANTIC_UNAVAILABLE
+    _ANCHOR_VECTORS = None
+    _SEMANTIC_UNAVAILABLE = False
+
+
+def resolve_label_semantic(label, embed_fn=None) -> str | None:
+    """Resolve a label the keyword map has never seen to its nearest dimension.
+
+    The semantic half of the bridge (task-505). The browser already does this in
+    ``static/js/shared/emotion-mapper.js``; this is the server-side twin for
+    anything that reaches the engine without passing through the browser — a
+    trigger effect, a background agenda, a saved decision.
+
+    Gated on ``emotion.semantic_labels``: with it off this returns None
+    immediately, so the default cost of an unrecognised label stays a dict
+    lookup. Returns None — never a guess — when the provider is unavailable or
+    the best anchor is too far away; callers keep treating None as a no-op.
+    """
+    if embed_fn is None:
+        if not semantic_labels_enabled():
+            return None
+        embed_fn = _default_embed
+    key = str(label or "").strip().lower()
+    if not key:
+        return None
+
+    anchors = _anchor_vectors(embed_fn)
+    if not anchors:
+        return None
+    try:
+        query = embed_fn(key)
+    except Exception:
+        return None
+    if not _is_usable_vector(query):
+        return None
+
+    best, best_score = None, -1.0
+    for dim, vector in anchors.items():
+        score = _cosine(query, vector)
+        if score > best_score:
+            best, best_score = dim, score
+    if best is None or best_score < SEMANTIC_MIN_SIMILARITY:
+        return None
+    return best
+
+
+def map_label(label, embed_fn=None) -> list[tuple[str, float]]:
     """Map an emotion label to one or more (dimension, weight) pairs.
 
-    Exact match first, then substring containment over the curated vocabulary.
-    Returns [] for truly unknown labels (a graceful no-op) so creative or
-    agent-invented labels never crash the emotion path.
+    Exact match first, then substring containment over the curated vocabulary,
+    then — only if the keyword path missed and an embedding provider is
+    available — a semantic nearest-anchor match (task-505). Returns [] for a
+    genuinely unknown label so creative or agent-invented vocabulary never
+    crashes the emotion path, and never invents a dimension.
     """
     if not label:
         return []
@@ -454,21 +609,37 @@ def map_label(label) -> list[tuple[str, float]]:
     for lab, dim in LABEL_TO_DIM.items():
         if lab in key or key in lab:
             return [(dim, 1.0)]
+    semantic = resolve_label_semantic(key, embed_fn=embed_fn)
+    if semantic:
+        return [(semantic, 1.0)]
     return []
 
 
-def felt_from_llm(raw, max_intensity: float | None = None) -> tuple[str, float] | None:
+def felt_from_llm(raw, max_intensity: float | None = None,
+                  embed_fn=None) -> tuple[str, float] | None:
     """Normalize an LLM-declared ``{"label","intensity"}`` into (dim, delta).
 
     Returns None when unusable. Intensity 1-10 maps to a capped point spike
-    (``emotion.llm_spike_max``); unknown labels are ignored so a creative LLM
-    can't invent dimensions.
+    (``emotion.llm_spike_max``). A label that is not a dimension name may be
+    resolved semantically (task-505), so a creative LLM lands on the nearest real
+    dimension instead of being dropped.
+
+    Deliberately **not** :func:`map_label`: that also substring-matches, and
+    "hangry" contains "angry". A declared feeling is a deliberate act by the
+    model, so it gets the semantic bridge or nothing — never a coincidental
+    substring. A label nothing can resolve is still ignored, so an LLM cannot
+    invent dimensions.
     """
     if not isinstance(raw, dict):
         return None
     label = str(raw.get("label") or "").strip().lower()
-    if label not in BASELINES:
+    if not label:
         return None
+    if label not in BASELINES:
+        semantic = resolve_label_semantic(label, embed_fn=embed_fn)
+        if not semantic or semantic not in BASELINES:
+            return None
+        label = semantic
     try:
         intensity = float(raw.get("intensity") or 0)
     except (TypeError, ValueError):

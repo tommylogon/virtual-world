@@ -61,6 +61,10 @@ DEFAULTS: dict = {
     "emotion.decay_per_tick": 1.5,
     "emotion.llm_spike_max": 15.0,
     "emotion.recall_spike_scale": 0.25,
+    # engine/emotion.py (task-505) — resolve emotion labels the curated keyword
+    # map has never seen, by nearest affect-dimension anchor. Off by default: the
+    # keyword map is the fast path, and a semantic miss costs an embedding call.
+    "emotion.semantic_labels": False,
     # Graph visualization defaults
     "graph.physics_enabled": True,
     "graph.show_items": False,
@@ -79,7 +83,7 @@ _SECTION_DESCRIPTIONS: dict[str, str] = {
     "sound": "Sound propagation — speech penetration, door/sound barriers, ambient-noise levels",
     "heat": "Temperature propagation — per-tick heat exchange rate and max single-tick delta",
     "light": "Lighting — fraction of a lit neighbor area's light that spills through an open door",
-    "emotion": "Character affect (task-96) — per-tick drift toward baseline, LLM-declared feeling cap, memory-recall re-spike scaling",
+    "emotion": "Character affect (task-96) — per-tick drift toward baseline, LLM-declared feeling cap, memory-recall re-spike scaling, semantic resolution of unknown labels (task-505)",
     "graph": "Graph visualization — physics simulation, item visibility, area filtering",
     "forecast": "Weather forecast — scope of areas the schedule baseline is applied to (exterior | all)",
     "memory": "Character memories — retention cap (0 = keep everything)",
@@ -215,6 +219,7 @@ SCHEMA: dict[str, dict] = {
     "emotion.decay_per_tick": {"section": "emotion", "label": "Mood drift toward baseline per tick", "type": "float"},
     "emotion.llm_spike_max": {"section": "emotion", "label": "Max spike from a declared feeling", "type": "float"},
     "emotion.recall_spike_scale": {"section": "emotion", "label": "Memory-recall re-feel scaling", "type": "float"},
+    "emotion.semantic_labels": {"section": "emotion", "label": "Resolve unknown emotion labels by embedding (needs an embedding provider)", "type": "bool"},
     "graph.physics_enabled": {"section": "graph", "label": "Enable physics simulation", "type": "bool"},
     "graph.show_items": {"section": "graph", "label": "Show items in graph", "type": "bool"},
     "graph.show_only_inhabited": {"section": "graph", "label": "Show only inhabited areas", "type": "bool"},

@@ -727,6 +727,105 @@ def handle_generate_character_description(app, name):
         return jsonify({"error": str(e)}), 500
 
 
+# ── structured appearance / personality (task-507) ───────────────────────
+
+
+def _character_node(app, name):
+    """The character's graph node, or None."""
+    try:
+        return app.world.graph.get_node(app.world._player_node_id(name))
+    except Exception:
+        return None
+
+
+def handle_get_character_record(app, name):
+    """Read a character's structured block, the schema, and the rendered prose."""
+    from engine import character_appearance as ca
+    if name not in app.world.players:
+        return jsonify({"error": "No such player"}), 404
+    node = _character_node(app, name)
+    return jsonify({
+        "structured": ca.is_structured(node),
+        "record": ca.get_record(node),
+        "appearance": ca.appearance(node),
+        "personality": ca.personality(node),
+        "prose": ca.render_prose(node),
+        "schema": ca.schema_for_llm(),
+    })
+
+
+def handle_set_character_record(app, name):
+    """Validate and store the structured block, then render prose once.
+
+    ``{"record": {...}, "render": true}`` — ``render`` defaults to true because
+    the task's flow is "set the fields, then generate the description ONCE", and
+    a caller that has just filled a whole card almost always wants the prose with
+    it. Pass ``false`` to fill fields in stages.
+    """
+    from engine import character_appearance as ca
+    if name not in app.world.players:
+        return jsonify({"error": "No such player"}), 404
+    node = _character_node(app, name)
+    if node is None:
+        return jsonify({"error": "No character node"}), 404
+    data = request.get_json(force=True) or {}
+    try:
+        stored = ca.set_record(node, data.get("record"))
+    except ca.StructuredError as e:
+        return jsonify({"error": str(e)}), 400
+
+    body = {"record": stored, "structured": bool(stored)}
+    if data.get("render", True) and stored:
+        # Prose is the narrative layer and is written once, into
+        # base_description, where the existing equipment/LLM description
+        # pipeline picks it up. An authored base_description is not clobbered:
+        # the structured block is the source of truth, but replacing a hand-
+        # written paragraph with a generated one is not a decision this route
+        # gets to make silently.
+        player = app.world.players[name]
+        prose = ca.render_prose(node)
+        body["prose"] = prose
+        if prose and not (player.base_description or "").strip():
+            player.base_description = prose
+            body["base_description"] = player.base_description
+    return jsonify(body)
+
+
+def handle_clear_character_record(app, name):
+    """Drop the structured block, restoring prose-only authoring."""
+    from engine import character_appearance as ca
+    if name not in app.world.players:
+        return jsonify({"error": "No such player"}), 404
+    node = _character_node(app, name)
+    if node is None:
+        return jsonify({"error": "No character node"}), 404
+    ca.clear_record(node)
+    return jsonify({"record": {}, "structured": False})
+
+
+def handle_character_affect(app, name):
+    """Affect deltas for a stimulus id against this character's record.
+
+    The read side of the task-507 mechanic: a trigger asks what a character
+    thinks of a stimulus and applies the axes this returns. Returns ``{}`` for an
+    unknown stimulus or a prose-only character, so a caller can apply
+    unconditionally without needing to special-case the common case.
+    """
+    from engine import character_appearance as ca
+    if name not in app.world.players:
+        return jsonify({"error": "No such player"}), 404
+    data = request.get_json(silent=True) or {}
+    if request.method == "GET":
+        stimulus = request.args.get("stimulus", "")
+    else:
+        stimulus = str(data.get("stimulus") or "")
+    node = _character_node(app, name)
+    return jsonify({
+        "stimulus": stimulus,
+        "affect": ca.affect_for_stimulus(node, stimulus),
+    })
+
+
 def handle_get_vital(app, name, vital_name):
     if name not in app.world.players:
         return jsonify({"error": "Player not found"}), 404

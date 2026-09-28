@@ -10,8 +10,14 @@ overrides: ``periodic`` (drain), ``ends_on`` (how it ends), ``symptoms``/``known
 
 ``state_timer`` remains as a backward-compat property over the current state
 condition's longest finite duration (see ``Player.state_timer``).
+
+Condition *application* also consults ``engine/undead.py`` (task-490): a ghost
+cannot be grappled, restrained or tired, and a corporeal undead cannot tire
+either. A refusal returns False rather than raising, so a caller can tell it
+apart from a missing player.
 """
 
+import logging
 from typing import Dict, List, Optional
 
 from vital_rates import change, tick_minutes
@@ -20,6 +26,8 @@ from engine.player_conditions import (
     CONDITION_EXCLUSIONS, PERIODIC_CONDITIONS, CONDITION_DEFAULT_TIMERS,
     PERCEPTION_SKIP,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def condition_definition(condition: str) -> dict:
@@ -244,11 +252,29 @@ class ConditionsSystem:
                         extra_conditions: Optional[list] = None,
                         ends_on: Optional[list] = None, symptoms: Optional[dict] = None,
                         known: Optional[bool] = None,
-                        source_type: Optional[str] = None):
-        """Apply a condition instance. Duration in ticks (None = permanent)."""
+                        source_type: Optional[str] = None,
+                        allow_immune: bool = False):
+        """Apply a condition instance. Duration in ticks (None = permanent).
+
+        task-490: an undead identity can refuse a condition outright — a ghost has
+        no body to hold, twist or tire. Returns False when it refused, which is
+        the only way a caller can tell a refusal from a silent no-op on a missing
+        player. ``allow_immune=True`` bypasses the check for a caller that has
+        already established the source is a ghost (the ghost system's own spawn
+        path, for instance, which puts a character into ghost state rather than
+        imposing anything on it).
+        """
         player = self.player_manager.players.get(player_name)
         if not player:
-            return
+            return False
+        if not allow_immune:
+            try:
+                from engine import undead as undead_mod
+                if undead_mod.is_immune_to_condition(player, condition):
+                    logger.info("[conditions] %s is immune to %s", player_name, condition)
+                    return False
+            except Exception:
+                pass  # never let the immunity check break condition application
         if duration is None and condition in CONDITION_DEFAULT_TIMERS:
             duration = CONDITION_DEFAULT_TIMERS[condition]
         player.add_condition(condition, duration=duration, source=source, level=level,
@@ -264,6 +290,7 @@ class ConditionsSystem:
         # task-486: a visible condition changes how the character looks, so
         # refresh the stored appearance description right away (hash-guarded).
         self._refresh_description(player)
+        return True
 
     def _refresh_description(self, player):
         """Best-effort appearance-description refresh after a condition change.

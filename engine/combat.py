@@ -270,6 +270,26 @@ class CombatSystem:
                 else:
                     resisted_by = 0
 
+                # task-490: an undead identity is its own defence profile.
+                # Resistance *halves* and immunity *negates*, which the item
+                # aggregate above (a flat subtraction) cannot express, so this is
+                # a separate step rather than more entries in that dict. A
+                # magical weapon still gets through the weapon-resistance half
+                # — that is the 5e rule and the reason a ghost is a problem.
+                undead_note = ""
+                if damage > 0:
+                    from engine import undead as undead_mod
+                    profile = undead_mod.resistance_for_weapon(target, weapon_props)
+                    mundane_hit = undead_mod.is_nonmagical_weapon(weapon_props)
+                    outcome = undead_mod.apply_damage_resistance(
+                        damage, damage_type, profile, mundane_hit)
+                    if outcome["immune"] or outcome["resisted"]:
+                        blocked = damage - outcome["damage"]
+                        dmg_desc += f", {blocked} {damage_type} {'immune' if outcome['immune'] else 'resisted'}"
+                        undead_note = undead_mod.hit_line(
+                            damage, damage_type, profile, target_name, mundane_hit)
+                        damage = outcome["damage"]
+
                 uses = weapon_props.get("uses", -1)
                 if uses > 0:
                     weapon_props["uses"] = uses - 1
@@ -281,23 +301,33 @@ class CombatSystem:
                 )
 
                 injury_note = ""
-                hit_region, hit_region_exposed = self._resolve_hit_region(
-                    target, region, region_exposed
-                )
-                injury_target = injury_region(hit_region)
-                from engine.body_parts import BODY_REGIONS
-                region_meta = BODY_REGIONS.get(hit_region, {})
-                region_phrase = region_meta.get("name") if hit_region else ""
-                if hit_region and hit_region_exposed:
-                    injury_note = self._apply_region_injury(
-                        target, hit_region, injury_target, damage, attacker_name, damage_type
+                if damage > 0:
+                    # task-490: an immune blow did not land, so nothing is cut and
+                    # no region is injured. Wounding a ghost for touching it
+                    # would be the engine disagreeing with itself in two places.
+                    hit_region, hit_region_exposed = self._resolve_hit_region(
+                        target, region, region_exposed
                     )
+                    injury_target = injury_region(hit_region)
+                    from engine.body_parts import BODY_REGIONS
+                    region_meta = BODY_REGIONS.get(hit_region, {})
+                    region_phrase = region_meta.get("name") if hit_region else ""
+                    if hit_region and hit_region_exposed:
+                        injury_note = self._apply_region_injury(
+                            target, hit_region, injury_target, damage, attacker_name, damage_type
+                        )
+                else:
+                    region_phrase = ""
 
                 # Narrative-first result — NO hit-point numbers. Characters live
                 # in wounds and conditions; HP stays engine-internal.
                 wound = self._wound_sentence(damage, damage_type, region_phrase)
                 armor_note = " Armor blunted the blow." if target_defense > 0 else ""
                 resist_note = f" ({resisted_by} resisted)" if resisted_by > 0 else ""
+                if undead_note:
+                    # Nothing solid was struck, so no wound sentence and no
+                    # region injury — the blow did not land.
+                    wound = undead_note
                 self.skills.add_log_entry(
                     f"[COMBAT] {attacker_name} attacks {target_name} with {weapon_name}! "
                     f"Attack d20({attack_raw}) + {attacker.stats.get('STR', 10)} STR + {attack_mod} mod = {attack_roll} "
