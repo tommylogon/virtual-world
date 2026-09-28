@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: world
 priority: high
 ---
@@ -191,3 +191,151 @@ Character identity note: `tests/test_character_identity.py` requires the legacy
 "46→23" by deleting the `character_*` nodes outright — that breaks the alias
 contract. Dedupe must mean: one node per character *after load*, with the file
 keeping aliases that collapse cleanly.
+
+## Progress — 2026-09-28 (changes 2, 3, 4 and the alias contract)
+
+The scenario had drifted well past the state the notes above describe. Re-measured
+before changing anything: **419 nodes, 23 players, 23 character nodes, 135 areas,
+204 ways, 29 triggers, 911 edges.** The four generator byproducts from change 1
+were already gone, and the count was already 23 — but the *reason* it was 23 was
+the bug this note warned about: `tools/migrate_character_identity.py --write` had
+collapsed the file on disk, deleting the 23 authored `character_<slug>` nodes and
+with them the identity alias. `tests/test_character_identity.py` was **failing 2
+of 9** on master (`test_collapse_is_idempotent`,
+`test_kraktooth_loads_as_one_node_per_character`).
+
+So the dedupe was re-done the way the contract requires, from the other direction.
+
+**Change 2 — dedupe, the alias-contract way.** New `tools/author_character_aliases.py`
+re-authors the `character_<slug>` node for every player from the `players` block
+(which is the one place the prose lives), copying `description`,
+`base_description`, `personality`, `tags` and `traits`, and adding the `in` edge
+to the character's area. The file now carries 46 character nodes (23 authored +
+23 anchors) and collapses to **23 after load, idempotently, with 23 aliases
+registered** — which is exactly what the two failing tests assert. The tool is
+idempotent and dry-run by default.
+
+**Change 3 — canonical way/area ids.** The camp's authored ways addressed areas
+by **display name** in `properties.area_from` / `area_to` while the WorldPainter
+ways used ids: **422 of 1056 endpoints** were name-addressed. Strict-id
+pathfinding only resolves ids, and `tools/build_scenario.normalize_way` *rejects*
+a name outright, so a name-addressed way silently loses strict-id pathfinding and
+cannot be compiled at all. New `tools/scenario_refs.py` (`AreaResolver`: id, then
+exact name, then normalized name; **ambiguity is an error, not a guess**) and
+`tools/canonicalize_way_ids.py` rewrite all 422. Each resolution is cross-checked
+against the `connection` edges, which are the truth about which areas a way
+touches — **462 checked, 0 disagreements**, so no way moved to the wrong side.
+Re-running the tool reports 0.
+
+**Strict-id reachability, measured.** Walking `connection` edges by id alone, the
+135 areas form **two** components:
+
+| component | areas | water | food |
+|---|---|---|---|
+| camp + `deep_woods_2` + `world` + `eldenford_interior` | 82 | `area_murk_lake`, `area_raven_river`, `area_water_source` | `area_cooking_area`, `area_food_storage` |
+| `west_oods` | 53 | **none** | **none** |
+
+Every area in the camp component reaches water and food by strict id. The 53
+`west_woods` areas are a **child scope of `world`** (`entry_area_id
+area_west_woods_9_14`), reached by scope entry rather than by a way, so they are
+not a broken id — but they have **no water and no food at all**, so a character
+put there dies of thirst and hunger regardless of code quality. That is a
+distribution gap (task-569's subject), not a pathfinding gap, and it is not
+fixed here. The test asserts the camp component's reachability plus that every
+scope stays inside one component, so the day `west_woods` gets water the guard
+notices.
+
+**Change 4 — `high_metabolism`.** The trait (`data/library/traits/`, Hunger ×2,
+Thirst ×1.5, Energy ×1.3) was unattached. The task makes it conditional on the
+one-week survival target, so it was measured rather than assumed —
+`tools/soak_sim.py --background-all`, 10080 ticks (7 game days) at 1 min/tick,
+same seed, only the trait differing:
+
+| seed | without the trait | with it on goblins |
+|---|---|---|
+| 7 | 21/23 alive (2 dead: `Croak-Mother` hp_loss 0d07h48m, `Kiala` exhaustion 0d22h36m) | **22/23 alive** (1 dead: `Croak-Mother` hp_loss 0d07h48m) |
+| 13 | **22/23 alive** (1 dead: `Rikka` exhaustion, tick 3241) | **22/23 alive** (1 dead: `Belne` exhaustion, tick 1223) |
+
+Attaching it does not make a week unreachable, so it **is** attached, to all 10
+goblins via `tools/attach_traits.py` (tag-selected, not name-selected, and
+refused on a partial match). The multiplier is measurably doing its job — on
+seed 13 the survivor averages move Hunger 46.0 → 55.9, Thirst 26.2 → 19.5,
+Energy 82.4 → 74.0 — and the camp absorbs it.
+
+Two things worth recording:
+
+- **Every death in all four runs is `exhaustion`** (plus one `hp_loss` to a
+  frog). Energy, not hunger or thirst, is the binding constraint, and the camp
+  already loses 1–2 characters a week *before* any trait. That is a
+  pre-existing survival-balance problem in `engine/background_simulation.py`'s
+  need ladder; change 4 neither caused nor fixed it.
+- The one death common to both seed-7 runs is `Croak-Mother`, a **frog**
+  (tags `animal`, `frog`), not a goblin.
+
+**`name` / `meta.title`.** Stamped via `tools/set_scenario_title.py` (the app
+labels a scenario from `_scenario_name`; `name` and `meta.title` were both
+absent, so the picker showed `world_template`). **This is a workaround:** the
+title is dropped again the next time the world is saved, because
+`engine/serialization.py:260` round-trips only `_scenario_name` and not `name` /
+`meta`. That is bug-47's root cause and it needs a hub-file fix (WT-0).
+
+**Change 5 — folder authoring.** The compiler now emits what the camp needs, so
+a compiled scenario satisfies the same contract: alongside the `player_<Name>`
+anchor it writes the authored `character_<slug>` node (prose, tags, traits, `in`
+edge to the character's area), and the manifest's `name` / `title` / `meta` reach
+`name` and `meta.title`.
+
+### New tests
+
+- `tests/test_scenario_data_integrity.py` (15) — one goblin file; valid UTF-8;
+  a title; no duplicate character nodes/ids; one character per person after
+  load, idempotently, with every alias resolving; way endpoints are area ids; no
+  dangling edge endpoints; the area resolver is unambiguous; the camp component
+  reaches water and food by strict id; every component is the camp or a declared
+  scope; every scope stays inside one component; every area has an exit; and
+  `high_metabolism` is on **all** goblins or the task file records the opt-out.
+- `tests/test_scenario_authoring_tools.py` (19) — the tools themselves on
+  synthetic payloads: the resolver's id → exact-name → folded-name precedence,
+  its refusal to guess between folded collisions, the connection-edge
+  cross-check, and each way a reference can be wrong (unresolvable, ambiguous,
+  or disagreeing with the graph) being *reported* rather than resolved. Plus
+  alias authoring idempotency and its collapse, and the title rules.
+- `tests/test_compile_scenario.py` (+2) — the compiled title, and the authored
+  alias plus its collapse to a single located node.
+
+### The camp is not balanced, and this task did not make it so
+
+Every death across the four soaks is `exhaustion` (plus one `hp_loss` to a frog),
+and the no-trait baseline already loses 1–2 of 23 characters per game week. If
+something downstream needs "23/23 alive after a week" as an assertion — task-408's
+own acceptance line says exactly that — it will fail on `master` today. That is
+the need ladder's Energy handling, not scenario data, and it is not fixed here.
+
+### Still open
+
+- Change 5's last sentence: migrating the camp into a folder under this format.
+  419 node files, and the compiled output would drop the runtime-only keys a
+  live-world dump carries (`area_presence`, `graph_background`,
+  `forecast_override`, `calendar_config`, `time_ticks`, `turn_number`,
+  `mature_content`). Doing it now would trade a reproducible file for a lossy
+  one. The format, the compiler and its determinism test are landed; the
+  migration wants a manifest that can carry those keys through, which is a
+  follow-up rather than a data loss.
+- `data/scenarios/kraktooth_goblin_camp.json` still fails
+  `tools/validate_scenario.py` with **371** issues, up from the 76 recorded on
+  2026-09-23. The 29 triggers are almost all runtime-created
+  (`trigger_<item>_on_tick_<epoch_ms>_<n>`) with no incoming `triggers` edge, and
+  the 105 WestPainter grid areas are missing `environment.air` / `.smell` /
+  `.noise`. Neither is a task-408 change: the triggers are the persist-rewrite
+  bug (bug-47, cancelled) and the environment gaps are the WorldPainter compiler's
+  default. Neither breaks load or pathfinding.
+- The `west_woods` scope has no water and no food (above).
+
+### Pre-existing failure found, not caused by this change
+
+`tests/test_scenario_name.py::test_clearing_the_source_leaves_the_name_alone`
+fails on master: `create_app()` boots with `_scenario_name` already
+`world_template`, so `set_scenario_source` keeps the existing name and the test's
+`named_world` never takes. It touches no file this task edits
+(`app.py`, `virtual_world_engine.py`, `world_template.json`) and fails in
+isolation.
