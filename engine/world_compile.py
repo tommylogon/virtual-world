@@ -157,6 +157,36 @@ def _stable_index(text: str, n: int) -> int:
     return acc % n
 
 
+#: FNV-1a 32-bit, 8-bit offset basis / 32-bit prime. Chosen for the way-blocking
+#: pass (task-522) and NOT for :func:`_stable_index`, which stays as it is because
+#: every painted description fragment is already chosen by it and changing it
+#: would reshuffle all of them.
+_FNV_OFFSET = 0x811C9DC5
+_FNV_PRIME = 0x01000193
+_FNV_MASK = 0xFFFFFFFF
+
+
+def stable_digest(text: str) -> int:
+    """A stable 32-bit hash of *text* — no ``random``, no clock, no ``hash()``.
+
+    ``hash()`` is out: CPython salts str hashing per process, so a "hash of
+    ``seed:way_id``" using it would produce a different blocked set on every run
+    and fail the task's non-negotiable determinism without looking wrong.
+
+    :func:`_stable_index` is deliberately NOT used here either. It is a weighted
+    character sum, which is fine for picking one of three description fragments
+    but clusters badly for a *percentage* decision: over ``way_0..way_499`` the
+    only varying characters sit in the last three positions, and measured at
+    73%/27% across the id space for a 12% threshold. A blocked set that is
+    visibly lopsided reads as a bug even when it is deterministic, so this is the
+    real hash and `_stable_index` keeps the old job.
+    """
+    acc = _FNV_OFFSET
+    for byte in str(text).encode("utf-8"):
+        acc = ((acc ^ byte) * _FNV_PRIME) & _FNV_MASK
+    return acc
+
+
 def _fragment(record: Optional[dict], key: str, seed: str) -> str:
     frags = [str(d).strip() for d in ((record or {}).get("descriptions") or [])
              if str(d).strip()]
@@ -205,6 +235,183 @@ _SENSE_DIRECTIONS = ("north", "south", "east", "west",
 #: is a floor (that is ``surface``). An 80-storey tower steps by 1 and reads as
 #: ordinary ground; only a multi-storey jump outdoors is a rockface.
 CLIFF_FLOOR_DELTA = 2
+
+
+# ── way blocking (task-522) ────────────────────────────────────────────────
+
+#: How many of a grid's outdoor ways are blocked at compile time, out of 100.
+#:
+#: Low on purpose. A blocked way is a detour the player has to solve, not a
+#: locked door they can open again: nothing in the grid sets one back to open, so
+#: every blocked way is a permanent piece of the map until an author or a trigger
+#: clears it. At 12% a scope reads as a landscape with weather history in it
+#: rather than as a maze.
+BLOCKED_WAY_PERCENT = 12
+
+#: What a blocked way reads as, keyed by the terrain class either side of it
+#: (:func:`terrain_class`). Prose is a full sentence because it is what the
+#: refusal and the description both quote — a blocked way must say *why*, or the
+#: character meets a wall of nothing.
+#:
+#: Keyed by terrain class rather than by biome id so a new biome joins by
+#: declaring its terrain. `road` is its own class (:func:`terrain_class` returns
+#: it for a road cell) and gets the one blocker a road plausibly has.
+BLOCKERS_BY_TERRAIN: Dict[str, List[Tuple[str, str]]] = {
+    "woods": [
+        ("fallen_tree", "A fallen tree has come down across the path, its roots "
+                        "shearing a whole section of ground up with it."),
+        ("thicket", "A thicket of bramble has swallowed the way through, green "
+                    "and interwoven as if it had been planted."),
+        ("deadfall", "Years of deadfall lie across the ground here, layered deep "
+                     "enough that nothing has walked through since."),
+    ],
+    "rock": [
+        ("rockslide", "A rockslide has come down from above, the scree still "
+                     "loose underfoot where the whole face let go."),
+        ("boulder", "A boulder the size of a cottage has rolled to a stop across "
+                    "the way, bedded into the ground and not going anywhere."),
+    ],
+    "water": [
+        ("flood", "Floodwater has cut a channel here and left it ankle-deep and "
+                  "brown, drifting fast enough to carry a careless boot."),
+        ("washout", "The ground has washed out from under the path, leaving a "
+                    "gap you can see the bottom of."),
+    ],
+    "cultivated": [
+        ("fence_down", "A stretch of field fence has come down across the way, "
+                       "rails and wire in a tangle in the weeds."),
+        ("ditch", "An irrigation ditch has opened along the track and the water "
+                  "is far too deep to step across."),
+    ],
+    "road": [
+        ("washout", "The road has washed out here, the surface broken away into "
+                    "a channel of mud and loose stone."),
+        ("fallen_tree", "A tree has come down across the road and taken a length "
+                        "of the verge with it."),
+    ],
+    "open": [
+        ("bramble", "Bramble is grown thick across the way, interwoven and "
+                    "unwilling to be pushed through."),
+        ("trench", "A trench has been cut across the way, deep and straight, and "
+                   "long since filled with standing water."),
+    ],
+}
+
+#: The blocker used when a way's terrain is unknown, so a blocker is always
+#: nameable. `open`'s first entry, deliberately.
+DEFAULT_BLOCKER = ("bramble", BLOCKERS_BY_TERRAIN["open"][0][1])
+
+
+def _blocker_for(terrain: str, way_id: str, seed: str) -> Tuple[str, str]:
+    """Pick this way's blocker deterministically (``seed:way_id``)."""
+    options = BLOCKERS_BY_TERRAIN.get(terrain) or [DEFAULT_BLOCKER]
+    return options[stable_digest(f"blocker:{seed}:{way_id}") % len(options)]
+
+
+def _is_blocked_way(seed: str, way_id: str, percent: int = BLOCKED_WAY_PERCENT) -> bool:
+    """Deterministic blocked/open decision for one way.
+
+    A stable hash of ``blocked:<seed>:<way_id>`` against a 0-99 bucket, so
+    regenerating the same scope with the same seed reproduces exactly the same
+    blocked set. No ``random``, no clock, and no ``hash()`` — see
+    :func:`stable_digest`.
+    """
+    if percent <= 0:
+        return False
+    if percent >= 100:
+        return True
+    return stable_digest(f"blocked:{seed}:{way_id}") % 100 < percent
+
+
+def _reachable_areas(area_ids: List[str], blocked: Set[str]) -> Set[str]:
+    """Areas still reachable from the first, with *blocked* ways removed.
+
+    Written over the (area, way, area) triples the compiler already knows rather
+    than over graph edges, because this pass runs *before* the patch is applied
+    and there is no graph to walk yet.
+    """
+    if not area_ids:
+        return set()
+    adjacency: Dict[str, List[str]] = {}
+    for a, way_id, b in area_ids:
+        if way_id in blocked:
+            continue
+        adjacency.setdefault(a, []).append(b)
+        adjacency.setdefault(b, []).append(a)
+    entry = area_ids[0][0]
+    seen = {entry}
+    queue = deque([entry])
+    while queue:
+        for neighbour in adjacency.get(queue.popleft(), ()):
+            if neighbour not in seen:
+                seen.add(neighbour)
+                queue.append(neighbour)
+    return seen
+
+
+def _apply_way_blocking(nodes: List[Node],
+                        outdoor_ways: List[Tuple[str, str, str, str]],
+                        seed: str, percent: int = BLOCKED_WAY_PERCENT
+                        ) -> List[Tuple[str, str]]:
+    """Block a deterministic subset of outdoor ways, without stranding anyone.
+
+    The state shape is a **real ``blocked`` state** with prose beside it, and the
+    codebase had already decided that: ``engine/matching.py`` lists ``blocked``
+    among valid way states, ``engine/movement.py`` refuses it and teaches it as a
+    learned aspect, ``engine/area_description.py`` keeps it hidden until the
+    character examines the way, and ``engine/sound.py`` costed it. What was
+    missing was a *reason* — so ``blocked_by`` names the obstacle and
+    ``blocked_description`` says it in a sentence, and the refusal quotes it.
+
+    **Never strand a pocket** is enforced by construction rather than by picking
+    carefully: each candidate is blocked only if every area is *still* reachable
+    once it is. A way that is the last route into somewhere is therefore never
+    blocked, so this cannot undo the island auto-linking above — the two passes
+    are independent and the second one can only refuse, never strand.
+
+    Returns the ``(way_id, blocker_id)`` pairs it blocked.
+    """
+    if not outdoor_ways or percent <= 0:
+        return []
+
+    by_id = {node.id: node for node in nodes if getattr(node, "type", None) == "way"}
+    triples = [(a, way_id, b) for way_id, a, b, _terrain in outdoor_ways]
+    whole = _reachable_areas(triples, set())
+
+    # Deterministic order, so a regenerate produces the same blocked set and the
+    # connectivity check below sees the same candidates in the same sequence.
+    candidates = sorted(
+        (w for w in outdoor_ways if _is_blocked_way(seed, w[0], percent)),
+        key=lambda w: w[0],
+    )
+
+    blocked: Set[str] = set()
+    done: List[Tuple[str, str]] = []
+    for way_id, _from_area, _to_area, terrain in candidates:
+        node = by_id.get(way_id)
+        if node is None:
+            continue
+        blocked.add(way_id)
+        if _reachable_areas(triples, blocked) != whole:
+            # The last way into somewhere. Give it back rather than wall a
+            # region off — an unreachable pocket is worse than one fewer obstacle.
+            blocked.discard(way_id)
+            continue
+        blocker, prose = _blocker_for(terrain, way_id, seed)
+        props = node.properties
+        props["current_state"] = "blocked"
+        props["blocked_by"] = blocker
+        props["blocked_description"] = prose
+        props["refusal_message"] = prose
+        props["pass_message"] = prose
+        # An outdoor way is not a door: you cannot close a road into a forest by
+        # hand, so the plain close action must refuse it. `prevent_close` is the
+        # existing author-facing flag (engine/movement.py), and the message here is
+        # the blocker rather than the generic "this opening is permanent".
+        props["prevent_close"] = True
+        done.append((way_id, blocker))
+    return done
+
 
 
 def terrain_class(biome_id: Optional[str], road: Optional[str] = None) -> str:
@@ -1759,6 +1966,12 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
 
     edges: List[Edge] = []
     emitted_pairs: Set[Tuple[int, int]] = set()
+    #: (way_id, from_area, to_area, terrain_class) for every minted outdoor way,
+    #: so the blocking pass below has a flat list to reason about instead of
+    #: re-walking the graph. Only `kind == "open"` ways land here: a door or a
+    #: stairway is a threshold a character goes through, and blocking it would be
+    #: closing a building's own front door (task-522).
+    outdoor_ways: List[Tuple[str, str, str, str]] = []
 
     def emit_passage(from_area: str, from_name: str, to_area: str, to_name: str,
                      cell: Tuple[int, int], nb: Tuple[int, int],
@@ -1875,6 +2088,15 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
                                else f"{from_name} to {to_name}",
                           properties=way_props))
         edges.extend(_way_edges(from_area, to_area, way_id, direction))
+        if kind == "open" and way_props.get("current_state") == "open":
+            # A candidate for the blocking pass. A way already refused by a climb
+            # is not a candidate: it is closed for a *reason the player can fix*
+            # (gating task-525), and a fallen tree on top of that would be two
+            # refusals for one obstacle.
+            outdoor_ways.append((
+                way_id, from_area, to_area,
+                terrain_class(floor_biome or cell_road(cell)),
+            ))
         return way_id
 
     for cell in cells:
@@ -2293,6 +2515,9 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
                 entered += 1
         break
 
+    # ── block a deterministic subset of the outdoor ways (task-522) ──
+    blocked_ways = _apply_way_blocking(nodes, outdoor_ways, seed)
+
     # An island is now auto-linked above, so this only counts a region left with
     # no exits at all (a single painted cell, or ``link_islands=False``).
     pair_degree: Dict[int, int] = {}
@@ -2380,6 +2605,14 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
     elif climb_threshold != DEFAULT_MAX_STOREY_STEP:
         notes.append(f"climb threshold: {climb_threshold} storey for this scope "
                      f"(default {DEFAULT_MAX_STOREY_STEP}); no step crossed it")
+    if blocked_ways:
+        reasons = Counter(blocker for _way_id, blocker in blocked_ways)
+        summary = ", ".join(f"{name} x{count}"
+                            for name, count in sorted(reasons.items()))
+        notes.append(
+            f"{len(blocked_ways)} outdoor way(s) blocked at compile time "
+            f"({summary}); they need clearing, not opening"
+        )
     if boundary_unnamed:        notes.append(f"WARNING: {len(boundary_unnamed)} hand-placed area(s) could "
                      f"not be named, so no boundary way was minted for them: "
                      f"{', '.join(sorted(boundary_unnamed)[:6])}"

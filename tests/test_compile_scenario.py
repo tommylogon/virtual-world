@@ -62,6 +62,47 @@ def test_compiled_ids_and_players(tmp_path):
     assert alice["traits"] == {"high_metabolism": True}
 
 
+def test_compiled_scenario_carries_the_title(tmp_path):
+    scenario = compile_scenario(_author(tmp_path))
+    assert scenario["name"] == "Fold Test"
+    assert scenario["meta"]["title"] == "Fold Test"
+
+
+def test_compiled_character_keeps_the_authored_alias(tmp_path):
+    """A compiled scenario must satisfy the same identity contract as the camp.
+
+    ``engine/character_identity.collapse_character_identity`` merges the authored
+    ``character_<slug>`` node into the ``player_<Name>`` anchor at load time and
+    keeps the retired id resolvable, so a folder-compiled scenario that shipped
+    only the anchor would lose that alias (task-408).
+    """
+    scenario = compile_scenario(_author(tmp_path))
+    nodes = scenario["graph"]["nodes"]
+
+    assert "character_alice" in nodes
+    authored = nodes["character_alice"]
+    assert authored["type"] == "character"
+    assert authored["name"] == "Alice"
+    assert authored["properties"]["description"] == "The cook."
+    assert authored["properties"]["personality"] == "You are Alice."
+    assert authored["properties"]["traits"] == {"high_metabolism": True}
+
+    located = [e for e in scenario["graph"]["edges"]
+               if e.get("type") == "in" and e.get("source") == "character_alice"]
+    assert [e["target"] for e in located] == ["area_hall"]
+
+    from engine.character_identity import collapse_character_identity
+    report = collapse_character_identity(scenario["graph"], scenario["players"])
+    assert report["collapsed"] == [("character_alice", "player_Alice")]
+    assert report["aliases"]["character_alice"] == "player_Alice"
+    assert "character_alice" not in scenario["graph"]["nodes"]
+    # The collapse merges the two location edges into one, so the character is
+    # still exactly where the authoring put them.
+    ins = [e for e in scenario["graph"]["edges"]
+           if e.get("type") == "in" and e.get("source") == "player_Alice"]
+    assert [e["target"] for e in ins] == ["area_hall"]
+
+
 def test_compiled_way_has_connection_edges(tmp_path):
     scenario = compile_scenario(_author(tmp_path))
     nodes = scenario["graph"]["nodes"]

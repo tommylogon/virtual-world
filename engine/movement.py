@@ -962,10 +962,23 @@ class MovementSystem:
         The author-facing ``prevent_close`` flag likewise pins a passage open.
         Triggers/authoring write ``current_state`` directly and never route
         through here, so they keep working.
+
+        A **blocked** way is a different thing from a shut one and is refused
+        too (task-522). You cannot push a fallen tree shut, and refusing with
+        the blocker's own sentence is the whole point of recording one: the
+        character has to be told *what* is in the way, not just that something
+        is.
         """
         if not way_node:
             return None
         props = way_node.properties or {}
+        state = str(props.get("current_state") or "open")
+        if state == "blocked" and action in ("open", "close"):
+            reason = str(props.get("blocked_description")
+                         or props.get("refusal_message") or "").strip()
+            if reason:
+                return reason
+            return (f"The {label} is blocked, and nothing about it looks movable.")
         requires = normalize_requires(props.get("requires")).lower()
         if requires in ("jump", "climb", "crawl"):
             return (
@@ -973,6 +986,13 @@ class MovementSystem:
                 f"passage, not something you open or close."
             )
         if props.get("prevent_close") and action == "close":
+            # A compiled outdoor way carries `prevent_close` because you cannot
+            # close a road into a forest by hand. If the reason is recorded, say
+            # it; otherwise the generic sentence is the best there is.
+            reason = str(props.get("blocked_description")
+                         or props.get("refusal_message") or "").strip()
+            if reason:
+                return reason
             return f"You can't close the {label} — this opening is permanent."
         return None
 
