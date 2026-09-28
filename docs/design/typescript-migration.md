@@ -5,6 +5,10 @@
 Migration is **incremental** — `.js` and `.ts` coexist, and the app keeps working
 at every step.
 
+**Size-ordered plan:** see `docs/design/typescript-migration-plan.md` for the
+measured 151-file inventory, the six waves, and the `window.Lit` prerequisite
+that gates 46% of the corpus.
+
 `graph-background` was converted out of the recommended order on purpose: it is
 views-adjacent, but it had just been rewritten (task-451) and its geometry,
 migration and hit-testing logic is exactly the kind that benefits from types. It
