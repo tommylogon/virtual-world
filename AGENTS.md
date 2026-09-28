@@ -34,14 +34,37 @@ Project guidance for automated agents working in this repo.
 
 ### Known pre-existing failures (NOT caused by your change)
 
-- `tests/test_mcp_*.py` fail with `'function' object has no attribute 'fn'`
-  (FastMCP tool-wrapper mismatch in the environment).
-- `tests/test_social_company.py`, `tests/test_tick_time_scaling.py` and
-  `tests/test_character_identity.py` have known failures.
+`tests/test_tick_time_scaling.py` **hangs** — it does not fail, it never finishes. Always
+`--ignore` it or the suite never returns:
 
-Baseline is **61 failed / 4202 passed**, measured on a clean `master` worktree on
-2026-09-28. Do not try to "fix" these unless explicitly asked; compare against
-the baseline instead.
+```
+python -m pytest --ignore=tests/test_tick_time_scaling.py
+```
+
+Baseline is **5 failed / 4274 passed**, measured on `master` on 2026-09-28 (~7m30s).
+The five:
+
+| Test | Nature |
+|---|---|
+| `test_character_identity.py::test_collapse_is_idempotent` | canonical-node problem, task-457's |
+| `test_character_identity.py::test_kraktooth_loads_as_one_node_per_character` | same |
+| `test_scenario_name.py::test_clearing_the_source_leaves_the_name_alone` | scenario source leaks between `create_app()` calls |
+| `test_social_company.py::test_extrovert_company_gains_extra` | `create_app()` isolation, bug-55 |
+| `test_templates.py::test_generator_covers_every_effect_type` | `data/library/items/template_polymorph_target.json` is missing |
+
+The three in the middle are one bug: **a second `create_app()` in a process does not behave
+like the first** (bug-55). The last is a missing data file. The first two are task-457's.
+
+**The old baseline was ~60 failed, and 55 of those were the MCP tests** — which made the
+"compare to baseline" rule nearly blind. Those are fixed (see below), so a lane that
+reports "at baseline" is now reporting against 5 real failures, not 60.
+
+### The MCP tests were fixed, do not "restore" them
+
+`mcp_server.py` was never broken. **FastMCP >= 3 returns the plain function from
+`@mcp.tool()`**, not a wrapper exposing `.fn`, and 62 test call sites still used `.fn()`.
+All 69 MCP tests now pass. If they regress en masse, check the installed `fastmcp` version
+before suspecting the server.
 
 **Compare the failure *names*, not the counts.** The counts drift as tests are
 added, so a matching total proves nothing; a matching set does. Save both

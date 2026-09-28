@@ -1,4 +1,11 @@
 """Test core command MCP tools."""
+
+# NOTE: FastMCP >= 3 returns the plain function from @mcp.tool(), so a tool is
+# called directly. Older FastMCP returned a wrapper whose .fn held the function,
+# which is why these tests once read `tool.fn(...)`. See
+# docs/design/typescript-migration-plan.md for the parallel hub-file lesson in
+# static/js/types/globals.d.ts; the shape here is version-sensitive, not a bug.
+
 import pytest
 import asyncio
 from unittest.mock import patch, MagicMock
@@ -22,97 +29,97 @@ def mock_action():
 
 def test_look(mock_action):
     from mcp_server import look
-    assert look.fn() == "result"
+    assert look() == "result"
     mock_action.assert_called_with("look")
 
 
 def test_go(mock_action):
     from mcp_server import go
-    assert go.fn("north") == "result"
+    assert go("north") == "result"
     mock_action.assert_called_with("go north")
 
 
 def test_take(mock_action):
     from mcp_server import take
-    assert take.fn("apple") == "result"
+    assert take("apple") == "result"
     mock_action.assert_called_with("take apple")
 
 
 def test_drop(mock_action):
     from mcp_server import drop
-    assert drop.fn("apple") == "result"
+    assert drop("apple") == "result"
     mock_action.assert_called_with("drop apple")
 
 
 def test_use_no_target(mock_action):
     from mcp_server import use
-    assert use.fn("potion") == "result"
+    assert use("potion") == "result"
     mock_action.assert_called_with("use potion")
 
 
 def test_use_with_target(mock_action):
     from mcp_server import use
-    assert use.fn("key", "door") == "result"
+    assert use("key", "door") == "result"
     mock_action.assert_called_with("use key on door")
 
 
 def test_examine(mock_action):
     from mcp_server import examine
-    assert examine.fn("painting") == "result"
+    assert examine("painting") == "result"
     mock_action.assert_called_with("examine painting")
 
 
 def test_inventory(mock_action):
     from mcp_server import inventory
-    assert inventory.fn() == "result"
+    assert inventory() == "result"
     mock_action.assert_called_with("i")
 
 
 def test_stats(mock_action):
     from mcp_server import stats
-    assert stats.fn() == "result"
+    assert stats() == "result"
     mock_action.assert_called_with("stats")
 
 
 def test_speak(mock_action):
     from mcp_server import speak
-    assert speak.fn("hello") == "result"
+    assert speak("hello") == "result"
     mock_action.assert_called_with("say hello")
 
 
 def test_attack(mock_action):
     from mcp_server import attack
-    assert attack.fn("goblin") == "result"
+    assert attack("goblin") == "result"
     mock_action.assert_called_with("attack goblin")
 
 
 def test_rest_default(mock_action):
     from mcp_server import rest
-    assert rest.fn() == "result"
+    assert rest() == "result"
     mock_action.assert_called_with("rest 10")
 
 
 def test_rest_custom(mock_action):
     from mcp_server import rest
-    assert rest.fn(30) == "result"
+    assert rest(30) == "result"
     mock_action.assert_called_with("rest 30")
 
 
 def test_open_way(mock_action):
     from mcp_server import open_way
-    assert open_way.fn("front door") == "result"
+    assert open_way("front door") == "result"
     mock_action.assert_called_with("open front door")
 
 
 def test_close_way(mock_action):
     from mcp_server import close_way
-    assert close_way.fn("front door") == "result"
+    assert close_way("front door") == "result"
     mock_action.assert_called_with("close front door")
 
 
 def test_toggle(mock_action):
     from mcp_server import toggle
-    assert toggle.fn("flashlight") == "result"
+    assert toggle("flashlight") == "result"
     mock_action.assert_called_with("toggle flashlight")
 
 

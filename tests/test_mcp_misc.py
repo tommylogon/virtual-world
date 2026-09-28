@@ -1,4 +1,11 @@
 """Test registry, lore, save/load, settings MCP tools."""
+
+# NOTE: FastMCP >= 3 returns the plain function from @mcp.tool(), so a tool is
+# called directly. Older FastMCP returned a wrapper whose .fn held the function,
+# which is why these tests once read `tool.fn(...)`. See
+# docs/design/typescript-migration-plan.md for the parallel hub-file lesson in
+# static/js/types/globals.d.ts; the shape here is version-sensitive, not a bug.
+
 import pytest
 import asyncio
 from unittest.mock import patch
@@ -13,37 +20,37 @@ def mock_api():
 def test_list_library_items(mock_api):
     mock_api.return_value = {"sword": {}}
     from mcp_server import list_library_items
-    assert list_library_items.fn() == {"sword": {}}
+    assert list_library_items() == {"sword": {}}
     mock_api.assert_called_with("GET", "/api/library/items")
 
 
 def test_add_to_library(mock_api):
     from mcp_server import add_to_library
-    add_to_library.fn("sword_01", {"name": "Iron Sword", "description": "A blade"})
+    add_to_library("sword_01", {"name": "Iron Sword", "description": "A blade"})
     mock_api.assert_called_with("POST", "/api/library/items",
                                 {"id": "sword_01", "data": {"name": "Iron Sword", "description": "A blade"}})
 
 
 def test_remove_from_library(mock_api):
     from mcp_server import remove_from_library
-    remove_from_library.fn("sword_01")
+    remove_from_library("sword_01")
     mock_api.assert_called_with("DELETE", "/api/library/items/sword_01")
 
 
 def test_get_set_world_lore(mock_api):
     from mcp_server import get_world_lore, set_world_lore
     mock_api.return_value = [{"category": "general", "content": "lore"}]
-    assert get_world_lore.fn() == [{"category": "general", "content": "lore"}]
+    assert get_world_lore() == [{"category": "general", "content": "lore"}]
     mock_api.assert_called_with("GET", "/api/world/lore")
 
-    set_world_lore.fn([{"category": "general", "content": "new lore"}])
+    set_world_lore([{"category": "general", "content": "new lore"}])
     mock_api.assert_called_with("POST", "/api/world/lore",
                                 {"lore": [{"category": "general", "content": "new lore"}]})
 
 
 def test_add_lore_entry(mock_api):
     from mcp_server import add_lore_entry
-    add_lore_entry.fn("history", "The castle was built in 1400.", title="Castle History")
+    add_lore_entry("history", "The castle was built in 1400.", title="Castle History")
     mock_api.assert_called_with("POST", "/api/world/lore/entry",
                                 {"category": "history", "content": "The castle was built in 1400.",
                                  "title": "Castle History"})
@@ -52,28 +59,28 @@ def test_add_lore_entry(mock_api):
 def test_save_load_cycle(mock_api):
     from mcp_server import save_game, load_game, list_saves, delete_save
     mock_api.return_value = {"status": "success"}
-    save_game.fn("test_save")
+    save_game("test_save")
     mock_api.assert_called_with("POST", "/api/save-game", {"filename": "test_save"})
 
-    load_game.fn("test_save")
+    load_game("test_save")
     mock_api.assert_called_with("POST", "/api/load-game/test_save")
 
     mock_api.return_value = ["test_save"]
-    saves = list_saves.fn()
+    saves = list_saves()
     assert "test_save" in saves
 
-    delete_save.fn("test_save")
+    delete_save("test_save")
     mock_api.assert_called_with("DELETE", "/api/save-game/test_save")
 
 
 def test_export_import_world(mock_api):
     from mcp_server import export_world, import_world
     mock_api.return_value = {"areas": {}}
-    data = export_world.fn()
+    data = export_world()
     assert data == {"areas": {}}
     mock_api.assert_called_with("GET", "/api/save")
 
-    import_world.fn({"areas": {}})
+    import_world({"areas": {}})
     # import_world marks the load ephemeral (persist=False) so agents never
     # litter data/scenarios/ with unnamed.json.
     mock_api.assert_called_with("POST", "/api/load", {"areas": {}, "persist": False})
@@ -81,25 +88,25 @@ def test_export_import_world(mock_api):
 
 def test_reset_world(mock_api):
     from mcp_server import reset_world
-    reset_world.fn()
+    reset_world()
     mock_api.assert_called_with("POST", "/api/reset")
 
 
 def test_ghost_mode(mock_api):
     from mcp_server import get_ghost_mode, set_ghost_mode
     mock_api.return_value = {"ghost_mode": True}
-    assert get_ghost_mode.fn() == {"ghost_mode": True}
+    assert get_ghost_mode() == {"ghost_mode": True}
     mock_api.assert_called_with("GET", "/api/settings/ghost_mode")
 
-    set_ghost_mode.fn(True)
+    set_ghost_mode(True)
     mock_api.assert_called_with("POST", "/api/settings/ghost_mode", {"ghost_mode": True})
 
 
 def test_narration_mode(mock_api):
     from mcp_server import get_narration_mode, set_narration_mode
     mock_api.return_value = {"mode": "none"}
-    assert get_narration_mode.fn() == {"mode": "none"}
-    set_narration_mode.fn("ai")
+    assert get_narration_mode() == {"mode": "none"}
+    set_narration_mode("ai")
     mock_api.assert_called_with("POST", "/api/settings/narration", {"mode": "ai"})
 
 

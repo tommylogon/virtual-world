@@ -1,4 +1,11 @@
 """Test world state and player management MCP tools."""
+
+# NOTE: FastMCP >= 3 returns the plain function from @mcp.tool(), so a tool is
+# called directly. Older FastMCP returned a wrapper whose .fn held the function,
+# which is why these tests once read `tool.fn(...)`. See
+# docs/design/typescript-migration-plan.md for the parallel hub-file lesson in
+# static/js/types/globals.d.ts; the shape here is version-sensitive, not a bug.
+
 import pytest
 import asyncio
 from unittest.mock import patch
@@ -26,7 +33,7 @@ def _check_tool_registered(name):
 def test_get_state(mock_api):
     mock_api.return_value = {"areas": {}}
     from mcp_server import get_state
-    result = get_state.fn()
+    result = get_state()
     assert result == {"areas": {}}
     mock_api.assert_called_with("GET", "/api/state")
 
@@ -34,42 +41,42 @@ def test_get_state(mock_api):
 def test_get_graph_nodes(mock_api):
     mock_api.return_value = [{"id": "area_1"}]
     from mcp_server import get_graph_nodes
-    result = get_graph_nodes.fn()
+    result = get_graph_nodes()
     assert len(result) == 1
 
 
 def test_get_graph_edges(mock_api):
     mock_api.return_value = [{"source": "a", "target": "b"}]
     from mcp_server import get_graph_edges
-    result = get_graph_edges.fn()
+    result = get_graph_edges()
     assert len(result) == 1
 
 
 def test_list_players(mock_api):
     mock_api.return_value = {"players": ["Kaelen"], "active": "Kaelen"}
     from mcp_server import list_players
-    result = list_players.fn()
+    result = list_players()
     assert result["active"] == "Kaelen"
 
 
 def test_get_game_time(mock_api):
     mock_api.return_value = {"game_time": "08:45"}
     from mcp_server import get_game_time
-    result = get_game_time.fn()
+    result = get_game_time()
     assert result == "08:45"
 
 
 def test_get_area_description(mock_api):
     mock_api.return_value = {"description": "A dark area."}
     from mcp_server import get_area_description
-    result = get_area_description.fn()
+    result = get_area_description()
     assert result == "A dark area."
 
 
 def test_find_path(mock_api):
     mock_api.return_value = {"direction": "north"}
     from mcp_server import find_path
-    result = find_path.fn("Living Area", "Kitchen")
+    result = find_path("Living Area", "Kitchen")
     assert result["direction"] == "north"
     mock_api.assert_called_with("POST", "/api/path", {"from": "Living Area", "to": "Kitchen"})
 
@@ -77,46 +84,46 @@ def test_find_path(mock_api):
 def test_create_player(mock_api):
     mock_api.return_value = {"status": "success", "player": "TestChar"}
     from mcp_server import create_player
-    result = create_player.fn("TestChar")
+    result = create_player("TestChar")
     assert result["status"] == "success"
 
 
 def test_set_active_player(mock_api):
     from mcp_server import set_active_player
-    set_active_player.fn("Kaelen")
+    set_active_player("Kaelen")
     mock_api.assert_called_with("POST", "/api/players/active", {"name": "Kaelen"})
 
 
 def test_delete_player(mock_api):
     mock_api.return_value = {"status": "deleted"}
     from mcp_server import delete_player
-    result = delete_player.fn("TestChar")
+    result = delete_player("TestChar")
     assert result["status"] == "deleted"
 
 
 def test_kill_player(mock_api):
     from mcp_server import kill_player
-    kill_player.fn("TestChar")
+    kill_player("TestChar")
     mock_api.assert_called_with("POST", "/api/players/TestChar/kill")
 
 
 def test_move_player(mock_api):
     from mcp_server import move_player
-    move_player.fn("Kaelen", "Kitchen")
+    move_player("Kaelen", "Kitchen")
     mock_api.assert_called_with("POST", "/api/players/Kaelen/move", {"area": "Kitchen"})
 
 
 def test_get_player_memories(mock_api):
     mock_api.return_value = [{"text": "found a key"}]
     from mcp_server import get_player_memories
-    result = get_player_memories.fn("Kaelen")
+    result = get_player_memories("Kaelen")
     assert len(result) == 1
 
 
 def test_add_player_memory(mock_api):
     mock_api.return_value = {"status": "success"}
     from mcp_server import add_player_memory
-    result = add_player_memory.fn("Kaelen", "found a key")
+    result = add_player_memory("Kaelen", "found a key")
     assert result["status"] == "success"
 
 

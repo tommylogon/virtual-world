@@ -7,6 +7,13 @@ behind `RUN_INTEGRATION=1`, this module boots a real Flask server in a fixture
 
 `test_tools_list` uses FastMCP's in-process client and needs no HTTP server.
 """
+
+# NOTE: FastMCP >= 3 returns the plain function from @mcp.tool(), so a tool is
+# called directly. Older FastMCP returned a wrapper whose .fn held the function,
+# which is why these tests once read `tool.fn(...)`. See
+# docs/design/typescript-migration-plan.md for the parallel hub-file lesson in
+# static/js/types/globals.d.ts; the shape here is version-sensitive, not a bug.
+
 import os
 import socket
 import threading
@@ -84,11 +91,11 @@ class TestIntegration:
 
     def test_get_state_returns_dict(self):
         from mcp_server import get_state
-        state = get_state.fn()
+        state = get_state()
         assert isinstance(state, dict)
         assert "graph" in state
 
     def test_list_players_works(self):
         from mcp_server import list_players
-        players = list_players.fn()
+        players = list_players()
         assert "players" in players
