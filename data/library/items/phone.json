@@ -2,7 +2,7 @@
   "name": "phone",
   "description": "jake smartphone. the screen is cracked but functional. his camera roll is full of blurry photos of the mansion entrance, screenshots of a creepy forum post where he found this place, and approximately 400 memes. no signal, obviously.",
   "actions": "examine,take,drop,equip,unequip",
-  "uses": 30,
+  "uses": -1,
   "weight": 0.2,
   "current_state": "lit",
   "light_level": "dim",
@@ -11,8 +11,11 @@
   "insulation": 0,
   "tags": [
     "light_source",
-    "electric"
+    "electric",
+    "device"
   ],
   "triggers": [],
-  "contents": []
+  "contents": [
+    "phone_battery"
+  ]
 }

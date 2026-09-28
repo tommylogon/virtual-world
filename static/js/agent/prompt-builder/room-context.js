@@ -212,16 +212,14 @@ window.PromptBuilder = window.PromptBuilder || {};
     }
 
     function getContainedItems(parentItemId) {
-        const out = [];
-        for (const edge of worldState.graph?.edges || []) {
-            if (edge.type === 'in' && edge.target === parentItemId) {
-                const node = worldState.getNode(edge.source);
-                if (node && node.type === 'item') {
-                    out.push({ id: node.id, name: node.name, properties: node.properties });
-                }
-            }
-        }
-        return out;
+        // task-493: the ONE containment walk, shared with world-state.js and
+        // mirroring the engine's item_reach. This used to be a single flat
+        // level with no state check at all, so a part inside a closed device
+        // was listed in the prompt and one nested two deep was invisible.
+        return window.ItemContainment.collectReachable([parentItemId], {
+            getNode: (id) => worldState.getNode(id),
+            edges: worldState.graph?.edges || [],
+        }).filter(item => item.depth > 0);
     }
 
     /**
@@ -537,15 +535,17 @@ window.PromptBuilder = window.PromptBuilder || {};
                 const knownTag = isKnown(c, equipped) ? '(known)' : '(not yet examined)';
                 const descPart = desc ? ` — ${desc}` : '';
                 lines.push(`${c.name} ${b}${d ? ' ' + d : ''} ${f ? f + ' ' : ''}${knownTag}${descPart}`.trim());
-                const contained = getContainedItems(c.id);
-                for (const ci of contained) {
+                // Indent by depth (task-493): a part is legible as a part of
+                // the thing above it, and a part of a part reads the same way.
+                for (const ci of getContainedItems(c.id)) {
                     const cb = PromptBuilder.formatActionBrackets(PromptBuilder.computeItemActions({ id: ci.id, name: ci.name, properties: ci.properties }, player, { equipped: false }));
                     const cd = durTag(ci);
                     const cf = freshTag(ci);
                     const cdesc = (ci.properties?.description || '').trim();
                     const cknownTag = isKnown(ci, false) ? '(known)' : '(not yet examined)';
                     const cdescPart = cdesc ? ` — ${cdesc}` : '';
-                    lines.push(`    ${ci.name} ${cb}${cd ? ' ' + cd : ''} ${cf ? cf + ' ' : ''}${cknownTag}${cdescPart}`.trim());
+                    const pad = '    '.repeat(Math.max(1, ci.depth || 1));
+                    lines.push(`${pad}${ci.name} ${cb}${cd ? ' ' + cd : ''} ${cf ? cf + ' ' : ''}${cknownTag}${cdescPart}`.trim());
                 }
             }
             return lines;

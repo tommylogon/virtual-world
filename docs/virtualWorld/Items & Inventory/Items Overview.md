@@ -96,6 +96,56 @@ Pools never stack: `stackable_twins` refuses any node with `quantity > 1`,
 because stacking runs the other way (many carried copies merged into one node)
 and merging a pool would fold its count into a copy's `uses`.
 
+## Parts — a device assembled from items
+
+A **part** is a child item of a parent item. There is no new edge type, no
+`is_part` flag, and no device-type field: containment is an ordinary `in` edge,
+and the only thing that says "this is a component" is that the part does not
+declare `take` in its own `actions`.
+
+```json
+// phone.json
+{ "name": "phone", "uses": -1, "actions": "examine,take,drop,equip,unequip",
+  "contents": ["phone_battery"] }
+
+// phone_battery.json
+{ "name": "phone battery", "actions": "examine,use", "uses": 24, "max_uses": 24,
+  "tags": ["part", "electric", "power_source"] }
+```
+
+Four rules make that work:
+
+1. **The action list is the single authority on portability.**
+   `engine/items/action_contract.py` is where `take`, `drop`, `steal`, `give`,
+   `put` and `place` all ask. Before task-493 only `take` read the list, which
+   left a part untakeable but not undroppable. Note `normalize_item_actions`
+   auto-adds each action's inverse, so a part must omit **both** `take` and
+   `drop` — declaring `drop` alone authors `take` straight back in.
+2. **Charge is the generic `uses`.** There is deliberately no `power` or
+   `charge` property on the base item. The device body is `uses: -1`
+   (permanent); the cell carries the charge. Depleting it is the observable
+   signal that the device is dead.
+3. **Non-portable is not inert.** A part is still *reachable* and usable —
+   that is what `engine/item_reach.py` is for, and it walks any depth, so a
+   battery inside a carried phone is addressable. Portable and reachable are
+   not opposites.
+4. **Depletion has an explicit semantic and never detaches silently.** A part
+   that runs flat goes `unlit` and fires `on_depleted`, keeping its place in
+   the device — the same rule `engine/toggleable_items.py` already uses for a
+   lit item burning out. An ordinary used-up item keeps the older behaviour
+   (its placement edge is cut). A part may author a different ending from its
+   own `on_depleted`; that runs first and is the intended escape hatch.
+
+### Prompt visibility agrees with the engine
+
+`static/js/shared/item-containment.js` is the client half of the containment
+rule that `engine/item_reach.py` is the server half of, and both `world-state.js`
+and `agent/prompt-builder/room-context.js` call it — the prompt could previously
+walk one level and check almost no state, so it listed the inside of a locked
+cabinet and missed a part two levels down. The rules: a `hidden` node is pruned
+along with its contents; a `closed`/`locked`/`sealed` node (or `locked: true`) is
+still listed but seals its contents; otherwise descend to any depth.
+
 ### Example: Apple (`data/library/items/apple.json`)
 
 ```json

@@ -21,6 +21,7 @@ from graph import (
     Edge,
     Node,
 )
+from engine.items.action_contract import is_portable, portable_refusal
 from engine.items.errors import AmbiguousItemError
 from engine.room_perception import (
     describe_item_quantity,
@@ -801,6 +802,12 @@ class TakeDropActionsMixin:
             raise ValueError(f"You aren't carrying '{item_name}'.")
 
         item_node = self.graph.get_node(item_node_id)
+
+        # task-493: a part is non-portable, so it is not droppable either.
+        # Before this the action list was consulted by `take` alone, which left
+        # drop the one verb that would happily tear a battery out of a phone.
+        if item_node is not None and not is_portable(item_node):
+            raise ValueError(portable_refusal(self.graph, item_node, "drop it"))
 
         p = player_manager.players.get(player_manager.active_player)
         if p:

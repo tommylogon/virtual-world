@@ -16,6 +16,8 @@ from graph import (
     Edge,
 )
 
+from engine.items.action_contract import is_portable, portable_refusal
+
 
 class PlaceActionsMixin:
     """put_item_in_container / place_item plus placement-edge cleanup."""
@@ -42,6 +44,13 @@ class PlaceActionsMixin:
         if not item_node:
             raise ValueError(f"You aren't carrying '{item_name}'.")
         item_node_id = item_node.id
+
+        # task-493: a part does not move. Both put verbs reach items through
+        # `find_reachable`, which is exactly how a battery inside a carried
+        # phone is found — so without this the one verb most likely to pick a
+        # part up would be the one nobody gated.
+        if not is_portable(item_node):
+            raise ValueError(portable_refusal(self.graph, item_node, "put it away"))
 
         container_node = player_manager.find_item_node(container_name)
         if not container_node:
@@ -125,6 +134,9 @@ class PlaceActionsMixin:
         if not item_node:
             raise ValueError(f"You aren't carrying '{item_name}'.")
         item_node_id = item_node.id
+
+        if not is_portable(item_node):
+            raise ValueError(portable_refusal(self.graph, item_node, "put it anywhere"))
 
         target_node = player_manager.find_item_node(target_name)
         if not target_node:

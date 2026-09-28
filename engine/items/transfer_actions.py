@@ -9,6 +9,8 @@ import random
 
 from graph import EDGE_CARRYING, EDGE_EQUIPPED, EDGE_IN, Edge
 
+from engine.items.action_contract import is_portable, portable_refusal
+
 
 class TransferActionsMixin:
     """give_item / steal_item — same-area character-to-character transfer."""
@@ -53,6 +55,10 @@ class TransferActionsMixin:
             raise ValueError(f"You aren't carrying '{item_name}'.")
         item_name = item_node.name
         item_node_id = item_node.id
+
+        # task-493: handing over a part would hand over the whole device's guts.
+        if not is_portable(item_node):
+            raise ValueError(portable_refusal(self.graph, item_node, "hand it over"))
 
         p = player_manager.players.get(player_manager.active_player)
         if p:
@@ -144,6 +150,13 @@ class TransferActionsMixin:
             raise ValueError(f"{target_name} doesn't have a '{item_name}' to steal.")
 
         item_node_id = item_node.id
+
+        # task-493: a part does not come loose, from anyone. The roster scan
+        # above only sees what is worn or carried, so a part is not reachable
+        # here today — but "not reachable" is not the same as "refused", and
+        # this is the verb where a silent pass would hand over a battery.
+        if not is_portable(item_node):
+            raise ValueError(portable_refusal(self.graph, item_node, "steal it"))
 
         # Sleight of Hand vs target's Perception
         sleight_skill = player_manager.player.skills.get("Sleight of Hand", 0)
