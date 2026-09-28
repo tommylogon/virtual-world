@@ -118,3 +118,32 @@ moving several. `validate` also flags dangling dependency references.
 - Do not edit `.kilo/agent-manager.json` directly; it is managed UI/recovery
   state, not an API.
 - Only commit when explicitly asked.
+
+### Is this mechanic actually wired?
+
+A mechanic that exists, works, and is never called looks *exactly* like a
+mechanic with a low event rate. Three separate instances turned up in one pass,
+so check all three before concluding anything from a telemetry table or a soak:
+
+1. **Is anything calling it?** A working `fear_sources` with no caller is
+   indistinguishable from "no fears arose". `rg` the function name outside its
+   own module.
+2. **Is it reading the right object?** A character graph node is created *bare*
+   — `Node(id=..., type="character", name=...)` — and carries no `tags`,
+   `traits` or any other definition. Anything looking a character up by its
+   **node** sees nothing; the data lives on the `Player`. `engine/fear.py`
+   spent a long time matching against the node before this was caught.
+3. **Has anyone authored any?** A field can be serialized, round-trip a save and
+   look entirely functional while every value in every scenario is `[]`. Nothing
+   in a soak will move until data exists, and no code change fixes that.
+
+A fourth, quieter one: **a guard whose lookup can never match.** `is_undead_ghost`
+takes a *name*; a call site passing the `Player` object compiles, runs, and
+always returns False, so the guard silently never fires. When two similar guards
+disagree, one of them is a no-op — check the signature rather than assuming both
+are right.
+
+Corollary for tests: a test that passes for the wrong reason is worse than no
+test. Prefer asserting the *mechanism* (which value was read, which branch ran)
+over asserting a substring that some other layer could also produce.
+
