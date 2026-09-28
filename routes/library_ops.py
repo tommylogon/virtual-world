@@ -8,6 +8,7 @@ from flask import request, jsonify
 from player import Player
 from graph import Node, Edge, EDGE_CARRYING, EDGE_TRIGGERS, EDGE_IN, EDGE_ON, EDGE_UNDER, EDGE_BEHIND, EDGE_BESIDE, EDGE_AT
 from engine.item_actions import normalize_item_actions
+from engine.library_nodes import RELATION_EDGE_TYPES, library_item_properties
 from engine.serialization import canonical_vitals
 from routes.helpers import load_registry, save_registry, delete_registry_entry, _registry_subdir, validate_tags_on_save
 
@@ -15,14 +16,9 @@ logger = logging.getLogger(__name__)
 
 REGISTRY_TYPES = ['items', 'characters', 'areas', 'ways', 'traits', 'conditions', 'behaviours', 'tags', 'triggers', 'structures']
 
-RELATION_EDGE_TYPES = {
-    "in": EDGE_IN,
-    "on": EDGE_ON,
-    "under": EDGE_UNDER,
-    "behind": EDGE_BEHIND,
-    "beside": EDGE_BESIDE,
-    "at": EDGE_AT,
-}
+# task-398: RELATION_EDGE_TYPES now comes from engine/library_nodes.py, which is
+# the one definition shared with the generation recipes. routes/graph_ops.py
+# still keeps its own copy.
 
 
 def _library_type_count(data_dir, lib_type):
@@ -114,35 +110,14 @@ def _spawn_library_item_node(app, item_id, lib_item, container_id=None, node_id=
         # a timestamp and random suffix, so they are neither stable nor
         # re-derivable. Authored placement (tools/add_renewable_sources.py)
         # passes its own deterministic id instead.
+        #
+        # task-398: a generation recipe needs the opposite — a stable, scoped id
+        # and no clock — so it uses engine/library_nodes.py instead. What is
+        # shared is the property mapping below, which is the part that defines
+        # what a library item node *is*.
         node_id = f"item_{item_name}_{int(time.time()*1000)}_{random.randint(0, 999)}".lower()
-    props = {
-        "description": lib_item.get('description', ''),
-        "actions": normalize_item_actions(lib_item.get('actions', 'examine,take,use')),
-        "uses": int(lib_item.get('uses', -1)),
-        "weight": float(lib_item.get('weight', 0.1)),
-        "action_costs": lib_item.get('action_costs', {}),
-        "skill_check": lib_item.get('skill_check', {}),
-        "equip_slots": lib_item.get('equip_slots', []),
-        "tags": lib_item.get('tags', []),
-        "current_state": "hidden" if lib_item.get('hidden', False) else lib_item.get('current_state', 'normal'),
-        "light_level": lib_item.get('light_level', 'dim'),
-        "target_temperature": lib_item.get('target_temperature'),
-        "heating_rate": lib_item.get('heating_rate'),
-        "sound_level": lib_item.get('sound_level'),
-        "sound_pattern": lib_item.get('sound_pattern'),
-        "stun_chance": lib_item.get('stun_chance'),
-        "stun_duration": lib_item.get('stun_duration'),
-        "library_id": item_id,
-        "defense": lib_item.get('defense', 0),
-        "damage": lib_item.get('damage', 0),
-        "insulation": lib_item.get('insulation', 0),
-        "resistances": lib_item.get('resistances', {}),
-        "image": lib_item.get('image') or None,
-    }
-    # Gauges (task-410: a plant's `growth` counter). Without this the counter is
-    # dropped at placement, so the item's own triggers can never see it.
-    if lib_item.get('parameters'):
-        props["parameters"] = dict(lib_item['parameters'])
+    props = library_item_properties(lib_item, item_id)
+    props['actions'] = normalize_item_actions(lib_item.get('actions', 'examine,take,use'))
     graph = app.world.graph
     node = Node(id=node_id, type='item', name=item_name, properties=props)
     graph.add_node(node)

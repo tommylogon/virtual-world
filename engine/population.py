@@ -112,20 +112,25 @@ class LibraryIndex:
         exclude_tags = {str(t).lower() for t in exclude_tags}
         exclude_ids = set(exclude_ids)
 
+        # Walk the tag index rather than every entry (task-398). The filter below
+        # keeps an entry only when it carries at least one domain tag, so the
+        # union of those postings is exactly the old candidate set — a room in a
+        # 2,000-item library no longer costs 2,000 tag reads per placement.
         out: List[str] = []
-        for library_id in self.entries:
-            if library_id in exclude_ids:
-                continue
-            tags = set(self.tags_of(library_id))
-            if not (tags & domains):
-                continue
-            if require_all and not require_all.issubset(tags):
-                continue
-            if exclude_tags and (tags & exclude_tags):
-                continue
-            if furniture is not None and self.is_furniture(library_id) != furniture:
-                continue
-            out.append(library_id)
+        seen: set = set()
+        for domain in sorted(domains):
+            for library_id in self.by_tag.get(domain, ()):
+                if library_id in seen or library_id in exclude_ids:
+                    continue
+                seen.add(library_id)
+                tags = set(self.tags_of(library_id))
+                if require_all and not require_all.issubset(tags):
+                    continue
+                if exclude_tags and (tags & exclude_tags):
+                    continue
+                if furniture is not None and self.is_furniture(library_id) != furniture:
+                    continue
+                out.append(library_id)
         return sorted(out)
 
     def overlap(self, library_id: str, domains: Iterable[str]) -> int:

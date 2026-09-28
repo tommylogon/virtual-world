@@ -1,6 +1,6 @@
 ---
 type: task
-status: inprogress
+status: review
 area: world
 priority: high
 ---
@@ -159,3 +159,96 @@ The grid recipe that consumes this contract lives in `engine/world_compile.py`
 (three areas from Hallway 3, tag-aware furniture population) is the next slice
 here, and it should call task-9's `engine/population.py` planner rather than
 re-selecting from the library.
+
+## Progress — 2026-09-28 (the `apartment.v1` recipe)
+
+`engine/generation_recipes.py` (new) + `engine/library_nodes.py` (new) +
+`engine/population.py` (indexed) + `routes/library_ops.py` (delegates) +
+22 tests in `tests/test_apartment_recipe.py`.
+
+### The public materialisation service the task asked for
+
+The task says: "The engine must not call route-private helpers such as
+`_spawn_library_item_node`; extract a public library/graph materialization
+service usable by both the route and generator."
+
+`materialize_library_item` already existed but was not enough, and the reason is
+worth stating: it takes a Flask `app`, mutates a graph, and mints ids from
+`time.time()` + `random.randint`. Fine for "a player picks up an item",
+unusable for a generator, which must be able to name the node it wants, build it
+without a graph, and get the same result for the same seed.
+
+So `engine/library_nodes.py` holds the property mapping — **one definition of
+what a library item node is** — and offers two shapes:
+
+- `build_item_node(library_id, entry, node_id, extra)` → a `Node`, no graph, no
+  clock, no RNG.
+- `build_item_subtree(...)` → that node plus its contents and triggers, with
+  ids derived from `node_id` and position (`<id>_content_0`,
+  `trigger_<id>_<type>_0`).
+
+`routes/library_ops.py::_spawn_library_item_node` now delegates its property
+mapping to it and keeps its own clock-based id and graph mutation, so route
+behaviour is byte-identical while there is only one definition. That file also
+now imports `RELATION_EDGE_TYPES` from the engine instead of keeping a third
+copy.
+
+`missing_content_ids` is **returned, not logged**: a recipe has to be able to say
+"this entry references something that does not exist" in its report rather than
+quietly shipping a box with nothing in it.
+
+### The recipe
+
+Three areas (living-kitchen, bedroom, bathroom) with per-room archetype, domain
+tags and budgets — a bathroom with six loose items reads as a storeroom and a
+kitchen with three reads as empty. One external way in from Hallway 3, two
+internal ways, all bidirectional, all real `way` nodes. Population goes through
+task-9's `plan_population` with a per-room `random.Random(f"{seed}:{room}")`, so
+the seed a scope record carries is the only randomness.
+
+**No resident.** The task says "either `vacant` or one explicitly requested
+resident seed. Do not silently manufacture an LLM character", so `apartment.v1`
+takes no resident argument and generates a vacant apartment. Tested.
+
+### The library index is now indexed
+
+`LibraryIndex.candidates` walked every entry in the library for every placement.
+It now walks the `by_tag` postings for the requested domains. The old filter kept
+an entry only when it carried at least one domain tag, so the union of those
+postings is exactly the old candidate set — same answer, no per-placement full
+scan. A 525-entry library is 12 tags' worth of reads instead of 525.
+
+### One bug my own tests caught
+
+`build_item_subtree` had two overlapping parameters (`extra` and `provenance`)
+and the top-level item node got neither while its children and triggers got
+`provenance`. A generated child missing the `generated` fragment would read as
+hand-authored — precisely the state a later regenerate is allowed to overwrite,
+so a generated subtree would have been half-protected. Collapsed to one
+parameter applied to the whole subtree.
+
+### Verified
+
+Same seed → byte-identical patch, node for node and edge for edge. Different
+seed → a different population (otherwise determinism would be trivial). A second
+apply is refused and leaves the graph untouched; no duplicate nodes; a manual
+edit to a generated item survives a refused second generate. Every generated
+node carries provenance. Items hang off an area or a container by a normal
+spatial relation, so `examine`/`take` find them by the existing lookup. An
+empty library makes the report say so instead of substituting.
+
+Gate: 61 failed / 4311 passed — the same 61 pre-existing failures.
+
+### Still open
+
+- **Editor preview UI.** `GenerationReport.unresolved_tags` and `notes` already
+  carry what the task requires to be visible; the preview → confirm → apply
+  *surface* is not built. It is a `Generate` button, which is exactly what
+  task-397's scope tree deliberately does not offer yet.
+- `routes/graph_ops.py` still keeps its own `RELATION_EDGE_TYPES` copy. It is not
+  my file and the duplication is harmless, so I left it rather than editing
+  another lane's file.
+- Save/reload of generated nodes + provenance + scope state is covered for the
+  pool and the `at` edge in `tests/test_serialization.py`, but not yet for a
+  generated subtree. Worth adding with the preview surface.
+
