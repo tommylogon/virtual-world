@@ -244,7 +244,13 @@ class NPCBehaviorSystem:
             return None
         if getattr(npc, "state", None) == "dead":
             return None
-        if self.gs.is_undead_ghost(npc):
+        # `npc.name`, not `npc`: is_undead_ghost looks the character up BY NAME
+        # in player_manager.players, so it was handed a Player object as a dict
+        # key, the lookup could never match, and this exclusion has never fired
+        # in the life of the engine. A ghost was therefore free to gawk and
+        # comment like anything else. Same one-word shape as _can_observe below,
+        # which got it right.
+        if self.gs.is_undead_ghost(npc.name):
             return None
         if stimulus_type in SEXUAL_STIMULI and not getattr(self.gs, "mature_content", False):
             return None
