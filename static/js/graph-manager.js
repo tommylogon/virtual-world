@@ -346,7 +346,8 @@ class GraphManager {
         }
         // The scope bar and its breadcrumb read _scopeSummaries, and a scenario
         // switch resets _scopeFilter without touching the picker (saveload-view),
-        // so repaint rather than assume the previous state still holds.
+        // so repaint rather than assume the previous state still holds. syncAll
+        // repaints the scope tree too (task-397 step 4), so it needs no own call.
         if (window.GraphToolbar) GraphToolbar.syncAll();
     }
 

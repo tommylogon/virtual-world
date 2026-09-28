@@ -319,6 +319,11 @@
                     <button onclick="graphManager.zoomOut()" title="Zoom out" aria-label="Zoom out">－</button>
                 </div>
             </div>
+            <!-- task-397 step 4: the scope hierarchy as a tree. The picker in the
+                 toolbar is a flat list of the same scopes; this is the shape the
+                 manifest actually has, and it says how big each scope is and
+                 whether anything has been built in it. -->
+            <nav id="scope-tree" class="scope-tree" aria-label="World scope hierarchy" hidden></nav>
 
             <div id="event-section">
                 <div class="event-header">
@@ -1294,6 +1299,7 @@
     <script src="/static/js/nl-editor/ui.js"></script>
     <script src="/static/js/nl-editor/index.js"></script>
     <script src="/static/js/sky-scape.js"></script>
+    <script src="/static/js/graph/scope-tree.js"></script>
     <script type="module" src="/static/js/shared/lit-bootstrap.js"></script>
     <script src="/static/js/main.js"></script>
 </body>

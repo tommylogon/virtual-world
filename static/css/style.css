@@ -348,6 +348,55 @@ body {
 }
 .scope-bar-btn:hover { background: var(--bg-hover); color: var(--text); }
 
+/* ===== Scope tree (task-397 step 4) =====
+ * The scope hierarchy as a tree, under the graph. It is a navigation strip
+ * rather than a sidebar: one row per scope, indented by depth, collapsible.
+ * The card text is one line and truncates, because a scope name plus its
+ * counts is a label, not a document. */
+.scope-tree {
+    display: flex; flex-direction: column; flex-shrink: 0;
+    max-height: 34vh; overflow-y: auto;
+    background: var(--bg-card); border-bottom: 1px solid var(--border);
+    padding: 4px 6px; font-size: 11px;
+}
+.scope-tree[hidden] { display: none; }
+.scope-tree:empty { display: none; }
+.scope-tree-row { display: flex; align-items: center; gap: 2px; min-width: 0; }
+.scope-tree-twist {
+    flex: 0 0 auto; width: 16px; height: 18px; padding: 0;
+    background: transparent; border: 1px solid transparent; border-radius: 3px;
+    color: var(--text-muted); cursor: pointer; font-family: var(--font); font-size: 10px;
+    line-height: 1;
+}
+.scope-tree-twist:hover { background: var(--bg-hover); color: var(--text); }
+.scope-tree-twist.leaf { cursor: default; visibility: hidden; }
+.scope-tree-card {
+    flex: 1 1 auto; min-width: 0; text-align: left;
+    background: transparent; border: 1px solid transparent; border-radius: 4px;
+    color: var(--text-dim); cursor: pointer; font-family: var(--font); font-size: 11px;
+    padding: 2px 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.scope-tree-card:hover { background: var(--bg-hover); color: var(--text); }
+.scope-tree-row.selected .scope-tree-card {
+    background: var(--bg-hover); color: var(--text); font-weight: 600;
+}
+/* An unmade scope is stated, not styled into ambiguity: there is nothing built
+ * there, and a card showing "0 areas" would read as an empty room instead. */
+.scope-tree-row.unmade .scope-tree-card { color: var(--text-muted); font-style: italic; }
+.scope-tree-row.occupied .scope-tree-card::after {
+    content: '●'; color: var(--accent); margin-left: 6px; font-style: normal; font-size: 9px;
+}
+/* "Whole world" is a card too, not a default button — it sits above the
+   hierarchy and is the way back out of it. */
+.scope-tree-whole {
+    width: 100%; text-align: left; display: block; font-family: var(--font);
+    font-size: 11px; padding: 3px 6px; margin-bottom: 4px;
+    background: transparent; border: 1px solid var(--border); border-radius: 4px;
+    color: var(--text-dim); cursor: pointer;
+}
+.scope-tree-whole:hover { background: var(--bg-hover); color: var(--text); }
+.scope-tree-whole.selected { background: var(--bg-hover); color: var(--text); font-weight: 600; }
+
 /* ===== Narrow-window overflow (task-532) =====
  * At a narrow width the bar relocates its secondary controls into More ▾
  * (GraphToolbar._applyCollapse) rather than wrapping into extra rows, so the

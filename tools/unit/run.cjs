@@ -138,6 +138,7 @@ load('static/js/graph/separation.js');
 load('static/js/graph/relative-layout.js');
 load('static/js/graph/layout-engine.js');
 load('static/js/graph/toolbar.js');
+load('static/js/graph/scope-tree.js');
 load('static/js/soak/soak-format.js');
 load('static/js/soak/soak-charts.js');
 load('static/js/soak/soak-spacetime.js');

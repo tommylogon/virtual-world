@@ -34,6 +34,7 @@ const GLOBALS = {
     GraphFocus: 'readonly',
     GraphProjector: 'readonly',
     GraphToolbar: 'readonly',
+    GraphScopeTree: 'readonly',
     closeTopMenus: 'readonly',
     toggleTopMenu: 'readonly',
     InspectorHelpers: 'readonly',

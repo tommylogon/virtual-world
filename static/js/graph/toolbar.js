@@ -424,6 +424,11 @@ window.GraphToolbar = {
                 .map(([k, n]) => `${n} ${k}${n === 1 ? '' : 's'}`).join(' · ');
         }
         GraphToolbar.syncScopeBar(counts);
+        // task-397 step 4: the scope tree is repainted from the same sync as the
+        // breadcrumb, so the loaded scope is marked in both or in neither. It
+        // cannot live in `loadScopeFilterOptions` alone: that only runs when the
+        // *manifest* changes, while the selection changes on every scope click.
+        if (window.GraphScopeTree) GraphScopeTree.render();
     },
 
     // ──────────────────────────────────────────────

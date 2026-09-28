@@ -1,6 +1,6 @@
 ---
 type: task
-status: inprogress
+status: review
 area: world
 priority: high
 ---
@@ -209,4 +209,71 @@ assertions for `?descendants=1`.
 Note: an organisational scope with no painted cells of its own now shows an
 empty canvas — drill to a child via the picker or a feature cell. A
 children-as-cards fallback is a possible follow-up.
+
+### Progress — 2026-09-28 (step 4: the scope hierarchy as a tree)
+
+The step-4 ask was a scope breadcrumb/tree UI, and the world already had the
+breadcrumb (task-531's contextual scope bar) and a *flat* picker with the names
+indented by `depth`. What was missing was the tree: a world with a county over
+two towns read as three unrelated entries, nothing said how big a scope was, and
+nothing said whether anything had been built in it.
+
+- **`static/js/graph/scope-tree.js`** (new) — `GraphScopeTree`. Nests the one
+  payload the server already sends (`GET /api/world/scopes?flat=1`, which carries
+  `parent_id` and `depth` per scope) into a collapsible tree. **No new endpoint
+  and no per-scope request.**
+  - Pure and unit-tested (16 in `tools/unit/test_graph_scope_tree.js`):
+    `buildTree`, `visibleRows`, `toggleCollapsed`, `rowLabel`. The DOM half is a
+    thin render over those.
+  - A card states what the manifest says: `Apartment 3B — not built` for an
+    `unmade` scope, `Millbrook Falls — 40 areas · 90 items · 3 here now` for a
+    materialized one. An unmade scope showing "0 areas" would read as an empty
+    room, which is a different fact.
+  - **No Generate button.** Generating a scope is task-398's recipe flow and
+    lives in the WorldPainter; a card offering one would be a promise the graph
+    cannot keep. This is step 5's honest resting state, not a gap.
+- **One writer.** The tree repaints from `GraphToolbar.syncScope()`, the same
+  sync that repaints the breadcrumb, so the loaded scope is marked in both or in
+  neither. The panel goes through `GraphToolbar.loadScope()`, which is what keeps
+  the flat picker's value in step — two ways to change the loaded scope is how
+  they drift apart.
+- The flat picker stays. It is the one control that works without scrolling, and
+  the tree is a second reading of the same list, not a replacement.
+
+Four bugs the new unit tests caught, all in code I had just written:
+
+1. `buildTree` reset `node.children` inside the placement loop, so a child listed
+   *before* its parent was silently dropped from the tree. The tree depended on
+   the order the list happened to arrive in — which for the real endpoint means
+   it depended on the manifest.
+2. `reaches()` read `parent_id` off the node object, which never carried it, so
+   cycle detection always answered "no". A mutual `a ↔ b` parent link built a
+   real cycle and the panel rendered nothing.
+3. A duplicate scope id produced two cards.
+4. `plural(n, 'here now')` produced "3 here nows".
+
+`visibleRows` now also carries its own cycle guard: a card is rendered at most
+once, because hanging the panel is the one failure the author cannot work around.
+
+### Verification
+
+- 16 unit tests for the pure rules, including the malformed manifests a
+  hand-edited file produces: child before parent, missing parent, self-parent,
+  a two-scope cycle, a duplicate id, an empty and a `null` list.
+- Browser, against a live dev server with a four-deep scope hierarchy created
+  through `POST /api/world/scopes`: the tree renders at four indent levels with
+  twisties, `▸`/`▾` toggling hides the subtree while keeping the card, clicking a
+  card loads that scope and marks it `aria-current`, and clicking "Whole world"
+  clears it. `_scopeFilter`, the flat picker's value and the tree's selection
+  were checked in step after each click and stayed in agreement.
+- Camera/filter behaviour is untouched: the panel only calls the existing
+  `loadScope` path, so `setScopeFilter`'s reload signature and the map's
+  per-scope background refresh (bug-51) behave exactly as before.
+
+### Still open
+
+- Step 5, the unmade-scope `Generate` affordance. It depends on task-398's recipe
+  flow; a card that offered it before a recipe exists would be the exact
+  "fabricate nodes merely by being rendered" this task forbids.
+- The projection's scope-keyed fidelity handoff to task-500.
 
