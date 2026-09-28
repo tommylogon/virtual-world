@@ -18,8 +18,48 @@ from graph import (
 )
 
 
+from engine.items.ownership import permission_refusal
+
+
 class UseActionsMixin:
     """use_item / use_item_on plus the descriptive-target failure fallback."""
+
+    def _depleted_by_use(self, item_node) -> str:
+        """What a `use` reaching zero charges means (task-493).
+
+        Two meanings, and which one applies is the item's own answer:
+
+        - A **part** (non-portable) does not detach. A battery that runs flat
+          stays in its phone and goes ``unlit``, firing ``on_depleted`` — the
+          same semantic ``engine/toggleable_items.py`` already uses for a lit
+          item burning out, chosen here so one rule covers both. The old code
+          stripped the ``in`` edge instead, which silently fished a component
+          out of its device and left the player holding a loose battery they
+          never asked for, with no message and no hook.
+        - Anything else keeps the old behaviour: the placement edge is cut, so
+          a used-up throwaway item leaves the scene rather than cluttering it.
+
+        A part may still author a different ending from its own
+        ``on_depleted`` (break the device, remove the part, go ``dead``); that
+        is the intended escape hatch, and it runs before the state is touched.
+        """
+        from engine.items.action_contract import is_part
+
+        if not is_part(item_node):
+            for edge in self.graph.edges.copy():
+                if edge.source == item_node.id and edge.type == EDGE_IN:
+                    self.graph.remove_edge(edge.source, edge.target, EDGE_IN)
+                    return " The item is used up!"
+
+        dep_outputs = self._exec_triggers(item_node, "on_depleted")
+        if not self.graph.get_node(item_node.id):
+            # The hook took the part out of the world itself — that was the
+            # author's intent, so stop here rather than touching a dead node.
+            return ("".join("\n" + out for out in dep_outputs) + " The item is used up!")
+        if item_node.properties.get("current_state") not in ("unlit", "off", "dead", "spent"):
+            item_node.properties["current_state"] = "unlit"
+        return ("".join("\n" + out for out in dep_outputs)
+                + f" The {item_node.name} is spent.")
 
     def use_item(self, player_manager, item_name: str, trigger_type: str = "on_use") -> str:
         ghost_block = self.ghost_system.check_ghost_action(player_manager, "use", item_name)
@@ -73,6 +113,13 @@ class UseActionsMixin:
         if not is_valid:
             available = self.trigger_system._get_available_actions(item_node)
             raise ValueError(self.trigger_system._contextual_failure(contextual_verb, item_node.name, available))
+
+        # task-515: using somebody else's personal property is borrowing
+        # without asking, which is exactly what an owner marker is for.
+        refusal = permission_refusal(item_node, player_manager.active_player,
+                                     f"{contextual_verb} it", player_manager)
+        if refusal:
+            raise ValueError(refusal)
 
         result = f"You use the {item_name}."
         if hasattr(player_manager.player, 'exhaustion_count') and player_manager.player.exhaustion_count > 0:
@@ -162,12 +209,7 @@ class UseActionsMixin:
             uses -= 1
             item_node.properties["uses"] = uses
             if uses == 0:
-                loc_edges = self.graph.edges.copy()
-                for e in loc_edges:
-                    if e.source == item_node.id and e.type == EDGE_IN:
-                        self.graph.edges.remove(e)
-                        result += " The item is used up!"
-                        break
+                result += self._depleted_by_use(item_node)
 
         area_name = player_manager.current_area.name if player_manager.current_area else None
         player_manager.record_turn_event(player_manager.active_player, "use", f"used the {item_name}", area_name=area_name)
@@ -252,6 +294,12 @@ class UseActionsMixin:
         if "use" not in item_actions and not has_on_use_on:
             available = self.trigger_system._get_available_actions(item_node)
             raise ValueError(self.trigger_system._contextual_failure("use", item_node.name, available))
+
+        # task-515: "use <someone's> knife on <target>" is still using it.
+        refusal = permission_refusal(item_node, player_manager.active_player,
+                                     "use it", player_manager)
+        if refusal:
+            raise ValueError(refusal)
 
         # task-196 quantity: consume N uses up-front (the represented "use 2
         # kindling" spends 2 uses) so the trigger sees the resulting count; no

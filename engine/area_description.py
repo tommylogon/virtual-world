@@ -6,7 +6,12 @@ from engine.equipment_bonuses import aggregate_bonuses, effective_temperature
 from engine.activities import activity_description
 from engine.beyond_visibility import build_beyond_suffix, normalize_visible_items
 from engine.name_masking import mask_name_in_text
-from engine.room_perception import resolve_area_node, visible_area_items, way_visible_to
+from engine.room_perception import (
+    describe_item_quantity,
+    resolve_area_node,
+    visible_area_items,
+    way_visible_to,
+)
 
 
 def _is_intrinsic_ability(node) -> bool:
@@ -211,8 +216,13 @@ class AreaDescription:
         return node.properties.get("description", "") if node else ""
 
     def get_area_items(self, include_hidden=False) -> List[str]:
+        """What is lying about here, AGENT-path wording.
+
+        Counts come from the shared helper (task-504) so a pooled node reads
+        "40 berries" here and on the panel path identically.
+        """
         area_id = self.get_current_area_id()
-        return [node.name for node in visible_area_items(
+        return [describe_item_quantity(node) for node in visible_area_items(
             self.graph, area_id, include_hidden=include_hidden,
             player=self.player_manager.get_active_player_obj())]
 

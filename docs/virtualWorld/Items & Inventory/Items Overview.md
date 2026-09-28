@@ -39,6 +39,147 @@ Items in the graph are `Node` objects with `type="item"` (`virtual_world/graph.p
 | `library_id` | str | — | Reference back to the library item ID when built from the library |
 | `triggers` | list[dict] | — | Library-only; converted to `EDGE_TRIGGERS` edges when placed in world |
 | `contents` | list | `[]` | **UI-only.** See "Container Items" below. |
+| `quantity` | int | absent (= 1) | How many **of this kind** the node stands for. A count is rendered only when authored — absent means "one of these" and every existing item and save reads exactly as before. See "Pooled resource nodes" below |
+| `plural` | str | `name + "s"` | Authored plural for `quantity > 1`. Irregulars are written, not guessed (`"mice"`, `"wild berry canes"`) |
+| `harvest` | dict | — | What taking from a pool yields: `{"item": <library id>, "label": <optional word players may use>, "size": <max per attempt>, "skill": <optional>, "dc": <optional>}`. A node with a `harvest` spec is a **pool** — see below |
+| `owner` | str | absent (unowned) | Whose thing this is: a character name or node id (`"Gribba"`, `"player_gribba"` — the same person). Makes a non-owner refused by `take`/`give`/`use`; `steal` is the contested override |
+| `personal` (tag) | tag | absent | Informational marker: a treasured object, however it stands. Does **not** block anyone on its own — permission follows `owner` |
+| `recreation` (tag) | tag | absent | Something to pass a bored hour with. Carried items with this tag are a fallback for the background sim (task-517): a goblin with a drum in their pack can entertain themselves where the camp has none. The area's own fixture is always preferred, so a camp with a drum behaves exactly as before |
+
+### `uses` vs `quantity`
+
+Two different things have both been called "how much of this there is", and
+they are deliberately not the same counter:
+
+| | `uses` (task-155) | `quantity` (task-504) |
+|---|---|---|
+| Attaches to | an individual item copy | the node's identity / the pool |
+| Meaning | charges left on **this** copy (a lantern's fuel, a bread's bites) | how many **of this kind** the node stands for |
+| Example | one full waterskin `uses: 3` | one thicket `quantity: 10` |
+| Consumed by | `use` / `consume` | `take` / harvest (spawns copies) |
+| Default | `-1` (untracked) | absent (= 1) |
+
+A stack of 40 berries is not one berry with 40 charges, and a tree standing in
+a forest is not something you can carry at all.
+
+### Pooled resource nodes
+
+A **pooled resource node** is an item node whose `quantity` may be large and
+which does **not** move as a whole. On `take` / harvest it:
+
+1. spawns `k` real item copies (`k = min(asked, harvest.size, remaining)`) into
+   the taker, or into the area when the taker's pack is full;
+2. decrements the pool's `quantity` by `k`;
+3. at `quantity == 0` hands the node to the task-424 `on_depleted` teardown, so a
+   pool that authored its own goodbye gets to say it first.
+
+Harvest is skill-gated, and the check scales the yield rather than gating the
+attempt — a failed check still nets a scanty handful. `take 3 berries` reaches
+the thicket that grows them, matched on the `harvest.item` library id (or an
+optional `harvest.label`).
+
+```json
+{
+  "name": "wild berry thicket",
+  "description": "a dense thicket of wild berry canes, {qty} of them heavy with dark fruit.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "quantity": 10,
+  "plural": "wild berry canes",
+  "harvest": { "item": "berries", "size": 3, "skill": "Survival", "dc": 10 }
+}
+```
+
+A `{qty}` / `{name}` token in the description *is* the item's line — the prose
+does the counting, so the label drops its own number. Without a token the count
+is prefixed, which is why "you see 1 giant tree" and "you see 40 berries" read
+alike.
+
+Pools never stack: `stackable_twins` refuses any node with `quantity > 1`,
+because stacking runs the other way (many carried copies merged into one node)
+and merging a pool would fold its count into a copy's `uses`.
+
+## Ownership — whose thing is this?
+
+A treasured object is not a tool. Gribba's Good Knife is not communal kitchen
+equipment, and "nobody else may touch it" should be true in the world rather
+than only in the fiction. An item says whose it is with two fields, and nothing
+else:
+
+```json
+{ "name": "Gribba's Good Knife", "owner": "Gribba", "tags": ["weapon", "personal"] }
+```
+
+`engine/items/ownership.py` holds the rule. `owner` is a node property, not an
+edge, and an item without one is nobody's in particular and behaves exactly as
+before. A non-owner is refused by `take`, `give`, `use` and `use-on`, with a
+message that names the owner and points at the way through. The owner is always
+allowed — including to give it away, because ownership is not a life sentence.
+
+Two decisions, because the task left them open:
+
+- **A missing or incapacitated owner lifts the refusal.** A dead goblin's knife
+  is not a sacred object, and a permission rule that keeps protecting a corpse's
+  belongings is a worse failure mode than a permissive one. An owner who is
+  merely *elsewhere* still owns the knife — only a claim nobody can enforce
+  fades. An owner handle we have never heard of is assumed to be somewhere real:
+  silence is not consent.
+- **A Social or Intimidation check does NOT lift the refusal.** `steal` is
+  already a roll; hiding a second one inside `take` would make an ordinary verb
+  unpredictable. So the normal verbs say no plainly, and `steal` is the way
+  through — **never blocked**, just harder: a personal item adds a flat +3 to
+  the target's Perception, because someone watches their own property more
+  closely than the loose change in a pack.
+
+## Parts — a device assembled from items
+
+A **part** is a child item of a parent item. There is no new edge type, no
+`is_part` flag, and no device-type field: containment is an ordinary `in` edge,
+and the only thing that says "this is a component" is that the part does not
+declare `take` in its own `actions`.
+
+```json
+// phone.json
+{ "name": "phone", "uses": -1, "actions": "examine,take,drop,equip,unequip",
+  "contents": ["phone_battery"] }
+
+// phone_battery.json
+{ "name": "phone battery", "actions": "examine,use", "uses": 24, "max_uses": 24,
+  "tags": ["part", "electric", "power_source"] }
+```
+
+Four rules make that work:
+
+1. **The action list is the single authority on portability.**
+   `engine/items/action_contract.py` is where `take`, `drop`, `steal`, `give`,
+   `put` and `place` all ask. Before task-493 only `take` read the list, which
+   left a part untakeable but not undroppable. Note `normalize_item_actions`
+   auto-adds each action's inverse, so a part must omit **both** `take` and
+   `drop` — declaring `drop` alone authors `take` straight back in.
+2. **Charge is the generic `uses`.** There is deliberately no `power` or
+   `charge` property on the base item. The device body is `uses: -1`
+   (permanent); the cell carries the charge. Depleting it is the observable
+   signal that the device is dead.
+3. **Non-portable is not inert.** A part is still *reachable* and usable —
+   that is what `engine/item_reach.py` is for, and it walks any depth, so a
+   battery inside a carried phone is addressable. Portable and reachable are
+   not opposites.
+4. **Depletion has an explicit semantic and never detaches silently.** A part
+   that runs flat goes `unlit` and fires `on_depleted`, keeping its place in
+   the device — the same rule `engine/toggleable_items.py` already uses for a
+   lit item burning out. An ordinary used-up item keeps the older behaviour
+   (its placement edge is cut). A part may author a different ending from its
+   own `on_depleted`; that runs first and is the intended escape hatch.
+
+### Prompt visibility agrees with the engine
+
+`static/js/shared/item-containment.js` is the client half of the containment
+rule that `engine/item_reach.py` is the server half of, and both `world-state.js`
+and `agent/prompt-builder/room-context.js` call it — the prompt could previously
+walk one level and check almost no state, so it listed the inside of a locked
+cabinet and missed a part two levels down. The rules: a `hidden` node is pruned
+along with its contents; a `closed`/`locked`/`sealed` node (or `locked: true`) is
+still listed but seals its contents; otherwise descend to any depth.
 
 ### Example: Apple (`data/library/items/apple.json`)
 

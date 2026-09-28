@@ -555,7 +555,53 @@ def findable_hint(gs, area_name) -> str:
     return "Could be searched for: " + ", ".join(skills) + "."
 
 
+def _find_pool_for(gs, item_id, area_id):
+    """A pooled resource node in *area_id* that still stands ready to yield
+    *item_id*, or None (task-504). Lets a search aim at the thicket that is
+    already there instead of conjuring a second, independent bush."""
+    from engine.items.take_drop_actions import is_resource_pool, pool_yield_names
+    from engine.room_perception import item_quantity, normalize_name, visible_area_items
+
+    wanted = normalize_name(item_id)
+    if not wanted:
+        return None
+    for node in visible_area_items(gs.graph, area_id):
+        if not is_resource_pool(node) or item_quantity(node) < 1:
+            continue
+        if wanted in [normalize_name(w) for w in pool_yield_names(node)]:
+            return node
+    return None
+
+
+def _draw_from_pool(gs, pool) -> None:
+    """Charge one unit against a standing pool and retire it when it empties.
+
+    The caller still spawns the loose copy the search promised, so the world
+    trades one unit of standing thicket for one unit lying about — the same
+    accounting a hand harvest does, without the harvest's skill gate.
+    """
+    from engine.room_perception import item_quantity
+
+    left = item_quantity(pool) - 1
+    pool.properties["quantity"] = max(0, left)
+    if left <= 0:
+        item_actions = getattr(gs, "item_actions", None)
+        if item_actions is not None:
+            item_actions._finish_depleted(pool, "")
+        else:
+            for edge in list(gs.graph.edges):
+                if edge.source == pool.id or edge.target == pool.id:
+                    gs.graph.edges.remove(edge)
+            gs.graph.remove_node(pool.id)
+
+
 def _spawn_into_area(gs, item_id, area_id):
+    # task-504: aim the find at a pool that is already standing before falling
+    # back to a standalone copy, so a forest with one berry thicket yields from
+    # that thicket instead of quietly growing more bushes.
+    pool = _find_pool_for(gs, item_id, area_id)
+    if pool is not None:
+        _draw_from_pool(gs, pool)
     node = None
     try:
         node, _lib = gs.effects._hydrate_item(item_id, {}, always_fresh=True)

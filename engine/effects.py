@@ -304,6 +304,17 @@ class Effects:
                 # the authored starting value, so a spawned plant came up with no
                 # counter at all.
                 "parameters",
+                # task-504: how many of this kind the node stands for, the
+                # authored plural for it, and what taking it yields. A pooled
+                # bush spawned without its `harvest` spec would come up as an
+                # ordinary takeable prop, so these have to survive hydration.
+                "quantity",
+                "plural",
+                "harvest",
+                # task-515: whose thing this is. Without it a spawned keepsake
+                # comes up unowned and anyone may pocket it, which is the one
+                # thing the property exists to prevent.
+                "owner",
             ):
                 if extra_field in lib_data:
                     value = lib_data[extra_field]

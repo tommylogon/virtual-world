@@ -21,7 +21,15 @@ from graph import (
     Edge,
     Node,
 )
+from engine.items.action_contract import is_portable, portable_refusal
+from engine.items.ownership import permission_refusal
 from engine.items.errors import AmbiguousItemError
+from engine.room_perception import (
+    describe_item_quantity,
+    normalize_name,
+    pluralise,
+    visible_area_items,
+)
 
 
 def _display_name(name):
@@ -32,6 +40,71 @@ def _display_name(name):
     name has no leading article (the common canonical case).
     """
     return re.sub(r'^(?:the|a|an)\s+', '', str(name or '').strip())
+
+
+#: A bare count in front of the noun: "take 3 berries". task-196 established
+#: this shape for "use 2 kindling in fireplace"; the take route reads a
+#: *trailing* number as an ordinal instead ("take jumpsuit 2" = the second
+#: copy), so a leading count is unambiguous and needs no change to the
+#: command parser.
+_LEADING_AMOUNT = re.compile(r"^\s*(\d+)\b")
+
+
+def split_leading_amount(item_name: str):
+    """``"3 berries"`` → ``(3, "berries")``; ``"berries"`` → ``(1, "berries")``.
+
+    Only splits when a noun actually follows the digits, so a bare "take 3"
+    stays the name "3" rather than becoming an amount of nothing.
+    """
+    text = str(item_name or "")
+    match = _LEADING_AMOUNT.match(text)
+    if not match:
+        return 1, text.strip()
+    rest = text[match.end(1):].strip()
+    if not rest:
+        return 1, text.strip()
+    return max(1, int(match.group(1))), rest
+
+
+def is_resource_pool(node) -> bool:
+    """True when an item node stands for a *pool* — many of a kind in the
+    world rather than one thing that moves (task-504).
+
+    A node qualifies when it authors a ``harvest`` spec, or when it authors a
+    ``quantity`` above 1. An item with no ``quantity`` at all is an ordinary
+    prop and behaves exactly as it always has.
+    """
+    if node is None:
+        return False
+    props = node.properties or {}
+    if isinstance(props.get("harvest"), dict):
+        return True
+    if "quantity" not in props:
+        return False
+    try:
+        return int(props.get("quantity", 1) or 0) > 1
+    except (TypeError, ValueError):
+        return False
+
+
+def pool_yield_names(node):
+    """The words a player might use to ask for what a pool *grows*.
+
+    The yield is authored as a library id (``"berries"``), which is the
+    canonical handle; a ``label`` lets an author answer to a nicer word
+    ("blueberries") without inventing a second registry entry.
+    """
+    if not is_resource_pool(node):
+        return ()
+    spec = (node.properties or {}).get("harvest")
+    if not isinstance(spec, dict):
+        return ()
+    words = []
+    for key in ("item", "label", "name"):
+        value = str(spec.get(key) or "").strip()
+        if value:
+            words.append(value)
+    return tuple(words)
 
 
 class TakeDropActionsMixin:
@@ -158,7 +231,144 @@ class TakeDropActionsMixin:
         }
         return nodes[0] if len(signatures) == 1 else None
 
+    def _find_pool_by_yield(self, item_name, area_id):
+        """The pooled resource node in *area_id* that grows what *item_name*
+        names, or None.
+
+        A player says "take 3 berries" while the bush standing there is called
+        a blueberry bush, so the count is a request for the pool's *yield*, not
+        for its own name. Only pools are considered, and only when nothing
+        else matched by name — an ordinary item called "berries" still resolves
+        through the normal cascade and is never routed here.
+        """
+        needle = normalize_name(item_name)
+        if not needle:
+            return None
+        near = None
+        for node in visible_area_items(self.graph, area_id):
+            words = [normalize_name(w) for w in pool_yield_names(node)]
+            if not words:
+                continue
+            if needle in words:
+                return node
+            if near is None and any(w.startswith(needle) or needle.startswith(w)
+                                    for w in words if w):
+                near = node
+        return near
+
+    def _harvest_pool(self, player_manager, item_node, area_id, amount: int) -> str:
+        """Yield real item copies from a pooled resource node (task-504).
+
+        A pool does not move as a whole: taking from it spawns *k* fresh
+        copies of whatever it grows, decrements the pool by *k*, and at zero
+        hands the node to the task-424 empty-state teardown so the world loses
+        the bush rather than an empty husk of one.
+
+        Returns prose, or raises ValueError when the pool declares no yield
+        (a rooted tree is refused, not picked up).
+        """
+        spec = item_node.properties.get("harvest")
+        yield_id = str(spec.get("item") or "").strip() if isinstance(spec, dict) else ""
+        if not yield_id:
+            raise ValueError(
+                f"The {_display_name(item_node.name)} is rooted where it stands — "
+                f"you can't take the whole thing."
+            )
+
+        remaining = item_node.properties.get("quantity", 1)
+        try:
+            remaining = int(remaining)
+        except (TypeError, ValueError):
+            remaining = 1
+        remaining = max(0, remaining)
+        if remaining < 1:
+            raise ValueError(f"The {_display_name(item_node.name)} has nothing left to give.")
+
+        size = max(1, int(spec.get("size", 1) or 1))
+        # A bounded handful: what the author allows, what the harvester asked
+        # for, and never more than the pool actually holds.
+        wanted = min(max(1, int(amount or 1)), size, remaining)
+
+        # Harvest is skill-gated (Survival / Nature / Medicine, per the foraging
+        # tables): the check sets how much the attempt comes away with, it does
+        # not decide whether you may try at all. A failure still nets a
+        # scanty handful, so foraging a dense thicket always pays something.
+        skill = str(spec.get("skill") or "").strip()
+        if skill:
+            dc = int(spec.get("dc", 10) or 10)
+            try:
+                success, _total, _message = player_manager.skill_check(skill, dc)
+            except Exception:
+                success = True
+            if not success:
+                wanted = min(wanted, 1)
+
+        player_id = player_manager._player_node_id(player_manager.active_player)
+        effects = getattr(self.world, "effects", None)
+        if effects is None:
+            raise ValueError(f"You find nothing you can reach in the {_display_name(item_node.name)}.")
+
+        copies = []
+        total_weight = 0.0
+        for _ in range(wanted):
+            try:
+                copy_node, _lib = effects._hydrate_item(yield_id, {}, always_fresh=True)
+            except Exception:
+                copy_node = None
+            if copy_node is None:
+                break
+            copies.append(copy_node)
+            total_weight += float(copy_node.properties.get("weight", 0) or 0)
+
+        if not copies:
+            raise ValueError(f"The {_display_name(item_node.name)} yields nothing you can carry.")
+
+        # A heavy harvest is left lying where it was picked rather than
+        # refused — the yield happened either way.
+        cap_error = self._check_player_capacity(player_manager, total_weight)
+        to_player = cap_error is None
+
+        for copy_node in copies:
+            for edge in self.graph.edges[:]:
+                if edge.source == copy_node.id and edge.type in (EDGE_IN, EDGE_CARRYING):
+                    self.graph.edges.remove(edge)
+            if to_player:
+                self.graph.add_edge(Edge(source=copy_node.id, target=player_id, type=EDGE_CARRYING))
+            else:
+                self.graph.add_edge(Edge(source=copy_node.id, target=area_id, type=EDGE_IN))
+
+        taken = len(copies)
+        left = remaining - taken
+        self._register_item_discovery(player_manager, item_node)
+        for copy_node in copies:
+            self._register_item_discovery(player_manager, copy_node)
+
+        # Write the new count BEFORE describing it, so the sentence the player
+        # reads is the sentence the next look will show.
+        item_node.properties["quantity"] = left
+
+        area_name = player_manager.current_area.name if player_manager.current_area else None
+        noun = pluralise(copy_node.name, taken) if taken != 1 else copy_node.name
+        result = f"You harvest {taken} {noun} from the {_display_name(item_node.name)}."
+        if not to_player:
+            result += " Your pack is full, so you leave them at your feet."
+        result += (f" {describe_item_quantity(item_node)} still stand here."
+                   if left > 0 else " Nothing of it is left.")
+        player_manager.record_turn_event(
+            player_manager.active_player, "take",
+            f"harvested {taken} {noun} from the {_display_name(item_node.name)}",
+            area_name=area_name,
+        )
+
+        if left <= 0:
+            # Hand the emptied pool to the task-424 teardown so a pool that
+            # authored its own on_depleted gets to say goodbye first.
+            item_node.properties["quantity"] = 0
+            result = self._finish_depleted(item_node, result)
+        return result
+
     def take_item(self, player_manager, item_name: str, item_id: Optional[str] = None) -> str:
+        amount, item_name = split_leading_amount(item_name)
         ghost_block = self.ghost_system.check_ghost_action(player_manager, "take", item_name)
         if ghost_block:
             raise ValueError(ghost_block)
@@ -175,12 +385,18 @@ class TakeDropActionsMixin:
         # message, not a search failure the LLM spirals over (bug, taco_bell
         # 2026-08-24: miki "took" the sauce she was holding and panicked).
         player_id = player_manager._player_node_id(player_manager.active_player)
+        area_id = player_manager._get_current_area_id()
         wanted = item_name.lower().replace('_', ' ').replace('-', ' ').strip()
         if wanted:
-            # Equipped first: a worn item can carry a stale CARRYING edge (desync
-            # or a duplicate instance), and "already wearing" is the truthful
-            # message then (bug-25).
+            # task-504: a standing pool keeps giving after the first pick, so
+            # "already carrying" must not short-circuit the second harvest. A
+            # pool in the area that yields this name takes precedence — the
+            # player is asking for more of what the thicket grows, not for the
+            # handful already in their pack.
+            pool_standing = self._find_pool_by_yield(item_name, area_id)
             for held_edge_type in (EDGE_EQUIPPED, EDGE_CARRYING):
+                if pool_standing is not None:
+                    break
                 for edge in self.graph.get_edges_for_target(player_id, held_edge_type):
                     node = self.graph.get_node(edge.source)
                     if not node or node.type != "item":
@@ -192,11 +408,9 @@ class TakeDropActionsMixin:
                         return f"You're already carrying the {_display_name(node.name)}."
 
         if not player_manager.lighting.can_see_in_dark(player_manager, player_manager.active_player):
-            area_id = player_manager._get_current_area_id()
             if player_manager.lighting.get_ambient_light(area_id, player_manager.current_area.environment) < 20:
                 raise ValueError("It's too dark to find anything. try to turn on some lights?")
 
-        area_id = player_manager._get_current_area_id()
         item_node = None
         item_node_id = None
         was_in_container = False
@@ -218,6 +432,13 @@ class TakeDropActionsMixin:
             if candidate and self.matching._is_item_reachable(candidate_id, area_id):
                 item_node_id = candidate_id
                 item_node = candidate
+
+        if not item_node:
+            # task-504: "take 3 berries" reaches the thicket that grows them.
+            pool = self._find_pool_by_yield(item_name, area_id)
+            if pool is not None:
+                item_node_id = pool.id
+                item_node = pool
 
         if not item_node:
             matching_nodes = []
@@ -365,11 +586,8 @@ class TakeDropActionsMixin:
                     )
 
         if not item_node:
-            visible_items = []
-            for e in self.graph.get_edges_for_target(area_id, EDGE_IN):
-                node = self.graph.get_node(e.source)
-                if node and node.type == "item":
-                    visible_items.append(node.name)
+            visible_items = [describe_item_quantity(node)
+                             for node in visible_area_items(self.graph, area_id)]
             raise ValueError(
                 f"You search for '{item_name}' but can't find it here. "
                 f"Items you can see: {', '.join(visible_items) if visible_items else 'nothing'}. "
@@ -399,6 +617,21 @@ class TakeDropActionsMixin:
             success, total, message = player_manager.skill_check(skill_name, dc)
             if not success:
                 return f"You try to take the {_display_name(item_name)}, but hesitate. {message}"
+
+        # task-515: somebody else's treasured thing is not a communal tool.
+        # The owner is always allowed; an owner who cannot enforce a claim
+        # (gone, dead, asleep) does not block anyone.
+        refusal = permission_refusal(item_node, player_manager.active_player,
+                                     "take it", player_manager)
+        if refusal:
+            raise ValueError(refusal)
+
+        # task-493: a pooled resource node never moves as a whole. Taking from
+        # it harvests real copies and decrements the pool; a pool with no
+        # authored yield is refused rather than picked up whole, which is what
+        # stops a whole apple tree ending up in someone's pack.
+        if is_resource_pool(item_node):
+            return self._harvest_pool(player_manager, item_node, area_id, amount)
 
         trigger_outputs = self._exec_triggers(item_node, "on_take")
 
@@ -578,6 +811,12 @@ class TakeDropActionsMixin:
             raise ValueError(f"You aren't carrying '{item_name}'.")
 
         item_node = self.graph.get_node(item_node_id)
+
+        # task-493: a part is non-portable, so it is not droppable either.
+        # Before this the action list was consulted by `take` alone, which left
+        # drop the one verb that would happily tear a battery out of a phone.
+        if item_node is not None and not is_portable(item_node):
+            raise ValueError(portable_refusal(self.graph, item_node, "drop it"))
 
         p = player_manager.players.get(player_manager.active_player)
         if p:

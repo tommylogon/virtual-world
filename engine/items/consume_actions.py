@@ -153,16 +153,26 @@ class ConsumeActionsMixin:
 
         Fires the item's ``on_depleted`` on a genuine *last-use* transition
         (``uses_before > 0`` and now 0), so a permanent item (``uses: -1``) is
-        never destroyed by being consumed. After the item's own ``on_depleted``
-        has run, a node that marked itself with a persistent empty state (an
-        empty glass) is left in the world; anything else is removed — which is
-        what makes authored bread disappear where a hardcoded path used to.
+        never destroyed by being consumed.
         """
         if not self.graph.get_node(item_node.id):
             return result
         uses_now = item_node.properties.get("uses", -1)
         if not (uses_before > 0 and uses_now == 0):
             return result
+        return self._finish_depleted(item_node, result)
+
+    def _finish_depleted(self, item_node, result: str) -> str:
+        """The task-424 empty-state teardown, for any route that empties a node.
+
+        Fires ``on_depleted``, then keeps the node if it marked itself with a
+        persistent empty state (an empty glass) and removes it otherwise — which
+        is what makes authored bread disappear where a hardcoded path used to.
+
+        Split out of ``_deplete_if_spent`` so a caller that empties a node by
+        some counter *other* than ``uses`` — task-504's ``quantity`` pool going
+        to zero — reuses this hook instead of inventing a second teardown.
+        """
         dep_outputs = self._exec_triggers(item_node, "on_depleted")
         if dep_outputs:
             result += "\n" + "\n".join(dep_outputs)

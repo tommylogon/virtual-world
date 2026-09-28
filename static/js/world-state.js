@@ -285,20 +285,23 @@ class WorldState {
                 pushItem(edge.source, itemNode);
             }
         }
-        // Also include items inside containers in the area (revealed after examine)
+        // Also include items inside containers in the area, at ANY depth and
+        // behind the same state gate the engine applies (task-493). This used
+        // to be one flat level that only skipped `locked`, so a prompt could
+        // list a battery in a `closed` cabinet, miss a part three levels down,
+        // and disagree with the engine about both. window.ItemContainment is
+        // the one walk; the engine's engine/item_reach.py is the other half.
         for (const container of [...items]) {
             const containerNode = this.getNode(container.id);
             if (!containerNode || containerNode.type !== 'item') continue;
-            if (containerNode.properties?.current_state === 'locked') continue;
-            const containerEdgeTypes = ['in'];
-            for (const innerEdge of this.graph?.edges || []) {
-                if (innerEdge.target === containerNode.id && containerEdgeTypes.includes(innerEdge.type)) {
-                    const innerItem = this.getNode(innerEdge.source);
-                    if (innerItem && innerItem.type === 'item' && innerItem.properties?.current_state !== 'hidden') {
-                        if (!items.some(item => item.id === innerEdge.source)) {
-                            items.push({ id: innerEdge.source, name: innerItem.name, properties: innerItem.properties });
-                        }
-                    }
+            const contained = window.ItemContainment.collectReachable([container.id], {
+                getNode: (id) => this.getNode(id),
+                edges: this.graph?.edges || [],
+            });
+            for (const inner of contained) {
+                if (inner.depth === 0) continue;   // the container itself
+                if (!items.some(item => item.id === inner.id)) {
+                    items.push({ id: inner.id, name: inner.name, properties: inner.properties });
                 }
             }
         }
