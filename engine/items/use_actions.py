@@ -18,6 +18,9 @@ from graph import (
 )
 
 
+from engine.items.ownership import permission_refusal
+
+
 class UseActionsMixin:
     """use_item / use_item_on plus the descriptive-target failure fallback."""
 
@@ -110,6 +113,13 @@ class UseActionsMixin:
         if not is_valid:
             available = self.trigger_system._get_available_actions(item_node)
             raise ValueError(self.trigger_system._contextual_failure(contextual_verb, item_node.name, available))
+
+        # task-515: using somebody else's personal property is borrowing
+        # without asking, which is exactly what an owner marker is for.
+        refusal = permission_refusal(item_node, player_manager.active_player,
+                                     f"{contextual_verb} it", player_manager)
+        if refusal:
+            raise ValueError(refusal)
 
         result = f"You use the {item_name}."
         if hasattr(player_manager.player, 'exhaustion_count') and player_manager.player.exhaustion_count > 0:
@@ -284,6 +294,12 @@ class UseActionsMixin:
         if "use" not in item_actions and not has_on_use_on:
             available = self.trigger_system._get_available_actions(item_node)
             raise ValueError(self.trigger_system._contextual_failure("use", item_node.name, available))
+
+        # task-515: "use <someone's> knife on <target>" is still using it.
+        refusal = permission_refusal(item_node, player_manager.active_player,
+                                     "use it", player_manager)
+        if refusal:
+            raise ValueError(refusal)
 
         # task-196 quantity: consume N uses up-front (the represented "use 2
         # kindling" spends 2 uses) so the trigger sees the resulting count; no

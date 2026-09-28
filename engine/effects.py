@@ -311,6 +311,10 @@ class Effects:
                 "quantity",
                 "plural",
                 "harvest",
+                # task-515: whose thing this is. Without it a spawned keepsake
+                # comes up unowned and anyone may pocket it, which is the one
+                # thing the property exists to prevent.
+                "owner",
             ):
                 if extra_field in lib_data:
                     value = lib_data[extra_field]

@@ -42,6 +42,8 @@ Items in the graph are `Node` objects with `type="item"` (`virtual_world/graph.p
 | `quantity` | int | absent (= 1) | How many **of this kind** the node stands for. A count is rendered only when authored — absent means "one of these" and every existing item and save reads exactly as before. See "Pooled resource nodes" below |
 | `plural` | str | `name + "s"` | Authored plural for `quantity > 1`. Irregulars are written, not guessed (`"mice"`, `"wild berry canes"`) |
 | `harvest` | dict | — | What taking from a pool yields: `{"item": <library id>, "label": <optional word players may use>, "size": <max per attempt>, "skill": <optional>, "dc": <optional>}`. A node with a `harvest` spec is a **pool** — see below |
+| `owner` | str | absent (unowned) | Whose thing this is: a character name or node id (`"Gribba"`, `"player_gribba"` — the same person). Makes a non-owner refused by `take`/`give`/`use`; `steal` is the contested override |
+| `personal` (tag) | tag | absent | Informational marker: a treasured object, however it stands. Does **not** block anyone on its own — permission follows `owner` |
 
 ### `uses` vs `quantity`
 
@@ -95,6 +97,38 @@ alike.
 Pools never stack: `stackable_twins` refuses any node with `quantity > 1`,
 because stacking runs the other way (many carried copies merged into one node)
 and merging a pool would fold its count into a copy's `uses`.
+
+## Ownership — whose thing is this?
+
+A treasured object is not a tool. Gribba's Good Knife is not communal kitchen
+equipment, and "nobody else may touch it" should be true in the world rather
+than only in the fiction. An item says whose it is with two fields, and nothing
+else:
+
+```json
+{ "name": "Gribba's Good Knife", "owner": "Gribba", "tags": ["weapon", "personal"] }
+```
+
+`engine/items/ownership.py` holds the rule. `owner` is a node property, not an
+edge, and an item without one is nobody's in particular and behaves exactly as
+before. A non-owner is refused by `take`, `give`, `use` and `use-on`, with a
+message that names the owner and points at the way through. The owner is always
+allowed — including to give it away, because ownership is not a life sentence.
+
+Two decisions, because the task left them open:
+
+- **A missing or incapacitated owner lifts the refusal.** A dead goblin's knife
+  is not a sacred object, and a permission rule that keeps protecting a corpse's
+  belongings is a worse failure mode than a permissive one. An owner who is
+  merely *elsewhere* still owns the knife — only a claim nobody can enforce
+  fades. An owner handle we have never heard of is assumed to be somewhere real:
+  silence is not consent.
+- **A Social or Intimidation check does NOT lift the refusal.** `steal` is
+  already a roll; hiding a second one inside `take` would make an ordinary verb
+  unpredictable. So the normal verbs say no plainly, and `steal` is the way
+  through — **never blocked**, just harder: a personal item adds a flat +3 to
+  the target's Perception, because someone watches their own property more
+  closely than the loose change in a pack.
 
 ## Parts — a device assembled from items
 

@@ -22,6 +22,7 @@ from graph import (
     Node,
 )
 from engine.items.action_contract import is_portable, portable_refusal
+from engine.items.ownership import permission_refusal
 from engine.items.errors import AmbiguousItemError
 from engine.room_perception import (
     describe_item_quantity,
@@ -617,7 +618,15 @@ class TakeDropActionsMixin:
             if not success:
                 return f"You try to take the {_display_name(item_name)}, but hesitate. {message}"
 
-        # task-504: a pooled resource node never moves as a whole. Taking from
+        # task-515: somebody else's treasured thing is not a communal tool.
+        # The owner is always allowed; an owner who cannot enforce a claim
+        # (gone, dead, asleep) does not block anyone.
+        refusal = permission_refusal(item_node, player_manager.active_player,
+                                     "take it", player_manager)
+        if refusal:
+            raise ValueError(refusal)
+
+        # task-493: a pooled resource node never moves as a whole. Taking from
         # it harvests real copies and decrements the pool; a pool with no
         # authored yield is refused rather than picked up whole, which is what
         # stops a whole apple tree ending up in someone's pack.

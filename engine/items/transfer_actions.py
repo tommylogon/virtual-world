@@ -10,6 +10,12 @@ import random
 from graph import EDGE_CARRYING, EDGE_EQUIPPED, EDGE_IN, Edge
 
 from engine.items.action_contract import is_portable, portable_refusal
+from engine.items.ownership import (
+    is_owned,
+    is_personal,
+    owner_bonus_to_perception,
+    permission_refusal,
+)
 
 
 class TransferActionsMixin:
@@ -59,6 +65,14 @@ class TransferActionsMixin:
         # task-493: handing over a part would hand over the whole device's guts.
         if not is_portable(item_node):
             raise ValueError(portable_refusal(self.graph, item_node, "hand it over"))
+
+        # task-515: you cannot give away what was never yours. This is
+        # different from taking it — the owner is right here and says no, and
+        # no amount of asking changes that. `steal` is the way through.
+        refusal = permission_refusal(item_node, player_manager.active_player,
+                                     "give it away", player_manager)
+        if refusal:
+            raise ValueError(refusal)
 
         p = player_manager.players.get(player_manager.active_player)
         if p:
@@ -158,9 +172,15 @@ class TransferActionsMixin:
         if not is_portable(item_node):
             raise ValueError(portable_refusal(self.graph, item_node, "steal it"))
 
+        # task-515: `steal` is the contested override. Ownership never blocks it
+        # — it makes it harder, because someone watches their own property more
+        # closely than the loose change in a pack.
+        personal = is_personal(item_node) or is_owned(item_node)
+        caught_note = " They will know it was you." if personal else ""
+
         # Sleight of Hand vs target's Perception
         sleight_skill = player_manager.player.skills.get("Sleight of Hand", 0)
-        per_skill = target.skills.get("Perception", 0)
+        per_skill = target.skills.get("Perception", 0) + (owner_bonus_to_perception() if personal else 0)
         sleight_roll = random.randint(1, 20) + sleight_skill
         per_roll = random.randint(1, 20) + per_skill
 
@@ -182,7 +202,7 @@ class TransferActionsMixin:
                 f"{player_manager.active_player} steals {item_node.name} from {target_name}."
             )
             trigger_outputs = self._exec_triggers(item_node, "on_take") if item_node else []
-            result = f"You deftly slip the {item_node.name} from {target_name}."
+            result = f"You deftly slip the {item_node.name} from {target_name}.{caught_note}"
             if trigger_outputs:
                 result += "\n" + "\n".join(trigger_outputs)
             return result
