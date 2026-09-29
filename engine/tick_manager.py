@@ -9,6 +9,7 @@ from vital_rates import (
     BLADDER_FILL,
     BLADDER_HYGIENE_PENALTY,
     ENV_STALE_ENERGY,
+    ENV_LOUD_ENERGY,
     ENV_HUMID_HYGIENE,
     ENV_TOXIC_HP,
     ENV_ROT_HYGIENE,
@@ -170,6 +171,27 @@ class TickManager:
         return [other for other, op in self._presence_by_area.get(area, {}).items()
                 if other != key and op.state != "dead"
                 and not self.gs.is_undead_ghost(other)]
+
+    def _resolve_area_node(self, area_name):
+        """Area node for a display name — id first, then name.
+
+        ``current_area`` holds a display name, but area node ids are sanitized
+        differently (apostrophes, generated coordinates), so an id-only lookup
+        silently returns None and the caller skips its whole per-area block —
+        including the environment effects and the company-aware Social gain.
+        Fall back to the same name resolution the player-facing paths use
+        (``engine/room_perception.resolve_area_node``).
+        """
+        if not area_name:
+            return None
+        node = self.graph.get_node(self.player_manager.area_node_id(area_name))
+        if node is not None and getattr(node, "type", "") == "area":
+            return node
+        try:
+            from engine.room_perception import resolve_area_node
+            return resolve_area_node(self.graph, area_name)
+        except Exception:
+            return None
 
     # ── task-418: awareness → the attended set ───────────────────────────
 
@@ -519,6 +541,13 @@ class TickManager:
             # co-presence read below is a lookup, not a scan.
             self._presence_sync(pname, p)
 
+            # Whether this character was asleep when the tick began. The noise
+            # wake below can end the sleep activity, and the sleep-regen block
+            # runs later in the tick — capturing it here means a sleeper woken
+            # by noise still gets that tick's regen instead of losing it every
+            # tick and draining to 0 (the training-pit / dripping-tunnel death).
+            was_sleeping = bool(p.activity and p.activity.get("type") == "sleeping")
+
             # Keep each character's clock in step with the world's, so anything
             # that converts an authored game-minute window into tick deltas
             # (novelty's recovery window, social's cooldown) does not silently
@@ -725,7 +754,7 @@ class TickManager:
 
             player_area_name = p.current_area
             if player_area_name:
-                area_node = self.graph.get_node(self.player_manager.area_node_id(player_area_name))
+                area_node = self._resolve_area_node(player_area_name)
                 if area_node:
                     env = area_node.properties.get("environment", {})
                     bonuses = self._get_equipment_bonuses(p, self.graph)
@@ -743,7 +772,7 @@ class TickManager:
                         if resisted < 1:
                             self._decay(p, "HP", -ENV_TOXIC_HP * (1 - resisted))
                     noise = env.get("noise", "quiet")
-                    if noise in ["loud", "chaotic", "dripping", "scratches"]:
+                    if noise in ["loud", "chaotic", "dripping", "dripping water", "scratches"]:
                         # Phase 3 — loud_noise save_on hook (paranoid, light sleepers)
                         try:
                             self.gs._emit_save_on(
@@ -752,10 +781,12 @@ class TickManager:
                             )
                         except Exception as e:
                             logger.warning("[tick] loud_noise %s: %s", pname, e)
-                    if noise in ["loud", "chaotic", "dripping", "scratches"] and (
+                    if noise in ["loud", "chaotic", "dripping", "dripping water", "scratches"] and (
                         p.activity and p.activity.get("type") == "sleeping"
                     ):
-                        p.vitals["Energy"] = max(0, p.vitals["Energy"] - 1)
+                        # Per-minute, and below SLEEP_ENERGY_REGEN: noise costs
+                        # sleep quality, it does not make sleep net-negative.
+                        self._decay(p, "Energy", -ENV_LOUD_ENERGY)
                         # Loud noise can wake a sleeper (perception save, task-131)
                         wake_msg = self.gs.activities.wake_on_noise(pname)
                         if wake_msg and pname == self.player_manager.active_player:
@@ -929,7 +960,7 @@ class TickManager:
                 self._decay(p, "HP", -HEAT_SEVERE_HP)
 
             # Sleep regen toward full (~8h from empty once baseline drain nets out)
-            if p.activity and p.activity.get("type") == "sleeping" and "Energy" in p.vitals:
+            if was_sleeping and "Energy" in p.vitals:
                 self._decay(p, "Energy", SLEEP_ENERGY_REGEN)
 
             # ── Persistent activities progress one step per tick (task-131) ──
@@ -943,7 +974,7 @@ class TickManager:
 
             area_node = None
             if player_area_name:
-                area_node = self.graph.get_node(self.player_manager.area_node_id(player_area_name))
+                area_node = self._resolve_area_node(player_area_name)
             # Trait schema v2: keep trait-granted conditions in sync (any path
             # that mutates player.traits reconciles here within a turn).
             TraitSystem.sync_granted_conditions(p)

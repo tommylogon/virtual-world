@@ -49,6 +49,12 @@ BLADDER_HYGIENE_PENALTY = 8.0
 
 # ── Environmental per-minute effects ────────────────────────────────────
 ENV_STALE_ENERGY = 0.02
+#: Disturbed sleep in a loud room. Was a raw ``-1`` per tick, which at a
+#: 1-minute tick (-1.0/min) overwhelmed the +0.30/min sleep regen and made
+#: sleeping in a loud area (e.g. a training pit) a guaranteed exhaustion death.
+#: Per-minute and below the regen, so noise costs sleep quality rather than
+#: making sleep net-negative.
+ENV_LOUD_ENERGY = 0.05
 ENV_HUMID_HYGIENE = 0.02
 ENV_TOXIC_HP = 0.5
 ENV_ROT_HYGIENE = 0.02
