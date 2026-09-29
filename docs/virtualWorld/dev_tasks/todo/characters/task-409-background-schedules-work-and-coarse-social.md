@@ -156,6 +156,50 @@ kept as evidence; it must be re-measured under the one-action-per-turn model bef
 any decision to ship schedule data. Slice 2 (the capped daily reflection) is
 unaffected and still open.
 
+## Update (2026-09-29) — Social collapse re-measured; three unrelated backsim bugs fixed
+
+Ran a fresh headless background soak of `kraktooth_goblin_camp` (23 characters,
+135 areas) after fixing several backsim defects (see below). With schedules still
+unshipped, the Social collapse predicted here reproduces exactly:
+
+| horizon | alive | Social avg/min/max | Sanity avg/min |
+|---|---|---|---|
+| 3 days | 23/23 | 20.2 / 0 / 45 | 74.9 / 33 |
+| 7 days | 23/23 | **4.7 / 0 / 15** | **48.0 / 7** |
+
+Social decays to near-zero over a week even though the survival ladder is healthy
+(Hunger max 49, Thirst max 42, Energy min 38). Instrumented pairing tally for one
+day: **581 area-frames had ≥2 available background characters, but only 24 were
+pairable** — 1441 rejections were the 90-minute cooldown and 714 were areas left
+with <2 after the cooldown/cap filter. So the binder is **co-location + cooldown,
+not the 6/day cap**, and company only offsets the baseline drain (never fills), so
+Social can only fall. This is the same arithmetic the 2026-09-24 note describes;
+bundled chore tasks (option b) remain the decided fix, and schedules stay unshipped.
+
+Fixes landed this pass (all committed, all separate from the Social question):
+
+- **Area-node resolution (tick_manager).** `current_area` is a display name, but
+  `tick_manager` resolved it by id only, so `"Chief's Pit"` → `area_chief's_pit`
+  (no such node) and generated coordinate areas resolved to `None`. For 5 of 23
+  characters this skipped the *entire* per-area block — environment effects AND the
+  company Social gain. Added `_resolve_area_node` (id, then name via
+  `room_perception`). `tests/test_tick_area_resolution.py`.
+- **Sleep vs noise.** A loud room applied a raw `-1` Energy/tick (a legacy per-tick
+  value) against a `+0.30/min` sleep regen, and the noise *wake* ran before the
+  regen block, so a sleeper woken every tick lost that tick's regen and drained to
+  0 (the `Training Pit` / `dripping water` exhaustion deaths). Scaled the penalty
+  to per-minute `ENV_LOUD_ENERGY` and captured `was_sleeping` at tick start.
+  `tests/test_backsim_sleep.py`. 3-day soak: deaths 5 → **0**.
+- **Fauna.** Animals (bear/boar/wolf/frog/worg/raven) ran the human social
+  economy: they drained Social to 0, took `social_breakdown`, and were paired by
+  the social pass. `engine/vitals.is_animal` now excludes them from
+  Social/Sanity/Entertainment decay, the company gain/drain, the sanity-breakdown
+  conditions, and the social pair/approach passes. `tests/test_fauna_needs.py`.
+- **Company-seeking (task-409 slice).** Added `SOCIAL_THRESHOLD` +
+  `_seek_company`: a lonely background character walks toward where others are.
+  Social avg 0.7 → 20.2 over 3 days; it does not solve the week-long equilibrium
+  above, but it is the coarse-social half of slice 1 and is orthogonal to chores.
+
 ## Goal
 
 Background characters behave like **supercharged simple NPCs**: a deterministic,
