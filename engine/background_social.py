@@ -40,6 +40,7 @@ from engine.relationships import (
     band_at_least,
     closeness_band,
 )
+from engine.vitals import is_animal
 
 #: Minimum game minutes between one character's interactions. With the daily cap
 #: this spreads a day's allowance out instead of letting it land in a burst of
@@ -698,7 +699,7 @@ def pair_for_area(gs, area_id: str, area_name: str, tick: int) -> list:
     for name, player in (gs.player_manager.players or {}).items():
         if getattr(player, "current_area", None) != area_name:
             continue
-        if not is_background(player) or not is_available(player):
+        if not is_background(player) or not is_available(player) or is_animal(player):
             continue
         if meetings_allowed(player, gs, tick) <= 0:
             continue
@@ -826,7 +827,7 @@ def run_social_approach(gs, tick: Optional[int] = None) -> list:
     for _name, player in (gs.player_manager.players or {}).items():
         if player is human or getattr(player, "current_area", None) != area_name:
             continue
-        if not is_background(player) or not is_available(player):
+        if not is_background(player) or not is_available(player) or is_animal(player):
             continue
         if meetings_allowed(player, gs, tick) <= 0:
             continue

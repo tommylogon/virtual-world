@@ -1,7 +1,7 @@
 import logging
 from graph import EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED
 from player import BLOCKING_CONDITIONS
-from engine.vitals import is_drive
+from engine.vitals import is_drive, is_animal, ANIMAL_SKIPPED_VITALS
 from engine.lived_log import record as lived_record
 from vital_rates import (
     change,
@@ -589,12 +589,15 @@ class TickManager:
 
             prev_vitals = p.vitals.copy()
             trait_multipliers = TraitSystem.get_vital_multipliers(p)
+            animal = is_animal(p)
             # Baseline rates are per-minute, so a 15-minute tick drains 15
             # minutes' worth. change() carries the sub-1 leftover (Hunger
             # 0.0034/min, Thirst 0.0250/min, Energy 0.104/min) and scales by
             # the tick length, so this is the single accumulator for meters.
             for stat, default_decay in self.player_manager.baseline_decay.items():
                 if stat in p.vitals and stat != "Temperature":
+                    if animal and stat in ANIMAL_SKIPPED_VITALS:
+                        continue  # fauna have no social/human-life meters
                     rate = p.decay_rates.get(stat, default_decay)
                     mult = trait_multipliers.get(stat, 1.0)
                     if is_drive(stat):
@@ -828,6 +831,11 @@ class TickManager:
                         group_drain = 0.0
                     social_mult = max(0.0, social_mult)
                     is_loner = "loner" in (p.traits or {})
+                    if animal:
+                        # Fauna neither gain nor lose Social from company.
+                        social_mult = 0.0
+                        group_drain = 0.0
+                        is_loner = False
                     social_cause = ""
                     if len(others_here) > 0:
                         p._alone_ticks = 0
@@ -868,7 +876,7 @@ class TickManager:
                                 logger.warning("[tick] alone_in_dark %s: %s", pname, e)
                     # task-353 §5: low Social → social_breakdown condition.
                     social_val = p.vitals.get("Social", 100)
-                    if social_val < 10:
+                    if not animal and social_val < 10:
                         if "social_breakdown" not in p.conditions:
                             p.add_condition("social_breakdown")
                     elif social_val >= 15 and "social_breakdown" in p.conditions:
@@ -886,17 +894,18 @@ class TickManager:
                     social = p.vitals.get("Social", 100)
                     ent = p.vitals.get("Entertainment", 100)
                     sanity_penalty = 0.0
-                    if social < 25:
-                        sanity_penalty += SANITY_PENALTY_SOCIAL_VERY_LOW
-                    elif social < 50:
-                        sanity_penalty += SANITY_PENALTY_SOCIAL_LOW
-                    if ent < 25:
-                        sanity_penalty += SANITY_PENALTY_ENT_VERY_LOW
-                    elif ent < 50:
-                        sanity_penalty += SANITY_PENALTY_ENT_LOW
+                    if not animal:
+                        if social < 25:
+                            sanity_penalty += SANITY_PENALTY_SOCIAL_VERY_LOW
+                        elif social < 50:
+                            sanity_penalty += SANITY_PENALTY_SOCIAL_LOW
+                        if ent < 25:
+                            sanity_penalty += SANITY_PENALTY_ENT_VERY_LOW
+                        elif ent < 50:
+                            sanity_penalty += SANITY_PENALTY_ENT_LOW
                     if sanity_penalty > 0:
                         self._decay(p, "Sanity", -sanity_penalty)
-                    elif social >= SANITY_COMPANY_MIN_SOCIAL and others_here:
+                    elif not animal and social >= SANITY_COMPANY_MIN_SOCIAL and others_here:
                         # The mirror of the penalty above (task-432): being
                         # connected steadies the mind. Sanity had drains from five
                         # places and no source at all, so every character went mad
@@ -908,6 +917,10 @@ class TickManager:
                     # hallucinating → misread the room. Named conditions with
                     # attack/defense mods, mirroring social_breakdown.
                     sanity_val = p.vitals.get("Sanity", 100)
+                    if animal:
+                        # Fauna do not develop paranoid/hallucinating conditions
+                        # (and their periodic Sanity drain).
+                        sanity_val = 100
                     if sanity_val < 25:
                         if "hallucinating" not in p.conditions:
                             p.add_condition("hallucinating")

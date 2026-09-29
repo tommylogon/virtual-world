@@ -34,6 +34,7 @@ from collections import deque
 from graph import EDGE_IN, EDGE_CARRYING, EDGE_TRIGGERS
 from engine import relief as _relief
 from engine.lived_log import record
+from engine.vitals import is_animal
 from vital_rates import tick_minutes
 
 logger = logging.getLogger(__name__)
@@ -72,6 +73,10 @@ REST_SEEK_ENERGY = 55
 BLADDER_THRESHOLD = 60    # drive: high = needs to go; well before it maxes at 100
 HYGIENE_THRESHOLD = 40    # resource: low = filthy; go wash
 ENTERTAINMENT_THRESHOLD = 40  # resource: low = bored; go do something
+#: Social at or below which a lonely character walks toward company (task-409).
+#: Company both steadies Social and is the precondition for the paired social
+#: pass, so without a driver a dispersed camp simply isolates to zero.
+SOCIAL_THRESHOLD = 50
 #: How long one work block lasts, in game minutes (task-409). Short on purpose:
 #: `_act` skips anyone mid-activity, so this is the longest a working character
 #: can go without eating, drinking or relieving itself. See the block comment on
@@ -456,11 +461,22 @@ class BackgroundSimulation:
         # Steadying the mind. Above boredom because a low-Sanity character is a
         # danger to others rather than merely unhappy, but below every survival
         # need: nothing here kills you.
-        if v.get("Sanity", 100) <= SANITY_THRESHOLD:
+        if not is_animal(p) and v.get("Sanity", 100) <= SANITY_THRESHOLD:
             if "recuperate" not in served and self._recuperate(p):
                 served.add("recuperate")
                 self._begin_task(p, "recuperating", TASK_MINUTES["recuperate"], remaining)
                 return TASK_MINUTES["recuperate"]
+
+        # Loneliness drives a character toward people (task-409). Company steadies
+        # Social and is the precondition for the paired social pass, so a lonely
+        # character walks to where others are rather than isolating to zero.
+        # With company already present this is a no-op — the ambient gain and the
+        # social pass handle it there.
+        if (not is_animal(p) and v.get("Social", 100) <= SOCIAL_THRESHOLD
+                and "company" not in served):
+            served.add("company")
+            if self._seek_company(p):
+                return TASK_MINUTES["travel"]
 
         # What the day says to do, once every survival need is satisfied
         # (task-409). Above boredom, so a full character works at its trade
@@ -472,7 +488,7 @@ class BackgroundSimulation:
 
         # Boredom last: it is the only need here that nothing kills you for
         # ignoring, so it must never outrank food, water, sleep or relief.
-        if v.get("Entertainment", 100) <= ENTERTAINMENT_THRESHOLD:
+        if not is_animal(p) and v.get("Entertainment", 100) <= ENTERTAINMENT_THRESHOLD:
             if "recreate" not in served and self._recreate(p):
                 served.add("recreate")
                 self._begin_task(p, "recreating", TASK_MINUTES["recreate"], remaining)
@@ -1098,6 +1114,31 @@ class BackgroundSimulation:
         if not direction:
             return False
         return self._hop(p, target_name, direction, need, tags)
+
+    def _seek_company(self, p):
+        """One hop toward somewhere other characters are (task-409).
+
+        Returns False when the character already has company (that case belongs
+        to the ambient gain and the paired social pass) or when no populated
+        area is reachable. Candidates rank by how many others are there, then by
+        name for determinism; the first that routes wins.
+        """
+        if not p.current_area:
+            return False
+        counts = {}
+        for other in self.gs.players.values():
+            if other is p or getattr(other, "state", "") == "dead":
+                continue
+            area = getattr(other, "current_area", None)
+            if area and area != p.current_area:
+                counts[area] = counts.get(area, 0) + 1
+        if not counts:
+            return False  # already among people, or nobody else is anywhere
+        ranked = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
+        for area_name, _ in ranked[:5]:
+            if self._travel_to_area(p, area_name, "social"):
+                return True
+        return False
 
     def _seek_venue(self, p, venue, reason):
         """One hop toward the place that serves *venue*, saying why (task-566).

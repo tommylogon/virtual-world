@@ -66,6 +66,18 @@ def is_drive(stat: str) -> bool:
     return polarity(stat) == "drive"
 
 
+#: Vitals that model a *socialised human* life and do not apply to fauna. A bear
+#: has hunger, thirst, energy and temperature; it does not get lonely, bored, or
+#: suffer a social breakdown (task-399 backsim).
+ANIMAL_SKIPPED_VITALS = frozenset({"Social", "Sanity", "Entertainment"})
+
+
+def is_animal(player) -> bool:
+    """True for characters tagged ``animal`` (fauna, not people)."""
+    tags = getattr(player, "tags", None) or []
+    return "animal" in {str(t).lower() for t in tags}
+
+
 def clamp(stat: str, value) -> int:
     """Clamp to the vital's live range: drives/resources 0..100.
     Bands are NOT clamped here (they drift around a target)."""
