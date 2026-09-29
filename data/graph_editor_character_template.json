@@ -1,0 +1,178 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "last_updated": "",
+    "source": "",
+    "notes": "",
+    "image_prompt": ""
+  },
+  "basic_info": {
+    "name": {
+      "full": "",
+      "first": "",
+      "last": "",
+      "nicknames": [],
+      "aliases": []
+    },
+    "age": 0,
+    "gender": "",
+    "pronouns": "",
+    "species": "",
+    "nationality": "",
+    "ethnicity": "",
+    "occupation": "",
+    "race": "",
+    "class": "",
+    "status": "",
+    "birthdate": "",
+    "residence": {
+      "type": "",
+      "name": "",
+      "unit": "",
+      "area": "",
+      "full_address": ""
+    },
+    "marital_status": "",
+    "partner": null
+  },
+  "appearance": {
+    "overview": "",
+    "height": {
+      "value": 0,
+      "unit": "cm",
+      "imperial": ""
+    },
+    "build": "",
+    "skin": {
+      "tone": "",
+      "condition": "",
+      "distinguishing_features": []
+    },
+    "hair": {
+      "color": "",
+      "length": "",
+      "style": "",
+      "accessories": []
+    },
+    "eyes": {
+      "color": "",
+      "shape": "",
+      "special": ""
+    },
+    "face": {
+      "shape": "",
+      "features": [],
+      "makeup": ""
+    },
+    "body": {
+      "chest": {
+        "size": "",
+        "description": ""
+      },
+      "waist": "",
+      "hips": "",
+      "legs": "",
+      "butt": "",
+      "other": []
+    },
+    "genitalia": {
+      "pubic_hair": "",
+      "vaginal_description": "",
+      "penis_description": ""
+    },
+    "style": {
+      "clothing": [],
+      "accessories": [],
+      "footwear": []
+    },
+    "scent": "",
+    "voice": {
+      "pitch": "",
+      "accent": "",
+      "mannerisms": ""
+    }
+  },
+  "personality": {
+    "traits": [],
+    "mbti": "",
+    "alignment": "",
+    "likes": [],
+    "dislikes": [],
+    "fears": [],
+    "aspirations": [],
+    "quirks": [],
+    "habits": [],
+    "speech_pattern": {
+      "style": "",
+      "dialect": "",
+      "catchphrases": []
+    }
+  },
+  "biography": {
+    "early_life": {
+      "place_of_birth": "",
+      "family_background": "",
+      "key_events": []
+    },
+    "adulthood": {
+      "education": [],
+      "career_history": [],
+      "relationships": [],
+      "children": [],
+      "significant_life_events": []
+    },
+    "current_situation": ""
+  },
+  "relationships": {
+    "family": {
+      "parents": [],
+      "siblings": [],
+      "children": [],
+      "other_relations": []
+    },
+    "affiliations": [],
+    "connections": [],
+    "friends": [],
+    "enemies": [],
+    "rivals": [],
+    "mentors": [],
+    "protégés": []
+  },
+  "secrets": {
+    "deepest_secret": "",
+    "hidden_facts": [],
+    "known_by": []
+  },
+  "capabilities": {
+    "skills": [],
+    "languages": [],
+    "weaknesses": [],
+    "items": []
+  },
+  "kinks_and_sexuality": {
+    "orientation": "",
+    "experience": "",
+    "preferences": [],
+    "turn_ons": [],
+    "turn_offs": [],
+    "curiosities": [],
+    "boundaries": []
+  },
+  "narrative": {
+    "arc": "",
+    "potential_storylines": [],
+    "role_in_town": ""
+  },
+  "example_dialogues": [
+    {
+      "context": "",
+      "dialogue": ""
+    }
+  ],
+  "media": {
+    "favorite_movies": [],
+    "favorite_music": [],
+    "favorite_books": []
+  },
+  "description": ""
+}

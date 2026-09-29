@@ -72,6 +72,18 @@ source, hardcoded dicts are fallback). Backend consolidation to a single `/api/l
 
 - Phase 2: schema-driven editor + editable-ID rename (already live for ways) + custom modals for all
   tabs; Conditions/Traits tabs now edit the real data-driven catalogs.
-- Phase 3: remove the behaviours tab/type, `data/library/rooms`, the IndexedDB `item_library` store,
-  the `main.js:132` inline save; orphan sweep; rewrite `Library System Overview.md` (still stale: says
-  registry deletes files, lists 6 types, claims "no live link", shows removed item fields).
+- Phase 3: delete `data/library/rooms` (first update `tools/migrate_legacy_triggers.py:224`, which still
+  names `library/rooms/mansion.json` as an input), the IndexedDB `item_library` store, and the
+  `main.js:132` inline save; orphan sweep; finish `Library System Overview.md`.
+  **Two items moved out of this task on 2026-09-29:**
+  - **The behaviours tab is no longer to be removed.** The design doc's "remove the tab/type" is withdrawn;
+    the tab is fully built and its saves really land in `data/library/behaviours/`, while
+    `engine/npc_behaviors.py:486` reads only `player.behaviors[]` — a live authoring path the engine ignores.
+    Making the engine consume it (the traits treatment) is **task-590**. Do not execute the removal.
+  - **Structures** are not in scope here. The engine and the five routes are done; the missing piece is a
+    UI affordance, tracked by **task-591**.
+  `Library System Overview.md` was partially corrected on 2026-09-29 (the "registry deletes files" claim, the
+  6-type list, the "no live link" claim, the directory tree and per-type counts, and the two fabricated
+  `load_registry` / `save_registry` samples). It still shows a removed item field (`effect_target`) and omits
+  DiffModal, refresh-from-library, build-item-from-library and the condition catalog, so the rewrite is
+  still open here.

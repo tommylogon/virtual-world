@@ -2,6 +2,182 @@
 
 Project guidance for automated agents working in this repo.
 
+## Prime directive
+
+VirtualWorld is a simulation, not a collection of isolated features.
+
+**Make the requested behavior true in the simulation with the smallest coherent
+change.** Preserve existing invariants, reuse existing systems, and do not create
+a second source of truth when the current model can represent the behavior.
+
+Task files describe intent. Code shows current behavior. Tests provide evidence.
+The simulation's invariants outrank all three. When they disagree, investigate the
+discrepancy instead of assuming one of them is correct.
+
+## Never infer runtime behavior from existence
+
+This is the first principle, and it is a distilled lesson from three real bugs in
+this repo. A mechanic that exists, works, and is never called looks *exactly* like
+a mechanic with a low event rate. Three separate instances turned up in one pass,
+so check all of the following before concluding anything from a telemetry table or
+a soak:
+
+1. **Is anything calling it?** A working `fear_sources` with no caller is
+   indistinguishable from "no fears arose". `rg` the function name outside its
+   own module.
+2. **Is it reading the right object?** A character graph node is created *bare*
+   — `Node(id=..., type="character", name=...)` — and carries no `tags`,
+   `traits` or any other definition. Anything looking a character up by its
+   **node** sees nothing; the data lives on the `Player`. `engine/fear.py`
+   spent a long time matching against the node before this was caught.
+3. **Has anyone authored any?** A field can be serialized, round-trip a save and
+   look entirely functional while every value in every scenario is `[]`. Nothing
+   in a soak will move until data exists, and no code change fixes that.
+4. **Can the guard's lookup ever match what the caller passes?**
+   `is_undead_ghost` takes a *name*; a call site passing the `Player` object
+   compiles, runs, and always returns False, so the guard silently never fires.
+   When two similar guards disagree, one of them is a no-op — check the
+   signature rather than assuming both are right.
+
+A field that serializes correctly, a function that exists, or a test that passes
+is **not** evidence that a mechanic is wired into live simulation. Do not add
+behavior until all four are checked.
+
+## Agent operating rules
+
+### Before editing
+
+For any non-trivial change:
+
+1. Read the task/bug and identify its acceptance criteria.
+2. Find the existing implementation, caller(s), and tests for the behavior.
+3. Trace the data flow: authored data / input -> runtime state -> engine rule ->
+   observable result.
+4. Identify the actual source of truth for every value involved.
+5. Check whether the requested mechanic already exists but is unwired, incorrectly
+   addressed, or unauthored (see above).
+6. Only then choose the implementation point.
+
+Do not start by adding code because a task says a capability is missing.
+
+### Simulation invariants
+
+Preserve these unless a task explicitly changes the architecture:
+
+- Node identity is an opaque ID. Display names are a resolution layer.
+- Character definition/state belongs to the `Player` model; a bare character graph
+  node is not authoritative for traits, tags, or behavior.
+- The graph is the authoritative world model. Scopes, zones, fog, and UI
+  hierarchies augment it; they are not alternate spatial models.
+- Quantity is a pooled resource, not one node per unit.
+- Ownership is a property; containment is a containment edge; a component is a
+  containment edge plus an action contract. Charge is the generic `uses` counter.
+  These are different concepts — do not collapse them into one mechanic.
+- Scope is a grouping / load boundary, not alternate geography.
+- Do not duplicate state for convenience when an existing property, edge, or
+  derived index is sufficient.
+- A runtime-derived value must not become persisted authoring data unless
+  persistence is part of the intended behavior.
+- Reuse existing generic movement, action, trigger, matching, serialization, and
+  condition machinery rather than bypassing it.
+- A new rule must not silently invalidate unrelated existing scenarios.
+
+### Engine vs data vs authoring
+
+Classify the failure before fixing it, and do not solve one category by adding
+code to another:
+
+| Category | Meaning |
+|---|---|
+| **Engine** | the runtime logic is wrong or unwired |
+| **Data** | the engine is correct but the stored/generated data is wrong |
+| **Authoring** | engine and data model both support it, but no content invokes it |
+| **Test** | the system is correct; the test targets an obsolete API or wrong object |
+| **Tooling** | the application is correct; developer/test infrastructure is stale |
+
+If the engine supports a mechanic and the scenario has no authored data, fix the
+scenario/content layer. If data serializes correctly but runtime never consumes
+it, fix the wiring, not the scenario. If both are correct but behavior is wrong,
+trace the runtime path before changing either.
+
+### Testing rules
+
+A passing test is only useful if it proves the intended mechanism. Prefer tests
+that establish which source of truth was read, which branch ran, which state
+changed, and that the negative case stays blocked.
+
+Do not obtain green tests by weakening assertions, bypassing the normal dispatch
+path, adding special-case fixtures, or asserting incidental text produced by some
+other subsystem.
+
+For new mechanics, test both:
+
+- the smallest direct engine behavior, and
+- a minimal end-to-end scenario proving the mechanic is actually wired and can
+  occur.
+
+A soak or scenario result does not replace a wiring test, and a wiring test does
+not prove authored content can trigger the mechanic. **Unit-test the mechanism,
+micro-scenario the emergence.**
+
+### Regression discipline
+
+Compare the changed behavior against the existing baseline, comparing failure
+*names* rather than counts (see the baseline section below).
+
+- Do not remove or loosen a failing test because it conflicts with the requested
+  behavior.
+- Do not update the known-failure baseline without re-measuring on a clean
+  checkout of `master`.
+- Do not declare a mechanic complete because its module exists or its unit tests
+  pass.
+- Do not call a newly discovered failure "pre-existing" until it has been
+  reproduced independently.
+- When a failure is genuinely unrelated, record why it is unrelated rather than
+  silently ignoring it.
+
+### Scope control
+
+Prefer the smallest change that makes the invariant true. Do not refactor
+neighboring systems without a concrete need, introduce a new abstraction when an
+existing seam already represents the concept, add compatibility layers for
+obsolete callers unless compatibility is explicitly required, rewrite working
+behavior because a newer implementation looks cleaner, or add scenario-specific
+logic to generic engine code.
+
+If a task exposes a deeper architectural problem, fix the required root cause
+and file the larger cleanup as its own task.
+
+### Definition of done
+
+Before moving a task to `review`, be able to state:
+
+- **What behavior changed?**
+- **Why is this the correct layer?**
+- **What is the source of truth?**
+- **What proves the behavior is wired?** (a caller, not just a unit test)
+- **What regression test proves the mechanism?**
+- **What existing behavior was intentionally preserved?**
+- **Is there authored content that exercises the feature?**
+- **What remains intentionally unimplemented?**
+
+If the last three answers are unknown, investigate before declaring the feature
+complete. "The code exists" is not "the feature shipped".
+
+### Documentation and changelog
+
+Update documentation only after behavior has been verified, and use precise
+language:
+
+- **implemented** — executable behavior exists and is exercised
+- **wired** — the runtime path reaches it
+- **authored** — at least one scenario/content definition invokes it
+- **tested** — a regression test proves the intended mechanism
+- **planned** — design/task exists but runtime behavior is not yet present
+
+Do not describe a mechanic as complete when only its data model or implementation
+seam exists.
+
 ## Where things live
 
 - **Backend**: `app.py` (Flask factory `create_app`), `engine/` (game systems),
@@ -41,23 +217,36 @@ Project guidance for automated agents working in this repo.
 python -m pytest --ignore=tests/test_tick_time_scaling.py
 ```
 
-Baseline is **5 failed / 4274 passed**, measured on `master` on 2026-09-28 (~7m30s).
-The five:
+Baseline was **5 failed / 4274 passed** on `master` (2026-09-28). Four of those five
+are gone as of 2026-09-29; the tree now measures **1 failed / 5025 passed** (18m14s
+on this machine). The test count has drifted a long way, so compare names, not
+totals. The only remaining failure:
 
 | Test | Nature |
 |---|---|
-| `test_character_identity.py::test_collapse_is_idempotent` | canonical-node problem, task-457's |
-| `test_character_identity.py::test_kraktooth_loads_as_one_node_per_character` | same |
-| `test_scenario_name.py::test_clearing_the_source_leaves_the_name_alone` | scenario source leaks between `create_app()` calls |
-| `test_social_company.py::test_extrovert_company_gains_extra` | `create_app()` isolation, bug-55 |
 | `test_templates.py::test_generator_covers_every_effect_type` | `data/library/items/template_polymorph_target.json` is missing |
 
-The three in the middle are one bug: **a second `create_app()` in a process does not behave
-like the first** (bug-55). The last is a missing data file. The first two are task-457's.
+Both of the `create_app()`-isolation failures were bug-55, and the diagnosis in that
+file was wrong in an instructive way:
+
+- `test_social_company.py` was **not** measuring a leak. A seeded probe shows repeated
+  `create_app()` calls agree exactly; the tests were running *full* turns, so the cast
+  wandered out of the "alone" area and the measured character picked up the company gain
+  (75 or 100 depending on the run). They now tick with `skip_npcs=True`, which keeps the
+  per-character decay block and drops the wander.
+- `test_scenario_name.py::test_clearing_the_source_leaves_the_name_alone` was a
+  test-premise bug and failed in **isolation** too: `create_app()` boots with
+  `_scenario_name` already set, and `set_scenario_source()` documents that an existing
+  name beats the filename. No leak is involved.
+
+The two `test_character_identity.py` failures (`test_collapse_is_idempotent`,
+`test_kraktooth_loads_as_one_node_per_character`) were task-457's canonical-node
+problem. They pass in the 2026-09-29 full-suite run, but nobody reproduced them
+independently here, so read that as *unconfirmed fixed* — not as task-457 shipping.
 
 **The old baseline was ~60 failed, and 55 of those were the MCP tests** — which made the
 "compare to baseline" rule nearly blind. Those are fixed (see below), so a lane that
-reports "at baseline" is now reporting against 5 real failures, not 60.
+reports "at baseline" is now reporting against 1 real failure, not 60.
 
 ### The MCP tests were fixed, do not "restore" them
 
@@ -78,9 +267,8 @@ Compare-Object (Get-Content baseline.txt | ? { $_ -like 'FAILED*' } | Sort-Objec
               (Get-Content mine.txt      | ? { $_ -like 'FAILED*' } | Sort-Object)
 ```
 
-The two `test_character_identity.py` failures (`test_collapse_is_idempotent`,
-`test_kraktooth_loads_as_one_node_per_character`) are the canonical-node
-problem task-457 describes; going green there is its natural acceptance.
+Both `create_app()`-isolation failures listed in the baseline table above turned out to
+be test bugs rather than engine leaks — read the bug-55 file before re-diagnosing them.
 
 ### Gotchas in a managed worktree
 
@@ -131,6 +319,11 @@ Workflow: `new` when filing a task, `move` it as it progresses
 (`todo` -> `inprogress` -> `review` -> `done`), and `validate` after filing or
 moving several. `validate` also flags dangling dependency references.
 
+`task says X -> code X -> tests X -> "done"` is not the workflow. Before
+`inprogress` -> `review`, see **Definition of done** above: find the source of
+truth, trace the path, prove the wiring, prove the behavior, verify authored
+content. A task is not done because the requested code exists.
+
 ## Conventions
 
 - **Backend data operations key nodes by id.** Names are user-facing and resolve
@@ -142,31 +335,9 @@ moving several. `validate` also flags dangling dependency references.
   state, not an API.
 - Only commit when explicitly asked.
 
-### Is this mechanic actually wired?
-
-A mechanic that exists, works, and is never called looks *exactly* like a
-mechanic with a low event rate. Three separate instances turned up in one pass,
-so check all three before concluding anything from a telemetry table or a soak:
-
-1. **Is anything calling it?** A working `fear_sources` with no caller is
-   indistinguishable from "no fears arose". `rg` the function name outside its
-   own module.
-2. **Is it reading the right object?** A character graph node is created *bare*
-   — `Node(id=..., type="character", name=...)` — and carries no `tags`,
-   `traits` or any other definition. Anything looking a character up by its
-   **node** sees nothing; the data lives on the `Player`. `engine/fear.py`
-   spent a long time matching against the node before this was caught.
-3. **Has anyone authored any?** A field can be serialized, round-trip a save and
-   look entirely functional while every value in every scenario is `[]`. Nothing
-   in a soak will move until data exists, and no code change fixes that.
-
-A fourth, quieter one: **a guard whose lookup can never match.** `is_undead_ghost`
-takes a *name*; a call site passing the `Player` object compiles, runs, and
-always returns False, so the guard silently never fires. When two similar guards
-disagree, one of them is a no-op — check the signature rather than assuming both
-are right.
-
-Corollary for tests: a test that passes for the wrong reason is worse than no
-test. Prefer asserting the *mechanism* (which value was read, which branch ran)
-over asserting a substring that some other layer could also produce.
+The same "never infer runtime behavior from existence" checks apply to code
+written by an agent, and the corollary for tests is worth repeating: a test that
+passes for the wrong reason is worse than no test. Prefer asserting the
+*mechanism* (which value was read, which branch ran) over asserting a substring
+that some other layer could also produce.
 

@@ -51,8 +51,17 @@ def _clear_area(world, keep, area=AREA):
 
 
 def _run(world, n=SPAN):
+    # `skip_npcs=True` keeps NPC behaviour and the background simulation out of
+    # the turn. These tests measure the company-aware Social block, and that
+    # block's premise is *who is in the room* — but a full turn also lets the
+    # cast wander, so "alone in the clearing" silently stopped being true
+    # somewhere around tick 1: the measured character drifts into the hallway
+    # and ends up co-present with the rat or Lyrie, gets the company gain, and
+    # Social climbs back to 100. Which rooms the cast lands in is a random draw,
+    # so the same command returned 75 and 100 on different runs (bug-55 — not
+    # create_app() isolation, which a seeded probe rules out).
     for _ in range(n):
-        world.tick_turn()
+        world.tick_turn(skip_npcs=True)
 
 
 def _social_after(world, name, alone, traits=None, company=False):

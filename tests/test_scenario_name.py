@@ -78,7 +78,14 @@ def test_an_existing_name_beats_the_filename(tmp_path):
 
 
 def test_clearing_the_source_leaves_the_name_alone(tmp_path):
+    # Start from an unnamed world, the state a fresh `VirtualWorld()` is in when
+    # a route loads a scenario into it (routes/saveload.py builds a new world
+    # first). `create_app()` boots with `_scenario_name` already set to
+    # `world_template`, and by the documented rule an existing name beats the
+    # filename — see test_an_existing_name_beats_the_filename — so the
+    # derivation below would never fire against a boot-named world.
     world = create_app({"TESTING": True}).world
+    world._scenario_name = ""
     world.set_scenario_source(str(tmp_path / "named_world.json"))
     world.set_scenario_source(None)
     assert world._scenario_source is None
