@@ -6,16 +6,18 @@ promise: it is re-aimed whenever the simulation teaches us something. Part of
 
 *Written 2026-09-24, after `e4af71c`. Updated 2026-09-27 after `b885878`; again
 2026-09-30 after `0369ef4`, which closed the floor-plan language gap this file
-spent two revisions calling the last thing between a plan and a place.*
+spent two revisions calling the last thing between a plan and a place. Last
+updated 2026-09-30 after `33c253e` — three cards closed on live-browser
+evidence, and the stale-card list below shortened by one.
 
 ## Where we are
 
 | Status | Count |
 |---|---|
-| Done | 381 |
+| Done | 401 |
 | Review | 177 |
 | In progress | 8 |
-| Todo | 141 |
+| Todo | 125 |
 
 (Counted from the folders, which are authoritative — not the frontmatter.)
 
@@ -122,9 +124,14 @@ biggest:
   unreachable. The inspector's Generate button is the authoring path and currently
   asks for prose, which is why it produces a mediocre persona.
 
-**Two cards in `todo` are already done** and cost attention to re-read: task-218
-(shipped 2026-08-12) and task-405 (implemented and verified 2026-09-19 — the LLM
-inspector, which now labels all seventeen of its call sites, task-593).
+**One card in `todo` is already done** and costs attention to re-read: task-405
+(implemented and verified 2026-09-19 — the LLM inspector, which now labels all
+seventeen of its call sites, task-593). task-218 joined it in `done` on
+2026-09-30, but only after its extraction was verified *running* — 16 of its 18
+extracted functions instrumented live across a human turn and an NPC reactive
+turn. The two that never fire are dead exports (`parseObservation`,
+`parseDecisionWithSpeech` — zero call sites, and `git show 170d5f1` proves they
+were never called from the engine either), filed as task-657.
 
 **Twenty-odd new cards came out of walking the running app**, and the
 simulation-correctness ones belong on this page rather than in a tree:
@@ -148,7 +155,8 @@ simulation gets wrong.
   which reads as work, delivers none, and delays the one entry in it that is
   actually load-bearing. It should be trimmed to that entry.
 - **Simultaneous rounds** (task-533): the turn pipeline that never ran — after
-  reconciling with task-437 above.
+  reconciling with task-437 above, which the new turn-system chapter makes
+  decidable.
 
 ## Next — the simulation contract debt (2–3 sessions)
 
@@ -198,7 +206,6 @@ trigger-graph overhaul (task-502/388), save/load UX + list perf (task-455/454,
 which currently disagree about the same dialog row), and Playwright persistence
 (task-444). The graph toolbar redesign, the contextual scope bar and the
 narrow-window overflow menu have landed (task-530/531/532).
-
 **Landed:** task-592 — the scope hierarchy is now the *top of the Outline tab*, so
 world → scope → area is one tree in one place instead of three ways to pick a
 scope and a tree at the bottom of the graph. task-558 — long edge labels wrap, and
@@ -207,14 +214,62 @@ overlap the nodes at either end. task-405 — the LLM inspector, now labelled at
 every call site so "the inspector is empty" and "the inspector shows seventeen
 identical entries" are distinguishable from working.
 
+## The sub-400 sweep — triaged 2026-09-30, and what is left to build
+
+A pass over every card numbered under 400 still sitting in `todo`/`inprogress`
+found twelve. Three are now closed on live-browser evidence (task-218, task-376,
+task-338). Of the rest, **four should not be built at all** and only five are
+real work — which is worth writing down, because four of them look like work.
+
+| Card | Verdict |
+|---|---|
+| task-215 environmental + clothing effects | **Cancel.** This file already decided it: *"215 cancelled numeric opacity and friction by user decision; 489's whole goal is to add them back."* Building it re-litigates a user decision. |
+| task-352 action economy tiers | **Blocked on a decision, not on work.** *"409 decided actions-per-turn is emergent, not budgeted, and tests assert the credit model cannot return; 352 reintroduces fixed per-tier slots and admits it is 'a partial reversal of one line'."* One sentence decides it; building first means building twice. |
+| task-99 area grids + movement costs | **Deferred by the user** on 2026-09-30 as large and possibly not needed. Not on any critical path; keep parked. |
+| task-83 code readability refactor | **Not a unit of work.** It is the boy-scout rule ("apply when touching files for other reasons"), so it has no acceptance and cannot be done or failed. Leave it as policy. |
+| task-299 long-distance communication | **Blocked.** Design approved, MVP unstarted, waiting on task-491/493/494 — all still todo. Starting it now means inventing a contract those three are about to define. |
+
+That leaves five buildable cards. Order, and why:
+
+1. **task-313 relative facing map.** Self-contained gameplay rule, an 181-line
+   spec, no new storage format, and one browser session proves it. It is the
+   best ratio of demonstrated behaviour to risk in the remaining set.
+2. **bug-54 weather is invisible to the engine.** Small, and it is correctness
+   rather than polish: `weather_light_multiplier` has no readers and compiled
+   areas carry no `outdoor`/`exterior` tag, so weather cannot affect anything.
+   Fixing it also settles the outdoor/exterior tagging question that task-313's
+   facing work and the environment cards both lean on.
+3. **task-289 + task-317, decided as one.** Both describe the same
+   template-link contract from two directions (generic sync, then bidirectional).
+   Doing them separately is how two sources of truth get created — rule 1.
+4. **task-290 template variants**, once 289/317 have fixed the contract.
+5. **task-332 legacy item effect props → triggers**, then **task-388** with
+   task-502 as one UI session.
+
+**A decision this sweep makes cheaper.** task-533 vs task-437 (who owns turn
+order — the frontend bookkeeper or the engine) was one of the four contradictory
+pairs above, and it was hard to adjudicate while the turn semantics lived only in
+code. They are now written down in
+`docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md` and in the AGENTS.md
+turn-system block: the queue is **client-side state on the AgentEngine
+instance**, rebuilt by `initialize()`/`reconcile()`, and all three "whose turn
+is it" indicators project it. That is the fact 437 needs, so the pair can be
+decided from the page instead of from memory.
+
 ## Always-on hygiene
 
 - **Drain review.** 177 tasks sit in review — more than the todo list. A dedicated
   drain session keeps the folder honest rather than letting review become a second
   todo.
-- **Re-read stale tasks before acting.** Four in this revision's audit were decided
-  against or already done: task-218 and task-405 (done, still in `todo`),
-  task-489 (superseded by 215), task-482 (blocked on something that landed).
+- **Re-read stale tasks before acting.** Three in this revision's audit were decided
+  against or already done: task-405 (done, still in `todo`), task-489
+  (superseded by 215), task-482 (blocked on something that landed). task-218 was
+  the fourth and is now moved.
+- **A card is not closed until it has been seen working.** task-218 sat in `todo`
+  for seven weeks on the strength of a "Done" line in its own body. It was real
+  work, but two of its methods had no caller and nothing had run the refactor
+  in a browser. Files existing is not behaviour. Prefer driving the mechanism and
+  screenshotting the result over reading a status field.
 - **A test that asserts a number the content can change is a test that will
   break.** Two of this week's failures were that: a forage test asserting one draw
   of exactly three ids when the food pool was three, and a hardcoded `80 - 45`
@@ -227,12 +282,12 @@ identical entries" are distinguishable from working.
 - **`docs/design/js-module-index.md` is generated.** Regenerate with
   `python tools/js_module_index.py --write` after adding a module, and never hand
   it into a commit that does not include the modules it names.
-- **JS unit tests: 452 passing, none failing.** The 13 long-standing
+- **JS unit tests: 465 passing, none failing.** The 13 long-standing
   `test_plan_tracker.js` failures are gone.
 
 ## Risks to watch
 
-- **The review backlog hides real debt.** 177 review tasks against 141 todo; if it
+- **The review backlog hides real debt.** 177 review tasks against 125 todo; if it
   is not drained, "done" stops meaning done.
 - **Contradictory pairs get done, not decided.** Four pairs are live now. Each was
   filed by someone reasoning correctly from a document that had since changed, and
