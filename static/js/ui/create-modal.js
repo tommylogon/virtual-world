@@ -20,6 +20,12 @@ const ITEM_RELATIONS = ['in', 'on', 'under', 'behind', 'beside', 'at'];
 const DAMAGE_SKILLS = ['Athletics', 'Acrobatics', 'Stealth', 'Perception', 'Investigation', 'Survival', 'Persuasion', 'Performance', 'Medicine', 'Arcana', 'Intimidation', 'Lockpicking'];
 const DAMAGE_TYPES = ['slashing', 'piercing', 'bludgeoning', 'fire', 'cold', 'toxic', 'magic', 'electric', 'radiant', 'necrotic', 'psychic', 'acid'];
 
+// Cardinal vocabulary for the connection form's direction suggestions. Same set
+// as graph/layout-engine.js `dirOffsets`, so an authored cardinal is one the
+// map layout can resolve. Offered as datalist suggestions only — a direction
+// is free text ("swinging door", "enter") and never restricted to this list.
+const CARDINALS = ['north', 'south', 'east', 'west', 'northeast', 'northwest', 'southeast', 'southwest', 'up', 'down'];
+
 // Mechanical capabilities — each chip owns one engine tag. Enabling a chip
 // adds the tag (via the tag picker) and reveals its tuning fields. The
 // engine counterparts live in lighting.py (light_source), environment_propagation.py
@@ -409,7 +415,11 @@ const CreateModal = {
     },
 
     _buildConnectionForm() {
-        const roomOptions = Object.keys(worldState.areas || {}).map(area => `<option value="${area}">${area}</option>`).join('');
+        const roomNames = Object.keys(worldState.areas || {});
+        const roomOptions = roomNames.map(area => `<option value="${area}">${area}</option>`).join('');
+        // Area B opens on the *second* area: both selects defaulting to the
+        // first made a self-referential way the default outcome of the form.
+        const roomBOptions = roomNames.map((area, i) => `<option value="${area}"${i === 1 ? ' selected' : ''}>${area}</option>`).join('');
         const skillOptions = DAMAGE_SKILLS
             .map(skill => `<option value="${skill}">${skill}</option>`).join('');
         return createModalHtmlTag`<div style="display:flex;gap:4px;margin-bottom:8px;">
@@ -419,13 +429,22 @@ const CreateModal = {
         </div>
         <label>Way ID (optional)</label>
         <input type="text" id="conn-id" placeholder="auto-generated (door_RoomA_dir1)">
+        <label>Way Name <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+        <input type="text" id="conn-name" placeholder="auto (Area A - direction)">
+        <div class="section-hint" style="font-size:9px;color:var(--text-muted);margin:-4px 0 6px;">Shown in look/examine listings. Leave blank to use the generated name.</div>
         <label>Appearance when closed/locked/blocked <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
         <textarea id="conn-desc" rows="2" placeholder="What players see when the way is closed…" style="width:100%;font-size:11px;"></textarea>
         <div class="section-hint" style="font-size:9px;color:var(--text-muted);margin:-4px 0 6px;">Shown in look/examine when the way is not open. Use {param:key} for dynamic text.</div>
         <label>Area A</label><select id="conn-roomA" @change=${() => VW._onConnRoomChange()}>${window.Lit.unsafeHTML(roomOptions)}</select>
-        <label>Command from A → B <span style="font-weight:400;color:var(--text-muted);">(go ___)</span></label><input type="text" id="conn-dir1" placeholder="swinging door">
-        <label>Area B</label><select id="conn-roomB">${window.Lit.unsafeHTML(roomOptions)}</select>
-        <label>Command from B → A <span style="font-weight:400;color:var(--text-muted);">(go ___)</span></label><input type="text" id="conn-dir2" placeholder="enter">
+        <label>Command from A → B <span style="font-weight:400;color:var(--text-muted);">(go ___)</span></label>
+        <input type="text" id="conn-dir1" list="conn-cardinals" placeholder="east, or pick a cardinal">
+        <label>Area B</label><select id="conn-roomB">${window.Lit.unsafeHTML(roomBOptions)}</select>
+        <label>Command from B → A <span style="font-weight:400;color:var(--text-muted);">(go ___)</span></label>
+        <input type="text" id="conn-dir2" list="conn-cardinals" placeholder="west, or pick a cardinal">
+        <datalist id="conn-cardinals">
+            ${window.Lit.unsafeHTML(CARDINALS.map(c => `<option value="${c}"></option>`).join(''))}
+        </datalist>
+        <div class="section-hint" style="font-size:9px;color:var(--text-muted);margin:-4px 0 6px;">Type anything — "swinging door" and "enter" are as valid as a cardinal.</div>
         <div style="margin-top:6px;">
             <label style="font-size:11px;">View when open (from Area A)</label>
             <textarea id="conn-view-from-a" rows="2" placeholder="What you see through the way when open…" style="width:100%;font-size:11px;"></textarea>
@@ -470,6 +489,11 @@ const CreateModal = {
                 <input type="checkbox" id="conn-see-through">
                 <label for="conn-see-through" style="font-size:11px;cursor:pointer;">👁️ See-through (light & vision pass through)</label>
             </div>
+            <div class="field" style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+                <input type="checkbox" id="conn-one-way" @change=${(e) => VW._onConnOneWayChange(e.target.checked)}>
+                <label for="conn-one-way" style="font-size:11px;cursor:pointer;">➡️ One-way (Area A → B only)</label>
+            </div>
+            <div class="section-hint" id="conn-one-way-hint" style="display:none;font-size:9px;color:var(--text-muted);margin:-2px 0 0 24px;">The return edges are still drawn but movement refuses them, so the way shows in B as an exit and cannot be taken.</div>
         </div>
         <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;">
             <label style="font-weight:600;">🏷️ Tags</label>
@@ -574,6 +598,8 @@ const CreateModal = {
                 room2: document.getElementById('conn-roomB')?.value,
                 dir1: document.getElementById('conn-dir1')?.value,
                 dir2: document.getElementById('conn-dir2')?.value,
+                name: document.getElementById('conn-name')?.value?.trim() || '',
+                one_way: document.getElementById('conn-one-way')?.checked || false,
                 state: document.getElementById('conn-state')?.value || 'open',
                 description: document.getElementById('conn-desc')?.value || '',
                 way_id: document.getElementById('conn-id')?.value || '',

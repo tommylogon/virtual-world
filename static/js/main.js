@@ -201,9 +201,12 @@ function addItemViaGraph() {
 function connectRoomsViaGraph() {
     openCreateModal('connection', async (data) => {
         if (!data.room1 || !data.room2) { toastInfo('Select both rooms'); return; }
+        if (data.room1 === data.room2) { toastInfo('Pick two different areas.'); return; }
         const payload = {
             room1: data.room1, room2: data.room2,
             dir1: data.dir1.trim(), dir2: data.dir2.trim(),
+            name: data.name || '',
+            one_way: data.one_way || false,
             state: data.state || 'open',
             description: data.description || '',
             pass_message: data.pass_message || '',
@@ -469,6 +472,19 @@ VW._onConnRoomChange = function() {
     const hintB = document.getElementById('conn-view-from-b');
     if (hintA && roomA) hintA.placeholder = `What you see from ${roomA} toward ${roomB || 'the other area'}... e.g. "A heavy oak way set into the stone wall"`;
     if (hintB && roomB) hintB.placeholder = `What you see from ${roomB} toward ${roomA || 'the other area'}... e.g. "A warm glow spills from the doorway"`;
+};
+
+// task-376: one-way is a movement guard (engine/movement.py), so the B → A
+// direction field is meaningless while it is on. Disable it and say why,
+// rather than letting a filled-in dir2 silently look like it took effect.
+VW._onConnOneWayChange = function(checked) {
+    const dir2 = document.getElementById('conn-dir2');
+    const hint = document.getElementById('conn-one-way-hint');
+    if (dir2) {
+        dir2.disabled = !!checked;
+        if (checked) dir2.value = '';
+    }
+    if (hint) hint.style.display = checked ? 'block' : 'none';
 };
 
 VW._toggleItemTargetType = function() {

@@ -1512,7 +1512,9 @@ def handle_build_connect_legacy(app):
     way_node = Node(
         id=way_id,
         type='way',
-        name=f"{room1}-{dir1}",
+        # task-376: an authored display name wins; otherwise keep the
+        # historical "{room}-{dir}" so existing callers are unaffected.
+        name=(data.get('name') or '').strip() or f"{room1}-{dir1}",
         properties=way_props
     )
     app.world.graph.add_node(way_node)

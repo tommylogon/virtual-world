@@ -176,9 +176,12 @@ window.GraphEventHandlers = {
         if (fromNode.type === 'area' && toNode.type === 'area') {
             openCreateModal('connection', async (formData) => {
             if (!formData.room1 || !formData.room2) { toastInfo('Select both areas'); return; }
+            if (formData.room1 === formData.room2) { toastInfo('Pick two different areas.'); return; }
             const payload = {
                 room1: formData.room1, room2: formData.room2,
                 dir1: formData.dir1.trim(), dir2: formData.dir2.trim(),
+                name: formData.name || '',
+                one_way: formData.one_way || false,
                 state: formData.state || (formData.locked ? 'locked' : 'open'),
                 description: formData.description || `A ${formData.locked ? 'locked' : ''} way`.trim(),
                 way_id: formData.way_id || '',
