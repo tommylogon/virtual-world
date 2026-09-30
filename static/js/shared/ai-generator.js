@@ -37,6 +37,10 @@ const AIGenerator = {
     async generate(userPrompt, systemMessage, options = {}) {
         const temp = options.temperature ?? 0.8;
         const fallback = options.fallback || null;
+        // Every exchange is named (task-593). Without a label the inspector falls
+        // back to a derived placeholder, which is traceable but not a name — and a
+        // caller that knows what it is asking for should say so.
+        const label = options.label || 'ai-generator/generate';
 
         if (!userPrompt) return { success: false, data: null, raw: '', error: 'No prompt provided' };
         if (!this.isConfigured()) return { success: false, data: null, raw: '', error: 'AI not configured' };
@@ -50,6 +54,7 @@ const AIGenerator = {
                 { role: 'user', content: userPrompt }
             ], {
                 temperature: temp,
+                label,
                 // json_object tier: dynamic/recursive shapes can't be a closed
                 // schema, but guaranteed-valid JSON already removes the parse
                 // failures. The client strips this when disabled/unsupported.
@@ -113,6 +118,10 @@ const AIGenerator = {
                 temperature: 0,
                 // json_object tier: keep whatever the primary call used — the
                 // client already strips this when the provider rejects it.
+                // Distinct from the generate label: this is the *second* call of
+                // a repair pair, and an inspector full of generate entries cannot
+                // say which half produced the JSON being read (task-593).
+                label: 'ai-generator/repair',
                 responseFormat: window.StructuredFormats?.jsonObject || null
             });
             if (!repaired) return null;

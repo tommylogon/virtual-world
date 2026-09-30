@@ -168,7 +168,7 @@ window.SettingsView = (() => {
         btn.textContent = '⏳ Testing...';
         resultEl.classList.remove('visible', 'success', 'error');
         try {
-            var resp = await llmClient.chat([{ role: 'user', content: 'Say "ok"' }], { max_tokens: 1, temperature: 0 });
+            var resp = await llmClient.chat([{ role: 'user', content: 'Say "ok"' }], { max_tokens: 16, temperature: 0, label: 'settings/test-connection' });
             if (resp) {
                 btn.classList.remove('testing');
                 btn.classList.add('success');

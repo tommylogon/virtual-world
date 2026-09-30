@@ -651,8 +651,10 @@ window.InspectorHelpers = (() => {
      * extraction, node update + refresh + re-render, and error handling.
      *
      * @param {string} nodeId - Graph node ID
-     * @param {object} spec - { btnId, system, buildPrompt, apply }
+     * @param {object} spec - { btnId, id, system, buildPrompt, apply }
      *   - btnId: id of the Improve button to disable while running
+     *   - id: a short name for the node kind ('way' | 'item' | 'area'), used to
+     *     label the LLM exchange so the inspector says which Improve was pressed
      *   - system: system prompt string for the LLM
      *   - buildPrompt(node, lockedFields): returns the user prompt string
      *   - apply(parsed, node, lockedFields, update): mutate `update` with
@@ -675,7 +677,7 @@ window.InspectorHelpers = (() => {
             const resp = await llmClient.chat([
                 { role: 'system', content: spec.system },
                 { role: 'user', content: spec.buildPrompt(node, lockedFields) }
-            ], { temperature: 0.7, responseFormat: window.StructuredFormats?.jsonObject });
+            ], { temperature: 0.7, responseFormat: window.StructuredFormats?.jsonObject, label: `inspector/edit-${spec.id || 'node'}` });
             if (!resp) { toastError('No response from LLM.'); return; }
 
             let cleaned = resp.trim();

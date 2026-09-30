@@ -41,7 +41,7 @@ window.ObjectResponder = (() => {
       if (!config.apiKey || !config.model) return null;
       const resp = await llmClient.chat(
         [{ role: 'system', content: system }, { role: 'user', content: user }],
-        { temperature: 0.9, max_tokens: Math.min(160, maxWords * 3) }
+        { temperature: 0.9, max_tokens: Math.min(160, maxWords * 3), label: 'object-responder' }
       );
       const line = (resp || '').trim().replace(/^["'\s]+|["'\s]+$/g, '');
       return line || null;

@@ -875,7 +875,7 @@ OUTPUT FORMAT: Respond with ONLY raw JSON. No markdown, no code fences, just JSO
             if (Object.keys(propUpdate).length > 0) update.properties = propUpdate;
         };
 
-        await InspectorHelpers.improveWithAI(nodeId, { btnId: 'improve-item-btn', system, buildPrompt, apply });
+        await InspectorHelpers.improveWithAI(nodeId, { btnId: 'improve-item-btn', id: 'item', system, buildPrompt, apply });
     };
 
     return IV;

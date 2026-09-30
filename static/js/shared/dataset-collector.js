@@ -120,6 +120,36 @@ window.DatasetCollector = (() => {
     }
 
     /**
+     * The best available name for an exchange that arrived without one
+     * (task-593). Ordered by how much it actually tells you:
+     *
+     * 1. the caller's own `label` — the real answer, and what the call sites now
+     *    pass;
+     * 2. the model's name, so two providers are at least distinguishable;
+     * 3. a shape-derived summary of the request, so a call site that forgets to
+     *    label itself is still traceable to *what it asked* rather than becoming
+     *    one more row of noise.
+     *
+     * It deliberately never returns the bare string 'LLM': that name carries no
+     * information and its presence is indistinguishable from a capture that
+     * failed, which is exactly the confusion this function exists to remove.
+     */
+    function _deriveLabel(x) {
+        if (x && x.label) return String(x.label);
+        const model = (x && x.model) || (typeof llmClient !== 'undefined' && llmClient.model) || '';
+        const body = (x && x.requestBody) || {};
+        const shape = (() => {
+            try {
+                if (body.withTools || body.tools) return 'tools';
+                if (body.stream) return 'streamed';
+                if (body.response_format || body.responseFormat) return 'structured';
+                return 'chat';
+            } catch (e) { return 'chat'; }
+        })();
+        return model ? `unlabelled/${model}/${shape}` : `unlabelled/${shape}`;
+    }
+
+    /**
      * Persist a full exchange. Fire-and-forget; never throws, never blocks the
      * game loop. Only records when the `showRawLLM` opt-in is enabled.
      * @param {Object} x - { label, model, url, requestHeaders, requestBody,
@@ -132,7 +162,16 @@ window.DatasetCollector = (() => {
             const entry = {
                 key: _nextRawKey(),
                 ts: Date.now(),
-                label: x.label || 'LLM',
+                // An exchange with no label is **identified, not anonymous**
+                // (task-593). The old fallback was the constant 'LLM', which is
+                // what made eleven of seventeen call sites indistinguishable: the
+                // inspector filled with identical entries and read as broken, when
+                // the capture had in fact worked. Deriving from the request's own
+                // `label` argument, and then from the messages' shape, means a
+                // future call site that forgets to label itself still says where
+                // it came from — and is visibly *missing* a name rather than
+                // silently pretending to be the whole system.
+                label: _deriveLabel(x),
                 model: x.model || (typeof llmClient !== 'undefined' && llmClient.model) || '',
                 request: {
                     url: x.url || '',

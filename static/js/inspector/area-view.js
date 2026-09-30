@@ -622,7 +622,7 @@ Improve this area's description and environment settings. Make the description m
             if (Object.keys(propUpdate).length > 0) update.properties = propUpdate;
         };
 
-        await InspectorHelpers.improveWithAI(nodeId, { btnId: 'improve-area-btn', system, buildPrompt, apply });
+        await InspectorHelpers.improveWithAI(nodeId, { btnId: 'improve-area-btn', id: 'area', system, buildPrompt, apply });
     };
 
     RV._refreshFromLibrary = async function(nodeId) {

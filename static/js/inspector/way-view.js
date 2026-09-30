@@ -989,7 +989,7 @@ OUTPUT FORMAT: Respond with ONLY raw JSON. No markdown, no code fences, just JSO
             if (Object.keys(propUpdate).length > 0) update.properties = propUpdate;
         };
 
-        await InspectorHelpers.improveWithAI(nodeId, { btnId: 'improve-way-btn', system, buildPrompt, apply });
+        await InspectorHelpers.improveWithAI(nodeId, { btnId: 'improve-way-btn', id: 'way', system, buildPrompt, apply });
     };
 
     // Register the template-sync pattern for ways.

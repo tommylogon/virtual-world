@@ -8,8 +8,8 @@
  * @docs docs/virtualWorld/UI & Settings/Inspector Panels.md
  * Extracted from inspector.js for modularity.
  * Tabs: Inventory (paperdoll on top + gear below), Bio (personality, appearance,
- * stats/skills/traits, relationships, memories), Advanced (behaviors,
- * timeline, save/export).
+ * stats/skills/traits, interest + fear tags, relationships, memories), Advanced
+ * (graph physics, behaviors, timeline, save/export).
  */
 window.InspectorAgentView = (() => {
     const AV = {};
@@ -83,9 +83,6 @@ window.InspectorAgentView = (() => {
             html += window.InspectorHelpers.renderExpressionSection(characterNode[0], characterNode[1].properties || {});
         }
         html += AV._renderStatusRow(agentName, player, color, isAuto, escName);
-        if (characterNode) {
-            html += AV._deferredGravityControl(characterNode[0], characterNode[1].properties || {});
-        }
         html += AV._renderEmotionSelector(agentName, player, escName);
         html += AV._renderVitals(player, agentName);
 
@@ -155,6 +152,20 @@ window.InspectorAgentView = (() => {
             });
         }
 
+        // Initialize TagMultiselect for fear tags
+        const fearTagContainer = document.getElementById(`fear-tag-multiselect-agent-${escName}`);
+        if (fearTagContainer && typeof TagMultiselect !== 'undefined') {
+            new TagMultiselect(fearTagContainer, {
+                tags: Array.isArray(player.fear_tags) ? player.fear_tags : [],
+                appliesTo: 'characters',
+                allowNew: true,
+                placeholder: 'e.g. goblin, the dark, magic...',
+                onChange: (newTags) => {
+                    ApiClient.updateCharacter(agentName, { fear_tags: newTags }).then(() => worldState.fetch());
+                }
+            });
+        }
+
         // Initialize Tippy tooltips
         if (typeof tippy !== 'undefined') {
             try {
@@ -183,13 +194,15 @@ window.InspectorAgentView = (() => {
      * graphGravityControl returns a lit TemplateResult (not a string), so it
      * can't be string-concatenated into the agent view HTML. We defer the lit
      * render until after the panel render and inject it into a placeholder div.
+     * Lives inside the Advanced tab pane; the pane is hidden with display:none
+     * rather than removed, so the deferred render still finds its container.
      * @param {string} nodeId - Graph node ID
      * @param {object} props - Node properties
      * @returns {string} Placeholder HTML (filled in by _runDeferredRenders)
      */
-    AV._deferredGravityControl = function(nodeId, props = {}, idSuffix = '') {
+    AV._deferredGravityControl = function(nodeId, props = {}) {
         const cleanId = String(nodeId ?? 'node').replace(/[^a-zA-Z0-9_-]/g, '_');
-        const containerId = `agent-gravity-${cleanId}${idSuffix ? '-' + idSuffix : ''}`;
+        const containerId = `agent-gravity-${cleanId}`;
         _deferRender(() => {
             const container = document.getElementById(containerId);
             if (container && window.Lit) {
@@ -830,7 +843,17 @@ window.InspectorAgentView = (() => {
         html += `<div class="inspector-section"><h3>✨ Interest Tags</h3>
             <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Items matching these surface in the agent's prompt. Examine/take removes them from attention.</div>
             <div id="interest-tag-multiselect-agent-${escName}"></div>
-            <button class="btn btn-sm" onclick="InspectorAgentView._generateInterestTags('${escName}')" style="font-size:10px;padding:2px 10px;margin-top:4px;" title="Ask the character's LLM to pick interest tags from the full system tag list (response: JSON CSV list)">✨ Generate from Personality</button>
+            <button class="btn btn-sm" onclick="InspectorAgentView._generateInterestTags('${escName}')" style="font-size:10px;padding:2px 10px;margin-top:4px;" title="Ask the character's LLM to pick interest tags. It is shown the tags already in this world and the tags the library holds that the world has not used yet, and may create new ids. Your hand-placed tags are kept — picks are added.">✨ Generate from Personality</button>
+        </div>`;
+
+        // Fear tags — same id vocabulary, opposite meaning. engine/fear.py
+        // applies `frightened` when a co-located character, item, or area
+        // presents one of these tags, so this is how a guard and a farmer end
+        // up afraid of different things without a global "hostile" flag.
+        html += `<div class="inspector-section"><h3>😨 Fear Tags</h3>
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Meeting a co-located character, item, or area carrying any of these tags makes this character <code>frightened</code>. Leave empty for a character nothing unsettles.</div>
+            <div id="fear-tag-multiselect-agent-${escName}"></div>
+            <button class="btn btn-sm" onclick="InspectorAgentView._generateFearTags('${escName}')" style="font-size:10px;padding:2px 10px;margin-top:4px;" title="Ask the character's LLM to pick fear tags. It is shown the tags already in this world and the tags the library holds that the world has not used yet, and may create new ids — but a fear only fires on something that actually carries the tag. Your hand-placed tags are kept — picks are added.">😨 Generate from Personality</button>
         </div>`;
 
         // Crafting (task-2): recipes this character knows + craft buttons
@@ -1039,9 +1062,13 @@ window.InspectorAgentView = (() => {
         const showTab = (tabName) => _activeTab === tabName ? '' : 'display:none;';
         let html = `<div data-tab="Advanced" style="${showTab('Advanced')}">`;
 
-        // NOTE: the graph-physics gravity control is NOT repeated here — it is
-        // rendered once in the header (see the main render). It was duplicated
-        // here historically; commit 66209430 only fixed the colliding IDs.
+        // Graph physics — the character's own layout/physics overrides. Lives
+        // here rather than in the header: it is a tuning setting, not part of
+        // who the character is. Rendered once, via the deferred helper, because
+        // graphGravityControl returns a lit TemplateResult.
+        if (characterNode) {
+            html += AV._deferredGravityControl(characterNode[0], characterNode[1].properties || {});
+        }
 
         // Behaviors
         if (player.simple_npc && Array.isArray(player.behaviors)) {
@@ -1314,7 +1341,7 @@ window.InspectorAgentView = (() => {
             const resp = await llmClient.chat([
                 { role: 'system', content: system },
                 { role: 'user', content: prompt }
-            ], { temperature: 0.9, responseFormat: window.StructuredFormats?.personality });
+                ], { temperature: 0.9, responseFormat: window.StructuredFormats?.personality, label: 'inspector/generate-personality' });
             if (!resp) { toastError('No response from LLM.'); return; }
 
             let cleaned = resp.trim();
@@ -1383,7 +1410,7 @@ window.InspectorAgentView = (() => {
                     + '(she/he/they + her/his/their). Subject-verb agreement must be exact.\n'
                     + 'Output ONLY the corrected description — no commentary.\n\n'
                     + text }
-            ], { temperature: 0.4 });
+                ], { temperature: 0.4, label: 'inspector/appearance-repair' });
             const fixed = (repair || '').trim();
             if (fixed && AV._appearanceGrammarIssues(fixed).length === 0) return fixed;
             return null;
@@ -1438,7 +1465,7 @@ window.InspectorAgentView = (() => {
         try {
             const response = await llmClient.chat([
                 { role: 'user', content: prompt }
-            ], { temperature: 0.7 });
+                ], { temperature: 0.7, label: 'inspector/generate-appearance' });
 
             if (response && response.trim()) {
                 // task-345: the stored description feeds EVERY prompt forever
@@ -1589,37 +1616,226 @@ window.InspectorAgentView = (() => {
     };
 
     /**
-     * LLM interest-tag generator (task-325): build the inventory of ALL tags
-     * in use across the item library, ask the character (personality +
-     * appearance as context) which ones they're interested in, and set
-     * interest_tags. The model must respond with a JSON CSV list.
-     * @param {string} charName - Character name
+     * Union generated picks into the tags a human already placed by hand.
+     *
+     * The generators ADD, they never overwrite: a tag someone typed into the
+     * multiselect is authoring and the LLM has no way to know it mattered.
+     * Existing entries keep their position and their spelling; only genuinely
+     * new ids are appended, matched case-insensitively because the engine's
+     * tag matcher (`engine/fear.py::_normalise`, the interest equivalent)
+     * lowercases anyway. Pure so the mechanism is unit-testable.
+     *
+     * @param {Array} existing - Tags currently on the character
+     * @param {Array} picked - Tags the LLM chose, already validated
+     * @returns {Array} Existing tags plus the new ones, no duplicates
      */
-    AV._generateInterestTags = async function(charName) {
+    AV._mergeGeneratedTags = function(existing, picked) {
+        const merged = [];
+        const seen = new Set();
+        for (const tag of [...(Array.isArray(existing) ? existing : []), ...(Array.isArray(picked) ? picked : [])]) {
+            const text = String(tag ?? '').trim();
+            const key = text.toLowerCase();
+            if (!key || seen.has(key)) continue;
+            seen.add(key);
+            merged.push(text);
+        }
+        return merged;
+    };
+
+    /**
+     * Fold a model-supplied tag into a usable id.
+     *
+     * A tag the vocabulary already knows is returned UNCHANGED. That matters:
+     * the real data contains ids outside [a-z0-9_-] — `faction:goblin`,
+     * `held_by:goblin`, `taco bell` — and an earlier version rewrote them to
+     * `faction-goblin`, offering the model ids that cannot match anything while
+     * claiming they were in use. Reshaping is only safe for ids we invented.
+     * @param {*} tag - Raw tag from the model
+     * @param {Set<string>} [known] - Ids that already exist; passed through as-is
+     * @returns {string} Normalized id, or '' if nothing usable was left
+     */
+    AV._normalizeGeneratedTag = function(tag, known) {
+        const text = String(tag ?? '').trim().toLowerCase();
+        if (!text) return '';
+        if (known && known.has(text)) return text;
+        return text.replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
+    };
+
+    /**
+     * Singular forms to try when a model returns a plural.
+     *
+     * Strictly plural inflection, no fuzzy guessing: `tools` -> `tool`,
+     * `weapons` -> `weapon`, `mechanisms` -> `mechanism`, `bodies` -> `body`.
+     * A caller accepts a form only when that form exists in the vocabulary, so
+     * an id with no singular (`wanderer`, `squire`) yields no candidate and
+     * cannot be mangled. This is deliberately NOT difflib — the existing
+     * `/api/tags/validate` matcher at cutoff 0.6 suggests `wanderer ->
+     * underwear` and `fear -> footwear`, which is worse than no suggestion.
+     * @param {string} id
+     * @returns {string[]} Candidate singulars, most likely first
+     */
+    AV._singularVariants = function(id) {
+        const out = [];
+        if (id.endsWith('ies')) out.push(`${id.slice(0, -3)}y`);
+        if (id.endsWith('es')) out.push(id.slice(0, -2));
+        if (id.endsWith('s') && !id.endsWith('ss')) out.push(id.slice(0, -1));
+        return out;
+    };
+
+    /**
+     * Ground one free-text concept from the model onto real tag ids.
+     *
+     * The model is asked for short noun phrases ("worn iron tools"), because a
+     * bare id it invents is as likely to be `iron_tools` as `tool`. Resolution
+     * therefore tries the whole phrase first, then each word and each word's
+     * singular — so "a goblin chief" yields both ids rather than only the first.
+     *
+     * Deliberately no fuzzy fallback. When nothing real matches, the head noun
+     * is kept as a new id and the caller reports it as carrying nothing, which
+     * is a far better outcome than the alternative the repo already has:
+     * `/api/tags/validate` at cutoff 0.6 suggests `wanderer -> underwear` and
+     * `fear -> footwear`, silently substituting a worse tag than the one it
+     * rejected.
+     *
+     * @param {string} concept - What the model said
+     * @param {object} vocab - {live, library, known} id collections
+     * @returns {Array<{id: string, status: 'live'|'library'|'new', via: string}>}
+     */
+    AV._resolveConcept = function(concept, vocab) {
+        const words = String(concept ?? '').trim().toLowerCase().split(/[\s/]+/).filter(Boolean);
+        if (!words.length) return [];
+        const found = [];
+        // A candidate only ever becomes a tag if it is a REAL id, directly or
+        // through its singular. Unmatched words are not tags: letting them be
+        // would turn "worn iron tools" into `worn`, `iron` and `tools` as well.
+        const push = (candidate) => {
+            const id = AV._normalizeGeneratedTag(candidate, vocab.known);
+            if (!id) return null;
+            if (vocab.live.has(id)) return { id, status: 'live' };
+            if (vocab.library.has(id)) return { id, status: 'library' };
+            for (const form of AV._singularVariants(id)) {
+                const singular = AV._normalizeGeneratedTag(form, vocab.known);
+                if (vocab.live.has(singular)) return { id: singular, status: 'live' };
+                if (vocab.library.has(singular)) return { id: singular, status: 'library' };
+            }
+            return null;
+        };
+        const add = (hit) => {
+            if (hit && !found.some(f => f.id === hit.id)) found.push({ ...hit, via: concept });
+        };
+        add(push(words.join('-')));
+        for (const word of words) add(push(word));
+        if (found.length) return found;
+        // Nothing real anywhere: keep the head noun so the idea is not lost, and
+        // let the caller report it as carrying nothing.
+        const head = AV._normalizeGeneratedTag(words[words.length - 1], vocab.known);
+        return head ? [{ id: head, status: 'new', via: concept }] : [];
+    };
+
+    /**
+     * Gather the tag vocabulary, as lookup sets rather than as prompt material.
+     *
+     * Nothing here is ever shown to the model. The ids used to be pasted into
+     * the prompt as a 660-entry menu, which cost more tokens than the character
+     * description and invited the model to pick ids by resemblance to the menu
+     * instead of by what the character would want. Grounding is a local string
+     * operation, so the vocabulary belongs on this side of the boundary.
+     *
+     *   live     — what a tag is matched against for the field being generated
+     *              (items for interests, anything present for fears)
+     *   library  — the curated tag registry: a real id, but nothing carries it
+     *   known    — union of the above; ids passed through normalization intact
+     *
+     * Reads only. It never POSTs to /api/library/tags, which is an upsert by id
+     * (see write_library_entry) and would overwrite a curated entry's
+     * description/colour/icon with the generic auto-generated blob.
+     *
+     * @returns {Promise<{live: Set, library: Set, known: Set}>}
+     */
+    AV._collectTagVocabulary = async function() {
+        const live = new Set();
+        const library = new Set();
+        const add = (set, tag) => {
+            const text = String(tag ?? '').trim().toLowerCase();
+            if (text) set.add(text);
+        };
+        // Everything present right now: character tags, trait keys (a fear
+        // source is usually a person), and every node's own tags.
+        for (const p of Object.values(worldState.players || {})) {
+            for (const t of (p.tags || [])) add(live, t);
+            for (const key of Object.keys(p.traits || {})) add(live, key);
+        }
+        for (const n of Object.values(worldState.data?.graph?.nodes || {})) {
+            for (const t of (n.properties?.tags || [])) add(live, t);
+        }
+        try {
+            const tags = await (await fetch('/api/tags/search')).json();
+            for (const t of (Array.isArray(tags) ? tags : (tags?.tags || []))) add(library, t?.id ?? t);
+        } catch (e) { /* grounding still works, everything reads as new */ }
+        for (const t of live) library.delete(t);
+        return { live, library, known: new Set([...live, ...library]) };
+    };
+
+    /**
+     * Item tags, which are what `interest_tags` is actually matched against.
+     * Kept separate from the "live" set above because a character tag is live
+     * for a fear and useless for an interest.
+     *
+     * `/api/library/items` answers with an id-keyed OBJECT, not a list — the
+     * previous generator read it as an array, silently got nothing back, and
+     * fell through to its graph-node fallback, which is why the "library"
+     * vocabulary it showed was never the library at all.
+     * @returns {Promise<Set<string>>}
+     */
+    AV._collectItemTags = async function() {
+        const set = new Set();
+        try {
+            const payload = await (await fetch('/api/library/items')).json();
+            const entries = Array.isArray(payload) ? payload : Object.values(payload || {});
+            for (const item of entries) {
+                for (const t of (item?.tags || [])) {
+                    const text = String(t).trim().toLowerCase();
+                    if (text) set.add(text);
+                }
+            }
+        } catch (e) { /* grounding degrades to 'new', nothing breaks */ }
+        return set;
+    };
+
+    /**
+     * Ask the character (personality + appearance as context) which tags suit
+     * them, and write the picks to *field* on the character.
+     *
+     * Shared by the interest and fear generators; only the instruction line
+     * differs. The model is shown the world and library vocabularies and is
+     * explicitly allowed to invent ids outside them, so its picks are NOT
+     * filtered against the vocabulary — only normalized and capped. The picks
+     * are then unioned into whatever is already on the character (see
+     * _mergeGeneratedTags), never replacing hand-placed tags.
+     *
+     * @param {object} opts
+     * @param {string} opts.charName - Character name
+     * @param {string} opts.field - Player field to write ('interest_tags' | 'fear_tags')
+     * @param {{world: string[], library: string[]}} opts.vocabulary - Ids to suggest
+     * @param {string} opts.ask - The instruction line describing what to pick
+     * @param {string} opts.contextNote - What the ids are matched AGAINST. Not
+     *   optional: without it the model has no idea what its picks will be tested
+     *   against and answers from the personality prose instead of the mechanic.
+     * @param {'world'|'library'} [opts.listOrder] - Which vocabulary to show first
+     * @param {string} opts.toastPrefix - Prefix for the success/warning toasts
+     * @param {number} opts.limit - Max tags to accept from the model
+     * @returns {Promise<void>}
+     */
+    AV._generateTagsFromPersonality = async function({ charName, field, vocab, ask, contextNote, toastPrefix, limit }) {
         const player = worldState.players?.[charName];
         if (!player || !AIGenerator.isConfigured()) return;
-        let tagList = [];
-        try {
-            const resp = await fetch('/api/library/items');
-            const items = await resp.json();
-            const seen = new Set();
-            for (const item of Array.isArray(items) ? items : (items.items || [])) {
-                for (const t of (item.tags || [])) seen.add(String(t).trim().toLowerCase());
-            }
-            tagList = [...seen].sort();
-        } catch (e) { /* fall back to graph tags below */ }
-        if (!tagList.length) {
-            const nodes = worldState.data?.graph?.nodes || {};
-            const seen = new Set();
-            for (const n of Object.values(nodes)) {
-                for (const t of (n.properties?.tags || [])) seen.add(String(t).trim().toLowerCase());
-            }
-            tagList = [...seen].sort();
-        }
-        if (!tagList.length) { toastError('No tags found in the library.'); return; }
 
         const personality = player.personality || '';
         const appearance = (player.description || player.base_description || '').slice(0, 600);
+        // No tag menu. The model is given the character and the mechanic and
+        // asked what kinds of things this person would care about, in its own
+        // words. Grounding to real ids is a local operation (see _resolveConcept)
+        // and does not need the model to see a 660-entry list to do it.
         const prompt = `You are ${charName}. Here is who you are:
 
 PERSONALITY
@@ -1628,14 +1844,16 @@ ${personality || '(none)'}
 APPEARANCE
 ${appearance}
 
-Below is the FULL list of tags used in this world (items your kind of person might care about). Pick up to 12 that genuinely fit your character — things you'd notice, want, wear, collect, or use.
+${contextNote}
 
-TAGS: ${tagList.join(', ')}
+${ask}
 
-Respond with ONLY a JSON object: {"tags": ["magic","books","jewelry"]} — the tags you picked, exactly as spelled above.`;
+Name at most ${limit} of them as short, plain noun phrases - one or two words each, the everyday word for the thing ("iron tools", "coarse bread", "a good blade"), not a long compound id. Return only what you are genuinely confident about; a short list is much better than a padded one.
+
+Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
 
         try {
-            const response = await llmClient.chat([{ role: 'user', content: prompt }], { temperature: 0.5, responseFormat: window.StructuredFormats?.tags });
+            const response = await llmClient.chat([{ role: 'user', content: prompt }], { temperature: 0.5, responseFormat: window.StructuredFormats?.tags, label: field === 'fear_tags' ? 'inspector/generate-fear-tags' : 'inspector/generate-interest-tags' });
             const text = String(response || '').trim();
             // Structured output returns {"tags":[...]}; the old raw-array
             // contract stays accepted for the plain-prompt fallback path.
@@ -1644,24 +1862,100 @@ Respond with ONLY a JSON object: {"tags": ["magic","books","jewelry"]} — the t
                 const parsed = JSON.parse(text);
                 parsedList = Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.tags) ? parsed.tags : null);
             } catch (e) { /* fall through to regex extraction */ }
-            let picked = parsedList;
-            if (!picked) {
+            let concepts = parsedList;
+            if (!concepts) {
                 const match = text.match(/\[[^\]]*\]/);
                 if (!match) { toastError('The character returned no tag list.'); return; }
-                try { picked = JSON.parse(match[0]); } catch (e) {
-                    picked = match[0].replace(/[\[\]"']/g, '').split(',').map(s => s.trim()).filter(Boolean);
+                try { concepts = JSON.parse(match[0]); } catch (e) {
+                    concepts = match[0].replace(/[\[\]"']/g, '').split(',').map(s => s.trim()).filter(Boolean);
                 }
             }
-            const valid = new Set(tagList.map(t => t.toLowerCase()));
-            const cleaned = [...new Set(picked.map(String).map(s => s.trim()).filter(s => valid.has(s.toLowerCase())))].slice(0, 12);
-            if (!cleaned.length) { toastWarning('None of the picked tags exist in the system.'); return; }
-            await ApiClient.updateCharacter(charName, { interest_tags: cleaned });
-            toastSuccess(`Interest tags: ${cleaned.join(', ')}`);
+
+            // Ground each concept. One concept can name several real things
+            // ("a goblin chief"), and the strongest match wins if the same id
+            // arrives twice.
+            const resolved = [];
+            for (const concept of concepts) {
+                for (const hit of AV._resolveConcept(concept, vocab)) {
+                    const seen = resolved.find(r => r.id === hit.id);
+                    if (seen) { if (hit.status === 'live') seen.status = 'live'; continue; }
+                    resolved.push(hit);
+                }
+            }
+            const chosen = resolved.slice(0, limit);
+            if (!chosen.length) { toastWarning('The character returned no usable tags.'); return; }
+
+            const existing = Array.isArray(player[field]) ? player[field] : [];
+            const merged = AV._mergeGeneratedTags(existing, chosen.map(c => c.id));
+            const added = chosen.filter(c => !existing.some(e => String(e).toLowerCase() === c.id.toLowerCase()));
+            await ApiClient.updateCharacter(charName, { [field]: merged });
+
+            // Report what will actually work. A tag nothing carries is
+            // indistinguishable from a live one in the multiselect, so the
+            // split is stated at the moment it is created rather than left to
+            // be discovered.
+            const live = added.filter(c => c.status === 'live').map(c => c.id);
+            const idle = added.filter(c => c.status !== 'live').map(c => c.id);
+            const kept = merged.length - added.length;
+            const parts = [`${toastPrefix}: ${added.map(c => c.id).join(', ')}`];
+            if (live.length) parts.push(`${live.length} ${live.length === 1 ? 'matches' : 'match'} something here`);
+            if (idle.length) parts.push(`${idle.length} nothing carries yet: ${idle.join(', ')}`);
+            if (kept) parts.push(`${kept} kept`);
+            toastSuccess(parts.join(' · '));
             await worldState.fetch();
             if (window.VW?.inspector?.showAgent) VW.inspector.showAgent(charName);
         } catch (e) {
-            toastError('Interest-tag generation failed: ' + e.message);
+            toastError(`${toastPrefix} generation failed: ${e.message}`);
         }
+    };
+
+    /**
+     * LLM interest-tag generator (task-325). interest_tags is matched against
+     * items only — the room attention list scores an item by exact tag match or
+     * by the tag appearing in the item's name (room-context.js:305-307), and
+     * auto-dress scans item tags (dressing.py:62). So "live" for this field
+     * means an item carries the id, which is why it collects item tags rather
+     * than the world's. Picks are unioned into hand-placed tags.
+     * @param {string} charName - Character name
+     */
+    AV._generateInterestTags = async function(charName) {
+        const items = await AV._collectItemTags();
+        const base = await AV._collectTagVocabulary();
+        const vocab = { live: items, library: base.library, known: new Set([...items, ...base.live, ...base.library]) };
+        await AV._generateTagsFromPersonality({
+            charName,
+            field: 'interest_tags',
+            vocab,
+            // The whole point of the note: the field has exactly one kind of
+            // consumer, and it is items. A mood or a self-description cannot
+            // reach it however well it describes the person — "wary", "lonely",
+            // "desperation" are not things a character is interested in.
+            contextNote: 'IMPORTANT — what an interest is matched against: it surfaces a thing only when some ITEM carries that id as a tag, or has that word in its name. So name categories of STUFF this character would seek out or notice — materials, tools, food, drink, weapons, clothing, valuables, trade goods. Do NOT name feelings or descriptions of the person.',
+            ask: 'Given who they are, what kinds of things would this character actually be drawn to?',
+            toastPrefix: 'Interest tags',
+            limit: 8
+        });
+    };
+
+    /**
+     * LLM fear-tag generator. fear_tags is matched against characters, areas and
+     * held items (engine/fear.py::character_tags unions `tags`, trait keys and
+     * the graph node's tags), so here "live" genuinely means the world
+     * vocabulary — a character tag is exactly what this field wants, unlike an
+     * interest. Picks are unioned into hand-placed tags.
+     * @param {string} charName - Character name
+     */
+    AV._generateFearTags = async function(charName) {
+        const vocab = await AV._collectTagVocabulary();
+        await AV._generateTagsFromPersonality({
+            charName,
+            field: 'fear_tags',
+            vocab,
+            contextNote: 'IMPORTANT — what a fear is matched against: it bites when a co-located CHARACTER presents that id (their tags, or their traits), when the AREA they stand in carries it, or when an item held there carries it. So name kinds of person, creature or place rather than feelings. If nothing would genuinely frighten this character, say so with an empty list.',
+            ask: 'Given who they are, what would frighten this character specifically? Not what they dislike or find tedious.',
+            toastPrefix: 'Fear tags',
+            limit: 8
+        });
     };
 
     /**
