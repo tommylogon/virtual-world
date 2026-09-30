@@ -20,9 +20,15 @@ class ConfigManager {
     }
 
     async _loadFromStorage() {
-        this.apiKey = await storage.getConfig('api_key') || '';
-        this.apiBase = await storage.getConfig('api_base') || 'https://api.openai.com/v1';
-        this.model = await storage.getConfig('model') || 'gpt-4.1-mini';
+        // First-run defaults are LM Studio (local), not OpenAI: this app runs
+        // against a local server with no API key, so defaulting to
+        // api.openai.com with an empty key produced a dead "Generate" on a
+        // fresh profile. LM Studio speaks the OpenAI wire format, so the
+        // `provider` field stays 'openai' (llm-client keys its structured-
+        // output quirks off that); only the endpoint/key/model differ.
+        this.apiKey = await storage.getConfig('api_key') || 'not-needed';
+        this.apiBase = await storage.getConfig('api_base') || 'http://localhost:1234/v1';
+        this.model = await storage.getConfig('model') || 'qwen/qwen3.5-9b';
         this.provider = await storage.getConfig('provider') || 'openai';
         this.temperature = await storage.getConfig('temperature') || '0.7';
         this.maxTokens = parseInt(await storage.getConfig('max_tokens')) || 512;
@@ -31,9 +37,8 @@ class ConfigManager {
         this.streaming = (await storage.getConfig('streaming')) === 'true';
         this.turnBased = (await storage.getConfig('turn_based')) === 'true';
         this.turnOrder = await storage.getConfig('turn_order') || 'sequential';
-        this.tickInterval = parseInt(await storage.getConfig('tick_interval')) || 10;
         this.frontendTemplate = await storage.getConfig('frontend_template') || 'index';
-        this.lastProfile = await storage.getConfig('last_profile') || null;
+        this.lastProfile = await storage.getConfig('last_profile') || 'LM Studio (Local)';
         // Reactive mode: true = thought→act→react, false = combined single-step
         this.reactiveMode = (await storage.getConfig('reactive_mode')) !== 'false';
 
@@ -218,7 +223,6 @@ class ConfigManager {
         await storage.setConfig('streaming', this.streaming ? 'true' : 'false');
         await storage.setConfig('turn_based', this.turnBased ? 'true' : 'false');
         await storage.setConfig('turn_order', this.turnOrder);
-        await storage.setConfig('tick_interval', String(this.tickInterval));
         await storage.setConfig('frontend_template', this.frontendTemplate);
         await storage.setConfig('last_profile', this.lastProfile || '');
         await storage.setConfig('reactive_mode', this.reactiveMode ? 'true' : 'false');
@@ -291,9 +295,9 @@ class ConfigManager {
     }
 
     async saveFromForm() {
-        this.apiKey = document.getElementById('api-key-input')?.value.trim() || '';
-        this.apiBase = (document.getElementById('api-base-input')?.value.trim() || document.getElementById('agent-api-base')?.value.trim() || 'https://api.openai.com/v1');
-        this.model = document.getElementById('agent-model')?.value.trim() || 'gpt-4.1-mini';
+        this.apiKey = document.getElementById('api-key-input')?.value.trim() || 'not-needed';
+        this.apiBase = (document.getElementById('api-base-input')?.value.trim() || document.getElementById('agent-api-base')?.value.trim() || 'http://localhost:1234/v1');
+        this.model = document.getElementById('agent-model')?.value.trim() || 'qwen/qwen3.5-9b';
         this.temperature = document.getElementById('agent-temperature')?.value || this.temperature;
         this.maxTokens = parseInt(document.getElementById('max-tokens-input')?.value) || this.maxTokens;
         this.softMaxTokens = parseInt(document.getElementById('soft-max-tokens-input')?.value) || this.softMaxTokens;
@@ -402,9 +406,9 @@ class ConfigManager {
         const profile = await storage.getProfile(name);
         if (!profile) return;
         
-        this.apiKey = profile.apiKey || '';
-        this.apiBase = profile.apiBase || 'https://api.openai.com/v1';
-        this.model = profile.model || 'gpt-4.1-mini';
+        this.apiKey = profile.apiKey || 'not-needed';
+        this.apiBase = profile.apiBase || 'http://localhost:1234/v1';
+        this.model = profile.model || 'qwen/qwen3.5-9b';
         this.streaming = !!profile.streaming;
         this.showLogs = !!profile.showLogs;
         this.turnBased = !!profile.turnBased;
@@ -511,7 +515,7 @@ class ConfigManager {
                 streaming: false, showLogs: false, turnBased: false, turnOrder: 'sequential'
             },
             'LM Studio (Local)': {
-                apiKey: 'not-needed', apiBase: 'http://localhost:1234/v1', model: '',
+                apiKey: 'not-needed', apiBase: 'http://localhost:1234/v1', model: 'qwen/qwen3.5-9b',
                 streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
             },
             // DeepSeek is OpenAI-format compatible; base_url https://api.deepseek.com
