@@ -12,6 +12,11 @@ Humans had none of it: submit → result → turn passes. The old modal's memory
 also dropped by `/api/action` (no memory handling), so human chars never remembered
 anything unless hand-added.
 
+> **Turn-system semantics:** the queue, the human-turn gate, the dash-burst second
+> action slot, and the deliberate always-available command-line override are all
+> documented in `docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md` (task-338).
+> Read that before changing phase timing or turn advancement here.
+
 ## What landed (task-333's "Full redesign implemented", 2026-08-24)
 
 - `static/js/agent/human-turn-composer.js` — react phase state machine:

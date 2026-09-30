@@ -142,6 +142,74 @@ be human-controlled. Each human acts only when their entry comes up;
 agent slots fire automatically via the autopilot interval. Future
 react-phase/digest work (task-334) builds directly on these semantics.
 
+## What the world does while it waits for you (and if you never answer)
+
+The gate is one condition, in `agent-engine.js:459`:
+
+```js
+if (charName && !events.isAutonomous(charName)) {
+    return await this._humanTurn(charName);   // blocks the whole step
+}
+```
+
+`_humanTurn` calls `HumanTurnComposer.request(charName)`
+(`agent-engine.js:319`) and **awaits it**. That pending promise *is* the pause:
+the run loop is suspended mid-step, no ticks fire, no NPC acts, and the header
+keeps showing whatever turn it last reached — typically `Turn: 0`.
+
+- **There is no timeout.** The sim waits indefinitely until the human commits
+  via **Act** (a compose-then-commit, with a confirm screen) or skips with
+  **end turn**. Skipping logs `🔜 <name> passed their turn.` and the queue
+  moves on. Nothing times out and nothing auto-passes.
+- `finally` clears `config.busy` and resets the status line to `Waiting...` /
+  `Idle.` — that `finally` is load-bearing: without it `busy` stays true and
+  every later Step/Run reports "Already running."
+- A successful **dash** grants one extra burst turn
+  (`request(charName, { burst: true, lastResult })`) before the react step.
+- Early exits before the prompt: character missing from state →
+  `⚠️ Human character "<name>" not found.` + `endTurnEarly`; `scenario_ended`
+  → stop, or auto-restart when a trigger set `_restart_requested`.
+
+So `Turn: 0` plus an open modal is the queue working. Take a screenshot before
+calling the loop dead — the frozen header and the waiting modal are the same
+fact, seen from two angles.
+
+## "Next up" — TWO indicators, same source, different breadth
+
+There are two places that answer "whose turn is it", and it is easy to assume
+they are one control with two renderings. They are separate renderings of the
+**same** `AgentEngine` state, and they do not disagree:
+
+1. **Turn modal header** (`agent/human-turn-composer.js:519` `renderMeta()` →
+   `#htc-meta`) renders `tick N · next up: <name>`, or `next up: you` when the
+   current slot is the character the modal is for. Source is
+   `TurnQueue.getCurrentCharacter()` — the **current** slot only — and the line
+   is **gated on `config.turnBased`**: with turn-based mode off, `nextUp` stays
+   `''` and no next-up chip renders at all.
+2. **Event-stream strip** (`event-stream.js:119` `renderQueueStrip()`) renders
+   the `⏭ up next:` row above the stream. Source is
+   `VW.agent.turnQueue` + `VW.agent.currentTurnIndex` (overridable via a
+   `names` argument), and it shows **`queue.slice(idx, idx + 5)`** — the current
+   slot plus the next four, the first emphasised via `.q-next`. A slot counts
+   as human when `!simple_npc && autonomy === false`, rendered as
+   `🎤 YOU (<name>)`. The strip removes itself when the queue is empty.
+3. **The Turn Order panel** (Agents tab, visible in turn-based mode) is the
+   third view: the whole round with per-slot initiative rolls, the sort mode
+   ("Init + DEX"), and a per-slot status — `done` / `ACTING…`.
+
+Measured side by side with a human-controlled slot in the queue, all three
+agreed on the head of the order — the modal read `tick 2 · next up:
+Silver-Talon` while the strip read `⏭ up next: Silver-Talon → Leslie → Tusker →
+Vekka → Gribba`. So the difference is **width and gating**, not meaning: the
+modal names one slot and disappears entirely when turn-based mode is off, the
+strip shows five and marks which are yours, the panel shows the whole round
+with its dice.
+
+Neither reads from the backend — all three are client-side projections of the
+`AgentEngine` queue state. Don't "fix" one into another, and don't read a
+disagreement between them as a bug without checking
+`TurnQueue.getCurrentCharacter()` first.
+
 ## Related
 
 - task-310 random reshuffle · task-322 R5 vital thresholds consumed per

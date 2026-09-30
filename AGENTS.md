@@ -166,6 +166,38 @@ matches). Each looked completely convincing from a screenshot or a DOM read.
 **Before filing a UI finding, name the interaction you performed.** If the
 answer is "I read the markup" or "I took a screenshot", it is not yet
 evidence.
+
+## Turn system — it exists, and "stuck" is usually the gate working
+
+There is a real turn scheduler. Do not build a second one, and do not report
+it as missing.
+
+- State lives **client-side on the AgentEngine instance**:
+  `VW.agent.turnQueue` / `.currentTurnIndex` / `.turnNumber` /
+  `.initiativeRolls`, ordered by `config.turnOrder` — sequential (default),
+  random, or initiative (d20 + DEX). Logic: `static/js/agent/turn-queue.js`.
+  Full chapter: `docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md`.
+- **`Turn: 0` with the human turn modal open is correct, not a hang.** The sim
+  is waiting for a human to commit. An NPC turn needs the human's slot
+  resolved first. This exact reading cost me a session once — screenshot
+  before concluding the loop is dead.
+- Advancing past the last actor is what ends a cycle: `turnNumber++` plus one
+  `ApiClient.applyTurn()`. Ticks and decay run **once per cycle**, never inside
+  individual commands.
+- **The always-available command line / "Speak as guest…" is a deliberate
+  override.** It bypasses the queue and does **not** consume the character's
+  queued slot. Don't "fix" it to respect turns, and don't make the turn panel
+  appear outside the controlled character's slot — both are the design.
+- **Three views answer "whose turn is it"**, all reading the same client-side
+  state: the turn modal header (gated on `config.turnBased`, names only the
+  current slot via `TurnQueue.getCurrentCharacter()`), the event-stream
+  `⏭ up next:` strip (`queue.slice(idx, idx + 5)`, marks your slots `🎤 YOU`),
+  and the Turn Order panel (whole round, rolls, per-slot `done`/`ACTING…`).
+  They agree on the head of the order — measured, not assumed. Don't merge or
+  "fix" one into another.
+- The queue is **runtime-derived**. Do not promote it to persisted authoring
+  data; it is rebuilt by `initialize()`/`reconcile()`.
+
 ## Agent operating rules
 
 ### Before editing

@@ -26,6 +26,13 @@ that still works when a second human joins later.
 
 ## Concept: scene-first panel
 
+> **Turn-system semantics:** the queue, the human-turn gate (and that it has
+> **no timeout** — the sim waits indefinitely for a human), the deliberate
+> always-available command-line override, and the three "whose turn is it"
+> indicators are documented in
+> `docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md` (task-338). The panel
+> must not appear outside the controlled character's queued slot.
+
 Replace the form-first modal with three zones:
 
 ### 1. Scene view (top) — answers "where am I, what/who is here"
