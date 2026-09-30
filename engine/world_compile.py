@@ -1384,15 +1384,17 @@ def preflight(manifest: Dict[str, dict], scope_id: str, *,
     painted = set(biome_of) | set(road_of)
 
     # ── will this be refused? ──
-    if (record.get("paint_policy") == PAINT_POLICY_BAKED
-            and record.get("state") == "materialized"):
-        add("baked", BLOCK,
-            f"“{label}” was made by promoting areas you had already written, so "
-            f"it is authored rather than painted, and Generate has nothing to "
-            f"compile.",
-            "Delete this scope and make a new one with ➕ Add feature… — that "
-            "one starts empty and is paintable. The promoted areas are released "
-            "back to unplaced and keep their names and contents.")
+    # A `baked` scope — one made by promoting areas the author had already
+    # written — is NOT a scope that cannot be compiled. It holds hand-authored
+    # areas *and* it can hold paint, and the two live side by side: the promoted
+    # areas have no painted cell (promotion clears it, because inside the new scope
+    # a position is canvas space), so compiling the painted cells mints areas
+    # beside them and touches none of them. The refusal that used to stand here was
+    # scope-wide, and it was written on the assumption that a promoted scope never
+    # carries paint. It does: an author who promoted a selection and then painted
+    # the rest of the room was told to delete the scope and start again, with 70
+    # painted cells of their own work discarded by the advice. The flag says "the
+    # areas here are yours"; it does not say "nothing here is yours".
     if not painted:
         add("no-paint", BLOCK, f"“{label}” has nothing painted on it.",
             "Pick a layer and drag on the grid. Every painted cell becomes a "
@@ -1518,8 +1520,18 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
     and reports the placements it could not name, rather than minting a way called
     ``to area_whatever``.
 
-    Raises ``ValueError`` when the scope is missing, has no grid, paints no
-    cells, or its ``paint_policy`` is ``baked`` and it is already materialized.
+    Raises ``ValueError`` when the scope is missing, has no grid, or paints no
+    cells.
+
+    **A ``baked`` scope compiles.** The flag means "the areas already in here are
+    yours, not mine" — it came from :func:`world_scopes.promote_to_scope`, where
+    the author handed the compiler a selection of areas they had written. It does
+    **not** mean the scope is closed to paint, and a promoted area holds no painted
+    cell (promotion clears it, because inside the new scope a position is canvas
+    space), so the painted cells compile to areas *beside* the promoted ones and
+    none of them is touched. Hand-authored nodes carry no ``generated``
+    provenance, so ``apply_patch`` cannot replace them and ``ungenerate_scope``
+    skips them. There is nothing to exclude per-cell because nothing overlaps.
     """
     record = manifest.get(scope_id)
     if record is None:
@@ -1528,17 +1540,6 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
         raise ValueError(
             f"scope {scope_id!r} has no grid. Open 'Grid…' and give it a width "
             f"and a height — one cell is one minute of walking.")
-    if (record.get("paint_policy") == PAINT_POLICY_BAKED
-            and record.get("state") == "materialized"):
-        # The remedy, not the rule: a scope reaches this state by being promoted
-        # from areas the author had already written, and "compile it once" is
-        # advice that cannot be followed — there is no paint to compile. See
-        # :func:`preflight`, which says the same thing before the click.
-        raise ValueError(
-            f"scope {scope_id!r} is baked: it was made by promoting existing "
-            f"areas, so it has no paint of its own to compile. Delete it and "
-            f"make a new scope with 'Add feature', which starts empty and is "
-            f"paintable; the promoted areas are released back to unplaced.")
 
     if seed is None:
         seed = f"{scope_id}:{recipe_id}"

@@ -37,6 +37,82 @@ def handle_get_area_sounds(app, area_id):
     return jsonify({"sounds": sounds})
 
 
+def _infer_way_facts(app, way_id, properties):
+    """Fill in what a way's own properties do not say, from the edges it has.
+
+    **A way's connectivity is its edges.** ``area_from_id``/``area_from`` are a
+    *cache* of that fact, written by the compiler and by hand, and every authoring
+    path that is older than the scope model writes only the edges. The scope
+    projection read the cache and decided membership from it
+    (``world_scopes.way_endpoints``), so a way made by the NL editor or the graph
+    canvas had no endpoints to read, failed the membership test for *every* scope,
+    and existed only in the unfiltered graph — visible under "Whole world", absent
+    from the scope it plainly belonged to.
+
+    So this derives the cache from the authority, on write:
+
+    - the two area endpoints, by following the ``connection`` edges out of the way
+      to the areas that point back at it (the graph stores area→way→area, so both
+      halves are one hop in opposite directions);
+    - ``world_scope_id`` when both endpoints are in the **same** scope, and left
+      unset when they are not — a way between two scopes belongs to neither, which
+      is a real state, not a missing value;
+    - ``x``/``y`` at the midpoint, which is what places it on the map;
+    - ``current_state: "open"``, matching every other way in the library.
+
+    Existing properties are never overwritten: this fills gaps, so a
+    compiler-minted or hand-authored way keeps exactly what its author wrote.
+    """
+    graph = app.world.graph
+    props = properties if isinstance(properties, dict) else {}
+    ends: list = []
+    for edge in graph.get_edges_for_source(way_id):
+        if getattr(edge, "type", "") != EDGE_CONNECTION:
+            continue
+        target = graph.get_node(edge.target)
+        if target is not None and getattr(target, "type", "") == "area":
+            ends.append(target.id)
+    for edge in graph.get_edges_for_target(way_id):
+        if getattr(edge, "type", "") != EDGE_CONNECTION:
+            continue
+        source = graph.get_node(edge.source)
+        if source is not None and getattr(source, "type", "") == "area":
+            ends.append(source.id)
+    # A well-formed way has one area on each side; anything else is left alone for
+    # the author's own tools to complain about, because guessing which end is which
+    # would silently point the way the wrong way.
+    unique = list(dict.fromkeys(ends))[:2]
+    if len(unique) != 2:
+        return props
+    area_a, area_b = unique
+
+    def scope_of(area_id):
+        node = graph.get_node(area_id)
+        return str((getattr(node, "properties", {}) or {}).get("world_scope_id") or "")
+
+    if not props.get("area_from_id") and not props.get("area_from"):
+        props["area_from"] = area_a
+    if not props.get("area_to_id") and not props.get("area_to"):
+        props["area_to"] = area_b
+    shared = scope_of(area_a)
+    if shared and shared == scope_of(area_b) and not props.get("world_scope_id"):
+        props["world_scope_id"] = shared
+    if props.get("x") is None and props.get("y") is None:
+        node_a = graph.get_node(area_a)
+        node_b = graph.get_node(area_b)
+        ax = (getattr(node_a, "properties", {}) or {}).get("x")
+        ay = (getattr(node_a, "properties", {}) or {}).get("y")
+        bx = (getattr(node_b, "properties", {}) or {}).get("x")
+        by = (getattr(node_b, "properties", {}) or {}).get("y")
+        try:
+            props["x"] = round((float(ax) + float(bx)) / 2.0, 1)
+            props["y"] = round((float(ay) + float(by)) / 2.0, 1)
+        except (TypeError, ValueError):
+            pass
+    props.setdefault("current_state", "open")
+    return props
+
+
 def handle_create_node(app):
     data = request.get_json()
     node_type = data.get('type')
@@ -48,11 +124,18 @@ def handle_create_node(app):
     if app.world.graph.get_node(node_id):
         return jsonify({"error": f"Node with id '{node_id}' already exists"}), 409
 
+    properties = data.get('properties') or {}
+    if node_type == "way":
+        # The node is added first so ``_infer_way_facts`` can walk its edges — but
+        # the NL editor's batch path mints the way and *then* the four edges, so at
+        # creation time there is nothing to read. That path is handled separately.
+        properties = _infer_way_facts(app, node_id, dict(properties))
+
     node = Node(
         id=node_id,
         type=node_type,
         name=node_name,
-        properties=data.get('properties', {})
+        properties=properties
     )
     app.world.graph.add_node(node)
     return jsonify({"status": "success", "id": node_id})
@@ -916,9 +999,10 @@ def _apply_batch_op(app, optype, p):
             return {"error": "connect_areas needs way_id, area_a_id, area_b_id"}
         if graph.get_node(way_id):
             return {"error": f"Way '{way_id}' already exists"}
+        way_props = p.get('properties') or {}
         graph.add_node(Node(id=way_id, type='way',
                             name=p.get('way_name') or 'Door',
-                            properties=p.get('properties') or {}))
+                            properties=dict(way_props)))
         dir_a = p.get('direction_a') or 'north'
         dir_b = p.get('direction_b') or 'south'
         # Canonical connection edge pattern (mirrors handle_build_connect_legacy):
@@ -931,7 +1015,15 @@ def _apply_batch_op(app, optype, p):
                             properties={"direction": dir_b, "visible_in_direction": ""}))
         graph.add_edge(Edge(source=way_id, target=area_a, type=EDGE_CONNECTION,
                             properties={"direction": dir_a}))
-        return {"way_id": str(way_id)}
+        # Now the edges exist, the way can be told what it connects and which scope
+        # it is in. Every way in the library carries these; a way made by the NL
+        # editor or the graph canvas did not, and the scope projection reads them —
+        # so without this the way appeared only under "Whole world" and belonged to
+        # no scope at all (see ``_infer_way_facts``).
+        way_node = graph.get_node(way_id)
+        way_node.properties = _infer_way_facts(app, way_id, way_node.properties)
+        return {"way_id": str(way_id),
+                "world_scope_id": way_node.properties.get("world_scope_id")}
 
     if optype == 'update_node':
         node = graph.get_node(p.get('node_id'))

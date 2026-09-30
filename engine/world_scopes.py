@@ -70,17 +70,36 @@ def direct_child_ids(manifest: Dict[str, dict], scope_id: str) -> List[str]:
 
 def area_ids_in_scope(manifest: Dict[str, dict], graph, scope_id: str,
                       _seen: Optional[set] = None) -> set:
-    """Leaf area ids belonging to a scope, including descendants."""
+    """Leaf area ids belonging to a scope, including descendants.
+
+    **Membership is read from the areas' own ``world_scope_id`` stamp, and from
+    nothing else.** A scope record also carries an ``area_ids`` list, and that
+    list is a *cache* of this answer rather than a second opinion about it: it is
+    written by :func:`assign_area_membership` (on promote, on unplace) and by the
+    normaliser, but **not** by the compile path, which is the one that mints the
+    most areas. Reading it here meant a scope generated after being promoted or
+    hand-authored accumulated stamped areas its record never listed — Eldenford
+    interior reached 71 areas on the node and 1 in the record — and every subtree
+    count, the scope tree and "Whole world" were answering from the stale copy
+    while the single-scope projection answered from the stamps, so the two views
+    of the same hierarchy disagreed.
+
+    Deriving removes the whole class: generate, promote, unplace and a hand edit
+    are all correct as long as the stamp is right, and the stamp is the one thing
+    every path is already required to write. The list is still *written* (it costs
+    nothing, it is in saves people read, and external tooling may expect it); it is
+    simply no longer a decision input.
+
+    The one case the list used to cover and this does not is an id it names whose
+    node is not in the graph. Such an area cannot be drawn, projected, walked to
+    or found, so there is nothing a caller could do with it.
+    """
     _seen = _seen or set()
     if scope_id in _seen:
         return set()
     _seen.add(scope_id)
 
-    areas = set(manifest.get(scope_id, {}).get("area_ids", []))
-    for node_id, node in graph.nodes.items():
-        if getattr(node, "type", "") == "area":
-            if node.properties.get("world_scope_id") == scope_id:
-                areas.add(node_id)
+    areas = own_area_ids(graph, scope_id)
     for child in direct_child_ids(manifest, scope_id):
         areas |= area_ids_in_scope(manifest, graph, child, _seen)
     return areas
@@ -201,16 +220,49 @@ def _endpoint(props, id_key: str, name_key: str, name_to_id: Dict[str, str]) -> 
     return name_to_id.get(raw, raw)
 
 
-def way_endpoints(node, name_to_id: Dict[str, str]):
+def way_endpoints(node, name_to_id: Dict[str, str], graph=None):
     """Resolve a way node's two area endpoints to ids.
 
-    Prefers the id fields a generator writes (task-496), falling back to the
-    display-name fields hand-authored ways store; either is resolved
-    display-name → id, so both compare correctly.
+    Prefers the id fields a generator writes (task-496), then the display-name
+    fields hand-authored ways store; either is resolved display-name → id, so both
+    compare correctly.
+
+    **Falls back to the connection edges**, which are the *authority* on what a way
+    connects: movement walks the edges (``NameMatching._collect_exits``) and never
+    reads these properties. A way with edges and no properties — which is what the
+    NL editor's ``connect_areas`` and the graph canvas produce, both of which
+    predate the scope model — resolved to ``(None, None)`` here, so the scope
+    projection dropped it from *every* scope while the unfiltered graph kept it.
+    The way was not scopeless; it was merely described badly, and the one reader
+    that believed the description was the one deciding membership.
+
+    ``graph`` is optional so callers that already hold only a node keep working;
+    without it this is the properties-only behaviour.
     """
     props = getattr(node, "properties", {}) or {}
-    return (_endpoint(props, "area_from_id", "area_from", name_to_id),
-            _endpoint(props, "area_to_id", "area_to", name_to_id))
+    resolved = (_endpoint(props, "area_from_id", "area_from", name_to_id),
+                _endpoint(props, "area_to_id", "area_to", name_to_id))
+    if all(resolved) or graph is None:
+        return resolved
+    # One or both missing: read the edges. The graph stores area→way→area, so each
+    # end is one hop away in opposite directions.
+    ends: List[str] = []
+    way_id = getattr(node, "id", None)
+    for edge in graph.get_edges_for_source(way_id):
+        target = graph.get_node(edge.target)
+        if getattr(target, "type", "") == "area":
+            ends.append(target.id)
+    for edge in graph.get_edges_for_target(way_id):
+        source = graph.get_node(edge.source)
+        if getattr(source, "type", "") == "area":
+            ends.append(source.id)
+    unique = list(dict.fromkeys(ends))[:2]
+    if len(unique) == 2:
+        return (unique[0], unique[1])
+    # A half-described way: keep whatever the properties did say rather than
+    # discarding it, so one known endpoint is still useful to a caller.
+    return (resolved[0] or (unique[0] if unique else None),
+            resolved[1] or (unique[1] if len(unique) > 1 else None))
 
 
 def boundary_ways(graph, area_ids: Iterable[str]) -> List[dict]:
@@ -222,7 +274,7 @@ def boundary_ways(graph, area_ids: Iterable[str]) -> List[dict]:
     for node_id, node in graph.nodes.items():
         if getattr(node, "type", "") != "way":
             continue
-        a, b = way_endpoints(node, name_to_id)
+        a, b = way_endpoints(node, name_to_id, graph)
         inside = {x for x in (a, b) if x in area_ids}
         if len(inside) != 1:
             continue
@@ -775,7 +827,7 @@ def project_subgraph(manifest: Dict[str, dict], graph, players, scope_id: str,
     for node in graph.nodes.values():
         if getattr(node, "type", "") != "way":
             continue
-        a, b = way_endpoints(node, name_to_id)
+        a, b = way_endpoints(node, name_to_id, graph)
         if a in area_ids and b in area_ids:
             add(node)
 

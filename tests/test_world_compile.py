@@ -963,14 +963,39 @@ def test_compile_rejects_missing_grid_and_empty_paint():
         world_compile.compile_grid(empty, "wild")
 
 
-def test_a_baked_zone_compiles_once_then_refuses():
+def test_a_baked_zone_compiles_the_paint_it_has():
+    """`baked` freezes the *canon*; it does not seal the scope.
+
+    This was "compiles once then refuses", on the belief that a baked scope never
+    carries paint. It does: the flag is set by promoting areas the author already
+    wrote, and the paint route creates a grid on demand, so an author who promotes
+    a selection and then paints the rest of the room lands exactly here. The
+    refusal told them to delete the scope and start again.
+
+    What is still true after compiling is that the **hand-authored** areas are
+    untouched: they carry no provenance, so ``apply_patch`` does not replace them
+    and a second compile leaves them alone.
+    """
     m = _manifest(FOUR)
     m["wild"]["paint_policy"] = world_compile.PAINT_POLICY_BAKED
     patch = world_compile.compile_grid(m, "wild")
+    areas = [n for n in patch.nodes if n.type == "area"]
+    assert areas, "a baked scope with paint must compile it"
+
     g = WorldGraph()
+    hand = Node(id="area_authored", type="area", name="Authored",
+                properties={"world_scope_id": "wild"})
+    g.add_node(hand)
     generation.apply_patch(g, m, patch)
-    with pytest.raises(ValueError):
-        world_compile.compile_grid(m, "wild")
+    assert g.get_node("area_authored") is not None, (
+        "a hand-authored area must survive compiling a baked scope")
+    assert not (g.get_node("area_authored").properties or {}).get("generated")
+
+    # And it is idempotent: a second compile replaces the compiled areas, not the
+    # author's.
+    again = world_compile.compile_grid(m, "wild")
+    generation.apply_patch(g, m, again, allow_regenerate=True)
+    assert g.get_node("area_authored") is not None
 
 
 # ───────────────────── buildings: entered with 'in' (task-563) ─────────────────────
@@ -1637,26 +1662,60 @@ def test_preflight_reports_nothing_for_a_healthy_scope():
         assert code not in found, f"{code} should not fire on a healthy scope"
 
 
-def test_preflight_names_a_promoted_scope_and_its_remedy():
+def test_a_baked_scope_with_paint_compiles():
+    """A `baked` scope is not a scope that cannot be compiled.
+
+    The flag means "the areas already in here are yours, not mine" — it came from
+    promoting areas the author had already written. It does **not** mean the scope
+    is closed to paint, and an author who promoted a selection and then painted the
+    rest of the room was previously told to delete the scope and start again, with
+    70 painted cells of their own work discarded by the advice.
+
+    Nothing overlaps, so there is nothing to exclude: promotion clears the promoted
+    area's painted cell (inside the new scope a position is canvas space), so the
+    painted cells compile to areas *beside* the promoted ones. Hand-authored nodes
+    carry no ``generated`` provenance, so ``apply_patch`` cannot replace them.
+    """
     m = _painted(FOUR)
+    m["wild"]["paint_policy"] = world_compile.PAINT_POLICY_BAKED
+    m["wild"]["state"] = "materialized"
+
+    patch = world_compile.compile_grid(m, "wild", region_merge=False)
+    assert [n for n in patch.nodes if n.type == "area"], (
+        "a baked scope that carries paint must still compile it")
+    # And preflight agrees: the refusal is gone from both.
+    assert "baked" not in _codes(m, "wild")
+
+
+def test_a_baked_scope_with_nothing_to_compile_says_so():
+    """The refusal survives for the case it was written for, in its own words.
+
+    A promoted scope that was never painted has nothing to compile, and the useful
+    message is the "nothing to compile" one — not "delete this scope".
+    """
+    m = _painted({})
     m["wild"]["paint_policy"] = world_compile.PAINT_POLICY_BAKED
     m["wild"]["state"] = "materialized"
 
     found = _codes(m, "wild")
-    assert found["baked"]["severity"] == world_compile.BLOCK
-    # The remedy has to name the way out rather than restate the rule: "compile
-    # it once then author by hand" is advice a promoted scope cannot follow,
-    # because promoting is exactly how it ended up carrying no paint.
-    assert "Add feature" in found["baked"]["remedy"]
+    assert found["no-paint"]["severity"] == world_compile.BLOCK
+    assert "baked" not in found, "a baked scope is not itself a reason to refuse"
+    with pytest.raises(ValueError, match="paints no cells"):
+        world_compile.compile_grid(m, "wild", region_merge=False)
 
 
-def test_preflight_and_the_compiler_refuse_the_same_baked_scope():
-    """The two must not drift: a blocker that still compiles is worse than none."""
-    m = _painted(FOUR)
+def test_preflight_and_the_compiler_agree_on_what_is_uncompilable():
+    """The two must not drift: a blocker that still compiles is worse than none.
+
+    The case both still agree on is a scope with nothing painted — whatever else is
+    true of it, there is nothing to compile, and preflight blocks it and the
+    compiler refuses it for the same reason.
+    """
+    m = _painted({})
     m["wild"]["paint_policy"] = world_compile.PAINT_POLICY_BAKED
     m["wild"]["state"] = "materialized"
-    assert "baked" in _codes(m, "wild")
-    with pytest.raises(ValueError, match="baked"):
+    assert "no-paint" in _codes(m, "wild")
+    with pytest.raises(ValueError, match="paints no cells"):
         world_compile.compile_grid(m, "wild")
 
 
