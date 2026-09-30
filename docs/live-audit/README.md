@@ -27,6 +27,7 @@ down. Each is corrected **in place** as well as listed here.
 | **56 (1st)** | replace the evade die with a flat DEX threshold | **retracted** � fed raw STR 9 into the comparison | the error was the engine's; I reproduced it in my own analysis |
 | **59 (1st)** | "there is no scale axis anywhere" | **retracted** � `engine/size.py` has 6 tiers and a way `max_size` gate | did not look for the thing I asserted was absent |
 | **19 (method)** | tested the simulation | tested the **engine verb layer** via the ? override | never played a human turn; the NPC/LLM layer still has no live evidence |
+| **vitals S3** | bare vital nouns don't convey direction | **largely withdrawn** - the hover states `it fills over time; eat before it maxes at 100` | I judged a stat by its label, not by what hovering it says |
 | **0** | `settings-view.js` connection test is dead | **resolved** � a DOM-vs-pixel disagreement | only the rendered pixels are truthful |
 | **�22 ? �28** | Hunger's direction is self-contradictory | **superseded** by the decay-model finding | same as the 28 row |
 
@@ -623,6 +624,134 @@ from any of the toolbars.
 
 ---
 
+# Method limitation — I am blind to hover-only affordances
+
+Raised by Tommy after the Hunger hover: *"this keeps being a problem — yes you
+have many good points, but often you are just not human enough to find these
+hover effects, notes, tooltips and much more."*
+
+**They are right, and the limitation is systematic rather than random.**
+
+This section has since been promoted into `AGENTS.md` as a standing principle
+("Never judge a UI surface without interacting with it"), because it generalises
+past this audit. What follows is the evidence behind it.
+
+## What I cannot see
+
+Everything that appears only on interaction. Both of my instruments are static:
+
+- a **DOM read** returns `innerText`, which for the vitals block was bare labels
+  — the hover sentence was never in it
+- a **screenshot** shows the bars, not the tooltip
+
+So hover text, tooltips, focus states, click-opens-menu, and collapsed
+disclosures are structurally outside what this audit has looked at.
+
+| affordance | how I actually found it | a static read could find it? |
+|---|---|---|
+| Hunger direction — *"it fills over time; eat before it maxes at 100"* | Tommy asked me to hover | **no** |
+| `click for details` | that same hover | **no** |
+| the Knife verb menu (`Examine` / `Pick up` / `Drop`) | clicked, then screenshotted | **no** |
+| `▸ advanced` / `▸ raw json` | only because I dumped *every* button label | no — collapsed by default |
+| the `commit this turn?` confirmation | clicked Act | **no** |
+| `hover = free look` in the modal's own hint text | read the hint, never acted on it | **no** |
+
+## Why this biases the results
+
+The audit is well-tuned for **state and rendering** bugs — wrong numbers, stale
+data, two position stores, leaked ids, dead fields — and poorly tuned for
+**affordance** bugs. Every "there is no affordance for X" in this document is
+therefore among my *least* reliable claims, because "nothing showed up" is
+precisely what a hover-only affordance looks like when you never hover.
+
+## The rule I broke
+
+> Never conclude **"no affordance exists"** from **"nothing appeared."**
+> Treat it as **not yet looked for**.
+
+That is the mirror image of the `AGENTS.md` rule against inferring runtime
+behaviour from existence — do not infer *no callers* from *the function exists* —
+and I broke it the same way, in the same session, after already recording seven
+DOM-vs-pixel disagreements.
+
+## Protocol change for the next pass
+
+1. **Hover every interactive element before judging it.** Not after noticing a
+   problem — before forming the opinion.
+2. **Expand every disclosure** (`▸`, accordions, "advanced", "raw json").
+3. **Screenshot after every interaction**, not only at rest.
+4. **Read the surface's own hint text** — the modal said *"hover = free look"*
+   and I had it open for several exchanges without acting on it.
+5. Treat every "not discoverable" claim as **untested**, pending a hover pass.
+
+## Findings that are suspect until re-tested
+
+These were judged by a method that structurally cannot see what they are about.
+Listed so they are re-checked rather than quietly inherited:
+
+| § | claim | why suspect |
+|---|---|---|
+| **23 / 24** | Setup Checklist / Scenario Health are undiscoverable | "the author never found it" is exactly the wrong inference from not having looked |
+| **38** | tag autocomplete is "inverted" | an autocomplete may be entirely hover- or focus-driven |
+| **12** | NL Editor has "the least affordance" | affordance claims, unhovered |
+| **39** | expression pack controls have "thin affordance" | same |
+| **18** | Agent Lens is "the only way to see the prompt" | may be surfaced elsewhere on hover |
+| **§61** | derived values render indistinguishably | **partly weakened** — the Hunger hover *does* declare itself (`a drive — it fills over time`), which is a self-declaring derived surface. The general claim survives; "the UI mostly is not" needs re-testing on hover |
+
+## What the retractions cost, measured
+
+The prediction test in §62 scored **6 of 9**, and every miss was in the same
+direction. The full tally for the audit's own tasks:
+
+| outcome | count | which |
+|---|---|---|
+| fixed and live-verified | **8** | 602, 612, 624, 629, 630, 631, 632, 633 |
+| **retracted** | **4** | 613, 634, 639, 609 |
+| corrected, half survived | 1 | 611 |
+
+**All four retractions came from the same mistake, and none from a subtle one:**
+
+- **634** — `vital_rates.py:29-32` *documents the intent in the source of truth*,
+  and all four figures match: Hunger 20.4 days vs "~3 weeks", Thirst 2.8 vs
+  "~3 days", Energy 16.0h vs "~16h", Sanity 13.9 vs "~14 days". I read a long
+  timescale as an accident without reading the docstring directly above it.
+  This is the exact mirror of the `AGENTS.md` rule about checking for a
+  documented intent.
+- **609** — `area_presence` is the task-360 **movement ledger**;
+  `_record_area_presence` is called only from `movement.py`, so a character who
+  has not moved is correctly absent. 3 entries for 23 players is it working.
+- **639** — the toggle is bidirectional (`true → false → true`, `aria-pressed`
+  and localStorage both tracking); the button's own title explains the
+  auto-hide I mistook for a bug.
+- **613** — a hidden overlay's child reporting `0x0` is standard DOM, not a
+  defect. The fault was the probe.
+
+**The lesson, stated once:** three of the four were fixed by **reading the source
+of truth before judging the behaviour** (634, 609, 613) and one by **driving the
+control** (639). None needed a code change. A finding that disappears when you
+read the docstring or click the button twice was never a finding.
+
+## Protocol this produced
+
+Now standing in `AGENTS.md`, not just here:
+
+1. **Hover every interactive element before judging it** — before forming the
+   opinion, not after noticing a problem.
+2. **Expand every disclosure** before saying a feature is absent.
+3. **Screenshot after every interaction**, not only at rest.
+4. **Read the surface's own hint text.**
+5. **Check for a documented intent before calling a value wrong.**
+6. **Before filing, name the interaction that produced the finding.** If the
+   answer is "I read the markup", it is not yet evidence.
+7. **Verify three, fix three, re-verify.** Never batch-fix from an unverified
+   list — that is what produces the next 639.
+8. **A stale Python module fakes a failed fix.** `app.run()` here has no
+   reloader unless `VW_DEBUG=1`, so a server started before your edit will
+   produce a false negative that looks exactly like a bug that wasn't fixed.
+   Check the listener's start time against the file's mtime before debugging
+   your own fix. JS is unaffected: static files are served per request.
+
+---
 # Round 2 — library, item inspector, tag vocabulary
 
 ## 14. The tag vocabulary is 72% LLM noise extracted from memories (S2)
@@ -1413,32 +1542,42 @@ status annotation and the state prompt both describe.
 is set, but the UI presents base and override identically with no indication of
 which is active or how to clear one.
 
-### Vitals legibility — where the disagreement actually lands (S3, not a bug)
+### Vitals legibility — largely WITHDRAWN, the hover already declares it (S3)
 
 Tommy on the naming: *hunger, thirst and bladder rising should read as "you feel
 more hungry, more thirsty, bladder is more full."*
 
 **The encoding already carries that.** Vitals rise **0 → 100** and are rendered on
 a **green → red spectrum**, so "higher number = worse" is legible from colour
-alone without reading a label. That is a real and effective channel, and my
-framing under-credited it — I argued from the *words* on a stat that is mostly
-read by its *colour*.
+alone without reading a label.
 
-So this is a naming question, not a defect, and the suggestions are cheap:
+**And the hover says it in words too** — hovering `Hunger` reveals:
 
-- **`Bladder` is the odd one out.** Hunger and Thirst are naturally "more is
-  worse". Bladder at 100 reads as *more full*, which is right, but the name
-  describes a body part rather than a state. `Fullness` or `Bladder Full` states
-  the variable, so the axis label matches what the bar means.
-- **Label the axis once, not per-stat.** Since the colour band already means
-  "worse", a single caption — *"higher = more urgent"* — removes the need to
-  re-derive direction from six different nouns.
-- **`TIME TO EMPTY` in the modal is the one genuinely wrong label**, because
-  hunger fills rather than empties. That is the §28 finding above and it stands
-  independently of any naming preference.
+> **Hunger 55** — *"a drive — it **fills over time**; eat before it maxes at 100."*
+> *"You are very hungry and it is draining you. FIND SOMETHING TO EAT NOW."*
+> `click for details`
 
-Nothing here needs the mechanic changed. It is the smallest of the findings in
-this document and the only one I would call optional.
+That is exactly the semantics in question, stated per-vital, on demand. **So my
+original S3 suggestion is largely withdrawn.** I had argued from the bare nouns
+(`Hunger`, `Thirst`, `Bladder`) that the axis label had to carry the direction
+itself — but each vital supplies its own direction sentence on hover, which means
+the label does not have to. The `Bladder`-names-a-body-part objection does not
+hold.
+
+What survives, and it is small:
+
+- **The hover is the only place the direction is stated.** A player scanning the
+  vitals block sees numbers and colour; the sentence costs a hover. Given the
+  colour spectrum already works, that is a defensible design, not a defect.
+- **`click for details` is an undiscovered layer.** It exists and I had not
+  reached it. Not a claim about it — a note that the vital surface has more depth
+  than this audit has measured.
+- **`TIME TO EMPTY` in the vital modal remains wrong**, because hunger *fills*
+  rather than empties. That is §28's finding and it stands on its own evidence,
+  independent of any naming preference.
+
+This is now the smallest finding in the document and the one most likely to be
+wrong for the reason in the method-limitation section above.
 
 ## 29. The vital modal is a raw numeric editor, not "natural-language details" (S3)
 
@@ -2121,6 +2260,7 @@ against each other would be a cheap, high-value task — and the engine already
 knows the answer for the *agent*, since that path demonstrably works.
 
 ---
+
 
 ## How I scoped this
 
@@ -2923,7 +3063,181 @@ to read `Road (world 9,4)`.
 equipment, so the armor and evasion work has no live subject on the player side
 either.
 
-## 61. The mistake is the finding: derived values render indistinguishably from authoritative ones (S1, design)
+## 61. ~~Derived values render indistinguishably from authoritative ones~~ — LARGELY REFUTED
+
+> **Substantially withdrawn.** Tommy asked me to hover a vital in the turn modal,
+> and the surfaces I had judged *do* self-declare. I had assessed them without
+> hovering, which is the method limitation recorded above. What survives is a
+> narrower claim about the button labels, below.
+
+**The retraction, concretely.** Two surfaces in a row declare their epistemic
+status on hover, and I had reported them as not doing so.
+
+Hunger:
+> **Hunger 55** — *"a drive — it **fills over time**; eat before it maxes at100."*
+> *"You are very hungry and it is draining you. FIND SOMETHING TO EAT NOW."*
+> `click for details`
+
+A person:
+```
+the woman
+A nervous goblin squire in worn leathers, clutching a simple staff.
+(female)
+recognized — but you don't know their name yet
+```
+
+That last line is exactly the affordance this section claimed was missing: the
+surface **declares that the entity is recognised but unnamed**, which is the
+distinction I said nothing communicated. The word `recognized` also implies a
+knowledge *tier* — clocked versus not clocked — which is a richer model than I
+assumed existed.
+
+So **§60 Defect 1 and §61 were the same error**, compounding: I judged a
+mechanism broken without hovering it, then generalised from the non-hover to a
+design principle about the whole UI. The general claim — that the UI *mostly*
+does not declare itself — was an artefact of my instrument.
+
+### What survives
+
+The button **labels**, which were not the thing I originally wrote about:
+
+- `the woman` ×2 — two *different* people, same label
+- `Camp Entrance Trail to Road (world 9,4)` — the raw way-node name, on a surface
+  whose own hover resolves it correctly to `north trail → Camp Entrance`
+
+Both are legible only via hover, and both are ambiguous or leaky *at rest*. So the
+narrower true claim is:
+
+> The modal's **hover layer declares itself well** — direction, cost, knowledge
+> state, free-look status, and resolved names. Its **at-rest labels** do not,
+> and they are where the ambiguity and the coordinate leak actually live.
+
+That is a better finding than the one it replaces, because it points at a
+specific surface rather than a general temperament.
+
+### Also refuted by the same hover pass
+
+§28's vitals-legibility S3, withdrawn in its own section for the same reason:
+the hover states *"it fills over time"* on its own.
+
+## 62. Prediction test — I scored 6 of 9 on what the HTC reveals
+
+Tommy asked me to predict what hovering and clicking a way, a person and an item
+would show, before testing. Recorded because the **misses** are the useful part.
+
+| prediction | verdict |
+|---|---|
+| way hover shows `visible_in_direction` | ✅ verbatim |
+| way hover discloses cost | ✅ `free look · no turn cost` |
+| person menu = talk / attack / examine | ✅ exact |
+| person hover is not a name | ✅ |
+| person click fills a draft, doesn't fire | ✅ |
+| person hover = first-impression description | ✅ |
+| **person hover states the knowledge tier** | ❌ **missed the important line** |
+| **way hover leaks the coordinate name** | ❌ **wrong — it resolves cleanly** |
+| way hover shows `max_size` | ❌ (that way has none) |
+
+Two lessons, both about me rather than the app:
+
+**I predicted the way hover would be the sloppier surface and it is the best
+written one** — title, prose, resolved connection, far-side description, explicit
+cost. I generalised "the label is leaky" into "the hover is leaky" without
+checking, which is the same category of error as everything above.
+
+**I predicted a name-or-description dichotomy and missed a third thing**, a
+`recognized` state that is neither: the character has clocked the person and
+separately has not learned their name. Two independent knowledge bits, and I
+assumed one.
+
+## 63. The turn modal exposes 3 of ~23 backend character-to-character actions (S1, coverage)
+
+Counted from `routes/action_handlers.py` (46 verbs dispatched) plus
+`engine/pleasure_actions.py` (8 intimate verbs) and `engine/grapple.py`.
+
+**Backend, targeting another character — ~23:**
+
+| group | verbs |
+|---|---|
+| violence | `attack` |
+| grapple | `grab`, `release`, `escape` (per-hand targets, opposed relationship rolls) |
+| social | `approach`, `lead`, `give`, `steal`, `name`, `teach`, `wake`, `relieve` |
+| vocal | `shout`, `whisper`, `scream`, `sing` |
+| intimate | `kiss`, `lick`, `suck`, `bite`, `caress`, `pinch`, `blow`, `tickle` |
+
+**HTC exposes 3:** `Talk to` · `Examine the woman` · `Attack the woman`.
+
+**~20 verbs unreachable.** Three groups matter more than the count:
+
+**Eight intimate verbs are body-part-targeted and already have authored default
+regions** — `bite → neck`, `kiss → lips`, `caress`/`pinch`/`tickle` → `torso`,
+`lick`/`suck`/`blow` → `neck`. These depend on *precisely* the region mechanism
+task-602 finds broken, and the modal has no way to express a target region.
+
+**A complete grapple subsystem is unreachable** — per-hand target limits, DC
+scaling by relationship (`GRAPPLE_REL_MIN/MAX`), and an escape opposed roll.
+
+**A structural reason buttons alone will not fix it:** `default_body` is a
+person-category string, not a per-target or per-body-part label. So `kiss`
+renders identically against the woman at three metres or under the blanket.
+The menu needs a target-region affordance, not more entries.
+
+**And the one nobody asked for:** there is **no `flee` and no `wait`** anywhere —
+not in the backend, not in the modal. With §56's 42.8% attacker hit rate against
+DEX 11, retreat is often the correct play and there is nothing to click for it.
+Filed as **task-611**.
+
+**`Attack the woman` carries no body-part target**, which makes §55 worse than
+written: aimed attacks are unreachable from *both* UIs, and 8 authored intimate
+verbs depend on the broken mechanism.
+
+## 64. Orphaned person menu, and a modal that lies about being open (S3/S4 — I first called this S1)
+
+Tommy: *"im still able to click though?"* — correct, and I had overstated ittwice.
+
+**The orphaned menu (S3).** Open a person menu, then dismiss the modal:
+`THE WOMAN / Talk to / Examine / Attack` **stays rendered with no owner**, along
+with a `.tsv-scrim` — `z-index: 1390`, `position: fixed`, `pointer-events: auto`,
+full viewport — that **swallows one click** before clearing.
+
+I wrote that this "blocks every click in the app; a real user is stuck and must
+reload." **That was wrong.** The scrim is transient and a real click lands on it
+and dismisses it, so the symptom is a **one-click tax / double-click-to-act**,
+not a lockout. I reached "stuck" by observing that a Playwright `.click()`
+timed out and a `force: true` click succeeded, then generalising from that. Filed
+as **task-612**.
+
+**The modal that lies (S4, but a trap for anything automated).** After a turn
+closes, `#htc-modal` **remains in the DOM** with a **0×0 rect and zero
+`offsetParent`-bearing children**, while `#htc-overlay` is `display: none`. Its
+stale `innerText` still reads `② react to the result`.
+
+So **`!!document.getElementById('htc-modal')` is not a valid "is the modal open"
+test** — which is how I concluded the modal was in phase ② and that the compose-
+phase disclosures were missing, when the modal was in fact closed and they were
+merely not present. Filed as **task-613**.
+
+**This is the ninth DOM-vs-pixels disagreement in this audit** (the eight listed
+earlier plus this one), and it is the same root cause as the method limitation
+above: I inferred UI state from element presence instead of from computed
+visibility. The fix on my side is to compare `getBoundingClientRect()` and
+`offsetParent`, never `element exists`.
+
+## 65. Two smaller text defects found while playing (S3)
+
+Both human-facing, both visible in a normal turn:
+
+**A floating-point leak in Alerts:**
+> `Croak: Mother: Critical body temp (22.000000000000003°C)`
+
+**A pronoun substitution bug in the turn result panel.** `someone` appears where
+`you` belongs, and it is concatenated without a space:
+```
+Observed: someone Knife. You take the knife with your hand right.
+▶ someone take Knife
+🔎 someoneYou take the knife with your hand right.
+```
+The substitution is happening at template level, not as a name lookup — `someoneYou`
+with no space is the tell. The stream also truncates the player to `player_hu…`.
 
 Defect 1 above was a false positive — strangers correctly render as `the woman`
 / `the man`. That retraction is the more useful result, and the reason is worth

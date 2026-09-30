@@ -7,6 +7,7 @@ from collections import deque
 from typing import Optional, Dict, List, Any
 
 from graph import EDGE_CONNECTION
+from engine.matching import way_endpoint_name
 
 logger = logging.getLogger(__name__)
 
@@ -773,7 +774,7 @@ class NPCBehaviorSystem:
         way_node = self.graph.get_node(way_id)
         if way_node and way_node.type == "way":
             if way_node.properties.get("one_way"):
-                source_area = way_node.properties.get("area_from")
+                source_area = way_endpoint_name(way_node, self.graph, "from")
                 if hunter.current_area != source_area:
                     return f"{slasher_name} snarls at the {direction} but can't go that way — the passage is one-way."
             if way_node.properties.get("current_state") in ("closed",):

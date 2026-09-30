@@ -551,6 +551,19 @@ def handle_update_player(app, name):
         player.skills = data["skills"]
     if "traits" in data:
         player.traits = data["traits"]
+    # task-605: size is a property, not a trait. None means "not authored", which
+    # is what lets the engine fall back to a size_* trait. An unrecognised value
+    # is rejected rather than stored, so the six tiers stay the whole model.
+    if "size" in data:
+        raw_size = data["size"]
+        if raw_size is None or str(raw_size).strip() == "":
+            player.size = None
+        else:
+            from engine.size import SIZE_TIERS
+            candidate = str(raw_size).strip().lower()
+            if candidate not in SIZE_TIERS:
+                return jsonify({"error": f"size must be one of {SIZE_TIERS}"}), 400
+            player.size = candidate
     if "tags" in data:
         player.tags = data["tags"]
         player.sync_vitals_with_tags()

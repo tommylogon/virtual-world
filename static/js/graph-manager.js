@@ -324,8 +324,13 @@ class GraphManager {
             // up the zone tree — the only endpoint that returns a breadcrumb is
             // the WorldPainter's per-scope grid payload, and one request per scope
             // change is not worth it for a trail this short.
-            this._scopeSummaries = data.scopes || [];
-            for (const scope of data.scopes || []) {
+            // task-627: `/api/world/scopes` answers a NESTED tree under
+            // `children` and has no `scopes` key and no `depth`, so
+            // `data.scopes` was always `undefined` and the picker had never
+            // rendered a single scope -- four child scopes existed and none were
+            // reachable. Flatten it into depth-carrying summaries first.
+            this._scopeSummaries = window.ScopeOptions.flattenScopes(data);
+            for (const scope of this._scopeSummaries) {
                 if (scope.map_offset) this._scopeOffsets[scope.id] = scope.map_offset;
             }
             if (!sel) return;
@@ -334,12 +339,8 @@ class GraphManager {
             wholeWorld.value = '';
             wholeWorld.textContent = '🌍 Whole world';
             sel.appendChild(wholeWorld);
-            for (const scope of data.scopes || []) {
-                const opt = document.createElement('option');
-                opt.value = scope.id;
-                opt.textContent = `${'\u00A0'.repeat((scope.depth || 0) * 2)}${scope.name}`;
-                sel.appendChild(opt);
-            }
+            // task-627: real <optgroup> nesting instead of leading nbsp padding.
+            window.ScopeOptions.populate(sel, this._scopeSummaries);
             sel.value = current;
         } catch (e) {
             console.warn('Failed to load scope filter options:', e);

@@ -104,6 +104,33 @@ class CombatSystem:
         bonuses = aggregate_bonuses(target_player, self.graph)
         return bonuses["defense"]
 
+    def _apply_damage_reduction(self, damage: int, target_player) -> tuple:
+        """Reduce `damage` by the target's worn armour. Returns (damage, amount).
+
+        task-607: `defense` is a damage *expression* read by the same parser the
+        weapon-damage field uses, so a suit can carry `20` (flat, and what every
+        existing item carries -- unchanged behaviour) or `d8` (drop the worst
+        eight). The dice form is rolled HERE, per hit, rather than summed during
+        aggregation: an outfit rolled once at aggregation would subtract the same
+        number from every subsequent swing.
+
+        The floor stays at 1 in every mode. That is the one behaviour carried over
+        unchanged, and it is the cliff this task exists to remove -- see the
+        task file for why percentage is the natural third form rather than a
+        default.
+        """
+        from engine.equipment_bonuses import aggregate_bonuses
+        bonuses = aggregate_bonuses(target_player, self.graph)
+        flat = int(bonuses.get("defense") or 0)
+        dice = bonuses.get("defense_dice")
+        rolled = 0
+        if dice and dice[0] > 0:
+            rolled = self.skills.roll_dice(dice[0], dice[1], 0)
+        total = flat + rolled
+        if total <= 0:
+            return damage, 0
+        return max(1, damage - total), total
+
     def player_attack(self, attacker_name: str, target_name: str, weapon_node=None,
                       where=None) -> str:
         """Generic player-vs-player attack. Works for any character.
@@ -209,13 +236,25 @@ class CombatSystem:
         if weapon_node is None:
             weapon_node = self._best_weapon_node(attacker_name)
 
-        attack_roll = self.skills.roll_dice(1, 20, attacker.stats.get("STR", 10) + attack_mod)
-        defense_roll = self.skills.roll_dice(1, 20, target.stats.get("DEX", 10))
+        # task-603: use the ability MODIFIER, not the raw score.
+        # `roll_dice` added STR 9 as a +9 bonus and the defender added DEX 11 as
+        # a +11 bonus, so ~10 points of free swing landed on each side and the
+        # defender won more often than the attacker. engine/checks.py already
+        # defines the canonical 5e modifier ((score - 10) // 2, never clamped)
+        # and combat never called it -- it used an inline, clamped max(0, ...)
+        # for display only, which also meant a below-average stat could never
+        # contribute negatively.
+        from engine.checks import ability_mod
+        attack_stat_mod = ability_mod(attacker.stats.get("STR", 10))
+        defense_stat_mod = ability_mod(target.stats.get("DEX", 10))
+
+        attack_roll = self.skills.roll_dice(1, 20, attack_stat_mod + attack_mod)
+        defense_roll = self.skills.roll_dice(1, 20, defense_stat_mod)
 
         # Break the totals back into raw die + modifier for the breakdown.
-        attack_raw = attack_roll - (attacker.stats.get("STR", 10) + attack_mod)
-        defense_raw = defense_roll - target.stats.get("DEX", 10)
-        str_mod_display = max(0, (attacker.stats.get("STR", 10) - 10) // 2)
+        attack_raw = attack_roll - (attack_stat_mod + attack_mod)
+        defense_raw = defense_roll - defense_stat_mod
+        str_mod_display = attack_stat_mod
 
         self.npc_behaviors.process_npcs_on_combat(
             {"combat_actors": [attacker_name, target_name]}
@@ -247,7 +286,7 @@ class CombatSystem:
                     dmg_desc = f"{count}d{sides} ({damage_raw}) + {stat_mod} stat + {flat} flat"
                     if self.skills.is_slasher(attacker_name):
                         dmg_desc += f" + {attack_bonus} attack_bonus"
-                    damage = max(1, damage - target_defense)
+                    damage, _dr = self._apply_damage_reduction(damage, target)
                     dmg_desc += f" = {damage} total, −{target_defense} armor" if target_defense > 0 else f" = {damage} total, −0 armor"
                 else:
                     base_damage = parsed[2] or 5
@@ -257,7 +296,7 @@ class CombatSystem:
                     dmg_desc = f"1d{base_damage} ({damage_raw}) + {stat_mod} stat"
                     if self.skills.is_slasher(attacker_name):
                         dmg_desc += f" + {attack_bonus} attack_bonus"
-                    damage = max(1, damage - target_defense)
+                    damage, _dr = self._apply_damage_reduction(damage, target)
                     dmg_desc += f" = {damage} total, −{target_defense} armor" if target_defense > 0 else f" = {damage} total, −0 armor"
 
                 if damage_type:
@@ -330,8 +369,8 @@ class CombatSystem:
                     wound = undead_note
                 self.skills.add_log_entry(
                     f"[COMBAT] {attacker_name} attacks {target_name} with {weapon_name}! "
-                    f"Attack d20({attack_raw}) + {attacker.stats.get('STR', 10)} STR + {attack_mod} mod = {attack_roll} "
-                    f"vs d20({defense_raw}) + {target.stats.get('DEX', 10)} DEX = {defense_roll}: HIT — {wound}"
+                    f"Attack d20({attack_raw}) + {str_mod_display} STR + {attack_mod} mod = {attack_roll} "
+                    f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_roll}: HIT — {wound}"
                 )
                 self.skills.record_turn_event(
                     attacker_name, "combat",
@@ -340,8 +379,8 @@ class CombatSystem:
                 )
                 hit_msg = (
                     f"{attacker_name} attacks {target_name} with {weapon_name}!\n"
-                    f"  Attack: d20({attack_raw}) + {attacker.stats.get('STR', 10)} STR + {attack_mod} mod = {attack_roll} "
-                    f"vs d20({defense_raw}) + {target.stats.get('DEX', 10)} DEX = {defense_roll} → HIT\n"
+                    f"  Attack: d20({attack_raw}) + {str_mod_display} STR + {attack_mod} mod = {attack_roll} "
+                    f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_roll} → HIT\n"
                     f"  Result: {wound}{armor_note}{resist_note}"
                 )
                 if wake_msg:
@@ -364,7 +403,7 @@ class CombatSystem:
                 str_bonus = max(0, (attacker.stats.get("STR", 10) - 10) // 2)
                 damage = self.skills.roll_dice(1, 4, str_bonus)
                 damage_raw = damage - str_bonus
-                damage = max(1, damage - target_defense)
+                damage, _dr = self._apply_damage_reduction(damage, target)
                 target.vitals["HP"] = max(0, target.vitals["HP"] - damage)
                 wake_msg = self._wake_on_damage(
                     target_name, source=attacker_name, source_type="character"
@@ -385,8 +424,8 @@ class CombatSystem:
                 armor_note = " Armor blunted the blow." if target_defense > 0 else ""
                 self.skills.add_log_entry(
                     f"[COMBAT] {attacker_name} attacks {target_name} with bare hands! "
-                    f"Attack d20({attack_raw}) + {attacker.stats.get('STR', 10)} STR + {attack_mod} mod = {attack_roll} "
-                    f"vs d20({defense_raw}) + {target.stats.get('DEX', 10)} DEX = {defense_roll}: HIT — {wound}"
+                    f"Attack d20({attack_raw}) + {str_mod_display} STR + {attack_mod} mod = {attack_roll} "
+                    f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_roll}: HIT — {wound}"
                 )
                 self.skills.record_turn_event(
                     attacker_name, "combat",
@@ -395,8 +434,8 @@ class CombatSystem:
                 )
                 hit_msg = (
                     f"{attacker_name} attacks {target_name} with bare hands!\n"
-                    f"  Attack: d20({attack_raw}) + {attacker.stats.get('STR', 10)} STR + {attack_mod} mod = {attack_roll} "
-                    f"vs d20({defense_raw}) + {target.stats.get('DEX', 10)} DEX = {defense_roll} → HIT\n"
+                    f"  Attack: d20({attack_raw}) + {str_mod_display} STR + {attack_mod} mod = {attack_roll} "
+                    f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_roll} → HIT\n"
                     f"  Result: {wound}{armor_note}"
                 )
                 if wake_msg:
@@ -419,8 +458,8 @@ class CombatSystem:
         else:
             self.skills.add_log_entry(
                 f"[COMBAT] {attacker_name} attacks {target_name} with bare hands! "
-                f"Attack d20({attack_raw}) + {attacker.stats.get('STR', 10)} STR + {attack_mod} mod = {attack_roll} "
-                f"vs d20({defense_raw}) + {target.stats.get('DEX', 10)} DEX = {defense_roll}: MISSED"
+                f"Attack d20({attack_raw}) + {str_mod_display} STR + {attack_mod} mod = {attack_roll} "
+                f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_roll}: MISSED"
             )
             self.skills.record_turn_event(
                 attacker_name, "combat",
@@ -431,13 +470,13 @@ class CombatSystem:
                 weapon_name = weapon_node.properties.get('name') or weapon_node.name
                 return (
                     f"{attacker_name} swings the {weapon_name} at {target_name} but misses!\n"
-                    f"  Attack: d20({attack_raw}) + {attacker.stats.get('STR', 10)} STR + {attack_mod} mod = {attack_roll} "
-                    f"vs d20({defense_raw}) + {target.stats.get('DEX', 10)} DEX = {defense_roll} → MISS"
+                    f"  Attack: d20({attack_raw}) + {str_mod_display} STR + {attack_mod} mod = {attack_roll} "
+                    f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_roll} → MISS"
                 )
             return (
                 f"{attacker_name} lunges at {target_name} with bare hands but misses!\n"
-                f"  Attack: d20({attack_raw}) + {attacker.stats.get('STR', 10)} STR + {attack_mod} mod = {attack_roll} "
-                f"vs d20({defense_raw}) + {target.stats.get('DEX', 10)} DEX = {defense_roll} → MISS"
+                f"  Attack: d20({attack_raw}) + {str_mod_display} STR + {attack_mod} mod = {attack_roll} "
+                f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_roll} → MISS"
             )
 
     def _get_target_resistances(self, target_player):

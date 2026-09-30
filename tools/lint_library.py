@@ -27,13 +27,14 @@ import argparse
 import glob
 import json
 import os
+import re
 import sys
 
 DEFAULT_LIB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "library")
 
 ERROR_CHECKS = ("dead_interests", "missing_slots", "tag_case_drift", "broken_contents",
                 "unauthored_consumables", "resource_pools")
-WARNING_CHECKS = ("singleton_tags", "area_tag_gaps", "dead_fears")
+WARNING_CHECKS = ("singleton_tags", "area_tag_gaps", "dead_fears", "tag_id_charset")
 ALL_CHECKS = ERROR_CHECKS + WARNING_CHECKS
 
 #: Items that carry `food`/`drink` (or an `eat`/`drink` action) because they sit
@@ -260,6 +261,46 @@ def check_unauthored_consumables(items, report):
                          f"{'; '.join(missing)}")
 
 
+def check_tag_id_charset(registries, report):
+    """Registry ids outside ``[a-z0-9_]`` -- task-601.
+
+    ``load_registry`` keys every entry by its **filename verbatim**
+    (``routes/helpers.py``), so an id is whatever the file is called. 576 of the
+    591 tag files use ``snake_case``; 15 use spaces. Both resolve by their exact
+    id, but only the exact form: ``blackwood_mansion`` does NOT find
+    ``blackwood mansion.json``. An author writing the conventional form gets a
+    silent miss, and ``tag_case_drift`` cannot see it because that check only
+    compares casing, not separators.
+
+    Reported as a warning rather than an error: the spaced ids are referenced in
+    20+ places across areas, characters, items, rooms and ways, so renaming them
+    is a cross-registry migration, not a lint fix. The point of the check is to
+    stop the set growing silently.
+
+    Also reports the case where normalising would collide -- ``hidden door`` and
+    ``hidden_door`` are separate files today and normalising merges them, so
+    that one needs a human decision about whether they are the same tag.
+    """
+    for name, entries in (registries or {}).items():
+        offenders = [k for k in entries if not re.match(r"^[a-z0-9_]+$", str(k))]
+        if not offenders:
+            continue
+        detail = ", ".join(sorted(offenders))
+        report.warn("tag_id_charset",
+                    f"{name}: {len(offenders)} id(s) outside [a-z0-9_] do not resolve "
+                    f"by their snake_case form: {detail}")
+        # Collision: two ids that normalise to the same key.
+        seen = {}
+        for k in entries:
+            norm = re.sub(r"[^a-z0-9]+", "_", str(k).lower()).strip("_")
+            seen.setdefault(norm, []).append(str(k))
+        for norm, group in sorted(seen.items()):
+            if len(group) > 1:
+                report.warn("tag_id_charset",
+                            f"{name}: normalising would MERGE {group} into '{norm}' -- "
+                            f"decide whether they are the same tag before renaming")
+
+
 def check_singleton_tags(items, report):
     """Item tags appearing on exactly one item — typo or under-connected."""
     counts = {}
@@ -341,6 +382,7 @@ CHECKS = {
     "unauthored_consumables": lambda ctx, r: check_unauthored_consumables(ctx["items"], r),
     "resource_pools": lambda ctx, r: check_resource_pools(ctx["items"], r),
     "singleton_tags": lambda ctx, r: check_singleton_tags(ctx["items"], r),
+    "tag_id_charset": lambda ctx, r: check_tag_id_charset(ctx, r),
     "area_tag_gaps": lambda ctx, r: check_area_tag_gaps(ctx["areas"], r),
 }
 
@@ -374,6 +416,10 @@ def main():
         "items": load_registry(lib_dir, "items"),
         "characters": load_registry(lib_dir, "characters"),
         "areas": load_registry(lib_dir, "areas"),
+        # task-601: the tag registry is where the space-separated ids actually
+        # live (15 of them), so the charset check needs it in context.
+        "tags": load_registry(lib_dir, "tags"),
+        "ways": load_registry(lib_dir, "ways"),
     }
     print(f"linting {lib_dir} — items={len(ctx['items'])} "
           f"characters={len(ctx['characters'])} areas={len(ctx['areas'])}")

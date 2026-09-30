@@ -76,6 +76,19 @@ AXIS_TO_EXPRESSION: dict[str, str] = {
 }
 
 
+def _expression_margin() -> float:
+    """Points above resting an axis must reach to beat ``neutral`` (task-652).
+
+    One accessor so the portrait threshold and the label threshold cannot drift:
+    the label a reader sees and the face they see must never disagree about which
+    feeling is leading.
+    """
+    try:
+        return float(runtime_config.get("emotion.expression_margin", 6.0))
+    except (TypeError, ValueError):
+        return 6.0
+
+
 def dominant_expression(emotions: dict, min_margin: float | None = None) -> str:
     """Canonical expression key for the strongest raised affect axis.
 
@@ -287,6 +300,106 @@ def spike(values: dict, emotion: str, delta: float) -> dict[str, float]:
     except (TypeError, ValueError):
         return values
     values[emotion] = max(0.0, min(100.0, values[emotion] + delta))
+    return values
+
+
+# ── the legacy single-label view over the map (task-652) ────────────────────
+#
+# `set_emotion(label, intensity)` predates the affect map and every caller still
+# means the same thing by it: *this is now how the character feels*. The four
+# functions below are the translation, and they are the only place that
+# translation exists — the point of the task was that the two models had drifted
+# into being two states, and a second copy of this logic is how that would
+# happen again.
+
+
+def resolve_label(label: str) -> str | None:
+    """A free-text emotion word -> its affect dimension, or ``None``.
+
+    Exact dimension first, then the curated keyword aliases, then the semantic
+    bridge when it is enabled (``emotion.semantic_labels``). No substring
+    fallback, deliberately: ``resolve_label("sad-ish")`` guessing ``sad`` is how a
+    character acquires a feeling nobody meant to give them.
+    """
+    key = str(label or "").strip().lower()
+    if not key:
+        return None
+    if key in BASELINES:
+        return key
+    if key in LABEL_TO_DIM:
+        return LABEL_TO_DIM[key]
+    return resolve_label_semantic(key)
+
+
+def dominant_dimension(values: dict, min_margin: float | None = None) -> str | None:
+    """The strongest dimension above its baseline, or ``None`` at rest.
+
+    ``min_margin`` is the bar a dimension must clear to count as a *feeling* —
+    the same threshold :func:`dominant_expression` uses, so the label and the
+    portrait can never disagree about which feeling is leading.
+    """
+    margin = _expression_margin() if min_margin is None else min_margin
+    best, best_margin = None, 0.0
+    for key, value in (values or {}).items():
+        try:
+            over = float(value) - float(BASELINES.get(key, 0.0))
+        except (TypeError, ValueError):
+            continue
+        if over > best_margin and over >= margin:
+            best, best_margin = key, over
+    return best
+
+
+def dominant_intensity(values: dict, min_margin: float | None = None) -> float:
+    """How far the leading dimension sits above baseline, as 0.0–1.0.
+
+    The scale the legacy field stored directly and the behaviour editor's slider
+    still writes. Normalising by 100 means "halfway to the ceiling" reads the same
+    as the old ``0.5``, so an authored intensity keeps its meaning.
+    """
+    dimension = dominant_dimension(values, min_margin)
+    if not dimension:
+        return 0.0
+    try:
+        over = float(values[dimension]) - float(BASELINES.get(dimension, 0.0))
+    except (TypeError, ValueError, KeyError):
+        return 0.0
+    return max(0.0, min(1.0, over / 100.0))
+
+
+def dominant_label(values: dict, min_margin: float | None = None) -> str:
+    """The leading dimension's name, or ``"neutral"`` — what ``emotion`` reads.
+
+    Returns the **dimension** rather than the 12 portrait keys, because that is
+    what every caller of the legacy field expects to read back: `set_emotion` is
+    called with dimension names and keyword aliases alike, and a round trip has to
+    return something the caller recognises.
+    """
+    return dominant_dimension(values, min_margin) or "neutral"
+
+
+def set_dominant(values: dict, dimension: str, intensity: float) -> dict[str, float]:
+    """Make *dimension* the leading feeling at *intensity* (0.0–1.0).
+
+    Raises the named dimension to ``baseline + intensity * 100`` and **damps the
+    other dimensions on the same axis** back toward their baselines, so a character
+    told to be "afraid" is not left equally afraid, anxious *and* uneasy at full
+    strength. The other axes are untouched: being frightened in a cold room does
+    not make you calm, and the damping is per axis precisely so that a second,
+    unrelated feeling can be true at the same time — which is the entire reason the
+    map replaced the single slot.
+    """
+    if dimension not in (values or {}) or dimension not in BASELINES:
+        return values
+    try:
+        intensity = max(0.0, min(1.0, float(intensity)))
+    except (TypeError, ValueError):
+        return values
+    siblings = AXES.get(dimension, ())
+    for other in siblings:
+        if other in values and other != dimension:
+            values[other] += (BASELINES[other] - values[other]) * 0.6
+    values[dimension] = BASELINES[dimension] + intensity * 100.0
     return values
 
 

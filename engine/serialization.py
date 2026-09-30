@@ -127,6 +127,11 @@ class WorldSerializer:
             "grappled_by": self._grappled_by(pname),
             "state_timer": getattr(p, 'state_timer', 0),
             "traits": getattr(p, 'traits', {}),
+            # task-605: size is a property, not a trait, so it needs its own key
+            # here. The inspector's Size control reads `player.size` from this
+            # payload; without it the control can never show a saved value and
+            # would silently revert to "not set" on every render.
+            "size": getattr(p, 'size', None),
             "tags": getattr(p, 'tags', []),
             "flags": dict(getattr(p, 'flags', {})),
             "hidden": bool(getattr(p, 'hidden', False)),
@@ -351,11 +356,22 @@ class WorldSerializer:
         if pdata_memory:
             pass
         emotion_data = pdata.get("emotion", {})
-        if isinstance(emotion_data, dict):
-            p.emotion = emotion_data.get("current", "neutral")
-            p.emotion_intensity = emotion_data.get("intensity", 0.0)
-        if isinstance(pdata.get("emotions"), dict):
+        if isinstance(pdata.get("emotions"), dict) and pdata["emotions"]:
             p.load_emotions(pdata["emotions"])
+        elif isinstance(emotion_data, dict):
+            # **One-time migration for a save written before the affect map was
+            # the state** (task-652). The legacy `{current, intensity}` pair is
+            # folded into the map here and nowhere else, so a world saved by any
+            # earlier build comes back feeling what it was saved feeling rather
+            # than blank. Once a save carries `emotions`, the legacy pair is
+            # ignored on load — it is a cache of the map now, not a second
+            # opinion, and letting it win would be the duplication this task
+            # exists to remove.
+            p.emotion = emotion_data.get("current", "neutral")
+            try:
+                p.emotion_intensity = emotion_data.get("intensity", 0.0)
+            except (TypeError, ValueError):
+                pass
         rel_data = pdata.get("relationships", {})
         if isinstance(rel_data, dict):
             p.relationships = dict(rel_data)

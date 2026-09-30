@@ -436,5 +436,5 @@ window.TurnSceneView = (() => {
         openMenu(x, y, title, buttons, onDraft, null);
     }
 
-    return { render, renderScene, fetch, menu, lookLines, attachHover };
+    return { render, renderScene, fetch, menu, lookLines, attachHover, closeMenu };
 })();

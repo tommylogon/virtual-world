@@ -339,7 +339,7 @@ window.TurnFeed = (() => {
         const sentences = [];
 
         for (const e of entries) {
-            const actor = e.actor === playerName ? 'You' : observerName(e.actor);
+            const actor = (!e.actor || e.actor === playerName) ? 'You' : observerName(e.actor);
             if (e.type === 'speech') {
                 sentences.push(actor + ' says, "' + e.content + '"');
             } else if (e.type === 'whisper') {
@@ -524,7 +524,7 @@ window.TurnFeed = (() => {
             }
 
             const playerName = (typeof worldState !== 'undefined' && worldState.data && worldState.data.activePlayer) ? worldState.data.activePlayer : 'You';
-            const isPlayer = parsed.actor === 'You' || parsed.actor === playerName;
+            const isPlayer = !parsed.actor || parsed.actor === 'You' || parsed.actor === playerName;
             const actorKey = parsed.actor || '???';
             const displayActor = isPlayer ? 'You' : observerName(parsed.actor);
             const changeActor = lastActor !== actorKey;

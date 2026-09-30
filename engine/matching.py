@@ -6,6 +6,80 @@ from typing import List, Optional, Tuple
 
 from graph import Edge, EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED
 
+# task-624 / task-638: 51 of 205 areas in the reference scenario are literally
+# named "Road (world 10,4)". A node name is an identity, not a place label, and
+# the coordinates are development data -- they belong in the id, not in prose a
+# player reads ("you follow the path north toward Road (world 9,4)"). Areas may
+# still set an explicit `display_name`, which always wins; this is only the
+# fallback so the coordinate never reaches narration.
+# Trailing "." / "!" / "?" is allowed because this is also applied to
+# generated narration ("...toward Road (world 9,4)."), where the suffix is not
+# at the very end of the string.
+#
+# The first version of this (task-624) only matched "(world N,M)" and therefore
+# missed the painter's other naming scheme entirely. In kraktooth_goblin_camp
+# 326 ways and their areas are named "Sparse Forest (Eldenford interior 10,3)",
+# which the narrow pattern did not touch -- so the leak survived the fix on
+# three-quarters of the affected nodes. This pattern matches any trailing
+# parenthesised "N, M" pair, whatever label precedes it.
+_GRID_SUFFIX = re.compile(
+    r"\s*\(\s*[^()]*?\b\d+\s*,\s*\d+\s*\)\s*[.!]?\s*$", re.IGNORECASE
+)
+
+
+def way_endpoint_name(node, graph, which: str = "from") -> str:
+    """The display name of a way's endpoint, comparable with a Player's area.
+
+    task-628: a painted way stores the same endpoint twice -- ``area_from_id``
+    (authoritative) and ``area_from``, which is meant to hold a display name but
+    frequently holds an **area id** instead. Measured in
+    ``kraktooth_goblin_camp``: 326 of 351 ways carry both keys and **420 of
+    those two fields disagree**, because the "name" slot holds an id. A further
+    21 carry an id in the name slot with no id key at all.
+
+    Callers that compared the raw value against ``current_area.name`` therefore
+    never matched -- which made the ``one_way`` guard in ``movement.py`` and
+    ``npc_behaviors.py`` a permanent no-op, i.e. every one-way passage in a
+    painted world behaved as if it were two-way.
+
+    Resolves in the documented precedence (``area_*_id`` first, then the name
+    field), and normalises either form through the graph so the result is always
+    a node name. Returns "" when the way cannot be resolved, so callers compare
+    against something rather than raising.
+
+    ``which`` is "from" or "to".
+    """
+    if node is None:
+        return ""
+    props = getattr(node, "properties", None) or {}
+    id_key = "area_from_id" if which == "from" else "area_to_id"
+    name_key = "area_from" if which == "from" else "area_to"
+    raw = props.get(id_key) or props.get(name_key) or ""
+    raw = str(raw).strip()
+    if not raw:
+        return ""
+    if graph is not None:
+        # If the value is an id, this resolves it to the node's name. If it is
+        # already a display name, get_node misses and the value is returned as
+        # it stands -- which is correct, since that is what it already is.
+        by_id = graph.get_node(raw)
+        if by_id is not None:
+            return str(getattr(by_id, "name", "") or raw)
+    return _GRID_SUFFIX.sub("", raw).strip() or raw
+
+
+def display_area_name(node) -> str:
+    """Human-facing label for an area node: `display_name` if authored,
+    otherwise the node name with any "(world N,M)" grid suffix removed."""
+    if node is None:
+        return ""
+    props = getattr(node, "properties", None) or {}
+    explicit = props.get("display_name")
+    if explicit:
+        return explicit
+    name = str(getattr(node, "name", "") or "")
+    return _GRID_SUFFIX.sub("", name).strip() or name
+
 
 # Words too common to count as significant when matching characters by
 # description ("the tall man in the corner" → "tall", "corner").
@@ -311,6 +385,15 @@ class NameMatching:
             if node:
                 if node.name not in item_names:
                     item_names.append(node.name)
+        # task-633: equipped/worn items were missing from the candidate list, so
+        # `examine <worn>` reported "you don't see it here" and `drop <worn>`
+        # reported "you aren't carrying it" -- leaving the item stuck on the
+        # player with no way to remove it. Take auto-equips, so this is the
+        # normal state for anything picked up.
+        for edge in self.graph.get_edges_for_target(player_id, EDGE_EQUIPPED):
+            node = self.graph.get_node(edge.source)
+            if node and node.name not in item_names:
+                item_names.append(node.name)
         # Items inside carried containers
         for edge in self.graph.get_edges_for_target(player_id, EDGE_CARRYING):
             container_node = self.graph.get_node(edge.source)

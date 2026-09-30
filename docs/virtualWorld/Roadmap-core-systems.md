@@ -6,7 +6,9 @@ verified dependencies.
 
 *Audited 2026-09-27 against the code, not the task tree. Every claim below cites
 `file:line`. Companion to [[Roadmap]], which covers the WorldPainter authoring
-epic; this file covers the simulation substrate.*
+epic; this file covers the simulation substrate. **Counts re-based 2026-09-30**
+against the folders after 0369ef4; the layer claims are still the 09-27 audit and
+are marked where they have moved.*
 
 ## The short version
 
@@ -20,7 +22,10 @@ available right now.
 authored, validated, per-biome weighted resource data exist at
 `data/worldpainter/biomes.json:1818` and **no code in the engine ever reads
 it.** The declaration end is 100% built; the consumer end is 0% built. That is
-the single cheapest large win in the repository.
+the single cheapest large win in the repository — and it is still the cheapest,
+three days later, which is the most damning sentence in this file. It needs
+task-571 (the item-affinity vocabulary) first, and task-571 has an empty
+`Related`, so nothing enforces that order.
 
 **Order matters because three things block it**, and they block each other in a
 fixed sequence: name-keyed serialization silently destroys data at scale →
@@ -29,21 +34,30 @@ path that dies on exactly the noisy paint a generator produces.
 
 ## Where the work actually is
 
-270 open tasks. **`review` (164) is larger than `todo` (97)**, so the queue
+317 open tasks. **`review` (177) is larger than `todo` (140)**, so the queue
 overstates the backlog and understates the done-ness. The `review` pile is
 mostly UI polish; the architectural risk is concentrated in a handful of ids.
 
 | Area | Open | Shape |
 |---|---|---|
-| ui | 47 | 50 in review, mostly polish — not where the risk is |
-| gameplay | 45 | 29 done of 74; genuinely half-built |
-| world | 34 | **only 4 done of 39** — the least-finished area |
-| characters | 32 | 48 done of 81; healthy |
-| graph | 26 | scope fetch + signature dedup landed; virtualisation missing |
-| items | 25 | model mature, *content* and *biome wiring* missing |
-| triggers | 15 | feature-complete, O(n) scans |
-| environment | 9 | nearly done |
-| library | 5 | 8 tasks total — the "unified registry" is 3/8 built |
+| ui | 62 | 36 in review, mostly polish — not where the risk is |
+| gameplay | 51 | 29 done of 80; genuinely half-built |
+| world | 32 | **18 done of 50** — still the least-finished, but no longer nearly empty |
+| characters | 31 | 56 done; healthiest area, and the one with the cheapest live win (task-599) |
+| graph | 32 | scope fetch + signature dedup landed; virtualisation missing |
+| items | 26 | model mature, *content* and *biome wiring* missing |
+| triggers | 18 | feature-complete, O(n) scans |
+| library | 16 | the "unified registry" is 7/23 built |
+| refactor | 11 | mostly shovel |
+| bugs | 10 | 40 fixed; the open ones are worth reading |
+| environment | 9 | 26 done; weather now reaches a painted map (task-553/554/557) |
+
+**What moved since the 09-27 audit**, so the layer claims below can be read
+against it: the WorldPainter epic's floor-plan language landed (task-568's 53
+indoor rooms, task-564 per-kind merging, task-525's climb gate, task-529's entry
+phrases, task-535's promotion, task-536's rail, task-567's 30 interior plans),
+weather reached the ground (553/554/557), venues exist so a tired character walks
+to a bed (566), and the two-copies bugs closed (d7a5021).
 
 ## Layer 0 — Identity (blocks every world-scale task)
 
@@ -243,17 +257,24 @@ those. Fine at 1,350 cells; a showstopper at 100k. Blocked on graph indexes
 
 ## Orthogonal — drain the review pile
 
-164 tasks in `review` against 97 in `todo`. Until review means something, every
+177 tasks in `review` against 140 in `todo`. Until review means something, every
 count in this document is unreliable, and the Roadmap's own note is right that
 "if it is not drained, done stops meaning done." Start with the ones the recent
 sessions produced, whose acceptance nobody has re-read: task-496, 526, 528,
-530, 531, 532, 539, 540, 541, 548, 559, 560, 561, 562, 563 and bug-49…54.
+530, 531, 532, 539, 540, 541, 548, 559, 560, 561, 562, 563, 564, 566, 567, 568
+and bug-48…54.
 
 **Architectural risk in that pile is concentrated** in task-407 (edge
 indexing), 440 (splitting the 1100-line `virtual_world_engine.py` god object),
 442 (trigger blueprint runtime), 480 (skill growth), 495 (recursive scope
-grids), 496 (grid→graph compiler) and 527 (graph steady-state perf). The other
-~157 are editor polish and can be triaged cheaply.
+grids), 496 (grid→graph compiler), 527 (graph steady-state perf, which now wants
+re-scoping) and 567 (the interior generator that turns a plan into paint). The
+other ~169 are editor polish and can be triaged cheaply.
+
+**Two of those are now settled and should leave the pile on a re-read rather than
+a re-implementation**: 495 and 496 shipped as the WorldPainter epic's compiler and
+its authoring loop; 560–568 are the town/floor-plan vocabulary, and their
+acceptance is the point of the 2026-09-30 patch notes.
 
 ## What not to do
 

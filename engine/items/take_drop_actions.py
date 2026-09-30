@@ -802,11 +802,23 @@ class TakeDropActionsMixin:
         player_id = player_manager._player_node_id(player_manager.active_player)
         item_node_id = player_manager.item_node_id(item_name)
 
-        for edge in self.graph.get_edges_for_target(player_id, EDGE_CARRYING):
-            node = self.graph.get_node(edge.source)
-            if node and node.name == item_name:
-                item_node_id = node.id
-                break
+        # task-633: an equipped item is held, and the drop body below already
+        # handles the equipped edge (task-407), but this lookup only scanned
+        # EDGE_CARRYING. So an auto-equipped item -- the normal state after
+        # `take` -- could never be put down again.
+        for edge_type in (EDGE_CARRYING, EDGE_EQUIPPED):
+            for edge in self.graph.get_edges_for_target(player_id, edge_type):
+                node = self.graph.get_node(edge.source)
+                # task-633: case-insensitive. The verb handler hands us a
+                # lowercased name, so `node.name == item_name` compared
+                # "Knife" against "knife" and never matched -- which is why
+                # drop failed even for a *carried* item.
+                if node and node.name.strip().lower() == str(item_name).strip().lower():
+                    item_node_id = node.id
+                    break
+            else:
+                continue
+            break
         else:
             raise ValueError(f"You aren't carrying '{item_name}'.")
 

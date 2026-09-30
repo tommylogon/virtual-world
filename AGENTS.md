@@ -2,6 +2,93 @@
 
 Project guidance for automated agents working in this repo.
 
+## STOP — read this before you touch a UI
+
+This section is a **gate**, not advice. It exists because a live audit of this
+repo retracted **seven findings** for the same reason: judging a surface from a
+partial view and reporting it as a defect. Advice about this did not work. These
+are the checks that do.
+
+### 1. Never report absence without proving it
+
+You may not write "there is no X", "it is unlabelled", "it does not work", or
+"nothing happens" until you have **run a count and shown the number**. If you
+cannot produce a count, you do not have a finding — you have an untested guess.
+
+    const controls = [...panel.querySelectorAll('button, select, input')]
+      .filter(e => e.offsetParent);
+    return { count: controls.length,
+             labels: controls.map(e => (e.innerText || e.title || '').trim()) };
+
+### 2. Count the WHOLE container, not a fragment of it
+
+The single worst error available here. These are all the same mistake:
+
+```js
+// WRONG — a filtered list, then take one arbitrary member
+const panels = [...document.querySelectorAll('aside, .inspector, ...')]
+  .filter(e => e.offsetParent && e.innerText.length > 50);
+const panel = panels[panels.length - 1];     // <- one SUB-panel, silently
+```
+
+Two filters plus an arbitrary pick and you are reading one section of a
+26-section inspector. Fix it by **walking up to the real root and proving its
+size** before reading anything:
+
+```js
+let el = document.getElementById('known-section-id');
+while (el && el.querySelectorAll('.inspector-section').length < 3) el = el.parentElement;
+// now report el's section count and control count BEFORE drawing any conclusion
+```
+
+If the count is larger than what you expected, you have found the real surface.
+Read that number, not your assumption.
+
+### 3. One screenshot is not a surface
+
+A screenshot is one viewport. A panel can be 2613px tall. Before you judge a
+scrollable container you must:
+
+1. screenshot the top,
+2. **scroll it to the bottom**,
+3. screenshot again,
+4. and if it has internal tabs or disclosures, open each one.
+
+The equipment UI I claimed "did not exist" was two sections below where the first
+screenshot happened to be scrolled.
+
+### 4. Check the selector points at the thing you said
+
+Before trusting a probe, confirm it is pointed where you think. `memory-section-x`
+is not the inspector. A `select` at `0x0` may be an *enhanced* widget with a
+visible chip. An `A <-> B` string may not be in the data at all.
+
+### 5. Read the surface's own hint text
+
+This app says what it wants: the turn modal says *"hover = free look · click =
+what you can do with it"*, and a vignette says *"hover a cell to read it"*. Both
+had been on screen for several exchanges before I acted on them.
+
+### 6. When told you are wrong, go look again
+
+Do not re-derive. Do not defend. Open the thing, look at it, and report what is
+there. I asserted "the character inspector has no equipment UI" three separate
+times while it was rendered two sections below my viewport.
+
+### 7. Do not fix, or file, what you have not reproduced
+
+A task whose acceptance criteria you could not demonstrate live is not ready to
+close. Say so and record what blocked it.
+
+### 8. Content before instrumentation
+
+If a mechanic has nothing exercising it, **author the content** — do not write a
+test to stand in for it and do not declare it undemonstrable. A test proves the
+mechanism; a fixture makes it real. Both, in that order, and the fixture is what
+survives.
+
+---
+
 ## Prime directive
 
 VirtualWorld is a simulation, not a collection of isolated features.
@@ -41,8 +128,44 @@ a soak:
 
 A field that serializes correctly, a function that exists, or a test that passes
 is **not** evidence that a mechanic is wired into live simulation. Do not add
-behavior until all four are checked.
+behavior until all of the four above are checked.
 
+## Never judge a UI surface without interacting with it
+
+**The operative rules for this are the gate at the top of this file
+("STOP -- read this before you touch a UI").** They are numbered, they are
+mechanical, and they are the version to follow. This section keeps only the
+evidence for why they exist.
+
+A live audit retracted seven findings for judging a surface without using it:
+stranger names that "failed to resolve" (they are strangers -- the hover says
+"recognized -- but you do not know their name yet"), a names toggle that was a
+"one-way door" (it round-trips), an `area_presence` index called stale (it is
+a movement ledger, written only from `movement.py`), and vital decay called a
+"permanent alarm" (`vital_rates.py` documents the intent and every figure
+matches). Each looked completely convincing from a screenshot or a DOM read.
+
+**What is invisible without interaction:**
+
+- **Hover** -- tooltips, free-look panels, "recognized -- but you do not know
+  their name yet", cost disclosures like `free look - no turn cost`
+- **Click** -- verb menus, confirmation modals, context actions
+- **Collapse** -- `advanced`, `raw json`, `what you know`
+- **Typed input** -- autocomplete, and a bare verb answered with a real error
+
+**Two more that are cheap to get wrong:**
+
+- **A hidden element is not a closed one.** `#htc-overlay` is `display: none`
+  while its child `#htc-modal` stays in the DOM at `0x0` with a stale
+  `innerText`. Test visibility with `getBoundingClientRect()` and
+  `offsetParent`, **never** with `element exists`.
+- **canvas-rendered views have no DOM.** vis.js draws to a `<canvas>`, so
+  `document.querySelectorAll('.vis-node')` returns **zero** and every
+  DOM-derived count of them is a fabrication. Screenshot or ask the API.
+
+**Before filing a UI finding, name the interaction you performed.** If the
+answer is "I read the markup" or "I took a screenshot", it is not yet
+evidence.
 ## Agent operating rules
 
 ### Before editing
@@ -135,6 +258,37 @@ Compare the changed behavior against the existing baseline, comparing failure
   reproduced independently.
 - When a failure is genuinely unrelated, record why it is unrelated rather than
   silently ignoring it.
+
+**The A/B that satisfies the rule above.** `git stash push -- <the files you
+touched>`, re-run the same selection, then `git stash pop`. Identical failure
+*names* both ways is the proof. In this session that check turned six
+`test_scenario_data_integrity` / `test_ownership` failures from "possibly mine"
+into "demonstrably not mine" in one command, and it is the only evidence that
+counts — a plausible story about which lane owns a failure is not.
+
+### Filing discipline
+
+The task tree is for work that is **not yet understood**, not for findings. A
+ticket whose fix the filer already knows how to write is work deferred, not
+work described, and it makes the backlog lie about its own size.
+
+- **Verify before filing.** A filed finding names the interaction or measurement
+  that produced it. "I read the markup" and "I took a screenshot" are not
+  evidence for a UI claim — see the principle above.
+- **Retract in place, and say why.** When a finding does not survive
+  verification, move the task to `cancelled` and append what disproved it. Do not
+  delete it and do not quietly leave it. A retraction with a measurement is
+  worth more than the finding was.
+- **Retracting is a success, not a failure.** Four of eight findings filed in the
+  live audit were retracted, and the rate that matters is not the ratio but
+  whether an unverified finding reaches `done`. A tree where nothing is ever
+  retracted is a tree where nothing was ever checked.
+- **Half-right findings get corrected, not cancelled.** "No flee or wait verb
+  exists" was half wrong — `wait` existed. Rewriting the goal to the half that
+  survived keeps the real half actionable.
+- **Don't batch-fix from an unverified list.** Verify three, fix three, then
+  re-verify. Fixing thirty findings read off a single pass reproduces exactly the
+  error that made the retractions necessary.
 
 ### Scope control
 

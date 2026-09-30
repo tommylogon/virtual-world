@@ -28,6 +28,7 @@ from engine.effect_handlers.scry import HANDLERS as SCRY_HANDLERS
 from engine.effect_handlers.weather import HANDLERS as WEATHER_HANDLERS
 from engine.effect_handlers.tags import HANDLERS as TAG_HANDLERS
 from engine.effect_handlers.spells import HANDLERS as SPELL_HANDLERS
+from engine.size import SIZE_TIERS, SIZE_DEFAULT
 
 HANDLERS = {}
 HANDLERS.update(VITAL_HANDLERS)
@@ -497,6 +498,11 @@ class Effects:
         _skills.update(lib_data.get("skills", {}) or {})
         p.skills = _skills
         p.traits = lib_data.get("traits", {})
+        # task-605: size is a property, not a `size_*` trait. Loaded here
+        # alongside tags so a library definition can set it, and validated so a
+        # typo resolves to `normal` rather than to an unknown tier.
+        _size = str(lib_data.get("size", "") or "").strip().lower()
+        p.size = _size if _size in SIZE_TIERS else SIZE_DEFAULT
         p.tags = list(lib_data.get("tags", []))
         p.sync_vitals_with_tags()
         p.interest_tags = list(lib_data.get("interest_tags", []))

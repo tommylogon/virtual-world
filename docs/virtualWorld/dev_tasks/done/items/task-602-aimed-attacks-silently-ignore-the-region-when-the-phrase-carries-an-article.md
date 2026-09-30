@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: done
 area: items
 priority: high
 ---

@@ -1,0 +1,54 @@
+{
+  "title": "Cold Rooms, Graph-Bound Gear, One Tick",
+  "project": "VirtualWorld Engine",
+  "mode": "rp",
+  "hosts": [
+    "Mara",
+    "Elias"
+  ],
+  "cast": [
+    {
+      "name": "Mara",
+      "who": "Mara, 43, is VirtualWorld’s invariant steward and argues in clipped procedural absolutes that the cold room must reject every unsafe graph mutation."
+    },
+    {
+      "name": "Elias",
+      "who": "Elias, 27, is a scenario author who speaks in quick metaphors and risks his commission to argue that the same cold room must remain playable, humane, and alive."
+    }
+  ],
+  "outline": [
+    {
+      "title": "Cold Room Calibration — Millbrook Falls",
+      "angle": "Two caretakers conduct a dangerous cold-room test, each using a different rule of the simulation to decide whether the other is freezing or merely uncomfortable.",
+      "points": [
+        "Room and body temperatures are separate: ambient room temperature defaults to 21°C, core body temperature starts at 37°C, and core temperature drifts each world tick.",
+        "The effective feels-like temperature combines room ambient temperature with stacked insulation, wind chill, and humidity; insulation that helps in cold can worsen exposure in heat.",
+        "The temperature_below and temperature_above triggers compare the room’s current environment temperature; set_environment replaces it, while adjust_environment makes relative changes clamped to -50–100°C."
+      ]
+    },
+    {
+      "title": "The Graph-Bound Gear Room — Millbrook Falls",
+      "angle": "One caretaker must equip the other and recover a lamp without breaking the spatial and inventory rules that make every movement and object state authoritative.",
+      "points": [
+        "A character’s location is a single graph-edge anchor relative to a room, using relations such as at, on, under, behind, or beside; a physical action moves the character to the relevant way or target and updates that relation.",
+        "Items are tracked through graph edges: in means an item is in a room, carrying means a player has it, and take—including get and pickup aliases—moves the edge; the legacy Player.inventory property is not used by engine operations.",
+        "Equipment layers items across 13 visual body areas plus an unlimited accessory slot, with stacking limits and support for two-handed weapons and full-body suits; use <item_name> can validate and toggle a lamp, record its state, consume or deplete it, and fire triggers."
+      ]
+    },
+    {
+      "title": "One Action, One Tick — Cold Room Door, Millbrook Falls",
+      "angle": "At the threshold of a temperature-triggered failure, the two caretakers know they have only one action to spend before the entire world advances.",
+      "points": [
+        "Every player action triggers a full tick_turn cycle; the engine defaults to one minute per tick, while the referenced scenario uses five minutes, and a completed queue cycle advances the turn number, world clock, and tick or decay effects exactly once.",
+        "The turn queue supports sequential, random, and d20+DEX initiative, with one decision per character per turn controlling autonomous and human participation.",
+        "Temperature is a survival system rather than a display: warnings use effective feels-like temperature, the core-temperature bar maps 25–45°C to 0–100%, and damage, regeneration limits, resistances, hypothermia thresholds, and heat-stroke thresholds govern what remains possible."
+      ]
+    }
+  ],
+  "brief": "- **Platform and architecture:** VirtualWorld is a local, single-player Flask/vanilla-JavaScript simulation with persistent AI worlds, local or OpenAI-compatible models, no build step or cloud dependency, and invariant-focused extension guidance.\n- **World graph and runtime spine:** A typed, serializable property graph is authoritative; addressable hierarchical scopes, area-major ticking, server graphs, audibility, relational spatial state, deterministic generation, grouping, and chunk persistence coordinate behavior.\n- **Geography and movement:** Millbrook Falls contains roughly 200 explorable areas across districts, represented by room and door nodes with directional or bidirectional connections that maintain character locations.\n- **Scenario authoring and validation:** JSON schemas define entities and graph references; a four-stage generation/refinement workflow, catalogs, audits, reviews, and the goblin-camp example validate playable graphs and content fidelity.\n- **Library and content management:** Library 2.0 provides full-schema editing, safe writes, world synchronization, imports, placement tools, DiffModal conflict resolution, and tag/domain-based content selection and placement rules.\n- **Unified participants and agents:** Human players, soak/simple NPCs, background characters, and LLM agents share an entity/action model while distinct controllers, costs, and an OpenAI-compatible client govern autonomous perception, planning, speech, and rate limits.\n- **Social and character state:** Observation, speech attribution, canonical records, structured attributes, memories, fear and emotion, relationship drift, social prompts, undead immunities, and NPC packing shape persistent behavior.\n- **Perception and world simulation:** Biome resources, faction ownership, lighting, sound, fog of war, sightlines, way blocking, fidelity controls, weather, wind, humidity, and connected-space needs make worlds perceptible and functional.\n- **Traits, skills, and combat:** JSON-defined traits, D20 proficiencies, capability and condition stores, temporary effects, reversible priority modifiers, and D20 attacks and weapons support gated, stacking gameplay.\n- **Items, equipment, and effects:** Graph edges track containment and carrying; layered equipment, stacking, accessories, two-handed weapons, full-body suits, toggles, `on_use` hooks, consumption, depletion, event recording, and 42 generated effects form a reusable interaction library.\n- **Time, initiative, and activities:** Sequential, random, and d20 initiative plus continuous cycles coordinate actions, NPC behavior, world ticks, clock advancement, weather, and persistent rest, sleep, meditation, bathing, waiting, and posture activities.\n- **Vitals and temperature:** Vital decay, body temperature, ambient room temperature, insulation, wind chill, humidity, lighting, damage, regeneration, death thresholds, resistances, warnings, and triggers govern survival and action availability.\n- **Persistence and scenario lifecycle:** Full runtime snapshots preserve play state, while portable scenario saves retain authored content but remove logs, hearing, and other transient artifacts; save/load preserves ongoing activities.\n- **Presentation and user interface:** Lit views, a context-sensitive Inspector, backend/client settings, IndexedDB persistence, rendering bootstrapping, configurable narration, expression packs, and fallback artwork support operation and presentation.\n- **Live tooling and observability:** FastMCP editing tools, a global buffered SSE event hub, and Markdown exports expose world turns, global ticks, filters, event sequences, and runtime state for inspection.\n- **Quality governance and roadmap:** Bugbot reviews scoped changes for genuine defects while excluding known baselines and enforcing authoritative behavior, bounded attention, compatibility, and tests; remaining work includes biome-resource consumption and weighted resource data.",
+  "focus": "a cold room, two people who know the rules of it",
+  "wordCount": 938,
+  "estimatedMinutes": 6.3,
+  "sourcesIndexed": 155,
+  "generatedAt": "2026-09-30T14:24:21.167Z"
+}

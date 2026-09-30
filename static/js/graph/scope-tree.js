@@ -172,13 +172,14 @@ window.GraphScopeTree = (function () {
      */
     function rowLabel(row) {
         if (!row) return '';
-        const counts = [];
-        if (row.unmade) {
-            counts.push('not built');
-        } else {
-            counts.push(`${row.areaCount} ${plural(row.areaCount, 'area')}`);
-            if (row.itemCount) counts.push(`${row.itemCount} ${plural(row.itemCount, 'item')}`);
-        }
+         const counts = [];
+        // task-615: 'unmade' is a materialisation state, not a claim about contents,
+        // and the two come apart -- 'goblin_camp' is state:'unmade' while holding
+        // 21 areas and 10 characters present. Keying the row off 'unmade' rendered
+        // it as 'not built' on a line that also said '10 here now'.
+         if (row.areaCount) counts.push(row.areaCount + ' ' + plural(row.areaCount, 'area'));
+         if (row.itemCount) counts.push(row.itemCount + ' ' + plural(row.itemCount, 'item'));
+         if (row.unmade) counts.push(counts.length ? 'unmade' : 'not built');
         if (row.hasCharacter) {
             // "here now" is invariant in number — one person is also "here now".
             counts.push(`${row.characterCount} here now`);

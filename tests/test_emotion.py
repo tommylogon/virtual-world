@@ -340,3 +340,88 @@ class TestDominantExpression:
         assert p.dominant_expression() == "neutral"
         p.spike_emotion("afraid", 30)
         assert p.dominant_expression() == "afraid"
+
+
+class TestOneModel:
+    """The legacy single-label fields are **derived from** the map, not stored.
+
+    Before this, `Player.emotion` was a real field written by four production paths
+    while the face was chosen from the map — so the ordinary way to change how a
+    character felt did not change their face. These pin the replacement: the
+    properties, the widened vocabulary, the axis damping, and the fact that an
+    untouched character is untouched rather than mildly serene.
+    """
+
+    def test_an_untouched_player_is_at_rest_and_stays_lazy(self):
+        p = Player()
+        # None, not a materialised baseline: decay skips an unmaterialised map.
+        assert p._emotions is None
+        assert p.emotion == "neutral"
+        assert p.emotion_intensity == 0.0
+        # …and *reading* the derived label must not materialise it.
+        assert p._emotions is None, "reading the label must not build the map"
+
+    def test_set_emotion_now_reaches_the_face(self):
+        p = Player()
+        p.set_emotion("afraid", 0.8)
+        assert p.emotion == "afraid"
+        assert p.dominant_expression() == "afraid", (
+            "the whole point: a scripted emotion must show on the character")
+
+    def test_set_emotion_accepts_the_whole_vocabulary(self):
+        """Not the old seven. A `set_emotion` action could reach 7 of 36."""
+        for label in ("grateful", "dread", "melancholic", "elated", "ashamed"):
+            p = Player()
+            p.set_emotion(label, 0.7)
+            assert p.emotion == label, label
+
+    def test_set_emotion_accepts_a_keyword_alias(self):
+        p = Player()
+        p.set_emotion("terrified", 0.9)          # an alias, not a dimension
+        assert p.emotion == "afraid"
+        assert p.emotions_map()["afraid"] > BASELINES["afraid"]
+
+    def test_set_emotion_rejects_a_word_the_vocabulary_lacks(self):
+        p = Player()
+        with pytest.raises(ValueError, match="Unknown emotion"):
+            p.set_emotion("wibble", 0.5)
+
+    def test_setting_a_feeling_damps_its_siblings_but_not_other_axes(self):
+        p = Player()
+        p.set_emotion("afraid", 0.9)
+        m = p.emotions_map()
+        # Same axis (fear): the siblings are pulled back toward rest, so the
+        # character is not maximally afraid *and* maximally anxious.
+        assert m["afraid"] > m["anxious"] + BASELINES["anxious"] * 0.5
+        # A different axis can be true at the same time — which is the reason the
+        # map replaced the single slot.
+        p.spike_emotion("grateful", 40)
+        assert p.emotions_map()["grateful"] > BASELINES["grateful"]
+        assert p.emotion == "afraid", "the leading feeling is still fear"
+
+    def test_a_legacy_assignment_lands_in_the_map(self):
+        p = Player()
+        p.emotion = "furious"                     # an alias for angry
+        assert p.emotion == "angry"
+        assert p.dominant_expression() == "angry"
+
+    def test_neutral_is_a_reset_not_a_feeling(self):
+        """`LABEL_TO_DIM` maps neutral to calm, so taking it literally would
+        leave every character mildly serene."""
+        p = Player()
+        p.set_emotion("afraid", 0.9)
+        p.emotion = "neutral"
+        assert p.emotion == "neutral"
+        assert p.emotions_map() == BASELINES
+
+    def test_intensity_round_trips_through_the_map(self):
+        p = Player()
+        p.set_emotion("sad", 0.5)
+        assert p.emotion_intensity == pytest.approx(0.5, abs=0.02)
+        p.emotion_intensity = 1.0
+        # Intensity is *points above rest*, so full is baseline + 100 rather than
+        # an absolute 100 — which is what makes 0.0 mean "at rest" and lets a
+        # character's own baseline matter.
+        assert p.emotions_map()["sad"] == pytest.approx(
+            BASELINES["sad"] + 100.0, abs=1.0)
+

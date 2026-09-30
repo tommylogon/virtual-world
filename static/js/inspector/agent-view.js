@@ -430,7 +430,35 @@ window.InspectorAgentView = (() => {
               </div>`
             : '';
 
-        return `<div style="padding:8px 16px;background:var(--bg-card);border-bottom:1px solid var(--border);">
+        // task-605: size is a first-class character property, so it belongs in the
+    // form next to the vitals rather than hidden in a `size_*` trait key. Two
+    // things already read it -- way `max_size` passage gating and per-area
+    // occupancy (task-653) -- and neither is discoverable from the UI today.
+    // An empty selection means "not authored": the engine falls through to a
+    // `size_*` trait if one exists, else to `normal`.
+    const SIZE_TIERS = ['tiny', 'small', 'normal', 'huge', 'giant', 'titanic'];
+    const currentSize = String((player && player.size) || '').trim().toLowerCase();
+    const sizeOptions = SIZE_TIERS.map(function (t) {
+        return '<option value="' + t + '"'
+            + (t === currentSize ? ' selected' : '') + '>' + t + '</option>';
+    }).join('');
+    const sizeTip = 'Size: which of the six tiers this character is.'
+        + '\n\n'
+        + 'Way max_size gates compare against it, so a tight tunnel blocks anything bigger.'
+        + '\n'
+        + 'Per-area occupancy sums it, so a titanic creature needs a big area.'
+        + '\n\n'
+        + 'Blank falls back to a size_* trait if one exists, otherwise normal.';
+    const sizeGroup = `<div style="margin-top:4px;padding-top:4px;border-top:1px solid var(--border);display:flex;align-items:center;gap:6px;">
+      <div style="font-size:8px;color:var(--text-muted);text-transform:uppercase;">Size</div>
+      <select id="agent-size-select" style="flex:1;font-size:11px;padding:2px 4px;background:var(--bg-input);color:inherit;border:1px solid var(--border);border-radius:4px;"
+        onchange="ApiClient.updateCharacter('${escAgent}', { size: this.value || null }).then(() => worldState.fetch())"
+        data-tippy-content="${sizeTip}">
+        <option value=""${currentSize ? '' : ' selected'}>&#8212; not set &#8212;</option>
+        ${sizeOptions}
+      </select>
+    </div>`;
+    return `<div style="padding:8px 16px;background:var(--bg-card);border-bottom:1px solid var(--border);">
             <div style="display:flex;gap:12px;">
                 <div style="flex:1;"><div style="font-size:8px;color:var(--text-muted);text-transform:uppercase;margin-bottom:2px;">Physical</div>
                 <div style="display:flex;flex-wrap:wrap;gap:4px;">${physicalVitals.map(renderVital).join('')}</div></div>
@@ -438,6 +466,7 @@ window.InspectorAgentView = (() => {
                 <div style="display:flex;flex-wrap:wrap;gap:4px;">${mentalVitals.map(renderVital).join('')}</div></div>
             </div>
             ${manaGroup}
+    ${sizeGroup}
         </div>`;
     };
 

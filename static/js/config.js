@@ -15,6 +15,7 @@ class ConfigManager {
 
     async _init() {
         await this._loadFromStorage();
+        this.syncTurnModeCaption();
         this._ready = true;
     }
 
@@ -167,6 +168,9 @@ class ConfigManager {
      */
     async setTurnMode(mode) {
         this.turnOrder = window.VWSimultaneous.normalizeMode(mode, this.turnOrder);
+        // task-631: update the caption first, off the normalised value, so it
+        // tracks the selection even if the persist/notify tail below fails.
+        this.syncTurnModeCaption();
         if (window.VWSimultaneous.isSimultaneous(this.turnOrder)) {
             this.turnBased = false;
             const turnBased = document.getElementById('agent-turn-based');
@@ -185,6 +189,22 @@ class ConfigManager {
         // so switching modes has to re-evaluate the toolbar.
         VW?.ui?.updateButtons?.();
         if (window.appEvents) appEvents.emit('state:updated', worldState?.data);
+    }
+
+    /** task-631: the caption under Turn-Based Mode was hardcoded to the
+     *  Sequential wording, so it stayed "Characters act one at a time" for all
+     *  five modes and was wrong for four. Derive it from the selected mode. */
+    syncTurnModeCaption() {
+        const desc = document.querySelector('#agent-turn-based-desc');
+        if (!desc) return;
+        const DESCRIPTIONS = {
+            sequential: 'Characters act one at a time',
+            random: 'Characters act in a shuffled order, reshuffled each round',
+            initiative: 'Each character rolls d20 + DEX; highest acts first',
+            simultaneous: 'Every character acts at once on a countdown',
+            simultaneous_room: 'Rooms resolve independently; order within a room',
+        };
+        desc.textContent = DESCRIPTIONS[this.turnOrder] || `Turn mode: ${this.turnOrder}`;
     }
 
     async save() {

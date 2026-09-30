@@ -134,9 +134,15 @@ class TestCombat:
         target_hp_after = harness.player_manager.players["TargetDummy"].vitals["HP"]
 
         assert "Iron Sword" in result
-        assert "Result:" in result
+        # task-603: an attack can legitimately miss, and the assertions below
+        # already guard for that. This line used to demand "Result:" (a landed
+        # hit) unconditionally, which only passed because combat added RAW
+        # ability scores to both dice -- STR 14 and DEX 20 landed ~10 bonus
+        # points each, so a hit was near-certain. With ability_mod the contest
+        # is real, so assert the attack *resolved*, not that it connected.
+        assert "Result:" in result or "misses" in result.lower()
         assert "HP" not in result  # narrative-first: no hit-point numbers
-        assert target_hp_after < 100
+        assert target_hp_after <= target_hp_before
         if "misses" not in result.lower():
             assert target_hp_after < target_hp_before
 

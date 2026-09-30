@@ -26,6 +26,13 @@
     'use strict';
 
     const BASE = '/api/world/scopes';
+// The bare endpoint answers a tree that inlines ONLY the root and its immediate
+// children -- a scope nested two deep (`goblin_camp` > `test`) is absent from it
+// entirely, so it cannot be chosen for painting. `?flat=1` returns every scope
+// with its `depth` and `parent_id`, which is the complete list.
+// `SCOPES_URL` is what any scope *picker* should use; `BASE` stays for the
+// per-scope grid payloads that expect the nested shape.
+const SCOPES_URL = '/api/world/scopes?flat=1';
     const CELL = 22;           // base px per cell at scale 1
     const MIN_SCALE = 0.12;
     const MAX_SCALE = 6;
@@ -320,8 +327,9 @@
      * building types are gathered into one section and sorted by their category
      * (residential, religious, commercial, civic, craft, military, industrial,
      * rural, transport), with the wild terrain above it where it already was. The
-     * grouping is cosmetic — a `select` cannot nest, so it is one flat list with
-     * "— Buildings —" and "— Category —" separators that cannot be painted.
+     * sections render as real `<optgroup>` elements -- a `<select>` nests them
+     * natively -- so the palette is 130 options under ~25 headings rather than
+     * 130 flat rows separated by un-paintable dash text.
      *
      * **Rooms** get the same treatment for the same reason, and it matters more
      * here: the indoor vocabulary is *purpose* first (where does a person sleep,
@@ -366,23 +374,23 @@
         }
         const out = wild.slice();
         if ([...rooms.values()].some((g) => g.length)) {
-            out.push({ separator: '— Rooms —' });
+            out.push({ section: 'Rooms' });
             for (const purpose of [...ROOM_PURPOSES, 'other']) {
                 const group = rooms.get(purpose);
                 if (!group || !group.length) continue;
-                out.push({ separator: `— ${purpose[0].toUpperCase()}${purpose.slice(1)} —` });
+                out.push({ section: `${purpose[0].toUpperCase()}${purpose.slice(1)}` });
                 out.push(...group);
             }
         }
-        if (out.length) out.push({ separator: '— Buildings —' });
+        if (out.length) out.push({ section: 'Buildings' });
         for (const category of [...CATEGORIES, 'other']) {
             const group = buildings.get(category);
             if (!group || !group.length) continue;
-            out.push({ separator: `— ${category[0].toUpperCase()}${category.slice(1)} —` });
+            out.push({ section: `${category[0].toUpperCase()}${category.slice(1)}` });
             out.push(...group);
         }
         if (structure.length) {
-            out.push({ separator: '— Structure —' });
+            out.push({ section: 'Structure' });
             out.push(...structure);
         }
         return out;
@@ -562,9 +570,17 @@
         box.appendChild(list);
         box.appendChild(_btn('➕ New root scope', () => _promptNewScope(null)));
         try {
-            const root = await _req(BASE, { cache: 'no-store' });
+            const root = await _req(SCOPES_URL, { cache: 'no-store' });
             list.textContent = '';
-            const scopes = root.children || [];
+            // task-623: this used to read only `root.children`, which is the
+            // single ROOT scope. Its children -- the zone scopes an author
+            // actually paints in -- were never walked, so the painter offered
+            // 1 scope on a world that has 6. Walk the whole tree and show depth,
+            // because the hierarchy is what tells you which scope is which.
+            const scopes = (window.ScopeOptions
+                ? window.ScopeOptions.flattenScopes(root)
+                : (root.children || [])
+            );
             if (!scopes.length) {
                 list.appendChild(_el('div', 'color:var(--text-muted,#999);',
                     'No scopes yet. Create one to start painting.'));
@@ -577,16 +593,27 @@
     }
 
     function _scopeCard(card, onOpen) {
+        // Indent by depth so a child zone reads as belonging to its parent.
+        const indent = '  '.repeat(Math.max(0, card.depth || 0));
         const el = _el('div',
             'border:1px solid var(--border,#444);border-radius:8px;padding:8px 10px;' +
-            'min-width:150px;cursor:pointer;background:var(--bg-card,#24242b);');
+            'min-width:150px;cursor:pointer;background:var(--bg-card,#24242b);' +
+            (card.depth ? 'margin-left:' + (card.depth * 16) + 'px;' : ''));
         const head = _el('div', 'display:flex;align-items:center;gap:6px;');
-        head.appendChild(_el('span', 'font-weight:600;flex:1 1 auto;', card.name || card.id));
+        head.appendChild(_el('span', 'font-weight:600;flex:1 1 auto;', indent + (card.name || card.id)));
         head.appendChild(_iconBtn('✏️', 'Rename scope', () => renameScope(card.id, card.name)));
         head.appendChild(_iconBtn('🗑', 'Delete scope', () => deleteScope(card.id, card.name)));
         el.appendChild(head);
-        el.appendChild(_el('div', 'font-size:10px;color:var(--text-muted,#999);',
-            `${card.kind || 'scope'} · ${card.state || ''}${card.mode ? ' · ' + card.mode : ''}`));
+        // Show what the scope holds, so the chooser is a chooser rather than a
+        // list of names (task-615: never claim a scope with content is "not built").
+        // The flat endpoint returns snake_case (`area_count`); the nested one used
+        // camelCase in some shapes, so accept both rather than render nothing.
+        const areas = card.area_count != null ? card.area_count : card.areaCount;
+        const items = card.item_count != null ? card.item_count : card.itemCount;
+        const bits = [`${card.kind || 'scope'} · ${card.state || ''}${card.mode ? ' · ' + card.mode : ''}`];
+        if (areas != null) bits.push(`${areas} area${areas === 1 ? '' : 's'}`);
+        if (items) bits.push(`${items} item${items === 1 ? '' : 's'}`);
+        el.appendChild(_el('div', 'font-size:10px;color:var(--text-muted,#999);', bits.join(' · ')));
         el.addEventListener('click', () => (onOpen ? onOpen(card) : load(card.id)));
         return el;
     }
@@ -1146,30 +1173,108 @@
         }
         // A real id, not free text — a mistyped biome silently compiles a barren
         // area, so the valid ids are the only choices.
+        //
+        // task-647: 105 tiles under 23 headings is navigable but not *findable*.
+        // An author drawing a 30-location town floor plan is looking for one
+        // tile ("Wall", "Door", "Kitchen") and the only way to reach it today is
+        // to scroll and read. A filter box narrows the list on name or id as you
+        // type, and hides any heading left with nothing under it. Same affordance
+        // as the Scenario Manager's filter, where it was the difference between
+        // usable and not on a 22-row list.
+        const wrap = _el('div', 'display:flex;gap:4px;align-items:center;');
+        const filter = _el('input',
+            'width:120px;padding:3px 6px;border-radius:5px;'
+            + 'border:1px solid var(--border,#444);'
+            + 'background:var(--bg-card,#2a2a32);color:var(--text,#ddd);');
+        filter.type = 'search';
+        filter.placeholder = 'Filter tiles…';
+        filter.title = 'Narrow the palette by tile name or id. Empty shows everything.';
+        filter.setAttribute('aria-label', 'Filter tiles by name or id');
+        wrap.appendChild(filter);
         const sel = _el('select', 'padding:3px;border-radius:5px;min-width:160px;');
         sel.setAttribute('data-role', 'wp-value');
+        wrap.appendChild(sel);
+        sel.title = `Value painted on the ${state.layer} layer.`;
         const paintable = options.filter((o) => !o.separator);
         const ids = paintable.map((o) => o.id);
         if (ids.indexOf(state.value) < 0) state.value = ids[0];
-        // A separator is a disabled option rather than a group: `select` cannot
-        // nest, and a disabled option cannot be painted, so the section headers
-        // can never be chosen by accident.
-        options.forEach((o) => {
-            if (o.separator) {
-                const sep = _el('option', null, o.separator);
-                sep.disabled = true;
-                sep.value = '';
-                sel.appendChild(sep);
-                return;
-            }
-            const opt = _el('option', null, `${o.name} (${o.id})`);
-            opt.value = o.id;
-            sel.appendChild(opt);
+        // A section is a real <optgroup>, not a disabled <option>.
+        //
+        // The comment that used to sit here said "a `select` cannot nest", and
+        // that is simply not true -- <optgroup> is part of HTML and nests in a
+        // <select> natively. The consequence of believing it was a 130-entry
+        // flat list whose only structure was disabled separator options, which
+        // is exactly the palette an author scrolls looking for "Wall" or "Door"
+        // while drawing a 30-location town floor plan. The grouping data was
+        // already computed above (every option carries `group`); only the
+        // rendering threw it away.
+        // Two things that are easy to get wrong here, and were:
+        //  - an <optgroup>'s visible heading is its `label` ATTRIBUTE. Setting
+        //    textContent on it does not label it; it just puts a stray text node
+        //    where the options go.
+        //  - a section heading can be followed by nothing (the "Buildings"
+        //    marker is pushed before the category loop, which may add
+        //    nothing), so an empty group is removed rather than left as a
+        //    blank heading.
+        const openGroups = [];
+        const closeGroup = () => {
+            const g = openGroups.pop();
+            if (g && g.children.length === 0) g.remove();
+        };
+        // `needle` empty => everything. Matching is on the displayed name and on
+        // the id, because an author who knows it as "not_a_place" should be able
+        // to type that too.
+        const matches = (o, needle) => {
+            if (!needle) return true;
+            const n = needle.toLowerCase();
+            return String(o.name || '').toLowerCase().includes(n)
+                || String(o.id || '').toLowerCase().includes(n);
+        };
+        const build = (needle) => {
+            sel.textContent = '';
+            openGroups.length = 0;
+            // task-648: 'civic' is legitimately BOTH a room purpose (a town hall
+            // is a room) and a building category (a civic building), so the
+            // palette rendered two headings with the identical name. Filtering
+            // for "civic" showed both and the heading said nothing about which
+            // was which. Disambiguate a repeated label at render time rather than
+            // renaming either concept, because both are right.
+            const labelCount = {};
+            options.forEach((o) => { if (o.section) labelCount[o.section] = (labelCount[o.section] || 0) + 1; });
+            const seen = {};
+            const labelFor = (s) => {
+                if (labelCount[s] < 2) return s;
+                seen[s] = (seen[s] || 0) + 1;
+                return seen[s] === 1 ? `${s} (room)` : `${s} (building)`;
+            };
+            options.forEach((o) => {
+                if (o.separator) { closeGroup(); return; }
+                if (o.section) {
+                    closeGroup();
+                    // Open the heading eagerly: if nothing under it matches it is
+                    // removed by closeGroup on the next section or at the end.
+                    const og = _el('optgroup');
+                    og.label = labelFor(o.section);
+                    sel.appendChild(og);
+                    openGroups.push(og);
+                    return;
+                }
+                if (!matches(o, needle)) return;
+                const opt = _el('option', null, `${o.name} (${o.id})`);
+                opt.value = o.id;
+                (openGroups[openGroups.length - 1] || sel).appendChild(opt);
+            });
+            while (openGroups.length) closeGroup();
+        };
+        build('');
+        filter.addEventListener('input', () => {
+            build(filter.value.trim());
+            // A filter can hide the current value; keep the select legal.
+            if (ids.indexOf(sel.value) < 0 && sel.options.length) sel.value = sel.options[0].value;
         });
         sel.value = state.value;
-        sel.title = `Value painted on the ${state.layer} layer.`;
         sel.addEventListener('change', () => { state.value = sel.value; });
-        return sel;
+        return wrap;
     }
 
     function generate() {

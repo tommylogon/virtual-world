@@ -27,18 +27,31 @@ def parse_damage(value) -> tuple:
     """Parse a unified damage field into (count, sides, flat_bonus).
 
     Accepts:
-      "2d6+3", "1d8"  → dice notation (count > 0)
-      "8", 8          → flat damage (count == 0, flat_bonus = value)
-      None, ""        → (0, 0, 0)
+      "2d6+3", "1d8", "d8"  -> dice notation (count > 0; a bare "d8" is 1d8)
+      "8", 8                 -> flat damage (count == 0, flat_bonus = value)
+      None, ""               -> (0, 0, 0)
 
     Returns (count, sides, flat_bonus). count > 0 means dice.
+
+    task-607: a bare "d8" is accepted. The old pattern required a leading count,
+    so "d8" evaluated to zero -- and "d8" is both the shorthand an author
+    reaches for and exactly what the damage-reduction field is meant to take.
+    Negative dice bonuses ("2d6-1") are honoured too, which the old pattern
+    silently dropped by taking group(3) as unsigned.
     """
-    if value is None or value == '':
+    if value is None or value == "":
         return (0, 0, 0)
-    if isinstance(value, str) and ('d' in value.lower()):
-        m = re.match(r'^(\d+)[dD](\d+)(?:\s*[+-]\s*(\d+))?$', value.strip())
+    if isinstance(value, str) and ("d" in value.lower()):
+        raw = value.strip()
+        m = re.match(r"^(\d*)\s*[dD]\s*(\d+)(?:\s*([+-])\s*(\d+))?$", raw)
         if m:
-            return (int(m.group(1)), int(m.group(2)), int(m.group(3) or 0))
+            count = int(m.group(1)) if m.group(1) else 1
+            sides = int(m.group(2))
+            if m.group(3):
+                bonus = int(m.group(4)) * (1 if m.group(3) == "+" else -1)
+            else:
+                bonus = 0
+            return (count, sides, bonus)
         return (0, 0, 0)
     try:
         flat = int(value)
@@ -60,6 +73,7 @@ def aggregate_bonuses(player, graph) -> dict:
         resistances (dict): damage_type → total resistance value
     """
     defense = 0
+    defense_dice = (0, 0)
     damage = 0
     damage_dice = (0, 0, 0)
     damage_skill = None
@@ -74,7 +88,23 @@ def aggregate_bonuses(player, graph) -> dict:
         tags = [t.lower() for t in props.get("tags", [])]
 
         if any(t in DEFENSE_TAGS for t in tags):
-            defense += int(props.get("defense", 0))
+            # task-607: `defense` is a DAMAGE EXPRESSION, not an integer, and is
+            # read with the same parser weapon damage already uses. An int (the
+            # common case, and what every existing item carries) takes the cheap
+            # path and behaves exactly as before, so nothing changes silently. A
+            # dice string like "d8" is collected separately and rolled per hit
+            # rather than summed here -- summing dice across a whole outfit would
+            # roll once at aggregation and then be wrong for every subsequent
+            # swing.
+            raw_defense = props.get("defense", 0)
+            if isinstance(raw_defense, (int, float)) and not isinstance(raw_defense, bool):
+                defense += int(raw_defense)
+            else:
+                parsed_defense = parse_damage(raw_defense)
+                if parsed_defense[0] > 0:
+                    defense_dice = (parsed_defense[0], parsed_defense[1])
+                else:
+                    defense += parsed_defense[2]
 
         if "weapon" in tags:
             parsed = parse_damage(props.get("damage"))
@@ -116,6 +146,10 @@ def aggregate_bonuses(player, graph) -> dict:
 
     return {
         "defense": defense,
+        # task-607: the best (largest) dice reduction any worn piece carries, or
+        # None. Rolled per hit by the caller, never summed -- see the note where
+        # it is collected.
+        "defense_dice": defense_dice if defense_dice != (0, 0) else None,
         "damage": damage,
         "damage_dice": damage_dice if damage_dice != (0, 0, 0) else None,
         "damage_skill": damage_skill,

@@ -201,7 +201,7 @@ class UIController {
             const tempBand = window.VitalThresholds?.temperatureBand?.(p);
             if (vitals.Temperature !== undefined && tempBand
                     && (vitals.Temperature < tempBand.cold_mild - 1 || vitals.Temperature > tempBand.heat_severe)) {
-                alerts.push({ type: 'danger', name, text: `${name}: Critical body temp (${vitals.Temperature}°C)` });
+                alerts.push({ type: 'danger', name, text: `${name}: Critical body temp (${Number(vitals.Temperature).toFixed(1)}°C)` });
             }
         }
         // Click an alert to select & inspect the affected agent.

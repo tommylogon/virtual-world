@@ -9,6 +9,7 @@ from graph import Node, Edge, EDGE_CONNECTION, EDGE_TRIGGERS, EDGE_CARRYING, EDG
 from engine.room_perception import normalize_requires
 from engine.size import size_tier, size_tier_from_name
 from engine.conditions import effective_speed
+from engine.matching import display_area_name, way_endpoint_name, _GRID_SUFFIX
 
 logger = logging.getLogger(__name__)
 
@@ -538,7 +539,7 @@ class MovementSystem:
             skill_check_msg = msg + "\n"
 
         if way_node.properties.get("one_way") and not phasing:
-            source_area = way_node.properties.get("area_from")
+            source_area = way_endpoint_name(way_node, self.graph, "from")
             if self.gs.current_area and self.gs.current_area.name != source_area:
                 raise ValueError(
                     f"The {direction} is one-way — you can't go back that way."
@@ -789,7 +790,12 @@ class MovementSystem:
             auto_close_msg = f"\nThe {way_node.name} swings shut behind you."
 
         pass_msg = way_node.properties.get("pass_message", "")
-        target_display = target_area_node.properties.get("display_name") or target_area_node.name
+        # task-624: pass_message is generated at world-compile time from the raw
+        # destination name, so it still carries "(world N,M)". Strip the grid
+        # suffix on the way out rather than rewriting every compiled way.
+        if pass_msg:
+            pass_msg = _GRID_SUFFIX.sub("", pass_msg)
+        target_display = display_area_name(target_area_node)
         arrival_suffix = f" — you're in {target_display}."
         move_line = KIND_MOVE_LINE.get(kind, "You head through the {d}.").format(d=direction)
         if pass_msg:

@@ -16,7 +16,15 @@ def get_autocomplete_options(vw, verb: str, prefix: str = "", character_name: st
         return []
 
     verb = (verb or "").strip().lower()
-    prefix = (prefix or "").strip().lower()
+    raw_prefix = (prefix or "").strip().lower()
+    prefix = raw_prefix
+    if not prefix and verb:
+        # A bare trailing marker ("belne on") is stripped above, which hides the
+        # region branch. Re-attach it so the region list still opens.
+        for marker in (" on ", " where ", " in the ", " in "):
+            if verb.endswith(marker.strip()):
+                prefix = marker.strip() + " "
+                break
 
     current_area_id = vw._get_area_id_for_player(player_name)
 
@@ -66,6 +74,49 @@ def get_autocomplete_options(vw, verb: str, prefix: str = "", character_name: st
     ]
 
     candidates = []
+
+    # task-630: a body-region phrase ("attack belne on the hea") never matched a
+    # candidate, because the target list holds names, not regions. Offer the
+    # region vocabulary once a region marker is typed. Without this the region
+    # fix in resolve_region is undiscoverable -- the UI never shows that
+    # "head" is a legal thing to aim at.
+    region_marker = None
+    region_start = -1
+    for marker in (" on ", " where ", " in the ", " in "):
+        idx = raw_prefix.rfind(marker) if raw_prefix else -1
+        if idx > region_start:
+            region_start = idx
+            region_marker = marker
+    if region_marker is None and raw_prefix:
+        # Prefix ends on the marker itself ("belne on") -- rfind of " on " misses
+        # it because there is no trailing space.
+        for marker in (" on", " where", " in the", " in"):
+            if raw_prefix.endswith(marker) and len(raw_prefix) > len(marker):
+                region_start = len(raw_prefix) - len(marker)
+                region_marker = marker + " "
+                break
+    if region_marker is not None and region_start >= 0:
+        from engine.body_parts import BODY_REGIONS
+        region_prefix = prefix[region_start + len(region_marker):].strip()
+        head = prefix[:region_start].strip()
+        # Mirror resolve_region: an article belongs to the phrase, not the
+        # region id, so match on the bare id but emit the phrase the user typed.
+        article = ""
+        for art in ("the ", "a ", "an "):
+            if region_prefix.startswith(art):
+                article = art
+                region_prefix = region_prefix[len(art):].strip()
+                break
+        seen = set()
+        out = []
+        for region_id in BODY_REGIONS:
+            if region_prefix and not region_id.startswith(region_prefix):
+                continue
+            if region_id in seen:
+                continue
+            seen.add(region_id)
+            out.append(f"{head}{region_marker}{article}{region_id}")
+        return out
 
     def _add(name):
         if name and isinstance(name, str) and name not in candidates:

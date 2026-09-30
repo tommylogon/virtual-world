@@ -232,7 +232,7 @@ class ExamineActionsMixin:
         if matched_item:
             item_node = None
             player_id = player_manager._player_node_id(player_manager.active_player)
-            for edge in list(self.graph.get_edges_for_target(area_id, EDGE_IN)) + list(self.graph.get_edges_for_target(player_id, EDGE_CARRYING)) + list(self.graph.get_edges_for_target(player_id, EDGE_KNOWN)):
+            for edge in list(self.graph.get_edges_for_target(area_id, EDGE_IN)) + list(self.graph.get_edges_for_target(player_id, EDGE_CARRYING)) + list(self.graph.get_edges_for_target(player_id, EDGE_EQUIPPED)) + list(self.graph.get_edges_for_target(player_id, EDGE_KNOWN)):
                 node = self.graph.get_node(edge.source)
                 if node and node.name == matched_item:
                     item_node = node

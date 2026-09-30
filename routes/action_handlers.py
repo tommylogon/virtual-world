@@ -120,6 +120,27 @@ def _parse_activity_args(tokens, cmd):
     return minutes, target
 
 
+# task-629: verbs that cannot do anything without a target. The dispatch chain
+# tests `cmd.startswith("go ")`, so a bare `go` matched nothing and fell through
+# to the emote catch-all, which answered "player_human_explorer go." -- the
+# command echoed back with the actor's name glued to it. The intimacy branch
+# already answered "Attack whom?"; this gives the rest of the verbs the same
+# courtesy. A single word that is NOT one of these is still treated as an emote
+# ("smile", "shrug" are legitimate).
+_VERBS_NEEDING_TARGET = frozenset({
+    "go", "climb", "crawl", "enter", "exit",
+    "examine", "look", "search", "read",
+    "take", "get", "grab", "pick", "drop", "release", "stow",
+    "put", "place", "give", "steal", "lead", "hand",
+    "attack", "kill", "hit", "shoot",
+    "eat", "drink", "taste", "smell",
+    "open", "close", "use", "toggle", "activate", "wear",
+    "teach", "name", "wake", "sing", "talk", "speak",
+    "combine", "split", "craft", "make", "relieve",
+    "mount", "dismount", "ride", "saddle", "hug", "kiss", "caress",
+})
+
+
 def _build_narration_context_for_current_area(world):
     context = world.get_narration_context_for_area()
     if not context:
@@ -808,6 +829,38 @@ def handle_take_action(app):
         elif cmd.startswith("wait"):
             minutes, _ = _parse_activity_args(tokens, cmd)
             add_output(world.wait(minutes))
+        elif cmd.startswith(("flee", "disengage", "withdraw")):
+            # task-611: `flee` had no handler at all, so it fell through to the
+            # emote catch-all and answered "Belne flee." — the same gibberish
+            # task-629 removed everywhere else. `retreat` only ever appeared to
+            # work because the *waiting* state string-matched the word to cancel
+            # itself; on its own it was also an emote.
+            #
+            # DESIGN ASSUMPTION, flagged rather than assumed silently: fleeing
+            # costs the turn and moves you ONE step along an exit, preferring an
+            # exit whose handle does NOT contain the word you typed (so
+            # `flee north` steps away from the north). There is no threat model
+            # in the engine, so this is "get out of here", not "evade this
+            # attacker" — real evasion is grapple-side and lives in
+            # engine/grapple.py. If this should behave differently, the rule to
+            # change is the choice below and nothing else.
+            away = cmd.split(" ", 1)[1].strip().lower() if " " in cmd else ""
+            area_id = world._get_current_area_id()
+            matcher = getattr(getattr(world, "movement", None), "name_matcher", None)
+            exits = matcher._collect_exits(area_id) if matcher else []
+            if not exits:
+                add_output("There's nowhere to run to.")
+            else:
+                def _try_exit():
+                    for _edge, _way, handle, _target in exits:
+                        if away and away in str(handle).lower():
+                            continue          # that is the way they came from
+                        return world.move_to_area(handle)
+                    # Every exit matched the word: take the first one anyway
+                    # rather than refuse to move.
+                    return world.move_to_area(exits[0][2])
+                was_movement = True
+                _move_and_describe(_try_exit)
         elif cmd.startswith("meditate"):
             minutes, _ = _parse_activity_args(tokens, cmd)
             add_output(world.meditate(minutes))
@@ -984,6 +1037,11 @@ def handle_take_action(app):
                     # the tail below)
                     leading = INTENSITY_ADVERBS[words[0]]
                     cmd = ' '.join(words[1:])
+                # task-629: a bare intimate verb ("kiss") has no target, and the
+                # unguarded split below raised a raw
+                # "not enough values to unpack (expected 2, got 1)" to the player.
+                if " " not in cmd.strip():
+                    raise ValueError(f"{cmd.strip().capitalize()} whom?")
                 verb, rest = cmd.split(' ', 1)
                 intensity, rest = parse_intensity(rest)
                 if leading and intensity == "normal":
@@ -1270,9 +1328,14 @@ def handle_take_action(app):
                 result = world.process_emote(world.active_player, emote_text)
                 add_output(result)
         else:
-            emote_text = cmd.strip()
-            if emote_text:
-                result = world.process_emote(world.active_player, emote_text)
+            bare = cmd.strip()
+            # task-629: a bare verb wants a target -- say so rather than
+            # emote-processing the word and echoing "player_human_explorer go."
+            if " " not in bare and bare.lower() in _VERBS_NEEDING_TARGET:
+                add_output(f"{bare.capitalize()} what?")
+                failed = True
+            elif bare:
+                result = world.process_emote(world.active_player, bare)
                 add_output(result)
 
     except ValueError as e:

@@ -169,6 +169,16 @@ class Player:
         # Boolean traits use True. Parameterized traits use a string (e.g. {"allergic": "pollen"}).
         # Example: {"dark_vision": True, "hardy": True, "glutton": True}
         self.traits = {}
+        # Size: which of engine/size.SIZE_TIERS this character is. A property
+        # rather than a `size_*` trait (task-605) so it is visible, filterable and
+        # settable from the graph editor character form; the trait is still read
+        # as a fallback, so anything hand-authored before this still works.
+        # Read by way `max_size` gating and by per-area occupancy (task-653).
+        # One of: tiny, small, normal, huge, giant, titanic. None until authored --
+        # an un-authored character must fall through to its `size_*` trait
+        # (task-187), or the property's default would silently outrank every
+        # hand-authored trait and the way max_size gate would stop working.
+        self.size = None
         # Tags: identity markers for this character, checked by items/triggers/conditions.
         # Examples: ["vampire", "faction:guard", "synthetic", "nobility"]
         self.tags = []
@@ -242,14 +252,27 @@ class Player:
         self.activity = None
 
         # === EMOTION SYSTEM ===
-        # Current emotional state from the allowed set:
-        # neutral, happy, sad, angry, afraid, surprised, disgusted
-        self.emotion = "neutral"
-        # How strongly the current emotion is felt (0.0 to 1.0)
-        # Higher = more influence on behavior
-        self.emotion_intensity = 0.0
+        # **The affect map is the state** (task-652). `emotion` and
+        # `emotion_intensity` are no longer fields: they are properties *derived*
+        # from `_emotions`, kept because nine files and the save format still read
+        # them. Making them derived rather than stored is the whole migration —
+        # every existing writer keeps working and now writes the scorecard, so
+        # `set_emotion("afraid", 0.8)` finally reaches the character's face
+        # instead of landing in a field nothing drew from.
+        #
         # Multi-dimensional affect map (task-96): {dim: 0-100}, lazily
         # initialized to baselines via emotions_map(). None = untouched.
+        #
+        # **The map is the state; `emotion`/`emotion_intensity` are derived from
+        # it** and no longer assigned here. `neutral` is not "calm at half
+        # strength" — `LABEL_TO_DIM` maps it to `calm`, and a character that has
+        # never felt anything must start at rest rather than mildly serene, so "at
+        # rest" is expressed by *not touching* the map.
+        #
+        # It stays **lazy** on purpose: `emotion.decay()` skips a player whose map
+        # was never materialised, and a 23-character cast would otherwise build
+        # 36 floats each for nothing. The derived properties below read `None` as
+        # "at rest" without materialising it.
         self._emotions = None
 
         # === HIDE / SEEK SYSTEM (Phase 1 edge-based hiding) ===
@@ -367,14 +390,111 @@ class Player:
         condition_load_conditions(self, payload)
 
     def set_emotion(self, new_emotion: str, intensity: float = 0.3):
-        """Set the character's emotion with the given intensity."""
-        allowed = ["neutral", "happy", "sad", "angry", "afraid", "surprised", "disgusted"]
-        if new_emotion not in allowed:
-            raise ValueError(f"Invalid emotion '{new_emotion}'. Must be one of {allowed}")
-        self.emotion = new_emotion
-        self.emotion_intensity = max(0.0, min(1.0, intensity))
+        """Make *new_emotion* this character's dominant feeling, at *intensity*.
+
+        Accepts **any** affect dimension or keyword alias, not the old seven
+        (task-652). The translation is "make this the dominant feeling" rather
+        than a raw spike, because that is what every caller meant: the named
+        dimension rises to its baseline plus `intensity * 100`, and the other
+        dimensions **on the same axis** are damped toward their baselines so the
+        character is not equally afraid *and* angry *and* disgusted afterwards. The
+        other ten axes are left alone, because a character being frightened in a
+        cold room is not thereby calm.
+
+        Raises ``ValueError`` for a label the vocabulary does not know, naming the
+        dimensions available — the old version raised with a 7-item list, which
+        is why the behaviour editor could only offer seven.
+        """
+        from engine import emotion as _emotion
+        dimension = _emotion.resolve_label(str(new_emotion or "").strip().lower())
+        if not dimension:
+            raise ValueError(
+                f"Unknown emotion {new_emotion!r}. It may be an affect dimension "
+                f"({', '.join(sorted(_emotion.BASELINES)[:6])}, …) or a keyword "
+                f"alias the vocabulary knows.")
+        intensity = max(0.0, min(1.0, float(intensity)))
+        _emotion.set_dominant(self.emotions_map(), dimension, intensity)
 
     # === Multi-dimensional affect (task-96) ===
+
+    @property
+    def emotion(self) -> str:
+        """The character's dominant emotion label — **derived, not stored**.
+
+        Read by serialization, the world export, the memory badges and nine other
+        call sites, so it stays; it just no longer *is* the state. The value is the
+        strongest raised dimension when there is one, and ``"neutral"`` at rest, so
+        a reader sees the same word it always saw.
+        """
+        from engine import emotion as _emotion
+        # `None` means nobody has ever felt anything, which is `neutral` — and
+        # reading it must not *materialise* the map, or every character's decay
+        # and every tick's read would do the work the laziness exists to avoid.
+        if getattr(self, "_emotions", None) is None:
+            return "neutral"
+        try:
+            return _emotion.dominant_label(self._emotions)
+        except Exception:
+            return "neutral"
+
+    @emotion.setter
+    def emotion(self, value: str) -> None:
+        """Route a legacy assignment into the affect map.
+
+        Every pre-existing writer — the behaviour action, the social tiers, the
+        save loader, the library loader — assigns here, and now lands in the one
+        model.
+
+        Assigned at **full strength**, because this is what the old field did and
+        because a caller that says `p.emotion = "furious"` means it: at half
+        strength a character who was terrified at 0.9 would keep feeling terrified
+        and the assignment would appear to do nothing. An unknown or empty label is
+        a no-op rather than an exception — a save from a future build must not be
+        unloadable for carrying a word this one has not heard of — but `"neutral"`
+        is special: it is a *reset*, not a label, so it returns the map to rest.
+        """
+        from engine import emotion as _emotion
+        if getattr(self, "_emotions", None) is None:
+            self._emotions = _emotion.baseline()
+        key = str(value or "").strip().lower()
+        if key in ("", "neutral", "none", "calm"):
+            if key == "neutral":
+                self._emotions = _emotion.baseline()
+            return
+        dimension = _emotion.resolve_label(key)
+        if dimension:
+            _emotion.set_dominant(self._emotions, dimension, 1.0)
+
+    @property
+    def emotion_intensity(self) -> float:
+        """How strongly the dominant feeling is felt, 0.0–1.0 — derived.
+
+        The scale the callers use: the legacy field stored it directly, and the
+        behaviour editor's slider writes it. It is now *how far the leading
+        dimension sits above its baseline*, capped at 1.0, so an untouched
+        character reads 0.0 and a fully-aroused one reads 1.0.
+        """
+        from engine import emotion as _emotion
+        values = getattr(self, "_emotions", None)
+        if values is None:
+            return 0.0
+        try:
+            return _emotion.dominant_intensity(values)
+        except Exception:
+            return 0.0
+
+    @emotion_intensity.setter
+    def emotion_intensity(self, value: float) -> None:
+        """Re-scale the dominant dimension to the requested intensity."""
+        from engine import emotion as _emotion
+        try:
+            value = max(0.0, min(1.0, float(value)))
+        except (TypeError, ValueError):
+            return
+        values = getattr(self, "_emotions", None)
+        dimension = (_emotion.dominant_dimension(values) if values else None)
+        if dimension:
+            _emotion.set_dominant(values, dimension, value)
 
     def emotions_map(self) -> dict:
         """The full affect map, lazily initialized to baselines."""
@@ -1018,7 +1138,12 @@ class Player:
             "skills": dict(self.skills),
             "proficiency": int(getattr(self, "proficiency", 0) or 0),
             "skill_progress": dict(getattr(self, "skill_progress", {}) or {}),
-            "inventory": [],
+            # task-632: no "inventory" key. It was hardcoded to [] here, so any
+            # consumer reading it believed the character carried nothing while
+            # the graph's carrying/equipped edges said otherwise. Inventory is
+            # derived from those edges (worldState.getInventory), not stored on
+            # the Player -- publishing an always-empty field made the two
+            # sources of truth disagree.
             "personality": self.personality,
             "description": getattr(self, 'description', ''),
             "base_description": getattr(self, 'base_description', ''),
@@ -1037,6 +1162,7 @@ class Player:
             "activity": self.activity,
             "relationships": self._relationships_to_dict(),
             "traits": dict(self.traits),
+            "size": getattr(self, "size", None) or "normal",
             "tags": list(self.tags),
             "interest_tags": list(self.interest_tags),
             "fear_tags": list(self.fear_tags),

@@ -1,0 +1,10 @@
+{
+  "name": "Padded Gambeson",
+  "description": "A quilted linen gambeson, thick with layered batting. It does not turn a blade -- it swallows one, absorbing a variable amount with each swing depending on how the layers compress. A dull impact that would ring off a steel breastplate sinks into it instead.",
+  "tags": ["clothing", "armor", "gambeson", "padded", "layered", "insulation"],
+  "defense": "d8",
+  "weight": 4,
+  "equip_slots": ["torso"],
+  "actions": ["examine", "equip", "unequip", "drop"],
+  "keywords": ["gambeson", "padded", "quilted", "linen", "armour", "armor", "jacket", "coat"]
+}

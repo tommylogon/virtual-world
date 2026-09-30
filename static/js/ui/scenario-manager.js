@@ -70,9 +70,31 @@ window.ScenarioManager = (() => {
         const list = document.createElement('div');
         list.style.cssText = 'overflow-y:auto;max-height:60vh;display:flex;flex-direction:column;gap:6px;';
         box.appendChild(list);
+
+        // task-641: with a large scenario library the unfiltered list is
+        // unusable, and there was no way to narrow it. A live filter over name
+        // (and the counts, so "23" can find pines) is the smallest thing that
+        // makes the list navigable.
+        const filterRow = document.createElement('div');
+        filterRow.style.cssText = 'display:flex;gap:6px;align-items:center;';
+        const filter = document.createElement('input');
+        filter.type = 'text';
+        filter.placeholder = 'Filter scenarios by name…';
+        filter.setAttribute('aria-label', 'Filter scenarios by name');
+        filter.style.cssText = 'flex:1;font-size:12px;padding:5px 8px;background:var(--bg-input,transparent);color:inherit;border:1px solid var(--border);border-radius:6px;';
+        const counter = document.createElement('span');
+        counter.style.cssText = 'font-size:10px;color:var(--text-dim);white-space:nowrap;';
+        filter.addEventListener('input', () => renderList(list, filter.value, counter));
+        filterRow.appendChild(filter);
+        filterRow.appendChild(counter);
+        box.appendChild(filterRow);
+
         box.appendChild(scaffoldFooter(box));
 
-        renderList(list);
+        renderList(list, '', counter);
+        // Keep typing focused when the list repaints, so filtering does not
+        // steal the caret on every keystroke.
+        filter.focus();
     }
 
     function scaffoldFooter() {
@@ -89,14 +111,33 @@ window.ScenarioManager = (() => {
         return foot;
     }
 
-    async function renderList(container) {
+    async function renderList(container, filterText, counter) {
         container.textContent = 'Loading…';
-        const items = await loadList();
+        const all = await loadList();
+        const needle = String(filterText || '').trim().toLowerCase();
+        const items = needle
+            ? all.filter(sc => String(sc.name || '').toLowerCase().includes(needle)
+                || String(sc.areas) === needle || String(sc.players) === needle)
+            : all;
+        if (counter) {
+            counter.textContent = needle
+                ? `${items.length} of ${all.length}`
+                : `${all.length} scenario${all.length === 1 ? '' : 's'}`;
+        }
         container.textContent = '';
-        if (!items.length) {
+        if (!all.length) {
             const none = document.createElement('div');
             none.style.cssText = 'font-size:12px;color:var(--text-muted);padding:12px;';
             none.textContent = 'No scenario files found. Commit the current world or load one to create the first.';
+            container.appendChild(none);
+            return;
+        }
+        if (!items.length) {
+            // The registry is populated but nothing matched the filter. Say so
+            // distinctly from "no scenarios exist", or the list looks broken.
+            const none = document.createElement('div');
+            none.style.cssText = 'font-size:12px;color:var(--text-muted);padding:12px;';
+            none.textContent = `No scenario matches “${filterText}”.`;
             container.appendChild(none);
             return;
         }
@@ -109,8 +150,25 @@ window.ScenarioManager = (() => {
             name.textContent = sc.name;
             name.style.cssText = 'font-size:13px;';
             const stats = document.createElement('span');
-            stats.style.cssText = 'font-size:10px;color:var(--text-dim);';
-            stats.textContent = `🏠 ${sc.areas} · 🧍 ${sc.players} · ${fmtSize(sc.size)} · ${fmtAge(sc.modified)}`;
+            stats.style.cssText = 'font-size:10px;color:var(--text-dim);display:flex;gap:8px;align-items:center;';
+            // task-641: these counts were ONE flat string, so the row read
+            // '<house glyph> 23 <dot> <sprout glyph> 21 <dot> 376.3 KB <dot> 1d ago' and the two
+            // numbers had to be decoded from glyphs alone. The top bar already discloses
+            // by title ('Next forecast change', 'Scenario source'), so each count becomes
+            // its own element carrying the same affordance. Glyphs are taken from the
+            // original bytes so the mojibake in this file is preserved exactly.
+            const stat = (glyph, value, label) => {
+                        const s = document.createElement('span');
+                        s.title = label;
+                        s.textContent = glyph ? glyph + ' ' + value : value;
+                        return s;
+            };
+            const HOUSE = String.fromCharCode(0xD83C, 0xDFE0);
+            const SPROUT = String.fromCharCode(0xD83C, 0xDF3F);
+            stats.appendChild(stat(HOUSE, sc.areas, sc.areas + ' area' + (sc.areas === 1 ? '' : 's')));
+            stats.appendChild(stat(SPROUT, sc.players, sc.players + ' character' + (sc.players === 1 ? '' : 's')));
+            stats.appendChild(stat('', fmtSize(sc.size), 'File size on disk'));
+            stats.appendChild(stat('', fmtAge(sc.modified), 'Last modified'));
             const actions = document.createElement('div');
             actions.style.cssText = 'display:flex;gap:4px;flex-wrap:wrap;';
             actions.appendChild(btn('▶ Open', 'btn-green', async () => {

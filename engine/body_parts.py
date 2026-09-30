@@ -168,6 +168,15 @@ def resolve_region(where):
     if not text:
         return None
 
+    # Strip a leading article (task-602). Command text arrives with the article
+    # attached -- "attack belne on the head" hands us "the head" -- and an exact
+    # or alias match against that never fires, so the aim is silently dropped and
+    # the attack falls through to an un-aimed hit-location roll.
+    for article in ("the ", "a ", "an "):
+        if text.startswith(article):
+            text = text[len(article):].strip()
+            break
+
     # Exact canonical id.
     if text in BODY_REGIONS:
         return text

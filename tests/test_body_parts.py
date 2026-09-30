@@ -304,3 +304,47 @@ class TestCombatRegionInjury:
                 "Attacker", "TargetDummy", weapon_node=weapon, where="torso"
             )
         assert "injured" not in harness.target.conditions
+
+class TestResolveRegionArticle:
+    """task-602: command text reaches resolve_region with the article attached.
+
+    ``routes/action_handlers.py`` splits on the " on " marker and hands the
+    remainder straight to the resolver, so "attack belne on the head" arrives as
+    ``"the head"``. Without article stripping that never matches, ``combat.py``
+    resolves it to ``None``, and the aimed attack silently degrades to the
+    un-aimed d20 hit-location roll.
+    """
+
+    def test_leading_article_is_stripped(self):
+        assert resolve_region("the head") == "head"
+        assert resolve_region("the torso") == "torso"
+        assert resolve_region("the face") == "face"
+
+    def test_article_stripping_preserves_left_right_forms(self):
+        assert resolve_region("the left arm") == "arm_left"
+        assert resolve_region("the right hand") == "hand_right"
+
+    def test_bare_region_still_resolves(self):
+        # The article must not become mandatory.
+        assert resolve_region("head") == "head"
+        assert resolve_region("torso") == "torso"
+        assert resolve_region("left arm") == "arm_left"
+
+    def test_article_only_string_does_not_resolve(self):
+     # Stripping must not turn a bare article into a match.
+     assert resolve_region("the") is None
+     assert resolve_region("a") is None
+     assert resolve_region("an") is None
+
+    def test_unknown_region_still_returns_none(self):
+     # Stripping must not widen matching: an unlisted region stays
+     # unresolved whether or not it carries an article.
+     assert resolve_region("flurb") is None
+     assert resolve_region("the flurb") is None
+     assert resolve_region("elbow") is None
+     assert resolve_region("the elbow") is None
+
+    def test_full_command_region_phrase_resolves(self):
+     # Exactly the phrase task-253's acceptance criterion names.
+     phrase = "attack Belne on the head".split(" on ")[-1]
+     assert resolve_region(phrase) == "head"

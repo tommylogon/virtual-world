@@ -680,6 +680,11 @@ window.HumanTurnComposer = (() => {
     function hidePanel() {
         if (_overlay) _overlay.style.display = 'none';
         hideConfirm();
+        // task-612: the scene view appends its context menu and scrim to
+        // document.body, so hiding the overlay orphans both. The scrim is
+        // position:fixed inset:0 with pointer-events:auto, so a stale one taxes
+        // the next click. Close the menu whenever the panel goes away.
+        if (_scene && typeof _scene.closeMenu === 'function') _scene.closeMenu();
     }
 
     function resetRows() {

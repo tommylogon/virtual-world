@@ -102,8 +102,15 @@ window.WorldExport = (() => {
             if (player.traits && Object.keys(player.traits).length) {
                 text += '  🏷️ Traits: ' + Object.keys(player.traits).join(', ') + '\n';
             }
-            if (player.inventory && player.inventory.length) {
-                text += '  🎒 Inventory: ' + player.inventory.join(', ') + '\n';
+            // task-632: player.inventory was hardcoded to [] in Player.to_dict, so every
+            // export claimed the character carried nothing. Inventory is
+            // graph-derived (carrying/equipped edges), not a Player field --
+            // read it from worldState, which already resolves display names.
+            var inv = (typeof worldState !== 'undefined' && worldState.getInventory)
+                ? (worldState.getInventory(charName) || [])
+                : (player.inventory || []);
+            if (inv.length) {
+                text += '  🎒 Inventory: ' + inv.join(', ') + '\n';
             }
             if (player.behaviors && player.behaviors.length) {
                 text += '  🔄 Behaviors: ' + player.behaviors.map(function(b) { return b.name || b.type || b; }).join(', ') + '\n';

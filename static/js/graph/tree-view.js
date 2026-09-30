@@ -187,8 +187,15 @@ window.GraphTreeView = {
             rows.forEach((row) => {
                 const pad = '  '.repeat(Math.max(0, row.depth));
                 text += `${pad}🗺 ${row.name}`
-                    + (row.unmade ? ' — not built'
-                        : ` — ${row.areaCount} area(s), ${row.itemCount} item(s)`)
+            // task-615: same fix as GraphScopeTree.rowLabel -- "unmade" is a
+            // materialisation state, not a statement about contents. Keying the
+            // whole row off it rendered goblin_camp (state 'unmade', 21 areas,
+            // 10 present) as "not built".
+            + (row.unmade
+                ? (row.areaCount || row.itemCount
+                    ? ` — ${row.areaCount} area(s), ${row.itemCount} item(s), unmade`
+                    : ' — not built')
+                : ` — ${row.areaCount} area(s), ${row.itemCount} item(s)`)
                     + '\n';
             });
             text += '\n';
