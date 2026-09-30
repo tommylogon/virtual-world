@@ -13,8 +13,13 @@ const FEMALE = { tags: ['female'], conditions: {} };
 const MALE = { tags: ['male'], conditions: {} };
 
 test('speech/emote return null when nothing fires', () => {
-    assertEq(INV.speech('Hello there.', FEMALE), null, 'no speech trigger');
-    assertEq(INV.emote('*she waves*', FEMALE), null, 'no emote trigger');
+    // The roll is pinned high on purpose. Both functions fall through to a
+    // random-flavor roll (RANDOM_SPEECH_CHANCE .06, RANDOM_EMOTE_CHANCE .04),
+    // so asserting "null" against an unpinned Math.random fails ~10% of runs —
+    // the suite was a coin flip, not a signal. No nervous traits on FEMALE, so
+    // _traitBoost is 1.0 and 0.99 is above every chance here.
+    assertEq(withRandom(0.99, () => INV.speech('Hello there.', FEMALE)), null, 'no speech trigger');
+    assertEq(withRandom(0.99, () => INV.emote('*she waves*', FEMALE)), null, 'no emote trigger');
 });
 
 test('frightened stutters the first word of speech', () => {

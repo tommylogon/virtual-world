@@ -123,6 +123,12 @@ load('static/js/agent/plan-tracker.js');
 load('static/js/agent/involuntary.js');
 load('static/js/character-art.js');
 load('static/js/inspector/sprite-sheet.js');
+load('static/js/inspector/helpers.js');
+// agent-view.js reads InspectorHelpers.esc at eval time, so helpers.js must
+// come first. Its generators are plain async functions over injectable globals
+// (llmClient / ApiClient / worldState), which is what the tag-generation tests
+// drive.
+load('static/js/inspector/agent-view.js');
 load('static/js/agent/prompt-builder/character-state.js');
 load('static/js/agent/prompt-builder/conversation-context.js');
 load('static/js/context-window.js');
@@ -158,16 +164,21 @@ for (const file of testFiles) {
 
 let passed = 0;
 const failures = [];
-for (const t of tests) {
-    try {
-        t.fn();
-        passed++;
-        console.log(`  ok  ${t.file} :: ${t.name}`);
-    } catch (err) {
-        failures.push({ t, err });
-        console.error(`FAIL  ${t.file} :: ${t.name}\n      ${err.message}`);
+// Async test support: `await t.fn()` is a no-op for a sync test and lets a
+// module whose mechanism is a promise (the LLM tag generators) assert
+// *after* the round-trip instead of racing the runner.
+(async () => {
+    for (const t of tests) {
+        try {
+            await t.fn();
+            passed++;
+            console.log(`  ok  ${t.file} :: ${t.name}`);
+        } catch (err) {
+            failures.push({ t, err });
+            console.error(`FAIL  ${t.file} :: ${t.name}\n      ${err.message}`);
+        }
     }
-}
 
-console.log(`\n${passed} passed, ${failures.length} failed (${testFiles.length} test files)`);
-process.exit(failures.length ? 1 : 0);
+    console.log(`\n${passed} passed, ${failures.length} failed (${testFiles.length} test files)`);
+    process.exit(failures.length ? 1 : 0);
+})();

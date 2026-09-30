@@ -558,6 +558,8 @@ def handle_update_player(app, name):
         player.known = [str(k) for k in (data["known"] or []) if str(k).strip()]
     if "interest_tags" in data:
         player.interest_tags = data["interest_tags"]
+    if "fear_tags" in data:
+        player.fear_tags = data["fear_tags"]
     if "equipped" in data:
         player.equipped = data["equipped"]
     if "behaviors" in data:

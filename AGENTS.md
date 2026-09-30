@@ -206,7 +206,8 @@ seam exists.
 - Export-log lint (regression guards over play sessions, no server needed):
   `node tools/log_lint.cjs data/exports/<log>.txt` (or `npm run loglint -- <path>`).
   Run it on the latest export before tagging/committing a release.
-- Run the app: `python app.py`.
+- Run the app: `python app.py` — **it serves on port 4444**, not 5000. Use
+  `http://localhost:4444` for Playwright and for manual checks.
 
 ### Known pre-existing failures (NOT caused by your change)
 

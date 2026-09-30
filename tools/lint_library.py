@@ -7,9 +7,13 @@ Checks (errors exit 1):
   5. broken_contents  — item contents referencing missing library ids
   7. unauthored_consumables — edible/drinkable items whose consume trigger
      restores nothing (task-506)
+  8. resource_pools   — pooled-resource nodes authored so they cannot be
+     harvested correctly (task-504)
 Warnings (exit 0):
   4. singleton_tags   — item tags appearing on exactly one item
   6. area_tag_gaps    — library areas with no tags
+  9. dead_fears       — character fear_tags that no item, area, character or
+     trait key carries, so engine/fear.py can never match them
 
 Usage:
   python tools/lint_library.py                  # all checks against default data dir
@@ -29,7 +33,7 @@ DEFAULT_LIB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..",
 
 ERROR_CHECKS = ("dead_interests", "missing_slots", "tag_case_drift", "broken_contents",
                 "unauthored_consumables", "resource_pools")
-WARNING_CHECKS = ("singleton_tags", "area_tag_gaps")
+WARNING_CHECKS = ("singleton_tags", "area_tag_gaps", "dead_fears")
 ALL_CHECKS = ERROR_CHECKS + WARNING_CHECKS
 
 #: Items that carry `food`/`drink` (or an `eat`/`drink` action) because they sit
@@ -87,6 +91,58 @@ def check_dead_interests(items, characters, report):
         if dead and interests:
             report.error("dead_interests",
                          f"characters/{char_id}: dead interest tags: {', '.join(dead)}")
+
+
+def check_dead_fears(items, characters, areas, report):
+    """Character fear tags that match nothing any fear source could carry.
+
+    `engine/fear.py::character_tags` builds what a character *presents* to
+    somebody's `fear_tags` out of their `tags`, their `traits` keys, and their
+    graph node's tags; `fear_sources` additionally reads the area's own tags and
+    the tags of the items the area holds. So the vocabulary a fear can possibly
+    match is every tag on every item, area and character in the library, plus
+    every trait key.
+
+    A tag outside that set cannot fire. The character is simply never
+    frightened and nothing says why — bug-552's failure mode ("`fear_tags:
+    ["goblin"]` did nothing") arriving through a different door, and the one the
+    inspector's "Generate from Personality" can now walk through, since it is
+    deliberately allowed to invent ids.
+
+    **A warning, not an error**, unlike its sibling `dead_interests`. A fear for
+    something that does not exist here yet — "afraid of dragons" — is a
+    legitimate authoring intent that the generator is explicitly told it may
+    produce. Name it so an author can confirm it was deliberate; do not fail the
+    lint over it.
+    """
+    vocab = set()
+
+    def add(entry):
+        for tag in entry.get("tags") or []:
+            low = str(tag).strip().lower()
+            if low:
+                vocab.add(low)
+
+    for registry in (items, areas, characters):
+        for entry in registry.values():
+            if isinstance(entry, dict):
+                add(entry)
+    # Trait keys are a fear source too (character_tags unions them), and they
+    # are the one tag carrier that is a dict rather than a list.
+    for character in characters.values():
+        traits = character.get("traits") if isinstance(character, dict) else None
+        if isinstance(traits, dict):
+            vocab.update(str(k).strip().lower() for k in traits if str(k).strip())
+
+    for char_id, char in sorted(characters.items()):
+        fears = char.get("fear_tags") or []
+        if not fears:
+            continue
+        dead = [t for t in fears if str(t).strip().lower() not in vocab]
+        if dead:
+            report.warn("dead_fears",
+                        f"characters/{char_id}: fear tags nothing in the library carries, so they "
+                        f"can never fire: {', '.join(dead)}")
 
 
 def check_missing_slots(items, report):
@@ -275,6 +331,7 @@ def check_area_tag_gaps(areas, report):
 
 CHECKS = {
     "dead_interests": lambda ctx, r: check_dead_interests(ctx["items"], ctx["characters"], r),
+    "dead_fears": lambda ctx, r: check_dead_fears(ctx["items"], ctx["characters"], ctx["areas"], r),
     "missing_slots": lambda ctx, r: check_missing_slots(ctx["items"], r),
     "tag_case_drift": lambda ctx, r: (
         _case_drift(ctx["items"], lambda e: e.get("tags", []), "items", r),

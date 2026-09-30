@@ -210,3 +210,61 @@ def test_fear_verb_via_http():
     resp = client.post("/api/action", json={"command": "fear Snarl"})
     assert resp.status_code == 200
     assert "goblin" in hero.fear_tags
+
+
+# ─────────────────────────── inspector write path ───────────────────────────
+# The character inspector's "😨 Fear Tags" field and its "Generate from
+# Personality" button both persist through POST /api/players/<name>. If
+# fear_tags is not in that whitelist the field looks like it saved and is gone
+# on the next reload, which is the failure mode the missing whitelist caused.
+
+def test_update_player_persists_fear_tags():
+    from app import create_app
+    app = create_app({"TESTING": True})
+    hero = _hero(app.world)
+    hero.fear_tags = []
+    client = app.test_client()
+    resp = client.post(f"/api/players/{hero.name}", json={"fear_tags": ["goblin", "the dark"]})
+    assert resp.status_code == 200
+    assert hero.fear_tags == ["goblin", "the dark"]
+
+
+def test_update_player_fear_tags_replace_wholesale_so_edits_can_remove():
+    """The generate button unions in JS, not here — the field write stays a
+    plain assignment, otherwise a tag could never be removed by hand."""
+    from app import create_app
+    app = create_app({"TESTING": True})
+    hero = _hero(app.world)
+    client = app.test_client()
+    client.post(f"/api/players/{hero.name}", json={"fear_tags": ["goblin", "spider"]})
+    client.post(f"/api/players/{hero.name}", json={"fear_tags": ["goblin"]})
+    assert hero.fear_tags == ["goblin"]
+
+
+def test_update_player_without_fear_tags_leaves_them_alone():
+    from app import create_app
+    app = create_app({"TESTING": True})
+    hero = _hero(app.world)
+    hero.fear_tags = ["goblin"]
+    client = app.test_client()
+    resp = client.post(f"/api/players/{hero.name}", json={"personality": "brave"})
+    assert resp.status_code == 200
+    assert hero.fear_tags == ["goblin"]
+
+
+def test_written_fear_tags_actually_reach_the_fear_engine():
+    """End-to-end: a tag authored through the inspector's field makes the
+    character frightened by a matching co-located character (task-552's node-vs-
+    Player trap — the matcher reads the Player, so the write path has to land
+    there for the mechanic to fire at all)."""
+    from app import create_app
+    app = create_app({"TESTING": True})
+    app.world.time_per_tick_minutes = 1
+    hero = _hero(app.world)
+    _npc(app.world, "Snarl", hero.current_area, {"goblin": True})
+    hero.fear_tags = []
+    client = app.test_client()
+    client.post(f"/api/players/{hero.name}", json={"fear_tags": ["goblin"]})
+    source = fear.react(app.world, hero)
+    assert source and source["name"] == "Snarl"
+    assert "frightened" in hero.conditions

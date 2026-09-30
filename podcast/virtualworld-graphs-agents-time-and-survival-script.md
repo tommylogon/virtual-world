@@ -1,0 +1,233 @@
+# VirtualWorld: Graphs, Agents, Time, and Survival
+
+**Project:** VirtualWorld Engine
+**Hosts:** Alex and Sam
+**Length:** 2868 words (~19.1 min at 150 wpm)
+**Sources:** 62 documents indexed
+**Generated:** 2026-09-30T13:24:45.889Z
+
+---
+
+Alex: Wait, so when an agent moves through a door, it isn’t merely changing a label on a map?
+
+Sam: No—the movement is grounded in WorldGraph, the runtime source of truth. Typed nodes sit in an ID-keyed dictionary, while directed, typed relationships sit in a list.
+
+Alex: And that graph is not a frozen snapshot. You can add, remove, query, filter, serialize, load, and update it during play?
+
+Sam: Right. Areas, ways, items, characters, and triggers can change while the world keeps running.
+
+Alex: So what began as a Flask backend with a modular JavaScript browser client became a simulation we can inspect from several angles?
+
+Sam: Basically. Documented subsystems now cover shared actors, LLM and memory services, time modes, survival, combat, world geography, items, narration, scenario editing, and observability.
+
+Alex: The part I keep coming back to is that boundary: the graph stores the world, while other services reason over it and present it.
+
+Sam: Exactly. Today we trace the architecture and what comes next.
+
+Alex: I want to push back on the chatbot label. It can produce convincing prose, but VirtualWorld must remember what is true between turns and rules.
+
+Sam: Exactly. VirtualWorld is a text-based simulation engine for AI beings: a Flask backend and modular JavaScript browser client.
+
+Alex: WorldGraph is the runtime source of truth, not a separate database or abstract model. If absent, it does not exist in the world.
+
+Sam: Typed nodes sit in an ID-keyed dictionary. Directed, typed relationships sit in a list.
+
+Alex: An area and the way out of it differ. One relationship joins them.
+
+Sam: Not a room list with adjectives. Areas, ways, items, characters, triggers, and their links are inspectable shared world state.
+
+Alex: WorldGraph is active, not decorative. The engine can add, remove, query, filter, serialize, load, and update during play.
+
+Sam: That differs from “the AI is narrating.” Movement reads connections, triggers change properties, serialization writes the graph.
+
+Alex: Saving makes the boundary obvious. The graph gets serialized, and loading reconstructs the world from it.
+
+Sam: Runtime JSON makes that explicit. Under “graph,” ID-keyed nodes carry type, name, and properties; edges carry source, target, and type.
+
+Alex: That state must line up across the backend, browser client, rules, and save file. Otherwise narration could look coherent while the simulation underneath it disagrees.
+
+Sam: That mismatch is why this is more than a conversation wrapper. The graph gives the services one thing to agree on.
+
+Alex: Think not “characters talking somewhere fictional,” but “agents reading and changing shared world state.”
+
+Sam: That makes debugging concrete. What does the engine know, where does it live, and which relationship or property caused the next event?
+
+Alex: Space is relational, not metric. Connections define the theater; there are no distances to calculate.
+
+Sam: Right. The graph is not storage underneath the experience; it is the playable world. Next, let's follow one action from the browser to the backend and watch it change.
+
+Alex: Let’s follow one command through actor selection, action handling, world effects, and time. The action is only the entrance to the cycle.
+
+Sam: The browser sends it; the backend resolves who acts and updates shared state. The command is one event in a larger engine transaction.
+
+Alex: VirtualWorld supports continuous, sequential, random, and d20 modes. Continuous acts immediately; the others use a queue to select the next actor.
+
+Sam: The queue reconciles living players into alphabetical sequential order, reshuffled random order, or d20-plus-DEX initiative. The selected player submits the command; the backend then applies it.
+
+Alex: After the action, sequential, random, or d20 control passes to the next actor. Continuous play has no queue slot, but it still follows the same engine world-processing rule.
+
+Sam: Here’s the bit I used to blur: every player action triggers the full tick_turn cycle, including continuous play. The command must not cause a second pass.
+
+Alex: tick_turn processes conditions, decays vitals, applies environmental effects, drifts temperature, ticks items, processes NPCs, and advances the clock once.
+
+Sam: Those are consequences of the action, even when the player sees narration. One call means one system pass and one decay application, not another during rendering.
+
+Alex: The clock detail is easy to misstate. The engine defaults to one minute per tick; the referenced world_template.json scenario sets five minutes per turn.
+
+Sam: That is configuration: one tick is one minute or five scenario minutes. The same action can advance different amounts of game time.
+
+Alex: Completing a sequential, random, or d20 queue cycle increments turn_number, advances the world clock, and applies tick and decay effects exactly once.
+
+Sam: tick_turn processes before turn_number changes, and clearing events opens the next turn. Cleanup must never become a second execution path.
+
+Alex: So the command says what happened, coordination says who acts, and tick_turn says how the world responds. Next, we’ll open the cycle and inspect every boundary where something might fire twice.
+
+Sam: Before we hunt for double-firing boundaries, there’s a bigger simplification hiding in plain sight: a soak NPC, a simple NPC, an LLM agent, and the human player all use the same Player model.
+
+Alex: Exactly. They read and write the same world state, submit the same actions, and advance on the same clock. What changes is the decision controller—and what that choice costs.
+
+Sam: A soak character can use a deterministic survival policy; a simple NPC can follow scheduled or scripted behavior; an LLM agent can choose with a model; a human chooses through the interface.
+
+Alex: So “autonomy” is not a different kind of physics. It is a decision loop attached to the controls every character already has.
+
+Sam: That keeps the comparison honest. If an LLM agent can use a capability the cheap policy cannot, the world’s rules depend on who is paying attention, which is a very expensive form of drama.
+
+Alex: Cognition should refine the next action, not invent a new one. The shared action system remains the boundary of what anybody can actually do.
+
+Sam: And the human case has one hard guardrail: the engine may execute a human’s chosen action, but it must never act autonomously for the human.
+
+Alex: BackgroundSimulation.process_due is the shared executor, skipping only the human’s own character, and only because the human is the decision source.
+
+Sam: I like “only because.” It prevents a convenience from quietly becoming player control.
+
+Alex: The LLM path uses an OpenAI-compatible interface, so it can support multiple providers, endpoints, and models. Token limits, rate limits, streaming, and logging manage the decision path without changing the world’s action set.
+
+Sam: Structured memory consolidates state for reasoning, reflection, editing, and tools. It can improve the next choice, but it cannot bypass the shared action schema.
+
+Alex: Next, we’ll put deterministic, scripted, model-driven, and human controllers behind one choice. Then we can compare loops without changing the game underneath.
+
+Alex: The shared action set has a spatial consequence: no coordinates. A character uses one typed graph-edge anchor relative to a room entity: at, on, under, behind, or beside.
+
+Sam: “Jake at the piano” is therefore world state, not decorative phrasing. A new position clears the previous anchor, so Jake cannot be beside the piano and trapped under the chandelier at once.
+
+Alex: The core rule is automatic: a physical action walks you there. Opening or closing a way puts you at it, and using an item on that way does the same.
+
+Sam: Giving, stealing, grabbing, or attacking someone puts you beside that target. Using an item on a room object can put you at, on, or under it from tags and phrasing.
+
+Alex: Movement carries that rule through the way and into the destination room. The position edge records where the action actually put you, so the graph can represent meaningful proximity.
+
+Sam: That also means no ceremonial “examine it first” step. If an action physically involves the piano, the graph already reflects that you reached the piano.
+
+Alex: Items use the same principle. An item in a room has an in edge from the item to the room; an item held by a player has a carrying edge to that player.
+
+Sam: Take the rusty key and the engine removes its in edge to the room, then adds a carrying edge to the traveler. Drop it, and those moves reverse.
+
+Alex: The source is the thing being positioned; the target is its room, surface, container, or owner. That consistent direction makes the resulting world state inspectable.
+
+Sam: There is a legacy Player.inventory property, which sounds suspiciously like an inventory array. Engine inventory operations do not consult it; the graph edge is authoritative.
+
+Alex: Because carried items point to players, they can be excluded from room-item queries. No second bag needs to be synchronized, repaired, or left stale.
+
+Sam: Next, these edges feed the shared action loop. No controller gets any special powers.
+
+Alex: That shared loop becomes visible through temperature. A room defaults to 21°C, while a character’s core Temperature vital starts at 37°C; one is ambient, the other bodily.
+
+Sam: Before the body drifts, worn insulation and weather produce effective temperature: ambient plus insulation, wind chill, and humidity modifier. Two characters sharing that room can feel quite different because of those modifiers.
+
+Alex: Every tick uses effective temperature, not the room reading. Below 5°C, core temperature falls by 0.02 times the gap from 5°C; above 35°C, it rises by 0.02 times the gap above 35°C.
+
+Sam: But the comfort range isn’t immunity. Between 5°C and 35°C, the body self-regulates toward 37°C by 0.1°C per tick; insulation still matters once effective temperature crosses a threshold.
+
+Alex: Drift is only the first consequence. At 35.0–36.9°C, Energy drops by one from shivering; at 33.0–34.9°C, Energy -2 and HP -1; below 33°C, HP -3 per tick.
+
+Sam: Heat works in parallel: 37.1–38.0°C costs one Thirst, 38.1–40.0°C costs one HP, and above 40°C costs three HP per tick. Damage uses the new core temperature after drift.
+
+Alex: Below 30°C, death is attributed to hypothermia; above 42°C, it is heat stroke. Even before either threshold, HP regeneration is blocked outside 35–39°C, so temperature gates recovery.
+
+Sam: The interface keeps the actual Celsius value. The core-temperature vital maps 25–45°C to 0–100%, appends a °C suffix, and changes from blue and green through yellow to red.
+
+Alex: The color shows the vital’s position, while prose explains the experience. Descriptions and warnings use effective feels-like temperature after insulation: “Pleasant” starts at 18°C; “Freezing” starts at -10°C. At 35°C, the warning explicitly says, “You’re overheating; find shade or water.”
+
+Sam: That separation matters: the 21°C room remains the raw source reading while clothing, wind, and humidity alter that pressure. The narration reacts to experienced temperature; the bar tracks physiological danger.
+
+Alex: Next, we can make it actionable. Conditions can fire when temperature gets too low or high, while effects push the environment back toward safety.
+
+Alex: Temperature tells us when a room is unsafe, not what belongs in it. Start with a blank scenario and build its runtime graph first.
+
+Sam: The graph is the runtime source of truth. Nodes use id, type, name, and properties for area, way, item, character, and trigger; typed edges hold relationships.
+
+Alex: Every interactive thing should be a node, and every relationship an edge. Flexibility does not remove conventions: required properties still need deliberate authoring.
+
+Sam: Character state is separate: top-level players is authoritative for personality, vitals, skills, memories, emotion, autonomy, and behavior. Top-level world_lore is injected into every agent prompt.
+
+Alex: Serialized areas, rooms, ways, item_registry, and players_in_area are convenience views, not alternatives. If one disagrees with the graph, the runtime follows the graph.
+
+Sam: The persistent library lives under data/library/. It stores one JSON file per entry in type-specific directories: items, tags, areas, characters, conditions, triggers, behaviours, or structures.
+
+Alex: That makes this a two-stage contract: author the graph first, then create reusable entries without another source of truth. Population should extend the scenario, not quietly rewrite it.
+
+Sam: Tags are case-insensitive classifiers, stored as lists or comma strings. Because tag files are id-keyed, saving an existing id is an upsert, so repeats deduplicate.
+
+Alex: The auto-furnishing chain is stricter than ordinary tag lookup. An area’s domain tag must also appear in the furniture item’s domain tags and in at least one placeable item’s domain tags.
+
+Sam: That is plain set intersection across all three levels, not a vague “library-ish” match. Wooden and other descriptive tags, or setting tags like interior, cannot stand in for the domain match.
+
+Alex: Furniture roles then select the valid placement targets: display uses on or beside; container and storage use in; floors use at. The role supplies the spatial grammar rather than just a catalogue label.
+
+Sam: Together, domain and role prevent a generated room from putting books on rugs merely because both appeared nearby. Next, we’ll follow one blank area through authoring, population, and placement.
+
+Alex: Now that the blank area is authored, populated, and furnished, strange runtime behavior calls for a more disciplined debugging pass. Inspect the selected entity before rewriting JSON by intuition.
+
+Sam: The Inspector is context-sensitive across areas, items, ways, characters, memories, behaviours, and lore. It uses a singleton architecture, with window.inspector coordinating specialized views.
+
+Alex: Rendering has one strict owner: panel.js is the only file that writes to #inspector-panel, while the views render through centralized lit-html output. That avoids mixing direct DOM writes with lit's part tracking.
+
+Sam: So start with the entity, its graph edges, conditions, and behaviours. If several entities share the same odd behavior, the problem may sit below the authored content.
+
+Alex: That is where Engine Config enters. Through /api/settings/engine_config, it exposes tunables such as sound penetration, heat propagation, and light spill.
+
+Sam: Defaults can be overridden in data/engine_config.json, and a saved value takes effect on the next engine call. You no longer need to edit Python or restart the server to test a constant.
+
+Alex: The interface is schema-driven, and Apply rerenders from the server-coerced response, so the fields show what actually persisted. Reset to defaults restores the built-ins without pretending an unsaved edit is live.
+
+Sam: After inspection and tuning, we need a record of what the player actually saw. WorldExport.exportEventLog writes the visible event stream to Markdown for a clean runtime trace.
+
+Alex: The export distinguishes two clocks: Tick N is the global event-sequence id used for ordering and the filename. Turn N with HH:MM is the separate in-game world turn.
+
+Sam: It exports only the visible stream, so filtered hidden logs, including disabled LLM logs, stay out. That makes the artifact evidence of the interface, not a dump of internal records.
+
+Alex: Together, those layers create a useful loop: inspect the entity, tune only what is genuinely systemic, reproduce the issue, then export the exact visible trace. Next, we can follow one suspicious event through that loop and see where those two layers actually disagree.
+
+Alex: Library 2.0 makes every library save round-trip every field. Full-schema editors replace tab-specific guesswork, and validate and coerce hooks warn on unknown keys and missing required values.
+
+Sam: That stops the quiet failure where a successful-looking save drops part of an entry. Synchronization can also overwrite good live data with a stale library copy.
+
+Alex: The safer path backs up the existing file, guards the write, and verifies the replacement before accepting it. An incomplete or unreadable result is rejected rather than silently taking the entry’s place. A loud failure is inconvenient; a silent one can erase authored work.
+
+Sam: That is where DiffModal earns its keep. Instead of automatically clobbering a category, it resolves per-entry conflicts for memories, items, relationships, conditions, vitals, decay rates, and equipped slots.
+
+Alex: It shows change counts, status badges, old-versus-new values, and select-all controls. You choose entries in either direction, while whole-category clobbering remains available when wholesale replacement is intentional.
+
+Sam: I’d keep that option, but never as the default. “Replace everything” should look as consequential as it is.
+
+Alex: Scenario storage makes the same distinctions. data/autosave.json is the live copy; saves/<name>_<timestamp>.json stores a manual full-state save with scenario, tick, turn, player, version, and autosave metadata.
+
+Sam: Meanwhile, data/scenarios/<name>.json remains the authored source. Live autosave edits never flow back into source JSON, and Restart reloads the source instead of saving the live copy over it.
+
+Alex: Restart can discard uncommitted runtime changes, but it cannot masquerade as committing them. Moving live edits into the source requires an explicit commit, not a casual Save label.
+
+Sam: So the workflow has three promises: autosave preserves the current run, manual save stores a named state, and commit updates the authored scenario. Confusing them is how people lose work quietly.
+
+Alex: The save path should show what changed, protect what was good, and stop when new data cannot be trusted. Next, we can try breaking it with a messy character under real editing pressure and see whether those safeguards hold.
+
+Alex: The biggest idea is that VirtualWorld is not a chatbot wearing a world costume. It is a world model with a deliberate contract: the graph is shared truth, every action advances the simulation, and people and agents operate through the same player controls. Lose track of that, and better prose becomes prettier improvisation.
+
+Sam: The save workflow has to honor the same contract. Autosave protects the run, manual save stores a named state, and only an explicit commit changes the authored scenario. That separation may feel bureaucratic until the first bad overwrite teaches the hard lesson.
+
+Alex: Next, I’d build the messy-character stress test: edit one entity while its relationships, inventory, and survival state are in motion, then force a conflicting change. I want to see whether the diff, backup, and guarded write explain themselves under pressure.
+
+Sam: And if they fail, I want them to fail dramatically enough that we notice.
+
+Alex: That is our highest standard for debugging.
+
+Sam: Thanks for building this with me. I’m excited to keep pushing.
