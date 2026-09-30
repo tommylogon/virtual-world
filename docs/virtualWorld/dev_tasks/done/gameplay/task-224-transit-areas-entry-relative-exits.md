@@ -9,6 +9,30 @@ wiki: "[[dev_tasks/level-design-workflow]]"
 **Priority**: Medium  
 **Status**: Done — implemented 2026-08-13 (`get_transit_roles`, `go back`/`forward`, transit tag); unit tests green (`tests/test_character_spatial.py`, 16 passed). Moved to review/ 2026-08-16 — pending browser E2E walkthrough (Task 18 shaft no longer exists in the New Dawn scenario; natural candidate: Frozen Stream Crossing).
 
+> **Superseded by task-313 (2026-09-30) — this card shipped but never ran, and
+> its approach was the wrong one.** Read the "Relative facing" section of
+> `docs/virtualWorld/Gameplay/Character Spatial Position.md` instead.
+>
+> Three things this card got wrong, and they are why the browser E2E walkthrough
+> never cleared it:
+>
+> 1. **It could not fire.** The `transit` tag was declared `applies_to: ["ways"]`
+>    while `is_transit_area` read it off the *area*, so `get_transit_roles`
+>    returned `None` in every piece of content, including the Task 18 shaft that
+>    motivated it.
+> 2. **It renamed doors instead of aliasing directions.** Exit labels were
+>    *replaced* with the literal `back`/`forward`, so a room lost the name of
+>    the door you can see. task-313 resolves the words *in addition to* the
+>    authored handles, which is what makes it feel like a world rather than a
+>    lookup table.
+> 3. **It hardcoded exactly two ways**, and derived "back" from the way a
+>    character stood AT rather than the way it came through. Left/right have to
+>    pick among every way in an area by heading, and standing at a door is not
+>    arriving through it.
+>
+> The intent — entry-relative exits for crawl-through spaces — was right and is
+> now the default everywhere, with no tag at all.
+
 ---
 
 ## Problem

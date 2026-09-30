@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: done
 area: gameplay
 priority: medium
 ---
@@ -164,14 +164,101 @@ handles are untouched.
 ## Verification
 
 - Unit: a four-way area; enter from the south, assert `go left` resolves to the
- west way and `go right` to the east way; repeat entering from the west and
- assert the rotation.
+  west way and `go right` to the east way; repeat entering from the west and
+  assert the rotation.
 - Unit: `facing` survives a non-movement turn and updates on the next crossing.
 - Unit: relative words in a spawn-point area return the "no entry way" message,
- not a generic failure.
+  not a generic failure.
 - Unit: an area tagged `transit` in a fixture behaves identically to an untagged
- one — the tag is gone, so it must be inert rather than load-bearing.
+  one — the tag is gone, so it must be inert rather than load-bearing.
 - Full suite: compare against the ~60 failed / 3239 passed baseline.
+
+## Result (2026-09-30) — implemented, and verified in a browser
+
+All acceptance criteria are met. `engine/facing.py` owns the ring and the
+rotation; `player.facing` / `player.entered_from_way` hold the state; the
+transit machinery and the tag are gone.
+
+### The scoping notes were right, and one was load-bearing
+
+Notes 1–3 verified as written on re-measurement: no facing state existed, the
+four words were already in `_APPROACH_CARDINAL_WORDS` and dead-ended at
+`resolve_exit`, and the transit tag had no reader that could ever match.
+
+**What the notes did not say, and which would have shipped a dead feature:** the
+authored `cardinal` never reached the graph. `serialization_legacy` read the
+exit *key* (which in labs is the label `"Shaft 1"`, not a heading) and never
+looked at `exit_info["cardinal"]`, so the cardinals authors had already filled
+in reached neither the graph nor anything else. Two further gaps behind it:
+
+- **Only `world_compile` wrote `cardinal` onto edges.** `movement.connect_areas`
+  and the `create_way` effect wrote `direction` only, so reading `cardinal`
+  alone would have made facing work in compiled zones and fail silently
+  everywhere else. `facing.edge_cardinal()` reads `cardinal` then falls back to
+  `direction`, and it is the single reader both the stamper and the resolver use.
+- **labs.json holds connectivity twice** — a legacy `areas` block *and* a
+  pre-built `graph` — and the loader uses the `graph`. Filling in the `areas`
+  cardinals changed nothing observable, which is rule 1's failure mode caught in
+  the act. The four `Vent 2` connection edges in the `graph` needed the
+  cardinals too.
+
+### Changes
+
+- **`engine/facing.py`** (new) — `CARDINAL_RING`, `RELATIVE_WORDS`,
+  `normalize_cardinal`, `cardinal_opposite`, `rotate`, `edge_cardinal`,
+  `explain_unresolved`, `resolve_for_player`.
+- **`engine/movement.py`** — stamps `facing`/`entered_from_way` on a crossing,
+  from the edge's cardinal rather than the typed word (a narrative handle still
+  gets a heading); `connect_areas` gained `cardinal1`/`cardinal2`.
+- **`engine/matching.py`** — `resolve_exit` tier 1b resolves the relative word
+  and hands the cardinal to ordinary exit resolution. After the exact-handle
+  tier, so an authored `back` still wins.
+- **`engine/serialization_legacy.py`** — carries `cardinal` through, deriving the
+  far side by opposition (`return_cardinal` overrides).
+- **Deleted** — `is_transit_area`, `get_transit_roles`,
+  `resolve_transit_movement`, the `area_description.py` handle override, the
+  `room-context.js` prompt rename (which was the same bug on the agent side),
+  `trigger_validator`'s `"transit"` entry, and `data/library/tags/transit.json`.
+- **Content** — `labs.json`: `Vent 2` cardinals on both the `areas` entries and
+  the four `graph` edges. That is the whole content change; no library area
+  needed one, which is the payoff of dropping the tag.
+- **Docs** — the "Relative facing" section of
+  `Gameplay/Character Spatial Position.md`, plus a superseded-by note on
+  task-224 (which shipped in 2026-08 and never ran) so the next reader does not
+  re-implement it.
+
+### Tests
+
+`tests/test_facing.py` (52 tests) covers the ring and both worked examples, the
+aliasing, every off-ring `None`, the messages, `edge_cardinal`'s fallback, the
+stamping, rotation through real `move_to_area` calls, persistence round-trip,
+the tag being inert, and **the real labs vent crawled in from both ends**. The
+transit tests in `test_character_spatial.py` were **ported, not deleted** — they
+stood a character *AT* a way, which the scoping notes correctly call a different
+situation from arriving through one.
+
+### Live browser verification
+
+Not unit tests. Drove the real labs scenario in a browser via the engine-command
+override (`#command-input`) on a fresh instance:
+
+- Crawled into `Task 18 - ventilation shaft` from `Task 18 - Room 3`; in the
+  shaft the exits list read **`[Vent 2]`** and **`[Shaft 1]`** — the authored
+  handles, with no `back`/`forward` substitution anywhere.
+- `go left` from Room 3 while facing north resolved to **`Door 3`** (west, then
+  refused as locked) while `go back` took **`Shaft 1`** (south) — two different
+  doors from one position, which is the rotation working.
+- `go left` inside the shaft answered *"'left' would be east from here (you are
+  facing south), and there is no east exit."* rather than "can't go there".
+- The event stream recorded the resolution outright:
+  **`matched 'back' as exit 'Shaft 1' (north of facing south)`**
+
+### Known limits, deliberately
+
+`up`/`down` and diagonals are never rotated (an eight-way ring is its own
+decision); a way with no cardinal is never rotated; facing is client-visible
+state on the `Player`, not an area property, so two characters in one room can
+face differently — which is the point.
 
 ## Related
 

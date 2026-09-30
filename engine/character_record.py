@@ -137,6 +137,14 @@ _GROUPS: Dict[str, List[DefinitionField]] = {
     "spatial": [
         DefinitionField("current_area", "spatial", ON_EDGES, True,
                         "already carried by the 'in' / spatial edges"),
+        DefinitionField("facing", "spatial", ON_PLAYER, False,
+                        "cardinal heading of the last crossing (task-313); the "
+                        "only thing 'left'/'right'/'forward'/'back' read, and None "
+                        "until the character has moved — runtime, but durable "
+                        "across a save so a reload does not silently forget it"),
+        DefinitionField("entered_from_way", "spatial", ON_PLAYER, False,
+                        "the way that crossing used, so the heading can be "
+                        "explained rather than asserted (task-313)"),
         DefinitionField("node_id", "spatial", ON_NODE, True),
         DefinitionField("id", "spatial", ON_PLAYER, True),
     ],

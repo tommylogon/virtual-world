@@ -10,6 +10,7 @@ from engine.room_perception import normalize_requires
 from engine.size import size_tier, size_tier_from_name
 from engine.conditions import effective_speed
 from engine.matching import display_area_name, way_endpoint_name, _GRID_SUFFIX
+from engine.facing import edge_cardinal
 
 logger = logging.getLogger(__name__)
 
@@ -95,8 +96,18 @@ class MovementSystem:
         return f"You move into the {area_name}."
 
     def connect_areas(self, room1_name: str, room2_name: str, dir1: str, dir2: str,
-                      state="open", desc="", cost=None, one_way=False):
-        """Create a bidirectional connection between two areas via a door node."""
+                      state="open", desc="", cost=None, one_way=False,
+                      cardinal1=None, cardinal2=None):
+        """Create a bidirectional connection between two areas via a door node.
+
+        ``direction`` is what a player types and what the room lists; it may be
+        narrative ("swinging door") and often is. ``cardinal1``/``cardinal2``
+        are the headings, and they are separate because the two answers differ:
+        a scenario's exit key can be a label ("Shaft 1") while the heading is
+        "south". Relative facing (task-313) reads the cardinal, so an author
+        who fills one in gets "go left"; an author who does not gets an exit
+        that is simply never rotated.
+        """
         way_id = self.gs._way_node_id(f"{room1_name}_{dir1}")
         way_node = Node(
             id=way_id,
@@ -115,16 +126,22 @@ class MovementSystem:
         self.graph.add_node(way_node)
 
         # Link room1 -> door (direction dir1) and door -> room2
+        def _side_props(direction, cardinal):
+            props = {"direction": direction}
+            if cardinal:
+                props["cardinal"] = str(cardinal).strip().lower()
+            return props
+
         self.graph.add_edge(Edge(source=self.gs._area_node_id(room1_name), target=way_id,
-                                 type=EDGE_CONNECTION, properties={"direction": dir1}))
+                                 type=EDGE_CONNECTION, properties=_side_props(dir1, cardinal1)))
         self.graph.add_edge(Edge(source=way_id, target=self.gs._area_node_id(room2_name),
-                                 type=EDGE_CONNECTION, properties={"direction": dir2}))
+                                 type=EDGE_CONNECTION, properties=_side_props(dir2, cardinal2)))
 
         # Link room2 -> door (direction dir2) and door -> room1
         self.graph.add_edge(Edge(source=self.gs._area_node_id(room2_name), target=way_id,
-                                 type=EDGE_CONNECTION, properties={"direction": dir2}))
+                                 type=EDGE_CONNECTION, properties=_side_props(dir2, cardinal2)))
         self.graph.add_edge(Edge(source=way_id, target=self.gs._area_node_id(room1_name),
-                                 type=EDGE_CONNECTION, properties={"direction": dir1}))
+                                 type=EDGE_CONNECTION, properties=_side_props(dir1, cardinal1)))
 
     def _set_exit_state(self, area_name: str, direction: str, new_state: str):
         """Update the door node's current_state and propagate."""
@@ -713,6 +730,21 @@ class MovementSystem:
                 self.gs.active_player, target_area_node.name, direction, way_id,
             )
         drag_suffix = ("\n" + "\n".join(drag_lines)) if drag_lines else ""
+
+        # Stamp the heading of travel (task-313). Coming from the south means
+        # travelling north, so the character faces north and "right" is east.
+        # This is the ONLY place facing changes: there is no turn-in-place verb,
+        # so standing still, examining and talking all leave it alone. The
+        # cardinal comes off the connection edge rather than the typed word,
+        # because the typed word may be narrative ("through the swinging door")
+        # while the edge carries the authored heading. An off-ring cardinal
+        # (a diagonal, a vertical way) leaves facing untouched rather than
+        # inventing a heading nobody travelled.
+        if self.gs.player is not None:
+            travel_cardinal = edge_cardinal(matched_edge)
+            if travel_cardinal:
+                self.gs.player.facing = travel_cardinal
+                self.gs.player.entered_from_way = way_id
 
         # Record turn event: character left old area and entered new area
         if old_area_name:

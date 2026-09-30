@@ -41,7 +41,7 @@ Implementation hooks: `approach_way`, `approach_item`, `approach_character` in `
 
 ---
 
-## Ways (doors, vents, transit)
+## Ways (doors, vents, facing)
 
 ### Normal rooms
 
@@ -49,14 +49,51 @@ Implementation hooks: `approach_way`, `approach_item`, `approach_character` in `
 - **`open north`** — walk to north exit, AT it, toggle state.
 - **`go north`** — walk to exit, AT it, traverse; arrive **AT the same way node** from the far side.
 
-### Transit areas
+### Relative facing — left, right, forward, back
 
-Tag the area `transit` or `passage` (or `transit: true` on properties). When **AT an entry way**:
+There is no turn-in-place verb. A character's orientation **is the heading of
+its last crossing**, stamped onto the character when it moves, and it changes
+only by moving again. So "left" is not stored, not guessed from the room, and
+not a property of the door:
 
-- Exit labels become **`back`** (way you're AT) and **`forward`** (other connection).
-- `go back` / `go forward` resolve via `resolve_transit_movement()`.
+    come from the south  ->  travel north  ->  facing north
+    so  forward = north    right = east    left = west    back = south
+    come from the west   ->  travel east   ->  facing east
+    so  forward = east     right = south   left = north   back = west
 
-See [[dev_tasks/review/gameplay/task-224-transit-areas-entry-relative-exits|task-224]] for authoring notes.
+The resolved cardinal is then handed to **ordinary exit resolution**, so the
+words *alias* the area's directions and never replace them. "Go left" becomes
+"go west", and the room still calls the door whatever the author called it —
+the exits list is never rewritten to say `back`/`forward`.
+
+**Facing lives on the `Player`** (`player.facing`, plus `player.entered_from_way`
+so the heading can be explained rather than merely asserted) and serialises with
+the save. A character that has never moved has `facing = None`, and the relative
+words say so — *"this character has not moved yet, so it has no facing"* — rather
+than failing with a generic "can't go there".
+
+**Authoring.** A way has an optional `cardinal` on its connection edge, read by
+`engine/facing.py::edge_cardinal` (which falls back to `direction` when the
+handle *is* a cardinal). Without a cardinal the way is simply never rotated —
+the words stay literal and nothing is invented. Two rules the tagless design
+keeps:
+
+- **Vertical and diagonal ways are never rotated.** `up`/`down` are not on the
+  ring; a diagonal produces no left/right rather than a false one. An eight-way
+  ring would be a separate decision.
+- **Standing AT a way is not the same as arriving through it.** Walking up to a
+  door to examine it leaves facing alone.
+
+**The `transit` tag is gone** (task-313). It was declared `applies_to:
+["ways"]` while its only consumer read it off the *area*, so
+`get_transit_roles` always returned `None` and the feature had never run in any
+shipped content. It also *replaced* a way's handle instead of aliasing it,
+hardcoded exactly two ways, and derived "back" from the way a character stood
+at rather than the way it came through. Relative facing needs no tag at all, so
+the tag, `is_transit_area`, `get_transit_roles`, `resolve_transit_movement` and
+both handle-renaming branches (server description and agent prompt) are deleted.
+Re-introducing it as an opt-in would be a second source of truth for a thing
+that is now the default.
 
 ---
 
@@ -137,13 +174,16 @@ Frontend mirror: `static/js/agent/prompt-builder/room-context.js` (`spatialPosit
 
 | Module | Role |
 |--------|------|
-| `engine/character_spatial.py` | Edges, phrases, approach helpers, transit roles |
-| `engine/movement.py` | `approach_way` on go/open/close; AT on arrival; drag `way_id` |
+| `engine/character_spatial.py` | Edges, phrases, approach helpers |
+| `engine/facing.py` | The cardinal ring and the `left`/`right`/`forward`/`back` rotation; `edge_cardinal()` is the one reader both sides share |
+| `engine/movement.py` | `approach_way` on go/open/close; AT on arrival; drag `way_id`; stamps `facing` |
+| `engine/matching.py` | `resolve_exit()` — relative words resolve as an ordinary direction, tier 1b |
 | `engine/item_actions.py` | examine, use-on, give, steal, put/place |
 | `engine/combat.py` | attack → `approach_character` |
 | `engine/grapple.py` | grab → beside; drag → AT way |
 | `engine/area_description.py` | People lines + `spatial_position_phrase()` |
-| `tests/test_character_spatial.py` | Ways, transit, items, characters, examine room clear |
+| `tests/test_facing.py` | The ring, the wiring, persistence, and the real labs vent |
+| `tests/test_character_spatial.py` | Ways, relative facing, items, characters, examine room clear |
 | `tests/test_grapple.py` | Dragged target AT way |
 
 ---

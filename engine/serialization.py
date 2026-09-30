@@ -200,6 +200,12 @@ class WorldSerializer:
             "current_carry_weight": sum_carry_weight(self.graph, self.player_manager._player_node_id(pname)),
             "max_carry_capacity": get_carry_load_ratio(self.graph, self.player_manager, player_name=pname)["capacity"],
             "at_way_id": get_character_at_way(self.graph, self.player_manager.player_node_id(pname)),
+            # task-313: the heading of the last crossing. The agent prompt reads
+            # this to tell a character which relative words will work for it, so
+            # without it here "left"/"right" would resolve in the engine and never
+            # be used by anyone — a mechanic wired to nothing.
+            "facing": getattr(p, "facing", None),
+            "entered_from_way": getattr(p, "entered_from_way", None),
             "spatial_position": get_spatial_position_data(
                 self.graph,
                 self.player_manager.player_node_id(pname),
@@ -351,6 +357,12 @@ class WorldSerializer:
         p.fear_tags = list(pdata.get("fear_tags", []))
         p.carcass_item = pdata.get("carcass_item")
         p.current_area = pdata.get("current_area") or pdata.get("current_area") or pdata.get("current_room")
+        # task-313 facing. Old saves and scenarios predate the field, so both
+        # keys are read with a None default: a character loaded from one simply
+        # has no facing and the relative words explain that, rather than the
+        # load inventing a heading nobody travelled.
+        p.facing = pdata.get("facing") or None
+        p.entered_from_way = pdata.get("entered_from_way") or None
         p.recent_hearing = pdata.get("recent_hearing", [])
         pdata_memory = pdata.get("memory", {})
         if pdata_memory:

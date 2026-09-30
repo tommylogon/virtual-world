@@ -54,13 +54,27 @@ class LegacyLoader:
                 description = exit_info.get("description", f"A door {exit_dir}")
                 cost = exit_info.get("cost", {})
 
+                # task-313: the heading is a SEPARATE field from the exit key,
+                # and this loader used to drop it — it read `exit_dir` (often a
+                # label like "Shaft 1") and never looked at `cardinal`, so the
+                # cardinals authors had already filled in reached neither the
+                # graph nor relative facing. Pass them through, and derive the
+                # far side by opposition so the pair agrees. An author may also
+                # state it outright with `return_cardinal`.
+                cardinal1 = exit_info.get("cardinal") or None
+                cardinal2 = (exit_info.get("return_cardinal")
+                             or opposites.get(str(cardinal1).lower())
+                             if cardinal1 else None)
+
                 try:
                     self.legacy.connect_areas(
                         area_name, target_area,
                         exit_dir, dir2,
                         state=state,
                         desc=description,
-                        cost=cost
+                        cost=cost,
+                        cardinal1=cardinal1,
+                        cardinal2=cardinal2,
                     )
                 except Exception as e:
                     print(f"Warning: could not connect {area_name} -> {target_area}: {e}")

@@ -1,4 +1,4 @@
-"""Tests for character AT way + transit back/forward (task-135)."""
+﻿"""Tests for character AT way + relative facing (task-135, then task-313)."""
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -13,27 +13,83 @@ from engine.character_spatial import (
     default_relation_for_item,
     get_character_at_way,
     get_character_position,
-    get_transit_roles,
-    is_transit_area,
     set_character_at_way,
     set_character_position,
     spatial_position_phrase,
 )
 
 
-def _transit_world():
-    """Two rooms connected by a tagged transit shaft with two ways."""
+def _shaft_world():
+    """Three rooms whose middle one is a crawl-through shaft on the N/S ring.
+
+    Entering the shaft from Lab A travels north, so the character faces north:
+    "back" is south (the way it came) and "forward" is north (Lab B). This is
+    the labs ventilation shaft's shape â€” two ways, opposite cardinals â€” with no
+    transit tag, because relative facing is the default and never needed one.
+    """
     world = VirtualWorld()
     world.movement.add_area(Area("Lab A", "First lab.", []))
     world.movement.add_area(Area("Ventilation Shaft", "A narrow metal shaft.", []))
-    shaft = world.graph.get_node(world._area_node_id("Ventilation Shaft"))
-    shaft.properties["tags"] = ["transit"]
     world.movement.add_area(Area("Lab B", "Second lab.", []))
-    world.movement.connect_areas("Lab A", "Ventilation Shaft", "vent", "back", state="open")
-    world.movement.connect_areas("Ventilation Shaft", "Lab B", "forward", "vent", state="open")
-
-    world.name_matcher._set_player_area(world.active_player, "Ventilation Shaft")
+    world.movement.connect_areas("Lab A", "Ventilation Shaft", "north", "south", state="open")
+    world.movement.connect_areas("Ventilation Shaft", "Lab B", "north", "south", state="open")
+    world.name_matcher._set_player_area(world.active_player, "Lab A")
     return world
+
+
+class TestRelativeFacing:
+    """The shaft, entered the way a character actually enters one (task-313).
+
+    The old transit tests stood a character AT a way and asked for back/forward.
+    That is a different situation â€” walking up to a door to examine it is not
+    arriving through it â€” and it is why they were replaced rather than kept.
+    """
+
+    def test_crossing_stamps_facing_and_entry_way(self):
+        world = _shaft_world()
+        world.move_to_area("north")
+        assert world.player.current_area == "Ventilation Shaft"
+        assert world.player.facing == "north"
+        assert world.player.entered_from_way == world._way_node_id("Lab A_north")
+
+    def test_go_back_returns_the_way_you_came_in_by(self):
+        world = _shaft_world()
+        world.move_to_area("north")
+        world.move_to_area("back")
+        assert world.player.current_area == "Lab A"
+
+    def test_go_forward_continues_the_heading(self):
+        world = _shaft_world()
+        world.move_to_area("north")
+        world.move_to_area("forward")
+        assert world.player.current_area == "Lab B"
+
+    def test_facing_survives_a_turn_without_moving(self):
+        world = _shaft_world()
+        world.move_to_area("north")
+        world.get_area_description()
+        assert world.player.facing == "north"
+
+    def test_look_shows_authored_handles_not_back_or_forward(self):
+        """The whole point of dropping transit: the words alias, never rename."""
+        world = _shaft_world()
+        world.move_to_area("north")
+        look = world.get_area_description()
+        assert "[north] Lab B is visible beyond" in look
+        assert "[back]" not in look
+        assert "[forward]" not in look
+
+    def test_authored_handle_still_resolves_alongside_relative_words(self):
+        world = _shaft_world()
+        world.move_to_area("north")
+        world.move_to_area("north")          # the authored handle still works
+        assert world.player.current_area == "Lab B"
+
+    def test_no_facing_says_why_instead_of_a_generic_failure(self):
+        world = _shaft_world()
+        with pytest.raises(ValueError) as exc:
+            world.move_to_area("left")
+        assert "has not moved yet" in str(exc.value)
 
 
 class TestCharacterAtWay:
@@ -70,7 +126,7 @@ class TestCharacterAtWay:
 
         world.move_to_area("north")
         pid = world.player_manager.get_player_node_id(world.active_player)
-        # Same way node connects both rooms — you arrive AT it from the far side.
+        # Same way node connects both rooms â€” you arrive AT it from the far side.
         assert get_character_at_way(world.graph, pid) == world._way_node_id("Room A_north")
 
     def test_at_opening_phrase_in_look(self):
@@ -86,53 +142,6 @@ class TestCharacterAtWay:
         phrase = at_opening_phrase(world.graph, pid, area_id, "Room A")
         assert phrase == " at the north"
 
-
-class TestTransitAreas:
-    def test_is_transit_area_by_tag(self):
-        world = _transit_world()
-        shaft = world.graph.get_node("area_Ventilation_Shaft")
-        assert is_transit_area(shaft)
-
-    def test_transit_roles_when_at_way(self):
-        world = _transit_world()
-        pid = world.player_manager.get_player_node_id(world.active_player)
-        area_id = world.graph.get_node("area_Ventilation_Shaft").id
-        back_way = world.graph.get_node("way_Lab A_vent").id
-        set_character_at_way(world.graph, pid, back_way)
-
-        roles = get_transit_roles(world.graph, area_id, pid, "Ventilation Shaft")
-        assert roles is not None
-        assert roles["back_handle"] == "back"
-        assert roles["forward_handle"] == "forward"
-        assert roles["forward_target"] == "Lab B"
-
-    def test_go_back_in_transit(self):
-        world = _transit_world()
-        pid = world.player_manager.get_player_node_id(world.active_player)
-        back_way = world.graph.get_node("way_Lab A_vent").id
-        set_character_at_way(world.graph, pid, back_way)
-
-        world.move_to_area("back")
-        assert world.player.current_area == "Lab A"
-
-    def test_go_forward_in_transit(self):
-        world = _transit_world()
-        pid = world.player_manager.get_player_node_id(world.active_player)
-        back_way = world.graph.get_node("way_Lab A_vent").id
-        set_character_at_way(world.graph, pid, back_way)
-
-        world.move_to_area("forward")
-        assert world.player.current_area == "Lab B"
-
-    def test_look_shows_back_forward_handles(self):
-        world = _transit_world()
-        pid = world.player_manager.get_player_node_id(world.active_player)
-        back_way = world.graph.get_node("way_Lab A_vent").id
-        set_character_at_way(world.graph, pid, back_way)
-
-        look = world.get_area_description()
-        assert "[back] Lab A is visible beyond" in look
-        assert "[forward] Lab B is visible beyond" in look
 
     def test_examine_room_clears_at_way(self):
         world = VirtualWorld()

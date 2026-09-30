@@ -502,6 +502,7 @@
         },
         "Vent 2": {
           "allow_see_characters": false,
+          "cardinal": "north",
           "cost": {},
           "description": "A ventilation shaft door",
           "hidden": false,
@@ -728,6 +729,7 @@
         },
         "Vent 2": {
           "allow_see_characters": false,
+          "cardinal": "south",
           "cost": {},
           "description": "A ventilation shaft door",
           "hidden": false,
@@ -2343,6 +2345,7 @@
       },
       {
         "properties": {
+          "cardinal": "south",
           "direction": "Vent 2",
           "visible_in_direction": "you see a room identical to the one you came from."
         },
@@ -2352,6 +2355,7 @@
       },
       {
         "properties": {
+          "cardinal": "north",
           "direction": "Vent 2"
         },
         "source": "way_task_18__vent_shaft_2",
@@ -2360,6 +2364,7 @@
       },
       {
         "properties": {
+          "cardinal": "north",
           "direction": "Vent 2",
           "visible_in_direction": "looking into the shaft reveals a narrow path tht leads into the dark"
         },
@@ -2369,6 +2374,7 @@
       },
       {
         "properties": {
+          "cardinal": "south",
           "direction": "Vent 2"
         },
         "source": "way_task_18__vent_shaft_2",
@@ -7635,6 +7641,7 @@
         },
         "Vent 2": {
           "allow_see_characters": false,
+          "cardinal": "north",
           "cost": {},
           "description": "A ventilation shaft door",
           "hidden": false,
@@ -7861,6 +7868,7 @@
         },
         "Vent 2": {
           "allow_see_characters": false,
+          "cardinal": "south",
           "cost": {},
           "description": "A ventilation shaft door",
           "hidden": false,

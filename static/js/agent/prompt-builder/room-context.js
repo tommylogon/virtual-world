@@ -1,5 +1,5 @@
-/**
- * prompt-builder/room-context.js — Area/room context assembler.
+﻿/**
+ * prompt-builder/room-context.js â€” Area/room context assembler.
  *
  * Split from the monolithic prompt-builder.js (2026-08-09). The "assembler"
  * that pulls together lighting, items, exits, people, events into the area
@@ -8,7 +8,7 @@
  *
  * Cross-file calls use PromptBuilder.<fn>(...).
  *
- * @module prompt-builder/room-context — the area/room context assembler
+ * @module prompt-builder/room-context â€” the area/room context assembler
  * @contributes buildRoomContext/Parts, buildCharacterPreamble, viewerExits, buildNarratedRoomContext
  * @powers the room block that opens every user message (lighting, items, exits, people, witnessed)
  * @relates uses helpers + conversation-context; its output is assembled by turn-prompts
@@ -21,7 +21,7 @@ window.PromptBuilder = window.PromptBuilder || {};
 
     // Social-recall re-feel: when a character HEARS a line that references one of
     // their own memories, re-feel that memory's emotions (affect + subtle vitals)
-    // and — when the speaker resolves to a known person — nudge the relationship.
+    // and â€” when the speaker resolves to a known person â€” nudge the relationship.
     // Rate-limited per character so repeated chatter doesn't endlessly stack.
     const _socialRecallGuard = {};
 
@@ -223,7 +223,7 @@ window.PromptBuilder = window.PromptBuilder || {};
     }
 
     /**
-     * Build the full area context as NAMED PARTS for a character — tick head,
+     * Build the full area context as NAMED PARTS for a character â€” tick head,
      * personality preamble, appearance, carrying, room lead-in/body, exits,
      * items, people (with inline relationship labels), available actions,
      * witnessed events, and plan. The turn-prompt builders re-order these
@@ -236,7 +236,7 @@ window.PromptBuilder = window.PromptBuilder || {};
      * @param {Object} currentArea - Current area data object
      * @param {boolean|Object} [includePlanOrOptions=true] - boolean legacy flag, or
      *   `{ includePlan, agentFraming }`. When `agentFraming` is false (area/way/item
-     *   lens), omits tick, personality, inventory, and plan — room content only.
+     *   lens), omits tick, personality, inventory, and plan â€” room content only.
      * @returns {Object} Named parts (agentFraming) OR { agentFraming:false, authoringText }
      */
     function buildRoomContextParts(state, charName, player, currentArea, includePlanOrOptions = true) {
@@ -255,7 +255,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         // Check for dark_vision trait
         const traits = player?.traits || {};
         const hasDarkVision = traits.dark_vision === true || traits.darkvision === true;
-        // Blind characters are effectively pitch-black regardless of light — their
+        // Blind characters are effectively pitch-black regardless of light â€” their
         // observation is rebuilt from sound/smell/touch, not sight (they aren't told
         // to "pretend"; the visual data is simply not presented to them).
         const isBlind = !!(player?.conditions?.blind);
@@ -274,7 +274,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             if (rel) return `${rel.prep} the ${rel.anchorName} is ${PromptBuilder.indefiniteArticle(roomItem.name)} ${roomItem.name}`;
             return roomItem.name;
         };
-        // Rich item listing — full descriptions in good light (like the backend
+        // Rich item listing â€” full descriptions in good light (like the backend
         // area narration used to provide), names only in dim/dark conditions.
         // Each item carries a [bracket] of its allowed actions so the agent sees
         // what it can do with it at a glance.
@@ -293,7 +293,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         // Interest-based attention: items matching the character's interest_tags
         // (exact tag +2, keyword-in-name +1) surface first, then everything else,
         // each ordered by weight (bigger = easier to see). Examined/taken items
-        // drop off the attention list entirely — their facts live in the
+        // drop off the attention list entirely â€” their facts live in the
         // investigation notes. Capped at ATTENTION_MAX; no truncation, just a
         // natural trailing line.
         const interestTags = (player?.interest_tags || []).map(tag => String(tag).toLowerCase().trim()).filter(Boolean);
@@ -324,7 +324,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             return `${listLines}\n${trailer}`;
         };
         if (isBlind) {
-            warn = '⚠️ BLIND — It is pitch black to you no matter the light. You navigate by sound, smell, and touch. Fumble or search the area to locate things, listen to hear beyond your reach, and moving blind is risky without a cane or a guide.';
+            warn = 'âš ï¸ BLIND â€” It is pitch black to you no matter the light. You navigate by sound, smell, and touch. Fumble or search the area to locate things, listen to hear beyond your reach, and moving blind is risky without a cane or a guide.';
             const known = areaItems.filter(roomItem =>
                 discoveredItems.has(String(roomItem.name || '').toLowerCase().trim())
                 && roomItem.properties?.current_state !== 'hidden'
@@ -333,10 +333,10 @@ window.PromptBuilder = window.PromptBuilder || {};
         } else if (hasDarkVision) {
             items = buildAttention(areaItems.filter(roomItem => roomItem.properties?.current_state !== 'hidden'), false);
         } else if (level === 'pitch_black') {
-            warn = '⚠️ PITCH BLACK — You cannot see anything. Try to go back to a brighter area or use a light source.';
+            warn = 'âš ï¸ PITCH BLACK â€” You cannot see anything. Try to go back to a brighter area or use a light source.';
         } else if (level === 'dim') {
             items = buildAttention(areaItems.filter(roomItem => roomItem.properties?.current_state !== 'hidden' && (roomItem.properties?.weight||1)>=3), false);
-            warn = '⚠️ Dim light — only large objects visible. Fine actions limited. Use a light source or move to a brighter area.';
+            warn = 'âš ï¸ Dim light â€” only large objects visible. Fine actions limited. Use a light source or move to a brighter area.';
         } else {
             items = buildAttention(areaItems.filter(roomItem => roomItem.properties?.current_state !== 'hidden'), true);
         }
@@ -352,29 +352,18 @@ window.PromptBuilder = window.PromptBuilder || {};
             return '';
         };
         const areaNode = resolveAreaNode(currentArea?.name);
-        const areaProps = areaNode?.properties || currentArea?.properties || {};
-        const areaTags = (areaProps.tags || []).map(tag => String(tag).toLowerCase().trim());
-        const isTransitArea = !!areaProps.transit
-            || areaTags.includes('transit')
-            || areaTags.includes('passage');
-        const atWayId = player?.at_way_id
-            || state.players?.[charName]?.at_way_id
-            || null;
+        // task-313: the old transit branch renamed a way's handle to the literal
+        // "back"/"forward" in this prompt, so an agent was told to walk to a door
+        // that had no such name. It could never fire anyway â€” the `transit` tag
+        // was declared for ways while this read it off the AREA. Relative facing
+        // is now the default and needs no tag, so the branch is gone and the
+        // prompt keeps the authored handle, exactly like the server-side
+        // description does.
         // Per-viewer exit map: authored `known` + slasher exemption + own
         // discoveries beat the server's single-active-player filtering
         // (the butcher sees his hidden passage; everyone else sees only what
         // THEY have discovered/learned).
         const viewerExitMap = PromptBuilder.viewerExits(state, charName, currentArea);
-        const transitRoles = (() => {
-            if (!isTransitArea || !atWayId || !viewerExitMap) return null;
-            const visible = Object.entries(viewerExitMap).filter(([, exitData]) => !exitData.hidden);
-            if (visible.length < 2) return null;
-            const back = visible.find(([, exitData]) => exitData.way_id === atWayId);
-            if (!back) return null;
-            const forward = visible.filter(([, exitData]) => exitData.way_id !== atWayId);
-            if (forward.length !== 1) return null;
-            return { backWayId: atWayId, forwardWayId: forward[0][1].way_id };
-        })();
         const spatialPositionSuffix = (person) => {
             const pos = person?.spatial_position;
             if (pos?.target_name && pos?.relation) {
@@ -400,15 +389,11 @@ window.PromptBuilder = window.PromptBuilder || {};
             for (const [dir, exitData] of Object.entries(viewerExitMap)) {
                 if (exitData.hidden) continue;
                 const doorNode = worldState.getNode(exitData.way_id);
-                let handle = PromptBuilder.wayHandle({ ...exitData, label: dir }, doorNode, currentArea?.name);
-                if (transitRoles) {
-                    if (exitData.way_id === transitRoles.backWayId) handle = 'back';
-                    else if (exitData.way_id === transitRoles.forwardWayId) handle = 'forward';
-                }
+                const handle = PromptBuilder.wayHandle({ ...exitData, label: dir }, doorNode, currentArea?.name);
                 if (isBlind) {
                     // Blind characters sense a way by sound/draft, not by seeing it;
                     // traversing it blind is risky unless they have a cane or are led.
-                    exitLines.push(`To the ${handle} — you sense an opening that way by sound and moving air. Going through blind is risky; a cane or a guide helps.`);
+                    exitLines.push(`To the ${handle} â€” you sense an opening that way by sound and moving air. Going through blind is risky; a cane or a guide helps.`);
                     continue;
                 }
                 if (!doorNode) { exitLines.push(`To the ${dir}: ${exitData.target||'(unknown)'}`); continue; }
@@ -420,17 +405,17 @@ window.PromptBuilder = window.PromptBuilder || {};
                 const doorTags = (doorNode.properties?.tags || []).map(t => String(t).toLowerCase().trim());
                 const req = (doorNode.properties?.requires || '').toLowerCase();
                 // Only reveal lock/force/block state the CHARACTER actually knows
-                // (learned by examining or trying) — never the raw door state, which
+                // (learned by examining or trying) â€” never the raw door state, which
                 // would leak hidden info before they've discovered it (task-333).
                 const forced = !!exitData.needs_force_known;
                 const locked = !!exitData.known_locked;
                 const blocked = !!exitData.known_blocked;
                 let doorHint = ' (you can go through it, approach it, dash, or open it)';
                 if (forced) doorHint = ' (you can force it open)';
-                else if (locked) doorHint = " (it's locked — you'd need to unlock it first)";
-                else if (blocked) doorHint = ' (it is blocked — you will need to clear it)';
+                else if (locked) doorHint = " (it's locked â€” you'd need to unlock it first)";
+                else if (blocked) doorHint = ' (it is blocked â€” you will need to clear it)';
                 const openHint = doorHint;
-                // task-243/109: item-gated paths (requires_item on the way) —
+                // task-243/109: item-gated paths (requires_item on the way) â€”
                 // the agent should see the gear requirement, not just fail.
                 const rawReq = doorNode.properties?.requires_item || '';
                 const needsItem = rawReq
@@ -443,7 +428,7 @@ window.PromptBuilder = window.PromptBuilder || {};
                     const closeHint = preventClose ? '' : ' or close it';
                     const actionHint = ` (you can go through it, approach it, dash, examine${closeHint})`;
                     if (viewDirection) {
-                        exitLines.push(`[${handle}] ${openWord} — ${viewDirection}${beyondSuffix}${moveHint}${actionHint}${needsItem}`);
+                        exitLines.push(`[${handle}] ${openWord} â€” ${viewDirection}${beyondSuffix}${moveHint}${actionHint}${needsItem}`);
                     } else {
                         const targetArea = resolveAreaNode(exitData.target);
                         const clues = [];
@@ -475,7 +460,7 @@ window.PromptBuilder = window.PromptBuilder || {};
                         ? InspectorHelpers.resolveWayParams(doorRawDescription, doorNode.properties?.parameters || {})
                         : doorRawDescription;
                     if (seeThrough && viewDirection) {
-                        exitLines.push(`[${handle}] is closed — through it you can see ${viewDirection}${beyondSuffix}${moveHint}${openHint}`);
+                        exitLines.push(`[${handle}] is closed â€” through it you can see ${viewDirection}${beyondSuffix}${moveHint}${openHint}`);
                     } else if (beyondSuffix && seeThrough) {
                         exitLines.push(`[${handle}] ${doorDescription} It is currently closed.${beyondSuffix}${moveHint}${openHint}`);
                     } else {
@@ -485,10 +470,20 @@ window.PromptBuilder = window.PromptBuilder || {};
             }
         }
         const exitsStr = exitLines.length ? '\nFrom where you stand, you can see the following paths:\n' + exitLines.join('\n') : '\n(no visible exits)';
+        // task-313: relative facing. Only offered when this character actually
+        // has a heading — otherwise "go left" would fail, and a prompt that
+        // advertises a word the engine refuses is worse than silence. The
+        // words ALIAS the paths above; they never replace their names.
+        const _facing = player?.facing ?? state.players?.[charName]?.facing ?? null;
+        const facingStr = _facing
+            ? `\nYou are facing ${_facing}, so you can also use relative directions: ` +
+              `forward (${_facing}), and left/right/back turn you from there. ` +
+              `These name the same paths as the directions above.`
+            : '';
         // Carrying line with per-item action brackets (drop/use/wear/examine...).
         // task-330-ish polish: each carried/worn item also shows its FULL
         // description (never truncated) plus whether you know what it is
-        // (discovered/examined) — items you own are things you should be able
+        // (discovered/examined) â€” items you own are things you should be able
         // to reason about, not just name-drop.
         const carriedItems = PromptBuilder.carriedItemNodes(charName);
         const wornItems = carriedItems.filter(c => c.equipped);
@@ -533,7 +528,7 @@ window.PromptBuilder = window.PromptBuilder || {};
                 const f = freshTag(c);
                 const desc = (c.properties?.description || '').trim();
                 const knownTag = isKnown(c, equipped) ? '(known)' : '(not yet examined)';
-                const descPart = desc ? ` — ${desc}` : '';
+                const descPart = desc ? ` â€” ${desc}` : '';
                 lines.push(`${c.name} ${b}${d ? ' ' + d : ''} ${f ? f + ' ' : ''}${knownTag}${descPart}`.trim());
                 // Indent by depth (task-493): a part is legible as a part of
                 // the thing above it, and a part of a part reads the same way.
@@ -543,7 +538,7 @@ window.PromptBuilder = window.PromptBuilder || {};
                     const cf = freshTag(ci);
                     const cdesc = (ci.properties?.description || '').trim();
                     const cknownTag = isKnown(ci, false) ? '(known)' : '(not yet examined)';
-                    const cdescPart = cdesc ? ` — ${cdesc}` : '';
+                    const cdescPart = cdesc ? ` â€” ${cdesc}` : '';
                     const pad = '    '.repeat(Math.max(1, ci.depth || 1));
                     lines.push(`${pad}${ci.name} ${cb}${cd ? ' ' + cd : ''} ${cf ? cf + ' ' : ''}${cknownTag}${cdescPart}`.trim());
                 }
@@ -576,22 +571,22 @@ window.PromptBuilder = window.PromptBuilder || {};
             const peopleLines = others.map(person => {
                 let desc = person.description || '';
                 if (isBlind) {
-                    desc = `You can hear them nearby — ${desc.split('.')[0]}.`;
+                    desc = `You can hear them nearby â€” ${desc.split('.')[0]}.`;
                 } else if (level === 'pitch_black') {
-                    desc = `You can hear them nearby — ${desc.split('.')[0]}.`;
+                    desc = `You can hear them nearby â€” ${desc.split('.')[0]}.`;
                 } else if (level === 'dim') {
-                    desc = `A vague shape in the gloom — ${desc.split('.')[0]}.`;
+                    desc = `A vague shape in the gloom â€” ${desc.split('.')[0]}.`;
                 } else {
                     // First impression: the first sentence is the highlight of
-                    // what you see at a glance — the rest comes from examining.
+                    // what you see at a glance â€” the rest comes from examining.
                     desc = desc.split('.')[0].trim() + (desc.includes('.') ? '.' : '');
                 }
                 const isMet = worldState.hasMet(charName, person.name);
-                // Anonymize strangers — hide the database name if character hasn't met them
+                // Anonymize strangers â€” hide the database name if character hasn't met them
                 const displayName = PromptBuilder.anonymousName(charName, person.name, desc);
-                // The short label (the man) is just a handle — what someone looks like
+                // The short label (the man) is just a handle â€” what someone looks like
                 // is how you perceive them, met or not, so keep the description for both.
-                const descSuffix = desc ? ` — ${desc}` : '';
+                const descSuffix = desc ? ` â€” ${desc}` : '';
                 const actSuffix = person.activity ? ` (${PromptBuilder.describeActivity(person.activity)})` : '';
                 const atSuffix = spatialPositionSuffix(person);
                 // Relationship type inline ("a close friend") when known; strangers get no label.
@@ -609,21 +604,21 @@ window.PromptBuilder = window.PromptBuilder || {};
 
         // Include recent_hearing for cross-room sound propagation
         const recentHearing = player?.recent_hearing || [];
-        // N3: hearing is a rolling buffer — lines must age out, or a guest's
+        // N3: hearing is a rolling buffer â€” lines must age out, or a guest's
         // instruction stays in WITNESSED five turns later. Entries now carry a
         // real tick (engine speech.py); anything older than 8 ticks is stale.
         const curTick = (worldState.data?.time_ticks) || 0;
         const hearingFresh = (h) => !h.tick || (curTick - Number(h.tick)) <= 8;
         const heardSpeech = recentHearing.filter(h => h.type !== 'sound_source' && h.speaker !== charName && hearingFresh(h)).slice(-5);
-        // Sound sources (alarms, ringing phones) propagate too — characters should perceive them
+        // Sound sources (alarms, ringing phones) propagate too â€” characters should perceive them
         const heardSounds = recentHearing.filter(h => h.type === 'sound_source' && hearingFresh(h)).slice(-3);
 
         // Dedupe seen speech so a line isn't shown both as a local event and as heard speech
         const seenSpeechKeys = new Set();
-        // Plain lowercase texts seen so far (for contains-match dedupe — a heard
+        // Plain lowercase texts seen so far (for contains-match dedupe â€” a heard
         // echo like "hello lyrie!" is often nested inside a narrated local event).
         const seenSpeechTexts = [];
-        // task-360 polish: identical witnessed lines collapse — a character's
+        // task-360 polish: identical witnessed lines collapse â€” a character's
         // decide emote and react emote are often the same gesture, and both
         // land in turn_events; showing it twice reads as a glitch.
         const seenWitnessKeys = new Set();
@@ -632,7 +627,7 @@ window.PromptBuilder = window.PromptBuilder || {};
 
         // Local events from turn_events (same area, other actors) WITHIN the
         // character's presence window (task-360): the per-area ledger records
-        // entry_tick, so events before you arrived are never witnessed — the
+        // entry_tick, so events before you arrived are never witnessed â€” the
         // window ends at your next turn because turn_events are per-turn.
         // Back-and-forth is the memory system's job (no auto-replay).
         const entryTick = (state.area_presence?.[currentArea?.name]?.[charName]) ?? 0;
@@ -645,7 +640,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             const actorDesc = allPlayers[evt.actor]?.description || '';
             const anon = PromptBuilder.anonymousName(charName, evt.actor, actorDesc);
             // N12: emote/action descriptions are stored with the RAW actor name
-            // ("Lyrie stamps snow off boots") — anonymize the inside too while
+            // ("Lyrie stamps snow off boots") â€” anonymize the inside too while
             // the name is unknown, so pre-introduction rows never leak it.
             const firstSighting = player?.relationships?.[evt.actor]?.first_sighting;
             const nameKnown = firstSighting === false;
@@ -672,7 +667,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             witnessedLines.push(line);
         });
 
-        // Heard speech from other rooms — skip any already shown as local events
+        // Heard speech from other rooms â€” skip any already shown as local events
         heardSpeech.forEach(h => {
             const heardText = String(h.text || '');
             const dedupeKey = `${h.speaker}|${heardText.toLowerCase()}`;
@@ -686,7 +681,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             if (contained) return;
             seenSpeechKeys.add(dedupeKey);
             seenSpeechTexts.push(heardLower);
-            // Voice-based label — the listener can't see the speaker's body
+            // Voice-based label â€” the listener can't see the speaker's body
             const anon = PromptBuilder.voiceLabel(charName, h.speaker);
             const direction = h.heard_from ? ` from the ${h.heard_from}` : '';
             let line = `[Heard${direction}] ${anon} said: "${h.text}"`;
@@ -709,19 +704,19 @@ window.PromptBuilder = window.PromptBuilder || {};
 
         // No fallback to the frontend room-event log (task-360): that
         // accumulator is a designer's log for the inspector, not a perception
-        // channel — watching stale rows would leak pre-entry knowledge and
+        // channel â€” watching stale rows would leak pre-entry knowledge and
         // pollute the presence window. Trust the memory system instead.
 
-        // Always render the WITNESSED header — placeholder when nothing to report
+        // Always render the WITNESSED header â€” placeholder when nothing to report
         witnessedEvents = witnessedLines.length > 0
             ? '\n\n=== WITNESSED ===\n' + witnessedLines.join('\n')
             : '\n\n=== WITNESSED ===\nNothing unusual happened while you were looking.';
         // Social recall: if something heard references one of this character's
         // memories, re-feel it (and nudge the relationship when known). Preview
-        // mode (Agent Lens) never fires this — it embeds the seeds and POSTs
+        // mode (Agent Lens) never fires this â€” it embeds the seeds and POSTs
         // affect, so a preview must not do either.
         if (!preview && socialSeeds.length) _fireSocialRecall(charName, socialSeeds);
-        // Build narrative lead-in — use feels_like from backend state if available
+        // Build narrative lead-in â€” use feels_like from backend state if available
         const feelsLike = player?.feels_like ?? currentArea?.environment?.temperature;
         const tempFeel = feelsLike != null
             ? (feelsLike >= 35 ? 'very hot' : feelsLike >= 30 ? 'hot' : feelsLike >= 25 ? 'warm' : feelsLike >= 18 ? 'pleasant' : feelsLike >= 12 ? 'cool' : feelsLike >= 5 ? 'chilly' : feelsLike >= 0 ? 'cold' : feelsLike >= -10 ? 'freezing' : feelsLike >= -25 ? 'bitterly cold' : 'arctic')
@@ -736,7 +731,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         let leadIn;
         if (isBlind) {
             const soundNote = currentArea?.environment?.noise ? ` You hear ${currentArea.environment.noise}.` : '';
-            leadIn = `You are in the ${currentArea?.name || '(none)'}, though you cannot see it — it is pitch black to you. It feels ${tempFeel}.${smellNote}${soundNote}`;
+            leadIn = `You are in the ${currentArea?.name || '(none)'}, though you cannot see it â€” it is pitch black to you. It feels ${tempFeel}.${smellNote}${soundNote}`;
         } else {
             leadIn = `You are currently in the ${currentArea?.name || '(none)'}. It is ${lightFeel} and ${tempFeel}.${smellNote}`;
         }
@@ -750,16 +745,16 @@ window.PromptBuilder = window.PromptBuilder || {};
             : (currentArea?.description || '');
         const itemHeader = isBlind ? 'Things you\'ve touched or found:' : 'Items that catch your attention:';
         const noItemsLine = isBlind
-            ? "Things you've located: none yet — try fumble or search."
+            ? "Things you've located: none yet â€” try fumble or search."
             : "Items that catch your attention: (nothing you haven't already examined)";
 
         const body = `${bodyDesc}
 ${warn ? `\n${warn}` : ''}
 ${items ? `${itemHeader}\n` + items : noItemsLine}
-${peopleStr}${exitsStr}${witnessedEvents ? `${witnessedEvents}` : ''}`;
+${peopleStr}${exitsStr}${facingStr}${witnessedEvents ? `${witnessedEvents}` : ''}`;
 
         if (!agentFraming) {
-            const envLine = `${currentArea?.name || 'Area'} — ${lightFeel}, ${tempFeel}.${smellNote}`;
+            const envLine = `${currentArea?.name || 'Area'} â€” ${lightFeel}, ${tempFeel}.${smellNote}`;
             return { agentFraming: false, authoringText: `${envLine}\n\n${body.trim()}` };
         }
 
@@ -779,6 +774,7 @@ return {
             items: itemsBlock,
             people: peopleStr,
             exits: exitsStr,
+            facing: facingStr,
             availableActions,
             witnessed: witnessedEvents || '',
             conversation: PromptBuilder.buildConversationInstinct(player, charName),
@@ -787,7 +783,7 @@ return {
     }
 
     /**
-     * Build the full area context string for a character — assembled from
+     * Build the full area context string for a character â€” assembled from
      * buildRoomContextParts in the new section order (tick, personality,
      * appearance, carrying, room, exits, items, people, actions, witnessed,
      * plan). Used by standalone callers (human turns, narration, lens
@@ -799,7 +795,7 @@ return {
      * @param {Object} currentArea - Current area data object
      * @param {boolean|Object} [includePlanOrOptions=true] - boolean legacy flag, or
      *   `{ includePlan, agentFraming }`. When `agentFraming` is false (area/way/item
-     *   lens), omits tick, personality, inventory, and plan — room content only.
+     *   lens), omits tick, personality, inventory, and plan â€” room content only.
      * @returns {string} Formatted area context string
      */
     function buildRoomContext(state, charName, player, currentArea, includePlanOrOptions = true) {
@@ -824,7 +820,7 @@ return {
     }
 
     /**
-     * Build a narrated area context (async — may call the LLM for narration).
+     * Build a narrated area context (async â€” may call the LLM for narration).
      * Falls back to the standard area context if narration mode is off.
      * @param {Object} state - Full world state data
      * @param {string} charName - Character name

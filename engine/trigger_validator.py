@@ -129,7 +129,6 @@ MECHANICAL_REQUIREMENTS = {
     "electric": (),
     "exterior": (),
     "magic": (),
-    "transit": (),
 }
 
 # Mechanical props the engine silently defaults when missing — see

@@ -227,6 +227,15 @@ class Player:
         self.known = []
         # Current area location (for multi-player support)
         self.current_area = None
+        # task-313 relative facing. `facing` is the cardinal heading of the last
+        # crossing and is the ONLY thing "left"/"right"/"forward"/"back" read;
+        # it changes only by moving, because there is no turn-in-place verb.
+        # `entered_from_way` is the way that crossing used, kept so the heading
+        # can be explained rather than merely asserted. Both are None for a
+        # character that has never moved, which is what makes the relative words
+        # fail cleanly instead of guessing.
+        self.facing = None
+        self.entered_from_way = None
         # Recent speech heard: list of dicts {speaker, text, tick, timestamp}
         self.recent_hearing = []
         # === SIMPLE NPC (no LLM) ===
@@ -1083,6 +1092,8 @@ class Player:
             "name": self.name,
             "exhaustion_count": getattr(self, 'exhaustion_count', 0),
             "current_area": self.current_area,
+            "facing": self.facing,
+            "entered_from_way": self.entered_from_way,
             "state": self.state,
             "conditions": list(self.conditions),
             "condition_instances": {

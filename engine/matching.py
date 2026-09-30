@@ -5,6 +5,7 @@ import re
 from typing import List, Optional, Tuple
 
 from graph import Edge, EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED
+from engine.facing import RELATIVE_WORDS, edge_cardinal, resolve_for_player
 
 # task-624 / task-638: 51 of 205 areas in the reference scenario are literally
 # named "Road (world 10,4)". A node name is an identity, not a place label, and
@@ -202,11 +203,6 @@ class NameMatching:
         # matching (the handle is often a bare word: "out", "gap", "arch").
         input_lower = re.sub(r'^(the|a|an)\s+', '', input_lower)
 
-        from engine.character_spatial import resolve_transit_movement
-        transit_hit = resolve_transit_movement(self.graph, self.gs, area_id, input_lower)
-        if transit_hit:
-            return transit_hit
-
         exits_info = self._collect_exits(area_id)
         if not exits_info:
             return None, None, ""
@@ -225,6 +221,38 @@ class NameMatching:
         exact = [info for info in exits_info if info[2].lower() == input_lower]
         if exact:
             return _pick(exact)
+
+        # 1b. Relative facing (task-313): "left" / "right" / "forward" / "back"
+        # rotate the character's heading and then resolve the resulting
+        # cardinal as an ORDINARY direction. That ordering is the whole point —
+        # the words alias this area's directions, they never replace them, so
+        # the room keeps the name of the door you can see. Placed after the
+        # exact-handle tier so a way genuinely authored as "back" still wins.
+        if input_lower in RELATIVE_WORDS:
+            player = getattr(self.gs, "player", None)
+            resolved_cardinal, reason = resolve_for_player(input_lower, player)
+            if resolved_cardinal:
+                for info in exits_info:
+                    edge, way_node, handle, _ = info
+                    if edge_cardinal(edge) == resolved_cardinal:
+                        self._fuzzy_match_note = (
+                            f"matched '{input_str}' as exit '{handle}' "
+                            f"({resolved_cardinal} of facing "
+                            f"{getattr(player, 'facing', None) or '?'})"
+                        )
+                        return edge, way_node, handle
+                # The heading resolved but nothing lies that way. Say so, and
+                # name the cardinal — "no exit 'left'" would hide a rotation
+                # that actually worked.
+                raise ValueError(
+                    f"'{input_str}' would be {resolved_cardinal} from here "
+                    f"(you are facing {getattr(player, 'facing', None)}), and "
+                    f"there is no {resolved_cardinal} exit."
+                )
+            if reason:
+                # No facing at all (spawn point, or a save predating this).
+                # Explain rather than falling through to a generic failure.
+                raise ValueError(reason)
 
         # 2. Cardinal match ("north", "south"...)
         for edge, way_node, handle, _ in exits_info:

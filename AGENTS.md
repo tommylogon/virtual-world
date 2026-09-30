@@ -413,6 +413,23 @@ totals. The only remaining failure:
 |---|---|
 | `test_templates.py::test_generator_covers_every_effect_type` | `data/library/items/template_polymorph_target.json` is missing |
 
+**That "1 failed" figure is itself stale — re-measured 2026-09-30 at `0a8e829`,
+the suite is 12 failed / 6446 passed** (187s on this machine, not 18 minutes). All
+twelve fail identically on a clean `master` worktree, verified by A/B, so treat
+this list as the floor and not something you caused:
+
+| Test | Nature |
+|---|---|
+| `test_character_identity.py::test_collapse_is_idempotent` | canonical-node problem (task-457) — the two "unconfirmed fixed" failures below |
+| `test_character_identity.py::test_kraktooth_loads_as_one_node_per_character` | same |
+| `test_ownership.py` (3 tests) | ownership vs scope-tree disagreement over unheld need-resources |
+| `test_pines_slice.py::TestGenerationEndToEnd::test_the_recipe_reachable_from_the_api_generates_the_apartment` | end-to-end generation |
+| `test_promotion.py::test_observe_route_queues_residents_and_404s_unknown_scope` | scope promotion |
+| `test_scenario_data_integrity.py` (4 tests) | `world_template` labelling, authored character nodes, Eldenford interior way endpoints and split scope |
+| `test_templates.py::test_generator_covers_every_effect_type` | `template_polymorph_target.json` missing |
+
+Re-measure before you trust this table — it is a snapshot, not a contract.
+
 Both of the `create_app()`-isolation failures were bug-55, and the diagnosis in that
 file was wrong in an instructive way:
 

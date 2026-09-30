@@ -1,18 +1,18 @@
-"""Character spatial position — relations to ways, items, and characters (task-135).
+﻿"""Character spatial position â€” relations to ways, items, and characters (task-135).
 
 Position is a *relation*, not a coordinate (task-419). There is no metric space
 inside an area; a character's position is the set of spatial edges it holds, and
 a character holds exactly one `at` edge in the world at a time. The consequences
 are spelled out where they are implemented:
 
-  - `enforce_single_at` / `check_spatial_invariants` — the one-`at` invariant, and
+  - `enforce_single_at` / `check_spatial_invariants` â€” the one-`at` invariant, and
     a validator for the paths that write edges without going through the setter.
-  - `proximity_hops` / `proximity_phrase` — 1 hop / 2 hops / across the room,
+  - `proximity_hops` / `proximity_phrase` â€” 1 hop / 2 hops / across the room,
     derived by walking the relation path. Never stored, so a re-authored `beside`
     edge cannot leave a stale distance behind.
-  - `spawn_from_pool` / `select_area_anchors` — the anchor vocabulary (a pooled
+  - `spawn_from_pool` / `select_area_anchors` â€” the anchor vocabulary (a pooled
     resource, a landmark cluster) and its 3-8 per-area budget.
-  - `apply_positional_fidelity` — positional detail allocated by the same
+  - `apply_positional_fidelity` â€” positional detail allocated by the same
     attendance decision as attention, which is what keeps `at` at O(cap).
 """
 
@@ -35,10 +35,10 @@ from graph import (
 _CHARACTER_POSITION_TYPES = tuple(SPATIAL_EDGE_TYPES)
 
 
-# ── Duck-typed helpers (combat tests patch methods, not attributes) ──────────
+# â”€â”€ Duck-typed helpers (combat tests patch methods, not attributes) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def _pm_get_player(player_manager, name: str):
-    """Look up a player by name — prefer ``get_player`` (tests patch it)."""
+    """Look up a player by name â€” prefer ``get_player`` (tests patch it)."""
     getter = getattr(player_manager, "get_player", None)
     if callable(getter):
         return getter(name)
@@ -118,16 +118,6 @@ def _normalize_tags(node) -> List[str]:
     return [str(t).lower().strip() for t in props.get("tags", []) or []]
 
 
-def is_transit_area(area_node) -> bool:
-    if not area_node or area_node.type != "area":
-        return False
-    props = area_node.properties or {}
-    if props.get("transit"):
-        return True
-    tags = _normalize_tags(area_node)
-    return "transit" in tags or "passage" in tags
-
-
 def clear_character_position_edges(graph, player_node_id: str) -> None:
     for edge_type in _CHARACTER_POSITION_TYPES:
         for edge in list(graph.get_edges_for_source(player_node_id, edge_type)):
@@ -151,12 +141,12 @@ def set_character_position(
     graph.add_edge(Edge(source=player_node_id, target=target_id, type=relation))
 
 
-# ── The one-`at` invariant (task-419) ──────────────────────────────────────
+# â”€â”€ The one-`at` invariant (task-419) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 #
 # Position is a *relation*, not a coordinate, and a character holds exactly one
-# `at` edge in the whole world at a time — not one per target. That is what
-# keeps the edge set at O(population) instead of O(n²): 40 characters in an area
-# are 40 `in <area>` edges and at most `cap` `at` edges, not 40 × 40 pairs.
+# `at` edge in the whole world at a time â€” not one per target. That is what
+# keeps the edge set at O(population) instead of O(nÂ²): 40 characters in an area
+# are 40 `in <area>` edges and at most `cap` `at` edges, not 40 Ã— 40 pairs.
 #
 # `set_character_position` already clears first, so the invariant holds on the
 # path everything uses. `enforce_single_at` exists for the other path: an effect
@@ -169,7 +159,7 @@ def enforce_single_at(graph, player_node_id: str, keep_target: Optional[str] = N
     """Reduce a character's `at` edges to at most one. Returns how many were removed.
 
     Deterministic when there is more than one: the lexicographically smallest
-    target survives, unless `keep_target` names one — a caller that just moved
+    target survives, unless `keep_target` names one â€” a caller that just moved
     someone should not have the move silently undone by an older edge.
     """
     if not player_node_id:
@@ -195,7 +185,7 @@ def clear_at(graph, player_node_id: str) -> int:
     """Remove every `at` edge. This is *demotion*, not deduplication.
 
     `enforce_single_at` reduces to at most one and deliberately keeps the last
-    one — a character standing at nothing is still standing somewhere. Taking
+    one â€” a character standing at nothing is still standing somewhere. Taking
     the position away entirely is a different decision, made when a character
     stops being attended, so it gets its own function rather than a flag.
     """
@@ -244,7 +234,7 @@ def check_spatial_invariants(graph) -> List[Dict[str, Any]]:
     return violations
 
 
-# ── Proximity is derived from the relation path, never stored (task-419) ──
+# â”€â”€ Proximity is derived from the relation path, never stored (task-419) â”€â”€
 #
 # `at` is binary on its own, but composed with `beside` / `on` / `under` it
 # yields an ordered, discrete proximity:
@@ -253,7 +243,7 @@ def check_spatial_invariants(graph) -> List[Dict[str, Any]]:
 #
 #   1 hop       you are at it
 #   2 hops      it is a neighbour of your anchor
-#   unreachable elsewhere in the area — the prose says "across the room"
+#   unreachable elsewhere in the area â€” the prose says "across the room"
 #
 # There is no coordinate system. The `beside` chain *is* the coordinate system,
 # so the distance has to be walked, never cached: caching it would let a
@@ -269,7 +259,7 @@ def proximity_hops(graph, from_node_id: str, target_id: str,
     """Relational distance 1 / 2 / None, walked from `from_node_id` right now.
 
     `None` means unreachable *by this model*, which the prose renders as
-    "across the room" — it does not mean the target does not exist, only that
+    "across the room" â€” it does not mean the target does not exist, only that
     nothing links the viewer to it.
     """
     if not from_node_id or not target_id:
@@ -313,16 +303,16 @@ def proximity_phrase(graph, from_node_id: str, target_id: str) -> str:
     return PROXIMITY_ACROSS_ROOM
 
 
-# ── Anchor vocabulary and budget (task-419) ───────────────────────────────
+# â”€â”€ Anchor vocabulary and budget (task-419) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 #
 # A wilderness area does not need 500 rocks. It needs a few anchors the prose
 # layer expands into "rocks", "undergrowth", "fallen oak". Two shapes, both
 # already expressible as ordinary nodes:
 #
-#   pooled resource  "gravel on the ground" — one node, described as a
+#   pooled resource  "gravel on the ground" â€” one node, described as a
 #                    quantity, spawning a bounded handful on use and depleting.
 #                    Same model as the berry thicket.
-#   landmark cluster "boulder by the old oak" — two nodes joined by `beside`,
+#   landmark cluster "boulder by the old oak" â€” two nodes joined by `beside`,
 #                    either of which may be the `at` target.
 
 ANCHOR_KINDS = ("pooled", "landmark")
@@ -358,7 +348,7 @@ def spawn_from_pool(graph, anchor_node, area_id: Optional[str] = None,
     Bounded three ways, all three of which have to hold or "gravel" is a way to
     manufacture items: at most `max_spawn` per call, at most `remaining` in
     total, and never more than asked for. Spawned items are real nodes in the
-    area, not a description — that is the whole difference between a pool and an
+    area, not a description â€” that is the whole difference between a pool and an
     infinite scenery item.
     """
     if not is_pool_anchor(anchor_node) or anchor_node.type != "item":
@@ -444,7 +434,7 @@ def select_area_anchors(graph, area_id: str,
     return [n.id for n in ordered[:budget]]
 
 
-# ── Positional fidelity is an attendance tier (task-419) ───────────────────
+# â”€â”€ Positional fidelity is an attendance tier (task-419) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 #
 # This is what keeps `at` cheap. Positional detail is allocated by the same
 # decision that allocates attention (task-418/411):
@@ -467,7 +457,7 @@ def apply_positional_fidelity(graph, node_for_character: Dict[str, str],
     attended set is names and the edges are ids. `anchor_for` optionally says
     which node each attended character should be at; without it an attended
     character keeps whatever anchor it already had, and a character with none is
-    simply "in the area" — attending someone does not invent a place for them.
+    simply "in the area" â€” attending someone does not invent a place for them.
 
     Returns counts, because the point of the whole thing is the numbers:
     `{"attended", "at_edges", "cleared"}`.
@@ -527,7 +517,7 @@ def get_character_at_way(graph, player_node_id: str) -> Optional[str]:
 
 
 def approach_way(graph, player_node_id: str, way_id: str) -> None:
-    """Walk up to a way — physical open/close/go/use implies stepping to it."""
+    """Walk up to a way â€” physical open/close/go/use implies stepping to it."""
     set_character_at_way(graph, player_node_id, way_id)
 
 
@@ -655,7 +645,7 @@ def spatial_position_phrase(
 
 
 def at_opening_phrase(graph, player_node_id: str, area_id: str, area_name: str = "") -> str:
-    """Backward-compatible alias — any spatial phrase in this area."""
+    """Backward-compatible alias â€” any spatial phrase in this area."""
     return spatial_position_phrase(graph, player_node_id, area_id, area_name)
 
 
@@ -684,7 +674,7 @@ def approach_item(
     item_node,
     relation: str = None,
 ) -> None:
-    """Walk up to a room item — used by examine, use-on, put/place."""
+    """Walk up to a room item â€” used by examine, use-on, put/place."""
     if not _pm_active_player(player_manager) or not item_node:
         return
     current_area_name = _pm_current_area_name(player_manager)
@@ -702,7 +692,7 @@ def approach_item(
 
 
 def approach_character(graph, player_manager, target_pname: str, actor_name: str = None) -> None:
-    """Walk up to another character — grab, give, steal, use-on, examine."""
+    """Walk up to another character â€” grab, give, steal, use-on, examine."""
     actor = actor_name or _pm_active_player(player_manager)
     if not actor or not target_pname or actor == target_pname:
         return
@@ -755,63 +745,3 @@ def _collect_area_ways(graph, area_id: str, area_name: str = "") -> List[Dict[st
         })
     return rows
 
-
-def get_transit_roles(
-    graph,
-    area_id: str,
-    player_node_id: str,
-    area_name: str = "",
-) -> Optional[Dict[str, Any]]:
-    """When in a transit area and AT a way, return back/forward exit info."""
-    area_node = graph.get_node(area_id)
-    if not is_transit_area(area_node):
-        return None
-    at_way_id = get_character_at_way(graph, player_node_id)
-    if not at_way_id:
-        return None
-    ways = _collect_area_ways(graph, area_id, area_name)
-    if len(ways) < 2:
-        return None
-    back = next((row for row in ways if row["way_id"].lower() == at_way_id.lower()), None)
-    if not back:
-        return None
-    forward_candidates = [row for row in ways if row["way_id"].lower() != at_way_id.lower()]
-    if len(forward_candidates) != 1:
-        return None
-    forward = forward_candidates[0]
-    return {
-        "back_edge": back["edge"],
-        "back_way": back["way"],
-        "back_handle": "back",
-        "back_real_handle": back["handle"],
-        "forward_edge": forward["edge"],
-        "forward_way": forward["way"],
-        "forward_handle": "forward",
-        "forward_real_handle": forward["handle"],
-        "forward_target": forward["target_name"],
-    }
-
-
-def resolve_transit_movement(
-    graph,
-    game_state,
-    area_id: str,
-    direction: str,
-) -> Optional[Tuple[Any, Any, str]]:
-    """Resolve go back / go forward in transit areas. Returns (edge, way, handle)."""
-    direction_lower = (direction or "").lower().strip()
-    if direction_lower not in ("back", "forward"):
-        return None
-    player_name = getattr(game_state, "active_player", None)
-    if not player_name:
-        return None
-    player_node_id = game_state._player_node_id(player_name)
-    area_name = ""
-    if getattr(game_state, "current_area", None):
-        area_name = game_state.current_area.name or ""
-    roles = get_transit_roles(graph, area_id, player_node_id, area_name)
-    if not roles:
-        return None
-    if direction_lower == "back":
-        return roles["back_edge"], roles["back_way"], roles["back_real_handle"]
-    return roles["forward_edge"], roles["forward_way"], roles["forward_real_handle"]

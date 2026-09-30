@@ -614,11 +614,12 @@ class AreaDescription:
         exits_desc = []
         seen_ways = set()
         area_name = self.player_manager.current_area.name if self.player_manager.current_area else ""
-        transit_roles = None
-        if area_id and self.player_manager.active_player:
-            from engine.character_spatial import get_transit_roles
-            pid = self.player_manager.player_node_id(self.player_manager.active_player)
-            transit_roles = get_transit_roles(self.graph, area_id, pid, area_name)
+        # task-313: the exits list shows the AUTHORED handle, always. The old
+        # transit branch rewrote a way's handle to the literal "back"/"forward"
+        # here, which is exactly the behaviour relative facing must not have —
+        # the words alias a direction, they never rename the door. So "left"
+        # now resolves to the north exit while the room still calls it what the
+        # author called it.
         for edge in self.graph.get_edges_for_source(area_id, EDGE_CONNECTION):
             way_id = edge.target
             if way_id in seen_ways:
@@ -633,11 +634,6 @@ class AreaDescription:
                     self.player_manager.current_area.name
                     if self.player_manager.current_area else area_id,
                 )
-                if transit_roles:
-                    if way_id.lower() == transit_roles["back_way"].id.lower():
-                        handle = "back"
-                    elif way_id.lower() == transit_roles["forward_way"].id.lower():
-                        handle = "forward"
                 state = way_node.properties.get("current_state", "closed")
                 target_name = ""
 
