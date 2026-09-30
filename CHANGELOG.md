@@ -4,6 +4,236 @@ All notable changes to VirtualWorld. See `docs/virtualWorld/Scenario Workflows &
 
 ---
 
+## Unreleased — "A Painted World You Can Walk Around In" (2026-09-30)
+
+The 2026-09-28 release made the *simulation* honest about distance, sight and fear.
+This one makes the **map** honest about the same things, and then fills it in.
+
+The theme: a painted world had no interior language, no way to give one of your
+own places a road, no climate, and no reason for a tired goblin to walk to a bed
+instead of lying down in the road. Thirteen tasks, and the smallest of them added
+1,383 items to the library.
+
+A plain-language version of this release, for readers who do not know the
+codebase, is in `docs/virtualWorld/Patch Notes 2026-09-30.md`.
+
+### 🏠 A floor plan is a language now (task-568)
+
+`data/worldpainter/biomes.json`
+
+- **53 indoor rooms** across thirteen purposes — `hallway`, `classroom`, `taproom`,
+  `storeroom`, `oratory`, `nave`, `counting_house`, `bathroom`, `latrine`,
+  `hayloft`, `animal_pen`, `dungeon` — each with a surface, prose, and the tags
+  that decide what it is. A plan is drawn from real ids, so a floor plan compiles
+  with **no unknown-id warning**, which is the whole point.
+- `stairway` is a **passable cell tagged `stair`**, and it produces the same
+  `kind: "stairs"` way that a passable cell between two storeys does. The two
+  spellings agree because task-562's half and this one cannot disagree, or the same
+  plan would compile two different ways.
+- Rooms are **exempt from the wild-country contract** for the same reason buildings
+  are: nobody forages mushrooms in a latrine. Read from the `indoor` tag, so a
+  modder adding a `cellar` is exempt by being one.
+- The palette groups them: "— Rooms —" with a purpose sub-heading each, so a plan
+  is not chosen from one flat column of 105.
+
+### 🔀 Merging is per kind, not one switch (task-564)
+
+`engine/world_compile.py` · `engine/biomes.py`
+
+- `merge: always` and `merge: never` are **tags on a record**, for the same reason
+  `cell_kind:` is. A hallway is a *shape*, so a ten-cell corridor is one corridor
+  whatever the scope's switch says; a building cell is a **plot**, so a terrace of
+  three cottages is three cottages and three doors, and the switch cannot be used
+  to get either.
+- The rules are resolved in one place, in the fill itself, so a half-merge — a run
+  broken in the middle — is impossible.
+- **Rooms follow the switch, buildings never do, corridors always do.** A
+  wilderness scope with no rooms and no buildings compiles exactly as before.
+
+### ⛰ A cliff is not a step (task-525)
+
+`engine/world_compile.py` · `engine/weather_forecast.py`
+
+- A grid step past **three storeys** in a `world` scope is refused, with the
+  author's own sentence: *"The climb is 6 storeys of bare ground — you would need
+  a path cut into it, or a way round."*
+- **World scopes only.** A storey step indoors is a staircase, not a rockface, and
+  this is the correction the task itself records: gating interiors would make
+  task-568's vocabulary unusable, since a cellar four storeys under a hall would be
+  a trap.
+- **A road across the step is a built path** and carries you. Same two cells, same
+  paint, and the only difference is whether the author cut a road over them. No
+  `ledge` vocabulary was invented for it.
+- The threshold is per scope (`record.climb.max_storey_step`), because a wilderness
+  world wants three and a mountain range wants eight.
+
+### 🚪 A place you wrote can have a way out (task-528, deferred half)
+
+`engine/world_compile.py` · `engine/world_grid.py` · `routes/world_grid_ops.py`
+
+- A **hand-placed area is reserved on its cell, so it was never a region, so the
+  compiler never saw it and it had no way to anything.** It now mints one way per
+  painted cell touching it, on the same terms as any other boundary: compass
+  direction, `kind: open`, a surface, a midpoint, four connection edges.
+- **Those ways are a draft the author owns.** Inspecting a placed area lists each
+  seam with a ✕: the way is deleted and the decision recorded, so **Ungenerate and
+  Generate will not bring it back**. A seam already taken over reads "to removed by
+  you" with a ↺ to hand it back. A way that is not a seam of a placement is
+  refused, with a reason.
+- `world_grid.place` now **refuses a cell holding a hand-placed area** — the one
+  collision where the route accepted the placement and the compiler silently minted
+  no gateway — except under the explicit new `gateway` policy, where the area
+  becomes the child's **doorstep**.
+
+### 🎛 The painter grew a rail, a selection and a move (task-536)
+
+`static/js/worldpainter/editor.js`
+
+- Eight tools down the left, one key each (`V P E M R F A I`), active tool
+  outlined, and the options that belong to the active tool under it.
+- **Select**: marquee, shift-click, Ctrl+A, Escape, and a plain click on a selected
+  cell deselects it. **With cells selected, Paint and Erase hit all of them in one
+  request** — one undo step, not a repeated single-cell edit.
+- **Move** (`M`, or the arrow keys) shifts the selected cells' contents, clamped
+  at the edge, sources cleared and values written, in one batch. Clear-then-write,
+  so a value moving east is not erased by its own neighbour's clear.
+- The layer/value/brush controls stayed in the top row on purpose: they are options
+  of four tools, not one, and moving them into the rail would mean switching tools
+  to change a setting that outlives the switch.
+
+### 🗺 A scope is at the top of the outline, and the map names its places (task-592, task-558, bug-48)
+
+`static/js/graph/scope-tree.js` · `static/js/graph/tree-view.js` · `static/js/graph/layout-engine.js` · `templates/index.html`
+
+- **One hierarchy, in one place.** Scope navigation was in three surfaces (a
+  toolbar dropdown, a breadcrumb, and a tree at the bottom of the graph) while the
+  Outline tab — the panel that already held a hierarchy — held only the bottom of
+  one. The scope tree is now the **top of the Outline tab**: world, then scope,
+  then the areas inside it, with an unmade scope's **🖌 Paint** jump opening that
+  scope in the WorldPainter. The breadcrumb stays in the graph, because "where am
+  I" is a question about the canvas.
+- The clipboard copy of the outline now carries the **whole** hierarchy. Copying
+  areas alone silently dropped the two levels above them.
+- **The map names its places by default.** `AUTO_SPAN_PX` 1600 → 4200, so a
+  20×30 painted extent derives 140px/cell — the card threshold — and the Map
+  layout draws **named cards** instead of anonymous dots. The ladder still holds at
+  both ends: a small zone clamps to 300 and gets roomy cards, a 200-cell world
+  clamps to 25 and takes the whole map in view as dots.
+- **vis-network is pinned to 9.1.9** with a comment saying to bump it deliberately
+  and check the graph view when doing so.
+- Edge labels wrap, and **the edge length is computed from the wrapped line
+  count** — so wrapped labels do not overlap the nodes at either end. An `unlocks`
+  edge carries a whole paragraph, so it is now cut to whole sentences and at most
+  three lines, with the full text still on the hover tooltip.
+- **Map is refused while Levels owns the layout**, visibly and programmatically,
+  with `activeLayout()` as the single source of truth (bug-48's acceptance; the
+  fix itself was already in the code).
+
+### 🌡 Weather reaches a painted map (task-553, task-554, task-557)
+
+`engine/weather_forecast.py` · `virtual_world_engine.py` · `engine/world_grid.py`
+
+- **`base_temperature` is separate from `temperature`.** One is the world's own
+  climate, the other is what the simulation is doing right now — two different
+  facts, and a save carrying only the second lost the first on the next tick.
+- **The outdoor curve is opt-in, and that is the compatibility guarantee.** It
+  applies when an area authored a climate *or* the world has a season; a bare
+  placeholder stays at a flat 21 °C, the number every existing world has always
+  reported. Simulating a diurnal swing around a placeholder would invent variation
+  nobody asked for.
+- **The engine is the only month→season table.** Two copies in the frontend are
+  gone; it ships its answer in the API and the sky widget reads it. An authored
+  season beats the clock, the clock decides otherwise, and a change is narrated
+  (`[Season] Winter arrives.`).
+- **A `climate` paint layer**: five enums, and a region takes the majority climate
+  of its cells. A climate boundary **does not split an area** — a road still does —
+  and an unpainted cell is not a vote, so a world with no climate layer compiles
+  byte-identically to before. World scopes only: a hall is not −8 °C because of
+  paint.
+- An unknown climate is a **reported typo**, not a silent temperate.
+
+### 🛏 A tired character looks for a bed (task-566)
+
+`engine/venues.py` · `engine/background_simulation.py`
+
+- There was **no venue concept at all**: the only lookup the background sim had
+  was by item tag, and a bed is not an item. A painted town has beds in it — the
+  inn carries `sleeps`, so does a guest room — and nothing knew it.
+- A venue is a set of **tags the world already has**, so a building becomes a
+  venue for free by being tagged. Seven of them: `rest`, `meal`, `drink`, `bath`,
+  `work`, `worship`, `care`. Matches on names as well as tags, because a room
+  expresses what it is through its id.
+- **Choosing among several is explicit**: fewest hops, then familiarity, then
+  preference, then node name. A character with a bed next door does not cross town
+  for a better one; a regular goes back to *their* inn; the tie-break means the
+  same world answers the same way every turn.
+- A world with **no** venues behaves exactly as before, and says nothing in the
+  log — a town should be something a character *walks* to, and its absence must
+  not leave anyone waiting for a building nobody painted.
+
+### 🏗 A building can bring its own interior (task-567)
+
+`data/worldpainter/interiors.json` · `engine/interior_gen.py`
+
+- **30 drawn floor plans** plus a fallback, covering all 31 building types, painted
+  as **cells** so the standard compiler builds the rooms. The generator mints no
+  areas of its own, which is why an author edits a generated interior by editing
+  paint.
+- **Author edits survive a regenerate because they are detected, not locked.** The
+  scope records what the generator wrote, and a cell whose value no longer matches
+  is left alone — so a cell the author never touched *is* brought back in line with
+  a corrected plan, and a cell they erased stays erased.
+- Every building type resolves. "This building has no interior" is a worse answer
+  than "this building has a plain one".
+
+### 🧵 A config value that could not be set (bug fix)
+
+`engine/runtime_config.py`
+
+- The coercion ladder had no `str` arm, so a string-defaulted key fell into the
+  `else: float` one. `float("exterior")` raised, so **`forecast.apply_scope` was
+  unsettable** — warned about on every load, and dropped *in silence* by the API
+  path the Settings menu uses. One key, one warning, one setting that did nothing.
+- Both paths now share one coercion, keyed on the **default's** type rather than
+  the value's, which also fixes `bool("false")` being `True` and a bool being
+  silently accepted where a number is declared. A key may declare `choices`, and
+  `forecast.apply_scope` does — without it, `"exteriorr"` quietly applies the
+  weather to every area.
+
+### 📚 1,383 new items, and a generator that is in the repository
+
+`tools/item_shapes.py` · `tools/item_content_pass1..5.py` · `tools/audit_item_content.py` · `tests/test_library_content_pass.py`
+
+- The library goes from 532 to **1,915**: vegetables, herbs, medicinals, dyeing
+  plants and incense, orchard and hedgerow fruit, pulses and oilseeds, mushrooms
+  (**including the two that will kill you**, `fly_agaric` and `deathcap`, tagged as
+  hazards rather than food), meat, fish, dairy, breads, preserves and drink, natural
+  materials, **a toolkit per trade** (mining, smith, miller, cooper, wheelwright,
+  tanner, weaver, dyer, potter, glazier, plumber, thatcher, slater, sawyer),
+  clothing by class, textiles, kitchenware, lighting, manors and market squares.
+- The content lives in the repository and **the shipped files are held against the
+  authored tables by a test**. That is not ceremony: on 2026-09-30, 545 authored
+  items were silently absent from the library and the pass was still being reported
+  as written, because the count came from what the generator *wrote* rather than
+  what was *there*. The same comparison then found 194 items whose weight had been
+  truncated to an integer by a scratch helper and then defaulted to 1.0 — an ash
+  scoop weighing a stone instead of three quarters of one.
+- `item_shapes.py` carries the lessons as enforced rules rather than as a note to
+  self: a row's **shape** decides what it is (four transposed-column bugs in one
+  session), a claim that cannot be backed is **dropped rather than half-written**,
+  and a typo'd wearables id **raises** instead of skipping silently (which is how
+  seven items shipped with no equip slot).
+
+### 🧹 Also
+
+- `tests/test_search_loot.py` asserted the drawn find was one of exactly three ids
+  — the whole food pool when written. It now asserts the **property**: whatever is
+  drawn is tagged `food` *and* authors a real `on_eat` that relieves Hunger
+  downward. Same for the soaked forage test's hardcoded `80 - 45`.
+- Six scratch screenshots taken while verifying UI work were left in the repository
+  root; removed.
+
+---
 ## Unreleased — "A World That Notices" (2026-09-28)
 
 Four worktree lanes (one serial spine, three parallel arms) closed 28 tasks in
