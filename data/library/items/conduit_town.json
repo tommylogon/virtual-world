@@ -1,0 +1,22 @@
+{
+  "name": "conduit_town",
+  "description": "A conduit, a stone spout, and it is the only clean water in a town with a well.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 80,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "town",
+    "stone",
+    "water",
+    "furniture",
+    "water",
+    "civic"
+  ],
+  "triggers": [],
+  "contents": []
+}

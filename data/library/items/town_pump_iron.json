@@ -1,0 +1,22 @@
+{
+  "name": "town_pump_iron",
+  "description": "A pump, a village pump, and the handle is worn and the stone around it is wet.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 25,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "town",
+    "metal",
+    "water",
+    "furniture",
+    "civic",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

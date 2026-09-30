@@ -1,0 +1,19 @@
+{
+  "name": "tallow_candle",
+  "description": "A tallow candle, guttered and smell of mutton fat.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "light_source",
+    "candle",
+    "kitchen"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,19 @@
+{
+  "name": "bollard",
+  "description": "A bollard, iron, set in the paving to keep a cart out of the doorway.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 15.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "town",
+    "metal",
+    "road"
+  ],
+  "triggers": [],
+  "contents": []
+}

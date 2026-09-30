@@ -1,0 +1,20 @@
+{
+  "name": "cheese_press",
+  "description": "A cheese press, a heavy wooden screw, and the whey running out below it.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 12.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "tool",
+    "kitchen",
+    "wooden"
+  ],
+  "triggers": [],
+  "contents": []
+}

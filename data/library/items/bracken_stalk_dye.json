@@ -1,0 +1,19 @@
+{
+  "name": "bracken_stalk_dye",
+  "description": "Bracken stalk dye, boiled to a green that fixes on wool with alum.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "forage",
+    "dye",
+    "fibre"
+  ],
+  "triggers": [],
+  "contents": []
+}

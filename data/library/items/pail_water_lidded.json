@@ -1,0 +1,21 @@
+{
+  "name": "pail_water_lidded",
+  "description": "A lidded pail, and the lid is what keeps the well water from being the soup it starts as.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "container",
+    "wooden",
+    "water",
+    "kitchen",
+    "household"
+  ],
+  "triggers": [],
+  "contents": []
+}

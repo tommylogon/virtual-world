@@ -1,0 +1,19 @@
+{
+  "name": "drain_grate",
+  "description": "A drain grate, iron bars over the gully, and the smell coming off it.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 6.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "road",
+    "metal",
+    "town"
+  ],
+  "triggers": [],
+  "contents": []
+}

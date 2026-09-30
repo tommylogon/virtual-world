@@ -1,0 +1,18 @@
+{
+  "name": "sawdust",
+  "description": "A drift of sawdust under the bench, swept into a corner daily.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "trash"
+  ],
+  "triggers": [],
+  "contents": []
+}

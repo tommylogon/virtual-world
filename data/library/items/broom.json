@@ -1,0 +1,19 @@
+{
+  "name": "broom",
+  "description": "A birch broom, bound and worn round at the head.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 1.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "fibre",
+    "household"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,19 @@
+{
+  "name": "hare_dung",
+  "description": "Hare dung, a heap of it, and a farmer would call that a crop.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "forage",
+    "fodder",
+    "filth"
+  ],
+  "triggers": [],
+  "contents": []
+}

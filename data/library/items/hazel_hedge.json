@@ -1,0 +1,19 @@
+{
+  "name": "hazel_hedge",
+  "description": "A hazel hedge, and a good one is a living fence that grows its own nuts.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "plant",
+    "nut",
+    "fence"
+  ],
+  "triggers": [],
+  "contents": []
+}

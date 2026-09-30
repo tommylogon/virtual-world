@@ -1,0 +1,21 @@
+{
+  "name": "horsehair_bed",
+  "description": "A horsehair mattress, and a smell no one ever gets used to.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 12.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "furniture",
+    "bedroom",
+    "insulation",
+    "fibre"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,22 @@
+{
+  "name": "document_roll",
+  "description": "A roll of vellum, tied with a cord, for a deed or a charter.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "document",
+    "paper",
+    "writing",
+    "display",
+    "container"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,21 @@
+{
+  "name": "churn_stand",
+  "description": "A butter churn, on a stand, and the stand is what lets a churn be turned without lifting it.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "kitchen",
+    "wooden",
+    "dairy",
+    "heavy",
+    "container"
+  ],
+  "triggers": [],
+  "contents": []
+}

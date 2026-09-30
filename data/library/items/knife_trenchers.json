@@ -1,0 +1,22 @@
+{
+  "name": "knife_trenchers",
+  "description": "A trencher, a wooden disc, and it is a plate that is eaten off and then burned.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "container",
+    "wooden",
+    "kitchen",
+    "dining",
+    "waste",
+    "small"
+  ],
+  "triggers": [],
+  "contents": []
+}

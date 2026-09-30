@@ -1,0 +1,48 @@
+{
+  "name": "gooseberry_cordial",
+  "description": "A jar of gooseberry cordial, the colour of a signal fire, and sharp enough to pucker the mouth shut.",
+  "actions": "examine,take,use,drink,drop",
+  "uses": 3,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "drink",
+    "drink",
+    "preserve",
+    "fruit"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_drink"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "You drink it down. It helps."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Thirst",
+            "amount": -26,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "You drink it down. It helps.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

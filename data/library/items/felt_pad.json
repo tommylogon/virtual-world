@@ -1,0 +1,21 @@
+{
+  "name": "felt_pad",
+  "description": "A felt pad, and it goes under a pot or a bed or a lamp and it saves the wood.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "textile",
+    "furniture",
+    "small",
+    "insulation"
+  ],
+  "triggers": [],
+  "contents": []
+}

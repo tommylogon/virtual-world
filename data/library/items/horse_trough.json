@@ -1,0 +1,19 @@
+{
+  "name": "horse_trough",
+  "description": "A stone trough, brim-full and green, and the best drinking in the county.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 200.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "road",
+    "stone",
+    "town"
+  ],
+  "triggers": [],
+  "contents": []
+}

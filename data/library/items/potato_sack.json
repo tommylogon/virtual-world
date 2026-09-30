@@ -1,0 +1,20 @@
+{
+  "name": "potato_sack",
+  "description": "A sack of seed potatoes, and they are all going to blight together.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "vegetable",
+    "root",
+    "farming",
+    "store"
+  ],
+  "triggers": [],
+  "contents": []
+}

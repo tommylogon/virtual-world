@@ -1,0 +1,47 @@
+{
+  "name": "fresh_egg",
+  "description": "An egg, still warm from the nest.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 2,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "food",
+    "food",
+    "egg"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "You eat it, and it goes down easier than you expected."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -14,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "You eat it, and it goes down easier than you expected.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

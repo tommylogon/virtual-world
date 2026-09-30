@@ -1,0 +1,19 @@
+{
+  "name": "plank_foot",
+  "description": "A plank, a board sawn and dressed, and the mark of a saw is on the face of it.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "sawyer",
+    "wooden",
+    "material"
+  ],
+  "triggers": [],
+  "contents": []
+}

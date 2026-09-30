@@ -1,0 +1,19 @@
+{
+  "name": "lavender_bundle",
+  "description": "A bundle of lavender, hung upside down to dry in the dark.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "herb",
+    "fragrant",
+    "strewing"
+  ],
+  "triggers": [],
+  "contents": []
+}

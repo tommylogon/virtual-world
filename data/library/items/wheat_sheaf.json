@@ -1,0 +1,20 @@
+{
+  "name": "wheat_sheaf",
+  "description": "A wheat sheaf, tied in a bundle with a straw band, to hang in a barn.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "crop",
+    "grain",
+    "farming",
+    "store"
+  ],
+  "triggers": [],
+  "contents": []
+}

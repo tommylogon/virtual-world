@@ -1,0 +1,23 @@
+{
+  "name": "cucking_stool",
+  "description": "A ducking stool, and a scold is put on it and the town comes out to look at the cuckoo.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "town",
+    "wooden",
+    "furniture",
+    "punishment",
+    "legal",
+    "small",
+    "civic"
+  ],
+  "triggers": [],
+  "contents": []
+}

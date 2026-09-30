@@ -1,0 +1,19 @@
+{
+  "name": "clove_bud_dried",
+  "description": "Dried clove buds, the spice and the perfume and the toothache cure.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "herb",
+    "spice",
+    "medicinal"
+  ],
+  "triggers": [],
+  "contents": []
+}

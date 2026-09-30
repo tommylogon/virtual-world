@@ -1,0 +1,24 @@
+{
+  "name": "peasant_tunic",
+  "description": "A woollen tunic, undyed, and the shoulders are worn shiny and the elbows are mended.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.9,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [
+    "torso"
+  ],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "clothing",
+    "top",
+    "wool",
+    "torso",
+    "dress"
+  ],
+  "triggers": [],
+  "contents": [],
+  "insulation": 0
+}

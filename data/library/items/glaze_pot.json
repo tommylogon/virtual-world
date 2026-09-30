@@ -1,0 +1,21 @@
+{
+  "name": "glaze_pot",
+  "description": "A pot of glaze, and it is mixed from ash and metal and only a fool licks it.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "glazier",
+    "material",
+    "alchemical",
+    "liquid",
+    "hazard"
+  ],
+  "triggers": [],
+  "contents": []
+}

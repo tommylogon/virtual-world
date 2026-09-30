@@ -1,0 +1,46 @@
+{
+  "name": "nutmeg",
+  "description": "A nutmeg, whole, the surface webbed like a small planet.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 3,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "food",
+    "spice"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "You eat it. It is not much, but it is food."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -8,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "You eat it. It is not much, but it is food.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

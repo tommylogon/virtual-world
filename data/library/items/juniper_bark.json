@@ -1,0 +1,19 @@
+{
+  "name": "juniper_bark",
+  "description": "Juniper bark, shredded, and the smell of a clean room.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "herb",
+    "incense",
+    "strewing"
+  ],
+  "triggers": [],
+  "contents": []
+}

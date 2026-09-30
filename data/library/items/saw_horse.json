@@ -1,0 +1,20 @@
+{
+  "name": "saw_horse",
+  "description": "A saw horse, two trestles and a beam, to take a plank while you cut it.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 5.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "tool",
+    "wooden",
+    "furniture"
+  ],
+  "triggers": [],
+  "contents": []
+}

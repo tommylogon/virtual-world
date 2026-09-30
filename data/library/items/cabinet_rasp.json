@@ -1,0 +1,19 @@
+{
+  "name": "cabinet_rasp",
+  "description": "A cabinet rasp, a half-round file, and it is for a flush fit and nothing else.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "carpenter",
+    "tool",
+    "metal"
+  ],
+  "triggers": [],
+  "contents": []
+}

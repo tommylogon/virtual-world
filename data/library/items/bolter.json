@@ -1,0 +1,20 @@
+{
+  "name": "bolter",
+  "description": "A bolter, a wooden chute that separates the flour from the bran, and its noise is the mill's.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "miller",
+    "tool",
+    "wooden",
+    "machine"
+  ],
+  "triggers": [],
+  "contents": []
+}

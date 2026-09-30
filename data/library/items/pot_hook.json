@@ -1,0 +1,19 @@
+{
+  "name": "pot_hook",
+  "description": "A pot hook, a long iron rod bent into a hook, living by the fire.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "kitchen",
+    "tool",
+    "metal"
+  ],
+  "triggers": [],
+  "contents": []
+}

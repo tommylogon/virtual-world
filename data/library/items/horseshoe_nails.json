@@ -1,0 +1,19 @@
+{
+  "name": "horseshoe_nails",
+  "description": "A handful of horseshoes, cold-shoed, and they are worth more than the shoes.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "smith",
+    "metal",
+    "farming"
+  ],
+  "triggers": [],
+  "contents": []
+}

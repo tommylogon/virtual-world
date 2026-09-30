@@ -1,0 +1,19 @@
+{
+  "name": "cherry_tree",
+  "description": "A cherry tree in blossom, and there is nothing else in the world like the smell.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "plant",
+    "fruit",
+    "tree"
+  ],
+  "triggers": [],
+  "contents": []
+}

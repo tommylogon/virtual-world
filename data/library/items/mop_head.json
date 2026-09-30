@@ -1,0 +1,21 @@
+{
+  "name": "mop_head",
+  "description": "A mop head, rags wound on a string, and it is the least dignified tool in a house.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "textile",
+    "kitchen",
+    "small",
+    "household"
+  ],
+  "triggers": [],
+  "contents": []
+}

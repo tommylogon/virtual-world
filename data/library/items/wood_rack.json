@@ -1,0 +1,19 @@
+{
+  "name": "wood_rack",
+  "description": "A drying rack for the washing, the bars lashed with cord.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 3.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "household",
+    "fibre",
+    "wooden"
+  ],
+  "triggers": [],
+  "contents": []
+}

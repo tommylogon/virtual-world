@@ -1,0 +1,20 @@
+{
+  "name": "ore_assay",
+  "description": "An assay, a weighed sample and a written result, and it decides what a mine is worth.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "document",
+    "mining",
+    "writing",
+    "paper"
+  ],
+  "triggers": [],
+  "contents": []
+}

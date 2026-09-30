@@ -1,0 +1,18 @@
+{
+  "name": "charcoal_drawing",
+  "description": "A stick of drawing charcoal, made of the same stuff as the fire.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "writing"
+  ],
+  "triggers": [],
+  "contents": []
+}

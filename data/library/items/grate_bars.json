@@ -1,0 +1,20 @@
+{
+  "name": "grate_bars",
+  "description": "A grate, iron bars, and it lets the air through a fire and the heat into a room.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "kitchen",
+    "fire",
+    "metal",
+    "building"
+  ],
+  "triggers": [],
+  "contents": []
+}

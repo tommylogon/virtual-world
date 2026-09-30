@@ -1,0 +1,23 @@
+{
+  "name": "napkin_silk",
+  "description": "A napkin of silk, and it is in a rich man's house and it is never used.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "textile",
+    "silk",
+    "table",
+    "dining",
+    "cloth",
+    "rich"
+  ],
+  "triggers": [],
+  "contents": []
+}

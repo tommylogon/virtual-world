@@ -1,0 +1,22 @@
+{
+  "name": "ladder_wood",
+  "description": "A ladder, of oak, and it is rungs in two rails and the rails are joined by a mortise.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 15,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "wooden",
+    "building",
+    "tool",
+    "large",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

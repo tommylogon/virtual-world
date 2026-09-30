@@ -1,0 +1,23 @@
+{
+  "name": "manor_window_curtain",
+  "description": "A curtain, heavy wool, and it is drawn at a funeral and open otherwise.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "textile",
+    "window",
+    "manor",
+    "hallway",
+    "large",
+    "insulation"
+  ],
+  "triggers": [],
+  "contents": []
+}

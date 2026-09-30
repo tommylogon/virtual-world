@@ -1,0 +1,23 @@
+{
+  "name": "carved_panel",
+  "description": "A carved panel in the wall, and the grain of the oak worn smooth where a hand rested.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 8.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "art",
+    "furniture",
+    "wall",
+    "wooden",
+    "large",
+    "wallmounted"
+  ],
+  "triggers": [],
+  "contents": []
+}

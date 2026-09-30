@@ -1,0 +1,19 @@
+{
+  "name": "copper_ore",
+  "description": "Copper ore, green-streaked, and the first metal anybody mastered.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 3.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "ore",
+    "mining",
+    "stone"
+  ],
+  "triggers": [],
+  "contents": []
+}

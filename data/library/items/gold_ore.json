@@ -1,0 +1,20 @@
+{
+  "name": "gold_ore",
+  "description": "Gold ore, and it is flecked rather than solid, which is why people dig.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "ore",
+    "mining",
+    "stone",
+    "valuable"
+  ],
+  "triggers": [],
+  "contents": []
+}

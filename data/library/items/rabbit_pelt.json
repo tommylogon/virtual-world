@@ -1,0 +1,20 @@
+{
+  "name": "rabbit_pelt",
+  "description": "A rabbit pelt, and the skin is worth more than the meat to anyone who knows.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "forage",
+    "fibre",
+    "fletching",
+    "leather"
+  ],
+  "triggers": [],
+  "contents": []
+}

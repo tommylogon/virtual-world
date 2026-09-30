@@ -1,0 +1,19 @@
+{
+  "name": "smith_hammer",
+  "description": "A smith's hammer, cross-peen, and the handle is hickory because it will not split.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "smith",
+    "tool",
+    "metal"
+  ],
+  "triggers": [],
+  "contents": []
+}

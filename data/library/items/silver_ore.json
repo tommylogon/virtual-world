@@ -1,0 +1,20 @@
+{
+  "name": "silver_ore",
+  "description": "Silver ore, and the veins in it are thin and bright and worth a man's life.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "ore",
+    "mining",
+    "stone",
+    "valuable"
+  ],
+  "triggers": [],
+  "contents": []
+}

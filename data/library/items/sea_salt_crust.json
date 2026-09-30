@@ -1,0 +1,19 @@
+{
+  "name": "sea_salt_crust",
+  "description": "A crust of dried sea salt on a rock, and it is scraped off with a knife.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "forage",
+    "salt",
+    "marine"
+  ],
+  "triggers": [],
+  "contents": []
+}

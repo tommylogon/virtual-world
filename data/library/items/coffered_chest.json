@@ -1,0 +1,20 @@
+{
+  "name": "coffered_chest",
+  "description": "A chest, oak and iron-bound, with a domed lid and a good lock.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 30.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "storage",
+    "wooden",
+    "container"
+  ],
+  "triggers": [],
+  "contents": []
+}

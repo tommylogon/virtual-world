@@ -1,0 +1,21 @@
+{
+  "name": "plate_pewter",
+  "description": "A pewter plate, and it is dented from a century of knives and elbows.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "container",
+    "metal",
+    "kitchen",
+    "dining",
+    "tableware"
+  ],
+  "triggers": [],
+  "contents": []
+}

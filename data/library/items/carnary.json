@@ -1,0 +1,23 @@
+{
+  "name": "carnary",
+  "description": "A carvery, an open shed, and it is where a joint is bought and it is not hung there.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 120,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "town",
+    "building",
+    "wooden",
+    "trade",
+    "large",
+    "heavy",
+    "kitchen"
+  ],
+  "triggers": [],
+  "contents": []
+}

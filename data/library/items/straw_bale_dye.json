@@ -1,0 +1,19 @@
+{
+  "name": "straw_bale_dye",
+  "description": "Weld, the dye plant, and a yellow to startle anybody's socks.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "herb",
+    "dye",
+    "plant"
+  ],
+  "triggers": [],
+  "contents": []
+}

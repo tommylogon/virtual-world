@@ -1,0 +1,19 @@
+{
+  "name": "herb_poultice",
+  "description": "A poultice of bruised leaves, wrapped in a scrap of linen.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "medicine",
+    "consumable",
+    "herbal"
+  ],
+  "triggers": [],
+  "contents": []
+}

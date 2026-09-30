@@ -1,0 +1,21 @@
+{
+  "name": "lead_came",
+  "description": "A lead came, an H-shaped strip, and glass is held in a lattice of it.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "metal",
+    "glass",
+    "building",
+    "small"
+  ],
+  "triggers": [],
+  "contents": []
+}

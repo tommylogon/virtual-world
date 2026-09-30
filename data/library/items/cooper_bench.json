@@ -1,0 +1,20 @@
+{
+  "name": "cooper_bench",
+  "description": "A cooper's bench, long and scarred, and every scar is a stave that slipped.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 40,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "cooper",
+    "furniture",
+    "wooden",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

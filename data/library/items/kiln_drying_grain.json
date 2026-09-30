@@ -1,0 +1,20 @@
+{
+  "name": "kiln_drying_grain",
+  "description": "A drying kiln, and the smell of a drying kiln is the smell of a working mill.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 20,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "miller",
+    "building",
+    "fire",
+    "grain"
+  ],
+  "triggers": [],
+  "contents": []
+}

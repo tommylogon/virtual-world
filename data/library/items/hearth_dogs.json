@@ -1,0 +1,21 @@
+{
+  "name": "hearth_dogs",
+  "description": "Andirons, a pair of them, and the fire is built between them and not against them.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "fire",
+    "metal",
+    "kitchen",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

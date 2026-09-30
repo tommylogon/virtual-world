@@ -1,0 +1,19 @@
+{
+  "name": "orris_root",
+  "description": "Orris root, dried and sliced, and it smells of a sweet dusty violet.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "herb",
+    "fragrant",
+    "root"
+  ],
+  "triggers": [],
+  "contents": []
+}

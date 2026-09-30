@@ -1,0 +1,19 @@
+{
+  "name": "bronze_ingot",
+  "description": "An ingot of bronze, and every tool in the world is a little bit of it.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 4.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "metal",
+    "trade"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,23 @@
+{
+  "name": "water_wheel_kitchen",
+  "description": "A small water wheel, and it drives a mill or a bellows or a grindstone, depending.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 60,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "kitchen",
+    "tool",
+    "wooden",
+    "machine",
+    "water",
+    "heavy",
+    "large"
+  ],
+  "triggers": [],
+  "contents": []
+}

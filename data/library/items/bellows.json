@@ -1,0 +1,20 @@
+{
+  "name": "bellows",
+  "description": "Bellows, a great leather wedge, and two men work them on the biggest forges.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 12,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "smith",
+    "tool",
+    "leather",
+    "fire"
+  ],
+  "triggers": [],
+  "contents": []
+}

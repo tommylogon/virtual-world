@@ -1,0 +1,19 @@
+{
+  "name": "rosehips",
+  "description": "Rosehips, the red fruit of the dog rose, cleared of their hairs.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "forage",
+    "fruit",
+    "tea"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,20 @@
+{
+  "name": "screen_mill",
+  "description": "A screen, a sieve of wire, and the finest flour goes through it and the rest does not.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "miller",
+    "tool",
+    "metal",
+    "fibre"
+  ],
+  "triggers": [],
+  "contents": []
+}

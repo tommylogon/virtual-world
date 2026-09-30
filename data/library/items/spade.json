@@ -1,0 +1,20 @@
+{
+  "name": "spade",
+  "description": "A spade, ash shaft and a wide blade, squared for cutting a trench.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 3.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "tool",
+    "metal",
+    "farming"
+  ],
+  "triggers": [],
+  "contents": []
+}

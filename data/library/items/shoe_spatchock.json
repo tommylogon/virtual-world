@@ -1,0 +1,24 @@
+{
+  "name": "shoe_spatchock",
+  "description": "An overshoe of leather, and it is the answer to mud in a country with mud.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [
+    "feet"
+  ],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "clothing",
+    "leather",
+    "footwear",
+    "water",
+    "winter"
+  ],
+  "triggers": [],
+  "contents": [],
+  "insulation": 2
+}

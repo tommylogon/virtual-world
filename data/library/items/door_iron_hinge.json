@@ -1,0 +1,22 @@
+{
+  "name": "door_iron_hinge",
+  "description": "A door, and it is oak boards and strap hinges and it is a door for four hundred years.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 30,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "wooden",
+    "door",
+    "hallway",
+    "large",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

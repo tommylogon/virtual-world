@@ -1,0 +1,22 @@
+{
+  "name": "manor_hound",
+  "description": "A hound, one of a pack, and it is fed better than the people who own it.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 30,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "animal",
+    "farming",
+    "hunting",
+    "manor",
+    "large",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

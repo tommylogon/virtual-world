@@ -1,0 +1,20 @@
+{
+  "name": "punt_pole",
+  "description": "A punt pole, long and flat-ended, and a punt is a flat boat pushed along a fen.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "fishing",
+    "wooden",
+    "boat"
+  ],
+  "triggers": [],
+  "contents": []
+}

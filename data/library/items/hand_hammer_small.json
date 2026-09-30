@@ -1,0 +1,19 @@
+{
+  "name": "hand_hammer_small",
+  "description": "A small hammer, for a fitter's bench, and the face is polished by use.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "smith",
+    "tool",
+    "metal"
+  ],
+  "triggers": [],
+  "contents": []
+}

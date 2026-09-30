@@ -1,0 +1,22 @@
+{
+  "name": "manor_fish_pond",
+  "description": "A fish pond, and the water is still and the fish are in it and the heron knows.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 300,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "water",
+    "garden",
+    "large",
+    "fish",
+    "natural"
+  ],
+  "triggers": [],
+  "contents": []
+}

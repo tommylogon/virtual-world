@@ -1,0 +1,19 @@
+{
+  "name": "lavender",
+  "description": "A bundle of lavender, the spikes purple and the scent strong enough to sting.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "herb",
+    "tea",
+    "fragrant"
+  ],
+  "triggers": [],
+  "contents": []
+}

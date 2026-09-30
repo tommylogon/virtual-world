@@ -1,0 +1,19 @@
+{
+  "name": "punch",
+  "description": "A punch, for sinking a hole in hot iron with a hammer that has no business doing that.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "smith",
+    "tool",
+    "metal"
+  ],
+  "triggers": [],
+  "contents": []
+}

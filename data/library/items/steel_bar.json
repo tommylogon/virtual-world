@@ -1,0 +1,19 @@
+{
+  "name": "steel_bar",
+  "description": "A bar of steel, folded and welded a hundred times, and it is what an edge is made from.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "metal",
+    "smith"
+  ],
+  "triggers": [],
+  "contents": []
+}

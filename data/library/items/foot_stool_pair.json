@@ -1,0 +1,21 @@
+{
+  "name": "foot_stool_pair",
+  "description": "A pair of footstools, and a gentleman's feet do not reach the floor at a long table.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "wooden",
+    "hallway",
+    "dining",
+    "small"
+  ],
+  "triggers": [],
+  "contents": []
+}

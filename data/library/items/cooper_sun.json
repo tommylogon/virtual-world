@@ -1,0 +1,20 @@
+{
+  "name": "cooper_sun",
+  "description": "A sun, a fire of shavings, to bend the staves over, and it makes a room smell of a brewery.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "cooper",
+    "tool",
+    "fire",
+    "wooden"
+  ],
+  "triggers": [],
+  "contents": []
+}

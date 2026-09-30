@@ -1,0 +1,19 @@
+{
+  "name": "gate_posts",
+  "description": "A pair of gate piers, stone, and a gate that has hung on one of them for years.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 300.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "town",
+    "stone",
+    "road"
+  ],
+  "triggers": [],
+  "contents": []
+}

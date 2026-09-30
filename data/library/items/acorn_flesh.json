@@ -1,0 +1,19 @@
+{
+  "name": "acorn_flesh",
+  "description": "Acorn flesh, the green bitter part inside, and it must be leached before it is food.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "forage",
+    "nut",
+    "hazard"
+  ],
+  "triggers": [],
+  "contents": []
+}

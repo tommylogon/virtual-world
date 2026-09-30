@@ -1,0 +1,22 @@
+{
+  "name": "chafing_pan",
+  "description": "A chafing pan, and it stands over coals at a table and keeps a dish hot in front of a lord.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "kitchen",
+    "tool",
+    "metal",
+    "dining",
+    "fire",
+    "large"
+  ],
+  "triggers": [],
+  "contents": []
+}

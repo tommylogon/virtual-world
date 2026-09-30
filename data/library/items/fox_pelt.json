@@ -1,0 +1,20 @@
+{
+  "name": "fox_pelt",
+  "description": "A fox pelt, and it is worth a great deal to a man who has the use of it.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "forage",
+    "fibre",
+    "fletching",
+    "leather"
+  ],
+  "triggers": [],
+  "contents": []
+}

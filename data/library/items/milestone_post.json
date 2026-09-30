@@ -1,0 +1,18 @@
+{
+  "name": "milestone_post",
+  "description": "A boundary post, split from a sapling, standing in a field corner.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 1.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "road",
+    "wooden"
+  ],
+  "triggers": [],
+  "contents": []
+}

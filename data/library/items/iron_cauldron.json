@@ -1,0 +1,19 @@
+{
+  "name": "iron_cauldron",
+  "description": "An iron cauldron, black, big enough to hang over a fire for two.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 12.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "kitchen",
+    "metal",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

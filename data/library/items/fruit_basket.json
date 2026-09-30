@@ -1,0 +1,19 @@
+{
+  "name": "fruit_basket",
+  "description": "A basket of fruit, the picking brought in and set down where it will be seen.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "container",
+    "basket",
+    "fruit"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,21 @@
+{
+  "name": "sextant",
+  "description": "A sextant, brass, and the arc divided into degrees for a reason.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "tool",
+    "navigational",
+    "navigation",
+    "metal"
+  ],
+  "triggers": [],
+  "contents": []
+}

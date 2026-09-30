@@ -1,0 +1,19 @@
+{
+  "name": "china_cup",
+  "description": "A clay cup, thin-walled, the first of its kind from the coast.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "container",
+    "clay",
+    "valuable"
+  ],
+  "triggers": [],
+  "contents": []
+}

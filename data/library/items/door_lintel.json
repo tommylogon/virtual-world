@@ -1,0 +1,22 @@
+{
+  "name": "door_lintel",
+  "description": "A lintel, a beam over a door, and it is the piece that stops a wall coming down on a man's head.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 12,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "wooden",
+    "door",
+    "building",
+    "large",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

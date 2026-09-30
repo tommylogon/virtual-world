@@ -1,0 +1,19 @@
+{
+  "name": "salmon_trout_rod",
+  "description": "A long rod for salmon, two men to carry it, and the line is forty fathoms.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "fishing",
+    "wooden"
+  ],
+  "triggers": [],
+  "contents": []
+}

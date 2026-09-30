@@ -1,0 +1,48 @@
+{
+  "name": "acorn_meal",
+  "description": "Acorn meal, and the bitterness is mostly gone and what is left is the point of it.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 3,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "food",
+    "food",
+    "nut",
+    "grain"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "You eat it, gathered and not much cleaned."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -20,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "You eat it, gathered and not much cleaned.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

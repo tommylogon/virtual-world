@@ -1,0 +1,20 @@
+{
+  "name": "potter_wheel_head",
+  "description": "A wheel head, a disc of plaster, and it is what gives a pot its roundness.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "potter",
+    "tool",
+    "clay",
+    "craft"
+  ],
+  "triggers": [],
+  "contents": []
+}

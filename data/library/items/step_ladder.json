@@ -1,0 +1,22 @@
+{
+  "name": "step_ladder",
+  "description": "A step ladder, four steps, and it is a thing you stand on to reach a high shelf.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "wooden",
+    "kitchen",
+    "tool",
+    "small",
+    "household"
+  ],
+  "triggers": [],
+  "contents": []
+}

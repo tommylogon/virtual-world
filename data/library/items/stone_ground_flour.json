@@ -1,0 +1,19 @@
+{
+  "name": "stone_ground_flour",
+  "description": "Stone-ground flour, and the bran still in it is why it keeps.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "grain",
+    "baking",
+    "store"
+  ],
+  "triggers": [],
+  "contents": []
+}

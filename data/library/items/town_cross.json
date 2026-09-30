@@ -1,0 +1,23 @@
+{
+  "name": "town_cross",
+  "description": "A market cross, and the steps are worn and it is where the market is held.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 150,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "town",
+    "stone",
+    "furniture",
+    "display",
+    "large",
+    "heavy",
+    "market"
+  ],
+  "triggers": [],
+  "contents": []
+}

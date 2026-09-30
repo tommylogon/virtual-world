@@ -1,0 +1,22 @@
+{
+  "name": "sconce",
+  "description": "A sconce, an iron bracket for a candle, and it is one per room and it is a job for a smith.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "light_source",
+    "candle",
+    "metal",
+    "hallway",
+    "wall",
+    "fixture"
+  ],
+  "triggers": [],
+  "contents": []
+}

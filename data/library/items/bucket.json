@@ -1,0 +1,18 @@
+{
+  "name": "bucket",
+  "description": "A wooden bucket, with an iron handle worn bright where it is gripped.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 1.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "container",
+    "wooden"
+  ],
+  "triggers": [],
+  "contents": []
+}

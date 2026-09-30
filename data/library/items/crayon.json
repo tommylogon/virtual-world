@@ -1,0 +1,21 @@
+{
+  "name": "crayon",
+  "description": "A crayon, a stub of colour wrapped in a paper sleeve, and the paper is a lesson.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.02,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "tool",
+    "writing",
+    "small",
+    "display"
+  ],
+  "triggers": [],
+  "contents": []
+}

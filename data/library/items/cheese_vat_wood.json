@@ -1,0 +1,22 @@
+{
+  "name": "cheese_vat_wood",
+  "description": "A cheese vat, and the milk is curds in a cloth over a month and then it is a wheel.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 40,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "kitchen",
+    "wooden",
+    "dairy",
+    "container",
+    "large",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

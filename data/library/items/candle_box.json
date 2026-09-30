@@ -1,0 +1,22 @@
+{
+  "name": "candle_box",
+  "description": "A candle box, a wooden one, and it is a soldier's and it lives in a hauberk.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "container",
+    "wooden",
+    "light_source",
+    "candle",
+    "small",
+    "military"
+  ],
+  "triggers": [],
+  "contents": []
+}

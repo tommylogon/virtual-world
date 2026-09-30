@@ -1,0 +1,19 @@
+{
+  "name": "spoke",
+  "description": "A spoke, shaved from oak, and its thickness is a judgement made by thumb.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "wheelwright",
+    "wooden",
+    "material"
+  ],
+  "triggers": [],
+  "contents": []
+}

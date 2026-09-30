@@ -1,0 +1,21 @@
+{
+  "name": "forge",
+  "description": "A forge, a hearth and a bellows, and the coal is kept banked rather than burning bright.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 200,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "smith",
+    "furniture",
+    "fire",
+    "building",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

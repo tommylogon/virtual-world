@@ -1,0 +1,21 @@
+{
+  "name": "dye_stuff",
+  "description": "A vat of dye, and the colour goes in twice because one is never enough.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 30,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "dyer",
+    "container",
+    "liquid",
+    "dye",
+    "large"
+  ],
+  "triggers": [],
+  "contents": []
+}

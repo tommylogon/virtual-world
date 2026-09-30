@@ -1,0 +1,18 @@
+{
+  "name": "pine_cone",
+  "description": "A pine cone, closed, and it opens on a windowsill over a fortnight.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "natural",
+    "plant"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,19 @@
+{
+  "name": "dried_herb_bundle",
+  "description": "A bundle of dried herbs, hanging upside down in the rafters.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "herb",
+    "storage",
+    "medicinal"
+  ],
+  "triggers": [],
+  "contents": []
+}

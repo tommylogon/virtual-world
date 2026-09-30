@@ -1,0 +1,21 @@
+{
+  "name": "hand_bell",
+  "description": "A hand bell, bronze, rung for the hour or for a warning.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "sound_source",
+    "metal",
+    "town",
+    "tool"
+  ],
+  "triggers": [],
+  "contents": []
+}

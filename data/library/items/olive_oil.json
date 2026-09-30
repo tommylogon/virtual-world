@@ -1,0 +1,19 @@
+{
+  "name": "olive_oil",
+  "description": "A flask of olive oil, the good green-gold and the last of it.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "oil",
+    "condiment",
+    "liquid"
+  ],
+  "triggers": [],
+  "contents": []
+}

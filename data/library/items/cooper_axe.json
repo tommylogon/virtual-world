@@ -1,0 +1,20 @@
+{
+  "name": "cooper_axe",
+  "description": "A cooper's axe, one blade and a flat poll, and it cuts a stave to a line.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 1.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "cooper",
+    "tool",
+    "metal",
+    "wooden"
+  ],
+  "triggers": [],
+  "contents": []
+}

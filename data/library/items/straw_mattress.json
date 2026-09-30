@@ -1,0 +1,19 @@
+{
+  "name": "straw_mattress",
+  "description": "A straw mattress, ticking worn, and it goes on shifting all night.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 6.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "bedroom",
+    "fodder"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,22 @@
+{
+  "name": "kiln",
+  "description": "A kiln, a brick chamber, and it is fired for two days and watched for both.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 300,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "potter",
+    "building",
+    "stone",
+    "fire",
+    "large",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

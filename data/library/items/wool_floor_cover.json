@@ -1,0 +1,22 @@
+{
+  "name": "wool_floor_cover",
+  "description": "A floor cover, a big woollen carpet, and it is the most valuable thing in a house.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "textile",
+    "wool",
+    "floor",
+    "large",
+    "insulation"
+  ],
+  "triggers": [],
+  "contents": []
+}

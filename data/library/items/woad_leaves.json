@@ -1,0 +1,18 @@
+{
+  "name": "woad_leaves",
+  "description": "Woad leaves, the big blue-green ones, for a blue that cost a fortune.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "herb",
+    "dye"
+  ],
+  "triggers": [],
+  "contents": []
+}

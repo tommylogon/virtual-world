@@ -1,0 +1,19 @@
+{
+  "name": "sundial",
+  "description": "A sundial, stone, and worth a look at noon and never at any other time.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 40.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "town",
+    "stone",
+    "tool"
+  ],
+  "triggers": [],
+  "contents": []
+}

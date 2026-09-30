@@ -1,0 +1,19 @@
+{
+  "name": "winnowing_basket",
+  "description": "A winnowing basket, a tray of woven willow, tilted in the wind.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "kitchen",
+    "tool",
+    "fibre"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,20 @@
+{
+  "name": "bench_long",
+  "description": "A long bench, for a table that needs one, or for a congregation.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 12.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "furniture",
+    "wooden",
+    "church"
+  ],
+  "triggers": [],
+  "contents": []
+}

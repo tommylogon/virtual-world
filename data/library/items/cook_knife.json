@@ -1,0 +1,19 @@
+{
+  "name": "cook_knife",
+  "description": "A cook's knife, worn to a shining edge and honed to a shaving edge.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "kitchen",
+    "tool",
+    "metal"
+  ],
+  "triggers": [],
+  "contents": []
+}

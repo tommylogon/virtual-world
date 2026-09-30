@@ -1,0 +1,19 @@
+{
+  "name": "sugar_loaf",
+  "description": "A sugar loaf, white, cone-topped, and the only way to keep sugar dry.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "sweet",
+    "store",
+    "kitchen"
+  ],
+  "triggers": [],
+  "contents": []
+}

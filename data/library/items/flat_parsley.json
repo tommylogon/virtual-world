@@ -1,0 +1,18 @@
+{
+  "name": "flat_parsley",
+  "description": "Flat-leaf parsley, the kind with the actual flavour.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "herb",
+    "culinary"
+  ],
+  "triggers": [],
+  "contents": []
+}

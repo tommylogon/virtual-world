@@ -1,0 +1,22 @@
+{
+  "name": "pitch_sprinkler",
+  "description": "A tar pot, and it is set alight and walked round the hull and it is the one piece of theatre a yard gets.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 12,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "container",
+    "metal",
+    "tar",
+    "trade",
+    "fire",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

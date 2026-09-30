@@ -1,0 +1,20 @@
+{
+  "name": "iron_strap",
+  "description": "A strap of iron, and it is a hoop and a hinge and a buckle and a repair.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "metal",
+    "trade",
+    "building"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,21 @@
+{
+  "name": "wick_trimmer_hook",
+  "description": "A wick trimmer, a hook on a long handle, and it pulls a burnt wick out without touching the hot wax.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "metal",
+    "kitchen",
+    "small",
+    "light_source"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,19 @@
+{
+  "name": "flax_retting_pond",
+  "description": "A retting pond, and the water going the colour of weak tea over weeks.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "plant",
+    "fibre",
+    "farming"
+  ],
+  "triggers": [],
+  "contents": []
+}

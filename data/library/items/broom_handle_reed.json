@@ -1,0 +1,21 @@
+{
+  "name": "broom_handle_reed",
+  "description": "A broom handle, a cut hazel, and a broom is a broom only if the handle is right.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "wooden",
+    "kitchen",
+    "tool",
+    "small"
+  ],
+  "triggers": [],
+  "contents": []
+}

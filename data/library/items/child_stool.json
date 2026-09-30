@@ -1,0 +1,21 @@
+{
+  "name": "child_stool",
+  "description": "A child chair, at the table on a high seat, and it rocks on the two front feet.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "bedroom",
+    "wooden",
+    "child",
+    "small"
+  ],
+  "triggers": [],
+  "contents": []
+}

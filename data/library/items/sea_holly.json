@@ -1,0 +1,19 @@
+{
+  "name": "sea_holly",
+  "description": "Sea holly, the blue flower on a dune, and the roots were candied like Alexanders.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "forage",
+    "herb",
+    "plant"
+  ],
+  "triggers": [],
+  "contents": []
+}

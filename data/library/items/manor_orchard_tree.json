@@ -1,0 +1,23 @@
+{
+  "name": "manor_orchard_tree",
+  "description": "A fruit tree, in an orchard, and the grass under it is the best on the estate.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 60,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "plant",
+    "tree",
+    "garden",
+    "large",
+    "fruit",
+    "outdoor"
+  ],
+  "triggers": [],
+  "contents": []
+}

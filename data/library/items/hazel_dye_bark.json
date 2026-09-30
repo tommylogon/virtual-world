@@ -1,0 +1,19 @@
+{
+  "name": "hazel_dye_bark",
+  "description": "Hazel bark, and a yellow-brown dye from it, and it is what most medieval cloth is.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "forage",
+    "dye",
+    "plant"
+  ],
+  "triggers": [],
+  "contents": []
+}

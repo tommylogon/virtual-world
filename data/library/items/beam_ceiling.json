@@ -1,0 +1,22 @@
+{
+  "name": "beam_ceiling",
+  "description": "A ceiling beam, old oak, and one end of it is scorched where the fire got up.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 60.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "furniture",
+    "wooden",
+    "wall",
+    "ceiling",
+    "large"
+  ],
+  "triggers": [],
+  "contents": []
+}

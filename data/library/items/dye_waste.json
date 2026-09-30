@@ -1,0 +1,20 @@
+{
+  "name": "dye_waste",
+  "description": "The dregs of a vat, and a river below a tanyard or a dye works is poisoned for a year.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 1.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "dyer",
+    "waste",
+    "filth",
+    "liquid"
+  ],
+  "triggers": [],
+  "contents": []
+}

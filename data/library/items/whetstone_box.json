@@ -1,0 +1,20 @@
+{
+  "name": "whetstone_box",
+  "description": "A whetstone box, wooden, with a lid and a slurry of water and grit inside.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "container",
+    "wooden",
+    "tool"
+  ],
+  "triggers": [],
+  "contents": []
+}

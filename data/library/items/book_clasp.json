@@ -1,0 +1,25 @@
+{
+  "name": "book_clasp",
+  "description": "A book clasp, brass, for a chained book that has to be shut against damp.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [
+    "accessory"
+  ],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "clothing",
+    "accessory",
+    "metal",
+    "book",
+    "small",
+    "valuable"
+  ],
+  "triggers": [],
+  "contents": [],
+  "insulation": 0
+}

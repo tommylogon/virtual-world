@@ -1,0 +1,22 @@
+{
+  "name": "manor_servant_bell",
+  "description": "A bell, a hand bell, and it is rung in the hall to call a servant and the whole house jumps.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "metal",
+    "sound_source",
+    "manor",
+    "small",
+    "hallway"
+  ],
+  "triggers": [],
+  "contents": []
+}

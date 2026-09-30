@@ -1,0 +1,19 @@
+{
+  "name": "pin_hammer",
+  "description": "A pin hammer, small and hard, for driving small pins.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "tool",
+    "metal"
+  ],
+  "triggers": [],
+  "contents": []
+}

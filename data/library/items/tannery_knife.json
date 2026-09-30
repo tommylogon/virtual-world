@@ -1,0 +1,21 @@
+{
+  "name": "tannery_knife",
+  "description": "A tannery knife, curved, for scraping a hide down to the grain.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "tool",
+    "metal",
+    "craft",
+    "leather"
+  ],
+  "triggers": [],
+  "contents": []
+}

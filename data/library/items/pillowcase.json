@@ -1,0 +1,22 @@
+{
+  "name": "pillowcase",
+  "description": "A pillowcase, and the stitching is the part a bride is judged on.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "textile",
+    "bedroom",
+    "linen",
+    "small",
+    "cloth"
+  ],
+  "triggers": [],
+  "contents": []
+}

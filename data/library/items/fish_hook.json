@@ -1,0 +1,20 @@
+{
+  "name": "fish_hook",
+  "description": "A fish hook, bone-and-steel, barbless for the trout.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.01,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "tool",
+    "fishing",
+    "metal"
+  ],
+  "triggers": [],
+  "contents": []
+}

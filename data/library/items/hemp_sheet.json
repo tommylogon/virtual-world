@@ -1,0 +1,22 @@
+{
+  "name": "hemp_sheet",
+  "description": "A sheet of hemp, and it is a sail and a tent and a grain sack and it lasts forever.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "textile",
+    "fibre",
+    "trade",
+    "large",
+    "insulation"
+  ],
+  "triggers": [],
+  "contents": []
+}

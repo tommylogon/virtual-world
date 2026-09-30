@@ -1,0 +1,22 @@
+{
+  "name": "brewery_tun",
+  "description": "A brewing tun, a big open vat, and it is where the wort lives for a week.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 100,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "cooper",
+    "kitchen",
+    "wooden",
+    "container",
+    "liquid",
+    "large"
+  ],
+  "triggers": [],
+  "contents": []
+}

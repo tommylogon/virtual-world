@@ -1,0 +1,21 @@
+{
+  "name": "water_mill_wheel",
+  "description": "A mill wheel, undershot, and the mill race is cut to make it turn all year.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 200,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "miller",
+    "wooden",
+    "machine",
+    "water",
+    "large"
+  ],
+  "triggers": [],
+  "contents": []
+}

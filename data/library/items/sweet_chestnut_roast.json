@@ -1,0 +1,48 @@
+{
+  "name": "sweet_chestnut_roast",
+  "description": "Roast chestnuts, the scored shells, and the flesh is floury and sweet.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 3,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "food",
+    "food",
+    "nut",
+    "sweet"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "You eat it, gathered and not much cleaned."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -24,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "You eat it, gathered and not much cleaned.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

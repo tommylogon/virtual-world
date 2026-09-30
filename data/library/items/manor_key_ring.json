@@ -1,0 +1,22 @@
+{
+  "name": "manor_key_ring",
+  "description": "A ring of keys, and the biggest one opens the undercroft and nobody else is given it.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "key",
+    "metal",
+    "manor",
+    "accessory",
+    "small",
+    "container"
+  ],
+  "triggers": [],
+  "contents": []
+}

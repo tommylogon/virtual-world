@@ -1,0 +1,21 @@
+{
+  "name": "vellum",
+  "description": "Vellum, a skin dressed for writing, and it is calf and it is smoother than paper.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "paper",
+    "writing",
+    "leather",
+    "book"
+  ],
+  "triggers": [],
+  "contents": []
+}

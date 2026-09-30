@@ -1,0 +1,48 @@
+{
+  "name": "nettle_top",
+  "description": "Nettle tops, the youngest, cooked and they are worth the sting they cost.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 3,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "food",
+    "forage",
+    "vegetable",
+    "fibre"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "You eat it, gathered and not much cleaned."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -16,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "You eat it, gathered and not much cleaned.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

@@ -1,0 +1,23 @@
+{
+  "name": "manor_charter_box",
+  "description": "A charter box, and a charter is a document with a seal and it is worth a war.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "container",
+    "wooden",
+    "document",
+    "manor",
+    "writing",
+    "valuable",
+    "records"
+  ],
+  "triggers": [],
+  "contents": []
+}

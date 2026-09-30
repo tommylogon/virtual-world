@@ -1,0 +1,21 @@
+{
+  "name": "wick_wick",
+  "description": "A wick, and it is hemp and it is the last thing to burn out of a candle.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.01,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "light_source",
+    "candle",
+    "fibre",
+    "small",
+    "fuel"
+  ],
+  "triggers": [],
+  "contents": []
+}

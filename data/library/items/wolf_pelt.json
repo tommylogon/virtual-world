@@ -1,0 +1,20 @@
+{
+  "name": "wolf_pelt",
+  "description": "A wolf pelt, and one pays a bounty on it and the pelt is the price.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "forage",
+    "fibre",
+    "fletching",
+    "leather"
+  ],
+  "triggers": [],
+  "contents": []
+}

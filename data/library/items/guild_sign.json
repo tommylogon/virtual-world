@@ -1,0 +1,20 @@
+{
+  "name": "guild_sign",
+  "description": "A guild sign, iron, hanging from a bracket, and it rings when it moves.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 4.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "town",
+    "sign",
+    "metal",
+    "trading"
+  ],
+  "triggers": [],
+  "contents": []
+}

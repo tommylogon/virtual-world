@@ -1,0 +1,21 @@
+{
+  "name": "wick_scissors_swan",
+  "description": "Wick scissors, and the curved ones are for a wick in a castlestick.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "metal",
+    "kitchen",
+    "small",
+    "household"
+  ],
+  "triggers": [],
+  "contents": []
+}

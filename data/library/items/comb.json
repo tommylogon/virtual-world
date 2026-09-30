@@ -1,0 +1,19 @@
+{
+  "name": "comb",
+  "description": "A horn comb, close-grained and bought from a far coast.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "personal",
+    "accessory",
+    "toilet"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,21 @@
+{
+  "name": "quern_hand",
+  "description": "A quern, a small hand-mill for a kitchen, and it grinds what the big mill will not.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 12,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "kitchen",
+    "tool",
+    "stone",
+    "machine",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

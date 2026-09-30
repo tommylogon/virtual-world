@@ -1,0 +1,21 @@
+{
+  "name": "linen_cupboard",
+  "description": "A linen cupboard, airing and shallow, and smelling of lavender.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 30.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "furniture",
+    "storage",
+    "wooden",
+    "bedroom"
+  ],
+  "triggers": [],
+  "contents": []
+}

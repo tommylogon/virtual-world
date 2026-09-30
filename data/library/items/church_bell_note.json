@@ -1,0 +1,21 @@
+{
+  "name": "church_bell_note",
+  "description": "A written note of the bell's sound, so a deaf man can know the hour.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "document",
+    "information",
+    "paper",
+    "written"
+  ],
+  "triggers": [],
+  "contents": []
+}

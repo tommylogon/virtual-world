@@ -1,0 +1,20 @@
+{
+  "name": "meal_measure",
+  "description": "A measure, a wooden bushel, and every sack of meal in the district goes through it.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 1.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "miller",
+    "tool",
+    "wooden",
+    "container"
+  ],
+  "triggers": [],
+  "contents": []
+}

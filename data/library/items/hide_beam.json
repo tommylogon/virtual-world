@@ -1,0 +1,20 @@
+{
+  "name": "hide_beam",
+  "description": "A hide on a beam, scraped, and the beam is where a tanner works from the inside out.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 30,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tanner",
+    "furniture",
+    "wooden",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

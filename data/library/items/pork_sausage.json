@@ -1,0 +1,46 @@
+{
+  "name": "pork_sausage",
+  "description": "Pork sausages, linked by hand and tied at the ends.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 3,
+  "weight": 0.6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "food",
+    "meat"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "You eat it, and wish there were more."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -36,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "You eat it, and wish there were more.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

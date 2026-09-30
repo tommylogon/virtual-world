@@ -1,0 +1,19 @@
+{
+  "name": "rowan_berry",
+  "description": "Rowan berries, the orange bunches, and they are too sour raw and good in a syrup.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "forage",
+    "fruit",
+    "plant"
+  ],
+  "triggers": [],
+  "contents": []
+}

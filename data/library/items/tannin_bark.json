@@ -1,0 +1,20 @@
+{
+  "name": "tannin_bark",
+  "description": "Tannin bark, and a cooper soaks his staves in it or the beer eats them.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "cooper",
+    "material",
+    "dye",
+    "fibre"
+  ],
+  "triggers": [],
+  "contents": []
+}

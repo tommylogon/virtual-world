@@ -1,0 +1,18 @@
+{
+  "name": "mop",
+  "description": "A mop, a bundle of rag on a stick, and a bucket standing ready.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "household"
+  ],
+  "triggers": [],
+  "contents": []
+}

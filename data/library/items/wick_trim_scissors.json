@@ -1,0 +1,21 @@
+{
+  "name": "wick_trim_scissors",
+  "description": "A pair of scissors, and they are for trimming a wick and they cost more than a hen.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "metal",
+    "kitchen",
+    "small",
+    "household"
+  ],
+  "triggers": [],
+  "contents": []
+}

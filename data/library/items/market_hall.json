@@ -1,0 +1,23 @@
+{
+  "name": "market_hall",
+  "description": "A market hall, open-sided, and the stalls are under it and the rain does not reach the meat.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 300,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "town",
+    "building",
+    "stone",
+    "market",
+    "large",
+    "heavy",
+    "trade"
+  ],
+  "triggers": [],
+  "contents": []
+}

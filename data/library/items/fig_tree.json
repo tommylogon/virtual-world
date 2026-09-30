@@ -1,0 +1,19 @@
+{
+  "name": "fig_tree",
+  "description": "A fig tree, and it needs a wall and it will get into the wall given time.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "plant",
+    "fruit",
+    "tree"
+  ],
+  "triggers": [],
+  "contents": []
+}

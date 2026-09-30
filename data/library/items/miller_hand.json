@@ -1,0 +1,20 @@
+{
+  "name": "miller_hand",
+  "description": "A miller's hand, and it is the sample he takes from every batch to judge it.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 1.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "miller",
+    "tool",
+    "wooden",
+    "small"
+  ],
+  "triggers": [],
+  "contents": []
+}

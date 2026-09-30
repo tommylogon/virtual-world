@@ -1,0 +1,22 @@
+{
+  "name": "wax_tablet",
+  "description": "A wax tablet, wooden frame and a stub of stick, and a page that can be scraped and used again.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "book",
+    "writing",
+    "document",
+    "paper",
+    "tool"
+  ],
+  "triggers": [],
+  "contents": []
+}

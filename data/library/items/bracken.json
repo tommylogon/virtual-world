@@ -1,0 +1,21 @@
+{
+  "name": "bracken",
+  "description": "Bracken, the fern, cut and dried for bedding or for burning, and the stalks make a green dye.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "forage",
+    "fuel",
+    "fibre",
+    "dye",
+    "plant"
+  ],
+  "triggers": [],
+  "contents": []
+}

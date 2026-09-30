@@ -1,0 +1,20 @@
+{
+  "name": "lamp_chimney",
+  "description": "A lamp chimney, horn, and it is the difference between smoke and a light.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "light_source",
+    "glass",
+    "small",
+    "liquid"
+  ],
+  "triggers": [],
+  "contents": []
+}

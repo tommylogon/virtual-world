@@ -1,0 +1,19 @@
+{
+  "name": "mine_hammer_pick",
+  "description": "A miner's pick, and it is for breaking ore out of the face.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "mining",
+    "tool",
+    "metal"
+  ],
+  "triggers": [],
+  "contents": []
+}

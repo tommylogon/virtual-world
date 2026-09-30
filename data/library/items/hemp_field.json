@@ -1,0 +1,19 @@
+{
+  "name": "hemp_field",
+  "description": "A field of hemp, tall as a man and moving in a wind you cannot feel at ground level.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "plant",
+    "fibre",
+    "crop"
+  ],
+  "triggers": [],
+  "contents": []
+}

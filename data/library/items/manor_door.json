@@ -1,0 +1,23 @@
+{
+  "name": "manor_door",
+  "description": "A door, oak and iron, and the studs are in a diamond and the door is four inches thick.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 20,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "wooden",
+    "door",
+    "large",
+    "heavy",
+    "manor",
+    "hallway"
+  ],
+  "triggers": [],
+  "contents": []
+}

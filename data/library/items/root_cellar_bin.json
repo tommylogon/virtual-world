@@ -1,0 +1,20 @@
+{
+  "name": "root_cellar_bin",
+  "description": "A bin of sand and dry ash, for storing roots over the winter.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "container",
+    "storage",
+    "kitchen",
+    "fodder"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,20 @@
+{
+  "name": "mattock_pick",
+  "description": "A mattock, for the stony ground, and the head is set to a shallow angle.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "metal",
+    "mining",
+    "farming"
+  ],
+  "triggers": [],
+  "contents": []
+}

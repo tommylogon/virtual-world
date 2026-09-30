@@ -1,0 +1,22 @@
+{
+  "name": "tar_bucket",
+  "description": "A bucket of tar, and the lid is nailed down and it is never quite shut.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "container",
+    "metal",
+    "tar",
+    "trade",
+    "heavy",
+    "liquid"
+  ],
+  "triggers": [],
+  "contents": []
+}

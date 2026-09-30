@@ -1,0 +1,23 @@
+{
+  "name": "manor_salt_cellar_gold",
+  "description": "A gold salt cellar, and the salt went in it and the salt came out and it went back.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "container",
+    "metal",
+    "kitchen",
+    "manor",
+    "valuable",
+    "rich",
+    "dining"
+  ],
+  "triggers": [],
+  "contents": []
+}

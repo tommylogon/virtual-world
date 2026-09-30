@@ -1,0 +1,20 @@
+{
+  "name": "bellows_smalldomestic",
+  "description": "A pair of small bellows, and they are a chair by the fire in every hall.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "fire",
+    "leather",
+    "kitchen"
+  ],
+  "triggers": [],
+  "contents": []
+}

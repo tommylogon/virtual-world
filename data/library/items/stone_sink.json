@@ -1,0 +1,22 @@
+{
+  "name": "stone_sink",
+  "description": "A stone sink, a slab with a drain, and it is where the washing water goes.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 40,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "kitchen",
+    "stone",
+    "large",
+    "heavy",
+    "water"
+  ],
+  "triggers": [],
+  "contents": []
+}

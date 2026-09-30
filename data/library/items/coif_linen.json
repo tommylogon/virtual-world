@@ -1,0 +1,23 @@
+{
+  "name": "coif_linen",
+  "description": "A coif, a close linen cap, and it keeps the sun off a field and the cold off a head.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [
+    "head"
+  ],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "clothing",
+    "head",
+    "linen",
+    "private"
+  ],
+  "triggers": [],
+  "contents": [],
+  "insulation": 0
+}

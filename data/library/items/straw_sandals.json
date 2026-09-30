@@ -1,0 +1,24 @@
+{
+  "name": "straw_sandals",
+  "description": "Sandals of straw, and they are worn until the foot's shape is in the straw.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [
+    "feet"
+  ],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "clothing",
+    "footwear",
+    "fodder",
+    "feet",
+    "summer"
+  ],
+  "triggers": [],
+  "contents": [],
+  "insulation": 0
+}

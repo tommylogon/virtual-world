@@ -1,0 +1,21 @@
+{
+  "name": "alder_board",
+  "description": "A board of alder, and it is cheap and it takes water, so it is a trough and a well lid.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 6.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "wooden",
+    "trade",
+    "water",
+    "building"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,18 @@
+{
+  "name": "lichen",
+  "description": "Lichen, grey-green and crusty, growing on a stone in the rain.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "natural",
+    "plant"
+  ],
+  "triggers": [],
+  "contents": []
+}

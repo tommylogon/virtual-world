@@ -1,0 +1,22 @@
+{
+  "name": "window_shutter",
+  "description": "A shutter, and it closes over a window in a storm and the wind stops making a liar of it.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "wooden",
+    "window",
+    "hallway",
+    "large",
+    "fixture"
+  ],
+  "triggers": [],
+  "contents": []
+}

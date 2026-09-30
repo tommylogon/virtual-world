@@ -1,0 +1,21 @@
+{
+  "name": "tow_line",
+  "description": "A tow line, thick, and it is what a cart is pulled with and what a barge is moored by.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "fibre",
+    "trade",
+    "vehicle",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

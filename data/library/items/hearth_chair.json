@@ -1,0 +1,22 @@
+{
+  "name": "hearth_chair",
+  "description": "A chair by the fire, an armchair, and the arms are where a person's hands live in winter.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 12,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "wooden",
+    "hearth",
+    "hallway",
+    "insulation",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

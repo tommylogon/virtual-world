@@ -1,0 +1,20 @@
+{
+  "name": "wax_bees",
+  "description": "Beeswax, a cake of it, and it is the only wax that will burn clean and smell sweet.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "wax",
+    "farming",
+    "honey"
+  ],
+  "triggers": [],
+  "contents": []
+}

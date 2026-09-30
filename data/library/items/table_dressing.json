@@ -1,0 +1,21 @@
+{
+  "name": "table_dressing",
+  "description": "A laid table, cloth and boards and a knife for every person, and it is done for a feast.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 1.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "table",
+    "dining",
+    "display",
+    "large"
+  ],
+  "triggers": [],
+  "contents": []
+}

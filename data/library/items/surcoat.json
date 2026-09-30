@@ -1,0 +1,24 @@
+{
+  "name": "surcoat",
+  "description": "A surcoat, a sleeveless overgown open at the sides, and it shows the kirtle underneath.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [
+    "torso"
+  ],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "clothing",
+    "top",
+    "wool",
+    "dress",
+    "torso"
+  ],
+  "triggers": [],
+  "contents": [],
+  "insulation": 0
+}

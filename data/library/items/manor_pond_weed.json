@@ -1,0 +1,21 @@
+{
+  "name": "manor_pond_weed",
+  "description": "A pond, a weedy one, and a heron stands in it and regards you.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 200,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "water",
+    "garden",
+    "large",
+    "natural"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,19 @@
+{
+  "name": "grain_hopper",
+  "description": "A hopper for the mill, a funnel of wood feeding the stones below.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "kitchen",
+    "tool",
+    "wooden"
+  ],
+  "triggers": [],
+  "contents": []
+}

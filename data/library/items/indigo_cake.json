@@ -1,0 +1,19 @@
+{
+  "name": "indigo_cake",
+  "description": "Indigo cake, the fermented sediment, and the blue that is not woad.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "herb",
+    "dye",
+    "alchemical"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,21 @@
+{
+  "name": "wool_felt",
+  "description": "A sheet of felt, and it is what a hat is blocked on and it is also a roof in Wales.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "textile",
+    "wool",
+    "trade",
+    "insulation"
+  ],
+  "triggers": [],
+  "contents": []
+}

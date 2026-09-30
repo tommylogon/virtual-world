@@ -1,0 +1,21 @@
+{
+  "name": "reading_glasses",
+  "description": "A pair of reading glasses, in a leather case, for a book held at the right distance.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "accessory",
+    "glass",
+    "personal",
+    "eyewear"
+  ],
+  "triggers": [],
+  "contents": []
+}

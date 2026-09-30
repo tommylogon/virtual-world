@@ -1,0 +1,49 @@
+{
+  "name": "butter_dairy",
+  "description": "A dairy, the stone slab where the butter is worked, and it is cold even in July.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 3,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "food",
+    "furniture",
+    "kitchen",
+    "stone",
+    "dairy"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "You eat it. Better than nothing and not much more."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -200,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "You eat it. Better than nothing and not much more.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

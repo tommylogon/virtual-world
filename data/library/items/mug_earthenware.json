@@ -1,0 +1,21 @@
+{
+  "name": "mug_earthenware",
+  "description": "An earthenware mug, and it is a man's own and it lives by the fire.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "container",
+    "clay",
+    "kitchen",
+    "dining",
+    "tableware"
+  ],
+  "triggers": [],
+  "contents": []
+}

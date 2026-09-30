@@ -1,0 +1,20 @@
+{
+  "name": "oak_peg",
+  "description": "An oak peg, and a barrel is pegged to the chime and the peg swells in the wet.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.01,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "cooper",
+    "wooden",
+    "small",
+    "building"
+  ],
+  "triggers": [],
+  "contents": []
+}

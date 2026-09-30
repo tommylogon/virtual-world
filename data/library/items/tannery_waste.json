@@ -1,0 +1,20 @@
+{
+  "name": "tannery_waste",
+  "description": "The waste of a tanyard, and it goes on the land and stinks for a year.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 1.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tanner",
+    "waste",
+    "filth",
+    "fodder"
+  ],
+  "triggers": [],
+  "contents": []
+}

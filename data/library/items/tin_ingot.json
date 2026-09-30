@@ -1,0 +1,19 @@
+{
+  "name": "tin_ingot",
+  "description": "An ingot of tin, and it came from the far coast and it cost more than the thing it makes.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "metal",
+    "trade"
+  ],
+  "triggers": [],
+  "contents": []
+}

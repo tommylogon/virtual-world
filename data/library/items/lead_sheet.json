@@ -1,0 +1,21 @@
+{
+  "name": "lead_sheet",
+  "description": "A sheet of lead, and a lead roof is lighter than a slate one and lasts longer.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 12,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "plumber",
+    "material",
+    "metal",
+    "roofing",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

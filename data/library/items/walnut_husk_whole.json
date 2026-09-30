@@ -1,0 +1,19 @@
+{
+  "name": "walnut_husk_whole",
+  "description": "A walnut husk, the whole green thing, before it is anything else.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "forage",
+    "nut",
+    "plant"
+  ],
+  "triggers": [],
+  "contents": []
+}

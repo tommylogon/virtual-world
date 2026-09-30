@@ -1,0 +1,18 @@
+{
+  "name": "peat",
+  "description": "Peat, cut into slabs and stacked to dry for a winter's burning.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 3.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "fuel"
+  ],
+  "triggers": [],
+  "contents": []
+}

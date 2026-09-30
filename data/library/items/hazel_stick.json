@@ -1,0 +1,20 @@
+{
+  "name": "hazel_stick",
+  "description": "A hazel stick, straight and springy, and it is a rod and a handle and a beanpole.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "wooden",
+    "farming",
+    "tool"
+  ],
+  "triggers": [],
+  "contents": []
+}

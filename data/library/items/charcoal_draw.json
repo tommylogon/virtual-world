@@ -1,0 +1,21 @@
+{
+  "name": "charcoal_draw",
+  "description": "A charcoal burner, and the turf stack smokes for a week and nobody can live there.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 1.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "fuel",
+    "building",
+    "smoke",
+    "large"
+  ],
+  "triggers": [],
+  "contents": []
+}

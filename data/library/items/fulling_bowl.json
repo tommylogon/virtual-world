@@ -1,0 +1,22 @@
+{
+  "name": "fulling_bowl",
+  "description": "A fulling bowl, a wooden one, and the cloth is shrunk in it with water and feet.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 25,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "fuller",
+    "container",
+    "wooden",
+    "water",
+    "textile",
+    "large"
+  ],
+  "triggers": [],
+  "contents": []
+}

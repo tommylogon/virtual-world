@@ -1,0 +1,22 @@
+{
+  "name": "hearth_cradle_small",
+  "description": "A small fire pan, a warming pan, and it is carried up to a sick child and back.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "kitchen",
+    "tool",
+    "metal",
+    "bedroom",
+    "fire",
+    "small"
+  ],
+  "triggers": [],
+  "contents": []
+}

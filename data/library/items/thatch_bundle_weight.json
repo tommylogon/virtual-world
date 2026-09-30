@@ -1,0 +1,21 @@
+{
+  "name": "thatch_bundle_weight",
+  "description": "A spar, a hazel wand, and it is the thing that pins a thatch down.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "thatcher",
+    "tool",
+    "fibre",
+    "plant",
+    "wooden"
+  ],
+  "triggers": [],
+  "contents": []
+}

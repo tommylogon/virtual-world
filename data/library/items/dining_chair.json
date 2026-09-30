@@ -1,0 +1,20 @@
+{
+  "name": "dining_chair",
+  "description": "A dining chair, a plank seat and four legs, and one is a pegged repair.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 4.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "furniture",
+    "wooden",
+    "kitchen"
+  ],
+  "triggers": [],
+  "contents": []
+}

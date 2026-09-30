@@ -1,0 +1,20 @@
+{
+  "name": "rust_iron",
+  "description": "Rusted iron, and it is the fate of every bar left in the rain for a month.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "metal",
+    "rotten",
+    "waste"
+  ],
+  "triggers": [],
+  "contents": []
+}

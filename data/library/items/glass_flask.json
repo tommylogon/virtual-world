@@ -1,0 +1,20 @@
+{
+  "name": "glass_flask",
+  "description": "A round-bottomed flask, and the bubble is blown and the neck is worked by hand.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "container",
+    "glass",
+    "alchemical",
+    "valuable"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,19 @@
+{
+  "name": "mortise_chisel",
+  "description": "A mortise chisel, thick and strong, and it is struck and never pushed.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "carpenter",
+    "tool",
+    "metal"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,18 @@
+{
+  "name": "log_cutter",
+  "description": "A log cutter, one heavy blow a month and the kindling problem gone.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 6.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "metal"
+  ],
+  "triggers": [],
+  "contents": []
+}

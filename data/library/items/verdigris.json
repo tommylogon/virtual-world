@@ -1,0 +1,21 @@
+{
+  "name": "verdigris",
+  "description": "Verdigris, the green crust on old copper, and it is poison and it is a beautiful green.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "dye",
+    "alchemical",
+    "hazard",
+    "valuable"
+  ],
+  "triggers": [],
+  "contents": []
+}

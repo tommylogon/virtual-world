@@ -1,0 +1,22 @@
+{
+  "name": "limewash_bucket",
+  "description": "A bucket of limewash, and it is the cheapest way ever found to make a room bright.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 20,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "plasterer",
+    "container",
+    "wooden",
+    "building",
+    "liquid",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

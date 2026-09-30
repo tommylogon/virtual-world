@@ -1,0 +1,21 @@
+{
+  "name": "stoneware_jar_big",
+  "description": "A big stoneware jar, and it holds a barrel of ale and a family of rats.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 40,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "potter",
+    "container",
+    "clay",
+    "large",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,21 @@
+{
+  "name": "sewing_needle",
+  "description": "A bone needle, blunted and polished, threaded and ready.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.01,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "tool",
+    "metal",
+    "small",
+    "cloth"
+  ],
+  "triggers": [],
+  "contents": []
+}

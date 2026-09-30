@@ -1,0 +1,20 @@
+{
+  "name": "reaping_hook",
+  "description": "A reaping hook, a small sickle for a close crop.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "tool",
+    "metal",
+    "farming"
+  ],
+  "triggers": [],
+  "contents": []
+}

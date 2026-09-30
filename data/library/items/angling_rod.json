@@ -1,0 +1,19 @@
+{
+  "name": "angling_rod",
+  "description": "An angling rod, a hazel rod and a line, and it is the cheapest of all sporting goods.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "fishing",
+    "wooden"
+  ],
+  "triggers": [],
+  "contents": []
+}

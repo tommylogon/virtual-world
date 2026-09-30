@@ -1,0 +1,21 @@
+{
+  "name": "chest_of_drawers",
+  "description": "A chest of drawers, oak, and one drawer that will not shut.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 25.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "furniture",
+    "storage",
+    "wooden",
+    "container"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,22 @@
+{
+  "name": "dish_cloth",
+  "description": "A dish cloth, and it is a square of linen that has been a cloth for four years.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "kitchen",
+    "textile",
+    "linen",
+    "cloth",
+    "small",
+    "household"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,21 @@
+{
+  "name": "blanket_roll",
+  "description": "A rolled blanket, and a strap over it for carrying to a market.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "furniture",
+    "bedroom",
+    "insulation",
+    "cloth"
+  ],
+  "triggers": [],
+  "contents": []
+}

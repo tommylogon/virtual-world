@@ -1,0 +1,19 @@
+{
+  "name": "log",
+  "description": "A single log, bark-on, the honest unit of firewood.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 8.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "fuel",
+    "wooden"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,22 @@
+{
+  "name": "stocks_foot",
+  "description": "The stocks, and the leg irons are worn and it is a punishment that is mostly a humiliation.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 12,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "town",
+    "metal",
+    "furniture",
+    "punishment",
+    "legal",
+    "small"
+  ],
+  "triggers": [],
+  "contents": []
+}

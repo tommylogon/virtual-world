@@ -1,0 +1,20 @@
+{
+  "name": "rope_hemp",
+  "description": "A rope of hemp, three strands laid up, and it is the most useful thing in a barn.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "fibre",
+    "trade",
+    "tool"
+  ],
+  "triggers": [],
+  "contents": []
+}

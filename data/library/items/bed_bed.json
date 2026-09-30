@@ -1,0 +1,24 @@
+{
+  "name": "bed_bed",
+  "description": "A bed, a great one with a feather mattress and a canopy, and it is furniture for showing off.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 150,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "bedroom",
+    "wooden",
+    "bed",
+    "large",
+    "heavy",
+    "insulation",
+    "rich"
+  ],
+  "triggers": [],
+  "contents": []
+}

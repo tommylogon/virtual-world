@@ -1,0 +1,19 @@
+{
+  "name": "clay_ball",
+  "description": "A ball of clay, wedged, and wedging is what stops an explosion in the kiln.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "potter",
+    "material",
+    "clay"
+  ],
+  "triggers": [],
+  "contents": []
+}

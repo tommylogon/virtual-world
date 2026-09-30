@@ -1,0 +1,19 @@
+{
+  "name": "peat_bog_peat",
+  "description": "A block of peat cut from a bog, and it is the fuel of a place with no wood.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "forage",
+    "fuel",
+    "natural"
+  ],
+  "triggers": [],
+  "contents": []
+}

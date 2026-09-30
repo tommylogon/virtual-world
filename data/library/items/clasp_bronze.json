@@ -1,0 +1,21 @@
+{
+  "name": "clasp_bronze",
+  "description": "A bronze clasp, and the fitting on a belt or a book or a chest lid.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "metal",
+    "trade",
+    "accessory",
+    "small"
+  ],
+  "triggers": [],
+  "contents": []
+}

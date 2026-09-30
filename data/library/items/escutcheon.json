@@ -1,0 +1,23 @@
+{
+  "name": "escutcheon",
+  "description": "An escutcheon, a brass plate for a keyhole, and it stops the key working on the door.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "metal",
+    "door",
+    "hallway",
+    "wall",
+    "small",
+    "fixture"
+  ],
+  "triggers": [],
+  "contents": []
+}

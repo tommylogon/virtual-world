@@ -1,0 +1,18 @@
+{
+  "name": "wood_ash",
+  "description": "Wood ash, swept from the hearth, the best thing to put on a garden.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "ash"
+  ],
+  "triggers": [],
+  "contents": []
+}

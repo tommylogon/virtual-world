@@ -1,0 +1,19 @@
+{
+  "name": "bellows_handle",
+  "description": "A handle of a bellows, replaced, and the tool outlives the man and the handle.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "smith",
+    "tool",
+    "wooden"
+  ],
+  "triggers": [],
+  "contents": []
+}

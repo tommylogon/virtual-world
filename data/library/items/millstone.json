@@ -1,0 +1,21 @@
+{
+  "name": "millstone",
+  "description": "A millstone, a disc of stone with grooves cut in it, and it takes a week to dress.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 400,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "miller",
+    "stone",
+    "tool",
+    "heavy",
+    "machine"
+  ],
+  "triggers": [],
+  "contents": []
+}

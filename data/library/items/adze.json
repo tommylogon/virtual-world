@@ -1,0 +1,20 @@
+{
+  "name": "adze",
+  "description": "An adze, a blade set at right angles, for hewing a beam square.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 1.8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "tool",
+    "metal",
+    "wooden"
+  ],
+  "triggers": [],
+  "contents": []
+}

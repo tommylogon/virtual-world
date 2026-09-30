@@ -1,0 +1,25 @@
+{
+  "name": "kneed_breeches",
+  "description": "Breeches, close to the knee, and they are the newest thing in a town.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [
+    "legs"
+  ],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "clothing",
+    "bottom",
+    "legs",
+    "doublet",
+    "layered",
+    "dress"
+  ],
+  "triggers": [],
+  "contents": [],
+  "insulation": 0
+}

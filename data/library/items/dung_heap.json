@@ -1,0 +1,19 @@
+{
+  "name": "dung_heap",
+  "description": "A dung heap, stacked against the wall, and the day's work steaming in it.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 25.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "town",
+    "filth",
+    "fodder"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,22 @@
+{
+  "name": "linen_sheet",
+  "description": "A sheet, of linen, and it is the whitest thing in a house with money in it.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "textile",
+    "bedroom",
+    "linen",
+    "cloth",
+    "bed"
+  ],
+  "triggers": [],
+  "contents": []
+}

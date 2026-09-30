@@ -1,0 +1,22 @@
+{
+  "name": "horologium",
+  "description": "A horologium, a sundial-cum-water-clock, and it is right twice a day.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 4.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "tool",
+    "navigational",
+    "navigation",
+    "metal",
+    "timed"
+  ],
+  "triggers": [],
+  "contents": []
+}

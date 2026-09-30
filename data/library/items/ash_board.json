@@ -1,0 +1,21 @@
+{
+  "name": "ash_board",
+  "description": "A board of ash, and it is the timber for a wheel and a shaft and a plough stile.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 9,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "wooden",
+    "trade",
+    "building",
+    "farming"
+  ],
+  "triggers": [],
+  "contents": []
+}

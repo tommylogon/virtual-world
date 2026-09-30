@@ -1,0 +1,21 @@
+{
+  "name": "wooden_board_book",
+  "description": "A writing board, waxed, and it is wiped and written on again a hundred times.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "paper",
+    "writing",
+    "trade",
+    "book"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,21 @@
+{
+  "name": "glass_vial",
+  "description": "A glass vial, and it is the most expensive thing a poor alchemist owns.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "container",
+    "glass",
+    "alchemical",
+    "small",
+    "valuable"
+  ],
+  "triggers": [],
+  "contents": []
+}

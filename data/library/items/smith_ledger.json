@@ -1,0 +1,21 @@
+{
+  "name": "smith_ledger",
+  "description": "The smith's ledger, a book of work done and what is owed for it.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "document",
+    "smith",
+    "writing",
+    "paper",
+    "book"
+  ],
+  "triggers": [],
+  "contents": []
+}

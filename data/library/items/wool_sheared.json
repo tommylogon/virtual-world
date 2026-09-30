@@ -1,0 +1,21 @@
+{
+  "name": "wool_sheared",
+  "description": "Fleece shorn, greasy and in a heap, and it weighs a man more than he does.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "weaver",
+    "fibre",
+    "wool",
+    "material",
+    "farming"
+  ],
+  "triggers": [],
+  "contents": []
+}

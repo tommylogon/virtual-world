@@ -1,0 +1,22 @@
+{
+  "name": "woad_vat",
+  "description": "A woad vat, and the smell of a woad vat is like a fart in a church.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 40,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "dyer",
+    "container",
+    "liquid",
+    "dye",
+    "plant",
+    "large"
+  ],
+  "triggers": [],
+  "contents": []
+}

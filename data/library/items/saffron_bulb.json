@@ -1,0 +1,19 @@
+{
+  "name": "saffron_bulb",
+  "description": "A saffron crocus bulb, and three of its threads are a season's work.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "herb",
+    "spice",
+    "plant"
+  ],
+  "triggers": [],
+  "contents": []
+}

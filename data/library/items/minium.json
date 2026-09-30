@@ -1,0 +1,21 @@
+{
+  "name": "minium",
+  "description": "Minium, the red lead, and it is the common man's vermilion and it is still poison.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "dye",
+    "metal",
+    "hazard",
+    "pigment"
+  ],
+  "triggers": [],
+  "contents": []
+}

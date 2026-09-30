@@ -1,0 +1,22 @@
+{
+  "name": "salt_mill",
+  "description": "A salt mill, and it is two stones and a hopper and the cost of it is a corner of the street.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 30,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "kitchen",
+    "tool",
+    "stone",
+    "kitchen",
+    "machine",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

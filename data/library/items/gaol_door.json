@@ -1,0 +1,23 @@
+{
+  "name": "gaol_door",
+  "description": "A gaol door, barred, and the bar is on the outside and that is the whole of the argument.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 40,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "town",
+    "wooden",
+    "door",
+    "legal",
+    "large",
+    "building",
+    "punishment"
+  ],
+  "triggers": [],
+  "contents": []
+}

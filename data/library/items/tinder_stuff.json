@@ -1,0 +1,21 @@
+{
+  "name": "tinder_stuff",
+  "description": "Tinder, charred linen and dry moss, and without it a fire is a lot of smoke.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "fire",
+    "fibre",
+    "small",
+    "fuel"
+  ],
+  "triggers": [],
+  "contents": []
+}

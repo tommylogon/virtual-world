@@ -1,0 +1,19 @@
+{
+  "name": "wool_fleece",
+  "description": "A raw fleece, rolled and greasy, smelling strongly of the animal.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 6.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "fibre",
+    "wool",
+    "fodder"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,24 @@
+{
+  "name": "linen_press",
+  "description": "A linen press, and it is a heavy screw and it is how a household owns one good tablecloth.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 40,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "textile",
+    "bedroom",
+    "kitchen",
+    "wooden",
+    "machine",
+    "heavy",
+    "large"
+  ],
+  "triggers": [],
+  "contents": []
+}

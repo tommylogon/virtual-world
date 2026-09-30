@@ -1,0 +1,19 @@
+{
+  "name": "clover",
+  "description": "A bundle of clover, the flower heads pink and the smell of a meadow.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "fodder",
+    "plant",
+    "forage"
+  ],
+  "triggers": [],
+  "contents": []
+}

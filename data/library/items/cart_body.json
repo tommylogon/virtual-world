@@ -1,0 +1,21 @@
+{
+  "name": "cart_body",
+  "description": "A cart body, the sides and the floor, boarded and ribbed the way a wheelwright does it.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 80,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "wheelwright",
+    "wooden",
+    "vehicle",
+    "heavy",
+    "large"
+  ],
+  "triggers": [],
+  "contents": []
+}

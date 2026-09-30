@@ -1,0 +1,24 @@
+{
+  "name": "hall_robe",
+  "description": "A worn robe for the hall, and nobody's business whose it is.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 1.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [
+    "torso"
+  ],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "clothing",
+    "textile",
+    "hallway",
+    "winter",
+    "insulation"
+  ],
+  "triggers": [],
+  "contents": [],
+  "insulation": 6
+}

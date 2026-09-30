@@ -1,0 +1,23 @@
+{
+  "name": "guild_hall",
+  "description": "A guildhall, and the door is wider than a man and the hall is full of a thing the town is proud of.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 400,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "town",
+    "building",
+    "stone",
+    "large",
+    "heavy",
+    "trade",
+    "civic"
+  ],
+  "triggers": [],
+  "contents": []
+}

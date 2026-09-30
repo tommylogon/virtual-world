@@ -1,0 +1,24 @@
+{
+  "name": "quill_bed",
+  "description": "A feather bed, tickled with goose down, and the ticking is the point.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 6.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [
+    "torso"
+  ],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "clothing",
+    "bedroom",
+    "furniture",
+    "insulation",
+    "feather"
+  ],
+  "triggers": [],
+  "contents": [],
+  "insulation": 12
+}

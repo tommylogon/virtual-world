@@ -1,0 +1,20 @@
+{
+  "name": "flint_and_striker",
+  "description": "A striker, a piece of iron with a sharp edge, and the correct sparks come off one place on it.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "tool",
+    "metal",
+    "fire"
+  ],
+  "triggers": [],
+  "contents": []
+}

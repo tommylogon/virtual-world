@@ -1,0 +1,19 @@
+{
+  "name": "wooden_bowl",
+  "description": "A wooden bowl, turned, the grain standing proud where it is worn.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "container",
+    "wooden",
+    "kitchen"
+  ],
+  "triggers": [],
+  "contents": []
+}

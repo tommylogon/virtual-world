@@ -1,0 +1,20 @@
+{
+  "name": "preserve_jar_sealed",
+  "description": "A sealed jar, waxed lid, and it will be there in March.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "container",
+    "clay",
+    "kitchen",
+    "preserve"
+  ],
+  "triggers": [],
+  "contents": []
+}

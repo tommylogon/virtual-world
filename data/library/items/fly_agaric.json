@@ -1,0 +1,19 @@
+{
+  "name": "fly_agaric",
+  "description": "A fly agaric, red and white-spotted, and *not* one of the edible ones.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "mushroom",
+    "hazard",
+    "poisonous"
+  ],
+  "triggers": [],
+  "contents": []
+}

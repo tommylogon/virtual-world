@@ -1,0 +1,19 @@
+{
+  "name": "fire_irons",
+  "description": "A pair of fire irons, one flat and one hooked, standing on a stand.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 3.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "kitchen",
+    "metal",
+    "fire"
+  ],
+  "triggers": [],
+  "contents": []
+}

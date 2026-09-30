@@ -1,0 +1,22 @@
+{
+  "name": "manor_garden_herbary",
+  "description": "A herbary, a walled kitchen garden, and it is for the things a house needs not the things it eats.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 100,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "plant",
+    "garden",
+    "large",
+    "building",
+    "herb"
+  ],
+  "triggers": [],
+  "contents": []
+}

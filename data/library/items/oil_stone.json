@@ -1,0 +1,20 @@
+{
+  "name": "oil_stone",
+  "description": "An oilstone, a block of fine sandstone, and the slip is the oil and the water.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 1.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "tool",
+    "stone",
+    "furniture"
+  ],
+  "triggers": [],
+  "contents": []
+}

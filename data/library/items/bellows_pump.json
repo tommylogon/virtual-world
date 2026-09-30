@@ -1,0 +1,20 @@
+{
+  "name": "bellows_pump",
+  "description": "A bellows pump, a lever and a cylinder, and it is the first of its kind and a marvel.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 20,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "smith",
+    "tool",
+    "wooden",
+    "machine"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,19 @@
+{
+  "name": "hand_mill",
+  "description": "A quern, two stones, and the only flour in the house made this morning.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 8.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "kitchen",
+    "tool",
+    "stone"
+  ],
+  "triggers": [],
+  "contents": []
+}

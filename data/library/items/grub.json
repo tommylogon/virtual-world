@@ -1,0 +1,48 @@
+{
+  "name": "grub",
+  "description": "A fat grub, a woodlouse, and it goes on a hook and it is what a pike eats.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 3,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "food",
+    "forage",
+    "bait",
+    "fishing"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "You eat it, gathered and not much cleaned."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -8,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "You eat it, gathered and not much cleaned.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

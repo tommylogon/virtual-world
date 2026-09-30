@@ -1,0 +1,20 @@
+{
+  "name": "chain_link",
+  "description": "A link of chain, and a chain is a hundred of them and a bad link spoils the lot.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "metal",
+    "trade",
+    "tool"
+  ],
+  "triggers": [],
+  "contents": []
+}

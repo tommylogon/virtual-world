@@ -1,0 +1,23 @@
+{
+  "name": "wall_tapestry",
+  "description": "A tapestry on the wall, faded, and the scene is someone winning something.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 6.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "art",
+    "display",
+    "wall",
+    "textile",
+    "large",
+    "wallmounted"
+  ],
+  "triggers": [],
+  "contents": []
+}

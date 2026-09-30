@@ -1,0 +1,19 @@
+{
+  "name": "fish_gut",
+  "description": "Fish guts, and they go to the kennel and a dog will tell you.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "fish",
+    "waste",
+    "filth"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,20 @@
+{
+  "name": "market_stall",
+  "description": "A market stall, trestle and a cloth over the top and pegged at the corners.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 15.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "town",
+    "furniture",
+    "cloth",
+    "trading"
+  ],
+  "triggers": [],
+  "contents": []
+}

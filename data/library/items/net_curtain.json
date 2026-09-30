@@ -1,0 +1,19 @@
+{
+  "name": "net_curtain",
+  "description": "A net curtain, hung to keep the flies off the meat.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "cloth",
+    "household",
+    "fibre"
+  ],
+  "triggers": [],
+  "contents": []
+}

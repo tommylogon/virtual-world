@@ -1,0 +1,49 @@
+{
+  "name": "sea_beet_leaf",
+  "description": "Sea beet leaves, the thick green ones, salted and cooked like spinach.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 3,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "food",
+    "forage",
+    "vegetable",
+    "marine",
+    "food"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "You eat it. Better than nothing and not much more."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -14,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "You eat it. Better than nothing and not much more.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

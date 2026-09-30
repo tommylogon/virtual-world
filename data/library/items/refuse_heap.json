@@ -1,0 +1,20 @@
+{
+  "name": "refuse_heap",
+  "description": "A refuse heap, at the edge, and the flies find it before anyone does.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 20.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "town",
+    "trash",
+    "filth",
+    "stench"
+  ],
+  "triggers": [],
+  "contents": []
+}

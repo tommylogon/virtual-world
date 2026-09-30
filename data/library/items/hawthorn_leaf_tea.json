@@ -1,0 +1,20 @@
+{
+  "name": "hawthorn_leaf_tea",
+  "description": "Hawthorn leaves, dried, for a tea, and the berries are better for the heart.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "forage",
+    "herb",
+    "tea",
+    "medicinal"
+  ],
+  "triggers": [],
+  "contents": []
+}

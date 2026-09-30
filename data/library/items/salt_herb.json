@@ -1,0 +1,19 @@
+{
+  "name": "salt_herb",
+  "description": "Samphire, grown on a salt marsh, and the stems are salty enough to eat raw.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "forage",
+    "vegetable",
+    "marine"
+  ],
+  "triggers": [],
+  "contents": []
+}

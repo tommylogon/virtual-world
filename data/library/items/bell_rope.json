@@ -1,0 +1,20 @@
+{
+  "name": "bell_rope",
+  "description": "A bell rope, a thick hempen line through the loft, and it goes down a long way.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 5.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "sound_source",
+    "fibre",
+    "town"
+  ],
+  "triggers": [],
+  "contents": []
+}

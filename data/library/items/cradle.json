@@ -1,0 +1,22 @@
+{
+  "name": "cradle",
+  "description": "A cradle, a hooded one on rockers, and the hood is the whole of the design.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "bedroom",
+    "wooden",
+    "baby",
+    "large",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

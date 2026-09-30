@@ -1,0 +1,21 @@
+{
+  "name": "soft_soap",
+  "description": "Soft soap, a pot of it, and it is a potash and oil soup and it smells of the pot.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "cleaning",
+    "personal",
+    "alchemical",
+    "liquid"
+  ],
+  "triggers": [],
+  "contents": []
+}

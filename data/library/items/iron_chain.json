@@ -1,0 +1,20 @@
+{
+  "name": "iron_chain",
+  "description": "A length of chain, wrought link by link, and every one was made by hand.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "smith",
+    "metal",
+    "container",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

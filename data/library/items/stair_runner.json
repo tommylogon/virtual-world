@@ -1,0 +1,20 @@
+{
+  "name": "stair_runner",
+  "description": "A stair runner, a strip of beaten cloth, to keep the polish on the treads.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 4.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "cloth",
+    "hallway",
+    "insulation"
+  ],
+  "triggers": [],
+  "contents": []
+}

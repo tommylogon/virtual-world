@@ -1,0 +1,22 @@
+{
+  "name": "pricket_candlestick",
+  "description": "A pricket, a spike standing in a dish, and it is for a wood splinter and a rush.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "light_source",
+    "candle",
+    "metal",
+    "furniture",
+    "small",
+    "fuel"
+  ],
+  "triggers": [],
+  "contents": []
+}

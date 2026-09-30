@@ -1,0 +1,21 @@
+{
+  "name": "cloth_bolt",
+  "description": "A bolt of finished cloth, wound on a board, and a bolt is a day's work.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 20,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "weaver",
+    "textile",
+    "material",
+    "container",
+    "large"
+  ],
+  "triggers": [],
+  "contents": []
+}

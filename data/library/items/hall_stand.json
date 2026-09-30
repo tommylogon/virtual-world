@@ -1,0 +1,21 @@
+{
+  "name": "hall_stand",
+  "description": "A hall stand, with a dish for the keys and a slot for a staff.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 8.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "furniture",
+    "wooden",
+    "hallway",
+    "container"
+  ],
+  "triggers": [],
+  "contents": []
+}

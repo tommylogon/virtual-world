@@ -1,0 +1,21 @@
+{
+  "name": "knife_horn_handle",
+  "description": "A knife with a horn handle, and the horn is boiled and pressed and it is the mark of a good one.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "kitchen",
+    "tool",
+    "metal",
+    "wooden",
+    "dining"
+  ],
+  "triggers": [],
+  "contents": []
+}

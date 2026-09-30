@@ -1,0 +1,21 @@
+{
+  "name": "worm_brace",
+  "description": "A brace and bit, a crank with a bit in it, and it is how a hole is bored by one man.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "carpenter",
+    "tool",
+    "metal",
+    "wooden",
+    "craft"
+  ],
+  "triggers": [],
+  "contents": []
+}

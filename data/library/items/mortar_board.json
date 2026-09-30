@@ -1,0 +1,18 @@
+{
+  "name": "mortar_board",
+  "description": "A low bench by the fire, called a settle, where an old person sits.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 8.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "wooden"
+  ],
+  "triggers": [],
+  "contents": []
+}

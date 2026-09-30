@@ -1,0 +1,19 @@
+{
+  "name": "mine_rope",
+  "description": "A mine rope, hemp, and it is the only thing between a man and the sump.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 12,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "mining",
+    "tool",
+    "fibre"
+  ],
+  "triggers": [],
+  "contents": []
+}

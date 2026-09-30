@@ -1,0 +1,21 @@
+{
+  "name": "hand_card",
+  "description": "Hand cards, wire-studded leather, for teasing wool into order.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "tool",
+    "leather",
+    "craft",
+    "fibre"
+  ],
+  "triggers": [],
+  "contents": []
+}

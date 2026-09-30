@@ -1,0 +1,19 @@
+{
+  "name": "hitching_post",
+  "description": "A hitching post, iron, with a ring at the top for a rein.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 12.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "road",
+    "metal",
+    "town"
+  ],
+  "triggers": [],
+  "contents": []
+}

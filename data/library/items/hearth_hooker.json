@@ -1,0 +1,21 @@
+{
+  "name": "hearth_hooker",
+  "description": "A fire hook, long, and its only job is to be in the fire so a hand is not.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "fire",
+    "metal",
+    "kitchen",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

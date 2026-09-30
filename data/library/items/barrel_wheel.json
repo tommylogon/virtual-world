@@ -1,0 +1,20 @@
+{
+  "name": "barrel_wheel",
+  "description": "A flagging wheel, to take the old hoops off a barrel, and it is set on its end and spun.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "cooper",
+    "tool",
+    "wooden",
+    "machine"
+  ],
+  "triggers": [],
+  "contents": []
+}

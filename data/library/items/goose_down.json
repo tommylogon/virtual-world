@@ -1,0 +1,19 @@
+{
+  "name": "goose_down",
+  "description": "A bag of goose down, the softest thing on the farm and worth a fortune.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "natural",
+    "fibre",
+    "feather"
+  ],
+  "triggers": [],
+  "contents": []
+}

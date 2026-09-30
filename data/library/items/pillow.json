@@ -1,0 +1,21 @@
+{
+  "name": "pillow",
+  "description": "A pillow, linen, and a good one is worth saying out loud.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "furniture",
+    "bedroom",
+    "cloth",
+    "insulation"
+  ],
+  "triggers": [],
+  "contents": []
+}

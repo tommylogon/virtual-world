@@ -1,0 +1,20 @@
+{
+  "name": "plaster_sand",
+  "description": "Sand for the plaster, and it is sieved or the wall will crack in a year.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 20,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "plasterer",
+    "material",
+    "building",
+    "stone"
+  ],
+  "triggers": [],
+  "contents": []
+}

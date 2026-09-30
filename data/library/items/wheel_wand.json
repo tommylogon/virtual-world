@@ -1,0 +1,19 @@
+{
+  "name": "wheel_wand",
+  "description": "A breaking wheel, an iron tool, and it makes the noise a wheelwright is known for.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "wheelwright",
+    "tool",
+    "metal"
+  ],
+  "triggers": [],
+  "contents": []
+}

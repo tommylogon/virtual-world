@@ -1,0 +1,20 @@
+{
+  "name": "pitch_mop",
+  "description": "A pitch mop, and a cask is pitched inside to keep the beer from the wood.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "cooper",
+    "tool",
+    "fibre",
+    "fletching"
+  ],
+  "triggers": [],
+  "contents": []
+}

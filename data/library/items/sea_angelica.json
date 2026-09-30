@@ -1,0 +1,19 @@
+{
+  "name": "sea_angelica",
+  "description": "Sea angelica, the big umbel that grows on a shingle bank and smells of nothing.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "forage",
+    "herb",
+    "plant"
+  ],
+  "triggers": [],
+  "contents": []
+}

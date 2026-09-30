@@ -1,0 +1,23 @@
+{
+  "name": "manor_dovecote",
+  "description": "A dovecote, a tower of nesting boxes, and it is the fastest way to move a letter anywhere.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 120,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "building",
+    "stone",
+    "farming",
+    "large",
+    "small",
+    "trade",
+    "pigeon"
+  ],
+  "triggers": [],
+  "contents": []
+}

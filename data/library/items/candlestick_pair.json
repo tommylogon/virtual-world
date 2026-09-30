@@ -1,0 +1,21 @@
+{
+  "name": "candlestick_pair",
+  "description": "A pair of candlesticks, prickets of iron, and they are the oldest furniture in a room.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "light_source",
+    "candle",
+    "metal",
+    "furniture",
+    "tableware"
+  ],
+  "triggers": [],
+  "contents": []
+}

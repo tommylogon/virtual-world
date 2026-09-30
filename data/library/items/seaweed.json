@@ -1,0 +1,19 @@
+{
+  "name": "seaweed",
+  "description": "Seaweed, gathered at low tide and salted for the pot.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "natural",
+    "plant",
+    "marine"
+  ],
+  "triggers": [],
+  "contents": []
+}

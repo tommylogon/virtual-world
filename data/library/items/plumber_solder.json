@@ -1,0 +1,21 @@
+{
+  "name": "plumber_solder",
+  "description": "A pot of solder, and a tinker is named for it and it is the hottest thing he owns.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "plumber",
+    "material",
+    "metal",
+    "fire",
+    "hazard"
+  ],
+  "triggers": [],
+  "contents": []
+}

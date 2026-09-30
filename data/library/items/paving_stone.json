@@ -1,0 +1,19 @@
+{
+  "name": "paving_stone",
+  "description": "A paving stone, worn hollow in the middle by a century of feet.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 20.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "road",
+    "stone",
+    "town"
+  ],
+  "triggers": [],
+  "contents": []
+}

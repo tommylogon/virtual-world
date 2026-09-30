@@ -1,0 +1,22 @@
+{
+  "name": "clothes_chest",
+  "description": "A press, a cupboard for clothes, and it is carved and it is the biggest thing in a bedroom.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 40,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "storage",
+    "bedroom",
+    "wooden",
+    "large",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

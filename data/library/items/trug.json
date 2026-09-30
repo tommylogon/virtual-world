@@ -1,0 +1,19 @@
+{
+  "name": "trug",
+  "description": "A smith's trug, a shallow wooden tub of water, and the hot iron goes in and the sound is the trade.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 20,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "smith",
+    "tool",
+    "wooden"
+  ],
+  "triggers": [],
+  "contents": []
+}

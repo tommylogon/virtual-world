@@ -1,0 +1,19 @@
+{
+  "name": "lamp_oil_miner",
+  "description": "A lamp of whale oil, brighter than the candle and it smells for a week.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "mining",
+    "light_source",
+    "liquid"
+  ],
+  "triggers": [],
+  "contents": []
+}

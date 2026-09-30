@@ -1,0 +1,21 @@
+{
+  "name": "bed_boarding",
+  "description": "Boards, a board bed, and it is a plank on trestles and a straw tick on top.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 40,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "bedroom",
+    "wooden",
+    "bed",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

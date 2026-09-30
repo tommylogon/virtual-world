@@ -1,0 +1,30 @@
+{
+  "name": "flax",
+  "description": "Flax, the blue flowers gone to seed bolls.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 2.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "plant",
+    "organic",
+    "outdoor",
+    "resource_pool",
+    "crop",
+    "fibre"
+  ],
+  "triggers": [],
+  "contents": [],
+  "quantity": 2,
+  "harvest": {
+    "item": "flax_fibre",
+    "size": 2,
+    "skill": "Survival",
+    "dc": 8
+  },
+  "insulation": 0
+}

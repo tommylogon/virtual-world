@@ -1,0 +1,21 @@
+{
+  "name": "spinning_drop_spindle",
+  "description": "A drop spindle, whorl and shaft, and the thread is going on right now.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "tool",
+    "wooden",
+    "craft",
+    "fibre"
+  ],
+  "triggers": [],
+  "contents": []
+}

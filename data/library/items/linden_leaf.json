@@ -1,0 +1,20 @@
+{
+  "name": "linden_leaf",
+  "description": "Linden leaves, the heart-shaped ones, and the smell of the tree in June is why they are picked.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "forage",
+    "herb",
+    "fragrant",
+    "plant"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,22 @@
+{
+  "name": "pillory_post",
+  "description": "A pillory, and the holes are waist-high and the wood is worn smooth by necks.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 20,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "town",
+    "wooden",
+    "furniture",
+    "punishment",
+    "legal",
+    "large"
+  ],
+  "triggers": [],
+  "contents": []
+}

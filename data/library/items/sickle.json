@@ -1,0 +1,20 @@
+{
+  "name": "sickle",
+  "description": "A sickle, hooked and serrated on the inside, and the handle worn to fit one hand.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "tool",
+    "metal",
+    "farming"
+  ],
+  "triggers": [],
+  "contents": []
+}

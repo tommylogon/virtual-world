@@ -1,0 +1,24 @@
+{
+  "name": "leather_jacket",
+  "description": "A jerkin of leather, soft and dark, and it is a soldier's coat and a tradesman's.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 1.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [
+    "torso"
+  ],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "clothing",
+    "top",
+    "leather",
+    "torso",
+    "insulation"
+  ],
+  "triggers": [],
+  "contents": [],
+  "insulation": 0
+}

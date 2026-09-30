@@ -1,0 +1,21 @@
+{
+  "name": "lock_iron",
+  "description": "A lock, and it is the most expensive thing on a house and the least replaceable.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "metal",
+    "key",
+    "trade",
+    "valuable"
+  ],
+  "triggers": [],
+  "contents": []
+}

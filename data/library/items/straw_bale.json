@@ -1,0 +1,29 @@
+{
+  "name": "straw_bale",
+  "description": "A bale of straw, and the smell of every animal that ever ate it.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 2.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "plant",
+    "organic",
+    "outdoor",
+    "resource_pool",
+    "fodder"
+  ],
+  "triggers": [],
+  "contents": [],
+  "quantity": 2,
+  "harvest": {
+    "item": "straw",
+    "size": 3,
+    "skill": "Survival",
+    "dc": 6
+  },
+  "insulation": 0
+}

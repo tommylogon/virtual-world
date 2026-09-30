@@ -1,0 +1,19 @@
+{
+  "name": "sage_dried",
+  "description": "Dried sage, grey-green and brittle, for stuffing and for tea.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "herb",
+    "culinary",
+    "tea"
+  ],
+  "triggers": [],
+  "contents": []
+}

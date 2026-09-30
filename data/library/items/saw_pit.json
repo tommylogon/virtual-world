@@ -1,0 +1,21 @@
+{
+  "name": "saw_pit",
+  "description": "A saw pit, a pit over which a long saw is worked, and two men are needed and one is in the pit.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 20,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "sawyer",
+    "furniture",
+    "wooden",
+    "building",
+    "large"
+  ],
+  "triggers": [],
+  "contents": []
+}

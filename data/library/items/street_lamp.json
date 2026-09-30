@@ -1,0 +1,19 @@
+{
+  "name": "street_lamp",
+  "description": "A street lamp, iron, on a bracket, lit at dusk and out at dawn.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 20.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "town",
+    "light_source",
+    "metal"
+  ],
+  "triggers": [],
+  "contents": []
+}

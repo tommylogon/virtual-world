@@ -1,0 +1,25 @@
+{
+  "name": "gown_cloth",
+  "description": "A gown of cloth, sleeveless over a kirtle, and it is tied with a sash at the waist.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [
+    "torso"
+  ],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "clothing",
+    "top",
+    "dress",
+    "torso",
+    "layered",
+    "rich"
+  ],
+  "triggers": [],
+  "contents": [],
+  "insulation": 0
+}

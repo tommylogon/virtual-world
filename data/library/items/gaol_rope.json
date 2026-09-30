@@ -1,0 +1,22 @@
+{
+  "name": "gaol_rope",
+  "description": "A gaol rope, a knotted rope hanging from a beam, and a prisoner can climb it out and is right to.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "town",
+    "fibre",
+    "punishment",
+    "legal",
+    "small",
+    "building"
+  ],
+  "triggers": [],
+  "contents": []
+}

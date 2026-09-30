@@ -1,0 +1,24 @@
+{
+  "name": "belt_leather",
+  "description": "A leather belt, cut and punched, and it is the plainest thing a person owns.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [
+    "waist"
+  ],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "clothing",
+    "leather",
+    "accessory",
+    "waist",
+    "metal"
+  ],
+  "triggers": [],
+  "contents": [],
+  "insulation": 0
+}

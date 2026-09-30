@@ -1,0 +1,20 @@
+{
+  "name": "mill_bucket",
+  "description": "A mill bucket, a wooden scoop on a chain, and it lifts the grain to the top.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "miller",
+    "tool",
+    "wooden",
+    "container"
+  ],
+  "triggers": [],
+  "contents": []
+}

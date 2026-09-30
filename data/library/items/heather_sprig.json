@@ -1,0 +1,20 @@
+{
+  "name": "heather_sprig",
+  "description": "A sprig of heather, purple and sticky, and a bee working it is worth the watch.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "forage",
+    "plant",
+    "flower",
+    "fragrant"
+  ],
+  "triggers": [],
+  "contents": []
+}

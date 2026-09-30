@@ -1,0 +1,20 @@
+{
+  "name": "frit_glass",
+  "description": "Frit, ground glass, and it is the opaque white and gold in a window.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "glass",
+    "dye",
+    "trade"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,21 @@
+{
+  "name": "honey_extractor",
+  "description": "A honey extractor, a drum that spins the comb and drops the honey out.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 6.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "tool",
+    "kitchen",
+    "wooden",
+    "farming"
+  ],
+  "triggers": [],
+  "contents": []
+}

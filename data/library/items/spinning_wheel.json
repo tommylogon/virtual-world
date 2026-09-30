@@ -1,0 +1,21 @@
+{
+  "name": "spinning_wheel",
+  "description": "A spinning wheel, and the wheel is the great invention because it turns the wheel for you.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "weaver",
+    "tool",
+    "wooden",
+    "machine",
+    "craft"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,20 @@
+{
+  "name": "meadow_flower_bunch",
+  "description": "A bunch of meadow flowers, the ox-eye daisies and the cornflowers, and it is a posy.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "forage",
+    "plant",
+    "fragrant",
+    "flower"
+  ],
+  "triggers": [],
+  "contents": []
+}

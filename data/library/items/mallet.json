@@ -1,0 +1,19 @@
+{
+  "name": "mallet",
+  "description": "A wooden mallet, and the head swollen from ten thousand blows.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "tool",
+    "wooden"
+  ],
+  "triggers": [],
+  "contents": []
+}

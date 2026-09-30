@@ -1,0 +1,19 @@
+{
+  "name": "glass_bead",
+  "description": "A single glass bead, blue, traded from somewhere much further away.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.02,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "glass",
+    "trade"
+  ],
+  "triggers": [],
+  "contents": []
+}

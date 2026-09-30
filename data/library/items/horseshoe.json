@@ -1,0 +1,19 @@
+{
+  "name": "horseshoe",
+  "description": "A horseshoe, and it is a piece of bent iron and every hoof on the road is proof.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "smith",
+    "metal",
+    "farms"
+  ],
+  "triggers": [],
+  "contents": []
+}

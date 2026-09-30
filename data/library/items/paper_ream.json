@@ -1,0 +1,21 @@
+{
+  "name": "paper_ream",
+  "description": "A ream of paper, and a ream is twenty quires and a quire is twenty-four sheets.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "paper",
+    "writing",
+    "trade",
+    "book"
+  ],
+  "triggers": [],
+  "contents": []
+}

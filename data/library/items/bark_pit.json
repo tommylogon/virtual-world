@@ -1,0 +1,21 @@
+{
+  "name": "bark_pit",
+  "description": "A bark pit, a pit of oak bark and water, and a hide is in it for a month.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 200,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tanner",
+    "building",
+    "leather",
+    "liquid",
+    "large"
+  ],
+  "triggers": [],
+  "contents": []
+}

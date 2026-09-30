@@ -1,0 +1,22 @@
+{
+  "name": "chair_settle",
+  "description": "A settle, a bench with a high back and a chest under it, and it is a seat and storage.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 60,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "wooden",
+    "hallway",
+    "hearth",
+    "large",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

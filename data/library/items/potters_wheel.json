@@ -1,0 +1,21 @@
+{
+  "name": "potters_wheel",
+  "description": "A potter's wheel, two discs, and it is the one tool that made a thousand jobs.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 15,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "potter",
+    "tool",
+    "wooden",
+    "machine",
+    "craft"
+  ],
+  "triggers": [],
+  "contents": []
+}

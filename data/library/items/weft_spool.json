@@ -1,0 +1,21 @@
+{
+  "name": "weft_spool",
+  "description": "A spool of weft, wound on a quill, and it goes into the shuttle at every pass.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "weaver",
+    "tool",
+    "fibre",
+    "fletching",
+    "small"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,21 @@
+{
+  "name": "bellows_bellows",
+  "description": "A pair of bellows, and the leather is nailed to the boards and it leaks until it is dressed.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "fire",
+    "leather",
+    "kitchen",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

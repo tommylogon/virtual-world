@@ -1,0 +1,18 @@
+{
+  "name": "horn",
+  "description": "A horn, hollow, for a cup or a powder flask.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "container"
+  ],
+  "triggers": [],
+  "contents": []
+}

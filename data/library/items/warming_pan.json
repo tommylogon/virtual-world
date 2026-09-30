@@ -1,0 +1,22 @@
+{
+  "name": "warming_pan",
+  "description": "A warming pan, a long handle and a footed pan, and it is put in a bed before the person is.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "kitchen",
+    "tool",
+    "metal",
+    "bedroom",
+    "fire",
+    "insulation"
+  ],
+  "triggers": [],
+  "contents": []
+}

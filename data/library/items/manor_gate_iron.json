@@ -1,0 +1,23 @@
+{
+  "name": "manor_gate_iron",
+  "description": "A gate, iron, and it is a vehicle gate and a postern gate and they do not open the same week.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 25,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "metal",
+    "door",
+    "large",
+    "manor",
+    "heavy",
+    "wall"
+  ],
+  "triggers": [],
+  "contents": []
+}

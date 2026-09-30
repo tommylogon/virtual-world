@@ -1,0 +1,21 @@
+{
+  "name": "eel_spear",
+  "description": "An eel spear, a tine of iron, and the worst of it is the waiting.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "tool",
+    "fishing",
+    "weapon",
+    "metal"
+  ],
+  "triggers": [],
+  "contents": []
+}

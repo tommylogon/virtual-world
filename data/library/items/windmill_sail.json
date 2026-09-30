@@ -1,0 +1,21 @@
+{
+  "name": "windmill_sail",
+  "description": "A mill sail, a lattice of wood on an arm, and it is a sail because it is on a mill.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 60,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "miller",
+    "wooden",
+    "building",
+    "machine",
+    "large"
+  ],
+  "triggers": [],
+  "contents": []
+}

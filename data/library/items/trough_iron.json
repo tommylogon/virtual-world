@@ -1,0 +1,19 @@
+{
+  "name": "trough_iron",
+  "description": "A trough of wrought iron, cold-worked in an honest fire, and it is soft and tough.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "metal",
+    "smith"
+  ],
+  "triggers": [],
+  "contents": []
+}

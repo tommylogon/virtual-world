@@ -1,0 +1,20 @@
+{
+  "name": "warp_thread",
+  "description": "A warp thread, linen, and it is stronger than the weft because it takes the tension.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.01,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "weaver",
+    "fibre",
+    "material",
+    "thread"
+  ],
+  "triggers": [],
+  "contents": []
+}

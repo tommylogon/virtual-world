@@ -1,0 +1,22 @@
+{
+  "name": "snuffbox",
+  "description": "A snuffbox, horn, and the lid inlaid with a strip of mother-of-pearl.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "personal",
+    "container",
+    "accessory",
+    "small",
+    "valuable"
+  ],
+  "triggers": [],
+  "contents": []
+}

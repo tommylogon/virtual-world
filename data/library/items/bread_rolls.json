@@ -1,0 +1,47 @@
+{
+  "name": "bread_rolls",
+  "description": "A cloth of bread rolls, gone cold and floured.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 3,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "food",
+    "food",
+    "bread"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "You eat it. That was worth stopping for."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -32,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "You eat it. That was worth stopping for.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

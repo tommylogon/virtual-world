@@ -1,0 +1,24 @@
+{
+  "name": "hose_leg_shoe",
+  "description": "A patten, a wooden overshoe, and it lifts a hem out of the mud on a walk.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [
+    "feet"
+  ],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "clothing",
+    "footwear",
+    "wooden",
+    "feet",
+    "water"
+  ],
+  "triggers": [],
+  "contents": [],
+  "insulation": 0
+}

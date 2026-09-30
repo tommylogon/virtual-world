@@ -1,0 +1,20 @@
+{
+  "name": "ridge_tile",
+  "description": "A ridge tile, bent over a roof to stop the water going down the middle of it.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "potter",
+    "building",
+    "clay",
+    "roofing"
+  ],
+  "triggers": [],
+  "contents": []
+}

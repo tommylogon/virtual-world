@@ -1,0 +1,21 @@
+{
+  "name": "barrel_press",
+  "description": "A press, to force the staves together before the hoop goes on.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 25,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "cooper",
+    "tool",
+    "wooden",
+    "machine",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

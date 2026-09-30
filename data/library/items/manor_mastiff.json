@@ -1,0 +1,22 @@
+{
+  "name": "manor_mastiff",
+  "description": "A mastiff, a great dog on a chain, and it is a household's answer to everything.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 40,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "animal",
+    "farming",
+    "guard",
+    "manor",
+    "large",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

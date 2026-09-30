@@ -1,0 +1,19 @@
+{
+  "name": "benzoin_resin",
+  "description": "Benzoin resin, a lump of it, and it burns sweet enough to sweeten a room.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "herb",
+    "incense",
+    "fragrant"
+  ],
+  "triggers": [],
+  "contents": []
+}

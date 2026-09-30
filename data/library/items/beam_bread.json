@@ -1,0 +1,21 @@
+{
+  "name": "beam_bread",
+  "description": "A bread beam, a long knife, and it is the only thing that cuts a crust without crushing it.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "kitchen",
+    "tool",
+    "wooden",
+    "dining",
+    "small"
+  ],
+  "triggers": [],
+  "contents": []
+}

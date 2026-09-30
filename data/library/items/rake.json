@@ -1,0 +1,20 @@
+{
+  "name": "rake",
+  "description": "A wooden rake, tines bound with withies, for the hay.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 1.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "tool",
+    "wooden",
+    "farming"
+  ],
+  "triggers": [],
+  "contents": []
+}

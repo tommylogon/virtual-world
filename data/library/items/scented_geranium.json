@@ -1,0 +1,19 @@
+{
+  "name": "scented_geranium",
+  "description": "Scented geranium, the leaf that smells of rose and is not one.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "herb",
+    "fragrant",
+    "pot"
+  ],
+  "triggers": [],
+  "contents": []
+}

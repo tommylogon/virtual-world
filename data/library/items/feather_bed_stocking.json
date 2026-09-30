@@ -1,0 +1,20 @@
+{
+  "name": "feather_bed_stocking",
+  "description": "A bed of feathers and down, and it is stuffed by a woman with a whole winter of work.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "forage",
+    "fibre",
+    "feather",
+    "bedroom"
+  ],
+  "triggers": [],
+  "contents": []
+}

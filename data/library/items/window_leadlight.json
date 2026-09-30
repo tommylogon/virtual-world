@@ -1,0 +1,22 @@
+{
+  "name": "window_leadlight",
+  "description": "A leaded light, and it is glass in a lattice and it lets in a fifth of the light.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 10,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "glass",
+    "window",
+    "hallway",
+    "large",
+    "building"
+  ],
+  "triggers": [],
+  "contents": []
+}

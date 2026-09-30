@@ -1,0 +1,19 @@
+{
+  "name": "hang_iron",
+  "description": "A hanging iron, a triangle of bar on a chain, for a pot over the fire.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 3.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "kitchen",
+    "metal",
+    "tool"
+  ],
+  "triggers": [],
+  "contents": []
+}

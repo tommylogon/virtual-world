@@ -1,0 +1,24 @@
+{
+  "name": "wimple",
+  "description": "A wimple, cloth over the chin and neck, and it is modesty as much as warmth.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [
+    "head"
+  ],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "clothing",
+    "head",
+    "linen",
+    "private",
+    "dress"
+  ],
+  "triggers": [],
+  "contents": [],
+  "insulation": 0
+}

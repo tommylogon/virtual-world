@@ -1,0 +1,27 @@
+{
+  "name": "manor_signet_ring",
+  "description": "A signet ring, and the seal on it opens a letter that the law has to answer.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [
+    "hands"
+  ],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "clothing",
+    "accessory",
+    "metal",
+    "valuable",
+    "document",
+    "hands",
+    "manor",
+    "noble"
+  ],
+  "triggers": [],
+  "contents": [],
+  "insulation": 0
+}

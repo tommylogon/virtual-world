@@ -1,0 +1,19 @@
+{
+  "name": "cask_hoop_steel",
+  "description": "A steel hoop, and it is better than iron because it does not rust and rust ruins a cask.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "cooper",
+    "material",
+    "metal"
+  ],
+  "triggers": [],
+  "contents": []
+}

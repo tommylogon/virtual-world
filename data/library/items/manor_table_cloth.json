@@ -1,0 +1,23 @@
+{
+  "name": "manor_table_cloth",
+  "description": "A table cloth, and it is the finest thing in the house and it is never sat on.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "textile",
+    "table",
+    "manor",
+    "dining",
+    "rich",
+    "large"
+  ],
+  "triggers": [],
+  "contents": []
+}

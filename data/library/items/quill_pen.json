@@ -1,0 +1,21 @@
+{
+  "name": "quill_pen",
+  "description": "A quill pen, a feather cut to a nib, and the shaft chewed where it is held.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.02,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "tool",
+    "writing",
+    "small",
+    "fletching"
+  ],
+  "triggers": [],
+  "contents": []
+}

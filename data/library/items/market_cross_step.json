@@ -1,0 +1,22 @@
+{
+  "name": "market_cross_step",
+  "description": "A step on the cross, worn into a hollow by three hundred years of standing.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 20,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "town",
+    "stone",
+    "furniture",
+    "market",
+    "wear",
+    "small"
+  ],
+  "triggers": [],
+  "contents": []
+}

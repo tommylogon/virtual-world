@@ -1,0 +1,20 @@
+{
+  "name": "burdock_root",
+  "description": "Burdock root, dug and scrubbed, and the reason it is in a bottle of headache water.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "forage",
+    "herb",
+    "medicinal",
+    "root"
+  ],
+  "triggers": [],
+  "contents": []
+}

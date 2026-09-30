@@ -1,0 +1,20 @@
+{
+  "name": "oak_bark_tannin",
+  "description": "Oak bark for tanning, and one oak makes both a roof and a pair of shoes.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tanner",
+    "material",
+    "dye",
+    "fibre"
+  ],
+  "triggers": [],
+  "contents": []
+}

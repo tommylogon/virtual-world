@@ -1,0 +1,24 @@
+{
+  "name": "stomacher",
+  "description": "A stomacher, a stiffened panel over the chest, and it is padded to make a flat front.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [
+    "accessory"
+  ],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "clothing",
+    "top",
+    "torso",
+    "dress",
+    "accessory"
+  ],
+  "triggers": [],
+  "contents": [],
+  "insulation": 0
+}

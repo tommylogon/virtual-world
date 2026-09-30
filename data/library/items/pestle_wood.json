@@ -1,0 +1,20 @@
+{
+  "name": "pestle_wood",
+  "description": "A wooden pestle, and it is for a pot as much as a mortar and it never chips the glaze.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "kitchen",
+    "tool",
+    "wooden",
+    "small"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,18 @@
+{
+  "name": "sinew",
+  "description": "A twist of sinew, dried and tough, for sewing anything at all.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "fibre"
+  ],
+  "triggers": [],
+  "contents": []
+}

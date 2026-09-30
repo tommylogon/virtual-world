@@ -1,0 +1,19 @@
+{
+  "name": "oil_paper",
+  "description": "A sheet of oiled paper, translucent, for wrapping what must stay dry.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tool",
+    "material",
+    "paper"
+  ],
+  "triggers": [],
+  "contents": []
+}

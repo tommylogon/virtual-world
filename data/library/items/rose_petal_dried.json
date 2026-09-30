@@ -1,0 +1,19 @@
+{
+  "name": "rose_petal_dried",
+  "description": "Dried rose petals, pink and papery, and they keep the smell of the pot.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "herb",
+    "fragrant",
+    "strewing"
+  ],
+  "triggers": [],
+  "contents": []
+}

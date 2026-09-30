@@ -1,0 +1,19 @@
+{
+  "name": "rush_mat",
+  "description": "A rush mat, woven, and cold underfoot in the morning.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "furniture",
+    "fibre",
+    "household"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,19 @@
+{
+  "name": "resin",
+  "description": "A lump of pine resin, amber and sticky, the base of every varnish in the world.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "plant",
+    "sticky"
+  ],
+  "triggers": [],
+  "contents": []
+}

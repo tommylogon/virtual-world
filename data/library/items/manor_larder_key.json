@@ -1,0 +1,21 @@
+{
+  "name": "manor_larder_key",
+  "description": "A larder key, and it hangs on a nail by the kitchen door and everybody knows.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "key",
+    "metal",
+    "kitchen",
+    "manor",
+    "small"
+  ],
+  "triggers": [],
+  "contents": []
+}

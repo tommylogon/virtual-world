@@ -1,0 +1,48 @@
+{
+  "name": "small_ale",
+  "description": "A jug of ale, brown and cloudy, and the reason for most evenings in a village.",
+  "actions": "examine,take,use,drink,drop",
+  "uses": 3,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "drink",
+    "drink",
+    "alcohol",
+    "grain"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_drink"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "You drink it down. It helps."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Thirst",
+            "amount": -30,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "You drink it down. It helps.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

@@ -1,0 +1,21 @@
+{
+  "name": "wheel_nail",
+  "description": "A wheel nail, square-shanked, and it is clinched over and it is stronger than a horseshoe nail.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.02,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "wheelwright",
+    "material",
+    "metal",
+    "small",
+    "vehicle"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,49 @@
+{
+  "name": "kitchen_scrub",
+  "description": "A kitchen scrub, hog bristles and a handle, and it is the one tool that never breaks.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 3,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "food",
+    "tool",
+    "kitchen",
+    "fibre",
+    "fletching"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "You eat it. Better than nothing and not much more."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -0.1,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "You eat it. Better than nothing and not much more.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

@@ -1,0 +1,19 @@
+{
+  "name": "rye_straw_loaf",
+  "description": "A loaf of rye straw, and the smell of it in a stable is a smell of plenty.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "grain",
+    "fodder",
+    "store"
+  ],
+  "triggers": [],
+  "contents": []
+}

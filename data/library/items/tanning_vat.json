@@ -1,0 +1,22 @@
+{
+  "name": "tanning_vat",
+  "description": "A tanning vat, and the smell of a tanyard is a smell you do not forget.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 150,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "tanner",
+    "container",
+    "wooden",
+    "liquid",
+    "leather",
+    "large"
+  ],
+  "triggers": [],
+  "contents": []
+}
