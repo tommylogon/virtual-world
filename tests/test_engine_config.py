@@ -127,3 +127,105 @@ def test_unknown_and_bad_keys_are_ignored():
     # Bad value for a float key is skipped, leaving the previous value.
     assert values["sound.way_open"] == BASELINE["sound.way_open"]
     assert values["heat.base_rate"] == 0.33
+
+
+# ── a string-valued setting was unsettable, on both paths ────────────────
+#
+# The coercion ladder had no `str` arm, so a string-defaulted key fell into the
+# `else: float` one. On the *file* path that warned once per load and kept the
+# default; on the *save* path it was dropped in silence, because that one had no
+# warning at all. `forecast.apply_scope` was the only such key, so the setting was
+# decorative: nobody could change it from the file or from the Settings menu.
+
+
+def test_a_string_valued_setting_can_actually_be_set():
+    client = _make_client()
+    resp = client.post("/api/settings/engine_config",
+                       json={"values": {"forecast.apply_scope": "all"}})
+    assert resp.status_code == 200
+    assert resp.get_json()["values"]["forecast.apply_scope"] == "all"
+    # …and it survives a save/reload round trip, which is the part that was broken:
+    # the value has to reach the file and come back out of it as the same *string*.
+    # The `isolated_config` fixture has already pointed the singleton at a
+    # throwaway file, so a fresh instance on **that same path** is a true reload
+    # without touching `data/engine_config.json`.
+    from engine.runtime_config import RuntimeConfig
+    reloaded = RuntimeConfig(runtime_config.config._config_file)
+    assert reloaded.get("forecast.apply_scope") == "all"
+
+
+def test_a_string_setting_refuses_a_number_and_an_unknown_word():
+    client = _make_client()
+    resp = client.post("/api/settings/engine_config", json={"values": {
+        "forecast.apply_scope": 2,                 # not a string
+        "heat.base_rate": "banana",                # not a number
+        "sound.way_open": "banana",                # ditto
+    }})
+    assert resp.status_code == 200
+    values = resp.get_json()["values"]
+    assert values["forecast.apply_scope"] == BASELINE["forecast.apply_scope"]
+    assert values["heat.base_rate"] == BASELINE["heat.base_rate"]
+
+
+def test_a_setting_declares_the_words_it_means():
+    """`choices` is what stops a typo becoming a different behaviour.
+
+    `forecast.apply_scope` reads "not exterior" as "apply to every area", so
+    "exteriorr" would have quietly widened the weather to interiors.
+    """
+    client = _make_client()
+    resp = client.post("/api/settings/engine_config",
+                       json={"values": {"forecast.apply_scope": "exteriorr"}})
+    assert resp.status_code == 200
+    assert resp.get_json()["values"]["forecast.apply_scope"] == BASELINE[
+        "forecast.apply_scope"]
+
+
+def test_a_boolean_is_not_read_by_truthiness():
+    """`bool("false")` is `True`, so a hand-edited `"off"` used to read as on."""
+    from engine.runtime_config import _coerce_like_default
+    for text, want in (("false", False), ("False", False), ("no", False),
+                       ("off", False), ("0", False), ("true", True),
+                       ("yes", True), ("on", True), ("1", True)):
+        assert _coerce_like_default(False, text) is want, text
+    # A real bool still works, and a word that is neither is a refusal.
+    assert _coerce_like_default(False, False) is False
+    assert _coerce_like_default(True, True) is True
+    for bad in ("maybe", "", [], {}):
+        try:
+            _coerce_like_default(True, bad)
+            raise AssertionError(f"{bad!r} should have been refused")
+        except ValueError:
+            pass
+
+
+def test_a_bool_is_not_accepted_where_a_number_is_declared():
+    """`isinstance(True, int)` is True, so a bool silently became the number 1."""
+    from engine.runtime_config import _coerce_like_default
+    for bad in (True, False):
+        for default in (1, 0.5):
+            try:
+                _coerce_like_default(default, bad)
+                raise AssertionError(f"{bad!r} should be refused for {default!r}")
+            except ValueError:
+                pass
+
+
+def test_every_default_can_be_coerced_from_its_own_type():
+    """No default may be a type the coercion has no rule for.
+
+    A key gaining such a type used to fall into the `else: float` arm and be
+    reshaped into a number, which is how a string setting became unsettable.
+    """
+    from engine.runtime_config import DEFAULTS, _coerce_like_default
+    for key, default in DEFAULTS.items():
+        if isinstance(default, str):
+            probe = "all" if default != "all" else "exterior"
+        elif isinstance(default, bool):
+            probe = True
+        else:
+            probe = type(default)(1)
+        try:
+            assert _coerce_like_default(default, probe) is not None or True
+        except (ValueError, TypeError) as exc:
+            raise AssertionError(f"{key} ({type(default).__name__}): {exc}")

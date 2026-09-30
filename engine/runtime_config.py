@@ -28,6 +28,8 @@ import json
 import logging
 import os
 
+from typing import Optional
+
 logger = logging.getLogger(__name__)
 
 #: Default tunable values, keyed by dotted name. The engine modules also carry
@@ -107,6 +109,77 @@ _SECTION_DESCRIPTIONS: dict[str, str] = {
 _DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 CONFIG_FILE = os.path.join(_DATA_DIR, "engine_config.json")
 
+#: How a **string** spelling of a boolean is read. A hand-edit of a JSON file
+#: writes `"true"`, and ``bool("false")`` is ``True`` — so a config that *looks*
+#: like it turned something off actually turned it on. Listed explicitly rather
+#: than with a truthiness test, because a typo has to be a refusal, not a guess.
+_TRUE_SPELLINGS = {"true", "1", "yes", "on"}
+_FALSE_SPELLINGS = {"false", "0", "no", "off"}
+
+
+def _coerce_like_default(default: object, value: object) -> object:
+    """Coerce *value* to the type of *default*, or raise.
+
+    The type is taken from the **default**, never from the value. A setting is
+    declared by its default, and a value that cannot be read as that type is a bad
+    edit the author needs told about — not something to reshape into whatever
+    happens to parse.
+
+    - ``bool`` accepts a real bool, and the string and number spellings people
+      actually write in a hand-edited file; anything else is refused.
+    - ``int`` / ``float`` accept their own type and a numeric string.
+    - ``str`` accepts a string. A number for a string setting is a bad edit, and
+      is refused rather than becoming ``"2"``.
+    - Any other default type has no rule here, and says so by refusing: the table
+      gaining a type this function cannot read is a bug in the function, and
+      coercing it to float would hide it.
+    """
+    if isinstance(default, bool):
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, (int, float)):
+            return bool(value)
+        if isinstance(value, str):
+            text = value.strip().lower()
+            if text in _TRUE_SPELLINGS:
+                return True
+            if text in _FALSE_SPELLINGS:
+                return False
+            raise ValueError(f"{value!r} is not a yes/no value")
+        raise ValueError(f"{value!r} is not a yes/no value")
+    if isinstance(default, int):
+        if isinstance(value, bool):
+            # A bool IS an int in Python, and `int(True)` is 1 — so a hand-edited
+            # `"graph.physics_enabled": true` for a count would silently become 1.
+            raise ValueError(f"{value!r} is a bool, not a number")
+        return int(value)
+    if isinstance(default, float):
+        if isinstance(value, bool):
+            raise ValueError(f"{value!r} is a bool, not a number")
+        return float(value)
+    if isinstance(default, str):
+        if isinstance(value, str):
+            return value
+        raise ValueError(f"{value!r} is not a string")
+    raise ValueError(f"no coercion rule for default type {type(default).__name__}")
+
+
+def _refuse_if_not_a_choice(key: str, value: object) -> Optional[str]:
+    """A reason to refuse *value* for *key*, or ``None`` when it is allowed.
+
+    A key may declare ``"choices"`` in :data:`SCHEMA`, which is how a *string*
+    setting says which strings it means. Without it the value is taken on trust,
+    and a consumer whose default branch is "anything else" turns a typo into a
+    silently different behaviour — ``forecast.apply_scope`` reads "not exterior"
+    as "apply to every area", so ``"exteriorr"`` would have quietly widened the
+    weather to interiors. Declaring the set is one line per key; a mistake in it
+    becomes a message instead of a change nobody asked for.
+    """
+    allowed = (SCHEMA.get(key) or {}).get("choices")
+    if not allowed or value in allowed:
+        return None
+    return f"{value!r} is not one of {', '.join(str(c) for c in allowed)}"
+
 
 class RuntimeConfig:
     """Load/save/apply the tunable engine constants."""
@@ -132,15 +205,25 @@ class RuntimeConfig:
                 if key not in DEFAULTS:
                     logger.warning("Ignoring unknown engine_config key '%s'", key)
                     continue
-                # Coerce to the default's type so a bad hand-edit can't
-                # crash consumption down-stream (int/default-float strings).
+                # Coerce to the default's own type so a bad hand-edit can't
+                # crash consumption down-stream. The type comes from the
+                # **default**, not from the value: coercing by the value's shape
+                # is how a string setting quietly becomes a number.
+                #
+                # Every arm of this ladder used to be bool → int → `else: float`,
+                # so a **string**-defaulted key had no arm at all and fell into
+                # the float one — `float("exterior")` raised, and
+                # `forecast.apply_scope` was therefore *unsettable*: the only
+                # string-defaulted key warned "Ignoring bad value" on every load
+                # and silently kept the default, so the operator could not change
+                # it however they edited the file. One key, one warning, one
+                # setting that did nothing.
+                #
+                # The final `else` now refuses rather than guessing: a type with
+                # no coercion rule is a bug in this table, and coercing it to
+                # float would hide it.
                 try:
-                    if isinstance(DEFAULTS[key], bool):
-                        coerced = bool(value)
-                    elif isinstance(DEFAULTS[key], int):
-                        coerced = int(value)
-                    else:
-                        coerced = float(value)
+                    coerced = _coerce_like_default(DEFAULTS[key], value)
                 except (ValueError, TypeError):
                     logger.warning("Ignoring bad value for '%s'", key)
                     continue
@@ -163,20 +246,23 @@ class RuntimeConfig:
     def save(self, values: dict) -> dict[str, object]:
         """Merge ``values`` over the current state, persist, apply live.
 
-        Only known keys are accepted. Returns the merged values dict.
+        Only known keys are accepted, and a value is coerced to its default's type
+        by the same rule the loader uses (:func:`_coerce_like_default`) — the two
+        used to have separate copies of that ladder, so a string-defaulted key
+        failed on the *file* path with a warning and on the *API* path in silence.
+        Returns the merged values dict.
         """
         for key, value in values.items():
             if key not in DEFAULTS:
                 logger.warning("Ignoring unknown engine_config key '%s'", key)
                 continue
             try:
-                if isinstance(DEFAULTS[key], bool):
-                    coerced = bool(value)
-                elif isinstance(DEFAULTS[key], int):
-                    coerced = int(value)
-                else:
-                    coerced = float(value)
+                coerced = _coerce_like_default(DEFAULTS[key], value)
+                refused = _refuse_if_not_a_choice(key, coerced)
             except (ValueError, TypeError):
+                continue
+            if refused is not None:
+                logger.warning("Ignoring bad value for '%s': %s", key, refused)
                 continue
             self._values[key] = coerced
 
@@ -242,5 +328,8 @@ SCHEMA: dict[str, dict] = {
     "graph.physics_enabled": {"section": "graph", "label": "Enable physics simulation", "type": "bool"},
     "graph.show_items": {"section": "graph", "label": "Show items in graph", "type": "bool"},
     "graph.show_only_inhabited": {"section": "graph", "label": "Show only inhabited areas", "type": "bool"},
-    "forecast.apply_scope": {"section": "forecast", "label": "Baseline-applied areas (exterior | all)", "type": "string"},
+    # `choices` is what makes a *string* setting say which strings it means. Its
+    # consumer reads "not exterior" as "apply to every area", so without the set a
+    # typo would widen the weather to interiors in silence.
+    "forecast.apply_scope": {"section": "forecast", "label": "Baseline-applied areas", "type": "string", "choices": ["exterior", "all"]},
 }
