@@ -31,7 +31,7 @@ import logging
 import random
 from collections import deque
 
-from graph import EDGE_IN, EDGE_CARRYING, EDGE_TRIGGERS
+from graph import Edge, EDGE_IN, EDGE_CARRYING, EDGE_TRIGGERS
 from engine import relief as _relief
 from engine.lived_log import record
 from engine.vitals import is_animal
@@ -77,6 +77,12 @@ ENTERTAINMENT_THRESHOLD = 40  # resource: low = bored; go do something
 #: Company both steadies Social and is the precondition for the paired social
 #: pass, so without a driver a dispersed camp simply isolates to zero.
 SOCIAL_THRESHOLD = 50
+
+#: Drinks a carried water container holds when refilled at a source. The world
+#: models natural water as an area tag you drink from standing in it; a filled
+#: skin is what lets a character drink *away* from the water, so a trip does not
+#: have to end in another trip (preparation, task-426).
+CARRIED_WATER_FILL = 3
 #: How long one work block lasts, in game minutes (task-409). Short on purpose:
 #: `_act` skips anyone mid-activity, so this is the longest a working character
 #: can go without eating, drinking or relieving itself. See the block comment on
@@ -168,6 +174,7 @@ TASK_MINUTES = {
     "recuperate": 30,
     "work": 30,
     "forage": 5,   # searching the area for something edible; may find nothing
+    "take": 2,     # picking up a supply to carry (preparation)
     "travel": 1,   # one step; repeats until the timeframe is full
     "sleep": 1,    # lying down — the sleeping activity occupies what follows
 }
@@ -477,6 +484,16 @@ class BackgroundSimulation:
             served.add("company")
             if self._seek_company(p):
                 return TASK_MINUTES["travel"]
+
+        # Preparation (task-426). At a service area with a moment to spare, make
+        # supplies portable — fill a waterskin, pocket a ration — so a later need
+        # is answered from the pack instead of by another round trip. Cheap here
+        # precisely because camp travel is single-digit minutes.
+        if "prepare" not in served:
+            used = self._prepare(p)
+            if used:
+                served.add("prepare")
+                return used
 
         # What the day says to do, once every survival need is satisfied
         # (task-409). Above boredom, so a full character works at its trade
@@ -1251,6 +1268,88 @@ class BackgroundSimulation:
         """Items *container_id* holds by any spatial relation."""
         from engine.world_scopes import spatial_item_nodes
         return iter(spatial_item_nodes(self.gs.graph, container_id))
+
+    def _carried_nodes(self, p):
+        """Item nodes the character is carrying."""
+        graph = self.gs.graph
+        player_id = self.gs._player_node_id(p.name)
+        out = []
+        for edge in graph.edges:
+            if edge.type == EDGE_CARRYING and edge.target == player_id:
+                node = graph.get_node(edge.source)
+                if node is not None:
+                    out.append(node)
+        return out
+
+    @staticmethod
+    def _is_water_container(node):
+        props = node.properties or {}
+        tags = {str(t).lower() for t in (props.get("tags") or [])}
+        return "water" in tags and ("container" in tags or "drink" in tags)
+
+    def _fill_waterskin(self, p):
+        """Top up carried water containers while standing in a water area."""
+        if not self._in_water_area(p):
+            return False
+        filled = False
+        for node in self._carried_nodes(p):
+            if not self._is_water_container(node):
+                continue
+            props = node.properties
+            cap = max(CARRIED_WATER_FILL, int(props.get("max_uses", 0) or 0))
+            if int(props.get("uses", 0) or 0) < cap:
+                props["uses"] = cap
+                props["max_uses"] = cap
+                filled = True
+        if filled:
+            record(p, self.gs.time_ticks, "act",
+                   f"filled a waterskin at {p.current_area}", why="prepare:water",
+                   area=p.current_area, tags=["prepare"])
+        return filled
+
+    def _carry(self, p, node):
+        """Move *node* out of its area/container and into the character's hands."""
+        graph = self.gs.graph
+        player_id = self.gs._player_node_id(p.name)
+        for edge in list(graph.edges):
+            if edge.source == node.id and edge.type != EDGE_CARRYING:
+                graph.remove_edge(edge.source, edge.target, edge.type)
+        graph.add_edge(Edge(source=node.id, target=player_id, type=EDGE_CARRYING))
+        record(p, self.gs.time_ticks, "act", f"took {node.name} to carry",
+               why="prepare:stock", area=p.current_area, tags=["prepare"])
+
+    def _stock_food(self, p):
+        """Pick up one reachable, movable food item to carry (preparation)."""
+        food = {str(t).lower() for t in FOOD_TAGS}
+        for node in self._carried_nodes(p):
+            ntags = {str(t).lower() for t in ((node.properties or {}).get("tags") or [])}
+            if food & ntags:
+                return False  # already carrying something to eat
+        area_id = self.gs.area_node_id(p.current_area) if p.current_area else None
+        if not area_id:
+            return False
+        for node in self._spatial_items(area_id):
+            props = node.properties or {}
+            ntags = {str(t).lower() for t in (props.get("tags") or [])}
+            if "fixture" in ntags:
+                continue  # camp furniture is not a ration
+            if self._is_consumable(node, FOOD_TAGS, "eat"):
+                self._carry(p, node)
+                return True
+        return False
+
+    def _prepare(self, p):
+        """One preparation action at a service area: fill a skin or pocket food.
+
+        Returns the action's minutes, or None. This is what makes supplies
+        portable, so a need is answered from the pack rather than by another
+        round trip — task-426's precondition for a trip into the wild.
+        """
+        if self._fill_waterskin(p):
+            return TASK_MINUTES["drink"]
+        if self._stock_food(p):
+            return TASK_MINUTES["take"]
+        return None
 
     def _find_consumable(self, p, tags, depth=1, verb=None):
         """Nearest edible thing the character can actually reach.

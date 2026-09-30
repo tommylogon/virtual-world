@@ -13,6 +13,35 @@ priority: medium
 (co-presence).  
 **Relates:** task-425 (novelty), task-410 (sources to gather from).
 
+## Progress (2026-09-30) — the carry/refill substrate landed
+
+The precondition an expedition plan needs now exists in
+`engine/background_simulation.py`:
+
+- `_fill_waterskin` — at a water area, top up carried water containers
+  (`CARRIED_WATER_FILL = 3`). Natural water is an area tag, so a filled skin is
+  what lets a character drink *away* from the water.
+- `_stock_food` — at a food area, pocket one movable, non-fixture food item.
+- `_carry` — re-home an item from its area into the character's hands
+  (`EDGE_CARRYING`); `_find_consumable` already prefers carried items, so a need
+  is then answered from the pack.
+- Wired as a low-priority `prepare` step in `_act` (after survival needs, before
+  schedule/work). `TASK_MINUTES["take"] = 2`.
+- `tests/test_background_preparation.py` (3). 3-day background soak: 23/23 alive,
+  Hunger avg 28.6 → 22.7 (rations carried and eaten en route), no regression.
+
+**Content gaps this exposed (camp provisioning is not authored):**
+- `Food Storage` carries the `food` area tag but holds **no food item** — the
+  camp's larder is an empty room that need-travel still sends characters to.
+- There are **no water containers anywhere in the camp**, so `_fill_waterskin`
+  has nothing to fill until one is authored/placed.
+- Food exists only as two finite stacks in `Cooking Area` (Mushrooms, Berries,
+  2 uses each); foraging (`task-410`) is the only renewable in-camp supply.
+
+Authoring those (a stocked larder + a waterskin or two + a renewable camp source)
+is a prerequisite for `gather`/`haul` templates to mean anything; tracked here
+rather than as a separate task.
+
 ## Gap
 
 task-409 specifies a **per-step** goal-directed planner: given schedule + goals +
