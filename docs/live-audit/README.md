@@ -12,8 +12,31 @@ Screenshots live in `audit/` alongside this file.
 Severity: **S1** breaks a workflow outright · **S2** produces wrong or silently
 missing behaviour · **S3** confusing, misleading, or unfinished-feeling · **S4**
 cosmetic.
+# Corrections log
 
-**Summary of the 25 findings:**
+Findings this audit later withdrew or reframed, newest first. Kept near the top so
+a reader does not have to discover them by hitting a contradiction 2,000 lines
+down. Each is corrected **in place** as well as listed here.
+
+| � | original claim | corrected | why |
+|---|---|---|---|
+| **21** | bracketed verb ids leak internal action lists into prose | **retracted** � intended, and superseded by the HTC modal and improved agent prompts | read a deliberate action contract as a debug leak |
+| **23 / 24** | Setup Checklist "is the first thing a new user is pointed at" | **retracted** � Tommy has never used it and did not know it existed | the real finding is discoverability, not the 0/5 count |
+| **28 (1st)** | `� fills toward 100` contradicts the mechanic | **withdrawn** � the annotation is right, the decay model is wrong | asserted incoherence from two printouts without testing which one the engine acts on |
+| **60 Defect 1** | `PEOPLE HERE` fails to resolve names | **retracted** � strangers correctly render as `the woman` / `the man`; gender mapping verified correct | called a working anonymity mechanism broken without asking what it was for |
+| **56 (1st)** | replace the evade die with a flat DEX threshold | **retracted** � fed raw STR 9 into the comparison | the error was the engine's; I reproduced it in my own analysis |
+| **59 (1st)** | "there is no scale axis anywhere" | **retracted** � `engine/size.py` has 6 tiers and a way `max_size` gate | did not look for the thing I asserted was absent |
+| **19 (method)** | tested the simulation | tested the **engine verb layer** via the ? override | never played a human turn; the NPC/LLM layer still has no live evidence |
+| **0** | `settings-view.js` connection test is dead | **resolved** � a DOM-vs-pixel disagreement | only the rendered pixels are truthful |
+| **�22 ? �28** | Hunger's direction is self-contradictory | **superseded** by the decay-model finding | same as the 28 row |
+
+**Two of these are the useful ones**, because the mistake turned out to be
+evidence about the product rather than about me. �60 Defect 1 became **�61**,
+and �61 predicts mistakes I have not made yet � which is a better result than
+the retracted finding would have been.
+
+
+**Summary of findings (numbered 0-61; many are superseded or retracted — see the Corrections log at the top):**
 
 | # | Area | Sev | Finding |
 |---|---|---|---|
@@ -53,7 +76,7 @@ cosmetic.
 | 33 | Soak Lab | — | **Works well** (300 ticks in 12s, 23/0 alive). Also **measures §28**: hunger moves 2 points in 300 ticks vs energy's 35 |
 | 34 | Graph | **S2** | **`🔤 Names` is a one-way door** — 635 labels destroyed, six clicks never restore them, and the initial state renders inverted |
 | 35 | Areas | **S2** | **Environment editor is an enum form over prose/numeric data** — 38/90 templates store `light` as a number, `noise` has 42 values incl. sentences, 3 fields have no data at all |
-| 36 | Scenarios | S2/S3 | Scenario Manager has no search or filter at 22 entries; 🏠/⚡ counts have no legend |
+| 36 | Scenarios | S2/S3 | Scenario Manager has no search or filter at 22 entries; 🝠/⚡ counts have no legend |
 | 37 | Turn mode | — | Both Simultaneous modes work and announce themselves; confirms §25's static description again |
 | 38 | Tags | **S2** | **Tag autocomplete is inverted** — 560 of 592 suggested ids match nothing; ~70 tags actually in use are unsuggestable |
 | 39 | Expressions | S3 | Expression pack explains images well but not where the emotion list comes from |
@@ -181,9 +204,9 @@ S1/S2 in this document the screenshot is the evidence.
   reload → still LM Studio with the same model.
 - All five Settings tabs exist and are populated: Connection, Agent Settings,
   Behavior & Automation, Graph, Embedding. Group titles across the whole modal:
-  `🌐 API Connection · 🔧 LLM Parameters · ⏱️ Rate Limiting · 🔮 Physics ·
+  `🌝 API Connection · 🔧 LLM Parameters · ❱︝ Rate Limiting · 🔮 Physics ·
   🧲 Separation · 🔗 Edges & Layout · 🧬 Embedding Model · ⚡ Agent Behavior ·
-  👻 Ghost Mode · 🔞 Content · ⏰ Game Clock`.
+  👻 Ghost Mode · 🔞 Content · ❰ Game Clock`.
 
 **The one inconsistency that survives:** on load the app names
 `OpenAI (GPT-4.1-mini)` as the active profile with an **empty API key**, and
@@ -215,7 +238,7 @@ and 351 ways there is no zoom level at which the graph is usable as drawn.
 **Why it is probably wrong:** either the node `x`/`y` are in a different
 coordinate space from the image (a projection/scale mismatch), or the layout
 engine is placing nodes on its own and map mode is only painting a backdrop.
-The toolbar has both a **Map** toggle and a **⏸ Physics** toggle, and Physics
+The toolbar has both a **Map** toggle and a **❸ Physics** toggle, and Physics
 would actively re-place nodes, so the two may be fighting. Worth knowing which
 one is authoritative before touching anything.
 
@@ -277,7 +300,7 @@ There are **two** independent places node layout lives:
    layer system, which also carries `layoutLocked` and 4 image layers.
 
 `graph_background.positions` is **empty (0 entries)**. Nothing populates it.
-Meanwhile the toolbar exposes a **⏸ Physics** toggle and a **Keep layout**
+Meanwhile the toolbar exposes a **❸ Physics** toggle and a **Keep layout**
 checkbox, and `graph_background.layoutLocked` is a third lock — so there are
 three layout-control concepts in a system with two stores, one of them unused.
 
@@ -559,7 +582,7 @@ Collected rather than fixed. These are the ones I can point at concretely.
 
 **Node layout — three controls, two stores, one dead.**
 `node.properties.x/y` (594/636 nodes) vs `graph_background.positions` (0
-entries), governed by `graph_background.layoutLocked`, the toolbar **⏸ Physics**
+entries), governed by `graph_background.layoutLocked`, the toolbar **❸ Physics**
 toggle, and a **Keep layout** checkbox that means something else entirely
 (search-time freeze). `GraphNetwork` also exposes `mapSizeScale`, `mapCompact`
 and `applyAutoMapSpacing` — three knobs for one job — plus a second physics path
@@ -568,7 +591,7 @@ in `_kickClusterPhysics` alongside `togglePhysics`.
 **Graph Physics exists in two places.** The character inspector's Advanced tab
 has a per-character `Graph Physics` control (per-node
 `central_gravity_enabled` / gravity overrides); the graph toolbar has a
-global **⏸ Physics** toggle. Whether the second is "run the simulation" or
+global **❸ Physics** toggle. Whether the second is "run the simulation" or
 "ignore per-node settings" is not stated anywhere in the UI. A per-node gravity
 flag inside a global physics toggle is exactly the kind of pair that silently
 disagrees.
@@ -786,7 +809,7 @@ load-bearing relationships in the world are the ones with the least guidance.
 
 > **Agent Lens** — "See exactly what an agent gets in their prompt — live, no LLM
 > or embedding calls."
-> 🏠 Area · 🧍 Agent · 🚪 Way
+> 🝠 Area · 🧝 Agent · 🚪 Way
 > "Click something in the graph to start."
 
 This is precisely the answer to "what is hard to see without reading code", and
@@ -880,7 +903,7 @@ lines render the same actor's name differently:
 
 ```
 👤 [Tick 40 | 08:00] Eldenford          > plugh
-⚙️ [Tick 41 | 08:00] World  Eldenford Merchant plugh.
+⚙︝ [Tick 41 | 08:00] World  Eldenford Merchant plugh.
 ```
 
 The command echo truncates at the first space (`Eldenford`) while the response
@@ -1022,7 +1045,7 @@ one file is broken.
 - **`world_template` has 0 rooms and 3 players** and is flagged only for a missing
   way description; a scenario with no rooms is not itself reported.
 - The footer is honest about the limit — *"File-level scan only — open a scenario
-  and run 🔍 Audit for deeper trigger validation."* — which is good, but it means
+  and run 🔝 Audit for deeper trigger validation."* — which is good, but it means
   **Scenario Health and the Issues panel are two validators of different depth**
   and a user has to know to run both. Nothing in the app says so.
 
@@ -1163,11 +1186,11 @@ Screenshots: `audit/29-settings-graph-tab.png`, `audit/31-graph-toggles-on.png`
 
 Every acceptance item holds in the browser:
 
-- All three layout tabs keep **fixed labels** — `🔮 Graph`, `🗺️ Map`, `🌳 Levels`
+- All three layout tabs keep **fixed labels** — `🔮 Graph`, `🗺︝ Map`, `🌳 Levels`
   — with `aria-selected` tracking correctly.
 - **Clicking the already-selected Graph tab is a genuine no-op**: node counts and
   scope filter are byte-identical before and after.
-- `#btn-overlays` keeps the text `👁 View ▾` permanently.
+- `#btn-overlays` keeps the text `👝 View ▾` permanently.
 
 **Bonus, beyond what the task asked for:** selecting `Levels` *disables* `Map`
 with an explanatory tooltip — *"Map is unavailable while Levels owns the layout —
@@ -1259,7 +1282,7 @@ A two-ended name with **two** worldpainter grid coordinates, 60+ characters, on
 Acceptance: *"Standing outside in `rainy` says it is raining; in `stormy` says
 something worse."*
 
-Live header: `🕐 08:00 · Jan Day 1 · 🌑 new moon · ☀️ overcast · 🌧️ in 4h: rain`
+Live header: `🕝 08:00 · Jan Day 1 · 🌑 new moon · ☀︝ overcast · 🌧︝ in 4h: rain`
 
 Live `look` output, standing outside:
 
@@ -1279,7 +1302,7 @@ regressed.
 
 Live, as Belne holding an equipped torch:
 
-> ⚙️ [Tick 76 | 08:00] World **[Right Hand] Torch [WORN] You are not carrying anything.**
+> ⚙︝ [Tick 76 | 08:00] World **[Right Hand] Torch [WORN] You are not carrying anything.**
 
 An item is listed, equipped, and then the same sentence says nothing is carried.
 The equipped slot and the carry list are evidently different collections and the
@@ -1313,7 +1336,7 @@ permanent, self-authored false belief, and the memory survives the item.
 appearance, now you know their name". Feeding it a drum means Arix now treats a
 prop as a person she has met.
 
-## 28. ~~Hunger: the status annotation is definitively wrong~~ — WITHDRAWN, see below
+## 28a. ~~Hunger: the status annotation is definitively wrong~~ — WITHDRAWN, see the corrected §28 below
 
 This finding was **wrong and is withdrawn in place**; the corrected version is the
 second §28 further down ("the annotation is right, the decay model is wrong"). It
@@ -1581,7 +1604,7 @@ Bridge (Eldenford interior 8,15)    20°C · 60 lux · ?
 Bridge (Eldenford interior 8,16)    20°C · 60 lux · ?
 Bridge (Eldenford interior 9,15)    20°C · 60 lux · ?
 Bridge (world 10,6)                 20°C · 60 lux · ?
-Bridge (world 12,3                  20°C · 60 lux · ?     ← truncated mid-string
+Bridge (world 12,3                  20°C · 60 lux · ?     ↝ truncated mid-string
 ```
 
 **Three things wrong at once.** (a) At least seven distinct areas are all called
@@ -1670,9 +1693,9 @@ not a sign error, and not the annotation being wrong. That distinction matters:
 
 **Screenshots:** `audit/40-view-overlays.png`, `audit/41-names-toggle-latched-off.png`
 
-The View menu (`👁 View ▾`) is well organised — **seven overlay modes** (None, 💡
-Light, 🌡️ Heat, 🔊 Sound, ⚡ Triggers, 🧭 Way directions, 🏘 Inhabited) and **six
-display toggles** (🖼 Images, 🔩 Trigger nodes, 👁 Item nodes, 🏢 Floors, 🏷 Edge
+The View menu (`👝 View ▾`) is well organised — **seven overlay modes** (None, 💡
+Light, 🌡︝ Heat, 🔊 Sound, ⚡ Triggers, 🧭 Way directions, 🝘 Inhabited) and **six
+display toggles** (🖼 Images, 🔩 Trigger nodes, 👝 Item nodes, 🝢 Floors, 🝷 Edge
 labels, 🔤 Names, 📖 Legend), plus zoom and font steppers. Good structure.
 
 **But `🔤 Names` cannot be turned back on.** Measured on the live network,
@@ -1728,8 +1751,8 @@ the 29 trigger nodes that have no stored x/y at all (§4).
 The two remaining turn modes are real and correctly wired:
 
 ```
-⚙️ [Tick 2 | 08:00] World  🔄 Simultaneous mode enabled (experimental — chaos by design)
-🏠 [Tick 3 | 08:00] World  Simultaneous per room enabled (rooms resolve independently)
+⚙︝ [Tick 2 | 08:00] World  🔄 Simultaneous mode enabled (experimental — chaos by design)
+🝠 [Tick 3 | 08:00] World  Simultaneous per room enabled (rooms resolve independently)
 ```
 
 Each mode posts a clear, correctly-worded event to the stream, and the
@@ -1835,24 +1858,24 @@ to check per field.
 each showing name, then two icon-counts, size and age, and five actions:
 
 ```
-world_template        🏠 0 · ⚡ 3 · 368.0 KB · 18h ago
-violent_parr_scenario 🏠 9 · ⚡ 14 · 123.5 KB · 6d ago
-unnamed               🏠 6 · ⚡ 2 · 71.0 KB · 6d ago
-testapartment         🏠 7 · ⚡ 1 · 23.9 KB · 34d ago
-taco_bell_date        🏠 8 · ⚡ 3 · 156.6 KB · 6d ago
-pines                 🏠 23 · ⚡ 21 · 376.3 KB · 1d ago
-      [▶ Open] [🔍 Audit] [📋 Copy] [✏️ Rename] [🗑 Delete]      ⟳ Refresh
+world_template        🝠 0 · ⚡ 3 · 368.0 KB · 18h ago
+violent_parr_scenario 🝠 9 · ⚡ 14 · 123.5 KB · 6d ago
+unnamed               🝠 6 · ⚡ 2 · 71.0 KB · 6d ago
+testapartment         🝠 7 · ⚡ 1 · 23.9 KB · 34d ago
+taco_bell_date        🝠 8 · ⚡ 3 · 156.6 KB · 6d ago
+pines                 🝠 23 · ⚡ 21 · 376.3 KB · 1d ago
+      [▶ Open] [🔝 Audit] [📋 Copy] [✝︝ Rename] [🗑 Delete]      ⟳ Refresh
 ```
 
 **No search box, no sort control, no filter** — across 22 scenarios. This is
 exactly the gap already noted in `developer ideas.md` ("scenario manager search
 and filter"), so this confirms a filed idea rather than discovering a new one.
 
-**Neither 🏠 nor ⚡ is explained anywhere.** 🏠 is presumably rooms and ⚡
+**Neither 🝠 nor ⚡ is explained anywhere.** 🝠 is presumably rooms and ⚡
 presumably triggers, but the footer only documents the destructive part:
 *"Opening a scenario REPLACES the current world (⌘/Ctrl Undo restores)."* — which
 is good, and is the kind of warning usually missing. A user has to guess what
-⚡3 means. `world_template` shows `🏠 0 · ⚡ 3`, which is also the degenerate
+⚡3 means. `world_template` shows `🝠 0 · ⚡ 3`, which is also the degenerate
 scenario from §24.
 
 **Credit where due:** the footer warning, the per-row Audit action, the relative
@@ -1867,13 +1890,13 @@ entries, and a legend for two icons.
 
 **Screenshots:** `audit/46-tag-panel.png`
 
-`⋯ More ▸ 🏷️ Tags` opens a **tag panel** — and this is a good piece of design.
-It is headed *"🏷️ Tags (click to filter)"* and lists every tag present in the
+`⋯ More ▸ 🝷︝ Tags` opens a **tag panel** — and this is a good piece of design.
+It is headed *"🝷︝ Tags (click to filter)"* and lists every tag present in the
 loaded world **with the number of nodes carrying it**:
 
 ```
-🏷️ adult (16)   🐾 animal (6)   🏷️ animals (1)   ⛡ armor (1)
-🏷️ bathing (2)  🏷️ bear (1)     🏷️ bird (1)     🏷️ blacksmith (1)
+🝷︝ adult (16)   🝾 animal (6)   🝷︝ animals (1)   ⛡ armor (1)
+🝷︝ bathing (2)  🝷︝ bear (1)     🝷︝ bird (1)     🝷︝ blacksmith (1)
 ...
 road (101)   forest (85)   woods (83)   goblin_camp (21)   held_by:goblin (21)   cave (20)
 ```
@@ -1957,8 +1980,8 @@ either, since both write to the live scenario.
 
 **Screenshots:** `audit/47-heat-overlay.png`, `audit/48-light-overlay.png`
 
-The `👁 View ▾` menu is well organised into **OVERLAY** (None, 💡 Light, 🌡️
-Heat, 🔊 Sound, ⚡ Triggers, 🧭 Way directions, 🏘 Inhabited), **SHOW ON CANVAS**
+The `👝 View ▾` menu is well organised into **OVERLAY** (None, 💡 Light, 🌡︝
+Heat, 🔊 Sound, ⚡ Triggers, 🧭 Way directions, 🝘 Inhabited), **SHOW ON CANVAS**
 (Images, Trigger nodes, Item nodes, Floors), **LABELS & LEGEND** (Edge labels,
 Names, Legend, font size `− 8 auto +`) and **MAP GRID** (`− 40 auto +`, helpfully
 annotated *"Only used by the 🗺 Map layout."*). Each overlay change is announced
@@ -1971,10 +1994,10 @@ in the event stream with a timing — `Heat overlay applied (28ms)`,
 |---|---|---|
 | None | 351 | — |
 | 💡 **Light** | 556 | amber family — **visibly differentiated** |
-| 🌡️ Heat | 556 | **one colour for all 205 areas** |
+| 🌡︝ Heat | 556 | **one colour for all 205 areas** |
 | 🔊 Sound | 556 | **byte-identical to Heat** |
 | 🧭 Way directions | 585 | **byte-identical to Heat** |
-| 🏘 Inhabited | 585 | **byte-identical to Heat** |
+| 🝘 Inhabited | 585 | **byte-identical to Heat** |
 | ⚡ Triggers | 585 | distinct (dark) |
 
 **Four of the seven modes produce byte-identical rendering.** The full colour
@@ -2025,7 +2048,7 @@ a finding, and it is recorded because I nearly filed it as the opposite.
 
 `fumble` returned:
 
-> ⚙️ [Tick 60 | 08:00] World  **"You're in an empty void."**
+> ⚙︝ [Tick 60 | 08:00] World  **"You're in an empty void."**
 
 That reads like a character with no resolvable location. So I checked. Every one
 of the 23 characters has a `current_area`, and **not one of them is a node id**:
@@ -2076,8 +2099,8 @@ Continuing the verb sweep from §19. The **human command input** accepts:
 | command | response |
 |---|---|
 | `relieve` | ✅ **"You relieve yourself where 2 others can see. That is going to stink up the…"** |
-| `read torch` | ⚠️ "You look for 'torch' but don't see it here. Things you can examine rig…" — `read` appears to alias `examine` rather than read |
-| `fumble` | ⚠️ "You're in an empty void." (see §41 — unexplained, not claimed as a bug) |
+| `read torch` | ⚠︝ "You look for 'torch' but don't see it here. Things you can examine rig…" — `read` appears to alias `examine` rather than read |
+| `fumble` | ⚠︝ "You're in an empty void." (see §41 — unexplained, not claimed as a bug) |
 | `stow torch` | ✅ "You don't have 'torch'." (correct — wrong character) |
 | `climb`, `jump`, `craft`, `make`, `combine`, `split`, `crawl`, `flee` | gibberish echo — the §19 no-argument branch |
 
@@ -2098,8 +2121,6 @@ against each other would be a cheap, high-value task — and the engine already
 knows the answer for the *agent*, since that path demonstrably works.
 
 ---
-
-# Round 8 — working the review backlog properly
 
 ## How I scoped this
 
@@ -2128,7 +2149,7 @@ Every acceptance line holds:
   `item-target-container`, `item-target-character`, `move-item-area-select`,
   `move-item-container-select`, `move-item-character-select` — none present.
 - The replacement renders correctly: `📦 PLACE ON / IN` as three radio buttons
-  (📦 ITEM / 🧍 CHARACTER / 🏠 AREA), a search box reading *"Search items,
+  (📦 ITEM / 🧝 CHARACTER / 🝠 AREA), a search box reading *"Search items,
   characters, or areas…"*, and a `Relation` select (`in, on, under, behind,
   beside, at`) with the helper text *"where inside/on the target item sits"*.
 
@@ -2189,7 +2210,7 @@ fixtures and **no content can produce it**.
 `max_uses` is better covered (53 library items), so `combine`/`split` are
 theoretically exercisable; I did not reach them.
 
-## 52. task-161 ⚠️ authored in the library, absent from the world
+## 52. task-161 ⚠︝ authored in the library, absent from the world
 
 > Acceptance: *"Armor uses decrease when the wearer is hit"*, *"Armor breaks at 0
 > uses and is removed from equipment"*.
@@ -2204,7 +2225,7 @@ but **the world contains no usable armor**, so the behaviour cannot occur in pla
 without first spawning one. Different verdict from task-155: reachable, just not
 present.
 
-## 53. task-205 ⚠️ one acceptance line is unexercisable
+## 53. task-205 ⚠︝ one acceptance line is unexercisable
 
 > Acceptance includes *"`strong_backed` trait doubles capacity, raising thresholds
 > proportionally"*.
@@ -2254,9 +2275,9 @@ round before any of them reached `review`.
 | **348** | ✅ confirmed — **moved to `done`** |
 | 292 | ❌ both criteria fail; plus a 14-vs-15 verb divergence between the two item editors |
 | 155 | ❌ unreachable — `base_weight` exists on 0 of 1943 items |
-| 161 | ⚠️ authored in the library, absent from the world |
-| 205 | ⚠️ one line unexercisable — `strong_backed` on 0 of 23 characters |
-| 476 / 480 / 483 | ⚠️ wired, authored by nobody — 0 users of `roles`, `proficiency`, `skill_progress`, `forage_tables` |
+| 161 | ⚠︝ authored in the library, absent from the world |
+| 205 | ⚠︝ one line unexercisable — `strong_backed` on 0 of 23 characters |
+| 476 / 480 / 483 | ⚠︝ wired, authored by nobody — 0 users of `roles`, `proficiency`, `skill_progress`, `forage_tables` |
 
 ---
 
@@ -2337,7 +2358,7 @@ truthful. Every S1 and S2 claim above is screenshot-backed.
 
 ---
 
-# Round 9 — two S1 combat findings
+# Round 10 — two S1 combat findings
 
 ## 55. task-253 ❌ FAILS the live E2E — and it fails on its own acceptance phrasing (S1)
 
@@ -2766,8 +2787,8 @@ With a size axis, §58's two axes become scale-correct for free:
 |---|---|---|---|---|---|---|---|---|
 | tier | tiny | tiny | small | normal | giant | titanic | huge | titanic |
 | evasion (derived) | very high | high | medium | 0 | −1 | −3 | −1 | −3 |
-| HP | 1 | 4 | 20 | 40 | 157 | 675 | 200 | 10⁴–10⁶ |
-| attack damage | 0 | 0 | 1 | 3 | 12 | 60 | — | 10⁴ |
+| HP | 1 | 4 | 20 | 40 | 157 | 675 | 200 | 10❴–10❶ |
+| attack damage | 0 | 0 | 1 | 3 | 12 | 60 | — | 10❴ |
 
 Two properties fall out, and both are reasons to want this:
 
@@ -2777,7 +2798,7 @@ the authoring burden §58 would otherwise impose on every future creature and
 every future garment.
 
 **Damage and HP stay absolute, and that is what makes the extremes work.** A
-mouse's 1 damage against a leviathan's 10⁶ HP is automatically and correctly
+mouse's 1 damage against a leviathan's 10❶ HP is automatically and correctly
 irrelevant — same code, same numbers, no special case. The 1cm spider becomes a
 nuisance rather than a fight (unhittable *and* its damage rounds to nothing),
 and a fairy against a mouse becomes a real fight, neither special-cased.
@@ -2827,7 +2848,7 @@ lists, then vitals, then a composer:
 
 with `⚙ do` (action), `🗨 say` (say / whisper / shout / scream), `🎭 emote`
 (body language), `🧠 memory`, `Act`, `interject ↩` ("quick reply… doesn't use
-your turn"), `⏩ timeskip`, `⏭ end turn`, plus `▸ what you know`,
+your turn"), `❩ timeskip`, `❭ end turn`, plus `▸ what you know`,
 `▸ advanced`, `▸ raw json`.
 
 The raw JSON field shows the shape it emits: `{"action":"take","item":"flour
@@ -2898,7 +2919,7 @@ to read `Road (world 9,4)`.
 ### Also observed
 
 `CARRYING —` and `WEARING —` are both empty for `player_human_explorer`, with
-`⚖️ barely carrying anything`. Consistent with §57/§58: the human has no
+`⚖︝ barely carrying anything`. Consistent with §57/§58: the human has no
 equipment, so the armor and evasion work has no live subject on the player side
 either.
 
@@ -2947,7 +2968,7 @@ It runs through the whole turn modal:
 | `the man` (×3) | `male` tag + presence | nothing |
 | `Camp Entrance Trail to Road (world 9,4)` | raw way-node name | that this is generated, not a name |
 | `CARRYING —` | inventory that may be stale | nothing |
-| `⚖️ barely carrying anything` | derived weight band | nothing |
+| `⚖︝ barely carrying anything` | derived weight band | nothing |
 
 Contrast this with a surface that *does* declare itself: the graph editor shows
 node ids and display names as separate fields, and `AGENTS.md` insists that node
