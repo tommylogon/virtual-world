@@ -84,8 +84,6 @@ WIND_STATES = ["none", "breeze", "wind", "gale", "storm", "hurricane"]
 #: Humidity states (task-232).
 HUMIDITY_STATES = ["dry", "humid", "wet", "flooding"]
 
-#: Numeric wind scale.
-WIND_SCALE = {"none": 0, "breeze": 1, "wind": 2, "gale": 3, "storm": 4, "hurricane": 5}
 
 #: Wind multiplier on heat propagation (task-231; stronger wind of a pair wins).
 WIND_HEAT_MULT = {"none": 1.0, "breeze": 1.2, "wind": 1.5, "gale": 2.0, "storm": 2.5, "hurricane": 3.0}

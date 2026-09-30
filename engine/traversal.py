@@ -26,9 +26,6 @@ from engine import checks
 
 logger = logging.getLogger(__name__)
 
-#: Routine attempts take 10 — the number a passive check uses. Only used for
-#: display: a routine hop does not roll at all.
-ROUTINE = 10
 
 #: Area tag -> the skill that carries a character *into* that ground.
 HAZARD_SKILLS = {

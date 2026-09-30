@@ -724,28 +724,6 @@ def set_position_examining_item(graph, player_manager, target_name: str, item_no
     approach_item(graph, player_manager, target_name, item_node)
 
 
-def set_position_using_target(graph, player_manager, target_name: str, target_node) -> None:
-    if not _pm_active_player(player_manager) or not target_node:
-        return
-    pid = _pm_get_player_node_id(player_manager, _pm_active_player(player_manager))
-    if not pid:
-        return
-    if target_node.type == "way":
-        set_character_at_way(graph, pid, target_node.id)
-    elif target_node.type == "item":
-        current_area_name = _pm_current_area_name(player_manager)
-        area_id = None
-        if current_area_name:
-            area_id = "area_" + current_area_name.lower().replace(" ", "_")
-        if area_id and _item_in_area(graph, target_node.id, area_id):
-            relation, _ = parse_spatial_target(target_name, default_relation_for_item(target_node))
-            set_character_position(graph, pid, target_node.id, relation)
-    elif target_node.type in ("character", "player"):
-        pname = target_node.name
-        if pname and pname != _pm_active_player(player_manager):
-            set_position_examining_character(graph, player_manager, pname)
-
-
 def _collect_area_ways(graph, area_id: str, area_name: str = "") -> List[Dict[str, Any]]:
     from engine.matching import NameMatching
 

@@ -24,9 +24,6 @@ ACTION_COST_MOD = "action_cost_mod"
 #: ``{"Hunger": 2.0}``
 VITAL_MULTIPLIER = "vital_multiplier"
 
-#: flat per-tick adjustment applied in ``tick_turn``
-#: ``{"Energy": -1}``
-VITAL_MOD_PER_TICK = "vital_mod_per_tick"
 
 #: boolean — player can see in total darkness
 DARK_VISION = "dark_vision"

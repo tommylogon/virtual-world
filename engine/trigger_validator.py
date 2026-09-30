@@ -106,12 +106,6 @@ CHARACTER_EFFECTS = {
     "spawn_character": "character_id",
 }
 
-# Effects/conditions that reference an item by name/id (substring match).
-ITEM_NAME_KEYS = {
-    "has_item": ("value",),
-    "is_equipped": ("item",),
-    "consume_item": ("item",),
-}
 
 SEVERITY_ORDER = {"error": 0, "warning": 1, "info": 2}
 

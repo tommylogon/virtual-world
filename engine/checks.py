@@ -60,8 +60,6 @@ SKILL_ABILITY = {
     "Sleight of Hand": "DEX", "Stealth": "DEX", "Survival": "WIS",
 }
 
-SKILL_NAMES = tuple(SKILL_ABILITY)
-
 
 def dc_band(dc: int) -> str:
     """The historical label for a DC (very easy … very hard)."""

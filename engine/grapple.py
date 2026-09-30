@@ -24,9 +24,6 @@ from typing import List, Optional
 
 from graph import EDGE_GRAPPLED, Edge
 
-#: Base DC to resist a grappler's grip; the grappler's Athletics skill and the
-#: relationship modifier are added on top (task: dynamic grapple).
-GRAPPLE_SAVE_BASE_DC = 10
 #: Base DC for grapple checks (task: dynamic grapple).
 GRAPPLE_BASE_DC = 10
 #: Relationship modifier per 25 closeness levels (positive = friend, negative = enemy).
@@ -159,9 +156,6 @@ class GrappleSystem:
                 names.append(key or node.name)
         return names
 
-    def _grappled_targets(self, grappler_name: str) -> List[str]:
-        """Alias — see _grappling_targets (edge-driven)."""
-        return self._grappling_targets(grappler_name)
 
     def _grappler_of(self, target_name: str) -> Optional[str]:
         """Identity key of whoever holds *target_name* (None if nobody)."""

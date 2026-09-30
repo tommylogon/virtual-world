@@ -182,10 +182,6 @@ class TakeDropActionsMixin:
                 "target_name": target_node.name if target_node else "somewhere",
             }
 
-    def _clear_last_relation(self, item_node):
-        """Remove last_relation when the item is equipped (now in hand)."""
-        if item_node and "last_relation" in item_node.properties:
-            del item_node.properties["last_relation"]
 
     def _restore_last_relation(self, item_node, player_manager, area_id):
         """Recreate the spatial edge from last_relation if the target still exists

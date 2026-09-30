@@ -59,9 +59,6 @@ def library_item_properties(lib_item: dict, library_id: str,
     generator attaches provenance without this module knowing what provenance
     is.
     """
-    def _get(key, default=None):
-        value = lib_item.get(key, default)
-        return default if value is None and default is not None else value
 
     props: Dict = {
         "description": lib_item.get("description", ""),

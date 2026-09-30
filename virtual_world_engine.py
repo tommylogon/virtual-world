@@ -334,8 +334,6 @@ class VirtualWorld:
     def _way_node_id(self, way_name: str) -> str:
         return f"way_{way_name}"
 
-    def _item_node_id(self, item_name: str) -> str:
-        return NodeIDHelper.item_node_id(item_name)
 
     def _is_item_reachable(self, item_id: str, area_id: str) -> bool:
         return self.name_matcher._is_item_reachable(item_id, area_id)
@@ -455,15 +453,6 @@ class VirtualWorld:
     def _light_to_level(self, val):
         return self.lighting.light_to_level(val)
 
-    def _get_light_int(self, env, default=80):
-        return self.lighting.get_light_int(env, default)
-
-    def _get_ambient_light(self, area_id: str, env: Optional[Dict] = None) -> int:
-        return self.lighting.get_ambient_light(area_id, env)
-
-
-    def _can_see_in_dark(self, player_name=None) -> bool:
-        return self.lighting.can_see_in_dark(self, player_name)
 
     # ─────────────────── Trigger System ───────────────────
 
@@ -494,8 +483,6 @@ class VirtualWorld:
     def _spawn_body_item(self, player_name: str, cause_of_death: str = "unknown causes"):
         return self.ghost_system.spawn_body_item(player_name, cause_of_death)
 
-    def _check_ghost_action(self, action_type: str, target_name: str = None) -> Optional[str]:
-        return self.ghost_system.check_ghost_action(self, action_type, target_name)
 
     # ─────────────────── Items & Inventory ───────────────────
 
@@ -660,8 +647,6 @@ class VirtualWorld:
     def get_equipment_narrative(self, player_name: str = None, viewer_name: str = None) -> str:
         return self.equipment.get_equipment_narrative(player_name, viewer_name)
 
-    def _log_llm_call(self, label, prompt, response=None, player_name=None):
-        return self.game_logger.log_llm_call(label, prompt, response, player_name, self.active_player)
 
     def _update_equipment_description(self, p):
         return self.equipment.update_equipment_description(p)

@@ -165,13 +165,6 @@ def apply_frightening(gs, player, sources, duration_minutes=FEAR_DURATION_MINUTE
     return primary
 
 
-#: The end reason ``frightened`` declares for "the thing I feared is gone".
-#: Dispatched by :func:`release_absent_fears` below, not by a generic condition
-#: tick — ``ends_on`` entries are free-form reason strings that a specific
-#: owner honours, and fear is the owner of this one.
-SOURCE_ABSENT = "source_absent"
-
-
 def release_absent_fears(gs, player, sources=None) -> list:
     """End the ``frightened`` instances whose source is no longer here (task-484).
 

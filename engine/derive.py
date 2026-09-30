@@ -52,7 +52,6 @@ def clamp(v: float, lo: float = -100.0, hi: float = 100.0) -> float:
     return max(lo, min(hi, float(v)))
 
 
-
 #: Max magnitude the engine will accept for a single `emotions.data` delta
 #: (task-350 memory-driven feelings). The LLM picks the flavor + size; the
 #: engine clamps here so the model can never set an unbounded number.
@@ -255,7 +254,3 @@ def _to_nl(profile: dict) -> str:
     return "; ".join(parts) if parts else "no strong feelings yet"
 
 
-def relationship_block(player, other_name: str) -> str:
-    """Prompt-surface block for this relationship (agent-facing)."""
-    profile = derive_person_profile(player, other_name)
-    return "Your read on " + other_name + ": " + profile["summary"] + ". (" + profile["role"] + ")"

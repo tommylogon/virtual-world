@@ -21,17 +21,6 @@ from graph import (
 class ExecutionMixin:
     """Trigger walking, effect fan-out, and item/target lookup."""
 
-    def _find_item_by_name(self, name: str, game_state=None):
-        """Find an item node in the graph by name."""
-        if not name:
-            return None
-        name_lower = name.lower()
-        for node in self.graph.nodes.values():
-            if node.type == "item":
-                node_name = (node.name or node.properties.get("name", "")).lower()
-                if node_name == name_lower:
-                    return node
-        return None
 
     def _find_target_node(self, name: str, game_state=None):
         """Resolve the used-on target node for an on_use_on interaction.

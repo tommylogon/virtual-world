@@ -114,13 +114,6 @@ ACTIVITY_INTERRUPTIBLE = {"resting", "waiting", "meditating", "sitting", "lying 
                           "eating", "drinking", "relieving", "washing",
                           "recreating", "recuperating", "foraging"}
 
-#: commands allowed while a blocking activity is active
-_ALLOWED_WHILE_BLOCKED = {
-    "look", "stats", "status", "inventory", "inv", "i",
-    "examine", "read", "inspect", "check",
-    "speak", "say", "whisper", "shout", "scream", "do", "wake", "fumble",
-    "fumble around", "grope", "grope around", "feel around",
-}
 
 PILE_TAGS = ["container", "clothing_pile"]
 
@@ -271,8 +264,6 @@ class ActivitySystem:
         self.end_activity(player_name, reason="stopped")
         return f"You stop {desc}."
 
-    def has_activity(self, player_name: str) -> bool:
-        return self.get_activity(player_name) is not None
 
     # ─────────────────────────── per-tick progress ───────────────────────────
 

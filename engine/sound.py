@@ -60,10 +60,6 @@ def _config_get_float(key: str, default: float) -> float:
 # ``_speech_levels()`` / ``_way_barriers()`` / ``_noise_levels()`` helpers above.
 SPEECH_LEVELS = _speech_levels()
 WAY_BARRIERS = _way_barriers()
-NOISE_LEVELS = _noise_levels()
-WAY_BARRIER_SEE_THROUGH = _config_get_float(
-    "sound.way_see_through", _barriers.DEFAULT_SOUND_COSTS["see_through"]
-)
 
 
 def get_way_barrier(way_node: Node) -> float:

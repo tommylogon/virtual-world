@@ -625,40 +625,6 @@ class Player:
                 break
         return f"{self.name} is {word}{self.emotion}."
 
-    def update_emotion_from_outcome(self, outcome: str, tick: int):
-        """Update emotion based on action outcome text heuristics."""
-        lower = outcome.lower()
-        
-        # Success patterns
-        if any(word in lower for word in ["success", "succeed", "you open", "you take", "you pick up", "works", "unlock", "reveal", "find", "you pick"]):
-            self.set_emotion("happy", min(1.0, self.emotion_intensity + 0.2))
-        # Damage / threat patterns
-        elif any(word in lower for word in ["damage", "hit you", "strike", "slash", "hurt", "injure", "pain"]):
-            if self.vitals["HP"] < 30:
-                self.set_emotion("afraid", 0.7)
-            else:
-                self.set_emotion("angry", 0.5)
-        # Fear / danger patterns
-        elif any(word in lower for word in ["creepy", "scary", "frighten", "terrify", "horror", "scream", "shriek", "shadow", "ghost"]):
-            self.set_emotion("afraid", 0.6)
-        # Sad / loss patterns
-        elif any(word in lower for word in ["sad", "loss", "dead", "kill", "die", "death", "grave"]):
-            self.set_emotion("sad", 0.5)
-        # Surprise patterns
-        elif any(word in lower for word in ["sudden", "unexpected", "surprise", "startle", "shock", "appear", "appears"]):
-            self.set_emotion("surprised", 0.4)
-        # Disgust patterns
-        elif any(word in lower for word in ["rotten", "decay", "smell", "stench", "disgust", "mold", "filth"]):
-            self.set_emotion("disgusted", 0.4)
-        # Frustration / failure patterns
-        elif any(word in lower for word in ["fail", "can't", "cannot", "blocked", "locked", "stop", "refuse", "error"]):
-            self.set_emotion("angry", 0.3)
-        # Decay towards neutral over time
-        else:
-            if self.emotion_intensity > 0.1:
-                self.emotion_intensity = max(0.0, self.emotion_intensity - 0.1)
-            if self.emotion_intensity <= 0.1 and self.emotion != "neutral":
-                self.emotion = "neutral"
 
     def register_first_meeting(self, other_name: str, tick: int) -> bool:
         """Register that this character has met *other_name* for the first time.
@@ -1110,15 +1076,6 @@ class Player:
         scored.sort(key=lambda x: x[0], reverse=True)
         return [m for _, m in scored[:max_results]]
 
-    def get_memory_context_nl(self, query: str, max_results: int = 3) -> str:
-        """Build a natural language context string from relevant memories."""
-        mems = self.get_relevant_memories(query, max_results)
-        if not mems:
-            return ""
-        lines = [f"=== {self.name}'s relevant memories ==="]
-        for m in mems:
-            lines.append(f"[Tick {m.get('tick', '?')}] {m['text']}")
-        return "\n".join(lines)
 
     def to_dict(self):
         """Serialize player state including emotion and relationships for API responses."""

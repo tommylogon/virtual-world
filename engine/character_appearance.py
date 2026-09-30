@@ -235,13 +235,6 @@ def resolve_ids(ids, lookup) -> List[str]:
     return out
 
 
-_HAIR_LENGTHS = {
-    "bald": "", "shaved": "", "cropped": "cropped",
-    "short": "short", "medium": "shoulder-length", "long": "long",
-    "very long": "waist-length", "floor length": "floor-length",
-}
-
-
 def render_prose(node, resolve=None) -> str:
     """Render the structured appearance as a third-person description.
 

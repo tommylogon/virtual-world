@@ -179,16 +179,6 @@ class AgentMind:
             location=self.player.current_area,
         )
 
-    # ── background consolidation bridge ─────────────────────────────────
-    def consolidation_summary(self, since_tick: int) -> str:
-        """Bounded background-span summary (task-399's memory bridge)."""
-        from engine import promotion
-        entries = promotion.pending_span(self.player, since_tick)
-        if not entries:
-            return ""
-        end_tick = getattr(self.gs, "time_ticks", since_tick) if self.gs else since_tick
-        return promotion.summarize(self.gs, entries, since_tick=since_tick,
-                                   end_tick=end_tick)
 
     # ── decay ───────────────────────────────────────────────────────────
     def apply_decay(self) -> int:

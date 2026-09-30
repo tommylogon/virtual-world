@@ -457,25 +457,6 @@ class WorldGraph:
                 results.append(node)
         return results
 
-    def get_characters_by_tag(self, tag: str, area_id: Optional[str] = None) -> List[str]:
-        """Return player names that have the given tag, optionally filtered by area."""
-        tag = tag.lower()
-        results = []
-        for node in self.nodes.values():
-            if node.type not in ("player", "character"):
-                continue
-            node_tags = node.properties.get("tags", [])
-            if tag not in [t.lower() for t in node_tags]:
-                continue
-            if area_id:
-                area_lower = area_id.lower()
-                for edge in self.get_edges_for_source(node.id, EDGE_IN):
-                    if edge.target.lower() == area_lower:
-                        results.append(node.name)
-                        break
-            else:
-                results.append(node.name)
-        return results
 
     def get_tagged_items_in_area(self, area_id: str, exclude_tags: Optional[List[str]] = None) -> Dict[str, List[Node]]:
         """Return all items in a area grouped by tag. Optionally exclude certain tags."""
@@ -606,7 +587,6 @@ EDGE_EQUIPPED = "equipped"  # item → character (worn/held, slot in edge props)
 EDGE_GRAPPLED = "grappled"  # character → character (grappler holds target)
 EDGE_CONNECTION = "connection"  # area ↔ area (via door/way nodes)
 EDGE_UNLOCKS = "unlocks"    # item → door
-EDGE_REQUIRES = "requires"  # door → condition
 EDGE_TRIGGERS = "triggers"  # node → logic/action
 EDGE_KNOWN = "known"        # ability/spell/power item → character
 

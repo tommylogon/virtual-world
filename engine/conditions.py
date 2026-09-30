@@ -35,22 +35,6 @@ def condition_definition(condition: str) -> dict:
     return CONDITION_DEFINITIONS.get(condition, {})
 
 
-def effective_periodic(condition: str, instance: dict) -> dict:
-    """Per-instance periodic drain override, else the catalog default."""
-    periodic = instance.get("periodic")
-    if periodic is None:
-        periodic = CONDITION_DEFINITIONS.get(condition, {}).get("periodic", {})
-    return periodic
-
-
-def effective_ends_on(condition: str, instance: dict) -> list:
-    """Per-instance ends_on override, else the catalog default."""
-    ends_on = instance.get("ends_on")
-    if ends_on is None:
-        ends_on = CONDITION_DEFINITIONS.get(condition, {}).get("ends_on", [])
-    return ends_on
-
-
 def effective_known(condition: str, instance: dict) -> bool:
     """Per-instance known override, else the catalog default (True = self-evident)."""
     known = instance.get("known")
@@ -329,12 +313,6 @@ class ConditionsSystem:
             return False
         return player.has_condition(condition)
 
-    def get_condition_instances(self, player_name: str, condition: str) -> List[dict]:
-        """Return all per-instance metadata dicts for one condition (empty list)."""
-        player = self.player_manager.players.get(player_name)
-        if not player:
-            return []
-        return list(player.conditions.get(condition) or [])
 
     def can_act(self, player_name: str) -> bool:
         """Check if a player can act (not blocked by conditions)."""
@@ -353,26 +331,6 @@ class ConditionsSystem:
                 return False
         return True
 
-    def get_active_conditions(self, player_name: str) -> list:
-        """Return active conditions with their per-instance metadata."""
-        player = self.player_manager.players.get(player_name)
-        if not player:
-            return []
-        result = []
-        for c in CONDITION_HIERARCHY:
-            instances = player.conditions.get(c)
-            if not instances:
-                continue
-            for inst in instances:
-                entry = {"condition": c}
-                if isinstance(inst.get("duration"), (int, float)):
-                    entry["minutes_remaining"] = inst["duration"]
-                if inst.get("source"):
-                    entry["source"] = inst["source"]
-                if inst.get("level"):
-                    entry["level"] = inst["level"]
-                result.append(entry)
-        return result
 
     def end_conditions(self, player_name: str, action: str) -> list:
         """End every instance whose effective ``ends_on`` includes *action*.

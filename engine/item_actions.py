@@ -123,8 +123,6 @@ class ItemActions(
             )
         return None
 
-    def _sum_carry_weight(self, player_id: str) -> float:
-        return sum_carry_weight(self.graph, player_id)
 
     def get_carry_load_ratio(self, player_manager, player_name: str = None) -> dict:
         return get_carry_load_ratio(self.graph, player_manager, player_name=player_name)

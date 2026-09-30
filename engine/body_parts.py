@@ -150,11 +150,6 @@ BODY_REGIONS = {
 INJURY_CAPABLE = {r for r, d in BODY_REGIONS.items() if d["zone"] != "erogenous"}
 
 
-def region_definition(region_id):
-    """Return the metadata dict for a region id (empty dict if unknown)."""
-    return BODY_REGIONS.get(region_id, {})
-
-
 def resolve_region(where):
     """Resolve a free-text ``where`` string to a canonical region id.
 

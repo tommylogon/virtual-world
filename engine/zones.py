@@ -100,18 +100,6 @@ def scope_nodes(graph, scope_id: str) -> List[str]:
     return sorted(out)
 
 
-def _gateway_scopes(way_id: str) -> Tuple[str, str]:
-    """``(parent, child)`` from a gateway way id, or empty strings."""
-    if not str(way_id).startswith(GATEWAY_PREFIX):
-        return "", ""
-    rest = str(way_id)[len(GATEWAY_PREFIX):]
-    parent, _sep, child = rest.partition("_")
-    # The child id may itself contain underscores, so take the long side: the
-    # parent is the shorter of the two non-empty halves and this is only ever
-    # used to *check* linkage, never to reconstruct an id.
-    return parent, child
-
-
 class ReleaseRefused(ValueError):
     """A zone cannot be released, and says which rule stopped it."""
 

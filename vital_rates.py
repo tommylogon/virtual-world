@@ -63,8 +63,6 @@ ENV_PERFUME_ENTERTAINMENT = 0.05
 
 # ── Core-temperature per-minute effects ─────────────────────────────────
 COLD_MILD_ENERGY = 0.05        # core 36..37
-COLD_MODERATE_ENERGY = 0.10    # core 35..36
-COLD_MODERATE_HP = 0.01
 COLD_SEVERE_ENERGY = 0.15      # core 33..35
 COLD_SEVERE_HP = 0.05
 COLD_CRITICAL_HP = 0.15        # core < 33

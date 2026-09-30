@@ -32,7 +32,7 @@ case, or `window[...]`/inline `on*` handlers in the JS case, would not be seen. 
 scan included `.html` and `.json`, so no inline-handler reference exists for the JS
 entries. Treat every line as a candidate to re-verify, not as proof.
 
-## Python — module-level constants (14)
+## Python — module-level constants (14) — DONE (removed 2026-09-30)
 
 | File:line | Name | Note |
 |---|---|---|
@@ -51,7 +51,7 @@ entries. Treat every line as a candidate to re-verify, not as proof.
 | `engine/activities.py:118` | `_ALLOWED_WHILE_BLOCKED` | |
 | `engine/character_appearance.py:238` | `_HAIR_LENGTHS` | |
 
-## Python — functions/methods (25)
+## Python — functions/methods (25) — DONE (removed 2026-09-30)
 
 | File:line | Name |
 |---|---|
@@ -80,6 +80,26 @@ entries. Treat every line as a candidate to re-verify, not as proof.
 | `engine/body_parts.py:153` | `region_definition` |
 | `engine/derive.py:258` | `relationship_block` |
 | `engine/character_spatial.py:727` | `set_position_using_target` |
+
+### Python result (2026-09-30)
+
+All 39 removed — 25 files, pure deletions, no insertions. Evidence:
+
+- `python -m py_compile` on every changed file: clean.
+- **Controlled A/B.** Ran the full suite (`--ignore=tests/test_tick_time_scaling.py`)
+  in the main tree (deletions) and in a clean `master` worktree given the *same*
+  data set (both collected 6466 tests). Both produced the **same 12 failures** —
+  exactly the documented baseline (`test_character_identity` ×2,
+  `test_ownership` ×3, `test_pines_slice`, `test_promotion`,
+  `test_scenario_data_integrity` ×4, `test_templates` ×1). No failure is
+  attributable to the deletions.
+- `tests/test_reset_undo.py::test_undo_restores_state_after_reset` failed in one
+  full-suite run but is **flaky**: it passes in isolation, tests nothing deleted,
+  and did not recur on a re-run. Not attributable to this change.
+- No test under `tests/` references any removed name. Note the near-misses are
+  *different, still-present* names: `test_conditions.py` imports
+  `effective_periodic_for` (not the deleted `effective_periodic`), and
+  `test_engine_config.py` imports `_noise_levels` (not the deleted `NOISE_LEVELS`).
 
 ## JavaScript — DONE (removed 2026-09-30)
 
@@ -124,14 +144,14 @@ dead-code sweep. Deleting just the constant is safe either way.
 
 ## Acceptance
 
-- [ ] For every listed entry, re-run `rg -w "<name>"` across the repo (excluding
-  `.git`/`node_modules`/`.kilo`) and confirm exactly **one** hit — the definition.
-  Drop any entry whose count has grown (something now uses it).
-- [ ] Remove only the unused definitions; make no other behaviour change.
-- [ ] Confirm no `__all__`, `from x import *`, or module attribute exposes a removed
-  name (none is expected from the counts, but check on removal).
-- [ ] Python suite green — compare FAILED **names** against the pre-change run, not
-  counts.
-- [ ] For the JS entries: `node tools/unit/run.cjs`, `npm run lint` and
+- [x] For every listed entry, re-counted across the repo and confirmed exactly
+  **one** hit — the definition (done before the removal).
+- [x] Remove only the unused definitions; no other behaviour change.
+- [x] Confirm no `__all__`, `from x import *`, or module attribute exposes a removed
+  name (none did).
+- [x] Python suite compared by FAILED **names** against a clean-`master` worktree
+  with identical data — same 12 baseline failures, no new ones.
+- [x] For the JS entries: `node tools/unit/run.cjs`, `npm run lint` and
   `npm run typecheck` green.
-- [ ] Record in the task which entries were dropped on re-verification and why.
+- [x] Record that no entries were dropped (all 39 held at removal time), and the
+  flaky `test_reset_undo` note above.

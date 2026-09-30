@@ -549,18 +549,6 @@ def painter_at(record: dict, layer: str, x: int, y: int):
     return layer_cells(record, layer).get(cell_key(x, y))
 
 
-def climate_at(record: dict, x: int, y: int) -> str:
-    """The coarse climate painted on a cell, or :data:`DEFAULT_CLIMATE`.
-
-    A painted value that is not one of :data:`CLIMATE_BASE_C`'s keys reads as
-    ``""`` — an unknown climate is a typo, and guessing at it would quietly
-    compile a region into some climate the author did not paint. The compiler is
-    what turns "" into a decision; this reader only reports.
-    """
-    value = (painter_at(record, "climate", x, y) or "").strip().lower()
-    return value if value in CLIMATE_BASE_C else ""
-
-
 def climate_base_c(climate: str) -> float:
     """The base °C for a climate name, defaulting to temperate."""
     return CLIMATE_BASE_C.get(str(climate or "").strip().lower(),
