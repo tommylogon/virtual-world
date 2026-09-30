@@ -156,13 +156,6 @@ function createCharacter() {
         worldState.fetch();
     });
 }
-function setActiveCharacter(name) {
-    api.setActivePlayer(name).then(res => {
-        if (res.error) { toastError('Error: ' + res.error); return; }
-        events.log('Active character: ' + res.active, 'system-msg');
-        worldState.fetch();
-    });
-}
 function deleteCharacter(name) {
     if (!confirm("Delete character '" + name + "'?")) return;
     api.deleteCharacter(name).then(res => {
@@ -229,8 +222,6 @@ function connectRoomsViaGraph() {
     });
 }
 // Legacy HTML onclick wrappers — used by templates/index.html
-function openItemLibrary() { itemLib.open(); }
-function closeItemLibrary() { itemLib.close(); }
 function filterItemLibrary() { itemLib.filter(); }
 function addAllWorldItemsToLibrary() { itemLib.syncAllWorldItems(); }
 
@@ -625,35 +616,6 @@ function toggleDoorState(exitName, action, wayId) {
         }
         worldState.fetch();
     });
-}
-
-// Nudge
-function nudgeCharacter(charName) {
-    const input = document.getElementById('nudge-input');
-    const text = (input?.value || '').trim();
-    if (text) agent.nudge(charName, text);
-    if (input) input.value = '';
-}
-
-// Explanation
-function explainAction(charName, historyIndex) {
-    const state = events.getCharacterState(charName);
-    const entry = state.actionHistory[historyIndex];
-    if (!entry) return;
-    const panel = document.getElementById('why-panel');
-    if (!panel) return;
-    if (panel.style.display !== 'none' && panel.dataset.char === charName && panel.dataset.idx === String(historyIndex)) {
-        panel.style.display = 'none';
-        return;
-    }
-    panel.dataset.char = charName;
-    panel.dataset.idx = String(historyIndex);
-    const isErr = (entry.result || '').toLowerCase().includes('valueerror') || (entry.result || '').toLowerCase().includes("don't");
-    window.Lit.render(mainJsTag`<div><b>🧠 ${events.tickToTime(entry.tick)}: ${charName}</b></div>
-        ${entry.thought ? mainJsTag`<div style="padding:4px 8px;background:rgba(188,140,255,0.1);border-radius:4px;border-left:3px solid var(--purple);margin:4px 0;"><span style="color:var(--purple);font-weight:500;">Thought:</span> ${entry.thought}</div>` : ''}
-        <div><span style="color:var(--accent);font-weight:500;">Action:</span> <code>${entry.action || '?'}</code></div>
-        <div><span style="color:${isErr ? 'var(--orange)' : 'var(--green)'};font-weight:500;">Result:</span> ${entry.result || 'No result'}</div>`, panel);
-    panel.style.display = 'block';
 }
 
     // Guest speech (no character needed)

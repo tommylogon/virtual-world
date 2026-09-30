@@ -1423,18 +1423,6 @@
         }
     }
 
-    /**
-     * Fetch (and cache) a scope's grid payload. The cache is what lets a zone drag
-     * move the right art synchronously instead of guessing, and it is dropped when
-     * the world is reloaded so a stale grid can never place a picture.
-     */
-    async function _gridPayloadFor(scopeId) {
-        let payload = null;
-        try { payload = await ApiClient.getWorldGrid(scopeId); }
-        catch (error) { payload = null; }
-        _cacheGrid(scopeId, payload);
-        return payload;
-    }
     function fitToNodes(padding = 140) {
         const layer = _active();
         if (!layer || !layer.image)

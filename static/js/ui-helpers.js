@@ -1,6 +1,6 @@
 /**
  * @module ui-helpers — shared UI utilities
- * @contributes toast/notify helpers (Notyf) plus tooltip and select-enhancement helpers
+ * @contributes toast/notify helpers (Notyf) plus select-enhancement helpers
  * @powers consistent toasts and dropdowns across every panel
  * @relates leaf utility used app-wide (saveload-view, settings-view, engine-config-view, …)
  * @docs none
@@ -37,24 +37,6 @@ function toastSuccess(msg) { toast(msg, 'success'); }
 function toastError(msg) { toast(msg, 'error'); }
 function toastInfo(msg) { toast(msg, 'info'); }
 function toastWarning(msg) { toast(msg, 'warning'); }
-
-// ─── Tippy.js Tooltip Helpers ───
-function initTooltip(el, content, opts = {}) {
-    if (!el || typeof tippy === 'undefined') return;
-    try {
-        tippy(el, {
-            content,
-            placement: opts.placement || 'top',
-            arrow: true,
-            animation: 'shift-away',
-            duration: [200, 150],
-            maxWidth: opts.maxWidth || 250,
-            allowHTML: true,
-            interactive: opts.interactive || false,
-            ...opts
-        });
-    } catch (e) { /* silently ignore */ }
-}
 
 // ─── Choices.js Select Helpers ───
 function enhanceSelect(el, opts = {}) {

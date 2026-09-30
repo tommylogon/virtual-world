@@ -37,8 +37,6 @@
  * vitals, ...) the identifier is the object key; for array sections (memories,
  * items) it is `id` when present, else `name`.
  */
-const diffModalTag = (strings, ...values) => window.Lit.html(strings, ...values);
-
 window.DiffModal = (() => {
   const esc = (text) => (text || '').replace(/"/g, '&quot;');
 

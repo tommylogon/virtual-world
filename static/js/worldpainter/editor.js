@@ -2296,45 +2296,6 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         return true;
     }
 
-    /** Key handling for the rail: one key per tool, plus selection and nudges. */
-    function _wireKeys() {
-        document.addEventListener('keydown', (e) => {
-            if (!state.body || !state.scopeId) return;
-            const tag = (e.target && e.target.tagName) || '';
-            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-            if (e.ctrlKey || e.metaKey) {
-                if ((e.key || '').toLowerCase() === 'a') {
-                    e.preventDefault();
-                    const p = state.payload;
-                    if (!p) return;
-                    const keys = {};
-                    for (let y = 0; y < p.grid.h; y += 1) {
-                        for (let x = 0; x < p.grid.w; x += 1) keys[GM().cellKey(x, y)] = true;
-                    }
-                    _setSelection(p, keys);
-                    _status(`Selected all ${p.grid.w * p.grid.h} cells.`);
-                    render();
-                }
-                return;
-            }
-            const tool = TOOLS.find(([, , key]) => key.toLowerCase() === (e.key || '').toLowerCase());
-            if (tool) { e.preventDefault(); _selectTool(tool[0]); return; }
-            const nudge = { arrowup: [0, -1], w: [0, -1], arrowdown: [0, 1], s: [0, 1],
-                arrowleft: [-1, 0], a: [-1, 0], arrowright: [1, 0], d: [1, 0] }[(e.key || '').toLowerCase()];
-            if (nudge && _selectedCells(state.payload).length) {
-                e.preventDefault();
-                _nudge(state.payload, nudge[0], nudge[1]);
-                return;
-            }
-            if (e.key === 'Escape') {
-                _setSelection(state.payload, {});
-                state.marquee = null;
-                _status('Selection cleared.');
-                render();
-            }
-        });
-    }
-
     function _cellAtPointer(p) {
         const rp = state.stage && state.stage.getRelativePointerPosition();
         if (!rp) return null;
