@@ -197,6 +197,35 @@ window.GraphScopeTree = (function () {
     }
 
     /**
+     * Put the host at the top of the Outline tab, above the area rows (task-592).
+     *
+     * The host is a *sibling* of `#outline-container` rather than a child of it,
+     * because `renderOutlinePanel` hands that container to Lit, and Lit replaces
+     * its children wholesale — a host nested inside would be destroyed on every
+     * outline paint and the scope tree would blink out each time the state
+     * updated. Sibling order does the job and survives the re-render.
+     *
+     * @returns {boolean} true when the host was placed and drawn
+     */
+    function mountInOutline() {
+        const container = document.getElementById('outline-container');
+        const pane = container && container.closest('.left-tab-pane');
+        if (!container || !pane) return false;
+        let host = panel();
+        if (!host) {
+            host = document.createElement('nav');
+            host.id = 'scope-tree';
+            host.className = 'scope-tree';
+            host.setAttribute('aria-label', 'World scope hierarchy');
+            pane.insertBefore(host, container);
+        } else if (host.nextElementSibling !== container) {
+            pane.insertBefore(host, container);
+        }
+        render();
+        return true;
+    }
+
+    /**
      * Redraw the panel from the graph manager's flat scope list.
      *
      * Silent no-op when the panel is not on the page, so this is safe to call from
@@ -271,6 +300,29 @@ window.GraphScopeTree = (function () {
             : `${row.name} — ${row.areaCount} area(s), ${row.itemCount} item(s)`;
         card.addEventListener('click', () => load(row.id));
         el.appendChild(card);
+
+        // A scope with nothing built in it is the one row where the reader cannot
+        // act, because building a scope is the WorldPainter's ⚙ Generate and the
+        // graph cannot do it (see this module's header). So the row offers the
+        // honest jump rather than a button it cannot keep: open *that scope* in
+        // the painter. A Generate button here would be a promise the graph does not
+        // make; a link to where the button is, is one it can keep (task-592).
+        if (row.unmade) {
+            const jump = document.createElement('button');
+            jump.type = 'button';
+            jump.className = 'scope-tree-jump';
+            jump.textContent = '🖌 Paint';
+            jump.title = `Open ${row.name} in the WorldPainter to paint and `
+                + 'generate it';
+            jump.addEventListener('click', (ev) => {
+                ev.stopPropagation();
+                if (window.VW && VW.worldPainter
+                        && typeof VW.worldPainter.open === 'function') {
+                    VW.worldPainter.open(row.id);
+                }
+            });
+            el.appendChild(jump);
+        }
         return el;
     }
 
@@ -295,6 +347,7 @@ window.GraphScopeTree = (function () {
         toggleCollapsed,
         rowLabel,
         render,
+        mountInOutline,
         WHOLE_WORLD,
         _internals: { plural, load, state },
     };

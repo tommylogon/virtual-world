@@ -124,7 +124,13 @@
                 </div>
             </div>
             <div id="left-tab-outline" class="left-tab-pane" role="tabpanel">
+                <!-- task-592: the scope hierarchy is the top of this tab, so the
+                     world reads as one tree — world, then scope, then the areas
+                     inside it. `renderOutlinePanel` owns the area rows below and
+                     replaces this container's children, so the scope host is
+                     re-created and re-rendered after every outline paint. -->
                 <div id="outline-container" class="left-outline"></div>
+                <nav id="scope-tree" class="scope-tree" aria-label="World scope hierarchy" hidden></nav>
             </div>
             <div id="left-tab-lens" class="left-tab-pane" role="tabpanel">
                 <div id="agent-lens-root" class="agent-lens-root">
@@ -319,11 +325,15 @@
                     <button onclick="graphManager.zoomOut()" title="Zoom out" aria-label="Zoom out">－</button>
                 </div>
             </div>
-            <!-- task-397 step 4: the scope hierarchy as a tree. The picker in the
-                 toolbar is a flat list of the same scopes; this is the shape the
-                 manifest actually has, and it says how big each scope is and
-                 whether anything has been built in it. -->
-            <nav id="scope-tree" class="scope-tree" aria-label="World scope hierarchy" hidden></nav>
+            <!-- task-397 step 4 put the scope hierarchy here, under the graph, and
+                 task-592 moved it: three separate ways to pick a scope (this tree,
+                 the toolbar dropdown, the breadcrumb) had grown, and the one panel
+                 that already holds a hierarchy — the Outline tab — held only the
+                 bottom of one. Scopes are now the TOP of the Outline tab and areas
+                 nest under them, so the world reads as one tree in one place. The
+                 breadcrumb stays in the graph, because "where am I" is a question
+                 about the canvas and "what else is there" is a question about the
+                 world. -->
 
             <div id="event-section">
                 <div class="event-header">

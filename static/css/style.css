@@ -386,6 +386,21 @@ body {
 .scope-tree-row.occupied .scope-tree-card::after {
     content: '●'; color: var(--accent); margin-left: 6px; font-style: normal; font-size: 9px;
 }
+/* The "open in the WorldPainter" jump on an unmade scope (task-592).
+ *
+ * `flex: 0 0 auto` is the whole fix. The card next to it is `flex: 1 1 auto`, so
+ * without this the jump takes a share of the row and the card — which is the part
+ * carrying the name — is what gets squeezed; with `nowrap` + `text-overflow:
+ * ellipsis` the name silently loses its last characters instead, which is how it
+ * read "10 here na…". The jump is a small fixed control and must never be the
+ * thing that reflows. */
+.scope-tree-jump {
+    flex: 0 0 auto; margin-right: 4px; padding: 1px 5px;
+    background: transparent; border: 1px solid var(--border, #3a3a44);
+    border-radius: 4px; color: var(--text-muted); cursor: pointer;
+    font-family: var(--font); font-size: 10px; line-height: 1.4; white-space: nowrap;
+}
+.scope-tree-jump:hover { background: var(--bg-hover); color: var(--text); }
 /* "Whole world" is a card too, not a default button — it sits above the
    hierarchy and is the way back out of it. */
 .scope-tree-whole {

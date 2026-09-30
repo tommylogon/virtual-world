@@ -51,6 +51,15 @@ window.GraphTreeView = {
         if (!container || !worldState.data) return;
         const rooms = Object.keys(worldState.areas || {}).sort();
         const players = Object.entries(worldState.players || {});
+        // A scope filter is on, so these areas are a scope's, not the world's, and
+        // the heading must say so — otherwise "53 areas" reads as the size of the
+        // world when it is the size of one scope (task-592).
+        const scopedTo = String((window.graphManager && graphManager._scopeFilter) || '');
+        const scopedName = (window.graphManager && graphManager._scopeSummaries || [])
+            .find((s) => s && s.id === scopedTo);
+        const scopeNote = scopedTo
+            ? ` — in ${(scopedName && scopedName.name) || scopedTo}`
+            : '';
         const playerRoomMap = {};
         players.forEach(([playerName, playerData]) => {
             const currentArea = playerData.current_area;
@@ -119,8 +128,16 @@ window.GraphTreeView = {
         });
 
         window.Lit.render(treeViewHtmlTag`
-            <div style="font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:8px;padding:8px 8px 0;">🏠 ${rooms.length} rooms · 👤 ${players.length} characters <button class="btn btn-sm btn-ghost" @click=${() => GraphTreeView.copyOutlineTree()} style="margin-left:8px;" title="Copy outline to clipboard">📋</button></div>
+            <div style="font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:8px;padding:8px 8px 0;">📍 ${rooms.length} areas${scopeNote} · 👤 ${players.length} characters <button class="btn btn-sm btn-ghost" @click=${() => GraphTreeView.copyOutlineTree()} style="margin-left:8px;" title="Copy outline to clipboard">📋</button></div>
             <div class="vtree" style="padding:4px 8px;">${roomFragments}</div>`, container);
+
+        // The scope hierarchy sits ABOVE this list (task-592), so the world reads
+        // as one tree. It is re-placed and re-rendered here rather than once at
+        // load because Lit has just replaced the container's children, and the
+        // host is a sibling of that container — see `GraphScopeTree.mountInOutline`.
+        if (window.GraphScopeTree && typeof GraphScopeTree.mountInOutline === 'function') {
+            GraphScopeTree.mountInOutline();
+        }
     },
 
     /**
@@ -138,26 +155,45 @@ window.GraphTreeView = {
                 playerRoomMap[currentArea].push(playerName);
             }
         });
-        let text = `Virtual World — ${rooms.length} rooms, ${players.length} characters\n\n`;
-        rooms.forEach(areaName => {
+        const areaBlock = (areaName) => {
             const area = worldState.areas[areaName];
             const env = area.environment || {};
             const temp = treeViewFormatTemp(env.temperature);
             const light = env.light != null ? env.light : '?';
             const air = env.air || '?';
-            text += `📍 ${areaName}  (${temp} · ${light} lux · ${air})\n`;
-            if (area.description) text += `   ${area.description.replace(/\n/g, ' ')}\n`;
+            let text = `   📍 ${areaName}  (${temp} · ${light} lux · ${air})\n`;
+            if (area.description) text += `      ${area.description.replace(/\n/g, ' ')}\n`;
             const exits = Object.entries(area.exits || {});
-            if (exits.length) text += `   🚪 ${exits.map(([direction, exitData]) => {
+            if (exits.length) text += `      🚪 ${exits.map(([direction, exitData]) => {
                 const target = typeof exitData === 'object' ? (exitData.target || exitData.targetAreaName || exitData.targetAreaId || '?') : exitData;
                 return `${direction} → ${target}`;
             }).join(', ')}\n`;
             const items = worldState.getItemsInArea(areaName);
-            if (items.length) text += `   📦 ${items.map(itemData => itemData.name || itemData.id || '?').join(', ')}\n`;
+            if (items.length) text += `      📦 ${items.map(itemData => itemData.name || itemData.id || '?').join(', ')}\n`;
             const here = playerRoomMap[areaName] || [];
-            if (here.length) text += `   👤 ${here.join(', ')}\n`;
+            if (here.length) text += `      👤 ${here.join(', ')}\n`;
+            return text;
+        };
+
+        // The **whole** hierarchy, not just the areas (task-592). Copying areas
+        // alone silently drops the two levels above them, so a pasted outline of a
+        // five-scope world would read as one flat room list with no indication of
+        // which scope any of it was in.
+        let text = `Virtual World — ${rooms.length} areas, ${players.length} characters\n\n`;
+        const scopes = (window.graphManager && graphManager._scopeSummaries) || [];
+        if (scopes.length && window.GraphScopeTree) {
+            const tree = GraphScopeTree.buildTree(scopes);
+            const rows = GraphScopeTree.visibleRows(tree, new Set(), null);
+            rows.forEach((row) => {
+                const pad = '  '.repeat(Math.max(0, row.depth));
+                text += `${pad}🗺 ${row.name}`
+                    + (row.unmade ? ' — not built'
+                        : ` — ${row.areaCount} area(s), ${row.itemCount} item(s)`)
+                    + '\n';
+            });
             text += '\n';
-        });
+        }
+        rooms.forEach((areaName) => { text += areaBlock(areaName) + '\n'; });
         navigator.clipboard.writeText(text).catch(() => {
             const textarea = document.createElement('textarea');
             textarea.value = text;

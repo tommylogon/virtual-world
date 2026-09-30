@@ -468,8 +468,20 @@ window.GraphLayoutEngine = {
      * 200-cell-wide world gets a tight ~30px one (dots, whole map in view). At
      * 1600px this lands a 6×8 camp at 200px/cell — the pitch a person picks by
      * hand today, which is the point: the default is now the informed one.
+     *
+     * **Raised to 4200** so that a *typical painted world* lands on
+     * :data:`MAP_CARD_MIN_PITCH` and shows **place names** by default. At 1600 the
+     * Kraktooth world — a 20×30 painted extent — derived 55px/cell, an eighth of
+     * the card threshold, so the Map layout drew every place as an anonymous dot
+     * and the one thing the map is for (telling you where a place is *called*)
+     * needed the reader to first discover a slider. 4200 ÷ 30 is 140 exactly, and
+     * the ladder stays honest at both ends: a small zone clamps to
+     * :data:`AUTO_SPACING_MAX` and gets roomy cards, a large one clamps to
+     * :data:`AUTO_SPACING_MIN` and takes the whole map in view as dots. The middle
+     * is where a world is a thing you pan around, and that is where names are
+     * worth the panning.
      */
-    AUTO_SPAN_PX: 1600,
+    AUTO_SPAN_PX: 4200,
 
     /** Clamp for the derived pitch — never tighter than this, never wider. */
     AUTO_SPACING_MIN: 24,

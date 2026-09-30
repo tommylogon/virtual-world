@@ -223,18 +223,38 @@ test('autoMapSpacing fits a small zone and a big one without hand-tuning (task-5
 
     const smallPitch = GraphLayoutEngine.autoMapSpacing(small);
     const bigPitch = GraphLayoutEngine.autoMapSpacing(big);
-    // The small zone lands roomy — which is the pitch a person picks by hand today,
-    // and above the card threshold, so it still reads as named places.
-    assertEq(smallPitch, 200, 'a 6x8 camp gets a card pitch');
-    assertTrue(smallPitch >= GraphLayoutEngine.MAP_CARD_MIN_PITCH, 'and stays on cards');
+    // The small zone lands roomy — at the ceiling, which is what a 6-cell camp
+    // wants and what a single span constant has to give once the span is set so
+    // that a *30-cell world* also lands on cards. The two cannot both hold from
+    // one `span / longest` ratio (200 at 8 cells needs 1600; 140 at 30 needs
+    // 4200), so the small end is served by the clamp and is simply *roomier*
+    // than before. What this asserts is the property, not a number.
+    assertTrue(smallPitch >= GraphLayoutEngine.MAP_CARD_MIN_PITCH,
+        'a 6x8 camp gets a card pitch');
+    assertTrue(smallPitch <= GraphLayoutEngine.AUTO_SPACING_MAX,
+        'and never above the ceiling');
     // The big one lands tight, but never tighter than the floor.
     assertTrue(bigPitch < smallPitch, 'a 200x133 world gets a tighter pitch');
     assertTrue(bigPitch >= GraphLayoutEngine.AUTO_SPACING_MIN, 'never below the floor');
     assertTrue(bigPitch <= GraphLayoutEngine.AUTO_SPACING_MAX, 'never above the ceiling');
 
-    // Both are drawn on one screen: pitch x the longest side ~ the target span.
+    // A **mid-size** world — the Kraktooth one, 20x30 — is the case the span was
+    // retuned for: it must land on cards, not dots, or the map has no names in it
+    // and a reader has to find a slider to get them.
+    const mid = {};
+    mid.a = { type: 'area', properties: { cell: { x: 19, y: 29 } } };
+    const midPitch = GraphLayoutEngine.autoMapSpacing(mid);
+    assertTrue(midPitch >= GraphLayoutEngine.MAP_CARD_MIN_PITCH,
+        `a 20x30 world gets cards (got ${midPitch})`);
+
+    // The span is reached exactly on a **mid-size** world — the unclamped case, and
+    // the one the retune is about. Asserted there rather than on the 200-cell
+    // world, whose pitch is held at the *floor* (25px) and so spans 5,000px rather
+    // than 4,200: that is the clamp doing its job, and asserting the span there
+    // would be asserting that the floor does not exist.
     const span = GraphLayoutEngine.AUTO_SPAN_PX;
-    assertTrue(Math.abs(smallPitch * 8 - span) <= 10, 'small map spans the target');
+    assertTrue(Math.abs(midPitch * 30 - span) <= 10,
+        'the mid map spans the target');
     assertEq(GraphLayoutEngine.autoMapSpacing({}), null, 'nothing painted -> no opinion');
     assertEq(GraphLayoutEngine.autoMapSpacing(null), null, 'no nodes -> no opinion');
     // Tidy stepper values, not 213.333.
