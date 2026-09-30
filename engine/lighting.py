@@ -2,6 +2,7 @@ from typing import Dict, List, Optional
 
 from graph import EDGE_CONNECTION, EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED
 from engine import barriers as _barriers
+from engine.area_tags import is_open_sky
 from engine.runtime_config import config as _config
 
 #: Fraction of a lit neighbor area's light that spills through an open door.
@@ -131,12 +132,17 @@ class LightingSystem:
         return min(100, total), min(100, best)
 
     def is_outdoor_area(self, area_id: str) -> bool:
-        """True when the area node carries the 'outdoor' tag (task-230)."""
+        """True when the area node is under the open sky (task-230, bug-54).
+
+        Delegates to the shared predicate rather than testing ``"outdoor"``
+        itself: the forecast and the heat reservoirs ask the same question with
+        the other spelling, and a painted world that was tagged ``outdoor`` by
+        its biome still had to read as open sky here.
+        """
         node = self.graph.get_node(area_id)
         if not node:
             return False
-        tags = node.properties.get("tags", [])
-        return "outdoor" in tags
+        return is_open_sky(node.properties.get("tags", []))
 
     def _own_light(self, area_id: str, env: Dict, hour: Optional[int]) -> int:
         """Area's own effective light: authored/time-of-day base vs the

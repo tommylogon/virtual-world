@@ -3,6 +3,7 @@ from graph import EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED
 from player import BLOCKING_CONDITIONS
 from engine.vitals import is_drive, is_animal, ANIMAL_SKIPPED_VITALS
 from engine.lived_log import record as lived_record
+from engine.area_tags import is_open_sky
 from vital_rates import (
     change,
     tick_minutes,
@@ -402,7 +403,7 @@ class TickManager:
                     if area_node:
                         tags = area_node.properties.get("tags", []) or []
                         env = area_node.properties.get("environment", {})
-                        if "exterior" in tags:
+                        if is_open_sky(tags):
                             extra_energy += {"none": 0, "breeze": 0, "wind": 1,
                                              "gale": 2, "storm": 3, "hurricane": 5}.get(
                                 str(env.get("wind", "none")), 0)

@@ -14,6 +14,7 @@ from typing import Any, Optional
 import random
 
 from graph import EDGE_CONNECTION, EDGE_IN
+from engine.area_tags import is_open_sky
 from engine.runtime_config import config as _config
 
 #: Base heat exchange rate per tick, calibrated for 5-minute ticks.
@@ -129,14 +130,16 @@ def _transfer_heat(
     if transfer == 0:
         return
 
-    tags_a = area_a.properties.get("tags", [])
-    if not (isinstance(tags_a, list) and "exterior" in tags_a):
+    # An open-sky area is an infinite reservoir: it does not store what a room
+    # hands it, so opening a door to outdoors does not slowly cool the room the
+    # way opening a door to another room does (bug-54). Asked via the shared
+    # predicate, so an area tagged `outdoor` counts too.
+    if not is_open_sky(area_a.properties.get("tags", [])):
         # Round to 0.1°C so repeated float math can't accumulate artifacts
         # like -10.452438125 in stored temperatures.
         env_a["temperature"] = round(temp_a - transfer, 1)
 
-    tags_b = area_b.properties.get("tags", [])
-    if not (isinstance(tags_b, list) and "exterior" in tags_b):
+    if not is_open_sky(area_b.properties.get("tags", [])):
         env_b["temperature"] = round(temp_b + transfer, 1)
 
 

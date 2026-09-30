@@ -1304,6 +1304,7 @@ class VirtualWorld:
         real day. Simulating a diurnal swing around a *placeholder* would invent
         variation nobody asked for, in every world that never chose a climate.
         """
+        from engine.area_tags import is_open_sky
         from engine.runtime_config import config as _cfg
         from engine.weather_forecast import (OUTDOOR_BASE_C, resolve_season,
                                              temp_curve_for_hour)
@@ -1327,7 +1328,11 @@ class VirtualWorld:
             if node.type != "area":
                 continue
             tags = node.properties.get("tags", []) or []
-            if scope == "exterior" and "exterior" not in tags:
+            # bug-54: this asked for the literal "exterior" while a painted
+            # WorldPainter area is tagged "outdoor" by its biome, so the forecast
+            # silently never reached a compiled world at all. One predicate, both
+            # spellings — see engine/area_tags.py.
+            if scope == "exterior" and not is_open_sky(tags):
                 continue
             env = node.properties.setdefault("environment", {})
             if eff.get("weather"):

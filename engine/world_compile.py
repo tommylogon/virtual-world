@@ -1890,6 +1890,20 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
                     tags.append(str(tag))
         if child_scope_id and "feature" not in tags:
             tags.append("feature")
+        # bug-54: a *world*-mode scope is open sky, and that is the fact the
+        # forecast, the diurnal light curve, the moon and the heat reservoirs
+        # all read. It cannot come from the biome record: of 105 biomes only
+        # porch/courtyard/balcony claim it, and an outdoor `beach` does not. The
+        # compiler already computes the answer as `outdoor` (see the scope-mode
+        # note above), so this is the writer side of a predicate that used to
+        # have four readers and no writer.
+        #
+        # Emitted as the single canonical tag. Readers accept either spelling
+        # (engine/area_tags.py) because the hand-authored library areas carry
+        # `exterior`, but only one of them is written here so a compiled area
+        # never claims to be two things.
+        if outdoor and not ({"outdoor", "exterior"} & set(tags)):
+            tags.append("outdoor")
 
         props = {
             "world_scope_id": scope_id,

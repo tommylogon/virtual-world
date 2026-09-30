@@ -146,20 +146,7 @@ def time_of_day_prose(hour) -> str:
     return text
 
 
-def _is_open_sky(tags) -> bool:
-    """True when an area is under the open sky.
-
-    Two spellings are in use for this one fact: ``outdoor`` is what the
-    lighting system and the moon text key off (``LightingSystem.is_outdoor_area``)
-    and ``exterior`` is what the forecast's ``apply_scope`` and the heat
-    reservoirs key off. Neither spelling is going away on its own, so accept
-    either — a world authored with one spelling still gets weather prose.
-    """
-    if not tags:
-        return False
-    if isinstance(tags, str):
-        tags = [t.strip() for t in tags.split(",")]
-    return bool({"outdoor", "exterior"} & {str(t).strip().lower() for t in tags})
+from engine.area_tags import is_open_sky as _is_open_sky  # canonical: see engine/area_tags.py
 
 
 def weather_description(weather, wind_level, noise) -> List[str]:

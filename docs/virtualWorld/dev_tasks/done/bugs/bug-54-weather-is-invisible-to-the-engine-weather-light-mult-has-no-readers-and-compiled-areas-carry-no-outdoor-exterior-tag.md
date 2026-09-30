@@ -1,6 +1,6 @@
 ---
 type: bug
-status: todo
+status: done
 area: bugs
 priority: high
 ---
@@ -41,7 +41,80 @@ Seven tests in `tests/test_lighting.py::TestWeatherDimsTheSky`, including the
 two "must not" cases (no forecast, authored light) and the no-double-dip
 against the storm-nulled moon bonus.
 
-## Cause 2 — a compiled painted area is neither `outdoor` nor `exterior` — **OPEN**
+## Cause 2 — a compiled painted area is neither `outdoor` nor `exterior` — **FIXED 2026-09-30**
+
+The card's warning that another session owned `world_compile.py` and
+`biomes.json` had resolved by the time this was picked up: the taxonomy grew
+51 → 105 biomes and three of them (`porch`, `courtyard`, `balcony`) now declare
+`outdoor`. That fixed *half* the problem and is exactly why the rest was still
+broken — and why the remaining half was not the card's picture any more.
+
+**The real shape of the bug was one fact with four readers.** "Is this area
+under the open sky?" was asked four ways, and the spellings disagreed:
+
+| Reader | Before | Now |
+|---|---|---|
+| `lighting.LightingSystem.is_outdoor_area` | `"outdoor" in tags` | `is_open_sky(...)` |
+| `area_description._is_open_sky` | either spelling | delegates to `engine/area_tags.py` |
+| `environment_propagation` (×2, heat reservoirs) | `"exterior" in tags` | `is_open_sky(...)` |
+| `tick_manager` (wind Energy drain) | `"exterior" in tags` | `is_open_sky(...)` |
+| `virtual_world_engine._apply_forecast_env` | `"exterior" in tags` | `is_open_sky(...)` |
+
+A painted area was tagged `outdoor` by its biome, and the forecast — the thing
+this bug is named for — was looking for the literal `exterior`. So it was skipped,
+every turn, silently.
+
+### Decisions taken, deliberately
+
+**Which spelling?** Both are *read*; only one is *written*. Neither can be
+retired cheaply on disk: `data/worldpainter/biomes.json` authors write
+`outdoor`, and a few hundred hand-authored library areas carry `exterior` by
+hand. So `engine/area_tags.py::is_open_sky` is the one predicate, it accepts
+either, and `compile_grid` writes exactly one — asserted by a test, because
+emitting both is the cheap fix that re-creates the trap.
+
+**Where does the compiler get the fact?** From the scope's **mode**, not the
+biome. The biome record cannot supply it: of 105 biomes only 3 claim open sky
+and an outdoor `beach` is not one of them, so delegating would have left the
+most obvious outdoor biome in the game still locked to a static light value.
+`compile_grid` already computed `outdoor = record.mode == "world"` and threw it
+away.
+
+### What changed
+
+- **`engine/area_tags.py`** (new) — `OPEN_SKY_TAGS`, `is_open_sky()`. One home
+  for the fact, with the history in the docstring.
+- **`engine/world_compile.py`** — `compile_grid` writes `outdoor` onto every
+  area of a `world`-mode scope.
+- **`engine/lighting.py`**, **`engine/environment_propagation.py`**,
+  **`engine/tick_manager.py`**, **`virtual_world_engine.py`** — all four read
+  through the predicate.
+- **`tests/test_open_sky.py`** (new, 35 tests) — the predicate, every reader
+  agreeing on either spelling, a real `town`/`interior` compile staying
+  untagged, a real `world` compile being tagged, exactly one spelling written,
+  and the forecast reaching a painted area while staying out of interiors.
+  One test is a deliberate grep guard: a new `"outdoor" in tags` in a known
+  reader fails the suite, which is how this bug comes back.
+
+### Live browser verification
+
+Compiled a painted world through the app's own
+`POST /api/world/scopes/verify_wild/grid/generate` (3×3 `sparse_forest`,
+`world` mode), then ran one `POST /api/turn/apply`:
+
+- Header went 36 → **45 areas**, and the nine new areas carry
+  `["forest", "woods", "outdoor"]` — written by the compiler, once.
+- After one turn, **all 9** had `weather: "snowy"`, `humidity: "humid"`,
+  `temperature: 19.6`. Before this change a compiled painted world received
+  none of it, ever.
+
+### Known limits
+
+`light: 72` on those areas is the authored value, not the curve: the diurnal
+curve is skipped for an area that authored an explicit `environment.light`,
+which is deliberate (a hand-set value is a light source, and a torch does not
+care that it is raining). A painted cell that wants the curve should author no
+`light`.
 
 Two spellings of "under the open sky" are in use, and **the compiler emits
 neither**:
