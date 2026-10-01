@@ -438,7 +438,9 @@ seam exists.
   `node tools/log_lint.cjs data/exports/<log>.txt` (or `npm run loglint -- <path>`).
   Run it on the latest export before tagging/committing a release.
 - Run the app: `python app.py` — **it serves on port 4444**, not 5000. Use
-  `http://localhost:4444` for Playwright and for manual checks.
+  `http://localhost:4444` for Playwright and for manual checks. Set
+  `VW_PORT` to run a second copy elsewhere — parallel worktrees each need their
+  own port or they fight over 4444 and the failure looks like a hang.
 
 ### Known pre-existing failures (NOT caused by your change)
 

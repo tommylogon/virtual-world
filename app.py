@@ -209,4 +209,7 @@ def register_routes(app):
 # For running directly (development)
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=os.environ.get('VW_DEBUG') == '1', port=4444)
+    # VW_PORT lets parallel worktrees each run their own server for live
+    # verification without colliding on 4444. Defaults to 4444 unchanged.
+    app.run(debug=os.environ.get('VW_DEBUG') == '1',
+            port=int(os.environ.get('VW_PORT') or 4444))
