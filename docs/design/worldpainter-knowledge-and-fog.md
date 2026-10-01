@@ -47,6 +47,36 @@ runtime graph
                 (task-499), reusing player.known + the existing teach path
 ```
 
+### A compiled cell IS an area (2026-10-01)
+
+The arrow above is not a translation between two kinds of thing. The compiler mints the area id
+**from the cell** (`area_<scope_id>_<x>_<y>`, `world_compile._area_id`), derives its name from the
+cell (`Sparse Forest (West woods 10, 14)` — biome or road label plus scope and coordinate, unless
+the author named the cell, task-560), and gives it `properties.cell` + `properties.world_scope_id` so
+the cell stays a stable frame. Measured on `kraktooth_goblin_camp`: **205 of 206 areas carry a cell**,
+and manifest coverage is exact for every compiled scope — `eldenford_interior` 70 cells → 70 areas,
+`world` 61 → 61, `goblin_camp` 21 → 21.
+
+So **a biome cell, a road cell, a feature placement and a hand-placed room are one kind of thing at
+runtime: an area node that knows which cell it is.** There is no "cell node", and nothing that walks
+the graph has to know which of the four it is looking at. `Road (world 10, 4)` → `area_world_10_4` is a
+painted *road* cell that came out an area, which is the case that makes the point.
+
+This was worth writing down because the grid is an *authoring* surface and nothing in `world_grid.py`
+said what it becomes — a reader reasonably comes away thinking cells and areas are parallel models that
+have to be kept in step. They are not; one is the other's identity.
+
+Three places the correspondence is deliberately not one-to-one, all of which a cell-walking reader
+would otherwise trip on:
+
+- a run of painted cells is **merged into one region** and the area records only the region's
+  **anchor** cell, so a merged area's `cell` is where it was minted, not its footprint
+  (`west_woods`: 81 painted cells → 53 areas);
+- a cell occupied by a hand-placed area is **skipped**, so it holds the author's area instead of a
+  compiled one (`world` 18,6 is `area_human_road`) — the documented collision rule, working;
+- a scope can have a grid that was **never compiled** (`deep_woods`: 404 painted cells, 0 areas), so a
+  cell in the manifest is not guaranteed to be an area anywhere.
+
 ## Contract details
 
 - **Stable frames.** A cell's identity survives feature moves (task-495

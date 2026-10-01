@@ -6,6 +6,41 @@ authoring substrate for a painted world (task-495); the grid→graph compiler
 Nothing here is engine behaviour yet — these are pure helpers over the scope
 manifest, so the editor, the compiler, and the tests can agree on one shape.
 
+**A compiled cell IS an area.** This is the fact that makes the two layers one
+model rather than two, and it is worth stating here because the grid is an
+*authoring* surface and nothing in this module says what it becomes:
+
+* the compiler mints the area id from the cell — ``area_<scope_id>_<x>_<y>``
+  (``world_compile._area_id``);
+* the area's name is derived from the cell — the biome or road label plus the
+  scope and coordinate, e.g. ``Sparse Forest (West woods 10, 14)``, unless the
+  author named the cell (``_place_name``, task-560);
+* the area carries ``properties.cell`` and ``properties.world_scope_id``, so the
+  cell stays a **stable frame** for it across edits elsewhere on the grid.
+
+So a biome cell, a road cell, a feature placement and a hand-placed room are all
+the same kind of thing at runtime: **an area node that knows which cell it is**.
+There is no separate "cell" concept in the graph, and nothing that walks the
+graph needs to know which of those four it is looking at. Measured on
+``kraktooth_goblin_camp``: 205 of 206 areas carry a cell, and coverage against
+the manifest is exact for the compiled scopes (``eldenford_interior`` 70 cells →
+70 areas, ``world`` 61 → 61, ``goblin_camp`` 21 → 21).
+
+Two places the one-cell-one-area correspondence does **not** hold, both by
+design:
+
+* a run of painted cells is **merged into one region** and the area records only
+  the region's **anchor** cell, so a merged area's ``cell`` is where it was
+  minted, not its footprint (``west_woods``: 81 painted cells → 53 areas);
+* a cell occupied by a hand-placed area is **skipped**, so a painted cell can
+  legitimately hold an author-written area instead of a compiled one (``world``
+  18,6 is ``area_human_road``).
+
+And one scope can have a grid that was never compiled at all (``deep_woods``:
+404 painted cells, 0 areas), so a cell in the manifest is not guaranteed to be an
+area anywhere. Anything that walks areas rather than cells inherits both
+consequences for free.
+
 Data model
 ----------
 Grid state lives on the *scope record* inside the world-scope manifest
@@ -37,7 +72,11 @@ they live in ``placements`` rather than a separate paint layer;
 :func:`feature_layer` derives the ``feature`` paint view the editor draws.
 An area the author wrote by hand can also be placed on a cell (task-528); those
 live in ``area_placements``, keyed by area node id, and the compiler skips an
-occupied cell so the two never collide.
+occupied cell so the two never collide. Note the asymmetry, because it is the
+whole difference between the two: a cell with **no** hand-placed area is
+*painted* and compiles to an area (``area_<scope>_<x>_<y>``), while a cell **with**
+one is skipped and the author's area stands. Either way the runtime node is an
+area; only where its name and id came from differs.
 
 Coordinates are integer ``(x, y)`` with ``(0, 0)`` at the top-left and ``y``
 increasing downward, matching a normal image grid. A cell's **stable identity**

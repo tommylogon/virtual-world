@@ -1,21 +1,44 @@
 ﻿# Rooms & Areas
 
-Rooms are the spatial atoms of VirtualWorld. Every room is a `room`-type node in the WorldGraph, and every player/character has exactly one `current_area` at any given time. Existence happens in a room.
+Rooms are the spatial atoms of VirtualWorld. Every room is an **`area`-type** node in the WorldGraph, and every player/character has exactly one `current_area` at any given time. Existence happens in a room.
+
+> **The node type is `"area"`, not `"room"`** (corrected 2026-10-01). Earlier versions of this note said `type="room"` in the prose while its own code samples said `area` — and the live world agrees with the code samples: `kraktooth_goblin_camp` holds **207 `area` nodes and 0 `room` nodes**. Every constructor agrees too — `movement.py:75`, `world_compile.py:1979`, `serialization_template.py:84`, `generation_recipes.py:120`, `effect_handlers/ways.py:151`. If you meet `type == "room"` in an old note or an old save, it is stale, not a variant.
 
 ## Area Nodes
 
-Each room lives as a `Node` in the WorldGraph with `type="room"`. The dataclass is defined in `graph.py:8-25`:
+Each room lives as a `Node` in the WorldGraph with `type="area"`. The dataclass is defined in `graph.py:8-25`:
 
 ```python
 @dataclass
 class Node:
     id: str          # e.g. "area_living_area"
-    type: str        # "room"
+    type: str        # "area"
     name: str        # Human readable, e.g. "Living Area"
-    properties: Dict[str, Any]  # description, environment
+    properties: Dict[str, Any]  # description, environment, cell, world_scope_id
     created: float   # timestamp
     updated: float   # timestamp
 ```
+
+Rooms are created from an `Area` object via `MovementSystem.add_area()` in `engine/movement.py:70-82`, which mints the id with `_area_node_id(area.name)` and stores the description + environment dict as properties. (There is no `engine/room.py`; earlier versions of this note cited one both for the `Area` object and for the environment defaults further down. Those defaults now live with the code that reads them — `engine/area_description.py`, `engine/lighting.py`.)
+
+The WorldPainter compiler creates them too, and that path is where most areas in a painted world come from — see the next section.
+
+## A compiled cell IS an area (2026-10-01)
+
+This is the identity that makes the WorldPainter grid and the graph **one model** rather than two, and it was missing from this note — which is why the two read like parallel systems that have to be kept in step. They are not.
+
+The compiler mints the area id **from the cell** — `area_<scope_id>_<x>_<y>`, e.g. `area_west_woods_10_14` — derives the area's name from that cell (`Sparse Forest (West woods 10, 14)`: the biome or road label plus scope and coordinate, unless the author named the cell), and gives the node `properties.cell` and `properties.world_scope_id`, so **the cell is a stable frame** for the area across edits elsewhere on the grid. See `engine/world_grid.py` and `engine/world_compile.py` (`_area_id`, `_place_name`).
+
+So **a biome cell, a road cell, a feature placement and a hand-placed room are one kind of thing at runtime: an area node that knows which cell it is.** `Road (world 10, 4)` → `area_world_10_4` is a painted *road* cell that came out an area. There is no "cell node" in the graph, and nothing that walks areas has to know which of the four it is looking at.
+
+Measured on `kraktooth_goblin_camp`: **205 of 206 areas carry a `cell`**, and manifest coverage is exact for every compiled scope — `eldenford_interior` 70 painted cells → 70 areas, `world` 61 → 61, `goblin_camp` 21 → 21.
+
+Three places the one-cell-one-area correspondence is deliberately not one-to-one:
+
+- a run of painted cells is **merged into one region**, and the area records only the region's **anchor** cell — so a merged area's `cell` is where it was minted, not its footprint (`west_woods`: 81 painted cells → 53 areas);
+- a cell occupied by a hand-placed area is **skipped** by the compiler, so it holds the author's area instead of a compiled one (`world` 18,6 is `area_human_road`);
+- a scope can have a grid that was **never compiled** (`deep_woods`: 404 painted cells, 0 areas), so a cell in the manifest is not guaranteed to be an area anywhere.
+
 
 Rooms are created via `MovementSystem.add_area()` in `engine/movement.py:23-35`. The method takes a `Area` object (from `room.py`), generates a node ID, and stores the description + environment dict as properties.
 

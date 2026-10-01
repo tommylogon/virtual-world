@@ -50,6 +50,34 @@ unions both sources.
 `normalise_manifest()` is called on every read, so a hand-edited scenario gets a
 consistent shape rather than a crash at first use.
 
+### A scope may also own a grid (2026-10-01)
+
+This was missing here, which made the grid read like a *separate* system layered beside scopes
+rather than a field on the same record. A scope record can also carry:
+
+```json
+{
+  "mode": "world",                                  // world | town | interior
+  "grid": { "w": 20, "h": 40, "cell_scale": 1.0 },  // absent = this scope has no grid
+  "layers": { "biome": {"10,14": "sparse_forest"},  // painted cells, keyed "x,y"
+              "road":  {"11,22": "road"},
+              "floor": {} },                        // storey index: 0 ground, ±n, unbounded
+  "placements": { "child_scope_id": { "x": 10, "y": 4 } },        // a child scope at a cell
+  "area_placements": { "area_animal_pens": { "x": 11, "y": 7 } }, // a hand-written area at a cell
+  "area_ids": ["…"]                                  // mirror; the node property is the fact
+}
+```
+
+A scope with no `grid` costs nothing and older saves load unchanged. Coordinates are integer
+`(x, y)` from the top-left with `y` down, and a cell's stable identity is `cell_id` =
+`"<scope_id>:<x>,<y>"`.
+
+**A painted cell compiles to an area node** — the id is minted from the cell
+(`area_<scope_id>_<x>_<y>`) and the node carries `properties.cell`, so the grid is an *authoring*
+surface over the same areas the graph holds, not a second model. Full statement, with the three
+deliberate exceptions (region merging, hand-placed cells, never-compiled grids):
+[[Rooms & Areas]] → "A compiled cell IS an area".
+
 Two membership questions have different answers on purpose:
 `area_ids_in_scope()` includes descendants, while `own_area_ids()` returns only
 this scope's own areas. The graph view uses the second, so a parent shows a placed
