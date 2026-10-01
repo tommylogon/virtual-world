@@ -21,7 +21,7 @@
  * @contributes HelpCenter: tip registry, smart triggers, spotlight, tours, and the Help index modal
  * @powers the contextual onboarding layer (❓ top bar / F1)
  * @relates listens on appEvents 'inspector:view' + [data-help] clicks; seen flags in localStorage
- * @docs docs/virtualWorld/UI & Settings/
+ * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
 
 window.HelpCenter = (() => {
@@ -171,7 +171,7 @@ window.HelpCenter = (() => {
             match: d => d === 'autodress',
             group: 'Items & triggers',
             title: 'Auto-Dress from Interests',
-            body: 'Scans the item library for wearable pieces matching the character\'s <b>interest_tags</b> (weather-aware, never replaces worn gear). Empty interests? Use <b>✨ Generate from Personality</b> in Bio to let the character pick its own tags.',
+            body: 'The character\'s LLM picks an outfit for them from the wearable items in the library, judging who they are rather than which tags overlap. Weather-aware, and never replaces gear they are already wearing. Without an LLM configured it falls back to matching <b>interest_tags</b> only — which often picks nothing sensible, since it cannot tell a blacksmith from a farmer. Empty interests? Use <b>✨ Generate from Personality</b> in Bio to let the character pick its own tags.',
         },
         {
             id: 'crafting',
