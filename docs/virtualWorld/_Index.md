@@ -9,6 +9,14 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 
 ---
 
+## [[Feature Map|🎮 Feature Map]]
+
+| Doc | What it covers |
+|---|---|
+| [[Feature Map\|Feature Map]] | **Start here for "can I do X?"** Every user-facing feature in a game and in the editor — 58 of them, each with its status and the note that documents it, and **10 with no note at all**. It is the denominator for documentation coverage |
+
+---
+
 ## [[History|📜 History]]
 
 | Doc | What it covers |
@@ -45,7 +53,7 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 | [[Characters/Traits System\|Traits System]] | Trait definitions, library format, how traits modify gameplay |
 | [[Characters/Skills System\|Skills System]] | Skill checks, progression, action resolution, combat integration |
 | [[Characters/Vitals System\|Vitals System]] | HP, energy, hunger, thirst, sanity, decay per **game minute**, Sanity sources, Entertainment novelty, death, ghost mode |
-| [[Characters/Equipment Loadouts\|Equipment Loadouts]] | Per-character generated equipment lists by slot |
+| [[Items & Inventory/Equipment & Paperdoll\|Equipment & Paperdoll]] | Per-character generated equipment lists by slot, worn/carried effects, weight and bulk |
 | [[Characters/NPC Behavior System\|NPC Behavior System]] | Simple NPCs, behavior types, action intervals (game minutes), the background tier, LLM agent vs scripted |
 | [[Characters/Relationships System\|Relationships System]] | Closeness model, the one mutation path, bands, what moves it, background social interactions, labels, grapple modifier |
 | [[Characters/Emotion & Affect System\|Emotion & Affect System]] | Multi-dimensional affect map, semantic emotion mapping, mental-vital coupling, relationship valence, self- & social-recall re-feel |
