@@ -35,7 +35,7 @@ from .library_ops import (
     handle_library_import_way,
     handle_refresh_way_from_library,
     handle_library_refresh_to_world,
-)
+    handle_break_template_link,)
 
 logger = logging.getLogger(__name__)
 
@@ -88,3 +88,7 @@ def register_library_routes(app):
     @app.route('/api/library/refresh-to-world', methods=['POST'])
     def library_refresh_to_world():
         return handle_library_refresh_to_world(app)
+
+    @app.route('/api/library/break-template-link', methods=['POST'])
+    def library_break_template_link():
+        return handle_break_template_link(app)

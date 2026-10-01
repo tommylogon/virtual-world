@@ -391,6 +391,17 @@ class ApiClient {
         return this.post('/api/library/refresh-to-world', body);
     }
 
+    /**
+     * Unbind a node from its library template. The node keeps its current data —
+     * this only removes the link, so a hand-fixed copy is no longer overwritten
+     * by the next refresh (task-289/317).
+     * @param {string} nodeId
+     * @returns {Promise<object>} report: status, was_linked, template_id
+     */
+    static async breakTemplateLink(nodeId) {
+        return this.post('/api/library/break-template-link', { node_id: nodeId });
+    }
+
     static async refreshWayFromLibrary(nodeId, sections) {
         const body = { node_id: nodeId };
         if (sections) body.sections = sections;

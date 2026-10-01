@@ -2,11 +2,26 @@
 
 ## Status
 
-In progress — both halves partly live. World→Library: `world-sync.js` `_isEmpty`/
-`_mergeEntry` (`:243-257`) + `diff-modal.js` clobber flag (`:267-330`). Library→World:
-`refresh-to-world` now covers item/way/area/character (`routes/library_ops.py:750-769`).
-Remaining: `break-template-link` endpoint + inspector UI (task-289), and variants /
-override tracking (task-290, not started — `template_ref` is absent from the code).
+**DONE (2026-10-01)**, decided and implemented as one unit with **task-289**.
+
+Both halves are now in place, and the World→Library safety rules this card
+lists as "already implemented, must be preserved" were left exactly as they were —
+`_mergeEntry`/`_isEmpty` and the diff modal's clobber guard are untouched, and
+that is deliberate: the two directions share one idea (library = templates,
+world = linked instances) but not one file. Library→World is a **field
+whitelist**; World→Library is a **"never let a bare instance erase curated
+data"** rule. Merging them would have put a clobber guard where a whitelist
+belongs.
+
+See **task-289** for the full result, the live browser verification, and the
+decisions taken. What changed for this card's half specifically:
+
+- The **link has one definition** (`engine/sync.py`) instead of three different
+  id-resolution behaviours across four node types.
+- **Unlinking exists in both directions' vocabulary**: `library_id` can be
+  removed, which is what makes an author-side override durable rather than
+  dependent on remembering not to press Refresh.
+- The World→Library half was **verified as intact**, not re-implemented.
 
 ## Goal
 

@@ -8,6 +8,7 @@ from flask import request, jsonify
 from player import Player
 from graph import Node, Edge, EDGE_CARRYING, EDGE_TRIGGERS, EDGE_IN, EDGE_ON, EDGE_UNDER, EDGE_BEHIND, EDGE_BESIDE, EDGE_AT
 from engine.item_actions import normalize_item_actions
+from engine import sync
 from engine.library_nodes import RELATION_EDGE_TYPES, library_item_properties
 from engine.serialization import canonical_vitals
 from routes.helpers import load_registry, save_registry, delete_registry_entry, _registry_subdir, validate_tags_on_save
@@ -734,6 +735,36 @@ def handle_refresh_way_from_library(app, node_id):
     return _refresh_way(app, node, data.get('sections'))
 
 
+def handle_break_template_link(app):
+    """POST /api/library/break-template-link — unbind a node from its template.
+
+    The missing half of ``refresh-to-world`` (task-289/317): any of the four
+    linkable types could be re-synced and none could be unlinked, so "this copy
+    is mine now" had no way to be expressed and an author's hand-fix was one
+    stray refresh away from being overwritten.
+
+    Removes the link marker and nothing else — the node keeps every value the
+    template last wrote, which is the entire point of breaking a link. See
+    ``engine/sync.py`` for the contract and for why this deliberately does not
+    auto-lock the node's fields.
+    """
+    data = request.get_json() or {}
+    node_id = data.get('node_id')
+    if not node_id:
+        return jsonify({"error": "Missing 'node_id'"}), 400
+    node = app.world.graph.get_node(node_id)
+    if not node:
+        return jsonify({"error": "Node not found"}), 404
+    if sync.spec_for(node.type) is None:
+        return jsonify({
+            "error": f"Type '{node.type}' has no library templates to link to"
+        }), 400
+
+    report = sync.break_template_link(node)
+    report["status"] = "unlinked" if report.get("changed") else "not_linked"
+    return jsonify(report)
+
+
 def handle_library_refresh_to_world(app):
     data = request.get_json() or {}
     node_id = data.get('node_id')
@@ -758,7 +789,11 @@ def handle_library_refresh_to_world(app):
 
 def _refresh_item(app, node, sections, template_id=None):
     current_library_id = node.properties.get('library_id', '')
-    library_id = template_id or current_library_id
+    # engine/sync.py owns the resolution order (explicit -> link -> per-type
+    # guess). An item's id is an opaque library key, so its guess is "none":
+    # a name-derived guess would attach a placed copy to a template the author
+    # never chose.
+    library_id = sync.resolve_template_id(node, template_id)
     if not library_id:
         return jsonify({"error": "Item has no library template — cannot refresh"}), 400
 
@@ -830,15 +865,13 @@ def _refresh_item(app, node, sections, template_id=None):
     if template_id and template_id != current_library_id:
         node.properties['library_id'] = template_id
 
-    return jsonify({"status": "refreshed", "node_id": node.id, "applied": sections if sections else ["all"]})
+    return jsonify({"status": "refreshed", "node_id": node.id, "applied": sections if sections else ["all"],
+                    "template_id": library_id, "linked": sync.is_linked(node)})
 
 
 def _refresh_way(app, node, sections, template_id=None):
     props = node.properties or {}
-    way_id = template_id or props.get('library_id') or ''
-    if not way_id:
-        way_name = props.get('name', node.name or '')
-        way_id = re.sub(r'[^a-z0-9_]+', '_', way_name.lower()) if way_name else node.id
+    way_id = sync.resolve_template_id(node, template_id)
 
     ways_reg = load_registry(app.config['DATA_DIR'], 'ways.json')
     lib_way = ways_reg.get(way_id)
@@ -897,19 +930,18 @@ def _refresh_way(app, node, sections, template_id=None):
 
     if template_id and node.properties.get('library_id') != template_id:
         node.properties['library_id'] = template_id
+    elif way_id and not sync.linked_template_id(node):
+        # A way guesses its template from its slugified name; record the guess we
+        # actually synced from, so the link is inspectable and breakable.
+        sync.link(node, way_id)
 
-    return jsonify({"status": "refreshed", "node_id": node.id, "applied": applied})
+    return jsonify({"status": "refreshed", "node_id": node.id, "applied": applied,
+                    "template_id": way_id, "linked": sync.is_linked(node)})
 
 
 def _refresh_area(app, node, sections, template_id=None):
     props = node.properties or {}
-    area_id = template_id or props.get('library_id') or ''
-    if not area_id:
-        node_id = node.id or ''
-        area_id = re.sub(r'^area_', '', node_id)
-        if not area_id or area_id == node_id:
-            name = props.get('name', node.name or '')
-            area_id = re.sub(r'[^a-z0-9_]+', '_', name.lower()) if name else node.id
+    area_id = sync.resolve_template_id(node, template_id)
 
     areas_reg = load_registry(app.config['DATA_DIR'], 'areas.json')
     lib_area = areas_reg.get(area_id)
@@ -943,8 +975,14 @@ def _refresh_area(app, node, sections, template_id=None):
     if template_id and props.get('library_id') != template_id:
         props['library_id'] = template_id
         node.properties = props
+    elif area_id and not sync.linked_template_id(node):
+        # Record a template we guessed and really synced from, so the link is
+        # inspectable and breakable instead of being re-derived each refresh.
+        sync.link(node, area_id)
+        props = node.properties or {}
 
-    return jsonify({"status": "refreshed", "node_id": node.id, "applied": applied})
+    return jsonify({"status": "refreshed", "node_id": node.id, "applied": applied,
+                    "template_id": area_id, "linked": sync.is_linked(node)})
 
 
 def _apply_entry_selection(current, source, sel_keys):
@@ -981,7 +1019,7 @@ def _apply_entry_selection(current, source, sel_keys):
 
 def _refresh_character(app, node, sections, template_id=None, entries=None):
     props = node.properties or {}
-    char_id = template_id or props.get('library_id') or node.name or ''
+    char_id = sync.resolve_template_id(node, template_id)
     char_reg = load_registry(app.config['DATA_DIR'], 'characters.json')
     lib_char = char_reg.get(char_id)
     if not lib_char:
@@ -1098,8 +1136,17 @@ def _refresh_character(app, node, sections, template_id=None, entries=None):
     if template_id:
         props['library_id'] = template_id
         node.properties = props
+    elif char_id and not sync.linked_template_id(node):
+        # A character guesses its template from its own name (see
+        # engine/sync.py), so a refresh with no explicit id really did sync from
+        # `char_id`. Record that, or the node keeps reading as unlinked: the next
+        # refresh re-guesses, and "Break Link" has nothing to break even though
+        # the node plainly has a template.
+        sync.link(node, char_id)
+        props = node.properties or {}
 
-    return jsonify({"status": "refreshed", "node_id": node.id, "applied": applied})
+    return jsonify({"status": "refreshed", "node_id": node.id, "applied": applied,
+                    "template_id": char_id, "linked": sync.is_linked(node)})
 
 
 def _rebuild_triggers(app, node, lib_triggers):
