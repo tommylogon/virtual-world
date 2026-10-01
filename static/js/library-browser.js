@@ -11,7 +11,7 @@
  * @contributes LibraryBrowser: tabbed Items/Characters/Rooms/Traits/Conditions/Behaviours browsing + editors
  * @powers the 📚 Library modal (the Items tab delegates to ItemLibrary)
  * @relates uses api + storage; inline editors for the non-item tabs
- * @docs docs/virtualWorld/Library System/
+ * @docs docs/virtualWorld/Library System/Library System Overview.md
  */
 
 // Lazy tag: classic scripts parse before the deferred lit-bootstrap module

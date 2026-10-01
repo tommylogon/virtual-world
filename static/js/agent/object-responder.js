@@ -16,7 +16,7 @@
  * @contributes ObjectResponder: watch llm_pending → generate a line via llmClient → POST /api/llm_respond
  * @powers talking objects (a magic mirror that speaks), heard and remembered by nearby agents
  * @relates uses llm-client + api; falls back to the effect's fallback_message on failure
- * @docs docs/virtualWorld/Rules Engine/
+ * @docs docs/virtualWorld/AI & Narration/Narration System.md
  */
 window.ObjectResponder = (() => {
   'use strict';

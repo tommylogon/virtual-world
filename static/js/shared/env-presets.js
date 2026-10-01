@@ -16,7 +16,7 @@
  * @contributes EnvPresets: saved presets (localStorage) and apply to area / neighbours / whole world
  * @powers authoring environments quickly ("Arctic: -12° bright fresh") with undo-safe writes
  * @relates writes through api.updateNode — the same path as the inspector's env editors
- * @docs docs/virtualWorld/Environment/
+ * @docs docs/virtualWorld/Environment/Time & Weather.md
  */
 window.EnvPresets = (() => {
     'use strict';

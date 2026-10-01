@@ -16,7 +16,7 @@
  * @contributes SaveLoadView: save list, save/load/delete, named saves
  * @powers keeping and restoring your world (extracted from main.js)
  * @relates uses api + events + config; delegates downloads to shared WorldExport
- * @docs docs/virtualWorld/UI & Settings/
+ * @docs docs/virtualWorld/UI & Settings/Settings & Configuration.md
  */
 
 const saveLoadViewTag = (strings, ...values) => window.Lit.html(strings, ...values);

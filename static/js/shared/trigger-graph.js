@@ -5,7 +5,7 @@
  * @contributes TriggerGraph.show(): trigger/condition/effect (or behaviour/action/state) nodes with wires + onSave
  * @powers the ComfyUI-style visual editor used for triggers and NPC behaviours
  * @relates used by item-library + inspector/behaviors-view + shared/trigger-editor
- * @docs docs/virtualWorld/Rules Engine/
+ * @docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
  *
  * Usage:
  *   TriggerGraph.show({ mode: 'trigger'|'behavior', graph: {nodes, wires}, onSave: (graph) => {} });

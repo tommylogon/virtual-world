@@ -11,7 +11,7 @@
  * @contributes NLEditorDiff: opDiff(), diffPairs(), formatChanges(), summaryLines()
  * @powers the staged-ops tray's per-op diff preview
  * @relates read by ui.js when rendering staged rows
- * @docs docs/virtualWorld/dev_tasks/todo/graph/task-461-nl-editor-validation-gate-and-apply-time-property-diff.md
+ * @docs docs/virtualWorld/dev_tasks/inprogress/graph/task-461-nl-editor-validation-gate-and-apply-time-property-diff.md
  */
 
 window.NLEditorDiff = (() => {

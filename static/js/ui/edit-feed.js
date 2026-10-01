@@ -15,7 +15,7 @@
  * @contributes EditFeed: session-local feed (cap 8) of world_changed events, each with ↩ Undo
  * @powers seeing what just changed and reverting a single edit (task-384)
  * @relates listens to the same EventSource as world-state.js; pops one undo snapshot
- * @docs docs/virtualWorld/UI & Settings/
+ * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
 window.EditFeed = (() => {
   'use strict';

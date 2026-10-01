@@ -13,7 +13,7 @@
  * @contributes WorldSync: per-entity status (new/diff/synced) + routing into the single-entity save flow
  * @powers promoting world edits back into the library as templates
  * @relates matches by library_id → name slug → display name; DiffModal via the save flow
- * @docs docs/virtualWorld/Library System/
+ * @docs docs/virtualWorld/Library System/Library 2.0 - Unified Library Design.md
  */
 const worldSyncTag = (strings, ...values) => window.Lit.html(strings, ...values);
 

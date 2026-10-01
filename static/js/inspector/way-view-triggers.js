@@ -6,7 +6,7 @@
  * @contributes InspectorWayViewTriggers: pull a way's trigger edges into the inspector's trigger list
  * @powers showing a way's triggers in the way inspector
  * @relates consumed by way-view; complements inspector/trigger-helpers
- * @docs docs/virtualWorld/Rules Engine/
+ * @docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
  */
 window.InspectorWayViewTriggers = (() => {
     const api = {};

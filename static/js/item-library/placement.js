@@ -11,7 +11,7 @@
  * @contributes ItemLibraryPlacement (mixed into ItemLibrary): place into rooms/containers/characters, multi-spawn
  * @powers moving selected library items into the live world
  * @relates runs on an ItemLibrary instance; calls the item placement APIs
- * @docs docs/virtualWorld/Library System/
+ * @docs docs/virtualWorld/Items & Inventory/Items Overview.md
  */
 
 window.ItemLibraryPlacement = {

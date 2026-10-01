@@ -15,7 +15,7 @@
  * @contributes TriggerSuggestAI.suggest(fields, kind) → cleaned trigger objects, or null
  * @powers the "✨ Suggest (AI)" button on item / way / area nodes
  * @relates uses shared/ai-generator; its output flows through trigger-suggest-diff
- * @docs docs/virtualWorld/Rules Engine/
+ * @docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
  */
 window.TriggerSuggestAI = (() => {
     /**

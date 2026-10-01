@@ -7,7 +7,7 @@
  * @contributes InspectorTriggers: list a node's trigger edges, remove one, open the trigger editor
  * @powers viewing and editing the triggers attached to an item or way
  * @relates renders through InspectorPanel; used by item-view + way-view
- * @docs docs/virtualWorld/Rules Engine/
+ * @docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
  */
 
 window.InspectorTriggers = (() => {

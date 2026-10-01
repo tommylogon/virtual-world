@@ -22,7 +22,7 @@
  * @contributes TriggerEditor.show({ mode, initialData, onSave, ... }) + TRIGGER_SNIPPETS
  * @powers authoring a trigger: type → nested condition tree → effects → messages
  * @relates shared by the inspector (world items/doors) and the item library
- * @docs docs/virtualWorld/Rules Engine/
+ * @docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
  */
 
 // Lazy tag: window.Lit only exists at call time (deferred module bootstrap).

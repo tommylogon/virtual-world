@@ -20,7 +20,7 @@
  * @contributes InspectorTemplateSync: template selector + Refresh-from-Library (via DiffModal) + Break Link + Save
  * @powers keeping ways/areas/characters in sync with their library templates (task-295, task-289, task-317)
  * @relates used by the node inspectors; calls /api/library/refresh-to-world and /api/library/break-template-link
- * @docs docs/virtualWorld/Library System/
+ * @docs docs/virtualWorld/Library System/Library 2.0 - Unified Library Design.md
  */
 window.InspectorTemplateSync = (() => {
   const esc = (text) => (text || '').replace(/"/g, '&quot;').replace(/'/g, '\\\'');

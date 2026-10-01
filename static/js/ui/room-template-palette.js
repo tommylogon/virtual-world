@@ -11,7 +11,7 @@
  * @contributes RoomTemplatePalette: list library areas, create a room from one (+ optional template items)
  * @powers starting a room from an authored library area (task-381)
  * @relates POST /api/build/area; the new room is left unconnected for you to wire up
- * @docs docs/virtualWorld/Templates/
+ * @docs docs/virtualWorld/World Building/Rooms & Areas.md
  */
 window.RoomTemplatePalette = (() => {
   'use strict';

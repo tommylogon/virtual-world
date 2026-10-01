@@ -5,7 +5,7 @@
  * @contributes ItemLibrary: CRUD, AI generation, trigger/effect editing, container contents, multi-spawn, area placement
  * @powers the 📦 Item Library modal and putting authored items into the world
  * @relates uses api + storage (item_library) + shared/trigger-editor + item-library/* collaborators
- * @docs docs/virtualWorld/Library System/
+ * @docs docs/virtualWorld/Library System/Library System Overview.md
  * With trigger conditions, rename effect, container contents, and multi-spawn
  */
 const itemLibraryHtmlTag = (strings, ...values) => window.Lit.html(strings, ...values);

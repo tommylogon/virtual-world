@@ -5,7 +5,7 @@
  * @contributes Timeskip.openDialog/closeDialog/run + a best-effort summary render
  * @powers the "⏩ Wait / Timeskip…" menu item
  * @relates posts via ApiClient and refreshes window.worldState afterwards
- * @docs docs/virtualWorld/dev_tasks/inprogress/gameplay/task-464-timeskip-actions-idle-leisure-search-explore-travel.md
+ * @docs Simulation Model.md
  *
  * The dialog only collects an intent and a span; the engine decides everything
  * else (policy, interrupts, consequences). A timeskip is never "safe": vitals

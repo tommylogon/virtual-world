@@ -15,10 +15,17 @@ comment block carrying this contract:
 Usage:
     python tools/js_module_index.py --write            # regenerate the index
     python tools/js_module_index.py --update-baseline  # accept today's uncovered files
-    python tools/js_module_index.py --check            # fail if a NEW file lacks the contract
+    python tools/js_module_index.py --check            # fail on a NEW contract gap
 
-The baseline exists so the ~110 not-yet-documented files don't block the guard;
-new modules are held to the contract from day one.
+``@docs`` is checked too, because a folder is not a document: 26 of 43 unresolved
+declarations were things like ``docs/virtualWorld/Library System/``, which satisfy
+the contract while pointing at nothing readable. A target must be ``none`` or
+resolve to a real note. The declared features live in
+``docs/virtualWorld/Feature Map.md`` and are checked separately by
+``tools/feature_index.py``.
+
+The baselines exist so the ~110 not-yet-documented files and today's bad ``@docs``
+targets don't block the guard; new modules are held to the contract from day one.
 """
 from __future__ import annotations
 
@@ -30,6 +37,8 @@ ROOT = Path("static/js")
 SKIP_DIRS = {"vendor", "node_modules"}
 INDEX_PATH = Path("docs/design/js-module-index.md")
 BASELINE_PATH = Path("docs/design/js-module-baseline.txt")
+DOCS_BASELINE_PATH = Path("docs/design/js-docs-baseline.txt")
+VAULT = Path("docs/virtualWorld")
 
 TAGS = ("module", "contributes", "powers", "relates", "docs")
 TAG_RE = re.compile(r"^\s*\*?\s*@(" + "|".join(TAGS) + r")\s+(.*)$")
@@ -79,6 +88,48 @@ def collect():
 def uncovered(entries):
     return [str(p).replace("\\", "/") for p, meta in entries
             if not meta.get("module") or not meta.get("contributes")]
+
+
+def _docs_note_candidates(value: str):
+    """Where a declared @docs target could legitimately live."""
+    raw = value.strip().strip("`")
+    rel = raw.replace("\\", "/")
+    yield Path(rel)
+    # a vault-relative path, and the same path with a .md extension
+    for base in (VAULT, Path("docs")):
+        yield base / rel
+        yield base / (rel + ".md")
+    # a bare note title resolves anywhere in the vault
+    if "/" not in rel:
+        yield VAULT / (rel + ".md")
+
+
+def docs_problems(entries):
+    """@docs targets that are not a document.
+
+    A folder satisfies the contract while pointing at nothing readable, which is
+    how 26 declarations "resolved". Returns (path, reason) for each.
+    """
+    problems = []
+    for path, meta in entries:
+        if not (meta.get("module") and meta.get("contributes")):
+            continue  # already handled by the uncovered baseline
+        raw = (meta.get("docs") or "").strip()
+        rel = str(path).replace("\\", "/")
+        if not raw or raw.lower() in ("none", "n/a", "-"):
+            continue  # a declared absence is a decision, not a broken target
+        if raw.endswith(("/", "\\")):
+            problems.append((rel, "folder target — a directory is not a note: %s" % raw))
+            continue
+        for cand in _docs_note_candidates(raw):
+            if cand.is_dir():
+                problems.append((rel, "folder target — %s is a directory" % cand.as_posix()))
+                break
+            if cand.is_file():
+                break
+        else:
+            problems.append((rel, "does not resolve to a file: %s" % raw))
+    return problems
 
 
 def write_index(entries):
@@ -138,11 +189,15 @@ def main() -> int:
 
     entries = collect()
     gaps = uncovered(entries)
+    bad_docs = docs_problems(entries)
 
     if args.update_baseline:
         BASELINE_PATH.parent.mkdir(parents=True, exist_ok=True)
         BASELINE_PATH.write_text("\n".join(gaps) + "\n", encoding="utf-8")
         print(f"{BASELINE_PATH}: recorded {len(gaps)} uncovered module(s).")
+        DOCS_BASELINE_PATH.write_text(
+            "\n".join("%s\t%s" % (p, r) for p, r in bad_docs) + "\n", encoding="utf-8")
+        print(f"{DOCS_BASELINE_PATH}: recorded {len(bad_docs)} bad @docs target(s).")
     if args.write or not (args.check or args.update_baseline):
         write_index(entries)
 
@@ -157,7 +212,23 @@ def main() -> int:
             for g in new_gaps:
                 print("  -", g)
             return 1
-        print(f"Contract check OK ({len(gaps)} known-uncovered, no new gaps).")
+
+        if not DOCS_BASELINE_PATH.exists():
+            print(f"{DOCS_BASELINE_PATH} missing — run --update-baseline once.")
+            return 2
+        known_docs = set()
+        for line in DOCS_BASELINE_PATH.read_text(encoding="utf-8").splitlines():
+            if "\t" in line:
+                known_docs.add(line.split("\t", 1)[0])
+        new_docs = [(p, r) for p, r in bad_docs if p not in known_docs]
+        if new_docs:
+            print("New @docs targets that are not a note (a folder or a dead path):")
+            for p, r in new_docs:
+                print("  - %s: %s" % (p, r))
+            return 1
+
+        print(f"Contract check OK ({len(gaps)} known-uncovered, "
+              f"{len(bad_docs)} known-bad-@docs, no new).")
 
     return 0
 

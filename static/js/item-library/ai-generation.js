@@ -10,7 +10,7 @@
  * @contributes ItemLibraryAI (mixed into ItemLibrary via .call(this)): generate/improve prompts and parsing
  * @powers the "✨ Generate" and "✨ Improve" actions for library items
  * @relates uses shared/ai-generator + shared/json-schemas; runs on an ItemLibrary instance
- * @docs docs/virtualWorld/Library System/
+ * @docs docs/virtualWorld/Library System/Library System Overview.md
  */
 
 window.ItemLibraryAI = {

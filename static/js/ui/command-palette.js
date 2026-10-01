@@ -12,7 +12,7 @@
  * @contributes CommandPalette: fuzzy search over graph nodes, menu actions, and left-panel tabs
  * @powers keyboard-first navigation and commands (task-370)
  * @relates navigates the graph + opens the inspector; runs toolbar actions
- * @docs docs/virtualWorld/UI & Settings/
+ * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
 
 window.CommandPalette = (() => {

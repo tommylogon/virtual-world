@@ -9,7 +9,7 @@
  * @contributes UndoHistory: list labeled snapshots (newest first) and restore to any point
  * @powers seeing and jumping through the edit history (task-371)
  * @relates reads the undo stack; opened from the 📜 button in the graph toolbar
- * @docs docs/virtualWorld/UI & Settings/
+ * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
 
 window.UndoHistory = (() => {

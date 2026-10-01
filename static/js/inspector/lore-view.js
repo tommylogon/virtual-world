@@ -9,7 +9,7 @@
  * @contributes InspectorLore: list / add / edit / delete lore entries
  * @powers editing the common-knowledge lore every character receives in its system prompt
  * @relates renders through InspectorPanel; lore is read by prompt-builder/system-prompt.js
- * @docs docs/virtualWorld/World Building/
+ * @docs docs/virtualWorld/UI & Settings/Inspector Panels.md
  */
 
 window.InspectorLore = (() => {

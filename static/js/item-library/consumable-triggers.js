@@ -29,7 +29,7 @@
  * @contributes ItemLibraryTriggerSuggester.suggest() (offline, no AI) + suggestForNode() for ways/areas
  * @powers the "⚡ Suggest" button on items — correct trigger STRUCTURE per action/tag
  * @relates leaves prose to trigger-suggest-ai; results are reviewed via trigger-suggest-diff
- * @docs docs/virtualWorld/Rules Engine/
+ * @docs docs/virtualWorld/Items & Inventory/Items Overview.md
  */
 window.ItemLibraryTriggerSuggester = (() => {
     // ── Action → trigger type map ─────────────────────────────────────
