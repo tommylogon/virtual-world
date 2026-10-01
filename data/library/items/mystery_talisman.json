@@ -1,0 +1,15 @@
+{
+  "name": "Mystery Talisman",
+  "description": "a sealed talisman",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 0.1,
+  "equip_slots": [
+    "accessory"
+  ],
+  "tags": [
+    "talisman"
+  ],
+  "current_state": "normal",
+  "contents": []
+}

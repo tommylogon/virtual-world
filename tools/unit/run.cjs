@@ -130,6 +130,10 @@ load('static/js/inspector/helpers.js');
 // (llmClient / ApiClient / worldState), which is what the tag-generation tests
 // drive.
 load('static/js/inspector/agent-view.js');
+// auto-dress-modal.js is loaded after agent-view.js because _autoDress calls
+// window.AutoDressModal at click time (not at eval time), but grouping first
+// keeps the load order matching the template's script order.
+load('static/js/inspector/auto-dress-modal.js');
 load('static/js/agent/prompt-builder/character-state.js');
 load('static/js/agent/prompt-builder/conversation-context.js');
 load('static/js/context-window.js');

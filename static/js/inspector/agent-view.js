@@ -1697,6 +1697,8 @@ window.InspectorAgentView = (() => {
     AV._autoDress = async function(charName) {
         let libraryIds = null;
         let note = '';
+        let pool = [];
+        let context = null;
         try {
             const candResp = await fetch('/api/auto_dress/candidates', {
                 method: 'POST',
@@ -1704,7 +1706,8 @@ window.InspectorAgentView = (() => {
                 body: JSON.stringify({ character: charName }),
             });
             const cand = await candResp.json();
-            const pool = Array.isArray(cand?.pool) ? cand.pool : [];
+            pool = Array.isArray(cand?.pool) ? cand.pool : [];
+            context = { personality: cand?.personality || '', description: cand?.base_description || '' };
 
             if (pool.length > 0 && AIGenerator.isConfigured()) {
                 const listing = pool.map(c =>
@@ -1713,7 +1716,7 @@ window.InspectorAgentView = (() => {
                 const prompt = `You are choosing what a specific character would actually wear.
 
 CHARACTER: ${cand.character}
-${cand.personality ? `PERSONALITY\n${cand.personality}\n` : ''}${cand.description ? `APPEARANCE\n${cand.description}\n` : ''}
+${cand.personality ? `PERSONALITY\n${cand.personality}\n` : ''}${cand.base_description ? `APPEARANCE\n${cand.base_description}\n` : ''}
 AVAILABLE ITEMS (id | name | tags | slots)
 ${listing}
 
@@ -1750,6 +1753,34 @@ Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
         }
 
         try {
+            // Nothing chosen yet and no reason to propose anything: just run the
+            // deterministic path. Everything else goes to the modal first, so a
+            // person sees the context the model read before anything is worn.
+            if (libraryIds) {
+                const player = worldState.players?.[charName];
+                const byId = new Map(pool.map(c => [c.lib_id, c]));
+                const chosen = libraryIds.map(id => byId.get(id)).filter(Boolean);
+                const worn = {};
+                for (const [slot, stack] of Object.entries(player?.equipped || {})) {
+                    const names = (Array.isArray(stack) ? stack : [])
+                        .filter(i => i && !String(i).startsWith('__'))
+                        .map(i => worldState.getNodeByIdentifier(i)?.name || i);
+                    if (names.length) worn[slot] = names;
+                }
+                const approved = await window.AutoDressModal.show({
+                    character: charName,
+                    items: chosen,
+                    context,
+                    worn,
+                    note,
+                });
+                if (!approved) {
+                    events?.log?.('Auto-dress cancelled; nothing was equipped.', 'system-msg');
+                    return;
+                }
+                libraryIds = approved;
+            }
+
             const body = { character: charName };
             if (libraryIds) body.library_ids = libraryIds;
             const resp = await fetch('/api/auto_dress', {

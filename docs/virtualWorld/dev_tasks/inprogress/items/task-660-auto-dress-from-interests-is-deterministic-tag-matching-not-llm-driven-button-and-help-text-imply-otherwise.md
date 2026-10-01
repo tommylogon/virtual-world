@@ -165,21 +165,21 @@ is now bound to `None` first and the cleanup is guarded.
 
 ### What still blocks `review`
 
-- [ ] **The LLM selection itself has never run.** The engine half is verified
-      live (below), but picking from the pool needs a model, and the keys are in
-      the user's browser. Until that click happens, the feature has produced
-      exactly zero LLM-driven outfits.
-- [ ] **The distinguishing case.** Two characters with overlapping `interest_tags`
-      must come out visibly different. The failure to beat is specific: a
-      41-year-old Eldenford blacksmith wearing a Guiding Cane. Re-run that
-      character and confirm the cane is gone and the hammer is there.
-- [ ] Confirm the `selection: 'llm'` line reaches the event log, so it is
-      visible that the model ran rather than the fallback.
-- [ ] Note for the author: `ball_gag` is tagged `clothing, accessory,
-      restraint, wearable`, so it was already reachable through the
-      no-interests branch before this change — this widens the pool but does not
-      introduce it. Worth a decision about whether a general inspector button
-      should filter the pool on `world.mature_content`.
+- [x] **The LLM selection itself has run.** Model called, ids returned, all
+      validated, five items equipped, `selection: 'llm'` logged. Mechanism done.
+- [ ] **Re-run the quality check on a character whose personality is correct.**
+      The one run so far was dressed as the merchant (see above), so it proves
+      nothing yet about whether the prompt produces sensible gear. Needs the
+      cast rename resolved first.
+- [ ] Confirm the `selection: 'llm'` line reaches the event log so it is visible
+      that the model ran rather than the fallback — **done, confirmed in the
+      browser log above**.
+- [ ] Decide whether a general inspector button should filter the pool on
+      `world.mature_content`. `ball_gag` is tagged `clothing, accessory,
+      restraint, wearable`, so it was already reachable through the no-interests
+      branch before this change — the wider pool does not introduce it, but it
+      does put it in front of the model. It was in the pool the model actually
+      saw at Tick 16 and was correctly not chosen.
 
 ### Live verification (server restarted, 2026-10-01)
 
@@ -203,6 +203,63 @@ model can now reach a work shirt, trousers and boots that no tag ever matched.
 **`POST /api/auto_dress` with explicit `library_ids` → 200, `selection: 'llm'`.**
 The equip half of the new contract works against the real world: posted ids
 become real equipped items with real `equipped` edges.
+
+**First LLM run in a browser — the whole path works end to end.** Clicked the
+button on Eldenford Blacksmith, fully undressed first:
+
+    [Tick 16] LLM -> inspector/auto-dress ~1.2k tok
+    [Tick 19] inspector/auto-dress ~23 tok
+              {"items": ["apron", "gribbas_good_knife", "belt_leather",
+                          "dark_cargo_pants", "coif_linen"]}
+    World Auto-dress for Eldenford Blacksmith: 5 item(s) equipped.
+    World Auto-dress selection (llm): apron, gribbas_good_knife, belt_leather,
+                                     dark_cargo_pants, coif_linen
+
+All five ids were real candidates, so validation passed, and the Guiding Cane
+is gone. **But the run is confounded and must not be cited as evidence that the
+picks are good** — see below.
+
+### CONFOUNDED: the model was dressed as the wrong person
+
+The prompt at Tick 16 reads:
+
+    CHARACTER: Eldenford Blacksmith
+    PERSONALITY
+    You are the Eldenford merchant. You are talkative, curious, and permanently
+    halfway through calculating something.
+    APPEARANCE
+    Human merchant. Clean clothes, many pockets, a smile that never quite reaches the eyes.
+
+**The blacksmith node was carrying the merchant's personality and appearance.**
+The earlier `✨ Generate from Personality` call (Tick 4) had the same wrong
+input, so this was not a one-off.
+
+Measured, not guessed:
+
+- Live state *now* is correct — all five Eldenford characters have their own
+  personalities and descriptions.
+- So the wrong personality was transient: present through Tick 19, gone after
+  the later profile switches / engine re-initialisation.
+- No Eldenford node carries `library_id` or `template_ref`, so the node resolves
+  its template **by name alone**, and `Eldenford Blacksmith` is no longer a
+  library key: the entry is now `Harren Cobb`.
+- The step immediately before was `Refreshed "Eldenford Blacksmith" from
+  library`, which logged a successful apply of `personality, description`.
+
+**This is the predicted consequence of the library-only rename**, recorded on
+task-665: *"The rename cannot be completed in the library alone."* Renaming the
+library file removes the key the live node resolves by, and the refresh landed
+on the wrong entry. The exact fallback path inside
+`resolve_template_id` (`engine/sync.py:170`, `guess="node_name"`) and
+`template-sync.js:181` is **not** established here -- what is established is
+that the node had no binding, the key it resolves by is gone, and the refresh
+that followed produced another character's personality.
+
+Because of that, the LLM's picks read as a *reasonable merchant's outfit* --
+knife, belt, dark cargo pants, apron -- and `coif_linen` is a debatable call.
+None of that is evidence for or against the prompt quality. **Re-run this after
+the cast rename is resolved, and on a character whose personality is correct,
+before judging the selection.**
 
 ### Bug found live and fixed during verification
 
@@ -256,3 +313,62 @@ reconciliation in either direction. Recorded on task-654.
 - [ ] One authored end-to-end case: a character whose gear should be
       distinguishable from another character's with overlapping tags, showing the
       LLM pass picks differently.
+
+## Proposed-outfit confirmation modal (2026-10-01)
+
+Added because the first live run proved the real problem was not selection
+quality, it was **visibility**: the model was handed the merchant's personality
+and dressed the blacksmith as a trader, and every layer reported success.
+
+`static/js/inspector/auto-dress-modal.js` puts the two things a person needs
+side by side before anything is worn:
+
+- **The context the model read** — name, personality, `base_description`. If that
+  text belongs to someone else, it is now visible at the moment it matters rather
+  than three layers downstream.
+- **The proposal as per-slot checkboxes**, so one absurd pick is unticked rather
+  than accepted wholesale or discarded entirely. Cancel equips nothing and says
+  so in the event log.
+
+`DiffModal` was considered and rejected: it is a two-payload world↔library merge
+returning update/duplicate/cancel, and auto-dress has one proposal and no
+"before" worth diffing. Its return vocabulary does not fit an equip.
+
+Items are grouped under the **first** declared slot, because that is what
+`auto_dress` passes to `equip_item` (`engine/dressing.py`). Filing them anywhere
+else would put the paperdoll and the real loadout at odds -- the exact defect
+task-654 records in a different guise.
+
+**`description` is deliberately excluded from the prompt.** It is regenerated
+*from* the equipped items on every wear/remove
+(`engine/equipment.py::_update_equipment_description`, plus the frontend call at
+`static/js/api.js:652`), so feeding it to a prompt that chooses equipment is
+circular -- the model reads an outfit to pick an outfit. The evidence is in the
+live log above: every garment removal produced a fresh
+`inspector/generate-appearance` call and an "Appearance saved". The candidates
+field is therefore named `base_description`, not `description`, so the reason
+survives the next reader, and a test asserts the circular field is not offered
+alongside it.
+
+Unticking **everything** resolves to `[]`, which is a real answer ("wears
+nothing") and does not trigger the deterministic fallback. The distinction from
+"the model failed" is asserted in the JS tests.
+
+### Evidence
+
+- `tools/unit/test_auto_dress_modal.js` — 12 tests (grouping order, first-slot
+  rule, junk input, untick semantics).
+- `python -m pytest tests/test_auto_dress.py -q` → 12 passed.
+- `npm run lint`, `npm run typecheck`, `js_module_index --check`,
+  `feature_index --check` → clean.
+
+### Still needs
+
+- [ ] **Server restart** to pick up the `base_description` rename. The running
+      server predates it and still returns `description`, so the modal's
+      appearance panel renders empty until then. The restart also loads the new
+      script tag.
+- [ ] **Live check of the modal itself** — open it, confirm the personality
+      panel shows the *right* character, untick one item, equip, and read the
+      equipped slots back. This is the verification that would have caught the
+      merchant mix-up, and it has not been run.

@@ -146,7 +146,14 @@ def dress_candidates(gs, player_name=None, limit=30):
         "character": name,
         "interest_tags": sorted(interest),
         "personality": (player.personality or '')[:1200],
-        "description": (player.base_description or player.description or '')[:400],
+        # Deliberately base_description and never `description`. `description` is
+        # regenerated FROM the equipped items on every wear/remove
+        # (`engine/equipment.py::_update_equipment_description`, plus the
+        # frontend call in `static/js/api.js`), so handing it to a prompt whose
+        # job is choosing equipment is circular -- the model would read an
+        # outfit to pick an outfit. Named `base_description` so the reason
+        # survives the next reader.
+        "base_description": (player.base_description or '')[:400],
         "temperature": temp,
         "matched": [_public(e) for e in matched[:limit]],
         "pool": [_public(e) for e in pool[:limit]],

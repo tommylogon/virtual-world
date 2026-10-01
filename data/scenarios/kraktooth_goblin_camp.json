@@ -1,23 +1,6 @@
 {
-  "current_area": "Eldenford",
-  "players_in_area": [
-    {
-      "name": "Eldenford Blacksmith",
-      "state": "frightened",
-      "description": "Human blacksmith. Broad, soot-stained, calloused hands. Wears a leather apron.",
-      "activity": null,
-      "at_way_id": null,
-      "spatial_position": null
-    },
-    {
-      "name": "Eldenford Elder",
-      "state": "awake",
-      "description": "Older human leader. Grey hair, practical clothes, carries a wooden staff.",
-      "activity": null,
-      "at_way_id": null,
-      "spatial_position": null
-    }
-  ],
+  "current_area": "Training Pit",
+  "players_in_area": [],
   "area_presence": {
     "area_chief's_pit": {
       "Vekka": 0
@@ -33,12 +16,24 @@
     "Arix": {
       "name": "Arix",
       "personality": "You are Arix, a young goblin runaway with white hair and green earrings. Smug, cheerful, and greedy. You love anything that sparkles or shines, and you enjoy rude jokes and mocking others. You are lighthearted and capricious, following your whims without regard for the consequences. You are not from this tribe.",
-      "description": "Young female goblin. White hair in ponytails, green eyes, pointed ears with green earrings. Petite, pale green skin, sharp fangs. Wears leather shorts, metal adornments, and green gloves.\nArix is wearing Shiny Coin in their right hand.",
+      "description": "Young female goblin. White hair in ponytails, green eyes, pointed ears with green earrings. Petite, pale green skin, sharp fangs. Wears leather shorts, metal adornments, and green gloves.\nArix is wearing manor_signet_ring on their hands, Black Short Shorts on their legs, belt_leather on their waist, Blue Butterfly Earring on their accessory, Shiny Coin in their right hand.",
       "base_description": "Young female goblin. White hair in ponytails, green eyes, pointed ears with green earrings. Petite, pale green skin, sharp fangs. Wears leather shorts, metal adornments, and green gloves.",
       "id": "ddb12446",
       "equipped": {
         "hand_right": [
           "item_shiny_coin"
+        ],
+        "accessory": [
+          "blue_butterfly_earring"
+        ],
+        "waist": [
+          "belt_leather"
+        ],
+        "legs": [
+          "black_short_shorts"
+        ],
+        "hands": [
+          "manor_signet_ring"
         ]
       },
       "stats": {
@@ -102,7 +97,7 @@
       "traits": {
         "high_metabolism": true
       },
-      "size": null,
+      "size": "small",
       "tags": [
         "female",
         "teen",
@@ -150,9 +145,25 @@
       "interest_tags": [
         "shiny",
         "jokes",
-        "chaos"
+        "chaos",
+        "coins",
+        "jewelry",
+        "metal",
+        "scrap",
+        "gems",
+        "alcohol",
+        "cloth"
       ],
-      "fear_tags": [],
+      "fear_tags": [
+        "predators",
+        "fire",
+        "trap",
+        "shackles",
+        "symbols",
+        "water",
+        "insects",
+        "trapped"
+      ],
       "carcass_item": null,
       "discovered_items": [],
       "decay_rates": {
@@ -411,7 +422,7 @@
       "patrol_route": null,
       "patrol_index": null,
       "feels_like": 18,
-      "current_carry_weight": 0.0,
+      "current_carry_weight": 0.66,
       "max_carry_capacity": 100.0,
       "at_way_id": null,
       "facing": null,
@@ -721,9 +732,9 @@
           ],
           "text": "You have been in the Camp Entrance Trail.",
           "tick": 0,
-          "timestamp": 1790877135.0961554,
+          "timestamp": 1790895607.0351317,
           "type": "reaction",
-          "visits": 44
+          "visits": 46
         }
       ],
       "schedule": [],
@@ -810,7 +821,7 @@
       "grappled_by": null,
       "state_timer": 0,
       "traits": {},
-      "size": null,
+      "size": "normal",
       "tags": [
         "female",
         "animal",
@@ -826,9 +837,23 @@
       "interest_tags": [
         "marsh",
         "spirits",
-        "health"
+        "health",
+        "tool",
+        "bread",
+        "fresh",
+        "water",
+        "stone",
+        "old",
+        "metal",
+        "herb"
       ],
-      "fear_tags": [],
+      "fear_tags": [
+        "salt",
+        "tool",
+        "firelight",
+        "earth",
+        "smoke"
+      ],
       "carcass_item": null,
       "discovered_items": [],
       "decay_rates": {
@@ -1027,9 +1052,9 @@
           ],
           "text": "You have been in the Murk Lake.",
           "tick": 0,
-          "timestamp": 1790877135.0961554,
+          "timestamp": 1790895607.0351317,
           "type": "reaction",
-          "visits": 44
+          "visits": 46
         }
       ],
       "schedule": [],
@@ -1052,11 +1077,35 @@
     },
     "Eldenford Blacksmith": {
       "name": "Eldenford Blacksmith",
-      "personality": "You are the Eldenford blacksmith. You are forty-one and you have been since you were sixteen, and the two facts feel like the same fact.\n\nYou are gruff because gruff is how you keep people from worrying about you, not because you enjoy it. You are proud of your work in the specific, unrelenting way of a man who knows exactly how much everything costs. You can hear a bad temper from three paces off. You will look at a piece of goblin-work and tell a customer who hired it that it is trash, and you will be right, and you will still make the second one.\n\nYou have lost good tools to goblin raids. Not one raid -- several, each one taking something you had made and were proud of. You keep a tally in your head and you do not let it show. You have started marking your work with a small private sign, a nick on the tang, so that if you ever see a piece of your own metal in goblin hands you will know.\n\nYou dislike the Road Guard Captain and you would never say so, because he comes in every month and his money is good. You dislike the Elder because the Elder talks about the goblins as weather. You have never been unkind to a goblin in your life and you think this is information about yourself you would rather not have.\n\nHabits: you file a blade by sound, not by sight. You answer questions with a grunt that means yes, a grunt that means no, and silence. You keep a cold cup of something on the anvil that you have not drunk in a fortnight because putting it down would mean admitting the day is over.",
-      "description": "Human blacksmith. Broad, soot-stained, calloused hands. Wears a leather apron.",
-      "base_description": "Human blacksmith. Broad, soot-stained, calloused hands. Wears a leather apron.",
+      "personality": "You are Harren Cobb, the Eldenford blacksmith. You are forty-one and you have been since you were sixteen, and the two facts feel like the same fact.\n\nYou are gruff because gruff is how you keep people from worrying about you, not because you enjoy it. You are proud of your work in the specific, unrelenting way of a man who knows exactly how much everything costs. You can hear a bad temper from three paces off. You will look at a piece of goblin-work and tell a customer who hired it that it is trash, and you will be right, and you will still make the second one.\n\nYou have lost good tools to goblin raids. Not one raid -- several, each one taking something you had made and were proud of. You keep a tally in your head and you do not let it show. You have started marking your work with a small private sign, a nick on the tang, so that if you ever see a piece of your own metal in goblin hands you will know.\n\nYou dislike the Road Guard Captain and you would never say so, because he comes in every month and his money is good. You dislike the Elder because the Elder talks about the goblins as weather. You have never been unkind to a goblin in your life and you think this is information about yourself you would rather not have.\n\nHabits: you file a blade by sound, not by sight. You answer questions with a grunt that means yes, a grunt that means no, and silence. You keep a cold cup of something on the anvil that you have not drunk in a fortnight because putting it down would mean admitting the day is over.",
+      "description": "A broad, soot-stained blacksmith with calloused hands.",
+      "base_description": "Human blacksmith, broad and soot-stained, calloused hands. Wears a leather apron over a stained work shirt, dark trousers and heavy black boots, and keeps a small finishing hammer in his right hand.",
       "id": "4be7db75",
-      "equipped": {},
+      "equipped": {
+        "accessory": [],
+        "arms": [],
+        "back": [],
+        "feet": [
+          "item_heavy black boots"
+        ],
+        "hand_left": [],
+        "hand_right": [
+          "item_hand_hammer_small"
+        ],
+        "hands": [],
+        "head": [],
+        "legs": [
+          "item_dark trousers"
+        ],
+        "neck": [],
+        "torso": [
+          "item_stained work shirt",
+          "item_apron"
+        ],
+        "waist": [
+          "item_belt_leather"
+        ]
+      },
       "stats": {
         "CHA": 9,
         "CON": 13,
@@ -1066,45 +1115,28 @@
         "WIS": 10
       },
       "vitals": {
-        "HP": 95,
-        "Max_HP": 100,
-        "Hunger": 50,
-        "Thirst": 45,
-        "Hygiene": 55,
+        "Bladder": 60,
         "Energy": 70,
-        "Social": 43,
-        "Bladder": 61,
+        "Entertainment": 25,
+        "HP": 95,
+        "Hunger": 50,
+        "Hygiene": 55,
+        "Max_HP": 100,
         "Sanity": 85,
-        "Entertainment": 55,
+        "Social": 40,
         "Temperature": 37,
-        "Arousal": 0,
-        "Pleasure": 0,
-        "Stimulation": 0
+        "Thirst": 45
       },
       "skills": {
-        "Athletics": 1,
         "Acrobatics": 0,
-        "Stealth": 0,
+        "Athletics": 1,
         "Perception": 1,
-        "Survival": 0,
         "Persuasion": 0,
-        "Animal Handling": 0,
-        "Arcana": 0,
-        "Deception": 0,
-        "History": 0,
-        "Insight": 0,
-        "Intimidation": 0,
-        "Investigation": 0,
-        "Medicine": 0,
-        "Nature": 0,
-        "Performance": 0,
-        "Religion": 0,
-        "Sleight of Hand": 0
+        "Stealth": 0,
+        "Survival": 0
       },
-      "state": "frightened",
-      "perceived_conditions": [
-        "Terrified of trait:paranoid."
-      ],
+      "state": "awake",
+      "perceived_conditions": [],
       "trait_behavior": [
         "You trust no one. Watch everyone and everything for threats — assume hidden motives.",
         "You've been close to death before. You take dangers seriously — and you know what pain costs."
@@ -1113,15 +1145,8 @@
         "awake": [
           {
             "duration": null,
-            "source": null,
-            "level": 0
-          }
-        ],
-        "frightened": [
-          {
-            "duration": null,
-            "source": "trait:paranoid",
-            "level": 0
+            "level": 0,
+            "source": null
           }
         ]
       },
@@ -1172,17 +1197,14 @@
       "carcass_item": null,
       "discovered_items": [],
       "decay_rates": {
-        "Arousal": 1,
-        "Bladder": 0.42,
-        "Energy": 0.104,
-        "Entertainment": 0.03,
-        "Hunger": 0.0034,
-        "Hygiene": 0.02,
-        "Pleasure": 3,
-        "Sanity": 0.005,
-        "Social": 0.02,
-        "Stimulation": 2,
-        "Thirst": 0.025
+        "Bladder": 1,
+        "Energy": 1,
+        "Entertainment": 1,
+        "Hunger": 1,
+        "Hygiene": 1,
+        "Sanity": 1,
+        "Social": 1,
+        "Thirst": 1
       },
       "body_state": {
         "arm_left": {
@@ -1321,7 +1343,7 @@
         "resentful": 10.0,
         "aroused": 12.0,
         "eager": 26.0,
-        "craving": 19.5,
+        "craving": 15.0,
         "curious": 35.0,
         "affectionate": 25.0,
         "loving": 26.0,
@@ -1342,20 +1364,20 @@
       },
       "emotions_description": "",
       "relationships": {
-        "Eldenford Elder": {
+        "Gareth Ollen": {
           "closeness": 30,
           "first_sighting": false
         },
-        "Eldenford Farmer": {
-          "closeness": 25,
-          "first_sighting": false
-        },
-        "Eldenford Merchant": {
+        "Pell Ardin": {
           "closeness": 20,
           "first_sighting": false
         },
-        "Eldenford Road Guard Captain": {
+        "Corvin Hale": {
           "closeness": 15,
+          "first_sighting": false
+        },
+        "Tobin Marsh": {
+          "closeness": 25,
           "first_sighting": false
         },
         "Thrazz": {
@@ -1374,9 +1396,7 @@
           "id": "mem_kraktooth_blacksmith_1",
           "importance": 5,
           "location": "area_eldenford_village",
-          "salience_override": 0,
           "source": "manual",
-          "suppressions": [],
           "tags": [
             "goblin",
             "theft"
@@ -1385,29 +1405,6 @@
           "tick": 0,
           "timestamp": 0,
           "type": "observation"
-        },
-        {
-          "embedding": null,
-          "emotion": null,
-          "emotions": null,
-          "entity_ids": [
-            "area_eldenford"
-          ],
-          "id": "mem_1790026895376_990",
-          "importance": 3,
-          "location": "",
-          "memory_emotions": [],
-          "salience_override": 0,
-          "source": "auto",
-          "suppressions": [],
-          "tags": [
-            "hunger",
-            "grudge"
-          ],
-          "text": "Stood in the square with an empty stomach and no one to talk to. The goblins' theft still gnaws at me — good iron, wasted on raiders.",
-          "tick": 0,
-          "timestamp": 1790026895.376818,
-          "type": "reaction"
         },
         {
           "embedding": null,
@@ -2179,9 +2176,9 @@
           ],
           "text": "You have been in the Abandoned Farm.",
           "tick": 0,
-          "timestamp": 1790877135.0961554,
+          "timestamp": 1790895607.0361316,
           "type": "reaction",
-          "visits": 44
+          "visits": 46
         },
         {
           "embedding": null,
@@ -2946,9 +2943,9 @@
           ],
           "text": "You have been in the Human Road.",
           "tick": 0,
-          "timestamp": 1790877135.0961554,
+          "timestamp": 1790895607.0361316,
           "type": "reaction",
-          "visits": 44
+          "visits": 46
         },
         {
           "embedding": null,
@@ -3096,9 +3093,23 @@
       "interest_tags": [
         "food",
         "mushrooms",
-        "debts"
+        "mushroom",
+        "meat",
+        "fresh",
+        "herb",
+        "game",
+        "berry",
+        "pot",
+        "bread"
       ],
-      "fear_tags": [],
+      "fear_tags": [
+        "rival",
+        "empty",
+        "swarm",
+        "fire",
+        "rations",
+        "cold"
+      ],
       "carcass_item": null,
       "discovered_items": [],
       "decay_rates": {
@@ -3342,9 +3353,9 @@
           ],
           "text": "You have been in the Cooking Area.",
           "tick": 0,
-          "timestamp": 1790877135.0961554,
+          "timestamp": 1790895607.0361316,
           "type": "reaction",
-          "visits": 44
+          "visits": 46
         }
       ],
       "schedule": [],
@@ -3712,9 +3723,9 @@
           "tags": [],
           "text": "You have been in the Camp Entrance Trail.",
           "tick": 0,
-          "timestamp": 1790877135.0961554,
+          "timestamp": 1790895607.0361316,
           "type": "reaction",
-          "visits": 44
+          "visits": 46
         },
         {
           "embedding": null,
@@ -3885,9 +3896,25 @@
       "interest_tags": [
         "master",
         "squire",
-        "civilization"
+        "civilization",
+        "tool",
+        "bread",
+        "blade",
+        "leather",
+        "scrap",
+        "heavy",
+        "trade",
+        "book"
       ],
-      "fear_tags": [],
+      "fear_tags": [
+        "predators",
+        "dark",
+        "cave",
+        "storm",
+        "authority",
+        "fire",
+        "water"
+      ],
       "carcass_item": null,
       "discovered_items": [],
       "decay_rates": {
@@ -4142,9 +4169,9 @@
           ],
           "text": "You have been in the Camp Entrance Trail.",
           "tick": 0,
-          "timestamp": 1790877135.097155,
+          "timestamp": 1790895607.0361316,
           "type": "reaction",
-          "visits": 44
+          "visits": 46
         },
         {
           "embedding": null,
@@ -4270,9 +4297,24 @@
       "interest_tags": [
         "shiny",
         "climbing",
-        "secrets"
+        "secrets",
+        "gear",
+        "rope",
+        "hook",
+        "stone",
+        "metal",
+        "scrap",
+        "blades"
       ],
-      "fear_tags": [],
+      "fear_tags": [
+        "sky",
+        "water",
+        "trapped",
+        "chains",
+        "fire",
+        "thunder",
+        "falls"
+      ],
       "carcass_item": null,
       "discovered_items": [],
       "decay_rates": {
@@ -4515,9 +4557,9 @@
           ],
           "text": "You have been in the Scrap Pile.",
           "tick": 0,
-          "timestamp": 1790877135.097155,
+          "timestamp": 1790895607.0361316,
           "type": "reaction",
-          "visits": 44
+          "visits": 46
         }
       ],
       "schedule": [],
@@ -4622,9 +4664,24 @@
       "interest_tags": [
         "attention",
         "freedom",
-        "purpose"
+        "purpose",
+        "shiny",
+        "bread",
+        "tool",
+        "blade",
+        "fire",
+        "cloth",
+        "sweet",
+        "fruit"
       ],
-      "fear_tags": [],
+      "fear_tags": [
+        "goblin",
+        "shackles",
+        "dark",
+        "hunting",
+        "patrol",
+        "blades"
+      ],
       "carcass_item": null,
       "discovered_items": [],
       "decay_rates": {
@@ -4850,9 +4907,9 @@
           ],
           "text": "You have been in the Prison Pens.",
           "tick": 0,
-          "timestamp": 1790877135.097155,
+          "timestamp": 1790895607.0361316,
           "type": "reaction",
-          "visits": 44
+          "visits": 46
         }
       ],
       "schedule": [],
@@ -5208,9 +5265,9 @@
           ],
           "text": "You have been in the Workshop.",
           "tick": 0,
-          "timestamp": 1790877135.097155,
+          "timestamp": 1790895607.0361316,
           "type": "reaction",
-          "visits": 44
+          "visits": 46
         }
       ],
       "schedule": [],
@@ -5313,9 +5370,23 @@
       "interest_tags": [
         "food",
         "territory",
-        "offerings"
+        "offerings",
+        "tool",
+        "honey",
+        "fresh",
+        "meat",
+        "blade",
+        "fur",
+        "salt",
+        "ore"
       ],
-      "fear_tags": [],
+      "fear_tags": [
+        "goblin",
+        "fire",
+        "trap",
+        "cages",
+        "wolf"
+      ],
       "carcass_item": null,
       "discovered_items": [],
       "decay_rates": {
@@ -5515,9 +5586,9 @@
           ],
           "text": "You have been in the Northern Hills.",
           "tick": 0,
-          "timestamp": 1790877135.097155,
+          "timestamp": 1790895607.0361316,
           "type": "reaction",
-          "visits": 44
+          "visits": 46
         }
       ],
       "schedule": [],
@@ -5620,9 +5691,23 @@
       "interest_tags": [
         "hunting",
         "goblin_trails",
-        "territory"
+        "territory",
+        "tool",
+        "fresh",
+        "meat",
+        "bread",
+        "pelts",
+        "silver",
+        "coins",
+        "blades"
       ],
-      "fear_tags": [],
+      "fear_tags": [
+        "goblin",
+        "trap",
+        "human",
+        "fire",
+        "snares"
+      ],
       "carcass_item": null,
       "discovered_items": [],
       "decay_rates": {
@@ -5830,9 +5915,9 @@
           ],
           "text": "You have been in the Deep Forest.",
           "tick": 0,
-          "timestamp": 1790877135.097155,
+          "timestamp": 1790895607.0361316,
           "type": "reaction",
-          "visits": 44
+          "visits": 46
         }
       ],
       "schedule": [],
@@ -5946,9 +6031,24 @@
       "interest_tags": [
         "attention",
         "jokes",
-        "chaos"
+        "chaos",
+        "noisemakers",
+        "fabrics",
+        "jewelry",
+        "fireworks",
+        "wine",
+        "trinkets",
+        "drum",
+        "scrap"
       ],
-      "fear_tags": [],
+      "fear_tags": [
+        "crowds",
+        "stages",
+        "manacles",
+        "quiet",
+        "goblin",
+        "broken"
+      ],
       "carcass_item": null,
       "discovered_items": [],
       "decay_rates": {
@@ -6297,9 +6397,24 @@
       "interest_tags": [
         "hunting",
         "territory",
-        "goblin_trails"
+        "goblin_trails",
+        "tool",
+        "bread",
+        "fresh",
+        "meat",
+        "pelts",
+        "blades",
+        "trap"
       ],
-      "fear_tags": [],
+      "fear_tags": [
+        "goblin",
+        "fire",
+        "trap",
+        "cages",
+        "hunting",
+        "dwarven",
+        "lanterns"
+      ],
       "carcass_item": null,
       "discovered_items": [],
       "decay_rates": {
@@ -6498,9 +6613,9 @@
           ],
           "text": "You have been in the Raven River.",
           "tick": 0,
-          "timestamp": 1790877135.097155,
+          "timestamp": 1790895607.0361316,
           "type": "reaction",
-          "visits": 44
+          "visits": 46
         }
       ],
       "schedule": [],
@@ -6805,9 +6920,9 @@
           ],
           "text": "You have been in the Camp Entrance.",
           "tick": 0,
-          "timestamp": 1790877135.097155,
+          "timestamp": 1790895607.0361316,
           "type": "reaction",
-          "visits": 44
+          "visits": 46
         }
       ],
       "schedule": [],
@@ -6924,7 +7039,16 @@
         "metal",
         "food"
       ],
-      "fear_tags": [],
+      "fear_tags": [
+        "humiliation",
+        "loss",
+        "control",
+        "outmaneuvered",
+        "rise",
+        "oath-breakers",
+        "surprise",
+        "weakness"
+      ],
       "carcass_item": null,
       "discovered_items": [],
       "decay_rates": {
@@ -7167,9 +7291,9 @@
           ],
           "text": "You have been in the Cooking Area.",
           "tick": 0,
-          "timestamp": 1790877135.097155,
+          "timestamp": 1790895607.0361316,
           "type": "reaction",
-          "visits": 44
+          "visits": 46
         }
       ],
       "schedule": [],
@@ -7476,9 +7600,9 @@
           ],
           "text": "You have been in the Deep Forest.",
           "tick": 0,
-          "timestamp": 1790877135.097155,
+          "timestamp": 1790895607.0371315,
           "type": "reaction",
-          "visits": 44
+          "visits": 46
         }
       ],
       "schedule": [],
@@ -7590,9 +7714,25 @@
       "interest_tags": [
         "maps",
         "routes",
-        "secrets"
+        "secrets",
+        "bow",
+        "leather",
+        "armor",
+        "tracking",
+        "tool",
+        "bread",
+        "meat",
+        "water",
+        "scouting"
       ],
-      "fear_tags": [],
+      "fear_tags": [
+        "hunters",
+        "thrazz",
+        "dwarven",
+        "patrol",
+        "shackles",
+        "sky"
+      ],
       "carcass_item": null,
       "discovered_items": [],
       "decay_rates": {
@@ -7959,9 +8099,23 @@
       "interest_tags": [
         "weapons",
         "training",
-        "prestige"
+        "prestige",
+        "blade",
+        "tool",
+        "bread",
+        "meat",
+        "leather",
+        "armor",
+        "pelts",
+        "axes"
       ],
-      "fear_tags": [],
+      "fear_tags": [
+        "shackles",
+        "trap",
+        "water",
+        "hunters",
+        "broken"
+      ],
       "carcass_item": null,
       "discovered_items": [],
       "decay_rates": {
@@ -8204,9 +8358,9 @@
           ],
           "text": "You have been in the Training Pit.",
           "tick": 0,
-          "timestamp": 1790877135.0981555,
+          "timestamp": 1790895607.0371315,
           "type": "reaction",
-          "visits": 44
+          "visits": 46
         }
       ],
       "schedule": [],
@@ -8228,9 +8382,9 @@
       "spatial_position": null
     }
   },
-  "active_player": "Eldenford Merchant",
-  "game_time": "08:03:00",
-  "time_ticks": 3,
+  "active_player": "Zikka",
+  "game_time": "08:00:00",
+  "time_ticks": 0,
   "time_per_tick_minutes": 1,
   "clock_start_hour": 8,
   "clock_start_minute": 0,
@@ -17456,7 +17610,8 @@
             "faction:human"
           ],
           "x": 1020,
-          "y": -1476
+          "y": -1476,
+          "library_id": "Harren Cobb"
         },
         "created": 1789781679.85214,
         "updated": 1789922611.8148172
@@ -17477,7 +17632,8 @@
             "faction:human"
           ],
           "x": 1042,
-          "y": -1420
+          "y": -1420,
+          "library_id": "Gareth Ollen"
         },
         "created": 1789781679.8530843,
         "updated": 1789922611.8148203
@@ -17498,7 +17654,8 @@
             "faction:human"
           ],
           "x": 2771,
-          "y": -391
+          "y": -391,
+          "library_id": "Tobin Marsh"
         },
         "created": 1789781679.8535173,
         "updated": 1790761440.7832236
@@ -17519,7 +17676,8 @@
             "faction:human"
           ],
           "x": 1095,
-          "y": -1427
+          "y": -1427,
+          "library_id": "Pell Ardin"
         },
         "created": 1789781679.8537052,
         "updated": 1789922611.8148263
@@ -17540,7 +17698,8 @@
             "faction:human"
           ],
           "x": 3201,
-          "y": -534
+          "y": -534,
+          "library_id": "Corvin Hale"
         },
         "created": 1789781679.8538837,
         "updated": 1790761440.7832236
@@ -29995,6 +30154,209 @@
         },
         "created": 1790879444.2082262,
         "updated": 1790879444.2082262
+      },
+      "lyrie_gold_hoop_earrings": {
+        "id": "lyrie_gold_hoop_earrings",
+        "type": "item",
+        "name": "Gold Hoop Earrings (Slightly Bent)",
+        "properties": {
+          "description": "A pair of delicate gold hoop earrings, inherited from Lyrie's grandmother. One of them is slightly bent out of shape—she snagged it on her tunic and hasn't managed to straighten it yet. They catch the light beautifully, though Lyrie sometimes forgets she's wearing them and tries to put on other earrings too.",
+          "tags": [
+            "jewelry",
+            "earrings",
+            "gold",
+            "elven",
+            "heirloom",
+            "wearable",
+            "metal"
+          ],
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 0.1,
+          "equip_slots": [
+            "ears"
+          ],
+          "current_state": "normal",
+          "library_id": "lyrie_gold_hoop_earrings",
+          "contents": []
+        },
+        "created": 1790895756.510148,
+        "updated": 1790895756.510148
+      },
+      "blue_butterfly_earring": {
+        "id": "blue_butterfly_earring",
+        "type": "item",
+        "name": "Blue Butterfly Earring",
+        "properties": {
+          "description": "a tiny dangling blue butterfly on a fine hook, its clasp bent from wherever it spent the last few hours. cheap metal gone dull, but kept like something priceless. it belongs to somebody's mom.",
+          "tags": [
+            "jewelry"
+          ],
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 0.01,
+          "equip_slots": [
+            "accessory"
+          ],
+          "current_state": "hidden",
+          "library_id": "blue_butterfly_earring",
+          "light_level": "dim",
+          "contents": []
+        },
+        "created": 1790895756.512147,
+        "updated": 1790895756.512147
+      },
+      "trigger_blue_butterfly_earring_on_examine_1790895756512_678": {
+        "id": "trigger_blue_butterfly_earring_on_examine_1790895756512_678",
+        "type": "logic_trigger",
+        "name": "on_examine → message",
+        "properties": {
+          "trigger_type": "on_examine",
+          "effects": [
+            {
+              "params": {
+                "message": "the blue butterfly sways gently. it catches light beautifully — one of your favorite pieces."
+              },
+              "type": "message"
+            }
+          ],
+          "target_name": "",
+          "target_state": "",
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1790895756.512147,
+        "updated": 1790895756.512147
+      },
+      "belt_leather": {
+        "id": "belt_leather",
+        "type": "item",
+        "name": "belt_leather",
+        "properties": {
+          "description": "A leather belt, cut and punched, and it is the plainest thing a person owns.",
+          "tags": [
+            "clothing",
+            "leather",
+            "accessory",
+            "waist",
+            "metal"
+          ],
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": 1,
+          "weight": 0.3,
+          "equip_slots": [
+            "waist"
+          ],
+          "current_state": "normal",
+          "library_id": "belt_leather",
+          "light_level": "dim",
+          "contents": []
+        },
+        "created": 1790895756.5131483,
+        "updated": 1790895756.5131483
+      },
+      "black_short_shorts": {
+        "id": "black_short_shorts",
+        "type": "item",
+        "name": "Black Short Shorts",
+        "properties": {
+          "description": "Tight black denim short shorts. They ride up constantly, but they're broken in and comfortable. A small frayed edge at the hem gives them character.",
+          "tags": [
+            "clothing",
+            "bottom"
+          ],
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "uses": 0,
+          "weight": 0.3,
+          "equip_slots": [
+            "legs"
+          ],
+          "current_state": "normal",
+          "library_id": "black_short_shorts",
+          "contents": []
+        },
+        "created": 1790895756.5131483,
+        "updated": 1790895756.5131483
+      },
+      "trigger_black_short_shorts_on_examine_1790895756513_131": {
+        "id": "trigger_black_short_shorts_on_examine_1790895756513_131",
+        "type": "logic_trigger",
+        "name": "on_examine → message",
+        "properties": {
+          "trigger_type": "on_examine",
+          "effects": [
+            {
+              "params": {
+                "message": "Black denim, well-fitted and frayed at the edges. They don't leave much to the imagination."
+              },
+              "type": "message"
+            }
+          ],
+          "target_name": "",
+          "target_state": "",
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1790895756.5131483,
+        "updated": 1790895756.5131483
+      },
+      "manor_signet_ring": {
+        "id": "manor_signet_ring",
+        "type": "item",
+        "name": "manor_signet_ring",
+        "properties": {
+          "description": "A signet ring, and the seal on it opens a letter that the law has to answer.",
+          "tags": [
+            "clothing",
+            "accessory",
+            "metal",
+            "valuable",
+            "document",
+            "hands",
+            "manor",
+            "noble"
+          ],
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": 1,
+          "weight": 0.05,
+          "equip_slots": [
+            "hands"
+          ],
+          "current_state": "normal",
+          "library_id": "manor_signet_ring",
+          "light_level": "dim",
+          "contents": []
+        },
+        "created": 1790895756.5141482,
+        "updated": 1790895756.5141482
       }
     },
     "edges": [
@@ -43464,144 +43826,6 @@
         }
       },
       {
-        "source": "player_Arix",
-        "target": "area_chiefs_pit",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Belne",
-        "target": "area_camp_entrance_trail",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Croak-Mother",
-        "target": "area_murk_lake",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Eldenford_Blacksmith",
-        "target": "area_eldenford_village",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Eldenford_Elder",
-        "target": "area_eldenford_village",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Eldenford_Farmer",
-        "target": "area_abandoned_farm",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Eldenford_Merchant",
-        "target": "area_eldenford_village",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Eldenford_Road_Guard_Captain",
-        "target": "area_human_road",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Gribba",
-        "target": "area_cooking_area",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Kiala",
-        "target": "area_camp_entrance_trail",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Krikka",
-        "target": "area_scrap_pile",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Leslie",
-        "target": "area_prison_pens",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Mikka",
-        "target": "area_workshop",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Old_Iron-Back",
-        "target": "area_northern_hills",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Rag-Tail",
-        "target": "area_deep_forest",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Rikka",
-        "target": "area_cooking_area",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Shadow-Pelt",
-        "target": "area_raven_river",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Silver-Talon",
-        "target": "area_camp_entrance",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Thrazz",
-        "target": "area_cooking_area",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Tusker",
-        "target": "area_deep_forest",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Vekka",
-        "target": "area_chiefs_pit",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Zikka",
-        "target": "area_training_pit",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Jake_Halloway",
-        "target": "area_camp_entrance_trail",
-        "type": "in",
-        "properties": {}
-      },
-      {
         "source": "area_world_6_3",
         "target": "way_world_area_world_5_4_area_world_6_3",
         "type": "connection",
@@ -43818,10 +44042,226 @@
         "target": "player_Eldenford_Merchant",
         "type": "carrying",
         "properties": {}
+      },
+      {
+        "source": "player_Arix",
+        "target": "area_chiefs_pit",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Belne",
+        "target": "area_camp_entrance_trail",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Eldenford_Blacksmith",
+        "target": "area_eldenford_village",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Eldenford_Elder",
+        "target": "area_eldenford_village",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Eldenford_Farmer",
+        "target": "area_abandoned_farm",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Eldenford_Merchant",
+        "target": "area_eldenford_village",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Eldenford_Road_Guard_Captain",
+        "target": "area_human_road",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Jake_Halloway",
+        "target": "area_camp_entrance_trail",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Silver-Talon",
+        "target": "area_camp_entrance",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Tusker",
+        "target": "area_deep_forest",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Vekka",
+        "target": "area_chiefs_pit",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "lyrie_gold_hoop_earrings",
+        "target": "area_chiefs_pit",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "blue_butterfly_earring",
+        "target": "trigger_blue_butterfly_earring_on_examine_1790895756512_678",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine",
+          "effects": [
+            {
+              "params": {
+                "message": "the blue butterfly sways gently. it catches light beautifully — one of your favorite pieces."
+              },
+              "type": "message"
+            }
+          ],
+          "target_name": "",
+          "target_state": "",
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "blue_butterfly_earring",
+        "target": "player_Arix",
+        "type": "equipped",
+        "properties": {
+          "slot": "accessory"
+        }
+      },
+      {
+        "source": "belt_leather",
+        "target": "player_Arix",
+        "type": "equipped",
+        "properties": {
+          "slot": "waist"
+        }
+      },
+      {
+        "source": "black_short_shorts",
+        "target": "trigger_black_short_shorts_on_examine_1790895756513_131",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine",
+          "effects": [
+            {
+              "params": {
+                "message": "Black denim, well-fitted and frayed at the edges. They don't leave much to the imagination."
+              },
+              "type": "message"
+            }
+          ],
+          "target_name": "",
+          "target_state": "",
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "black_short_shorts",
+        "target": "player_Arix",
+        "type": "equipped",
+        "properties": {
+          "slot": "legs"
+        }
+      },
+      {
+        "source": "manor_signet_ring",
+        "target": "player_Arix",
+        "type": "equipped",
+        "properties": {
+          "slot": "hands"
+        }
+      },
+      {
+        "source": "player_Croak-Mother",
+        "target": "area_murk_lake",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Gribba",
+        "target": "area_cooking_area",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Kiala",
+        "target": "area_camp_entrance_trail",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Krikka",
+        "target": "area_scrap_pile",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Leslie",
+        "target": "area_prison_pens",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Mikka",
+        "target": "area_workshop",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Old_Iron-Back",
+        "target": "area_northern_hills",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Rag-Tail",
+        "target": "area_deep_forest",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Rikka",
+        "target": "area_cooking_area",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Shadow-Pelt",
+        "target": "area_raven_river",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Thrazz",
+        "target": "area_cooking_area",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Zikka",
+        "target": "area_training_pit",
+        "type": "in",
+        "properties": {}
       }
     ]
   },
-  "turn_number": 3,
+  "turn_number": 0,
   "narration_mode": "none",
   "ghost_mode": false,
   "mature_content": true,

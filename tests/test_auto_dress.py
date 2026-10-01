@@ -95,6 +95,27 @@ def test_candidates_expose_only_wearable_entries_with_an_id():
         assert isinstance(entry['tags'], list)
 
 
+def test_candidates_offer_base_description_not_the_generated_one():
+    """`description` is regenerated FROM the equipped items on every wear/remove,
+    so handing it to a prompt whose job is choosing equipment is circular -- the
+    model would read an outfit to pick an outfit. The field is named
+    `base_description` so the reason survives the next reader.
+    """
+    world, pname = make_world()
+    player = world.player_manager.get_player(pname)
+    player.base_description = 'A smith, soot to the elbow.'
+    player.description = 'A smith wearing a stained apron and a polished belt.'
+
+    cand = world.auto_dress_candidates(pname)
+    assert 'base_description' in cand
+    assert cand['base_description'] == 'A smith, soot to the elbow.'
+    assert cand['base_description'] != player.description
+    assert 'description' not in cand, (
+        'the circular field must not be offered alongside it, or a later reader '
+        'will reach for the more obvious name'
+    )
+
+
 def test_explicit_ids_equip_exactly_those_items():
     """The posted-back selection is honoured, and lands as real equipped items.
 
