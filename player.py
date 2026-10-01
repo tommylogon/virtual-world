@@ -89,6 +89,13 @@ class Player:
         # fallback}]. Empty means "no schedule" — pure need-driven behaviour,
         # which is what every character did before schedules existed.
         self.schedule = []
+        # Authored multi-step plan (task-426): {template, label, index, steps}
+        # or None. Stored on the player so a need interruption pauses it and the
+        # next satisfied action resumes it, rather than the plan being rebuilt.
+        self.plan = None
+        # Plan node ids this character has already finished (or abandoned), so a
+        # non-repeating plan does not restart every time it becomes idle.
+        self.completed_plans = []
         # task-316 foundation: stable opaque identity. Display names stay the
         # addressing surface (same-named characters are allowed); the id is the
         # anchor the full id-backed re-key will use. 8 hex chars, survives
@@ -1148,6 +1155,8 @@ class Player:
             "last_offload_tick": int(getattr(self, "last_offload_tick", 0)),
             "background_consolidated_through": int(
                 getattr(self, "background_consolidated_through", 0)),
+            "plan": getattr(self, "plan", None),
+            "completed_plans": list(getattr(self, "completed_plans", []) or []),
         }
 
     def _relationships_to_dict(self):

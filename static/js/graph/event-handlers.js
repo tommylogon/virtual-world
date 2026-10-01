@@ -196,7 +196,7 @@ window.GraphEventHandlers = {
             };
                 const res = await ApiClient.connectRooms(payload);
                 if (res.error) toastError('Error: ' + res.error);
-                else { events.log(`Connected ${formData.room1} <-> ${formData.room2}`, 'system-msg'); worldState.fetch(); }
+                else { events.log(connectSummary(res, { room1: formData.room1, room2: formData.room2, way_id: formData.way_id }), 'system-msg'); worldState.fetch(); }
                 graphEditor.setTool('select');
             });
         } else {

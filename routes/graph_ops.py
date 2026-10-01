@@ -1517,6 +1517,7 @@ def handle_build_connect_legacy(app):
         name=(data.get('name') or '').strip() or f"{room1}-{dir1}",
         properties=way_props
     )
+    existing_way = app.world.graph.get_node(way_id)
     app.world.graph.add_node(way_node)
     way_id = way_node.id
 
@@ -1554,7 +1555,16 @@ def handle_build_connect_legacy(app):
                 properties=tdata
             ))
 
-    return jsonify({"status": "success"})
+    return jsonify({
+        "status": "success",
+        "created": existing_way is None,
+        "way_id": way_id,
+        "way_name": way_node.name,
+        "area_from": room1,
+        "area_to": room2,
+        "area_from_id": area_a_id,
+        "area_to_id": area_b_id,
+    })
 
 
 def handle_reconnect_way(app):

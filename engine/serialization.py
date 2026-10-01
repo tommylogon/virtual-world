@@ -391,6 +391,10 @@ class WorldSerializer:
         # hand-edited or legacy file cannot put a malformed step into the day.
         from engine.schedule import normalize as _normalize_schedule
         p.schedule = _normalize_schedule(pdata.get("schedule"))
+        # Authored multi-step plan (task-426). A stored plan is resumed as-is;
+        # completed_plans is what stops a non-repeating plan from restarting.
+        p.plan = pdata.get("plan") or None
+        p.completed_plans = list(pdata.get("completed_plans", []) or [])
 
         mem_data = pdata.get("memories", [])
         if isinstance(mem_data, list):

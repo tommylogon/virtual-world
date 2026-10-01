@@ -42,6 +42,13 @@ from typing import Dict, FrozenSet, Optional, Tuple
 #: The property that carries the link. Absent, empty or ``None`` = standalone.
 LINK_FIELD = "library_id"
 
+#: The richer link introduced by task-290: the same ``library_id`` plus what a
+#: flat string cannot say — which variant, which fields are linked at all, and
+#: which the author has taken over. It is **additive**: a node may carry only the
+#: flat field, only this block, or both, and :func:`template_ref` folds the
+#: shapes together so no other call site has to care.
+REF_FIELD = "template_ref"
+
 #: The property that names fields the author has taken ownership of. A locked
 #: field survives every sync, which is the Library -> World half of the
 #: "don't clobber" rule; the World -> Library half is the frontend merge guard.
@@ -198,13 +205,146 @@ def resolve_template_id(node, explicit: Optional[str] = None) -> str:
     return ""
 
 
-def link(node, template_id: str) -> None:
-    """Bind a node to a template, clearing any previous break marker."""
+def link(node, template_id: str, *, variant: Optional[str] = None,
+         overrides: Optional[dict] = None) -> None:
+    """Bind a node to a template, clearing any previous break marker.
+
+    Writes the **flat** ``library_id`` even when a variant is given, and records
+    the rest in ``template_ref``. That asymmetry is deliberate: ~150 call sites
+    in 33 files read ``library_id`` directly (26 of them in ``population.py``),
+    and a variant is a *subset* of a template, not a different one — so the flat
+    field stays the single answer to "which template is this", and ``template_ref``
+    only carries what the flat field cannot express.
+    """
     props = getattr(node, "properties", None)
     if props is None:
         return
     props[LINK_FIELD] = str(template_id or "").strip()
     props.pop(BROKEN_FIELD, None)
+
+    ref = {}
+    if variant:
+        ref["variant"] = str(variant)
+    if overrides:
+        ref["overrides"] = dict(overrides)
+    if ref:
+        props[REF_FIELD] = ref
+    elif REF_FIELD in props:
+        props.pop(REF_FIELD, None)
+
+
+def template_ref(node) -> dict:
+    """The node's link as one normalised dict — the only reader of both shapes.
+
+    This is the "wrap ``library_id`` on first read" migration, done in the one
+    place that reads links. A node written before task-290 has a bare
+    ``library_id`` and no ``template_ref``; a node written after may have both.
+    Rather than rewrite every one of those call sites, the two shapes are folded
+    together here and everything downstream sees one dict.
+
+    Returns ``{"library_id", "variant", "linked_fields", "overrides"}`` with
+    absent keys as empty values, so a caller never has to test for them.
+    """
+    props = getattr(node, "properties", None) or {}
+    stored = props.get(REF_FIELD) or {}
+    if not isinstance(stored, dict):
+        stored = {}
+    return {
+        "library_id": linked_template_id(node),
+        "variant": str(stored.get("variant") or "").strip(),
+        "linked_fields": [str(f) for f in (stored.get("linked_fields") or [])],
+        "overrides": dict(stored.get("overrides") or {}),
+    }
+
+
+def override_fields(node) -> frozenset:
+    """Fields the author has taken ownership of on this node.
+
+    The union of the two ways of saying so: the pre-290 ``locked_fields`` list,
+    and the post-290 ``template_ref.overrides`` map. Both exist, both mean the
+    same thing, and a sync has to honour both — otherwise upgrading the authoring
+    format would quietly unprotect every field a previous author had locked.
+    """
+    return frozenset(locked_fields(node)) | frozenset(template_ref(node)["overrides"])
+
+
+def syncable_fields(node) -> frozenset:
+    """The fields a sync may write for this node: whitelist minus what is owned.
+
+    ``linked_fields`` narrows further when present — it is the author saying
+    "only these come from the template" — and overrides remove individual fields
+    from whatever is left.
+    """
+    ref = template_ref(node)
+    fields = set(_mutable_names(node))
+    if ref["linked_fields"]:
+        fields &= set(ref["linked_fields"])
+    fields -= set(override_fields(node))
+    return frozenset(f for f in fields if f not in NEVER_SYNCED)
+
+
+def _merge_definition(base: dict, overlay: dict) -> dict:
+    """Deep-merge ``overlay`` onto ``base``; overlay wins (task-290 design 5).
+
+    Dicts merge key by key so a variant can adjust one setting of a trigger
+    without restating the rest. Lists **replace** rather than concatenate:
+    appending a variant's tags to the base's would be a surprise, and a variant
+    saying ``tags: ["outdoor"]`` means exactly that.
+    """
+    out = dict(base or {})
+    for key, value in (overlay or {}).items():
+        if isinstance(value, dict) and isinstance(out.get(key), dict):
+            out[key] = _merge_definition(out[key], value)
+        else:
+            out[key] = value
+    return out
+
+
+def resolve_template(registry: dict, library_id: str,
+                     variant: Optional[str] = None) -> Optional[dict]:
+    """The effective definition for a template + optional variant.
+
+    Resolution is a chain, applied base-first:
+
+    1. ``parent_template``, if the entry declares one — the base space. The
+       parent's own ``parent_template`` is followed too, so a chain is allowed,
+       with a depth cap so a cycle in authored data cannot hang a save.
+    2. the entry itself, on top of that base.
+    3. ``entry["variants"][variant]``, on top of *that*, when a variant is named.
+
+    The card puts conflict resolution out of scope with "variant wins by design",
+    and that is what the layering does: the most specific definition is applied
+    last, so it wins every field it mentions and inherits the rest.
+    """
+    if not library_id or library_id not in (registry or {}):
+        return None
+
+    chain: list = []
+    current_id = library_id
+    seen: set = set()
+    while current_id and current_id in registry and current_id not in seen:
+        seen.add(current_id)
+        chain.append(registry[current_id] or {})
+        if len(chain) > 8:                      # authored cycle guard
+            break
+        current_id = (registry[current_id] or {}).get("parent_template") or ""
+
+    definition: dict = {}
+    for entry in reversed(chain):               # base first
+        definition = _merge_definition(definition, entry)
+
+    if variant:
+        variants = (registry.get(library_id) or {}).get("variants") or {}
+        chosen = variants.get(str(variant))
+        if chosen is None:
+            return None
+        definition = _merge_definition(definition, chosen)
+
+    # A variants map and a parent pointer are authoring metadata, not content:
+    # they must not land on the node as if they were fields of the template.
+    definition.pop("variants", None)
+    definition.pop("parent_template", None)
+    return definition
 
 
 def break_template_link(node) -> dict:
@@ -215,10 +355,15 @@ def break_template_link(node) -> dict:
     exactly as it is, which is what makes "I fixed this one by hand" a durable
     decision rather than something the next accidental refresh undoes.
 
+    An ``overrides`` map is *flattened into the node* on the way out (task-290
+    design 3): those values were the reason the link existed, and dropping them
+    with the block would silently lose an author's work.
+
     Returns a small report the inspector can show: what it was linked to, whether
     anything changed, and whether there was even a link to break.
     """
     was = linked_template_id(node)
+    ref = template_ref(node)
     props = getattr(node, "properties", None) or {}
 
     if not was:
@@ -230,13 +375,22 @@ def break_template_link(node) -> dict:
             "note": "Node is not linked to a template; nothing to break.",
         }
 
+    flattened = []
+    for key, value in (ref["overrides"] or {}).items():
+        if key in NEVER_SYNCED:
+            continue
+        if props.get(key) != value:
+            props[key] = value
+            flattened.append(key)
+
     props.pop(LINK_FIELD, None)
+    props.pop(REF_FIELD, None)
     # Provenance only, so "was linked to X" is still answerable after the break.
     # Deliberately NOT auto-locking every mutable field: that would alter the
     # node (the card says a break changes no data) and would make a later
     # deliberate re-link + sync silently apply nothing, which reads as a broken
     # button rather than as a decision. Re-linking is an explicit choice to sync
-    # again; an author who wants some fields spared names them in
+    # again; an author who wants fields spared names them in
     # `locked_fields` themselves.
     props[BROKEN_FIELD] = was
     if hasattr(node, "properties"):
@@ -246,9 +400,13 @@ def break_template_link(node) -> dict:
         "node_id": getattr(node, "id", None),
         "was_linked": True,
         "template_id": was,
+        "variant": ref["variant"] or None,
+        "flattened_overrides": flattened,
         "changed": True,
         "note": "Link removed. Node data untouched and still protected by any "
-                "locked_fields it already had.",
+                "locked_fields it already had."
+                + (f" Overrides flattened onto the node: {', '.join(flattened)}."
+                   if flattened else ""),
     }
 
 

@@ -42,7 +42,6 @@ The `ConfigManager` class (`window.config`) manages all client-side settings wit
 | `streaming` | `false` | Streaming checkbox |
 | `turn_based` | `false` | Turn-based mode checkbox |
 | `turn_order` | `sequential` | Turn order select |
-| `tick_interval` | `10` | Tick interval (ms) |
 | `reactive_mode` | `true` | Reactive mode checkbox |
 | `ghost_mode` | `false` | Ghost mode checkbox |
 | `manual_mode` | `false` | Manual mode checkbox |

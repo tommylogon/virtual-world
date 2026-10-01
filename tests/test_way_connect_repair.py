@@ -220,3 +220,39 @@ def test_load_normalizes_mixed_case_edge_endpoints():
     # The canonical area_a -> way edge survived with its source intact.
     assert any(e.source == area_a and e.target == way.id
                for e in app.world.graph.edges if e.type == EDGE_CONNECTION)
+
+
+def test_build_connect_reports_created_and_areas():
+    """The response says whether the way was created or an existing one
+    reused, and which areas it connects, so the client can report the
+    connection instead of a bare 'Connected rooms' (and never claim a new
+    way was made when the id already existed)."""
+    client, app = _fresh_client()
+    for name in ['Report Room A', 'Report Room B']:
+        client.post('/api/build/area', json={'name': name})
+    a = next(n for n in app.world.graph.nodes.values()
+             if n.type == 'area' and n.name == 'Report Room A')
+    b = next(n for n in app.world.graph.nodes.values()
+             if n.type == 'area' and n.name == 'Report Room B')
+
+    payload = {'room1': a.name, 'room2': b.name, 'dir1': 'north',
+               'dir2': 'south', 'way_id': 'door1', 'state': 'open'}
+
+    r1 = client.post('/api/build/connect', json=payload)
+    assert r1.status_code == 200
+    j1 = r1.get_json()
+    assert j1['created'] is True
+    assert j1['way_id'] == 'door1'
+    assert j1['area_from'] == a.name and j1['area_to'] == b.name
+
+    # Re-using an explicit id is an update, not a new way: it must say so.
+    r2 = client.post('/api/build/connect', json=payload)
+    assert r2.status_code == 200
+    j2 = r2.get_json()
+    assert j2['created'] is False
+    assert j2['way_id'] == 'door1'
+    assert j2['area_from'] == a.name and j2['area_to'] == b.name
+
+    # Exactly one way carries that id — no silent second node.
+    assert sum(1 for n in app.world.graph.nodes.values()
+               if n.id == 'door1') == 1

@@ -485,6 +485,17 @@ class BackgroundSimulation:
             if self._seek_company(p):
                 return TASK_MINUTES["travel"]
 
+        # A stored plan (task-426) outranks generic preparation: it is a specific
+        # authored goal. It sits below every survival need, so a need pauses it
+        # and the next satisfied action resumes it — the plan is on the player,
+        # not recomputed. Deliberately NOT added to `served`: a plan may take
+        # several steps (and several hops) inside one coarse timeframe.
+        from engine import background_plans as _plans
+        if getattr(p, "plan", None) or _plans.maybe_assign(self, p):
+            used = _plans.advance(self, p)
+            if used:
+                return used
+
         # Preparation (task-426). At a service area with a moment to spare, make
         # supplies portable — fill a waterskin, pocket a ration — so a later need
         # is answered from the pack instead of by another round trip. Cheap here

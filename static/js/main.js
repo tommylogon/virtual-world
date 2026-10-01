@@ -198,6 +198,15 @@ function addItemViaGraph() {
         }
     });
 }
+function connectSummary(res, payload) {
+    const from = res.area_from || payload.room1 || '?';
+    const to = res.area_to || payload.room2 || '?';
+    const way = res.way_name || res.way_id || payload.way_id || 'way';
+    if (res.created === false) {
+        return `Way '${way}' already existed — rewired "${from}" <-> "${to}" (no new way created)`;
+    }
+    return `Connected "${from}" <-> "${to}" via way '${way}'`;
+}
 function connectRoomsViaGraph() {
     openCreateModal('connection', async (data) => {
         if (!data.room1 || !data.room2) { toastInfo('Select both rooms'); return; }
@@ -221,7 +230,7 @@ function connectRoomsViaGraph() {
         if (data.way_id) payload.way_id = data.way_id;
         const res = await api.connectRooms(payload);
         if (res.error) toastError('Error: ' + res.error);
-        else { events.log('Connected rooms', 'system-msg'); worldState.fetch(); }
+        else { events.log(connectSummary(res, payload), 'system-msg'); worldState.fetch(); }
     });
 }
 // Legacy HTML onclick wrappers — used by templates/index.html

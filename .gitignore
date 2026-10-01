@@ -20,6 +20,10 @@ playwright/.cache/
 *screenshot*.png
 downloads/
 
+# Browser-verification screenshot dumps (~19MB of throwaway evidence). Keep them
+# local — the finding lives in the task card, not the image.
+review-verify/
+
 # Node / npm (Playwright MCP server dependencies)
 node_modules/
 npm-debug.log*

@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: inprogress
 area: gameplay
 priority: medium
 ---
@@ -113,3 +113,50 @@ and peeling off.
   goal genuinely cannot be expressed as a template.
 - LLM-authored plans in the tick loop.
 - Negotiation, politics, or multi-faction strategy.
+
+## Progress (2026-10-01) — the plan mechanism, haul + gather + rally
+
+Landed `engine/background_plans.py`: a plan is **stored on `Player.plan`** and
+advanced one step per action, so it survives a need interruption (the survival
+ladder runs first, the plan is untouched, the next satisfied action resumes it).
+Templates are **data** — a `plan` graph node (the same shape as a crafting
+`recipe`) declares the template and its parameters; selection is deterministic
+(plan nodes in id order) and knowledge-gated (the source must be reachable).
+
+| template | shape |
+|---|---|
+| `haul` | `travel(source) -> take(item) -> travel(sink) -> drop(item)` |
+| `gather` | `travel(area-with-tags) -> take(item) -> travel(home) -> drop(item)` |
+| `rally` | `travel(rally_area)` — a group goal: every `participants` member walks to one place |
+
+- Traces: each step writes `why="plan:<label>"`; completion `plan:<label>:done`,
+  a broken precondition `plan:<label>:failed` — so `soak_telemetry` groups a run
+  under `plan`. A `repeat: true` node re-arms after completion/failure (the
+  "replan" case); a one-shot marks itself in `completed_plans`.
+- `Player.plan` and `Player.completed_plans` serialize and round-trip.
+- `_act` runs the plan **below every survival need and above `prepare`**, and it
+  is deliberately not added to `served`, so a coarse timeframe can take several
+  steps.
+
+**Authored content (kraktooth).** `tools/add_scrap_run.py` (idempotent) adds the
+one inert prop and the plan node that make **Mikka's scrap run** real:
+`Scrap Pile -> take Scrap -> Workshop -> drop`. The scrap item carries no
+food/water/recreation tag, so it cannot move where any survival need travels —
+the failure mode that sank the 2026-09-29 co-location pass.
+
+**Evidence.**
+
+- `tests/test_background_plans.py` (7): haul end to end, resume after a need,
+  clean failure on an empty source, save/load, gather, rally convergence, rally
+  degradation when a participant cannot reach.
+- Kraktooth run: Mikka starts the plan at tick 2 (start → travel ×3 → take →
+  travel → deliver → done); `item_scrap` ends `in area_workshop`.
+- 3-day background soak, before vs after authoring: **23/23 alive, 0 dead**, and
+  survival vitals unchanged (Hunger 28.6 / Thirst 19.5 / Energy 68.4 / HP 93.4 /
+  Hygiene 71.5 / Social 22.7 / Sanity 50.2 / Entertainment 53.3). No degradation.
+- Backsim suites: 183 passed.
+
+**Still open (follow-ups, not this slice).** Authoring `gather` and `rally`
+content into a scenario; an explicit same-seed replay test (determinism is by
+construction here — id-sorted, no RNG in plans); and a fresh replan *within* a
+plan (the task's "replan, not a freeze") beyond the `repeat` retry.

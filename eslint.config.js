@@ -96,7 +96,7 @@ for (const name of [
     'StreamTurnCards', 'ThreatDetector', 'TriggerGraph', 'TriggerTypes',
     'DatasetCollector',
     'TurnFeed', 'TurnQueue', 'VitalThresholds', 'WayAuthoring',
-    'WorldExport', 'agent', 'agentLens', 'copyPromptToClipboard',
+    'WorldExport', 'agent', 'agentLens', 'connectSummary', 'copyPromptToClipboard',
     'durabilityChip', 'escapeForHtmlAttribute', 'eventStream',
     'filterItemLibrary', 'generateWithAI', 'graphEditor', 'hideInspectorPanel',
     'inspector', 'libraryBrowser', 'loadGameList', 'narrationUI',
