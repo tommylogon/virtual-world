@@ -516,9 +516,19 @@ class VirtualWorld:
     def teach_item(self, subject: str, student_name: str) -> str:
         return self.crafting.teach(self, student_name, subject)
 
-    def auto_dress_character(self, player_name: str) -> str:
+    def auto_dress_character(self, player_name: str, library_ids=None) -> str:
+        """Dress a character. ``library_ids`` is the LLM-selected list
+        (task-660); ``None`` runs the deterministic tag-intersection path."""
         from engine.dressing import auto_dress
-        return auto_dress(self, player_name)
+        return auto_dress(self, player_name, library_ids=library_ids)
+
+    def auto_dress_candidates(self, player_name: str, limit: int = 30) -> dict:
+        """Wearable candidates + character context for the inspector's LLM.
+
+        The engine cannot call a model itself (keys live in the browser), so it
+        hands over the pool and takes the picks back as library ids."""
+        from engine.dressing import dress_candidates
+        return dress_candidates(self, player_name, limit=limit)
 
     def _recipe_known_names(self, player_name: str) -> list:
         return self.crafting._recipe_known_names(player_name)

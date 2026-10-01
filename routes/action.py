@@ -60,11 +60,40 @@ def register_action_routes(app):
         name = data.get('character') or data.get('char')
         if not name:
             return jsonify({"error": "Missing 'character'"}), 400
+        # `library_ids` present => the browser ran the LLM selection (task-660)
+        # and is handing back its picks. Absent => deterministic tag path.
+        library_ids = data.get('library_ids')
+        if library_ids is not None and not isinstance(library_ids, list):
+            return jsonify({"error": "library_ids must be a list of library ids"}), 400
         try:
-            output = app.world.auto_dress_character(name)
-            return jsonify({"output": output})
+            output = app.world.auto_dress_character(name, library_ids=library_ids)
+            return jsonify({"output": output, "selection": 'llm' if library_ids is not None else 'tags'})
         except Exception as e:
             return jsonify({"output": str(e), "success": False}), 400
+
+    @app.route('/api/auto_dress/candidates', methods=['POST'])
+    def auto_dress_candidates():
+        """Wearable pool + character context for the LLM to choose from.
+
+        The engine holds no LLM credentials (see handle_llm_respond_post), so the
+        browser asks here, runs the model, and posts the ids back to
+        /api/auto_dress. Ids are re-validated there against the wearable set, so
+        a hallucinated id equips nothing.
+        """
+        from flask import request, jsonify
+        data = request.get_json() or {}
+        name = data.get('character') or data.get('char')
+        if not name:
+            return jsonify({"error": "Missing 'character'"}), 400
+        limit = data.get('limit', 30)
+        try:
+            limit = max(1, min(int(limit), 80))
+        except (TypeError, ValueError):
+            limit = 30
+        try:
+            return jsonify(app.world.auto_dress_candidates(name, limit=limit))
+        except Exception as e:
+            return jsonify({"error": str(e)}), 400
 
     @app.route('/api/turn/apply', methods=['POST'])
     def apply_turn_decay():

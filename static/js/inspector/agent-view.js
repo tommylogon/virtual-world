@@ -953,7 +953,7 @@ window.InspectorAgentView = (() => {
         // Paperdoll / equipment on top
         html += window.InspectorPaperdoll.renderPaperdollEquipmentHtml(agentName, player, esc, escName);
         html += `<div style="margin:-2px 0 10px 2px;">
-            <button class="btn btn-sm" data-help="autodress" onclick="InspectorAgentView._autoDress('${escName}')" style="font-size:10px;padding:2px 10px;" title="Dress from interest tags: scans the item library for wearable pieces matching the character's interest_tags and equips them">🤖 Auto-Dress from Interests</button>
+            <button class="btn btn-sm" data-help="autodress" onclick="InspectorAgentView._autoDress('${escName}')" style="font-size:10px;padding:2px 10px;" title="The character's LLM picks wearable pieces from the item library that suit who they are. Falls back to matching interest_tags when no LLM is configured. Never replaces worn gear.">🤖 Auto-Dress from Interests</button>
         </div>`;
 
         const inventory = worldState.getInventory(agentName);
@@ -1621,22 +1621,150 @@ window.InspectorAgentView = (() => {
     };
 
     /**
-     * Auto-dress a character from their interest tags (task-325). Backend
-     * scans the item library, equips matching wearable pieces through the
-     * normal stacking rules; failed pieces land back in the room.
+     * Keep only picks that name a real candidate, in the model's order.
+     *
+     * Pure so it is unit-testable, and deliberately strict: a model asked to
+     * choose from a list will sometimes invent an id or echo a display name, and
+     * an unvalidated id would be posted straight to the equip endpoint. Unknown
+     * ids are dropped rather than coerced, so a bad response degrades to fewer
+     * items instead of a wrong outfit.
+     *
+     * @param {Array} pool - Candidates the model was shown
+     * @param {Array} picked - Raw ids from the model
+     * @returns {Array} Ids that exist in the pool, de-duplicated, order kept
+     */
+    AV._validateAutoDressPicks = function(pool, picked) {
+        const valid = new Set((Array.isArray(pool) ? pool : []).map(c => String(c?.lib_id ?? '')));
+        const out = [];
+        const seen = new Set();
+        for (const raw of (Array.isArray(picked) ? picked : [])) {
+            const id = String(raw ?? '').trim();
+            if (!id || !valid.has(id) || seen.has(id)) continue;
+            seen.add(id);
+            out.push(id);
+        }
+        return out;
+    };
+
+    /**
+     * Pull the chosen ids out of a model response.
+     *
+     * Accepts the {"items": [...]} contract, a bare array, and the bracket
+     * extraction the tag generators use, because providers disagree about
+     * structured output. Returns null when nothing parseable is present, which
+     * the caller treats as "fall back to the deterministic path".
+     *
+     * @param {string} text - Raw model output
+     * @returns {Array|null} Ids, or null if unparseable
+     */
+    AV._parseAutoDressResponse = function(text) {
+        const raw = String(text || '').trim();
+        if (!raw) return null;
+        let list = null;
+        try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) list = parsed;
+            else if (Array.isArray(parsed?.items)) list = parsed.items;
+        } catch (e) { /* fall through to bracket extraction */ }
+        if (!list) {
+            const match = raw.match(/\[[^\]]*\]/);
+            if (!match) return null;
+            try { list = JSON.parse(match[0]); }
+            catch (e) {
+                list = match[0].replace(/[[\]"']/g, '').split(',').map(s => s.trim()).filter(Boolean);
+            }
+        }
+        return list;
+    };
+
+    /**
+     * Auto-dress a character (task-325, LLM selection task-660).
+     *
+     * The engine cannot call a model — keys live in the browser — so the flow is
+     * ask the engine for a wearable pool, let the model pick from it, post the
+     * ids back, and let the engine equip. With no model configured, or if the
+     * call fails or returns nothing usable, this falls through to the original
+     * tag-intersection path unchanged.
+     *
+     * The pool the model sees is deliberately WIDER than the tag filter accepts.
+     * The tag filter is the reason an Eldenford blacksmith whose interests are
+     * metal/tools/iron/temper came out wearing a Guiding Cane: nothing wearable
+     * matched, so the generic branch shuffled the whole wardrobe pool. Judgement
+     * about the person, not vocabulary overlap, is what is missing.
+     *
      * @param {string} charName - Character name
      */
     AV._autoDress = async function(charName) {
+        let libraryIds = null;
+        let note = '';
         try {
-            const resp = await fetch('/api/auto_dress', {
+            const candResp = await fetch('/api/auto_dress/candidates', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ character: charName }),
+            });
+            const cand = await candResp.json();
+            const pool = Array.isArray(cand?.pool) ? cand.pool : [];
+
+            if (pool.length > 0 && AIGenerator.isConfigured()) {
+                const listing = pool.map(c =>
+                    `- ${c.lib_id}  (${c.name}; tags: ${c.tags.join(', ') || 'none'}; slots: ${c.slots.join(', ')})`
+                ).join('\n');
+                const prompt = `You are choosing what a specific character would actually wear.
+
+CHARACTER: ${cand.character}
+${cand.personality ? `PERSONALITY\n${cand.personality}\n` : ''}${cand.description ? `APPEARANCE\n${cand.description}\n` : ''}
+AVAILABLE ITEMS (id | name | tags | slots)
+${listing}
+
+Pick the pieces this specific person would wear right now: the clothes and tools that fit their work, their life, and the weather. Judge the CHARACTER, not the tag vocabulary — a shared tag is not a reason to pick something, and a strong reason to pick something overrides a missing tag.
+
+Rules:
+- Only use ids from the list above. Never invent one.
+- 2 to 6 items. Fewer is better than padding.
+- Include worn clothing, footwear, and headwear. Add a tool or weapon only if this person would carry it.
+- Skip anything that would look absurd on this person.
+
+Respond with ONLY a JSON object: {"items": ["apron","stained_work_shirt"]}`;
+
+                const response = await llmClient.chat([{ role: 'user', content: prompt }],
+                    { temperature: 0.6, label: 'inspector/auto-dress' });
+                const picked = AV._parseAutoDressResponse(response);
+                if (picked) {
+                    const valid = AV._validateAutoDressPicks(pool, picked);
+                    if (valid.length > 0) {
+                        libraryIds = valid;
+                    } else {
+                        note = 'Model returned no usable item ids; used interest tags instead.';
+                    }
+                } else {
+                    note = 'Model returned an unreadable response; used interest tags instead.';
+                }
+            } else if (pool.length === 0) {
+                note = 'No wearable items in the library matched this area.';
+            } else {
+                note = 'No LLM configured; used interest tags instead.';
+            }
+        } catch (e) {
+            note = 'LLM selection unavailable (' + e.message + '); used interest tags instead.';
+        }
+
+        try {
+            const body = { character: charName };
+            if (libraryIds) body.library_ids = libraryIds;
+            const resp = await fetch('/api/auto_dress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
             });
             const data = await resp.json();
             const msg = data?.output || 'Auto-dress finished.';
             toastSuccess(msg.split('\n')[0]);
             events?.log?.(msg, 'system-msg');
+            if (libraryIds) {
+                events?.log?.(`Auto-dress selection (${data?.selection || 'llm'}): ${libraryIds.join(', ')}`, 'system-msg');
+            }
+            if (note) events?.log?.(note, 'system-msg');
             await worldState.fetch();
             if (window.VW?.inspector?.showAgent) VW.inspector.showAgent(charName);
         } catch (e) {
