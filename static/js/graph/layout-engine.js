@@ -250,7 +250,8 @@ window.GraphLayoutEngine = {
                 enabled: true,
                 barnesHut: {
                     gravitationalConstant: -3000,
-                    centralGravity: 0.2,
+                    // 0 = no pull toward the origin, same as buildOptions().
+                    centralGravity: 0,
                     springLength: 300,
                     springConstant: 0.04,
                     damping: 0.45,
@@ -463,29 +464,27 @@ window.GraphLayoutEngine = {
     /**
      * On-screen width a painted map should span, in px (task-526).
      *
-     * Sized to what a person can take in at once rather than to a container: a
-     * 6-cell-wide zone gets a roomy ~200px pitch (cards, readable names), a
-     * 200-cell-wide world gets a tight ~30px one (dots, whole map in view). At
-     * 1600px this lands a 6×8 camp at 200px/cell — the pitch a person picks by
-     * hand today, which is the point: the default is now the informed one.
+     * The pitch is **derived**, not chosen: `AUTO_SPAN_PX / longest painted
+     * extent in cells`, clamped, then snapped to a tidy stepper value (multiples
+     * of 10 once the pitch is roomy). So one span serves both ends of the scale —
+     * a 6×8 camp clamps to :data:`AUTO_SPACING_MAX` and gets roomy cards, a
+     * 200×133 world clamps to :data:`AUTO_SPACING_MIN` and takes the whole map in
+     * view as dots, and the middle (the Kraktooth world, 20×30) is the case the
+     * span is tuned for: it lands well above :data:`MAP_CARD_MIN_PITCH` (140) so
+     * the Map layout shows **place names** by default, because telling you where
+     * a place is *called* is the one thing the map is for.
      *
-     * **Raised to 4200** so that a *typical painted world* lands on
-     * :data:`MAP_CARD_MIN_PITCH` and shows **place names** by default. At 1600 the
-     * Kraktooth world — a 20×30 painted extent — derived 55px/cell, an eighth of
-     * the card threshold, so the Map layout drew every place as an anonymous dot
-     * and the one thing the map is for (telling you where a place is *called*)
-     * needed the reader to first discover a slider. 4200 ÷ 30 is 140 exactly, and
-     * the ladder stays honest at both ends: a small zone clamps to
-     * :data:`AUTO_SPACING_MAX` and gets roomy cards, a large one clamps to
-     * :data:`AUTO_SPACING_MIN` and takes the whole map in view as dots. The middle
-     * is where a world is a thing you pan around, and that is where names are
-     * worth the panning.
+     * **10000px** at the current clamps. Note the span is only hit *exactly* when
+     * it divides evenly into `longest × step` — 10000 ÷ 30 is 333.3, so the pitch
+     * snaps to 330 and a 20×30 world spans 9900. That ±1 stepper step is the
+     * contract, not a defect: the snapping is deliberate, so the ladder is
+     * readable in the stepper.
      */
-    AUTO_SPAN_PX: 4200,
+    AUTO_SPAN_PX: 10000,
 
     /** Clamp for the derived pitch — never tighter than this, never wider. */
     AUTO_SPACING_MIN: 24,
-    AUTO_SPACING_MAX: 300,
+    AUTO_SPACING_MAX: 600,
 
     /**
      * Painted coords → canvas position. Pure, so it is unit-tested.
@@ -555,8 +554,8 @@ window.GraphLayoutEngine = {
      * it: the inspector's "Physics enabled" off (`central_gravity_enabled:
      * false`) or an explicit `layout_static: true`, which are the same intent.
      *
-     * Delegates to `GraphRelativeLayout.isStatic` so the layout and the leash
-     * agree on one rule instead of two copies of it that can drift apart.
+     * Delegates to `GraphRelativeLayout.isStatic` so the layout and the derived
+     * seed agree on one rule instead of two copies of it that can drift apart.
      * @param {Object} node
      * @returns {boolean}
      */
@@ -610,16 +609,19 @@ window.GraphLayoutEngine = {
             // to their areas — the grid path places no way nodes of its own, so
             // without the solver they pile up wherever they were last saved and
             // every edge then crosses the whole map (task-530). Items and
-            // characters are NOT simulated: `GraphRelativeLayout` leashes them to
-            // their area and deliberately keeps them out of the global gravity
-            // field, because in it they are dragged off their parent no matter
-            // how stiff the edge. An author-frozen node keeps physics off too.
+            // characters are simulated too: with `centralGravity: 0` there is no
+            // global field to drag a child off its parent, so their edge spring
+            // holds them to the area that has them. An author-frozen node keeps
+            // physics off.
             const frozen = GraphLayoutEngine.isFrozen(node);
             updates.push({
                 id,
                 x: p.x,
                 y: p.y,
-                physics: isWay && !frozen,
+                // Everything except an area is simulated. A hand-placed character
+                // reaches here, not the `heldIn` branch below, so gating on `isWay`
+                // here would quietly leave a placed character out of the solver.
+                physics: !isArea && !frozen,
                 fixed: isArea ? { x: true, y: true } : { x: false, y: false },
             });
             placed.add(id);
@@ -648,7 +650,7 @@ window.GraphLayoutEngine = {
                     x: anchor.x + (isChar ? beside.charX : beside.itemX) + (index % beside.perRow) * beside.step,
                     y: anchor.y + (isChar ? beside.charY : beside.itemY)
                         + Math.floor(index / beside.perRow) * beside.step,
-                    physics: false,
+                    physics: true,
                     fixed: { x: false, y: false },
                 });
             });
@@ -698,7 +700,7 @@ window.GraphLayoutEngine = {
         const updates = GraphLayoutEngine._gridUpdates(nodesObj, nodesDS, offsets)
             .filter((u) => u && !frozen(u.id));
         nodesDS.update(updates);
-        graphManager.network.setOptions({ physics: { enabled: false } });
+        GraphNetwork.applyModePhysics(false);
         // The solver is off for this placement pass only. The user's preference
         // (`graphManager._physicsEnabled`) is deliberately NOT cleared here: the
         // load path restores it when the user wants physics in Map mode, so the

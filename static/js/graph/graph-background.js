@@ -2031,7 +2031,7 @@
     function _applyLockState(network) {
         if (state.layoutLocked) {
             if (network)
-                network.setOptions({ physics: { enabled: false } });
+                GraphNetwork.applyModePhysics(false);
             if (typeof graphManager !== 'undefined' && graphManager) {
                 graphManager._physicsEnabled = false;
                 // A locked painted map owns its positions, so the toolbar offers
@@ -2045,7 +2045,7 @@
             // WE froze physics for the previous world's lock — undo it, so a new
             // scenario doesn't inherit the old one's frozen layout.
             if (network)
-                network.setOptions({ physics: { enabled: true } });
+                GraphNetwork.applyModePhysics(true);
             if (typeof graphManager !== 'undefined' && graphManager) {
                 graphManager._physicsEnabled = true;
                 graphManager._mapLayoutLocked = false;

@@ -294,7 +294,7 @@ window.GraphFocus = {
         if (graphManager._physicsEnabled === false) return;
         const nodes = graphManager.network.body?.data?.nodes;
         if (!nodes) return;
-        graphManager.network.setOptions({ physics: { enabled: true } });
+        GraphNetwork.applyModePhysics(true);
         try {
             graphManager.network.stabilize(60);
         } catch (e) { /* ignore */ }

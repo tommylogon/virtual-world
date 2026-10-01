@@ -164,6 +164,61 @@ window.GraphNetwork = {
     },
 
     /**
+     * The central gravity the *current* layout wants.
+     *
+     * centralGravity is a global field applied to every node on every solver
+     * iteration, and vis exposes it as one graph-wide number with no per-node
+     * control, so the only way to change it per mode is to push a new value on
+     * every switch. The rule lives here so the switches cannot disagree:
+     *
+     *  - **graph** (the free force layout): ON. It is what holds a component
+     *    that is not edge-connected to the rest of the world near the middle
+     *    instead of letting it drift off.
+     *  - **map**: 0. The painted lattice *is* the map — areas are pinned to
+     *    their cells — so a pull toward the canvas origin fights the art. With it
+     *    off, a room's contents are held by their own `in` edge spring.
+     *  - **levels**: 0. vis's hierarchical layout owns positions and forces
+     *    physics off, so this is never read; it is set anyway so that switching
+     *    back does not inherit a number chosen for a layout that was not running.
+     *
+     * @param {string} [layout] - 'graph'|'map'|'levels'; defaults to the live one
+     * @returns {number}
+     */
+    centralGravityFor(layout) {
+        const gm = (typeof graphManager !== 'undefined' && graphManager) || null;
+        const current = layout || (gm && typeof gm.activeLayout === 'function'
+            ? gm.activeLayout()
+            : (gm && gm._levelsMode && gm._levelsMode() ? 'levels' : (gm && gm._cardinalLayout ? 'map' : 'graph')));
+        if (current === 'map' || current === 'levels') return 0;
+        // Per solver, because the two formulations are not on the same scale
+        // (barnesHut's historical default is 0.3, forceAtlas2's is 0.005).
+        return ((config || {}).graphSolver || 'forceAtlas2Based') === 'barnesHut' ? 0.3 : 0.05;
+    },
+
+    /**
+     * The one place a layout switch pushes solver settings.
+     *
+     * Every mode change needs `physics.enabled` to follow, and now `centralGravity`
+     * with it — which is why the scattered `setOptions({physics:{enabled}})` calls
+     * come through here rather than each re-deciding. (This area has already been
+     * bitten once: four silent re-enablers had to be fixed when Levels was added.)
+     *
+     * @param {boolean} enabled - whether the solver should run
+     */
+    applyModePhysics(enabled) {
+        const gm = (typeof graphManager !== 'undefined' && graphManager) || null;
+        if (!gm || !gm.network || !gm.network.setOptions) return;
+        const cfg = config || {};
+        const solver = cfg.graphSolver || 'forceAtlas2Based';
+        gm.network.setOptions({
+            physics: {
+                enabled: !!enabled,
+                [solver]: { centralGravity: GraphNetwork.centralGravityFor() }
+            }
+        });
+    },
+
+    /**
      * Builds and returns the vis.js options object with physics, interaction,
      * manipulation, and group styling configuration.
      *
@@ -186,9 +241,18 @@ window.GraphNetwork = {
         const mapK = GraphNetwork.mapSizeScale();
         const spring = (fallback) => (cfg.graphSpringLength != null
             ? cfg.graphSpringLength : Math.round(fallback * mapK));
+        // centralGravity follows the layout (see centralGravityFor): ON in the free
+        // graph layout, 0 for Map and Levels. The map-mode numbers below are the
+        // balance measured with it off — with no central pull, repulsion is the
+        // only thing pushing, and the old forceAtlas2 numbers (repulsion -40,
+        // spring 0.02) lost it: a measured cold load ran away at +4069px of width
+        // per 12s and left contents a median 888px from the room that holds them.
+        // Weaker repulsion and a stiffer spring put them back beside their rooms
+        // (median 147px, p90 258px). Measured on kraktooth_goblin_camp, 638 nodes.
+        const gravity = GraphNetwork.centralGravityFor();
         const physicsBase = solver === 'barnesHut'
-            ? { barnesHut: { gravitationalConstant: cfg.graphGravitationalConstant ?? -3000, centralGravity: 0.3, springLength: spring(120), springConstant: cfg.graphSpringConstant ?? 0.04, damping: cfg.graphDamping ?? 0.09 } }
-            : { forceAtlas2Based: { gravitationalConstant: cfg.graphGravitationalConstant ?? -40, centralGravity: 0.005, springLength: spring(100), springConstant: cfg.graphSpringConstant ?? 0.02, damping: cfg.graphDamping ?? 0.4 } };
+            ? { barnesHut: { gravitationalConstant: cfg.graphGravitationalConstant ?? -3000, centralGravity: gravity, springLength: spring(120), springConstant: cfg.graphSpringConstant ?? 0.04, damping: cfg.graphDamping ?? 0.09 } }
+            : { forceAtlas2Based: { gravitationalConstant: cfg.graphGravitationalConstant ?? -8, centralGravity: gravity, springLength: spring(120), springConstant: cfg.graphSpringConstant ?? 0.1, damping: cfg.graphDamping ?? 0.4 } };
         return {
             physics: {
                 enabled: !levels, solver,
@@ -523,8 +587,9 @@ window.GraphNetwork = {
 
                 // Attachment edges (item -> its parent, or a trigger -> its host)
                 // get short springs so a child settles next to its parent rather
-                // than floating at the global length. Children stay dynamic: the
-                // leash in relative-layout.js is what keeps them local (task-485).
+                // than floating at the global length. Children are in the solver
+                // and that short spring is the only thing keeping them local
+                // (there is no central gravity to fight).
                 const isAttachment = GRAPH_ATTACH_EDGE_TYPES.has(edgeType)
                     || edgeType === 'triggers' || edgeType === 'grappled';
 
@@ -592,7 +657,7 @@ window.GraphNetwork = {
             // Disable physics during data swap to avoid jitter
             const levelsOn = ((typeof config !== 'undefined' && config && config.graphLayoutMode) || 'free') === 'levels';
             const wasPhysics = graphManager._physicsEnabled && !levelsOn;
-            graphManager.network.setOptions({ physics: { enabled: false } });
+            GraphNetwork.applyModePhysics(false);
             graphManager.network.setData({ nodes: visNodes, edges: visEdges });
             // Restore positions only for nodes that still exist
             const newNodeIds = new Set(visNodes.map(nodeConfig => nodeConfig.id));
@@ -645,7 +710,7 @@ window.GraphNetwork = {
             // To go back to the old behaviour, restore `layoutKind !== 'grid'`.
             if (wasPhysics) {
                 graphManager._physicsEnabled = true;
-                graphManager.network.setOptions({ physics: { enabled: true } });
+                GraphNetwork.applyModePhysics(true);
             }
 
             // Put the camera back where the user had it (setData's internal
@@ -848,7 +913,7 @@ window.GraphNetwork = {
      */
     togglePhysics() {
         graphManager._physicsEnabled = !graphManager._physicsEnabled;
-        graphManager.network.setOptions({ physics: { enabled: graphManager._physicsEnabled } });
+        GraphNetwork.applyModePhysics(graphManager._physicsEnabled);
         if (window.GraphToolbar) GraphToolbar.syncAll();
     },
 
@@ -950,10 +1015,11 @@ window.GraphNetwork = {
             // to vis-network's native (plain-text) title when tippy is absent,
             // so the two never show at once.
             title: typeof tippy === 'undefined' ? GraphNetwork.buildTooltip(nodeData) : undefined,
-            // vis-network's central gravity is global. A node excluded from
-            // physics stays out of that pull while the rest keeps simulating.
-            // "Static" can be said either way: the inspector's Physics-enabled
-            // off, or an explicit layout_static flag (task-485).
+            // The solver has no central gravity (see buildOptions), so a node in
+            // it is held by its own edges rather than dragged to the middle. This
+            // flag is therefore a straight "simulate this node or pin it": the
+            // inspector's Physics-enabled off, or an explicit layout_static
+            // (task-485). Off applies to every node type.
             physics: nodeData.properties?.central_gravity_enabled !== false
                 && nodeData.properties?.layout_static !== true,
             // Per-node shape (groups no longer define shape — see options.groups).
@@ -1398,11 +1464,11 @@ window.GraphNetwork = {
      */
     _clearOverlay() {
         graphManager._lastSig = '';
-        graphManager.network.setOptions({ physics: { enabled: false } });
+        GraphNetwork.applyModePhysics(false);
         GraphNetwork.loadGraphData();
         const levelsOn = ((typeof config !== 'undefined' && config && config.graphLayoutMode) || 'free') === 'levels';
         if (graphManager._physicsEnabled && !levelsOn) {
-            graphManager.network.setOptions({ physics: { enabled: true } });
+            GraphNetwork.applyModePhysics(true);
         }
     },
 
@@ -1474,7 +1540,7 @@ window.GraphNetwork = {
      */
     applyOverlay(mode) {
         if (!graphManager.network) { console.warn('Graph not initialized'); return; }
-        graphManager.network.setOptions({ physics: { enabled: false } });
+        GraphNetwork.applyModePhysics(false);
         graphManager._overlayMode = mode;
 
         if (mode === 'structural') {

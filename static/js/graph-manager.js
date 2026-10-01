@@ -266,7 +266,7 @@ class GraphManager {
                 // off their levels, so the stored preference is not applied there.
                 const on = this._physicsEnabled && !this._levelsMode();
                 if (this.network) {
-                    this.network.setOptions({ physics: { enabled: on } });
+                    GraphNetwork.applyModePhysics(on);
                 }
             }
             if ('graph.show_items' in values) {
@@ -995,7 +995,7 @@ class GraphManager {
 
     togglePhysics() {
         graphManager._physicsEnabled = !graphManager._physicsEnabled;
-        graphManager.network.setOptions({ physics: { enabled: graphManager._physicsEnabled } });
+        GraphNetwork.applyModePhysics(graphManager._physicsEnabled);
         if (window.GraphToolbar) GraphToolbar.syncAll();
         graphManager._saveGraphConfigKey('graph.physics_enabled', graphManager._physicsEnabled);
     }
@@ -1150,13 +1150,13 @@ class GraphManager {
             }
             if (this.network) {
                 GraphNetwork.applyOverlay('structural');
-                this.network.setOptions({ physics: { enabled: this._physicsEnabled && !this._levelsMode() } });
+                GraphNetwork.applyModePhysics(this._physicsEnabled && !this._levelsMode());
                 this.fitView();
             }
         } else if (overlayModes.includes(mode)) {
             if (visEl) visEl.style.display = '';
             if (this.network) {
-                this.network.setOptions({ physics: { enabled: false } });
+                GraphNetwork.applyModePhysics(false);
                 GraphNetwork.applyOverlay(mode);
             }
         }

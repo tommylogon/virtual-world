@@ -5,16 +5,15 @@
  * @relates used by graph/relative-layout on load and while contents follow their parent
  * @docs docs/virtualWorld/World Building/Graph System.md
  *
- * The global solver is deliberately NOT used for contents (task-485): vis's
- * `centralGravity` is a graph-wide field, so a child left in the solver is
- * dragged toward the middle of the whole graph however stiff its edge is.
- *
- * This module is the bounded alternative: a short-range relaxation. Two nodes
- * closer than `min` push apart; a pair further than `max` is ignored entirely;
- * and a pair joined by ANY edge is exempt, because a container and its contents
- * (or an item and its carrier) are meant to sit together. A uniform grid keys
- * nodes by `max`-sized cells, so only nearby pairs are ever compared and the
- * whole pass is ~linear in the node count.
+ * Contents are in the solver now (the solver has no central gravity, so nothing
+ * drags a child to the middle), and repulsion is what keeps them apart. This
+ * module is the *seed* pass: it de-overlaps the derived ring once per layout so
+ * a crowded room or a nested container does not start life layered on top of
+ * itself. Two nodes closer than `min` push apart; a pair further than `max` is
+ * ignored entirely; and a pair joined by ANY edge is exempt, because a container
+ * and its contents (or an item and its carrier) are meant to sit together. A
+ * uniform grid keys nodes by `max`-sized cells, so only nearby pairs are ever
+ * compared and the whole pass is ~linear in the node count.
  *
  * It never moves an area or a way (those are the world's coordinates and are
  * owned by physics / the map layout) nor a node the user froze.

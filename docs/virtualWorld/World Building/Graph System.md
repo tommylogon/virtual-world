@@ -286,23 +286,54 @@ Items change color based on state (`network-manager.js:133-142`):
 
 ### Graph Physics
 
-The graph uses vis.js's force-directed layout with `forceAtlas2Based` solver (`network-manager.js:45-48`):
+The graph uses vis.js's force-directed layout with `forceAtlas2Based` solver (`network-manager.js`,
+`buildOptions()`):
 
 ```javascript
 physics: {
     enabled: true,
     solver: 'forceAtlas2Based',
     forceAtlas2Based: {
-        gravitationalConstant: -40,
-        centralGravity: 0.005,
-        springLength: 100,
-        springConstant: 0.02,
+        gravitationalConstant: -8,   // repulsion between nodes
+        centralGravity: 0.05,        // the free layout's pull toward the origin
+        springLength: 120,
+        springConstant: 0.1,
         damping: 0.4
     }
 }
 ```
 
-Physics can be toggled on/off. Nodes can have `central_gravity_enabled: false` to lock their position. The graph uses signature-based deduplication (`network-manager.js:78-89`) to avoid jitter on tick updates — only reloads the vis.js data when the graph structure actually changes.
+**`centralGravity` follows the layout.** It is a graph-wide field applied to every node on every solver
+iteration and vis exposes no per-node or per-mode control for it, so it is pushed as a value on every
+switch. The rule lives in one function, `GraphNetwork.centralGravityFor(layout)`, and every layout
+switch goes through `GraphNetwork.applyModePhysics(enabled)` so no call site can re-decide it:
+
+| Layout | `centralGravity` | why |
+|---|---|---|
+| **🔮 Graph** | **0.05** (barnesHut: 0.3) | the free force layout has nothing else holding it together — with 0 a component not edge-connected to the rest of the world drifts off, and a measured cold load grew +9000 px of width per 40 s |
+| **🗺️ Map** | **0** | the painted lattice *is* the map and areas are pinned to their cells, so a pull toward the canvas origin fights the art — and a room's contents are held by their own `in` edge spring instead |
+| **🌳 Levels** | **0** | vis's hierarchical layout owns positions and forces physics off, so it is never read; it is set anyway so switching back does not inherit a number chosen for a layout that was not running |
+
+0.05 is the *smallest* value that holds the graph, measured on `kraktooth_goblin_camp` (638 nodes, all
+floating in the graph view): 0 runs away, 0.05 settles flat at 1209 px of width, 0.2 settles at 984 px,
+0.6 crushes it to 890 px. **barnesHut's 0.3 is its historical default and was not re-measured**; the two
+solvers are not on the same scale.
+
+The repulsion/spring numbers above are the balance measured for **Map** mode (gravity 0, areas pinned);
+they are shared with the graph view, where nothing is pinned. Physics can be toggled on/off. Nodes can
+have `central_gravity_enabled: false` to lock their position. The graph uses signature-based
+deduplication to avoid jitter on tick updates — only reloads the vis.js data when the graph structure
+actually changes.
+
+> **Known gap — a content whose room is frozen has no anchor.** vis does not apply spring forces to a
+> node with `physics: false`, so a simulated item/character/trigger whose parent is *excluded* from
+> physics is held by nothing: gravity and repulsion only. Measured on `kraktooth_goblin_camp` in the
+> graph layout, **48 of 48** content↔room pairs are of this kind (the scenario freezes 31 of its 206
+> areas, and they are the ones with contents), and those contents settle a **median 3185 px** (max
+> 5004 px) from their room with the solver reporting `stabilized: true` — so it never self-corrects.
+> Map mode is unaffected (the grid pass places each content beside its area and nothing travels far),
+> which is why this only shows in the free graph layout. The fix is not a gravity value: a content
+> belongs in the solver only when its parent is. That is not implemented yet.
 
 ### Physics settings (Settings → Graph)
 
@@ -321,10 +352,10 @@ The sliders in **Settings → Graph** map directly:
 entirely — `applyCardinalLayout()` hardcodes its own `barnesHut` physics and force-places items and
 characters on a fixed grid. If you tweak the sliders and see no change, you're in Map mode.
 
-**They also govern areas and ways only, not a room's contents.** Since task-485 the contents are
-leashed to their parent by a derived offset (see below), so sliders that move the whole graph do not
-move them. To change how far a room's contents sit from it, use **Item Edge Length** — or the
-per-node overrides in the inspector.
+**They govern a room's contents too, and how far they start out.** The sliders are the solver's
+balance, and everything in the graph is in the solver — areas, ways, items, characters and triggers.
+**Item Edge Length** and the per-node overrides in the inspector are separate: they scale the ring a
+room's contents are *seeded* onto, not a distance the solver maintains.
 
 ### Derived layout (`relative-layout.js`)
 
@@ -341,32 +372,38 @@ and re-derived, not restored:
 - **Explicit distances are exact** — a `layout_distance`/`layout_child_distance` pins the offset even
   if labels then overlap. The comfort floor/cap and crowd-spacing growth apply only to *inherited*
   distances.
-- **Contents stay out of the global solver** (`{fixed:false, physics:false}`) and hold a
-  parent-relative offset that the **follow pass** re-applies. vis-network's `centralGravity` is a
-  *global field* applied to every node on every solver iteration, and the edge spring cannot outvote
-  it — measured, a large change to `springConstant`+`centralGravity` moved a settled layout by 2 px of
-  ~5900. The follow pass is incremental (only moved parents, `FOLLOW_MS` 120, `FOLLOW_BUDGET` 500) and
-  sleeps while physics is off.
-- **Short-range separation** (`graph/separation.js`, setting `graph_repel_enabled`) is what keeps a
-  crowded room readable without putting contents back in the solver: two nodes closer than
-  **Repel Distance** (`graph_repel_min`, default 55) push apart, a pair further than **Ignore Beyond**
+- **The ring is a seed, and the solver owns the node afterwards.** `apply()` places each child on its
+  parent's ring once and hands it over with `{fixed:false, physics:true}`. This used to be impossible:
+  vis-network's `centralGravity` is a *global field* applied to every node on every solver iteration, and
+  the edge spring cannot outvote it, so contents were kept out of the solver
+  (`{fixed:false, physics:false}`) and held on a parent-relative offset by a **follow pass** re-applied
+  every 120 ms. **`centralGravity` is now `0` in Map and Levels** (see
+  [Graph Physics](#graph-physics)), which removes the field the whole arrangement existed to fight — so
+  the follow pass and its live separation easing are gone, and nothing re-places a child after the seed.
+  Dragging a room no longer yanks its contents back onto the ring on drop; the edge spring carries them.
+  In the **graph** layout gravity is back on (0.05) — but see the known gap above: a content whose room
+  is frozen from physics has no spring to hold it, so it drifts.
+- **The spring/repulsion balance is what replaced it.** With no central pull, repulsion is the only
+  thing pushing, and the old forceAtlas2 numbers lost: a cold load of `kraktooth_goblin_camp` (638
+  nodes) grew **+4069 px of width per 12 s** and left contents a **median 888 px** from the room
+  holding them. Repulsion `-8` / spring constant `0.10` / spring length `120` (`config.js` defaults,
+  overridable in Settings) puts contents **beside** their rooms — measured cold in Map mode: median
+  **135 px**, p90 **208 px**, and **0** content pairs overlapping.
+- **Short-range separation** (`graph/separation.js`, setting `graph_repel_enabled`) is now a **seed
+  pass only**: it de-overlaps the ring `layoutPositions` derives, so a crowded room or a nested
+  container does not start life layered on top of itself. Two nodes closer than **Repel Distance**
+  (`graph_repel_min`, default 55) push apart, a pair further than **Ignore Beyond**
   (`graph_repel_max`, default 220) is ignored, and a pair joined by **any edge** is exempt — a container
   and its contents (or an item and its carrier) are meant to touch. **Parent Pull** (`graph_repel_pull`,
   default 0.12) is a restoring force back to a node's **own ring position** — never the parent's centre,
   which would suck a crowded character/item onto the area it belongs to — applied only to nodes
-  separation actually displaced, so a crowded room tightens and rooms that are not crowded keep their
-  exact ring. It runs while `layoutPositions` derives a layout *and* on a follow tick that actually moved
-  a parent, folding the result back into the offsets so the next tick reproduces it. Live movement is
-  **smoothed, not snapped**: a displaced node carries a damped velocity toward its resolved spot, pumped
-  at frame rate while it is in flight, and is dropped from that easing once its speed and gap fall below
-  the settle floors — so it eases in and stops instead of teleporting or jittering forever (the vis
-  physics feel without rejoining the solver). A uniform grid keyed
-  by `max`-sized cells keeps it ~linear; areas and ways are anchors and never move, and a frozen node
-  keeps its place. The push target is `max(min, r1 + r2)`, where the radii grow with the name so long
-  labels get room.
-- **Dragging a room carries its contents exactly**; a dropped child keeps its place
-  (`rememberDrop`/`frozenDropOps`). **Item Edge Length** scales the orbit; changing a physics setting
-  calls `reseed()` so the arrangement re-derives.
+  separation actually displaced. It no longer runs during simulation: repulsion is what keeps contents
+  apart once they are in the solver. A uniform grid keyed by `max`-sized cells keeps it ~linear; areas
+  and ways are anchors and never move, and a frozen node keeps its place. The push target is
+  `max(min, r1 + r2)`, where the radii grow with the name so long labels get room.
+- **Item Edge Length** and the per-node `layout_*` numbers scale the **seed ring**; changing a physics
+  setting calls `reseed()` so the arrangement re-derives on the next layout. A frozen node dropped by
+  hand keeps its place across reloads (`frozenDropOps`).
 
 **Levels mode.** The toolbar's **🌳 Levels** button (config `graph_layout_mode`) hands the graph to
 vis's hierarchical solver for an outline-like view (`levelSeparation` 150, `nodeSpacing` 110,
@@ -408,18 +445,19 @@ The toolbar's **🗺️ Map** button toggles a cardinal-direction-based grid lay
 |---------|--------|----------|
 | **Area nodes** | BFS grid based on exit cardinals | ❌ pinned, `fixed` |
 | **Way nodes** | Midpoint between their two connected rooms | ✅ simulated, settles via edge |
-| **Item nodes** | Scattered below their parent room (3-column grid) | ❌ leashed beside the parent |
-| **Character nodes** | Stacked to the right of their current room | ❌ leashed beside the parent |
+| **Item nodes** | Seeded beside their parent room (derived ring) | ✅ simulated, held by the `in` edge |
+| **Character nodes** | Seeded beside their current room (derived ring) | ✅ simulated, held by the `in` edge |
 
 **Per-node physics:** Areas are pinned to their cells, because the cells *are* the
 map and the background art is drawn to them. Ways are deliberately **simulated**: the
 layout places no way nodes of its own, so without the solver they pile up wherever
 they were last saved and every edge then crosses the whole map (task-530). Items and
-characters are the opposite of simulated — `GraphRelativeLayout` leashes them to
-their parent and keeps them out of the global gravity field, because a node left in
-it gets dragged off its parent no matter how stiff the edge, and holding it back
-would need a per-frame sweep. An author-frozen node (`central_gravity_enabled: false`,
-the inspector's "Physics enabled") keeps physics off whatever its type.
+characters are simulated as well, seeded beside their room by the derived layout and
+then held there by their own `in` edge spring — which only works because the solver has
+no `centralGravity` (see [Graph Physics](#graph-physics)); with it on, a node left in
+the solver is dragged off its parent no matter how stiff the edge. An author-frozen
+node (`central_gravity_enabled: false`, the inspector's "Physics enabled") keeps
+physics off whatever its type.
 
 **Two coordinate spaces.** `properties.x`/`y` is overloaded, and `properties.cell`
 is what tells them apart:

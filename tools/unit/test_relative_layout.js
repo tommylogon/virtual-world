@@ -161,7 +161,7 @@ test('a relation island with no area is left alone, not hung on', () => {
     assertEq(GraphRelativeLayout.layoutPositions(nodes, edges, {}), {});
 });
 
-test('apply() seeds children and keeps them out of the global solver', () => {
+test('apply() seeds children and leaves them in the solver', () => {
     const updated = [];
     const previousGraphManager = globalThis.graphManager;
     globalThis.graphManager = {
@@ -179,146 +179,47 @@ test('apply() seeds children and keeps them out of the global solver', () => {
         const count = GraphRelativeLayout.apply();
         assertEq(count, updated.length, 'returns what it placed');
         assertTrue(updated.every((u) => u.id !== 'area_hall'), 'areas untouched');
-        // Not `fixed` (the player can drag them); simply not pulled by the global
-        // field, which is what would drag them to the middle.
-        assertTrue(updated.every((u) => u.fixed === false && u.physics === false),
-            'children stay out of the global solver');
+        // In the solver and not pinned: with centralGravity 0 nothing drags a
+        // child to the middle of the graph, and the player can still drag it. The
+        // ring is a starting arrangement, not a leash.
+        assertTrue(updated.every((u) => u.fixed === false && u.physics === true),
+            'children are simulated');
         assertTrue(updated.some((u) => u.id === 'item_bag'), 'the carried bag was placed');
     } finally {
         globalThis.graphManager = previousGraphManager;
     }
 });
 
-test('a child holds its offset from the parent and follows it', () => {
-    GraphRelativeLayout._offsets = null;
-    const moved = [];
-    const positions = {
-        area_hall: { x: 0, y: 0 },
-        item_lamp: { x: 4000, y: 0 },   // flung across the map
-        item_oil: { x: 0, y: 60 },      // still tucked in the lamp
-    };
+test('a child is seeded on its ring and the sim owns it from there', () => {
+    const updated = [];
+    const live = { area_hall: { x: 0, y: 0 }, area_cellar: { x: 800, y: 600 }, item_lamp: { x: 4000, y: 0 } };
     const previousGraphManager = globalThis.graphManager;
     globalThis.graphManager = {
         _graphNodesObj: NODES,
         _graphEdgesArr: EDGES,
         network: {
-            body: { nodes: positions, data: { nodes: { update: () => {} } } },
-            moveNode: (id, x, y) => { positions[id] = { x, y }; moved.push({ id, x, y }); },
+            body: { nodes: live, data: { nodes: { update: (u) => updated.push(...u) } } },
+            getPositions: () => live,
         },
     };
     try {
-        // Seed: the lamp takes its place under the hall, the oil inside the lamp.
+        // The lamp is wherever the solver flung it; the seed puts it back on its
+        // ring once, and after that nothing re-places it.
         GraphRelativeLayout.apply();
-        assertTrue(!!GraphRelativeLayout._offsets.item_lamp, 'the lamp has an offset');
-        assertTrue(Math.abs(GraphRelativeLayout._offsets.item_lamp.dx) < 0.5, 'below its parent');
-
-        // Physics flings the lamp away; the follow pass brings it back onto its
-        // offset, and the oil rides along rather than staying behind.
-        positions.item_lamp = { x: 4000, y: 0 };
-        const fixed = GraphRelativeLayout.follow();
-        assertTrue(fixed >= 2, 'both lamp and oil re-placed');
-        assertTrue(Math.abs(positions.item_lamp.x) < 1, 'the lamp is back with the hall');
-        assertTrue(Math.abs(positions.item_oil.x) < 60, 'the oil stayed in the lamp');
+        const lamp = updated.find((u) => u.id === 'item_lamp');
+        assertTrue(!!lamp, 'the lamp was placed');
+        const r = Math.hypot(lamp.x, lamp.y);
+        assertTrue(r < 400, `on its ring, not flung across the map (${Math.round(r)}px)`);
+        const oil = updated.find((u) => u.id === 'item_oil');
+        assertTrue(Math.hypot(oil.x - lamp.x, oil.y - lamp.y) < 200, 'the oil is seeded inside the lamp');
+        // The seed is the only thing that places a child: there is no follow
+        // timer left that could snap it back mid-simulation.
+        assertEq(typeof GraphRelativeLayout.follow, 'undefined', 'no follow pass to re-place it');
+        assertEq(GraphRelativeLayout._offsets, undefined, 'and no remembered parent offset');
     } finally {
         globalThis.graphManager = previousGraphManager;
-        GraphRelativeLayout._offsets = null;
     }
 });
-
-test('an idle tick costs nothing and does not re-place anything', () => {
-    GraphRelativeLayout._offsets = null;
-    const moved = [];
-    const positions = { area_hall: { x: 0, y: 0 }, item_lamp: { x: 0, y: 58 } };
-    const previousGraphManager = globalThis.graphManager;
-    globalThis.graphManager = {
-        _graphNodesObj: NODES,
-        _graphEdgesArr: EDGES,
-        _physicsEnabled: true,
-        network: {
-            body: { nodes: positions, data: { nodes: { update: () => {} } } },
-            moveNode: (id, x, y) => { positions[id] = { x, y }; moved.push(id); },
-        },
-    };
-    try {
-        GraphRelativeLayout.apply();
-        moved.length = 0;
-        GraphRelativeLayout.follow();
-        const afterSettled = moved.length;
-        const second = GraphRelativeLayout.follow();
-        assertEq(second, 0, 'a settled graph re-places nothing');
-        assertEq(moved.length, afterSettled, 'no extra moveNode calls');
-    } finally {
-        globalThis.graphManager = previousGraphManager;
-        GraphRelativeLayout._offsets = null;
-    }
-});
-
-test('a big graph degrades by queueing the rest for the next tick', () => {
-    GraphRelativeLayout._offsets = null;
-    const nodes = { area_a: { type: 'area' } };
-    const edges = [];
-    for (let i = 0; i < 5; i++) {
-        nodes['item_' + i] = { type: 'item' };
-        edges.push({ type: 'in', source: 'item_' + i, target: 'area_a' });
-    }
-    const positions = { area_a: { x: 0, y: 0 } };
-    for (let i = 0; i < 5; i++) positions['item_' + i] = { x: 0, y: 0 };
-    const previousGraphManager = globalThis.graphManager;
-    const previousBudget = GraphRelativeLayout.FOLLOW_BUDGET;
-    globalThis.graphManager = {
-        _graphNodesObj: nodes,
-        _graphEdgesArr: edges,
-        _physicsEnabled: true,
-        network: {
-            body: { nodes: positions, data: { nodes: { update: () => {} } } },
-            moveNode: (id, x, y) => { positions[id] = { x, y }; },
-        },
-    };
-    try {
-        GraphRelativeLayout.apply();
-        GraphRelativeLayout.FOLLOW_BUDGET = 2;
-        const first = GraphRelativeLayout.follow();
-        assertTrue(first <= 2, 'first tick respects the budget');
-        assertTrue((GraphRelativeLayout._pendingParents || []).length > 0, 'the rest is queued');
-        GraphRelativeLayout.FOLLOW_BUDGET = previousBudget;
-        const second = GraphRelativeLayout.follow();
-        assertTrue(second > 0, 'the next tick continues');
-        assertEq(GraphRelativeLayout._pendingParents, null, 'the queue drains');
-    } finally {
-        GraphRelativeLayout.FOLLOW_BUDGET = previousBudget;
-        globalThis.graphManager = previousGraphManager;
-        GraphRelativeLayout._offsets = null;
-    }
-});
-
-test('a dragged child keeps the place it was dropped in', () => {
-    GraphRelativeLayout._offsets = null;
-    const positions = { area_hall: { x: 0, y: 0 }, item_lamp: { x: 0, y: 58 } };
-    const previousGraphManager = globalThis.graphManager;
-    globalThis.graphManager = {
-        _graphNodesObj: NODES,
-        _graphEdgesArr: EDGES,
-        network: {
-            body: { nodes: positions, data: { nodes: { update: () => {} } } },
-            moveNode: (id, x, y) => { positions[id] = { x, y }; },
-        },
-    };
-    try {
-        GraphRelativeLayout.apply();
-        positions.item_lamp = { x: 220, y: 30 };          // dropped to the side
-        GraphRelativeLayout.rememberDrop(['item_lamp']);
-        assertEq(GraphRelativeLayout._offsets.item_lamp, { dx: 220, dy: 30 });
-        GraphRelativeLayout.follow();
-        assertEq(positions.item_lamp, { x: 220, y: 30 }, 'it stays where it was dropped');
-        positions.area_hall = { x: 500, y: 500 };          // the room moves
-        GraphRelativeLayout.follow();
-        assertEq(positions.item_lamp, { x: 720, y: 530 }, 'and follows the room from there');
-    } finally {
-        globalThis.graphManager = previousGraphManager;
-        GraphRelativeLayout._offsets = null;
-    }
-});
-
 test('hierarchical level edges run parent -> child whichever way `in` is stored', () => {
     const nodes = {
         area_hall: { type: 'area' }, item_lamp: { type: 'item' }, item_oil: { type: 'item' },
@@ -361,8 +262,7 @@ test('room-to-door edges put the door below the room in level mode', () => {
         { from: 'area_a', to: 'area_b', flipped: false });
 });
 
-test('a frozen node keeps its own place (no orbit, no offset)', () => {
-    GraphRelativeLayout._offsets = null;
+test('a frozen node keeps its own place and stays out of the solver', () => {
     const frozenNodes = {
         area_hall: { type: 'area' },
         item_lamp: { type: 'item', properties: { central_gravity_enabled: false } },
@@ -387,15 +287,13 @@ test('a frozen node keeps its own place (no orbit, no offset)', () => {
     };
     try {
         GraphRelativeLayout.apply();
-        assertTrue(!updated.some(u => u.id === 'item_lamp'), 'the frozen node is not repositioned');
-        assertTrue(!GraphRelativeLayout._offsets.item_lamp, 'and gets no offset, so follow ignores it');
-        assertTrue(updated.some(u => u.id === 'char_kael'), 'others still orbit');
+        assertTrue(!updated.some((u) => u.id === 'item_lamp'), 'the frozen node is not repositioned');
+        assertTrue(updated.some((u) => u.id === 'char_kael'), 'others are seeded and simulated');
+        assertEq(updated.find((u) => u.id === 'char_kael').physics, true);
     } finally {
         globalThis.graphManager = previousGraphManager;
-        GraphRelativeLayout._offsets = null;
     }
 });
-
 test('a dragged frozen node has its position written so a reload keeps it', () => {
     const previousGraphManager = globalThis.graphManager;
     globalThis.graphManager = {
@@ -510,14 +408,13 @@ test('the item-edge-length setting drives the orbit (Hug Parent vs Stretched)', 
     assertTrue(ringRadiusFor(undefined) === standard, 'no setting behaves like the default');
 });
 
-test('re-deriving the arrangement drops remembered offsets', () => {
-    GraphRelativeLayout._offsets = { some: { dx: 1, dy: 1 } };
-    GraphRelativeLayout._lastParentPos = new Map([['a', { x: 0, y: 0 }]]);
+test('re-deriving the arrangement drops the derived caches', () => {
+    GraphRelativeLayout._depthCache = { nodes: {}, edges: {}, map: {} };
+    GraphRelativeLayout._parentCache = { nodes: {}, edges: {}, map: {} };
     GraphRelativeLayout.reseed();
-    assertEq(GraphRelativeLayout._offsets, null);
-    assertEq(GraphRelativeLayout._lastParentPos, null);
+    assertEq(GraphRelativeLayout._depthCache, null);
+    assertEq(GraphRelativeLayout._parentCache, null);
 });
-
 test('attach() registers the follow hooks once', () => {
     const handlers = {};
     const network = { on: (name, fn) => { handlers[name] = fn; } };
@@ -527,53 +424,3 @@ test('attach() registers the follow hooks once', () => {
     assertTrue(!!handlers.dragEnd, 'drag hook');
 });
 
-test('separation eases and settles instead of snapping', () => {
-    const previousConfig = globalThis.config;
-    const previousGraphManager = globalThis.graphManager;
-    const nodes = { area_a: { type: 'area' }, item_0: { type: 'item' }, item_1: { type: 'item' } };
-    const edges = [
-        { type: 'in', source: 'item_0', target: 'area_a' },
-        { type: 'in', source: 'item_1', target: 'area_a' },
-    ];
-    const positions = { area_a: { x: 0, y: 0 }, item_0: { x: 0, y: 0 }, item_1: { x: 8, y: 0 } };
-    globalThis.config = { graphRepelEnabled: true, graphRepelMin: 100, graphRepelMax: 300 };
-    globalThis.graphManager = {
-        _graphNodesObj: nodes,
-        _graphEdgesArr: edges,
-        _physicsEnabled: false,
-        network: {
-            body: { nodes: positions, data: { nodes: { update: () => {} } } },
-            moveNode: (id, x, y) => { positions[id] = { x, y }; },
-            getPositions: () => positions,
-        },
-    };
-    GraphRelativeLayout._offsets = null;
-    GraphRelativeLayout._sepVel = {};
-    try {
-        GraphRelativeLayout.apply();
-        // Pin them on top of each other and force a follow tick (as a drag would).
-        GraphRelativeLayout._offsets = { item_0: { dx: 0, dy: 0 }, item_1: { dx: 8, dy: 0 } };
-        positions.item_0 = { x: 0, y: 0 };
-        positions.item_1 = { x: 8, y: 0 };
-        GraphRelativeLayout._dirtyParents = new Set(['area_a']);
-        GraphRelativeLayout.follow();
-        const dist = () => Math.hypot(positions.item_0.x - positions.item_1.x, positions.item_0.y - positions.item_1.y);
-        const afterOne = dist();
-        assertTrue(afterOne > 8, `it moved (${afterOne})`);
-        assertTrue(afterOne < 100, `but eased, not snapped to the target (${afterOne})`);
-
-        let settled = false;
-        for (let i = 0; i < 500; i++) {
-            if (GraphRelativeLayout.follow() === 0) { settled = true; break; }
-        }
-        assertTrue(settled, 'the motion comes to rest');
-        assertTrue(dist() > 8, 'and rests separated');
-    } finally {
-        globalThis.config = previousConfig;
-        globalThis.graphManager = previousGraphManager;
-        GraphRelativeLayout._offsets = null;
-        GraphRelativeLayout._sepVel = {};
-        GraphRelativeLayout._dirtyParents = null;
-        GraphRelativeLayout._cancelPump();
-    }
-});

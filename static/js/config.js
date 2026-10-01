@@ -42,25 +42,32 @@ class ConfigManager {
         // Reactive mode: true = thought→act→react, false = combined single-step
         this.reactiveMode = (await storage.getConfig('reactive_mode')) !== 'false';
 
-        // Graph visualization settings
-        this.graphSpringLength = parseInt(await storage.getConfig('graph_spring_length')) || 100;
-        this.graphGravitationalConstant = parseInt(await storage.getConfig('graph_gravitational_constant')) || -40;
+        // Graph visualization settings. The spring/repulsion numbers are the
+        // forceAtlas2Based balance measured with `centralGravity: 0`
+        // (graph/network-manager.js): repulsion is then the only thing pushing,
+        // and the old -40 / 0.02 let the graph run away — a cold load of
+        // kraktooth_goblin_camp (638 nodes) grew 4069px of width per 12s and left
+        // contents a median 888px from the room holding them. -8 / 0.10 / 120 puts
+        // them back beside their rooms (median 147px) and settles.
+        this.graphSpringLength = parseInt(await storage.getConfig('graph_spring_length')) || 120;
+        this.graphGravitationalConstant = parseInt(await storage.getConfig('graph_gravitational_constant')) || -8;
         this.graphDamping = parseFloat(await storage.getConfig('graph_damping')) || 0.4;
-        this.graphSpringConstant = parseFloat(await storage.getConfig('graph_spring_constant')) || 0.02;
+        this.graphSpringConstant = parseFloat(await storage.getConfig('graph_spring_constant')) || 0.1;
         this.graphItemEdgeLength = parseInt(await storage.getConfig('graph_item_edge_length')) || 60;
         this.graphSolver = await storage.getConfig('graph_solver') || 'forceAtlas2Based';
         this.graphEdgeWidth = parseInt(await storage.getConfig('graph_edge_width')) || 1;
         this.graphArrows = (await storage.getConfig('graph_arrows')) !== 'false';
         this.graphImprovedLayout = (await storage.getConfig('graph_improved_layout')) === 'true';
-        // Graph layout mode (task-485): 'free' = force physics with contents held
-        // on a parent-relative offset; 'levels' = vis hierarchical layout, where
-        // the layout engine places every node by relation level (physics off).
+        // Graph layout mode (task-485): 'free' = force physics, with a room's
+        // contents seeded onto a ring around it and then simulated; 'levels' =
+        // vis hierarchical layout, where the layout engine places every node by
+        // relation level (physics off).
         this.graphLayoutMode = await storage.getConfig('graph_layout_mode') || 'free';
         // Map-layout pitch (task-523 follow-up): px per painted cell, i.e. the
         // padding between areas in Map mode. 40px = an area every 40px with the
         // way at the midpoint; raise it to de-clutter a dense painted grid.
         const storedMapSpacing = parseInt(await storage.getConfig('graphMapSpacing'));
-        this.graphMapSpacing = storedMapSpacing || 40;
+        this.graphMapSpacing = storedMapSpacing || 240;
         // Whether that pitch is the *derived default* or the user's own choice
         // (task-526). Auto derives the pitch from the painted extent on every load,
         // so it has to be able to tell "the user has not chosen" from "the user
@@ -71,7 +78,7 @@ class ConfigManager {
         const storedMapSpacingAuto = await storage.getConfig('graphMapSpacingAuto');
         this.graphMapSpacingAuto = storedMapSpacingAuto === '1'
             || (storedMapSpacingAuto !== '0'
-                && (!storedMapSpacing || storedMapSpacing === 40));
+                && (!storedMapSpacing || storedMapSpacing === 240));
         // Node separation (graph/separation.js): nearby item/character nodes
         // push apart unless an edge already joins them. `min` is the distance
         // under which they repel, `max` the distance beyond which a pair is

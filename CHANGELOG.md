@@ -4,6 +4,80 @@ All notable changes to VirtualWorld. See `docs/virtualWorld/Scenario Workflows &
 
 ---
 
+## Unreleased
+
+### 🕸 Central gravity follows the layout
+
+`centralGravity` is now **on in the free Graph layout and 0 in Map and Levels**, instead of 0
+everywhere. It is a graph-wide field applied to every node on every solver iteration, and vis exposes
+no per-mode control for it, so the value is pushed on every switch:
+
+| Layout | `centralGravity` | why |
+|---|---|---|
+| 🔮 Graph | **0.05** (barnesHut 0.3) | nothing else holds a free force layout together — at 0 a cold load grew +9000 px of width per 40 s |
+| 🗺️ Map | **0** | the painted lattice is the map and areas are pinned to it; a pull toward the canvas origin fights the art |
+| 🌳 Levels | **0** | vis's hierarchical layout owns positions and forces physics off, so it is never read |
+
+The rule lives in one pure function, `GraphNetwork.centralGravityFor(layout)`, and **all fourteen**
+`setOptions({physics:{enabled: X}})` layout switches now go through `GraphNetwork.applyModePhysics(X)`
+instead of each re-deciding `enabled` on its own. That is the point: this area already shipped four
+silent physics re-enablers when Levels was added, and a per-mode solver value would have been the fifth.
+
+**0.05 is the smallest value that holds the graph**, measured on `kraktooth_goblin_camp` (638 nodes,
+all floating in the graph view): 0 runs away, 0.05 settles flat at 1209 px of width, 0.2 settles at
+984 px, 0.6 crushes it to 890 px. barnesHut's 0.3 is its historical default and was **not** re-measured;
+the two solvers are not on the same scale.
+
+Note the repulsion/spring balance (`-8 / 0.10 / 120`, below) was measured for **Map** mode and is shared
+with the graph view, where nothing is pinned.
+
+**Known gap this exposed, which gravity is not the cause of.** vis applies no spring force to a node with
+`physics: false`, so a simulated item/character/trigger whose parent is *excluded* from physics is held
+by nothing. On `kraktooth_goblin_camp` in the graph layout, **48 of 48** content↔room pairs are in that
+state (the scenario freezes 31 of 206 areas, and they are the ones with contents): those contents settle
+a **median 3185 px** from their room, up to 5004 px, with the solver reporting `stabilized: true`, so it
+never self-corrects. Map mode is unaffected — the grid pass places each content beside its area and
+nothing travels far — which is why it only shows in the free graph layout. Not fixed here: the fix is
+the rule *a content belongs in the solver only when its parent is*, which needs its own pass across
+scenarios.
+
+### 🕸 Central gravity off in Map/Levels, and items and characters are simulated again
+
+`centralGravity` is **0** in both solvers (`graph/network-manager.js`, and the map layout in
+`graph/layout-engine.js`). The solver keeps running — springs, repulsion, everything else — and only
+the pull toward the origin is gone.
+
+That one number removes the reason task-485 had for keeping a room's contents out of the vis solver.
+`centralGravity` is a *global field* applied to every node on every iteration, and a child left in it
+was dragged off its parent no matter how stiff its edge — so contents were pinned
+(`{fixed:false, physics:false}`) and a **follow pass** re-applied a parent-relative offset every 120 ms,
+with a live separation easer on top. That is the visible stutter, and it is gone:
+
+- **Items, characters and logic triggers are in the solver** (verified live on
+  `kraktooth_goblin_camp`: 29/29 items, 23/23 characters, 29/29 triggers simulated; areas stay pinned
+  to the painted lattice, 204/205).
+- **The follow pass is deleted** — `follow`, `_separate`, the frame pump, the 120 ms timer, the
+  parent-relative offset map and `rememberDrop`, ~270 lines in `graph/relative-layout.js`. The derived
+  ring is a **seed** now: `apply()` places a child once and hands it to the sim, and nothing re-places
+  it. Dragging a room no longer re-derives on drop, which is what yanked contents mid-gesture.
+- **The spring/repulsion balance had to be re-tuned**, because with no central pull, repulsion is the
+  only thing pushing. The old forceAtlas2 numbers ran away: measured cold, **+4069 px of graph width
+  per 12 s** with contents a **median 888 px** from the room holding them. Repulsion `-8`, spring
+  constant `0.10`, spring length `120` (`config.js` defaults + the Settings fallbacks) put them back:
+  cold, in Map mode, contents sit a **median 135 px / p90 208 px** from their room with **0**
+  content pairs overlapping. Note that a *stored* `graph_gravitational_constant` /
+  `graph_spring_constant` / `graph_spring_length` in the browser still wins over these defaults —
+  clear them in Settings → Graph to pick the new balance up.
+- **Short-range separation** (`graph/separation.js`) is a seed pass only now — it de-overlaps the
+  derived ring, and no longer eases during simulation. Repulsion does that job.
+- `layout_distance` / `layout_child_distance` / **Item Edge Length** still scale the ring, but they set
+  the *starting* arrangement rather than a permanent leash.
+
+Not re-measured: `barnesHut`'s repulsion/spring numbers were left as they were, so that solver's
+balance with `centralGravity: 0` is unverified.
+
+---
+
 ## Unreleased — "A Painted World You Can Walk Around In" (2026-09-30)
 
 The 2026-09-28 release made the *simulation* honest about distance, sight and fear.

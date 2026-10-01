@@ -91,16 +91,22 @@ window.InspectorHelpers = (() => {
     };
 
     /**
-     * Toggle central gravity for a node
+     * The inspector's "Physics enabled" switch for a node.
+     *
+     * The stored flag is still `central_gravity_enabled`, but it no longer means
+     * anything about gravity: the solver has none (`centralGravity: 0` in
+     * graph/network-manager.js). It is a straight "simulate this node or pin it
+     * where it is" — off for any node type, and a frozen node's dragged position
+     * is written back so it survives a reload.
      * @param {string} nodeId - Graph node ID
-     * @param {boolean} enabled - Whether central gravity is enabled
+     * @param {boolean} enabled - Whether the node is simulated
      */
     H.setCentralGravity = async function(nodeId, enabled) {
         const saved = await api.updateNode(nodeId, {
             properties: { central_gravity_enabled: enabled }
         });
         if (!saved) {
-            console.warn(`Could not update graph gravity for node ${nodeId}`);
+            console.warn(`Could not update graph physics for node ${nodeId}`);
             return;
         }
         if (window.GraphRelativeLayout) window.GraphRelativeLayout.reseed();
@@ -426,11 +432,18 @@ window.InspectorHelpers = (() => {
         style.id = 'expr-pack-styles';
         style.textContent = `
             .expr-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(92px,1fr)); gap:6px; }
+            /* The whole card is the upload control (a <label> around the file
+               input), so it has to read as clickable — it is a 92px target, not a
+               14px arrow. */
             .expr-card { position:relative; display:flex; flex-direction:column; align-items:center; gap:4px;
                 padding:6px; border:1px solid var(--border); border-radius:8px; background:var(--bg-input);
-                transition:border-color .12s, background .12s; }
+                cursor:pointer; transition:border-color .12s, background .12s; }
+            .expr-card:hover { border-color:#3f6fa8; background:#182130; }
             .expr-card.expr-current { border-color:#57c98f; box-shadow:0 0 0 1px #2c4a36; }
             .expr-card.expr-drop { border-color:#4f9cf9; background:#14243a; }
+            /* Focus ring for the keyboard path: the input is visually hidden but
+               not display:none, so it is still tabbable. */
+            .expr-card:focus-within { border-color:#4f9cf9; box-shadow:0 0 0 1px #1d3a5c; }
             .expr-thumb { width:100%; aspect-ratio:1; border-radius:6px; overflow:hidden; display:flex;
                 align-items:center; justify-content:center; border:1px dashed var(--border); }
             .expr-thumb.has-art { border-style:solid; }
@@ -439,8 +452,11 @@ window.InspectorHelpers = (() => {
             .expr-name { font-size:10px; text-align:center; max-width:100%; white-space:nowrap;
                 overflow:hidden; text-overflow:ellipsis; }
             .expr-actions { display:flex; gap:4px; opacity:.45; transition:opacity .12s; }
-            .expr-card:hover .expr-actions { opacity:1; }
-            .expr-upload { cursor:pointer; }
+            .expr-card:hover .expr-actions, .expr-card:focus-within .expr-actions { opacity:1; }
+            .expr-upload { cursor:pointer; pointer-events:none; }
+            /* Visually hidden, still focusable — the label wraps the card. */
+            .expr-file { position:absolute; width:1px; height:1px; margin:0; padding:0; border:0;
+                opacity:0; overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); }
             .expr-current-badge { position:absolute; top:4px; right:4px; font-size:8.5px; letter-spacing:.4px;
                 background:#14231a; color:#57c98f; border:1px solid #2c4a36; border-radius:6px; padding:0 4px; }`;
         document.head.appendChild(style);
@@ -462,23 +478,30 @@ window.InspectorHelpers = (() => {
                 ? `<img src="${H.esc(url)}" alt="${label}">`
                 : `<span class="expr-empty" title="No ${kind} image">🎭</span>`;
             const remove = url
-                ? `<button class="btn btn-sm btn-danger" title="Remove" onclick="InspectorHelpers.clearExpressionImage('${escId}','${kind}','${safeKey}')">🗑</button>`
+                // Inside a <label>, so the click has to be cut off from the label's
+                // own activation or clearing an image would also open the picker.
+                ? `<button class="btn btn-sm btn-danger" title="Remove ${label}" onclick="event.preventDefault();event.stopPropagation();InspectorHelpers.clearExpressionImage('${escId}','${kind}','${safeKey}')">🗑</button>`
                 : '';
-            return `<div class="expr-card${isCurrent ? ' expr-current' : ''}" data-key="${safeKey}"
+            // The card IS the label, so a click anywhere on it opens the picker —
+            // the arrow is decoration, not the target. The input stays focusable
+            // (visually hidden, not display:none) so the slot is reachable by
+            // keyboard too.
+            return `<label class="expr-card${isCurrent ? ' expr-current' : ''}" data-key="${safeKey}"
+                        title="Click or drop an image here — upload / replace ${label}"
                         ondragover="event.preventDefault();this.classList.add('expr-drop');"
                         ondragleave="this.classList.remove('expr-drop');"
                         ondrop="InspectorHelpers.dropExpressionImage('${escId}','${kind}','${safeKey}',event)">
                 <div class="expr-thumb${url ? ' has-art' : ''}">${thumb}</div>
                 <div class="expr-name" title="${label}">${icon} ${label}</div>
-                <div class="expr-actions">
-                    <label class="btn btn-sm expr-upload" title="Upload / replace ${label}">⬆
-                        <input type="file" accept="image/*" style="display:none"
-                            onchange="InspectorHelpers.setExpressionImage('${escId}','${kind}','${safeKey}',this)">
-                    </label>
+                <span class="expr-actions">
+                    <span class="btn btn-sm expr-upload" aria-hidden="true">⬆</span>
                     ${remove}
-                </div>
+                </span>
+                <input class="expr-file" type="file" accept="image/*" tabindex="0"
+                    aria-label="Upload ${kind} image for ${label}"
+                    onchange="InspectorHelpers.setExpressionImage('${escId}','${kind}','${safeKey}',this)">
                 ${isCurrent ? '<span class="expr-current-badge">NOW</span>' : ''}
-            </div>`;
+            </label>`;
         }).join('');
     };
 
@@ -533,7 +556,7 @@ window.InspectorHelpers = (() => {
                 <input type="text" id="expr-new-${escId}" placeholder="add expression (happy, attack…)" style="flex:1;font-size:11px;">
                 <button class="btn btn-sm btn-green" onclick="InspectorHelpers.addExpressionKey('${escId}')">Add</button>
             </div>
-            <div class="section-hint" style="margin-top:4px;">Profile is the character's avatar and follows their current emotion; full body is the portrait art. The "neutral" slot is the fallback. Drag an image onto any card to set it.</div>
+            <div class="section-hint" style="margin-top:4px;">Profile is the character's avatar and follows their current emotion; full body is the portrait art. The "neutral" slot is the fallback. Click a card (or drop an image on it) to set it — the whole card is the target.</div>
         </div>`;
     };
 

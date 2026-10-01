@@ -108,7 +108,16 @@ test('a painted area is placed at its cell even with physics off (bug-52)', () =
     const ds = { get: (id) => (id in nodes ? { id } : null), update: (u) => applied.push(...u) };
     const prevNetwork = graphManager.network;
     const prevToolbar = window.GraphToolbar;
+    const prevGraphNetwork = window.GraphNetwork;
+    const physicsCalls = [];
     graphManager.network = { setOptions: () => {}, redraw: () => {}, fit: () => {} };
+    // The grid layout now switches the solver through GraphNetwork.applyModePhysics
+    // (so centralGravity follows the layout). network-manager.js is not loaded in
+    // this sandbox, so stand in for the seam and record what it was asked to do;
+    // the decision itself is covered live, and `centralGravityFor` is pure.
+    window.GraphNetwork = {
+        applyModePhysics: (enabled) => physicsCalls.push(enabled),
+    };
     window.GraphToolbar = { syncAll: () => {} };
     try {
         config = { graphMapSpacing: 260 };
@@ -121,10 +130,12 @@ test('a painted area is placed at its cell even with physics off (bug-52)', () =
         assertTrue(byId.area_painted.fixed.x, 'and it is pinned to its cell');
         assertEq(byId.way_placed.x, 1 * 260, 'a placed way follows too');
         assertEq(byId.area_free, undefined, 'a frozen area with no cell is left alone');
+        assertTrue(physicsCalls.includes(false), 'and the grid layout turns the solver off');
     } finally {
         config = undefined;
         graphManager.network = prevNetwork;
         window.GraphToolbar = prevToolbar;
+        window.GraphNetwork = prevGraphNetwork;
     }
 });
 
@@ -247,14 +258,26 @@ test('autoMapSpacing fits a small zone and a big one without hand-tuning (task-5
     assertTrue(midPitch >= GraphLayoutEngine.MAP_CARD_MIN_PITCH,
         `a 20x30 world gets cards (got ${midPitch})`);
 
-    // The span is reached exactly on a **mid-size** world — the unclamped case, and
-    // the one the retune is about. Asserted there rather than on the 200-cell
-    // world, whose pitch is held at the *floor* (25px) and so spans 5,000px rather
-    // than 4,200: that is the clamp doing its job, and asserting the span there
-    // would be asserting that the floor does not exist.
+    // The **mid-size** world is the unclamped case and the one the span is tuned
+    // for, so the span is only reachable there. It is deliberately *not* asserted
+    // as an exact hit: the pitch is snapped to a tidy stepper value, so the span
+    // lands within **one step** and only exactly when it divides evenly into
+    // `longest × step`. What is asserted is the mechanism — the tidy step nearest
+    // the target, and a span inside one step of it — so the property survives any
+    // span the ladder is retuned to (10000 ÷ 30 is 333.3, not a step).
     const span = GraphLayoutEngine.AUTO_SPAN_PX;
-    assertTrue(Math.abs(midPitch * 30 - span) <= 10,
-        'the mid map spans the target');
+    const step = midPitch >= 100 ? 10 : 5;
+    assertEq(midPitch % step, 0, 'the mid pitch is a tidy stepper value');
+    assertTrue(Math.abs(midPitch - span / 30) <= step / 2,
+        `the mid pitch is the nearest tidy step to the target (got ${midPitch}, want ~${Math.round(span / 30)})`);
+    const midSpan = midPitch * 30;
+    assertTrue(midSpan <= span + 10 && midSpan >= span - step * 30,
+        `the mid map spans the target to within one step (got ${midSpan}, target ${span})`);
+    // A span that *does* divide evenly is hit exactly — this is the case the old
+    // exactness assertion was really about, and it pins the snapping rather than
+    // the constant.
+    assertEq(GraphLayoutEngine.autoMapSpacing(mid, 6300), 210, 'an evenly divisible span is hit exactly');
+    assertEq(GraphLayoutEngine.autoMapSpacing(mid, 6300) * 30, 6300, 'and spans it exactly');
     assertEq(GraphLayoutEngine.autoMapSpacing({}), null, 'nothing painted -> no opinion');
     assertEq(GraphLayoutEngine.autoMapSpacing(null), null, 'no nodes -> no opinion');
     // Tidy stepper values, not 213.333.
@@ -358,6 +381,7 @@ test('the grid layout gives ways to the solver but leaves areas pinned', () => {
             properties: { cell: { x: 0.5, y: 0 }, x: 20, y: 0, central_gravity_enabled: false },
         },
         char_kael: { type: 'character', properties: { x: 100, y: 0 } },
+        char_frozen: { type: 'character', properties: { x: 140, y: 0, central_gravity_enabled: false } },
     };
     const ds = { get: (id) => (id in nodes ? { id } : null), update: () => {} };
     const out = GraphLayoutEngine._gridUpdates(nodes, ds, {});
@@ -369,9 +393,14 @@ test('the grid layout gives ways to the solver but leaves areas pinned', () => {
     assertEq(byId.way_door.physics, true, 'a way is simulated');
     assertEq(byId.way_door.fixed.x, false, 'so the solver may move it');
     assertEq(byId.way_frozen.physics, false, "an author's frozen way stays put");
-    // Items/characters are leashed by GraphRelativeLayout and kept out of the
-    // global gravity field on purpose; the grid pass must not contradict that.
-    assertEq(byId.char_kael.physics, false, 'a character is not in the solver');
+    // A hand-placed character is seeded where it was put and then simulated: the
+    // solver has no central gravity, so its `in` edge holds it beside its room.
+    // (This node never reaches the `heldIn` branch — it has its own coords — so a
+    // way-only gate here used to leave it pinned out of the solver while the test
+    // below still passed.)
+    assertEq(byId.char_kael.physics, true, 'a hand-placed character is in the solver');
+    assertEq(byId.char_kael.fixed.x, false, 'and the solver may move it');
+    assertEq(byId.char_frozen.physics, false, "an author's frozen character stays put");
 });
 
 test('isFrozen follows the author flag, with a safe fallback', () => {

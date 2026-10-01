@@ -14,10 +14,15 @@
  *    carrier, with no per-node bookkeeping;
  *  - a reload re-derives the same layout, so there is nothing to lose;
  *  - the area nodes stay the only world coordinates (physics/settling/free
- *    dragging), and everything else is held relative to them.
+ *    dragging), and everything else starts out relative to them.
  *
- * Children are placed and held (`fixed`, physics off) so global central gravity
- * can never drag them to the middle; areas keep physics so they still spread.
+ * The ring is a **seed, not a leash**. `apply()` runs it once per layout and
+ * hands the node back to the solver, which is why contents can now be simulated:
+ * with `centralGravity: 0` (see graph/network-manager.js) there is no global
+ * field dragging a child to the middle of the graph, so an item and its room are
+ * held together by their own edge spring and separated by ordinary repulsion.
+ * Nothing re-places a child afterwards — the earlier 120ms follow pass snapped
+ * them back onto a parent-relative offset and read as a visible stutter.
  */
 
 window.GraphRelativeLayout = {
@@ -138,31 +143,6 @@ window.GraphRelativeLayout = {
             || Number(parentProps.layout_min_radius) > 0
             || Number(parentProps.layout_max_radius) > 0;
     },
-    // Children stay dynamic: they hold a *relative* offset from their parent and
-    // that offset is re-applied as the parent moves, so a dragged room carries
-    // its contents while global central gravity can never stretch a child away
-    // (or drag it to the middle). Corrected on a timer while the simulation is
-    // live (and immediately while a node is dragged) — never a full-graph walk
-    // per frame, and the timer sleeps as soon as there is nothing to do.
-    FOLLOW_MS: 120,
-    FOLLOW_EPSILON: 0.5,
-    MOVE_EPSILON: 0.5,
-    // Most children re-placed in one tick; the rest are queued for the next tick,
-    // so a very large graph degrades gracefully instead of stalling a frame.
-    FOLLOW_BUDGET: 500,
-    // A separation pass over more nodes than this waits for a calmer tick (the
-    // grid keeps it cheap, but a huge graph should still degrade, not stall).
-    SEPARATION_NODE_CAP: 2500,
-    // Separation is smoothed, not snapped: a displaced node carries a velocity
-    // toward its resolved spot, damped each step, so it eases in and — when both
-    // the gap and the speed fall below the settle floors — stops. This is the
-    // vis-physics feel (accelerate, damp, pause) without putting the node back
-    // in the global solver. STEP caps one frame so a pile never teleports.
-    SEPARATION_STIFFNESS: 0.18,
-    SEPARATION_DAMPING: 0.72,
-    SEPARATION_MAX_STEP: 40,
-    SEPARATION_SETTLE_SPEED: 0.35,
-    SEPARATION_SETTLE_GAP: 0.5,
 
     _edges() {
         const g = (typeof graphManager !== 'undefined' && graphManager) || {};
@@ -221,7 +201,7 @@ window.GraphRelativeLayout = {
         return 1;
     },
 
-    /** Parent of every node, cached by graph identity (the leash runs per frame). */
+    /** Parent of every node, cached by graph identity (one derive per layout). */
     _parents(nodes, edges) {
         if (this._parentCache && this._parentCache.nodes === nodes && this._parentCache.edges === edges) {
             return this._parentCache.map;
@@ -483,9 +463,10 @@ window.GraphRelativeLayout = {
     },
 
     /**
-     * Seed the derived layout: put every child in its parent's block and leave
-     * it to the physics. Children are **not** pinned — they settle, jostle and
-     * stay draggable — the leash in `enforce()` is what stops them leaving.
+     * Seed the derived layout: put every child in its parent's block, then hand
+     * it to the solver. The child is left `physics: true` and unfixed — the ring
+     * is where it *starts*, and from there its own edge spring holds it to the
+     * room or carrier that holds it while repulsion sorts out its neighbours.
      *
      * @returns {number} how many nodes were placed
      */
@@ -493,7 +474,7 @@ window.GraphRelativeLayout = {
         const g = (typeof graphManager !== 'undefined' && graphManager) || {};
         const network = g.network;
         if (!network || !network.body?.data?.nodes) return 0;
-        // Hierarchical mode owns positions; the offset follow would fight it.
+        // Hierarchical mode owns positions; a seed would fight it.
         if (this.levelsMode()) return 0;
         const nodes = this._nodes();
         if (!Object.keys(nodes).length) return 0;
@@ -501,36 +482,18 @@ window.GraphRelativeLayout = {
         const current = this._positions(network);
         if (!Object.keys(current).length) return 0;
         const derived = this.layoutPositions(nodes, this._edges(), current);
-        const parents = this._parents(nodes, this._edges());
 
-        // Keep each child's offset from its parent. An existing offset is kept,
-        // so a nudge the player made is not thrown away and a reload restores the
-        // arrangement rather than re-clustering from scratch.
-        if (!this._offsets) this._offsets = {};
         const updates = [];
         for (const [id, pos] of Object.entries(derived)) {
             const node = nodes[id];
             if (!node || node.type === 'area' || node.type === 'way') continue;
-            // A node the user froze keeps its own place (and its physics stays off);
-            // no offset is recorded for it, so the follow pass leaves it alone too.
+            // A node the user froze keeps its own place and stays out of the
+            // solver — that is what "Physics enabled" off means.
             if (this.isStatic(node)) continue;
             if (!Number.isFinite(pos.x) || !Number.isFinite(pos.y)) continue;
-            const parent = parents[id];
-            const parentPos = parent ? derived[parent] : null;
-            if (!this._offsets[id] && parentPos) {
-                this._offsets[id] = { dx: pos.x - parentPos.x, dy: pos.y - parentPos.y };
-            }
-            const offset = this._offsets[id];
-            const target = offset && parentPos
-                ? { x: parentPos.x + offset.dx, y: parentPos.y + offset.dy }
-                : pos;
-            // Out of the *global* solver, not out of the layout: central gravity
-            // is a field applied to every node every iteration, so a child left
-            // in it is dragged off its parent no matter how stiff its edge is
-            // (and keeping it back needs a per-frame sweep — the thing that does
-            // not scale). The parent is still physics-driven; the child follows
-            // it, and stays draggable (a drop re-records its offset).
-            updates.push({ id, x: target.x, y: target.y, fixed: false, physics: false });
+            // In the solver, and not pinned: the player can still drag it, and the
+            // sim keeps it beside whatever holds it.
+            updates.push({ id, x: pos.x, y: pos.y, fixed: false, physics: true });
         }
         if (updates.length) {
             try { network.body.data.nodes.update(updates); } catch (err) { /* ignore */ }
@@ -538,14 +501,11 @@ window.GraphRelativeLayout = {
         return updates.length;
     },
 
-    /** Drop remembered offsets so the next apply() re-derives from the settings. */
+    /** Drop the derived cache so the next apply() re-reads the graph. */
+    /** Drop the derived caches so the next apply() re-reads the graph. */
     reseed() {
-        this._offsets = null;
-        this._lastParentPos = null;
-        this._pendingParents = null;
-        this._dragging = new Set();
-        this._sepVel = {};
-        this._cancelPump();
+        this._depthCache = null;
+        this._parentCache = null;
     },
 
     /** Live positions, hidden nodes included (`getPositions()` drops them). */
@@ -561,276 +521,6 @@ window.GraphRelativeLayout = {
             try { return network.getPositions() || {}; } catch (err) { return {}; }
         }
         return out;
-    },
-
-    /**
-     * Re-apply children's offsets against their parents' live positions.
-     *
-     * Scaled deliberately — none of this is a per-frame walk of the whole graph:
-     *
-     *  - a tick only walks the **parents that have children** (no positions are
-     *    copied and no arrays rebuilt), and returns immediately when nothing has
-     *    moved;
-     *  - children are re-placed only for parents that actually moved;
-     *  - work is capped by `FOLLOW_BUDGET` per tick, with the remainder queued,
-     *    so a very large graph degrades to "contents trail the room slightly"
-     *    instead of stalling the frame;
-     *  - when physics is off and nothing is pending, the tick shuts the timer
-     *    down entirely until a drag or a stabilization wakes it.
-     *
-     * @returns {number} how many children were re-placed
-     */
-    follow() {
-        const g = (typeof graphManager !== 'undefined' && graphManager) || {};
-        const network = g.network;
-        if (!network || !network.body?.nodes || !this._offsets) return 0;
-        if (this.levelsMode()) return 0;
-        const nodes = this._nodes();
-        const edges = this._edges();
-        const children = this._childIndex(nodes, edges);
-        const dragging = this._dragging || new Set();
-        const physicsOn = g._physicsEnabled !== false;
-        // Separation in flight: keep ticking (even with physics off) until the
-        // eased motion settles, then let the timer sleep again.
-        const settling = !!(this._sepVel && Object.keys(this._sepVel).length);
-
-        let work = this._pendingParents;
-        let forced = false;
-        this._pendingParents = null;
-        if (!work) {
-            const dirty = this._dirtyParents;
-            if (dirty && dirty.size) {
-                work = Array.from(dirty);
-                dirty.clear();
-                forced = true;
-            } else if (physicsOn) {
-                work = this._orderedParents(nodes, edges, children);
-            } else if (settling) {
-                work = [];
-            } else {
-                this._sleep();
-                return 0;
-            }
-        } else {
-            // Left over from a budget-exhausted tick: finish it even though the
-            // parent has not moved since (its children are the ones still behind).
-            forced = true;
-        }
-
-        const last = this._lastParentPos || (this._lastParentPos = new Map());
-        let budget = this.FOLLOW_BUDGET;
-        let moved = 0;
-        const deferred = [];
-        for (const parent of work) {
-            const kids = children[parent];
-            if (!kids || !kids.length) continue;
-            const body = network.body.nodes[parent];
-            if (!body) continue;
-            const px = body.x;
-            const py = body.y;
-            const prev = last.get(parent);
-            const parentMoved = !prev
-                || Math.abs(prev.x - px) > this.MOVE_EPSILON
-                || Math.abs(prev.y - py) > this.MOVE_EPSILON;
-            if (parentMoved) last.set(parent, { x: px, y: py });
-            // A parent that has not moved costs one comparison and nothing else.
-            if (!parentMoved && !forced) continue;
-            let exhausted = false;
-            for (const id of kids) {
-                if (dragging.has(id)) continue;
-                const offset = this._offsets[id];
-                if (!offset) continue;
-                const x = px + offset.dx;
-                const y = py + offset.dy;
-                const child = network.body.nodes[id];
-                if (child && Math.abs(child.x - x) <= this.FOLLOW_EPSILON
-                        && Math.abs(child.y - y) <= this.FOLLOW_EPSILON) {
-                    continue;
-                }
-                if (budget <= 0) { exhausted = true; break; }
-                budget--;
-                try {
-                    network.moveNode(id, x, y);
-                    moved++;
-                } catch (err) { /* ignore */ }
-            }
-            if (exhausted) { deferred.push(parent); break; }
-        }
-        if (deferred.length) this._pendingParents = deferred;
-        // A parent that just moved shoved its contents into whatever was beside
-        // them; let those settle apart and fold the result into the offsets, so
-        // the next tick reproduces the separated arrangement instead of undoing
-        // it. Skipped while a budget backlog is still draining.
-        if (!this._pendingParents && (moved > 0 || forced || settling)
-                && window.GraphSeparation && window.GraphSeparation.enabled()) {
-            moved += this._separate(nodes, edges, network);
-        }
-        this.lastFollowed = moved;
-        return moved;
-    },
-
-    /**
-     * One live separation pass over the current node positions. Only anchored
-     * children are nudged (an orphan is left to physics). Each moves by a damped
-     * velocity toward where separation wants it, and its offset is rewritten so
-     * the follow pass keeps the eased position; when a node's speed and gap both
-     * fall below the settle floors it is dropped from the velocity map, so the
-     * motion comes to rest instead of jittering forever.
-     */
-    _separate(nodes, edges, network) {
-        const positions = this._positions(network);
-        const ids = Object.keys(positions);
-        if (ids.length < 2 || ids.length > this.SEPARATION_NODE_CAP) return 0;
-        const parents = this._parents(nodes, edges);
-        const spec = window.GraphSeparation.spec();
-        // The pull restores a displaced node to its leash position (parent +
-        // offset), not the parent's centre.
-        spec.targets = {};
-        for (const id of ids) {
-            const parent = parents[id];
-            const offset = parent ? this._offsets[id] : null;
-            const pp = parent ? positions[parent] : null;
-            if (pp && offset) spec.targets[id] = { x: pp.x + offset.dx, y: pp.y + offset.dy };
-        }
-        const resolved = window.GraphSeparation.resolve(nodes, edges, positions, spec);
-        if (!this._sepVel) this._sepVel = {};
-        const dragging = this._dragging || new Set();
-        let moved = 0;
-        for (const id of ids) {
-            if (dragging.has(id)) continue;
-            const parent = parents[id];
-            const parentPos = parent ? (resolved[parent] || positions[parent]) : null;
-            if (!parentPos || !this._offsets) continue;
-            const cur = positions[id];
-            const want = resolved[id] || cur;
-            const dx = want.x - cur.x;
-            const dy = want.y - cur.y;
-            const vel = this._sepVel[id];
-            let vx = (vel ? vel.x : 0) * this.SEPARATION_DAMPING + dx * this.SEPARATION_STIFFNESS;
-            let vy = (vel ? vel.y : 0) * this.SEPARATION_DAMPING + dy * this.SEPARATION_STIFFNESS;
-            const speed = Math.hypot(vx, vy);
-            const gap = Math.hypot(dx, dy);
-            if (speed < this.SEPARATION_SETTLE_SPEED && gap < this.SEPARATION_SETTLE_GAP) {
-                delete this._sepVel[id];
-                continue;
-            }
-            if (speed > this.SEPARATION_MAX_STEP) {
-                const scale = this.SEPARATION_MAX_STEP / speed;
-                vx *= scale;
-                vy *= scale;
-            }
-            this._sepVel[id] = { x: vx, y: vy };
-            const nx = cur.x + vx;
-            const ny = cur.y + vy;
-            this._offsets[id] = { dx: nx - parentPos.x, dy: ny - parentPos.y };
-            try {
-                network.moveNode(id, nx, ny);
-                moved++;
-            } catch (err) { /* ignore */ }
-        }
-        // Keep easing at frame rate while anything still has velocity, so the
-        // settle is smooth rather than a 120 ms stutter.
-        if (moved > 0 && typeof requestAnimationFrame === 'function') this._pump();
-        return moved;
-    },
-
-    /** Drive follow() on the next animation frame while separation is settling. */
-    _pump() {
-        if (this._pumpRaf || typeof requestAnimationFrame !== 'function') return;
-        this._pumpRaf = requestAnimationFrame(() => {
-            this._pumpRaf = null;
-            this.follow();
-        });
-    },
-
-    /** Stop the frame pump (nothing left to ease). */
-    _cancelPump() {
-        if (this._pumpRaf && typeof cancelAnimationFrame === 'function') {
-            cancelAnimationFrame(this._pumpRaf);
-        }
-        this._pumpRaf = null;
-    },
-
-    /** Parent -> [child ids] and the parent ids in depth order, both cached. */
-    _childIndex(nodes, edges) {
-        if (this._childCache && this._childCache.nodes === nodes && this._childCache.edges === edges) {
-            return this._childCache.map;
-        }
-        const parents = this._parents(nodes, edges);
-        const map = {};
-        for (const [id, parent] of Object.entries(parents)) {
-            if (!parent) continue;
-            (map[parent] = map[parent] || []).push(id);
-        }
-        this._childCache = { nodes, edges, map };
-        this._orderedCache = null;
-        return map;
-    },
-
-    /** Parents that have children, shallowest first, so nesting resolves in one tick. */
-    _orderedParents(nodes, edges, children) {
-        const map = children || this._childIndex(nodes, edges);
-        if (this._orderedCache && this._orderedCache.map === map) return this._orderedCache.ids;
-        const parents = this._parents(nodes, edges);
-        const depthOf = (id) => {
-            let depth = 0, current = parents[id];
-            const seen = new Set();
-            while (current && !seen.has(current)) {
-                seen.add(current);
-                depth++;
-                current = parents[current];
-            }
-            return depth;
-        };
-        const ids = Object.keys(map).sort((a, b) => depthOf(a) - depthOf(b) || (a < b ? -1 : 1));
-        this._orderedCache = { map, ids };
-        return ids;
-    },
-
-    /** Pause the follow timer until something wakes it (physics off and idle). */
-    _sleep() {
-        this._cancelPump();
-        if (this._followTimer && typeof clearInterval === 'function') {
-            clearInterval(this._followTimer);
-        }
-        this._followTimer = null;
-    },
-
-    /** Start following again — after a drag, a stabilization, or a physics toggle. */
-    _wake(dirty) {
-        if (this.levelsMode()) { this._sleep(); return; }
-        if (dirty) {
-            this._dirtyParents = this._dirtyParents || new Set();
-            for (const id of [].concat(dirty)) this._dirtyParents.add(id);
-        }
-        if (!this._offsets) return;
-        if (typeof setInterval !== 'function') return;
-        if (!this._followTimer) this._followTimer = setInterval(() => this.follow(), this.FOLLOW_MS);
-    },
-
-    /**
-     * A child that was dragged keeps its new place: its offset is recomputed from
-     * where it was dropped, so the player can arrange a room's contents by hand
-     * and they still follow the room afterwards.
-     */
-    rememberDrop(ids) {
-        const g = (typeof graphManager !== 'undefined' && graphManager) || {};
-        const network = g.network;
-        if (!network || !this._offsets) return;
-        const nodes = this._nodes();
-        const parents = this._parents(nodes, this._edges());
-        const positions = this._positions(network);
-        for (const id of ids || []) {
-            const node = nodes[id];
-            if (!node || node.type === 'area' || node.type === 'way') continue;
-            const parent = parents[id];
-            const parentPos = parent ? positions[parent] : null;
-            const pos = positions[id];
-            if (!parentPos || !pos) continue;
-            this._offsets[id] = { dx: pos.x - parentPos.x, dy: pos.y - parentPos.y };
-            // Dropped here for real: stop easing it anywhere else.
-            if (this._sepVel) delete this._sepVel[id];
-        }
     },
 
     /** The graph ops that would save frozen nodes' current positions. */
@@ -885,46 +575,23 @@ window.GraphRelativeLayout = {
     },
 
     /**
-     * Follow the room: dragging re-places that node's contents live, dragEnd
-     * re-seeds the blocks (and remembers any child the player moved), and the
-     * timer keeps children on their parent's pattern while physics runs.
+     * Seed the layout and remember where a frozen node was put.
+     *
+     * `stabilizationIterationsDone` is the one re-seed: vis has finished its
+     * startup iterations, so the derived ring is applied over the positions the
+     * solver chose and the simulation takes it from there. A drag does **not**
+     * re-seed — re-deriving on every drop is what snapped a room's contents back
+     * onto their ring mid-gesture; the edge springs carry them now.
      */
     attach(network) {
         if (!network || network._relativeLayoutAttached) return;
         network._relativeLayoutAttached = true;
-        this._dragging = new Set();
         network.on('stabilizationIterationsDone', () => {
             this.apply();
-            this._wake();
-        });
-        network.on('dragStart', (params) => {
-            for (const id of (params && params.nodes) || []) {
-                this._dragging.add(id);
-                // A dragged node follows the pointer directly; kill any
-                // separation velocity still easing it.
-                if (this._sepVel) delete this._sepVel[id];
-            }
-            // Keep the children moving with the node while it is being dragged.
-            this._wake();
-        });
-        network.on('drag', (params) => {
-            const dragged = (params && params.nodes) || [];
-            if (dragged.length) {
-                this._wake(dragged);
-                this.follow();
-            }
         });
         network.on('dragEnd', (params) => {
             const dragged = (params && params.nodes) || [];
-            for (const id of dragged) this._dragging.delete(id);
-            if (dragged.length) {
-                this.rememberDrop(dragged);
-                this.persistFrozenDrop(dragged);
-                this.apply();
-                this._wake(dragged);
-            }
+            if (dragged.length) this.persistFrozenDrop(dragged);
         });
-        // Start following (idle ticks shut the timer down again on their own).
-        this._wake();
     },
 };

@@ -10,6 +10,15 @@ priority: medium
 **Filed:** 2026-09-24
 **Related:** task-485
 
+> **Narrowed (2026-10-01).** The module and its settings are unchanged and still run, but it is now a
+> **seed pass only**: it de-overlaps the ring `layoutPositions` derives. The live half is gone — the
+> acceptance items below about `follow()` running a pass and about smoothed live easing no longer
+> describe the code, because contents are in the vis solver again (`centralGravity: 0`, see the
+> task-485 supersession note) and ordinary repulsion is what keeps them apart. Measured after that
+> change on kraktooth_goblin_camp: **0** content pairs overlapping, contents a median 134 px from
+> their room. The rationale in the Goal below ("the global solver is not the answer") was true when
+> written and is now false — it was `centralGravity`, not the solver, that was the problem.
+
 ## Goal
 
 Items/characters piled into a room and nested containers layered on top of the

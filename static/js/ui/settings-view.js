@@ -70,19 +70,19 @@ window.SettingsView = (() => {
         setChecked('agent-show-raw-llm', config.showRawLLM);
         setChecked('agent-end-of-turn-memory', config.endOfTurnMemory);
 
-        // Graph settings
-        setVal('graph-spring-length', String(config.graphSpringLength || 100));
+        // Graph settings (the `||` fallbacks mirror the defaults in config.js)
+        setVal('graph-spring-length', String(config.graphSpringLength || 120));
         var gsl = document.getElementById('graph-spring-length-val');
-        if (gsl) gsl.textContent = config.graphSpringLength || 100;
-        setVal('graph-repulsion', String(config.graphGravitationalConstant || -40));
+        if (gsl) gsl.textContent = config.graphSpringLength || 120;
+        setVal('graph-repulsion', String(config.graphGravitationalConstant || -8));
         var grv = document.getElementById('graph-repulsion-val');
-        if (grv) grv.textContent = config.graphGravitationalConstant || -40;
+        if (grv) grv.textContent = config.graphGravitationalConstant || -8;
         setVal('graph-damping', String(config.graphDamping || 0.4));
         var gdv = document.getElementById('graph-damping-val');
         if (gdv) gdv.textContent = (config.graphDamping || 0.4).toFixed(2);
-        setVal('graph-spring-constant', String(config.graphSpringConstant || 0.02));
+        setVal('graph-spring-constant', String(config.graphSpringConstant || 0.1));
         var gscv = document.getElementById('graph-spring-constant-val');
-        if (gscv) gscv.textContent = (config.graphSpringConstant || 0.02).toFixed(2);
+        if (gscv) gscv.textContent = (config.graphSpringConstant || 0.1).toFixed(2);
         setVal('graph-item-edge-length', String(config.graphItemEdgeLength || 60));
         var gielv = document.getElementById('graph-item-edge-length-val');
         if (gielv) gielv.textContent = config.graphItemEdgeLength || 60;

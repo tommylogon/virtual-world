@@ -43,7 +43,12 @@
     "Stealth": 1,
     "Survival": 1
   },
-  "traits": {},
+  "traits": {
+    "cowardly": true,
+    "observant": true,
+    "patient": true,
+    "jittery": true
+  },
   "tags": [
     "female",
     "adult",
@@ -91,6 +96,25 @@
       "tick": 0,
       "timestamp": 0,
       "type": "observation"
+    },
+    {
+      "embedding": null,
+      "entity_ids": [],
+      "id": "mem_kraktooth_kiala_4",
+      "importance": 8,
+      "location": "",
+      "salience_override": 0,
+      "source": "manual",
+      "suppressions": [],
+      "tags": [
+        "master",
+        "human",
+        "suspicion"
+      ],
+      "text": "There is a human at the camp entrance trail. Tall, pale, sunburnt, walking like he is late for something he has forgotten about. I do not know why I cannot stop watching him.",
+      "tick": 0,
+      "timestamp": 0,
+      "type": "observation"
     }
   ],
   "relationships": {
@@ -121,6 +145,13 @@
     "Zikka": {
       "closeness": 20,
       "first_sighting": false
+    },
+    "Jake Halloway": {
+      "closeness": 10,
+      "first_sighting": true,
+      "interaction_count": 0,
+      "label": "",
+      "last_interaction_tick": 0
     }
   },
   "behaviors": [],

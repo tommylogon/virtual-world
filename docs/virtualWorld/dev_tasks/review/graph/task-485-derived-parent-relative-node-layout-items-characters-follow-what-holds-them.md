@@ -10,6 +10,21 @@ priority: medium
 **Filed:** 2026-09-23
 **Related:** task-464; task-481
 
+> **Superseded in part (2026-10-01).** The *derivation* below stands and still runs — the ring is
+> computed from the relations on every layout. What is gone is the **holding**: `centralGravity` is
+> now `0` in both solvers, which removes the global field this task existed to fight, so contents are
+> in the vis solver (`{fixed:false, physics:true}`) and the 120 ms follow pass, the parent-relative
+> offset map, `rememberDrop` and the live separation easer were deleted (~270 lines of
+> `static/js/graph/relative-layout.js`). A drag no longer re-derives on `dragEnd`, because the edge
+> spring carries a room's contents now. The acceptance items below that say "kept out of the global
+> solver", "parent-relative offset" and "re-derived … on `dragEnd`" therefore no longer describe the
+> code. The rebalance that this required is in `CHANGELOG.md` under *Central gravity off, and items
+> and characters are simulated again*: repulsion `-8`, spring constant `0.10`, spring length `120`,
+> measured cold on kraktooth_goblin_camp (638 nodes) at a median 134 px from the room holding a
+> content node, 0 overlapping pairs. **The negative result below is still valid** — rebalancing the
+> global physics did not fix clusters; it was `centralGravity: 0` that made the whole arrangement
+> unnecessary, not a better spring.
+
 ## Goal
 
 Positions must be a function of the graph relations, not saved snapshots: an item renders on a ring around the area or container that holds it, a carried/worn item rides its character, a logic_trigger sits on its host, a way sits between its two rooms. Re-derive on load, on stabilization, and after an area drag, so picking an item up and carrying it 300 rooms away moves its node automatically and reloads keep the mapping. Children are held (fixed, physics off); area nodes stay the only world coordinates.
