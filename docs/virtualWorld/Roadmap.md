@@ -187,7 +187,11 @@ the same damage, and no mechanic has a second implementation.
 ## Then — scale & knowledge (the big one)
 
 Attention (task-411), awareness channels (task-418), the relational spatial model
-(task-419), fog of war (task-499), zone-driven fidelity (task-500), storey
+(task-419), **fog of war (task-499 — the module and its tests are done, the
+*wiring* is not: nothing outside `tests/test_fog.py` imports `engine/fog.py`, no
+route serves `fog_view`, and no gameplay code writes `player.known`, so the
+registry only ever holds what a scenario hand-authored. Treat the remaining work
+as "wire task-499 up", not "build fog")**, zone-driven fidelity (task-500), storey
 sightlines (task-498), chunk persistence (task-401) and the projection benchmark
 (task-402, which duplicates 401's last acceptance line and should be folded into
 it). Characters: canonical character nodes (task-457), id-first identity
