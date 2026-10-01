@@ -411,10 +411,27 @@ seam exists.
   at the top is where a module under test gets loaded. **Run this before committing
   a front-end change** - it is not part of `npm run lint`.
 - JS module contract guard: `python tools/js_module_index.py --check` fails when a new
-  module lacks its `@module`/`@contributes` header; regenerate the index with `--write`.
+  module lacks its `@module`/`@contributes` header, **and** when a new `@docs` target is a
+  folder or a dead path — a folder satisfies the contract while pointing at nothing readable,
+  which is how 26 declarations used to "resolve"; regenerate the index with `--write`.
+- Feature coverage guard: `python tools/feature_index.py --check` fails when a new module's
+  `@powers` names no feature in `docs/virtualWorld/Feature Map.md` — the canonical list of what a
+  person can do in a game and in the editor, and the denominator for documentation coverage.
+  `--report` prints the join from features to the modules that claim them (and the features
+  nothing claims); `--write` regenerates `docs/design/feature-index.md`;
+  `--update-baseline` accepts today's debt. A feature is **not** a module: `attention.py` is a
+  mechanism, and auditing per module answers the wrong question — see `Feature Map.md` for why
+  three earlier attempts to measure this failed.
 - Way property index: `python tools/way_property_index.py --check` fails when a hand-maintained
   list of way properties drifts from `tools/way_properties.py`; `--write` regenerates
   `docs/virtualWorld/World Building/Way Properties.md`, `--report` shows per-list coverage.
+- Character loadout check: `python tools/character_loadout_check.py --check` fails on a
+  character entry whose `equipped`/`inventory` shape the engine cannot read — a dict in an
+  `equipped` slot **500s `GET /api/state`** once that character is refreshed from the
+  library, a non-list slot is dropped by import, and an id with no inventory entry resolves
+  to nothing. `--report` groups every finding with the reason; `--update-baseline` accepts
+  today's debt. Run it after editing anything under `data/library/characters/`. Authoring a
+  character is a data-shape problem, and this is the shape gate for it.
 - JS lint: `npm run lint`. JS typecheck: `npm run typecheck` (see
   `docs/design/typescript-migration.md`).
 - Export-log lint (regression guards over play sessions, no server needed):

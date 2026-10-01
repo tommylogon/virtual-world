@@ -1,0 +1,17 @@
+# Known character-loadout findings, accepted as-is.
+# Regenerate: python tools/character_loadout_check.py --update-baseline
+# Lines are <check_id>|<filename>. --check fails only on NEW lines.
+equipped_dict_entry|Lyrie.json
+equipped_dict_entry|miki doki.json
+equipped_dict_entry|standalone_test.json
+equipped_id_not_in_inventory|nia.json
+equipped_id_not_in_inventory|uzume-chan.json
+name_does_not_match_file|Corvin Hale.json
+name_does_not_match_file|Pell Ardin.json
+name_does_not_match_file|Tobin Marsh.json
+name_does_not_match_file|eliza-reed.json
+name_does_not_match_file|jake.json
+name_does_not_match_file|kayla-sister.json
+name_does_not_match_file|kayla.json
+name_does_not_match_file|kyrie.json
+name_does_not_match_file|sammy.json
