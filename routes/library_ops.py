@@ -705,7 +705,12 @@ def handle_library_import_way(app, way_id):
     props = {}
     for k in ("current_state", "description", "pass_message", "requires",
               "max_size", "auto_close", "see_through", "one_way", "prevent_close",
-              "edge_length", "needs_open", "parameters", "cost", "tags"):
+              "edge_length", "needs_open", "parameters", "cost", "tags",
+              # Read by the engine but previously absent from this copy list, so a
+              # library-spawned way silently lost them. See tools/way_properties.py,
+              # which is the declaration this list is checked against.
+              "insulation", "sound_barrier", "climb_dc", "jump_dc",
+              "refusal_message", "blocked_description", "aliases"):
         if k in w:
             props[k] = w[k]
     props["area_from"] = area_from
@@ -915,6 +920,10 @@ def _refresh_way(app, node, sections, template_id=None):
             'one_way': 'one_way', 'requires': 'requires', 'max_size': 'max_size',
             'prevent_close': 'prevent_close', 'edge_length': 'edge_length',
             'sound_barrier': 'sound_barrier',
+            'insulation': 'insulation', 'climb_dc': 'climb_dc', 'jump_dc': 'jump_dc',
+            'refusal_message': 'refusal_message',
+            'blocked_description': 'blocked_description', 'cost': 'cost',
+            'aliases': 'aliases',
             'tags': 'tags', 'parameters': 'parameters',
         }
         for section_key, prop_key in prop_map.items():

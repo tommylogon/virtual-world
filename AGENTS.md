@@ -130,6 +130,31 @@ A field that serializes correctly, a function that exists, or a test that passes
 is **not** evidence that a mechanic is wired into live simulation. Do not add
 behavior until all of the four above are checked.
 
+### Never enumerate a property set from one of its members
+
+The four checks above are about a mechanic. This is the same failure against a
+**vocabulary**: reading one property and then describing what the system can express.
+
+A session did this three times in a row on ways, each time being confidently wrong:
+
+- grepped `see_through`, concluded transparency was one boolean — missed `prevent_close`,
+  which `world_compile.py` already writes and `movement.py` already reads
+- read `requires: crawl/climb/jump` off a dropdown, called it a label — missed three
+  climb systems, including one gated by the `floor` layer that no property declares
+- read `max_size` off a dropdown, called it a size — missed that carrying >= 50% of
+  capacity adds a tier and locks you out of a gap you walked through unloaded
+
+Each answer was plausible, cited, and wrong. The mechanical rule:
+
+**Before asserting what a property set can or cannot express, enumerate the whole
+set from one place and state the count.** If you cannot produce the count, you have
+a guess. `python tools/way_property_index.py --report` is the worked example — the
+property set is declared once in `tools/way_properties.py` and rendered from it.
+
+The general form: *grep for one member of a vocabulary and you have learned exactly
+one member.* `rg` is a starting point for a search, never the evidence for a claim
+about a set.
+
 ## Never judge a UI surface without interacting with it
 
 **The operative rules for this are the gate at the top of this file
@@ -387,6 +412,9 @@ seam exists.
   a front-end change** - it is not part of `npm run lint`.
 - JS module contract guard: `python tools/js_module_index.py --check` fails when a new
   module lacks its `@module`/`@contributes` header; regenerate the index with `--write`.
+- Way property index: `python tools/way_property_index.py --check` fails when a hand-maintained
+  list of way properties drifts from `tools/way_properties.py`; `--write` regenerates
+  `docs/virtualWorld/World Building/Way Properties.md`, `--report` shows per-list coverage.
 - JS lint: `npm run lint`. JS typecheck: `npm run typecheck` (see
   `docs/design/typescript-migration.md`).
 - Export-log lint (regression guards over play sessions, no server needed):
