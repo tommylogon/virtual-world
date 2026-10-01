@@ -5,35 +5,35 @@
   "base_description": "A small, fuzzy sheep of down and wishful thinking.",
   "unknown_name": "",
   "stats": {
-   "CHA": 18,
-   "CON": 6,
-   "DEX": 4,
-   "INT": 5,
-   "STR": 2,
-   "WIS": 12
+    "CHA": 18,
+    "CON": 6,
+    "DEX": 4,
+    "INT": 5,
+    "STR": 2,
+    "WIS": 12
   },
   "vitals": {
-   "Bladder": 50,
-   "Energy": 70,
-   "Entertainment": 80,
-   "HP": 8,
-   "Hunger": 40,
-   "Hygiene": 70,
-   "Max_HP": 8,
-   "Sanity": 95,
-   "Social": 80,
-   "Temperature": 39,
-   "Thirst": 40
+    "Bladder": 50,
+    "Energy": 70,
+    "Entertainment": 80,
+    "HP": 8,
+    "Hunger": 40,
+    "Hygiene": 70,
+    "Max_HP": 8,
+    "Sanity": 95,
+    "Social": 80,
+    "Temperature": 39,
+    "Thirst": 40
   },
   "decay_rates": {},
   "skills": {},
   "traits": {},
   "tags": [
-   "animal",
-   "sheep",
-   "small",
-   "illusory",
-   "companion"
+    "animal",
+    "sheep",
+    "small",
+    "illusory",
+    "companion"
   ],
   "interest_tags": [],
   "state": "awake",
@@ -42,9 +42,9 @@
   "activity": null,
   "inventory": [],
   "emotion": {
-   "current": "neutral",
-   "description": "",
-   "intensity": 0
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
   },
   "memories": [],
   "relationships": {},

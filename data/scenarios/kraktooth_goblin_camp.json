@@ -1,18 +1,21 @@
 {
-  "current_area": "Chief's Pit",
+  "current_area": "Eldenford",
   "players_in_area": [
     {
-      "name": "Vekka",
-      "state": "awake",
-      "description": "Female goblin scout. Lean, watchful, moves quietly. Wears light leathers and carries a short bow and tracking gear.",
+      "name": "Eldenford Blacksmith",
+      "state": "frightened",
+      "description": "Human blacksmith. Broad, soot-stained, calloused hands. Wears a leather apron.",
       "activity": null,
-      "at_way_id": "way_pit_to_scouting",
-      "spatial_position": {
-        "relation": "at",
-        "target_id": "way_pit_to_scouting",
-        "target_type": "way",
-        "target_name": "passage to scouting rooms"
-      }
+      "at_way_id": null,
+      "spatial_position": null
+    },
+    {
+      "name": "Eldenford Elder",
+      "state": "awake",
+      "description": "Older human leader. Grey hair, practical clothes, carries a wooden staff.",
+      "activity": null,
+      "at_way_id": null,
+      "spatial_position": null
     }
   ],
   "area_presence": {
@@ -2589,7 +2592,7 @@
       "patrol_route": null,
       "patrol_index": null,
       "feels_like": 26,
-      "current_carry_weight": 0.0,
+      "current_carry_weight": 5.0,
       "max_carry_capacity": 100.0,
       "at_way_id": null,
       "facing": null,
@@ -8225,7 +8228,7 @@
       "spatial_position": null
     }
   },
-  "active_player": "Arix",
+  "active_player": "Eldenford Merchant",
   "game_time": "08:03:00",
   "time_ticks": 3,
   "time_per_tick_minutes": 1,
@@ -29954,6 +29957,44 @@
         },
         "created": 1790878794.5746849,
         "updated": 1790878794.5746849
+      },
+      "item_backpack_1790879444208_2": {
+        "id": "item_backpack_1790879444208_2",
+        "type": "item",
+        "name": "Backpack",
+        "properties": {
+          "description": "A Backpack holds up to 30 kilos within 1 cubic foot. It can also serve as a saddlebag.",
+          "actions": [
+            "examine",
+            "take",
+            "open",
+            "close",
+            "unequip",
+            "equip",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 5.0,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "container",
+            "storage"
+          ],
+          "current_state": "closed",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "backpack",
+          "image": null
+        },
+        "created": 1790879444.2082262,
+        "updated": 1790879444.2082262
       }
     },
     "edges": [
@@ -43771,6 +43812,12 @@
         "properties": {
           "direction": "leave"
         }
+      },
+      {
+        "source": "item_backpack_1790879444208_2",
+        "target": "player_Eldenford_Merchant",
+        "type": "carrying",
+        "properties": {}
       }
     ]
   },

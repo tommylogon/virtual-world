@@ -21,206 +21,26 @@
   },
   "equipped": {
     "accessory": [
-      {
-        "name": "Blue Butterfly Earring",
-        "node_id": "item_blue_butterfly_earring",
-        "library_id": null,
-        "properties": {
-          "actions": [
-            "examine",
-            "take",
-            "equip",
-            "unequip",
-            "drop"
-          ],
-          "aliases": [
-            "butterfly earring",
-            "earring",
-            "blue butterfly"
-          ],
-          "contents": [],
-          "current_state": "hidden",
-          "description": "a tiny dangling blue butterfly on a fine hook, its clasp bent from wherever it spent the last few hours. cheap metal gone dull, but kept like something priceless. it belongs to somebody's mom.",
-          "equip_slots": [
-            "accessory"
-          ],
-          "hidden": true,
-          "tags": [
-            "jewelry"
-          ],
-          "uses": -1,
-          "weight": 0.01
-        }
-      }
+      "item_blue_butterfly_earring"
     ],
     "back": [],
     "feet": [
-      {
-        "name": "Mismatched Stockings",
-        "node_id": "item_mismatched_stockings_tb",
-        "library_id": null,
-        "properties": {
-          "actions": [
-            "examine",
-            "take",
-            "equip",
-            "unequip",
-            "drop"
-          ],
-          "current_state": "normal",
-          "description": "One pink-striped, one black. Torn at one knee. Absolutely a look.",
-          "equip_slots": [
-            "feet"
-          ],
-          "hidden": false,
-          "tags": [
-            "clothing",
-            "footwear"
-          ],
-          "uses": -1,
-          "weight": 0.1
-        }
-      }
+      "item_mismatched_stockings_tb"
     ],
     "hand_left": [],
     "hand_right": [],
     "hands": [],
     "head": [],
     "legs": [
-      {
-        "name": "Short Shorts",
-        "node_id": "item_short_shorts_tb",
-        "library_id": null,
-        "properties": {
-          "actions": [
-            "examine",
-            "take",
-            "equip",
-            "unequip",
-            "drop"
-          ],
-          "current_state": "normal",
-          "description": "Black denim short shorts with frayed hems.",
-          "equip_slots": [
-            "legs"
-          ],
-          "hidden": false,
-          "tags": [
-            "clothing",
-            "bottom"
-          ],
-          "uses": -1,
-          "weight": 0.2
-        }
-      }
+      "item_short_shorts_tb"
     ],
     "neck": [
-      {
-        "name": "Syringe Necklace",
-        "node_id": "item_syringe_necklace_tb",
-        "library_id": null,
-        "properties": {
-          "actions": [
-            "examine",
-            "take",
-            "equip",
-            "unequip",
-            "drop"
-          ],
-          "current_state": "normal",
-          "description": "A black-string necklace with a mini syringe of pink liquid. She fidgets with it constantly.",
-          "equip_slots": [
-            "neck"
-          ],
-          "hidden": false,
-          "tags": [
-            "clothing",
-            "accessory"
-          ],
-          "uses": -1,
-          "weight": 0.05
-        }
-      },
-      {
-        "name": "Black Choker",
-        "node_id": "item_black_choker_tb",
-        "library_id": null,
-        "properties": {
-          "actions": [
-            "examine",
-            "take",
-            "equip",
-            "unequip",
-            "drop"
-          ],
-          "current_state": "normal",
-          "description": "A black choker with a small silver heart pendant.",
-          "equip_slots": [
-            "neck"
-          ],
-          "hidden": false,
-          "tags": [
-            "clothing",
-            "accessory"
-          ],
-          "uses": -1,
-          "weight": 0.05
-        }
-      }
+      "item_syringe_necklace_tb",
+      "item_black_choker_tb"
     ],
     "torso": [
-      {
-        "name": "Grey Tank Top",
-        "node_id": "item_grey_tank_tb",
-        "library_id": null,
-        "properties": {
-          "actions": [
-            "examine",
-            "take",
-            "equip",
-            "unequip",
-            "drop"
-          ],
-          "current_state": "normal",
-          "description": "A soft grey tank top, slightly too short, riding up when she moves.",
-          "equip_slots": [
-            "torso"
-          ],
-          "hidden": false,
-          "tags": [
-            "clothing",
-            "top"
-          ],
-          "uses": -1,
-          "weight": 0.1
-        }
-      },
-      {
-        "name": "Thick Striped Hoodie",
-        "node_id": "item_striped_hoodie_tb",
-        "library_id": null,
-        "properties": {
-          "actions": [
-            "examine",
-            "take",
-            "equip",
-            "unequip",
-            "drop"
-          ],
-          "current_state": "normal",
-          "description": "A thick grey/black/white striped hoodie worn unzipped, sleeves over her hands.",
-          "equip_slots": [
-            "torso"
-          ],
-          "hidden": false,
-          "tags": [
-            "clothing",
-            "outerwear"
-          ],
-          "uses": -1,
-          "weight": 0.8
-        }
-      }
+      "item_grey_tank_tb",
+      "item_striped_hoodie_tb"
     ],
     "waist": []
   },

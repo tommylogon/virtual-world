@@ -4,24 +4,26 @@
   "description": "a test",
   "equipped": {
     "accessory": [
-      {
-        "name": "Mystery Talisman",
-        "node_id": "item_mystery_talisman",
-        "library_id": "mystery_talisman",
-        "properties": {
-          "description": "a sealed talisman",
-          "actions": "examine",
-          "uses": -1,
-          "weight": 0.1,
-          "tags": [
-            "talisman"
-          ],
-          "current_state": "normal"
-        }
-      }
+      "item_mystery_talisman"
     ]
   },
-  "inventory": [],
+  "inventory": [
+    {
+      "name": "Mystery Talisman",
+      "node_id": "item_mystery_talisman",
+      "library_id": "mystery_talisman",
+      "properties": {
+        "description": "a sealed talisman",
+        "actions": "examine",
+        "uses": -1,
+        "weight": 0.1,
+        "tags": [
+          "talisman"
+        ],
+        "current_state": "normal"
+      }
+    }
+  ],
   "memories": [],
   "relationships": {},
   "emotion": {

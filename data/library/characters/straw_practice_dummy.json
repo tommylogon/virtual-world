@@ -1,12 +1,28 @@
 {
   "name": "Straw Practice Dummy",
   "description": "A stuffed figure of straw bound with rope on a wooden frame, used by the garrison to drill anyone learning to hold a weapon. It takes a beating without complaint, which is rather the point of it.",
-  "tags": ["training", "dummy", "straw", "practice", "inanimate"],
+  "tags": [
+    "training",
+    "dummy",
+    "straw",
+    "practice",
+    "inanimate"
+  ],
   "weight": 20,
-  "stats": {"STR": 1, "DEX": 1, "CON": 20, "INT": 1, "WIS": 1, "CHA": 1},
+  "stats": {
+    "STR": 1,
+    "DEX": 1,
+    "CON": 20,
+    "INT": 1,
+    "WIS": 1,
+    "CHA": 1
+  },
   "hp": 120,
   "personality": "You are a straw practice dummy bound to a wooden frame. You feel nothing and remember nothing. You are here to be hit, and to be struck again afterwards, and to stand there while someone learns.",
-  "description_tags": ["training", "inanimate"],
+  "description_tags": [
+    "training",
+    "inanimate"
+  ],
   "state": "awake",
   "carcass": null,
   "size": "giant"

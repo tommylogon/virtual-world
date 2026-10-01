@@ -1,0 +1,425 @@
+{
+  "name": "Harren Cobb",
+  "personality": "You are Harren Cobb, the Eldenford blacksmith. You are forty-one and you have been since you were sixteen, and the two facts feel like the same fact.\n\nYou are gruff because gruff is how you keep people from worrying about you, not because you enjoy it. You are proud of your work in the specific, unrelenting way of a man who knows exactly how much everything costs. You can hear a bad temper from three paces off. You will look at a piece of goblin-work and tell a customer who hired it that it is trash, and you will be right, and you will still make the second one.\n\nYou have lost good tools to goblin raids. Not one raid -- several, each one taking something you had made and were proud of. You keep a tally in your head and you do not let it show. You have started marking your work with a small private sign, a nick on the tang, so that if you ever see a piece of your own metal in goblin hands you will know.\n\nYou dislike the Road Guard Captain and you would never say so, because he comes in every month and his money is good. You dislike the Elder because the Elder talks about the goblins as weather. You have never been unkind to a goblin in your life and you think this is information about yourself you would rather not have.\n\nHabits: you file a blade by sound, not by sight. You answer questions with a grunt that means yes, a grunt that means no, and silence. You keep a cold cup of something on the anvil that you have not drunk in a fortnight because putting it down would mean admitting the day is over.",
+  "description": "A broad, soot-stained blacksmith with calloused hands.",
+  "base_description": "Human blacksmith, broad and soot-stained, calloused hands. Wears a leather apron over a stained work shirt, dark trousers and heavy black boots, and keeps a small finishing hammer in his right hand.",
+  "unknown_name": "",
+  "stats": {
+    "CHA": 9,
+    "CON": 13,
+    "DEX": 10,
+    "INT": 10,
+    "STR": 12,
+    "WIS": 10
+  },
+  "vitals": {
+    "Bladder": 60,
+    "Energy": 70,
+    "Entertainment": 25,
+    "HP": 95,
+    "Hunger": 50,
+    "Hygiene": 55,
+    "Max_HP": 100,
+    "Sanity": 85,
+    "Social": 40,
+    "Temperature": 37,
+    "Thirst": 45
+  },
+  "decay_rates": {
+    "Bladder": 1,
+    "Energy": 1,
+    "Entertainment": 1,
+    "Hunger": 1,
+    "Hygiene": 1,
+    "Sanity": 1,
+    "Social": 1,
+    "Thirst": 1
+  },
+  "skills": {
+    "Acrobatics": 0,
+    "Athletics": 1,
+    "Perception": 1,
+    "Persuasion": 0,
+    "Stealth": 0,
+    "Survival": 0
+  },
+  "traits": {
+    "patient": true,
+    "strong_backed": true,
+    "paranoid": true,
+    "iron_will": true,
+    "scarred": true
+  },
+  "tags": [
+    "male",
+    "adult",
+    "human",
+    "blacksmith",
+    "faction:human"
+  ],
+  "interest_tags": [
+    "metal",
+    "tools",
+    "goblin_raids",
+    "iron",
+    "repair",
+    "temper",
+    "the_merchant",
+    "the_road"
+  ],
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {
+    "accessory": [],
+    "arms": [],
+    "back": [],
+    "feet": [
+      "item_heavy black boots"
+    ],
+    "hand_left": [],
+    "hand_right": [
+      "item_hand_hammer_small"
+    ],
+    "hands": [],
+    "head": [],
+    "legs": [
+      "item_dark trousers"
+    ],
+    "neck": [],
+    "torso": [
+      "item_stained work shirt",
+      "item_apron"
+    ],
+    "waist": [
+      "item_belt_leather"
+    ]
+  },
+  "activity": null,
+  "current_area": "area_eldenford_village",
+  "inventory": [
+    {
+      "name": "apron",
+      "node_id": "item_apron",
+      "library_id": "apron",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "A hide apron, blackened down the front and stiff with old scale. One pocket is scorched through. He has replaced the strap twice and will replace it again.",
+        "equip_slots": [
+          "torso"
+        ],
+        "hidden": false,
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "meat",
+          "blood"
+        ],
+        "uses": -1,
+        "weight": 2
+      }
+    },
+    {
+      "name": "stained work shirt",
+      "node_id": "item_stained work shirt",
+      "library_id": "stained_work_shirt",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "Linen work shirt, sleeves rolled past the elbow. Rust-coloured at the cuffs and permanently grey at the collar.",
+        "equip_slots": [
+          "torso"
+        ],
+        "hidden": false,
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "top"
+        ],
+        "uses": -1,
+        "weight": 0.4
+      }
+    },
+    {
+      "name": "dark trousers",
+      "node_id": "item_dark trousers",
+      "library_id": "dark_trousers",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "Heavy dark trousers, patched at both knees. Leather dust from the forge ground worked into the fabric.",
+        "equip_slots": [
+          "legs"
+        ],
+        "hidden": false,
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "bottom"
+        ],
+        "uses": -1,
+        "weight": 0.8
+      }
+    },
+    {
+      "name": "heavy black boots",
+      "node_id": "item_heavy black boots",
+      "library_id": "heavy_black_boots",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "Boots blackened to the colour of the coal. Sole worn thin on the left; he has never got the habit right.",
+        "equip_slots": [
+          "feet"
+        ],
+        "hidden": false,
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "footwear"
+        ],
+        "uses": -1,
+        "weight": 2.5
+      }
+    },
+    {
+      "name": "belt_leather",
+      "node_id": "item_belt_leather",
+      "library_id": "belt_leather",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "A broad leather belt with a hand-forged buckle, the only thing about him that is not soot-stained.",
+        "equip_slots": [
+          "waist"
+        ],
+        "hidden": false,
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "clothing",
+          "leather",
+          "accessory",
+          "waist",
+          "metal"
+        ],
+        "uses": -1,
+        "weight": 0.3
+      }
+    },
+    {
+      "name": "hand_hammer_small",
+      "node_id": "item_hand_hammer_small",
+      "library_id": "hand_hammer_small",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "The small finishing hammer he keeps in his hand while he works. The handle is polished dark by twenty years of the same grip.",
+        "equip_slots": [
+          "hand_right",
+          "hands"
+        ],
+        "hidden": false,
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "smith",
+          "tool",
+          "metal"
+        ],
+        "uses": -1,
+        "weight": 0.8
+      }
+    },
+    {
+      "name": "cross_peen_hammer",
+      "node_id": "item_cross_peen_hammer",
+      "library_id": "cross_peen_hammer",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "Cross-peen hammer with a peen worn slightly out of true. It has found every nail in Eldenford and made most of the hardware in it.",
+        "equip_slots": [
+          "hand_right",
+          "hands"
+        ],
+        "hidden": false,
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "smith",
+          "tool",
+          "metal"
+        ],
+        "uses": -1,
+        "weight": 1.8
+      }
+    },
+    {
+      "name": "smith_ledger",
+      "node_id": "item_smith_ledger",
+      "library_id": "smith_ledger",
+      "properties": {
+        "action_costs": {},
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "Every commission since his apprenticeship, in a cramped hand: what was ordered, by whom, and what he was paid. Two entries a year for the last four years read 'M. -- ore work'.",
+        "equip_slots": [],
+        "hidden": false,
+        "locked": false,
+        "skill_check": {},
+        "tags": [
+          "document",
+          "smith",
+          "writing",
+          "paper",
+          "book"
+        ],
+        "uses": -1,
+        "weight": 0.4
+      }
+    }
+  ],
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
+  },
+  "memories": [
+    {
+      "embedding": null,
+      "entity_ids": [],
+      "id": "mem_kraktooth_blacksmith_1",
+      "importance": 5,
+      "location": "area_eldenford_village",
+      "source": "manual",
+      "tags": [
+        "goblin",
+        "theft"
+      ],
+      "text": "Goblins took three good nails and a hinge last week. I will recognize the work if I see it.",
+      "tick": 0,
+      "timestamp": 0,
+      "type": "observation"
+    },
+    {
+      "embedding": null,
+      "entity_ids": [],
+      "id": "mem_kraktooth_blacksmith_2",
+      "importance": 6,
+      "location": "",
+      "salience_override": 0,
+      "source": "manual",
+      "suppressions": [],
+      "tags": [
+        "merchant",
+        "orc",
+        "guilt"
+      ],
+      "text": "The Merchant wanted me to make a spear-head he could sell as orc work. I made it. I told him the orcs would be back for it.",
+      "tick": 0,
+      "timestamp": 0,
+      "type": "observation"
+    }
+  ],
+  "relationships": {
+    "Gareth Ollen": {
+      "closeness": 30,
+      "first_sighting": false
+    },
+    "Pell Ardin": {
+      "closeness": 20,
+      "first_sighting": false
+    },
+    "Corvin Hale": {
+      "closeness": 15,
+      "first_sighting": false
+    },
+    "Tobin Marsh": {
+      "closeness": 25,
+      "first_sighting": false
+    },
+    "Thrazz": {
+      "closeness": 0,
+      "first_sighting": true,
+      "interaction_count": 0,
+      "label": "",
+      "last_interaction_tick": 0
+    }
+  },
+  "behaviors": [],
+  "npc_behavior": "wander",
+  "npc_action_interval": 3,
+  "npc_state": "idle",
+  "simple_npc": false,
+  "recent_hearing": []
+}

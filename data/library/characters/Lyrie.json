@@ -30,40 +30,7 @@
   },
   "equipped": {
     "accessory": [
-      {
-        "name": "Frayed Friendship Bracelet",
-        "node_id": "item_Frayed Friendship Bracelet",
-        "library_id": "lyrie_friendship_bracelet",
-        "properties": {
-          "action_costs": {},
-          "actions": [
-            "examine",
-            "take",
-            "use",
-            "equip",
-            "unequip",
-            "drop"
-          ],
-          "current_state": "normal",
-          "description": "A simple, frayed friendship bracelet made of woven green and brown threads, tied loosely around Lyrie's left wrist. It was given to her by her best friend before the 'incident' that almost got her exiled. She never takes it off, even though it's coming apart. The green has faded, and one of the knots is coming undone.",
-          "equip_slots": [
-            "accessory"
-          ],
-          "hidden": false,
-          "library_id": "lyrie_friendship_bracelet",
-          "locked": false,
-          "skill_check": {},
-          "tags": [
-            "jewelry",
-            "bracelet",
-            "friendship",
-            "elven",
-            "sentimental"
-          ],
-          "uses": -1,
-          "weight": 0
-        }
-      }
+      "item_Frayed Friendship Bracelet"
     ],
     "arms": [],
     "back": [],
@@ -72,183 +39,16 @@
     "hand_right": [],
     "hands": [],
     "head": [
-      {
-        "name": "Dried Flower Crown (Crushed)",
-        "node_id": "item_Dried Flower Crown (Crushed)",
-        "library_id": "lyrie_flower_crown",
-        "properties": {
-          "action_costs": {},
-          "actions": [
-            "examine",
-            "take",
-            "use",
-            "equip",
-            "unequip",
-            "drop"
-          ],
-          "current_state": "normal",
-          "description": "A simple crown of dried wildflowers, woven together with grass. It's badly crushed and missing several blooms, but Lyrie refuses to take it off—it was a gift from a child in her village. She forgets it's on her head half the time, and it sheds petals wherever she goes.",
-          "equip_slots": [
-            "head"
-          ],
-          "hidden": false,
-          "library_id": "lyrie_flower_crown",
-          "locked": false,
-          "skill_check": {},
-          "tags": [
-            "accessory",
-            "flower",
-            "crown",
-            "elven",
-            "fragile"
-          ],
-          "uses": -1,
-          "weight": 0.1
-        }
-      }
+      "item_Dried Flower Crown (Crushed)"
     ],
     "legs": [
-      {
-        "name": "Stirrup Socks",
-        "node_id": "item_Stirrup Socks",
-        "library_id": null,
-        "properties": {
-          "action_costs": {},
-          "actions": [
-            "examine",
-            "take",
-            "use",
-            "equip",
-            "unequip",
-            "drop"
-          ],
-          "contents": [],
-          "description": "Knee-high wool socks with a strap that runs under the arch of your foot, leaving your toes and heel completely bare. They keep your calves warm while your feet stay free.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
-          "equip_slots": [
-            "legs"
-          ],
-          "hidden": false,
-          "insulation": 2,
-          "skill_check": {},
-          "tags": [
-            "clothing",
-            "insulation"
-          ],
-          "uses": 0,
-          "weight": 0.2
-        }
-      }
+      "item_Stirrup Socks"
     ],
     "neck": [],
     "torso": [
-      {
-        "name": "Green Tunic",
-        "node_id": "item_Green Tunic",
-        "library_id": null,
-        "properties": {
-          "action_costs": {},
-          "actions": [
-            "examine",
-            "take",
-            "use",
-            "equip",
-            "unequip",
-            "drop"
-          ],
-          "contents": [],
-          "defense": 2,
-          "description": "A simple, finely woven tunic of forest green linen. It bears no adornment but feels sturdy and comfortable.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
-          "equip_slots": [
-            "torso"
-          ],
-          "hidden": false,
-          "insulation": 5,
-          "skill_check": {},
-          "tags": [
-            "container",
-            "clothing",
-            "insulation"
-          ],
-          "uses": 0,
-          "weight": 0.3
-        }
-      },
-      {
-        "name": "Short Forest Cape",
-        "node_id": "item_Short Forest Cape",
-        "library_id": null,
-        "properties": {
-          "action_costs": {},
-          "actions": [
-            "examine",
-            "take",
-            "use",
-            "equip",
-            "unequip",
-            "drop"
-          ],
-          "contents": [],
-          "defense": 1,
-          "description": "A short, forest-green cape that rustles like leaves in the wind. Light and practical, it offers subtle camouflage among the trees.",
-          "effect_amount": 0,
-          "effect_stat": null,
-          "effect_target": null,
-          "equip_slots": [
-            "torso"
-          ],
-          "hidden": false,
-          "insulation": 1,
-          "skill_check": {},
-          "tags": [
-            "clothing",
-            "insulation"
-          ],
-          "uses": 0,
-          "weight": 0.3
-        }
-      },
-      {
-        "name": "Soft Linen Shift",
-        "node_id": "item_Soft Linen Shift",
-        "library_id": "lyrie_linen_shift",
-        "properties": {
-          "action_costs": {},
-          "actions": [
-            "examine",
-            "take",
-            "use",
-            "equip",
-            "unequip",
-            "drop"
-          ],
-          "current_state": "normal",
-          "description": "A simple, loose-fitting underdress of undyed linen, soft from many washings. There's a small, clumsily-darned hole near the hem where Lyrie caught it on a branch. Smells faintly of wildflowers and hearth smoke.",
-          "equip_slots": [
-            "torso",
-            "legs"
-          ],
-          "hidden": false,
-          "insulation": 1,
-          "library_id": "lyrie_linen_shift",
-          "locked": false,
-          "skill_check": {},
-          "tags": [
-            "clothing",
-            "underwear",
-            "linen",
-            "elven",
-            "insulation"
-          ],
-          "uses": -1,
-          "weight": 0.4
-        }
-      }
+      "item_Green Tunic",
+      "item_Short Forest Cape",
+      "item_Soft Linen Shift"
     ],
     "waist": []
   },
