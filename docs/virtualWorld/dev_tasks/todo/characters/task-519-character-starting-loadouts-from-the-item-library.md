@@ -8,7 +8,43 @@ priority: high
 # task-519: Character starting loadouts from the item library
 
 **Filed:** 2026-09-24
-**Related:** task-17, task-55, task-408, task-450
+**Related:** task-17, task-55, task-408, task-450, bug-516
+
+## Later finding — implement with bug-516 (2026-10-01)
+
+The `equipped` half of this turned out to be worse than lossy: the **import** and
+**refresh** code paths require *contradictory* shapes, so no template can be
+correct on both.
+
+    template equipped entry   import                     refresh-to-world
+    -----------------------   ----------------------    ----------------------
+    node-id string            resolves to []            correct
+    item name                 correct                    inert (graph.get_node(name) -> None)
+    dict {node_id, name}      correct                    500 on /api/state
+
+Live confirmation, `POST /api/library/refresh-to-world` on Harren Cobb:
+
+    TypeError: unhashable type: 'dict'
+      engine/serialization.py:57  _region_exposure_map
+      engine/body_parts.py:260    is_exposed -> graph.get_node(outer_id)
+
+`is_exposed` filters `__multi_slot_` markers but passes everything else straight
+to `graph.get_node`, so any non-string entry takes the whole state endpoint down.
+Three library entries currently carry dict entries and will do this on refresh:
+`Lyrie.json`, `miki doki.json`, `standalone_test.json`. Import is safe -- it
+rewrites to node-id strings.
+
+The runtime shape is node-id strings (`engine/equipment.py:205` appends
+`item_node.id`; `:265` rebuilds `[e.source for e in edges]`), so node-id strings
+are the shape the fix has to converge on -- and import must then be taught to
+resolve them by `node_id` rather than by `n.name`.
+
+**A hand-rolled workaround was built for this and should be discarded.**
+`data/library/characters/Harren Cobb.json` has 8 fully embedded item dicts
+authored by hand, which is the `dict` row above: it works on import and crashes
+on refresh. That is not a template link (the branch this task already calls out
+as wrong) and it is exactly the busywork this task exists to make unnecessary.
+Replace it with library-id references once materialization is lossless.
 
 ## Goal
 

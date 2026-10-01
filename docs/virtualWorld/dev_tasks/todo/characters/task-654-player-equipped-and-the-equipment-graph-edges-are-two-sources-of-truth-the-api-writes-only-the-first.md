@@ -52,6 +52,30 @@ equips into **`hand_right`**. So the vocabulary an author writes is not the
 vocabulary the game uses, which is why a `hand` write is inert and a `hand_right`
 one is not. Either the API writes the edges too, or the two fields are reconciled somewhere, or player.equipped should not be writable directly. Same class as task-292 (apron declares equip_slots but has no equip action) and task-632 (a field that serializes but is never populated).
 
+**Second reproduction, from the other direction (2026-10-01, task-660
+verification).** This task says the API writes `player.equipped` without the
+edges. The inverse also holds: **deleting a graph node leaves `player.equipped`
+pointing at it.** A duplicated item node was removed with
+`DELETE /api/graph/node/heavy_black_boots_061fbea7` → `200 {"status":"success"}`,
+and immediately afterwards:
+
+    equipped: { "feet": ["heavy_black_boots", "heavy_black_boots_061fbea7"], ... }
+
+The stale id survived the node. Nothing reconciles the two structures in either
+direction, so they diverge silently and the field keeps pointing at something
+that no longer exists.
+
+Impact is bounded but real. `is_exposed` (`engine/body_parts.py:260`) does
+`graph.get_node(outer_id)` and `continue`s on `None`, so a dangling id degrades
+to "treated as uncovered" rather than raising — which means it changes
+coverage maths silently. The equipment readout counts it as worn. The only
+recovery is the manual write this task is already complaining about, i.e. the
+API route that creates the original divergence.
+
+Strengthens the case in the paragraph above: neither structure should be
+independently writable. Whichever is authoritative, the other should be derived
+or reconciled on change.
+
 ## Acceptance
 
 - TODO
