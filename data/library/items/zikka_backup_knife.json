@@ -1,0 +1,18 @@
+{
+  "name": "Zikka's Backup Knife",
+  "description": "A flat little knife carried out of sight against the small of the back, the kind you reach for only when the first weapon is gone. Nobody who has seen Zikka fight has seen this one.",
+  "actions": "examine,equip,unequip,take,drop",
+  "concealed": true,
+  "current_state": "normal",
+  "light_level": "dim",
+  "damage": "1d4",
+  "damage_type": "piercing",
+  "defense": 0,
+  "insulation": 0,
+  "uses": -1,
+  "weight": 0.3,
+  "equip_slots": ["hands"],
+  "tags": ["weapon", "knife", "metal", "small", "concealed"],
+  "triggers": [],
+  "contents": []
+}

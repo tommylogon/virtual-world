@@ -68,7 +68,9 @@
   "equipped": {},
   "activity": null,
   "current_area": "area_training_pit",
-  "inventory": [],
+  "inventory": [
+    "zikka_backup_knife"
+  ],
   "emotion": {
     "current": "neutral",
     "description": "",

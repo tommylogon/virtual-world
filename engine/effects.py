@@ -318,6 +318,10 @@ class Effects:
                 "stackable",
                 "max_uses",
                 "base_weight",
+                # task-516: a concealed item must stay concealed when spawned
+                # from the library, or a hidden backup knife comes up in plain
+                # view.
+                "concealed",
                 # task-515: whose thing this is. Without it a spawned keepsake
                 # comes up unowned and anyone may pocket it, which is the one
                 # thing the property exists to prevent.

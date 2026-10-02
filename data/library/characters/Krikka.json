@@ -68,7 +68,9 @@
   "equipped": {},
   "activity": null,
   "current_area": "area_scrap_pile",
-  "inventory": [],
+  "inventory": [
+    "krikka_hidden_pouch"
+  ],
   "emotion": {
     "current": "neutral",
     "description": "",

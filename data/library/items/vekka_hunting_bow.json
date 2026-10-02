@@ -6,7 +6,7 @@
   "weight": 1.2,
   "current_state": "normal",
   "light_level": "dim",
-  "equip_slots": ["hand"],
+  "equip_slots": ["hands"],
   "defense": 0,
   "damage": "1d6",
   "damage_type": "piercing",

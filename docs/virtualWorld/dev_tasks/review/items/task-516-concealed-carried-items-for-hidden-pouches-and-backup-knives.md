@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: items
 priority: medium
 ---
@@ -65,3 +65,38 @@ Zikka's hidden backup knife and Krikka's hidden pouch of favourite shiny finds.
 
 - Redoing wear-layer visibility (task-3).
 - The inspector hide/reveal toggle (task-236), a separate UI concern.
+
+## Resolution (2026-10-02)
+
+Model chosen: a new `concealed: true` property, deliberately distinct from
+`current_state: "hidden"` (authoring-hidden world nodes) and from the character
+`hidden` stealth flag. `concealed` means owner-visible / other-hidden.
+
+- **Owner:** the inventory listing and `find_item_node` are ungated by design, so
+  a concealed item lists for its owner and can be drawn/used (unchanged).
+- **Others:** `get_visible_equipment` skips `concealed` nodes, so `examine
+  <character>` does not show a concealed worn item. Carried (non-equipped) items
+  were never listed for other characters, so a hidden pouch is already unseen.
+- **Steal:** `steal_item` refuses a concealed item ("they keep it hidden —
+  search them first"). `search <character>` (new verb, Perception dc 12) clears
+  `concealed` on everything the target carries/wears; a failure reveals nothing.
+- **Drawing reveals:** `equip_item` pops `concealed`, the documented choice that
+  bringing an item into use ends its concealment.
+- **Authoring round-trip:** `library_nodes.library_item_properties` and
+  `effects._hydrate_item` carry `concealed` so it survives placement/spawn.
+- Content: `krikka_hidden_pouch` (concealed, holds shiny finds) on Krikka;
+  `zikka_backup_knife` (concealed weapon) on Zikka.
+
+**Acceptance:**
+- [x] Concealed carried item invisible to others' examine, available to owner.
+- [x] Revealing (equipping) ends concealment — documented choice.
+- [x] Steal/search path has an explicit rule (`search <name>` then steal) and a
+      test (`tests/test_concealed_items.py`, 11 passed).
+- [x] Zikka's backup knife and Krikka's hidden pouch authored on the model.
+
+**Ownership note (task-514):** concealment is owned here; task-514
+(provenance/acquisition) should reference `concealed` rather than introduce a
+competing visibility flag.
+
+Not done: the inspector hide/reveal toggle (task-236) and a per-thief discovery
+memory (the reveal is global, matching the existing area `search` verb).

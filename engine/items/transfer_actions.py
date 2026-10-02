@@ -165,6 +165,15 @@ class TransferActionsMixin:
 
         item_node_id = item_node.id
 
+        # task-516: a concealed item is not lootable until it has been noticed.
+        # `search <character>` clears the flag; without it the thief cannot even
+        # target the thing, so steal refuses rather than silently succeeding.
+        if item_node.properties.get("concealed"):
+            raise ValueError(
+                f"You can't find a '{item_name}' on {target_name} — "
+                f"they keep it hidden. Search them first."
+            )
+
         # task-493: a part does not come loose, from anyone. The roster scan
         # above only sees what is worn or carried, so a part is not reachable
         # here today — but "not reachable" is not the same as "refused", and
@@ -214,3 +223,64 @@ class TransferActionsMixin:
                 f"You reach for the {item_node.name}, but {target_name} notices you! "
                 f"(Sleight of Hand {sleight_roll} vs Perception {per_roll})"
             )
+
+    def search_character(self, player_manager, target_name: str) -> str:
+        """Pat down another character for concealed items (task-516).
+
+        Perception-gated, exactly like the area `search` verb: a success clears
+        ``concealed`` on everything they carry or wear so the item becomes
+        lootable/stealable; a failure reveals nothing. The flag is the discovery
+        state — concealing it again is an authoring action.
+        """
+        from engine.character_spatial import _pm_get_player_node_id
+
+        target = player_manager.players.get(target_name)
+        if not target and self.matching is not None and hasattr(self.matching, "_match_character_name"):
+            resolved, candidates = self.matching._match_character_name(target_name)
+            if resolved:
+                target_name = resolved
+                target = player_manager.players.get(resolved)
+            elif candidates:
+                raise ValueError(
+                    f"You don't know exactly who that is. Do you mean: {', '.join(candidates)}?"
+                )
+        if not target:
+            raise ValueError(f"There's no one named '{target_name}' here.")
+        if target.current_area != player_manager.current_area.name:
+            raise ValueError(f"{target_name} isn't in the same area as you.")
+
+        target_player_id = _pm_get_player_node_id(player_manager, target_name)
+        perception_dc = 12
+        # The mixin runs off the world facade, whose skill check lives at
+        # `world.skills`; fall back to a manager that carries its own.
+        checker = None
+        skills = getattr(getattr(self, "world", None), "skills", None)
+        if skills is not None:
+            checker = getattr(skills, "skill_check", None)
+        if not callable(checker):
+            checker = getattr(player_manager, "skill_check", None)
+        success, message = True, ""
+        if callable(checker):
+            success, _total, message = checker("Perception", perception_dc)
+
+        found = []
+        for edge_type in (EDGE_CARRYING, EDGE_EQUIPPED):
+            for edge in self.graph.get_edges_for_target(target_player_id, edge_type):
+                node = self.graph.get_node(edge.source)
+                if not (node and node.type == "item"):
+                    continue
+                if not node.properties.get("concealed"):
+                    continue
+                if success:
+                    node.properties["concealed"] = False
+                    found.append(node.name)
+
+        if found:
+            player_manager.add_log_entry(
+                f"[Search] {player_manager.active_player} searches {target_name} and finds "
+                f"{', '.join(found)}."
+            )
+            return f"You search {target_name} and discover: {', '.join(found)}."
+        if success:
+            return f"You search {target_name} but find nothing concealed."
+        return f"You search {target_name} but fail to find anything hidden. {message}"

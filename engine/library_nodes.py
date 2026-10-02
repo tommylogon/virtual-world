@@ -102,6 +102,10 @@ def library_item_properties(lib_item: dict, library_id: str,
         for key in ("uses", "max_uses", "base_weight"):
             if lib_item.get(key) is not None:
                 props[key] = lib_item[key]
+    # task-516: concealment is a property of the placed item, so a hidden pouch
+    # or backup knife must carry it out of the library. Only when authored.
+    if lib_item.get("concealed"):
+        props["concealed"] = True
     if extra:
         props.update(extra)
     return props

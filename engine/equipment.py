@@ -226,6 +226,11 @@ class EquipmentSystem:
         self.graph.remove_edge(item_node.id, player_id, EDGE_CARRYING)
         self.graph.remove_edges_for_node(item_node.id, EDGE_CONNECTION)
 
+        # task-516: drawing or equipping a concealed item reveals it. This is the
+        # documented choice — concealment is about being kept out of sight, and
+        # wearing it is the act of bringing it into sight.
+        item_node.properties.pop("concealed", None)
+
         item_node.properties.pop("last_relation", None)
 
         trigger_outputs = self.triggers._execute_triggers(item_node, "on_equip", game_state=self.world)
@@ -386,7 +391,10 @@ class EquipmentSystem:
                 ]
                 visible_items = [
                     n for n in visible_items
+                    # task-516: a concealed item is not part of what a viewer
+                    # sees, even when it is technically equipped.
                     if n and not self._is_intrinsic_ability(n)
+                    and not n.properties.get("concealed")
                 ]
                 real = [n.name for n in visible_items]
                 if real:
@@ -419,6 +427,8 @@ class EquipmentSystem:
             real_nodes = [
                 n for n in real_nodes
                 if n and not self._is_intrinsic_ability(n)
+                # task-516: concealed items are owner-visible only.
+                and not n.properties.get("concealed")
             ]
             if real_nodes:
                 visible[slot] = real_nodes[-1].name
