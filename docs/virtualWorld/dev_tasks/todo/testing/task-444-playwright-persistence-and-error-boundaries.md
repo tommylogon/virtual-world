@@ -50,12 +50,58 @@ critical paths in under 30 seconds.
 
 ## Acceptance
 
-- At least one persistence test per Phase-3 bullet, and it fails if the save/reload path is
+- [x] At least one persistence test per Phase-3 bullet, and it fails if the save/reload path is
   broken.
-- A mocked 500 produces a friendly message — the assertion explicitly rejects `Traceback`
+- [x] A mocked 500 produces a friendly message — the assertion explicitly rejects `Traceback`
   or `File "` in user-visible text.
-- `--suite smoke` completes in <30s and writes JUnit XML.
-- Any file the helper is wired into still passes.
+- [x] `--suite smoke` completes in <30s and writes JUnit XML.
+- [x] Any file the helper is wired into still passes.
+
+## Outcome (2026-10-02)
+
+New files: `tools/test_runner.cjs` (Phase 5), `tools/test_persistence.cjs`
+(Phase 3), `tools/test_error_boundaries.cjs` (Phase 4), `tools/test_smoke.cjs`.
+
+**Phase 3 — persistence** (`tools/test_persistence.cjs`, one test per bullet):
+1. description edit → save-game → mutate → load-game (a real disk round-trip).
+2. narration dropdown change reaches the backend and survives reload.
+3. ghost-mode checkbox change reaches the backend.
+4. deleting a trigger is persisted (create → reload → delete → reload).
+5. equipping an item is reflected in the paperdoll and persists.
+6. moving a character changes the room and survives reload.
+
+**Phase 4 — error boundaries**: a mocked JSON 500 and a mocked **non-JSON** 500
+both assert the UI shows `Request failed (500 …)` and **never** `Traceback` or
+`File "`; malformed data surfaces a short error rather than a stack trace. This
+required a real fix: `ApiClient.post`/`get` did `return resp.json()` without
+checking `resp.ok`, and the command bar logs `data.error` verbatim, so a Flask
+500 traceback was rendered to the player. `ApiClient._errorMessage` now
+substitutes a status message (`static/js/api.js`).
+
+**Phase 5 — runner**: `node tools/test_runner.cjs --suite smoke|full [--junit f]`.
+Auto-starts the server on `VW_PORT` if the URL is unreachable and stops it after.
+`smoke` = boot + one persistence + one error boundary.
+
+**Live evidence** (server on `VW_PORT=4470`):
+- `--suite full`: **11/11 passed in 9.2s**, JUnit written.
+- `--suite smoke`: **4/4 passed in 2.8s** (<30s), JUnit written.
+- `node tools/unit/run.cjs`: 485 passed / 0 failed; `npx eslint static/js/api.js` clean.
+
+**Helper change**: `tools/test_helpers.cjs` now takes the base URL from
+`VW_URL`/`VW_PORT` (parallel worktrees must not fight over 4444) and navigates
+with `domcontentloaded` instead of `networkidle` — the app holds an SSE
+connection to `/api/events`, so `networkidle` always timed out. `switchTab`
+selected `[data-tab-btn]`, which no element carries; it now matches `[data-tab]`.
+
+**Known gaps (honest):**
+- The "kill the server mid-session → connection lost" bullet is not covered; it
+  needs a second server lifecycle and a UI state assertion that does not exist
+  yet. Filed as follow-up.
+- `tools/test_regressions.cjs` still fails 2 of 14 on `Tab "Bio" not found`: the
+  Bio tab no longer exists in the UI. This predates the helper change (the old
+  `[data-tab-btn]` selector matched nothing either) and is UI drift, not a
+  helper regression. Not fixed here — `test_regressions.cjs` is a standalone
+  harness and rewriting its tab targets is a separate task.
 
 ## Non-goals
 

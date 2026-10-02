@@ -14,7 +14,14 @@
 //       await browser.close();
 //   })();
 
-const BASE = 'http://127.0.0.1:4444';
+/** Base URL of the running server. Prefer VW_URL, then VW_PORT, else 4444.
+ * Parallel worktrees must each use their own port or they fight over 4444. */
+function baseUrl() {
+    if (process.env.VW_URL) return process.env.VW_URL.replace(/\/$/, '');
+    return `http://127.0.0.1:${process.env.VW_PORT || '4444'}`;
+}
+
+const BASE = baseUrl();
 
 /** Launch a page with error capture wired up.
  * Network "Failed to load resource" messages (from intentional 4xx/5xx
@@ -33,7 +40,13 @@ async function startSession(chromium, url = BASE, opts = {}) {
         if (msg.text().startsWith('Failed to load resource')) return;
         errors.push({ type: 'console', message: msg.text() });
     });
-    await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+    // `domcontentloaded`, not `networkidle`: the app holds an SSE connection to
+    // /api/events open for the whole session, so the network is never idle and
+    // `networkidle` always times out.
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    // The command bar is the shell's handshake: once it is interactive the app
+    // has booted far enough for every helper below.
+    await page.waitForSelector('#command-input', { timeout: 15000 }).catch(() => {});
     await page.waitForTimeout(1000);
     return { browser, page, errors };
 }
@@ -45,9 +58,11 @@ function checkConsoleErrors(errors, context = '') {
     throw new Error((context ? context + ': ' : '') + 'Console/page errors: ' + summary);
 }
 
-/** Click a tab by its visible label (matches [data-tab-btn] content). */
+/** Click a tab by its visible label. The shell's tabs carry `data-tab`, not
+ * `data-tab-btn` (templates/index.html:102, :408), so the old selector matched
+ * nothing. */
 async function switchTab(page, label) {
-    const tabs = await page.$$('[data-tab-btn]');
+    const tabs = await page.$$('[data-tab]');
     for (const tab of tabs) {
         const text = (await tab.textContent()) || '';
         if (text.includes(label)) {
@@ -93,6 +108,7 @@ async function gameCmd(page, cmd) {
 
 module.exports = {
     BASE,
+    baseUrl,
     startSession,
     checkConsoleErrors,
     switchTab,
