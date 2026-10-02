@@ -70,5 +70,18 @@ rather than enforced; widening it is a separate decision.
 - [x] Checker no longer reports false positives (per-property `expect`)
 - [x] `--report` shows zero drift; `--check` green with an empty baseline
 - [x] Regression suite green against the 12-failure baseline
-- [ ] A library way template exercising these keys exists, so the spawn path is
+- [x] A library way template exercising these keys exists, so the spawn path is
       demonstrable in a browser rather than only by list comparison
+
+## Content authored 2026-10-02
+
+`data/library/ways/draft_door.json` carries `insulation: 0.4` and
+`sound_barrier: 0.5` on a normal door, so both keys now travel the real library
+spawn and refresh paths. `tests/test_library_way_spawn.py` drives the actual
+routes against it:
+
+- `POST /api/library/import/way/draft_door` -> the spawned node carries both keys.
+- `POST /api/ways/<id>/refresh-from-library` with `sections` -> both keys applied.
+
+`python -m pytest tests/test_way_property_index.py tests/test_library_way_spawn.py -q`
+— 10 passed.

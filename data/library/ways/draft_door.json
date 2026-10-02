@@ -1,0 +1,23 @@
+{
+  "auto_close": false,
+  "current_state": "closed",
+  "description": "An ill-fitting plank door that lets a draught through and carries sound both ways. Authored to exercise the library spawn/refresh path for 'insulation' and 'sound_barrier' (task-659).",
+  "edge_length": "",
+  "insulation": 0.4,
+  "library_id": "",
+  "max_size": "normal",
+  "name": "Draft door",
+  "needs_open": {},
+  "one_way": false,
+  "parameters": {},
+  "pass_message": "",
+  "prevent_close": false,
+  "requires": "",
+  "see_through": false,
+  "sound_barrier": 0.5,
+  "tags": [
+    "interior",
+    "door"
+  ],
+  "triggers": []
+}
