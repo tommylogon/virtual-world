@@ -312,6 +312,12 @@ class Effects:
                 "quantity",
                 "plural",
                 "harvest",
+                # task-473: the explicit homogeneous-stack marker. A spawned
+                # stack that lost it would come up as an ordinary prop that can
+                # only be moved whole.
+                "stackable",
+                "max_uses",
+                "base_weight",
                 # task-515: whose thing this is. Without it a spawned keepsake
                 # comes up unowned and anyone may pocket it, which is the one
                 # thing the property exists to prevent.

@@ -94,6 +94,14 @@ def library_item_properties(lib_item: dict, library_id: str,
     # dropped at placement, so the item's own triggers can never see it.
     if lib_item.get("parameters"):
         props["parameters"] = dict(lib_item["parameters"])
+    # task-473: the homogeneous-stack marker and its charge/weight fields.
+    # Dropped here, a library pile would place as an ordinary prop. Only copied
+    # when authored, so an ordinary item node's property set is unchanged.
+    if lib_item.get("stackable"):
+        props["stackable"] = True
+        for key in ("uses", "max_uses", "base_weight"):
+            if lib_item.get(key) is not None:
+                props[key] = lib_item[key]
     if extra:
         props.update(extra)
     return props

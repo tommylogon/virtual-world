@@ -1,0 +1,15 @@
+{
+  "name": "Foraged Herb Pile",
+  "description": "A spread of gathered herbs laid out to dry, each kind keeping its own virtues. You can pick out one without disturbing the rest.",
+  "actions": "examine,take,drop",
+  "current_state": "normal",
+  "light_level": "dim",
+  "damage": 0,
+  "defense": 0,
+  "insulation": 0,
+  "uses": -1,
+  "weight": 0.5,
+  "tags": ["container", "herbs", "forage", "pile"],
+  "triggers": [],
+  "contents": ["agrimony", "alfalfa", "alexanders", "anise_seed"]
+}
