@@ -415,6 +415,13 @@ class AgentEngine {
                         if (output.includes('ValueError')) events.log(output, 'error-msg');
                         else events.log(output, 'msg-result', { outcome: data?.success !== false ? 'success' : 'failure' });
                     }
+                    // task-448: an ambiguous target returns a structured chooser;
+                    // render it so a pick resolves to the identity key.
+                    if (Array.isArray(data?.choices)) {
+                        for (const group of data.choices) {
+                            events.logChoices(group.verb, group.options, charName);
+                        }
+                    }
                     config.lastActionResult[charName] = output;
                     events.trackAction(charName, '', null, reply.action, output);
                     const area = worldState.players?.[charName]?.current_area;

@@ -363,6 +363,10 @@ class VirtualWorld:
         """
         return self.name_matcher._match_character_name(input_str, exclude_self=exclude_self)
 
+    def character_candidate_details(self, candidates):
+        """Structured disambiguation choices for ambiguous targets (task-448)."""
+        return self.name_matcher.character_candidate_details(candidates)
+
     def get_current_area_id(self) -> Optional[str]:
         return self.area_description.get_current_area_id()
 

@@ -556,6 +556,39 @@ class NameMatching:
         player = self.gs.players.get(key)
         return getattr(player, "name", key) if player else key
 
+    def character_candidate_details(self, candidates) -> list:
+        """Structured disambiguation choices for ambiguous targets (task-448).
+
+        Returns ``[{"key", "label", "detail"}]`` — one per candidate. ``label``
+        is the display name; ``detail`` distinguishes same-named characters (the
+        appearance label before meeting them, a short description, their area, or
+        something they visibly carry); ``key`` is the identity to target. Never
+        auto-picks — the caller lists these and waits.
+        """
+        out = []
+        for key in candidates or []:
+            player = self.gs.players.get(key)
+            label = self._player_display_name(key)
+            detail = ""
+            if player is not None:
+                try:
+                    detail = str(player.unknown_display_name() or "").strip()
+                except Exception:
+                    detail = ""
+                if not detail:
+                    detail = str(
+                        getattr(player, "base_description", "")
+                        or getattr(player, "description", "")
+                        or ""
+                    ).strip()
+                if not detail:
+                    detail = str(getattr(player, "current_area", "") or "").strip()
+            detail = re.sub(r"\s+", " ", detail)
+            if len(detail) > 70:
+                detail = detail[:67].rstrip() + "…"
+            out.append({"key": key, "label": label, "detail": detail})
+        return out
+
     def _match_character_name(
         self,
         input_str: str,
@@ -590,6 +623,19 @@ class NameMatching:
             if player.current_area == current_area:
                 same_area.append(pname)
         if not same_area:
+            return None, []
+
+        # 0. Explicit identity key (task-448). The disambiguation chooser
+        #    resolves a pick to the player's key, and a duplicate-named "Violet"
+        #    may key as "Violet__a1b2c3" which no display-name tier matches.
+        #    The `key:` prefix keeps this from colliding with the first duplicate,
+        #    whose key equals its display name — a bare "violet" must stay
+        #    ambiguous, only "key:violet" (from the chooser) names an identity.
+        if input_lower.startswith("key:"):
+            probe = input_lower[4:].strip()
+            for p in same_area:
+                if p.lower() == probe:
+                    return p, []
             return None, []
 
         # 1. Exact name (compared against the DISPLAY name so two characters

@@ -468,6 +468,9 @@ window.HumanTurnComposer = (() => {
             } else if (data?.error) {
                 events.log(`❌ ${data.error}`, 'error-msg');
             }
+            if (Array.isArray(data?.choices)) {
+                for (const group of data.choices) events.logChoices(group.verb, group.options, _charName);
+            }
         } catch (err) {
             events.log(`❌ Interjection failed: ${err.message}`, 'error-msg');
         }

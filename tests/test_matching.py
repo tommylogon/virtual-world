@@ -391,6 +391,62 @@ class TestCharacterMatching:
         assert name is None
         assert set(candidates) == {"Lyrie", "Talia"}
 
+    def test_identity_key_targets_duplicate_display_name(self, graph):
+        """task-448: the chooser resolves a pick to the player's KEY. A duplicate
+        display name keys distinctly ('Violet__a1b2c3'), which no display-name
+        tier can match, so the key must be accepted verbatim."""
+        class FakeArea:
+            name = "Test Area"
+
+        def make_player(name, desc):
+            return type("P", (), {"name": name, "description": desc,
+                                  "base_description": "", "current_area": "Test Area"})()
+
+        players = {
+            "Violet__a1b2c3": make_player("Violet", "A woman in a green cloak."),
+            "Violet__d4e5f6": make_player("Violet", "A woman in a red dress."),
+        }
+        gs = FakeGameState(graph, players=players, active_player="TestPlayer")
+        gs.current_area = FakeArea()
+        matcher = NameMatching(graph, gs)
+
+        # The bare display name is ambiguous and must not auto-pick.
+        name, candidates = matcher._match_character_name("Violet")
+        assert name is None
+        assert set(candidates) == {"Violet__a1b2c3", "Violet__d4e5f6"}
+
+        # A chooser key resolves exactly (the `key:` handle keeps the first
+        # duplicate, whose key equals its display name, targetable without
+        # making a bare "violet" unambiguous).
+        name, candidates = matcher._match_character_name("key:Violet__d4e5f6")
+        assert name == "Violet__d4e5f6"
+        assert candidates == []
+
+    def test_candidate_details_give_a_distinguishing_detail(self, graph):
+        """task-448: each candidate carries a display label plus a detail."""
+        class FakeArea:
+            name = "Test Area"
+
+        def make_player(name, desc):
+            return type("P", (), {"name": name, "description": desc,
+                                  "base_description": "", "current_area": "Test Area"})()
+
+        players = {
+            "Violet__a1b2c3": make_player("Violet", "A woman in a green cloak."),
+            "Violet__d4e5f6": make_player("Violet", "A woman in a red dress."),
+        }
+        gs = FakeGameState(graph, players=players, active_player="TestPlayer")
+        gs.current_area = FakeArea()
+        matcher = NameMatching(graph, gs)
+
+        _, candidates = matcher._match_character_name("Violet")
+        details = matcher.character_candidate_details(candidates)
+        assert len(details) == 2
+        assert {d["key"] for d in details} == set(candidates)
+        assert all(d["label"] == "Violet" for d in details)
+        assert len({d["detail"] for d in details}) == 2  # they differ
+
+
     def test_character_in_other_area_not_matched(self, graph):
         """A matching description in another area does not resolve."""
         name, candidates = self._matcher(graph)._match_character_name("distant room man")
