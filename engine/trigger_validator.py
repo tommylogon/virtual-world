@@ -154,6 +154,26 @@ LIBRARY_SYNC_PROPS = (
     "heating_rate", "contents", "aliases",
 )
 
+# LIBRARY_SYNC_PROPS whose drift is the NORMAL authoring flow rather than a bug
+# (task-443). The engine either owns the value or it is per-instance state, so
+# reporting it as a hard `library_mismatch` warning buried the real drift:
+# * light_level / target_temperature / heating_rate — engine defaults
+#   (`DEFAULTED_MECHANICAL_DEFAULTS`), an authoring nudge at most;
+# * current_state / contents — runtime state (a lamp toggled on, a chest that
+#   has been filled), exactly what an instance is *for*;
+# * description — free text the library supplies as a starting point;
+# * aliases — subjective per-observer names, so instances legitimately differ.
+# Everything else (name/tags/actions/uses/weight/equip_slots) changes what the
+# item *is* and still warns.
+LIBRARY_MISMATCH_TRIVIAL_PROPS = frozenset(DEFAULTED_MECHANICAL_DEFAULTS) | {
+    "current_state", "contents", "description", "aliases",
+}
+
+#: Strict-sync props that the engine reads to determine behaviour. Their drift
+#: is called out as mechanical in the warning so it is never dismissed as noise.
+LIBRARY_MECHANICAL_PROPS = frozenset({"actions", "uses"})
+
+
 
 class TriggerValidator:
     """Static validation of all trigger wiring in a ``WorldGraph``."""
@@ -728,13 +748,42 @@ class TriggerValidator:
                 if not self._props_match(inst, template):
                     differing.append(key)
             if differing:
-                issues.append(self._issue(
-                    "warning", "library_mismatch",
-                    f"Item {self._label(node)} differs from its library "
-                    f"entry '{lib_id}' ({', '.join(differing)}) — "
-                    f"refresh-to-world to resync.",
-                    source_node_id=node.id,
-                ))
+                # task-443: split drift. Mechanical/structural props stay a
+                # warning; runtime/engine-defaulted drift is info.
+                strict = [k for k in differing if k not in LIBRARY_MISMATCH_TRIVIAL_PROPS]
+                trivial = [k for k in differing if k in LIBRARY_MISMATCH_TRIVIAL_PROPS]
+                defaulted = [k for k in trivial if k in DEFAULTED_MECHANICAL_DEFAULTS]
+                rest = [k for k in trivial if k not in DEFAULTED_MECHANICAL_DEFAULTS]
+                if strict:
+                    mechanical = [k for k in strict if k in LIBRARY_MECHANICAL_PROPS]
+                    note = (" — mechanical fields determine behaviour"
+                            if mechanical else " — these change what the item is")
+                    issues.append(self._issue(
+                        "warning", "library_mismatch",
+                        f"Item {self._label(node)} differs from its library "
+                        f"entry '{lib_id}' ({', '.join(strict)}){note}; "
+                        f"refresh-to-world to resync.",
+                        source_node_id=node.id,
+                    ))
+                if defaulted:
+                    defaults = " and ".join(
+                        DEFAULTED_MECHANICAL_DEFAULTS[k] for k in defaulted)
+                    issues.append(self._issue(
+                        "info", "mechanical_tag_missing_props",
+                        f"Item {self._label(node)} differs from its library "
+                        f"entry '{lib_id}' at {', '.join(defaulted)} — a field "
+                        f"the engine defaults ({defaults}); set it explicitly "
+                        f"or leave the default.",
+                        source_node_id=node.id,
+                    ))
+                if rest:
+                    issues.append(self._issue(
+                        "info", "library_mismatch",
+                        f"Item {self._label(node)} differs from its library "
+                        f"entry '{lib_id}' at {', '.join(rest)} — normal "
+                        f"instance state, not a defect.",
+                        source_node_id=node.id,
+                    ))
         return issues
 
     @staticmethod
