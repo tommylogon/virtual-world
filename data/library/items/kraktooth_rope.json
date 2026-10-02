@@ -1,0 +1,17 @@
+{
+  "name": "Coarse Rope",
+  "description": "A hank of frayed rope knotted from whatever fibre the camp could scavenge.",
+  "actions": "examine,take,use",
+  "uses": -1,
+  "weight": 2.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "tool",
+    "kraktooth",
+    "rope",
+    "climb"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,22 @@
+{
+  "name": "Backup Knife",
+  "description": "A slim blade carried against the forearm, hidden by the sleeve until needed.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 0.4,
+  "equip_slots": [
+    "hand_right"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "damage": 3,
+  "damage_type": "piercing",
+  "tags": [
+    "weapon",
+    "kraktooth",
+    "knife",
+    "concealed"
+  ],
+  "triggers": [],
+  "contents": []
+}

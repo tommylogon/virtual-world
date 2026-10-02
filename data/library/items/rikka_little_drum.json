@@ -1,0 +1,18 @@
+{
+  "name": "Little Drum",
+  "description": "A hand drum of stretched hide over a bent frame, pitch changed with a thumb.",
+  "actions": "examine,take,use",
+  "uses": -1,
+  "weight": 0.7,
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "tool",
+    "kraktooth",
+    "performer",
+    "drum",
+    "music"
+  ],
+  "triggers": [],
+  "contents": []
+}

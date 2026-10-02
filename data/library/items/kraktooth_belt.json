@@ -1,0 +1,19 @@
+{
+  "name": "Kraktooth Belt",
+  "description": "A wide scrap-leather belt punched with holes for hanging tools, trophies and pouches.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 0.6,
+  "equip_slots": [
+    "waist"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "clothing",
+    "kraktooth",
+    "belt"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Metal Scrap",
+  "description": "A sack of bent nails, torn sheeting and human-made fragments.",
+  "actions": "examine,take",
+  "uses": -1,
+  "weight": 2.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "material",
+    "kraktooth",
+    "metal",
+    "scrap"
+  ],
+  "triggers": [],
+  "contents": []
+}

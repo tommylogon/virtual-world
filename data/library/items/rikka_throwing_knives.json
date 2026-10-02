@@ -1,0 +1,22 @@
+{
+  "name": "Throwing Knives",
+  "description": "A set of balanced knives, their grips worn smooth by long practice.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 0.6,
+  "equip_slots": [
+    "hand_right"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "damage": 3,
+  "damage_type": "piercing",
+  "tags": [
+    "weapon",
+    "kraktooth",
+    "knife",
+    "throwing"
+  ],
+  "triggers": [],
+  "contents": []
+}

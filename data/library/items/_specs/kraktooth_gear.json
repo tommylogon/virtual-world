@@ -1,0 +1,593 @@
+{
+  "_comment": "Kraktooth goblin gear matrix (task-513). Emitted by tools/gen_library_items.py. Category supplies defaults; the entry overrides. Deferred from the source matrix (needs a new mechanic or is covered by an existing generic template): partial-armor sub-slots map onto the coarse slots with description flavor; wire/nails/screws/springs/gears/washers/glue/pitch are one shared material kit, not per-goblin clones; salt/spices are existing generic staples; concealed-carry is task-516 and ammunition is task-518.",
+  "items": {
+    "kraktooth_belt": {
+      "category": "clothing",
+      "name": "Kraktooth Belt",
+      "description": "A wide scrap-leather belt punched with holes for hanging tools, trophies and pouches.",
+      "equip_slots": ["waist"],
+      "weight": 0.6,
+      "tags": ["clothing", "kraktooth", "belt"]
+    },
+    "kraktooth_pouch": {
+      "category": "accessory",
+      "name": "Scrap-Leather Pouch",
+      "description": "A soft pouch of mismatched leather, cinched shut with a bone toggle.",
+      "equip_slots": ["waist"],
+      "weight": 0.3,
+      "tags": ["accessory", "kraktooth", "container", "pouch"]
+    },
+    "kraktooth_rope": {
+      "category": "tool",
+      "name": "Coarse Rope",
+      "description": "A hank of frayed rope knotted from whatever fibre the camp could scavenge.",
+      "weight": 2.0,
+      "tags": ["tool", "kraktooth", "rope", "climb"]
+    },
+    "kraktooth_hooks": {
+      "category": "tool",
+      "name": "Bent Iron Hooks",
+      "description": "A bundle of hand-bent iron hooks, good for climbing, hanging meat or prying.",
+      "weight": 0.8,
+      "tags": ["tool", "kraktooth", "climb"]
+    },
+    "kraktooth_bone": {
+      "category": "material",
+      "name": "Bone Offcuts",
+      "description": "Knuckles, splinters and offcuts saved from every kill for tools and charms.",
+      "weight": 0.5,
+      "tags": ["material", "kraktooth", "bone"]
+    },
+    "kraktooth_metal_scrap": {
+      "category": "material",
+      "name": "Metal Scrap",
+      "description": "A sack of bent nails, torn sheeting and human-made fragments.",
+      "weight": 2.5,
+      "tags": ["material", "kraktooth", "metal", "scrap"]
+    },
+    "kraktooth_cloth": {
+      "category": "material",
+      "name": "Scrap Cloth",
+      "description": "Torn strips of cloth in a dozen faded colors, washed and rewound.",
+      "weight": 0.4,
+      "tags": ["material", "kraktooth", "cloth"]
+    },
+    "kraktooth_leather": {
+      "category": "material",
+      "name": "Scrap Leather",
+      "description": "Offcuts and strips of tanned hide, some still stinking of the tanning pit.",
+      "weight": 0.7,
+      "tags": ["material", "kraktooth", "leather"]
+    },
+    "kraktooth_feathers": {
+      "category": "material",
+      "name": "Feathers",
+      "description": "A tied bundle of feathers in barred greys and browns, for arrows and trinkets.",
+      "weight": 0.1,
+      "tags": ["material", "kraktooth", "feather"]
+    },
+    "kraktooth_coins": {
+      "category": "material",
+      "name": "Goblin Coins",
+      "description": "A pouch of clipped, dented coins sorted by shine rather than by face value.",
+      "weight": 0.5,
+      "tags": ["material", "kraktooth", "currency", "coin"]
+    },
+    "kraktooth_glass_bits": {
+      "category": "material",
+      "name": "Glass Bits",
+      "description": "Colored shards of glass saved from broken windows and bottles, edges dulled by handling.",
+      "weight": 0.2,
+      "tags": ["material", "kraktooth", "glass"]
+    },
+
+    "zikka_patchwork_vest": {
+      "category": "clothing",
+      "name": "Patchwork Leather Vest",
+      "description": "A vest sewn from a dozen different hides, seams staggering where it has been mended.",
+      "equip_slots": ["torso"],
+      "weight": 2.2,
+      "tags": ["clothing", "kraktooth", "leather"]
+    },
+    "zikka_leather_leg_wraps": {
+      "category": "clothing",
+      "name": "Leather Leg Wraps",
+      "description": "Strips of hide wound tight from knee to ankle, bound with cord.",
+      "equip_slots": ["legs"],
+      "weight": 1.0,
+      "tags": ["clothing", "kraktooth", "leather"]
+    },
+    "zikka_shoulder_plate": {
+      "category": "armor",
+      "name": "Scavenged Shoulder Plate",
+      "description": "A curved plate of stolen human metal strapped over one shoulder.",
+      "equip_slots": ["arms"],
+      "defense": 2,
+      "weight": 3.0,
+      "tags": ["armor", "kraktooth", "metal", "scavenged"]
+    },
+    "zikka_heavy_boots": {
+      "category": "clothing",
+      "name": "Heavy Goblin Boots",
+      "description": "Squat boots soled with layered scrap, scarred by years of stony ground.",
+      "equip_slots": ["feet"],
+      "weight": 1.6,
+      "tags": ["clothing", "kraktooth", "boots"]
+    },
+    "zikka_cleaver": {
+      "category": "weapon",
+      "name": "Short Goblin Cleaver",
+      "description": "A short, heavy cleaver with a chipped edge and a grip wrapped in old cord.",
+      "equip_slots": ["hand_right"],
+      "damage": 6,
+      "damage_type": "slashing",
+      "weight": 2.0,
+      "tags": ["weapon", "kraktooth", "knife", "cleaver"]
+    },
+    "zikka_hooked_knife": {
+      "category": "weapon",
+      "name": "Hooked Knife",
+      "description": "A curved knife whose hooked point is made for hooking and tearing.",
+      "equip_slots": ["hand_right"],
+      "damage": 4,
+      "damage_type": "piercing",
+      "weight": 0.8,
+      "tags": ["weapon", "kraktooth", "knife", "hooked"]
+    },
+    "zikka_backup_knife": {
+      "category": "weapon",
+      "name": "Backup Knife",
+      "description": "A slim blade carried against the forearm, hidden by the sleeve until needed.",
+      "equip_slots": ["hand_right"],
+      "damage": 3,
+      "damage_type": "piercing",
+      "weight": 0.4,
+      "tags": ["weapon", "kraktooth", "knife", "concealed"]
+    },
+    "zikka_whetstone": {
+      "category": "tool",
+      "name": "Whetstone",
+      "description": "A palm-sized grey stone, hollowed in the middle by years of sharpening.",
+      "weight": 0.6,
+      "tags": ["tool", "kraktooth", "sharpening"]
+    },
+    "zikka_bone_necklace": {
+      "category": "accessory",
+      "name": "Bone Necklace",
+      "description": "A cord of drilled knucklebones, each one a name Zikka has not forgotten.",
+      "equip_slots": ["neck"],
+      "weight": 0.2,
+      "tags": ["accessory", "kraktooth", "bone", "jewelry"]
+    },
+    "zikka_trophy_tags": {
+      "category": "accessory",
+      "name": "Trophy Tags",
+      "description": "A jingling cluster of tags, teeth and buckles taken from the fallen.",
+      "equip_slots": ["accessory"],
+      "weight": 0.2,
+      "tags": ["accessory", "kraktooth", "trophy"]
+    },
+
+    "mikka_work_vest": {
+      "category": "clothing",
+      "name": "Pocket Work Vest",
+      "description": "A vest bristling with pockets and loops, every one holding a tool.",
+      "equip_slots": ["torso"],
+      "weight": 1.5,
+      "tags": ["clothing", "kraktooth", "pockets"]
+    },
+    "mikka_work_trousers": {
+      "category": "clothing",
+      "name": "Work Trousers",
+      "description": "Heavy trousers patched at the knee and singed at the cuff.",
+      "equip_slots": ["legs"],
+      "weight": 1.2,
+      "tags": ["clothing", "kraktooth"]
+    },
+    "mikka_fingerless_gloves": {
+      "category": "clothing",
+      "name": "Fingerless Gloves",
+      "description": "Fingerless gloves worn thin, cut away so no fingertip is ever dulled.",
+      "equip_slots": ["hands"],
+      "weight": 0.2,
+      "tags": ["clothing", "kraktooth", "gloves"]
+    },
+    "mikka_scrap_plates": {
+      "category": "armor",
+      "name": "Scrap-Metal Plates",
+      "description": "Plates of salvaged metal riveted onto the vest over heart and ribs.",
+      "equip_slots": ["torso"],
+      "defense": 2,
+      "weight": 4.0,
+      "tags": ["armor", "kraktooth", "metal", "scavenged"]
+    },
+    "mikka_prybar_dagger": {
+      "category": "weapon",
+      "name": "Improvised Pry-Bar Dagger",
+      "description": "A flattened iron bar ground to a point at one end and hooked at the other.",
+      "equip_slots": ["hand_right"],
+      "damage": 5,
+      "damage_type": "piercing",
+      "weight": 1.5,
+      "tags": ["weapon", "kraktooth", "improvised", "prybar"]
+    },
+    "mikka_hammer": {
+      "category": "tool",
+      "name": "Goblin Hammer",
+      "description": "A chipped hammer that has opened more locks than it has driven nails.",
+      "weight": 1.0,
+      "tags": ["tool", "kraktooth", "hammer"]
+    },
+    "mikka_pliers": {
+      "category": "tool",
+      "name": "Bent Pliers",
+      "description": "Pliers worn smooth at the jaw, good for wire, teeth and stubborn rivets.",
+      "weight": 0.5,
+      "tags": ["tool", "kraktooth", "pliers"]
+    },
+    "mikka_wrench": {
+      "category": "tool",
+      "name": "Stolen Wrench",
+      "description": "A human wrench, its maker's mark filed away and its jaw polished by use.",
+      "weight": 0.9,
+      "provenance": "Stolen from a human wagon on the old road.",
+      "tags": ["tool", "kraktooth", "wrench"]
+    },
+    "mikka_lockpicks": {
+      "category": "tool",
+      "name": "Lockpicks",
+      "description": "A rolled leather sleeve of picks, tension wrenches and one bent into a hook.",
+      "weight": 0.2,
+      "tags": ["tool", "kraktooth", "lockpick", "thief"]
+    },
+    "mikka_copper_earrings": {
+      "category": "accessory",
+      "name": "Copper Earrings",
+      "description": "A row of hammered copper rings up one ear, each one traded or won.",
+      "equip_slots": ["accessory"],
+      "weight": 0.1,
+      "tags": ["accessory", "kraktooth", "jewelry", "copper"]
+    },
+    "mikka_gears": {
+      "category": "material",
+      "name": "Loose Gears",
+      "description": "A tin of gears and cogs, most of them from mechanisms nobody here can name.",
+      "weight": 0.6,
+      "tags": ["material", "kraktooth", "mechanism", "metal"]
+    },
+
+    "gribba_butchers_apron": {
+      "category": "clothing",
+      "name": "Butcher's Apron",
+      "description": "A heavy apron stiff with old blood and grease, worn like a badge of office.",
+      "equip_slots": ["torso"],
+      "weight": 1.5,
+      "provenance": "Taken from an abandoned farm on the way to the camp.",
+      "tags": ["clothing", "kraktooth", "apron", "cooking"]
+    },
+    "gribba_leather_clothes": {
+      "category": "clothing",
+      "name": "Loose Leather Clothes",
+      "description": "Loose leather clothing cut for long hours over a fire, not for running.",
+      "equip_slots": ["torso"],
+      "weight": 1.8,
+      "tags": ["clothing", "kraktooth", "leather"]
+    },
+    "gribba_head_wrap": {
+      "category": "clothing",
+      "name": "Cloth Head Wrap",
+      "description": "A strip of clean cloth wound over the brow to keep sweat and hair from the pot.",
+      "equip_slots": ["head"],
+      "weight": 0.1,
+      "tags": ["clothing", "kraktooth", "cloth"]
+    },
+    "gribba_forearm_guards": {
+      "category": "armor",
+      "name": "Thick Leather Forearm Guards",
+      "description": "Thick hide guards laced up the forearms, scorched where they have turned a spill.",
+      "equip_slots": ["arms"],
+      "defense": 1,
+      "insulation": 1,
+      "weight": 1.0,
+      "tags": ["armor", "kraktooth", "leather"]
+    },
+    "gribba_butchers_knife": {
+      "category": "weapon",
+      "name": "Heavy Butcher's Knife",
+      "description": "A broad-bladed knife kept sharp enough to part a joint in one draw.",
+      "equip_slots": ["hand_right"],
+      "damage": 5,
+      "damage_type": "slashing",
+      "weight": 1.2,
+      "tags": ["weapon", "kraktooth", "knife", "cooking"]
+    },
+    "gribba_meat_hook": {
+      "category": "tool",
+      "name": "Meat Hook",
+      "description": "A heavy iron hook, its point honed and its grip wrapped in cord.",
+      "weight": 1.0,
+      "tags": ["tool", "kraktooth", "hook", "cooking"]
+    },
+    "gribba_cooking_spoon": {
+      "category": "tool",
+      "name": "Cooking Spoon",
+      "description": "A long wooden spoon, one edge of the bowl flattened into a scraper.",
+      "weight": 0.3,
+      "tags": ["tool", "kraktooth", "cooking", "spoon"]
+    },
+    "gribba_flint": {
+      "category": "tool",
+      "name": "Flint and Striker",
+      "description": "A knapped flint and a scrap of steel, kept dry in a twist of cloth.",
+      "weight": 0.2,
+      "tags": ["tool", "kraktooth", "fire", "flint"]
+    },
+    "gribba_herbs": {
+      "category": "material",
+      "name": "Drying Herbs",
+      "description": "Bundles of herbs hung to dry, sorted by what they cure rather than how they taste.",
+      "weight": 0.2,
+      "tags": ["material", "kraktooth", "herb", "medicinal"]
+    },
+    "gribba_good_knife": {
+      "category": "weapon",
+      "name": "The Good Knife",
+      "description": "The one blade Gribba keeps oiled and apart, too fine for common work.",
+      "equip_slots": ["hand_right"],
+      "damage": 4,
+      "damage_type": "piercing",
+      "weight": 0.5,
+      "tags": ["weapon", "kraktooth", "knife", "treasure"]
+    },
+    "gribba_food_charms": {
+      "category": "accessory",
+      "name": "Food Charms",
+      "description": "Little carved tokens strung on sinew, meant to keep a stew from turning.",
+      "equip_slots": ["neck"],
+      "weight": 0.1,
+      "tags": ["accessory", "kraktooth", "charm", "cooking"]
+    },
+
+    "rikka_asymmetric_wrap": {
+      "category": "clothing",
+      "name": "Asymmetric Leather and Cloth",
+      "description": "A wrap cut high on one side and long on the other, strips of cloth trailing.",
+      "equip_slots": ["torso"],
+      "weight": 1.4,
+      "tags": ["clothing", "kraktooth", "performer"]
+    },
+    "rikka_light_leather": {
+      "category": "armor",
+      "name": "Light Leather",
+      "description": "Supple leather fitted close, cut so nothing binds when Rikka tumbles.",
+      "equip_slots": ["torso"],
+      "defense": 1,
+      "weight": 1.5,
+      "tags": ["armor", "kraktooth", "leather", "light"]
+    },
+    "rikka_throwing_knives": {
+      "category": "weapon",
+      "name": "Throwing Knives",
+      "description": "A set of balanced knives, their grips worn smooth by long practice.",
+      "equip_slots": ["hand_right"],
+      "damage": 3,
+      "damage_type": "piercing",
+      "weight": 0.6,
+      "tags": ["weapon", "kraktooth", "knife", "throwing"]
+    },
+    "rikka_performance_stick": {
+      "category": "weapon",
+      "name": "Performance Stick",
+      "description": "A short club of polished wood, more often spun than swung.",
+      "equip_slots": ["hand_right"],
+      "damage": 3,
+      "damage_type": "bludgeoning",
+      "weight": 0.8,
+      "tags": ["weapon", "kraktooth", "club", "performer"]
+    },
+    "rikka_juggling_stones": {
+      "category": "tool",
+      "name": "Juggling Stones",
+      "description": "A set of smooth stones matched by weight, their surfaces polished by catching.",
+      "weight": 0.8,
+      "tags": ["tool", "kraktooth", "performer", "juggling"]
+    },
+    "rikka_string_puppet": {
+      "category": "tool",
+      "name": "String Puppet",
+      "description": "A jointed puppet of bone and cloth on a tangle of strings.",
+      "weight": 0.3,
+      "tags": ["tool", "kraktooth", "performer", "puppet"]
+    },
+    "rikka_little_drum": {
+      "category": "tool",
+      "name": "Little Drum",
+      "description": "A hand drum of stretched hide over a bent frame, pitch changed with a thumb.",
+      "weight": 0.7,
+      "tags": ["tool", "kraktooth", "performer", "drum", "music"]
+    },
+    "rikka_bells": {
+      "category": "accessory",
+      "name": "Tangle of Bells",
+      "description": "Dozens of mismatched bells knotted to a cord, tuned only by accident.",
+      "equip_slots": ["accessory"],
+      "weight": 0.2,
+      "tags": ["accessory", "kraktooth", "bell", "performer"]
+    },
+    "rikka_beads": {
+      "category": "material",
+      "name": "Assorted Beads",
+      "description": "A pouch of beads in bone, clay and glass, ready to be strung or traded.",
+      "weight": 0.2,
+      "tags": ["material", "kraktooth", "bead"]
+    },
+    "rikka_cheap_jewelry": {
+      "category": "accessory",
+      "name": "Cheap Jewelry",
+      "description": "A fistful of bright, worthless jewelry, chosen for how it catches firelight.",
+      "equip_slots": ["accessory"],
+      "weight": 0.2,
+      "tags": ["accessory", "kraktooth", "jewelry"]
+    },
+
+    "vekka_layered_leather": {
+      "category": "clothing",
+      "name": "Close-Fitting Layered Leather",
+      "description": "Layers of supple leather fitted close, quiet and warm in the cold.",
+      "equip_slots": ["torso"],
+      "weight": 1.8,
+      "tags": ["clothing", "kraktooth", "leather"]
+    },
+    "vekka_hooded_cloak": {
+      "category": "clothing",
+      "name": "Hooded Cloak",
+      "description": "A weather-stained cloak whose hood can swallow the whole face.",
+      "equip_slots": ["back"],
+      "insulation": 2,
+      "weight": 1.2,
+      "tags": ["clothing", "kraktooth", "cloak", "hood"]
+    },
+    "vekka_thin_guards": {
+      "category": "armor",
+      "name": "Thin Forearm and Knee Guards",
+      "description": "Thin plates of boiled leather laced over forearms and knees.",
+      "equip_slots": ["arms", "legs"],
+      "defense": 1,
+      "weight": 0.9,
+      "tags": ["armor", "kraktooth", "leather"]
+    },
+    "vekka_hunting_bow": {
+      "category": "weapon",
+      "name": "Compact Hunting Bow",
+      "description": "A short, heavy bow of dark wood, drawn from the saddle as often as the ground.",
+      "equip_slots": ["hand_right", "back"],
+      "damage": 5,
+      "damage_type": "piercing",
+      "weight": 1.0,
+      "tags": ["weapon", "kraktooth", "bow", "hunting"]
+    },
+    "vekka_curved_knife": {
+      "category": "weapon",
+      "name": "Curved Knife",
+      "description": "A curved skinning knife, the belly of the blade worked thin as a leaf.",
+      "equip_slots": ["hand_right"],
+      "damage": 4,
+      "damage_type": "slashing",
+      "weight": 0.5,
+      "tags": ["weapon", "kraktooth", "knife", "hunting"]
+    },
+    "vekka_small_mirror": {
+      "category": "tool",
+      "name": "Small Mirror",
+      "description": "A little steel mirror, better for signaling and peering round corners than for vanity.",
+      "weight": 0.2,
+      "provenance": "Traded from a human scout for a pouch of river stones.",
+      "tags": ["tool", "kraktooth", "mirror", "signal"]
+    },
+    "vekka_folded_map": {
+      "category": "tool",
+      "name": "Folded Map",
+      "description": "A map folded to a palm, the trails inked in a careful, foreign hand.",
+      "weight": 0.1,
+      "tags": ["tool", "kraktooth", "map", "scout"]
+    },
+    "vekka_charcoal": {
+      "category": "tool",
+      "name": "Charcoal Sticks",
+      "description": "Fingers of charcoal wrapped in a leaf, for marking trails nobody else should read.",
+      "weight": 0.1,
+      "tags": ["tool", "kraktooth", "charcoal", "scout"]
+    },
+    "vekka_found_stones": {
+      "category": "material",
+      "name": "Found Stones",
+      "description": "A pouch of odd river stones, kept for their color or their ring when struck.",
+      "weight": 0.4,
+      "tags": ["material", "kraktooth", "stone"]
+    },
+
+    "krikka_fitted_leather": {
+      "category": "clothing",
+      "name": "Lightweight Fitted Leather",
+      "description": "Light leather fitted like a second skin, cut short at every joint.",
+      "equip_slots": ["torso"],
+      "weight": 1.6,
+      "tags": ["clothing", "kraktooth", "leather"]
+    },
+    "krikka_reinforced_palms": {
+      "category": "armor",
+      "name": "Reinforced Palms",
+      "description": "Hide palms reinforced with scrap plate, proof against rope burn and stone.",
+      "equip_slots": ["hands"],
+      "defense": 1,
+      "weight": 0.4,
+      "tags": ["armor", "kraktooth", "climbing"]
+    },
+    "krikka_climbing_guards": {
+      "category": "armor",
+      "name": "Climbing Knee and Ankle Guards",
+      "description": "Padded guards strapped over knee and ankle, scraped white by the cliff.",
+      "equip_slots": ["legs", "feet"],
+      "defense": 1,
+      "weight": 0.9,
+      "tags": ["armor", "kraktooth", "climbing"]
+    },
+    "krikka_hooked_blade": {
+      "category": "weapon",
+      "name": "Small Hooked Blade",
+      "description": "A short blade with a deep hook, made to catch a hold as much as a throat.",
+      "equip_slots": ["hand_right"],
+      "damage": 4,
+      "damage_type": "slashing",
+      "weight": 0.6,
+      "tags": ["weapon", "kraktooth", "knife", "hooked", "climbing"]
+    },
+    "krikka_backup_knife": {
+      "category": "weapon",
+      "name": "Climber's Backup Knife",
+      "description": "A stubby knife wedged where a harness strap hides it from a casual eye.",
+      "equip_slots": ["hand_right"],
+      "damage": 3,
+      "damage_type": "piercing",
+      "weight": 0.3,
+      "tags": ["weapon", "kraktooth", "knife", "concealed"]
+    },
+    "krikka_climbing_rope": {
+      "category": "tool",
+      "name": "Climbing Rope",
+      "description": "A long rope knotted at intervals, each knot tested by somebody who survived it.",
+      "weight": 2.5,
+      "tags": ["tool", "kraktooth", "rope", "climb"]
+    },
+    "krikka_harness": {
+      "category": "tool",
+      "name": "Climbing Harness",
+      "description": "A web of straps and scavenged buckles that holds a climber to the rope.",
+      "weight": 1.2,
+      "tags": ["tool", "kraktooth", "harness", "climb"]
+    },
+    "krikka_resin": {
+      "category": "material",
+      "name": "Pine Resin",
+      "description": "A lump of sticky pine resin, chewed, burned, or smeared on rope for grip.",
+      "weight": 0.3,
+      "affinity": ["forest", "woods"],
+      "tags": ["material", "kraktooth", "resin"]
+    },
+    "krikka_hidden_pouch": {
+      "category": "accessory",
+      "name": "Hidden Pouch",
+      "description": "A flat pouch sewn against the inside of the belt, invisible under a wrap.",
+      "equip_slots": ["waist"],
+      "weight": 0.2,
+      "tags": ["accessory", "kraktooth", "container", "pouch", "concealed"]
+    },
+    "krikka_shiny_stones": {
+      "category": "material",
+      "name": "Shiny Stones",
+      "description": "A double handful of glossy stones, ranked by shine on a scale only Krikka knows.",
+      "weight": 0.4,
+      "tags": ["material", "kraktooth", "stone", "treasure"]
+    }
+  }
+}

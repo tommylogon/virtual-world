@@ -1,0 +1,23 @@
+{
+  "name": "Small Hooked Blade",
+  "description": "A short blade with a deep hook, made to catch a hold as much as a throat.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 0.6,
+  "equip_slots": [
+    "hand_right"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "damage": 4,
+  "damage_type": "slashing",
+  "tags": [
+    "weapon",
+    "kraktooth",
+    "knife",
+    "hooked",
+    "climbing"
+  ],
+  "triggers": [],
+  "contents": []
+}

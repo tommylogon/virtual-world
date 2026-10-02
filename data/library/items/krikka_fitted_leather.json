@@ -1,0 +1,19 @@
+{
+  "name": "Lightweight Fitted Leather",
+  "description": "Light leather fitted like a second skin, cut short at every joint.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 1.6,
+  "equip_slots": [
+    "torso"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "clothing",
+    "kraktooth",
+    "leather"
+  ],
+  "triggers": [],
+  "contents": []
+}

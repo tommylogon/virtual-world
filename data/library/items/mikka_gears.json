@@ -1,0 +1,17 @@
+{
+  "name": "Loose Gears",
+  "description": "A tin of gears and cogs, most of them from mechanisms nobody here can name.",
+  "actions": "examine,take",
+  "uses": -1,
+  "weight": 0.6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "material",
+    "kraktooth",
+    "mechanism",
+    "metal"
+  ],
+  "triggers": [],
+  "contents": []
+}

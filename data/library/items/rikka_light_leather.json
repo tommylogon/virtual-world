@@ -1,0 +1,21 @@
+{
+  "name": "Light Leather",
+  "description": "Supple leather fitted close, cut so nothing binds when Rikka tumbles.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 1.5,
+  "equip_slots": [
+    "torso"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 1,
+  "tags": [
+    "armor",
+    "kraktooth",
+    "leather",
+    "light"
+  ],
+  "triggers": [],
+  "contents": []
+}

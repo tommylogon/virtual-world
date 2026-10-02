@@ -1,0 +1,17 @@
+{
+  "name": "Cooking Spoon",
+  "description": "A long wooden spoon, one edge of the bowl flattened into a scraper.",
+  "actions": "examine,take,use",
+  "uses": -1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "tool",
+    "kraktooth",
+    "cooking",
+    "spoon"
+  ],
+  "triggers": [],
+  "contents": []
+}

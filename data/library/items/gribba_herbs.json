@@ -1,0 +1,17 @@
+{
+  "name": "Drying Herbs",
+  "description": "Bundles of herbs hung to dry, sorted by what they cure rather than how they taste.",
+  "actions": "examine,take",
+  "uses": -1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "material",
+    "kraktooth",
+    "herb",
+    "medicinal"
+  ],
+  "triggers": [],
+  "contents": []
+}

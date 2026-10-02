@@ -1,0 +1,22 @@
+{
+  "name": "Curved Knife",
+  "description": "A curved skinning knife, the belly of the blade worked thin as a leaf.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 0.5,
+  "equip_slots": [
+    "hand_right"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "damage": 4,
+  "damage_type": "slashing",
+  "tags": [
+    "weapon",
+    "kraktooth",
+    "knife",
+    "hunting"
+  ],
+  "triggers": [],
+  "contents": []
+}

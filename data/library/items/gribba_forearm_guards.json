@@ -1,0 +1,21 @@
+{
+  "name": "Thick Leather Forearm Guards",
+  "description": "Thick hide guards laced up the forearms, scorched where they have turned a spill.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 1.0,
+  "equip_slots": [
+    "arms"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 1,
+  "insulation": 1,
+  "tags": [
+    "armor",
+    "kraktooth",
+    "leather"
+  ],
+  "triggers": [],
+  "contents": []
+}

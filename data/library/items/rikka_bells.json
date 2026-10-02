@@ -1,0 +1,20 @@
+{
+  "name": "Tangle of Bells",
+  "description": "Dozens of mismatched bells knotted to a cord, tuned only by accident.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 0.2,
+  "equip_slots": [
+    "accessory"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "accessory",
+    "kraktooth",
+    "bell",
+    "performer"
+  ],
+  "triggers": [],
+  "contents": []
+}

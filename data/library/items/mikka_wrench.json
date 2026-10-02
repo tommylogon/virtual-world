@@ -1,0 +1,17 @@
+{
+  "name": "Stolen Wrench",
+  "description": "A human wrench, its maker's mark filed away and its jaw polished by use.",
+  "actions": "examine,take,use",
+  "uses": -1,
+  "weight": 0.9,
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "tool",
+    "kraktooth",
+    "wrench"
+  ],
+  "provenance": "Stolen from a human wagon on the old road.",
+  "triggers": [],
+  "contents": []
+}

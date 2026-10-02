@@ -1,0 +1,20 @@
+{
+  "name": "Pine Resin",
+  "description": "A lump of sticky pine resin, chewed, burned, or smeared on rope for grip.",
+  "actions": "examine,take",
+  "uses": -1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "material",
+    "kraktooth",
+    "resin"
+  ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
+  "triggers": [],
+  "contents": []
+}

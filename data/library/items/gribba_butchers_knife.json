@@ -1,0 +1,22 @@
+{
+  "name": "Heavy Butcher's Knife",
+  "description": "A broad-bladed knife kept sharp enough to part a joint in one draw.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 1.2,
+  "equip_slots": [
+    "hand_right"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "damage": 5,
+  "damage_type": "slashing",
+  "tags": [
+    "weapon",
+    "kraktooth",
+    "knife",
+    "cooking"
+  ],
+  "triggers": [],
+  "contents": []
+}

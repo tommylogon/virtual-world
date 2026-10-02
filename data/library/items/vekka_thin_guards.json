@@ -1,0 +1,21 @@
+{
+  "name": "Thin Forearm and Knee Guards",
+  "description": "Thin plates of boiled leather laced over forearms and knees.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 0.9,
+  "equip_slots": [
+    "arms",
+    "legs"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 1,
+  "tags": [
+    "armor",
+    "kraktooth",
+    "leather"
+  ],
+  "triggers": [],
+  "contents": []
+}

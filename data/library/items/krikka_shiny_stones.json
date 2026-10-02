@@ -1,0 +1,17 @@
+{
+  "name": "Shiny Stones",
+  "description": "A double handful of glossy stones, ranked by shine on a scale only Krikka knows.",
+  "actions": "examine,take",
+  "uses": -1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "material",
+    "kraktooth",
+    "stone",
+    "treasure"
+  ],
+  "triggers": [],
+  "contents": []
+}

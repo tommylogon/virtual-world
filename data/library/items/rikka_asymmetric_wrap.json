@@ -1,0 +1,19 @@
+{
+  "name": "Asymmetric Leather and Cloth",
+  "description": "A wrap cut high on one side and long on the other, strips of cloth trailing.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 1.4,
+  "equip_slots": [
+    "torso"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "clothing",
+    "kraktooth",
+    "performer"
+  ],
+  "triggers": [],
+  "contents": []
+}

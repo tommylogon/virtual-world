@@ -1,0 +1,22 @@
+{
+  "name": "Hooked Knife",
+  "description": "A curved knife whose hooked point is made for hooking and tearing.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 0.8,
+  "equip_slots": [
+    "hand_right"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "damage": 4,
+  "damage_type": "piercing",
+  "tags": [
+    "weapon",
+    "kraktooth",
+    "knife",
+    "hooked"
+  ],
+  "triggers": [],
+  "contents": []
+}

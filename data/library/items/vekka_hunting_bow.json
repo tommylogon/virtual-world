@@ -1,0 +1,23 @@
+{
+  "name": "Compact Hunting Bow",
+  "description": "A short, heavy bow of dark wood, drawn from the saddle as often as the ground.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 1.0,
+  "equip_slots": [
+    "hand_right",
+    "back"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "damage": 5,
+  "damage_type": "piercing",
+  "tags": [
+    "weapon",
+    "kraktooth",
+    "bow",
+    "hunting"
+  ],
+  "triggers": [],
+  "contents": []
+}

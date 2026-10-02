@@ -1,0 +1,20 @@
+{
+  "name": "Bone Necklace",
+  "description": "A cord of drilled knucklebones, each one a name Zikka has not forgotten.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 0.2,
+  "equip_slots": [
+    "neck"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "accessory",
+    "kraktooth",
+    "bone",
+    "jewelry"
+  ],
+  "triggers": [],
+  "contents": []
+}

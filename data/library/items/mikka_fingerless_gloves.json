@@ -1,0 +1,19 @@
+{
+  "name": "Fingerless Gloves",
+  "description": "Fingerless gloves worn thin, cut away so no fingertip is ever dulled.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 0.2,
+  "equip_slots": [
+    "hands"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "clothing",
+    "kraktooth",
+    "gloves"
+  ],
+  "triggers": [],
+  "contents": []
+}

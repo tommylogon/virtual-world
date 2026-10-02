@@ -1,0 +1,22 @@
+{
+  "name": "Improvised Pry-Bar Dagger",
+  "description": "A flattened iron bar ground to a point at one end and hooked at the other.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 1.5,
+  "equip_slots": [
+    "hand_right"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "damage": 5,
+  "damage_type": "piercing",
+  "tags": [
+    "weapon",
+    "kraktooth",
+    "improvised",
+    "prybar"
+  ],
+  "triggers": [],
+  "contents": []
+}

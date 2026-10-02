@@ -1,0 +1,21 @@
+{
+  "name": "Climbing Knee and Ankle Guards",
+  "description": "Padded guards strapped over knee and ankle, scraped white by the cliff.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 0.9,
+  "equip_slots": [
+    "legs",
+    "feet"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 1,
+  "tags": [
+    "armor",
+    "kraktooth",
+    "climbing"
+  ],
+  "triggers": [],
+  "contents": []
+}
